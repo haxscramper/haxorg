@@ -389,6 +389,7 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
 T = TypeVar('T')
 
+
 @beartype
 def drop_none(items: Iterable[T]) -> Iterable[T]:
     return itertools.filterfalse(lambda it: not it, items)
@@ -828,8 +829,9 @@ def build_protobuf_fields_for_variant(typ: QualType) -> Iterable[GenTuField]:
 
 @beartype
 def build_protobuf_writer(
-        expanded: List[GenTuStruct],
-        ast: ASTBuilder) -> Iterable[Union[RecordParams, MethodDefParams]]:
+    expanded: List[GenTuStruct],
+    ast: ASTBuilder,
+) -> Iterable[Union[RecordParams, MethodDefParams]]:
     t = ast.b
     base_map = get_base_map(expanded)
     types_list = get_protobuf_wrapped(expanded)
@@ -862,6 +864,9 @@ def build_protobuf_writer(
 
                 Body: List[BlockId] = []
                 for base in get_base_list(it, base_map):
+                    if base.name in base_map and len(base_map[base.name].fields) == 0:
+                        continue
+                        
                     Body.append(
                         ast.CallStatic(
                             QualType(name="proto_serde", Parameters=[out_type, base]),

@@ -471,7 +471,7 @@ struct Code : public sem::Block {
       int value = 0;
     };
 
-    using Data = std::variant<LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent>;
+    using Data = std::variant<sem::Code::Switch::LineStart, sem::Code::Switch::CalloutFormat, sem::Code::Switch::RemoveCallout, sem::Code::Switch::EmphasizeLine, sem::Code::Switch::Dedent>;
     enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
     using variant_enum_type = sem::Code::Switch::Kind;
@@ -607,7 +607,7 @@ struct Time : public sem::Org {
     Str expr;
   };
 
-  using TimeVariant = std::variant<Static, Dynamic>;
+  using TimeVariant = std::variant<sem::Time::Static, sem::Time::Dynamic>;
   enum class TimeKind : short int { Static, Dynamic, };
   BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
   using variant_enum_type = sem::Time::TimeKind;
@@ -793,7 +793,7 @@ struct SubtreeLog : public sem::Org {
     bool added = false;
   };
 
-  using LogEntry = std::variant<Priority, Note, Refile, Clock, State, Tag>;
+  using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Note, sem::SubtreeLog::Refile, sem::SubtreeLog::Clock, sem::SubtreeLog::State, sem::SubtreeLog::Tag>;
   enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag)
   using variant_enum_type = sem::SubtreeLog::Kind;
@@ -875,7 +875,7 @@ struct Subtree : public sem::Org {
                           (sem::SemIdT<sem::Time>()) getTime,
                           (sem::SemIdT<sem::Time>()) getTimeRange))
     /// \brief Time period kind -- not associated with point/range distinction
-    Kind kind;
+    sem::Subtree::Period::Kind kind;
     /// \brief Stored time point/range
     Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> period = sem::SemIdT<sem::Time>::Nil();
     /// \brief Get associated time point
@@ -977,7 +977,7 @@ struct Subtree : public sem::Org {
       sem::SemIdT<sem::Time> time = SemIdT<Time>::Nil();
     };
 
-    using Data = std::variant<Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created>;
+    using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created>;
     enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created)
     using variant_enum_type = sem::Subtree::Property::Kind;
@@ -1478,7 +1478,7 @@ struct Link : public sem::Org {
     Str file;
   };
 
-  using Data = std::variant<Raw, Id, Person, Footnote, File>;
+  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::Footnote, sem::Link::File>;
   enum class Kind : short int { Raw, Id, Person, Footnote, File, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, Footnote, File)
   using variant_enum_type = sem::Link::Kind;
@@ -1648,7 +1648,7 @@ struct Include : public sem::Org {
     BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), ())
   };
 
-  using Data = std::variant<Example, Export, Src, OrgDocument>;
+  using Data = std::variant<sem::Include::Example, sem::Include::Export, sem::Include::Src, sem::Include::OrgDocument>;
   enum class Kind : short int { Example, Export, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
   using variant_enum_type = sem::Include::Kind;
@@ -1700,7 +1700,7 @@ struct DocumentOptions : public sem::Org {
     int exportLevels;
   };
 
-  using TocExport = std::variant<DoExport, ExportFixed>;
+  using TocExport = std::variant<sem::DocumentOptions::DoExport, sem::DocumentOptions::ExportFixed>;
   enum class TocExportKind : short int { DoExport, ExportFixed, };
   BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
   using variant_enum_type = sem::DocumentOptions::TocExportKind;

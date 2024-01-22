@@ -1,0 +1,1389 @@
+/* clang-format off */
+syntax = "proto3";
+package orgproto;
+import "SemOrgProtoManual.proto";
+enum OrgSemPlacement {
+  OrgSemPlacement_TreeTitle_f                                                       = 0;
+  OrgSemPlacement_TreeBody_f                                                        = 1;
+  OrgSemPlacement_LinkDescription_f                                                 = 2;
+  OrgSemPlacement_ListItemBody_f                                                    = 3;
+  OrgSemPlacement_ListItemDesc_f                                                    = 4;
+  OrgSemPlacement_DocBody_f                                                         = 5;
+}
+enum OrgSpecName {
+  OrgSpecName_Unnamed_f                                                             = 0;
+  OrgSpecName_Result_f                                                              = 1;
+  OrgSpecName_Year_f                                                                = 2;
+  OrgSpecName_Day_f                                                                 = 3;
+  OrgSpecName_Clock_f                                                               = 4;
+  OrgSpecName_Repeater_f                                                            = 5;
+  OrgSpecName_Link_f                                                                = 6;
+  OrgSpecName_Tags_f                                                                = 7;
+  OrgSpecName_Tag_f                                                                 = 8;
+  OrgSpecName_State_f                                                               = 9;
+  OrgSpecName_Protocol_f                                                            = 10;
+  OrgSpecName_Desc_f                                                                = 11;
+  OrgSpecName_Times_f                                                               = 12;
+  OrgSpecName_Drawer_f                                                              = 13;
+  OrgSpecName_Args_f                                                                = 14;
+  OrgSpecName_Name_f                                                                = 15;
+  OrgSpecName_Definition_f                                                          = 16;
+  OrgSpecName_Body_f                                                                = 17;
+  OrgSpecName_HeaderArgs_f                                                          = 18;
+  OrgSpecName_File_f                                                                = 19;
+  OrgSpecName_Kind_f                                                                = 20;
+  OrgSpecName_Lang_f                                                                = 21;
+  OrgSpecName_Prefix_f                                                              = 22;
+  OrgSpecName_Text_f                                                                = 23;
+  OrgSpecName_Todo_f                                                                = 24;
+  OrgSpecName_Urgency_f                                                             = 25;
+  OrgSpecName_Title_f                                                               = 26;
+  OrgSpecName_Completion_f                                                          = 27;
+  OrgSpecName_Head_f                                                                = 28;
+  OrgSpecName_Subnodes_f                                                            = 29;
+  OrgSpecName_Properties_f                                                          = 30;
+  OrgSpecName_Logbook_f                                                             = 31;
+  OrgSpecName_Description_f                                                         = 32;
+  OrgSpecName_Logs_f                                                                = 33;
+  OrgSpecName_Newstate_f                                                            = 34;
+  OrgSpecName_Oldstate_f                                                            = 35;
+  OrgSpecName_Time_f                                                                = 36;
+  OrgSpecName_From_f                                                                = 37;
+  OrgSpecName_EndArgs_f                                                             = 38;
+  OrgSpecName_Flags_f                                                               = 39;
+  OrgSpecName_Value_f                                                               = 40;
+  OrgSpecName_Assoc_f                                                               = 41;
+  OrgSpecName_Main_f                                                                = 42;
+  OrgSpecName_Hash_f                                                                = 43;
+  OrgSpecName_Bullet_f                                                              = 44;
+  OrgSpecName_Counter_f                                                             = 45;
+  OrgSpecName_Checkbox_f                                                            = 46;
+  OrgSpecName_Header_f                                                              = 47;
+  OrgSpecName_To_f                                                                  = 48;
+  OrgSpecName_Diff_f                                                                = 49;
+  OrgSpecName_Property_f                                                            = 50;
+  OrgSpecName_Subname_f                                                             = 51;
+  OrgSpecName_Values_f                                                              = 52;
+  OrgSpecName_Cells_f                                                               = 53;
+  OrgSpecName_Rows_f                                                                = 54;
+  OrgSpecName_Lines_f                                                               = 55;
+  OrgSpecName_Chunks_f                                                              = 56;
+  OrgSpecName_InheritanceMode_f                                                     = 57;
+  OrgSpecName_MainSetRule_f                                                         = 58;
+  OrgSpecName_SubSetRule_f                                                          = 59;
+}
+enum OrgNodeKind {
+  OrgNodeKind_None_f                                                                = 0;
+  OrgNodeKind_Document_f                                                            = 1;
+  OrgNodeKind_UserNode_f                                                            = 2;
+  OrgNodeKind_Empty_f                                                               = 3;
+  OrgNodeKind_Error_f                                                               = 4;
+  OrgNodeKind_ErrorTerminator_f                                                     = 5;
+  OrgNodeKind_ErrorToken_f                                                          = 6;
+  OrgNodeKind_InlineStmtList_f                                                      = 7;
+  OrgNodeKind_StmtList_f                                                            = 8;
+  OrgNodeKind_AssocStmtList_f                                                       = 9;
+  OrgNodeKind_Subtree_f                                                             = 10;
+  OrgNodeKind_SubtreeTimes_f                                                        = 11;
+  OrgNodeKind_SubtreeStars_f                                                        = 12;
+  OrgNodeKind_Completion_f                                                          = 13;
+  OrgNodeKind_Checkbox_f                                                            = 14;
+  OrgNodeKind_List_f                                                                = 15;
+  OrgNodeKind_Bullet_f                                                              = 16;
+  OrgNodeKind_ListItem_f                                                            = 17;
+  OrgNodeKind_ListTag_f                                                             = 18;
+  OrgNodeKind_Counter_f                                                             = 19;
+  OrgNodeKind_Comment_f                                                             = 20;
+  OrgNodeKind_RawText_f                                                             = 21;
+  OrgNodeKind_Unparsed_f                                                            = 22;
+  OrgNodeKind_Command_f                                                             = 23;
+  OrgNodeKind_CommandArguments_f                                                    = 24;
+  OrgNodeKind_CommandTitle_f                                                        = 25;
+  OrgNodeKind_CommandAuthor_f                                                       = 26;
+  OrgNodeKind_CommandCreator_f                                                      = 27;
+  OrgNodeKind_CommandInclude_f                                                      = 28;
+  OrgNodeKind_CommandLanguage_f                                                     = 29;
+  OrgNodeKind_CommandAttrHtml_f                                                     = 30;
+  OrgNodeKind_CommandName_f                                                         = 31;
+  OrgNodeKind_CommandHeader_f                                                       = 32;
+  OrgNodeKind_CommandOptions_f                                                      = 33;
+  OrgNodeKind_CommandTblfm_f                                                        = 34;
+  OrgNodeKind_CommandBackendOptions_f                                               = 35;
+  OrgNodeKind_AttrImg_f                                                             = 36;
+  OrgNodeKind_CommandCaption_f                                                      = 37;
+  OrgNodeKind_File_f                                                                = 38;
+  OrgNodeKind_BlockExport_f                                                         = 39;
+  OrgNodeKind_InlineExport_f                                                        = 40;
+  OrgNodeKind_MultilineCommand_f                                                    = 41;
+  OrgNodeKind_Result_f                                                              = 42;
+  OrgNodeKind_Ident_f                                                               = 43;
+  OrgNodeKind_BareIdent_f                                                           = 44;
+  OrgNodeKind_AdmonitionTag_f                                                       = 45;
+  OrgNodeKind_BigIdent_f                                                            = 46;
+  OrgNodeKind_VerbatimMultilineBlock_f                                              = 47;
+  OrgNodeKind_CodeLine_f                                                            = 48;
+  OrgNodeKind_CodeText_f                                                            = 49;
+  OrgNodeKind_CodeTangle_f                                                          = 50;
+  OrgNodeKind_CodeCallout_f                                                         = 51;
+  OrgNodeKind_QuoteBlock_f                                                          = 52;
+  OrgNodeKind_AdmonitionBlock_f                                                     = 53;
+  OrgNodeKind_CenterBlock_f                                                         = 54;
+  OrgNodeKind_Example_f                                                             = 55;
+  OrgNodeKind_SrcCode_f                                                             = 56;
+  OrgNodeKind_SrcInlineCode_f                                                       = 57;
+  OrgNodeKind_CallCode_f                                                            = 58;
+  OrgNodeKind_PassCode_f                                                            = 59;
+  OrgNodeKind_CmdArguments_f                                                        = 60;
+  OrgNodeKind_CmdFlag_f                                                             = 61;
+  OrgNodeKind_CmdKey_f                                                              = 62;
+  OrgNodeKind_CmdValue_f                                                            = 63;
+  OrgNodeKind_CmdNamedValue_f                                                       = 64;
+  OrgNodeKind_UrgencyStatus_f                                                       = 65;
+  OrgNodeKind_TextSeparator_f                                                       = 66;
+  OrgNodeKind_Paragraph_f                                                           = 67;
+  OrgNodeKind_AnnotatedParagraph_f                                                  = 68;
+  OrgNodeKind_Bold_f                                                                = 69;
+  OrgNodeKind_Italic_f                                                              = 70;
+  OrgNodeKind_Verbatim_f                                                            = 71;
+  OrgNodeKind_Backtick_f                                                            = 72;
+  OrgNodeKind_Underline_f                                                           = 73;
+  OrgNodeKind_Strike_f                                                              = 74;
+  OrgNodeKind_Quote_f                                                               = 75;
+  OrgNodeKind_Angle_f                                                               = 76;
+  OrgNodeKind_Monospace_f                                                           = 77;
+  OrgNodeKind_Par_f                                                                 = 78;
+  OrgNodeKind_InlineMath_f                                                          = 79;
+  OrgNodeKind_DisplayMath_f                                                         = 80;
+  OrgNodeKind_Space_f                                                               = 81;
+  OrgNodeKind_Punctuation_f                                                         = 82;
+  OrgNodeKind_Colon_f                                                               = 83;
+  OrgNodeKind_Word_f                                                                = 84;
+  OrgNodeKind_Escaped_f                                                             = 85;
+  OrgNodeKind_Newline_f                                                             = 86;
+  OrgNodeKind_RawLink_f                                                             = 87;
+  OrgNodeKind_Link_f                                                                = 88;
+  OrgNodeKind_Macro_f                                                               = 89;
+  OrgNodeKind_BackendRaw_f                                                          = 90;
+  OrgNodeKind_Symbol_f                                                              = 91;
+  OrgNodeKind_TimeAssoc_f                                                           = 92;
+  OrgNodeKind_StaticActiveTime_f                                                    = 93;
+  OrgNodeKind_StaticInactiveTime_f                                                  = 94;
+  OrgNodeKind_DynamicActiveTime_f                                                   = 95;
+  OrgNodeKind_DynamicInactiveTime_f                                                 = 96;
+  OrgNodeKind_TimeRange_f                                                           = 97;
+  OrgNodeKind_SimpleTime_f                                                          = 98;
+  OrgNodeKind_Details_f                                                             = 99;
+  OrgNodeKind_Summary_f                                                             = 100;
+  OrgNodeKind_Table_f                                                               = 101;
+  OrgNodeKind_TableRow_f                                                            = 102;
+  OrgNodeKind_TableCell_f                                                           = 103;
+  OrgNodeKind_InlineFootnote_f                                                      = 104;
+  OrgNodeKind_Footnote_f                                                            = 105;
+  OrgNodeKind_Horizontal_f                                                          = 106;
+  OrgNodeKind_Filetags_f                                                            = 107;
+  OrgNodeKind_OrgTag_f                                                              = 108;
+  OrgNodeKind_HashTag_f                                                             = 109;
+  OrgNodeKind_MetaSymbol_f                                                          = 110;
+  OrgNodeKind_AtMention_f                                                           = 111;
+  OrgNodeKind_BracTag_f                                                             = 112;
+  OrgNodeKind_Drawer_f                                                              = 113;
+  OrgNodeKind_LatexClass_f                                                          = 114;
+  OrgNodeKind_LatexHeader_f                                                         = 115;
+  OrgNodeKind_LatexCompiler_f                                                       = 116;
+  OrgNodeKind_LatexClassOptions_f                                                   = 117;
+  OrgNodeKind_HtmlHead_f                                                            = 118;
+  OrgNodeKind_Columns_f                                                             = 119;
+  OrgNodeKind_CmdPropertyArgs_f                                                     = 120;
+  OrgNodeKind_CmdPropertyText_f                                                     = 121;
+  OrgNodeKind_CmdPropertyRaw_f                                                      = 122;
+  OrgNodeKind_PropertyList_f                                                        = 123;
+  OrgNodeKind_Property_f                                                            = 124;
+  OrgNodeKind_Placeholder_f                                                         = 125;
+  OrgNodeKind_SubtreeDescription_f                                                  = 126;
+  OrgNodeKind_SubtreeUrgency_f                                                      = 127;
+  OrgNodeKind_Logbook_f                                                             = 128;
+  OrgNodeKind_LogbookEntry_f                                                        = 129;
+  OrgNodeKind_LogbookStateChange_f                                                  = 130;
+  OrgNodeKind_LogbookNote_f                                                         = 131;
+  OrgNodeKind_LogbookClock_f                                                        = 132;
+  OrgNodeKind_LogbookRefile_f                                                       = 133;
+  OrgNodeKind_LogbookPriority_f                                                     = 134;
+  OrgNodeKind_LogbookPriorityChangeAction_f                                         = 135;
+  OrgNodeKind_LogbookReschedule_f                                                   = 136;
+  OrgNodeKind_LogbookTagChange_f                                                    = 137;
+  OrgNodeKind_LogbookTagChangeAction_f                                              = 138;
+  OrgNodeKind_RadioTarget_f                                                         = 139;
+  OrgNodeKind_Target_f                                                              = 140;
+}
+enum OrgBigIdentKind {
+  OrgBigIdentKind_None_f                                                            = 0;
+  OrgBigIdentKind_Must_f                                                            = 1;
+  OrgBigIdentKind_MustNot_f                                                         = 2;
+  OrgBigIdentKind_Should_f                                                          = 3;
+  OrgBigIdentKind_ShouldNot_f                                                       = 4;
+  OrgBigIdentKind_Required_f                                                        = 5;
+  OrgBigIdentKind_Optional_f                                                        = 6;
+  OrgBigIdentKind_ReallyShouldNot_f                                                 = 7;
+  OrgBigIdentKind_OughtTo_f                                                         = 8;
+  OrgBigIdentKind_WouldProbably_f                                                   = 9;
+  OrgBigIdentKind_MayWishTo_f                                                       = 10;
+  OrgBigIdentKind_Could_f                                                           = 11;
+  OrgBigIdentKind_Might_f                                                           = 12;
+  OrgBigIdentKind_Possible_f                                                        = 13;
+  OrgBigIdentKind_Todo_f                                                            = 14;
+  OrgBigIdentKind_Idea_f                                                            = 15;
+  OrgBigIdentKind_Error_f                                                           = 16;
+  OrgBigIdentKind_Fixme_f                                                           = 17;
+  OrgBigIdentKind_Doc_f                                                             = 18;
+  OrgBigIdentKind_Refactor_f                                                        = 19;
+  OrgBigIdentKind_Review_f                                                          = 20;
+  OrgBigIdentKind_Hack_f                                                            = 21;
+  OrgBigIdentKind_Implement_f                                                       = 22;
+  OrgBigIdentKind_Example_f                                                         = 23;
+  OrgBigIdentKind_Question_f                                                        = 24;
+  OrgBigIdentKind_Assume_f                                                          = 25;
+  OrgBigIdentKind_Internal_f                                                        = 26;
+  OrgBigIdentKind_Design_f                                                          = 27;
+  OrgBigIdentKind_Why_f                                                             = 28;
+  OrgBigIdentKind_Wip_f                                                             = 29;
+  OrgBigIdentKind_Fix_f                                                             = 30;
+  OrgBigIdentKind_Clean_f                                                           = 31;
+  OrgBigIdentKind_Feature_f                                                         = 32;
+  OrgBigIdentKind_Style_f                                                           = 33;
+  OrgBigIdentKind_Repo_f                                                            = 34;
+  OrgBigIdentKind_Skip_f                                                            = 35;
+  OrgBigIdentKind_Break_f                                                           = 36;
+  OrgBigIdentKind_Poc_f                                                             = 37;
+  OrgBigIdentKind_Next_f                                                            = 38;
+  OrgBigIdentKind_Later_f                                                           = 39;
+  OrgBigIdentKind_Postponed_f                                                       = 40;
+  OrgBigIdentKind_Stalled_f                                                         = 41;
+  OrgBigIdentKind_Done_f                                                            = 42;
+  OrgBigIdentKind_Partially_f                                                       = 43;
+  OrgBigIdentKind_Cancelled_f                                                       = 44;
+  OrgBigIdentKind_Failed_f                                                          = 45;
+  OrgBigIdentKind_Note_f                                                            = 46;
+  OrgBigIdentKind_Tip_f                                                             = 47;
+  OrgBigIdentKind_Important_f                                                       = 48;
+  OrgBigIdentKind_Caution_f                                                         = 49;
+  OrgBigIdentKind_Warning_f                                                         = 50;
+  OrgBigIdentKind_UserCodeComment_f                                                 = 51;
+  OrgBigIdentKind_UserCommitMsg_f                                                   = 52;
+  OrgBigIdentKind_UserTaskState_f                                                   = 53;
+  OrgBigIdentKind_UserAdmonition_f                                                  = 54;
+  OrgBigIdentKind_Other_f                                                           = 55;
+  OrgBigIdentKind_StructIf_f                                                        = 56;
+  OrgBigIdentKind_StructAnd_f                                                       = 57;
+  OrgBigIdentKind_StructOr_f                                                        = 58;
+  OrgBigIdentKind_StructNot_f                                                       = 59;
+  OrgBigIdentKind_StructGet_f                                                       = 60;
+  OrgBigIdentKind_StructSet_f                                                       = 61;
+  OrgBigIdentKind_StructThen_f                                                      = 62;
+  OrgBigIdentKind_StructElse_f                                                      = 63;
+  OrgBigIdentKind_StructWhile_f                                                     = 64;
+}
+enum OrgTokenKind {
+  OrgTokenKind_None_f                                                               = 0;
+  OrgTokenKind_Eof_f                                                                = 1;
+  OrgTokenKind_CmdPrefix_f                                                          = 2;
+  OrgTokenKind_CmdLine_f                                                            = 3;
+  OrgTokenKind_CmdTitle_f                                                           = 4;
+  OrgTokenKind_CmdCaption_f                                                         = 5;
+  OrgTokenKind_CmdFiletags_f                                                        = 6;
+  OrgTokenKind_CmdColumns_f                                                         = 7;
+  OrgTokenKind_CmdPropertyArgs_f                                                    = 8;
+  OrgTokenKind_CmdPropertyText_f                                                    = 9;
+  OrgTokenKind_CmdPropertyRaw_f                                                     = 10;
+  OrgTokenKind_CmdOptions_f                                                         = 11;
+  OrgTokenKind_CmdSetupfile_f                                                       = 12;
+  OrgTokenKind_CmdInclude_f                                                         = 13;
+  OrgTokenKind_CmdAttrLatex_f                                                       = 14;
+  OrgTokenKind_CmdAttrImg_f                                                         = 15;
+  OrgTokenKind_CmdAttrHtml_f                                                        = 16;
+  OrgTokenKind_CmdHtmlHead_f                                                        = 17;
+  OrgTokenKind_CmdLanguage_f                                                        = 18;
+  OrgTokenKind_CmdLatexClassOptions_f                                               = 19;
+  OrgTokenKind_CmdLatexClass_f                                                      = 20;
+  OrgTokenKind_CmdLatexCompiler_f                                                   = 21;
+  OrgTokenKind_CmdAuthor_f                                                          = 22;
+  OrgTokenKind_CmdBind_f                                                            = 23;
+  OrgTokenKind_CmdCreator_f                                                         = 24;
+  OrgTokenKind_CmdLatexHeader_f                                                     = 25;
+  OrgTokenKind_CmdResults_f                                                         = 26;
+  OrgTokenKind_CmdCall_f                                                            = 27;
+  OrgTokenKind_CmdName_f                                                            = 28;
+  OrgTokenKind_CmdHeader_f                                                          = 29;
+  OrgTokenKind_CmdArgumentsBegin_f                                                  = 30;
+  OrgTokenKind_CmdArgumentsEnd_f                                                    = 31;
+  OrgTokenKind_CmdKey_f                                                             = 32;
+  OrgTokenKind_CmdValue_f                                                           = 33;
+  OrgTokenKind_CmdFlag_f                                                            = 34;
+  OrgTokenKind_CmdBracket_f                                                         = 35;
+  OrgTokenKind_CmdBegin_f                                                           = 36;
+  OrgTokenKind_CmdEnd_f                                                             = 37;
+  OrgTokenKind_CmdSrcBegin_f                                                        = 38;
+  OrgTokenKind_CmdSrcEnd_f                                                          = 39;
+  OrgTokenKind_CmdQuoteBegin_f                                                      = 40;
+  OrgTokenKind_CmdQuoteEnd_f                                                        = 41;
+  OrgTokenKind_CmdCenterBegin_f                                                     = 42;
+  OrgTokenKind_CmdCenterEnd_f                                                       = 43;
+  OrgTokenKind_CmdTableBegin_f                                                      = 44;
+  OrgTokenKind_CmdTableEnd_f                                                        = 45;
+  OrgTokenKind_CmdAdmonitionBegin_f                                                 = 46;
+  OrgTokenKind_CmdAdmonitionEnd_f                                                   = 47;
+  OrgTokenKind_CmdDynamicBegin_f                                                    = 48;
+  OrgTokenKind_CmdDynamicEnd_f                                                      = 49;
+  OrgTokenKind_CmdExampleBegin_f                                                    = 50;
+  OrgTokenKind_CmdExampleEnd_f                                                      = 51;
+  OrgTokenKind_CmdExportBegin_f                                                     = 52;
+  OrgTokenKind_CmdExportEnd_f                                                       = 53;
+  OrgTokenKind_CmdDetailsBegin_f                                                    = 54;
+  OrgTokenKind_CmdDetailsEnd_f                                                      = 55;
+  OrgTokenKind_CmdSummaryBegin_f                                                    = 56;
+  OrgTokenKind_CmdSummaryEnd_f                                                      = 57;
+  OrgTokenKind_CmdTblfm_f                                                           = 58;
+  OrgTokenKind_QuoteContent_f                                                       = 59;
+  OrgTokenKind_CmdBackendPass_f                                                     = 60;
+  OrgTokenKind_CmdContentBegin_f                                                    = 61;
+  OrgTokenKind_CmdContentEnd_f                                                      = 62;
+  OrgTokenKind_CmdSrcCodeContent_f                                                  = 63;
+  OrgTokenKind_CmdSrcTextBlock_f                                                    = 64;
+  OrgTokenKind_TblContent_f                                                         = 65;
+  OrgTokenKind_TblBegin_f                                                           = 66;
+  OrgTokenKind_TblEnd_f                                                             = 67;
+  OrgTokenKind_TblCellBody_f                                                        = 68;
+  OrgTokenKind_TblRowSpec_f                                                         = 69;
+  OrgTokenKind_TblCellSpec_f                                                        = 70;
+  OrgTokenKind_TblPipeBegin_f                                                       = 71;
+  OrgTokenKind_TblPipeSeparator_f                                                   = 72;
+  OrgTokenKind_TblPipeEnd_f                                                         = 73;
+  OrgTokenKind_TblPipeCellBegin_f                                                   = 74;
+  OrgTokenKind_TblDashSeparator_f                                                   = 75;
+  OrgTokenKind_TblCornerPlus_f                                                      = 76;
+  OrgTokenKind_TblCellContentBegin_f                                                = 77;
+  OrgTokenKind_TblCellContentEnd_f                                                  = 78;
+  OrgTokenKind_CodeText_f                                                           = 79;
+  OrgTokenKind_Text_f                                                               = 80;
+  OrgTokenKind_StmtList_f                                                           = 81;
+  OrgTokenKind_StmtListBegin_f                                                      = 82;
+  OrgTokenKind_StmtListEnd_f                                                        = 83;
+  OrgTokenKind_Indent_f                                                             = 84;
+  OrgTokenKind_Dedent_f                                                             = 85;
+  OrgTokenKind_SameIndent_f                                                         = 86;
+  OrgTokenKind_NoIndent_f                                                           = 87;
+  OrgTokenKind_ListBegin_f                                                          = 88;
+  OrgTokenKind_ListItemBegin_f                                                      = 89;
+  OrgTokenKind_ListClock_f                                                          = 90;
+  OrgTokenKind_ListDescBegin_f                                                      = 91;
+  OrgTokenKind_ListDescEnd_f                                                        = 92;
+  OrgTokenKind_ListItemEnd_f                                                        = 93;
+  OrgTokenKind_ListEnd_f                                                            = 94;
+  OrgTokenKind_Checkbox_f                                                           = 95;
+  OrgTokenKind_SubtreeTodoState_f                                                   = 96;
+  OrgTokenKind_SubtreeUrgency_f                                                     = 97;
+  OrgTokenKind_SubtreeCompletion_f                                                  = 98;
+  OrgTokenKind_SubtreeStars_f                                                       = 99;
+  OrgTokenKind_SubtreeTagSeparator_f                                                = 100;
+  OrgTokenKind_SubtreeTime_f                                                        = 101;
+  OrgTokenKind_SubtreeEnd_f                                                         = 102;
+  OrgTokenKind_LogBook_f                                                            = 103;
+  OrgTokenKind_Drawer_f                                                             = 104;
+  OrgTokenKind_ColonLiteral_f                                                       = 105;
+  OrgTokenKind_ColonIdent_f                                                         = 106;
+  OrgTokenKind_ColonProperties_f                                                    = 107;
+  OrgTokenKind_ColonDescription_f                                                   = 108;
+  OrgTokenKind_ColonEnd_f                                                           = 109;
+  OrgTokenKind_ColonLogbook_f                                                       = 110;
+  OrgTokenKind_RawLogbook_f                                                         = 111;
+  OrgTokenKind_LogbookBegin_f                                                       = 112;
+  OrgTokenKind_LogbookEnd_f                                                         = 113;
+  OrgTokenKind_RawProperty_f                                                        = 114;
+  OrgTokenKind_PropRawKey_f                                                         = 115;
+  OrgTokenKind_PropTextKey_f                                                        = 116;
+  OrgTokenKind_ImplicitTime_f                                                       = 117;
+  OrgTokenKind_TimeDuration_f                                                       = 118;
+  OrgTokenKind_DynamicTimeContent_f                                                 = 119;
+  OrgTokenKind_StaticTimeDatePart_f                                                 = 120;
+  OrgTokenKind_StaticTimeDayPart_f                                                  = 121;
+  OrgTokenKind_StaticTimeClockPart_f                                                = 122;
+  OrgTokenKind_StaticTimeRepeater_f                                                 = 123;
+  OrgTokenKind_TimeDash_f                                                           = 124;
+  OrgTokenKind_TimeArrow_f                                                          = 125;
+  OrgTokenKind_Comment_f                                                            = 126;
+  OrgTokenKind_Link_f                                                               = 127;
+  OrgTokenKind_BoldBegin_f                                                          = 128;
+  OrgTokenKind_BoldEnd_f                                                            = 129;
+  OrgTokenKind_ItalicBegin_f                                                        = 130;
+  OrgTokenKind_ItalicEnd_f                                                          = 131;
+  OrgTokenKind_VerbatimBegin_f                                                      = 132;
+  OrgTokenKind_VerbatimEnd_f                                                        = 133;
+  OrgTokenKind_MonospaceBegin_f                                                     = 134;
+  OrgTokenKind_MonospaceEnd_f                                                       = 135;
+  OrgTokenKind_BacktickBegin_f                                                      = 136;
+  OrgTokenKind_BacktickEnd_f                                                        = 137;
+  OrgTokenKind_UnderlineBegin_f                                                     = 138;
+  OrgTokenKind_UnderlineEnd_f                                                       = 139;
+  OrgTokenKind_StrikeBegin_f                                                        = 140;
+  OrgTokenKind_StrikeEnd_f                                                          = 141;
+  OrgTokenKind_QuoteBegin_f                                                         = 142;
+  OrgTokenKind_QuoteEnd_f                                                           = 143;
+  OrgTokenKind_Punctuation_f                                                        = 144;
+  OrgTokenKind_AngleBegin_f                                                         = 145;
+  OrgTokenKind_AngleEnd_f                                                           = 146;
+  OrgTokenKind_DoubleAngleBegin_f                                                   = 147;
+  OrgTokenKind_DoubleAngleEnd_f                                                     = 148;
+  OrgTokenKind_TripleAngleBegin_f                                                   = 149;
+  OrgTokenKind_TripleAngleEnd_f                                                     = 150;
+  OrgTokenKind_LinkBegin_f                                                          = 151;
+  OrgTokenKind_LinkEnd_f                                                            = 152;
+  OrgTokenKind_RawUrl_f                                                             = 153;
+  OrgTokenKind_LinkTargetBegin_f                                                    = 154;
+  OrgTokenKind_LinkTargetEnd_f                                                      = 155;
+  OrgTokenKind_LinkInternal_f                                                       = 156;
+  OrgTokenKind_LinkProtocol_f                                                       = 157;
+  OrgTokenKind_LinkFull_f                                                           = 158;
+  OrgTokenKind_LinkTarget_f                                                         = 159;
+  OrgTokenKind_LinkDescriptionBegin_f                                               = 160;
+  OrgTokenKind_LinkDescriptionEnd_f                                                 = 161;
+  OrgTokenKind_TextSeparator_f                                                      = 162;
+  OrgTokenKind_ParagraphBegin_f                                                     = 163;
+  OrgTokenKind_ParagraphEnd_f                                                       = 164;
+  OrgTokenKind_FootnoteBegin_f                                                      = 165;
+  OrgTokenKind_Word_f                                                               = 166;
+  OrgTokenKind_DoubleColon_f                                                        = 167;
+  OrgTokenKind_Number_f                                                             = 168;
+  OrgTokenKind_Escaped_f                                                            = 169;
+  OrgTokenKind_DoubleSlash_f                                                        = 170;
+  OrgTokenKind_Newline_f                                                            = 171;
+  OrgTokenKind_MaybeWord_f                                                          = 172;
+  OrgTokenKind_Space_f                                                              = 173;
+  OrgTokenKind_BigIdent_f                                                           = 174;
+  OrgTokenKind_RawText_f                                                            = 175;
+  OrgTokenKind_SymbolBegin_f                                                        = 176;
+  OrgTokenKind_DollarBegin_f                                                        = 177;
+  OrgTokenKind_DollarEnd_f                                                          = 178;
+  OrgTokenKind_DoubleDollarBegin_f                                                  = 179;
+  OrgTokenKind_DoubleDollarEnd_f                                                    = 180;
+  OrgTokenKind_LatexParBegin_f                                                      = 181;
+  OrgTokenKind_LatexParEnd_f                                                        = 182;
+  OrgTokenKind_LatexBraceBegin_f                                                    = 183;
+  OrgTokenKind_LatexBraceEnd_f                                                      = 184;
+  OrgTokenKind_LatexInlineRaw_f                                                     = 185;
+  OrgTokenKind_AtMention_f                                                          = 186;
+  OrgTokenKind_HashTag_f                                                            = 187;
+  OrgTokenKind_HashTagSub_f                                                         = 188;
+  OrgTokenKind_HashTagBegin_f                                                       = 189;
+  OrgTokenKind_HashTagEnd_f                                                         = 190;
+  OrgTokenKind_Comma_f                                                              = 191;
+  OrgTokenKind_ParBegin_f                                                           = 192;
+  OrgTokenKind_ParEnd_f                                                             = 193;
+  OrgTokenKind_BraceBegin_f                                                         = 194;
+  OrgTokenKind_BraceEnd_f                                                           = 195;
+  OrgTokenKind_Colon_f                                                              = 196;
+  OrgTokenKind_Circumflex_f                                                         = 197;
+  OrgTokenKind_MacroBegin_f                                                         = 198;
+  OrgTokenKind_MacroEnd_f                                                           = 199;
+  OrgTokenKind_InlineSrc_f                                                          = 200;
+  OrgTokenKind_InlineCall_f                                                         = 201;
+  OrgTokenKind_CurlyStart_f                                                         = 202;
+  OrgTokenKind_CurlyEnd_f                                                           = 203;
+  OrgTokenKind_DoubleAt_f                                                           = 204;
+  OrgTokenKind_SrcBegin_f                                                           = 205;
+  OrgTokenKind_SrcName_f                                                            = 206;
+  OrgTokenKind_SrcArgs_f                                                            = 207;
+  OrgTokenKind_SrcBody_f                                                            = 208;
+  OrgTokenKind_SrcEnd_f                                                             = 209;
+  OrgTokenKind_CallBegin_f                                                          = 210;
+  OrgTokenKind_CallName_f                                                           = 211;
+  OrgTokenKind_CallInsideHeader_f                                                   = 212;
+  OrgTokenKind_CallArgs_f                                                           = 213;
+  OrgTokenKind_EndHeader_f                                                          = 214;
+  OrgTokenKind_CallEnd_f                                                            = 215;
+  OrgTokenKind_CmdArguments_f                                                       = 216;
+}
+enum OrgSemKind {
+  OrgSemKind_StmtList_f                                                             = 0;
+  OrgSemKind_Empty_f                                                                = 1;
+  OrgSemKind_Row_f                                                                  = 2;
+  OrgSemKind_Table_f                                                                = 3;
+  OrgSemKind_HashTag_f                                                              = 4;
+  OrgSemKind_Footnote_f                                                             = 5;
+  OrgSemKind_Completion_f                                                           = 6;
+  OrgSemKind_Paragraph_f                                                            = 7;
+  OrgSemKind_Center_f                                                               = 8;
+  OrgSemKind_Caption_f                                                              = 9;
+  OrgSemKind_CommandGroup_f                                                         = 10;
+  OrgSemKind_Quote_f                                                                = 11;
+  OrgSemKind_Example_f                                                              = 12;
+  OrgSemKind_CmdArguments_f                                                         = 13;
+  OrgSemKind_CmdArgument_f                                                          = 14;
+  OrgSemKind_Export_f                                                               = 15;
+  OrgSemKind_AdmonitionBlock_f                                                      = 16;
+  OrgSemKind_Code_f                                                                 = 17;
+  OrgSemKind_Time_f                                                                 = 18;
+  OrgSemKind_TimeRange_f                                                            = 19;
+  OrgSemKind_Macro_f                                                                = 20;
+  OrgSemKind_Symbol_f                                                               = 21;
+  OrgSemKind_SubtreeLog_f                                                           = 22;
+  OrgSemKind_Subtree_f                                                              = 23;
+  OrgSemKind_InlineMath_f                                                           = 24;
+  OrgSemKind_Escaped_f                                                              = 25;
+  OrgSemKind_Newline_f                                                              = 26;
+  OrgSemKind_Space_f                                                                = 27;
+  OrgSemKind_Word_f                                                                 = 28;
+  OrgSemKind_AtMention_f                                                            = 29;
+  OrgSemKind_RawText_f                                                              = 30;
+  OrgSemKind_Punctuation_f                                                          = 31;
+  OrgSemKind_Placeholder_f                                                          = 32;
+  OrgSemKind_BigIdent_f                                                             = 33;
+  OrgSemKind_Bold_f                                                                 = 34;
+  OrgSemKind_Underline_f                                                            = 35;
+  OrgSemKind_Monospace_f                                                            = 36;
+  OrgSemKind_MarkQuote_f                                                            = 37;
+  OrgSemKind_Verbatim_f                                                             = 38;
+  OrgSemKind_Italic_f                                                               = 39;
+  OrgSemKind_Strike_f                                                               = 40;
+  OrgSemKind_Par_f                                                                  = 41;
+  OrgSemKind_List_f                                                                 = 42;
+  OrgSemKind_ListItem_f                                                             = 43;
+  OrgSemKind_Link_f                                                                 = 44;
+  OrgSemKind_Document_f                                                             = 45;
+  OrgSemKind_ParseError_f                                                           = 46;
+  OrgSemKind_FileTarget_f                                                           = 47;
+  OrgSemKind_TextSeparator_f                                                        = 48;
+  OrgSemKind_Include_f                                                              = 49;
+  OrgSemKind_DocumentOptions_f                                                      = 50;
+  OrgSemKind_DocumentGroup_f                                                        = 51;
+}
+message Stmt {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  repeated AnyNode                                 attached                         = 3;
+}
+message Inline {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message StmtList {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Empty {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Row {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Table {
+  repeated AnyNode                                 attached                         = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  repeated Row                                     rows                             = 5;
+}
+message HashTag {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           head                             = 4;
+  repeated HashTag                                 subtags                          = 5;
+}
+message Footnote {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           tag                              = 4;
+  optional AnyNode                                 definition                       = 5;
+}
+message Completion {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  int32                                            done                             = 4;
+  int32                                            full                             = 5;
+  bool                                             isPercent                        = 6;
+}
+message Paragraph {
+  repeated AnyNode                                 attached                         = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Format {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message Center {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Command {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message LineCommand {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message Standalone {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message Attached {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message Caption {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  Paragraph                                        text                             = 4;
+}
+message CommandGroup {
+  repeated AnyNode                                 attached                         = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Block {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message Quote {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  Paragraph                                        text                             = 4;
+}
+message Example {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message CmdArguments {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  repeated CmdArgument                             positional                       = 4;
+  map<string, CmdArgument>                         named                            = 5;
+}
+message CmdArgument {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  optional string                                  key                              = 4;
+  string                                           value                            = 5;
+}
+message Export {
+  enum Format {
+    Format_Inline_f                                                                 = 0;
+    Format_Line_f                                                                   = 1;
+    Format_Block_f                                                                  = 2;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  Export.Format                                    format                           = 4;
+  string                                           exporter                         = 5;
+  CmdArguments                                     parameters                       = 6;
+  optional string                                  placement                        = 7;
+  string                                           content                          = 8;
+}
+message AdmonitionBlock {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Code {
+  message Switch {
+    message LineStart {
+      int32                                        start                            = 1;
+      bool                                         extendLast                       = 2;
+    }
+    message CalloutFormat {
+      string                                       format                           = 1;
+    }
+    message RemoveCallout {
+      bool                                         remove                           = 1;
+    }
+    message EmphasizeLine {
+      repeated int32                               line                             = 1;
+    }
+    message Dedent {
+      int32                                        value                            = 1;
+    }
+    message Data {
+      oneof kind {
+        Code.Switch.LineStart                      linestart                        = 1;
+        Code.Switch.CalloutFormat                  calloutformat                    = 2;
+        Code.Switch.RemoveCallout                  removecallout                    = 3;
+        Code.Switch.EmphasizeLine                  emphasizeline                    = 4;
+        Code.Switch.Dedent                         dedent                           = 5;
+      }
+    }
+    enum Kind {
+      Kind_LineStart_f                                                              = 0;
+      Kind_CalloutFormat_f                                                          = 1;
+      Kind_RemoveCallout_f                                                          = 2;
+      Kind_EmphasizeLine_f                                                          = 3;
+      Kind_Dedent_f                                                                 = 4;
+    }
+    Code.Switch.Data                               data                             = 1;
+  }
+  enum Results {
+    Results_Replace_f                                                               = 0;
+  }
+  enum Exports {
+    Exports_None_f                                                                  = 0;
+    Exports_Both_f                                                                  = 1;
+    Exports_Code_f                                                                  = 2;
+    Exports_Results_f                                                               = 3;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  optional string                                  lang                             = 4;
+  repeated Code.Switch                             switches                         = 5;
+  Code.Exports                                     exports                          = 6;
+  CmdArguments                                     parameters                       = 7;
+  bool                                             cache                            = 8;
+  bool                                             eval                             = 9;
+  bool                                             noweb                            = 10;
+  bool                                             hlines                           = 11;
+  bool                                             tangle                           = 12;
+}
+message Time {
+  message Repeat {
+    enum Mode {
+      Mode_None_f                                                                   = 0;
+      Mode_Exact_f                                                                  = 1;
+      Mode_FirstMatch_f                                                             = 2;
+      Mode_SameDay_f                                                                = 3;
+    }
+    enum Period {
+      Period_Year_f                                                                 = 0;
+      Period_Month_f                                                                = 1;
+      Period_Week_f                                                                 = 2;
+      Period_Day_f                                                                  = 3;
+      Period_Hour_f                                                                 = 4;
+      Period_Minute_f                                                               = 5;
+    }
+    Time.Repeat.Mode                               mode                             = 1;
+    Time.Repeat.Period                             period                           = 2;
+    int32                                          count                            = 3;
+  }
+  message Static {
+    optional Time.Repeat                           repeat                           = 1;
+    UserTime                                       time                             = 2;
+  }
+  message Dynamic {
+    string                                         expr                             = 1;
+  }
+  message TimeVariant {
+    oneof kind {
+      Time.Static                                  static                           = 1;
+      Time.Dynamic                                 dynamic                          = 2;
+    }
+  }
+  enum TimeKind {
+    TimeKind_Static_f                                                               = 0;
+    TimeKind_Dynamic_f                                                              = 1;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  bool                                             isActive                         = 4;
+  Time.TimeVariant                                 time                             = 5;
+}
+message TimeRange {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  Time                                             from                             = 4;
+  Time                                             to                               = 5;
+}
+message Macro {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           name                             = 4;
+  repeated string                                  arguments                        = 5;
+}
+message Symbol {
+  message Param {
+    optional string                                key                              = 1;
+    string                                         value                            = 2;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           name                             = 4;
+  repeated Symbol.Param                            parameters                       = 5;
+  repeated AnyNode                                 positional                       = 6;
+}
+message SubtreeLog {
+  message DescribedLog {
+    optional StmtList                              desc                             = 1;
+  }
+  message Priority {
+    enum Action {
+      Action_Added_f                                                                = 0;
+      Action_Removed_f                                                              = 1;
+      Action_Changed_f                                                              = 2;
+    }
+    optional StmtList                              desc                             = 1;
+    optional string                                oldPriority                      = 2;
+    optional string                                newPriority                      = 3;
+    Time                                           on                               = 4;
+  }
+  message Note {
+    optional StmtList                              desc                             = 1;
+    Time                                           on                               = 2;
+  }
+  message Refile {
+    optional StmtList                              desc                             = 1;
+    Time                                           on                               = 2;
+    Link                                           from                             = 3;
+  }
+  message Clock {
+    optional StmtList                              desc                             = 1;
+    oneof range_kind {
+      Time                                         time                             = 2;
+      TimeRange                                    timerange                        = 3;
+    }
+  }
+  message State {
+    optional StmtList                              desc                             = 1;
+    OrgBigIdentKind                                from                             = 2;
+    OrgBigIdentKind                                to                               = 3;
+    Time                                           on                               = 4;
+  }
+  message Tag {
+    optional StmtList                              desc                             = 1;
+    Time                                           on                               = 2;
+    HashTag                                        tag                              = 3;
+    bool                                           added                            = 4;
+  }
+  message LogEntry {
+    oneof kind {
+      SubtreeLog.Priority                          priority                         = 1;
+      SubtreeLog.Note                              note                             = 2;
+      SubtreeLog.Refile                            refile                           = 3;
+      SubtreeLog.Clock                             clock                            = 4;
+      SubtreeLog.State                             state                            = 5;
+      SubtreeLog.Tag                               tag                              = 6;
+    }
+  }
+  enum Kind {
+    Kind_Priority_f                                                                 = 0;
+    Kind_Note_f                                                                     = 1;
+    Kind_Refile_f                                                                   = 2;
+    Kind_Clock_f                                                                    = 3;
+    Kind_State_f                                                                    = 4;
+    Kind_Tag_f                                                                      = 5;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  SubtreeLog.LogEntry                              log                              = 4;
+}
+message Subtree {
+  message Period {
+    enum Kind {
+      Kind_Clocked_f                                                                = 0;
+      Kind_Scheduled_f                                                              = 1;
+      Kind_Titled_f                                                                 = 2;
+      Kind_Deadline_f                                                               = 3;
+      Kind_Created_f                                                                = 4;
+      Kind_Repeated_f                                                               = 5;
+    }
+    Subtree.Period.Kind                            kind                             = 1;
+    oneof period_kind {
+      Time                                         time                             = 2;
+      TimeRange                                    timerange                        = 3;
+    }
+  }
+  message Property {
+    enum SetMode {
+      SetMode_Override_f                                                            = 0;
+      SetMode_Add_f                                                                 = 1;
+      SetMode_Subtract_f                                                            = 2;
+    }
+    enum InheritanceMode {
+      InheritanceMode_ThisAndSub_f                                                  = 0;
+      InheritanceMode_OnlyThis_f                                                    = 1;
+      InheritanceMode_OnlySub_f                                                     = 2;
+    }
+    message Nonblocking {
+      bool                                         isBlocking                       = 1;
+    }
+    message Trigger {
+
+    }
+    message Origin {
+      string                                       text                             = 1;
+    }
+    message ExportLatexClass {
+      string                                       latexClass                       = 1;
+    }
+    message ExportLatexClassOptions {
+      repeated string                              options                          = 1;
+    }
+    message ExportLatexHeader {
+      string                                       header                           = 1;
+    }
+    message ExportLatexCompiler {
+      string                                       compiler                         = 1;
+    }
+    message Ordered {
+      bool                                         isOrdered                        = 1;
+    }
+    message Effort {
+      int32                                        hours                            = 1;
+      int32                                        minutes                          = 2;
+    }
+    message Visibility {
+      enum Level {
+        Level_Folded_f                                                              = 0;
+        Level_Children_f                                                            = 1;
+        Level_Content_f                                                             = 2;
+        Level_All_f                                                                 = 3;
+      }
+      Subtree.Property.Visibility.Level            level                            = 1;
+    }
+    message ExportOptions {
+      string                                       backend                          = 1;
+      map<string, string>                          values                           = 2;
+    }
+    message Blocker {
+      repeated string                              blockers                         = 1;
+    }
+    message Unnumbered {
+
+    }
+    message Created {
+      Time                                         time                             = 1;
+    }
+    message Data {
+      oneof kind {
+        Subtree.Property.Nonblocking               nonblocking                      = 1;
+        Subtree.Property.Trigger                   trigger                          = 2;
+        Subtree.Property.Origin                    origin                           = 3;
+        Subtree.Property.ExportLatexClass          exportlatexclass                 = 4;
+        Subtree.Property.ExportLatexClassOptions   exportlatexclassoptions          = 5;
+        Subtree.Property.ExportLatexHeader         exportlatexheader                = 6;
+        Subtree.Property.ExportLatexCompiler       exportlatexcompiler              = 7;
+        Subtree.Property.Ordered                   ordered                          = 8;
+        Subtree.Property.Effort                    effort                           = 9;
+        Subtree.Property.Visibility                visibility                       = 10;
+        Subtree.Property.ExportOptions             exportoptions                    = 11;
+        Subtree.Property.Blocker                   blocker                          = 12;
+        Subtree.Property.Unnumbered                unnumbered                       = 13;
+        Subtree.Property.Created                   created                          = 14;
+      }
+    }
+    enum Kind {
+      Kind_Nonblocking_f                                                            = 0;
+      Kind_Trigger_f                                                                = 1;
+      Kind_Origin_f                                                                 = 2;
+      Kind_ExportLatexClass_f                                                       = 3;
+      Kind_ExportLatexClassOptions_f                                                = 4;
+      Kind_ExportLatexHeader_f                                                      = 5;
+      Kind_ExportLatexCompiler_f                                                    = 6;
+      Kind_Ordered_f                                                                = 7;
+      Kind_Effort_f                                                                 = 8;
+      Kind_Visibility_f                                                             = 9;
+      Kind_ExportOptions_f                                                          = 10;
+      Kind_Blocker_f                                                                = 11;
+      Kind_Unnumbered_f                                                             = 12;
+      Kind_Created_f                                                                = 13;
+    }
+    Subtree.Property.SetMode                       mainSetRule                      = 1;
+    Subtree.Property.SetMode                       subSetRule                       = 2;
+    Subtree.Property.InheritanceMode               inheritanceMode                  = 3;
+    Subtree.Property.Data                          data                             = 4;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  int32                                            level                            = 4;
+  optional string                                  treeId                           = 5;
+  optional string                                  todo                             = 6;
+  optional Completion                              completion                       = 7;
+  optional Paragraph                               description                      = 8;
+  repeated HashTag                                 tags                             = 9;
+  Paragraph                                        title                            = 10;
+  repeated SubtreeLog                              logbook                          = 11;
+  repeated Subtree.Property                        properties                       = 12;
+  optional Time                                    closed                           = 13;
+  optional Time                                    deadline                         = 14;
+  optional Time                                    scheduled                        = 15;
+}
+message LatexBody {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message InlineMath {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Leaf {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  string                                           text                             = 3;
+}
+message Escaped {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Newline {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Space {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Word {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message AtMention {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message RawText {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Punctuation {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Placeholder {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message BigIdent {
+  string                                           text                             = 1;
+  optional OrgSemPlacement                         placementContext                 = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+}
+message Markup {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+}
+message Bold {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Underline {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Monospace {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message MarkQuote {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Verbatim {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Italic {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Strike {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Par {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message List {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message ListItem {
+  enum Checkbox {
+    Checkbox_None_f                                                                 = 0;
+    Checkbox_Done_f                                                                 = 1;
+    Checkbox_Empty_f                                                                = 2;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  ListItem.Checkbox                                checkbox                         = 4;
+  optional Paragraph                               header                           = 5;
+}
+message Link {
+  message Raw {
+    string                                         text                             = 1;
+  }
+  message Id {
+    string                                         text                             = 1;
+  }
+  message Person {
+    string                                         name                             = 1;
+  }
+  message Footnote {
+    string                                         target                           = 1;
+  }
+  message File {
+    string                                         file                             = 1;
+  }
+  message Data {
+    oneof kind {
+      Link.Raw                                     raw                              = 1;
+      Link.Id                                      id                               = 2;
+      Link.Person                                  person                           = 3;
+      Link.Footnote                                footnote                         = 4;
+      Link.File                                    file                             = 5;
+    }
+  }
+  enum Kind {
+    Kind_Raw_f                                                                      = 0;
+    Kind_Id_f                                                                       = 1;
+    Kind_Person_f                                                                   = 2;
+    Kind_Footnote_f                                                                 = 3;
+    Kind_File_f                                                                     = 4;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  optional Paragraph                               description                      = 4;
+  Link.Data                                        data                             = 5;
+}
+message Document {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  map<string, AnyNode>                             idTable                          = 4;
+  map<string, AnyNode>                             nameTable                        = 5;
+  map<string, AnyNode>                             footnoteTable                    = 6;
+  map<string, AnyNode>                             anchorTable                      = 7;
+  optional Paragraph                               title                            = 8;
+  optional Paragraph                               author                           = 9;
+  optional Paragraph                               creator                          = 10;
+  optional RawText                                 email                            = 11;
+  repeated string                                  language                         = 12;
+  DocumentOptions                                  options                          = 13;
+  optional string                                  exportFileName                   = 14;
+}
+message ParseError {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message FileTarget {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           path                             = 4;
+  optional int32                                   line                             = 5;
+  optional string                                  searchTarget                     = 6;
+  bool                                             restrictToHeadlines              = 7;
+  optional string                                  targetId                         = 8;
+  optional string                                  regexp                           = 9;
+}
+message TextSeparator {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message Include {
+  message Example {
+
+  }
+  message Export {
+
+  }
+  message Src {
+
+  }
+  message OrgDocument {
+
+  }
+  message Data {
+    oneof kind {
+      Include.Example                              example                          = 1;
+      Include.Export                               export                           = 2;
+      Include.Src                                  src                              = 3;
+      Include.OrgDocument                          orgdocument                      = 4;
+    }
+  }
+  enum Kind {
+    Kind_Example_f                                                                  = 0;
+    Kind_Export_f                                                                   = 1;
+    Kind_Src_f                                                                      = 2;
+    Kind_OrgDocument_f                                                              = 3;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  Include.Data                                     data                             = 4;
+}
+message DocumentOptions {
+  message DoExport {
+    bool                                           exportToc                        = 1;
+  }
+  message ExportFixed {
+    int32                                          exportLevels                     = 1;
+  }
+  message TocExport {
+    oneof kind {
+      DocumentOptions.DoExport                     doexport                         = 1;
+      DocumentOptions.ExportFixed                  exportfixed                      = 2;
+    }
+  }
+  enum TocExportKind {
+    TocExportKind_DoExport_f                                                        = 0;
+    TocExportKind_ExportFixed_f                                                     = 1;
+  }
+  enum BrokenLinks {
+    BrokenLinks_Raise_f                                                             = 0;
+    BrokenLinks_Ignore_f                                                            = 1;
+    BrokenLinks_Mark_f                                                              = 2;
+  }
+  enum Visibility {
+    Visibility_Overview_f                                                           = 0;
+    Visibility_Content_f                                                            = 1;
+    Visibility_ShowAll_f                                                            = 2;
+    Visibility_Show2Levels_f                                                        = 3;
+    Visibility_Show3Levels_f                                                        = 4;
+    Visibility_Show4Levels_f                                                        = 5;
+    Visibility_Show5Levels_f                                                        = 6;
+    Visibility_ShowEverything_f                                                     = 7;
+  }
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  DocumentOptions.BrokenLinks                      brokenLinks                      = 4;
+  DocumentOptions.Visibility                       initialVisibility                = 5;
+  DocumentOptions.TocExport                        tocExport                        = 6;
+  repeated Subtree.Property                        properties                       = 7;
+  bool                                             smartQuotes                      = 8;
+  bool                                             emphasizedText                   = 9;
+  bool                                             specialStrings                   = 10;
+  bool                                             fixedWidthSections               = 11;
+  bool                                             includeTimestamps                = 12;
+  bool                                             preserveLineBreaks               = 13;
+  bool                                             plaintextSubscripts              = 14;
+  bool                                             exportArchived                   = 15;
+  bool                                             exportWithAuthor                 = 16;
+  bool                                             exportBrokenLinks                = 17;
+  bool                                             exportWithClock                  = 18;
+  bool                                             exportWithCreator                = 19;
+  DocumentOptions.TocExport                        data                             = 20;
+}
+message DocumentGroup {
+  optional OrgSemPlacement                         placementContext                 = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+}
+message AnyNode {
+  oneof kind {
+    Stmt                                             stmt                             = 1;
+    Inline                                           inline                           = 2;
+    StmtList                                         stmtlist                         = 3;
+    Empty                                            empty                            = 4;
+    Row                                              row                              = 5;
+    Table                                            table                            = 6;
+    HashTag                                          hashtag                          = 7;
+    Footnote                                         footnote                         = 8;
+    Completion                                       completion                       = 9;
+    Paragraph                                        paragraph                        = 10;
+    Format                                           format                           = 11;
+    Center                                           center                           = 12;
+    Command                                          command                          = 13;
+    LineCommand                                      linecommand                      = 14;
+    Standalone                                       standalone                       = 15;
+    Attached                                         attached                         = 16;
+    Caption                                          caption                          = 17;
+    CommandGroup                                     commandgroup                     = 18;
+    Block                                            block                            = 19;
+    Quote                                            quote                            = 20;
+    Example                                          example                          = 21;
+    CmdArguments                                     cmdarguments                     = 22;
+    CmdArgument                                      cmdargument                      = 23;
+    Export                                           export                           = 24;
+    AdmonitionBlock                                  admonitionblock                  = 25;
+    Code                                             code                             = 26;
+    Time                                             time                             = 27;
+    TimeRange                                        timerange                        = 28;
+    Macro                                            macro                            = 29;
+    Symbol                                           symbol                           = 30;
+    SubtreeLog                                       subtreelog                       = 31;
+    Subtree                                          subtree                          = 32;
+    LatexBody                                        latexbody                        = 33;
+    InlineMath                                       inlinemath                       = 34;
+    Leaf                                             leaf                             = 35;
+    Escaped                                          escaped                          = 36;
+    Newline                                          newline                          = 37;
+    Space                                            space                            = 38;
+    Word                                             word                             = 39;
+    AtMention                                        atmention                        = 40;
+    RawText                                          rawtext                          = 41;
+    Punctuation                                      punctuation                      = 42;
+    Placeholder                                      placeholder                      = 43;
+    BigIdent                                         bigident                         = 44;
+    Markup                                           markup                           = 45;
+    Bold                                             bold                             = 46;
+    Underline                                        underline                        = 47;
+    Monospace                                        monospace                        = 48;
+    MarkQuote                                        markquote                        = 49;
+    Verbatim                                         verbatim                         = 50;
+    Italic                                           italic                           = 51;
+    Strike                                           strike                           = 52;
+    Par                                              par                              = 53;
+    List                                             list                             = 54;
+    ListItem                                         listitem                         = 55;
+    Link                                             link                             = 56;
+    Document                                         document                         = 57;
+    ParseError                                       parseerror                       = 58;
+    FileTarget                                       filetarget                       = 59;
+    TextSeparator                                    textseparator                    = 60;
+    Include                                          include                          = 61;
+    DocumentOptions                                  documentoptions                  = 62;
+    DocumentGroup                                    documentgroup                    = 63;
+  }
+}
+/* clang-format on */
