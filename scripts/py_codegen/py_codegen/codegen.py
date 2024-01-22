@@ -665,11 +665,21 @@ def rewrite_for_proto_serde(typ: QualType, enum_type_list: List[QualType]) -> Qu
 
         case QualType(name="Str"):
             return QualType.ForName("string").withExtraSpace("std")
-
+        
+        case QualType(name="int"):
+            return QualType.ForName("int32_t").withGlobalSpace()
+        
         case QualType(name="Vec"):
+            if typ.Parameters[0].name in ["int", "bool"]:
+                wrap_type = "RepeatedField"
+                
+            else:
+                wrap_type = "RepeatedPtrField"
+
+
             return typ.model_copy(update=dict(
                 Parameters=aux_parameters(typ),
-                name="RepeatedPtrField",
+                name=wrap_type,
                 Spaces=[QualType.ForName("google"),
                         QualType.ForName("protobuf")],
                 isGlobalNamespace=True,
@@ -691,7 +701,7 @@ def rewrite_for_proto_serde(typ: QualType, enum_type_list: List[QualType]) -> Qu
 
             else:
                 result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
-                if "sem" in result.flatSpaces():
+                if "sem" in result.flatSpaces() or typ.name in ["UserTime"]:
                     result = result.withoutSpace("sem").withExtraSpace("orgproto")
 
                 return result
@@ -841,7 +851,9 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
 
     iterate_object_tree(types_list, find_enums, context)
 
-    def aux_item(it: GenTuUnion) -> RecordParams:
+    @beartype
+    def aux_item(it: GenTuUnion | GenTuPass) -> List[RecordParams]:
+        result: List[RecordParams] = []
         match it:
             case GenTuStruct():
                 out = t.text("out")
@@ -887,19 +899,26 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                         ],
                         doc=DocParams(""),
                         Body=Body,
+                        AllowOneLine=False,
                     ),
                     isStatic=True,
                 )
 
-                return RecordParams(
+                for sub in it.nested:
+                    result += aux_item(sub)
+                    
+
+                result.append(RecordParams(
                     name="proto_serde",
                     doc=DocParams(""),
                     NameParams=[out_type, in_type],
                     members=[writer],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
-                )
+                ))
 
-    return drop_none(aux_item(it) for it in types_list)
+        return result
+
+    return list(itertools.chain(*(aux_item(it) for it in types_list)))
 
 
 @beartype

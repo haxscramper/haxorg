@@ -97,8 +97,9 @@ class QualType(BaseModel, extra="forbid"):
         return self.model_copy(update=dict(Spaces=[added] + self.Spaces))
 
     def withoutSpace(self, name: str) -> 'QualType':
-        return self.model_copy(update=dict(Spaces=[S for S in self.Spaces if S.name != name]))
-    
+        return self.model_copy(update=dict(
+            Spaces=[S for S in self.Spaces if S.name != name]))
+
     def withoutAllSpaces(self) -> 'QualType':
         return self.model_copy(update=dict(Spaces=[]))
 
@@ -267,6 +268,7 @@ class FunctionParams:
     Body: Optional[List[BlockId]] = None
     Inline: bool = False
     InitList: List[Tuple[str, BlockId]] = field(default_factory=list)
+    AllowOneLine: bool = True
 
 
 @beartype
@@ -482,8 +484,7 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             if params.OneLine:
                 return self.b.line(
-                    [head,
-                     self.string(" "),
+                    [head, self.string(" "),
                      self.b.join(Body, self.string(" "))])
             else:
                 return self.b.stack([head, self.b.indent(2, self.b.stack(Body))])
@@ -631,7 +632,10 @@ class ASTBuilder(base.AstbuilderBase):
     def Trail(self, first: BlockId, second: BlockId, space: str = " ") -> BlockId:
         return self.b.line([first, self.string(space), second])
 
-    def Comment(self, text: List[str] | str, Inline: bool = True, Doc: bool = False) -> BlockId:
+    def Comment(self,
+                text: List[str] | str,
+                Inline: bool = True,
+                Doc: bool = False) -> BlockId:
         if isinstance(text, str):
             text = [text]
 
@@ -847,8 +851,14 @@ class ASTBuilder(base.AstbuilderBase):
             self.string(";")
         ])
 
-    def block(self, head: BlockId, content: List[BlockId], trailingLine=False) -> BlockId:
-        if len(content) < 2:
+    def block(
+        self,
+        head: BlockId,
+        content: List[BlockId],
+        trailingLine: bool = False,
+        allowOneLine: bool = True,
+    ) -> BlockId:
+        if allowOneLine and len(content) < 2:
             result = self.b.line(
                 [head, self.string(" { "),
                  self.b.stack(content),
@@ -945,8 +955,14 @@ class ASTBuilder(base.AstbuilderBase):
 
         return self.WithAccess(
             self.WithDoc(
-                self.b.line([head, self.string(";")]) if method.Params.Body is None else
-                self.block(head, method.Params.Body), method.Params.doc), method.access)
+                self.b.line([head, self.string(";")])
+                if method.Params.Body is None else self.block(
+                    head,
+                    method.Params.Body,
+                    allowOneLine=method.Params.AllowOneLine,
+                ), method.Params.doc),
+            method.access,
+        )
 
     def Record(self, params: RecordParams) -> BlockId:
         content: List[BlockId] = []
@@ -1107,7 +1123,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         return self.WithTemplate(
             p.Template,
-            self.block(head, p.Body, True)
+            self.block(head, p.Body, True, allowOneLine=p.AllowOneLine)
             if p.Body else self.b.line([head, self.string(";")]))
 
     def Arguments(self, p: Union[FunctionParams, LambdaParams]) -> BlockId:
