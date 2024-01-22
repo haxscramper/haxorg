@@ -234,7 +234,8 @@ class Py11Enum:
             if pyNameOverride is None else pyNameOverride,
             Enum=QualType.ForName(Enum.name.name, Spaces=Scope),
             Doc=Enum.doc,
-            Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields])
+            Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields],
+        )
 
     def build_typedef(self) -> pya.EnumParams:
         count = 0
@@ -337,7 +338,8 @@ class Py11Class:
 
     @staticmethod
     def FromGenTu(value: GenTuStruct, pyNameOveride: Optional[str] = None) -> 'Py11Class':
-        res = Py11Class(PyName=pyNameOveride or py_type(value.name).Name, Class=value.name)
+        res = Py11Class(PyName=pyNameOveride or py_type(value.name).Name,
+                        Class=value.name)
         res.InitDefault()
 
         for base in value.bases:

@@ -1,5 +1,6 @@
+from copy import copy
 from dataclasses import dataclass, field, replace
-from beartype.typing import List, Union, NewType, Optional, Tuple, Dict, Any
+from beartype.typing import List, Union, NewType, Optional, Tuple, Dict, Any, Iterable
 from enum import Enum
 from beartype import beartype
 import inspect
@@ -298,6 +299,13 @@ class AccessSpecifier(Enum):
 
 @beartype
 @dataclass
+class MethodDefParams:
+    Params: FunctionParams
+    Class: QualType
+    IsConst: bool = False
+
+@beartype
+@dataclass
 class MethodDeclParams:
     Params: FunctionParams
     isConst: bool = False
@@ -306,13 +314,12 @@ class MethodDeclParams:
     isPureVirtual: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
-
-@beartype
-@dataclass
-class MethodDefParams:
-    Params: FunctionParams
-    Class: QualType
-    IsConst: bool = False
+    def asMethodDef(self, Class: QualType) -> MethodDefParams:
+        return MethodDefParams(
+            IsConst=self.isConst,
+            Class=Class,
+            Params=copy(self.Params)
+        )
 
 
 @beartype
@@ -416,6 +423,10 @@ class RecordParams:
     IsDefinition: bool = True
     TrailingLine: bool = True
     OneLine: bool = False
+
+    def methods(self) -> Iterable[Union[MethodDeclParams, MethodDefParams]]:
+        return (m for m in self.members
+                if isinstance(m, MethodDeclParams) or isinstance(m, MethodDefParams))
 
 
 @beartype
@@ -1291,3 +1302,18 @@ class ASTBuilder(base.AstbuilderBase):
             return content
         else:
             return self.b.stack([self.Doc(doc), content])
+
+
+    def Any(self, it: Any) -> BlockId:
+        match it:
+            case RecordParams():
+                return self.Record(it)
+            
+            case MethodDefParams():
+                return self.MethodDef(it)
+            
+            case MethodDeclParams():
+                return self.MethodDecl(it)
+            
+            case _:
+                assert False, type(it)

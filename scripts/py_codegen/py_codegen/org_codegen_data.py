@@ -536,7 +536,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                 ),
                 GenTuEnum(
-                    t("Exports"),
+                    t_nest("Exports", ["Include", "Export"]),
                     GenTuDoc("What part of the code block should be visible in export"),
                     [
                         GenTuEnumField(
@@ -933,7 +933,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc("Type of the subtree associated time periods"),
                     fields=[
                         GenTuField(
-                            t("Kind"),
+                             t_nest("Kind", ["Subtree", "Period"]),
                             "kind",
                             GenTuDoc(
                                 "Time period kind -- not associated with point/range distinction"

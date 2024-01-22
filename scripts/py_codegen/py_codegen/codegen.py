@@ -665,17 +665,16 @@ def rewrite_for_proto_serde(typ: QualType, enum_type_list: List[QualType]) -> Qu
 
         case QualType(name="Str"):
             return QualType.ForName("string").withExtraSpace("std")
-        
+
         case QualType(name="int"):
             return QualType.ForName("int32_t").withGlobalSpace()
-        
+
         case QualType(name="Vec"):
             if typ.Parameters[0].name in ["int", "bool"]:
                 wrap_type = "RepeatedField"
-                
+
             else:
                 wrap_type = "RepeatedPtrField"
-
 
             return typ.model_copy(update=dict(
                 Parameters=aux_parameters(typ),
@@ -779,6 +778,9 @@ def build_protobuf_writer_for_field(
             else:
                 opc = "mutable_" + field.name.lower()
 
+            if field.name.lower() in ["static", "export"]:
+                opc += "_"
+
             write_op = ast.CallStatic(
                 QualType(name="proto_serde", Parameters=[field_proto_type, field_type]),
                 "write",
@@ -793,16 +795,24 @@ def build_protobuf_writer_for_field(
         else:
             return write_op
 
-    if tuple(field.type.flatQualName()) in variant_type_list:
-        typedef = variant_type_list[tuple(field.type.flatQualName())]
+    flat = tuple(field.type.flatQualName())
+    if flat in variant_type_list or field.type.name in ["variant", "Variant", "Var"]:
+        is_typedef = flat in variant_type_list
+        variant = variant_type_list[flat].base if is_typedef else field.type
         variant_switch = SwitchStmtParams(Expr=t.line([dot_field, t.text(".index()")]))
-        for idx, var_field in enumerate(build_protobuf_fields_for_variant(typedef.base)):
+        for idx, var_field in enumerate(build_protobuf_fields_for_variant(variant)):
             var_dot = t.line([t.text(f"std::get<{idx}>("), dot_field, t.text(")")])
 
             variant_switch.Cases.append(
                 CaseStmtParams(
                     Expr=t.text(str(idx)),
-                    Body=[get_field_write_op(var_field, var_dot, parent_field=field)],
+                    Body=[
+                        get_field_write_op(
+                            var_field,
+                            var_dot,
+                            parent_field=field if is_typedef else None,
+                        )
+                    ],
                     OneLine=True,
                     Compound=False,
                     Autobreak=True,
@@ -829,8 +839,9 @@ def build_protobuf_fields_for_variant(typ: QualType) -> Iterable[GenTuField]:
 
 
 @beartype
-def build_protobuf_writer(expanded: List[GenTuStruct],
-                          ast: ASTBuilder) -> Iterable[RecordParams]:
+def build_protobuf_writer(
+        expanded: List[GenTuStruct],
+        ast: ASTBuilder) -> Iterable[Union[RecordParams, MethodDefParams]]:
     t = ast.b
     base_map = get_base_map(expanded)
     types_list = get_protobuf_wrapped(expanded)
@@ -842,7 +853,6 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
     def find_enums(obj):
         if isinstance(obj, GenTuEnum):
             filter = filter_walk_scope(context)
-            log("codegen").info(f"{obj.name.format()} {[it.format() for it in filter]}")
             enum_type_list.append(obj.name)
 
         elif isinstance(obj, GenTuTypedef):
@@ -852,8 +862,8 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
     iterate_object_tree(types_list, find_enums, context)
 
     @beartype
-    def aux_item(it: GenTuUnion | GenTuPass) -> List[RecordParams]:
-        result: List[RecordParams] = []
+    def aux_item(it: GenTuUnion | GenTuPass) -> List[Tuple[RecordParams, QualType]]:
+        result: List[Tuple[RecordParams, QualType]] = []
         match it:
             case GenTuStruct():
                 out = t.text("out")
@@ -906,19 +916,37 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
 
                 for sub in it.nested:
                     result += aux_item(sub)
-                    
 
-                result.append(RecordParams(
+                writer_specialization = QualType(
                     name="proto_serde",
-                    doc=DocParams(""),
-                    NameParams=[out_type, in_type],
-                    members=[writer],
-                    Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                    Parameters=[out_type, in_type],
+                )
+
+                result.append((
+                    RecordParams(
+                        name="proto_serde",
+                        doc=DocParams(""),
+                        NameParams=[out_type, in_type],
+                        members=[writer],
+                        Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                    ),
+                    writer_specialization,
                 ))
 
         return result
 
-    return list(itertools.chain(*(aux_item(it) for it in types_list)))
+    item: RecordParams
+    name: QualType
+    writer_types: List[RecordParams] = []
+    writer_methods: List[MethodDefParams] = []
+    for item, name in itertools.chain(*(aux_item(it) for it in types_list)):
+        writer_types.append(item)
+
+        for meth in item.methods():
+            writer_methods.append(meth.asMethodDef(name))
+            meth.Params.Body = None
+
+    return writer_types + writer_methods
 
 
 @beartype
@@ -1076,14 +1104,15 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             def rec_type(T: QualType):
 
                 def rec_drop(T: QualType) -> QualType:
-                    return T.model_copy(
-                        update=dict(isConst=False,
-                                    RefKind=ReferenceKind.NotRef,
-                                    ptrCount=0,
-                                    isNamespace=False,
-                                    meta=dict(),
-                                    Spaces=[rec_drop(S) for S in T.Spaces],
-                                    Parameters=[rec_drop(P) for P in T.Parameters]))
+                    return T.model_copy(update=dict(
+                        isConst=False,
+                        RefKind=ReferenceKind.NotRef,
+                        ptrCount=0,
+                        isNamespace=False,
+                        meta=dict(),
+                        Spaces=[rec_drop(S) for S in T.Spaces],
+                        Parameters=[rec_drop(P) for P in T.Parameters],
+                    ))
 
                 T = rec_drop(T)
 
@@ -1105,10 +1134,13 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                     specialization_calls.append(
                         ast.XCall(
                             "bind_vector",
-                            [ast.string("m"),
-                             ast.StringLiteral(py_type_bind(T).Name)],
+                            [
+                                ast.string("m"),
+                                ast.StringLiteral(py_type_bind(T).Name),
+                            ],
                             Params=[T.Parameters[0]],
-                            Stmt=True))
+                            Stmt=True,
+                        ))
 
                 else:
                     for P in T.Parameters:
@@ -1143,11 +1175,16 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "{base}/sem/SemOrgSerde.cpp",
                 [
                     GenTuPass("#include <sem/SemOrgSerde.hpp>"),
-                ] + [GenTuPass(ast.Record(rec)) for rec in protobuf_writer],
+                ] + [
+                    GenTuPass(t.stack([ast.Any(rec), t.text("")]))
+                    for rec in protobuf_writer
+                ],
             )),
         GenUnit(
-            GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False,
-                                                                        expanded)),),
+            GenTu(
+                "{base}/exporters/Exporter.tcc",
+                get_exporter_methods(False, expanded),
+            ),),
         GenUnit(
             GenTu("{base}/exporters/ExporterMethods.tcc",
                   get_exporter_methods(True, expanded))),
