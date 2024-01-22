@@ -98,6 +98,9 @@ class QualType(BaseModel, extra="forbid"):
 
     def withoutSpace(self, name: str) -> 'QualType':
         return self.model_copy(update=dict(Spaces=[S for S in self.Spaces if S.name != name]))
+    
+    def withoutAllSpaces(self) -> 'QualType':
+        return self.model_copy(update=dict(Spaces=[]))
 
     def withChangedSpace(self, name: Union['QualType', str]) -> 'QualType':
         added: QualType = QualType(name=name) if isinstance(name, str) else name
@@ -628,7 +631,10 @@ class ASTBuilder(base.AstbuilderBase):
     def Trail(self, first: BlockId, second: BlockId, space: str = " ") -> BlockId:
         return self.b.line([first, self.string(space), second])
 
-    def Comment(self, text: List[str], Inline: bool = True, Doc: bool = False) -> BlockId:
+    def Comment(self, text: List[str] | str, Inline: bool = True, Doc: bool = False) -> BlockId:
+        if isinstance(text, str):
+            text = [text]
+
         if Inline:
             content = self.b.stack([])
             for line in text:

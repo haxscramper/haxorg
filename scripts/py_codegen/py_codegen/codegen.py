@@ -532,10 +532,10 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         for item in typ.nested:
             match item:
                 case GenTuStruct():
-                    converted.append(rec_expand_type(item, context + [item.name]))
+                    converted.append(rec_expand_type(item, context + [typ.name]))
 
                 case GenTuTypeGroup():
-                    for res in rec_expand_group(item, context):
+                    for res in rec_expand_group(item, context + [typ.name]):
                         if isinstance(res, GenTuField):
                             fields.append(res)
 
@@ -548,7 +548,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 case GenTuEnum():
                     converted.append(
                         replace(item,
-                                name=item.name.model_copy(update=dict(Spaces=context))))
+                                name=item.name.model_copy(update=dict(Spaces=context +
+                                                                      [typ.name]))))
 
                 case GenTuPass():
                     converted.append(item)
@@ -558,7 +559,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         result = replace(
             typ,
-            name=typ.name.model_copy(update=dict(Spaces=context[:1])),
+            name=typ.name.model_copy(update=dict(Spaces=context)),
             nested=converted,
             methods=typ.methods + methods,
             fields=typ.fields + fields,
@@ -569,7 +570,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         return result
 
-    return [rec_expand_type(T, [QualType.ForName("sem"), T.name]) for T in types]
+    return [rec_expand_type(T, [QualType.ForName("sem")]) for T in types]
 
 
 def to_base_types(obj):
@@ -653,8 +654,11 @@ def rewrite_for_proto_serde(typ: QualType, enum_type_list: List[QualType]) -> Qu
         return [rewrite_for_proto_serde(p, enum_type_list) for p in typ.Parameters]
 
     match typ:
-        case QualType(name="SemId") | QualType(name="SemIdT"):
+        case QualType(name="SemId"):
             return QualType.ForName("AnyNode").withExtraSpace("orgproto")
+
+        case QualType(name="SemIdT", Parameters=[nodeType]):
+            return nodeType.withoutSpace("sem").withExtraSpace("orgproto")
 
         case QualType(name="bool"):
             return typ
@@ -708,6 +712,10 @@ def build_protobuf_cxx_field_read(
         field_read = dot_field
         field_type = field.type
 
+    if field_type.name == "SemIdT":
+        field_read = t.line([t.text("*(("), field_read, t.text(").get())")])
+        field_type = field_type.Parameters[0]
+
     field_proto_type = rewrite_for_proto_serde(field_type, enum_type_list)
     is_enum_field = in_type_list(field_type, enum_type_list)
 
@@ -732,7 +740,11 @@ def build_protobuf_writer_for_field(
     out = t.text("out")
     dot_field = ast.Dot(t.text("in"), t.text(field.name))
 
-    def get_field_write_op(field: GenTuField, dot_field: BlockId) -> BlockId:
+    def get_field_write_op(
+        field: GenTuField,
+        dot_field: BlockId,
+        parent_field: Optional[GenTuField] = None,
+    ) -> BlockId:
         field_read, field_type, field_proto_type = build_protobuf_cxx_field_read(
             field,
             ast,
@@ -751,7 +763,11 @@ def build_protobuf_writer_for_field(
             )
 
         else:
-            opc = "mutable_" + field.name.lower()
+            if parent_field:
+                opc = f"mutable_{parent_field.name.lower()}()->mutable_{field.name.lower()}"
+
+            else:
+                opc = "mutable_" + field.name.lower()
 
             write_op = ast.CallStatic(
                 QualType(name="proto_serde", Parameters=[field_proto_type, field_type]),
@@ -773,17 +789,10 @@ def build_protobuf_writer_for_field(
         for idx, var_field in enumerate(build_protobuf_fields_for_variant(typedef.base)):
             var_dot = t.line([t.text(f"std::get<{idx}>("), dot_field, t.text(")")])
 
-            var_field_read, var_field_type, var_field_proto_type = build_protobuf_cxx_field_read(
-                var_field,
-                ast,
-                var_dot,
-                enum_type_list=enum_type_list,
-            )
-
             variant_switch.Cases.append(
                 CaseStmtParams(
                     Expr=t.text(str(idx)),
-                    Body=[get_field_write_op(var_field, var_dot)],
+                    Body=[get_field_write_op(var_field, var_dot, parent_field=field)],
                     OneLine=True,
                     Compound=False,
                     Autobreak=True,
@@ -802,8 +811,11 @@ def sanitize_ident_for_protobuf(ident: str) -> str:
 
 @beartype
 def build_protobuf_fields_for_variant(typ: QualType) -> Iterable[GenTuField]:
-    return (GenTuField(name=sanitize_ident_for_protobuf(rewrite_for_proto_grammar(sub)),
-                       type=sub) for sub in typ.Parameters)
+    return (GenTuField(
+        name=sanitize_ident_for_protobuf(rewrite_for_proto_grammar(
+            sub.withoutAllSpaces())),
+        type=sub,
+    ) for sub in typ.Parameters)
 
 
 @beartype
@@ -815,15 +827,19 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
     enum_type_list: List[QualType] = []
     variant_type_list: Dict[Tuple[str, ...], GenTuTypedef] = {}
 
+    context = []
+
     def find_enums(obj):
         if isinstance(obj, GenTuEnum):
+            filter = filter_walk_scope(context)
+            log("codegen").info(f"{obj.name.format()} {[it.format() for it in filter]}")
             enum_type_list.append(obj.name)
 
         elif isinstance(obj, GenTuTypedef):
             if obj.base.name == "variant":
                 variant_type_list[tuple(obj.name.flatQualName())] = obj
 
-    iterate_object_tree(types_list, find_enums, [])
+    iterate_object_tree(types_list, find_enums, context)
 
     def aux_item(it: GenTuUnion) -> RecordParams:
         match it:
