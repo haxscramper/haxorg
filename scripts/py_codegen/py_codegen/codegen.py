@@ -22,6 +22,8 @@ from py_codegen.astbuilder_pybind11 import (
     py_type,
 )
 
+from beartype.typing import NamedTuple
+
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId
 
@@ -727,62 +729,69 @@ def build_protobuf_cxx_field_read(
     return (field_read, field_type, field_proto_type)
 
 
+PROTO_VALUE_NAME = "in"
+ORG_VALUE_NAME = "out"
+
+
+@beartype
+def get_field_write_op(
+    field: GenTuField,
+    dot_field: BlockId,
+    ast: ASTBuilder,
+    enum_type_list: List[QualType],
+    parent_field: Optional[GenTuField] = None,
+) -> BlockId:
+    field_read, field_type, field_proto_type = build_protobuf_cxx_field_read(
+        field,
+        ast,
+        dot_field,
+        enum_type_list=enum_type_list,
+    )
+
+    is_enum_field = in_type_list(field_type, enum_type_list)
+
+    if field_type.name in ["int", "string", "bool"] or is_enum_field:
+        write_op = ast.XCallPtr(
+            ast.b.text(PROTO_VALUE_NAME),
+            "set_" + field.name.lower(),
+            [field_read],
+            Stmt=True,
+        )
+
+    else:
+        if parent_field:
+            opc = f"mutable_{parent_field.name.lower()}()->mutable_{field.name.lower()}"
+
+        else:
+            opc = "mutable_" + field.name.lower()
+
+        if field.name.lower() in ["static", "export"]:
+            opc += "_"
+
+        write_op = ast.CallStatic(
+            QualType(name="proto_serde", Parameters=[field_proto_type, field_type]),
+            "write",
+            [ast.XCallPtr(ast.b.text(PROTO_VALUE_NAME), opc), field_read],
+            Stmt=True,
+        )
+
+    if field.type.name in ["Opt"]:
+        write_op = ast.IfStmt(
+            IfStmtParams([IfStmtParams.Branch(Cond=dot_field, Then=write_op)]))
+
+    return write_op
+
+
 @beartype
 def build_protobuf_writer_for_field(
     field: GenTuField,
     ast: ASTBuilder,
     enum_type_list: List[QualType],
     variant_type_list: Dict[Tuple[str, ...], GenTuTypedef],
-) -> BlockId:
+) -> Tuple[BlockId, BlockId]:
     t = ast.b
-    out = t.text("out")
-    dot_field = ast.Dot(t.text("in"), t.text(field.name))
-
-    def get_field_write_op(
-        field: GenTuField,
-        dot_field: BlockId,
-        parent_field: Optional[GenTuField] = None,
-    ) -> BlockId:
-        field_read, field_type, field_proto_type = build_protobuf_cxx_field_read(
-            field,
-            ast,
-            dot_field,
-            enum_type_list=enum_type_list,
-        )
-
-        is_enum_field = in_type_list(field_type, enum_type_list)
-
-        if field_type.name in ["int", "string", "bool"] or is_enum_field:
-            write_op = ast.XCallPtr(
-                out,
-                "set_" + field.name.lower(),
-                [field_read],
-                Stmt=True,
-            )
-
-        else:
-            if parent_field:
-                opc = f"mutable_{parent_field.name.lower()}()->mutable_{field.name.lower()}"
-
-            else:
-                opc = "mutable_" + field.name.lower()
-
-            if field.name.lower() in ["static", "export"]:
-                opc += "_"
-
-            write_op = ast.CallStatic(
-                QualType(name="proto_serde", Parameters=[field_proto_type, field_type]),
-                "write",
-                [ast.XCallPtr(out, opc), field_read],
-                Stmt=True,
-            )
-
-        if field.type.name in ["Opt"]:
-            return ast.IfStmt(
-                IfStmtParams([IfStmtParams.Branch(Cond=dot_field, Then=write_op)]))
-
-        else:
-            return write_op
+    out = t.text(ORG_VALUE_NAME)
+    dot_field = ast.Dot(t.text(PROTO_VALUE_NAME), t.text(field.name))
 
     flat = tuple(field.type.flatQualName())
     if flat in variant_type_list or field.type.name in ["variant", "Variant", "Var"]:
@@ -792,25 +801,32 @@ def build_protobuf_writer_for_field(
         for idx, var_field in enumerate(build_protobuf_fields_for_variant(variant)):
             var_dot = t.line([t.text(f"std::get<{idx}>("), dot_field, t.text(")")])
 
+            write_op = get_field_write_op(
+                var_field,
+                var_dot,
+                parent_field=field if is_typedef else None,
+                enum_type_list=enum_type_list,
+                ast=ast,
+            )
+
             variant_switch.Cases.append(
                 CaseStmtParams(
                     Expr=t.text(str(idx)),
-                    Body=[
-                        get_field_write_op(
-                            var_field,
-                            var_dot,
-                            parent_field=field if is_typedef else None,
-                        )
-                    ],
+                    Body=[write_op],
                     OneLine=True,
                     Compound=False,
                     Autobreak=True,
                 ))
 
-        return ast.SwitchStmt(variant_switch)
+        return (ast.SwitchStmt(variant_switch), t.text("write()"))
 
     else:
-        return get_field_write_op(field, dot_field)
+        return (get_field_write_op(
+            field,
+            dot_field,
+            enum_type_list=enum_type_list,
+            ast=ast,
+        ), t.text(""))
 
 
 @beartype
@@ -856,52 +872,79 @@ def build_protobuf_writer(
         result: List[Tuple[RecordParams, QualType]] = []
         match it:
             case GenTuStruct():
-                out = t.text("out")
-                _in = t.text("in")
+                out = t.text(ORG_VALUE_NAME)
+                _in = t.text(PROTO_VALUE_NAME)
                 org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")
-                out_type = org_cleaned.withGlobalSpace()
-                in_type: Final = it.name
+                proto_param_type = org_cleaned.withGlobalSpace()
+                org_param_type: Final = it.name
 
-                Body: List[BlockId] = []
+                writer_body: List[BlockId] = []
+                reader_body: List[BlockId] = []
                 for base in get_base_list(it, base_map):
                     if base.name in base_map and len(base_map[base.name].fields) == 0:
                         continue
-                        
-                    Body.append(
-                        ast.CallStatic(
-                            QualType(name="proto_serde", Parameters=[out_type, base]),
-                            "write",
+
+                    def get_base_call(method_name: str) -> BlockId:
+                        return ast.CallStatic(
+                            QualType(name="proto_serde",
+                                     Parameters=[proto_param_type, base]),
+                            method_name,
                             [out, _in],
                             Stmt=True,
-                        ))
+                        )
+
+                    writer_body.append(get_base_call("write"))
+                    reader_body.append(get_base_call("read"))
 
                 for field in it.fields:
                     if field.name == "staticKind":
                         continue
 
-                    Body.append(
-                        build_protobuf_writer_for_field(
-                            field,
-                            ast,
-                            enum_type_list=enum_type_list,
-                            variant_type_list=variant_type_list,
-                        ))
+                    write_op, read_op = build_protobuf_writer_for_field(
+                        field,
+                        ast,
+                        enum_type_list=enum_type_list,
+                        variant_type_list=variant_type_list,
+                    )
+
+                    writer_body.append(write_op)
+                    reader_body.append(read_op)
+
+                reader = MethodDeclParams(
+                    Params=FunctionParams(
+                        Name="read",
+                        Args=[
+                            ParmVarParams(
+                                name=ORG_VALUE_NAME,
+                                type=org_param_type.asRef(),
+                            ),
+                            ParmVarParams(
+                                name=PROTO_VALUE_NAME,
+                                type=proto_param_type.asConstRef(),
+                            ),
+                        ],
+                        doc=DocParams(""),
+                        Body=reader_body,
+                        AllowOneLine=False,
+                    ),
+                    isStatic=True,
+                )
 
                 writer = MethodDeclParams(
                     Params=FunctionParams(
                         Name="write",
                         Args=[
                             ParmVarParams(
-                                name="out",
-                                type=out_type.asPtr(),
+                                name=ORG_VALUE_NAME,
+                                type=proto_param_type.asPtr(),
                             ),
                             ParmVarParams(
-                                name="in",
-                                type=in_type.asConstRef(),
+                                name=PROTO_VALUE_NAME,
+                                type=org_param_type.asConstRef(),
                             ),
                         ],
                         doc=DocParams(""),
-                        Body=Body,
+                        Body=writer_body,
                         AllowOneLine=False,
                     ),
                     isStatic=True,
@@ -912,15 +955,15 @@ def build_protobuf_writer(
 
                 writer_specialization = QualType(
                     name="proto_serde",
-                    Parameters=[out_type, in_type],
+                    Parameters=[proto_param_type, org_param_type],
                 )
 
                 result.append((
                     RecordParams(
                         name="proto_serde",
                         doc=DocParams(""),
-                        NameParams=[out_type, in_type],
-                        members=[writer],
+                        NameParams=[proto_param_type, org_param_type],
+                        members=[writer, reader],
                         Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
                     ),
                     writer_specialization,

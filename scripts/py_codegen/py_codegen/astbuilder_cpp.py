@@ -80,6 +80,10 @@ class QualType(BaseModel, extra="forbid"):
     def asConstRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))
 
+    def asRef(self) -> 'QualType':
+        return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
+
+
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
 
