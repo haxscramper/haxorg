@@ -10,6 +10,7 @@ enum OrgSemPlacement {
   OrgSemPlacement_ListItemDesc_f                                                    = 4;
   OrgSemPlacement_DocBody_f                                                         = 5;
 }
+
 enum OrgSpecName {
   OrgSpecName_Unnamed_f                                                             = 0;
   OrgSpecName_Result_f                                                              = 1;
@@ -72,6 +73,7 @@ enum OrgSpecName {
   OrgSpecName_MainSetRule_f                                                         = 58;
   OrgSpecName_SubSetRule_f                                                          = 59;
 }
+
 enum OrgNodeKind {
   OrgNodeKind_None_f                                                                = 0;
   OrgNodeKind_Document_f                                                            = 1;
@@ -215,6 +217,7 @@ enum OrgNodeKind {
   OrgNodeKind_RadioTarget_f                                                         = 139;
   OrgNodeKind_Target_f                                                              = 140;
 }
+
 enum OrgBigIdentKind {
   OrgBigIdentKind_None_f                                                            = 0;
   OrgBigIdentKind_Must_f                                                            = 1;
@@ -282,6 +285,7 @@ enum OrgBigIdentKind {
   OrgBigIdentKind_StructElse_f                                                      = 63;
   OrgBigIdentKind_StructWhile_f                                                     = 64;
 }
+
 enum OrgTokenKind {
   OrgTokenKind_None_f                                                               = 0;
   OrgTokenKind_Eof_f                                                                = 1;
@@ -501,6 +505,7 @@ enum OrgTokenKind {
   OrgTokenKind_CallEnd_f                                                            = 215;
   OrgTokenKind_CmdArguments_f                                                       = 216;
 }
+
 enum OrgSemKind {
   OrgSemKind_StmtList_f                                                             = 0;
   OrgSemKind_Empty_f                                                                = 1;
@@ -555,30 +560,36 @@ enum OrgSemKind {
   OrgSemKind_DocumentOptions_f                                                      = 50;
   OrgSemKind_DocumentGroup_f                                                        = 51;
 }
+
 message Stmt {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   repeated AnyNode                                 attached                         = 3;
 }
+
 message Inline {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message StmtList {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Empty {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Row {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Table {
   repeated AnyNode                                 attached                         = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
@@ -586,6 +597,7 @@ message Table {
   OrgSemKind                                       staticKind                       = 4;
   repeated Row                                     rows                             = 5;
 }
+
 message HashTag {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -593,6 +605,7 @@ message HashTag {
   string                                           head                             = 4;
   repeated HashTag                                 subtags                          = 5;
 }
+
 message Footnote {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -600,6 +613,7 @@ message Footnote {
   string                                           tag                              = 4;
   optional AnyNode                                 definition                       = 5;
 }
+
 message Completion {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -608,64 +622,77 @@ message Completion {
   int32                                            full                             = 5;
   bool                                             isPercent                        = 6;
 }
+
 message Paragraph {
   repeated AnyNode                                 attached                         = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Format {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message Center {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Command {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message LineCommand {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message Standalone {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message Attached {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message Caption {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   Paragraph                                        text                             = 4;
 }
+
 message CommandGroup {
   repeated AnyNode                                 attached                         = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Block {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message Quote {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   Paragraph                                        text                             = 4;
 }
+
 message Example {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message CmdArguments {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -673,6 +700,7 @@ message CmdArguments {
   repeated CmdArgument                             positional                       = 4;
   map<string, CmdArgument>                         named                            = 5;
 }
+
 message CmdArgument {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -680,6 +708,7 @@ message CmdArgument {
   optional string                                  key                              = 4;
   string                                           value                            = 5;
 }
+
 message Export {
   enum Format {
     Format_Inline_f                                                                 = 0;
@@ -695,11 +724,13 @@ message Export {
   optional string                                  placement                        = 7;
   string                                           content                          = 8;
 }
+
 message AdmonitionBlock {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Code {
   message Switch {
     message LineStart {
@@ -758,6 +789,7 @@ message Code {
   bool                                             hlines                           = 11;
   bool                                             tangle                           = 12;
 }
+
 message Time {
   message Repeat {
     enum Mode {
@@ -801,6 +833,7 @@ message Time {
   bool                                             isActive                         = 4;
   Time.TimeVariant                                 time                             = 5;
 }
+
 message TimeRange {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -808,6 +841,7 @@ message TimeRange {
   Time                                             from                             = 4;
   Time                                             to                               = 5;
 }
+
 message Macro {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -815,6 +849,7 @@ message Macro {
   string                                           name                             = 4;
   repeated string                                  arguments                        = 5;
 }
+
 message Symbol {
   message Param {
     optional string                                key                              = 1;
@@ -827,6 +862,7 @@ message Symbol {
   repeated Symbol.Param                            parameters                       = 5;
   repeated AnyNode                                 positional                       = 6;
 }
+
 message SubtreeLog {
   message DescribedLog {
     optional StmtList                              desc                             = 1;
@@ -893,6 +929,7 @@ message SubtreeLog {
   OrgSemKind                                       staticKind                       = 3;
   SubtreeLog.LogEntry                              log                              = 4;
 }
+
 message Subtree {
   message Period {
     enum Kind {
@@ -1025,123 +1062,146 @@ message Subtree {
   optional Time                                    deadline                         = 14;
   optional Time                                    scheduled                        = 15;
 }
+
 message LatexBody {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message InlineMath {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Leaf {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   string                                           text                             = 3;
 }
+
 message Escaped {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Newline {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Space {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Word {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message AtMention {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message RawText {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Punctuation {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Placeholder {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message BigIdent {
   string                                           text                             = 1;
   optional OrgSemPlacement                         placementContext                 = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
 }
+
 message Markup {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
 }
+
 message Bold {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Underline {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Monospace {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message MarkQuote {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Verbatim {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Italic {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Strike {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Par {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message List {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message ListItem {
   enum Checkbox {
     Checkbox_None_f                                                                 = 0;
@@ -1154,6 +1214,7 @@ message ListItem {
   ListItem.Checkbox                                checkbox                         = 4;
   optional Paragraph                               header                           = 5;
 }
+
 message Link {
   message Raw {
     string                                         text                             = 1;
@@ -1192,6 +1253,7 @@ message Link {
   optional Paragraph                               description                      = 4;
   Link.Data                                        data                             = 5;
 }
+
 message Document {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -1208,11 +1270,13 @@ message Document {
   DocumentOptions                                  options                          = 13;
   optional string                                  exportFileName                   = 14;
 }
+
 message ParseError {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message FileTarget {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -1224,11 +1288,13 @@ message FileTarget {
   optional string                                  targetId                         = 8;
   optional string                                  regexp                           = 9;
 }
+
 message TextSeparator {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message Include {
   message Example {
 
@@ -1261,6 +1327,7 @@ message Include {
   OrgSemKind                                       staticKind                       = 3;
   Include.Data                                     data                             = 4;
 }
+
 message DocumentOptions {
   message DoExport {
     bool                                           exportToc                        = 1;
@@ -1314,11 +1381,13 @@ message DocumentOptions {
   bool                                             exportWithCreator                = 19;
   DocumentOptions.TocExport                        data                             = 20;
 }
+
 message DocumentGroup {
   optional OrgSemPlacement                         placementContext                 = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
 }
+
 message AnyNode {
   oneof kind {
     Stmt                                             stmt                             = 1;

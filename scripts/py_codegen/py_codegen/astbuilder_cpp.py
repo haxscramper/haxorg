@@ -83,7 +83,6 @@ class QualType(BaseModel, extra="forbid"):
     def asRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
 
-
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
 
@@ -95,6 +94,16 @@ class QualType(BaseModel, extra="forbid"):
 
     def flatQualName(self) -> List[str]:
         return self.flatSpaces() + [self.name]
+
+    def asSpaceFor(self, other: 'QualType') -> 'QualType':
+        return other.model_copy(update=dict(
+            Spaces=self.Spaces +
+            [self.model_copy(update=dict(
+                Spaces=[],
+                isGlobalNamespace=False,
+            ))],
+            isGlobalNamespace=self.isGlobalNamespace,
+        ))
 
     def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
         added: QualType = QualType(name=name) if isinstance(name, str) else name
@@ -159,6 +168,8 @@ class QualType(BaseModel, extra="forbid"):
         origin = f"FROM:[{self.dbg_origin}]" if dbgOrigin else ""
 
         spaces = "".join([S.format(dbgOrigin) + "::" for S in self.Spaces])
+        if spaces:
+            spaces = f"[{spaces}]<<"
 
         match self.Kind:
             case QualTypeKind.FunctionPtr:
@@ -308,6 +319,7 @@ class MethodDefParams:
     Class: QualType
     IsConst: bool = False
 
+
 @beartype
 @dataclass
 class MethodDeclParams:
@@ -319,11 +331,9 @@ class MethodDeclParams:
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
     def asMethodDef(self, Class: QualType) -> MethodDefParams:
-        return MethodDefParams(
-            IsConst=self.isConst,
-            Class=Class,
-            Params=copy(self.Params)
-        )
+        return MethodDefParams(IsConst=self.isConst,
+                               Class=Class,
+                               Params=copy(self.Params))
 
 
 @beartype
@@ -1307,17 +1317,16 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return self.b.stack([self.Doc(doc), content])
 
-
     def Any(self, it: Any) -> BlockId:
         match it:
             case RecordParams():
                 return self.Record(it)
-            
+
             case MethodDefParams():
                 return self.MethodDef(it)
-            
+
             case MethodDeclParams():
                 return self.MethodDecl(it)
-            
+
             case _:
                 assert False, type(it)

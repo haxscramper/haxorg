@@ -13,6 +13,10 @@ PROTO_VALUE_NAME = "out"
 ORG_VALUE_NAME = "in"
 
 
+def pascal_case(s: str) -> str:
+    return s[0].upper() + s[1:].lower() if s else ""
+
+
 @beartype
 class ProtoBuilder():
 
@@ -38,6 +42,13 @@ class ProtoBuilder():
 
         iterate_object_tree(self.types_list, find_enums, context)
 
+    def oneof_field_name(self, it: tu.GenTuField) -> str:
+        if it.type.name == "Variant":
+            return it.name + "_kind"
+
+        else:
+            return "kind"
+
     def build_protobuf(self) -> BlockId:
 
         def braced(name: str, content: Iterable[BlockId]) -> BlockId:
@@ -55,7 +66,7 @@ class ProtoBuilder():
             if it.type.name == "Variant":
                 return self.t.stack([
                     braced(
-                        f"oneof {it.name}_kind",
+                        f"oneof {self.oneof_field_name(it)}",
                         aux_field_list(
                             self.build_protobuf_fields_for_variant(it.type),
                             indexer=indexer,
@@ -145,8 +156,9 @@ class ProtoBuilder():
         ])
 
         return self.t.stack(
-            list(drop_none(aux_item(it, indent=0) for it in self.types_list)) +
-            [any_node])
+            list(
+                itertools.chain(*([it, self.t.text("")] for it in drop_none(
+                    aux_item(it, indent=0) for it in self.types_list)))) + [any_node])
 
     @beartype
     def rewrite_for_proto_grammar(self, it: tu.QualType) -> str:
@@ -254,6 +266,7 @@ class ProtoBuilder():
         self,
         field: tu.GenTuField,
         dot_field: BlockId,
+        is_write_getter: bool,
     ) -> Tuple[BlockId, tu.QualType, tu.QualType]:
         if field.type.name in ["Opt"]:
             field_read = self.t.line([self.t.text("*"), dot_field])
@@ -272,7 +285,7 @@ class ProtoBuilder():
         field_proto_type = self.rewrite_for_proto_serde(field_type)
         is_enum_field = tu.in_type_list(field_type, self.enum_type_list)
 
-        if is_enum_field:
+        if not is_write_getter and is_enum_field:
             field_read = self.ast.XCall(
                 "static_cast",
                 args=[field_read],
@@ -296,20 +309,33 @@ class ProtoBuilder():
         field_read, field_type, field_proto_type = self.build_protobuf_cxx_field_read(
             field,
             dot_field,
+            is_write_getter=True,
         )
 
         proto_ptr = self.ast.b.text(PROTO_VALUE_NAME)
 
         if self.is_direct_set_type(field_type):
+            read_expr = self.ast.XCallRef(proto_ptr,
+                                          self.sanitize_ident_for_protobuf(field.name))
+            if self.is_enum_type(field_type):
+                read_expr = self.ast.XCall(
+                    "static_cast",
+                    args=[read_expr],
+                    Params=[field_type],
+                )
+
             read_op = self.t.line([
                 field_read,
                 self.t.text(" = "),
-                self.ast.XCallRef(proto_ptr, field.name.lower()),
+                read_expr,
                 self.t.text(";"),
             ])
 
         else:
-            opc = field.name.lower()
+            opc = self.sanitize_ident_for_protobuf(field.name)
+
+            if parent_field:
+                opc = self.sanitize_ident_for_protobuf(parent_field.name) + "()." + opc
 
             read_op = self.ast.CallStatic(
                 tu.QualType(
@@ -317,27 +343,49 @@ class ProtoBuilder():
                     Parameters=[field_proto_type, field_type],
                 ),
                 "read",
-                [self.ast.XCallRef(proto_ptr, opc), field_read],
+                [
+                    self.t.text(self.ctx_store_param().name),
+                    self.ast.XCallRef(proto_ptr, opc),
+                    field_read,
+                ],
                 Stmt=True,
             )
 
         if field.type.name in ["Opt"]:
-            read_op = self.ast.IfStmt(
-                cpp.IfStmtParams([
-                    cpp.IfStmtParams.Branch(
-                        Cond=self.ast.XCallRef(proto_ptr, "has_" + field.name.lower()),
-                        Then=self.t.stack([
-                            self.ast.CallStatic(
-                                tu.QualType(name="proto_init", Parameters=[field.type]),
-                                "init_default",
-                                [dot_field, self.t.text(ORG_VALUE_NAME)],
-                                Stmt=True,
-                            ), read_op,
-                        ]),
-                    )
-                ]))
+            defaulted_read = self.t.stack([
+                self.ast.CallStatic(
+                    tu.QualType(name="proto_init", Parameters=[field.type]),
+                    "init_default",
+                    [self.t.text(self.ctx_store_param().name), dot_field],
+                    Stmt=True,
+                ),
+                read_op,
+            ])
+
+            if self.is_direct_set_type(field.type):
+                read_op = self.ast.IfStmt(
+                    cpp.IfStmtParams([
+                        cpp.IfStmtParams.Branch(
+                            Cond=self.ast.XCallRef(
+                                proto_ptr,
+                                "has_" + self.sanitize_ident_for_protobuf(field.name),
+                            ),
+                            Then=defaulted_read,
+                        )
+                    ]))
+
+            else:
+                read_op = defaulted_read
 
         return read_op
+
+    def ctx_store_param(self) -> cpp.ParmVarParams:
+        return cpp.ParmVarParams(
+            name="context",
+            type=tu.QualType.ForName("ContextStore",
+                                     ptrCount=1,
+                                     Spaces=[tu.QualType.ForName("sem")]),
+        )
 
     def get_field_write_op(
         self,
@@ -346,26 +394,24 @@ class ProtoBuilder():
         parent_field: Optional[tu.GenTuField] = None,
     ) -> BlockId:
         field_read, field_type, field_proto_type = self.build_protobuf_cxx_field_read(
-            field,
-            dot_field,
-        )
+            field, dot_field, is_write_getter=False)
 
         if self.is_direct_set_type(field_type):
             write_op = self.ast.XCallPtr(
                 self.ast.b.text(PROTO_VALUE_NAME),
-                "set_" + field.name.lower(),
+                "set_" + self.sanitize_ident_for_protobuf(field.name),
                 [field_read],
                 Stmt=True,
             )
 
         else:
             if parent_field:
-                opc = f"mutable_{parent_field.name.lower()}()->mutable_{field.name.lower()}"
+                opc = f"mutable_{self.sanitize_ident_for_protobuf(parent_field.name)}()->mutable_{self.sanitize_ident_for_protobuf(field.name)}"
 
             else:
-                opc = "mutable_" + field.name.lower()
+                opc = "mutable_" + self.sanitize_ident_for_protobuf(field.name)
 
-            if field.name.lower() in ["static", "export"]:
+            if self.sanitize_ident_for_protobuf(field.name) in ["static", "export"]:
                 opc += "_"
 
             write_op = self.ast.CallStatic(
@@ -392,6 +438,7 @@ class ProtoBuilder():
     def build_protobuf_writer_for_field(
         self,
         field: tu.GenTuField,
+        proto_type: tu.QualType,
     ) -> Tuple[BlockId, BlockId]:
         t = self.ast.b
         dot_field = self.ast.Dot(t.text(ORG_VALUE_NAME), t.text(field.name))
@@ -402,28 +449,67 @@ class ProtoBuilder():
         ]:
             is_typedef = flat in self.variant_type_list
             variant = self.variant_type_list[flat].base if is_typedef else field.type
-            variant_switch = cpp.SwitchStmtParams(
+            if is_typedef:
+                reader_switch = cpp.SwitchStmtParams(Expr=self.ast.XCallRef(
+                    t.text(PROTO_VALUE_NAME),
+                    self.sanitize_ident_for_protobuf(field.name) + "()." +
+                    self.oneof_field_name(field) + "_case"))
+
+            else:
+                reader_switch = cpp.SwitchStmtParams(
+                    Expr=self.ast.XCallRef(t.text(PROTO_VALUE_NAME),
+                                           self.oneof_field_name(field) + "_case"))
+
+            writer_switch = cpp.SwitchStmtParams(
                 Expr=t.line([dot_field, t.text(".index()")]))
+
+            if is_typedef:
+                kind_type = proto_type.asSpaceFor(field.type.withoutAllSpaces())
+
+            else:
+                kind_type = proto_type
+
             for idx, var_field in enumerate(
                     self.build_protobuf_fields_for_variant(variant)):
                 var_dot = t.line([t.text(f"std::get<{idx}>("), dot_field, t.text(")")])
 
-                write_op = self.get_field_write_op(
-                    var_field,
-                    var_dot,
-                    parent_field=field if is_typedef else None,
-                )
-
-                variant_switch.Cases.append(
+                writer_switch.Cases.append(
                     cpp.CaseStmtParams(
                         Expr=t.text(str(idx)),
-                        Body=[write_op],
+                        Body=[
+                            self.get_field_write_op(
+                                var_field,
+                                var_dot,
+                                parent_field=field if is_typedef else None,
+                            )
+                        ],
+                        OneLine=False,
+                        Compound=False,
+                        Autobreak=True,
+                    ))
+
+                field_enum_value = kind_type.asSpaceFor(
+                    cpp.QualType.ForName(f"k{pascal_case(var_field.name)}"))
+
+                reader_switch.Cases.append(
+                    cpp.CaseStmtParams(
+                        Expr=self.ast.Type(field_enum_value),
+                        Body=[
+                            self.get_field_read_op(
+                                var_field,
+                                var_dot,
+                                parent_field=field if is_typedef else None,
+                            ),
+                        ],
                         OneLine=True,
                         Compound=False,
                         Autobreak=True,
                     ))
 
-            return (self.ast.SwitchStmt(variant_switch), t.text("write()"))
+            return (
+                self.ast.SwitchStmt(writer_switch),
+                self.ast.SwitchStmt(reader_switch),
+            )
 
         else:
             return (
@@ -439,7 +525,11 @@ class ProtoBuilder():
 
     @beartype
     def sanitize_ident_for_protobuf(self, ident: str) -> str:
-        return ident.lower().replace(" ", "_")
+        result = ident.lower().replace(" ", "_")
+        if result in ["export", "static"]:
+            result += "_"
+
+        return result
 
     @beartype
     def build_protobuf_fields_for_variant(
@@ -447,8 +537,7 @@ class ProtoBuilder():
         typ: tu.QualType,
     ) -> Iterable[tu.GenTuField]:
         return (tu.GenTuField(
-            name=self.sanitize_ident_for_protobuf(
-                self.rewrite_for_proto_grammar(sub.withoutAllSpaces())),
+            name=self.rewrite_for_proto_grammar(sub.withoutAllSpaces()).lower().replace(" ", "_"),
             type=sub,
         ) for sub in typ.Parameters)
 
@@ -472,23 +561,27 @@ class ProtoBuilder():
                             self.base_map[base.name].fields) == 0:
                         continue
 
-                    def get_base_call(method_name: str) -> BlockId:
+                    def get_base_call(isRead: bool) -> BlockId:
                         return self.ast.CallStatic(
                             tu.QualType(name="proto_serde",
                                         Parameters=[proto_param_type, base]),
-                            method_name,
-                            [out, _in],
+                            "read" if isRead else "write",
+                            [self.t.text(self.ctx_store_param().name), out, _in]
+                            if isRead else [out, _in],
                             Stmt=True,
                         )
 
-                    writer_body.append(get_base_call("write"))
-                    reader_body.append(get_base_call("read"))
+                    writer_body.append(get_base_call(False))
+                    reader_body.append(get_base_call(True))
 
                 for field in it.fields:
                     if field.name == "staticKind":
                         continue
 
-                    write_op, read_op = self.build_protobuf_writer_for_field(field)
+                    write_op, read_op = self.build_protobuf_writer_for_field(
+                        field,
+                        proto_type=proto_param_type,
+                    )
 
                     writer_body.append(write_op)
                     reader_body.append(read_op)
@@ -497,6 +590,7 @@ class ProtoBuilder():
                     Params=cpp.FunctionParams(
                         Name="read",
                         Args=[
+                            self.ctx_store_param(),
                             cpp.ParmVarParams(
                                 name=PROTO_VALUE_NAME,
                                 type=proto_param_type.asConstRef(),
