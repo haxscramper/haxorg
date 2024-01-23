@@ -570,7 +570,7 @@ def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
 
 
 @beartype
-def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
+def get_base_map(expanded: List[GenTuUnion]) -> Mapping[str, GenTuStruct]:
     base_map: Mapping[str, GenTuStruct] = {}
 
     def callback(obj):

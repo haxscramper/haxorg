@@ -99,9 +99,10 @@ class ProtoBuilder():
                         itertools.chain(
                             drop_none(
                                 aux_item(sub, indent=indent + 1) for sub in it.nested),
-                            aux_field_list((tu.get_type_base_fields(it, self.base_map) + it.fields),
-                                           indexer=make_full_enumerator(),
-                                           indent=indent),
+                            aux_field_list(
+                                (tu.get_type_base_fields(it, self.base_map) + it.fields),
+                                indexer=make_full_enumerator(),
+                                indent=indent),
                         ))
 
                 case tu.GenTuEnum():
@@ -144,8 +145,8 @@ class ProtoBuilder():
         ])
 
         return self.t.stack(
-            list(drop_none(aux_item(it, indent=0)
-                           for it in self.types_list)) + [any_node])
+            list(drop_none(aux_item(it, indent=0) for it in self.types_list)) +
+            [any_node])
 
     @beartype
     def rewrite_for_proto_grammar(self, it: tu.QualType) -> str:
@@ -280,7 +281,64 @@ class ProtoBuilder():
 
         return (field_read, field_type, field_proto_type)
 
-    @beartype
+    def is_enum_type(self, typ: tu.QualType) -> bool:
+        return tu.in_type_list(typ, self.enum_type_list)
+
+    def is_direct_set_type(self, typ: tu.QualType) -> bool:
+        return typ.name in ["int", "string", "bool"] or self.is_enum_type(typ)
+
+    def get_field_read_op(
+        self,
+        field: tu.GenTuField,
+        dot_field: BlockId,
+        parent_field: Optional[tu.GenTuField] = None,
+    ) -> BlockId:
+        field_read, field_type, field_proto_type = self.build_protobuf_cxx_field_read(
+            field,
+            dot_field,
+        )
+
+        proto_ptr = self.ast.b.text(PROTO_VALUE_NAME)
+
+        if self.is_direct_set_type(field_type):
+            read_op = self.t.line([
+                field_read,
+                self.t.text(" = "),
+                self.ast.XCallRef(proto_ptr, field.name.lower()),
+                self.t.text(";"),
+            ])
+
+        else:
+            opc = field.name.lower()
+
+            read_op = self.ast.CallStatic(
+                tu.QualType(
+                    name="proto_serde",
+                    Parameters=[field_proto_type, field_type],
+                ),
+                "read",
+                [self.ast.XCallRef(proto_ptr, opc), field_read],
+                Stmt=True,
+            )
+
+        if field.type.name in ["Opt"]:
+            read_op = self.ast.IfStmt(
+                cpp.IfStmtParams([
+                    cpp.IfStmtParams.Branch(
+                        Cond=self.ast.XCallRef(proto_ptr, "has_" + field.name.lower()),
+                        Then=self.t.stack([
+                            self.ast.CallStatic(
+                                tu.QualType(name="proto_init", Parameters=[field.type]),
+                                "init_default",
+                                [dot_field, self.t.text(ORG_VALUE_NAME)],
+                                Stmt=True,
+                            ), read_op,
+                        ]),
+                    )
+                ]))
+
+        return read_op
+
     def get_field_write_op(
         self,
         field: tu.GenTuField,
@@ -292,9 +350,7 @@ class ProtoBuilder():
             dot_field,
         )
 
-        is_enum_field = tu.in_type_list(field_type, self.enum_type_list)
-
-        if field_type.name in ["int", "string", "bool"] or is_enum_field:
+        if self.is_direct_set_type(field_type):
             write_op = self.ast.XCallPtr(
                 self.ast.b.text(PROTO_VALUE_NAME),
                 "set_" + field.name.lower(),
@@ -313,8 +369,10 @@ class ProtoBuilder():
                 opc += "_"
 
             write_op = self.ast.CallStatic(
-                tu.QualType(name="proto_serde", Parameters=[field_proto_type,
-                                                            field_type]),
+                tu.QualType(
+                    name="proto_serde",
+                    Parameters=[field_proto_type, field_type],
+                ),
                 "write",
                 [self.ast.XCallPtr(self.ast.b.text(PROTO_VALUE_NAME), opc), field_read],
                 Stmt=True,
@@ -322,8 +380,11 @@ class ProtoBuilder():
 
         if field.type.name in ["Opt"]:
             write_op = self.ast.IfStmt(
-                cpp.IfStmtParams([cpp.IfStmtParams.Branch(Cond=dot_field,
-                                                          Then=write_op)]))
+                cpp.IfStmtParams(
+                    [cpp.IfStmtParams.Branch(
+                        Cond=dot_field,
+                        Then=write_op,
+                    )]))
 
         return write_op
 
@@ -365,18 +426,26 @@ class ProtoBuilder():
             return (self.ast.SwitchStmt(variant_switch), t.text("write()"))
 
         else:
-            return (self.get_field_write_op(
-                field,
-                dot_field,
-            ), t.text(""))
+            return (
+                self.get_field_write_op(
+                    field,
+                    dot_field,
+                ),
+                self.get_field_read_op(
+                    field,
+                    dot_field,
+                ),
+            )
 
     @beartype
     def sanitize_ident_for_protobuf(self, ident: str) -> str:
         return ident.lower().replace(" ", "_")
 
     @beartype
-    def build_protobuf_fields_for_variant(self,
-                                          typ: tu.QualType) -> Iterable[tu.GenTuField]:
+    def build_protobuf_fields_for_variant(
+        self,
+        typ: tu.QualType,
+    ) -> Iterable[tu.GenTuField]:
         return (tu.GenTuField(
             name=self.sanitize_ident_for_protobuf(
                 self.rewrite_for_proto_grammar(sub.withoutAllSpaces())),
@@ -384,120 +453,121 @@ class ProtoBuilder():
         ) for sub in typ.Parameters)
 
     @beartype
+    def build_protobuf_serde_object(
+            self, it: tu.GenTuUnion | tu.GenTuPass
+    ) -> List[Tuple[cpp.RecordParams, tu.QualType]]:
+        result: List[Tuple[cpp.RecordParams, tu.QualType]] = []
+        match it:
+            case tu.GenTuStruct():
+                out = self.t.text(PROTO_VALUE_NAME)
+                _in = self.t.text(ORG_VALUE_NAME)
+                org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")
+                proto_param_type = org_cleaned.withGlobalSpace()
+                org_param_type: Final = it.name
+
+                writer_body: List[BlockId] = []
+                reader_body: List[BlockId] = []
+                for base in tu.get_base_list(it, self.base_map):
+                    if base.name in self.base_map and len(
+                            self.base_map[base.name].fields) == 0:
+                        continue
+
+                    def get_base_call(method_name: str) -> BlockId:
+                        return self.ast.CallStatic(
+                            tu.QualType(name="proto_serde",
+                                        Parameters=[proto_param_type, base]),
+                            method_name,
+                            [out, _in],
+                            Stmt=True,
+                        )
+
+                    writer_body.append(get_base_call("write"))
+                    reader_body.append(get_base_call("read"))
+
+                for field in it.fields:
+                    if field.name == "staticKind":
+                        continue
+
+                    write_op, read_op = self.build_protobuf_writer_for_field(field)
+
+                    writer_body.append(write_op)
+                    reader_body.append(read_op)
+
+                reader = cpp.MethodDeclParams(
+                    Params=cpp.FunctionParams(
+                        Name="read",
+                        Args=[
+                            cpp.ParmVarParams(
+                                name=PROTO_VALUE_NAME,
+                                type=proto_param_type.asConstRef(),
+                            ),
+                            cpp.ParmVarParams(
+                                name=ORG_VALUE_NAME,
+                                type=org_param_type.asRef(),
+                            ),
+                        ],
+                        doc=cpp.DocParams(""),
+                        Body=reader_body,
+                        AllowOneLine=False,
+                    ),
+                    isStatic=True,
+                )
+
+                writer = cpp.MethodDeclParams(
+                    Params=cpp.FunctionParams(
+                        Name="write",
+                        Args=[
+                            cpp.ParmVarParams(
+                                name=PROTO_VALUE_NAME,
+                                type=proto_param_type.asPtr(),
+                            ),
+                            cpp.ParmVarParams(
+                                name=ORG_VALUE_NAME,
+                                type=org_param_type.asConstRef(),
+                            ),
+                        ],
+                        doc=cpp.DocParams(""),
+                        Body=writer_body,
+                        AllowOneLine=False,
+                    ),
+                    isStatic=True,
+                )
+
+                for sub in it.nested:
+                    result += self.build_protobuf_serde_object(sub)
+
+                writer_specialization = tu.QualType(
+                    name="proto_serde",
+                    Parameters=[proto_param_type, org_param_type],
+                )
+
+                result.append((
+                    cpp.RecordParams(
+                        name="proto_serde",
+                        doc=cpp.DocParams(""),
+                        NameParams=[proto_param_type, org_param_type],
+                        members=[
+                            writer,
+                            reader,
+                        ],
+                        Template=cpp.TemplateParams(Stacks=[cpp.TemplateGroup(
+                            Params=[])]),
+                    ),
+                    writer_specialization,
+                ))
+
+        return result
+
+    @beartype
     def build_protobuf_writer(
             self) -> Iterable[Union[cpp.RecordParams, cpp.MethodDefParams]]:
-
-        @beartype
-        def aux_item(
-            it: tu.GenTuUnion | tu.GenTuPass
-        ) -> List[Tuple[cpp.RecordParams, tu.QualType]]:
-            result: List[Tuple[cpp.RecordParams, tu.QualType]] = []
-            match it:
-                case tu.GenTuStruct():
-                    out = self.t.text(PROTO_VALUE_NAME)
-                    _in = self.t.text(ORG_VALUE_NAME)
-                    org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")
-                    proto_param_type = org_cleaned.withGlobalSpace()
-                    org_param_type: Final = it.name
-
-                    writer_body: List[BlockId] = []
-                    reader_body: List[BlockId] = []
-                    for base in tu.get_base_list(it, self.base_map):
-                        if base.name in self.base_map and len(
-                                self.base_map[base.name].fields) == 0:
-                            continue
-
-                        def get_base_call(method_name: str) -> BlockId:
-                            return self.ast.CallStatic(
-                                tu.QualType(name="proto_serde",
-                                            Parameters=[proto_param_type, base]),
-                                method_name,
-                                [out, _in],
-                                Stmt=True,
-                            )
-
-                        writer_body.append(get_base_call("write"))
-                        reader_body.append(get_base_call("read"))
-
-                    for field in it.fields:
-                        if field.name == "staticKind":
-                            continue
-
-                        write_op, read_op = self.build_protobuf_writer_for_field(field)
-
-                        writer_body.append(write_op)
-                        reader_body.append(read_op)
-
-                    reader = cpp.MethodDeclParams(
-                        Params=cpp.FunctionParams(
-                            Name="read",
-                            Args=[
-                                cpp.ParmVarParams(
-                                    name=ORG_VALUE_NAME,
-                                    type=org_param_type.asRef(),
-                                ),
-                                cpp.ParmVarParams(
-                                    name=PROTO_VALUE_NAME,
-                                    type=proto_param_type.asConstRef(),
-                                ),
-                            ],
-                            doc=cpp.DocParams(""),
-                            Body=reader_body,
-                            AllowOneLine=False,
-                        ),
-                        isStatic=True,
-                    )
-
-                    writer = cpp.MethodDeclParams(
-                        Params=cpp.FunctionParams(
-                            Name="write",
-                            Args=[
-                                cpp.ParmVarParams(
-                                    name=PROTO_VALUE_NAME,
-                                    type=proto_param_type.asPtr(),
-                                ),
-                                cpp.ParmVarParams(
-                                    name=ORG_VALUE_NAME,
-                                    type=org_param_type.asConstRef(),
-                                ),
-                            ],
-                            doc=cpp.DocParams(""),
-                            Body=writer_body,
-                            AllowOneLine=False,
-                        ),
-                        isStatic=True,
-                    )
-
-                    for sub in it.nested:
-                        result += aux_item(sub)
-
-                    writer_specialization = tu.QualType(
-                        name="proto_serde",
-                        Parameters=[proto_param_type, org_param_type],
-                    )
-
-                    result.append((
-                        cpp.RecordParams(
-                            name="proto_serde",
-                            doc=cpp.DocParams(""),
-                            NameParams=[proto_param_type, org_param_type],
-                            members=[
-                                writer,
-                                # reader,
-                            ],
-                            Template=cpp.TemplateParams(
-                                Stacks=[cpp.TemplateGroup(Params=[])]),
-                        ),
-                        writer_specialization,
-                    ))
-
-            return result
 
         item: cpp.RecordParams
         name: tu.QualType
         writer_types: List[cpp.RecordParams] = []
         writer_methods: List[cpp.MethodDefParams] = []
-        for item, name in itertools.chain(*(aux_item(it) for it in self.types_list)):
+        for item, name in itertools.chain(
+                *(self.build_protobuf_serde_object(it) for it in self.types_list)):
             writer_types.append(item)
 
             for meth in item.methods():
