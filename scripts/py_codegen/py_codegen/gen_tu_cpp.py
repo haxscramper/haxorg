@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
-from beartype.typing import Sequence, List, TypeAlias
+from beartype.typing import Sequence, List, TypeAlias, Mapping
 from beartype import beartype
 from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
+from py_scriptutils.algorithm import iterate_object_tree
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -245,7 +246,8 @@ class GenConverter:
         return self.ast.TranslationUnit(decls)
 
     def convertTypedef(self, typedef: GenTuTypedef) -> BlockId:
-        return self.ast.Using(UsingParams(newName=typedef.name.name, baseType=typedef.base))
+        return self.ast.Using(
+            UsingParams(newName=typedef.name.name, baseType=typedef.base))
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(
@@ -542,3 +544,105 @@ class GenConverter:
                 raise ValueError("Unexpected kind '%s'" % type(entry))
 
         return decls
+
+
+@beartype
+def t_opt(arg: QualType) -> QualType:
+    return QualType(name="Opt", Parameters=[arg])
+
+
+@beartype
+def t_vec(arg: QualType) -> QualType:
+    return QualType(name="Vec", Parameters=[arg])
+
+
+def n_sem() -> QualType:
+    return QualType(name="sem", isNamespace=True)
+
+
+@beartype
+def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
+    return (QualType(name="SemIdT",
+                     Parameters=[(target if isinstance(target, QualType) else QualType(
+                         name=target, Spaces=[n_sem()]))],
+                     Spaces=[n_sem()]) if target else QualType(name="SemId",
+                                                               Spaces=[n_sem()]))
+
+
+@beartype
+def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
+    base_map: Mapping[str, GenTuStruct] = {}
+
+    def callback(obj):
+        if isinstance(obj, GenTuStruct):
+            base_map[obj.name.name] = obj
+
+    context = []
+    iterate_object_tree(expanded, callback, context)
+    base_map["Org"] = GenTuStruct(
+        QualType.ForName("Org"),
+        GenTuDoc(""),
+        [
+            GenTuField(t_opt(QualType.ForName("OrgSemPlacement")), "placementContext",
+                       GenTuDoc("")),
+            GenTuField(t_vec(t_id()), "subnodes", GenTuDoc("")),
+        ],
+    )
+
+    return base_map
+
+
+@beartype
+def filter_walk_scope(iterate_context) -> List[QualType]:
+    scope: List[QualType] = []
+
+    for s in iterate_context:
+        match s:
+            case GenTuStruct():
+                scope.append(s.name)
+
+            case GenTuNamespace():
+                scope.append(QualType.ForName(s.name))
+
+    return scope
+
+@beartype
+def get_type_base_fields(
+    value: GenTuStruct,
+    base_map: Mapping[str, GenTuStruct],
+) -> List[GenTuField]:
+    fields = []
+    for base_sym in value.bases:
+        base = base_map.get(base_sym.name)
+        if base:
+            fields.extend(base.fields)
+            fields.extend(get_type_base_fields(base, base_map))
+
+    return fields
+
+
+@beartype
+def get_base_list(
+    value: GenTuStruct,
+    base_map: Mapping[str, GenTuStruct],
+) -> List[QualType]:
+    fields = []
+
+    def aux(typ: QualType) -> List[QualType]:
+        result: List[QualType] = [typ]
+        base = base_map.get(typ.name)
+        if base:
+            for it in base.bases:
+                result.extend(aux(it))
+
+        return result
+
+    for base_sym in value.bases:
+        fields.extend(aux(base_sym))
+
+    return fields
+
+@beartype
+def in_type_list(typ: QualType, enum_type_list: List[QualType]) -> bool:
+    return any(typ.flatQualName() == it.flatQualName() for it in enum_type_list)
+

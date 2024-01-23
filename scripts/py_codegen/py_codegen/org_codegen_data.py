@@ -34,8 +34,6 @@ def t_space(name: str | QualType, Spaces: List[str]) -> QualType:
         return QualType(name=name, Spaces=Spaces)
 
 
-def n_sem() -> QualType:
-    return QualType(name="sem", isNamespace=True)
 
 
 def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
@@ -53,23 +51,10 @@ def k_args(obj: Any, **kwargs) -> Any:
     return obj
 
 
-@beartype
-def t_vec(arg: QualType) -> QualType:
-    return QualType(name="Vec", Parameters=[arg])
 
 
-@beartype
-def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
-    return (QualType(name="SemIdT",
-                     Parameters=[(target if isinstance(target, QualType) else QualType(
-                         name=target, Spaces=[n_sem()]))],
-                     Spaces=[n_sem()]) if target else QualType(name="SemId",
-                                                               Spaces=[n_sem()]))
 
 
-@beartype
-def t_opt(arg: QualType) -> QualType:
-    return QualType(name="Opt", Parameters=[arg])
 
 
 @beartype
