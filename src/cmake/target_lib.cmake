@@ -15,13 +15,16 @@ set_target_flags(haxorg)
 
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
-find_package(Protobuf REQUIRED)
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS "${BASE}/src/sem/SemOrgProto.proto" "${BASE}/src/sem/SemOrgProtoManual.proto")
-list(GET PROTO_HDRS 0 PROTO_HDR_FIRST)
-get_filename_component(PROTO_HDR_DIR ${PROTO_HDR_FIRST} DIRECTORY)
-message("PROTO_HDR_DIR = '${PROTO_HDR_DIR}' PROTO_HDR_FIRST = '${PROTO_HDR_FIRST}' PROTO_HDRS = '${PROTO_HDRS}'")
-target_sources(haxorg PRIVATE "${PROTO_SRCS}")
+protobuf_generate(
+    LANGUAGE cpp
+    OUT_VAR ORG_PROTO_GENERATED_FILES
+    IMPORT_DIRS "${BASE}/src/sem"
+    PROTOS "${BASE}/src/sem/SemOrgProto.proto" "${BASE}/src/sem/SemOrgProtoManual.proto"
+    PROTOC_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}"
+)
+
+target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
 
 if (${ORG_USE_PCH})
     target_precompile_headers(haxorg PRIVATE
@@ -55,7 +58,7 @@ target_link_libraries(haxorg PUBLIC
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
-target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include" "${PROTO_HDR_DIR}")
+target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include" "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_options(haxorg PRIVATE "-Wl,--copy-dt-needed-entries")
 
 add_executable(tests_org)

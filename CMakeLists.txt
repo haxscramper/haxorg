@@ -90,6 +90,9 @@ target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 
 add_subdirectory("${DEPS_DIR}/fuzztest")
 add_subdirectory("${DEPS_DIR}/pybind11")
+set(protobuf_BUILD_TESTS OFF)
+add_subdirectory("${DEPS_DIR}/protobuf")
+include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(thirdparty/json)

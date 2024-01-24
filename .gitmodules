@@ -37,3 +37,6 @@
 [submodule "thirdparty/SQLiteCpp"]
 	path = thirdparty/SQLiteCpp
 	url = https://github.com/SRombauts/SQLiteCpp
+[submodule "thirdparty/protobuf"]
+	path = thirdparty/protobuf
+	url = https://github.com/protocolbuffers/protobuf.git
