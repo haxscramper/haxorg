@@ -15,6 +15,7 @@
 #include <hstd/stdlib/diffs.hpp>
 
 #include <hstd/stdlib/Filesystem.hpp>
+#include <sem/SemOrgSerde.hpp>
 
 template <
     /// Node kind
@@ -37,6 +38,16 @@ diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
             }};
 }
 
+TEST(TestFiles, AllNodeSerde) {
+    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    MockFull    p{false, false};
+    std::string source = readFile(fs::path(file));
+    p.run(source);
+
+    sem::ContextStore context;
+    sem::OrgConverter converter{&context};
+    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+}
 
 TEST(TestFiles, AllNodeCoverage) {
     GTEST_SKIP();

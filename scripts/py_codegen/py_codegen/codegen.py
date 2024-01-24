@@ -499,7 +499,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
 
     protobuf = proto.build_protobuf()
-    protobuf_writer = proto.build_protobuf_writer()
+    protobuf_writer_declarations, protobuf_writer_implementation = proto.build_protobuf_writer()
 
     import yaml
 
@@ -604,14 +604,26 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             ])),
         GenUnit(
             GenTu(
-                "{base}/sem/SemOrgSerde.cpp",
+                "{base}/sem/SemOrgSerdeDeclarations.hpp",
                 [
                     GenTuPass("#include <sem/SemOrgSerde.hpp>"),
+                    GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
                 ] + [
                     GenTuPass(t.stack([ast.Any(rec), t.text("")]))
-                    for rec in protobuf_writer
+                    for rec in protobuf_writer_declarations
                 ],
-            )),
+            ),
+            GenTu(
+                "{base}/sem/SemOrgSerdeDefinitions.cpp",
+                [
+                    GenTuPass("#include <sem/SemOrgSerde.hpp>"),
+                    GenTuPass("#include <sem/SemOrgSerdeDeclarations.hpp>"),
+                ] + [
+                    GenTuPass(t.stack([ast.Any(rec), t.text("")]))
+                    for rec in protobuf_writer_implementation
+                ],
+            ),
+        ),
         GenUnit(
             GenTu(
                 "{base}/exporters/Exporter.tcc",

@@ -148,8 +148,7 @@ class ProtoBuilder():
             braced(
                 "oneof kind",
                 aux_field_list((tu.GenTuField(name=rec.name.name.lower(), type=rec.name)
-                                for rec in self.types_list
-                                if isinstance(rec, tu.GenTuStruct)),
+                                for rec in self.get_all_concrete_types()),
                                indent=0,
                                indexer=make_full_enumerator()),
             )
@@ -159,6 +158,22 @@ class ProtoBuilder():
             list(
                 itertools.chain(*([it, self.t.text("")] for it in drop_none(
                     aux_item(it, indent=0) for it in self.types_list)))) + [any_node])
+    
+    @beartype
+    def get_all_concrete_types(self) -> Iterable[tu.GenTuStruct]:
+        return (rec for rec in self.types_list if isinstance(rec, tu.GenTuStruct) and rec.concreteKind)
+
+    @beartype
+    def get_any_node_field_mapping(self) -> cpp.MacroParams:
+        return cpp.MacroParams(
+            name="EACH_ANY_NODE_PROTO_FIELD",
+            params=[cpp.MacroParams.Param("__MAP")],
+            definition=[
+                "__MAP({}, {})".format(self.sanitize_ident_for_protobuf(rec.name.name),
+                                       rec.name.name)
+                for rec in self.get_all_concrete_types()
+            ],
+        )
 
     @beartype
     def rewrite_for_proto_grammar(self, it: tu.QualType) -> str:
@@ -537,7 +552,8 @@ class ProtoBuilder():
         typ: tu.QualType,
     ) -> Iterable[tu.GenTuField]:
         return (tu.GenTuField(
-            name=self.rewrite_for_proto_grammar(sub.withoutAllSpaces()).lower().replace(" ", "_"),
+            name=self.rewrite_for_proto_grammar(sub.withoutAllSpaces()).lower().replace(
+                " ", "_"),
             type=sub,
         ) for sub in typ.Parameters)
 
@@ -654,7 +670,7 @@ class ProtoBuilder():
 
     @beartype
     def build_protobuf_writer(
-            self) -> Iterable[Union[cpp.RecordParams, cpp.MethodDefParams]]:
+            self) -> Tuple[Iterable[cpp.RecordParams], Iterable[cpp.MethodDefParams]]:
 
         item: cpp.RecordParams
         name: tu.QualType
@@ -668,4 +684,4 @@ class ProtoBuilder():
                 writer_methods.append(meth.asMethodDef(name))
                 meth.Params.Body = None
 
-        return writer_types + writer_methods
+        return (writer_types, writer_methods)

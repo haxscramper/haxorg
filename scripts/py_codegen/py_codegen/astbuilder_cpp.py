@@ -405,9 +405,9 @@ class MacroParams:
         name: str
         isEllipsis: bool = False
 
-    doc: DocParams
     name: str
     params: List[Param] = field(default_factory=list)
+    doc: Optional[DocParams] = None
     definition: List[str] = field(default_factory=list)
 
 
@@ -914,18 +914,18 @@ class ASTBuilder(base.AstbuilderBase):
             for line in params.params
         ]
 
-        return self.b.stack([
-            self.Doc(params.doc),
-            self.b.line([
-                self.string("#define "),
-                self.string(params.name),
-                self.string("("),
-                self.b.join(arguments, self.string(", ")),
-                self.string(") \\")
-            ]),
-            self.b.indent(8, definition),
-            self.string("")
-        ])
+        return self.WithDoc(
+            self.b.stack([
+                self.b.line([
+                    self.string("#define "),
+                    self.string(params.name),
+                    self.string("("),
+                    self.b.join(arguments, self.string(", ")),
+                    self.string(") \\")
+                ]),
+                self.b.indent(8, definition),
+                self.string("")
+            ]), params.doc)
 
     def Using(self, params: UsingParams) -> BlockId:
         return self.WithTemplate(
@@ -1311,9 +1311,10 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return self.b.stack([self.Template(Templ), Body])
 
-    def WithDoc(self, content: BlockId, doc: DocParams) -> BlockId:
-        if not doc.brief and not doc.full:
+    def WithDoc(self, content: BlockId, doc: Optional[DocParams]) -> BlockId:
+        if not doc or not doc.brief and not doc.full:
             return content
+
         else:
             return self.b.stack([self.Doc(doc), content])
 

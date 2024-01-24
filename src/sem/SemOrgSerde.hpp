@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sem/SemOrg.hpp>
 #include <SemOrgProto.pb.h>
 
@@ -21,6 +23,7 @@ struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<T>> {
         gpb::RepeatedPtrField<Proto> const& out,
         Vec<T>&                             in) {}
 };
+
 
 template <typename T>
 struct proto_serde<gpb::RepeatedField<::int32_t>, Vec<T>> {
@@ -53,7 +56,8 @@ struct proto_serde<gpb::Map<ProtoKey, ProtoVal>, UnorderedMap<K, V>> {
 
 template <>
 struct proto_serde<orgproto::AnyNode, sem::SemId> {
-    static void write(orgproto::AnyNode* out, sem::SemId const& in) {}
+    static void write(orgproto::AnyNode* out, sem::SemId const& in);
+
     static void write(
         gpb::RepeatedPtrField<orgproto::AnyNode>* out,
         Vec<sem::SemId> const&                    in) {}
