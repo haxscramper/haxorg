@@ -35,7 +35,7 @@ target_link_libraries(
     ${llvm_libs}
     clangBasic
     clangASTMatchers
-    clangTooling # Add more Clang components as needed
+    clangTooling # Add more Clang components as neede
 )
 
 

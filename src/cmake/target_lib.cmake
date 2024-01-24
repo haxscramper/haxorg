@@ -47,6 +47,11 @@ target_link_libraries(haxorg PUBLIC
     hstd
     ReflexLibStatic
     range-v3
+    # protobuf::protobuf-lite
+    protobuf::libprotobuf
+    protobuf::libprotoc
+    absl::base
+    absl::log
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")

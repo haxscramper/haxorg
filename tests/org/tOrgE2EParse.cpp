@@ -16,6 +16,7 @@
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <sem/SemOrgSerde.hpp>
+#include <google/protobuf/util/json_util.h>
 
 template <
     /// Node kind
@@ -47,6 +48,16 @@ TEST(TestFiles, AllNodeSerde) {
     sem::ContextStore context;
     sem::OrgConverter converter{&context};
     sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    orgproto::AnyNode result;
+    proto_serde<orgproto::AnyNode, sem::SemId>::write(&result, node);
+
+    std::string                              json_string;
+    google::protobuf::util::JsonPrintOptions options;
+    options.add_whitespace = true;
+    auto status            = google::protobuf::util::MessageToJsonString(
+        result, &json_string, options);
+
+    writeFile("/tmp/proto_result.json", json_string);
 }
 
 TEST(TestFiles, AllNodeCoverage) {
