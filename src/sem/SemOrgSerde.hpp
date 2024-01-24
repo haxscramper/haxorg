@@ -35,7 +35,9 @@ struct proto_serde<gpb::RepeatedField<::int32_t>, Vec<T>> {
     static void read(
         sem::ContextStore*                   context,
         gpb::RepeatedField<::int32_t> const& out,
-        Vec<T>&                              in) {}
+        Vec<T>&                              in) {
+        for (auto const& it : out) { in.push_back(it); }
+    }
 };
 
 template <typename ProtoKey, typename ProtoVal, typename K, typename V>
@@ -60,12 +62,18 @@ struct proto_serde<orgproto::AnyNode, sem::SemId> {
 
     static void write(
         gpb::RepeatedPtrField<orgproto::AnyNode>* out,
-        Vec<sem::SemId> const&                    in) {}
+        Vec<sem::SemId> const&                    in) {
+        for (auto const& it : in) {
+            proto_serde<orgproto::AnyNode, sem::SemId>::write(
+                out->Add(), it);
+        }
+    }
 
     static void read(
         sem::ContextStore*       context,
         orgproto::AnyNode const& out,
         sem::SemId&              in) {}
+
     static void read(
         sem::ContextStore*                              context,
         gpb::RepeatedPtrField<orgproto::AnyNode> const& out,
@@ -74,10 +82,15 @@ struct proto_serde<orgproto::AnyNode, sem::SemId> {
 
 template <typename T>
 struct proto_serde<orgproto::AnyNode, sem::SemIdT<T>> {
-    static void write(orgproto::AnyNode* out, sem::SemIdT<T> const& in) {}
+    static void write(orgproto::AnyNode* out, sem::SemIdT<T> const& in) {
+        proto_serde<orgproto::AnyNode, sem::SemId>::write(out, in.toId());
+    }
 
     template <typename Proto>
-    static void write(Proto* out, sem::SemIdT<T> const& in) {}
+    static void write(Proto* out, sem::SemIdT<T> const& in) {
+        proto_serde<orgproto::AnyNode, sem::SemId>::write(
+            out->Add(), in.toId());
+    }
 
     template <typename Proto>
     static void write(
@@ -87,7 +100,9 @@ struct proto_serde<orgproto::AnyNode, sem::SemIdT<T>> {
 
 template <typename Proto, typename T>
 struct proto_serde<Proto, sem::SemIdT<T>> {
-    static void write(orgproto::AnyNode* out, sem::SemIdT<T> const& in) {}
+    static void write(orgproto::AnyNode* out, sem::SemIdT<T> const& in) {
+        proto_serde<orgproto::AnyNode, sem::SemId>::write(out, in.toId());
+    }
 
     static void write(Proto* out, sem::SemIdT<T> const& in) {}
 
@@ -107,6 +122,8 @@ struct proto_serde<Proto, sem::Org> {
 
         proto_serde<orgproto::AnyNode, sem::SemId>::write(
             out->mutable_subnodes(), in.subnodes);
+        out->set_statickind(
+            static_cast<orgproto::OrgSemKind>(in.getKind()));
     }
 
     static void read(

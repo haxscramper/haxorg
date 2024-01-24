@@ -158,10 +158,11 @@ class ProtoBuilder():
             list(
                 itertools.chain(*([it, self.t.text("")] for it in drop_none(
                     aux_item(it, indent=0) for it in self.types_list)))) + [any_node])
-    
+
     @beartype
     def get_all_concrete_types(self) -> Iterable[tu.GenTuStruct]:
-        return (rec for rec in self.types_list if isinstance(rec, tu.GenTuStruct) and rec.concreteKind)
+        return (rec for rec in self.types_list
+                if isinstance(rec, tu.GenTuStruct) and rec.concreteKind)
 
     @beartype
     def get_any_node_field_mapping(self) -> cpp.MacroParams:
@@ -447,6 +448,18 @@ class ProtoBuilder():
                         Then=write_op,
                     )]))
 
+        elif field.type.name.startswith("SemId"):
+            write_op = self.ast.IfStmt(
+                cpp.IfStmtParams([
+                    cpp.IfStmtParams.Branch(
+                        Cond=self.t.line([
+                            self.t.text("!"),
+                            self.ast.XCallRef(dot_field, "isNil"),
+                        ]),
+                        Then=write_op,
+                    )
+                ]))
+
         return write_op
 
     @beartype
@@ -564,6 +577,9 @@ class ProtoBuilder():
         result: List[Tuple[cpp.RecordParams, tu.QualType]] = []
         match it:
             case tu.GenTuStruct():
+                if not it.concreteKind:
+                    return []
+                
                 out = self.t.text(PROTO_VALUE_NAME)
                 _in = self.t.text(ORG_VALUE_NAME)
                 org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")

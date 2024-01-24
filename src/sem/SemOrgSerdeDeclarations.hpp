@@ -55,20 +55,6 @@
         __MAP(documentgroup, DocumentGroup)  \
 
 template <>
-struct proto_serde<::orgproto::Stmt, sem::Stmt> {
-  static void write(::orgproto::Stmt* out, sem::Stmt const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Stmt const& out, sem::Stmt& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Inline, sem::Inline> {
-  static void write(::orgproto::Inline* out, sem::Inline const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Inline const& out, sem::Inline& in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::StmtList, sem::StmtList> {
   static void write(::orgproto::StmtList* out, sem::StmtList const& in);
   static void read(sem::ContextStore* context, ::orgproto::StmtList const& out, sem::StmtList& in);
@@ -125,44 +111,9 @@ struct proto_serde<::orgproto::Paragraph, sem::Paragraph> {
 
 
 template <>
-struct proto_serde<::orgproto::Format, sem::Format> {
-  static void write(::orgproto::Format* out, sem::Format const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Format const& out, sem::Format& in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::Center, sem::Center> {
   static void write(::orgproto::Center* out, sem::Center const& in);
   static void read(sem::ContextStore* context, ::orgproto::Center const& out, sem::Center& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Command, sem::Command> {
-  static void write(::orgproto::Command* out, sem::Command const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Command const& out, sem::Command& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::LineCommand, sem::LineCommand> {
-  static void write(::orgproto::LineCommand* out, sem::LineCommand const& in);
-  static void read(sem::ContextStore* context, ::orgproto::LineCommand const& out, sem::LineCommand& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Standalone, sem::Standalone> {
-  static void write(::orgproto::Standalone* out, sem::Standalone const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Standalone const& out, sem::Standalone& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Attached, sem::Attached> {
-  static void write(::orgproto::Attached* out, sem::Attached const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Attached const& out, sem::Attached& in);
 };
 
 
@@ -177,13 +128,6 @@ template <>
 struct proto_serde<::orgproto::CommandGroup, sem::CommandGroup> {
   static void write(::orgproto::CommandGroup* out, sem::CommandGroup const& in);
   static void read(sem::ContextStore* context, ::orgproto::CommandGroup const& out, sem::CommandGroup& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Block, sem::Block> {
-  static void write(::orgproto::Block* out, sem::Block const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Block const& out, sem::Block& in);
 };
 
 
@@ -510,23 +454,9 @@ struct proto_serde<::orgproto::Subtree, sem::Subtree> {
 
 
 template <>
-struct proto_serde<::orgproto::LatexBody, sem::LatexBody> {
-  static void write(::orgproto::LatexBody* out, sem::LatexBody const& in);
-  static void read(sem::ContextStore* context, ::orgproto::LatexBody const& out, sem::LatexBody& in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::InlineMath, sem::InlineMath> {
   static void write(::orgproto::InlineMath* out, sem::InlineMath const& in);
   static void read(sem::ContextStore* context, ::orgproto::InlineMath const& out, sem::InlineMath& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Leaf, sem::Leaf> {
-  static void write(::orgproto::Leaf* out, sem::Leaf const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Leaf const& out, sem::Leaf& in);
 };
 
 
@@ -590,13 +520,6 @@ template <>
 struct proto_serde<::orgproto::BigIdent, sem::BigIdent> {
   static void write(::orgproto::BigIdent* out, sem::BigIdent const& in);
   static void read(sem::ContextStore* context, ::orgproto::BigIdent const& out, sem::BigIdent& in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Markup, sem::Markup> {
-  static void write(::orgproto::Markup* out, sem::Markup const& in);
-  static void read(sem::ContextStore* context, ::orgproto::Markup const& out, sem::Markup& in);
 };
 
 
