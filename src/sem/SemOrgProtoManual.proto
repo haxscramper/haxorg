@@ -1,9 +1,20 @@
 syntax = "proto3";
 package orgproto;
 
+enum Alignment {
+  YEAR = 0;
+  MONTH = 1;
+  DAY = 2;
+  HOUR = 3;
+  MINUTE = 4;
+  SECOND = 5;
+}
+
 message UserTime {
-  
-};
+  int64 time = 1;
+  string zone = 2;
+  Alignment align = 3;
+}
 
 message LineCol {
   int32 line = 1;

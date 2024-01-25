@@ -40,6 +40,8 @@ diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
             }};
 }
 
+BOOST_DESCRIBE_STRUCT(LineCol, (), (line, column, pos));
+
 struct compare_context {
     std::string type;
     std::string field;
@@ -275,18 +277,32 @@ TEST(TestFiles, AllNodeSerde) {
     orgproto::AnyNode result;
     proto_serde<orgproto::AnyNode, sem::SemId>::write(&result, write_node);
 
-    std::string                              json_string;
     google::protobuf::util::JsonPrintOptions options;
     options.add_whitespace = true;
-    auto status            = google::protobuf::util::MessageToJsonString(
-        result, &json_string, options);
 
-    writeFile("/tmp/proto_write.json", json_string);
+    {
+        std::string proto_write_json;
+        (void)google::protobuf::util::MessageToJsonString(
+            result, &proto_write_json, options);
+
+        writeFile("/tmp/proto_write.json", proto_write_json);
+    }
 
     sem::ContextStore read_context;
     sem::SemId        read_node = sem::SemId::Nil();
     proto_serde<orgproto::AnyNode, sem::SemId>::read(
         &read_context, result, read_node);
+
+    {
+        orgproto::AnyNode result2;
+        proto_serde<orgproto::AnyNode, sem::SemId>::write(
+            &result2, read_node);
+        std::string proto_read_json;
+        (void)google::protobuf::util::MessageToJsonString(
+            result2, &proto_read_json, options);
+
+        writeFile("/tmp/proto_read.json", proto_read_json);
+    }
 
     json write_json = ExporterJson{}.evalTop(write_node);
     json read_json  = ExporterJson{}.evalTop(read_node);
@@ -301,14 +317,8 @@ TEST(TestFiles, AllNodeSerde) {
     sem::ParseUnitStore const& parsed   = read_context.stores.at(0);
     Vec<compare_report>        out;
 
-#define _case(__Kind)                                                     \
-    {                                                                     \
-        cmp_stores<sem::__Kind>(                                          \
-            original.store##__Kind, parsed.store##__Kind, out);           \
-    }
-
-    EACH_SEM_ORG_KIND(_case)
-#undef _case
+    reporting_comparator<sem::SemId>::compare(
+        write_node, read_node, out, {});
 
     for (auto const& it : out) {
         std::string ctx = it.context

@@ -348,7 +348,9 @@ struct proto_serde<Proto, sem::Stmt> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::LatexBody> {
-    static void write(Proto* out, sem::LatexBody const& in) {}
+    static void write(Proto* out, sem::LatexBody const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
@@ -372,13 +374,19 @@ struct proto_serde<Proto, sem::Leaf> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Markup> {
-    static void write(Proto* out, sem::Markup const& in) {}
-    static void write(Proto const& out, sem::Markup& in) {}
+    static void write(Proto* out, sem::Markup const& in) {
+        LOG(FATAL) << "??";
+    }
+    static void write(Proto const& out, sem::Markup& in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Format> {
-    static void write(Proto* out, sem::Format const& in) {}
+    static void write(Proto* out, sem::Format const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
@@ -390,7 +398,9 @@ struct proto_serde<Proto, sem::Format> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Attached> {
-    static void write(Proto* out, sem::Attached const& in) {}
+    static void write(Proto* out, sem::Attached const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
@@ -401,7 +411,9 @@ struct proto_serde<Proto, sem::Attached> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Block> {
-    static void write(Proto* out, sem::Block const& in) {}
+    static void write(Proto* out, sem::Block const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
@@ -429,7 +441,9 @@ struct proto_serde<orgproto::LineCol, LineCol> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Inline> {
-    static void write(Proto* out, sem::Inline const& in) {}
+    static void write(Proto* out, sem::Inline const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
@@ -440,7 +454,9 @@ struct proto_serde<Proto, sem::Inline> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Command> {
-    static void write(Proto* out, sem::Command const& in) {}
+    static void write(Proto* out, sem::Command const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
@@ -451,7 +467,9 @@ struct proto_serde<Proto, sem::Command> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::LineCommand> {
-    static void write(Proto* out, sem::LineCommand const& in) {}
+    static void write(Proto* out, sem::LineCommand const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
@@ -476,7 +494,9 @@ template <typename Proto>
 struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
     static void write(
         Proto*                               out,
-        sem::SubtreeLog::DescribedLog const& in) {}
+        sem::SubtreeLog::DescribedLog const& in) {
+        LOG(FATAL) << "??";
+    }
     static void read(
         sem::ContextStore*             context,
         Proto const&                   out,
@@ -488,9 +508,19 @@ struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
 
 template <>
 struct proto_serde<orgproto::UserTime, UserTime> {
-    static void write(orgproto::UserTime* out, UserTime const& in) {}
+    static void write(orgproto::UserTime* out, UserTime const& in) {
+        out->set_time(absl::ToUnixSeconds(in.time));
+        out->set_zone(in.zone.name());
+        out->set_align(static_cast<orgproto::Alignment>(in.align));
+    }
     static void read(
         sem::ContextStore*        context,
         orgproto::UserTime const& out,
-        UserTime&                 in) {}
+        UserTime&                 in) {
+        in.time = absl::FromUnixSeconds(out.time());
+        absl::TimeZone tz;
+        if (!absl::LoadTimeZone(out.zone(), &tz)) {}
+        in.zone  = tz;
+        in.align = static_cast<UserTime::Alignment>(out.align());
+    }
 };
