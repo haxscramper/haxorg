@@ -73,6 +73,12 @@ class QualType(BaseModel, extra="forbid"):
 
     meta: Dict[str, Any] = Field(default={})
 
+    def par0(self):
+        return self.Parameters[0]
+    
+    def par1(self):
+        return self.Parameters[1]
+
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':
         return QualType(name=name, **args)

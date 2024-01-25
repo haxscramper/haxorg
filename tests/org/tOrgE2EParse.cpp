@@ -204,7 +204,8 @@ TEST(TestFiles, AllNodeSerde) {
                         | rv::join              //
                         | rs::to<std::string>();
 
-        ADD_FAILURE() << fmt("{} failed: '{}'", ctx, it.message);
+        ADD_FAILURE() << fmt(
+            "{} failed: original != parsed {}", ctx, it.message);
     }
 }
 

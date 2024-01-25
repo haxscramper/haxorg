@@ -27,6 +27,12 @@ struct SerdeDefaultProvider<sem::SemIdT<T>> {
     static sem::SemIdT<T> get() { return sem::SemIdT<T>::Nil(); }
 };
 
+template <>
+struct SerdeDefaultProvider<sem::SemId> {
+    static sem::SemId get() { return sem::SemId::Nil(); }
+};
+
+
 template <typename T>
 struct proto_init {};
 
@@ -171,7 +177,12 @@ struct proto_serde<gpb::Map<ProtoKey, ProtoVal>, UnorderedMap<K, V>> {
     static void read(
         sem::ContextStore*                  context,
         gpb::Map<ProtoKey, ProtoVal> const& out,
-        UnorderedMap<K, V>&                 in) {}
+        UnorderedMap<K, V>&                 in) {
+        for (auto const& [key, val] : out) {
+            in.insert_or_assign(key, SerdeDefaultProvider<V>::get());
+            proto_serde<ProtoVal, V>::read(context, val, in.at(key));
+        }
+    }
 };
 
 template <>
@@ -195,7 +206,9 @@ struct proto_serde<orgproto::AnyNode, sem::SemId> {
     static void read(
         sem::ContextStore*                              context,
         gpb::RepeatedPtrField<orgproto::AnyNode> const& out,
-        Vec<sem::SemId>&                                in) {}
+        Vec<sem::SemId>&                                in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto>
@@ -232,7 +245,9 @@ struct proto_serde<orgproto::AnyNode, sem::SemIdT<T>> {
     template <typename Proto>
     static void write(
         gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemIdT<T>> const&    in) {}
+        Vec<sem::SemIdT<T>> const&    in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto, typename T>
@@ -286,6 +301,17 @@ struct proto_serde<Proto, sem::Org> {
             out->mutable_subnodes(), in.subnodes);
         out->set_statickind(
             static_cast<orgproto::OrgSemKind>(in.getKind()));
+        if (in.placementContext) {
+            out->set_placementcontext(
+                static_cast<orgproto::OrgSemPlacement>(
+                    *in.placementContext));
+        }
+
+        // if (in.loc) {
+        //     auto loc = out->mutable_loc();
+        //     loc->set_col(in.loc->column);
+        //     loc->set_line(in.loc->line);
+        // }
     }
 
     static void read(
@@ -300,11 +326,20 @@ struct proto_serde<Proto, sem::Org> {
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Stmt> {
-    static void write(Proto* out, sem::Stmt const& in) {}
+    static void write(Proto* out, sem::Stmt const& in) {
+        proto_serde<
+            gpb::RepeatedPtrField<orgproto::AnyNode>,
+            Vec<sem::SemId>>::write(out->mutable_attached(), in.attached);
+    }
+
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::Stmt&         in) {}
+        sem::Stmt&         in) {
+        proto_serde<
+            gpb::RepeatedPtrField<orgproto::AnyNode>,
+            Vec<sem::SemId>>::read(context, out.attached(), in.attached);
+    }
 };
 
 template <typename Proto>
@@ -313,16 +348,22 @@ struct proto_serde<Proto, sem::LatexBody> {
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::LatexBody&    in) {}
+        sem::LatexBody&    in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto>
 struct proto_serde<Proto, sem::Leaf> {
-    static void write(Proto* out, sem::Leaf const& in) {}
+    static void write(Proto* out, sem::Leaf const& in) {
+        out->set_text(in.text);
+    }
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::Leaf&         in) {}
+        sem::Leaf&         in) {
+        in.text = out.text();
+    }
 };
 
 template <typename Proto>
@@ -337,7 +378,9 @@ struct proto_serde<Proto, sem::Format> {
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::Format&       in) {}
+        sem::Format&       in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 
@@ -347,7 +390,9 @@ struct proto_serde<Proto, sem::Attached> {
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::Attached&     in) {}
+        sem::Attached&     in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto>
@@ -356,7 +401,9 @@ struct proto_serde<Proto, sem::Block> {
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::Block&        in) {}
+        sem::Block&        in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto>
@@ -365,7 +412,9 @@ struct proto_serde<Proto, sem::Inline> {
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::Inline&       in) {}
+        sem::Inline&       in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto>
@@ -374,7 +423,9 @@ struct proto_serde<Proto, sem::Command> {
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::Command&      in) {}
+        sem::Command&      in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <typename Proto>
@@ -383,7 +434,9 @@ struct proto_serde<Proto, sem::LineCommand> {
     static void read(
         sem::ContextStore* context,
         Proto const&       out,
-        sem::LineCommand&  in) {}
+        sem::LineCommand&  in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 template <>
@@ -406,7 +459,9 @@ struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
     static void read(
         sem::ContextStore*             context,
         Proto const&                   out,
-        sem::SubtreeLog::DescribedLog& in) {}
+        sem::SubtreeLog::DescribedLog& in) {
+        LOG(FATAL) << "??";
+    }
 };
 
 

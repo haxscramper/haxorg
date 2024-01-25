@@ -34,8 +34,6 @@ def t_space(name: str | QualType, Spaces: List[str]) -> QualType:
         return QualType(name=name, Spaces=Spaces)
 
 
-
-
 def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
     return QualType(name=name, Spaces=[n_sem()] + extraSpaces)
 
@@ -49,12 +47,6 @@ def k_args(obj: Any, **kwargs) -> Any:
         obj.__setattr__(key, value)
 
     return obj
-
-
-
-
-
-
 
 
 @beartype
@@ -103,6 +95,8 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
                        isConst=True,
                        isStatic=True),
         )
+
+        res.fields.insert(0, GenTuField(t_osk(), t_opt(t("loc")), GenTuDoc("Document")))
 
         res.methods.insert(
             0,
@@ -918,7 +912,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc("Type of the subtree associated time periods"),
                     fields=[
                         GenTuField(
-                             t_nest("Kind", ["Subtree", "Period"]),
+                            t_nest("Kind", ["Subtree", "Period"]),
                             "kind",
                             GenTuDoc(
                                 "Time period kind -- not associated with point/range distinction"

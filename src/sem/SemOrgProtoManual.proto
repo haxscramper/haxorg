@@ -1,5 +1,12 @@
+syntax = "proto3";
 package orgproto;
 
 message UserTime {
   
 };
+
+message LineCol {
+  int32 line = 1;
+  int32 column = 2;
+  int32 pos = 3;
+}

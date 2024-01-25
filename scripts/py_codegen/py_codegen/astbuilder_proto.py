@@ -380,7 +380,7 @@ class ProtoBuilder():
                 read_op,
             ])
 
-            if self.is_direct_set_type(field.type):
+            if field.type.par0().name not in ["Vec"]:
                 read_op = self.ast.IfStmt(
                     cpp.IfStmtParams([
                         cpp.IfStmtParams.Branch(
@@ -391,9 +391,6 @@ class ProtoBuilder():
                             Then=defaulted_read,
                         )
                     ]))
-
-            else:
-                read_op = defaulted_read
 
         return read_op
 

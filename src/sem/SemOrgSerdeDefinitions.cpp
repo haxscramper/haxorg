@@ -60,8 +60,10 @@ void proto_serde<::orgproto::Footnote, sem::Footnote>::write(::orgproto::Footnot
 void proto_serde<::orgproto::Footnote, sem::Footnote>::read(sem::ContextStore* context, ::orgproto::Footnote const& out, sem::Footnote& in) {
   proto_serde<::orgproto::Footnote, sem::Org>::read(context, out, in);
   proto_serde<std::string, Str>::read(context, out.tag(), in.tag);
-  proto_init<Opt<sem::SemId>>::init_default(context, in.definition);
-  proto_serde<orgproto::AnyNode, sem::SemId>::read(context, out.definition(), *in.definition);
+  if (out.has_definition()) {
+    proto_init<Opt<sem::SemId>>::init_default(context, in.definition);
+    proto_serde<orgproto::AnyNode, sem::SemId>::read(context, out.definition(), *in.definition);
+  }
 }
 
 void proto_serde<::orgproto::Completion, sem::Completion>::write(::orgproto::Completion* out, sem::Completion const& in) {
@@ -160,8 +162,10 @@ void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::C
 
 void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::read(sem::ContextStore* context, ::orgproto::CmdArgument const& out, sem::CmdArgument& in) {
   proto_serde<::orgproto::CmdArgument, sem::Org>::read(context, out, in);
-  proto_init<Opt<Str>>::init_default(context, in.key);
-  proto_serde<std::string, Str>::read(context, out.key(), *in.key);
+  if (out.has_key()) {
+    proto_init<Opt<Str>>::init_default(context, in.key);
+    proto_serde<std::string, Str>::read(context, out.key(), *in.key);
+  }
   proto_serde<std::string, Str>::read(context, out.value(), in.value);
 }
 
@@ -183,8 +187,10 @@ void proto_serde<::orgproto::Export, sem::Export>::read(sem::ContextStore* conte
   in.format = static_cast<sem::Export::Format>(out.format());
   proto_serde<std::string, Str>::read(context, out.exporter(), in.exporter);
   proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), in.parameters);
-  proto_init<Opt<Str>>::init_default(context, in.placement);
-  proto_serde<std::string, Str>::read(context, out.placement(), *in.placement);
+  if (out.has_placement()) {
+    proto_init<Opt<Str>>::init_default(context, in.placement);
+    proto_serde<std::string, Str>::read(context, out.placement(), *in.placement);
+  }
   proto_serde<std::string, Str>::read(context, out.content(), in.content);
 }
 
@@ -302,8 +308,10 @@ void proto_serde<::orgproto::Code, sem::Code>::write(::orgproto::Code* out, sem:
 
 void proto_serde<::orgproto::Code, sem::Code>::read(sem::ContextStore* context, ::orgproto::Code const& out, sem::Code& in) {
   proto_serde<::orgproto::Code, sem::Org>::read(context, out, in);
-  proto_init<Opt<Str>>::init_default(context, in.lang);
-  proto_serde<std::string, Str>::read(context, out.lang(), *in.lang);
+  if (out.has_lang()) {
+    proto_init<Opt<Str>>::init_default(context, in.lang);
+    proto_serde<std::string, Str>::read(context, out.lang(), *in.lang);
+  }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::read(context, out.switches(), in.switches);
   in.exports = static_cast<sem::Code::Exports>(out.exports());
   proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), in.parameters);
@@ -334,8 +342,10 @@ void proto_serde<::orgproto::Time::Static, sem::Time::Static>::write(::orgproto:
 }
 
 void proto_serde<::orgproto::Time::Static, sem::Time::Static>::read(sem::ContextStore* context, ::orgproto::Time::Static const& out, sem::Time::Static& in) {
-  proto_init<Opt<sem::Time::Repeat>>::init_default(context, in.repeat);
-  proto_serde<orgproto::Time::Repeat, sem::Time::Repeat>::read(context, out.repeat(), *in.repeat);
+  if (out.has_repeat()) {
+    proto_init<Opt<sem::Time::Repeat>>::init_default(context, in.repeat);
+    proto_serde<orgproto::Time::Repeat, sem::Time::Repeat>::read(context, out.repeat(), *in.repeat);
+  }
   proto_serde<orgproto::UserTime, UserTime>::read(context, out.time(), in.time);
 }
 
@@ -411,8 +421,10 @@ void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::write(::orgprot
 }
 
 void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::read(sem::ContextStore* context, ::orgproto::Symbol::Param const& out, sem::Symbol::Param& in) {
-  proto_init<Opt<Str>>::init_default(context, in.key);
-  proto_serde<std::string, Str>::read(context, out.key(), *in.key);
+  if (out.has_key()) {
+    proto_init<Opt<Str>>::init_default(context, in.key);
+    proto_serde<std::string, Str>::read(context, out.key(), *in.key);
+  }
   proto_serde<std::string, Str>::read(context, out.value(), in.value);
 }
 
@@ -437,8 +449,10 @@ void proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::Describe
 }
 
 void proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::DescribedLog>::read(sem::ContextStore* context, ::orgproto::SubtreeLog::DescribedLog const& out, sem::SubtreeLog::DescribedLog& in) {
-  proto_init<Opt<sem::SemIdT<sem::StmtList>>>::init_default(context, in.desc);
-  proto_serde<orgproto::StmtList, sem::SemIdT<sem::StmtList>>::read(context, out.desc(), *in.desc);
+  if (out.has_desc()) {
+    proto_init<Opt<sem::SemIdT<sem::StmtList>>>::init_default(context, in.desc);
+    proto_serde<orgproto::StmtList, sem::SemIdT<sem::StmtList>>::read(context, out.desc(), *in.desc);
+  }
 }
 
 void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::write(::orgproto::SubtreeLog::Priority* out, sem::SubtreeLog::Priority const& in) {
@@ -456,10 +470,14 @@ void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::w
 
 void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::read(sem::ContextStore* context, ::orgproto::SubtreeLog::Priority const& out, sem::SubtreeLog::Priority& in) {
   proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::DescribedLog>::read(context, out, in);
-  proto_init<Opt<std::string>>::init_default(context, in.oldPriority);
-  *in.oldPriority = out.oldpriority();
-  proto_init<Opt<std::string>>::init_default(context, in.newPriority);
-  *in.newPriority = out.newpriority();
+  if (out.has_oldpriority()) {
+    proto_init<Opt<std::string>>::init_default(context, in.oldPriority);
+    *in.oldPriority = out.oldpriority();
+  }
+  if (out.has_newpriority()) {
+    proto_init<Opt<std::string>>::init_default(context, in.newPriority);
+    *in.newPriority = out.newpriority();
+  }
   proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.on(), in.on);
 }
 
@@ -906,24 +924,38 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::write(::orgproto::Subtree* 
 void proto_serde<::orgproto::Subtree, sem::Subtree>::read(sem::ContextStore* context, ::orgproto::Subtree const& out, sem::Subtree& in) {
   proto_serde<::orgproto::Subtree, sem::Org>::read(context, out, in);
   in.level = out.level();
-  proto_init<Opt<Str>>::init_default(context, in.treeId);
-  proto_serde<std::string, Str>::read(context, out.treeid(), *in.treeId);
-  proto_init<Opt<Str>>::init_default(context, in.todo);
-  proto_serde<std::string, Str>::read(context, out.todo(), *in.todo);
-  proto_init<Opt<sem::SemIdT<sem::Completion>>>::init_default(context, in.completion);
-  proto_serde<orgproto::Completion, sem::SemIdT<sem::Completion>>::read(context, out.completion(), *in.completion);
-  proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.description);
-  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.description(), *in.description);
+  if (out.has_treeid()) {
+    proto_init<Opt<Str>>::init_default(context, in.treeId);
+    proto_serde<std::string, Str>::read(context, out.treeid(), *in.treeId);
+  }
+  if (out.has_todo()) {
+    proto_init<Opt<Str>>::init_default(context, in.todo);
+    proto_serde<std::string, Str>::read(context, out.todo(), *in.todo);
+  }
+  if (out.has_completion()) {
+    proto_init<Opt<sem::SemIdT<sem::Completion>>>::init_default(context, in.completion);
+    proto_serde<orgproto::Completion, sem::SemIdT<sem::Completion>>::read(context, out.completion(), *in.completion);
+  }
+  if (out.has_description()) {
+    proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.description);
+    proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.description(), *in.description);
+  }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemIdT<sem::HashTag>>>::read(context, out.tags(), in.tags);
   proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.title(), in.title);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, Vec<sem::SemIdT<sem::SubtreeLog>>>::read(context, out.logbook(), in.logbook);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::read(context, out.properties(), in.properties);
-  proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.closed);
-  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.closed(), *in.closed);
-  proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.deadline);
-  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.deadline(), *in.deadline);
-  proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.scheduled);
-  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.scheduled(), *in.scheduled);
+  if (out.has_closed()) {
+    proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.closed);
+    proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.closed(), *in.closed);
+  }
+  if (out.has_deadline()) {
+    proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.deadline);
+    proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.deadline(), *in.deadline);
+  }
+  if (out.has_scheduled()) {
+    proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.scheduled);
+    proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.scheduled(), *in.scheduled);
+  }
 }
 
 void proto_serde<::orgproto::InlineMath, sem::InlineMath>::write(::orgproto::InlineMath* out, sem::InlineMath const& in) {
@@ -1107,8 +1139,10 @@ void proto_serde<::orgproto::ListItem, sem::ListItem>::write(::orgproto::ListIte
 void proto_serde<::orgproto::ListItem, sem::ListItem>::read(sem::ContextStore* context, ::orgproto::ListItem const& out, sem::ListItem& in) {
   proto_serde<::orgproto::ListItem, sem::Org>::read(context, out, in);
   in.checkbox = static_cast<sem::ListItem::Checkbox>(out.checkbox());
-  proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.header);
-  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.header(), *in.header);
+  if (out.has_header()) {
+    proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.header);
+    proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.header(), *in.header);
+  }
 }
 
 void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::write(::orgproto::Link::Raw* out, sem::Link::Raw const& in) {
@@ -1177,8 +1211,10 @@ void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem:
 
 void proto_serde<::orgproto::Link, sem::Link>::read(sem::ContextStore* context, ::orgproto::Link const& out, sem::Link& in) {
   proto_serde<::orgproto::Link, sem::Org>::read(context, out, in);
-  proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.description);
-  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.description(), *in.description);
+  if (out.has_description()) {
+    proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.description);
+    proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.description(), *in.description);
+  }
   switch (out.data().kind_case()) {
     case ::orgproto::Link::Data::kRaw:
       in.data = variant_from_index<decltype(in.data)>(0);
@@ -1238,19 +1274,28 @@ void proto_serde<::orgproto::Document, sem::Document>::read(sem::ContextStore* c
   proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.nametable(), in.nameTable);
   proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.footnotetable(), in.footnoteTable);
   proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.anchortable(), in.anchorTable);
-  proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.title);
-  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.title(), *in.title);
-  proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.author);
-  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.author(), *in.author);
-  proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.creator);
-  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.creator(), *in.creator);
-  proto_init<Opt<sem::SemIdT<sem::RawText>>>::init_default(context, in.email);
-  proto_serde<orgproto::RawText, sem::SemIdT<sem::RawText>>::read(context, out.email(), *in.email);
-  proto_init<Opt<Vec<Str>>>::init_default(context, in.language);
+  if (out.has_title()) {
+    proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.title);
+    proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.title(), *in.title);
+  }
+  if (out.has_author()) {
+    proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.author);
+    proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.author(), *in.author);
+  }
+  if (out.has_creator()) {
+    proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.creator);
+    proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.creator(), *in.creator);
+  }
+  if (out.has_email()) {
+    proto_init<Opt<sem::SemIdT<sem::RawText>>>::init_default(context, in.email);
+    proto_serde<orgproto::RawText, sem::SemIdT<sem::RawText>>::read(context, out.email(), *in.email);
+  }
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(context, out.language(), *in.language);
   proto_serde<orgproto::DocumentOptions, sem::SemIdT<sem::DocumentOptions>>::read(context, out.options(), in.options);
-  proto_init<Opt<Str>>::init_default(context, in.exportFileName);
-  proto_serde<std::string, Str>::read(context, out.exportfilename(), *in.exportFileName);
+  if (out.has_exportfilename()) {
+    proto_init<Opt<Str>>::init_default(context, in.exportFileName);
+    proto_serde<std::string, Str>::read(context, out.exportfilename(), *in.exportFileName);
+  }
 }
 
 void proto_serde<::orgproto::ParseError, sem::ParseError>::write(::orgproto::ParseError* out, sem::ParseError const& in) {
@@ -1282,15 +1327,23 @@ void proto_serde<::orgproto::FileTarget, sem::FileTarget>::write(::orgproto::Fil
 void proto_serde<::orgproto::FileTarget, sem::FileTarget>::read(sem::ContextStore* context, ::orgproto::FileTarget const& out, sem::FileTarget& in) {
   proto_serde<::orgproto::FileTarget, sem::Org>::read(context, out, in);
   proto_serde<std::string, Str>::read(context, out.path(), in.path);
-  proto_init<Opt<int>>::init_default(context, in.line);
-  *in.line = out.line();
-  proto_init<Opt<Str>>::init_default(context, in.searchTarget);
-  proto_serde<std::string, Str>::read(context, out.searchtarget(), *in.searchTarget);
+  if (out.has_line()) {
+    proto_init<Opt<int>>::init_default(context, in.line);
+    *in.line = out.line();
+  }
+  if (out.has_searchtarget()) {
+    proto_init<Opt<Str>>::init_default(context, in.searchTarget);
+    proto_serde<std::string, Str>::read(context, out.searchtarget(), *in.searchTarget);
+  }
   in.restrictToHeadlines = out.restricttoheadlines();
-  proto_init<Opt<Str>>::init_default(context, in.targetId);
-  proto_serde<std::string, Str>::read(context, out.targetid(), *in.targetId);
-  proto_init<Opt<Str>>::init_default(context, in.regexp);
-  proto_serde<std::string, Str>::read(context, out.regexp(), *in.regexp);
+  if (out.has_targetid()) {
+    proto_init<Opt<Str>>::init_default(context, in.targetId);
+    proto_serde<std::string, Str>::read(context, out.targetid(), *in.targetId);
+  }
+  if (out.has_regexp()) {
+    proto_init<Opt<Str>>::init_default(context, in.regexp);
+    proto_serde<std::string, Str>::read(context, out.regexp(), *in.regexp);
+  }
 }
 
 void proto_serde<::orgproto::TextSeparator, sem::TextSeparator>::write(::orgproto::TextSeparator* out, sem::TextSeparator const& in) {
