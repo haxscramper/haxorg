@@ -73,9 +73,10 @@ struct reporting_comparator {
             out.push_back({
                 .context = context,
                 .message = std::format(
-                    "{} != {}",
+                    "{} != {} on {}",
                     escape_literal(maybe_format(lhs)),
-                    escape_literal(maybe_format(rhs))),
+                    escape_literal(maybe_format(rhs)),
+                    __LINE__),
             });
         }
     }
@@ -89,9 +90,40 @@ struct reporting_comparator<std::optional<T>> {
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.has_value() != rhs.has_value()) {
-            out.push_back({.context = context});
+            out.push_back({
+                .context = context,
+                .message = fmt("on {}", __LINE__),
+            });
         } else if (lhs.has_value()) {
             reporting_comparator<T>::compare(*lhs, *rhs, out, context);
+        }
+    }
+};
+
+template <typename T>
+struct reporting_comparator<Vec<T>> {
+    static void compare(
+        CR<Vec<T>>                  lhs,
+        CR<Vec<T>>                  rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (lhs.size() != rhs.size()) {
+            out.push_back({
+                .context = context,
+                .message = fmt("on {}", __LINE__),
+            });
+        } else {
+            for (int i = 0; i < lhs.size(); ++i) {
+                reporting_comparator<T>::compare(
+                    lhs.at(i),
+                    rhs.at(i),
+                    out,
+                    context
+                        + Vec<compare_context>{{
+                            .field = fmt("{}", i),
+                            .type  = "Vec",
+                        }});
+            }
         }
     }
 };
@@ -104,12 +136,22 @@ struct reporting_comparator<V> {
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.index() != rhs.index()) {
-            out.push_back({.context = context});
+            out.push_back({
+                .context = context,
+                .message = fmt("on {}", __LINE__),
+            });
         } else {
             std::visit(
                 [&]<typename T>(T const& it) {
                     reporting_comparator<T>::compare(
-                        it, std::get<T>(rhs), out, context);
+                        it,
+                        std::get<T>(rhs),
+                        out,
+                        context
+                            + Vec<compare_context>{{
+                                .field = fmt("{}", lhs.index()),
+                                .type  = "Variant",
+                            }});
                 },
                 lhs);
         }
@@ -141,6 +183,62 @@ struct reporting_comparator<T> {
                                 .type  = demangle(typeid(T).name()),
                             }});
             });
+    }
+};
+
+template <typename T>
+struct reporting_comparator<sem::SemIdT<T>> {
+    static void compare(
+        CR<sem::SemIdT<T>>          lhs,
+        CR<sem::SemIdT<T>>          rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (lhs.isNil() != rhs.isNil()) {
+            out.push_back({
+                .context = context,
+                .message = fmt("on {}", __LINE__),
+            });
+        } else if (!lhs.isNil()) {
+            reporting_comparator<T>::compare(
+                *lhs.get(), *rhs.get(), out, context);
+        }
+    }
+};
+
+template <>
+struct reporting_comparator<sem::SemId> {
+    static void compare(
+        CR<sem::SemId>              lhs,
+        CR<sem::SemId>              rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (lhs.isNil() != rhs.isNil()) {
+            out.push_back({
+                .context = context,
+                .message = fmt("on {}", __LINE__),
+            });
+        } else if (lhs.isNil()) {
+            // pass
+        } else if (lhs->getKind() != rhs->getKind()) {
+            out.push_back({
+                .context = context,
+                .message = fmt(
+                    "kind mismatch {} != {}",
+                    lhs->getKind(),
+                    rhs->getKind()),
+            });
+        } else {
+            switch (lhs->getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind:                                              \
+        reporting_comparator<sem::SemIdT<sem::__Kind>>::compare(          \
+            lhs.as<sem::__Kind>(), rhs.as<sem::__Kind>(), out, context);  \
+        break;
+
+                EACH_SEM_ORG_KIND(_case)
+#undef _case
+            }
+        }
     }
 };
 
@@ -218,7 +316,7 @@ TEST(TestFiles, AllNodeSerde) {
                               [](compare_context const& c) -> std::string {
                                   return fmt("{}.{}", c.type, c.field);
                               })
-                        | rv::intersperse("\n") //
+                        | rv::intersperse("->") //
                         | rv::join              //
                         | rs::to<std::string>();
 

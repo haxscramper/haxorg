@@ -321,6 +321,10 @@ struct proto_serde<Proto, sem::Org> {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
             Vec<sem::SemId>>::read(context, out.subnodes(), in.subnodes);
+        if (out.has_placementcontext()) {
+            in.placementContext = static_cast<OrgSemPlacement>(
+                out.placementcontext());
+        }
     }
 };
 
