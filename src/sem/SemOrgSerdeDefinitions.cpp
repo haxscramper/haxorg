@@ -105,7 +105,7 @@ void proto_serde<::orgproto::Caption, sem::Caption>::write(::orgproto::Caption* 
 
 void proto_serde<::orgproto::Caption, sem::Caption>::read(sem::ContextStore* context, ::orgproto::Caption const& out, sem::Caption& in) {
   proto_serde<::orgproto::Caption, sem::Org>::read(context, out, in);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.text(), *((in.text).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.text(), in.text);
 }
 
 void proto_serde<::orgproto::CommandGroup, sem::CommandGroup>::write(::orgproto::CommandGroup* out, sem::CommandGroup const& in) {
@@ -127,7 +127,7 @@ void proto_serde<::orgproto::Quote, sem::Quote>::write(::orgproto::Quote* out, s
 
 void proto_serde<::orgproto::Quote, sem::Quote>::read(sem::ContextStore* context, ::orgproto::Quote const& out, sem::Quote& in) {
   proto_serde<::orgproto::Quote, sem::Org>::read(context, out, in);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.text(), *((in.text).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.text(), in.text);
 }
 
 void proto_serde<::orgproto::Example, sem::Example>::write(::orgproto::Example* out, sem::Example const& in) {
@@ -182,7 +182,7 @@ void proto_serde<::orgproto::Export, sem::Export>::read(sem::ContextStore* conte
   proto_serde<::orgproto::Export, sem::Org>::read(context, out, in);
   in.format = static_cast<sem::Export::Format>(out.format());
   proto_serde<std::string, Str>::read(context, out.exporter(), in.exporter);
-  proto_serde<orgproto::CmdArguments, sem::CmdArguments>::read(context, out.parameters(), *((in.parameters).get()));
+  proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), in.parameters);
   proto_init<Opt<Str>>::init_default(context, in.placement);
   proto_serde<std::string, Str>::read(context, out.placement(), *in.placement);
   proto_serde<std::string, Str>::read(context, out.content(), in.content);
@@ -260,11 +260,26 @@ void proto_serde<::orgproto::Code::Switch, sem::Code::Switch>::write(::orgproto:
 
 void proto_serde<::orgproto::Code::Switch, sem::Code::Switch>::read(sem::ContextStore* context, ::orgproto::Code::Switch const& out, sem::Code::Switch& in) {
   switch (out.data().kind_case()) {
-    case ::orgproto::Code::Switch::Data::kLinestart: proto_serde<orgproto::Code::Switch::LineStart, sem::Code::Switch::LineStart>::read(context, out.data().linestart(), std::get<0>(in.data)); break;
-    case ::orgproto::Code::Switch::Data::kCalloutformat: proto_serde<orgproto::Code::Switch::CalloutFormat, sem::Code::Switch::CalloutFormat>::read(context, out.data().calloutformat(), std::get<1>(in.data)); break;
-    case ::orgproto::Code::Switch::Data::kRemovecallout: proto_serde<orgproto::Code::Switch::RemoveCallout, sem::Code::Switch::RemoveCallout>::read(context, out.data().removecallout(), std::get<2>(in.data)); break;
-    case ::orgproto::Code::Switch::Data::kEmphasizeline: proto_serde<orgproto::Code::Switch::EmphasizeLine, sem::Code::Switch::EmphasizeLine>::read(context, out.data().emphasizeline(), std::get<3>(in.data)); break;
-    case ::orgproto::Code::Switch::Data::kDedent: proto_serde<orgproto::Code::Switch::Dedent, sem::Code::Switch::Dedent>::read(context, out.data().dedent(), std::get<4>(in.data)); break;
+    case ::orgproto::Code::Switch::Data::kLinestart:
+      in.data = variant_from_index<decltype(in.data)>(0);
+      proto_serde<orgproto::Code::Switch::LineStart, sem::Code::Switch::LineStart>::read(context, out.data().linestart(), std::get<0>(in.data));
+      break;
+    case ::orgproto::Code::Switch::Data::kCalloutformat:
+      in.data = variant_from_index<decltype(in.data)>(1);
+      proto_serde<orgproto::Code::Switch::CalloutFormat, sem::Code::Switch::CalloutFormat>::read(context, out.data().calloutformat(), std::get<1>(in.data));
+      break;
+    case ::orgproto::Code::Switch::Data::kRemovecallout:
+      in.data = variant_from_index<decltype(in.data)>(2);
+      proto_serde<orgproto::Code::Switch::RemoveCallout, sem::Code::Switch::RemoveCallout>::read(context, out.data().removecallout(), std::get<2>(in.data));
+      break;
+    case ::orgproto::Code::Switch::Data::kEmphasizeline:
+      in.data = variant_from_index<decltype(in.data)>(3);
+      proto_serde<orgproto::Code::Switch::EmphasizeLine, sem::Code::Switch::EmphasizeLine>::read(context, out.data().emphasizeline(), std::get<3>(in.data));
+      break;
+    case ::orgproto::Code::Switch::Data::kDedent:
+      in.data = variant_from_index<decltype(in.data)>(4);
+      proto_serde<orgproto::Code::Switch::Dedent, sem::Code::Switch::Dedent>::read(context, out.data().dedent(), std::get<4>(in.data));
+      break;
   }
 }
 
@@ -291,7 +306,7 @@ void proto_serde<::orgproto::Code, sem::Code>::read(sem::ContextStore* context, 
   proto_serde<std::string, Str>::read(context, out.lang(), *in.lang);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::read(context, out.switches(), in.switches);
   in.exports = static_cast<sem::Code::Exports>(out.exports());
-  proto_serde<orgproto::CmdArguments, sem::CmdArguments>::read(context, out.parameters(), *((in.parameters).get()));
+  proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), in.parameters);
   in.cache = out.cache();
   in.eval = out.eval();
   in.noweb = out.noweb();
@@ -349,8 +364,14 @@ void proto_serde<::orgproto::Time, sem::Time>::read(sem::ContextStore* context, 
   proto_serde<::orgproto::Time, sem::Org>::read(context, out, in);
   in.isActive = out.isactive();
   switch (out.time().kind_case()) {
-    case ::orgproto::Time::TimeVariant::kStatic: proto_serde<orgproto::Time::Static, sem::Time::Static>::read(context, out.time().static_(), std::get<0>(in.time)); break;
-    case ::orgproto::Time::TimeVariant::kDynamic: proto_serde<orgproto::Time::Dynamic, sem::Time::Dynamic>::read(context, out.time().dynamic(), std::get<1>(in.time)); break;
+    case ::orgproto::Time::TimeVariant::kStatic:
+      in.time = variant_from_index<decltype(in.time)>(0);
+      proto_serde<orgproto::Time::Static, sem::Time::Static>::read(context, out.time().static_(), std::get<0>(in.time));
+      break;
+    case ::orgproto::Time::TimeVariant::kDynamic:
+      in.time = variant_from_index<decltype(in.time)>(1);
+      proto_serde<orgproto::Time::Dynamic, sem::Time::Dynamic>::read(context, out.time().dynamic(), std::get<1>(in.time));
+      break;
   }
 }
 
@@ -366,8 +387,8 @@ void proto_serde<::orgproto::TimeRange, sem::TimeRange>::write(::orgproto::TimeR
 
 void proto_serde<::orgproto::TimeRange, sem::TimeRange>::read(sem::ContextStore* context, ::orgproto::TimeRange const& out, sem::TimeRange& in) {
   proto_serde<::orgproto::TimeRange, sem::Org>::read(context, out, in);
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.from(), *((in.from).get()));
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.to(), *((in.to).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.from(), in.from);
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.to(), in.to);
 }
 
 void proto_serde<::orgproto::Macro, sem::Macro>::write(::orgproto::Macro* out, sem::Macro const& in) {
@@ -417,7 +438,7 @@ void proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::Describe
 
 void proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::DescribedLog>::read(sem::ContextStore* context, ::orgproto::SubtreeLog::DescribedLog const& out, sem::SubtreeLog::DescribedLog& in) {
   proto_init<Opt<sem::SemIdT<sem::StmtList>>>::init_default(context, in.desc);
-  proto_serde<orgproto::StmtList, sem::StmtList>::read(context, out.desc(), *((*in.desc).get()));
+  proto_serde<orgproto::StmtList, sem::SemIdT<sem::StmtList>>::read(context, out.desc(), *in.desc);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::write(::orgproto::SubtreeLog::Priority* out, sem::SubtreeLog::Priority const& in) {
@@ -439,7 +460,7 @@ void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::r
   *in.oldPriority = out.oldpriority();
   proto_init<Opt<std::string>>::init_default(context, in.newPriority);
   *in.newPriority = out.newpriority();
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.on(), *((in.on).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.on(), in.on);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::write(::orgproto::SubtreeLog::Note* out, sem::SubtreeLog::Note const& in) {
@@ -451,7 +472,7 @@ void proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::write(::o
 
 void proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::read(sem::ContextStore* context, ::orgproto::SubtreeLog::Note const& out, sem::SubtreeLog::Note& in) {
   proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>::read(context, out, in);
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.on(), *((in.on).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.on(), in.on);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::write(::orgproto::SubtreeLog::Refile* out, sem::SubtreeLog::Refile const& in) {
@@ -466,8 +487,8 @@ void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::write
 
 void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::read(sem::ContextStore* context, ::orgproto::SubtreeLog::Refile const& out, sem::SubtreeLog::Refile& in) {
   proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>::read(context, out, in);
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.on(), *((in.on).get()));
-  proto_serde<orgproto::Link, sem::Link>::read(context, out.from(), *((in.from).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.on(), in.on);
+  proto_serde<orgproto::Link, sem::SemIdT<sem::Link>>::read(context, out.from(), in.from);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::write(::orgproto::SubtreeLog::Clock* out, sem::SubtreeLog::Clock const& in) {
@@ -489,8 +510,14 @@ void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::write(:
 void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(sem::ContextStore* context, ::orgproto::SubtreeLog::Clock const& out, sem::SubtreeLog::Clock& in) {
   proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>::read(context, out, in);
   switch (out.range_kind_case()) {
-    case ::orgproto::SubtreeLog::Clock::kTime: proto_serde<orgproto::Time, sem::Time>::read(context, out.time(), *((std::get<0>(in.range)).get())); break;
-    case ::orgproto::SubtreeLog::Clock::kTimerange: proto_serde<orgproto::TimeRange, sem::TimeRange>::read(context, out.timerange(), *((std::get<1>(in.range)).get())); break;
+    case ::orgproto::SubtreeLog::Clock::kTime:
+      in.range = variant_from_index<decltype(in.range)>(0);
+      proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.time(), std::get<0>(in.range));
+      break;
+    case ::orgproto::SubtreeLog::Clock::kTimerange:
+      in.range = variant_from_index<decltype(in.range)>(1);
+      proto_serde<orgproto::TimeRange, sem::SemIdT<sem::TimeRange>>::read(context, out.timerange(), std::get<1>(in.range));
+      break;
   }
 }
 
@@ -507,7 +534,7 @@ void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::read(se
   proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::DescribedLog>::read(context, out, in);
   in.from = static_cast<OrgBigIdentKind>(out.from());
   in.to = static_cast<OrgBigIdentKind>(out.to());
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.on(), *((in.on).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.on(), in.on);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::write(::orgproto::SubtreeLog::Tag* out, sem::SubtreeLog::Tag const& in) {
@@ -523,8 +550,8 @@ void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::write(::org
 
 void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::read(sem::ContextStore* context, ::orgproto::SubtreeLog::Tag const& out, sem::SubtreeLog::Tag& in) {
   proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>::read(context, out, in);
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.on(), *((in.on).get()));
-  proto_serde<orgproto::HashTag, sem::HashTag>::read(context, out.tag(), *((in.tag).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.on(), in.on);
+  proto_serde<orgproto::HashTag, sem::SemIdT<sem::HashTag>>::read(context, out.tag(), in.tag);
   in.added = out.added();
 }
 
@@ -555,12 +582,30 @@ void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::write(::orgproto::Sub
 void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::read(sem::ContextStore* context, ::orgproto::SubtreeLog const& out, sem::SubtreeLog& in) {
   proto_serde<::orgproto::SubtreeLog, sem::Org>::read(context, out, in);
   switch (out.log().kind_case()) {
-    case ::orgproto::SubtreeLog::LogEntry::kPriority: proto_serde<orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::read(context, out.log().priority(), std::get<0>(in.log)); break;
-    case ::orgproto::SubtreeLog::LogEntry::kNote: proto_serde<orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::read(context, out.log().note(), std::get<1>(in.log)); break;
-    case ::orgproto::SubtreeLog::LogEntry::kRefile: proto_serde<orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::read(context, out.log().refile(), std::get<2>(in.log)); break;
-    case ::orgproto::SubtreeLog::LogEntry::kClock: proto_serde<orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(context, out.log().clock(), std::get<3>(in.log)); break;
-    case ::orgproto::SubtreeLog::LogEntry::kState: proto_serde<orgproto::SubtreeLog::State, sem::SubtreeLog::State>::read(context, out.log().state(), std::get<4>(in.log)); break;
-    case ::orgproto::SubtreeLog::LogEntry::kTag: proto_serde<orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::read(context, out.log().tag(), std::get<5>(in.log)); break;
+    case ::orgproto::SubtreeLog::LogEntry::kPriority:
+      in.log = variant_from_index<decltype(in.log)>(0);
+      proto_serde<orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::read(context, out.log().priority(), std::get<0>(in.log));
+      break;
+    case ::orgproto::SubtreeLog::LogEntry::kNote:
+      in.log = variant_from_index<decltype(in.log)>(1);
+      proto_serde<orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::read(context, out.log().note(), std::get<1>(in.log));
+      break;
+    case ::orgproto::SubtreeLog::LogEntry::kRefile:
+      in.log = variant_from_index<decltype(in.log)>(2);
+      proto_serde<orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::read(context, out.log().refile(), std::get<2>(in.log));
+      break;
+    case ::orgproto::SubtreeLog::LogEntry::kClock:
+      in.log = variant_from_index<decltype(in.log)>(3);
+      proto_serde<orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(context, out.log().clock(), std::get<3>(in.log));
+      break;
+    case ::orgproto::SubtreeLog::LogEntry::kState:
+      in.log = variant_from_index<decltype(in.log)>(4);
+      proto_serde<orgproto::SubtreeLog::State, sem::SubtreeLog::State>::read(context, out.log().state(), std::get<4>(in.log));
+      break;
+    case ::orgproto::SubtreeLog::LogEntry::kTag:
+      in.log = variant_from_index<decltype(in.log)>(5);
+      proto_serde<orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::read(context, out.log().tag(), std::get<5>(in.log));
+      break;
   }
 }
 
@@ -583,8 +628,14 @@ void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::write(::org
 void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::read(sem::ContextStore* context, ::orgproto::Subtree::Period const& out, sem::Subtree::Period& in) {
   in.kind = static_cast<sem::Subtree::Period::Kind>(out.kind());
   switch (out.period_kind_case()) {
-    case ::orgproto::Subtree::Period::kTime: proto_serde<orgproto::Time, sem::Time>::read(context, out.time(), *((std::get<0>(in.period)).get())); break;
-    case ::orgproto::Subtree::Period::kTimerange: proto_serde<orgproto::TimeRange, sem::TimeRange>::read(context, out.timerange(), *((std::get<1>(in.period)).get())); break;
+    case ::orgproto::Subtree::Period::kTime:
+      in.period = variant_from_index<decltype(in.period)>(0);
+      proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.time(), std::get<0>(in.period));
+      break;
+    case ::orgproto::Subtree::Period::kTimerange:
+      in.period = variant_from_index<decltype(in.period)>(1);
+      proto_serde<orgproto::TimeRange, sem::SemIdT<sem::TimeRange>>::read(context, out.timerange(), std::get<1>(in.period));
+      break;
   }
 }
 
@@ -703,7 +754,7 @@ void proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property:
 }
 
 void proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::read(sem::ContextStore* context, ::orgproto::Subtree::Property::Created const& out, sem::Subtree::Property::Created& in) {
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.time(), *((in.time).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.time(), in.time);
 }
 
 void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in) {
@@ -761,20 +812,62 @@ void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::read(se
   in.subSetRule = static_cast<sem::Subtree::Property::SetMode>(out.subsetrule());
   in.inheritanceMode = static_cast<sem::Subtree::Property::InheritanceMode>(out.inheritancemode());
   switch (out.data().kind_case()) {
-    case ::orgproto::Subtree::Property::Data::kNonblocking: proto_serde<orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::read(context, out.data().nonblocking(), std::get<0>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kTrigger: proto_serde<orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger>::read(context, out.data().trigger(), std::get<1>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kOrigin: proto_serde<orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::read(context, out.data().origin(), std::get<2>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexclass: proto_serde<orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass>::read(context, out.data().exportlatexclass(), std::get<3>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexclassoptions: proto_serde<orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions>::read(context, out.data().exportlatexclassoptions(), std::get<4>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexheader: proto_serde<orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader>::read(context, out.data().exportlatexheader(), std::get<5>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexcompiler: proto_serde<orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler>::read(context, out.data().exportlatexcompiler(), std::get<6>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kOrdered: proto_serde<orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered>::read(context, out.data().ordered(), std::get<7>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kEffort: proto_serde<orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort>::read(context, out.data().effort(), std::get<8>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kVisibility: proto_serde<orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::read(context, out.data().visibility(), std::get<9>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kExportoptions: proto_serde<orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions>::read(context, out.data().exportoptions(), std::get<10>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kBlocker: proto_serde<orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker>::read(context, out.data().blocker(), std::get<11>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kUnnumbered: proto_serde<orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered>::read(context, out.data().unnumbered(), std::get<12>(in.data)); break;
-    case ::orgproto::Subtree::Property::Data::kCreated: proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::read(context, out.data().created(), std::get<13>(in.data)); break;
+    case ::orgproto::Subtree::Property::Data::kNonblocking:
+      in.data = variant_from_index<decltype(in.data)>(0);
+      proto_serde<orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::read(context, out.data().nonblocking(), std::get<0>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kTrigger:
+      in.data = variant_from_index<decltype(in.data)>(1);
+      proto_serde<orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger>::read(context, out.data().trigger(), std::get<1>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kOrigin:
+      in.data = variant_from_index<decltype(in.data)>(2);
+      proto_serde<orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::read(context, out.data().origin(), std::get<2>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kExportlatexclass:
+      in.data = variant_from_index<decltype(in.data)>(3);
+      proto_serde<orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass>::read(context, out.data().exportlatexclass(), std::get<3>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kExportlatexclassoptions:
+      in.data = variant_from_index<decltype(in.data)>(4);
+      proto_serde<orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions>::read(context, out.data().exportlatexclassoptions(), std::get<4>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kExportlatexheader:
+      in.data = variant_from_index<decltype(in.data)>(5);
+      proto_serde<orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader>::read(context, out.data().exportlatexheader(), std::get<5>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kExportlatexcompiler:
+      in.data = variant_from_index<decltype(in.data)>(6);
+      proto_serde<orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler>::read(context, out.data().exportlatexcompiler(), std::get<6>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kOrdered:
+      in.data = variant_from_index<decltype(in.data)>(7);
+      proto_serde<orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered>::read(context, out.data().ordered(), std::get<7>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kEffort:
+      in.data = variant_from_index<decltype(in.data)>(8);
+      proto_serde<orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort>::read(context, out.data().effort(), std::get<8>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kVisibility:
+      in.data = variant_from_index<decltype(in.data)>(9);
+      proto_serde<orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::read(context, out.data().visibility(), std::get<9>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kExportoptions:
+      in.data = variant_from_index<decltype(in.data)>(10);
+      proto_serde<orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions>::read(context, out.data().exportoptions(), std::get<10>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kBlocker:
+      in.data = variant_from_index<decltype(in.data)>(11);
+      proto_serde<orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker>::read(context, out.data().blocker(), std::get<11>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kUnnumbered:
+      in.data = variant_from_index<decltype(in.data)>(12);
+      proto_serde<orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered>::read(context, out.data().unnumbered(), std::get<12>(in.data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kCreated:
+      in.data = variant_from_index<decltype(in.data)>(13);
+      proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::read(context, out.data().created(), std::get<13>(in.data));
+      break;
   }
 }
 
@@ -818,19 +911,19 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(sem::ContextStore* con
   proto_init<Opt<Str>>::init_default(context, in.todo);
   proto_serde<std::string, Str>::read(context, out.todo(), *in.todo);
   proto_init<Opt<sem::SemIdT<sem::Completion>>>::init_default(context, in.completion);
-  proto_serde<orgproto::Completion, sem::Completion>::read(context, out.completion(), *((*in.completion).get()));
+  proto_serde<orgproto::Completion, sem::SemIdT<sem::Completion>>::read(context, out.completion(), *in.completion);
   proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.description);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.description(), *((*in.description).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.description(), *in.description);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemIdT<sem::HashTag>>>::read(context, out.tags(), in.tags);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.title(), *((in.title).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.title(), in.title);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, Vec<sem::SemIdT<sem::SubtreeLog>>>::read(context, out.logbook(), in.logbook);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::read(context, out.properties(), in.properties);
   proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.closed);
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.closed(), *((*in.closed).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.closed(), *in.closed);
   proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.deadline);
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.deadline(), *((*in.deadline).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.deadline(), *in.deadline);
   proto_init<Opt<sem::SemIdT<sem::Time>>>::init_default(context, in.scheduled);
-  proto_serde<orgproto::Time, sem::Time>::read(context, out.scheduled(), *((*in.scheduled).get()));
+  proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.scheduled(), *in.scheduled);
 }
 
 void proto_serde<::orgproto::InlineMath, sem::InlineMath>::write(::orgproto::InlineMath* out, sem::InlineMath const& in) {
@@ -1015,7 +1108,7 @@ void proto_serde<::orgproto::ListItem, sem::ListItem>::read(sem::ContextStore* c
   proto_serde<::orgproto::ListItem, sem::Org>::read(context, out, in);
   in.checkbox = static_cast<sem::ListItem::Checkbox>(out.checkbox());
   proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.header);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.header(), *((*in.header).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.header(), *in.header);
 }
 
 void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::write(::orgproto::Link::Raw* out, sem::Link::Raw const& in) {
@@ -1085,13 +1178,28 @@ void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem:
 void proto_serde<::orgproto::Link, sem::Link>::read(sem::ContextStore* context, ::orgproto::Link const& out, sem::Link& in) {
   proto_serde<::orgproto::Link, sem::Org>::read(context, out, in);
   proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.description);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.description(), *((*in.description).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.description(), *in.description);
   switch (out.data().kind_case()) {
-    case ::orgproto::Link::Data::kRaw: proto_serde<orgproto::Link::Raw, sem::Link::Raw>::read(context, out.data().raw(), std::get<0>(in.data)); break;
-    case ::orgproto::Link::Data::kId: proto_serde<orgproto::Link::Id, sem::Link::Id>::read(context, out.data().id(), std::get<1>(in.data)); break;
-    case ::orgproto::Link::Data::kPerson: proto_serde<orgproto::Link::Person, sem::Link::Person>::read(context, out.data().person(), std::get<2>(in.data)); break;
-    case ::orgproto::Link::Data::kFootnote: proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::read(context, out.data().footnote(), std::get<3>(in.data)); break;
-    case ::orgproto::Link::Data::kFile: proto_serde<orgproto::Link::File, sem::Link::File>::read(context, out.data().file(), std::get<4>(in.data)); break;
+    case ::orgproto::Link::Data::kRaw:
+      in.data = variant_from_index<decltype(in.data)>(0);
+      proto_serde<orgproto::Link::Raw, sem::Link::Raw>::read(context, out.data().raw(), std::get<0>(in.data));
+      break;
+    case ::orgproto::Link::Data::kId:
+      in.data = variant_from_index<decltype(in.data)>(1);
+      proto_serde<orgproto::Link::Id, sem::Link::Id>::read(context, out.data().id(), std::get<1>(in.data));
+      break;
+    case ::orgproto::Link::Data::kPerson:
+      in.data = variant_from_index<decltype(in.data)>(2);
+      proto_serde<orgproto::Link::Person, sem::Link::Person>::read(context, out.data().person(), std::get<2>(in.data));
+      break;
+    case ::orgproto::Link::Data::kFootnote:
+      in.data = variant_from_index<decltype(in.data)>(3);
+      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::read(context, out.data().footnote(), std::get<3>(in.data));
+      break;
+    case ::orgproto::Link::Data::kFile:
+      in.data = variant_from_index<decltype(in.data)>(4);
+      proto_serde<orgproto::Link::File, sem::Link::File>::read(context, out.data().file(), std::get<4>(in.data));
+      break;
   }
 }
 
@@ -1131,16 +1239,16 @@ void proto_serde<::orgproto::Document, sem::Document>::read(sem::ContextStore* c
   proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.footnotetable(), in.footnoteTable);
   proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.anchortable(), in.anchorTable);
   proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.title);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.title(), *((*in.title).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.title(), *in.title);
   proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.author);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.author(), *((*in.author).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.author(), *in.author);
   proto_init<Opt<sem::SemIdT<sem::Paragraph>>>::init_default(context, in.creator);
-  proto_serde<orgproto::Paragraph, sem::Paragraph>::read(context, out.creator(), *((*in.creator).get()));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.creator(), *in.creator);
   proto_init<Opt<sem::SemIdT<sem::RawText>>>::init_default(context, in.email);
-  proto_serde<orgproto::RawText, sem::RawText>::read(context, out.email(), *((*in.email).get()));
+  proto_serde<orgproto::RawText, sem::SemIdT<sem::RawText>>::read(context, out.email(), *in.email);
   proto_init<Opt<Vec<Str>>>::init_default(context, in.language);
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(context, out.language(), *in.language);
-  proto_serde<orgproto::DocumentOptions, sem::DocumentOptions>::read(context, out.options(), *((in.options).get()));
+  proto_serde<orgproto::DocumentOptions, sem::SemIdT<sem::DocumentOptions>>::read(context, out.options(), in.options);
   proto_init<Opt<Str>>::init_default(context, in.exportFileName);
   proto_serde<std::string, Str>::read(context, out.exportfilename(), *in.exportFileName);
 }
@@ -1246,10 +1354,22 @@ void proto_serde<::orgproto::Include, sem::Include>::write(::orgproto::Include* 
 void proto_serde<::orgproto::Include, sem::Include>::read(sem::ContextStore* context, ::orgproto::Include const& out, sem::Include& in) {
   proto_serde<::orgproto::Include, sem::Org>::read(context, out, in);
   switch (out.data().kind_case()) {
-    case ::orgproto::Include::Data::kExample: proto_serde<orgproto::Include::Example, sem::Include::Example>::read(context, out.data().example(), std::get<0>(in.data)); break;
-    case ::orgproto::Include::Data::kExport: proto_serde<orgproto::Include::Export, sem::Include::Export>::read(context, out.data().export_(), std::get<1>(in.data)); break;
-    case ::orgproto::Include::Data::kSrc: proto_serde<orgproto::Include::Src, sem::Include::Src>::read(context, out.data().src(), std::get<2>(in.data)); break;
-    case ::orgproto::Include::Data::kOrgdocument: proto_serde<orgproto::Include::OrgDocument, sem::Include::OrgDocument>::read(context, out.data().orgdocument(), std::get<3>(in.data)); break;
+    case ::orgproto::Include::Data::kExample:
+      in.data = variant_from_index<decltype(in.data)>(0);
+      proto_serde<orgproto::Include::Example, sem::Include::Example>::read(context, out.data().example(), std::get<0>(in.data));
+      break;
+    case ::orgproto::Include::Data::kExport:
+      in.data = variant_from_index<decltype(in.data)>(1);
+      proto_serde<orgproto::Include::Export, sem::Include::Export>::read(context, out.data().export_(), std::get<1>(in.data));
+      break;
+    case ::orgproto::Include::Data::kSrc:
+      in.data = variant_from_index<decltype(in.data)>(2);
+      proto_serde<orgproto::Include::Src, sem::Include::Src>::read(context, out.data().src(), std::get<2>(in.data));
+      break;
+    case ::orgproto::Include::Data::kOrgdocument:
+      in.data = variant_from_index<decltype(in.data)>(3);
+      proto_serde<orgproto::Include::OrgDocument, sem::Include::OrgDocument>::read(context, out.data().orgdocument(), std::get<3>(in.data));
+      break;
   }
 }
 
@@ -1309,8 +1429,14 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(sem::C
   in.brokenLinks = static_cast<sem::DocumentOptions::BrokenLinks>(out.brokenlinks());
   in.initialVisibility = static_cast<sem::DocumentOptions::Visibility>(out.initialvisibility());
   switch (out.tocexport().kind_case()) {
-    case ::orgproto::DocumentOptions::TocExport::kDoexport: proto_serde<orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport>::read(context, out.tocexport().doexport(), std::get<0>(in.tocExport)); break;
-    case ::orgproto::DocumentOptions::TocExport::kExportfixed: proto_serde<orgproto::DocumentOptions::ExportFixed, sem::DocumentOptions::ExportFixed>::read(context, out.tocexport().exportfixed(), std::get<1>(in.tocExport)); break;
+    case ::orgproto::DocumentOptions::TocExport::kDoexport:
+      in.tocExport = variant_from_index<decltype(in.tocExport)>(0);
+      proto_serde<orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport>::read(context, out.tocexport().doexport(), std::get<0>(in.tocExport));
+      break;
+    case ::orgproto::DocumentOptions::TocExport::kExportfixed:
+      in.tocExport = variant_from_index<decltype(in.tocExport)>(1);
+      proto_serde<orgproto::DocumentOptions::ExportFixed, sem::DocumentOptions::ExportFixed>::read(context, out.tocexport().exportfixed(), std::get<1>(in.tocExport));
+      break;
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::read(context, out.properties(), in.properties);
   in.smartQuotes = out.smartquotes();
@@ -1326,8 +1452,14 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(sem::C
   in.exportWithClock = out.exportwithclock();
   in.exportWithCreator = out.exportwithcreator();
   switch (out.data().kind_case()) {
-    case ::orgproto::DocumentOptions::TocExport::kDoexport: proto_serde<orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport>::read(context, out.data().doexport(), std::get<0>(in.data)); break;
-    case ::orgproto::DocumentOptions::TocExport::kExportfixed: proto_serde<orgproto::DocumentOptions::ExportFixed, sem::DocumentOptions::ExportFixed>::read(context, out.data().exportfixed(), std::get<1>(in.data)); break;
+    case ::orgproto::DocumentOptions::TocExport::kDoexport:
+      in.data = variant_from_index<decltype(in.data)>(0);
+      proto_serde<orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport>::read(context, out.data().doexport(), std::get<0>(in.data));
+      break;
+    case ::orgproto::DocumentOptions::TocExport::kExportfixed:
+      in.data = variant_from_index<decltype(in.data)>(1);
+      proto_serde<orgproto::DocumentOptions::ExportFixed, sem::DocumentOptions::ExportFixed>::read(context, out.data().exportfixed(), std::get<1>(in.data));
+      break;
   }
 }
 

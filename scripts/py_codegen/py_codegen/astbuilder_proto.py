@@ -170,9 +170,11 @@ class ProtoBuilder():
             name="EACH_ANY_NODE_PROTO_FIELD",
             params=[cpp.MacroParams.Param("__MAP")],
             definition=[
-                "__MAP({}, {})".format(self.sanitize_ident_for_protobuf(rec.name.name),
-                                       rec.name.name)
-                for rec in self.get_all_concrete_types()
+                "__MAP(k{}, {}, {})".format(
+                    pascal_case(rec.name.name),
+                    self.sanitize_ident_for_protobuf(rec.name.name),
+                    rec.name.name,
+                ) for rec in self.get_all_concrete_types()
             ],
         )
 
@@ -292,7 +294,7 @@ class ProtoBuilder():
             field_read = dot_field
             field_type = field.type
 
-        if field_type.name == "SemIdT":
+        if not is_write_getter and field_type.name == "SemIdT":
             field_read = self.t.line(
                 [self.t.text("*(("), field_read,
                  self.t.text(").get())")])
@@ -523,13 +525,19 @@ class ProtoBuilder():
                     cpp.CaseStmtParams(
                         Expr=self.ast.Type(field_enum_value),
                         Body=[
+                            t.line([
+                                dot_field,
+                                t.text(" = variant_from_index<decltype("),
+                                dot_field,
+                                t.text(f")>({idx});"),
+                            ]),
                             self.get_field_read_op(
                                 var_field,
                                 var_dot,
                                 parent_field=field if is_typedef else None,
                             ),
                         ],
-                        OneLine=True,
+                        OneLine=False,
                         Compound=False,
                         Autobreak=True,
                     ))
@@ -579,7 +587,7 @@ class ProtoBuilder():
             case tu.GenTuStruct():
                 if not it.concreteKind:
                     return []
-                
+
                 out = self.t.text(PROTO_VALUE_NAME)
                 _in = self.t.text(ORG_VALUE_NAME)
                 org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")

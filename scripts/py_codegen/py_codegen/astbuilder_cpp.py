@@ -76,6 +76,10 @@ class QualType(BaseModel, extra="forbid"):
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':
         return QualType(name=name, **args)
+    
+    @staticmethod
+    def ForExpr(expr: str, **args) -> 'QualType':
+        return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
     def asConstRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))

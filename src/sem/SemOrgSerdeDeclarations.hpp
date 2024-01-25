@@ -1,58 +1,58 @@
 /* clang-format off */
 #include <sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
-        __MAP(stmtlist, StmtList)  \
-        __MAP(empty, Empty)  \
-        __MAP(row, Row)  \
-        __MAP(table, Table)  \
-        __MAP(hashtag, HashTag)  \
-        __MAP(footnote, Footnote)  \
-        __MAP(completion, Completion)  \
-        __MAP(paragraph, Paragraph)  \
-        __MAP(center, Center)  \
-        __MAP(caption, Caption)  \
-        __MAP(commandgroup, CommandGroup)  \
-        __MAP(quote, Quote)  \
-        __MAP(example, Example)  \
-        __MAP(cmdarguments, CmdArguments)  \
-        __MAP(cmdargument, CmdArgument)  \
-        __MAP(export_, Export)  \
-        __MAP(admonitionblock, AdmonitionBlock)  \
-        __MAP(code, Code)  \
-        __MAP(time, Time)  \
-        __MAP(timerange, TimeRange)  \
-        __MAP(macro, Macro)  \
-        __MAP(symbol, Symbol)  \
-        __MAP(subtreelog, SubtreeLog)  \
-        __MAP(subtree, Subtree)  \
-        __MAP(inlinemath, InlineMath)  \
-        __MAP(escaped, Escaped)  \
-        __MAP(newline, Newline)  \
-        __MAP(space, Space)  \
-        __MAP(word, Word)  \
-        __MAP(atmention, AtMention)  \
-        __MAP(rawtext, RawText)  \
-        __MAP(punctuation, Punctuation)  \
-        __MAP(placeholder, Placeholder)  \
-        __MAP(bigident, BigIdent)  \
-        __MAP(bold, Bold)  \
-        __MAP(underline, Underline)  \
-        __MAP(monospace, Monospace)  \
-        __MAP(markquote, MarkQuote)  \
-        __MAP(verbatim, Verbatim)  \
-        __MAP(italic, Italic)  \
-        __MAP(strike, Strike)  \
-        __MAP(par, Par)  \
-        __MAP(list, List)  \
-        __MAP(listitem, ListItem)  \
-        __MAP(link, Link)  \
-        __MAP(document, Document)  \
-        __MAP(parseerror, ParseError)  \
-        __MAP(filetarget, FileTarget)  \
-        __MAP(textseparator, TextSeparator)  \
-        __MAP(include, Include)  \
-        __MAP(documentoptions, DocumentOptions)  \
-        __MAP(documentgroup, DocumentGroup)  \
+        __MAP(kStmtlist, stmtlist, StmtList)  \
+        __MAP(kEmpty, empty, Empty)  \
+        __MAP(kRow, row, Row)  \
+        __MAP(kTable, table, Table)  \
+        __MAP(kHashtag, hashtag, HashTag)  \
+        __MAP(kFootnote, footnote, Footnote)  \
+        __MAP(kCompletion, completion, Completion)  \
+        __MAP(kParagraph, paragraph, Paragraph)  \
+        __MAP(kCenter, center, Center)  \
+        __MAP(kCaption, caption, Caption)  \
+        __MAP(kCommandgroup, commandgroup, CommandGroup)  \
+        __MAP(kQuote, quote, Quote)  \
+        __MAP(kExample, example, Example)  \
+        __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
+        __MAP(kCmdargument, cmdargument, CmdArgument)  \
+        __MAP(kExport, export_, Export)  \
+        __MAP(kAdmonitionblock, admonitionblock, AdmonitionBlock)  \
+        __MAP(kCode, code, Code)  \
+        __MAP(kTime, time, Time)  \
+        __MAP(kTimerange, timerange, TimeRange)  \
+        __MAP(kMacro, macro, Macro)  \
+        __MAP(kSymbol, symbol, Symbol)  \
+        __MAP(kSubtreelog, subtreelog, SubtreeLog)  \
+        __MAP(kSubtree, subtree, Subtree)  \
+        __MAP(kInlinemath, inlinemath, InlineMath)  \
+        __MAP(kEscaped, escaped, Escaped)  \
+        __MAP(kNewline, newline, Newline)  \
+        __MAP(kSpace, space, Space)  \
+        __MAP(kWord, word, Word)  \
+        __MAP(kAtmention, atmention, AtMention)  \
+        __MAP(kRawtext, rawtext, RawText)  \
+        __MAP(kPunctuation, punctuation, Punctuation)  \
+        __MAP(kPlaceholder, placeholder, Placeholder)  \
+        __MAP(kBigident, bigident, BigIdent)  \
+        __MAP(kBold, bold, Bold)  \
+        __MAP(kUnderline, underline, Underline)  \
+        __MAP(kMonospace, monospace, Monospace)  \
+        __MAP(kMarkquote, markquote, MarkQuote)  \
+        __MAP(kVerbatim, verbatim, Verbatim)  \
+        __MAP(kItalic, italic, Italic)  \
+        __MAP(kStrike, strike, Strike)  \
+        __MAP(kPar, par, Par)  \
+        __MAP(kList, list, List)  \
+        __MAP(kListitem, listitem, ListItem)  \
+        __MAP(kLink, link, Link)  \
+        __MAP(kDocument, document, Document)  \
+        __MAP(kParseerror, parseerror, ParseError)  \
+        __MAP(kFiletarget, filetarget, FileTarget)  \
+        __MAP(kTextseparator, textseparator, TextSeparator)  \
+        __MAP(kInclude, include, Include)  \
+        __MAP(kDocumentoptions, documentoptions, DocumentOptions)  \
+        __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
 struct proto_serde<::orgproto::StmtList, sem::StmtList> {

@@ -17,6 +17,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <sem/SemOrgSerde.hpp>
 #include <google/protobuf/util/json_util.h>
+#include <exporters/ExporterJson.hpp>
 
 template <
     /// Node kind
@@ -39,17 +40,64 @@ diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
             }};
 }
 
+template <typename Obj, typename Field>
+bool cmp_field_value(CR<T> lhs, CR<T> rhs, Field T::*fieldPtr) {
+    return (lhs.*fieldPtr == rhs.*fieldPtr);
+};
+
+template <typename T>
+auto cmp_node(CR<T> lhs, CR<T> rhs) {
+    for_each_field_with_bases<T>([&](auto const& field) {
+        LOG(INFO) << fmt(
+            "{} {} {} {}",
+            demangle(typeid(lhs).name()),
+            demangle(typeid(rhs).name()),
+            demangle(typeid(lhs.*field.pointer).name()),
+            demangle(typeid(rhs.*field.pointer).name()));
+
+        lhs.*field.pointer;
+        rhs.*field.pointer;
+        // if (!cmp_field_value<T, decltype(field.pointer)>(
+        //         lhs, rhs, field.pointer)) {
+        //     if constexpr (std::is_object_v<std::remove_cvref_t<
+        //                       decltype(rhs.*field.pointer)>>) {
+        //         FAIL() << fmt(
+        //             "{} '{}'",
+        //             field.name,
+        //             demangle(typeid(lhs.*field.pointer).name()));
+        //     } else {
+        //         FAIL() << fmt(
+        //             "{} '{} != '{}'",
+        //             field.name,
+        //             lhs.*field.pointer,
+        //             rhs.*field.pointer);
+        //     }
+        // }
+    });
+}
+
+template <typename T>
+auto cmp_stores(
+    sem::KindStore<T> const& lhsStore,
+    sem::KindStore<T> const& rhsStore) {
+    EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size());
+    for (int i = 0; i < lhsStore.size(); ++i) {
+        cmp_node<T>(lhsStore.values.at(i), rhsStore.values.at(i));
+    }
+}
+
 TEST(TestFiles, AllNodeSerde) {
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
 
-    sem::ContextStore context;
-    sem::OrgConverter converter{&context};
-    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    sem::ContextStore write_context;
+    sem::OrgConverter converter{&write_context};
+    sem::SemId        write_node = converter.toDocument(
+        OrgAdapter(&p.nodes, OrgId(0)));
     orgproto::AnyNode result;
-    proto_serde<orgproto::AnyNode, sem::SemId>::write(&result, node);
+    proto_serde<orgproto::AnyNode, sem::SemId>::write(&result, write_node);
 
     std::string                              json_string;
     google::protobuf::util::JsonPrintOptions options;
@@ -57,7 +105,33 @@ TEST(TestFiles, AllNodeSerde) {
     auto status            = google::protobuf::util::MessageToJsonString(
         result, &json_string, options);
 
-    writeFile("/tmp/proto_result.json", json_string);
+    writeFile("/tmp/proto_write.json", json_string);
+
+    sem::ContextStore read_context;
+    sem::SemId        read_node = sem::SemId::Nil();
+    proto_serde<orgproto::AnyNode, sem::SemId>::read(
+        &read_context, result, read_node);
+
+    json write_json = ExporterJson{}.evalTop(write_node);
+    json read_json  = ExporterJson{}.evalTop(read_node);
+
+    writeFile("/tmp/node_write.json", write_json.dump(2));
+    writeFile("/tmp/node_read.json", read_json.dump(2));
+
+    EXPECT_EQ(write_context.stores.size(), 1);
+    EXPECT_EQ(read_context.stores.size(), 1);
+
+    sem::ParseUnitStore const& original = write_context.stores.at(0);
+    sem::ParseUnitStore const& parsed   = read_context.stores.at(0);
+
+#define _case(__Kind)                                                     \
+    {                                                                     \
+        cmp_stores<sem::__Kind>(                                          \
+            original.store##__Kind, parsed.store##__Kind);                \
+    }
+
+    EACH_SEM_ORG_KIND(_case)
+#undef _case
 }
 
 TEST(TestFiles, AllNodeCoverage) {
