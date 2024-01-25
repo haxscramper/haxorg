@@ -40,49 +40,109 @@ diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
             }};
 }
 
-template <typename Obj, typename Field>
-bool cmp_field_value(CR<T> lhs, CR<T> rhs, Field T::*fieldPtr) {
-    return (lhs.*fieldPtr == rhs.*fieldPtr);
+struct compare_context {
+    std::string type;
+    std::string field;
+};
+
+struct compare_report {
+    std::string          message;
+    Vec<compare_context> context;
 };
 
 template <typename T>
-auto cmp_node(CR<T> lhs, CR<T> rhs) {
-    for_each_field_with_bases<T>([&](auto const& field) {
-        LOG(INFO) << fmt(
-            "{} {} {} {}",
-            demangle(typeid(lhs).name()),
-            demangle(typeid(rhs).name()),
-            demangle(typeid(lhs.*field.pointer).name()),
-            demangle(typeid(rhs.*field.pointer).name()));
-
-        lhs.*field.pointer;
-        rhs.*field.pointer;
-        // if (!cmp_field_value<T, decltype(field.pointer)>(
-        //         lhs, rhs, field.pointer)) {
-        //     if constexpr (std::is_object_v<std::remove_cvref_t<
-        //                       decltype(rhs.*field.pointer)>>) {
-        //         FAIL() << fmt(
-        //             "{} '{}'",
-        //             field.name,
-        //             demangle(typeid(lhs.*field.pointer).name()));
-        //     } else {
-        //         FAIL() << fmt(
-        //             "{} '{} != '{}'",
-        //             field.name,
-        //             lhs.*field.pointer,
-        //             rhs.*field.pointer);
-        //     }
-        // }
-    });
+    requires std::formattable<T, char>
+std::string maybe_format(const T& value) {
+    return std::format("{}", value);
 }
+
+template <typename T>
+    requires(!std::formattable<T, char>)
+std::string maybe_format(const T&) {
+    return "<non-formattable>";
+}
+
+template <typename T>
+struct reporting_comparator {
+    static void compare(
+        CR<T>                       lhs,
+        CR<T>                       rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (!(lhs == rhs)) {
+            out.push_back({
+                .context = context,
+                .message = std::format(
+                    "{} != {}",
+                    escape_literal(maybe_format(lhs)),
+                    escape_literal(maybe_format(rhs))),
+            });
+        }
+    }
+};
+
+template <IsVariant V>
+struct reporting_comparator<V> {
+    static void compare(
+        CR<V>                       lhs,
+        CR<V>                       rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (lhs.index() != rhs.index()) {
+            out.push_back({.context = context});
+        } else {
+            std::visit(
+                [&]<typename T>(T const& it) {
+                    reporting_comparator<T>::compare(
+                        it, std::get<T>(rhs), out, context);
+                },
+                lhs);
+        }
+    }
+};
+
+template <typename T>
+concept IsRecord = std::is_class<T>::value;
+
+template <DescribedRecord T>
+struct reporting_comparator<T> {
+    static void compare(
+        CR<T>                       lhs,
+        CR<T>                       rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        for_each_field_with_bases<std::remove_cvref_t<T>>([&](auto const&
+                                                                  field) {
+            reporting_comparator<decltype(lhs.*field.pointer)>::compare(
+                lhs.*field.pointer,
+                rhs.*field.pointer,
+                out,
+                context
+                    + Vec<compare_context>{{
+                        .field = field.name,
+                        .type  = demangle(typeid(T).name()),
+                    }});
+        });
+    }
+};
+
+template <typename Obj, typename Field>
+compare_report cmp_field_value(CR<T> lhs, CR<T> rhs, Field T::*fieldPtr) {
+    return reporting_comparator<decltype(lhs.*fieldPtr)>::compare(
+        lhs.*fieldPtr, rhs.*fieldPtr);
+};
+
 
 template <typename T>
 auto cmp_stores(
     sem::KindStore<T> const& lhsStore,
-    sem::KindStore<T> const& rhsStore) {
-    EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size());
+    sem::KindStore<T> const& rhsStore,
+    Vec<compare_report>&     out) {
+    EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size())
+        << fmt("{}", T::staticKind);
     for (int i = 0; i < lhsStore.size(); ++i) {
-        cmp_node<T>(lhsStore.values.at(i), rhsStore.values.at(i));
+        reporting_comparator<T>::compare(
+            lhsStore.values.at(i), rhsStore.values.at(i), out, {});
     }
 }
 
@@ -123,15 +183,29 @@ TEST(TestFiles, AllNodeSerde) {
 
     sem::ParseUnitStore const& original = write_context.stores.at(0);
     sem::ParseUnitStore const& parsed   = read_context.stores.at(0);
+    Vec<compare_report>        out;
 
 #define _case(__Kind)                                                     \
     {                                                                     \
         cmp_stores<sem::__Kind>(                                          \
-            original.store##__Kind, parsed.store##__Kind);                \
+            original.store##__Kind, parsed.store##__Kind, out);           \
     }
 
     EACH_SEM_ORG_KIND(_case)
 #undef _case
+
+    for (auto const& it : out) {
+        std::string ctx = it.context
+                        | rv::transform(
+                              [](compare_context const& c) -> std::string {
+                                  return fmt("{}.{}", c.type, c.field);
+                              })
+                        | rv::intersperse("\n") //
+                        | rv::join              //
+                        | rs::to<std::string>();
+
+        ADD_FAILURE() << fmt("{} failed: '{}'", ctx, it.message);
+    }
 }
 
 TEST(TestFiles, AllNodeCoverage) {

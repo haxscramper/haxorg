@@ -177,8 +177,12 @@ struct SemId {
     void eachSubnodeRec(SubnodeVisitor cb);
 
     std::string getReadableId() const {
-        return std::format(
-            "{}_{}_{}", getStoreIndex(), getKind(), getNodeIndex());
+        if (isNil()) {
+            return "nil";
+        } else {
+            return std::format(
+                "{}_{}_{}", getStoreIndex(), getKind(), getNodeIndex());
+        }
     }
 };
 
