@@ -81,6 +81,21 @@ struct reporting_comparator {
     }
 };
 
+template <typename T>
+struct reporting_comparator<std::optional<T>> {
+    static void compare(
+        CR<std::optional<T>>        lhs,
+        CR<std::optional<T>>        rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (lhs.has_value() != rhs.has_value()) {
+            out.push_back({.context = context});
+        } else if (lhs.has_value()) {
+            reporting_comparator<T>::compare(*lhs, *rhs, out, context);
+        }
+    }
+};
+
 template <IsVariant V>
 struct reporting_comparator<V> {
     static void compare(
@@ -101,6 +116,7 @@ struct reporting_comparator<V> {
     }
 };
 
+
 template <typename T>
 concept IsRecord = std::is_class<T>::value;
 
@@ -111,18 +127,20 @@ struct reporting_comparator<T> {
         CR<T>                       rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
-        for_each_field_with_bases<std::remove_cvref_t<T>>([&](auto const&
-                                                                  field) {
-            reporting_comparator<decltype(lhs.*field.pointer)>::compare(
-                lhs.*field.pointer,
-                rhs.*field.pointer,
-                out,
-                context
-                    + Vec<compare_context>{{
-                        .field = field.name,
-                        .type  = demangle(typeid(T).name()),
-                    }});
-        });
+        for_each_field_with_bases<std::remove_cvref_t<T>>(
+            [&](auto const& field) {
+                reporting_comparator<
+                    std::remove_cvref_t<decltype(lhs.*field.pointer)>>::
+                    compare(
+                        lhs.*field.pointer,
+                        rhs.*field.pointer,
+                        out,
+                        context
+                            + Vec<compare_context>{{
+                                .field = field.name,
+                                .type  = demangle(typeid(T).name()),
+                            }});
+            });
     }
 };
 

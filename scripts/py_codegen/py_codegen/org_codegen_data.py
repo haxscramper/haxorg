@@ -96,7 +96,7 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
                        isStatic=True),
         )
 
-        res.fields.insert(0, GenTuField(t_osk(), t_opt(t("loc")), GenTuDoc("Document")))
+        res.fields.insert(0, GenTuField(t_opt(t("LineCol")), "loc", GenTuDoc("Document")))
 
         res.methods.insert(
             0,

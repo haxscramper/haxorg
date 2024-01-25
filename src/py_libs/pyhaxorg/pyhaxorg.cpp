@@ -59,15 +59,27 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::StmtList>, sem::SemId>(m, "SemStmtList")
     .def(pybind11::init([]() -> sem::SemIdT<sem::StmtList> { return sem::SemIdT<sem::StmtList>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::StmtList> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::StmtList> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Empty>, sem::SemId>(m, "SemEmpty")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Empty> { return sem::SemIdT<sem::Empty>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Empty> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Empty> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Row>, sem::SemId>(m, "SemRow")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Row> { return sem::SemIdT<sem::Row>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Row> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Row> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Table>, sem::SemId>(m, "SemTable")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Table> { return sem::SemIdT<sem::Table>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Table> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Table> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("rows",
                   [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemIdT<sem::Row>> { return _self->rows; },
                   [](sem::SemIdT<sem::Table> _self, Vec<sem::SemIdT<sem::Row>> rows) { _self->rows = rows; })
@@ -80,6 +92,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::HashTag>, sem::SemId>(m, "SemHashTag")
     .def(pybind11::init([]() -> sem::SemIdT<sem::HashTag> { return sem::SemIdT<sem::HashTag>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::HashTag> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::HashTag> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("head",
                   [](sem::SemIdT<sem::HashTag> _self) -> Str { return _self->head; },
                   [](sem::SemIdT<sem::HashTag> _self, Str head) { _self->head = head; })
@@ -93,6 +108,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Footnote>, sem::SemId>(m, "SemFootnote")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Footnote> { return sem::SemIdT<sem::Footnote>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Footnote> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Footnote> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("tag",
                   [](sem::SemIdT<sem::Footnote> _self) -> Str { return _self->tag; },
                   [](sem::SemIdT<sem::Footnote> _self, Str tag) { _self->tag = tag; })
@@ -102,6 +120,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Completion>, sem::SemId>(m, "SemCompletion")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Completion> { return sem::SemIdT<sem::Completion>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Completion> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Completion> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("done",
                   [](sem::SemIdT<sem::Completion> _self) -> int { return _self->done; },
                   [](sem::SemIdT<sem::Completion> _self, int done) { _self->done = done; })
@@ -114,6 +135,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Paragraph>, sem::SemId>(m, "SemParagraph")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Paragraph> { return sem::SemIdT<sem::Paragraph>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Paragraph> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Paragraph> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("attached",
                   [](sem::SemIdT<sem::Paragraph> _self) -> Vec<sem::SemId> { return _self->attached; },
                   [](sem::SemIdT<sem::Paragraph> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
@@ -127,6 +151,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Center>, sem::SemId>(m, "SemCenter")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Center> { return sem::SemIdT<sem::Center>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Center> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Center> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Command>, sem::SemId>(m, "SemCommand")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Command> { return sem::SemIdT<sem::Command>::Nil(); }))
@@ -142,12 +169,18 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Caption>, sem::SemId>(m, "SemCaption")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Caption> { return sem::SemIdT<sem::Caption>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Caption> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Caption> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Caption> _self) -> sem::SemIdT<sem::Paragraph> { return _self->text; },
                   [](sem::SemIdT<sem::Caption> _self, sem::SemIdT<sem::Paragraph> text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::CommandGroup>, sem::SemId>(m, "SemCommandGroup")
     .def(pybind11::init([]() -> sem::SemIdT<sem::CommandGroup> { return sem::SemIdT<sem::CommandGroup>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::CommandGroup> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::CommandGroup> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("attached",
                   [](sem::SemIdT<sem::CommandGroup> _self) -> Vec<sem::SemId> { return _self->attached; },
                   [](sem::SemIdT<sem::CommandGroup> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
@@ -160,15 +193,24 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Quote>, sem::SemId>(m, "SemQuote")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Quote> { return sem::SemIdT<sem::Quote>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Quote> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Quote> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Quote> _self) -> sem::SemIdT<sem::Paragraph> { return _self->text; },
                   [](sem::SemIdT<sem::Quote> _self, sem::SemIdT<sem::Paragraph> text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Example>, sem::SemId>(m, "SemExample")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Example> { return sem::SemIdT<sem::Example>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Example> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Example> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::CmdArguments>, sem::SemId>(m, "SemCmdArguments")
     .def(pybind11::init([]() -> sem::SemIdT<sem::CmdArguments> { return sem::SemIdT<sem::CmdArguments>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::CmdArguments> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::CmdArguments> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("positional",
                   [](sem::SemIdT<sem::CmdArguments> _self) -> Vec<sem::SemIdT<sem::CmdArgument>> { return _self->positional; },
                   [](sem::SemIdT<sem::CmdArguments> _self, Vec<sem::SemIdT<sem::CmdArgument>> positional) { _self->positional = positional; })
@@ -182,6 +224,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::CmdArgument>, sem::SemId>(m, "SemCmdArgument")
     .def(pybind11::init([]() -> sem::SemIdT<sem::CmdArgument> { return sem::SemIdT<sem::CmdArgument>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::CmdArgument> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("key",
                   [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<Str> { return _self->key; },
                   [](sem::SemIdT<sem::CmdArgument> _self, Opt<Str> key) { _self->key = key; })
@@ -194,6 +239,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Export>, sem::SemId>(m, "SemExport")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Export> { return sem::SemIdT<sem::Export>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Export> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Export> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("format",
                   [](sem::SemIdT<sem::Export> _self) -> sem::Export::Format { return _self->format; },
                   [](sem::SemIdT<sem::Export> _self, sem::Export::Format format) { _self->format = format; })
@@ -218,9 +266,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::AdmonitionBlock>, sem::SemId>(m, "SemAdmonitionBlock")
     .def(pybind11::init([]() -> sem::SemIdT<sem::AdmonitionBlock> { return sem::SemIdT<sem::AdmonitionBlock>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::AdmonitionBlock> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::AdmonitionBlock> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Code>, sem::SemId>(m, "SemCode")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Code> { return sem::SemIdT<sem::Code>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Code> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Code> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("lang",
                   [](sem::SemIdT<sem::Code> _self) -> Opt<Str> { return _self->lang; },
                   [](sem::SemIdT<sem::Code> _self, Opt<Str> lang) { _self->lang = lang; })
@@ -301,6 +355,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Time>, sem::SemId>(m, "SemTime")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Time> { return sem::SemIdT<sem::Time>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Time> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Time> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("isActive",
                   [](sem::SemIdT<sem::Time> _self) -> bool { return _self->isActive; },
                   [](sem::SemIdT<sem::Time> _self, bool isActive) { _self->isActive = isActive; })
@@ -349,6 +406,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::TimeRange>, sem::SemId>(m, "SemTimeRange")
     .def(pybind11::init([]() -> sem::SemIdT<sem::TimeRange> { return sem::SemIdT<sem::TimeRange>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::TimeRange> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::TimeRange> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("from_",
                   [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemIdT<sem::Time> { return _self->from; },
                   [](sem::SemIdT<sem::TimeRange> _self, sem::SemIdT<sem::Time> from) { _self->from = from; })
@@ -358,6 +418,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Macro>, sem::SemId>(m, "SemMacro")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Macro> { return sem::SemIdT<sem::Macro>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Macro> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Macro> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("name",
                   [](sem::SemIdT<sem::Macro> _self) -> Str { return _self->name; },
                   [](sem::SemIdT<sem::Macro> _self, Str name) { _self->name = name; })
@@ -367,6 +430,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Symbol>, sem::SemId>(m, "SemSymbol")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Symbol> { return sem::SemIdT<sem::Symbol>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Symbol> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Symbol> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("name",
                   [](sem::SemIdT<sem::Symbol> _self) -> Str { return _self->name; },
                   [](sem::SemIdT<sem::Symbol> _self, Str name) { _self->name = name; })
@@ -384,6 +450,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::SubtreeLog>, sem::SemId>(m, "SemSubtreeLog")
     .def(pybind11::init([]() -> sem::SemIdT<sem::SubtreeLog> { return sem::SemIdT<sem::SubtreeLog>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::SubtreeLog> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::SubtreeLog> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("log",
                   [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::LogEntry { return _self->log; },
                   [](sem::SemIdT<sem::SubtreeLog> _self, sem::SubtreeLog::LogEntry log) { _self->log = log; })
@@ -449,6 +518,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Subtree>, sem::SemId>(m, "SemSubtree")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Subtree> { return sem::SemIdT<sem::Subtree>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Subtree> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("level",
                   [](sem::SemIdT<sem::Subtree> _self) -> int { return _self->level; },
                   [](sem::SemIdT<sem::Subtree> _self, int level) { _self->level = level; })
@@ -639,6 +711,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::InlineMath>, sem::SemId>(m, "SemInlineMath")
     .def(pybind11::init([]() -> sem::SemIdT<sem::InlineMath> { return sem::SemIdT<sem::InlineMath>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::InlineMath> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::InlineMath> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Leaf>, sem::SemId>(m, "SemLeaf")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Leaf> { return sem::SemIdT<sem::Leaf>::Nil(); }))
@@ -648,54 +723,81 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Escaped>, sem::SemId>(m, "SemEscaped")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Escaped> { return sem::SemIdT<sem::Escaped>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Escaped> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Escaped> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Escaped> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::Escaped> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Newline>, sem::SemId>(m, "SemNewline")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Newline> { return sem::SemIdT<sem::Newline>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Newline> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Newline> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Newline> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::Newline> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Space>, sem::SemId>(m, "SemSpace")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Space> { return sem::SemIdT<sem::Space>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Space> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Space> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Space> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::Space> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Word>, sem::SemId>(m, "SemWord")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Word> { return sem::SemIdT<sem::Word>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Word> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Word> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Word> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::Word> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::AtMention>, sem::SemId>(m, "SemAtMention")
     .def(pybind11::init([]() -> sem::SemIdT<sem::AtMention> { return sem::SemIdT<sem::AtMention>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::AtMention> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::AtMention> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::AtMention> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::AtMention> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::RawText>, sem::SemId>(m, "SemRawText")
     .def(pybind11::init([]() -> sem::SemIdT<sem::RawText> { return sem::SemIdT<sem::RawText>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::RawText> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::RawText> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::RawText> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::RawText> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Punctuation>, sem::SemId>(m, "SemPunctuation")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Punctuation> { return sem::SemIdT<sem::Punctuation>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Punctuation> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Punctuation> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Punctuation> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::Punctuation> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Placeholder>, sem::SemId>(m, "SemPlaceholder")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Placeholder> { return sem::SemIdT<sem::Placeholder>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Placeholder> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Placeholder> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::Placeholder> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::Placeholder> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::BigIdent>, sem::SemId>(m, "SemBigIdent")
     .def(pybind11::init([]() -> sem::SemIdT<sem::BigIdent> { return sem::SemIdT<sem::BigIdent>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::BigIdent> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::BigIdent> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
                   [](sem::SemIdT<sem::BigIdent> _self) -> Str { return _self->text; },
                   [](sem::SemIdT<sem::BigIdent> _self, Str text) { _self->text = text; })
@@ -705,34 +807,64 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Bold>, sem::SemId>(m, "SemBold")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Bold> { return sem::SemIdT<sem::Bold>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Bold> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Bold> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Underline>, sem::SemId>(m, "SemUnderline")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Underline> { return sem::SemIdT<sem::Underline>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Underline> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Underline> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Monospace>, sem::SemId>(m, "SemMonospace")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Monospace> { return sem::SemIdT<sem::Monospace>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Monospace> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Monospace> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::MarkQuote>, sem::SemId>(m, "SemMarkQuote")
     .def(pybind11::init([]() -> sem::SemIdT<sem::MarkQuote> { return sem::SemIdT<sem::MarkQuote>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::MarkQuote> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::MarkQuote> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Verbatim>, sem::SemId>(m, "SemVerbatim")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Verbatim> { return sem::SemIdT<sem::Verbatim>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Verbatim> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Verbatim> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Italic>, sem::SemId>(m, "SemItalic")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Italic> { return sem::SemIdT<sem::Italic>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Italic> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Italic> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Strike>, sem::SemId>(m, "SemStrike")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Strike> { return sem::SemIdT<sem::Strike>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Strike> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Strike> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Par>, sem::SemId>(m, "SemPar")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Par> { return sem::SemIdT<sem::Par>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Par> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Par> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::List>, sem::SemId>(m, "SemList")
     .def(pybind11::init([]() -> sem::SemIdT<sem::List> { return sem::SemIdT<sem::List>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::List> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::List> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def("isDescriptionList", [](sem::SemIdT<sem::List> _self) -> bool { return _self->isDescriptionList(); })
     ;
   pybind11::class_<sem::SemIdT<sem::ListItem>, sem::SemId>(m, "SemListItem")
     .def(pybind11::init([]() -> sem::SemIdT<sem::ListItem> { return sem::SemIdT<sem::ListItem>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::ListItem> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::ListItem> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("checkbox",
                   [](sem::SemIdT<sem::ListItem> _self) -> sem::ListItem::Checkbox { return _self->checkbox; },
                   [](sem::SemIdT<sem::ListItem> _self, sem::ListItem::Checkbox checkbox) { _self->checkbox = checkbox; })
@@ -749,6 +881,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Link>, sem::SemId>(m, "SemLink")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Link> { return sem::SemIdT<sem::Link>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Link> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Link> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("description",
                   [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->description; },
                   [](sem::SemIdT<sem::Link> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self->description = description; })
@@ -796,6 +931,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Document>, sem::SemId>(m, "SemDocument")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Document> { return sem::SemIdT<sem::Document>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Document> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Document> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("idTable",
                   [](sem::SemIdT<sem::Document> _self) -> UnorderedMap<Str, sem::SemId> { return _self->idTable; },
                   [](sem::SemIdT<sem::Document> _self, UnorderedMap<Str, sem::SemId> idTable) { _self->idTable = idTable; })
@@ -846,9 +984,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::ParseError>, sem::SemId>(m, "SemParseError")
     .def(pybind11::init([]() -> sem::SemIdT<sem::ParseError> { return sem::SemIdT<sem::ParseError>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::ParseError> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::ParseError> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::FileTarget>, sem::SemId>(m, "SemFileTarget")
     .def(pybind11::init([]() -> sem::SemIdT<sem::FileTarget> { return sem::SemIdT<sem::FileTarget>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::FileTarget> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::FileTarget> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("path",
                   [](sem::SemIdT<sem::FileTarget> _self) -> Str { return _self->path; },
                   [](sem::SemIdT<sem::FileTarget> _self, Str path) { _self->path = path; })
@@ -870,9 +1014,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::TextSeparator>, sem::SemId>(m, "SemTextSeparator")
     .def(pybind11::init([]() -> sem::SemIdT<sem::TextSeparator> { return sem::SemIdT<sem::TextSeparator>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::TextSeparator> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::TextSeparator> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::class_<sem::SemIdT<sem::Include>, sem::SemId>(m, "SemInclude")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Include> { return sem::SemIdT<sem::Include>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Include> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Include> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("data",
                   [](sem::SemIdT<sem::Include> _self) -> sem::Include::Data { return _self->data; },
                   [](sem::SemIdT<sem::Include> _self, sem::Include::Data data) { _self->data = data; })
@@ -903,6 +1053,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::DocumentOptions>, sem::SemId>(m, "SemDocumentOptions")
     .def(pybind11::init([]() -> sem::SemIdT<sem::DocumentOptions> { return sem::SemIdT<sem::DocumentOptions>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::DocumentOptions> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::DocumentOptions> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("brokenLinks",
                   [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::BrokenLinks { return _self->brokenLinks; },
                   [](sem::SemIdT<sem::DocumentOptions> _self, sem::DocumentOptions::BrokenLinks brokenLinks) { _self->brokenLinks = brokenLinks; })
@@ -998,6 +1151,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::DocumentGroup>, sem::SemId>(m, "SemDocumentGroup")
     .def(pybind11::init([]() -> sem::SemIdT<sem::DocumentGroup> { return sem::SemIdT<sem::DocumentGroup>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::DocumentGroup> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::DocumentGroup> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
   pybind11::enum_<OrgSemPlacement>(m, "OrgSemPlacement")
     .value("TreeTitle", OrgSemPlacement::TreeTitle, R"RAW(Subtree title)RAW")

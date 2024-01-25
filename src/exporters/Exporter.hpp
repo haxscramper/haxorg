@@ -230,6 +230,7 @@ struct Exporter {
     void visitVariants(R& res, Kind kind, CR<T> var);
 
     void visit(R& res, CR<UserTime> time);
+    void visit(R& res, CR<LineCol> time);
     void visit(
         R&                                             res,
         CR<Variant<In<sem::Time>, In<sem::TimeRange>>> range);

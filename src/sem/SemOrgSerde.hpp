@@ -406,6 +406,23 @@ struct proto_serde<Proto, sem::Block> {
     }
 };
 
+template <>
+struct proto_serde<orgproto::LineCol, LineCol> {
+    static void write(orgproto::LineCol* out, LineCol const& in) {
+        out->set_line(in.line);
+        out->set_column(in.column);
+        out->set_pos(in.pos);
+    }
+    static void read(
+        sem::ContextStore*       context,
+        orgproto::LineCol const& out,
+        LineCol&                 in) {
+        in.pos    = out.pos();
+        in.line   = out.line();
+        in.column = out.column();
+    }
+};
+
 template <typename Proto>
 struct proto_serde<Proto, sem::Inline> {
     static void write(Proto* out, sem::Inline const& in) {}

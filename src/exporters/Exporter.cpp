@@ -28,4 +28,8 @@ void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
     //    visitVariants(res, time.getKind(), time.time);
 }
 
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, CR<LineCol> time) {}
+
+
 #include "Exporter.tcc"

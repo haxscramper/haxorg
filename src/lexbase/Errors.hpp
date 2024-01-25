@@ -9,6 +9,11 @@ struct LineCol {
     int line;
     int column;
     int pos = -1;
+
+    bool operator==(LineCol const& other) const {
+        return line == other.line && column == other.column
+            && pos == other.pos;
+    }
 };
 
 template <>

@@ -274,7 +274,7 @@ class ProtoBuilder():
 
                 else:
                     result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
-                    if "sem" in result.flatSpaces() or typ.name in ["UserTime"]:
+                    if "sem" in result.flatSpaces() or typ.name in ["UserTime", "LineCol"]:
                         result = result.withoutSpace("sem").withExtraSpace("orgproto")
 
                     return result
@@ -589,7 +589,7 @@ class ProtoBuilder():
                 _in = self.t.text(ORG_VALUE_NAME)
                 org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")
                 proto_param_type = org_cleaned.withGlobalSpace()
-                org_param_type: Final = it.name
+                org_param_type = it.name
 
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []

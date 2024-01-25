@@ -40,9 +40,12 @@ struct StmtList : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<StmtList>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<StmtList> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -56,9 +59,12 @@ struct Empty : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Empty>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Empty> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -72,9 +78,12 @@ struct Row : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Row>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Row> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -88,10 +97,13 @@ struct Table : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         rows,
                         (sem::SemIdT<Table>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief List of rows for the table
@@ -107,12 +119,15 @@ struct HashTag : public sem::Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         head,
                         subtags,
                         (sem::SemIdT<HashTag>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (bool(Vec<Str> const&) const) prefixMatch))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Main part of the tag
@@ -134,11 +149,14 @@ struct Footnote : public sem::Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         tag,
                         definition,
                         (sem::SemIdT<Footnote>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Footnote text target name
@@ -156,12 +174,15 @@ struct Completion : public sem::Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         done,
                         full,
                         isPercent,
                         (sem::SemIdT<Completion>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Number of completed tasks
@@ -181,10 +202,13 @@ struct Paragraph : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Paragraph>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (bool() const) isFootnoteDefinition))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Paragraph> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -206,9 +230,12 @@ struct Center : public sem::Format {
                        (Format),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Center>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Center> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -246,10 +273,13 @@ struct Caption : public sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         text,
                         (sem::SemIdT<Caption>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Content description
@@ -265,9 +295,12 @@ struct CommandGroup : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<CommandGroup>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<CommandGroup> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -287,10 +320,13 @@ struct Quote : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         text,
                         (sem::SemIdT<Quote>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Quote content
@@ -306,9 +342,12 @@ struct Example : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Example>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Example> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -322,12 +361,15 @@ struct CmdArguments : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         positional,
                         named,
                         (sem::SemIdT<CmdArguments>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (Opt<sem::SemIdT<sem::CmdArgument>>(Str)) popArg))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Positional arguments that had no keys
@@ -349,7 +391,8 @@ struct CmdArgument : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         key,
                         value,
                         (sem::SemIdT<CmdArgument>(sem::SemId, Opt<OrgAdapter>)) create,
@@ -357,6 +400,8 @@ struct CmdArgument : public sem::Org {
                         (Opt<int>() const) getInt,
                         (Opt<bool>() const) getBool,
                         (Str() const) getString))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Key
@@ -390,7 +435,8 @@ struct Export : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         format,
                         exporter,
                         parameters,
@@ -398,6 +444,8 @@ struct Export : public sem::Block {
                         content,
                         (sem::SemIdT<Export>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Export block type
@@ -421,9 +469,12 @@ struct AdmonitionBlock : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<AdmonitionBlock>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<AdmonitionBlock> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -530,7 +581,8 @@ struct Code : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         lang,
                         switches,
                         exports,
@@ -542,6 +594,8 @@ struct Code : public sem::Block {
                         tangle,
                         (sem::SemIdT<Code>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Code block language name
@@ -616,7 +670,8 @@ struct Time : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         isActive,
                         time,
                         (sem::SemIdT<Time>(sem::SemId, Opt<OrgAdapter>)) create,
@@ -627,6 +682,8 @@ struct Time : public sem::Org {
                         (sem::Time::Dynamic&()) getDynamic,
                         (sem::Time::TimeKind(sem::Time::TimeVariant const&)) getTimeKind,
                         (sem::Time::TimeKind() const) getTimeKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
@@ -649,11 +706,14 @@ struct TimeRange : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         from,
                         to,
                         (sem::SemIdT<TimeRange>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Starting time
@@ -671,11 +731,14 @@ struct Macro : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         name,
                         arguments,
                         (sem::SemIdT<Macro>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Macro name
@@ -702,12 +765,15 @@ struct Symbol : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         name,
                         parameters,
                         positional,
                         (sem::SemIdT<Symbol>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Name of the symbol
@@ -802,7 +868,8 @@ struct SubtreeLog : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         log,
                         (sem::SemIdT<SubtreeLog>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
@@ -821,6 +888,8 @@ struct SubtreeLog : public sem::Org {
                         (sem::SubtreeLog::Tag&()) getTag,
                         (sem::SubtreeLog::Kind(sem::SubtreeLog::LogEntry const&)) getLogKind,
                         (sem::SubtreeLog::Kind() const) getLogKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   sem::SubtreeLog::LogEntry log = Note{};
@@ -1062,7 +1131,8 @@ struct Subtree : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         level,
                         treeId,
                         todo,
@@ -1082,6 +1152,8 @@ struct Subtree : public sem::Org {
                         (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
                         (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperties,
                         (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperty))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Subtree level
@@ -1129,9 +1201,12 @@ struct InlineMath : public sem::LatexBody {
                        (LatexBody),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<InlineMath>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<InlineMath> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1153,9 +1228,12 @@ struct Escaped : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Escaped>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Escaped> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1169,9 +1247,12 @@ struct Newline : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Newline>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Newline> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1185,9 +1266,12 @@ struct Space : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Space>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Space> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1201,9 +1285,12 @@ struct Word : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Word>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Word> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1217,9 +1304,12 @@ struct AtMention : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<AtMention>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<AtMention> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1232,9 +1322,12 @@ struct RawText : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<RawText>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<RawText> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1247,9 +1340,12 @@ struct Punctuation : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Punctuation>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Punctuation> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1262,9 +1358,12 @@ struct Placeholder : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Placeholder>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Placeholder> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1277,9 +1376,12 @@ struct BigIdent : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<BigIdent>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<BigIdent> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1297,9 +1399,12 @@ struct Bold : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Bold>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Bold> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1312,9 +1417,12 @@ struct Underline : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Underline>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Underline> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1327,9 +1435,12 @@ struct Monospace : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Monospace>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Monospace> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1342,9 +1453,12 @@ struct MarkQuote : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<MarkQuote>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<MarkQuote> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1357,9 +1471,12 @@ struct Verbatim : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Verbatim>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Verbatim> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1372,9 +1489,12 @@ struct Italic : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Italic>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Italic> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1387,9 +1507,12 @@ struct Strike : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Strike>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Strike> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1402,9 +1525,12 @@ struct Par : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<Par>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<Par> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1417,10 +1543,13 @@ struct List : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<List>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (bool() const) isDescriptionList))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<List> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1436,12 +1565,15 @@ struct ListItem : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         checkbox,
                         header,
                         (sem::SemIdT<ListItem>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (bool() const) isDescriptionItem))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   sem::ListItem::Checkbox checkbox = Checkbox::None;
@@ -1487,7 +1619,8 @@ struct Link : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         description,
                         data,
                         (sem::SemIdT<Link>(sem::SemId, Opt<OrgAdapter>)) create,
@@ -1506,6 +1639,8 @@ struct Link : public sem::Org {
                         (sem::Link::File&()) getFile,
                         (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
                         (sem::Link::Kind() const) getLinkKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   Opt<sem::SemIdT<sem::Paragraph>> description = std::nullopt;
@@ -1534,7 +1669,8 @@ struct Document : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         idTable,
                         nameTable,
                         footnoteTable,
@@ -1552,6 +1688,8 @@ struct Document : public sem::Org {
                         (Opt<sem::SemIdT<sem::Subtree>>(Str const&) const) getSubtree,
                         (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
                         (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   UnorderedMap<Str, sem::SemId> idTable;
@@ -1579,9 +1717,12 @@ struct ParseError : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<ParseError>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<ParseError> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1594,7 +1735,8 @@ struct FileTarget : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         path,
                         line,
                         searchTarget,
@@ -1603,6 +1745,8 @@ struct FileTarget : public sem::Org {
                         regexp,
                         (sem::SemIdT<FileTarget>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   Str path;
@@ -1621,9 +1765,12 @@ struct TextSeparator : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<TextSeparator>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<TextSeparator> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -1657,7 +1804,8 @@ struct Include : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         data,
                         (sem::SemIdT<Include>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
@@ -1671,6 +1819,8 @@ struct Include : public sem::Org {
                         (sem::Include::OrgDocument&()) getOrgDocument,
                         (sem::Include::Kind(sem::Include::Data const&)) getIncludeKind,
                         (sem::Include::Kind() const) getIncludeKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   sem::Include::Data data;
@@ -1713,7 +1863,8 @@ struct DocumentOptions : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         brokenLinks,
                         initialVisibility,
                         tocExport,
@@ -1741,6 +1892,8 @@ struct DocumentOptions : public sem::Org {
                         (sem::DocumentOptions::ExportFixed&()) getExportFixed,
                         (sem::DocumentOptions::TocExportKind(sem::DocumentOptions::TocExport const&)) getTocExportKind,
                         (sem::DocumentOptions::TocExportKind() const) getTocExportKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   sem::DocumentOptions::BrokenLinks brokenLinks = BrokenLinks::Mark;
@@ -1778,9 +1931,12 @@ struct DocumentGroup : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind,
+                       (loc,
+                        staticKind,
                         (sem::SemIdT<DocumentGroup>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemIdT<DocumentGroup> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
