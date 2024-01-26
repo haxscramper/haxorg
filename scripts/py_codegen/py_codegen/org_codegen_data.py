@@ -412,8 +412,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     value="Format::Inline",
                 ),
                 GenTuField(t_str(), "exporter", GenTuDoc("Exporter backend name")),
-                id_field(
-                    "CmdArguments",
+                opt_field(
+                    t_id("CmdArguments"),
                     "parameters",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
@@ -544,8 +544,8 @@ def get_types() -> Sequence[GenTuStruct]:
                            "exports",
                            GenTuDoc("What to export"),
                            value="Exports::Both"),
-                id_field(
-                    "CmdArguments",
+                opt_field(
+                    t_id("CmdArguments"),
                     "parameters",
                     GenTuDoc("Additional parameters that are language-specific"),
                 ),

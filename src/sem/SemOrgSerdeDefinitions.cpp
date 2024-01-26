@@ -281,8 +281,8 @@ void proto_serde<::orgproto::Export, sem::Export>::write(::orgproto::Export* out
   }
   out->set_format(static_cast<orgproto::Export_Format>(in.format));
   proto_serde<std::string, Str>::write(out->mutable_exporter(), in.exporter);
-  if (!in.parameters.isNil()) {
-    proto_serde<orgproto::CmdArguments, sem::CmdArguments>::write(out->mutable_parameters(), *((in.parameters).get()));
+  if (in.parameters) {
+    proto_serde<orgproto::CmdArguments, sem::CmdArguments>::write(out->mutable_parameters(), *((*in.parameters).get()));
   }
   if (in.placement) {
     proto_serde<std::string, Str>::write(out->mutable_placement(), *in.placement);
@@ -298,7 +298,10 @@ void proto_serde<::orgproto::Export, sem::Export>::read(sem::ContextStore* conte
   }
   in.format = static_cast<sem::Export::Format>(out.format());
   proto_serde<std::string, Str>::read(context, out.exporter(), in.exporter);
-  proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), in.parameters);
+  if (out.has_parameters()) {
+    proto_init<Opt<sem::SemIdT<sem::CmdArguments>>>::init_default(context, in.parameters);
+    proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), *in.parameters);
+  }
   if (out.has_placement()) {
     proto_init<Opt<Str>>::init_default(context, in.placement);
     proto_serde<std::string, Str>::read(context, out.placement(), *in.placement);
@@ -418,8 +421,8 @@ void proto_serde<::orgproto::Code, sem::Code>::write(::orgproto::Code* out, sem:
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::write(out->mutable_switches(), in.switches);
   out->set_exports(static_cast<orgproto::Code_Exports>(in.exports));
-  if (!in.parameters.isNil()) {
-    proto_serde<orgproto::CmdArguments, sem::CmdArguments>::write(out->mutable_parameters(), *((in.parameters).get()));
+  if (in.parameters) {
+    proto_serde<orgproto::CmdArguments, sem::CmdArguments>::write(out->mutable_parameters(), *((*in.parameters).get()));
   }
   out->set_cache(in.cache);
   out->set_eval(in.eval);
@@ -440,7 +443,10 @@ void proto_serde<::orgproto::Code, sem::Code>::read(sem::ContextStore* context, 
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::read(context, out.switches(), in.switches);
   in.exports = static_cast<sem::Code::Exports>(out.exports());
-  proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), in.parameters);
+  if (out.has_parameters()) {
+    proto_init<Opt<sem::SemIdT<sem::CmdArguments>>>::init_default(context, in.parameters);
+    proto_serde<orgproto::CmdArguments, sem::SemIdT<sem::CmdArguments>>::read(context, out.parameters(), *in.parameters);
+  }
   in.cache = out.cache();
   in.eval = out.eval();
   in.noweb = out.noweb();

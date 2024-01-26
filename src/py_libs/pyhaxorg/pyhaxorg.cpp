@@ -249,8 +249,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Export> _self) -> Str { return _self->exporter; },
                   [](sem::SemIdT<sem::Export> _self, Str exporter) { _self->exporter = exporter; })
     .def_property("parameters",
-                  [](sem::SemIdT<sem::Export> _self) -> sem::SemIdT<sem::CmdArguments> { return _self->parameters; },
-                  [](sem::SemIdT<sem::Export> _self, sem::SemIdT<sem::CmdArguments> parameters) { _self->parameters = parameters; })
+                  [](sem::SemIdT<sem::Export> _self) -> Opt<sem::SemIdT<sem::CmdArguments>> { return _self->parameters; },
+                  [](sem::SemIdT<sem::Export> _self, Opt<sem::SemIdT<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
     .def_property("placement",
                   [](sem::SemIdT<sem::Export> _self) -> Opt<Str> { return _self->placement; },
                   [](sem::SemIdT<sem::Export> _self, Opt<Str> placement) { _self->placement = placement; })
@@ -285,8 +285,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Code> _self) -> sem::Code::Exports { return _self->exports; },
                   [](sem::SemIdT<sem::Code> _self, sem::Code::Exports exports) { _self->exports = exports; })
     .def_property("parameters",
-                  [](sem::SemIdT<sem::Code> _self) -> sem::SemIdT<sem::CmdArguments> { return _self->parameters; },
-                  [](sem::SemIdT<sem::Code> _self, sem::SemIdT<sem::CmdArguments> parameters) { _self->parameters = parameters; })
+                  [](sem::SemIdT<sem::Code> _self) -> Opt<sem::SemIdT<sem::CmdArguments>> { return _self->parameters; },
+                  [](sem::SemIdT<sem::Code> _self, Opt<sem::SemIdT<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
     .def_property("cache",
                   [](sem::SemIdT<sem::Code> _self) -> bool { return _self->cache; },
                   [](sem::SemIdT<sem::Code> _self, bool cache) { _self->cache = cache; })

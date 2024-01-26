@@ -453,7 +453,7 @@ struct Export : public sem::Block {
   /// \brief Exporter backend name
   Str exporter;
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemIdT<sem::CmdArguments> parameters = SemIdT<CmdArguments>::Nil();
+  Opt<sem::SemIdT<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Customized position of the text in the final exporting document.
   Opt<Str> placement = std::nullopt;
   /// \brief Raw exporter content string
@@ -605,7 +605,7 @@ struct Code : public sem::Block {
   /// \brief What to export
   sem::Code::Exports exports = Exports::Both;
   /// \brief Additional parameters that are language-specific
-  sem::SemIdT<sem::CmdArguments> parameters = SemIdT<CmdArguments>::Nil();
+  Opt<sem::SemIdT<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Do cache values?
   bool cache = false;
   /// \brief Eval on export?

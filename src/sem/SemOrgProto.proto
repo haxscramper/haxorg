@@ -736,7 +736,7 @@ message Export {
   OrgSemKind                                       staticKind                       = 4;
   Export.Format                                    format                           = 5;
   string                                           exporter                         = 6;
-  CmdArguments                                     parameters                       = 7;
+  optional CmdArguments                            parameters                       = 7;
   optional string                                  placement                        = 8;
   string                                           content                          = 9;
 }
@@ -800,7 +800,7 @@ message Code {
   optional string                                  lang                             = 5;
   repeated Code.Switch                             switches                         = 6;
   Code.Exports                                     exports                          = 7;
-  CmdArguments                                     parameters                       = 8;
+  optional CmdArguments                            parameters                       = 8;
   bool                                             cache                            = 9;
   bool                                             eval                             = 10;
   bool                                             noweb                            = 11;
