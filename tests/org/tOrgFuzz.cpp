@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Yaml.hpp>
 #include <google/protobuf/text_format.h>
+#include <sem/SemOrgSerdeDeclarations.hpp>
 
 namespace prt = orgproto;
 using namespace fuzztest;
@@ -21,12 +22,36 @@ void CheckAnyNodeFail(prt::AnyNode const& node) {
         generated_node);
     std::string generated_text = formatter.store.toString(
         generated_layout);
+}
 
-    LOG(INFO) << generated_text;
+template <typename NodeType>
+Domain<prt::AnyNode> GenerateAnyNodeWrapper(
+    Domain<NodeType> nodeGenerator) {
+    return ConstructorOf<prt::AnyNode>(
+        [nodeGenerator](NodeType subNode) -> prt::AnyNode {
+            prt::AnyNode anyNode;
+
+        // Use the macro to set the appropriate field on AnyNode
+#define _case(_fieldEnum, _field, _Kind)                                  \
+    if constexpr (std::is_same<NodeType, prt::_Kind>::value) {            \
+        *anyNode.mutable_##_field() = subNode;                            \
+    }
+
+            EACH_ANY_NODE_PROTO_FIELD(_case)
+#undef _case
+
+            return anyNode;
+        },
+        nodeGenerator // Pass the subnode generator
+    );
+}
+
+Domain<prt::Document> GenerateDocumentSubnode() {
+
 }
 
 Domain<prt::AnyNode> ArbitraryNodeDomain() {
-    return Arbitrary<prt::AnyNode>();
+    return GenerateAnyNodeWrapper(GenerateDocumentSubnode());
 }
 
 auto seedCorpus = __CURRENT_FILE_DIR__ / "tOrgFuzzSeeds.yaml";
