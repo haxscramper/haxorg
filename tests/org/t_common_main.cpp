@@ -9,6 +9,7 @@
 #include <absl/log/log_sink_registry.h>
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
+#include <fuzztest/init_fuzztest.h>
 
 #ifdef ORG_USE_PERFETTO
 #    include <hstd/wrappers/perfetto_aux.hpp>
@@ -68,6 +69,7 @@ int main(int argc, char** argv) {
 #endif
 
     ::testing::InitGoogleTest(&argc, argv);
+    ::fuzztest::InitFuzzTest(&argc, &argv);
     auto result = RUN_ALL_TESTS();
 
     json          records = TestProfiler::getJsonRecords();

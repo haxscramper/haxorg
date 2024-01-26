@@ -72,3 +72,5 @@ glob_add_sources2(tests_org "${BASE}/tests/org/.*")
 target_sources(tests_org PRIVATE "${BASE}/tests/testprofiler.cpp")
 target_link_libraries(tests_org PUBLIC haxorg gtest)
 
+include_directories("${BASE}/deps/fuzztest")
+link_fuzztest(tests_org)
