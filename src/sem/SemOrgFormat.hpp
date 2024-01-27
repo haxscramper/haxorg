@@ -14,6 +14,8 @@ struct Formatter {
     Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
     Res str(std::string const& str) { return b.text(store.str(str)); }
 
+    void add_subnodes(Res result, SemId id);
+
 #define _case(__Kind) Res toString(sem::SemIdT<__Kind> id);
     EACH_SEM_ORG_KIND(_case)
 #undef _case

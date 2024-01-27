@@ -28,8 +28,10 @@ void PrintMessageWithTypeName(
     for (int i = 0; i < descriptor->field_count(); ++i) {
         const gpb::FieldDescriptor* field = descriptor->field(i);
 
-        if (!field->is_repeated()
-            && !reflection->HasField(message, field)) {
+        if ((!field->is_repeated()
+             && !reflection->HasField(message, field))
+            || (field->is_repeated()
+                && reflection->FieldSize(message, field) == 0)) {
             continue; // Skip non-set fields
         }
 
@@ -105,6 +107,8 @@ void CheckAnyNodeFail(prt::AnyNode const& node) {
         generated_node);
     std::string generated_text = formatter.store.toString(
         generated_layout);
+
+    writeFile("/tmp/formatted.org", generated_text);
 }
 
 template <typename NodeType>
@@ -186,7 +190,8 @@ auto InitNode(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
 
 template <typename Node>
 auto InitLeaf(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
-    return InitNode<Node>(opts).WithRepeatedFieldMaxSize("subnodes", 0);
+    return InitNode<Node>(opts) //
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 
@@ -231,21 +236,46 @@ Domain<prt::Word> GenerateNode(CR<GenerateNodeOptions> opts) {
 }
 
 template <>
+Domain<prt::Space> GenerateNode(CR<GenerateNodeOptions> opts) {
+    return InitLeaf<prt::Space>(opts) //
+        .WithStringField(
+            "text", StringOf(ElementOf({' '})).WithMinSize(1));
+}
+
+template <>
 Domain<prt::RawText> GenerateNode(CR<GenerateNodeOptions> opts) {
     return InitLeaf<prt::RawText>(opts) //
         .WithStringField("text", InRegexp(R"([a-zA-Z0-9_]+)"));
 }
 
+Domain<std::vector<prt::AnyNode>> GenerateParagraphDomain() {
+    return FlatMap(
+        [](int n) -> Domain<std::vector<prt::AnyNode>> {
+            return VectorOf(FlatMap(
+                                [index = 0](int) -> Domain<prt::AnyNode> {
+                                    int start = index;
+                                    ++const_cast<int&>(index);
+                                    if (start % 2 == 0) {
+                                        return GenerateAnyNode(
+                                            GenerateKind({osk::Word}));
+                                    } else {
+                                        return GenerateAnyNode(
+                                            GenerateKind({osk::Space}));
+                                    }
+                                },
+                                Just(0)))
+                .WithMinSize(2 * n + 1)
+                .WithMaxSize(2 * n + 1)
+                //
+                ;
+        },
+        InRange(1, 10));
+}
+
 template <>
 Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeOptions> opts) {
     return InitNode<prt::Paragraph>(opts) //
-        .WithRepeatedProtobufField(
-            "subnodes",
-            GenerateNodesKind(
-                GenerateKind({
-                    osk::Word,
-                }),
-                3));
+        .WithRepeatedProtobufField("subnodes", GenerateParagraphDomain());
 }
 
 template <>
