@@ -232,14 +232,17 @@ Domain<std::vector<prt::AnyNode>> GenerateNodesKind(
 template <>
 Domain<prt::Word> GenerateNode(CR<GenerateNodeOptions> opts) {
     return InitLeaf<prt::Word>(opts) //
-        .WithStringField("text", InRegexp(R"(\w+)"));
+        .WithOptionalStringField(
+            "text", NonNull(OptionalOf(InRegexp(R"(\w+)"))));
 }
 
 template <>
 Domain<prt::Space> GenerateNode(CR<GenerateNodeOptions> opts) {
     return InitLeaf<prt::Space>(opts) //
-        .WithStringField(
-            "text", StringOf(ElementOf({' '})).WithMinSize(1));
+        .WithOptionalStringField(
+            "text",
+            NonNull(
+                OptionalOf(StringOf(ElementOf({' '})).WithMinSize(1))));
 }
 
 template <>
