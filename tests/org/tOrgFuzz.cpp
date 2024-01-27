@@ -6,18 +6,90 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Yaml.hpp>
 #include <google/protobuf/text_format.h>
+#include <google/protobuf/util/json_util.h>
 #include <sem/SemOrgSerdeDeclarations.hpp>
 
 namespace prt = orgproto;
+namespace gpb = ::google::protobuf;
 using osk     = OrgSemKind;
 using namespace fuzztest;
 
+void PrintMessageWithTypeName(
+    const gpb::Message& message,
+    std::ostringstream& oss,
+    int                 depth) {
+    const gpb::Descriptor* descriptor = message.GetDescriptor();
+    const gpb::Reflection* reflection = message.GetReflection();
+    std::string indent(depth * 2, ' '); // Indentation for pretty printing
+
+    oss << indent << descriptor->name() << " {\n";
+
+    for (int i = 0; i < descriptor->field_count(); ++i) {
+        const gpb::FieldDescriptor* field = descriptor->field(i);
+
+        if (!field->is_repeated()
+            && !reflection->HasField(message, field)) {
+            continue; // Skip non-set fields
+        }
+
+        oss << indent << "  " << field->name() << ": ";
+
+        if (field->cpp_type()
+            == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+            if (field->is_repeated()) {
+                int count = reflection->FieldSize(message, field);
+                oss << "[\n";
+                for (int j = 0; j < count; ++j) {
+                    const gpb::Message& subMessage = //
+                        reflection->GetRepeatedMessage(message, field, j);
+                    PrintMessageWithTypeName(subMessage, oss, depth + 2);
+                }
+                oss << indent << "  "
+                    << "]\n";
+            } else {
+                const gpb::Message& subMessage = //
+                    reflection->GetMessage(message, field);
+                PrintMessageWithTypeName(subMessage, oss, depth + 1);
+            }
+        } else {
+            std::string fieldText;
+            if (field->is_repeated()) {
+                oss << "[ ";
+                int count = reflection->FieldSize(message, field);
+                for (int j = 0; j < count; ++j) {
+                    google::protobuf::TextFormat::PrintFieldValueToString(
+                        message, field, j, &fieldText);
+                    oss << fieldText << (j < count - 1 ? " " : "");
+                }
+                oss << " ]\n";
+            } else {
+                google::protobuf::TextFormat::PrintFieldValueToString(
+                    message, field, -1, &fieldText);
+                oss << fieldText << "\n";
+            }
+        }
+    }
+
+    oss << indent << "}\n";
+}
+
+std::string PrintWithTypeName(const gpb::Message& message) {
+    std::ostringstream oss;
+    PrintMessageWithTypeName(message, oss, 0);
+    return oss.str();
+}
+
+
 void CheckAnyNodeFail(prt::AnyNode const& node) {
     {
-        std::string textFormatStr;
-        google::protobuf::TextFormat::PrintToString(node, &textFormatStr);
+        gpb::util::JsonPrintOptions options;
+        options.add_whitespace = true;
+        std::string jsonFormatStr;
+        std::string textFormatStr = PrintWithTypeName(node);
+        (void)gpb::util::MessageToJsonString(
+            node, &jsonFormatStr, options);
+        writeFile("/tmp/protobuf_dump.json", jsonFormatStr);
         writeFile("/tmp/protobuf_dump.txt", textFormatStr);
-        LOG(INFO) << textFormatStr;
     }
     sem::ContextStore generated_context;
     sem::SemId        generated_node = sem::SemId::Nil();
@@ -56,21 +128,47 @@ Domain<prt::AnyNode> GenerateAnyNodeWrapper(
     );
 }
 
+struct GenerateNodeOptions {
+    bool withAttached = false;
+};
+
+#define HasField(C, Field)                                                       \
+    []() {                                                                       \
+        return overloaded{                                                       \
+            []<typename T>(int)                                                  \
+                -> decltype(std::declval<T>().Field, void(), std::true_type()) { \
+                return {};                                                       \
+            },                                                                   \
+            []<typename T>(...) { return std::false_type{}; }}                   \
+            .template operator()<C>(0);                                          \
+    }()
+
 template <typename Node>
-auto InitNode() {
-    return Arbitrary<Node>() //
-        .WithFieldUnset("loc")
-        .WithFieldUnset("staticKind");
+auto InitNode(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+    auto tmp = Arbitrary<Node>() //
+                   .WithFieldUnset("loc")
+                   .WithEnumField(
+                       "staticKind",
+                       Just(static_cast<int>(
+                           proto_org_map<Node>::org_kind::staticKind)));
+
+    if (opts.withAttached || !HasField(Node, attached)) {
+        return std::move(tmp);
+    } else {
+        return std::move(tmp).WithRepeatedFieldMaxSize("attached", 0);
+    }
 }
 
 template <typename Node>
-auto InitLeaf() {
-    return InitNode<Node>().WithRepeatedFieldMaxSize("subnodes", 0);
+auto InitLeaf(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+    return InitNode<Node>(opts).WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
+
 template <typename Node>
-Domain<Node> GenerateNode() {
-    return InitNode<Node>() //
+Domain<Node> GenerateNode(
+    CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+    return InitNode<Node>(opts) //
         ;
 }
 
@@ -102,27 +200,32 @@ Domain<std::vector<prt::AnyNode>> GenerateNodesKind(
 }
 
 template <>
-Domain<prt::Word> GenerateNode() {
-    return InitLeaf<prt::Word>() //
+Domain<prt::Word> GenerateNode(CR<GenerateNodeOptions> opts) {
+    return InitLeaf<prt::Word>(opts) //
         .WithStringField("text", InRegexp(R"(\w+)"));
 }
 
 template <>
-Domain<prt::RawText> GenerateNode() {
-    return InitLeaf<prt::RawText>() //
+Domain<prt::RawText> GenerateNode(CR<GenerateNodeOptions> opts) {
+    return InitLeaf<prt::RawText>(opts) //
         .WithStringField("text", InRegexp(R"([a-zA-Z0-9_]+)"));
 }
 
 template <>
-Domain<prt::Paragraph> GenerateNode() {
-    return InitNode<prt::Paragraph>() //
+Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeOptions> opts) {
+    return InitNode<prt::Paragraph>(opts) //
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateNodesKind(
                 GenerateKind({
                     osk::Word,
                 }),
-                1));
+                3));
+}
+
+template <>
+Domain<prt::DocumentOptions> GenerateNode(CR<GenerateNodeOptions> opts) {
+    return InitLeaf<prt::DocumentOptions>(opts);
 }
 
 template <typename T>
@@ -135,7 +238,7 @@ fuzztest::Domain<std::optional<T>> ProtoOptionalOf(
 }
 
 template <>
-Domain<prt::Document> GenerateNode() {
+Domain<prt::Document> GenerateNode(CR<GenerateNodeOptions> opts) {
     return InitNode<prt::Document>() //
         .WithRepeatedFieldMaxSize("idTable", 0)
         .WithRepeatedFieldMaxSize("nameTable", 0)
@@ -147,6 +250,7 @@ Domain<prt::Document> GenerateNode() {
         .WithProtobufField("author", GenerateNode<prt::Paragraph>())
         .WithProtobufField("creator", GenerateNode<prt::Paragraph>())
         .WithProtobufField("email", GenerateNode<prt::RawText>())
+        .WithProtobufField("options", GenerateNode<prt::DocumentOptions>())
         .WithStringField("language", StringOf(LowerChar()))
         .WithStringField("exportFileName", StringOf(PrintableAsciiChar()))
         .WithRepeatedProtobufField(
@@ -183,8 +287,7 @@ std::vector<std::tuple<prt::AnyNode>> LoadFuzzSeeds() {
     std::vector<std::tuple<prt::AnyNode>> result;
     for (auto const& it : content) {
         prt::AnyNode out;
-        google::protobuf::TextFormat::ParseFromString(
-            it.as<std::string>(), &out);
+        gpb::TextFormat::ParseFromString(it.as<std::string>(), &out);
         result.push_back({out});
     }
     return result;

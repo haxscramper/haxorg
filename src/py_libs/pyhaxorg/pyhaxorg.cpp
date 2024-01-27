@@ -959,8 +959,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::RawText>> { return _self->email; },
                   [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::RawText>> email) { _self->email = email; })
     .def_property("language",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<Vec<Str>> { return _self->language; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<Vec<Str>> language) { _self->language = language; })
+                  [](sem::SemIdT<sem::Document> _self) -> Vec<Str> { return _self->language; },
+                  [](sem::SemIdT<sem::Document> _self, Vec<Str> language) { _self->language = language; })
     .def_property("options",
                   [](sem::SemIdT<sem::Document> _self) -> sem::SemIdT<sem::DocumentOptions> { return _self->options; },
                   [](sem::SemIdT<sem::Document> _self, sem::SemIdT<sem::DocumentOptions> options) { _self->options = options; })

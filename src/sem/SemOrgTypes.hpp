@@ -1700,7 +1700,7 @@ struct Document : public sem::Org {
   Opt<sem::SemIdT<sem::Paragraph>> author = std::nullopt;
   Opt<sem::SemIdT<sem::Paragraph>> creator = std::nullopt;
   Opt<sem::SemIdT<sem::RawText>> email = std::nullopt;
-  Opt<Vec<Str>> language = std::nullopt;
+  Vec<Str> language;
   sem::SemIdT<sem::DocumentOptions> options = SemIdT<DocumentOptions>::Nil();
   Opt<Str> exportFileName = std::nullopt;
   static sem::SemIdT<Document> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);

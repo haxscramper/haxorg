@@ -1581,9 +1581,7 @@ void proto_serde<::orgproto::Document, sem::Document>::write(::orgproto::Documen
   if (in.email) {
     proto_serde<orgproto::RawText, sem::RawText>::write(out->mutable_email(), *((*in.email).get()));
   }
-  if (in.language) {
-    proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_language(), *in.language);
-  }
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_language(), in.language);
   if (!in.options.isNil()) {
     proto_serde<orgproto::DocumentOptions, sem::DocumentOptions>::write(out->mutable_options(), *((in.options).get()));
   }
@@ -1618,7 +1616,7 @@ void proto_serde<::orgproto::Document, sem::Document>::read(sem::ContextStore* c
     proto_init<Opt<sem::SemIdT<sem::RawText>>>::init_default(context, in.email);
     proto_serde<orgproto::RawText, sem::SemIdT<sem::RawText>>::read(context, out.email(), *in.email);
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(context, out.language(), *in.language);
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(context, out.language(), in.language);
   proto_serde<orgproto::DocumentOptions, sem::SemIdT<sem::DocumentOptions>>::read(context, out.options(), in.options);
   if (out.has_exportfilename()) {
     proto_init<Opt<Str>>::init_default(context, in.exportFileName);
