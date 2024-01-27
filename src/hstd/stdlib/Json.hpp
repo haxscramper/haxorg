@@ -25,9 +25,9 @@ void from_json(const json& in, int& out);
 void from_json(const json& in, bool& out);
 
 struct JsonFormatOptions {
-    int width       = 80;
-    int indent      = 2;
-    int startIndent = 0;
+    int  width       = 80;
+    int  indent      = 2;
+    int  startIndent = 0;
 };
 
 std::string to_compact_json(
@@ -75,9 +75,7 @@ static void to_json(json& j, const T& str) {
     using Md = boost::describe::
         describe_members<T, boost::describe::mod_any_access>;
 
-    if (!j.is_object()) {
-        j = json::object();
-    }
+    if (!j.is_object()) { j = json::object(); }
 
     boost::mp11::mp_for_each<Md>(
         [&](auto const& field) { j[field.name] = str.*field.pointer; });

@@ -113,8 +113,13 @@ class ProtoBuilder():
                             aux_field_list(
                                 (tu.get_type_base_fields(it, self.base_map) + it.fields),
                                 indexer=make_full_enumerator(),
-                                indent=indent),
-                        ))
+                                indent=indent), [
+                                    aux_field(
+                                        it=tu.GenTuField(tu.QualType.ForName("Str"), "debug"),
+                                        indexer=(it for it in [999]),
+                                        indent=indent + 1,
+                                    )
+                                ]))
 
                 case tu.GenTuEnum():
                     return braced("enum " + it.name.name, [
@@ -274,7 +279,9 @@ class ProtoBuilder():
 
                 else:
                     result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
-                    if "sem" in result.flatSpaces() or typ.name in ["UserTime", "LineCol"]:
+                    if "sem" in result.flatSpaces() or typ.name in [
+                            "UserTime", "LineCol"
+                    ]:
                         result = result.withoutSpace("sem").withExtraSpace("orgproto")
 
                     return result

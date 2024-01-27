@@ -1,3 +1,4 @@
+#include "hstd/stdlib/Json.hpp"
 #include <gtest/gtest.h>
 #include <fuzztest/fuzztest.h>
 #include <absl/log/log.h>
@@ -32,13 +33,12 @@ void PrintMessageWithTypeName(
             continue; // Skip non-set fields
         }
 
-        oss << indent << "  " << field->name() << ": ";
 
         if (field->cpp_type()
             == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
             if (field->is_repeated()) {
                 int count = reflection->FieldSize(message, field);
-                oss << "[\n";
+                oss << indent << "  " << field->name() << ": [\n";
                 for (int j = 0; j < count; ++j) {
                     const gpb::Message& subMessage = //
                         reflection->GetRepeatedMessage(message, field, j);
@@ -47,11 +47,13 @@ void PrintMessageWithTypeName(
                 oss << indent << "  "
                     << "]\n";
             } else {
+                oss << indent << "  " << field->name() << ":\n";
                 const gpb::Message& subMessage = //
                     reflection->GetMessage(message, field);
-                PrintMessageWithTypeName(subMessage, oss, depth + 1);
+                PrintMessageWithTypeName(subMessage, oss, depth + 2);
             }
         } else {
+            oss << indent << "  " << field->name() << ": ";
             std::string fieldText;
             if (field->is_repeated()) {
                 oss << "[ ";
@@ -62,6 +64,8 @@ void PrintMessageWithTypeName(
                     oss << fieldText << (j < count - 1 ? " " : "");
                 }
                 oss << " ]\n";
+            } else if (field->name() == "debug") {
+                oss << reflection->GetString(message, field) << "\n";
             } else {
                 google::protobuf::TextFormat::PrintFieldValueToString(
                     message, field, -1, &fieldText);
@@ -107,6 +111,7 @@ template <typename NodeType>
 prt::AnyNode ConvertAnyNode(NodeType const& subNode) {
     prt::AnyNode anyNode;
 
+
     // Use the macro to set the appropriate field on AnyNode
 #define _case(_fieldEnum, _field, _Kind)                                  \
     if constexpr (std::is_same<NodeType, prt::_Kind>::value) {            \
@@ -116,20 +121,30 @@ prt::AnyNode ConvertAnyNode(NodeType const& subNode) {
     EACH_ANY_NODE_PROTO_FIELD(_case)
 #undef _case
 
+    CHECK(anyNode.kind_case() != orgproto::AnyNode::KIND_NOT_SET)
+        << demangle(typeid(subNode).name());
+
     return anyNode;
 }
 
 template <typename NodeType>
 Domain<prt::AnyNode> GenerateAnyNodeWrapper(
     Domain<NodeType> nodeGenerator) {
-    return Map(
-        ConvertAnyNode<NodeType>,
-        nodeGenerator // Pass the subnode generator
-    );
+    return Map(ConvertAnyNode<NodeType>, nodeGenerator);
 }
+
+struct GenerateNodeDebug {
+    DECL_FIELDS(
+        GenerateNodeDebug,
+        (),
+        ((int), line, __builtin_LINE()),
+        ((Str), message, ""));
+};
 
 struct GenerateNodeOptions {
     bool withAttached = false;
+    int  line         = __builtin_LINE();
+    Str  debugMessage = "";
 };
 
 #define HasField(C, Field)                                                       \
@@ -145,12 +160,22 @@ struct GenerateNodeOptions {
 
 template <typename Node>
 auto InitNode(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+    json debug;
+    to_json(
+        debug,
+        GenerateNodeDebug{
+            .line    = opts.line,
+            .message = opts.debugMessage,
+        });
+
     auto tmp = Arbitrary<Node>() //
                    .WithFieldUnset("loc")
+                   .WithStringField("debug", Just(debug.dump()))
                    .WithEnumField(
                        "staticKind",
                        Just(static_cast<int>(
                            proto_org_map<Node>::org_kind::staticKind)));
+
 
     if (opts.withAttached || !HasField(Node, attached)) {
         return std::move(tmp);
@@ -184,11 +209,11 @@ Domain<OrgSemKind> GenerateKind(Vec<OrgSemKind> const& values) {
     return ElementOf<OrgSemKind>(values);
 }
 
-prt::AnyNode MapAnyNodeKind(OrgSemKind kind);
+Domain<prt::AnyNode> MapAnyNodeKind(OrgSemKind kind);
 
 Domain<std::vector<prt::AnyNode>> GenerateNodesKind(
     Domain<OrgSemKind> kind,
-    int                min,
+    int                min = 0,
     int                max = -1) {
     if (max == -1) {
         return VectorOf(GenerateAnyNode(kind)).WithMinSize(min);
@@ -259,14 +284,15 @@ Domain<prt::Document> GenerateNode(CR<GenerateNodeOptions> opts) {
                 GenerateKind({
                     osk::Paragraph,
                 }),
-                1));
+                5));
 }
 
-prt::AnyNode MapAnyNodeKind(OrgSemKind kind) {
+Domain<prt::AnyNode> MapAnyNodeKind(OrgSemKind kind) {
     switch (kind) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind:                                              \
-        return ConvertAnyNode(GenerateNode<prt::__Kind>());
+        return Map(                                                       \
+            ConvertAnyNode<prt::__Kind>, GenerateNode<prt::__Kind>());
 
         EACH_SEM_ORG_KIND(_case)
 #undef _case
@@ -274,10 +300,10 @@ prt::AnyNode MapAnyNodeKind(OrgSemKind kind) {
 }
 
 Domain<prt::AnyNode> GenerateAnyNode(Domain<OrgSemKind> domain) {
-    return Map(MapAnyNodeKind, domain);
+    return FlatMap(MapAnyNodeKind, domain);
 }
 
-Domain<prt::AnyNode> GenerateAnyNode() {
+Domain<prt::AnyNode> GenerateDocumentNode() {
     return GenerateAnyNodeWrapper(GenerateNode<prt::Document>());
 }
 
@@ -301,7 +327,7 @@ TEST(OrgParseFuzz, CheckDeterministic) {
 
 FUZZ_TEST(OrgParseFuzz, CheckAnyNodeFail)
     //
-    .WithDomains(GenerateAnyNode())
+    .WithDomains(GenerateDocumentNode())
     // .WithSeeds(LoadFuzzSeeds())
     //
     ;
