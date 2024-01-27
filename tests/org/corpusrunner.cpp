@@ -667,7 +667,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     };
 
     json converted = exporter.evalTop(node);
-    filterFields(converted, {"loc", "placementContext"});
+    filterFields(converted, {"loc"});
     Vec<DiffItem> diff      = json_diff(converted, expected);
     int           failCount = 0;
     ColStream     os;

@@ -10,15 +10,11 @@
 #include <exporters/exportertree.hpp>
 #include <absl/log/log.h>
 
-#define __place(location)                                                 \
-    PlacementScope CONCAT(locationScope, __COUNTER__) = PlacementScope(   \
-        location, this);
 
 using namespace sem;
 
 using org      = OrgNodeKind;
 using otk      = OrgTokenKind;
-using osp      = OrgSemPlacement;
 using Err      = OrgConverter::Errors;
 using Property = sem::Subtree::Property;
 
@@ -326,7 +322,6 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         auto __field = field(N::Title, a);
-        __place(osp::TreeTitle);
         tree->title = convertParagraph(tree, one(a, N::Title));
     }
 
@@ -346,7 +341,6 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         auto __field = field(N::Body, a);
-        __place(osp::TreeBody);
         for (auto const& sub : one(a, N::Body)) {
             auto subres = convert(tree, sub);
             tree->push_back(subres);
@@ -602,7 +596,6 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
 
     if (a.kind() == org::Link) {
         if (one(a, N::Desc).kind() == org::Paragraph) {
-            __place(osp::LinkDescription);
             link->description = convertParagraph(link, one(a, N::Desc));
         }
     }
@@ -624,12 +617,10 @@ SemIdT<ListItem> OrgConverter::convertListItem(__args) {
     auto __trace = trace(a);
     auto item    = Sem<ListItem>(p, a);
     if (one(a, N::Header).kind() != org::Empty) {
-        __place(osp::ListItemDesc);
         item->header = convertParagraph(item, one(a, N::Header));
     }
 
     {
-        __place(osp::ListItemBody);
         for (const auto& sub : one(a, N::Body)) {
             item.push_back(convert(item, sub));
         }

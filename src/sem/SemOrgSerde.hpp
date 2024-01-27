@@ -291,27 +291,10 @@ struct proto_serde<Proto, sem::SemIdT<T>> {
 template <typename Proto>
 struct proto_serde<Proto, sem::Org> {
     static void write(Proto* out, sem::Org const& in) {
-        if (in.placementContext) {
-            out->set_placementcontext(
-                static_cast<::orgproto::OrgSemPlacement>(
-                    *in.placementContext));
-        }
-
         proto_serde<orgproto::AnyNode, sem::SemId>::write(
             out->mutable_subnodes(), in.subnodes);
         out->set_statickind(
             static_cast<orgproto::OrgSemKind>(in.getKind()));
-        if (in.placementContext) {
-            out->set_placementcontext(
-                static_cast<orgproto::OrgSemPlacement>(
-                    *in.placementContext));
-        }
-
-        // if (in.loc) {
-        //     auto loc = out->mutable_loc();
-        //     loc->set_col(in.loc->column);
-        //     loc->set_line(in.loc->line);
-        // }
     }
 
     static void read(
@@ -321,10 +304,6 @@ struct proto_serde<Proto, sem::Org> {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
             Vec<sem::SemId>>::read(context, out.subnodes(), in.subnodes);
-        if (out.has_placementcontext()) {
-            in.placementContext = static_cast<OrgSemPlacement>(
-                out.placementcontext());
-        }
     }
 };
 

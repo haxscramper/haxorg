@@ -1155,15 +1155,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::DocumentGroup> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::DocumentGroup> _self, Opt<LineCol> loc) { _self->loc = loc; })
     ;
-  pybind11::enum_<OrgSemPlacement>(m, "OrgSemPlacement")
-    .value("TreeTitle", OrgSemPlacement::TreeTitle, R"RAW(Subtree title)RAW")
-    .value("TreeBody", OrgSemPlacement::TreeBody, R"RAW(Inner content of the subtree)RAW")
-    .value("LinkDescription", OrgSemPlacement::LinkDescription, R"RAW(Description paragraph for the link)RAW")
-    .value("ListItemBody", OrgSemPlacement::ListItemBody, R"RAW(Statement list or inner content of the list item body)RAW")
-    .value("ListItemDesc", OrgSemPlacement::ListItemDesc, R"RAW(Description part of the list item)RAW")
-    .value("DocBody", OrgSemPlacement::DocBody, R"RAW(Toplevel document)RAW")
-    .export_values()
-    ;
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")
     .value("Unnamed", OrgSpecName::Unnamed)
     .value("Result", OrgSpecName::Result)

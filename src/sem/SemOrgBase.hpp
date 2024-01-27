@@ -236,7 +236,6 @@ struct Org {
 
     /// \brief Pointer to the parent node in sem tree, might be null.
     SemId                parent           = SemId::Nil();
-    Opt<OrgSemPlacement> placementContext = std::nullopt;
     /// \brief Adapter to the original parsed node.
     ///
     /// Set by the conversion functions from linearized representation,

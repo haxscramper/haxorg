@@ -583,8 +583,6 @@ def get_base_map(expanded: List[GenTuUnion]) -> Mapping[str, GenTuStruct]:
         QualType.ForName("Org"),
         GenTuDoc(""),
         [
-            GenTuField(t_opt(QualType.ForName("OrgSemPlacement")), "placementContext",
-                       GenTuDoc("")),
             GenTuField(t_vec(t_id()), "subnodes", GenTuDoc("")),
         ],
     )

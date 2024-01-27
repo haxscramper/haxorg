@@ -56,32 +56,6 @@
     __IMPL(Include) \
     __IMPL(DocumentOptions) \
     __IMPL(DocumentGroup)
-/// \brief Semantic location of the sem org node in the parent tree
-enum class OrgSemPlacement : short int {
-  /// \brief Subtree title
-  TreeTitle,
-  /// \brief Inner content of the subtree
-  TreeBody,
-  /// \brief Description paragraph for the link
-  LinkDescription,
-  /// \brief Statement list or inner content of the list item body
-  ListItemBody,
-  /// \brief Description part of the list item
-  ListItemDesc,
-  /// \brief Toplevel document
-  DocBody,
-};
-template <>
-struct enum_serde<OrgSemPlacement> {
-  static Opt<OrgSemPlacement> from_string(std::string value);
-  static std::string to_string(OrgSemPlacement value);
-};
-
-template <>
-struct value_domain<OrgSemPlacement> : public value_domain_ungapped<OrgSemPlacement,
-                                                                    OrgSemPlacement::TreeTitle,
-                                                                    OrgSemPlacement::DocBody> {};
-
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Urgency, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {

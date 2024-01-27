@@ -209,7 +209,6 @@ struct std::hash<sem::SemId> {
 
 __hack_fmt(OrgBigIdentKind);
 __hack_fmt(OrgNodeKind);
-__hack_fmt(OrgSemPlacement);
 __hack_fmt(sem::DocumentOptions::BrokenLinks);
 __hack_fmt(sem::DocumentOptions::Visibility);
 __hack_fmt(sem::Export::Format);

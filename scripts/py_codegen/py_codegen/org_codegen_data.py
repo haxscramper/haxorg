@@ -1797,24 +1797,6 @@ def get_org_token_kind() -> GenTuEnum:
 
 def get_enums():
     return [
-        #tag org placement kind
-        GenTuEnum(
-            t("OrgSemPlacement"),
-            GenTuDoc("Semantic location of the sem org node in the parent tree"),
-            [
-                GenTuEnumField("TreeTitle", GenTuDoc("Subtree title")),
-                GenTuEnumField("TreeBody", GenTuDoc("Inner content of the subtree")),
-                GenTuEnumField("LinkDescription",
-                               GenTuDoc("Description paragraph for the link")),
-                GenTuEnumField(
-                    "ListItemBody",
-                    GenTuDoc("Statement list or inner content of the list item body"),
-                ),
-                GenTuEnumField("ListItemDesc",
-                               GenTuDoc("Description part of the list item")),
-                GenTuEnumField("DocBody", GenTuDoc("Toplevel document")),
-            ],
-        ),
         #tag Org spec name
         GenTuEnum(
             t("OrgSpecName"),
