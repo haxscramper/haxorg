@@ -20,22 +20,32 @@ void proto_serde<orgproto::AnyNode, sem::SemId>::write(
 }
 
 void proto_serde<orgproto::AnyNode, sem::SemId>::read(
-    sem::ContextStore*       context,
-    const orgproto::AnyNode& out,
-    sem::SemId&              in) {
+    sem::ContextStore*               context,
+    const orgproto::AnyNode&         out,
+    proto_write_accessor<sem::SemId> in) {
 #define _case(_fieldEnum, _field, __Kind)                                 \
     case orgproto::AnyNode::KindCase::_fieldEnum: {                       \
-        in = context->createIn(0, OrgSemKind::__Kind, sem::SemId::Nil()); \
-        proto_serde<orgproto::__Kind, sem::__Kind>::read(                 \
-            context, out._field(), *in.getAs<sem::__Kind>());             \
+        if (in.get().isNil()) {                                           \
+            in.get() = context->createIn(                                 \
+                0, OrgSemKind::__Kind, sem::SemId::Nil());                \
+            in.get().context = context;                                   \
+        }                                                                 \
+        sem::SemIdT<sem::__Kind> tmp_id = in.get().as<sem::__Kind>();     \
+        proto_serde<orgproto::__Kind, sem::SemIdT<sem::__Kind>>::read(    \
+            context,                                                      \
+            out._field(),                                                 \
+            proto_write_accessor<sem::SemIdT<sem::__Kind>>::for_ref(      \
+                tmp_id));                                                 \
                                                                           \
         break;                                                            \
     }
 
 
     orgproto::AnyNode result;
-    proto_init<sem::SemId>::init_default(context, in);
+
     switch (out.kind_case()) { EACH_ANY_NODE_PROTO_FIELD(_case); }
+    CHECK(!in.get().isNil());
+    CHECK(in.get().context != nullptr);
 
 #undef _case
 }

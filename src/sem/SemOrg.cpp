@@ -4,13 +4,15 @@ template <typename T>
 sem::SemIdT<T> sem::SemId::as() const {
     SemIdT<T> result = SemIdT<T>(*this);
     if constexpr (!std::is_abstract_v<T>) {
-        CHECK(this->get()->getKind() == T::staticKind)
-            << "cast sem ID node"
-            << "Cannot convert sem ID node of kind $# to $# (ID $#)"
-                   % to_string_vec(
-                       this->get()->getKind(),
-                       T::staticKind,
-                       this->getReadableId());
+        if (this->context != nullptr) {
+            CHECK(this->get()->getKind() == T::staticKind)
+                << "cast sem ID node"
+                << "Cannot convert sem ID node of kind $# to $# (ID $#)"
+                       % to_string_vec(
+                           this->get()->getKind(),
+                           T::staticKind,
+                           this->getReadableId());
+        }
     }
 
     return result;

@@ -184,6 +184,9 @@ concept IsOrg = std::derived_from<
                     typename remove_smart_pointer<T>::type,
                     sem::Org>
              || std::derived_from<T, SemId>;
+
+template <typename T>
+concept IsOrgId = std::derived_from<T, SemId> || std::is_same_v<T, SemId>;
 }; // namespace sem
 
 template <>

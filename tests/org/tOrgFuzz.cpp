@@ -100,7 +100,9 @@ void CheckAnyNodeFail(prt::AnyNode const& node) {
     sem::ContextStore generated_context;
     sem::SemId        generated_node = sem::SemId::Nil();
     proto_serde<orgproto::AnyNode, sem::SemId>::read(
-        &generated_context, node, generated_node);
+        &generated_context,
+        node,
+        proto_write_accessor<sem::SemId>::for_ref(generated_node));
 
     sem::Formatter      formatter;
     sem::Formatter::Res generated_layout = formatter.toString(

@@ -18,6 +18,9 @@ template <typename T>
 concept IsEnum = std::is_enum<T>::value;
 
 template <typename T>
+concept IsRecord = std::is_class<T>::value;
+
+template <typename T>
 concept DescribedEnum = IsEnum<T>
                      && boost::describe::has_describe_enumerators<
                             T>::value;

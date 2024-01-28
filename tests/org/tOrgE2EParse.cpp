@@ -112,7 +112,11 @@ struct reporting_comparator<Vec<T>> {
         if (lhs.size() != rhs.size()) {
             out.push_back({
                 .context = context,
-                .message = fmt("on {}", __LINE__),
+                .message = fmt(
+                    "lhs.size() != rhs.size() ({} != {}) on {}",
+                    lhs.size(),
+                    rhs.size(),
+                    __LINE__),
             });
         } else {
             for (int i = 0; i < lhs.size(); ++i) {
@@ -160,9 +164,6 @@ struct reporting_comparator<V> {
     }
 };
 
-
-template <typename T>
-concept IsRecord = std::is_class<T>::value;
 
 template <DescribedRecord T>
 struct reporting_comparator<T> {
@@ -291,7 +292,9 @@ TEST(TestFiles, AllNodeSerde) {
     sem::ContextStore read_context;
     sem::SemId        read_node = sem::SemId::Nil();
     proto_serde<orgproto::AnyNode, sem::SemId>::read(
-        &read_context, result, read_node);
+        &read_context,
+        result,
+        proto_write_accessor<sem::SemId>::for_ref(read_node));
 
     {
         orgproto::AnyNode result2;
