@@ -52,7 +52,7 @@ def process_backtrace(backtrace):
     return processed_backtrace
 
 def main():
-    with open("/tmp/asan_backtrace.txt", "r") as file:
+    with open("/tmp/org_stderr.txt", "r") as file:
         backtrace = file.readlines()
 
     trace = "".join(process_backtrace(backtrace))

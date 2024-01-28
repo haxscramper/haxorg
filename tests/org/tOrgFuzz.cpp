@@ -146,9 +146,21 @@ struct GenerateNodeDebug {
 };
 
 struct GenerateNodeOptions {
-    bool withAttached = false;
-    int  line         = __builtin_LINE();
-    Str  debugMessage = "";
+    bool        withAttached              = false;
+    int         line                      = __builtin_LINE();
+    Str         debugMessage              = "";
+    Opt<SemSet> allowedSubnodes           = std::nullopt;
+    Opt<SemSet> allowedTransitiveSubnodes = std::nullopt;
+    int         minSubnodeCount           = 1;
+    Opt<int>    maxSubnodeCount           = std::nullopt;
+
+    Opt<SemSet> withoutTransitive(SemSet discarded) {
+        Opt<SemSet> result = allowedTransitiveSubnodes;
+        if (result) {
+            for (auto const& it : discarded) { result.value().excl(it); }
+        }
+        return result;
+    }
 };
 
 #define HasField(C, Field)                                                       \
@@ -163,7 +175,7 @@ struct GenerateNodeOptions {
     }()
 
 template <typename Node>
-auto InitNode(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+auto InitNode(CR<GenerateNodeOptions> opts) {
     json debug;
     to_json(
         debug,
@@ -189,20 +201,21 @@ auto InitNode(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
 }
 
 template <typename Node>
-auto InitLeaf(CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+auto InitLeaf(CR<GenerateNodeOptions> opts) {
     return InitNode<Node>(opts) //
         .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 
 template <typename Node>
-Domain<Node> GenerateNode(
-    CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+Domain<Node> GenerateNode(CR<GenerateNodeOptions> opts) {
     return InitNode<Node>(opts) //
         ;
 }
 
-Domain<prt::AnyNode> GenerateAnyNode(Domain<OrgSemKind> kind);
+Domain<prt::AnyNode> GenerateAnyNode(
+    Domain<OrgSemKind>      kind,
+    CR<GenerateNodeOptions> opts);
 
 Domain<OrgSemKind> GenerateKindSet(SemSet const& values) {
     std::vector<OrgSemKind> items;
@@ -217,15 +230,16 @@ Domain<OrgSemKind> GenerateKind(Vec<OrgSemKind> const& values) {
 Domain<prt::AnyNode> MapAnyNodeKind(OrgSemKind kind);
 
 Domain<std::vector<prt::AnyNode>> GenerateNodesKind(
-    Domain<OrgSemKind> kind,
-    int                min = 0,
-    int                max = -1) {
-    if (max == -1) {
-        return VectorOf(GenerateAnyNode(kind)).WithMinSize(min);
+    Domain<OrgSemKind>      kind,
+    CR<GenerateNodeOptions> opts) {
+    if (opts.maxSubnodeCount) {
+        return VectorOf(GenerateAnyNode(kind, opts))
+            .WithMinSize(opts.minSubnodeCount)
+            .WithMaxSize(opts.maxSubnodeCount.value());
+
     } else {
-        return VectorOf(GenerateAnyNode(kind))
-            .WithMinSize(min)
-            .WithMaxSize(max);
+        return VectorOf(GenerateAnyNode(kind, opts))
+            .WithMinSize(opts.minSubnodeCount);
     }
 }
 
@@ -251,34 +265,69 @@ Domain<prt::RawText> GenerateNode(CR<GenerateNodeOptions> opts) {
         .WithStringField("text", InRegexp(R"([a-zA-Z0-9_]+)"));
 }
 
-Domain<std::vector<prt::AnyNode>> GenerateParagraphDomain() {
+template <typename T>
+auto VectorOfN(CR<T> values, int size) {
+    return VectorOf(values).WithMinSize(size).WithMaxSize(size);
+}
+
+Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
+    CR<GenerateNodeOptions> opts) {
     return FlatMap(
-        [](int n) -> Domain<std::vector<prt::AnyNode>> {
-            return VectorOf(FlatMap(
-                                [index = 0](int) -> Domain<prt::AnyNode> {
-                                    int start = index;
-                                    ++const_cast<int&>(index);
-                                    if (start % 2 == 0) {
-                                        return GenerateAnyNode(
-                                            GenerateKind({osk::Word}));
-                                    } else {
-                                        return GenerateAnyNode(
-                                            GenerateKind({osk::Space}));
-                                    }
-                                },
-                                Just(0)))
-                .WithMinSize(2 * n + 1)
-                .WithMaxSize(2 * n + 1)
+        [opts](int n) -> Domain<std::vector<prt::AnyNode>> {
+            return VectorOfN(
+                FlatMap(
+                    [opts, index = 0](int) -> Domain<prt::AnyNode> {
+                        int start = index;
+                        ++const_cast<int&>(index);
+                        if (start % 2 == 0) {
+                            return GenerateAnyNode(
+                                GenerateKindSet(
+                                    opts.allowedSubnodes.value()),
+                                opts);
+                        } else {
+                            return GenerateAnyNode(
+                                GenerateKind({osk::Space}), opts);
+                        }
+                    },
+                    Just(0)),
+                2 * n + 1)
                 //
                 ;
         },
-        InRange(1, 10));
+        InRange(
+            opts.minSubnodeCount,
+            opts.maxSubnodeCount ? opts.maxSubnodeCount.value() : 16));
+}
+
+
+Domain<std::vector<prt::AnyNode>> GenerateParagraphDomain(
+    CR<GenerateNodeOptions> opts) {
+    SemSet paragraphContent = SemSet{
+        osk::Word,
+        osk::Bold,
+        osk::Italic,
+        osk::Verbatim,
+        osk::Punctuation,
+        osk::Link,
+        osk::Monospace,
+        osk::Time,
+        osk::TimeRange,
+    };
+
+    return GenerateSpaceSeparatedNodes({
+        .allowedSubnodes           = paragraphContent,
+        .allowedTransitiveSubnodes = opts.allowedTransitiveSubnodes
+                                       ? opts.allowedTransitiveSubnodes
+                                             .value()
+                                       : paragraphContent,
+    });
 }
 
 template <>
 Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeOptions> opts) {
     return InitNode<prt::Paragraph>(opts) //
-        .WithRepeatedProtobufField("subnodes", GenerateParagraphDomain());
+        .WithRepeatedProtobufField(
+            "subnodes", GenerateParagraphDomain(opts));
 }
 
 template <>
@@ -297,18 +346,22 @@ fuzztest::Domain<std::optional<T>> ProtoOptionalOf(
 
 template <>
 Domain<prt::Document> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitNode<prt::Document>() //
+    return InitNode<prt::Document>(GenerateNodeOptions{}) //
         .WithRepeatedFieldMaxSize("idTable", 0)
         .WithRepeatedFieldMaxSize("nameTable", 0)
         .WithRepeatedFieldMaxSize("footnoteTable", 0)
         .WithRepeatedFieldMaxSize("anchorTable", 0)
-        // DOC explain why this node, despite being an `optional Paragraph`
-        // is assigned with a non-optional domain.
-        .WithProtobufField("title", GenerateNode<prt::Paragraph>())
-        .WithProtobufField("author", GenerateNode<prt::Paragraph>())
-        .WithProtobufField("creator", GenerateNode<prt::Paragraph>())
-        .WithProtobufField("email", GenerateNode<prt::RawText>())
-        .WithProtobufField("options", GenerateNode<prt::DocumentOptions>())
+        .WithProtobufField(
+            "title", GenerateNode<prt::Paragraph>(GenerateNodeOptions{}))
+        .WithProtobufField(
+            "author", GenerateNode<prt::Paragraph>(GenerateNodeOptions{}))
+        .WithProtobufField(
+            "creator", GenerateNode<prt::Paragraph>(GenerateNodeOptions{}))
+        .WithProtobufField(
+            "email", GenerateNode<prt::RawText>(GenerateNodeOptions{}))
+        .WithProtobufField(
+            "options",
+            GenerateNode<prt::DocumentOptions>(GenerateNodeOptions{}))
         .WithStringField("language", StringOf(LowerChar()))
         .WithStringField("exportFileName", StringOf(PrintableAsciiChar()))
         .WithRepeatedProtobufField(
@@ -317,27 +370,35 @@ Domain<prt::Document> GenerateNode(CR<GenerateNodeOptions> opts) {
                 GenerateKind({
                     osk::Paragraph,
                 }),
-                5));
+                {.minSubnodeCount = 5}));
 }
 
-Domain<prt::AnyNode> MapAnyNodeKind(OrgSemKind kind) {
+Domain<prt::AnyNode> MapAnyNodeKind(
+    OrgSemKind              kind,
+    CR<GenerateNodeOptions> opts) {
     switch (kind) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind:                                              \
         return Map(                                                       \
-            ConvertAnyNode<prt::__Kind>, GenerateNode<prt::__Kind>());
+            ConvertAnyNode<prt::__Kind>,                                  \
+            GenerateNode<prt::__Kind>(opts));
 
         EACH_SEM_ORG_KIND(_case)
 #undef _case
     }
 }
 
-Domain<prt::AnyNode> GenerateAnyNode(Domain<OrgSemKind> domain) {
-    return FlatMap(MapAnyNodeKind, domain);
+Domain<prt::AnyNode> GenerateAnyNode(
+    Domain<OrgSemKind>      domain,
+    CR<GenerateNodeOptions> opts) {
+    return FlatMap(
+        [opts](OrgSemKind it) { return MapAnyNodeKind(it, opts); },
+        domain);
 }
 
-Domain<prt::AnyNode> GenerateDocumentNode() {
-    return GenerateAnyNodeWrapper(GenerateNode<prt::Document>());
+Domain<prt::AnyNode> GenerateDocumentNode(
+    CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
+    return GenerateAnyNodeWrapper(GenerateNode<prt::Document>(opts));
 }
 
 auto seedCorpus = __CURRENT_FILE_DIR__ / "tOrgFuzzSeeds.yaml";
