@@ -43,7 +43,12 @@ void proto_serde<orgproto::AnyNode, sem::SemId>::read(
 
     orgproto::AnyNode result;
 
-    switch (out.kind_case()) { EACH_ANY_NODE_PROTO_FIELD(_case); }
+    switch (out.kind_case()) {
+        EACH_ANY_NODE_PROTO_FIELD(_case);
+        default: {
+            LOG(FATAL) << "Any node kind is not set";
+        }
+    }
     CHECK(!in.get().isNil());
     CHECK(in.get().context != nullptr);
 

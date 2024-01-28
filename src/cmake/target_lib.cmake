@@ -74,3 +74,9 @@ target_link_libraries(tests_org PUBLIC haxorg gtest)
 
 include_directories("${BASE}/deps/fuzztest")
 link_fuzztest(tests_org)
+
+target_include_directories(tests_org PUBLIC
+    "${BASE}/thirdparty/immer"
+    "${BASE}/thirdparty/lager"
+)
+

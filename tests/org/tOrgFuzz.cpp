@@ -9,6 +9,8 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/json_util.h>
 #include <sem/SemOrgSerdeDeclarations.hpp>
+#include <immer/vector.hpp>
+#include <immer/box.hpp>
 
 namespace prt = orgproto;
 namespace gpb = ::google::protobuf;
@@ -147,23 +149,58 @@ struct GenerateNodeDebug {
         ((Str), message, ""));
 };
 
-struct GenerateNodeOptions {
-    bool        withAttached              = false;
-    int         line                      = __builtin_LINE();
-    Str         debugMessage              = "";
-    Opt<SemSet> allowedSubnodes           = std::nullopt;
-    Opt<SemSet> allowedTransitiveSubnodes = std::nullopt;
-    int         minSubnodeCount           = 1;
-    Opt<int>    maxSubnodeCount           = std::nullopt;
+struct GenerateNodePath {
+    OrgSemKind kind;
+    SemSet     expand;
+};
 
-    Opt<SemSet> withoutTransitive(SemSet discarded) {
-        Opt<SemSet> result = allowedTransitiveSubnodes;
-        if (result) {
-            for (auto const& it : discarded) { result.value().excl(it); }
+struct GenerateNodeOptions {
+    int      line             = __builtin_LINE();
+    Str      debugMessage     = "";
+    int      minSubnodeCount  = 1;
+    Opt<int> maxSubnodeCount  = std::nullopt;
+    int      minAttachedCount = 0;
+    int      maxAttachedCount = 0;
+};
+
+Domain<OrgSemKind> GenerateKindSet(SemSet const& values) {
+    std::vector<OrgSemKind> items;
+    for (auto const& it : values) { items.push_back(it); }
+    return ElementOf<OrgSemKind>(items);
+}
+
+struct GenerateNodeContext {
+    immer::vector<GenerateNodePath> steps;
+    immer::box<GenerateNodeOptions> opts;
+
+    GenerateNodeContext operator&(GenerateNodePath other) const {
+        return GenerateNodeContext{
+            .steps = steps.push_back(other),
+            .opts  = opts,
+        };
+    }
+
+    Domain<OrgSemKind> getDomain() const {
+        SemSet result{sliceT<OrgSemKind>()};
+        for (auto const& it : steps) {
+            result.excl(it.kind);
+            result.incl(it.expand);
+            switch (it.kind) {
+                case OrgSemKind::Document: {
+                    result.excl(OrgSemKind::DocumentOptions);
+                    result.excl(OrgSemKind::DocumentGroup);
+                    break;
+                }
+                default: {
+                }
+            }
         }
-        return result;
+
+
+        return GenerateKindSet(result);
     }
 };
+
 
 #define HasField(C, Field)                                                       \
     []() {                                                                       \
@@ -177,13 +214,13 @@ struct GenerateNodeOptions {
     }()
 
 template <typename Node>
-auto InitNode(CR<GenerateNodeOptions> opts) {
+auto InitNode(CR<GenerateNodeContext> ctx) {
     json debug;
     to_json(
         debug,
         GenerateNodeDebug{
-            .line    = opts.line,
-            .message = opts.debugMessage,
+            .line    = ctx.opts.get().line,
+            .message = ctx.opts.get().debugMessage,
         });
 
     auto tmp = Arbitrary<Node>() //
@@ -195,35 +232,30 @@ auto InitNode(CR<GenerateNodeOptions> opts) {
                            proto_org_map<Node>::org_kind::staticKind)));
 
 
-    if (opts.withAttached || !HasField(Node, attached)) {
+    if (!HasField(Node, attached)) {
         return std::move(tmp);
     } else {
-        return std::move(tmp).WithRepeatedFieldMaxSize("attached", 0);
+        return std::move(tmp).WithRepeatedFieldSize(
+            "attached",
+            ctx.opts.get().minAttachedCount,
+            ctx.opts.get().maxAttachedCount);
     }
 }
 
 template <typename Node>
-auto InitLeaf(CR<GenerateNodeOptions> opts) {
-    return InitNode<Node>(opts) //
+auto InitLeaf(CR<GenerateNodeContext> ctx) {
+    return InitNode<Node>(ctx) //
         .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 
 template <typename Node>
-Domain<Node> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitNode<Node>(opts) //
-        ;
-}
+Domain<Node> GenerateNode(CR<GenerateNodeContext> ctx);
 
 Domain<prt::AnyNode> GenerateAnyNode(
     Domain<OrgSemKind>      kind,
-    CR<GenerateNodeOptions> opts);
+    CR<GenerateNodeContext> ctx);
 
-Domain<OrgSemKind> GenerateKindSet(SemSet const& values) {
-    std::vector<OrgSemKind> items;
-    for (auto const& it : values) { items.push_back(it); }
-    return ElementOf<OrgSemKind>(items);
-}
 
 Domain<OrgSemKind> GenerateKind(Vec<OrgSemKind> const& values) {
     return ElementOf<OrgSemKind>(values);
@@ -233,28 +265,29 @@ Domain<prt::AnyNode> MapAnyNodeKind(OrgSemKind kind);
 
 Domain<std::vector<prt::AnyNode>> GenerateNodesKind(
     Domain<OrgSemKind>      kind,
-    CR<GenerateNodeOptions> opts) {
-    if (opts.maxSubnodeCount) {
-        return VectorOf(GenerateAnyNode(kind, opts))
-            .WithMinSize(opts.minSubnodeCount)
-            .WithMaxSize(opts.maxSubnodeCount.value());
+    CR<GenerateNodeContext> ctx) {
+    if (ctx.opts.get().maxSubnodeCount) {
+        return VectorOf(GenerateAnyNode(kind, ctx))
+            .WithMinSize(ctx.opts.get().minSubnodeCount)
+            .WithMaxSize(ctx.opts.get().maxSubnodeCount.value());
 
     } else {
-        return VectorOf(GenerateAnyNode(kind, opts))
-            .WithMinSize(opts.minSubnodeCount);
+        return VectorOf(GenerateAnyNode(kind, ctx))
+            .WithMinSize(ctx.opts.get().minSubnodeCount);
     }
 }
 
+
 template <>
-Domain<prt::Word> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitLeaf<prt::Word>(opts) //
+Domain<prt::Word> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitLeaf<prt::Word>(ctx) //
         .WithOptionalStringField(
             "text", NonNull(OptionalOf(InRegexp(R"(\w+)"))));
 }
 
 template <>
-Domain<prt::Space> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitLeaf<prt::Space>(opts) //
+Domain<prt::Space> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitLeaf<prt::Space>(ctx) //
         .WithOptionalStringField(
             "text",
             NonNull(
@@ -262,8 +295,15 @@ Domain<prt::Space> GenerateNode(CR<GenerateNodeOptions> opts) {
 }
 
 template <>
-Domain<prt::RawText> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitLeaf<prt::RawText>(opts) //
+Domain<prt::Newline> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitLeaf<prt::Newline>(ctx) //
+        .WithOptionalStringField(
+            "text", NonNull(OptionalOf(StringOf(Just('\n')).WithSize(1))));
+}
+
+template <>
+Domain<prt::RawText> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitLeaf<prt::RawText>(ctx) //
         .WithStringField("text", InRegexp(R"([a-zA-Z0-9_]+)"));
 }
 
@@ -273,22 +313,19 @@ auto VectorOfN(CR<T> values, int size) {
 }
 
 Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
-    CR<GenerateNodeOptions> opts) {
+    CR<GenerateNodeContext> ctx) {
     return FlatMap(
-        [opts](int n) -> Domain<std::vector<prt::AnyNode>> {
+        [ctx](int n) -> Domain<std::vector<prt::AnyNode>> {
             return VectorOfN(
                 FlatMap(
-                    [opts, index = 0](int) -> Domain<prt::AnyNode> {
+                    [ctx, index = 0](int) -> Domain<prt::AnyNode> {
                         int start = index;
                         ++const_cast<int&>(index);
                         if (start % 2 == 0) {
-                            return GenerateAnyNode(
-                                GenerateKindSet(
-                                    opts.allowedSubnodes.value()),
-                                opts);
+                            return GenerateAnyNode(ctx.getDomain(), ctx);
                         } else {
                             return GenerateAnyNode(
-                                GenerateKind({osk::Space}), opts);
+                                GenerateKind({osk::Space}), ctx);
                         }
                     },
                     Just(0)),
@@ -297,44 +334,46 @@ Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
                 ;
         },
         InRange(
-            opts.minSubnodeCount,
-            opts.maxSubnodeCount ? opts.maxSubnodeCount.value() : 16));
-}
-
-
-Domain<std::vector<prt::AnyNode>> GenerateParagraphDomain(
-    CR<GenerateNodeOptions> opts) {
-    SemSet paragraphContent = SemSet{
-        osk::Word,
-        osk::Bold,
-        osk::Italic,
-        osk::Verbatim,
-        osk::Punctuation,
-        osk::Link,
-        osk::Monospace,
-        osk::Time,
-        osk::TimeRange,
-    };
-
-    return GenerateSpaceSeparatedNodes({
-        .allowedSubnodes           = paragraphContent,
-        .allowedTransitiveSubnodes = opts.allowedTransitiveSubnodes
-                                       ? opts.allowedTransitiveSubnodes
-                                             .value()
-                                       : paragraphContent,
-    });
+            ctx.opts.get().minSubnodeCount,
+            ctx.opts.get().maxSubnodeCount
+                ? ctx.opts.get().maxSubnodeCount.value()
+                : 16));
 }
 
 template <>
-Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitNode<prt::Paragraph>(opts) //
-        .WithRepeatedProtobufField(
-            "subnodes", GenerateParagraphDomain(opts));
+Domain<prt::Bold> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitNode<prt::Bold>(ctx).WithRepeatedProtobufField(
+        "subnodes", GenerateSpaceSeparatedNodes(ctx));
+}
+
+
+template <>
+Domain<prt::Italic> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitNode<prt::Italic>(ctx).WithRepeatedProtobufField(
+        "subnodes", GenerateSpaceSeparatedNodes(ctx));
 }
 
 template <>
-Domain<prt::DocumentOptions> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitLeaf<prt::DocumentOptions>(opts);
+Domain<prt::Underline> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitNode<prt::Underline>(ctx).WithRepeatedProtobufField(
+        "subnodes", GenerateSpaceSeparatedNodes(ctx));
+}
+
+template <>
+Domain<prt::Strike> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitNode<prt::Strike>(ctx).WithRepeatedProtobufField(
+        "subnodes", GenerateSpaceSeparatedNodes(ctx));
+}
+
+template <>
+Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitNode<prt::Paragraph>(ctx).WithRepeatedProtobufField(
+        "subnodes", GenerateSpaceSeparatedNodes(ctx));
+}
+
+template <>
+Domain<prt::DocumentOptions> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitLeaf<prt::DocumentOptions>(ctx);
 }
 
 template <typename T>
@@ -347,23 +386,18 @@ fuzztest::Domain<std::optional<T>> ProtoOptionalOf(
 }
 
 template <>
-Domain<prt::Document> GenerateNode(CR<GenerateNodeOptions> opts) {
-    return InitNode<prt::Document>(GenerateNodeOptions{}) //
+Domain<prt::Document> GenerateNode(CR<GenerateNodeContext> ctx) {
+    return InitNode<prt::Document>(ctx) //
         .WithRepeatedFieldMaxSize("idTable", 0)
         .WithRepeatedFieldMaxSize("nameTable", 0)
         .WithRepeatedFieldMaxSize("footnoteTable", 0)
         .WithRepeatedFieldMaxSize("anchorTable", 0)
+        .WithProtobufField("title", GenerateNode<prt::Paragraph>(ctx))
+        .WithProtobufField("author", GenerateNode<prt::Paragraph>(ctx))
+        .WithProtobufField("creator", GenerateNode<prt::Paragraph>(ctx))
+        .WithProtobufField("email", GenerateNode<prt::RawText>(ctx))
         .WithProtobufField(
-            "title", GenerateNode<prt::Paragraph>(GenerateNodeOptions{}))
-        .WithProtobufField(
-            "author", GenerateNode<prt::Paragraph>(GenerateNodeOptions{}))
-        .WithProtobufField(
-            "creator", GenerateNode<prt::Paragraph>(GenerateNodeOptions{}))
-        .WithProtobufField(
-            "email", GenerateNode<prt::RawText>(GenerateNodeOptions{}))
-        .WithProtobufField(
-            "options",
-            GenerateNode<prt::DocumentOptions>(GenerateNodeOptions{}))
+            "options", GenerateNode<prt::DocumentOptions>(ctx))
         .WithStringField("language", StringOf(LowerChar()))
         .WithStringField("exportFileName", StringOf(PrintableAsciiChar()))
         .WithRepeatedProtobufField(
@@ -372,18 +406,17 @@ Domain<prt::Document> GenerateNode(CR<GenerateNodeOptions> opts) {
                 GenerateKind({
                     osk::Paragraph,
                 }),
-                {.minSubnodeCount = 5}));
+                ctx));
 }
 
 Domain<prt::AnyNode> MapAnyNodeKind(
     OrgSemKind              kind,
-    CR<GenerateNodeOptions> opts) {
+    CR<GenerateNodeContext> ctx) {
     switch (kind) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind:                                              \
         return Map(                                                       \
-            ConvertAnyNode<prt::__Kind>,                                  \
-            GenerateNode<prt::__Kind>(opts));
+            ConvertAnyNode<prt::__Kind>, GenerateNode<prt::__Kind>(ctx));
 
         EACH_SEM_ORG_KIND(_case)
 #undef _case
@@ -392,15 +425,13 @@ Domain<prt::AnyNode> MapAnyNodeKind(
 
 Domain<prt::AnyNode> GenerateAnyNode(
     Domain<OrgSemKind>      domain,
-    CR<GenerateNodeOptions> opts) {
+    CR<GenerateNodeContext> ctx) {
     return FlatMap(
-        [opts](OrgSemKind it) { return MapAnyNodeKind(it, opts); },
-        domain);
+        [ctx](OrgSemKind it) { return MapAnyNodeKind(it, ctx); }, domain);
 }
 
-Domain<prt::AnyNode> GenerateDocumentNode(
-    CR<GenerateNodeOptions> opts = GenerateNodeOptions{}) {
-    return GenerateAnyNodeWrapper(GenerateNode<prt::Document>(opts));
+Domain<prt::AnyNode> GenerateDocumentNode(CR<GenerateNodeContext> ctx) {
+    return GenerateAnyNodeWrapper(GenerateNode<prt::Document>(ctx));
 }
 
 auto seedCorpus = __CURRENT_FILE_DIR__ / "tOrgFuzzSeeds.yaml";
@@ -423,7 +454,7 @@ TEST(OrgParseFuzz, CheckDeterministic) {
 
 FUZZ_TEST(OrgParseFuzz, CheckAnyNodeFail)
     //
-    .WithDomains(GenerateDocumentNode())
+    .WithDomains(GenerateDocumentNode(GenerateNodeContext{}))
     // .WithSeeds(LoadFuzzSeeds())
     //
     ;
