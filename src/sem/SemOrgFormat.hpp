@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sem/SemOrg.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 

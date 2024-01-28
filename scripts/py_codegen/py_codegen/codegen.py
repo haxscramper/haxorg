@@ -606,6 +606,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             GenTu(
                 "{base}/sem/SemOrgSerdeDeclarations.hpp",
                 [
+                    GenTuPass("#pragma once"),
                     GenTuPass("#include <sem/SemOrgSerde.hpp>"),
                     GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
                 ] + [

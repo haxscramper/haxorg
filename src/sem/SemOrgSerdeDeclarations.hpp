@@ -1,4 +1,5 @@
 /* clang-format off */
+#pragma once
 #include <sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
         __MAP(kStmtlist, stmtlist, StmtList)  \
