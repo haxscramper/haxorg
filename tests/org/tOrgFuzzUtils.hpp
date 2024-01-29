@@ -49,21 +49,53 @@ struct GenerateNodeDebug {
 
 struct GenerateNodePath {
     OrgSemKind kind;
-    SemSet     expand;
+    int        line = __builtin_LINE();
 };
 
 struct GenerateNodeOptions {
-    int      line             = __builtin_LINE();
-    Str      debugMessage     = "";
-    int      minSubnodeCount  = 1;
-    Opt<int> maxSubnodeCount  = std::nullopt;
-    int      minAttachedCount = 0;
-    int      maxAttachedCount = 0;
+    int      line              = __builtin_LINE();
+    Str      debugMessage      = "";
+    int      minSubnodeCount   = 1;
+    Opt<int> maxSubnodeCount   = std::nullopt;
+    int      minAttachedCount  = 0;
+    int      maxAttachedCount  = 0;
+    int      maxRecursionDepth = 16;
 };
 
 struct GenerateNodeContext {
     immer::vector<GenerateNodePath> steps;
     immer::box<GenerateNodeOptions> opts;
+
+    std::string format() const;
+    std::string indent() const;
+    void debug(const char* function, int line = __builtin_LINE()) const;
+
+    int getMinSubnodeCount() const {
+        if (opts.get().maxRecursionDepth <= steps.size()) {
+            return 0;
+        } else {
+            return opts.get().maxRecursionDepth;
+        }
+    }
+
+    Opt<int> getMaxSubnodeCount() const {
+        if (opts.get().maxRecursionDepth <= steps.size()) {
+            return 0;
+        } else {
+            return opts.get().maxSubnodeCount;
+        }
+    }
+
+    GenerateNodeContext rec(OrgSemKind kind, int line = __builtin_LINE())
+        const {
+        return (*this) & GenerateNodePath{.kind = kind, .line = line};
+    }
+
+    GenerateNodeContext rec(
+        GenerateNodePath sub = GenerateNodePath{
+            .kind = OrgSemKind::Empty}) const {
+        return (*this) & sub;
+    }
 
     GenerateNodeContext operator&(GenerateNodePath other) const {
         return GenerateNodeContext{
@@ -92,24 +124,10 @@ struct GenerateNodeContext {
         }
     }
 
+    SemSet getDomainSet() const;
+
     Domain<OrgSemKind> getDomain() const {
-        SemSet result{sliceT<OrgSemKind>()};
-        for (auto const& it : steps) {
-            result.excl(it.kind);
-            result.incl(it.expand);
-            switch (it.kind) {
-                case OrgSemKind::Document: {
-                    result.excl(OrgSemKind::DocumentOptions);
-                    result.excl(OrgSemKind::DocumentGroup);
-                    break;
-                }
-                default: {
-                }
-            }
-        }
-
-
-        return GenerateEnumSet(result);
+        return GenerateEnumSet(getDomainSet());
     }
 };
 

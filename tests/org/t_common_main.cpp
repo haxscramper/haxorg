@@ -10,6 +10,24 @@
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
 #include <fuzztest/init_fuzztest.h>
+#include <sys/resource.h>
+
+bool SetStackSize(rlim_t stackSize) {
+    struct rlimit rl;
+    int           result;
+
+    result = getrlimit(RLIMIT_STACK, &rl);
+    if (result == 0) {
+        if (rl.rlim_cur < stackSize) {
+            rl.rlim_cur = stackSize;
+            result      = setrlimit(RLIMIT_STACK, &rl);
+            if (result != 0) { return false; }
+        }
+    }
+
+    return true;
+}
+
 
 #ifdef ORG_USE_PERFETTO
 #    include <hstd/wrappers/perfetto_aux.hpp>
@@ -63,6 +81,11 @@ int main(int argc, char** argv) {
     // absl::AddLogSink(&Sink);
     // absl::log_internal::SetTimeZone(absl::LocalTimeZone());
     // absl::log_internal::SetInitialized();
+
+    // Org-mode structure fuzzing had to be implemented as a set of
+    // recursive functions and not recursive domain builder, so in order to
+    // accomodate for the document depth increased stack limit is required.
+    SetStackSize(32 * 1024 * 1024);
 
 #ifdef ORG_USE_PERFETTO
     StartProcessTracing("Perfetto track example");

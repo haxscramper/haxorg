@@ -17,6 +17,7 @@ Domain<orgproto::UserTime> GenerateUserTime() {
 
 Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
     CR<GenerateNodeContext> ctx) {
+    ctx.debug(__PRETTY_FUNCTION__);
     return FlatMap(
         [ctx](int n) -> Domain<std::vector<prt::AnyNode>> {
             return VectorOfN(
@@ -37,10 +38,9 @@ Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
                 ;
         },
         InRange(
-            ctx.opts.get().minSubnodeCount,
-            ctx.opts.get().maxSubnodeCount
-                ? ctx.opts.get().maxSubnodeCount.value()
-                : 16));
+            ctx.getMinSubnodeCount(),
+            ctx.getMaxSubnodeCount() ? ctx.getMaxSubnodeCount().value()
+                                     : 16));
 }
 
 Domain<prt::AnyNode> MapAnyNodeKind(
@@ -61,14 +61,14 @@ Domain<prt::AnyNode> MapAnyNodeKind(
 Domain<std::vector<orgproto::AnyNode>> GenerateNodesKind(
     Domain<OrgSemKind>      kind,
     CR<GenerateNodeContext> ctx) {
-    if (ctx.opts.get().maxSubnodeCount) {
+    if (ctx.getMaxSubnodeCount()) {
         return VectorOf(GenerateAnyNode(kind, ctx))
-            .WithMinSize(ctx.opts.get().minSubnodeCount)
-            .WithMaxSize(ctx.opts.get().maxSubnodeCount.value());
+            .WithMinSize(ctx.getMinSubnodeCount())
+            .WithMaxSize(ctx.getMaxSubnodeCount().value());
 
     } else {
         return VectorOf(GenerateAnyNode(kind, ctx))
-            .WithMinSize(ctx.opts.get().minSubnodeCount);
+            .WithMinSize(ctx.getMinSubnodeCount());
     }
 }
 

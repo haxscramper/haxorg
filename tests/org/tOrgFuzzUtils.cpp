@@ -69,3 +69,45 @@ std::string PrintWithTypeName(const google::protobuf::Message& message) {
     PrintMessageWithTypeName(message, oss, 0);
     return oss.str();
 }
+
+std::string GenerateNodeContext::format() const {
+    return std::format(
+        "[{}] ... {}",
+        steps
+            | rv::transform([](GenerateNodePath const& p) -> std::string {
+                  return fmt("{}:{}", p.kind, p.line);
+              })
+            | rv::intersperse("->") //
+            | rv::join              //
+            | rs::to<std::string>(),
+        getDomainSet());
+}
+
+std::string GenerateNodeContext::indent() const {
+    return std::string(steps.size() * 2, ' ');
+}
+
+void GenerateNodeContext::debug(const char* function, int line) const {
+    std::cerr << indent() << function << " " << format() << "\n";
+}
+
+SemSet GenerateNodeContext::getDomainSet() const {
+    SemSet result{sliceT<OrgSemKind>()};
+    SemSet visited;
+    for (auto const& it : steps) {
+        // if (visited.contains(it.kind)) { __builtin_debugtrap(); }
+        visited.incl(it.kind);
+        result.excl(it.kind);
+        switch (it.kind) {
+            case OrgSemKind::Document: {
+                result.excl(OrgSemKind::DocumentOptions);
+                result.excl(OrgSemKind::DocumentGroup);
+                break;
+            }
+            default: {
+            }
+        }
+    }
+
+    return result;
+}
