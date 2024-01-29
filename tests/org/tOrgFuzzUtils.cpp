@@ -1,4 +1,5 @@
 #include "tOrgFuzzUtils.hpp"
+#include "tOrgFuzzDomains.hpp"
 
 void PrintMessageWithTypeName(
     const google::protobuf::Message& message,
@@ -91,9 +92,30 @@ void GenerateNodeContext::debug(const char* function, int line) const {
     std::cerr << indent() << function << " " << format() << "\n";
 }
 
+int GenerateNodeContext::count(OrgSemKind contexts) const {
+    return rs::count_if(steps, [&](GenerateNodePath const& p) {
+        return p.kind == contexts;
+    });
+}
+
 SemSet GenerateNodeContext::getDomainSet() const {
     SemSet result{sliceT<OrgSemKind>()};
     SemSet visited;
+    int    markupLayersCount = 0;
+    SemSet markupKinds{
+        osk::Bold,
+        osk::Italic,
+        osk::Verbatim,
+        osk::Monospace,
+        osk::Underline,
+        osk::Strike};
+
+    for (auto const& it : steps) {
+        if (markupKinds.contains(it.kind)) { ++markupLayersCount; }
+    }
+
+    if (2 <= markupLayersCount) { result.excl(markupKinds); }
+
     for (auto const& it : steps) {
         // if (visited.contains(it.kind)) { __builtin_debugtrap(); }
         visited.incl(it.kind);
@@ -104,10 +126,32 @@ SemSet GenerateNodeContext::getDomainSet() const {
                 result.excl(OrgSemKind::DocumentGroup);
                 break;
             }
+            case OrgSemKind::Paragraph: {
+                result.excl(osk::Example);
+                result.excl(osk::Center);
+                result.excl(osk::Subtree);
+                result.excl(osk::Code);
+                result.excl(osk::CommandGroup);
+                result.excl(osk::Quote);
+                result.excl(osk::AdmonitionBlock);
+                result.excl(osk::Table);
+                result.excl(osk::TextSeparator);
+                result.excl(osk::Export);
+            }
             default: {
             }
         }
     }
 
     return result;
+}
+
+Domain<std::vector<prt::AnyNode>> GenerateNodeContext::getSubnodeDomain(
+    OrgSemKind kind) const {
+    auto tmp = VectorOf(GenerateAnyNode(getDomain(), rec(kind)))
+                   .WithMinSize(getMinSubnodeCount());
+    if (auto max = getMaxSubnodeCount(); max) {
+        tmp = std::move(tmp).WithMaxSize(*max);
+    }
+    return std::move(tmp);
 }

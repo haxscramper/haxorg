@@ -40,7 +40,7 @@ Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
         InRange(
             ctx.getMinSubnodeCount(),
             ctx.getMaxSubnodeCount() ? ctx.getMaxSubnodeCount().value()
-                                     : 16));
+                                     : 4));
 }
 
 Domain<prt::AnyNode> MapAnyNodeKind(

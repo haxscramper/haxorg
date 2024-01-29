@@ -277,7 +277,12 @@ Domain<prt::Symbol> GenerateNode(CR<GenerateNodeContext> ctx) {
             VectorOf( //
                 GenerateAnyNodeWrapper(
                     GenerateNode<prt::Paragraph>(ctx.rec(osk::Symbol))))
-                .WithMaxSize(3))
+                // Symbol can contain nested paragraphs with unlimited
+                // nesting, but to avoid infinite recusion during domain
+                // construction there is a hard limit here. Otherwise,
+                // `\bold{\italic{\whatever{\else{\user{\wants{}}}}}}` is
+                // an ok syntax.
+                .WithMaxSize(ctx.count(osk::Symbol) < 2 ? 3 : 0))
         .WithRepeatedProtobufField(
             "parameters",
             VectorOf( //

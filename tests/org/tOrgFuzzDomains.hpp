@@ -1,7 +1,7 @@
 #pragma once
 #include "tOrgFuzzUtils.hpp"
 
-#define HasField(C, Field)                                                       \
+#define __TypeHasField(C, Field)                                                 \
     []() {                                                                       \
         return overloaded{                                                       \
             []<typename T>(int)                                                  \
@@ -31,7 +31,7 @@ auto InitNode(CR<GenerateNodeContext> ctx) {
                            proto_org_map<Node>::org_kind::staticKind)));
 
 
-    if (!HasField(Node, attached)) {
+    if (!__TypeHasField(Node, attached)) {
         return std::move(tmp);
     } else {
         return std::move(tmp).WithRepeatedFieldSize(

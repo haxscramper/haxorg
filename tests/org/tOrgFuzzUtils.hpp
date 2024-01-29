@@ -69,21 +69,18 @@ struct GenerateNodeContext {
     std::string format() const;
     std::string indent() const;
     void debug(const char* function, int line = __builtin_LINE()) const;
+    int  count(OrgSemKind contexts) const;
+
+    bool isAtRecursionLimit() const {
+        return opts.get().maxRecursionDepth <= steps.size();
+    }
 
     int getMinSubnodeCount() const {
-        if (opts.get().maxRecursionDepth <= steps.size()) {
-            return 0;
-        } else {
-            return opts.get().maxRecursionDepth;
-        }
+        return isAtRecursionLimit() ? 0 : opts.get().minSubnodeCount;
     }
 
     Opt<int> getMaxSubnodeCount() const {
-        if (opts.get().maxRecursionDepth <= steps.size()) {
-            return 0;
-        } else {
-            return opts.get().maxSubnodeCount;
-        }
+        return isAtRecursionLimit() ? 0 : opts.get().maxSubnodeCount;
     }
 
     GenerateNodeContext rec(OrgSemKind kind, int line = __builtin_LINE())
@@ -129,6 +126,9 @@ struct GenerateNodeContext {
     Domain<OrgSemKind> getDomain() const {
         return GenerateEnumSet(getDomainSet());
     }
+
+    Domain<std::vector<orgproto::AnyNode>> getSubnodeDomain(
+        OrgSemKind kind) const;
 };
 
 inline auto AlwaysSet(auto domain) { return NonNull(OptionalOf(domain)); }
