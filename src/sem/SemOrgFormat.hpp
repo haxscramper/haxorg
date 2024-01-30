@@ -16,6 +16,15 @@ struct Formatter {
     Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
     Res str(std::string const& str) { return b.text(store.str(str)); }
 
+    Vec<Res> toSubnodes(sem::SemId id) {
+        Vec<Res> result;
+        for (auto const& it : id->subnodes) {
+            result.push_back(toString(it));
+        }
+
+        return result;
+    }
+
     void add_subnodes(Res result, SemId id);
 
 #define _case(__Kind) Res toString(sem::SemIdT<__Kind> id);

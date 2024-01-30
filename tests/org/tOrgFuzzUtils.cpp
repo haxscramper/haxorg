@@ -73,9 +73,11 @@ std::string PrintWithTypeName(const google::protobuf::Message& message) {
 
 std::string GenerateNodeContext::format() const {
     return std::format(
-        "min={} max={} [{}] ... {}",
+        "min={} max={} depth={}/{} [{}] ... {}",
         getMinSubnodeCount(),
         getMaxSubnodeCount(),
+        steps.size(),
+        opts.get().maxRecursionDepth,
         steps
             | rv::transform([](GenerateNodePath const& p) -> std::string {
                   return fmt("{}:{}", p.kind, p.line);
@@ -104,6 +106,19 @@ int GenerateNodeContext::count(OrgSemKind contexts) const {
     return rs::count_if(steps, [&](GenerateNodePath const& p) {
         return p.kind == contexts;
     });
+}
+
+GenerateNodeContext GenerateNodeContext::withRelativeRecursionLimit(
+    int max) const {
+    return withOptsUpdate(
+        [limit = steps.size() + max](GenerateNodeOptions opts) {
+            if ((opts.maxRecursionDepth
+                 && limit < opts.maxRecursionDepth.value())
+                || !opts.maxRecursionDepth) {
+                opts.maxRecursionDepth = limit;
+            }
+            return opts;
+        });
 }
 
 Domain<std::vector<orgproto::AnyNode>> GenerateNodeContext::
@@ -160,6 +175,8 @@ SemSet GenerateNodeContext::getSubnodeSet() const {
         osk::SubtreeLog,
         osk::Par,
         osk::Row,
+        osk::MarkQuote,
+        osk::ListItem,
     });
 
     for (auto const& it : steps) {
@@ -167,6 +184,20 @@ SemSet GenerateNodeContext::getSubnodeSet() const {
     }
 
     if (2 <= markupLayersCount) { result.excl(markupKinds); }
+
+    if (count(osk::List) < 4) { result.incl(osk::List); }
+
+    if (isAtRecursionLimit()) {
+        result.excl(SemSet{
+            osk::Footnote,
+            osk::Link,
+            osk::Symbol,
+            osk::TimeRange,
+            osk::HashTag,
+        });
+
+        result.excl(markupKinds);
+    }
 
     for (auto const& it : steps) {
         // if (visited.contains(it.kind)) { __builtin_debugtrap(); }

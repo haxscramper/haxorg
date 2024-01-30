@@ -52,7 +52,10 @@ template <>
 Domain<prt::Completion> GenerateNode<prt::Completion>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Completion");
-    return InitNode<prt::Completion>(ctx);
+    return InitNode<prt::Completion>(ctx) //
+        .WithOptionalInt32Field("done", AlwaysSet(NonNegative<int>()))
+        .WithOptionalInt32Field("full", AlwaysSet(NonNegative<int>()))
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
@@ -101,7 +104,13 @@ template <>
 Domain<prt::Footnote> GenerateNode<prt::Footnote>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Footnote");
-    return InitNode<prt::Footnote>(ctx);
+    return InitNode<prt::Footnote>(ctx) //
+        .WithOptionalStringField("tag", AlwaysSet(LowerIdent()))
+        .WithProtobufField(
+            "definition",
+            GenerateAnyNodeWrapper(GenerateNode<prt::Paragraph>(
+                ctx.withRelativeRecursionLimit(1).rec(osk::Footnote))))
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
@@ -159,7 +168,11 @@ Domain<prt::AtMention> GenerateNode<prt::AtMention>(
 template <>
 Domain<prt::List> GenerateNode<prt::List>(CR<GenerateNodeContext> ctx) {
     ctx.debug("List");
-    return InitNode<prt::List>(ctx);
+    return InitNode<prt::List>(ctx) //
+        .WithRepeatedProtobufField(
+            "subnodes",
+            VectorOf(GenerateAnyNodeWrapper(
+                GenerateNode<prt::ListItem>(ctx.rec(osk::List)))));
 }
 
 template <>
@@ -213,7 +226,11 @@ template <>
 Domain<prt::ListItem> GenerateNode<prt::ListItem>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("ListItem");
-    return InitNode<prt::ListItem>(ctx);
+    return InitNode<prt::ListItem>(ctx) //
+        .WithRepeatedProtobufField(
+            "subnodes",
+            VectorOf(
+                GenerateAnyNode(ctx.getDomain(), ctx.rec(osk::ListItem))));
 }
 
 template <>
@@ -239,7 +256,46 @@ Domain<prt::CmdArguments> GenerateNode<prt::CmdArguments>(
 template <>
 Domain<prt::Link> GenerateNode<prt::Link>(CR<GenerateNodeContext> ctx) {
     ctx.debug("Link");
-    return InitNode<prt::Link>(ctx);
+
+
+    auto DataDomain =                //
+        Arbitrary<prt::Link::Data>() //
+            .WithProtobufField(
+                "raw",
+                Arbitrary<prt::Link::Raw>() //
+                    .WithOptionalStringField(
+                        "text", AlwaysSet(InRegexp(R"(https://\w+)"))))
+            .WithProtobufField(
+                "id",
+                Arbitrary<prt::Link::Id>() //
+                    .WithOptionalStringField(
+                        "text", AlwaysSet(InRegexp(R"(\w+)"))))
+            .WithProtobufField(
+                "person",
+                Arbitrary<prt::Link::Person>() //
+                    .WithOptionalStringField(
+                        "name", AlwaysSet(InRegexp(R"(\w+)"))))
+            .WithProtobufField(
+                "footnote",
+                Arbitrary<prt::Link::Footnote>() //
+                    .WithOptionalStringField(
+                        "target", AlwaysSet(InRegexp(R"(\w+)"))))
+            .WithProtobufField(
+                "file",
+                Arbitrary<prt::Link::File>() //
+                    .WithOptionalStringField(
+                        "file", AlwaysSet(InRegexp(R"(\w+)"))))
+        //
+        ;
+
+    return InitNode<prt::Link>(ctx) //
+        .WithOptionalProtobufField(
+            "data", AlwaysSet(std::move(DataDomain)))
+        .WithProtobufField(
+            "description",
+            GenerateNode<prt::Paragraph>(
+                ctx.withRelativeRecursionLimit(1).rec(osk::Link)))
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
@@ -308,7 +364,9 @@ Domain<prt::Symbol> GenerateNode(CR<GenerateNodeContext> ctx) {
             "positional",
             VectorOf( //
                 GenerateAnyNodeWrapper(GenerateNode<prt::Paragraph>(
-                    ctx.withMaxSubnodes(1).rec(osk::Symbol))))
+                    ctx.withRelativeRecursionLimit(2)
+                        .withMaxSubnodes(1)
+                        .rec(osk::Symbol))))
                 // Symbol can contain nested paragraphs with unlimited
                 // nesting, but to avoid infinite recusion during domain
                 // construction there is a hard limit here. Otherwise,
@@ -419,7 +477,9 @@ Domain<prt::Bold> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateSpaceSeparatedNodes(
-                ctx.withMaxSubnodes(2).rec(osk::Bold)));
+                ctx.withRelativeRecursionLimit(2) //
+                    .withMaxSubnodes(2)
+                    .rec(osk::Bold)));
 }
 
 template <>
@@ -429,7 +489,9 @@ Domain<prt::Verbatim> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateSpaceSeparatedNodes(
-                ctx.withMaxSubnodes(2).rec(osk::Verbatim)));
+                ctx.withRelativeRecursionLimit(2) //
+                    .withMaxSubnodes(2)
+                    .rec(osk::Verbatim)));
 }
 
 template <>
@@ -439,7 +501,9 @@ Domain<prt::Italic> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateSpaceSeparatedNodes(
-                ctx.withMaxSubnodes(2).rec(osk::Italic)));
+                ctx.withRelativeRecursionLimit(2) //
+                    .withMaxSubnodes(2)
+                    .rec(osk::Italic)));
 }
 
 template <>
@@ -449,7 +513,9 @@ Domain<prt::Underline> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateSpaceSeparatedNodes(
-                ctx.withMaxSubnodes(2).rec(osk::Underline)));
+                ctx.withRelativeRecursionLimit(2) //
+                    .withMaxSubnodes(2)
+                    .rec(osk::Underline)));
 }
 
 template <>
@@ -459,7 +525,9 @@ Domain<prt::Strike> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateSpaceSeparatedNodes(
-                ctx.withMaxSubnodes(2).rec(osk::Strike)));
+                ctx.withRelativeRecursionLimit(2) //
+                    .withMaxSubnodes(2)
+                    .rec(osk::Strike)));
 }
 
 template <>
@@ -515,8 +583,6 @@ Domain<prt::Document> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateNodesKind(
-                GenerateKind({
-                    osk::Paragraph,
-                }),
-                ctx.rec(osk::Document)));
+                ctx.getDomain(),
+                ctx.withRelativeRecursionLimit(4).rec(osk::Document)));
 }

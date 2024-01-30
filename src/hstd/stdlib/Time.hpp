@@ -14,4 +14,20 @@ struct UserTime {
     absl::TimeZone zone;
     Alignment      align;
     BOOST_DESCRIBE_CLASS(UserTime, (), (time, zone, align), (), ());
+
+    std::string format() const {
+        std::string format;
+        switch (align) {
+            case Alignment::Year: format = "%Y"; break;
+            case Alignment::Month: format = "%Y-%m"; break;
+            case Alignment::Day: format = "%Y-%m-%d"; break;
+            case Alignment::Hour: format = "%Y-%m-%d %H"; break;
+            case Alignment::Minute: format = "%Y-%m-%d %H:%M"; break;
+            case Alignment::Second: format = "%Y-%m-%d %H:%M:%S"; break;
+        }
+
+        format += " %+z";
+
+        return absl::FormatTime(format, time, zone);
+    }
 };

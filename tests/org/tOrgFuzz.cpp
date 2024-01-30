@@ -5,6 +5,7 @@
 
 
 void CheckAnyNodeFail(prt::AnyNode const& node) {
+    LOG(INFO) << "Run node";
     {
         gpb::util::JsonPrintOptions options;
         options.add_whitespace = true;
@@ -51,7 +52,11 @@ TEST(OrgParseFuzz, CheckDeterministic) {
 
 FUZZ_TEST(OrgParseFuzz, CheckAnyNodeFail)
     //
-    .WithDomains(GenerateDocumentNode(GenerateNodeContext{}))
+    .WithDomains(GenerateDocumentNode(
+        GenerateNodeContext{}.withOptsUpdate([](GenerateNodeOptions opts) {
+            // opts.enableTrace = true;
+            return opts;
+        })))
     // .WithSeeds(LoadFuzzSeeds())
     //
     ;

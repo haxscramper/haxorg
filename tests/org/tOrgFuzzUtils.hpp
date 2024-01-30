@@ -59,7 +59,7 @@ struct GenerateNodeOptions {
     Opt<int> maxSubnodeCount   = std::nullopt;
     int      minAttachedCount  = 0;
     int      maxAttachedCount  = 0;
-    int      maxRecursionDepth = 16;
+    Opt<int> maxRecursionDepth = std::nullopt;
     bool     enableTrace       = false;
 };
 
@@ -77,7 +77,7 @@ struct GenerateNodeContext {
     int count(OrgSemKind contexts) const;
 
     bool isAtRecursionLimit() const {
-        return opts.get().maxRecursionDepth <= steps.size();
+        return opts.get().maxRecursionDepth.value_or(16) <= steps.size();
     }
 
     int getMinSubnodeCount() const {
@@ -137,6 +137,7 @@ struct GenerateNodeContext {
         });
     }
 
+    GenerateNodeContext withRelativeRecursionLimit(int max) const;
 
     Domain<std::vector<orgproto::AnyNode>> getAttachedDomain(
         OrgSemKind node) const;
