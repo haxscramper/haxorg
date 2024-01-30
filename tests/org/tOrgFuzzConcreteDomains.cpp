@@ -1,6 +1,15 @@
 #include "tOrgFuzzUtils.hpp"
 #include "tOrgFuzzDomains.hpp"
 
+Domain<prt::AnyNode> GenerateAnyRawText(
+    CR<GenerateNodeContext> ctx,
+    Domain<std::string>     filler) {
+    return GenerateAnyNodeWrapper( //
+        Domain<prt::RawText>(
+            InitLeaf<prt::RawText>(ctx).WithOptionalStringField(
+                "text", AlwaysSet(filler))));
+}
+
 template <>
 Domain<prt::Caption> GenerateNode<prt::Caption>(
     CR<GenerateNodeContext> ctx) {
@@ -33,7 +42,10 @@ template <>
 Domain<prt::Monospace> GenerateNode<prt::Monospace>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Monospace");
-    return InitNode<prt::Monospace>(ctx);
+    return InitNode<prt::Monospace>(ctx) //
+        .WithRepeatedProtobufField(
+            "subnodes",
+            VectorOf(GenerateAnyRawText(ctx, LowerIdent())).WithSize(1));
 }
 
 template <>
@@ -105,12 +117,7 @@ Domain<prt::InlineMath> GenerateNode<prt::InlineMath>(
     return InitNode<prt::InlineMath>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            VectorOf(GenerateAnyNodeWrapper( //
-                         Domain<prt::RawText>(
-                             InitLeaf<prt::RawText>(ctx)
-                                 .WithOptionalStringField(
-                                     "text", AlwaysSet(LowerIdent())))))
-                .WithSize(1));
+            VectorOf(GenerateAnyRawText(ctx, LowerIdent())).WithSize(1));
 }
 
 template <>
@@ -159,7 +166,10 @@ template <>
 Domain<prt::Placeholder> GenerateNode<prt::Placeholder>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Placeholder");
-    return InitNode<prt::Placeholder>(ctx);
+    return InitNode<prt::Placeholder>(ctx) //
+        .WithRepeatedProtobufField(
+            "subnodes",
+            VectorOf(GenerateAnyRawText(ctx, LowerIdent())).WithSize(1));
 }
 
 template <>
@@ -341,6 +351,7 @@ template <>
 Domain<prt::Macro> GenerateNode(CR<GenerateNodeContext> ctx) {
     ctx.debug("Macro");
     return InitNode<prt::Macro>(ctx.withoutSubnodes()) //
+        .WithRepeatedFieldMaxSize("subnodes", 0)       //
         ;
 }
 
@@ -455,6 +466,8 @@ template <>
 Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeContext> ctx) {
     ctx.debug("Paragraph");
     return InitNode<prt::Paragraph>(ctx) //
+        .WithRepeatedProtobufField(
+            "attached", ctx.getAttachedDomain(osk::Paragraph))
         .WithRepeatedProtobufField(
             "subnodes",
             GenerateSpaceSeparatedNodes(ctx.rec(osk::Paragraph)));

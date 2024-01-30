@@ -13,7 +13,7 @@
     }()
 
 template <typename Node>
-auto InitNode(CR<GenerateNodeContext> ctx) {
+internal::ProtobufDomainImpl<Node> InitNode(CR<GenerateNodeContext> ctx) {
     json debug;
     to_json(
         debug,
@@ -22,27 +22,17 @@ auto InitNode(CR<GenerateNodeContext> ctx) {
             .message = ctx.opts.get().debugMessage,
         });
 
-    auto tmp = Arbitrary<Node>() //
-                   .WithFieldUnset("loc")
-                   .WithStringField("debug", Just(debug.dump()))
-                   .WithEnumField(
-                       "staticKind",
-                       Just(static_cast<int>(
-                           proto_org_map<Node>::org_kind::staticKind)));
-
-
-    if (!__TypeHasField(Node, attached)) {
-        return std::move(tmp);
-    } else {
-        return std::move(tmp).WithRepeatedProtobufField(
-            "attached",
-            ctx.getSubnodeDomain(
-                proto_org_map<Node>::org_kind::staticKind));
-    }
+    return Arbitrary<Node>() //
+        .WithFieldUnset("loc")
+        .WithStringField("debug", Just(debug.dump()))
+        .WithEnumField(
+            "staticKind",
+            Just(static_cast<int>(
+                proto_org_map<Node>::org_kind::staticKind)));
 }
 
 template <typename Node>
-auto InitLeaf(CR<GenerateNodeContext> ctx) {
+internal::ProtobufDomainImpl<Node> InitLeaf(CR<GenerateNodeContext> ctx) {
     return InitNode<Node>(ctx) //
         .WithRepeatedFieldMaxSize("subnodes", 0);
 }

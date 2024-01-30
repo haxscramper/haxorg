@@ -83,7 +83,7 @@ std::string GenerateNodeContext::format() const {
             | rv::intersperse("->") //
             | rv::join              //
             | rs::to<std::string>(),
-        getDomainSet());
+        getSubnodeSet());
 }
 
 std::string GenerateNodeContext::indent() const {
@@ -137,7 +137,7 @@ Domain<std::vector<prt::AnyNode>> GenerateNodeContext::getSubnodeDomain(
 }
 
 
-SemSet GenerateNodeContext::getDomainSet() const {
+SemSet GenerateNodeContext::getSubnodeSet() const {
     SemSet result{sliceT<OrgSemKind>()};
     SemSet visited;
     int    markupLayersCount = 0;
@@ -158,6 +158,8 @@ SemSet GenerateNodeContext::getDomainSet() const {
         osk::DocumentOptions,
         osk::Empty,
         osk::SubtreeLog,
+        osk::Par,
+        osk::Row,
     });
 
     for (auto const& it : steps) {

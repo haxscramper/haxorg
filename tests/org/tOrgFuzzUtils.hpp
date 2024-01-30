@@ -144,11 +144,11 @@ struct GenerateNodeContext {
     Domain<std::vector<prt::AnyNode>> getSubnodeDomain(
         Domain<prt::AnyNode> filler) const;
 
-    SemSet getDomainSet() const;
+    SemSet getSubnodeSet() const;
     SemSet getAttachedSet(OrgSemKind node) const;
 
     Domain<OrgSemKind> getDomain() const {
-        return GenerateEnumSet(getDomainSet());
+        return GenerateEnumSet(getSubnodeSet());
     }
 
     Domain<std::vector<orgproto::AnyNode>> getSubnodeDomain(
