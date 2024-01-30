@@ -17,23 +17,26 @@ Domain<orgproto::UserTime> GenerateUserTime() {
 
 Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("GenerateSpaceSeparatedNodes");
     return FlatMap(
-        [ctx](int n) -> Domain<std::vector<prt::AnyNode>> {
-            return VectorOfN(
-                FlatMap(
-                    [ctx, index = 0](int) -> Domain<prt::AnyNode> {
-                        int start = index;
-                        ++const_cast<int&>(index);
-                        if (start % 2 == 0) {
-                            return GenerateAnyNode(ctx.getDomain(), ctx);
-                        } else {
-                            return GenerateAnyNode(
-                                GenerateKind({osk::Space}), ctx);
-                        }
-                    },
-                    Just(0)),
-                2 * n + 1)
+        [ctx /* = ctx.rec()*/](
+            int n) -> Domain<std::vector<prt::AnyNode>> {
+            // ctx.debug("flat-map", fmt("n={} ", n));
+            auto state_generator = [ctx /* = ctx.rec()*/, index = 0](
+                                       int) -> Domain<prt::AnyNode> {
+                // ctx.debug("generator", fmt("index={} ", index));
+                int start = index;
+                ++const_cast<int&>(index);
+                if (start % 2 == 0) {
+                    return GenerateAnyNode(ctx.getDomain(), ctx);
+                } else {
+                    return GenerateAnyNode(
+                        GenerateKind({osk::Space}), ctx);
+                }
+            };
+
+            return VectorOf(FlatMap(state_generator, Just(0)))
+                .WithSize(2 * n + 1)
                 //
                 ;
         },

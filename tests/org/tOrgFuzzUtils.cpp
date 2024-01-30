@@ -73,7 +73,9 @@ std::string PrintWithTypeName(const google::protobuf::Message& message) {
 
 std::string GenerateNodeContext::format() const {
     return std::format(
-        "[{}] ... {}",
+        "min={} max={} [{}] ... {}",
+        getMinSubnodeCount(),
+        getMaxSubnodeCount(),
         steps
             | rv::transform([](GenerateNodePath const& p) -> std::string {
                   return fmt("{}:{}", p.kind, p.line);
@@ -88,8 +90,14 @@ std::string GenerateNodeContext::indent() const {
     return std::string(steps.size() * 2, ' ');
 }
 
-void GenerateNodeContext::debug(const char* function, int line) const {
-    std::cerr << indent() << function << " " << format() << "\n";
+void GenerateNodeContext::debug(
+    const char* function,
+    std::string msg,
+    int         line) const {
+    if (opts.get().enableTrace) {
+        std::cerr << indent() << msg << "'" << function << "' " << format()
+                  << "\n";
+    }
 }
 
 int GenerateNodeContext::count(OrgSemKind contexts) const {
@@ -108,7 +116,18 @@ SemSet GenerateNodeContext::getDomainSet() const {
         osk::Verbatim,
         osk::Monospace,
         osk::Underline,
-        osk::Strike};
+        osk::Strike,
+    };
+
+    result.excl(SemSet{
+        osk::FileTarget,
+        osk::CmdArgument,
+        osk::CmdArguments,
+        osk::ParseError,
+        osk::DocumentOptions,
+        osk::Empty,
+        osk::SubtreeLog,
+    });
 
     for (auto const& it : steps) {
         if (markupKinds.contains(it.kind)) { ++markupLayersCount; }
@@ -122,21 +141,26 @@ SemSet GenerateNodeContext::getDomainSet() const {
         result.excl(it.kind);
         switch (it.kind) {
             case OrgSemKind::Document: {
-                result.excl(OrgSemKind::DocumentOptions);
                 result.excl(OrgSemKind::DocumentGroup);
                 break;
             }
             case OrgSemKind::Paragraph: {
-                result.excl(osk::Example);
-                result.excl(osk::Center);
-                result.excl(osk::Subtree);
-                result.excl(osk::Code);
-                result.excl(osk::CommandGroup);
-                result.excl(osk::Quote);
-                result.excl(osk::AdmonitionBlock);
-                result.excl(osk::Table);
-                result.excl(osk::TextSeparator);
-                result.excl(osk::Export);
+                result.excl(SemSet{
+                    osk::Example,
+                    osk::Center,
+                    osk::Subtree,
+                    osk::Code,
+                    osk::CommandGroup,
+                    osk::Quote,
+                    osk::AdmonitionBlock,
+                    osk::Table,
+                    osk::TextSeparator,
+                    osk::Export,
+                    osk::List,
+                    osk::Caption,
+                    osk::Include,
+                    osk::StmtList,
+                });
             }
             default: {
             }

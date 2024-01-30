@@ -60,6 +60,7 @@ struct GenerateNodeOptions {
     int      minAttachedCount  = 0;
     int      maxAttachedCount  = 0;
     int      maxRecursionDepth = 16;
+    bool     enableTrace       = false;
 };
 
 struct GenerateNodeContext {
@@ -68,8 +69,12 @@ struct GenerateNodeContext {
 
     std::string format() const;
     std::string indent() const;
-    void debug(const char* function, int line = __builtin_LINE()) const;
-    int  count(OrgSemKind contexts) const;
+    void        debug(
+               const char* function,
+               std::string msg  = "",
+               int         line = __builtin_LINE()) const;
+
+    int count(OrgSemKind contexts) const;
 
     bool isAtRecursionLimit() const {
         return opts.get().maxRecursionDepth <= steps.size();
@@ -101,14 +106,27 @@ struct GenerateNodeContext {
         };
     }
 
-    GenerateNodeContext withoutSubnodes() const {
+    GenerateNodeContext withOptsUpdate(
+        Func<GenerateNodeOptions(GenerateNodeOptions)> update) const {
         return GenerateNodeContext{
             .steps = steps,
-            .opts  = opts.update([](GenerateNodeOptions opts) {
-                opts.minSubnodeCount = 0;
-                opts.maxSubnodeCount = 0;
-                return opts;
-            })};
+            .opts  = opts.update(update),
+        };
+    }
+
+    GenerateNodeContext withMaxSubnodes(int max) const {
+        return withOptsUpdate([max](GenerateNodeOptions opts) {
+            opts.maxSubnodeCount = max;
+            return opts;
+        });
+    }
+
+    GenerateNodeContext withoutSubnodes() const {
+        return withOptsUpdate([](GenerateNodeOptions opts) {
+            opts.minSubnodeCount = 0;
+            opts.maxSubnodeCount = 0;
+            return opts;
+        });
     }
 
     auto getSubnodeDomain(auto filler) const {
@@ -143,5 +161,5 @@ inline auto LowerIdent() { return StringOf(LowerChar()).WithMinSize(3); }
 
 template <typename T>
 auto VectorOfN(CR<T> values, int size) {
-    return VectorOf(values).WithMinSize(size).WithMaxSize(size);
+    return VectorOf(values).WithSize(size);
 }

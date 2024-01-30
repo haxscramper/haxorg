@@ -4,223 +4,223 @@
 template <>
 Domain<prt::Caption> GenerateNode<prt::Caption>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Caption");
     return InitNode<prt::Caption>(ctx);
 }
 
 template <>
 Domain<prt::FileTarget> GenerateNode<prt::FileTarget>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("FileTarget");
     return InitNode<prt::FileTarget>(ctx);
 }
 
 template <>
 Domain<prt::SubtreeLog> GenerateNode<prt::SubtreeLog>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("SubtreeLog");
     return InitNode<prt::SubtreeLog>(ctx);
 }
 
 template <>
 Domain<prt::DocumentGroup> GenerateNode<prt::DocumentGroup>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("DocumentGroup");
     return InitNode<prt::DocumentGroup>(ctx);
 }
 
 template <>
 Domain<prt::Monospace> GenerateNode<prt::Monospace>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Monospace");
     return InitNode<prt::Monospace>(ctx);
 }
 
 template <>
 Domain<prt::Completion> GenerateNode<prt::Completion>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Completion");
     return InitNode<prt::Completion>(ctx);
 }
 
 template <>
 Domain<prt::Code> GenerateNode<prt::Code>(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Code");
     return InitNode<prt::Code>(ctx);
 }
 
 template <>
 Domain<prt::StmtList> GenerateNode<prt::StmtList>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("StmtList");
     return InitNode<prt::StmtList>(ctx);
 }
 
 template <>
 Domain<prt::Punctuation> GenerateNode<prt::Punctuation>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Punctuation");
     return InitNode<prt::Punctuation>(ctx);
 }
 
 template <>
 Domain<prt::Export> GenerateNode<prt::Export>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Export");
     return InitNode<prt::Export>(ctx);
 }
 
 template <>
 Domain<prt::Table> GenerateNode<prt::Table>(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Table");
     return InitNode<prt::Table>(ctx);
 }
 
 template <>
 Domain<prt::CmdArgument> GenerateNode<prt::CmdArgument>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("CmdArgument");
     return InitNode<prt::CmdArgument>(ctx);
 }
 
 template <>
 Domain<prt::Footnote> GenerateNode<prt::Footnote>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Footnote");
     return InitNode<prt::Footnote>(ctx);
 }
 
 template <>
 Domain<prt::Row> GenerateNode<prt::Row>(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Row");
     return InitNode<prt::Row>(ctx);
 }
 
 template <>
 Domain<prt::InlineMath> GenerateNode<prt::InlineMath>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("InlineMath");
     return InitNode<prt::InlineMath>(ctx);
 }
 
 template <>
 Domain<prt::Escaped> GenerateNode<prt::Escaped>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Escaped");
     return InitNode<prt::Escaped>(ctx);
 }
 
 template <>
 Domain<prt::AdmonitionBlock> GenerateNode<prt::AdmonitionBlock>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("AdmonitionBlock");
     return InitNode<prt::AdmonitionBlock>(ctx);
 }
 
 template <>
 Domain<prt::Include> GenerateNode<prt::Include>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Include");
     return InitNode<prt::Include>(ctx);
 }
 
 template <>
 Domain<prt::Empty> GenerateNode<prt::Empty>(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Empty");
     return InitNode<prt::Empty>(ctx);
 }
 
 template <>
 Domain<prt::AtMention> GenerateNode<prt::AtMention>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("AtMention");
     return InitNode<prt::AtMention>(ctx);
 }
 
 template <>
 Domain<prt::List> GenerateNode<prt::List>(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("List");
     return InitNode<prt::List>(ctx);
 }
 
 template <>
 Domain<prt::Placeholder> GenerateNode<prt::Placeholder>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Placeholder");
     return InitNode<prt::Placeholder>(ctx);
 }
 
 template <>
 Domain<prt::HashTag> GenerateNode<prt::HashTag>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("HashTag");
     return InitNode<prt::HashTag>(ctx);
 }
 
 template <>
 Domain<prt::TextSeparator> GenerateNode<prt::TextSeparator>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("TextSeparator");
     return InitNode<prt::TextSeparator>(ctx);
 }
 
 template <>
 Domain<prt::Example> GenerateNode<prt::Example>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Example");
     return InitNode<prt::Example>(ctx);
 }
 
 template <>
 Domain<prt::ParseError> GenerateNode<prt::ParseError>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("ParseError");
     return InitNode<prt::ParseError>(ctx);
 }
 
 template <>
 Domain<prt::ListItem> GenerateNode<prt::ListItem>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("ListItem");
     return InitNode<prt::ListItem>(ctx);
 }
 
 template <>
 Domain<prt::MarkQuote> GenerateNode<prt::MarkQuote>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("MarkQuote");
     return InitNode<prt::MarkQuote>(ctx);
 }
 
 template <>
 Domain<prt::Par> GenerateNode<prt::Par>(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Par");
     return InitNode<prt::Par>(ctx);
 }
 
 template <>
 Domain<prt::CmdArguments> GenerateNode<prt::CmdArguments>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("CmdArguments");
     return InitNode<prt::CmdArguments>(ctx);
 }
 
 template <>
 Domain<prt::Link> GenerateNode<prt::Link>(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Link");
     return InitNode<prt::Link>(ctx);
 }
 
 template <>
 Domain<prt::CommandGroup> GenerateNode<prt::CommandGroup>(
     CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("CommandGroup");
     return InitNode<prt::CommandGroup>(ctx);
 }
 
 template <>
 Domain<prt::Time> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Time");
     auto StaticDomain =                //
         Arbitrary<prt::Time::Static>() //
             .WithProtobufField(
@@ -254,7 +254,7 @@ Domain<prt::Time> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Newline> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Newline");
     return InitLeaf<prt::Newline>(ctx) //
         .WithOptionalStringField(
             "text", AlwaysSet(StringOf(Just('\n')).WithSize(1)));
@@ -262,21 +262,21 @@ Domain<prt::Newline> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::RawText> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("RawText");
     return InitLeaf<prt::RawText>(ctx) //
         .WithStringField("text", InRegexp(R"([a-zA-Z0-9_]+)"));
 }
 
 template <>
 Domain<prt::Symbol> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Symbol");
     return InitNode<prt::Symbol>(ctx) //
         .WithOptionalStringField("name", AlwaysSet(LowerIdent()))
         .WithRepeatedProtobufField(
             "positional",
             VectorOf( //
-                GenerateAnyNodeWrapper(
-                    GenerateNode<prt::Paragraph>(ctx.rec(osk::Symbol))))
+                GenerateAnyNodeWrapper(GenerateNode<prt::Paragraph>(
+                    ctx.withMaxSubnodes(1).rec(osk::Symbol))))
                 // Symbol can contain nested paragraphs with unlimited
                 // nesting, but to avoid infinite recusion during domain
                 // construction there is a hard limit here. Otherwise,
@@ -296,7 +296,7 @@ Domain<prt::Symbol> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Subtree> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Subtree");
     auto subrec = ctx.rec(osk::Subtree);
     return InitNode<prt::Subtree>(ctx) //
         .WithStringField("treeId", StringOf(LowerChar()).WithMinSize(12))
@@ -317,7 +317,7 @@ Domain<prt::Subtree> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Macro> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Macro");
     return InitNode<prt::Macro>(ctx.withoutSubnodes()) //
         ;
 }
@@ -325,14 +325,14 @@ Domain<prt::Macro> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Word> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Word");
     return InitLeaf<prt::Word>(ctx) //
         .WithOptionalStringField("text", AlwaysSet(InRegexp(R"(\w+)")));
 }
 
 template <>
 Domain<prt::BigIdent> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("BigIdent");
     return InitLeaf<prt::BigIdent>(ctx) //
         .WithOptionalStringField(
             "text", AlwaysSet(InRegexp(R"([A-Z][_A-Z]+[A-Z])")));
@@ -340,7 +340,7 @@ Domain<prt::BigIdent> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Space> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Space");
     return InitLeaf<prt::Space>(ctx) //
         .WithOptionalStringField(
             "text", AlwaysSet(StringOf(ElementOf({' '})).WithMinSize(1)));
@@ -348,7 +348,7 @@ Domain<prt::Space> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Center> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Center");
     return InitNode<prt::Center>(ctx).WithRepeatedProtobufField(
         "subnodes",
         VectorOf(GenerateAnyNodeWrapper(
@@ -358,7 +358,7 @@ Domain<prt::Center> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Quote> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Quote");
     return InitNode<prt::Quote>(ctx).WithRepeatedProtobufField(
         "subnodes",
         VectorOf(GenerateAnyNodeWrapper(
@@ -368,7 +368,7 @@ Domain<prt::Quote> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::TimeRange> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("TimeRange");
     return InitNode<prt::TimeRange>(ctx.withoutSubnodes())
         .WithOptionalProtobufField(
             "from",
@@ -380,49 +380,57 @@ Domain<prt::TimeRange> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::Bold> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Bold");
     return InitNode<prt::Bold>(ctx) //
         .WithRepeatedProtobufField(
-            "subnodes", GenerateSpaceSeparatedNodes(ctx.rec(osk::Bold)));
+            "subnodes",
+            GenerateSpaceSeparatedNodes(
+                ctx.withMaxSubnodes(2).rec(osk::Bold)));
 }
 
 template <>
 Domain<prt::Verbatim> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Verbatim");
     return InitNode<prt::Verbatim>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateSpaceSeparatedNodes(ctx.rec(osk::Verbatim)));
+            GenerateSpaceSeparatedNodes(
+                ctx.withMaxSubnodes(2).rec(osk::Verbatim)));
 }
 
 template <>
 Domain<prt::Italic> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Italic");
     return InitNode<prt::Italic>(ctx) //
         .WithRepeatedProtobufField(
-            "subnodes", GenerateSpaceSeparatedNodes(ctx.rec(osk::Italic)));
+            "subnodes",
+            GenerateSpaceSeparatedNodes(
+                ctx.withMaxSubnodes(2).rec(osk::Italic)));
 }
 
 template <>
 Domain<prt::Underline> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Underline");
     return InitNode<prt::Underline>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateSpaceSeparatedNodes(ctx.rec(osk::Underline)));
+            GenerateSpaceSeparatedNodes(
+                ctx.withMaxSubnodes(2).rec(osk::Underline)));
 }
 
 template <>
 Domain<prt::Strike> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Strike");
     return InitNode<prt::Strike>(ctx) //
         .WithRepeatedProtobufField(
-            "subnodes", GenerateSpaceSeparatedNodes(ctx.rec(osk::Strike)));
+            "subnodes",
+            GenerateSpaceSeparatedNodes(
+                ctx.withMaxSubnodes(2).rec(osk::Strike)));
 }
 
 template <>
 Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Paragraph");
     return InitNode<prt::Paragraph>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
@@ -431,27 +439,34 @@ Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeContext> ctx) {
 
 template <>
 Domain<prt::DocumentOptions> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("DocumentOptions");
     return InitLeaf<prt::DocumentOptions>(ctx.rec(osk::DocumentOptions));
 }
 
 template <>
 Domain<prt::Document> GenerateNode(CR<GenerateNodeContext> ctx) {
-    ctx.debug(__PRETTY_FUNCTION__);
+    ctx.debug("Document");
     return InitNode<prt::Document>(ctx) //
         .WithRepeatedFieldMaxSize("idTable", 0)
         .WithRepeatedFieldMaxSize("nameTable", 0)
         .WithRepeatedFieldMaxSize("footnoteTable", 0)
         .WithRepeatedFieldMaxSize("anchorTable", 0)
         .WithProtobufField(
-            "title", GenerateNode<prt::Paragraph>(ctx.rec(osk::Document)))
+            "title",
+            GenerateNode<prt::Paragraph>(
+                ctx.withMaxSubnodes(2).rec(osk::Document)))
         .WithProtobufField(
-            "author", GenerateNode<prt::Paragraph>(ctx.rec(osk::Document)))
+            "author",
+            GenerateNode<prt::Paragraph>(
+                ctx.withMaxSubnodes(2).rec(osk::Document)))
         .WithProtobufField(
             "creator",
-            GenerateNode<prt::Paragraph>(ctx.rec(osk::Document)))
+            GenerateNode<prt::Paragraph>(
+                ctx.withMaxSubnodes(2).rec(osk::Document)))
         .WithProtobufField(
-            "email", GenerateNode<prt::RawText>(ctx.rec(osk::Document)))
+            "email",
+            GenerateNode<prt::RawText>(
+                ctx.withMaxSubnodes(2).rec(osk::Document)))
         .WithProtobufField(
             "options",
             GenerateNode<prt::DocumentOptions>(ctx.rec(osk::Document)))
