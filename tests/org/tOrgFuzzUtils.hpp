@@ -121,6 +121,14 @@ struct GenerateNodeContext {
         });
     }
 
+    GenerateNodeContext withoutAttached() const {
+        return withOptsUpdate([](GenerateNodeOptions opts) {
+            opts.minAttachedCount = 0;
+            opts.maxAttachedCount = 0;
+            return opts;
+        });
+    }
+
     GenerateNodeContext withoutSubnodes() const {
         return withOptsUpdate([](GenerateNodeOptions opts) {
             opts.minSubnodeCount = 0;
@@ -129,17 +137,15 @@ struct GenerateNodeContext {
         });
     }
 
-    auto getSubnodeDomain(auto filler) const {
-        if (opts->maxSubnodeCount) {
-            return VectorOf(filler)
-                .WithMinSize(opts->minSubnodeCount)
-                .WithMaxSize(*opts->maxSubnodeCount);
-        } else {
-            return VectorOf(filler).WithMinSize(opts->minSubnodeCount);
-        }
-    }
+
+    Domain<std::vector<orgproto::AnyNode>> getAttachedDomain(
+        OrgSemKind node) const;
+
+    Domain<std::vector<prt::AnyNode>> getSubnodeDomain(
+        Domain<prt::AnyNode> filler) const;
 
     SemSet getDomainSet() const;
+    SemSet getAttachedSet(OrgSemKind node) const;
 
     Domain<OrgSemKind> getDomain() const {
         return GenerateEnumSet(getDomainSet());

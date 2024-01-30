@@ -34,10 +34,10 @@ auto InitNode(CR<GenerateNodeContext> ctx) {
     if (!__TypeHasField(Node, attached)) {
         return std::move(tmp);
     } else {
-        return std::move(tmp).WithRepeatedFieldSize(
+        return std::move(tmp).WithRepeatedProtobufField(
             "attached",
-            ctx.opts.get().minAttachedCount,
-            ctx.opts.get().maxAttachedCount);
+            ctx.getSubnodeDomain(
+                proto_org_map<Node>::org_kind::staticKind));
     }
 }
 

@@ -60,7 +60,9 @@ template <>
 Domain<prt::Punctuation> GenerateNode<prt::Punctuation>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Punctuation");
-    return InitNode<prt::Punctuation>(ctx);
+    return InitLeaf<prt::Punctuation>(ctx) //
+        .WithOptionalStringField(
+            "text", AlwaysSet(ElementOf<std::string>({"?", "!", ","})));
 }
 
 template <>
@@ -100,14 +102,23 @@ template <>
 Domain<prt::InlineMath> GenerateNode<prt::InlineMath>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("InlineMath");
-    return InitNode<prt::InlineMath>(ctx);
+    return InitNode<prt::InlineMath>(ctx) //
+        .WithRepeatedProtobufField(
+            "subnodes",
+            VectorOf(GenerateAnyNodeWrapper( //
+                         Domain<prt::RawText>(
+                             InitLeaf<prt::RawText>(ctx)
+                                 .WithOptionalStringField(
+                                     "text", AlwaysSet(LowerIdent())))))
+                .WithSize(1));
 }
 
 template <>
 Domain<prt::Escaped> GenerateNode<prt::Escaped>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Escaped");
-    return InitNode<prt::Escaped>(ctx);
+    return InitLeaf<prt::Escaped>(ctx).WithOptionalStringField(
+        "text", AlwaysSet(InRegexp(R"([a-zA-Z0-9\\//.,()])")));
 }
 
 template <>
@@ -134,7 +145,8 @@ template <>
 Domain<prt::AtMention> GenerateNode<prt::AtMention>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("AtMention");
-    return InitNode<prt::AtMention>(ctx);
+    return InitLeaf<prt::AtMention>(ctx) //
+        .WithOptionalStringField("text", AlwaysSet(LowerIdent()));
 }
 
 template <>
@@ -154,7 +166,16 @@ template <>
 Domain<prt::HashTag> GenerateNode<prt::HashTag>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("HashTag");
-    return InitNode<prt::HashTag>(ctx);
+    bool isMaxDepth = ctx.count(osk::HashTag) < 2;
+    return InitNode<prt::HashTag>(ctx)
+        .WithRepeatedProtobufField(
+            "subtags",
+            VectorOf(
+                isMaxDepth
+                    ? Arbitrary<prt::HashTag>()
+                    : GenerateNode<prt::HashTag>(ctx.rec(osk::HashTag)))
+                .WithMaxSize(isMaxDepth ? 2 : 0))
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
@@ -248,6 +269,7 @@ Domain<prt::Time> GenerateNode(CR<GenerateNodeContext> ctx) {
 
     return InitNode<prt::Time>(ctx.withoutSubnodes()) //
         .WithBoolFieldAlwaysSet("isActive")
+        .WithRepeatedFieldMaxSize("subnodes", 0)
         .WithProtobufFieldAlwaysSet("time", std::move(TimeVariantDomain));
 }
 
@@ -369,7 +391,8 @@ Domain<prt::Quote> GenerateNode(CR<GenerateNodeContext> ctx) {
 template <>
 Domain<prt::TimeRange> GenerateNode(CR<GenerateNodeContext> ctx) {
     ctx.debug("TimeRange");
-    return InitNode<prt::TimeRange>(ctx.withoutSubnodes())
+    return InitNode<prt::TimeRange>(ctx)
+        .WithRepeatedFieldMaxSize("subnodes", 0)
         .WithOptionalProtobufField(
             "from",
             AlwaysSet(GenerateNode<prt::Time>(ctx.rec(osk::TimeRange))))
@@ -454,19 +477,23 @@ Domain<prt::Document> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithProtobufField(
             "title",
             GenerateNode<prt::Paragraph>(
-                ctx.withMaxSubnodes(2).rec(osk::Document)))
+                ctx.withoutAttached().withMaxSubnodes(2).rec(
+                    osk::Document)))
         .WithProtobufField(
             "author",
             GenerateNode<prt::Paragraph>(
-                ctx.withMaxSubnodes(2).rec(osk::Document)))
+                ctx.withoutAttached().withMaxSubnodes(2).rec(
+                    osk::Document)))
         .WithProtobufField(
             "creator",
             GenerateNode<prt::Paragraph>(
-                ctx.withMaxSubnodes(2).rec(osk::Document)))
+                ctx.withoutAttached().withMaxSubnodes(2).rec(
+                    osk::Document)))
         .WithProtobufField(
             "email",
             GenerateNode<prt::RawText>(
-                ctx.withMaxSubnodes(2).rec(osk::Document)))
+                ctx.withoutAttached().withMaxSubnodes(2).rec(
+                    osk::Document)))
         .WithProtobufField(
             "options",
             GenerateNode<prt::DocumentOptions>(ctx.rec(osk::Document)))

@@ -46,7 +46,10 @@ void proto_serde<orgproto::AnyNode, sem::SemId>::read(
     switch (out.kind_case()) {
         EACH_ANY_NODE_PROTO_FIELD(_case);
         default: {
-            LOG(FATAL) << "Any node kind is not set";
+            LOG(FATAL)
+                << "Cannot read protobuf 'AnyNode' with no subfields set. "
+                   "At least one of the sub-fields must be specified so "
+                   "the node type can be determined.";
         }
     }
     CHECK(!in.get().isNil());

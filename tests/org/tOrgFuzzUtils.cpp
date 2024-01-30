@@ -106,6 +106,37 @@ int GenerateNodeContext::count(OrgSemKind contexts) const {
     });
 }
 
+Domain<std::vector<orgproto::AnyNode>> GenerateNodeContext::
+    getAttachedDomain(OrgSemKind node) const {
+    return VectorOf(GenerateAnyNode(
+                        GenerateEnumSet(getAttachedSet(node)), *this))
+        .WithMinSize(opts->minAttachedCount)
+        .WithMaxSize(opts->maxAttachedCount);
+}
+
+Domain<std::vector<prt::AnyNode>> GenerateNodeContext::getSubnodeDomain(
+    Domain<prt::AnyNode> filler) const {
+    if (opts->maxSubnodeCount) {
+        return VectorOf(filler)
+            .WithMinSize(opts->minSubnodeCount)
+            .WithMaxSize(*opts->maxSubnodeCount);
+    } else {
+        return VectorOf(filler).WithMinSize(opts->minSubnodeCount);
+    }
+}
+
+
+Domain<std::vector<prt::AnyNode>> GenerateNodeContext::getSubnodeDomain(
+    OrgSemKind kind) const {
+    auto tmp = VectorOf(GenerateAnyNode(getDomain(), rec(kind)))
+                   .WithMinSize(getMinSubnodeCount());
+    if (auto max = getMaxSubnodeCount(); max) {
+        tmp = std::move(tmp).WithMaxSize(*max);
+    }
+    return std::move(tmp);
+}
+
+
 SemSet GenerateNodeContext::getDomainSet() const {
     SemSet result{sliceT<OrgSemKind>()};
     SemSet visited;
@@ -160,6 +191,9 @@ SemSet GenerateNodeContext::getDomainSet() const {
                     osk::Caption,
                     osk::Include,
                     osk::StmtList,
+                    // Paragraph can contain newlines, but they are not
+                    // arbitrarily generated.
+                    osk::Newline,
                 });
             }
             default: {
@@ -170,12 +204,9 @@ SemSet GenerateNodeContext::getDomainSet() const {
     return result;
 }
 
-Domain<std::vector<prt::AnyNode>> GenerateNodeContext::getSubnodeDomain(
-    OrgSemKind kind) const {
-    auto tmp = VectorOf(GenerateAnyNode(getDomain(), rec(kind)))
-                   .WithMinSize(getMinSubnodeCount());
-    if (auto max = getMaxSubnodeCount(); max) {
-        tmp = std::move(tmp).WithMaxSize(*max);
-    }
-    return std::move(tmp);
+SemSet GenerateNodeContext::getAttachedSet(OrgSemKind node) const {
+    SemSet result;
+    result.incl(osk::Caption);
+
+    return result;
 }
