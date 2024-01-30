@@ -26,7 +26,7 @@ struct UserTime {
             case Alignment::Second: format = "%Y-%m-%d %H:%M:%S"; break;
         }
 
-        format += " %+z";
+        format += " %z";
 
         return absl::FormatTime(format, time, zone);
     }

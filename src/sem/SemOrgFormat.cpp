@@ -74,7 +74,8 @@ auto Formatter::toString(SemIdT<Macro> id) -> Res {
             str(Str("{{{") + id->name + Str("(")),
             id->arguments //
                 | rv::transform([&](CR<Str> s) { return str(s); }),
-            str("}}}")));
+            str(")}}}") //
+            ));
     }
 }
 
@@ -102,7 +103,15 @@ auto Formatter::toString(SemIdT<RawText> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Footnote> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    if (id->definition) {
+        return b.line({
+            str("[fn::"),
+            toString(id->definition.value()),
+            str("]"),
+        });
+    } else {
+        return str(fmt("[fn:{}]", id->tag));
+    }
 }
 
 auto Formatter::toString(SemIdT<CmdArgument> id) -> Res {
@@ -217,20 +226,21 @@ auto Formatter::toString(SemIdT<TextSeparator> id) -> Res {
 
 auto Formatter::toString(SemIdT<Time> id) -> Res {
     Res result = b.line();
-    if (id->isActive) { b.add_at(result, str("<")); }
+
+    b.add_at(result, str(id->isActive ? "<" : "["));
     if (id->isStatic()) {
         UserTime const& time = id->getStatic().time;
         b.add_at(result, str(time.format()));
     } else {
         b.add_at(result, str(id->getDynamic().expr));
     }
-    if (id->isActive) { b.add_at(result, str(">")); }
+    b.add_at(result, str(id->isActive ? ">" : "]"));
 
     return result;
 }
 
 auto Formatter::toString(SemIdT<StmtList> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    return b.line(toSubnodes(id));
 }
 
 auto Formatter::toString(SemIdT<TimeRange> id) -> Res {

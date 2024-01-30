@@ -191,6 +191,7 @@ Domain<prt::HashTag> GenerateNode<prt::HashTag>(
     ctx.debug("HashTag");
     bool isMaxDepth = ctx.count(osk::HashTag) < 2;
     return InitNode<prt::HashTag>(ctx)
+        .WithOptionalStringField("head", AlwaysSet(LowerIdent()))
         .WithRepeatedProtobufField(
             "subtags",
             VectorOf(
