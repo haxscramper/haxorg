@@ -96,6 +96,13 @@ struct ParseSpec {
 
     ParseSpec() {}
 
+    static ParseSpec FromSource(std::string&& context) {
+        ParseSpec spec;
+        spec.source = std::move(context);
+        spec.name   = "<source>";
+        return spec;
+    }
+
     ParseSpec(
         CR<yaml>        node,
         CR<std::string> specFile,

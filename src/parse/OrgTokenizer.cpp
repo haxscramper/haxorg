@@ -1069,7 +1069,7 @@ struct LineToken {
         }
     }
 
-    LineToken(CR<Span<BaseToken>> tokens) : tokens(tokens) {
+    void updateForTokens() {
         CR<BaseToken> first = tokens.at(0);
         switch (first.kind) {
             case obt::LeadingSpace: {
@@ -1089,6 +1089,19 @@ struct LineToken {
                 break;
             }
         }
+    }
+
+    void decreaseIndent(int level) {
+        CHECK(level <= indent);
+        if (indent == level) {
+            tokens = Span<BaseToken>(tokens.begin() + 1, tokens.end());
+            updateForTokens();
+        }
+        indent -= level;
+    }
+
+    LineToken(CR<Span<BaseToken>> tokens) : tokens(tokens) {
+        updateForTokens();
     }
 };
 
@@ -1137,13 +1150,11 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
     Vec<GroupToken> groups;
 
 
-    auto it  = lines.begin();
-    auto end = lines.end();
+    auto it             = lines.begin();
+    auto end            = lines.end();
+    int  stable_counter = 0;
     while (it != lines.end()) {
-        auto nextline = [&]() {
-            // LOG(INFO) << fmt(">> {}", *it);
-            ++it;
-        };
+        auto nextline   = [&]() { ++it; };
         auto skip_block = [&]() {
             // LOG(INFO) << "SKIP BEGIN";
             while (it != end && it->kind != LK::BlockClose) { nextline(); }
@@ -1198,14 +1209,33 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
                 break;
             }
 
+            case LK::IndentedLine: {
+                it               = start;
+                int start_indent = start->indent;
+                while (it != end && start_indent <= it->indent) {
+                    it->decreaseIndent(start_indent);
+                    ++it;
+                }
+                it = start;
+                break;
+            }
+
             default: {
                 LOG(FATAL) << fmt(
                     "Unhandled line kind {} {}", start->kind, it->tokens);
             }
         }
 
-        CHECK(start != it)
-            << fmt("No movement on the line kind {}", it->kind);
+        if (start != it) {
+            stable_counter = 0;
+        } else {
+            ++stable_counter;
+            CHECK(stable_counter < 2) << fmt(
+                "No movement on the line kind {} stable_counter={} {}",
+                it->kind,
+                stable_counter,
+                it->tokens);
+        }
     }
 
     return groups;

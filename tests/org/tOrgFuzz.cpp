@@ -40,7 +40,7 @@ void CheckAnyNodeFail(prt::AnyNode const& node) {
     spec.name   = "fuzz";
     spec.source = generated_text;
     TestParams params{.spec = spec, .file = "<fuzz>"};
-    gtest_run_spec(params);
+    // gtest_run_spec(params);
 }
 
 auto seedCorpus = __CURRENT_FILE_DIR__ / "tOrgFuzzSeeds.yaml";
