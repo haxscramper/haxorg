@@ -11,6 +11,7 @@
 #include <hstd/stdlib/diffs.hpp>
 #include <fstream>
 #include <cstdlib>
+#include <gtest/gtest.h>
 
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
@@ -994,4 +995,82 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     }
 
     return RunResult();
+}
+
+
+void gtest_run_spec(CR<TestParams> params) {
+    auto spec              = params.spec;
+    spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
+    CorpusRunner runner;
+    using RunResult  = CorpusRunner::RunResult;
+    RunResult result = runner.runSpec(spec, params.file.native());
+
+    if (result.isOk()
+        && !(spec.debug.doLex && spec.debug.doParse && spec.debug.doSem)) {
+        GTEST_SKIP() << "Partially covered test: "
+                     << (spec.debug.doLex ? "" : "lex is disabled ")     //
+                     << (spec.debug.doParse ? "" : "parse is disabled ") //
+                     << (spec.debug.doSem ? "" : "sem is disabled ");
+    } else if (result.isOk()) {
+        SUCCEED();
+    } else {
+        spec.debug = ParseSpec::Dbg{
+            .debugOutDir      = "/tmp/corpus_runs/" + params.testName(),
+            .traceLex         = true,
+            .traceParse       = true,
+            .traceSem         = true,
+            .lexToFile        = true,
+            .parseToFile      = true,
+            .semToFile        = true,
+            .printLexed       = true,
+            .printBaseLexed   = true,
+            .printParsed      = true,
+            .printSource      = true,
+            .printLexedToFile = true,
+            .printBaseLexedToFile = true,
+            .printParsedToFile    = true,
+            .printSemToFile       = true,
+        };
+
+        for (auto& exporter : spec.exporters) {
+            exporter.doTrace     = true;
+            exporter.print       = true;
+            exporter.printToFile = true;
+        }
+
+        RunResult fail = runner.runSpec(spec, params.file.native());
+        ColText   os;
+
+        std::visit(
+            overloaded{
+                [&](CR<RunResult::CompareBase> node) {
+                    os = node.failDescribe;
+                },
+                [&](RunResult::ExportCompare const& node) {
+                    for (auto const& exp : node.run) {
+                        os.append(exp.failDescribe);
+                        os.append(ColText("\n"));
+                    }
+                },
+                [&](RunResult::None const& node) {},
+            },
+            fail.data);
+
+        writeFile(spec.debugFile("failure.txt"), os.toString(false));
+
+        // for copy-pasting to the run parameters in qt creator
+        writeFile(
+            spec.debugFile("qt_run.txt"),
+            "--gtest_filter='CorpusAllParametrized/ParseFile.CorpusAll/"
+                + params.testName() + "'");
+
+        if (useQFormat()) {
+            FAIL() << params.fullName() << "failed, wrote debug to"
+                   << spec.debug.debugOutDir << "\n"
+                   << os.toString(false);
+        } else {
+            FAIL() << params.fullName() << " failed, , wrote debug to "
+                   << spec.debug.debugOutDir;
+        }
+    }
 }

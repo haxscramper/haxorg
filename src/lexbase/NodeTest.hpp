@@ -94,6 +94,8 @@ struct ParseSpec {
 
     BOOST_DESCRIBE_NESTED_ENUM(ExpectedMode, Flat, Nested, Named);
 
+    ParseSpec() {}
+
     ParseSpec(
         CR<yaml>        node,
         CR<std::string> specFile,

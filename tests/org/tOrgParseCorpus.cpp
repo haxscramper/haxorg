@@ -19,50 +19,6 @@
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
 
-struct TestParams {
-    ParseSpec spec;
-    fs::path  file;
-
-    std::string testName() const {
-        std::string final;
-        for (char const& ch :
-             fmt("{} at {}",
-                 spec.name.has_value() ? spec.name.value()
-                                       : std::string("<spec>"),
-                 file.stem())) {
-            if (std::isalnum(ch) || ch == '_') {
-                final.push_back(ch);
-            } else {
-                final.push_back('_');
-            }
-        }
-
-        return final;
-    }
-
-    std::string fullName() const {
-        return "$# at $#:$#:$#"
-             % to_string_vec(
-                   spec.name.has_value() ? spec.name.value()
-                                         : std::string("<spec>"),
-                   file.stem(),
-                   spec.specLocation.line,
-                   spec.specLocation.column);
-    }
-
-    // Provide a friend overload.
-    friend void PrintTo(const TestParams& point, std::ostream* os) {
-        json loc;
-        loc["path"] = point.file.native();
-        loc["line"] = point.spec.specLocation.line;
-        loc["col"]  = point.spec.specLocation.column;
-        json dump;
-        dump["loc"]  = loc;
-        dump["name"] = point.spec.name ? json{*point.spec.name} : json{};
-        *os << dump.dump();
-    }
-};
-
 Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
 
@@ -244,81 +200,8 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 }
 
 TEST_P(ParseFile, CorpusAll) {
-    TestParams params      = GetParam();
-    auto&      spec        = params.spec;
-    spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
-    CorpusRunner runner;
-    using RunResult  = CorpusRunner::RunResult;
-    RunResult result = runner.runSpec(spec, params.file.native());
-
-    if (result.isOk()
-        && !(spec.debug.doLex && spec.debug.doParse && spec.debug.doSem)) {
-        GTEST_SKIP() << "Partially covered test: "
-                     << (spec.debug.doLex ? "" : "lex is disabled ")     //
-                     << (spec.debug.doParse ? "" : "parse is disabled ") //
-                     << (spec.debug.doSem ? "" : "sem is disabled ");
-    } else if (result.isOk()) {
-        SUCCEED();
-    } else {
-        spec.debug = ParseSpec::Dbg{
-            .debugOutDir      = "/tmp/corpus_runs/" + params.testName(),
-            .traceLex         = true,
-            .traceParse       = true,
-            .traceSem         = true,
-            .lexToFile        = true,
-            .parseToFile      = true,
-            .semToFile        = true,
-            .printLexed       = true,
-            .printBaseLexed   = true,
-            .printParsed      = true,
-            .printSource      = true,
-            .printLexedToFile = true,
-            .printBaseLexedToFile = true,
-            .printParsedToFile    = true,
-            .printSemToFile       = true,
-        };
-
-        for (auto& exporter : spec.exporters) {
-            exporter.doTrace     = true;
-            exporter.print       = true;
-            exporter.printToFile = true;
-        }
-
-        RunResult fail = runner.runSpec(spec, params.file.native());
-        ColText   os;
-
-        std::visit(
-            overloaded{
-                [&](CR<RunResult::CompareBase> node) {
-                    os = node.failDescribe;
-                },
-                [&](RunResult::ExportCompare const& node) {
-                    for (auto const& exp : node.run) {
-                        os.append(exp.failDescribe);
-                        os.append(ColText("\n"));
-                    }
-                },
-                [&](RunResult::None const& node) {},
-            },
-            fail.data);
-
-        writeFile(spec.debugFile("failure.txt"), os.toString(false));
-
-        // for copy-pasting to the run parameters in qt creator
-        writeFile(
-            spec.debugFile("qt_run.txt"),
-            "--gtest_filter='CorpusAllParametrized/ParseFile.CorpusAll/"
-                + params.testName() + "'");
-
-        if (useQFormat()) {
-            FAIL() << params.fullName() << "failed, wrote debug to"
-                   << spec.debug.debugOutDir << "\n"
-                   << os.toString(false);
-        } else {
-            FAIL() << params.fullName() << " failed, , wrote debug to "
-                   << spec.debug.debugOutDir;
-        }
-    }
+    TestParams params = GetParam();
+    gtest_run_spec(params);
 }
 
 INSTANTIATE_TEST_SUITE_P(

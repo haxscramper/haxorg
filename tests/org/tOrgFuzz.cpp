@@ -2,6 +2,8 @@
 #include <hstd/stdlib/Yaml.hpp>
 #include "tOrgFuzzUtils.hpp"
 #include "tOrgFuzzDomains.hpp"
+#include "corpusrunner.hpp"
+#include <exporters/ExporterJson.hpp>
 
 
 void CheckAnyNodeFail(prt::AnyNode const& node) {
@@ -29,7 +31,16 @@ void CheckAnyNodeFail(prt::AnyNode const& node) {
     std::string generated_text = formatter.store.toString(
         generated_layout);
 
+    ExporterJson exporter;
+    json         converted = exporter.evalTop(generated_node);
+
     writeFile("/tmp/formatted.org", generated_text);
+    ParseSpec spec;
+    spec.sem    = converted;
+    spec.name   = "fuzz";
+    spec.source = generated_text;
+    TestParams params{.spec = spec, .file = "<fuzz>"};
+    gtest_run_spec(params);
 }
 
 auto seedCorpus = __CURRENT_FILE_DIR__ / "tOrgFuzzSeeds.yaml";
