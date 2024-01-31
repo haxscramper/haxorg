@@ -15,23 +15,22 @@ Domain<orgproto::UserTime> GenerateUserTime() {
                 sliceT<UserTime::Alignment>())));
 }
 
-Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
-    CR<GenerateNodeContext> ctx) {
+Domain<std::vector<prt::AnyNode>> GenerateInterspersedNodes(
+    CR<GenerateNodeContext> ctx,
+    Domain<prt::AnyNode>    filler,
+    Domain<prt::AnyNode>    separator) {
     ctx.debug("GenerateSpaceSeparatedNodes");
     return FlatMap(
-        [ctx /* = ctx.rec()*/](
+        [ctx, filler, separator](
             int n) -> Domain<std::vector<prt::AnyNode>> {
-            // ctx.debug("flat-map", fmt("n={} ", n));
-            auto state_generator = [ctx /* = ctx.rec()*/, index = 0](
+            auto state_generator = [ctx, filler, separator, index = 0](
                                        int) -> Domain<prt::AnyNode> {
-                // ctx.debug("generator", fmt("index={} ", index));
                 int start = index;
                 ++const_cast<int&>(index);
                 if (start % 2 == 0) {
-                    return GenerateAnyNode(ctx.getDomain(), ctx);
+                    return filler;
                 } else {
-                    return GenerateAnyNode(
-                        GenerateKind({osk::Space}), ctx);
+                    return separator;
                 }
             };
 

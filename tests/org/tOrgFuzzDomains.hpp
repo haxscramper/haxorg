@@ -80,8 +80,10 @@ Domain<prt::AnyNode> GenerateAnyNode(
     Domain<OrgSemKind>      domain,
     CR<GenerateNodeContext> ctx);
 
-Domain<std::vector<prt::AnyNode>> GenerateSpaceSeparatedNodes(
-    CR<GenerateNodeContext> ctx);
+Domain<std::vector<prt::AnyNode>> GenerateInterspersedNodes(
+    CR<GenerateNodeContext> ctx,
+    Domain<prt::AnyNode>    filler,
+    Domain<prt::AnyNode>    separator);
 
 Domain<prt::AnyNode> GenerateAnyNode(
     Domain<OrgSemKind>      kind,

@@ -140,6 +140,20 @@ Domain<std::vector<prt::AnyNode>> GenerateNodeContext::getSubnodeDomain(
     }
 }
 
+Domain<orgproto::AnyNode> GenerateNodeContext::generateDomain(
+    OrgSemKind kind) const {
+    return GenerateAnyNode(Just(kind), *this);
+}
+
+Domain<orgproto::AnyNode> GenerateNodeContext::generateDomain() const {
+    return GenerateAnyNode(getDomain(), *this);
+}
+
+Domain<orgproto::AnyNode> GenerateNodeContext::generateRecDomain(
+    OrgSemKind kind) const {
+    return GenerateAnyNode(Just(kind), rec(kind));
+}
+
 
 Domain<std::vector<prt::AnyNode>> GenerateNodeContext::getSubnodeDomain(
     OrgSemKind kind) const {

@@ -10,6 +10,12 @@ Domain<prt::AnyNode> GenerateAnyRawText(
                 "text", AlwaysSet(filler))));
 }
 
+Domain<std::vector<prt::AnyNode>> SpacedSubDomain(
+    CR<GenerateNodeContext> ctx) {
+    return GenerateInterspersedNodes(
+        ctx, ctx.generateDomain(), ctx.generateDomain(osk::Space));
+}
+
 template <>
 Domain<prt::Caption> GenerateNode<prt::Caption>(
     CR<GenerateNodeContext> ctx) {
@@ -477,10 +483,9 @@ Domain<prt::Bold> GenerateNode(CR<GenerateNodeContext> ctx) {
     return InitNode<prt::Bold>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateSpaceSeparatedNodes(
-                ctx.withRelativeRecursionLimit(2) //
-                    .withMaxSubnodes(2)
-                    .rec(osk::Bold)));
+            SpacedSubDomain(ctx.withRelativeRecursionLimit(2) //
+                                .withMaxSubnodes(2)
+                                .rec(osk::Bold)));
 }
 
 template <>
@@ -489,10 +494,9 @@ Domain<prt::Verbatim> GenerateNode(CR<GenerateNodeContext> ctx) {
     return InitNode<prt::Verbatim>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateSpaceSeparatedNodes(
-                ctx.withRelativeRecursionLimit(2) //
-                    .withMaxSubnodes(2)
-                    .rec(osk::Verbatim)));
+            SpacedSubDomain(ctx.withRelativeRecursionLimit(2) //
+                                .withMaxSubnodes(2)
+                                .rec(osk::Verbatim)));
 }
 
 template <>
@@ -501,10 +505,9 @@ Domain<prt::Italic> GenerateNode(CR<GenerateNodeContext> ctx) {
     return InitNode<prt::Italic>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateSpaceSeparatedNodes(
-                ctx.withRelativeRecursionLimit(2) //
-                    .withMaxSubnodes(2)
-                    .rec(osk::Italic)));
+            SpacedSubDomain(ctx.withRelativeRecursionLimit(2) //
+                                .withMaxSubnodes(2)
+                                .rec(osk::Italic)));
 }
 
 template <>
@@ -513,10 +516,9 @@ Domain<prt::Underline> GenerateNode(CR<GenerateNodeContext> ctx) {
     return InitNode<prt::Underline>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateSpaceSeparatedNodes(
-                ctx.withRelativeRecursionLimit(2) //
-                    .withMaxSubnodes(2)
-                    .rec(osk::Underline)));
+            SpacedSubDomain(ctx.withRelativeRecursionLimit(2) //
+                                .withMaxSubnodes(2)
+                                .rec(osk::Underline)));
 }
 
 template <>
@@ -525,10 +527,9 @@ Domain<prt::Strike> GenerateNode(CR<GenerateNodeContext> ctx) {
     return InitNode<prt::Strike>(ctx) //
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateSpaceSeparatedNodes(
-                ctx.withRelativeRecursionLimit(2) //
-                    .withMaxSubnodes(2)
-                    .rec(osk::Strike)));
+            SpacedSubDomain(ctx.withRelativeRecursionLimit(2) //
+                                .withMaxSubnodes(2)
+                                .rec(osk::Strike)));
 }
 
 template <>
@@ -538,8 +539,7 @@ Domain<prt::Paragraph> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithRepeatedProtobufField(
             "attached", ctx.getAttachedDomain(osk::Paragraph))
         .WithRepeatedProtobufField(
-            "subnodes",
-            GenerateSpaceSeparatedNodes(ctx.rec(osk::Paragraph)));
+            "subnodes", SpacedSubDomain(ctx.rec(osk::Paragraph)));
 }
 
 template <>
@@ -583,7 +583,8 @@ Domain<prt::Document> GenerateNode(CR<GenerateNodeContext> ctx) {
         .WithStringField("exportFileName", StringOf(PrintableAsciiChar()))
         .WithRepeatedProtobufField(
             "subnodes",
-            GenerateNodesKind(
-                ctx.getDomain(),
-                ctx.withRelativeRecursionLimit(4).rec(osk::Document)));
+            GenerateInterspersedNodes(
+                ctx.withRelativeRecursionLimit(4).rec(osk::Document),
+                ctx.generateDomain(),
+                ctx.generateDomain(osk::Newline)));
 }

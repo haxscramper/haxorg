@@ -145,6 +145,10 @@ struct GenerateNodeContext {
     Domain<std::vector<prt::AnyNode>> getSubnodeDomain(
         Domain<prt::AnyNode> filler) const;
 
+    Domain<prt::AnyNode> generateRecDomain(OrgSemKind kind) const;
+    Domain<prt::AnyNode> generateDomain(OrgSemKind kind) const;
+    Domain<prt::AnyNode> generateDomain() const;
+
     SemSet getSubnodeSet() const;
     SemSet getAttachedSet(OrgSemKind node) const;
 
