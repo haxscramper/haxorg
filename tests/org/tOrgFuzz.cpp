@@ -54,7 +54,7 @@ FUZZ_TEST(OrgParseFuzz, CheckAnyNodeFail)
     //
     .WithDomains(GenerateDocumentNode(
         GenerateNodeContext{}.withOptsUpdate([](GenerateNodeOptions opts) {
-            opts.enableTrace = true;
+            // opts.enableTrace = true;
             return opts;
         })))
     // .WithSeeds(LoadFuzzSeeds())

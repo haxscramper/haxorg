@@ -191,6 +191,7 @@ SemSet GenerateNodeContext::getSubnodeSet() const {
         osk::Row,
         osk::MarkQuote,
         osk::ListItem,
+        osk::DocumentGroup,
     });
 
     for (auto const& it : steps) {
@@ -218,10 +219,6 @@ SemSet GenerateNodeContext::getSubnodeSet() const {
         visited.incl(it.kind);
         result.excl(it.kind);
         switch (it.kind) {
-            case OrgSemKind::Document: {
-                result.excl(OrgSemKind::DocumentGroup);
-                break;
-            }
             case OrgSemKind::Paragraph: {
                 result.excl(SemSet{
                     osk::Example,

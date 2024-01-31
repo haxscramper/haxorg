@@ -20,7 +20,12 @@ template <>
 Domain<prt::Caption> GenerateNode<prt::Caption>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Caption");
-    return InitNode<prt::Caption>(ctx);
+    return InitNode<prt::Caption>(ctx) //
+        .WithOptionalProtobufField(
+            "text",
+            AlwaysSet(GenerateNode<prt::Paragraph>(
+                ctx.withRelativeRecursionLimit(2).rec(osk::Caption))))
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
@@ -195,14 +200,17 @@ template <>
 Domain<prt::HashTag> GenerateNode<prt::HashTag>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("HashTag");
-    bool isMaxDepth = ctx.count(osk::HashTag) < 2;
+    bool isMaxDepth = 2 < ctx.count(osk::HashTag);
     return InitNode<prt::HashTag>(ctx)
         .WithOptionalStringField("head", AlwaysSet(LowerIdent()))
         .WithRepeatedProtobufField(
             "subtags",
             VectorOf(
                 isMaxDepth
-                    ? Arbitrary<prt::HashTag>()
+                    ? Arbitrary<prt::HashTag>() //
+                          .WithRepeatedFieldMaxSize("subnodes", 0)
+                          .WithOptionalStringField(
+                              "head", AlwaysSet(LowerIdent()))
                     : GenerateNode<prt::HashTag>(ctx.rec(osk::HashTag)))
                 .WithMaxSize(isMaxDepth ? 2 : 0))
         .WithRepeatedFieldMaxSize("subnodes", 0);
@@ -212,21 +220,28 @@ template <>
 Domain<prt::TextSeparator> GenerateNode<prt::TextSeparator>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("TextSeparator");
-    return InitNode<prt::TextSeparator>(ctx);
+    return InitNode<prt::TextSeparator>(ctx) //
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
 Domain<prt::Example> GenerateNode<prt::Example>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Example");
-    return InitNode<prt::Example>(ctx);
+    return InitNode<prt::Example>(ctx) //
+        .WithRepeatedProtobufField(
+            "subnodes",
+            VectorOf(GenerateAnyNodeWrapper(Domain<prt::RawText>(
+                InitLeaf<prt::RawText>(ctx).WithStringField(
+                    "text", StringOf(PrintableAsciiChar()))))));
 }
 
 template <>
 Domain<prt::ParseError> GenerateNode<prt::ParseError>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("ParseError");
-    return InitNode<prt::ParseError>(ctx);
+    return InitNode<prt::ParseError>(ctx) //
+        .WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
