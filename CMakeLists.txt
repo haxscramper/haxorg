@@ -53,14 +53,15 @@ include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
 
 option(ORG_USE_PCH "Use precompiled headers" ON)
-option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace")
-option(ORG_USE_COVERAGE "Enable test coverage")
+option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace" OFF)
+option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
-option(ORG_USE_PERFETTO "Enable perfetto profiling")
-option(ORG_USE_PGO "Compile binary with profile data generation")
-option(PROFILE_USE "Compile binary using profile data generation")
-option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling")
+option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
+option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
+option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
 option(ORG_USE_SANITIZER "Use sanitizers" ON)
+option(ORG_USE_FUZZER "User fuzzer compilation" OFF)
 
 if (${ORG_USE_SANITIZER})
     # Enable the sanitizer options. They are set globally primarity for the
@@ -70,6 +71,8 @@ if (${ORG_USE_SANITIZER})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined,address")
 endif()
+
+
 
 set(DEPS_DIR "${BASE}/thirdparty")
 set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
@@ -96,6 +99,17 @@ include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(thirdparty/json)
+
+if(${ORG_USE_FUZZER})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${LLVM_GNU_CLANG_DIR} -lclang_rt.fuzzer_no_main")
+endif()
+
+include_directories("${BASE}/deps/fuzztest")
+
+if(${ORG_USE_FUZZER})
+    fuzztest_setup_fuzzing_flags()
+endif()
+
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)

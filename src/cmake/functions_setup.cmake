@@ -39,6 +39,13 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
     add_target_property(${TARGET} COMPILE_OPTIONS "-fPIC")
 
+    # if(${ORG_USE_FUZZER})
+    #     add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-coverage=inline-8bit-counters")
+    #     add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-coverage=trace-cmp")
+    #     add_target_property(${TARGET} COMPILE_OPTIONS "-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION")
+    #     add_target_property(${TARGET} COMPILE_OPTIONS "-UNDEBUG")
+    # endif()
+
     if(${ORG_USE_SANITIZER})
         add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined,address")
         # LLVM ships with sanitizer runtime and I could not figure out how to compile it 

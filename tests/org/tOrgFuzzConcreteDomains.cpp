@@ -32,21 +32,24 @@ template <>
 Domain<prt::FileTarget> GenerateNode<prt::FileTarget>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("FileTarget");
-    return InitNode<prt::FileTarget>(ctx);
+    return InitNode<prt::FileTarget>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::SubtreeLog> GenerateNode<prt::SubtreeLog>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("SubtreeLog");
-    return InitNode<prt::SubtreeLog>(ctx);
+    return InitNode<prt::SubtreeLog>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::DocumentGroup> GenerateNode<prt::DocumentGroup>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("DocumentGroup");
-    return InitNode<prt::DocumentGroup>(ctx);
+    return InitNode<prt::DocumentGroup>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
@@ -72,14 +75,16 @@ Domain<prt::Completion> GenerateNode<prt::Completion>(
 template <>
 Domain<prt::Code> GenerateNode<prt::Code>(CR<GenerateNodeContext> ctx) {
     ctx.debug("Code");
-    return InitNode<prt::Code>(ctx);
+    return InitNode<prt::Code>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::StmtList> GenerateNode<prt::StmtList>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("StmtList");
-    return InitNode<prt::StmtList>(ctx);
+    return InitNode<prt::StmtList>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
@@ -95,20 +100,23 @@ template <>
 Domain<prt::Export> GenerateNode<prt::Export>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Export");
-    return InitNode<prt::Export>(ctx);
+    return InitNode<prt::Export>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::Table> GenerateNode<prt::Table>(CR<GenerateNodeContext> ctx) {
     ctx.debug("Table");
-    return InitNode<prt::Table>(ctx);
+    return InitNode<prt::Table>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::CmdArgument> GenerateNode<prt::CmdArgument>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("CmdArgument");
-    return InitNode<prt::CmdArgument>(ctx);
+    return InitNode<prt::CmdArgument>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
@@ -127,7 +135,7 @@ Domain<prt::Footnote> GenerateNode<prt::Footnote>(
 template <>
 Domain<prt::Row> GenerateNode<prt::Row>(CR<GenerateNodeContext> ctx) {
     ctx.debug("Row");
-    return InitNode<prt::Row>(ctx);
+    return InitNode<prt::Row>(ctx).WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
@@ -152,20 +160,23 @@ template <>
 Domain<prt::AdmonitionBlock> GenerateNode<prt::AdmonitionBlock>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("AdmonitionBlock");
-    return InitNode<prt::AdmonitionBlock>(ctx);
+    return InitNode<prt::AdmonitionBlock>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::Include> GenerateNode<prt::Include>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Include");
-    return InitNode<prt::Include>(ctx);
+    return InitNode<prt::Include>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::Empty> GenerateNode<prt::Empty>(CR<GenerateNodeContext> ctx) {
     ctx.debug("Empty");
-    return InitNode<prt::Empty>(ctx);
+    return InitNode<prt::Empty>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
@@ -259,20 +270,22 @@ template <>
 Domain<prt::MarkQuote> GenerateNode<prt::MarkQuote>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("MarkQuote");
-    return InitNode<prt::MarkQuote>(ctx);
+    return InitNode<prt::MarkQuote>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
 Domain<prt::Par> GenerateNode<prt::Par>(CR<GenerateNodeContext> ctx) {
     ctx.debug("Par");
-    return InitNode<prt::Par>(ctx);
+    return InitNode<prt::Par>(ctx).WithRepeatedFieldMaxSize("subnodes", 0);
 }
 
 template <>
 Domain<prt::CmdArguments> GenerateNode<prt::CmdArguments>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("CmdArguments");
-    return InitNode<prt::CmdArguments>(ctx);
+    return InitNode<prt::CmdArguments>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>
@@ -324,7 +337,8 @@ template <>
 Domain<prt::CommandGroup> GenerateNode<prt::CommandGroup>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("CommandGroup");
-    return InitNode<prt::CommandGroup>(ctx);
+    return InitNode<prt::CommandGroup>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
 }
 
 template <>

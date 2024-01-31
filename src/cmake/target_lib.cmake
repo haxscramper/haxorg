@@ -67,13 +67,11 @@ set_common_files(tests_org)
 set_target_output(tests_org)
 set_target_flags(tests_org)
 glob_add_sources2(tests_org "${BASE}/tests/org/.*")
+link_fuzztest(tests_org)
 
 
 target_sources(tests_org PRIVATE "${BASE}/tests/testprofiler.cpp")
 target_link_libraries(tests_org PUBLIC haxorg gtest)
-
-include_directories("${BASE}/deps/fuzztest")
-link_fuzztest(tests_org)
 
 target_include_directories(tests_org PUBLIC
     "${BASE}/thirdparty/immer"
