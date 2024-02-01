@@ -405,13 +405,8 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 
     if (lex.at(otk::HashTagSub)) {
         skip(lex, otk::HashTagSub);
-        if (lex.at(otk::HashTag)) {
+        if (lex.at(OrgTokSet{otk::HashTag, otk::Word})) {
             parseHashTag(lex);
-
-        } else if (lex.at(otk::Word)) {
-            start(org::HashTag);
-            token(org::RawText, pop(lex, otk::Word));
-            end();
 
         } else {
             skip(lex, otk::BraceBegin);
@@ -510,6 +505,7 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         otk::StaticTimeDayPart,
         otk::StaticTimeClockPart,
         otk::StaticTimeRepeater,
+        otk::Number,
     };
 
 
@@ -987,7 +983,11 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     auto __trace = trace(lex);
     start(org::ListItem);
     // prefix, 0
-    { token(org::RawText, pop(lex, otk::ListItemBegin)); }
+    {
+        token(
+            org::RawText,
+            pop(lex, OrgTokSet{otk::ListItemBegin, otk::ListClock}));
+    }
     space(lex);
     // counter, 1
     {
@@ -1038,7 +1038,7 @@ OrgId OrgParser::parseList(OrgLexer& lex) {
     __perf_trace("parseList");
     auto __trace = trace(lex);
     start(org::List);
-    while (lex.at(otk::ListItemBegin)) {
+    while (lex.at(OrgTokSet{otk::ListItemBegin, otk::ListClock})) {
         parseListItem(lex);
         if (lex.at(otk::SameIndent)) { skip(lex); }
     }
@@ -1261,30 +1261,15 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     newline(lex);
 
     space(lex);
-    while (lex.at(otk::ListBegin) || lex.at(otk::ListClock)) {
-        switch (lex.tok().kind) {
-            case otk::ListBegin: {
-                skip(lex, otk::ListBegin);
-                skip(lex, otk::Indent);
-                while (lex.at(otk::ListItemBegin)) {
-                    parseSubtreeLogbookListEntry(lex);
-                    if (lex.at(otk::SameIndent)) { skip(lex); }
-                }
-                skip(lex, otk::Dedent);
-                skip(lex, otk::ListEnd);
-                space(lex);
-                break;
-            }
-            case otk::ListClock: {
-                parseSubtreeLogbookClockEntry(lex);
-                space(lex);
-                break;
-            }
-            default: {
-                throw UnhandledToken(lex);
-            }
-        }
+
+    skip(lex, otk::ListBegin);
+    auto result = parseList(lex);
+    if (lex.at(otk::StmtListEnd)) {
+        skip(lex, otk::StmtListEnd);
+        skip(lex, otk::ListItemEnd);
     }
+    skip(lex, otk::ListEnd);
+    return result;
 
     space(lex);
     skip(lex, otk::ColonEnd);

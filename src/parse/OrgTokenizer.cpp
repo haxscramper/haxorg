@@ -697,6 +697,9 @@ struct RecombineState {
             case obt::DoubleHash: pop_as(otk::HashTagSub); break;
             case obt::CmdIdent: pop_as(otk::Word); break;
 
+            case obt::DoubleSlash: pop_as(otk::DoubleSlash); break;
+            case obt::TimeArrow: pop_as(otk::TimeArrow); break;
+            case obt::TreeClock: pop_as(otk::ListClock); break;
             case obt::Comment: pop_as(otk::Comment); break;
             case obt::Indent: pop_as(otk::Indent); break;
             case obt::Dedent: pop_as(otk::Dedent); break;
@@ -735,6 +738,8 @@ struct RecombineState {
             case obt::FootnoteBegin: par_as(otk::FootnoteBegin); break;
             case obt::TextSeparator: pop_as(otk::TextSeparator); break;
             case obt::SingleQuote: pop_as(otk::Punctuation); break;
+            case obt::DoubleDash: pop_as(otk::TimeDash); break;
+            case obt::Time: pop_as(otk::TimeDuration); break;
 
 
             case obt::Whitespace: {
@@ -1129,6 +1134,7 @@ struct LineToken {
             case obt::LeadingMinus:
             case obt::LeadingPlus: kind = Kind::ListItem; break;
             case obt::LineCommand: setLineCommandKind(tokens, 0); break;
+            case obt::TreeClock: kind = Kind::ListItem; break;
 
             default: {
                 kind = CmdBlockClose.contains(first.kind)
@@ -1425,13 +1431,19 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
                 auto const& tok = tokens.at(tok_idx);
                 switch (tok.kind) {
+                    case obt::TreeClock:
                     case obt::Minus: {
-                        if (auto prev = tokens.get(tok_idx - 1);
-                            prev //
-                            && prev->get().kind == obt::LeadingSpace
+                        // Is the first token on the line or preceded by
+                        // leading space.
+                        if ((tok_idx == 0
+                             || tokens.get(tok_idx - 1).value().get().kind
+                                    == obt::LeadingSpace)
                             && gr.kind == GK::ListItem) {
-                            add_base(
-                                (BaseToken{obt::LeadingMinus, tok.value}));
+                            add_base((BaseToken{
+                                tok.kind == obt::TreeClock
+                                    ? obt::TreeClock
+                                    : obt::LeadingMinus,
+                                tok.value}));
 
                             if (auto next = tokens.get(tok_idx + 1);
                                 next->get().kind == obt::Whitespace) {

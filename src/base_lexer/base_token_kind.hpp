@@ -39,6 +39,7 @@ enum class BaseTokenKind : unsigned short int {
   Date,
   Dedent,
   Dollar,
+  DoubleDash,
   DoubleHash,
   DoubleLeftAngle,
   DoubleQuote,

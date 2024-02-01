@@ -64,6 +64,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Date: return "Date";
         case BaseTokenKind::Dedent: return "Dedent";
         case BaseTokenKind::Dollar: return "Dollar";
+        case BaseTokenKind::DoubleDash: return "DoubleDash";
         case BaseTokenKind::DoubleHash: return "DoubleHash";
         case BaseTokenKind::DoubleLeftAngle: return "DoubleLeftAngle";
         case BaseTokenKind::DoubleQuote: return "DoubleQuote";
@@ -181,6 +182,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Date") { return BaseTokenKind::Date; } else
   if (value == "Dedent") { return BaseTokenKind::Dedent; } else
   if (value == "Dollar") { return BaseTokenKind::Dollar; } else
+  if (value == "DoubleDash") { return BaseTokenKind::DoubleDash; } else
   if (value == "DoubleHash") { return BaseTokenKind::DoubleHash; } else
   if (value == "DoubleLeftAngle") { return BaseTokenKind::DoubleLeftAngle; } else
   if (value == "DoubleQuote") { return BaseTokenKind::DoubleQuote; } else

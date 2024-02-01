@@ -356,8 +356,9 @@ rules:
   - { re: "\\]", token: BraceClose }
   - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
   - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}", token: Time }
-  - { re: "\\d{{2}}:\\d{{2}}", token: Time }
+  - { re: "\\d{{1,}}:\\d{{2}}", token: Time }
   - { re: "=>", token: TimeArrow }
+  - { re: "--", token: DoubleDash }
   - { re: "#{space}+.*?$", token: Comment }
 
   - { lit: "CLOCK:", token: TreeClock }
