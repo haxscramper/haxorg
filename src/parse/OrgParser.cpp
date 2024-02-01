@@ -1259,7 +1259,6 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     start(org::Logbook);
     skip(lex, otk::ColonLogbook);
     newline(lex);
-    skip(lex, otk::LogbookBegin);
 
     space(lex);
     while (lex.at(otk::ListBegin) || lex.at(otk::ListClock)) {
@@ -1288,7 +1287,6 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     }
 
     space(lex);
-    skip(lex, otk::LogbookEnd);
     skip(lex, otk::ColonEnd);
     return end();
 }
@@ -1796,13 +1794,15 @@ bool OrgParser::at(CR<OrgLexer> lex, CR<OrgExpectable> item) {
         return true;
     } else if (item.index() == 1 && lex.at(std::get<1>(item))) {
         return true;
-    } else {
+    } else if (item.index() == 2) {
         auto const& tokens = std::get<Vec<OrgTokenKind>>(item);
         for (int i = 0; i < tokens.size(); ++i) {
             if (!lex.at(tokens.at(i), i)) { return false; }
         }
 
         return true;
+    } else {
+        return false;
     }
 }
 

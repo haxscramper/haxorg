@@ -675,8 +675,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "ColonEnd") { return OrgTokenKind::ColonEnd; } else
   if (value == "ColonLogbook") { return OrgTokenKind::ColonLogbook; } else
   if (value == "RawLogbook") { return OrgTokenKind::RawLogbook; } else
-  if (value == "LogbookBegin") { return OrgTokenKind::LogbookBegin; } else
-  if (value == "LogbookEnd") { return OrgTokenKind::LogbookEnd; } else
   if (value == "RawProperty") { return OrgTokenKind::RawProperty; } else
   if (value == "PropRawKey") { return OrgTokenKind::PropRawKey; } else
   if (value == "PropTextKey") { return OrgTokenKind::PropTextKey; } else
@@ -896,8 +894,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::ColonEnd: return "ColonEnd";
     case OrgTokenKind::ColonLogbook: return "ColonLogbook";
     case OrgTokenKind::RawLogbook: return "RawLogbook";
-    case OrgTokenKind::LogbookBegin: return "LogbookBegin";
-    case OrgTokenKind::LogbookEnd: return "LogbookEnd";
     case OrgTokenKind::RawProperty: return "RawProperty";
     case OrgTokenKind::PropRawKey: return "PropRawKey";
     case OrgTokenKind::PropTextKey: return "PropTextKey";

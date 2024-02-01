@@ -667,8 +667,6 @@ enum class OrgTokenKind : short int {
   ColonEnd,
   ColonLogbook,
   RawLogbook,
-  LogbookBegin,
-  LogbookEnd,
   RawProperty,
   /// \brief Properties with raw string literal values
   PropRawKey,

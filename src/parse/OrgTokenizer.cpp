@@ -429,7 +429,7 @@ struct RecombineState {
                    date && date->get().kind == obt::Date) {
             maybe_paragraph_start();
             pop_as(otk::BraceBegin);
-            if (lex.at(obt::Date)) { pop_as(otk::StaticTimeDatePart); }
+            pop_as(otk::StaticTimeDatePart, obt::Date);
             // maybe day in  [yyyy-mm-dd Mon hh:mm:ss]
             if (lex.at(Vec{obt::Whitespace, obt::Word})) {
                 skip(lex, obt::Whitespace);
@@ -447,6 +447,17 @@ struct RecombineState {
                 pop_as(otk::Number);
             }
 
+            pop_as(otk::BraceEnd, obt::BraceClose);
+        } else if (auto time = lex.opt(+1);
+                   time && time->get().kind == obt::Time) {
+            maybe_paragraph_start();
+            pop_as(otk::BraceBegin);
+            pop_as(otk::StaticTimeDatePart, obt::Time);
+            if (lex.at(Vec{obt::Whitespace, obt::Plus, obt::Number})) {
+                next(lex);
+                next(lex);
+                pop_as(otk::Number);
+            }
             pop_as(otk::BraceEnd, obt::BraceClose);
         } else {
             maybe_paragraph_start();
@@ -680,6 +691,9 @@ struct RecombineState {
             case obt::LineCommand: map_line_command(); break;
             case obt::TreePropertyLiteral: pop_as(otk::PropRawKey); break;
             case obt::TreePropertyText: pop_as(otk::PropTextKey); break;
+            case obt::TreePropertyLogbook:
+                pop_as(otk::ColonLogbook);
+                break;
             case obt::DoubleHash: pop_as(otk::HashTagSub); break;
             case obt::CmdIdent: pop_as(otk::Word); break;
 
@@ -732,6 +746,8 @@ struct RecombineState {
                 break;
             }
 
+            case obt::MediumNewline:
+            case obt::LongNewline:
             case obt::Newline: {
                 switch (state_top()) {
                     case State::CmdArguments: {
@@ -864,11 +880,6 @@ struct RecombineState {
                 break;
             }
 
-            case obt::MediumNewline: {
-                newline_end();
-                pop_as(otk::Newline);
-                break;
-            }
 
             case obt::SubtreeStars: {
                 state_push(State::Subtree);
@@ -1105,6 +1116,16 @@ struct LineToken {
                 break;
             }
 
+            case obt::Minus: {
+                if (auto next = tokens.get(1);
+                    next && next->get().kind == obt::Whitespace) {
+                    kind = Kind::ListItem;
+                } else {
+                    kind = Kind::Line;
+                }
+                break;
+            }
+
             case obt::LeadingMinus:
             case obt::LeadingPlus: kind = Kind::ListItem; break;
             case obt::LineCommand: setLineCommandKind(tokens, 0); break;
@@ -1310,7 +1331,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
             auto const& gr = groups.at(gr_index);
             ss << fmt(
-                "[{}] group {} indent {}\n",
+                "[{}] group:{} indent {}\n",
                 gr_index,
                 gr.kind,
                 gr.indent());
@@ -1318,7 +1339,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
                  ++line_index) {
                 auto const& line = gr.lines.at(line_index);
                 ss << fmt(
-                    "  [{}] {} indent={}\n",
+                    "  [{}] line:{} indent={}\n",
                     line_index,
                     line.kind,
                     line.indent);

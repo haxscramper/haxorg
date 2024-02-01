@@ -1592,8 +1592,6 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("ColonEnd", GenTuDoc("")),
         GenTuEnumField("ColonLogbook", GenTuDoc("")),
         GenTuEnumField("RawLogbook", GenTuDoc("")),
-        GenTuEnumField("LogbookBegin", GenTuDoc("")),
-        GenTuEnumField("LogbookEnd", GenTuDoc("")),
         GenTuEnumField("RawProperty", GenTuDoc("")),
         GenTuEnumField("PropRawKey",
                        GenTuDoc("Properties with raw string literal values")),

@@ -1615,8 +1615,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("ColonEnd", OrgTokenKind::ColonEnd)
     .value("ColonLogbook", OrgTokenKind::ColonLogbook)
     .value("RawLogbook", OrgTokenKind::RawLogbook)
-    .value("LogbookBegin", OrgTokenKind::LogbookBegin)
-    .value("LogbookEnd", OrgTokenKind::LogbookEnd)
     .value("RawProperty", OrgTokenKind::RawProperty)
     .value("PropRawKey", OrgTokenKind::PropRawKey, R"RAW(Properties with raw string literal values)RAW")
     .value("PropTextKey", OrgTokenKind::PropTextKey, R"RAW(Properties with text (paragraph) values)RAW")
