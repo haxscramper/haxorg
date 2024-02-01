@@ -1808,6 +1808,7 @@ def get_enums():
                 GenTuEnumField("Day", GenTuDoc("")),
                 GenTuEnumField("Clock", GenTuDoc("")),
                 GenTuEnumField("Repeater", GenTuDoc("")),
+                GenTuEnumField("Zone", GenTuDoc("")),
                 GenTuEnumField("Link", GenTuDoc("")),
                 GenTuEnumField("Tags", GenTuDoc("")),
                 GenTuEnumField("Tag", GenTuDoc("")),

@@ -1,0 +1,23 @@
+items:
+  - name: 1
+    source: |
+      haxscramper, [2023-10-14 01:20]
+      #recall impossible to fully clarify the requirements, but even 70% were not reached
+  - name: 2
+    source: |
+      don't think I've done
+
+  - name: Long newline unhandled
+    source: |
+      *** 2023-10-14 Saturday
+
+
+
+        LLVM XRay
+
+  - name: "Timestamp with timezone"
+    source: |
+      **** [2023-10-17 Tue 06:42:00 +04] :from_tg:work:
+          :PROPERTIES:
+          :CREATED:  [2023-10-17 Tue 06:42:00 +04]
+          :END:

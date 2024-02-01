@@ -433,7 +433,17 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
     expect(lex, OrgTokSet{otk::BraceBegin, otk::AngleBegin});
     bool active = lex.at(otk::AngleBegin);
     skip(lex, active ? otk::AngleBegin : otk::BraceBegin);
-    if (!lex.at(otk::DynamicTimeContent)) {
+    if (lex.at(otk::DynamicTimeContent)) {
+        if (active) {
+            start(org::DynamicActiveTime);
+        } else {
+            start(org::DynamicInactiveTime);
+        }
+
+        auto sub = token(org::RawText, pop(lex, otk::DynamicTimeContent));
+
+        end();
+    } else {
         if (active) {
             start(org::StaticActiveTime);
         } else {
@@ -464,6 +474,13 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
             empty();
         }
 
+        if (lex.at(otk::Number)) {
+            token(org::RawText, pop(lex, otk::Number));
+            space(lex);
+        } else {
+            empty();
+        }
+
         if (lex.at(otk::StaticTimeRepeater)) {
             token(org::RawText, pop(lex, otk::StaticTimeRepeater));
             space(lex);
@@ -471,17 +488,6 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
             empty();
         }
 
-
-        end();
-
-    } else {
-        if (active) {
-            start(org::DynamicActiveTime);
-        } else {
-            start(org::DynamicInactiveTime);
-        }
-
-        auto sub = token(org::RawText, pop(lex, otk::DynamicTimeContent));
 
         end();
     }

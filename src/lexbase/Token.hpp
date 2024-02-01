@@ -480,8 +480,11 @@ struct LexerCommon {
 
         } else {
             throw UnexpectedCharError(
-                "Expected '$#' but found '$#' at index $#"
-                    % to_string_vec(kind, this->kind(), pos.getIndex()),
+                fmt("Expected '{}' but found '{}' at index {}: {}",
+                    kind,
+                    this->kind(),
+                    pos.getIndex(),
+                    this->tok(pos)),
                 pos.getIndex());
         }
     }

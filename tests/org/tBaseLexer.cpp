@@ -8,14 +8,27 @@
 #include <exporters/exporteryaml.hpp>
 #include "corpusrunner.hpp"
 
+TEST(ManualFileRun, TestDoc1) {
+    fs::path file{"/home/haxscramper/tmp/doc1.org"};
+    if (fs::exists(file)) {
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content));
+        spec.debug.traceAll = true;
+        gtest_run_spec(TestParams{
+            .spec = spec,
+            .file = "doc1",
+        });
+    }
+}
+
+
 TEST(ManualFileRun, TestDoc2) {
-    DLOG(INFO) << "Reading file";
     std::string content = readFile("/home/haxscramper/tmp/doc2.org");
     auto        spec    = ParseSpec::FromSource(std::move(content));
     // spec.debug.traceLex  = true;
     // spec.debug.lexToFile = true;
     gtest_run_spec(TestParams{
         .spec = spec,
-        .file = "<manual>",
+        .file = "doc2",
     });
 }

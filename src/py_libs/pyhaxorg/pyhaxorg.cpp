@@ -1162,6 +1162,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Day", OrgSpecName::Day)
     .value("Clock", OrgSpecName::Clock)
     .value("Repeater", OrgSpecName::Repeater)
+    .value("Zone", OrgSpecName::Zone)
     .value("Link", OrgSpecName::Link)
     .value("Tags", OrgSpecName::Tags)
     .value("Tag", OrgSpecName::Tag)

@@ -8,6 +8,7 @@ Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Day") { return OrgSpecName::Day; } else
   if (value == "Clock") { return OrgSpecName::Clock; } else
   if (value == "Repeater") { return OrgSpecName::Repeater; } else
+  if (value == "Zone") { return OrgSpecName::Zone; } else
   if (value == "Link") { return OrgSpecName::Link; } else
   if (value == "Tags") { return OrgSpecName::Tags; } else
   if (value == "Tag") { return OrgSpecName::Tag; } else
@@ -72,6 +73,7 @@ std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
     case OrgSpecName::Day: return "Day";
     case OrgSpecName::Clock: return "Clock";
     case OrgSpecName::Repeater: return "Repeater";
+    case OrgSpecName::Zone: return "Zone";
     case OrgSpecName::Link: return "Link";
     case OrgSpecName::Tags: return "Tags";
     case OrgSpecName::Tag: return "Tag";

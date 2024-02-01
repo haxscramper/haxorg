@@ -213,6 +213,18 @@ struct RecombineState {
         return result;
     };
 
+    void next(BaseLexer& lex, int line = __builtin_LINE()) {
+        x_report(
+            Print, .with_line(line).with_msg(fmt("next {}", lex.tok())));
+        lex.next();
+    };
+
+    void skip(BaseLexer& lex, obt kind, int line = __builtin_LINE()) {
+        x_report(
+            Print, .with_line(line).with_msg(fmt("skip {}", lex.tok())));
+        lex.skip(kind);
+    };
+
     State state_pop(State expected, int line = __builtin_LINE()) {
         CHECK(state_top() == expected)
             << fmt("Expected to drop top state {} but got {}",
@@ -288,18 +300,25 @@ struct RecombineState {
         return res;
     }
 
-    void pop_as(OrgTokenKind __to, int line = __builtin_LINE()) {
+    void pop_as(
+        OrgTokenKind __to,
+        Opt<obt>     expected = std::nullopt,
+        int          line     = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill(lex)});
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
                 fmt("pop {} from {}", __to, lex.tok())));
-        lex.next();
+        if (expected) {
+            lex.skip(*expected);
+        } else {
+            lex.next();
+        }
     }
 
     void par_as(OrgTokenKind __to, int line = __builtin_LINE()) {
         maybe_paragraph_start();
-        pop_as(__to, line);
+        pop_as(__to, std::nullopt, line);
     }
 
     OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
@@ -406,22 +425,29 @@ struct RecombineState {
         auto prev = lex.opt(-1);
         if (prev && prev->get().kind == obt::HashIdent) {
             pop_as(otk::HashTagBegin);
-        } else if (auto next = lex.opt(+1);
-                   next && next->get().kind == obt::Date) {
+        } else if (auto date = lex.opt(+1);
+                   date && date->get().kind == obt::Date) {
             maybe_paragraph_start();
             pop_as(otk::BraceBegin);
             if (lex.at(obt::Date)) { pop_as(otk::StaticTimeDatePart); }
-            if (!lex.at(obt::BraceClose)) {
-                lex.skip(obt::Whitespace);
-                if (lex.at(obt::Word)) { lex.next(); }
+            // maybe day in  [yyyy-mm-dd Mon hh:mm:ss]
+            if (lex.at(Vec{obt::Whitespace, obt::Word})) {
+                skip(lex, obt::Whitespace);
+                skip(lex, obt::Word);
             }
 
-            if (!lex.at(obt::BraceClose)) {
-                lex.skip(obt::Whitespace);
+            if (lex.at(Vec{obt::Whitespace, obt::Time})) {
+                skip(lex, obt::Whitespace);
                 pop_as(otk::StaticTimeClockPart);
             }
 
-            pop_as(otk::BraceEnd);
+            if (lex.at(Vec{obt::Whitespace, obt::Plus, obt::Number})) {
+                next(lex);
+                next(lex);
+                pop_as(otk::Number);
+            }
+
+            pop_as(otk::BraceEnd, obt::BraceClose);
         } else {
             maybe_paragraph_start();
             pop_as(otk::BraceBegin);
@@ -694,6 +720,7 @@ struct RecombineState {
             case obt::At: par_as(otk::AtMention); break;
             case obt::FootnoteBegin: par_as(otk::FootnoteBegin); break;
             case obt::TextSeparator: pop_as(otk::TextSeparator); break;
+            case obt::SingleQuote: pop_as(otk::Punctuation); break;
 
 
             case obt::Whitespace: {
