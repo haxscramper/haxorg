@@ -110,8 +110,6 @@ struct OrgParser : public OperationsTracer {
     OrgId parseSubtreeTitle(OrgLexer& lex);
     OrgId parseSubtreeTimes(OrgLexer& lex);
 
-    OrgId parseSubtreeLogbookClockEntry(OrgLexer& lex);
-    OrgId parseSubtreeLogbookListEntry(OrgLexer& lex);
     OrgId parseSubtreeLogbook(OrgLexer& lex);
     OrgId parseSubtreeProperties(OrgLexer& lex);
 

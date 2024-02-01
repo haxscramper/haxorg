@@ -34,3 +34,21 @@ items:
 
       content
       #+end_src
+
+  - name: "Subtree state transitions"
+    source: |
+    
+      **** COMPLETED Subtree title
+        CLOSED: [2023-11-08 Wed 14:53:12 +04]
+        :PROPERTIES:
+        :CREATED: [2023-11-08 Wed 14:38:50 +04]
+        :END:
+        :LOGBOOK:
+        - Tag "#hashtag##subtag##subsub" Added on [2023-11-08 Wed 14:38:55 +04]
+        CLOCK: [2023-11-08 Wed 14:39:09 +04]--[2023-11-08 Wed 14:53:10 +04] =>  0:14
+        - State "WIP"        from "TODO"       [2023-11-08 Wed 14:39:09 +04]
+        - State "BLOCKED"    from "WIP"        [2023-11-08 Wed 14:53:12 +04] \\
+          Added SVG icon instead
+        - State "COMPLETED"  from "BLOCKED"    [2023-11-09 Thu 12:14:21 +04]
+        - Refiled on [2023-11-09 Thu 12:14:24 +04] from [[file:staging.org][staging:staging.org]]
+        :END:

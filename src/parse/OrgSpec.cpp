@@ -196,110 +196,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::List,
             OrgPattern({
-                fieldN(
-                    slice(0, 1_B),
-                    N::Body,
-                    {org::ListItem, org::LogbookClock}),
+                fieldN(slice(0, 1_B), N::Body, OrgSet{org::ListItem}),
             })},
         // Subtree logbook components
         SpecPair{
             org::Logbook,
             OrgPattern({
-                fieldN(
-                    slice(0, 1_B),
-                    N::Logs,
-                    {org::LogbookEntry, org::LogbookClock}),
-            })},
-        // Time clocking
-        SpecPair{
-            org::LogbookClock,
-            OrgPattern({
-                fieldN(
-                    0,
-                    N::Time,
-                    anyTime + IntSet<OrgNodeKind>{org::TimeRange}),
-            })},
-        // Additional annotation logs
-        SpecPair{// Main wrapper for all entires
-                 org::LogbookEntry,
-                 OrgPattern({
-                     fieldN(
-                         0,
-                         N::Header,
-                         {
-                             org::LogbookTagChange,
-                             org::LogbookNote,
-                             org::LogbookStateChange,
-                             org::LogbookRefile,
-                         },
-                         "Main logbook entry header"),
-                     fieldN(
-                         1,
-                         N::Description,
-                         {
-                             org::StmtList,
-                             org::Empty,
-                         },
-                         "Additional annotation or the description of "
-                         "the transition"),
-                 })},
-        SpecPair{
-            org::LogbookTagChange,
-            OrgPattern({
-                field1(0, N::Tag, org::HashTag, "Target tag"),
-                field1(1, N::State, org::Word, "Tag change action name"),
-                field1(
-                    2,
-                    N::Time,
-                    org::StaticInactiveTime,
-                    "Time transition took place"),
-            })},
-        SpecPair{
-            org::LogbookStateChange,
-            OrgPattern({
-                Field(
-                    Range(0, N::Newstate)
-                        .doc("State that subtree was transitioned from"),
-                    OrgPattern({org::BigIdent, org::Empty})),
-                Field(
-                    Range(1, N::Oldstate)
-                        .doc("State that subtree was transitioned to"),
-                    OrgPattern({org::BigIdent, org::Empty})),
-                Field(
-                    Range(2, N::Time).doc("Transition time"),
-                    OrgPattern(anyTime + IntSet<OrgNodeKind>{org::Empty})),
-                Field(
-                    Range(3, N::Text)
-                        .doc("Additional optional annotations for the "
-                             "state "
-                             "transition entry"),
-                    OrgPattern({org::StmtList, org::Empty})),
-            })},
-        SpecPair{
-            org::LogbookRefile,
-            OrgPattern({
-                Field(
-                    Range(0, N::Time).doc("Time when refiling took place"),
-                    OrgPattern(anyTime)),
-                Field(
-                    Range(1, N::From)
-                        .doc("Link of the original subtree that was "
-                             "refiled "
-                             "from"),
-                    OrgPattern(org::Link)),
-                Field(
-                    Range(2, N::Text)
-                        .doc("Optional annotation for the refiling "
-                             "transition"),
-                    OrgPattern({org::StmtList, org::Empty})),
-            })},
-        SpecPair{
-            org::LogbookNote,
-            OrgPattern({
-                Field(Range(0, N::Time), OrgPattern(anyTime)),
-                Field(
-                    Range(1, N::Text),
-                    OrgPattern({org::StmtList, org::Empty})),
+                fieldN(0, N::Logs, OrgSet{org::List}),
             })},
         // Inline node kinds
         SpecPair{

@@ -345,22 +345,8 @@ enum class OrgNodeKind : short int {
   SubtreeUrgency,
   /// \brief `:logbook:` entry storing note information
   Logbook,
-  LogbookEntry,
   /// \brief Annotation about change in the subtree todo state
   LogbookStateChange,
-  /// \brief Timestamped log note on the subtree
-  LogbookNote,
-  /// \brief `CLOCK` entry in the subtree
-  LogbookClock,
-  /// \brief `Refile` entry in the subtree logbook drawer
-  LogbookRefile,
-  /// \brief Change in the subtree priority
-  LogbookPriority,
-  /// \brief Action to change subtree
-  LogbookPriorityChangeAction,
-  LogbookReschedule,
-  LogbookTagChange,
-  LogbookTagChangeAction,
   /// \brief `<<<RADIO>>>`
   RadioTarget,
   /// \brief `<<TARGET>>`

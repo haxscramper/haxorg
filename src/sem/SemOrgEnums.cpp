@@ -262,16 +262,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "SubtreeDescription") { return OrgNodeKind::SubtreeDescription; } else
   if (value == "SubtreeUrgency") { return OrgNodeKind::SubtreeUrgency; } else
   if (value == "Logbook") { return OrgNodeKind::Logbook; } else
-  if (value == "LogbookEntry") { return OrgNodeKind::LogbookEntry; } else
   if (value == "LogbookStateChange") { return OrgNodeKind::LogbookStateChange; } else
-  if (value == "LogbookNote") { return OrgNodeKind::LogbookNote; } else
-  if (value == "LogbookClock") { return OrgNodeKind::LogbookClock; } else
-  if (value == "LogbookRefile") { return OrgNodeKind::LogbookRefile; } else
-  if (value == "LogbookPriority") { return OrgNodeKind::LogbookPriority; } else
-  if (value == "LogbookPriorityChangeAction") { return OrgNodeKind::LogbookPriorityChangeAction; } else
-  if (value == "LogbookReschedule") { return OrgNodeKind::LogbookReschedule; } else
-  if (value == "LogbookTagChange") { return OrgNodeKind::LogbookTagChange; } else
-  if (value == "LogbookTagChangeAction") { return OrgNodeKind::LogbookTagChangeAction; } else
   if (value == "RadioTarget") { return OrgNodeKind::RadioTarget; } else
   if (value == "Target") { return OrgNodeKind::Target; } else
   { return std::nullopt; }
@@ -407,16 +398,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::SubtreeDescription: return "SubtreeDescription";
     case OrgNodeKind::SubtreeUrgency: return "SubtreeUrgency";
     case OrgNodeKind::Logbook: return "Logbook";
-    case OrgNodeKind::LogbookEntry: return "LogbookEntry";
     case OrgNodeKind::LogbookStateChange: return "LogbookStateChange";
-    case OrgNodeKind::LogbookNote: return "LogbookNote";
-    case OrgNodeKind::LogbookClock: return "LogbookClock";
-    case OrgNodeKind::LogbookRefile: return "LogbookRefile";
-    case OrgNodeKind::LogbookPriority: return "LogbookPriority";
-    case OrgNodeKind::LogbookPriorityChangeAction: return "LogbookPriorityChangeAction";
-    case OrgNodeKind::LogbookReschedule: return "LogbookReschedule";
-    case OrgNodeKind::LogbookTagChange: return "LogbookTagChange";
-    case OrgNodeKind::LogbookTagChangeAction: return "LogbookTagChangeAction";
     case OrgNodeKind::RadioTarget: return "RadioTarget";
     case OrgNodeKind::Target: return "Target";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");

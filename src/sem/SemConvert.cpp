@@ -107,86 +107,12 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
 };
 
 SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
-    __perf_trace("convert", "convertHashTag");
+    __perf_trace("convert", "convertSubtreeLog");
     auto log = Sem<SubtreeLog>(p, a);
 
     using Entry = SubtreeLog::LogEntry;
     using Log   = SubtreeLog;
-
-
-    if (a.kind() == org::LogbookEntry) {
-        auto head = one(a, N::Header);
-        switch (head.kind()) {
-            case org::LogbookTagChange: {
-                Log::Tag tag;
-                tag.tag   = convertHashTag(log, one(head, N::Tag));
-                tag.added = one(head, N::State).val().getText() == "Added";
-                tag.on    = convertTime(log, one(head, N::Time));
-
-                log->log = Entry(tag);
-                break;
-            }
-
-            case org::LogbookNote: {
-                Log::Note note{};
-
-                note.on = convertTime(log, one(head, N::Time));
-
-                log->log = Entry(note);
-                break;
-            }
-
-            case org::LogbookStateChange: {
-                Log::State state{};
-
-                state.from = parseBigIdent(
-                    one(head, N::Oldstate).val().getText());
-                state.to = parseBigIdent(
-                    one(head, N::Newstate).val().getText());
-                state.on = convertTime(log, one(head, N::Time));
-
-                log->log = Entry(state);
-                break;
-            }
-
-            case org::LogbookRefile: {
-                Log::Refile refile;
-
-                refile.on   = convertTime(log, one(head, N::Time));
-                refile.from = convertLink(log, one(head, N::From));
-
-                log->log = Entry(refile);
-                break;
-            }
-
-            default: {
-                LOG(INFO) << "Unexpected incoming tree kind for subtree "
-                             "converter"
-                          << fmt1(head.kind());
-                LOG(INFO) << head.treeRepr();
-            }
-        }
-
-        auto desc = one(a, N::Description);
-
-        if (desc.kind() != org::Empty) {
-            log->setDescription(convertStmtList(log, desc));
-        }
-
-    } else {
-        Log::Clock clock;
-        auto       time = one(a, N::Time);
-
-        if (time.kind() == org::TimeRange) {
-            clock.range = convertTimeRange(log, time);
-        } else {
-            clock.range = convertTime(log, time);
-        }
-
-
-        log->log = Entry(clock);
-    }
-
+    // TODO Implement subtree log conversion
     return log;
 }
 
@@ -322,7 +248,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         auto __field = field(N::Title, a);
-        tree->title = convertParagraph(tree, one(a, N::Title));
+        tree->title  = convertParagraph(tree, one(a, N::Title));
     }
 
     { auto __field = field(N::Todo, a); }
@@ -995,7 +921,8 @@ void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
                 } else if (tail == "nil") {
                     opts->tocExport = DocumentOptions::DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->tocExport = DocumentOptions::ExportFixed{tail.toInt()};
+                    opts->tocExport = DocumentOptions::ExportFixed{
+                        tail.toInt()};
                 }
             }
 

@@ -196,18 +196,9 @@ enum OrgNodeKind {
   OrgNodeKind_SubtreeDescription_f                                                  = 126;
   OrgNodeKind_SubtreeUrgency_f                                                      = 127;
   OrgNodeKind_Logbook_f                                                             = 128;
-  OrgNodeKind_LogbookEntry_f                                                        = 129;
-  OrgNodeKind_LogbookStateChange_f                                                  = 130;
-  OrgNodeKind_LogbookNote_f                                                         = 131;
-  OrgNodeKind_LogbookClock_f                                                        = 132;
-  OrgNodeKind_LogbookRefile_f                                                       = 133;
-  OrgNodeKind_LogbookPriority_f                                                     = 134;
-  OrgNodeKind_LogbookPriorityChangeAction_f                                         = 135;
-  OrgNodeKind_LogbookReschedule_f                                                   = 136;
-  OrgNodeKind_LogbookTagChange_f                                                    = 137;
-  OrgNodeKind_LogbookTagChangeAction_f                                              = 138;
-  OrgNodeKind_RadioTarget_f                                                         = 139;
-  OrgNodeKind_Target_f                                                              = 140;
+  OrgNodeKind_LogbookStateChange_f                                                  = 129;
+  OrgNodeKind_RadioTarget_f                                                         = 130;
+  OrgNodeKind_Target_f                                                              = 131;
 }
 
 enum OrgBigIdentKind {
