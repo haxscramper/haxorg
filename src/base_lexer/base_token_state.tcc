@@ -4,21 +4,18 @@ std::string BaseLexerImpl::state_name(int state) {
         case 0: return "INITIAL";
         case 1: return "COMMAND_TEXT";
         case 2: return "SUBTREE_HEAD";
-        case 3: return "PROPERTY_ANY";
-        case 4: return "LEAD";
-        case 5: return "PROPERTY_LEAD";
-        case 6: return "LOGBOOK_LEAD";
-        case 7: return "COMMAND";
-        case 8: return "COMMAND_RAW";
-        case 9: return "COMMAND_EXAMPLE";
-        case 10: return "COMMAND_EXPORT";
-        case 11: return "COMMAND_SRC";
-        case 12: return "COMMAND_ARGS";
-        case 13: return "COMMAND_TBLFM";
-        case 14: return "BODY_SRC";
-        case 15: return "BODY_EXPORT";
-        case 16: return "PROPERTIES";
-        case 17: return "PROPERTY_LITERAL";
+        case 3: return "LEAD";
+        case 4: return "COMMAND";
+        case 5: return "COMMAND_RAW";
+        case 6: return "COMMAND_EXAMPLE";
+        case 7: return "COMMAND_EXPORT";
+        case 8: return "COMMAND_SRC";
+        case 9: return "COMMAND_ARGS";
+        case 10: return "COMMAND_TBLFM";
+        case 11: return "BODY_SRC";
+        case 12: return "BODY_EXPORT";
+        case 13: return "PROPERTIES";
+        case 14: return "PROPERTY_LITERAL";
         default: return std::to_string(state);
     }
 }

@@ -1,14 +1,7 @@
 states:
   - { kind: state, name: COMMAND_TEXT }
   - { kind: state, name: SUBTREE_HEAD }
-  - { kind: state, name: PROPERTY_ANY }
   - { kind: state, name: LEAD }
-  # Separately handle leading whitespaces in list of properties
-  # and logbook entries. This is necessary to make `:end:` push
-  # and pop different states depending on the context where
-  # it was triggered.
-  - { kind: state, name: PROPERTY_LEAD }
-  - { kind: state, name: LOGBOOK_LEAD }
 
   - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_RAW }
@@ -24,6 +17,7 @@ states:
 
 rx_macros:
   - { name: space, value: "[\\h\\xA0]" }
+  - { name: lead_space, value: "^[\\h\\xA0]*"}
   # Group of built-in org-mode properties that can be statically identified
   # and lexed to corresponding tokens. All unknown properties and directives
   # will be converted to raw string literals and processed at later
@@ -274,33 +268,16 @@ rules:
       - { do: push, to: LEAD, from: INITIAL }
 
   #region Properties
-  - { lit: ":LOGBOOK:", token: TreePropertyLogbook }
-  - lit: ":PROPERTIES:"
+  - re: "{lead_space}:LOGBOOK:"
+    token: TreePropertyLogbook
+  - re: "{lead_space}:PROPERTIES:"
     token: TreePropertyProperties
-    states: [LEAD]
-    actions:
-      - { do: pop, from: LEAD, to: INITIAL }
-      - { do: push, from: INITIAL, to: PROPERTIES }
-
-  - re: "^{space}+"
-    token: LeadingSpace
-    states: [PROPERTIES]
-    actions:
-      - { do: push, to: PROPERTY_LEAD, from: PROPERTIES }
-
-  - lit: ":END:"
+  - re: "{lead_space}:END:"
     token: TreePropertyEnd
-    states: [PROPERTY_LEAD]
-    actions:
-      - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
-      - { do: pop, from: PROPERTIES, to: INITIAL }
-
-  - re: ":({literal_properties}):"
+  - re: "{lead_space}:({literal_properties}):"
     token: TreePropertyLiteral
-    states: [PROPERTY_LEAD]
     actions:
-      - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
-      - { do: push, from: PROPERTIES, to: PROPERTY_LITERAL }
+      - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
 
   - re: "{space}+"
     token: Whitespace
@@ -318,25 +295,13 @@ rules:
     token: Newline
     states: [PROPERTY_LITERAL]
     actions:
-      - { do: pop, from: PROPERTY_LITERAL, to: PROPERTIES }
-
-  - re: "\\n"
-    token: Newline
-    states: [PROPERTY_ANY]
-    actions:
-      - { do: pop, from: PROPERTY_ANY, to: PROPERTIES }
+      - { do: pop, from: PROPERTY_LITERAL, to: INITIAL }
 
   # Properties with text content
-  - re: ":(created|origin|blocker):"
+  - re: "{lead_space}:(created|origin|blocker):"
     token: TreePropertyText
-    states: [PROPERTY_LEAD]
-    actions:
-      - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
-      - { do: push, from: PROPERTIES, to: PROPERTY_ANY }
-
-  - re: ":\\w+:"
+  - re: "{lead_space}:\\w+:"
     token: TreePropertyName
-    states: [PROPERTIES]
   #endregion
 
   #endregion

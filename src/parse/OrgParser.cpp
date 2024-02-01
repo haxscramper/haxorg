@@ -1269,7 +1269,6 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
         skip(lex, otk::ListItemEnd);
     }
     skip(lex, otk::ListEnd);
-    return result;
 
     space(lex);
     skip(lex, otk::ColonEnd);

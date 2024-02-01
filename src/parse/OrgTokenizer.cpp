@@ -1086,6 +1086,7 @@ struct LineToken {
     void setLeadingSpaceKind(CR<Span<BaseToken>> tokens) {
         if (auto next = tokens.get(1); next) {
             switch (next->get().kind) {
+                case obt::TreeClock:
                 case obt::Minus: kind = Kind::ListItem; break;
 
                 case obt::TreePropertyEnd:
