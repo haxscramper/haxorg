@@ -260,7 +260,7 @@ rules:
     token: SubtreePriority
     states: [SUBTREE_HEAD]
 
-  - { re: "^[0-9]+(?={space}+)", token: LeadingNumber }
+  - { re: "^[0-9]+[\\.\\)](?={space}+)", token: LeadingNumber }
   - { re: "[0-9]+", token: Number }
   - re: "^{space}+"
     token: LeadingSpace

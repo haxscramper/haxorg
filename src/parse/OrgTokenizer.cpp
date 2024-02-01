@@ -284,7 +284,7 @@ struct RecombineState {
                 // unbalanced content, like `{[}` -- opening `[` will add
                 // something to the stack, but surrounding `{}` would not
                 // allow the proper tree to be formed.
-                LOG(FATAL) << "TODO FAIL";
+                LOG(FATAL) << "TODO FAIL" << fmt1(lex.tok());
             }
         } else {
             mark_push(value, to);
@@ -740,6 +740,8 @@ struct RecombineState {
             case obt::SingleQuote: pop_as(otk::Punctuation); break;
             case obt::DoubleDash: pop_as(otk::TimeDash); break;
             case obt::Time: pop_as(otk::TimeDuration); break;
+            case obt::Semicolon: pop_as(otk::Punctuation); break;
+            case obt::MiscUnicode: par_as(otk::Word); break;
 
 
             case obt::Whitespace: {
@@ -928,6 +930,19 @@ struct RecombineState {
                 maybe_paragraph_start();
                 pop_as(otk::DoubleAngleEnd);
                 break;
+
+
+            case obt::LinkBegin: {
+                maybe_paragraph_start();
+                add_fake(otk::LinkBegin);
+                add_fake(otk::LinkTargetBegin);
+                auto text = strip(
+                    lex.val().text, CharSet{'['}, CharSet{']', '[', ':'});
+
+                add_fake(otk::LinkProtocol, {BaseFill{.text = text}});
+                lex.next();
+                break;
+            }
 
             case obt::DslLinkBegin:
             case obt::DslLink: {

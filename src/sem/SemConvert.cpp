@@ -689,7 +689,8 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
 SemIdT<Center> OrgConverter::convertCenter(__args) {
     SemIdT<Center> res = Sem<Center>(p, a);
     for (const auto& sub : many(a, N::Body)) {
-        res->push_back(convert(res, sub));
+        auto aux = convert(res, sub);
+        res->push_back(aux);
     }
     return res;
 }

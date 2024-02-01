@@ -37,7 +37,7 @@ items:
 
   - name: "Subtree state transitions"
     source: |
-    
+
       **** COMPLETED Subtree title
         CLOSED: [2023-11-08 Wed 14:53:12 +04]
         :PROPERTIES:
@@ -52,3 +52,69 @@ items:
         - State "COMPLETED"  from "BLOCKED"    [2023-11-09 Thu 12:14:21 +04]
         - Refiled on [2023-11-09 Thu 12:14:24 +04] from [[file:staging.org][staging:staging.org]]
         :END:
+
+  - name: "Non-DSL link"
+    source: |
+      [[person:Random User]]
+
+  - name: "Semicolon Punctuation"
+    source: |
+      ;
+
+  - name: "Iregular source block in the list"
+    source: |
+      - [2023-11-11  Sat 00:10:50  +04]  IDEA  #project##hcparse union  of  fields  can also  be
+
+        #+begin_src cpp
+      #endif
+      struct Something {
+      };
+        #+end_src
+
+        Another graph of dependencies
+
+  - name: "Quote block with broken indentation"
+    source: |
+      - Item 1
+      - Item 2
+        #+begin_quote
+        5 days ago
+      7 replies
+        #+end_quote
+
+  - name: "Unicode 1"
+    source: |
+      №: 1000
+
+  - name: "Unicode 2"
+    source: |
+      ილმწ საფო
+
+  - name: "Multiple bold folds"
+    source: |
+      *discussions*, information  *material*,
+
+  - name: "Internal assertion on the verbatim parsing"
+    source: |
+      - F
+        =MFC= X
+      - a
+        #+begin_quote
+      i <If /> 
+        #+end_quote
+
+      **** COMPLETED Das
+      **** COMPLETED =A=
+
+  - name: "Incomplete italic-looking quote content"
+    source: |
+      #+begin_quote
+      i <If /> 
+      #+end_quote
+
+      **** COMPLETED Das
+      **** COMPLETED =A=
+
+
+        
+

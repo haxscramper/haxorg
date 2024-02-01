@@ -103,8 +103,8 @@ struct OrgConverter : public OperationsTracer {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    UPtr<OrgSpec>        spec;
-    ContextStore*        context;
+    UPtr<OrgSpec> spec;
+    ContextStore* context;
 
     OrgConverter(ContextStore* context) : context(context) {
         spec = getOrgSpec();
@@ -173,7 +173,10 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<T> convertAllSubnodes(Up p, In a) {
         SemIdT<T> res = Sem<T>(p, a);
 
-        for (const auto& sub : a) { res->push_back(convert(res, sub)); }
+        for (const auto& sub : a) {
+            auto conv = convert(res, sub);
+            res->push_back(conv);
+        }
 
         return res;
     }
@@ -182,15 +185,15 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<T> Sem(Up parent, In adapter) {
         SemIdT<T> res = context->createInSame(
             parent, T::staticKind, parent, adapter);
-        res->loc              = getLoc(adapter);
+        res->loc = getLoc(adapter);
         return res;
     }
 
     template <typename T>
     SemIdT<T> SemLeaf(Up parent, In adapter) {
-        auto res              = Sem<T>(parent, adapter);
-        res->text             = adapter.val().getText();
-        res->loc              = getLoc(adapter);
+        auto res  = Sem<T>(parent, adapter);
+        res->text = adapter.val().getText();
+        res->loc  = getLoc(adapter);
         return res;
     }
 
