@@ -271,7 +271,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             }
 
             default: {
-                throw UnhandledToken(lex);
+                fatalError(lex, "unhandled token");
             }
         }
     }
@@ -744,7 +744,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             start(org::AdmonitionBlock);
             endTok = otk::CmdAdmonitionEnd;
             break;
-        default: throw UnhandledToken(lex);
+        default: fatalError(lex, "unhandled token");
     }
 
     skip(lex);
@@ -879,8 +879,10 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
                         break;
                     }
                     default: {
-                        LOG(FATAL) << fmt(
-                            "Unhandled code parse token {}", lex.tok());
+                        fatalError(
+                            lex,
+                            fmt("Unhandled code parse token {}",
+                                lex.tok()));
                     }
                 }
             }
@@ -1450,7 +1452,7 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
             }
         }
         default: {
-            throw UnhandledToken(lex);
+            fatalError(lex, "unhandled token");
         }
     }
 }

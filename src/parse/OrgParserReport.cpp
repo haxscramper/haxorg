@@ -1,37 +1,5 @@
 #include <parse/OrgParser.hpp>
 
-std::string OrgParser::Error::getLocMsg() const {
-    return "$#:$# (tok $#, pos $#)"
-         % to_string_vec(
-               loc ? loc->line : -1,
-               loc ? loc->column : -1,
-               id.isNil() ? "<none>" : fmt1(id.getIndex()),
-               loc ? loc->pos : -1);
-}
-
-const char* OrgParser::UnexpectedToken::what() const noexcept {
-    return strdup(
-        "Expected $#, but got $# at $# ($#)"
-        % to_string_vec(
-            std::visit(
-                [](auto const& it) { return std::format("{}", it); },
-                wanted),
-            this->token,
-            getLocMsg(),
-            this->extraMsg));
-}
-
-const char* OrgParser::UnhandledToken::what() const noexcept {
-    return strdup(
-        std::format(
-            "Encountered {} at {}, which is was not expected ({})",
-            token,
-            getLocMsg(),
-            extraMsg)
-            .c_str());
-}
-
-
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;
 

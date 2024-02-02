@@ -15,6 +15,7 @@ std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
     return result;
 }
 
+
 Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
     if (lex.finished()) {
         return std::nullopt;
@@ -51,7 +52,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
         return *this;
     }
 
-    Builder& with_lex(OrgLexer& lex) {
+    Builder& with_lex(OrgLexer const& lex) {
         report.lex = &lex;
         return *this;
     }
@@ -145,19 +146,21 @@ void OrgParser::expect(
     char const*       function) {
 
     if (!(at(lex, item))) {
+        auto msg = fmt(
+            "{}: Expected token {} {} but got '{}'",
+            line,
+            item,
+            getLocMsg(lex),
+            lex.kind());
         if (TraceState) {
             report(
                 Builder(
                     OrgParser::ReportKind::Error, nullptr, line, function)
-                    .with_msg(
-                        fmt("{}: Expected token {} {} but got '{}'",
-                            line,
-                            item,
-                            getLocMsg(lex),
-                            lex.kind()))
+                    .with_msg(msg)
                     .report);
         }
-        throw UnexpectedToken(lex, {item});
+
+        fatalError(lex, msg);
     }
 }
 
@@ -232,4 +235,24 @@ void OrgParser::print(
         if (lexer) { build.with_lex(*lexer); }
         report(build.report);
     }
+}
+
+void OrgParser::fatalError(
+    OrgLexer const& lex,
+    CR<Str>         msg,
+    int             line,
+    const char*     function) {
+    if (TraceState) {
+        auto build = Builder(
+                         OrgParser::ReportKind::Error,
+                         nullptr,
+                         line,
+                         function)
+                         .with_msg(msg)
+                         .with_lex(lex);
+        report(build.report);
+    }
+
+    throw std::logic_error(
+        fmt("{} {} at {}", msg, lex.tok(), getLocMsg(lex)));
 }

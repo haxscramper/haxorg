@@ -18,40 +18,12 @@ struct OrgParser : public OperationsTracer {
         OrgTokSet,
         Vec<OrgTokenKind>>;
 
-    // TODO Move out of the parser base
-    struct Error : std::exception {
-        Opt<OrgToken> token;
-        OrgTokenId    id;
-        Opt<LineCol>  loc;
-        std::string   extraMsg;
-        std::string   getLocMsg() const;
-
-        Error(CR<OrgLexer> lex, CR<std::string> extraMsg = "")
-            : id(lex.pos), extraMsg(extraMsg) {
-            if (!lex.finished()) {
-                token = lex.tok();
-                loc   = OrgParser::getLoc(lex);
-            }
-        }
-    };
-
-    struct UnexpectedToken : public Error {
-        OrgExpectable wanted;
-        UnexpectedToken(
-            CR<OrgLexer>      lex,
-            CR<OrgExpectable> wanted) noexcept
-            : Error(lex), wanted(wanted) {}
-
-        const char* what() const noexcept override;
-    };
-
-    struct UnhandledToken : public Error {
-        using Error::Error;
-        UnhandledToken(CR<OrgLexer> lex) noexcept : Error(lex) {}
-        const char* what() const noexcept override;
-    };
-
-    std::string getLocMsg(CR<OrgLexer> lex);
+    std::string       getLocMsg(CR<OrgLexer> lex);
+    [[noreturn]] void fatalError(
+        const OrgLexer& lex,
+        CR<Str>         msg,
+        int             line     = __builtin_LINE(),
+        char const*     function = __builtin_FUNCTION());
 
   public:
     enum class ReportKind
@@ -66,9 +38,9 @@ struct OrgParser : public OperationsTracer {
     };
 
     struct Report : OperationsMsg {
-        ReportKind kind;
-        Opt<OrgId> node = OrgId::Nil();
-        OrgLexer*  lex  = nullptr;
+        ReportKind      kind;
+        Opt<OrgId>      node = OrgId::Nil();
+        OrgLexer const* lex  = nullptr;
     };
 
 
