@@ -79,18 +79,6 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     CmdArguments,
     CmdContent);
 
-DECL_DESCRIBED_ENUM_STANDALONE(
-    MarkKind,
-    Bold,
-    Italic,
-    Markup,
-    Parens,
-    Curly,
-    Verbatim,
-    Strike,
-    Quotes);
-
-
 OrgFill fill(BaseLexer& lex) { return OrgFill{.base = lex.tok().value}; }
 
 template <typename T>
@@ -135,15 +123,9 @@ namespace {
 
 struct RecombineState {
     OrgTokenizer* d;
-    struct Mark {
-        MarkKind   kind;
-        OrgTokenId set;
-    };
-
-    Vec<Mark>   mark;
-    Vec<State>  state;
-    BaseLexer&  lex;
-    bool const& TraceState;
+    Vec<State>    state;
+    BaseLexer&    lex;
+    bool const&   TraceState;
 
     void report(OrgTokenizer::Report const& report) { d->report(report); }
 
@@ -204,7 +186,7 @@ struct RecombineState {
 
     State state_top() {
         return state.empty() ? State::None : state.back();
-    };
+    }
 
     State state_pop(int line = __builtin_LINE()) {
         auto result = state.empty() ? State::None : state.pop_back_v();
@@ -213,19 +195,24 @@ struct RecombineState {
             .with_line(line).with_msg(
                 fmt("state pop {} from {}", result, lex.tok())));
         return result;
-    };
+    }
 
     void next(BaseLexer& lex, int line = __builtin_LINE()) {
         x_report(
             Print, .with_line(line).with_msg(fmt("next {}", lex.tok())));
         lex.next();
-    };
+    }
+
+    void print(std::string msg, int line = __builtin_LINE()) {
+        x_report(Print, .with_line(line).with_msg(msg));
+    }
+
 
     void skip(BaseLexer& lex, obt kind, int line = __builtin_LINE()) {
         x_report(
             Print, .with_line(line).with_msg(fmt("skip {}", lex.tok())));
         lex.skip(kind);
-    };
+    }
 
     State state_pop(State expected, int line = __builtin_LINE()) {
         CHECK(state_top() == expected)
@@ -243,55 +230,6 @@ struct RecombineState {
         return result;
     };
 
-    // Push new markup token from the current lexer position and
-    // remember the opening location in the stack.
-    void mark_push(MarkKind value, OrgTokenKind __to) {
-        OrgTokenId added = add_as(__to);
-        mark.push_back(Mark{.kind = value, .set = added});
-        lex.next();
-    };
-
-    // Get top known markup token from the stack of markup openings
-    Opt<Mark> mark_top() {
-        return mark.empty() ? std::nullopt : Opt<Mark>(mark.back());
-    };
-
-    // Finalize the markup token pair
-    Opt<Mark> mark_pop(MarkKind value, OrgTokenKind __to) {
-        add_as(__to);
-        lex.next();
-        CHECK(!mark.empty())
-            << "Expected the markup stack to not be empty";
-        CHECK(mark.back().kind == value)
-            << fmt("Expected markup stack to have value {} but top is {}. "
-                   "Pushed from {}",
-                   fmt1(value),
-                   mark.back().kind,
-                   mark.back().set);
-
-        return mark.empty() ? std::nullopt : Opt<Mark>(mark.pop_back_v());
-    };
-
-    void mark_toggle(MarkKind value, OrgTokenKind to) {
-        // Check if there has already been an opening markup token
-        // somewhere in the stack.
-        if (std::any_of(mark.begin(), mark.end(), [&value](Mark const& m) {
-                return m.kind == value;
-            })) {
-            if (mark.back().kind == value) {
-                // If it is the last one, then close it properly
-                mark_pop(value, to);
-            } else {
-                // If it is something internal, it means there is an
-                // unbalanced content, like `{[}` -- opening `[` will add
-                // something to the stack, but surrounding `{}` would not
-                // allow the proper tree to be formed.
-                LOG(FATAL) << "TODO FAIL" << fmt1(lex.tok());
-            }
-        } else {
-            mark_push(value, to);
-        }
-    }
 
     OrgTokenId add_as(OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill(lex)});
@@ -352,12 +290,11 @@ struct RecombineState {
         obt::MediumNewline,
         obt::LongNewline,
         obt::AnyPunct,
+        obt::LeadingSpace,
     };
 
     void recombine_markup() {
-        auto tr = trace();
-        // TODO Check if we are in the paragraph element or some other
-        // place.
+        auto tr   = trace();
         auto prev = prev_token();
         auto next = next_token();
         switch (lex.kind()) {
@@ -365,28 +302,23 @@ struct RecombineState {
             case obt::Equals:
             case obt::Plus:
             case obt::Asterisk: {
-                MarkKind mark{};
-                otk      open{};
-                otk      close{};
+                otk open{};
+                otk close{};
 
                 switch (lex.kind()) {
                     case obt::Asterisk:
-                        mark  = MarkKind::Bold;
                         open  = otk::BoldBegin;
                         close = otk::BoldEnd;
                         break;
                     case obt::ForwardSlash:
-                        mark  = MarkKind::Italic;
                         open  = otk::ItalicBegin;
                         close = otk::ItalicEnd;
                         break;
                     case obt::Equals:
-                        mark  = MarkKind::Verbatim;
                         open  = otk::VerbatimBegin;
                         close = otk::VerbatimEnd;
                         break;
                     case obt::Plus:
-                        mark  = MarkKind::Strike;
                         open  = otk::StrikeBegin;
                         close = otk::StrikeEnd;
                         break;
@@ -397,10 +329,17 @@ struct RecombineState {
                 bool prev_empty = !prev || EmptyToken.contains(prev->kind);
                 bool next_empty = !next || EmptyToken.contains(next->kind);
 
+                print(
+                    fmt("prev kind {} next kind {}",
+                        prev ? prev->kind : obt::Unknown,
+                        next ? next->kind : obt::Unknown));
+
                 if (prev_empty && !next_empty) {
-                    mark_toggle(mark, open);
+                    add_fake(open, {lex.tok().value});
+                    lex.next();
                 } else if (!prev_empty && next_empty) {
-                    mark_toggle(mark, close);
+                    add_fake(close, {lex.tok().value});
+                    lex.next();
                 } else {
                     pop_as(otk::Punctuation);
                 }

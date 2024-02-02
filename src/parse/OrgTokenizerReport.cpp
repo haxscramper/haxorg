@@ -27,7 +27,9 @@ void OrgTokenizer::report(CR<Report> in) {
                     os << " " << os.yellow()
                        << escape_for_write(t.value.text) << os.end();
                 },
-                BaseLexer::PrintParams{});
+                BaseLexer::PrintParams{
+                    .maxTokens = 2,
+                });
             os << "))";
         }
     };
