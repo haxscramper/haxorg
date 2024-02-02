@@ -579,6 +579,12 @@ struct RecombineState {
                 break;
             }
 
+            case obt::TableSeparator:
+                pop_as(otk::CmdTableSeparator);
+                break;
+            case obt::Pipe: pop_as(otk::CmdTableInnerPipe); break;
+            case obt::TrailingPipe: pop_as(otk::CmdTableTrailPipe); break;
+            case obt::LeadingPipe: pop_as(otk::CmdTableLeadPipe); break;
             case obt::LeftCurly: pop_as(otk::CurlyStart); break;
             case obt::RightCurly: pop_as(otk::CurlyEnd); break;
             case obt::EscapedChar: pop_as(otk::Escaped); break;

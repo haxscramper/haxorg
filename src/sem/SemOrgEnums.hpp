@@ -538,6 +538,12 @@ enum class OrgTokenKind : short int {
   CmdCenterBegin,
   CmdCenterEnd,
   CmdTableBegin,
+  CmdTableInnerPipe,
+  CmdTableLeadPipe,
+  CmdTableTrailPipe,
+  CmdTableSeparator,
+  CmdTableRow,
+  CmdTableCell,
   CmdTableEnd,
   CmdAdmonitionBegin,
   CmdAdmonitionEnd,
@@ -570,29 +576,6 @@ enum class OrgTokenKind : short int {
   CmdSrcCodeContent,
   /// \brief Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion.
   CmdSrcTextBlock,
-  /// \brief Block of text inside `#+table`
-  TblContent,
-  TblBegin,
-  TblEnd,
-  /// \brief Unformatted table cell body
-  TblCellBody,
-  /// \brief `#+row` command together with parameters
-  TblRowSpec,
-  /// \brief `#+cell` command with parameters
-  TblCellSpec,
-  TblPipeBegin,
-  /// \brief Vertical pipe (`|`) cell separator
-  TblPipeSeparator,
-  TblPipeEnd,
-  TblPipeCellBegin,
-  /// \brief Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator
-  TblDashSeparator,
-  /// \brief Corner plus (`+`)
-  TblCornerPlus,
-  /// \brief Start of the table cell content section
-  TblCellContentBegin,
-  /// \brief End of the table cell content section
-  TblCellContentEnd,
   /// \brief Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected
   CodeText,
   Text,

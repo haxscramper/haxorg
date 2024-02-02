@@ -1479,7 +1479,14 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("CmdQuoteEnd", GenTuDoc("")),
         GenTuEnumField("CmdCenterBegin", GenTuDoc("")),
         GenTuEnumField("CmdCenterEnd", GenTuDoc("")),
+        #tag Table
         GenTuEnumField("CmdTableBegin", GenTuDoc("")),
+        GenTuEnumField("CmdTableInnerPipe", GenTuDoc("")),
+        GenTuEnumField("CmdTableLeadPipe", GenTuDoc("")),
+        GenTuEnumField("CmdTableTrailPipe", GenTuDoc("")),
+        GenTuEnumField("CmdTableSeparator", GenTuDoc("")),
+        GenTuEnumField("CmdTableRow", GenTuDoc("")),
+        GenTuEnumField("CmdTableCell", GenTuDoc("")),
         GenTuEnumField("CmdTableEnd", GenTuDoc("")),
         GenTuEnumField("CmdAdmonitionBegin", GenTuDoc("")),
         GenTuEnumField("CmdAdmonitionEnd", GenTuDoc("")),
@@ -1508,29 +1515,6 @@ def get_org_token_kind() -> GenTuEnum:
                 "Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion."
             ),
         ),
-        #endregion
-        #region Table
-        GenTuEnumField("TblContent", GenTuDoc("Block of text inside `#+table`")),
-        GenTuEnumField("TblBegin", GenTuDoc("")),
-        GenTuEnumField("TblEnd", GenTuDoc("")),
-        GenTuEnumField("TblCellBody", GenTuDoc("Unformatted table cell body")),
-        GenTuEnumField("TblRowSpec",
-                       GenTuDoc("`#+row` command together with parameters")),
-        GenTuEnumField("TblCellSpec", GenTuDoc("`#+cell` command with parameters")),
-        GenTuEnumField("TblPipeBegin", GenTuDoc("")),
-        GenTuEnumField("TblPipeSeparator",
-                       GenTuDoc("Vertical pipe (`|`) cell separator")),
-        GenTuEnumField("TblPipeEnd", GenTuDoc("")),
-        GenTuEnumField("TblPipeCellBegin", GenTuDoc("")),
-        GenTuEnumField(
-            "TblDashSeparator",
-            GenTuDoc("Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator"),
-        ),
-        GenTuEnumField("TblCornerPlus", GenTuDoc("Corner plus (`+`)")),
-        GenTuEnumField("TblCellContentBegin",
-                       GenTuDoc("Start of the table cell content section")),
-        GenTuEnumField("TblCellContentEnd",
-                       GenTuDoc("End of the table cell content section")),
         #endregion
         #endregion
         GenTuEnumField(

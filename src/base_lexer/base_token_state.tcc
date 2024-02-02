@@ -127,6 +127,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Tilda: return "Tilda";
         case BaseTokenKind::Time: return "Time";
         case BaseTokenKind::TimeArrow: return "TimeArrow";
+        case BaseTokenKind::TrailingPipe: return "TrailingPipe";
         case BaseTokenKind::TreeClock: return "TreeClock";
         case BaseTokenKind::TreePropertyEnd: return "TreePropertyEnd";
         case BaseTokenKind::TreePropertyLiteral: return "TreePropertyLiteral";
@@ -247,6 +248,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Tilda") { return BaseTokenKind::Tilda; } else
   if (value == "Time") { return BaseTokenKind::Time; } else
   if (value == "TimeArrow") { return BaseTokenKind::TimeArrow; } else
+  if (value == "TrailingPipe") { return BaseTokenKind::TrailingPipe; } else
   if (value == "TreeClock") { return BaseTokenKind::TreeClock; } else
   if (value == "TreePropertyEnd") { return BaseTokenKind::TreePropertyEnd; } else
   if (value == "TreePropertyLiteral") { return BaseTokenKind::TreePropertyLiteral; } else

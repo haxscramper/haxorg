@@ -105,6 +105,7 @@ enum class BaseTokenKind : unsigned short int {
   Tilda,
   Time,
   TimeArrow,
+  TrailingPipe,
   TreeClock,
   TreePropertyEnd,
   TreePropertyLiteral,

@@ -860,8 +860,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                     if (name) {
                         par.os << fmt(" {}", *name);
                     } else {
-                        LOG(FATAL) << fmt(
-                            "Missing field name for element {} of node {}",
+                        par.os << fmt(
+                            "'Missing field name for element {} of node "
+                            "{}'",
                             *par.subnodeIdx,
                             OrgAdapter(&p.nodes, *par.parent).getKind());
                     }

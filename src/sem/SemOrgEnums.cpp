@@ -588,6 +588,12 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "CmdCenterBegin") { return OrgTokenKind::CmdCenterBegin; } else
   if (value == "CmdCenterEnd") { return OrgTokenKind::CmdCenterEnd; } else
   if (value == "CmdTableBegin") { return OrgTokenKind::CmdTableBegin; } else
+  if (value == "CmdTableInnerPipe") { return OrgTokenKind::CmdTableInnerPipe; } else
+  if (value == "CmdTableLeadPipe") { return OrgTokenKind::CmdTableLeadPipe; } else
+  if (value == "CmdTableTrailPipe") { return OrgTokenKind::CmdTableTrailPipe; } else
+  if (value == "CmdTableSeparator") { return OrgTokenKind::CmdTableSeparator; } else
+  if (value == "CmdTableRow") { return OrgTokenKind::CmdTableRow; } else
+  if (value == "CmdTableCell") { return OrgTokenKind::CmdTableCell; } else
   if (value == "CmdTableEnd") { return OrgTokenKind::CmdTableEnd; } else
   if (value == "CmdAdmonitionBegin") { return OrgTokenKind::CmdAdmonitionBegin; } else
   if (value == "CmdAdmonitionEnd") { return OrgTokenKind::CmdAdmonitionEnd; } else
@@ -608,20 +614,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "CmdContentEnd") { return OrgTokenKind::CmdContentEnd; } else
   if (value == "CmdSrcCodeContent") { return OrgTokenKind::CmdSrcCodeContent; } else
   if (value == "CmdSrcTextBlock") { return OrgTokenKind::CmdSrcTextBlock; } else
-  if (value == "TblContent") { return OrgTokenKind::TblContent; } else
-  if (value == "TblBegin") { return OrgTokenKind::TblBegin; } else
-  if (value == "TblEnd") { return OrgTokenKind::TblEnd; } else
-  if (value == "TblCellBody") { return OrgTokenKind::TblCellBody; } else
-  if (value == "TblRowSpec") { return OrgTokenKind::TblRowSpec; } else
-  if (value == "TblCellSpec") { return OrgTokenKind::TblCellSpec; } else
-  if (value == "TblPipeBegin") { return OrgTokenKind::TblPipeBegin; } else
-  if (value == "TblPipeSeparator") { return OrgTokenKind::TblPipeSeparator; } else
-  if (value == "TblPipeEnd") { return OrgTokenKind::TblPipeEnd; } else
-  if (value == "TblPipeCellBegin") { return OrgTokenKind::TblPipeCellBegin; } else
-  if (value == "TblDashSeparator") { return OrgTokenKind::TblDashSeparator; } else
-  if (value == "TblCornerPlus") { return OrgTokenKind::TblCornerPlus; } else
-  if (value == "TblCellContentBegin") { return OrgTokenKind::TblCellContentBegin; } else
-  if (value == "TblCellContentEnd") { return OrgTokenKind::TblCellContentEnd; } else
   if (value == "CodeText") { return OrgTokenKind::CodeText; } else
   if (value == "Text") { return OrgTokenKind::Text; } else
   if (value == "StmtList") { return OrgTokenKind::StmtList; } else
@@ -805,6 +797,12 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::CmdCenterBegin: return "CmdCenterBegin";
     case OrgTokenKind::CmdCenterEnd: return "CmdCenterEnd";
     case OrgTokenKind::CmdTableBegin: return "CmdTableBegin";
+    case OrgTokenKind::CmdTableInnerPipe: return "CmdTableInnerPipe";
+    case OrgTokenKind::CmdTableLeadPipe: return "CmdTableLeadPipe";
+    case OrgTokenKind::CmdTableTrailPipe: return "CmdTableTrailPipe";
+    case OrgTokenKind::CmdTableSeparator: return "CmdTableSeparator";
+    case OrgTokenKind::CmdTableRow: return "CmdTableRow";
+    case OrgTokenKind::CmdTableCell: return "CmdTableCell";
     case OrgTokenKind::CmdTableEnd: return "CmdTableEnd";
     case OrgTokenKind::CmdAdmonitionBegin: return "CmdAdmonitionBegin";
     case OrgTokenKind::CmdAdmonitionEnd: return "CmdAdmonitionEnd";
@@ -825,20 +823,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::CmdContentEnd: return "CmdContentEnd";
     case OrgTokenKind::CmdSrcCodeContent: return "CmdSrcCodeContent";
     case OrgTokenKind::CmdSrcTextBlock: return "CmdSrcTextBlock";
-    case OrgTokenKind::TblContent: return "TblContent";
-    case OrgTokenKind::TblBegin: return "TblBegin";
-    case OrgTokenKind::TblEnd: return "TblEnd";
-    case OrgTokenKind::TblCellBody: return "TblCellBody";
-    case OrgTokenKind::TblRowSpec: return "TblRowSpec";
-    case OrgTokenKind::TblCellSpec: return "TblCellSpec";
-    case OrgTokenKind::TblPipeBegin: return "TblPipeBegin";
-    case OrgTokenKind::TblPipeSeparator: return "TblPipeSeparator";
-    case OrgTokenKind::TblPipeEnd: return "TblPipeEnd";
-    case OrgTokenKind::TblPipeCellBegin: return "TblPipeCellBegin";
-    case OrgTokenKind::TblDashSeparator: return "TblDashSeparator";
-    case OrgTokenKind::TblCornerPlus: return "TblCornerPlus";
-    case OrgTokenKind::TblCellContentBegin: return "TblCellContentBegin";
-    case OrgTokenKind::TblCellContentEnd: return "TblCellContentEnd";
     case OrgTokenKind::CodeText: return "CodeText";
     case OrgTokenKind::Text: return "Text";
     case OrgTokenKind::StmtList: return "StmtList";
