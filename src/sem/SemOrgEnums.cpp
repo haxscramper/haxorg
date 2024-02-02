@@ -575,8 +575,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "CmdCall") { return OrgTokenKind::CmdCall; } else
   if (value == "CmdName") { return OrgTokenKind::CmdName; } else
   if (value == "CmdHeader") { return OrgTokenKind::CmdHeader; } else
-  if (value == "CmdArgumentsBegin") { return OrgTokenKind::CmdArgumentsBegin; } else
-  if (value == "CmdArgumentsEnd") { return OrgTokenKind::CmdArgumentsEnd; } else
   if (value == "CmdKey") { return OrgTokenKind::CmdKey; } else
   if (value == "CmdValue") { return OrgTokenKind::CmdValue; } else
   if (value == "CmdFlag") { return OrgTokenKind::CmdFlag; } else
@@ -706,8 +704,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "LinkDescriptionBegin") { return OrgTokenKind::LinkDescriptionBegin; } else
   if (value == "LinkDescriptionEnd") { return OrgTokenKind::LinkDescriptionEnd; } else
   if (value == "TextSeparator") { return OrgTokenKind::TextSeparator; } else
-  if (value == "ParagraphBegin") { return OrgTokenKind::ParagraphBegin; } else
-  if (value == "ParagraphEnd") { return OrgTokenKind::ParagraphEnd; } else
   if (value == "FootnoteBegin") { return OrgTokenKind::FootnoteBegin; } else
   if (value == "Word") { return OrgTokenKind::Word; } else
   if (value == "DoubleColon") { return OrgTokenKind::DoubleColon; } else
@@ -794,8 +790,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::CmdCall: return "CmdCall";
     case OrgTokenKind::CmdName: return "CmdName";
     case OrgTokenKind::CmdHeader: return "CmdHeader";
-    case OrgTokenKind::CmdArgumentsBegin: return "CmdArgumentsBegin";
-    case OrgTokenKind::CmdArgumentsEnd: return "CmdArgumentsEnd";
     case OrgTokenKind::CmdKey: return "CmdKey";
     case OrgTokenKind::CmdValue: return "CmdValue";
     case OrgTokenKind::CmdFlag: return "CmdFlag";
@@ -925,8 +919,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::LinkDescriptionBegin: return "LinkDescriptionBegin";
     case OrgTokenKind::LinkDescriptionEnd: return "LinkDescriptionEnd";
     case OrgTokenKind::TextSeparator: return "TextSeparator";
-    case OrgTokenKind::ParagraphBegin: return "ParagraphBegin";
-    case OrgTokenKind::ParagraphEnd: return "ParagraphEnd";
     case OrgTokenKind::FootnoteBegin: return "FootnoteBegin";
     case OrgTokenKind::Word: return "Word";
     case OrgTokenKind::DoubleColon: return "DoubleColon";

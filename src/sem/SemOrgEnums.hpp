@@ -523,10 +523,6 @@ enum class OrgTokenKind : short int {
   CmdName,
   /// \brief `#+header:`
   CmdHeader,
-  /// \brief List of command arguments
-  CmdArgumentsBegin,
-  /// \brief End of the command arguments list
-  CmdArgumentsEnd,
   CmdKey,
   CmdValue,
   CmdFlag,
@@ -728,9 +724,6 @@ enum class OrgTokenKind : short int {
   LinkDescriptionBegin,
   LinkDescriptionEnd,
   TextSeparator,
-  /// \brief Fake token inserted by the lexer to delimit start of the paragraph
-  ParagraphBegin,
-  ParagraphEnd,
   FootnoteBegin,
   /// \brief Regular word in the paragraph
   Word,

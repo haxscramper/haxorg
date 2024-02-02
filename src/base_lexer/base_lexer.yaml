@@ -223,6 +223,8 @@ rules:
 
   - re: "{lead_space}\\|"
     token: LeadingPipe
+  - re: "\\|$"
+    token: TrailingPipe
   - re: "{lead_space}\\|([:-]+[\\|\\+]+)+[:|-]*\\|"
     token: TableSeparator
     

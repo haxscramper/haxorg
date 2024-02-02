@@ -70,15 +70,6 @@ auto in_set(T const& value, Args&&... args) -> bool {
     return set.contains(value);
 }
 
-DECL_DESCRIBED_ENUM_STANDALONE(
-    State,
-    None,
-    Paragraph,
-    RawMonospace,
-    Subtree,
-    CmdArguments,
-    CmdContent);
-
 OrgFill fill(BaseLexer& lex) { return OrgFill{.base = lex.tok().value}; }
 
 template <typename T>
@@ -123,7 +114,6 @@ namespace {
 
 struct RecombineState {
     OrgTokenizer* d;
-    Vec<State>    state;
     BaseLexer&    lex;
     bool const&   TraceState;
 
@@ -175,28 +165,6 @@ struct RecombineState {
     };
 
 
-    void state_push(State value, int line = __builtin_LINE()) {
-        x_report(
-            Print,
-            .with_line(line).with_msg(
-                fmt("state push {} from {}", value, lex.tok())));
-
-        state.push_back(value);
-    };
-
-    State state_top() {
-        return state.empty() ? State::None : state.back();
-    }
-
-    State state_pop(int line = __builtin_LINE()) {
-        auto result = state.empty() ? State::None : state.pop_back_v();
-        x_report(
-            Print,
-            .with_line(line).with_msg(
-                fmt("state pop {} from {}", result, lex.tok())));
-        return result;
-    }
-
     void next(BaseLexer& lex, int line = __builtin_LINE()) {
         x_report(
             Print, .with_line(line).with_msg(fmt("next {}", lex.tok())));
@@ -213,23 +181,6 @@ struct RecombineState {
             Print, .with_line(line).with_msg(fmt("skip {}", lex.tok())));
         lex.skip(kind);
     }
-
-    State state_pop(State expected, int line = __builtin_LINE()) {
-        CHECK(state_top() == expected)
-            << fmt("Expected to drop top state {} but got {}",
-                   expected,
-                   state_top());
-
-        auto result = state.empty() ? State::None : state.pop_back_v();
-
-        x_report(
-            Print,
-            .with_line(line).with_msg(
-                fmt("state pop {} from {}", result, lex.tok())));
-
-        return result;
-    };
-
 
     OrgTokenId add_as(OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill(lex)});
@@ -256,10 +207,6 @@ struct RecombineState {
         }
     }
 
-    void par_as(OrgTokenKind __to, int line = __builtin_LINE()) {
-        maybe_paragraph_start();
-        pop_as(__to, std::nullopt, line);
-    }
 
     OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to});
@@ -368,7 +315,6 @@ struct RecombineState {
             pop_as(otk::HashTagBegin);
         } else if (auto date = lex.opt(+1);
                    date && date->get().kind == obt::Date) {
-            maybe_paragraph_start();
             pop_as(otk::BraceBegin);
             pop_as(otk::StaticTimeDatePart, obt::Date);
             // maybe day in  [yyyy-mm-dd Mon hh:mm:ss]
@@ -391,7 +337,6 @@ struct RecombineState {
             pop_as(otk::BraceEnd, obt::BraceClose);
         } else if (auto time = lex.opt(+1);
                    time && time->get().kind == obt::Time) {
-            maybe_paragraph_start();
             pop_as(otk::BraceBegin);
             pop_as(otk::StaticTimeDatePart, obt::Time);
             if (lex.at(Vec{obt::Whitespace, obt::Plus, obt::Number})) {
@@ -401,13 +346,11 @@ struct RecombineState {
             }
             pop_as(otk::BraceEnd, obt::BraceClose);
         } else {
-            maybe_paragraph_start();
             pop_as(otk::BraceBegin);
         }
     }
 
     void map_line_command() {
-        maybe_paragraph_end();
         auto next = lex.tok(+1);
         pop_as(otk::CmdPrefix);
         switch (next.kind) {
@@ -478,75 +421,10 @@ struct RecombineState {
 
         switch (next.kind) {
             case obt::CmdSrcBegin:
-                state_push(State::CmdContent);
                 add_fake(otk::CmdContentBegin);
                 if (lex.at(line_end)) { lex.next(); }
                 break;
             default:
-        }
-    }
-
-    void map_colon() {
-        auto        tr      = trace();
-        auto const& state_1 = state.get(1_B);
-        auto const& state_2 = state.get(2_B);
-        if (state_1 && state_2 && state_1.value() == State::Paragraph
-            && state_2.value() == State::Subtree) {
-            auto ahead = lex.whole_fixed().range_current()
-                       | rv::take_while([&](BaseToken const& t) -> bool {
-                             return tree_tags.contains(t.kind);
-                         })
-                       | rs::to<std::vector>;
-
-            if (line_end.contains((lex.begin() + ahead.size())->kind)) {
-                maybe_paragraph_end();
-                while (!line_end.contains(lex.kind())) {
-                    switch (lex.kind()) {
-                        case obt::Colon:
-                            pop_as(otk::SubtreeTagSeparator);
-                            break;
-                        case obt::Word: pop_as(otk::HashTag); break;
-                        case obt::DoubleHash:
-                            pop_as(otk::HashTagSub);
-                            break;
-                        default:
-                    }
-                }
-            } else {
-                pop_as(otk::Colon);
-            }
-
-        } else {
-            pop_as(otk::Colon);
-        }
-    }
-
-    void maybe_paragraph_start() {
-        bool matching_state = state_top() == State::None
-                           || state_top() == State::Subtree;
-
-        auto __trace = trace(fmt("match:{}", matching_state));
-
-        if (matching_state) {
-            add_fake(otk::ParagraphBegin);
-            state_push(State::Paragraph);
-        }
-    }
-
-    void newline_end() {
-        if (state_top() == State::Paragraph) {
-            add_fake(otk::ParagraphEnd);
-            state_pop();
-        }
-
-        if (state_top() == State::Subtree) { state_pop(); }
-    }
-
-    void maybe_paragraph_end() {
-        auto tr = trace();
-        if (state_top() == State::Paragraph) {
-            add_fake(otk::ParagraphEnd);
-            state_pop();
         }
     }
 
@@ -557,46 +435,6 @@ struct RecombineState {
         obt::Whitespace,
         obt::Indent,
     };
-
-    void map_hashtag() {
-        if (lex.hasNext(+1)) {
-            if (opt_equal_kind(lex.opt(+1), obt::DoubleHash)) {
-                pop_as(otk::HashTag);
-                auto while_tag = lex.whole().range()
-                               | rv::take_while(
-                                     [&](BaseToken const& tok) -> bool {
-                                         return HashTagTokens.contains(
-                                             tok.kind);
-                                     });
-
-                // TODO minimize size of the range ahead by
-                // dropping unnecessary tokens, counting balancing
-                // elements in the tree.
-
-                for (auto const& tok : while_tag) {
-                    switch (lex.kind()) {
-                        case obt::BraceOpen:
-                            pop_as(otk::HashTagBegin);
-                            break;
-                        case obt::BraceClose:
-                            pop_as(otk::HashTagEnd);
-                            break;
-                        case obt::Word: pop_as(otk::HashTag); break;
-                        case obt::DoubleHash:
-                            pop_as(otk::HashTagSub);
-                            break;
-                        case obt::Whitespace: pop_as(otk::Space); break;
-                        default:
-                    }
-                }
-
-            } else {
-                pop_as(otk::HashTag);
-            }
-        } else {
-            pop_as(otk::HashTag);
-        }
-    }
 
     void map_command_args() {
         while (!line_end.contains(lex.kind())) {
@@ -614,8 +452,7 @@ struct RecombineState {
     }
 
     void map_interpreted_token() {
-        auto __trace = trace(
-            std::format("state: {}", state), __LINE__, "[map]");
+        auto               __trace  = trace("", __LINE__, "[map]");
         BaseTokenId        start    = lex.pos;
         BaseToken const&   tok      = lex.tok();
         BaseFill const&    val      = tok.value;
@@ -624,7 +461,7 @@ struct RecombineState {
 
         switch (map_kind) {
             case obt::Comma: pop_as(otk::Comma); break;
-            case obt::Colon: map_colon(); break;
+            case obt::Colon: pop_as(otk::Colon); break;
             case obt::BraceOpen: map_open_brace(); break;
             case obt::LeadingMinus: pop_as(otk::ListItemBegin); break;
             case obt::LeadingSpace: lex.next(); break;
@@ -651,9 +488,9 @@ struct RecombineState {
             case obt::ListItemEnd: pop_as(otk::ListItemEnd); break;
             case obt::SrcContent: pop_as(otk::CodeText); break;
             case obt::CmdExampleLine: pop_as(otk::RawText); break;
-            case obt::Ampersand: par_as(otk::Punctuation); break;
-            case obt::AnyPunct: par_as(otk::Punctuation); break;
-            case obt::Symbol: par_as(otk::SymbolBegin); break;
+            case obt::Ampersand: pop_as(otk::Punctuation); break;
+            case obt::AnyPunct: pop_as(otk::Punctuation); break;
+            case obt::Symbol: pop_as(otk::SymbolBegin); break;
             case obt::TreePropertyProperties:
                 pop_as(otk::ColonProperties);
                 break;
@@ -663,65 +500,32 @@ struct RecombineState {
             // On top level, base tokens like `2020-01-10` are not
             // registered as proper timestamp elements and are converted to
             // the regular words.
-            case obt::Number: par_as(otk::Word); break;
+            case obt::Number: pop_as(otk::Word); break;
             // FIXME why two tokens of the same kind?
-            case obt::Date: par_as(otk::Word); break;
-            case obt::Percent: par_as(otk::Punctuation); break;
+            case obt::Date: pop_as(otk::Word); break;
+            case obt::Percent: pop_as(otk::Punctuation); break;
             // FIXME Some weird name transitions here, cleanup later
-            case obt::LeftPar: par_as(otk::ParBegin); break;
-            case obt::RightPar: par_as(otk::ParEnd); break;
+            case obt::LeftPar: pop_as(otk::ParBegin); break;
+            case obt::RightPar: pop_as(otk::ParEnd); break;
             // When not used in the timestamps, these are just pieces of
             // punctuation
-            case obt::BraceClose: par_as(otk::BraceEnd); break;
-            case obt::MacroBegin: par_as(otk::MacroBegin); break;
-            case obt::MacroEnd: par_as(otk::MacroEnd); break;
-            case obt::At: par_as(otk::AtMention); break;
-            case obt::FootnoteBegin: par_as(otk::FootnoteBegin); break;
+            case obt::BraceClose: pop_as(otk::BraceEnd); break;
+            case obt::MacroBegin: pop_as(otk::MacroBegin); break;
+            case obt::MacroEnd: pop_as(otk::MacroEnd); break;
+            case obt::At: pop_as(otk::AtMention); break;
+            case obt::FootnoteBegin: pop_as(otk::FootnoteBegin); break;
             case obt::TextSeparator: pop_as(otk::TextSeparator); break;
             case obt::SingleQuote: pop_as(otk::Punctuation); break;
             case obt::DoubleDash: pop_as(otk::TimeDash); break;
             case obt::Time: pop_as(otk::TimeDuration); break;
             case obt::Semicolon: pop_as(otk::Punctuation); break;
-            case obt::MiscUnicode: par_as(otk::Word); break;
-
-
-            case obt::Whitespace: {
-                if (state_top() == State::CmdArguments) {
-                    lex.next();
-                } else {
-                    pop_as(otk::Space);
-                }
-                break;
-            }
-
+            case obt::MiscUnicode: pop_as(otk::Word); break;
+            case obt::Whitespace: pop_as(otk::Space); break;
             case obt::MediumNewline:
             case obt::LongNewline:
-            case obt::Newline: {
-                switch (state_top()) {
-                    case State::CmdArguments: {
-                        lex.next();
-                        state_pop();
-                        add_fake(otk::CmdArgumentsEnd);
-                        state_push(State::CmdContent);
-                        add_fake(otk::CmdContentBegin);
-                        break;
-                    }
-                    default: {
-                        newline_end();
-                        pop_as(otk::Newline);
-                    }
-                }
+            case obt::Newline: pop_as(otk::Newline); break;
+            case obt::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
 
-                break;
-            }
-
-
-            case obt::CmdSrcBegin: {
-                pop_as(otk::CmdSrcBegin);
-                add_fake(otk::CmdArgumentsBegin);
-                state_push(State::CmdArguments);
-                break;
-            }
 
             case obt::CmdExampleEnd: {
                 add_fake(otk::CmdPrefix);
@@ -736,32 +540,24 @@ struct RecombineState {
             }
 
             case obt::CmdSrcEnd: {
-                state_pop(State::CmdContent);
-                add_fake(otk::CmdContentEnd);
                 add_fake(otk::CmdPrefix);
                 pop_as(otk::CmdSrcEnd);
                 break;
             }
 
 
-            case obt::HashIdent: {
-                maybe_paragraph_start();
-                map_hashtag();
-                break;
-            }
+            case obt::HashIdent: pop_as(otk::HashTag); break;
 
 
             case obt::Plus:
             case obt::ForwardSlash:
             case obt::Equals:
             case obt::Asterisk: {
-                maybe_paragraph_start();
                 recombine_markup();
                 break;
             }
 
             case obt::Tilda: {
-                maybe_paragraph_start();
                 pop_as(otk::MonospaceBegin);
                 while (!(!lex.at(EmptyToken, -1) && lex.at(obt::Tilda))) {
                     pop_as(otk::RawText);
@@ -771,110 +567,40 @@ struct RecombineState {
             }
 
             case obt::StmtListClose: {
-                switch (state_top()) {
-                    case State::Paragraph: {
-                        add_fake(otk::ParagraphEnd);
-                        state_pop();
-                        break;
-                    }
-
-                    case State::None: {
-                        break;
-                    }
-
-                    default: {
-                        LOG(INFO)
-                            << fmt("Unexpected top state when statement "
-                                   "list was closed {}",
-                                   state_top());
-                    }
-                }
-
                 pop_as(otk::StmtListEnd);
                 break;
             }
 
             case obt::EndOfFile: {
-                while (!state.empty()) {
-                    switch (state_top()) {
-                        case State::Paragraph: {
-                            add_fake(otk::ParagraphEnd);
-                            break;
-                        }
-                        case State::Subtree: {
-                            break;
-                        }
-                        case State::None: {
-                            break;
-                        }
-                        default: {
-                            LOG(FATAL) << fmt(
-                                "Encountered end of file while state "
-                                "stack was not completely closed, the "
-                                "top element was {}. Expected 'none' "
-                                "or 'paragraph'.",
-                                state_top());
-                        }
-                    }
-                    state_pop();
-                }
                 lex.next();
                 break;
             }
 
             case obt::Word: {
-                maybe_paragraph_start();
                 pop_as(otk::Word);
                 break;
             }
 
 
             case obt::SubtreeStars: {
-                state_push(State::Subtree);
                 pop_as(otk::SubtreeStars);
                 break;
             }
 
-            case obt::LeftCurly:
-                maybe_paragraph_start();
-                pop_as(otk::CurlyStart);
-                break;
-            case obt::RightCurly:
-                maybe_paragraph_start();
-                pop_as(otk::CurlyEnd);
-                break;
-            case obt::EscapedChar:
-                maybe_paragraph_start();
-                pop_as(otk::Escaped);
-                break;
-            case obt::LinkEnd:
-                maybe_paragraph_start();
-                pop_as(otk::LinkEnd);
-                break;
-            case obt::DoubleQuote:
-                maybe_paragraph_start();
-                pop_as(otk::Punctuation);
-                break;
-            case obt::LeftAngle:
-                maybe_paragraph_start();
-                pop_as(otk::AngleBegin);
-                break;
-            case obt::RightAngle:
-                maybe_paragraph_start();
-                pop_as(otk::AngleEnd);
-                break;
+            case obt::LeftCurly: pop_as(otk::CurlyStart); break;
+            case obt::RightCurly: pop_as(otk::CurlyEnd); break;
+            case obt::EscapedChar: pop_as(otk::Escaped); break;
+            case obt::LinkEnd: pop_as(otk::LinkEnd); break;
+            case obt::DoubleQuote: pop_as(otk::Punctuation); break;
+            case obt::LeftAngle: pop_as(otk::AngleBegin); break;
+            case obt::RightAngle: pop_as(otk::AngleEnd); break;
             case obt::DoubleLeftAngle:
-                maybe_paragraph_start();
                 pop_as(otk::DoubleAngleBegin);
                 break;
-            case obt::DoubleRightAngle:
-                maybe_paragraph_start();
-                pop_as(otk::DoubleAngleEnd);
-                break;
+            case obt::DoubleRightAngle: pop_as(otk::DoubleAngleEnd); break;
 
 
             case obt::LinkBegin: {
-                maybe_paragraph_start();
                 add_fake(otk::LinkBegin);
                 add_fake(otk::LinkTargetBegin);
                 auto text = strip(
@@ -887,7 +613,6 @@ struct RecombineState {
 
             case obt::DslLinkBegin:
             case obt::DslLink: {
-                maybe_paragraph_start();
                 add_fake(otk::LinkBegin);
                 add_fake(otk::LinkTargetBegin);
                 auto text = strip(
@@ -912,12 +637,11 @@ struct RecombineState {
             default: {
                 LOG(FATAL) << std::format(
                     "Unhanled kind for token conversion, got {}:{} {} "
-                    "\"{}\", top state was {}, lexer context {}",
+                    "\"{}\", lexer context {}",
                     val.line,
                     val.col,
                     lex.kind(),
                     val.text,
-                    state_top(),
                     lex);
                 lex.next();
             }
@@ -929,24 +653,17 @@ struct RecombineState {
             BaseTokenId     start = lex.pos;
             BaseFill const& val   = lex.tok().value;
 
-            if (state_top() == State::RawMonospace
-                && lex.kind() != obt::Tilda) {
-                pop_as(otk::RawText);
-
-            } else {
-                map_interpreted_token();
-            }
+            map_interpreted_token();
 
             CHECK((lex.pos != start)) << std::format(
                 "Non-terminating token conversion case, got kind '{}' "
                 "text '{}' at id {} with no movement. This is a bug in "
                 "the implementation -- we iterated over baseline tokens, "
-                "but did not find where to map the item to. The current "
-                "conversion state top is {} and the lexer was {}",
+                "but did not find where to map the item to. The lexer was "
+                "{}",
                 lex.kind(),
                 val.text,
                 lex.pos.format(),
-                state_top(),
                 lex.printToString([](ColStream& os, BaseToken const& t) {
                     os << os.yellow() << escape_for_write(t.value.text)
                        << os.end();

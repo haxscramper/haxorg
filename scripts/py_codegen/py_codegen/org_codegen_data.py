@@ -1463,8 +1463,6 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("CmdHeader", GenTuDoc("`#+header:`")),
         #endregion
         #region Command-arguments
-        GenTuEnumField("CmdArgumentsBegin", GenTuDoc("List of command arguments")),
-        GenTuEnumField("CmdArgumentsEnd", GenTuDoc("End of the command arguments list")),
         GenTuEnumField("CmdKey", GenTuDoc("")),
         GenTuEnumField("CmdValue", GenTuDoc("")),
         GenTuEnumField("CmdFlag", GenTuDoc("")),
@@ -1688,12 +1686,6 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("LinkDescriptionEnd", GenTuDoc("")),
         #tag Paragraph
         GenTuEnumField("TextSeparator", GenTuDoc("")),
-        GenTuEnumField(
-            "ParagraphBegin",
-            GenTuDoc(
-                "Fake token inserted by the lexer to delimit start of the paragraph"),
-        ),
-        GenTuEnumField("ParagraphEnd", GenTuDoc("")),
         GenTuEnumField("FootnoteBegin", GenTuDoc("")),
         #tag Paragraph-tokens
         GenTuEnumField("Word", GenTuDoc("Regular word in the paragraph")),
