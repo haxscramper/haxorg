@@ -79,6 +79,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Indent: return "Indent";
         case BaseTokenKind::LeadingMinus: return "LeadingMinus";
         case BaseTokenKind::LeadingNumber: return "LeadingNumber";
+        case BaseTokenKind::LeadingPipe: return "LeadingPipe";
         case BaseTokenKind::LeadingPlus: return "LeadingPlus";
         case BaseTokenKind::LeadingSpace: return "LeadingSpace";
         case BaseTokenKind::LeftAngle: return "LeftAngle";
@@ -117,6 +118,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::SubtreePriority: return "SubtreePriority";
         case BaseTokenKind::SubtreeStars: return "SubtreeStars";
         case BaseTokenKind::Symbol: return "Symbol";
+        case BaseTokenKind::TableSeparator: return "TableSeparator";
         case BaseTokenKind::TblAssign: return "TblAssign";
         case BaseTokenKind::TblColumnRef: return "TblColumnRef";
         case BaseTokenKind::TblOperator: return "TblOperator";
@@ -197,6 +199,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Indent") { return BaseTokenKind::Indent; } else
   if (value == "LeadingMinus") { return BaseTokenKind::LeadingMinus; } else
   if (value == "LeadingNumber") { return BaseTokenKind::LeadingNumber; } else
+  if (value == "LeadingPipe") { return BaseTokenKind::LeadingPipe; } else
   if (value == "LeadingPlus") { return BaseTokenKind::LeadingPlus; } else
   if (value == "LeadingSpace") { return BaseTokenKind::LeadingSpace; } else
   if (value == "LeftAngle") { return BaseTokenKind::LeftAngle; } else
@@ -235,6 +238,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "SubtreePriority") { return BaseTokenKind::SubtreePriority; } else
   if (value == "SubtreeStars") { return BaseTokenKind::SubtreeStars; } else
   if (value == "Symbol") { return BaseTokenKind::Symbol; } else
+  if (value == "TableSeparator") { return BaseTokenKind::TableSeparator; } else
   if (value == "TblAssign") { return BaseTokenKind::TblAssign; } else
   if (value == "TblColumnRef") { return BaseTokenKind::TblColumnRef; } else
   if (value == "TblOperator") { return BaseTokenKind::TblOperator; } else

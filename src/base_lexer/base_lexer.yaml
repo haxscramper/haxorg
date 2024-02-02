@@ -220,6 +220,12 @@ rules:
   - { re: "@-?\\d+", states: [COMMAND_TBLFM], token: TblRelativeColumnRef }
   - { re: "{space}+", states: [COMMAND_TBLFM], token: Whitespace }
   - { re: "[-]", states: [COMMAND_TBLFM], token: TblOperator }
+
+  - re: "{lead_space}\\|"
+    token: LeadingPipe
+  - re: "{lead_space}\\|([:-]+[\\|\\+]+)+[:|-]*\\|"
+    token: TableSeparator
+    
   #endregion
 
   #endregion
