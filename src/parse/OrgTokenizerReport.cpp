@@ -2,15 +2,7 @@
 
 void OrgTokenizer::report(CR<Report> in) {
     if (!TraceState) { return; }
-
     if (reportHook) { reportHook(in); }
-
-    if (traceUpdateHook) { traceUpdateHook(in, TraceState, true); }
-
-    if (!TraceState) {
-        if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
-        return;
-    }
 
 
     using fg = TermColorFg8Bit;
@@ -27,9 +19,8 @@ void OrgTokenizer::report(CR<Report> in) {
 
     auto printString = [&]() {
         if (in.msg) { os << " [" << in.msg.value() << "]"; }
-
         if (in.lex) {
-            os << " ";
+            os << " ((";
             in.lex->print(
                 os,
                 [](ColStream& os, BaseToken const& t) {
@@ -37,6 +28,7 @@ void OrgTokenizer::report(CR<Report> in) {
                        << escape_for_write(t.value.text) << os.end();
                 },
                 BaseLexer::PrintParams{});
+            os << "))";
         }
     };
 
@@ -102,6 +94,4 @@ void OrgTokenizer::report(CR<Report> in) {
     endStream(os);
 
     if (in.kind == ReportKind::Leave) { --depth; }
-
-    if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
 }

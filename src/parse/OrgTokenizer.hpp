@@ -72,11 +72,6 @@ struct OrgTokenizer
     using TraceUpdateHookCb = Func<void(CR<Report>, bool&, bool)>;
 
     OrgTokenizer::ReportHookCb reportHook;
-    /// Update trace enable/disable state. Called before and after each
-    /// report is processed. First argument is the report, second is the
-    /// reference to the `trace` member and the last one provides
-    /// information about call location (before report or after report).
-    OrgTokenizer::TraceUpdateHookCb traceUpdateHook;
 
     void       push(CR<std::span<OrgToken>> tok) { out->add(tok); }
     void       push(CR<Vec<OrgToken>> tok) { out->add(tok); }

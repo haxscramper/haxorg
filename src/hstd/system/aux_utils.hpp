@@ -17,7 +17,12 @@ struct finally {
         return finally([value, _action]() { _action(value); });
     }
 
+    static finally nop() { return finally{finally::nop_impl}; }
+
     ~finally() { action(); }
+
+  private:
+    static void nop_impl() {}
 };
 
 /// \brief Overloading support for `std::visit`

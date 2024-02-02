@@ -157,16 +157,18 @@ struct RecombineState {
             rep.function = function;
             rep.kind     = ::OrgTokenizer::ReportKind::Enter;
             rep.msg      = msg;
+            rep.lex      = &lex;
             report(rep);
             return finally([line, function, this]() {
                 ::OrgTokenizer::Report rep;
                 rep.function = function;
                 rep.line     = line;
                 rep.kind     = ::OrgTokenizer::ReportKind::Leave;
+                rep.lex      = &lex;
                 report(rep);
             });
         } else {
-            return finally{[]() {}};
+            return finally::nop();
         }
     }
 
