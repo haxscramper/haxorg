@@ -372,7 +372,6 @@ struct RecombineState {
                 add_fake(
                     otk::CmdPropertyArgs,
                     OrgFill{.base = BaseFill{.text = split.at(0)}});
-                add_fake(otk::CmdArgumentsBegin);
                 add_fake(
                     otk::CmdValue,
                     OrgFill{.base = BaseFill{.text = split.at(1)}});
@@ -392,15 +391,12 @@ struct RecombineState {
             case obt::CmdExampleBegin:
             case obt::CmdExportBegin:
             case obt::CmdSrcBegin: {
-                add_fake(otk::CmdArgumentsBegin);
                 map_command_args();
-                add_fake(otk::CmdArgumentsEnd);
                 break;
             }
 
             case obt::CmdPropertyArgs: {
                 map_command_args();
-                add_fake(otk::CmdArgumentsEnd);
                 break;
             }
 
@@ -409,12 +405,8 @@ struct RecombineState {
                 while (lex.at(obt::Whitespace)) { lex.next(); }
                 break;
             case obt::CmdPropertyText:
-                add_fake(otk::CmdArgumentsBegin);
                 pop_as(otk::CmdValue);
-                add_fake(otk::ParagraphBegin);
                 while (!lex.at(line_end)) { map_interpreted_token(); }
-                add_fake(otk::ParagraphEnd);
-                pop_as(otk::CmdArgumentsEnd);
                 break;
             default:
         }
@@ -521,8 +513,8 @@ struct RecombineState {
             case obt::Semicolon: pop_as(otk::Punctuation); break;
             case obt::MiscUnicode: pop_as(otk::Word); break;
             case obt::Whitespace: pop_as(otk::Space); break;
-            case obt::MediumNewline:
-            case obt::LongNewline:
+            case obt::MediumNewline: pop_as(otk::MediumNewline); break;
+            case obt::LongNewline: pop_as(otk::LongNewline); break;
             case obt::Newline: pop_as(otk::Newline); break;
             case obt::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
 

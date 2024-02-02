@@ -1662,6 +1662,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Number", OrgTokenKind::Number)
     .value("Escaped", OrgTokenKind::Escaped, R"RAW(Escaped character in plain text - `\*`, `\/` etc. Escaped characters and sequences thereof are treated like a regular plain text.)RAW")
     .value("DoubleSlash", OrgTokenKind::DoubleSlash, R"RAW(Put at the end of the lexer first logbook line to separate the  note, otherwise is treated as standalone escaped slash.)RAW")
+    .value("LongNewline", OrgTokenKind::LongNewline, R"RAW(Long newline ending statement list)RAW")
+    .value("MediumNewline", OrgTokenKind::MediumNewline, R"RAW(Newline separating elements in the statement list)RAW")
     .value("Newline", OrgTokenKind::Newline, R"RAW(Explicit newline a paragraph)RAW")
     .value("MaybeWord", OrgTokenKind::MaybeWord)
     .value("Space", OrgTokenKind::Space, R"RAW(Space in the paragraph)RAW")

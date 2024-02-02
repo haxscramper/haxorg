@@ -582,6 +582,9 @@ struct SubLexer : public LexerCommon<K, V> {
         return !pos.isNil() && (0 <= idx) && (idx < tokens.size());
     }
 
+    void add(CR<TokenId<K, V>> tok) { tokens.push_back(tok); }
+    void start() { pos = tokens.at(0); }
+
     void next(int offset = 1) override {
         // TODO boundary checking
         if (hasNext(offset)) {
@@ -592,6 +595,8 @@ struct SubLexer : public LexerCommon<K, V> {
             pos = TokenId<K, V>::Nil();
         }
     }
+
+    SubLexer(LexerCommon<K, V> in) : LexerCommon<K, V>(in.in) {}
 
     SubLexer(TokenGroup<K, V>* in, Vec<TokenId<K, V>> _tokens)
         : LexerCommon<K, V>(in, _tokens.at(0)), tokens(_tokens) {}

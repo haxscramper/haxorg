@@ -710,6 +710,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "Number") { return OrgTokenKind::Number; } else
   if (value == "Escaped") { return OrgTokenKind::Escaped; } else
   if (value == "DoubleSlash") { return OrgTokenKind::DoubleSlash; } else
+  if (value == "LongNewline") { return OrgTokenKind::LongNewline; } else
+  if (value == "MediumNewline") { return OrgTokenKind::MediumNewline; } else
   if (value == "Newline") { return OrgTokenKind::Newline; } else
   if (value == "MaybeWord") { return OrgTokenKind::MaybeWord; } else
   if (value == "Space") { return OrgTokenKind::Space; } else
@@ -925,6 +927,8 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::Number: return "Number";
     case OrgTokenKind::Escaped: return "Escaped";
     case OrgTokenKind::DoubleSlash: return "DoubleSlash";
+    case OrgTokenKind::LongNewline: return "LongNewline";
+    case OrgTokenKind::MediumNewline: return "MediumNewline";
     case OrgTokenKind::Newline: return "Newline";
     case OrgTokenKind::MaybeWord: return "MaybeWord";
     case OrgTokenKind::Space: return "Space";

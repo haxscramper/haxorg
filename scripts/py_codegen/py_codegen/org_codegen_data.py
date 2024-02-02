@@ -1703,6 +1703,8 @@ def get_org_token_kind() -> GenTuEnum:
                 "Put at the end of the lexer first logbook line to separate the  note, otherwise is treated as standalone escaped slash."
             ),
         ),
+        GenTuEnumField("LongNewline", GenTuDoc("Long newline ending statement list")),
+        GenTuEnumField("MediumNewline", GenTuDoc("Newline separating elements in the statement list")),
         GenTuEnumField("Newline", GenTuDoc("Explicit newline a paragraph")),
         GenTuEnumField("MaybeWord", GenTuDoc("")),
         GenTuEnumField("Space", GenTuDoc("Space in the paragraph")),

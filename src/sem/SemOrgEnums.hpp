@@ -733,6 +733,10 @@ enum class OrgTokenKind : short int {
   Escaped,
   /// \brief Put at the end of the lexer first logbook line to separate the  note, otherwise is treated as standalone escaped slash.
   DoubleSlash,
+  /// \brief Long newline ending statement list
+  LongNewline,
+  /// \brief Newline separating elements in the statement list
+  MediumNewline,
   /// \brief Explicit newline a paragraph
   Newline,
   MaybeWord,
