@@ -949,13 +949,6 @@ struct GroupVisitorState {
         Vec<int> ind{};
         for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
             auto const& gr = groups.at(gr_index);
-            d->print(
-                lex,
-                fmt("GROUP [{:<2}] indent={} kind={}",
-                    gr_index,
-                    gr.indent(),
-                    gr.kind));
-
             if (gr.kind == GK::ListItem) {
                 if (ind.empty()) {
                     add_fake(otk::ListBegin, ind);
@@ -1023,31 +1016,35 @@ struct GroupVisitorState {
         }
     }
 
-    void print_groups(CR<GroupToken> groups) {
-        auto ind = [](int level) { return Str("  ").repeated(level); };
+    void print1(
+        Str         text,
+        int         level,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+
+        auto aligned = text
+                     + Str(" ").repeated(
+                         96 - (text.runeLen() + level * 2));
+
+        d->print(lex, aligned, __LINE__, "group", level);
+    };
+
+    void print_groups(CR<Vec<GroupToken>> groups) {
+
+
         auto print_line = [&](CR<LineToken> line, Str prefix, int level) {
-            d->print(
-                lex,
-                fmt("[{}] line:{} indent={}\n",
-                    ind(level),
+            print1(
+                fmt("[{}] line:{} indent={}",
                     prefix,
                     line.kind,
                     line.indent),
-                __LINE__,
-                "group",
                 level);
 
             for (int token_idx = 0; token_idx < line.tokens.size();
                  ++token_idx) {
-                d->print(
-                    lex,
-                    fmt("[{}] {}\n",
-                        ind(level),
-                        token_idx,
-                        line.tokens.at(token_idx)),
-                    __LINE__,
-                    "group",
-                    level);
+                print1(
+                    fmt("[{}] {}", token_idx, line.tokens.at(token_idx)),
+                    level + 1);
             }
         };
 
@@ -1055,21 +1052,17 @@ struct GroupVisitorState {
         rec_print_group = [&](CR<Vec<GroupToken>> groups, int level) {
             for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
                 auto const& gr = groups.at(gr_index);
-                d->print(
-                    lex,
-                    fmt("[{}] group:{} indent {}\n",
-                        ind(level),
+                print1(
+                    fmt("[{}] group:{} indent {}",
                         gr_index,
                         gr.kind,
                         gr.indent()),
-                    __LINE__,
-                    "group",
                     level);
 
                 if (gr.isNested()) {
-                    print_line(gr.getNested().begin, "begin", level + 1);
-                    rec_print_group(gr.getNested().subgroups, level + 1);
-                    print_line(gr.getNested().end, "end", level + 1);
+                    print_line(gr.getNested().begin, "begin", level + 2);
+                    rec_print_group(gr.getNested().subgroups, level + 2);
+                    print_line(gr.getNested().end, "end", level + 2);
                 } else {
                     for (int line_index = 0;
                          line_index < gr.getLeaf().lines.size();
@@ -1077,13 +1070,13 @@ struct GroupVisitorState {
                         print_line(
                             gr.getLeaf().lines.at(line_index),
                             fmt1(line_index),
-                            level + 1);
+                            level + 2);
                     }
                 }
             }
         };
 
-        rec_print_group(groups.getNested().subgroups, 2);
+        rec_print_group(groups, 2);
     }
 };
 
@@ -1093,6 +1086,7 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
     Vec<LineToken>    lines = to_lines(lex);
     Vec<GroupToken>   root  = to_groups(lines);
     GroupVisitorState visitor{this, lex};
+    visitor.print_groups(root);
     visitor.rec_convert_groups(root);
     Lexer<OrgTokenKind, OrgFill> relex{&visitor.regroup};
     RecombineState               recombine_state{this, relex};
