@@ -270,6 +270,17 @@ void OrgParser::textFold(OrgLexer& lex) {
                 break;
             }
 
+            case otk::LinkEnd:
+            case otk::LinkDescriptionBegin:
+            case otk::LinkTargetEnd: {
+                if (lex.tok()->getText().empty()) {
+                    skip(lex);
+                } else {
+                    token(org::Punctuation, pop(lex, lex.kind()));
+                }
+                break;
+            }
+
             default: {
                 fatalError(lex, "unhandled token");
             }
@@ -1412,12 +1423,14 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
             return result;
         }
 
+        case otk::BraceBegin:
         case otk::Word: {
-            SubLexer sub{lex.in, {}};
-            while (lex.hasNext() && lex.at(ParagraphTerminator)) {
+            SubLexer sub{lex};
+            while (lex.hasNext() && !lex.at(ParagraphTerminator)) {
                 sub.add(lex.pop());
             }
 
+            sub.start();
             return parseParagraph(sub);
         }
 

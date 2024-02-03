@@ -30,6 +30,7 @@ rx_macros:
   # following spaces. Used both in line command directives and subtree
   # properties
   - { name: prop_colon, value: "\\+?:[\\h\\xA0]*" }
+  - { name: maybe_12h_time, value: "(\\s?(am|AM|pm|PM))?" }
 
 tokens:
   - { name: "Indent" }
@@ -268,7 +269,9 @@ rules:
     token: SubtreePriority
     states: [SUBTREE_HEAD]
 
+  
   - { re: "^[0-9]+[\\.\\)](?={space}+)", token: LeadingNumber }
+  - { re: "[0-9]+[\\.\\)](?={space}+)", token: ListNumber }
   - { re: "[0-9]+", token: Number }
   - re: "^{space}+"
     token: LeadingSpace
@@ -328,8 +331,8 @@ rules:
   - { re: "\\[", token: BraceOpen }
   - { re: "\\]", token: BraceClose }
   - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
-  - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}", token: Time }
-  - { re: "\\d{{1,}}:\\d{{2}}", token: Time }
+  - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}{maybe_12h_time}", token: Time }
+  - { re: "\\d{{1,}}:\\d{{2}}{maybe_12h_time}", token: Time }
   - { re: "=>", token: TimeArrow }
   - { re: "--", token: DoubleDash }
   - { re: "#{space}+.*?$", token: Comment }

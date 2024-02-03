@@ -254,5 +254,10 @@ void OrgParser::fatalError(
     }
 
     throw std::logic_error(
-        fmt("{} {} at {}", msg, lex.tok(), getLocMsg(lex)));
+        fmt("{} {} at {} in {}:{}",
+            msg,
+            lex.tok(),
+            getLocMsg(lex),
+            function,
+            line));
 }

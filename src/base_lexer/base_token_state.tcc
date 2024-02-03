@@ -91,6 +91,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::LinkSplit: return "LinkSplit";
         case BaseTokenKind::ListEnd: return "ListEnd";
         case BaseTokenKind::ListItemEnd: return "ListItemEnd";
+        case BaseTokenKind::ListNumber: return "ListNumber";
         case BaseTokenKind::ListStart: return "ListStart";
         case BaseTokenKind::LongNewline: return "LongNewline";
         case BaseTokenKind::MacroBegin: return "MacroBegin";
@@ -212,6 +213,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "LinkSplit") { return BaseTokenKind::LinkSplit; } else
   if (value == "ListEnd") { return BaseTokenKind::ListEnd; } else
   if (value == "ListItemEnd") { return BaseTokenKind::ListItemEnd; } else
+  if (value == "ListNumber") { return BaseTokenKind::ListNumber; } else
   if (value == "ListStart") { return BaseTokenKind::ListStart; } else
   if (value == "LongNewline") { return BaseTokenKind::LongNewline; } else
   if (value == "MacroBegin") { return BaseTokenKind::MacroBegin; } else
