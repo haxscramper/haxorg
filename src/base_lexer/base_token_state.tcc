@@ -186,6 +186,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Unknown: return "Unknown";
         case OrgTokenKind::VerbatimBegin: return "VerbatimBegin";
         case OrgTokenKind::VerbatimEnd: return "VerbatimEnd";
+        case OrgTokenKind::WeekdayName: return "WeekdayName";
         case OrgTokenKind::Whitespace: return "Whitespace";
         case OrgTokenKind::Word: return "Word";
     }
@@ -356,6 +357,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Unknown") { return OrgTokenKind::Unknown; } else
   if (value == "VerbatimBegin") { return OrgTokenKind::VerbatimBegin; } else
   if (value == "VerbatimEnd") { return OrgTokenKind::VerbatimEnd; } else
+  if (value == "WeekdayName") { return OrgTokenKind::WeekdayName; } else
   if (value == "Whitespace") { return OrgTokenKind::Whitespace; } else
   if (value == "Word") { return OrgTokenKind::Word; } else
   { return std::nullopt; }

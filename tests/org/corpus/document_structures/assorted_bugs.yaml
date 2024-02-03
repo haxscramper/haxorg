@@ -151,7 +151,10 @@ items:
       parallel ^
           -P 10 --bar --files ^
         #+end_src
-
+  - name: "DSL link with description"
+    source: |
+      - [[id:16cb0d5f-1e66-47ef-bc29-9f41ecb81f73][Descriuption]]  is not
+        reproducible
 
 
 

@@ -244,6 +244,7 @@ void OrgParser::textFold(OrgLexer& lex) {
                 break;
             }
 
+            case otk::WeekdayName:
             case otk::Time:
             case otk::Date:
             case otk::Number: {
@@ -384,6 +385,13 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
         skip(lex, otk::LinkTargetEnd);
         SubLexer sub{lex};
         while (!lex.at(otk::LinkEnd)) { sub.add(pop(lex)); }
+        if (sub.empty()) {
+            LOG(FATAL) << lex.printToString(
+                [](ColStream& os, OrgToken const& t) {
+                    os << os.yellow() << escape_for_write(t.value.text)
+                       << os.end() << fmt1(t.value);
+                });
+        }
         sub.start();
         parseParagraph(sub);
     } else {
@@ -506,7 +514,7 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
         }
 
         // Day can sometimes be added to the timestamp
-        if (lex.at(otk::Word)) {
+        if (lex.at(otk::WeekdayName)) {
             skip(lex);
             space(lex);
         }
@@ -552,7 +560,7 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         otk::AngleEnd,
         otk::DynamicTimeContent,
         otk::Date,
-        otk::Word,
+        otk::WeekdayName,
         otk::Time,
         otk::TimeRepeater,
         otk::Number,

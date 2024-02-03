@@ -164,6 +164,7 @@ enum class OrgTokenKind : unsigned short int {
   Unknown,
   VerbatimBegin,
   VerbatimEnd,
+  WeekdayName,
   Whitespace,
   Word,
 };
