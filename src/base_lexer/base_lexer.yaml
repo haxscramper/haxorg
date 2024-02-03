@@ -270,8 +270,7 @@ rules:
     states: [SUBTREE_HEAD]
 
   
-  - { re: "^[0-9]+[\\.\\)](?={space}+)", token: LeadingNumber }
-  - { re: "[0-9]+[\\.\\)](?={space}+)", token: ListNumber }
+  - { re: "{lead_space}[0-9]+[\\.\\)](?={space}+)", token: LeadingNumber }
   - { re: "[0-9]+", token: Number }
   - re: "^{space}+"
     token: LeadingSpace
@@ -337,15 +336,15 @@ rules:
   - { re: "--", token: DoubleDash }
   - { re: "#{space}+.*?$", token: Comment }
 
-  - { lit: "CLOCK:", token: TreeClock }
+  - { lit: "{lead_space}CLOCK:", token: TreeClock }
 
   #region Punctuation
   - { lit: "&", token: Ampersand }
   - { lit: "!", token: Exclamation }
   - { lit: "/", token: ForwardSlash }
   - { re: "[\\.?]", token: AnyPunct }
-  - { re: "^\\-(?={space}+)", token: LeadingMinus }
-  - { re: "^\\+(?={space}+)", token: LeadingPlus }
+  - { re: "{lead_space}-(?={space}+)", token: LeadingMinus }
+  - { re: "{lead_space}\\+(?={space}+)", token: LeadingPlus }
 
   - { re: "\\+", token: Plus }
   - { re: "^\\-{{5,}}", token: TextSeparator }

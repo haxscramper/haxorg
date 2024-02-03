@@ -69,7 +69,6 @@ enum class BaseTokenKind : unsigned short int {
   LinkSplit,
   ListEnd,
   ListItemEnd,
-  ListNumber,
   ListStart,
   LongNewline,
   MacroBegin,

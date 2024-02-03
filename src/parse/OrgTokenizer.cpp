@@ -519,6 +519,7 @@ struct RecombineState {
             case obt::Newline: pop_as(otk::Newline); break;
             case obt::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
             case obt::Dollar: pop_as(otk::Punctuation); break;
+            // case obt::SubtreePriority: pop_as(otk::SubtreePriority); break;
 
             case obt::CmdExampleEnd: {
                 add_fake(otk::CmdPrefix);
@@ -765,7 +766,6 @@ struct LineToken {
         if (auto next = tokens.get(1); next) {
             switch (next->get().kind) {
                 case obt::TreeClock:
-                case obt::ListNumber:
                 case obt::Minus: kind = Kind::ListItem; break;
 
                 case obt::TreePropertyEnd:
@@ -801,7 +801,6 @@ struct LineToken {
                 break;
             }
 
-            case obt::ListNumber:
             case obt::Minus: {
                 if (auto next = tokens.get(1);
                     next && next->get().kind == obt::Whitespace) {
@@ -1113,7 +1112,6 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
                 auto const& tok = tokens.at(tok_idx);
                 switch (tok.kind) {
-                    case obt::ListNumber:
                     case obt::TreeClock:
                     case obt::Minus: {
                         // Is the first token on the line or preceded by
@@ -1122,24 +1120,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
                              || tokens.get(tok_idx - 1).value().get().kind
                                     == obt::LeadingSpace)
                             && gr.kind == GK::ListItem) {
-                            switch (tok.kind) {
-                                case obt::TreeClock:
-                                    add_base(BaseToken{
-                                        obt::TreeClock, tok.value});
-                                    break;
-
-                                case obt::Minus:
-                                    add_base(BaseToken{
-                                        obt::LeadingMinus, tok.value});
-                                    break;
-
-                                case obt::ListNumber:
-                                    add_base(BaseToken{
-                                        obt::LeadingNumber, tok.value});
-                                    break;
-                                default:
-                            }
-
+                            add_base(tok);
 
                             if (auto next = tokens.get(tok_idx + 1);
                                 next->get().kind == obt::Whitespace) {
