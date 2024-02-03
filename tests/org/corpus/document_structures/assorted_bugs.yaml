@@ -129,6 +129,17 @@ items:
       2. Item 2
         3. Item 3
 
+  - name: "Monospace text"
+    source: |
+      with ~libc++~. This
+
+  - name: "Link with description"
+    source: |
+      [[person:Test Test]]
+      [[person:Test Test][*description*]]
+
+
+
 
 
 

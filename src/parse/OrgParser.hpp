@@ -157,10 +157,10 @@ struct OrgParser : public OperationsTracer {
         char const*                  function = __builtin_FUNCTION());
 
     OrgTokenId pop(
-        OrgLexer&                    lex,
-        CR<OrgParser::OrgExpectable> tok,
-        int                          line     = __builtin_LINE(),
-        char const*                  function = __builtin_FUNCTION());
+        OrgLexer&                     lex,
+        Opt<OrgParser::OrgExpectable> tok      = std::nullopt,
+        int                           line     = __builtin_LINE(),
+        char const*                   function = __builtin_FUNCTION());
 
     void skip(
         OrgLexer&                     lex,

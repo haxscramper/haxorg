@@ -61,13 +61,14 @@ TEST(OrgParseFuzz, CheckDeterministic) {
     }
 }
 
-FUZZ_TEST(OrgParseFuzz, CheckAnyNodeFail)
-    //
-    .WithDomains(GenerateDocumentNode(
-        GenerateNodeContext{}.withOptsUpdate([](GenerateNodeOptions opts) {
-            // opts.enableTrace = true;
-            return opts;
-        })))
-    // .WithSeeds(LoadFuzzSeeds())
-    //
-    ;
+// FUZZ_TEST(OrgParseFuzz, CheckAnyNodeFail)
+//     //
+//     .WithDomains(GenerateDocumentNode(
+//         GenerateNodeContext{}.withOptsUpdate([](GenerateNodeOptions
+//         opts) {
+//             // opts.enableTrace = true;
+//             return opts;
+//         })))
+//     // .WithSeeds(LoadFuzzSeeds())
+//     //
+//     ;

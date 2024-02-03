@@ -79,6 +79,9 @@ tokens:
   - name: LinkTarget
   - name: LinkDescriptionEnd
   - name: CmdAdmonitionEnd
+  - name: BigIdent
+  - name: MonospaceBegin
+  - name: MonospaceEnd
 
 rules:
   #region Blocks
@@ -393,7 +396,8 @@ rules:
   - { lit: "::", token: DoubleColon }
   - { re: "#{space}+.*?$", token: Comment }
 
-  - { lit: "{lead_space}CLOCK:", token: TreeClock }
+  - { re: "{lead_space}CLOCK:", token: TreeClock }
+  - { re: "(CLOSED|SCHEDULED):", token: TreeTime }
 
   #region Punctuation
   - { lit: "&", token: Ampersand }
@@ -410,6 +414,7 @@ rules:
   - { re: "\\\"", token: DoubleQuote }
   - { re: "\\'", token: SingleQuote }
   - { re: "\\\\\\\\", token: DoubleSlash }
+  - { re: "src_\\w+", token: TextSrcBegin }
   - { re: "#\\w+", token: HashIdent }
   - { re: "##", token: DoubleHash }
   - { lit: "(", token: ParBegin }
@@ -440,11 +445,9 @@ rules:
   - { lit: "```", token: TripleBacktick }
   - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
-  - { re: "[A-Z]+", token: BigIdent }
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
   - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
-  - { re: "src_\\w+", token: TextSrcBegin }
   - { lit: "<%%", token: DynamicTimeContent }
   #endregion
   #endregion

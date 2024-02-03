@@ -193,6 +193,21 @@ struct RecombineState {
         return res;
     }
 
+    void pop(
+        Opt<OrgTokenKind> expected = std::nullopt,
+        int               line     = __builtin_LINE()) {
+        auto res = d->out->add(lex.tok());
+        x_report(
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                fmt("pop {}", lex.tok())));
+        if (expected) {
+            lex.skip(*expected);
+        } else {
+            lex.next();
+        }
+    }
+
     void pop_as(
         OrgTokenKind      __to,
         Opt<OrgTokenKind> expected = std::nullopt,
@@ -246,60 +261,34 @@ struct RecombineState {
         auto tr   = trace();
         auto prev = prev_token();
         auto next = next_token();
-        switch (lex.kind()) {
-            case otk::ForwardSlash:
-            case otk::Equals:
-            case otk::Plus:
-            case otk::Asterisk: {
-                otk open{};
-                otk close{};
 
-                switch (lex.kind()) {
-                    case otk::Asterisk:
-                        open  = otk::BoldBegin;
-                        close = otk::BoldEnd;
-                        break;
-                    case otk::ForwardSlash:
-                        open  = otk::ItalicBegin;
-                        close = otk::ItalicEnd;
-                        break;
-                    case otk::Equals:
-                        open  = otk::VerbatimBegin;
-                        close = otk::VerbatimEnd;
-                        break;
-                    case otk::Plus:
-                        open  = otk::StrikeBegin;
-                        close = otk::StrikeEnd;
-                        break;
-                    default: break;
-                }
-
-
-                bool prev_empty = !prev || EmptyToken.contains(prev->kind);
-                bool next_empty = !next || EmptyToken.contains(next->kind);
-
-                print(
-                    fmt("prev kind {} next kind {}",
-                        prev ? prev->kind : otk::Unknown,
-                        next ? next->kind : otk::Unknown));
-
-                if (prev_empty && !next_empty) {
-                    add_fake(open, {lex.tok().value});
-                    lex.next();
-                } else if (!prev_empty && next_empty) {
-                    add_fake(close, {lex.tok().value});
-                    lex.next();
-                } else {
-                    pop_as(otk::Punctuation);
-                }
-
-                break;
+        auto [open, close] = //
+            UnorderedMap<otk, Pair<otk, otk>>{
+                {otk::Asterisk, {otk::BoldBegin, otk::BoldEnd}},
+                {otk::ForwardSlash, {otk::ItalicBegin, otk::ItalicEnd}},
+                {otk::Equals, {otk::VerbatimBegin, otk::VerbatimEnd}},
+                {otk::Plus, {otk::StrikeBegin, otk::StrikeEnd}},
+                {otk::Tilda, {otk::MonospaceBegin, otk::MonospaceEnd}},
             }
-            default: {
-                LOG(FATAL) << fmt(
-                    "Unexpected kind of the markup recombine input {}",
-                    lex.kind());
-            }
+                .at(lex.kind());
+
+
+        bool prev_empty = !prev || EmptyToken.contains(prev->kind);
+        bool next_empty = !next || EmptyToken.contains(next->kind);
+
+        print(
+            fmt("prev kind {} next kind {}",
+                prev ? prev->kind : otk::Unknown,
+                next ? next->kind : otk::Unknown));
+
+        if (prev_empty && !next_empty) {
+            add_fake(open, {lex.tok().value});
+            lex.next();
+        } else if (!prev_empty && next_empty) {
+            add_fake(close, {lex.tok().value});
+            lex.next();
+        } else {
+            pop_as(otk::Punctuation);
         }
     }
 
@@ -431,6 +420,7 @@ struct RecombineState {
             case otk::Plus:
             case otk::ForwardSlash:
             case otk::Equals:
+            case otk::Tilda:
             case otk::Asterisk: {
                 recombine_markup();
                 break;
@@ -490,7 +480,7 @@ struct RecombineState {
 
 
             default: {
-                pop_as(map_kind);
+                pop();
             }
         }
     }

@@ -141,6 +141,8 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::MediumNewline: return "MediumNewline";
         case OrgTokenKind::Minus: return "Minus";
         case OrgTokenKind::MiscUnicode: return "MiscUnicode";
+        case OrgTokenKind::MonospaceBegin: return "MonospaceBegin";
+        case OrgTokenKind::MonospaceEnd: return "MonospaceEnd";
         case OrgTokenKind::Newline: return "Newline";
         case OrgTokenKind::Number: return "Number";
         case OrgTokenKind::ParBegin: return "ParBegin";
@@ -176,6 +178,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::TimeRepeater: return "TimeRepeater";
         case OrgTokenKind::TrailingPipe: return "TrailingPipe";
         case OrgTokenKind::TreeClock: return "TreeClock";
+        case OrgTokenKind::TreeTime: return "TreeTime";
         case OrgTokenKind::TripleAngleBegin: return "TripleAngleBegin";
         case OrgTokenKind::TripleAngleEnd: return "TripleAngleEnd";
         case OrgTokenKind::TripleBacktick: return "TripleBacktick";
@@ -309,6 +312,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "MediumNewline") { return OrgTokenKind::MediumNewline; } else
   if (value == "Minus") { return OrgTokenKind::Minus; } else
   if (value == "MiscUnicode") { return OrgTokenKind::MiscUnicode; } else
+  if (value == "MonospaceBegin") { return OrgTokenKind::MonospaceBegin; } else
+  if (value == "MonospaceEnd") { return OrgTokenKind::MonospaceEnd; } else
   if (value == "Newline") { return OrgTokenKind::Newline; } else
   if (value == "Number") { return OrgTokenKind::Number; } else
   if (value == "ParBegin") { return OrgTokenKind::ParBegin; } else
@@ -344,6 +349,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "TimeRepeater") { return OrgTokenKind::TimeRepeater; } else
   if (value == "TrailingPipe") { return OrgTokenKind::TrailingPipe; } else
   if (value == "TreeClock") { return OrgTokenKind::TreeClock; } else
+  if (value == "TreeTime") { return OrgTokenKind::TreeTime; } else
   if (value == "TripleAngleBegin") { return OrgTokenKind::TripleAngleBegin; } else
   if (value == "TripleAngleEnd") { return OrgTokenKind::TripleAngleEnd; } else
   if (value == "TripleBacktick") { return OrgTokenKind::TripleBacktick; } else

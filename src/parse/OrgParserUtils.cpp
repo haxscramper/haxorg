@@ -159,16 +159,16 @@ void OrgParser::expect(
                     .report);
         }
 
-        fatalError(lex, msg);
+        fatalError(lex, msg, line, function);
     }
 }
 
 OrgTokenId OrgParser::pop(
-    OrgLexer&         lex,
-    CR<OrgExpectable> tok,
-    int               line,
-    char const*       function) {
-    expect(lex, tok, line, function);
+    OrgLexer&          lex,
+    Opt<OrgExpectable> tok,
+    int                line,
+    char const*        function) {
+    if (tok) { expect(lex, *tok, line, function); }
     if (TraceState) {
         print(fmt("pop {}", lex.tok()), line, function, &lex);
     }

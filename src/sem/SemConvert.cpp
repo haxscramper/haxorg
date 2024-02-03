@@ -503,7 +503,10 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
             link->data = Link::Id{.text = one(a, N::Link).val().text};
 
         } else if (protocol == "person") {
-            link->data = Link::Person{.name = one(a, N::Link).val().text};
+            // FIXME extract paragraph data
+            // link->data = Link::Person{.name = one(a,
+            // N::Link).val().text};
+            link->data = Link::Person{};
 
         } else if (protocol == "file") {
             link->data = Link::File{.file = one(a, N::Link).val().text};
@@ -822,6 +825,7 @@ SemId OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::SrcInlineCode:
         case org::SrcCode: return convertCode(p, a);
         case org::InlineFootnote: return convertFootnote(p, a);
         case org::BlockExport: return convertExport(p, a);

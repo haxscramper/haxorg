@@ -46,10 +46,9 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
 
     const OrgPattern timeSpecPattern = OrgPattern({
         fieldN(0, N::Year, {org::RawText, org::Empty}),
-        fieldN(1, N::Day, {org::RawText, org::Empty}),
-        fieldN(2, N::Clock, {org::RawText, org::Empty}),
-        fieldN(3, N::Zone, {org::RawText, org::Empty}),
-        fieldN(4, N::Repeater, {org::RawText, org::Empty}),
+        fieldN(1, N::Clock, {org::RawText, org::Empty}),
+        fieldN(2, N::Zone, {org::RawText, org::Empty}),
+        fieldN(3, N::Repeater, {org::RawText, org::Empty}),
     });
 
     const OrgPattern rawTextCmdPattern = OrgPattern({

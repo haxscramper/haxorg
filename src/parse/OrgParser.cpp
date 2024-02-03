@@ -37,7 +37,7 @@ const OrgTokSet ParagraphTerminator{
 } // namespace
 
 void OrgParser::space(OrgLexer& lex, int line, char const* function) {
-    while (lex.at(otk::Whitespace)) {
+    while (lex.at(OrgTokSet{otk::Whitespace, otk::LeadingSpace})) {
         skip(lex, std::nullopt, line, function);
     }
 }
@@ -210,12 +210,21 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_SINGLE(Punctuation);
             CASE_SINGLE(Colon);
 
-            case otk::Whitespace: token(org::Space, pop(lex, lex.kind()));
+            case otk::Whitespace:
+                token(org::Space, pop(lex, lex.kind()));
+                break;
             case otk::BraceEnd:
             case otk::ParEnd:
             case otk::ParBegin:
             case otk::DoubleSlash:
             case otk::Comma:
+            case otk::AnyPunct:
+            case otk::DoubleDash:
+            case otk::Minus:
+            case otk::SingleQuote:
+            case otk::Ampersand:
+            case otk::DoubleQuote:
+            case otk::Percent:
             case otk::Circumflex: {
                 token(org::Punctuation, pop(lex, lex.kind()));
                 break;
@@ -223,6 +232,13 @@ void OrgParser::textFold(OrgLexer& lex) {
 
             case otk::AngleEnd: {
                 token(org::Punctuation, pop(lex, lex.kind()));
+                break;
+            }
+
+            case otk::Time:
+            case otk::Date:
+            case otk::Number: {
+                token(org::Word, pop(lex, lex.kind()));
                 break;
             }
 
@@ -235,7 +251,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::Symbol: parseSymbol(lex); break;
 
             case otk::BraceBegin: {
-                if (lex.at(otk::Time, +1)) {
+                if (lex.at(otk::Date, +1)) {
                     parseTimeRange(lex);
                 } else {
                     token(org::Punctuation, pop(lex, lex.kind()));
@@ -245,6 +261,17 @@ void OrgParser::textFold(OrgLexer& lex) {
 
             case otk::At: {
                 token(org::AtMention, pop(lex, otk::At));
+                break;
+            }
+
+            case otk::MonospaceBegin: {
+                start(org::Monospace);
+                skip(lex, otk::MonospaceBegin);
+                while (!lex.at(otk::MonospaceEnd)) {
+                    token(org::RawText, pop(lex, lex.kind()));
+                }
+                skip(lex, otk::MonospaceEnd);
+                end();
                 break;
             }
 
@@ -259,6 +286,11 @@ void OrgParser::textFold(OrgLexer& lex) {
                 skip(lex, otk::TripleAngleBegin);
                 token(org::RadioTarget, pop(lex, otk::RawText));
                 skip(lex, otk::TripleAngleEnd);
+                break;
+            }
+
+            case otk::LeadingSpace: {
+                skip(lex);
                 break;
             }
 
@@ -327,21 +359,28 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
         token(org::RawText, pop(lex, otk::LinkFull));
     } else {
         token(org::Ident, pop(lex, otk::LinkProtocol));
-        token(org::RawText, pop(lex, otk::LinkTarget));
+        if (lex.at(otk::RawText)) {
+            token(org::RawText, pop(lex));
+        } else {
+            SubLexer sub{lex};
+            while (!lex.at(OrgTokSet{otk::LinkTargetEnd, otk::LinkEnd})) {
+                sub.add(pop(lex));
+            }
+            sub.start();
+            parseParagraph(sub);
+        }
     }
-    skip(lex, otk::LinkTargetEnd);
-    if (lex.at(otk::LinkDescriptionBegin)) {
-        auto sub = SubLexer(
-            lex.in,
-            lex.getInside(
-                {otk::LinkDescriptionBegin}, {otk::LinkDescriptionEnd}));
-        start(org::Paragraph);
-        parseText(sub);
-        end();
 
+    if (lex.at(otk::LinkTargetEnd)) {
+        skip(lex, otk::LinkTargetEnd);
+        SubLexer sub{lex};
+        while (!lex.at(otk::LinkEnd)) { sub.add(pop(lex)); }
+        sub.start();
+        parseParagraph(sub);
     } else {
         empty();
     }
+
 
     skip(lex, otk::LinkEnd);
     return end();
@@ -470,7 +509,8 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
             empty();
         }
 
-        if (lex.at(otk::Number)) {
+        if (lex.at(Vec{otk::StrikeBegin, otk::Number})) {
+            skip(lex);
             token(org::RawText, pop(lex, otk::Number));
             space(lex);
         } else {
@@ -507,6 +547,8 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         otk::Time,
         otk::TimeRepeater,
         otk::Number,
+        otk::StrikeBegin,
+        otk::Whitespace,
     };
 
 
@@ -515,6 +557,7 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         parseTimeStamp(lex);
         skip(lex, otk::DoubleDash);
         parseTimeStamp(lex);
+        print("???");
         space(lex);
         if (lex.at(otk::TimeArrow)) {
             skip(lex, otk::TimeArrow);
@@ -569,15 +612,22 @@ OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
     __perf_trace("parseSrcInline");
     auto __trace = trace(lex);
     start(org::SrcInlineCode);
-    LOG(FATAL);
-    // skip(lex, otk::CmdSrcBegin);
-    // {
-    //     token(org::Ident, pop(lex, otk::Word));
-    //     start(org::CodeLine);
-    //     token(org::CodeText, pop(lex, otk::SrcBody));
-    //     end();
-    // }
-    // skip(lex, otk::CmdSrcEnd);
+    {
+        token(org::Ident, pop(lex, otk::TextSrcBegin)); // lang
+
+        { // header args
+            empty();
+        }
+        start(org::CodeLine); // body
+        {
+            skip(lex, otk::CurlyBegin);
+            while (!lex.at(otk::CurlyEnd)) {
+                token(org::CodeText, pop(lex));
+            }
+            skip(lex, otk::CurlyEnd);
+        }
+        end();
+    }
     return end();
 }
 
@@ -878,7 +928,11 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     {
         token(
             org::RawText,
-            pop(lex, OrgTokSet{otk::ListItemBegin, otk::TreeClock}));
+            pop(lex,
+                OrgTokSet{
+                    otk::LeadingNumber,
+                    otk::TreeClock,
+                    otk::LeadingMinus}));
     }
     space(lex);
     // counter, 1
@@ -916,7 +970,8 @@ OrgId OrgParser::parseList(OrgLexer& lex) {
     __perf_trace("parseList");
     auto __trace = trace(lex);
     start(org::List);
-    while (lex.at(OrgTokSet{otk::ListItemBegin, otk::TreeClock})) {
+    while (lex.at(OrgTokSet{
+        otk::LeadingMinus, otk::LeadingNumber, otk::TreeClock})) {
         parseListItem(lex);
         if (lex.at(otk::SameIndent)) { skip(lex); }
     }
@@ -1049,7 +1104,34 @@ OrgId OrgParser::parseSubtreeTitle(OrgLexer& lex) {
     __perf_trace("parseSubtreeTitle");
     auto __trace = trace(lex);
     space(lex);
-    return parseParagraph(lex);
+    SubLexer sub{lex};
+
+
+    auto is_at_subtree_tags = [](OrgLexer& lex) {
+        const IntSet<OrgTokenKind> tree_tags{
+            otk::Colon,
+            otk::Word,
+            otk::DoubleHash,
+        };
+
+        if (!lex.at(otk::Colon)) { return false; }
+
+        auto ahead = lex.whole_fixed().range_current()
+                   | rv::take_while([&](OrgToken const& t) -> bool {
+                         return tree_tags.contains(t.kind);
+                     })
+                   | rs::to<std::vector>;
+
+        return Newline.contains((lex.begin() + ahead.size())->kind);
+    };
+
+
+    while (!lex.at(Newline) && !is_at_subtree_tags(lex)) {
+        sub.add(pop(lex, lex.kind()));
+    }
+
+    sub.start();
+    return parseParagraph(sub);
 }
 
 
@@ -1073,29 +1155,22 @@ OrgId OrgParser::parseSubtreeTags(OrgLexer& lex) {
 OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
     __perf_trace("parseSubtreeTimes");
     auto __trace = trace(lex);
-    start(org::StmtList);
-    if (lex.ahead(OrgTokSet{otk::Whitespace}, OrgTokSet{otk::Time})) {
-        skip(lex, otk::Whitespace);
-
-        while (lex.at(otk::Time)) {
-            start(org::TimeAssoc);
-            if (lex.at(otk::Time)) {
-                token(org::BigIdent, pop(lex, otk::Time));
-            } else {
-                empty();
-            }
+    if (lex.at(otk::LeadingSpace) && lex.at(otk::TreeTime, +1)) {
+        space(lex);
+        start(org::StmtList);
+        while (lex.at(otk::TreeTime)) {
+            start(org::InlineStmtList);
+            token(org::Word, pop(lex));
             space(lex);
             parseTimeStamp(lex);
             space(lex);
             end();
         }
 
-        newline(lex);
+        return end();
     } else {
-        print("No subtree time");
+        return empty();
     }
-
-    return end();
 }
 
 
@@ -1114,13 +1189,8 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     parseSubtreeTags(lex);                            // 5
 
     if (lex.at(otk::Newline)) { newline(lex); }
-    if (false) { // 6 TODO
-        skip(lex, otk::Newline);
-        parseSubtreeTimes(lex);
-        newline(lex);
-    } else {
-        empty();
-    }
+    parseSubtreeTimes(lex); // 6
+
 
     if (lex.at(otk::Newline)) { newline(lex); }
 
@@ -1330,17 +1400,6 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
             return result;
         }
 
-        case otk::BraceBegin:
-        case otk::Word: {
-            SubLexer sub{lex};
-            while (lex.hasNext() && !lex.at(ParagraphTerminator)) {
-                sub.add(lex.pop());
-            }
-
-            sub.start();
-            return parseParagraph(sub);
-        }
-
         case otk::Indent: {
             lex.next();
             auto result = parseList(lex);
@@ -1354,8 +1413,11 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
 
         case otk::Whitespace:
             return token(org::Space, pop(lex, otk::Whitespace));
+
+        case otk::MediumNewline:
+        case otk::LongNewline:
         case otk::Newline:
-            return token(org::Newline, pop(lex, otk::Newline));
+            return token(org::Newline, pop(lex, lex.kind()));
         case otk::TextSeparator:
             return token(org::TextSeparator, pop(lex, otk::TextSeparator));
 
@@ -1372,7 +1434,13 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
             }
         }
         default: {
-            fatalError(lex, "unhandled token");
+            SubLexer sub{lex};
+            while (lex.hasNext() && !lex.at(ParagraphTerminator)) {
+                sub.add(lex.pop());
+            }
+
+            sub.start();
+            return parseParagraph(sub);
         }
     }
 }
