@@ -41,7 +41,7 @@ struct OrgTokenizer
     // is large enough to justify all the hacks with explicit
     // initialization, but for the time being I don't want to get into this
     // and try and check what is really going on.
-    using Base = Tokenizer<OrgTokenKind, BaseToken>;
+    using Base = Tokenizer<OrgTokenKind, OrgToken>;
 
 
   public:
@@ -63,7 +63,7 @@ struct OrgTokenizer
         OrgToken   tok;
         OrgTokenId id      = OrgTokenId::Nil();
         Opt<Str>   subname = std::nullopt;
-        BaseLexer* lex     = nullptr;
+        OrgLexer*  lex     = nullptr;
     };
 
 
@@ -83,16 +83,16 @@ struct OrgTokenizer
     /// Rewrite stream of base lexer tokens to the org token stream, adding
     /// boundaries for the paragraph elements, closing unterminated
     /// elements that can be detected on this stage.
-    void recombine(BaseLexer& lex);
+    void recombine(OrgLexer& lex);
 
-    void convert(BaseTokenGroup& input);
-    void convert(BaseLexer& lex);
+    void convert(OrgTokenGroup& input);
+    void convert(OrgLexer& lex);
 
     int  depth = 0;
     void report(CR<Report> in);
 
     void print(
-        BaseLexer&         lex,
+        OrgLexer&          lex,
         const std::string& msg,
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION());

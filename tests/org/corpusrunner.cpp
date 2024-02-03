@@ -617,7 +617,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                                        .get_copy(
                                            node.getToken().getIndex())
                                        .value_or(OrgToken{})
-                                       ->getText(),
+                                       ->text,
                                    HDisplayOpts().excl(
                                        HDisplayFlag::UseQuotes))
                                    .toString(false))
@@ -801,10 +801,10 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             Str                   buffer;
             RunResult::LexCompare result = compareTokens(
                 p.baseTokens,
-                fromFlatTokens<BaseTokenKind, BaseFill>(
+                fromFlatTokens<OrgTokenKind, OrgFill>(
                     spec.base_tokens.value(), buffer),
                 spec.conf.tokenMatch,
-                [](CR<BaseToken> lhs, CR<BaseToken> rhs) -> bool {
+                [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
                     if (lhs.kind != rhs.kind) {
                         return false;
                     } else if (lhs.value.text != rhs.value.text) {
@@ -813,7 +813,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                         return true;
                     }
                 },
-                [](CR<BaseToken> tok) { return tok.value.text; });
+                [](CR<OrgToken> tok) { return tok.value.text; });
 
             if (!result.isOk) { return RunResult(result); }
         }
@@ -833,14 +833,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                         // debugging why 'given' in tests sometimes has a
                         // non-empty base and sometimes it is a true
                         // nullopt_t value.
-                        lhs->base.value_or(BaseFill{.text = ""}).text
-                        != rhs->base.value_or(BaseFill{.text = ""}).text) {
+                        lhs->text != rhs->text) {
                         return false;
                     } else {
                         return true;
                     }
                 },
-                [](CR<OrgToken> tok) { return tok->getText(); });
+                [](CR<OrgToken> tok) { return tok->text; });
 
             if (!result.isOk) { return RunResult(result); }
         }

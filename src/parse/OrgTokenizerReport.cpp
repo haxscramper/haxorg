@@ -23,11 +23,11 @@ void OrgTokenizer::report(CR<Report> in) {
             os << " ((";
             in.lex->print(
                 os,
-                [](ColStream& os, BaseToken const& t) {
+                [](ColStream& os, OrgToken const& t) {
                     os << " " << os.yellow()
                        << escape_for_write(t.value.text) << os.end();
                 },
-                BaseLexer::PrintParams{
+                OrgLexer::PrintParams{
                     .maxTokens = 2,
                 });
             os << "))";

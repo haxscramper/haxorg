@@ -16,44 +16,45 @@ class AbstractLexer;
 }; // namespace reflex
 
 template <>
-struct enum_serde<BaseTokenKind> {
-    static std::string        to_string(BaseTokenKind const& value);
-    static Opt<BaseTokenKind> from_string(std::string const& value);
+struct enum_serde<OrgTokenKind> {
+    static std::string       to_string(OrgTokenKind const& value);
+    static Opt<OrgTokenKind> from_string(std::string const& value);
 };
 
 
 template <>
-struct std::formatter<BaseTokenKind> : std::formatter<std::string> {
+struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        BaseTokenKind const& p,
-        FormatContext&       ctx) const {
+        OrgTokenKind const& p,
+        FormatContext&      ctx) const {
         std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<BaseTokenKind>::to_string(p), ctx);
+        return fmt.format(enum_serde<OrgTokenKind>::to_string(p), ctx);
     }
 };
 
-struct BaseFill {
-    Str text;
-    int line = -1;
-    int col  = -1;
+struct OrgFill {
+    Str  text;
+    int  line = -1;
+    int  col  = -1;
+    bool isFake() const { return line == -1 && col == -1; }
 };
 
-using BaseToken      = Token<BaseTokenKind, BaseFill>;
-using BaseTokenGroup = TokenGroup<BaseTokenKind, BaseFill>;
-using BaseTokenId    = TokenId<BaseTokenKind, BaseFill>;
+using OrgToken      = Token<OrgTokenKind, OrgFill>;
+using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
+using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
 
 template <>
-struct value_domain<BaseTokenKind>
+struct value_domain<OrgTokenKind>
     : public value_domain_ungapped<
-          BaseTokenKind,
-          BaseTokenKind::Ampersand,
-          BaseTokenKind::Word> {};
+          OrgTokenKind,
+          OrgTokenKind::Ampersand,
+          OrgTokenKind::Word> {};
 
 template <>
-struct std::formatter<BaseFill> : std::formatter<std::string> {
+struct std::formatter<OrgFill> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(BaseFill const& p, FormatContext& ctx)
+    FormatContext::iterator format(OrgFill const& p, FormatContext& ctx)
         const {
         std::formatter<std::string>{}.format("<", ctx);
         fmt_ctx(escape_for_write(p.text), ctx);
@@ -66,13 +67,13 @@ struct std::formatter<BaseFill> : std::formatter<std::string> {
 };
 
 
-BaseTokenGroup tokenize(
+OrgTokenGroup tokenize(
     const char*   input,
     int           size,
     std::ostream* traceStream);
 
 
-struct BaseLexerImpl {
+struct OrgLexerImpl {
     reflex::AbstractLexer<reflex::Matcher>* impl;
 
     int           maxUnknown     = 100;
@@ -90,14 +91,14 @@ struct BaseLexerImpl {
 
     Vec<PushInfo> states;
 
-    BaseTokenGroup tokens;
-    void           add(BaseTokenKind token);
-    std::string    state_name(int name);
-    std::string    view();
-    void           unknown();
+    OrgTokenGroup tokens;
+    void          add(OrgTokenKind token);
+    std::string   state_name(int name);
+    std::string   view();
+    void          unknown();
 
     void pop_expect_impl(int current, int next, int line);
     void push_expect_impl(int current, int next, int line);
-    void before(int line, BaseTokenKind kind, char const* pattern);
+    void before(int line, OrgTokenKind kind, char const* pattern);
     void after(int line);
 };

@@ -80,15 +80,15 @@ struct convert<typename ::Token<K, V>> {
 };
 
 template <>
-struct convert<BaseFill> {
-    static Node encode(BaseFill const& str) {
+struct convert<OrgFill> {
+    static Node encode(OrgFill const& str) {
         Node result;
         result["text"] = str.text;
         result["line"] = str.line;
         result["col"]  = str.col;
         return result;
     }
-    static bool decode(Node const& in, BaseFill& out) {
+    static bool decode(Node const& in, OrgFill& out) {
         if (in["text"]) { out.text = in["text"].as<Str>(); }
 
         if (in["line"]) { out.line = in["line"].as<int>(); }
@@ -98,26 +98,6 @@ struct convert<BaseFill> {
         return true;
     }
 };
-
-template <>
-struct convert<OrgFill> {
-    static Node encode(OrgFill const& str) {
-        Node result;
-        if (str.base) {
-            result["base"] = convert<BaseFill>::encode(*str.base);
-        }
-        return result;
-    }
-    static bool decode(Node const& in, OrgFill& out) {
-        if (in["str"]) {
-            out.base = BaseFill{.text = in["str"].as<Str>()};
-        } else if (in["base"]) {
-            out.base = in["base"].as<BaseFill>();
-        }
-        return true;
-    }
-};
-
 template <DescribedEnum E>
 struct convert<E> {
     static Node encode(E const& str) {
@@ -145,27 +125,12 @@ struct convert<OrgToken> {
     static Node encode(OrgToken const& str) {
         Node result;
         result["kind"] = fmt1(str.kind);
-        result["str"]  = str->base->text;
+        result["str"]  = str->text;
         return result;
     }
     static bool decode(Node const& in, OrgToken& out) {
-        if (in["str"]) { out->base = BaseFill{in["str"].as<Str>()}; }
+        if (in["str"]) { out->text = in["str"].as<Str>(); }
         if (in["kind"]) { out.kind = in["kind"].as<OrgTokenKind>(); }
-        return true;
-    }
-};
-
-template <>
-struct convert<BaseToken> {
-    static Node encode(BaseToken const& str) {
-        Node result;
-        result["kind"] = fmt1(str.kind);
-        result["str"]  = str.value.text;
-        return result;
-    }
-    static bool decode(Node const& in, BaseToken& out) {
-        if (in["str"]) { out.value.text = in["str"].as<Str>(); }
-        if (in["kind"]) { out.kind = in["kind"].as<BaseTokenKind>(); }
         return true;
     }
 };

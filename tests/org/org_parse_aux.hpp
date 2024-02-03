@@ -16,7 +16,7 @@ struct MockFull {
     Lexer<OrgTokenKind, OrgFill> lex;
     SPtr<OrgParser>              parser;
     UPtr<OrgSpec>                spec;
-    BaseTokenGroup               baseTokens;
+    OrgTokenGroup                baseTokens;
 
     MockFull(bool tracedParser, bool tracedLexer)
         : tokenizer(), nodes(nullptr), lex(&tokens) {

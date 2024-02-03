@@ -28,9 +28,8 @@ Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
             for (int i : Vec<int>{-1, 1}) {
                 if (lex.hasNext(offset * i)) {
                     OrgToken tok = lex.tok(offset * i);
-                    if (tok.value.base) {
-                        return LineCol{
-                            tok.value.base->line, tok.value.base->col};
+                    if (tok->isFake()) {
+                        return LineCol{tok.value.line, tok.value.col};
                     }
                     // If offset falls out of the lexer range on both
                     // ends, terminate lookup.
@@ -99,7 +98,7 @@ OrgId OrgParser::end(int line, const char* function) {
 
 OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
     auto res = group->token(
-        kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
+        kind, group->tokens->add(OrgToken(OrgTokenKind::Unknown)));
     if (TraceState) {
         report(
             Builder(

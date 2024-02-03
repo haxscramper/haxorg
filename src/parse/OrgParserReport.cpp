@@ -13,7 +13,7 @@ void OrgParser::report(CR<Report> in) {
     ColStream os = getStream();
     os << repeat("  ", depth);
     auto print_token = [](ColStream& os, OrgToken const& t) {
-        os << escape_for_write(t->getText());
+        os << escape_for_write(t->text);
     };
 
     auto printTokens = [&]() {
@@ -69,7 +69,7 @@ void OrgParser::report(CR<Report> in) {
                 in.line,
                 escape_literal(
                     group->at(id).isMono() ? "<mono>"
-                                           : group->val(id).getText()));
+                                           : group->val(id).text));
             break;
         }
 

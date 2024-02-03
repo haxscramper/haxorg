@@ -5,10 +5,10 @@
 
 #include "base_token_state.tcc"
 
-void BaseLexerImpl::add(BaseTokenKind token) {
-    auto id = tokens.add(BaseToken{
+void OrgLexerImpl::add(OrgTokenKind token) {
+    auto id = tokens.add(OrgToken{
         token,
-        BaseFill{
+        OrgFill{
             impl->matcher().str(),
             static_cast<int>(impl->lineno()),
             static_cast<int>(impl->columno()),
@@ -25,7 +25,7 @@ void BaseLexerImpl::add(BaseTokenKind token) {
 }
 
 
-void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
+void OrgLexerImpl::pop_expect_impl(int current, int next, int line) {
     if (current != -1) {
         CHECK(impl->start() == current) << std::format(
             "Expected current state to be {} line:{} but got {} '{}'",
@@ -60,7 +60,7 @@ void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
     }
 }
 
-void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
+void OrgLexerImpl::push_expect_impl(int current, int next, int line) {
     CHECK(impl->start() == current) << std::format(
         "Expected current state to be {} line:{} but got {} when "
         "transitioning to {} at '{}'",
@@ -88,10 +88,10 @@ void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
     }
 }
 
-void BaseLexerImpl::before(
-    int           line,
-    BaseTokenKind kind,
-    const char*   pattern) {
+void OrgLexerImpl::before(
+    int          line,
+    OrgTokenKind kind,
+    const char*  pattern) {
     if (traceStream) {
         (*traceStream) << std::format(
             ">  {:0>4}]   {} {}", line, escape_for_write(pattern), view())
@@ -99,7 +99,7 @@ void BaseLexerImpl::before(
     }
 }
 
-void BaseLexerImpl::after(int line) {
+void OrgLexerImpl::after(int line) {
     // if (traceStream) {
     //     (*traceStream) << std::format(
     //         "< {} state {}", line, state_name(impl->start()))
@@ -107,7 +107,7 @@ void BaseLexerImpl::after(int line) {
     // }
 }
 
-std::string BaseLexerImpl::view() {
+std::string OrgLexerImpl::view() {
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
     std::string    text      = impl->matcher().str();
     std::u32string utf32_str = conv.from_bytes(text);
@@ -137,7 +137,7 @@ std::string BaseLexerImpl::view() {
         states);
 }
 
-void BaseLexerImpl::unknown() {
+void OrgLexerImpl::unknown() {
     if (traceStream) {
         (*traceStream) << "  X unknown " << view() << std::endl;
     } else {

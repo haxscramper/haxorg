@@ -17,7 +17,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     }
 
     Builder(
-        BaseLexer&               lex,
+        OrgLexer&                lex,
         OrgTokenizer::ReportKind kind,
         char const*              file     = __builtin_FILE_NAME(),
         int                      line     = __builtin_LINE(),
@@ -43,7 +43,6 @@ struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
 
 
 using otk = OrgTokenKind;
-using obt = BaseTokenKind;
 
 template <typename T>
 bool opt_equal(CR<Opt<T>> opt, CR<T> value) {
@@ -70,7 +69,7 @@ auto in_set(T const& value, Args&&... args) -> bool {
     return set.contains(value);
 }
 
-OrgFill fill(BaseLexer& lex) { return OrgFill{.base = lex.tok().value}; }
+OrgFill fill(OrgLexer& lex) { return OrgFill{.text = lex.tok()->text}; }
 
 template <typename T>
 struct std::formatter<std::reference_wrapper<T>>
@@ -101,11 +100,11 @@ struct std::formatter<rs::subrange<T>> : std::formatter<std::string> {
     }
 };
 
-const IntSet<BaseTokenKind> line_end{
-    obt::Newline,
-    obt::MediumNewline,
-    obt::LongNewline,
-    obt::EndOfFile,
+const IntSet<OrgTokenKind> line_end{
+    otk::Newline,
+    otk::MediumNewline,
+    otk::LongNewline,
+    otk::EndOfFile,
 };
 
 
@@ -114,7 +113,7 @@ namespace {
 
 struct RecombineState {
     OrgTokenizer* d;
-    BaseLexer&    lex;
+    OrgLexer&     lex;
     bool const&   TraceState;
 
     void report(OrgTokenizer::Report const& report) { d->report(report); }
@@ -145,10 +144,10 @@ struct RecombineState {
     }
 
 
-    RecombineState(OrgTokenizer* d, BaseLexer& lex)
+    RecombineState(OrgTokenizer* d, OrgLexer& lex)
         : d(d), lex(lex), TraceState(d->TraceState) {}
 
-    auto prev_token() -> Opt<BaseToken> {
+    auto prev_token() -> Opt<OrgToken> {
         if (lex.hasNext(-1)) {
             return lex.tok(-1);
         } else {
@@ -156,7 +155,7 @@ struct RecombineState {
         }
     };
 
-    auto next_token() -> Opt<BaseToken> {
+    auto next_token() -> Opt<OrgToken> {
         if (lex.hasNext(1)) {
             return lex.tok(1);
         } else {
@@ -165,7 +164,7 @@ struct RecombineState {
     };
 
 
-    void next(BaseLexer& lex, int line = __builtin_LINE()) {
+    void next(OrgLexer& lex, int line = __builtin_LINE()) {
         x_report(
             Print, .with_line(line).with_msg(fmt("next {}", lex.tok())));
         lex.next();
@@ -176,7 +175,10 @@ struct RecombineState {
     }
 
 
-    void skip(BaseLexer& lex, obt kind, int line = __builtin_LINE()) {
+    void skip(
+        OrgLexer&    lex,
+        OrgTokenKind kind,
+        int          line = __builtin_LINE()) {
         x_report(
             Print, .with_line(line).with_msg(fmt("skip {}", lex.tok())));
         lex.skip(kind);
@@ -192,9 +194,9 @@ struct RecombineState {
     }
 
     void pop_as(
-        OrgTokenKind __to,
-        Opt<obt>     expected = std::nullopt,
-        int          line     = __builtin_LINE()) {
+        OrgTokenKind      __to,
+        Opt<OrgTokenKind> expected = std::nullopt,
+        int               line     = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill(lex)});
         x_report(
             Push,
@@ -230,14 +232,14 @@ struct RecombineState {
     }
 
 
-    IntSet<BaseTokenKind> EmptyToken{
-        obt::Whitespace,
-        obt::EndOfFile,
-        obt::Newline,
-        obt::MediumNewline,
-        obt::LongNewline,
-        obt::AnyPunct,
-        obt::LeadingSpace,
+    IntSet<OrgTokenKind> EmptyToken{
+        otk::Whitespace,
+        otk::EndOfFile,
+        otk::Newline,
+        otk::MediumNewline,
+        otk::LongNewline,
+        otk::AnyPunct,
+        otk::LeadingSpace,
     };
 
     void recombine_markup() {
@@ -245,27 +247,27 @@ struct RecombineState {
         auto prev = prev_token();
         auto next = next_token();
         switch (lex.kind()) {
-            case obt::ForwardSlash:
-            case obt::Equals:
-            case obt::Plus:
-            case obt::Asterisk: {
+            case otk::ForwardSlash:
+            case otk::Equals:
+            case otk::Plus:
+            case otk::Asterisk: {
                 otk open{};
                 otk close{};
 
                 switch (lex.kind()) {
-                    case obt::Asterisk:
+                    case otk::Asterisk:
                         open  = otk::BoldBegin;
                         close = otk::BoldEnd;
                         break;
-                    case obt::ForwardSlash:
+                    case otk::ForwardSlash:
                         open  = otk::ItalicBegin;
                         close = otk::ItalicEnd;
                         break;
-                    case obt::Equals:
+                    case otk::Equals:
                         open  = otk::VerbatimBegin;
                         close = otk::VerbatimEnd;
                         break;
-                    case obt::Plus:
+                    case otk::Plus:
                         open  = otk::StrikeBegin;
                         close = otk::StrikeEnd;
                         break;
@@ -278,8 +280,8 @@ struct RecombineState {
 
                 print(
                     fmt("prev kind {} next kind {}",
-                        prev ? prev->kind : obt::Unknown,
-                        next ? next->kind : obt::Unknown));
+                        prev ? prev->kind : otk::Unknown,
+                        next ? next->kind : otk::Unknown));
 
                 if (prev_empty && !next_empty) {
                     add_fake(open, {lex.tok().value});
@@ -301,86 +303,41 @@ struct RecombineState {
         }
     }
 
-    const IntSet<BaseTokenKind> tree_tags{
-        obt::Colon,
-        obt::Word,
-        obt::DoubleHash,
+    const IntSet<OrgTokenKind> tree_tags{
+        otk::Colon,
+        otk::Word,
+        otk::DoubleHash,
     };
 
-
-    void map_open_brace() {
-        auto tr   = trace();
-        auto prev = lex.opt(-1);
-        if (prev && prev->get().kind == obt::HashIdent) {
-            pop_as(otk::HashTagBegin);
-        } else if (auto date = lex.opt(+1);
-                   date && date->get().kind == obt::Date) {
-            pop_as(otk::BraceBegin);
-            pop_as(otk::StaticTimeDatePart, obt::Date);
-            // maybe day in  [yyyy-mm-dd Mon hh:mm:ss]
-            if (lex.at(Vec{obt::Whitespace, obt::Word})) {
-                skip(lex, obt::Whitespace);
-                skip(lex, obt::Word);
-            }
-
-            if (lex.at(Vec{obt::Whitespace, obt::Time})) {
-                skip(lex, obt::Whitespace);
-                pop_as(otk::StaticTimeClockPart);
-            }
-
-            if (lex.at(Vec{obt::Whitespace, obt::Plus, obt::Number})) {
-                next(lex);
-                next(lex);
-                pop_as(otk::Number);
-            }
-
-            pop_as(otk::BraceEnd, obt::BraceClose);
-        } else if (auto time = lex.opt(+1);
-                   time && time->get().kind == obt::Time) {
-            pop_as(otk::BraceBegin);
-            pop_as(otk::StaticTimeDatePart, obt::Time);
-            if (lex.at(Vec{obt::Whitespace, obt::Plus, obt::Number})) {
-                next(lex);
-                next(lex);
-                pop_as(otk::Number);
-            }
-            pop_as(otk::BraceEnd, obt::BraceClose);
-        } else {
-            pop_as(otk::BraceBegin);
-        }
-    }
 
     void map_line_command() {
         auto next = lex.tok(+1);
         pop_as(otk::CmdPrefix);
         switch (next.kind) {
-            case obt::CmdCenterBegin: pop_as(otk::CmdCenterBegin); break;
-            case obt::CmdCenterEnd: pop_as(otk::CmdCenterEnd); break;
-            case obt::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
-            case obt::CmdTitle: pop_as(otk::CmdTitle); break;
-            case obt::CmdCaption: pop_as(otk::CmdCaption); break;
-            case obt::CmdFiletags: pop_as(otk::CmdFiletags); break;
-            case obt::CmdColumns: pop_as(otk::CmdColumns); break;
-            case obt::CmdQuoteBegin: pop_as(otk::CmdQuoteBegin); break;
-            case obt::CmdQuoteEnd: pop_as(otk::CmdQuoteEnd); break;
-            case obt::CmdExampleBegin: pop_as(otk::CmdExampleBegin); break;
-            case obt::CmdExampleEnd: pop_as(otk::CmdExampleEnd); break;
-            case obt::CmdExportBegin: pop_as(otk::CmdExportBegin); break;
-            case obt::CmdExportEnd: pop_as(otk::CmdExportEnd); break;
-            case obt::CmdPropertyArgs: {
+            case otk::CmdCenterBegin: pop_as(otk::CmdCenterBegin); break;
+            case otk::CmdCenterEnd: pop_as(otk::CmdCenterEnd); break;
+            case otk::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
+            case otk::CmdTitle: pop_as(otk::CmdTitle); break;
+            case otk::CmdCaption: pop_as(otk::CmdCaption); break;
+            case otk::CmdFiletags: pop_as(otk::CmdFiletags); break;
+            case otk::CmdColumns: pop_as(otk::CmdColumns); break;
+            case otk::CmdQuoteBegin: pop_as(otk::CmdQuoteBegin); break;
+            case otk::CmdQuoteEnd: pop_as(otk::CmdQuoteEnd); break;
+            case otk::CmdExampleBegin: pop_as(otk::CmdExampleBegin); break;
+            case otk::CmdExampleEnd: pop_as(otk::CmdExampleEnd); break;
+            case otk::CmdExportBegin: pop_as(otk::CmdExportBegin); break;
+            case otk::CmdExportEnd: pop_as(otk::CmdExportEnd); break;
+            case otk::CmdPropertyArgs: {
                 auto split = next->text.split(' ');
                 add_fake(
-                    otk::CmdPropertyArgs,
-                    OrgFill{.base = BaseFill{.text = split.at(0)}});
-                add_fake(
-                    otk::CmdValue,
-                    OrgFill{.base = BaseFill{.text = split.at(1)}});
+                    otk::CmdPropertyArgs, OrgFill{.text = split.at(0)});
+                add_fake(otk::CmdValue, OrgFill{.text = split.at(1)});
                 lex.next();
                 break;
             }
-            case obt::CmdPropertyText: pop_as(otk::CmdPropertyText); break;
-            case obt::CmdPropertyRaw: pop_as(otk::CmdPropertyRaw); break;
-            case obt::CmdOptions: pop_as(otk::CmdOptions); break;
+            case otk::CmdPropertyText: pop_as(otk::CmdPropertyText); break;
+            case otk::CmdPropertyRaw: pop_as(otk::CmdPropertyRaw); break;
+            case otk::CmdOptions: pop_as(otk::CmdOptions); break;
             default: {
                 LOG(FATAL) << fmt(
                     "Unhandled line command conversion rules {}", next);
@@ -388,23 +345,23 @@ struct RecombineState {
         }
 
         switch (next.kind) {
-            case obt::CmdExampleBegin:
-            case obt::CmdExportBegin:
-            case obt::CmdSrcBegin: {
+            case otk::CmdExampleBegin:
+            case otk::CmdExportBegin:
+            case otk::CmdSrcBegin: {
                 map_command_args();
                 break;
             }
 
-            case obt::CmdPropertyArgs: {
+            case otk::CmdPropertyArgs: {
                 map_command_args();
                 break;
             }
 
 
-            case obt::CmdTitle:
-                while (lex.at(obt::Whitespace)) { lex.next(); }
+            case otk::CmdTitle:
+                while (lex.at(otk::Whitespace)) { lex.next(); }
                 break;
-            case obt::CmdPropertyText:
+            case otk::CmdPropertyText:
                 pop_as(otk::CmdValue);
                 while (!lex.at(line_end)) { map_interpreted_token(); }
                 break;
@@ -412,7 +369,7 @@ struct RecombineState {
         }
 
         switch (next.kind) {
-            case obt::CmdSrcBegin:
+            case otk::CmdSrcBegin:
                 add_fake(otk::CmdContentBegin);
                 if (lex.at(line_end)) { lex.next(); }
                 break;
@@ -420,21 +377,21 @@ struct RecombineState {
         }
     }
 
-    IntSet<BaseTokenKind> HashTagTokens{
-        obt::DoubleHash,
-        obt::BraceOpen,
-        obt::BraceClose,
-        obt::Whitespace,
-        obt::Indent,
+    IntSet<OrgTokenKind> HashTagTokens{
+        otk::DoubleHash,
+        otk::BraceBegin,
+        otk::BraceEnd,
+        otk::Whitespace,
+        otk::Indent,
     };
 
     void map_command_args() {
         while (!line_end.contains(lex.kind())) {
             switch (lex.kind()) {
-                case obt::CmdColonIdent: pop_as(otk::CmdKey); break;
-                case obt::CmdRawArg:
-                case obt::CmdIdent: pop_as(otk::CmdValue); break;
-                case obt::Whitespace: lex.next(); break;
+                case otk::CmdColonIdent: pop_as(otk::CmdKey); break;
+                case otk::CmdRawArg:
+                case otk::CmdIdent: pop_as(otk::CmdValue); break;
+                case otk::Whitespace: lex.next(); break;
                 default: {
                     LOG(FATAL) << fmt(
                         "Unhandled command argument kind {}", lex.kind());
@@ -445,180 +402,74 @@ struct RecombineState {
 
     void map_interpreted_token() {
         auto               __trace  = trace("", __LINE__, "[map]");
-        BaseTokenId        start    = lex.pos;
-        BaseToken const&   tok      = lex.tok();
-        BaseFill const&    val      = tok.value;
+        OrgTokenId         start    = lex.pos;
+        OrgToken const&    tok      = lex.tok();
+        OrgFill const&     val      = tok.value;
         std::string const& str      = tok.value.text;
         auto               map_kind = lex.kind();
 
         switch (map_kind) {
-            case obt::Comma: pop_as(otk::Comma); break;
-            case obt::Colon: pop_as(otk::Colon); break;
-            case obt::BraceOpen: map_open_brace(); break;
-            case obt::LeadingNumber: pop_as(otk::ListItemBegin); break;
-            case obt::LeadingMinus: pop_as(otk::ListItemBegin); break;
-            case obt::LeadingSpace: lex.next(); break;
-            case obt::Minus: pop_as(otk::Punctuation); break;
-            case obt::LineCommand: map_line_command(); break;
-            case obt::TreePropertyLiteral: pop_as(otk::PropRawKey); break;
-            case obt::TreePropertyText: pop_as(otk::PropTextKey); break;
-            case obt::TreePropertyLogbook:
-                pop_as(otk::ColonLogbook);
-                break;
-            case obt::DoubleHash: pop_as(otk::HashTagSub); break;
-            case obt::CmdIdent: pop_as(otk::Word); break;
-
-            case obt::DoubleSlash: pop_as(otk::DoubleSlash); break;
-            case obt::TimeArrow: pop_as(otk::TimeArrow); break;
-            case obt::TreeClock: pop_as(otk::ListClock); break;
-            case obt::Comment: pop_as(otk::Comment); break;
-            case obt::Indent: pop_as(otk::Indent); break;
-            case obt::Dedent: pop_as(otk::Dedent); break;
-            case obt::SameIndent: pop_as(otk::SameIndent); break;
-            case obt::ListStart: pop_as(otk::ListBegin); break;
-            case obt::ListEnd: pop_as(otk::ListEnd); break;
-            case obt::StmtListOpen: pop_as(otk::StmtListBegin); break;
-            case obt::ListItemEnd: pop_as(otk::ListItemEnd); break;
-            case obt::SrcContent: pop_as(otk::CodeText); break;
-            case obt::CmdExampleLine: pop_as(otk::RawText); break;
-            case obt::Ampersand: pop_as(otk::Punctuation); break;
-            case obt::AnyPunct: pop_as(otk::Punctuation); break;
-            case obt::Symbol: pop_as(otk::SymbolBegin); break;
-            case obt::TreePropertyProperties:
-                pop_as(otk::ColonProperties);
-                break;
-
-            case obt::TreePropertyEnd: pop_as(otk::ColonEnd); break;
-            case obt::RawText: pop_as(otk::RawText); break;
-            // On top level, base tokens like `2020-01-10` are not
-            // registered as proper timestamp elements and are converted to
-            // the regular words.
-            case obt::Number: pop_as(otk::Word); break;
-            // FIXME why two tokens of the same kind?
-            case obt::Date: pop_as(otk::Word); break;
-            case obt::Percent: pop_as(otk::Punctuation); break;
-            // FIXME Some weird name transitions here, cleanup later
-            case obt::LeftPar: pop_as(otk::ParBegin); break;
-            case obt::RightPar: pop_as(otk::ParEnd); break;
-            // When not used in the timestamps, these are just pieces of
-            // punctuation
-            case obt::BraceClose: pop_as(otk::BraceEnd); break;
-            case obt::MacroBegin: pop_as(otk::MacroBegin); break;
-            case obt::MacroEnd: pop_as(otk::MacroEnd); break;
-            case obt::At: pop_as(otk::AtMention); break;
-            case obt::FootnoteBegin: pop_as(otk::FootnoteBegin); break;
-            case obt::TextSeparator: pop_as(otk::TextSeparator); break;
-            case obt::SingleQuote: pop_as(otk::Punctuation); break;
-            case obt::DoubleDash: pop_as(otk::TimeDash); break;
-            case obt::Time: pop_as(otk::TimeDuration); break;
-            case obt::Semicolon: pop_as(otk::Punctuation); break;
-            case obt::MiscUnicode: pop_as(otk::Word); break;
-            case obt::Whitespace: pop_as(otk::Space); break;
-            case obt::MediumNewline: pop_as(otk::MediumNewline); break;
-            case obt::LongNewline: pop_as(otk::LongNewline); break;
-            case obt::Newline: pop_as(otk::Newline); break;
-            case obt::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
-            case obt::Dollar: pop_as(otk::Punctuation); break;
-            // case obt::SubtreePriority: pop_as(otk::SubtreePriority); break;
-
-            case obt::CmdExampleEnd: {
+            case otk::LineCommand: map_line_command(); break;
+            case otk::CmdExampleEnd: {
                 add_fake(otk::CmdPrefix);
                 pop_as(otk::CmdExampleEnd);
                 break;
             }
 
-            case obt::CmdExportEnd: {
+            case otk::CmdExportEnd: {
                 add_fake(otk::CmdPrefix);
                 pop_as(otk::CmdExportEnd);
                 break;
             }
 
-            case obt::CmdSrcEnd: {
+            case otk::CmdSrcEnd: {
                 add_fake(otk::CmdPrefix);
                 pop_as(otk::CmdSrcEnd);
                 break;
             }
 
-
-            case obt::HashIdent: pop_as(otk::HashTag); break;
-
-
-            case obt::Plus:
-            case obt::ForwardSlash:
-            case obt::Equals:
-            case obt::Asterisk: {
+            case otk::Plus:
+            case otk::ForwardSlash:
+            case otk::Equals:
+            case otk::Asterisk: {
                 recombine_markup();
                 break;
             }
-
-            case obt::Tilda: {
-                pop_as(otk::MonospaceBegin);
-                while (!(!lex.at(EmptyToken, -1) && lex.at(obt::Tilda))) {
-                    pop_as(otk::RawText);
-                }
-                pop_as(otk::MonospaceEnd);
-                break;
-            }
-
-            case obt::StmtListClose: {
-                pop_as(otk::StmtListEnd);
-                break;
-            }
-
-            case obt::EndOfFile: {
+            case otk::EndOfFile: {
                 lex.next();
                 break;
             }
 
-            case obt::Word: {
+            case otk::Word: {
                 pop_as(otk::Word);
                 break;
             }
 
 
-            case obt::SubtreeStars: {
+            case otk::SubtreeStars: {
                 pop_as(otk::SubtreeStars);
                 break;
             }
 
-            case obt::TableSeparator:
-                pop_as(otk::CmdTableSeparator);
-                break;
-            case obt::Pipe: pop_as(otk::CmdTableInnerPipe); break;
-            case obt::TrailingPipe: pop_as(otk::CmdTableTrailPipe); break;
-            case obt::LeadingPipe: pop_as(otk::CmdTableLeadPipe); break;
-            case obt::LeftCurly: pop_as(otk::CurlyStart); break;
-            case obt::RightCurly: pop_as(otk::CurlyEnd); break;
-            case obt::EscapedChar: pop_as(otk::Escaped); break;
-            case obt::LinkEnd: pop_as(otk::LinkEnd); break;
-            case obt::DoubleQuote: pop_as(otk::Punctuation); break;
-            case obt::LeftAngle: pop_as(otk::AngleBegin); break;
-            case obt::RightAngle: pop_as(otk::AngleEnd); break;
-            case obt::DoubleLeftAngle:
-                pop_as(otk::DoubleAngleBegin);
-                break;
-            case obt::DoubleRightAngle: pop_as(otk::DoubleAngleEnd); break;
-
-
-            case obt::LinkBegin: {
+            case otk::LinkBegin: {
                 add_fake(otk::LinkBegin);
                 add_fake(otk::LinkTargetBegin);
                 auto text = strip(
                     lex.val().text, CharSet{'['}, CharSet{']', '[', ':'});
 
-                add_fake(otk::LinkProtocol, {BaseFill{.text = text}});
+                add_fake(otk::LinkProtocol, OrgFill{.text = text});
                 lex.next();
                 break;
             }
 
-            case obt::LinkSplit: {
+            case otk::LinkSplit: {
                 add_fake(otk::LinkTargetEnd);
                 pop_as(otk::LinkDescriptionBegin);
                 break;
             }
 
-            case obt::DslLinkBegin:
-            case obt::DslLink: {
+            case otk::DslLinkBegin:
+            case otk::DslLink: {
                 add_fake(otk::LinkBegin);
                 add_fake(otk::LinkTargetBegin);
                 auto text = strip(
@@ -626,38 +477,28 @@ struct RecombineState {
 
                 auto split = text.split(':');
 
+                add_fake(otk::LinkProtocol, OrgFill{.text = split.at(0)});
                 add_fake(
-                    otk::LinkProtocol, {BaseFill{.text = split.at(0)}});
-                add_fake(
-                    otk::LinkTarget,
-                    {BaseFill{
-                        .text = join(":", split.at(slice(1, 1_B)))}});
+                    otk::RawText,
+                    OrgFill{.text = join(":", split.at(slice(1, 1_B)))});
 
                 lex.next();
                 add_fake(otk::LinkTargetEnd);
-                if (map_kind == obt::DslLink) { add_fake(otk::LinkEnd); }
+                if (map_kind == otk::DslLink) { add_fake(otk::LinkEnd); }
                 break;
             }
 
 
             default: {
-                LOG(FATAL) << std::format(
-                    "Unhanled kind for token conversion, got {}:{} {} "
-                    "\"{}\", lexer context {}",
-                    val.line,
-                    val.col,
-                    lex.kind(),
-                    val.text,
-                    lex);
-                lex.next();
+                pop_as(map_kind);
             }
         }
     }
 
     void recombine_impl() {
         while (lex.hasNext(0)) {
-            BaseTokenId     start = lex.pos;
-            BaseFill const& val   = lex.tok().value;
+            OrgTokenId     start = lex.pos;
+            OrgFill const& val   = lex.tok().value;
 
             map_interpreted_token();
 
@@ -670,7 +511,7 @@ struct RecombineState {
                 lex.kind(),
                 val.text,
                 lex.pos.format(),
-                lex.printToString([](ColStream& os, BaseToken const& t) {
+                lex.printToString([](ColStream& os, OrgToken const& t) {
                     os << os.yellow() << escape_for_write(t.value.text)
                        << os.end();
                 }));
@@ -693,40 +534,40 @@ struct LineToken {
         IndentedLine,
         Property);
 
-    Span<BaseToken> tokens;
-    int             indent = 0;
-    Kind            kind   = Kind::None;
+    Span<OrgToken> tokens;
+    int            indent = 0;
+    Kind           kind   = Kind::None;
 
     BOOST_DESCRIBE_CLASS(LineToken, (), (kind, tokens, indent), (), ());
 
-    IntSet<BaseTokenKind> CmdBlockClose{
-        obt::CmdSrcEnd,
-        obt::CmdCenterEnd,
-        obt::CmdExampleEnd,
-        obt::CmdQuoteEnd,
-        obt::CmdExportEnd,
+    IntSet<OrgTokenKind> CmdBlockClose{
+        otk::CmdSrcEnd,
+        otk::CmdCenterEnd,
+        otk::CmdExampleEnd,
+        otk::CmdQuoteEnd,
+        otk::CmdExportEnd,
     };
 
-    IntSet<BaseTokenKind> CmdBlockOpen{
-        obt::CmdCenterBegin,
-        obt::CmdExportBegin,
-        obt::CmdExampleBegin,
-        obt::CmdSrcBegin,
-        obt::CmdQuoteBegin,
+    IntSet<OrgTokenKind> CmdBlockOpen{
+        otk::CmdCenterBegin,
+        otk::CmdExportBegin,
+        otk::CmdExampleBegin,
+        otk::CmdSrcBegin,
+        otk::CmdQuoteBegin,
     };
 
-    IntSet<BaseTokenKind> CmdBlockLine{
-        obt::CmdTitle,
-        obt::CmdCaption,
-        obt::CmdColumns,
-        obt::CmdPropertyArgs,
-        obt::CmdPropertyRaw,
-        obt::CmdPropertyText,
-        obt::CmdOptions,
-        obt::CmdFiletags,
+    IntSet<OrgTokenKind> CmdBlockLine{
+        otk::CmdTitle,
+        otk::CmdCaption,
+        otk::CmdColumns,
+        otk::CmdPropertyArgs,
+        otk::CmdPropertyRaw,
+        otk::CmdPropertyText,
+        otk::CmdOptions,
+        otk::CmdFiletags,
     };
 
-    Opt<Kind> whichBlockLineKind(obt kind) {
+    Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {
         if (CmdBlockLine.contains(kind)) {
             return Kind::Line;
         } else if (CmdBlockOpen.contains(kind)) {
@@ -738,9 +579,9 @@ struct LineToken {
         }
     }
 
-    void setLineCommandKind(CR<Span<BaseToken>> tokens, int tokensOffset) {
-        CR<BaseToken> current = tokens.at(tokensOffset);
-        if (current.kind == obt::LineCommand) {
+    void setLineCommandKind(CR<Span<OrgToken>> tokens, int tokensOffset) {
+        CR<OrgToken> current = tokens.at(tokensOffset);
+        if (current.kind == otk::LineCommand) {
             if (auto next = whichBlockLineKind(
                     tokens.at(tokensOffset + 1).kind);
                 next) {
@@ -762,20 +603,18 @@ struct LineToken {
         }
     }
 
-    void setLeadingSpaceKind(CR<Span<BaseToken>> tokens) {
+    void setLeadingSpaceKind(CR<Span<OrgToken>> tokens) {
         if (auto next = tokens.get(1); next) {
             switch (next->get().kind) {
-                case obt::TreeClock:
-                case obt::Minus: kind = Kind::ListItem; break;
+                case otk::TreeClock:
+                case otk::Minus: kind = Kind::ListItem; break;
 
-                case obt::TreePropertyEnd:
-                case obt::TreePropertyText:
-                case obt::TreePropertyProperties:
-                case obt::TreePropertyLiteral:
-                    kind = Kind::Property;
-                    break;
+                case otk::ColonEnd:
+                case otk::ColonPropertyText:
+                case otk::ColonProperties:
+                case otk::ColonLogbook: kind = Kind::Property; break;
 
-                case obt::LineCommand:
+                case otk::LineCommand:
 
                     setLineCommandKind(tokens, 1);
                     break;
@@ -793,17 +632,17 @@ struct LineToken {
     }
 
     void updateForTokens() {
-        CR<BaseToken> first = tokens.at(0);
+        CR<OrgToken> first = tokens.at(0);
         switch (first.kind) {
-            case obt::LeadingSpace: {
+            case otk::LeadingSpace: {
                 indent = first->text.length();
                 setLeadingSpaceKind(tokens);
                 break;
             }
 
-            case obt::Minus: {
+            case otk::Minus: {
                 if (auto next = tokens.get(1);
-                    next && next->get().kind == obt::Whitespace) {
+                    next && next->get().kind == otk::Whitespace) {
                     kind = Kind::ListItem;
                 } else {
                     kind = Kind::Line;
@@ -811,11 +650,11 @@ struct LineToken {
                 break;
             }
 
-            case obt::LeadingNumber:
-            case obt::LeadingMinus:
-            case obt::LeadingPlus: kind = Kind::ListItem; break;
-            case obt::LineCommand: setLineCommandKind(tokens, 0); break;
-            case obt::TreeClock: kind = Kind::ListItem; break;
+            case otk::LeadingNumber:
+            case otk::LeadingMinus:
+            case otk::LeadingPlus: kind = Kind::ListItem; break;
+            case otk::LineCommand: setLineCommandKind(tokens, 0); break;
+            case otk::TreeClock: kind = Kind::ListItem; break;
 
             default: {
                 kind = CmdBlockClose.contains(first.kind)
@@ -829,13 +668,13 @@ struct LineToken {
     void decreaseIndent(int level) {
         CHECK(level <= indent);
         if (indent == level) {
-            tokens = Span<BaseToken>(tokens.begin() + 1, tokens.end());
+            tokens = Span<OrgToken>(tokens.begin() + 1, tokens.end());
             updateForTokens();
         }
         indent -= level;
     }
 
-    LineToken(CR<Span<BaseToken>> tokens) : tokens(tokens) {
+    LineToken(CR<Span<OrgToken>> tokens) : tokens(tokens) {
         updateForTokens();
     }
 };
@@ -861,7 +700,7 @@ auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
         &*begin, static_cast<int>(std::distance(begin, end))};
 }
 
-Vec<LineToken> to_lines(BaseLexer& lex) {
+Vec<LineToken> to_lines(OrgLexer& lex) {
     Vec<LineToken> lines;
     auto const&    tokens = lex.in;
     auto           start  = tokens->begin();
@@ -976,19 +815,19 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
     return groups;
 }
 
-void OrgTokenizer::recombine(BaseLexer& lex) {
+void OrgTokenizer::recombine(OrgLexer& lex) {
     // Convert stream of leading space indentations into indent, dedent
     // and 'same indent' tokens.
     Vec<LineToken>  lines  = to_lines(lex);
     Vec<GroupToken> groups = to_groups(lines);
-    BaseTokenGroup  regroup;
+    OrgTokenGroup   regroup;
     Vec<int>        indentStack{};
     regroup.tokens.reserve(lex.in->size());
 
-    auto add_fake = [&](BaseTokenKind kind,
-                        int           line     = __builtin_LINE(),
-                        char const*   function = __builtin_FUNCTION()) {
-        auto idx = regroup.add(BaseToken{kind});
+    auto add_fake = [&](OrgTokenKind kind,
+                        int          line     = __builtin_LINE(),
+                        char const*  function = __builtin_FUNCTION()) {
+        auto idx = regroup.add(OrgToken{kind});
         print(
             lex,
             fmt("    [{:<3}] fake  {:<48} indents {:<32}",
@@ -999,9 +838,9 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             function);
     };
 
-    auto add_base = [&](BaseToken const& tok,
-                        int              line     = __builtin_LINE(),
-                        char const*      function = __builtin_FUNCTION()) {
+    auto add_base = [&](OrgToken const& tok,
+                        int             line     = __builtin_LINE(),
+                        char const*     function = __builtin_FUNCTION()) {
         auto idx = regroup.add(tok);
         print(
             lex,
@@ -1054,25 +893,25 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
 
         if (gr.kind == GK::ListItem) {
             if (indentStack.empty()) {
-                add_fake(obt::ListStart);
+                add_fake(otk::ListBegin);
                 indentStack.push_back(gr.indent());
             } else if (indentStack.back() < gr.indent()) {
-                add_fake(obt::StmtListClose);
-                add_fake(obt::ListItemEnd);
-                add_fake(obt::Indent);
+                add_fake(otk::StmtListBegin);
+                add_fake(otk::ListItemEnd);
+                add_fake(otk::Indent);
                 indentStack.push_back(gr.indent());
             } else if (gr.indent() < indentStack.back()) {
                 while (!indentStack.empty()
                        && gr.indent() < indentStack.back()) {
-                    add_fake(obt::StmtListClose);
-                    add_fake(obt::ListItemEnd);
-                    add_fake(obt::Dedent);
+                    add_fake(otk::StmtListEnd);
+                    add_fake(otk::ListItemEnd);
+                    add_fake(otk::Dedent);
                     indentStack.pop_back();
                 }
             } else if (indentStack.back() == gr.indent()) {
-                add_fake(obt::StmtListClose);
-                add_fake(obt::ListItemEnd);
-                add_fake(obt::SameIndent);
+                add_fake(otk::StmtListEnd);
+                add_fake(otk::ListItemEnd);
+                add_fake(otk::SameIndent);
             }
 
         } else if (!indentStack.empty()) {
@@ -1091,14 +930,14 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
 
             while (!indentStack.empty()
                    && gr.indent() <= indentStack.back()) {
-                add_fake(obt::StmtListClose);
-                add_fake(obt::ListItemEnd);
+                add_fake(otk::StmtListEnd);
+                add_fake(otk::ListItemEnd);
                 indentStack.pop_back();
 
                 if (indentStack.empty()) {
-                    add_fake(obt::ListEnd);
+                    add_fake(otk::ListEnd);
                 } else {
-                    add_fake(obt::Dedent);
+                    add_fake(otk::Dedent);
                 }
             }
         }
@@ -1112,40 +951,40 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
                 auto const& tok = tokens.at(tok_idx);
                 switch (tok.kind) {
-                    case obt::TreeClock:
-                    case obt::Minus: {
+                    case otk::TreeClock:
+                    case otk::Minus: {
                         // Is the first token on the line or preceded by
                         // leading space.
                         if ((tok_idx == 0
                              || tokens.get(tok_idx - 1).value().get().kind
-                                    == obt::LeadingSpace)
+                                    == otk::LeadingSpace)
                             && gr.kind == GK::ListItem) {
                             add_base(tok);
 
                             if (auto next = tokens.get(tok_idx + 1);
-                                next->get().kind == obt::Whitespace) {
+                                next->get().kind == otk::Whitespace) {
                                 add_base(next->get());
                                 ++tok_idx;
                             }
 
-                            add_fake(obt::StmtListOpen);
+                            add_fake(otk::StmtListBegin);
                         } else {
                             add_base(tok);
                         }
                         break;
                     }
 
-                    case obt::LeadingNumber:
-                    case obt::LeadingMinus: {
+                    case otk::LeadingNumber:
+                    case otk::LeadingMinus: {
                         add_base(tok);
                         if (auto next = tokens.get(tok_idx + 1);
-                            next->get().kind == obt::Whitespace) {
+                            next->get().kind == otk::Whitespace) {
                             add_base(next->get());
                             ++tok_idx;
                         }
 
                         if (gr.kind == GK::ListItem) {
-                            add_fake(obt::StmtListOpen);
+                            add_fake(otk::StmtListBegin);
                         }
                         break;
                     }
@@ -1159,31 +998,31 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
 
     if (!indentStack.empty()) {
         for (auto const& _ : indentStack) {
-            add_fake(obt::StmtListClose);
-            add_fake(obt::ListItemEnd);
+            add_fake(otk::StmtListEnd);
+            add_fake(otk::ListItemEnd);
             indentStack.pop_back();
         }
-        add_fake(obt::ListEnd);
+        add_fake(otk::ListEnd);
     }
 
 
-    Lexer<obt, BaseFill> relex{&regroup};
-    RecombineState       recombine_state{this, relex};
+    Lexer<OrgTokenKind, OrgFill> relex{&regroup};
+    RecombineState               recombine_state{this, relex};
     recombine_state.recombine_impl();
 }
 
-void OrgTokenizer::convert(BaseTokenGroup& input) {
-    Lexer<BaseTokenKind, BaseFill> lex(&input);
+void OrgTokenizer::convert(OrgTokenGroup& input) {
+    Lexer<OrgTokenKind, OrgFill> lex(&input);
     return convert(lex);
 }
 
-void OrgTokenizer::convert(BaseLexer& lex) {
-    lex.pos = TokenId<BaseTokenKind, BaseFill>::FromValue(1);
+void OrgTokenizer::convert(OrgLexer& lex) {
+    lex.pos = TokenId<OrgTokenKind, OrgFill>::FromValue(1);
     recombine(lex);
 }
 
 void OrgTokenizer::print(
-    BaseLexer&         lex,
+    OrgLexer&          lex,
     const std::string& msg,
     int                line,
     const char*        function) {

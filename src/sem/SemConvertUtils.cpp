@@ -36,8 +36,8 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
                 if (i == 1) { rightOk = true; }
                 if (g.at(OrgId(idx)).isTerminal()) {
                     auto tok = g.tokens->at(g.at(OrgId(idx)).getToken());
-                    if (!tok->isEmpty()) {
-                        return LineCol{tok->getLine(), tok->getCol()};
+                    if (!tok->isFake()) {
+                        return LineCol{tok->line, tok->col};
                     }
                 }
             }
@@ -123,7 +123,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
             os << " " << getLoc();
             if (in.node.has_value() && in.node->isValid()
                 && in.node->get().isTerminal()) {
-                os << escape_literal(in.node->val().getText());
+                os << escape_literal(in.node->val().text);
             }
             break;
         }

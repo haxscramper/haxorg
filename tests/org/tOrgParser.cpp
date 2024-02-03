@@ -64,27 +64,3 @@ class ParserTest : public ::testing::Test {
   protected:
     MockParser p;
 };
-
-TEST_F(ParserTest, ParseSingleTimeEntry) {
-    p.add({otk::BraceBegin, otk::StaticTimeDatePart, otk::BraceEnd});
-    (void)p.parser->parseTimeStamp(p.lex);
-    EXPECT_EQ(p[0], tok(org::StaticInactiveTime, 0));
-}
-
-TEST_F(ParserTest, ParseTimeRange) {
-    p.add({
-        otk::BraceBegin,
-        otk::StaticTimeDatePart,
-        otk::BraceEnd,
-        otk::TimeDash,
-        otk::BraceBegin,
-        otk::StaticTimeDatePart,
-        otk::BraceEnd,
-    });
-    (void)p.parser->parseTimeRange(p.lex);
-    EXPECT_EQ(p[0].kind, org::TimeRange);
-    // start of the time range extent, two elements
-    EXPECT_EQ(p[1].kind, org::StaticInactiveTime);
-    // Time dash token is skipped
-    EXPECT_EQ(p[6].kind, org::StaticInactiveTime);
-}

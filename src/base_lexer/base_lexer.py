@@ -43,10 +43,10 @@ class TokenDesc(BaseModel):
 
 
 class Configuration(BaseModel):
-    states: List[State] # List of states that lexer can transition between
-    rules: List[Rule] # Regex/literal matching rules
+    states: List[State]  # List of states that lexer can transition between
+    rules: List[Rule]  # Regex/literal matching rules
     # Explicitly specified list of tokens to be added to whatever was detected in the 'rules'
-    tokens: List[TokenDesc] = Field(default_factory=list) 
+    tokens: List[TokenDesc] = Field(default_factory=list)
     # Regular expression macros to save on re-typing the same thing
     rx_macros: List[RxMacro] = Field(default_factory=list)
 
@@ -75,7 +75,7 @@ def parse_yaml_to_pydantic(file_path: str) -> Configuration:
 
 
 MATCH_WIDTH = 40
-ENUM_NAME = "BaseTokenKind"
+ENUM_NAME = "OrgTokenKind"
 
 
 # Convert rule data to re/flex code pattern
@@ -97,10 +97,12 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
         for action in rule.actions:
             match action.do:
                 case "push":
-                    actions.append(f"push_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
+                    actions.append(
+                        f"push_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
 
                 case "pop":
-                    actions.append(f"pop_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
+                    actions.append(
+                        f"pop_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
 
                 case "set":
                     actions.append(f"start({action.to});")
@@ -113,8 +115,6 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
 
                 case _:
                     raise ValueError(f"Unexpected action 'do' value: {action.do}")
-
-                
 
     actions_code = " ".join(actions)
     content = " ".join([
@@ -142,9 +142,10 @@ enum class {enum} : unsigned short int {{
 
 @beartype
 def generate_state(config: Configuration) -> str:
-    tokens = sorted(set([rule.token for rule in config.rules] + [tok.name for tok in config.tokens]))
+    tokens = sorted(
+        set([rule.token for rule in config.rules] + [tok.name for tok in config.tokens]))
     return """
-std::string BaseLexerImpl::state_name(int state) {{
+std::string OrgLexerImpl::state_name(int state) {{
     switch(state) {{
         case 0: return "INITIAL";
 {mappings}
@@ -152,13 +153,13 @@ std::string BaseLexerImpl::state_name(int state) {{
     }}
 }}
 
-std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {{
+std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {{
     switch(value) {{
 {values}
     }}
 }}
 
-Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& value) {{
+Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value) {{
 {from_string}
 }}
 
@@ -168,12 +169,13 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
             for idx, state in enumerate(config.states)
         ]),
         values="\n".join([
-            f"        case BaseTokenKind::{name}: return \"{name}\";" for name in tokens
+            f"        case OrgTokenKind::{name}: return \"{name}\";" for name in tokens
         ]),
         from_string="\n".join([
-            f"  if (value == \"{name}\") {{ return BaseTokenKind::{name}; }} else"
+            f"  if (value == \"{name}\") {{ return OrgTokenKind::{name}; }} else"
             for name in tokens
-        ] + ["  { return std::nullopt; }"]),)
+        ] + ["  { return std::nullopt; }"]),
+    )
 
 
 @beartype
@@ -204,7 +206,7 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %class{{
   public:
-    BaseLexerImpl impl;
+    OrgLexerImpl impl;
 }}
 
 %%
@@ -216,7 +218,7 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %%
 
-TokenGroup<BaseTokenKind, BaseFill> tokenize(const char* input, int size, std::ostream* traceStream) {{
+TokenGroup<OrgTokenKind, OrgFill> tokenize(const char* input, int size, std::ostream* traceStream) {{
     base_lexer::Lexer lex(input);
     lex.impl.impl = &lex;
     lex.impl.traceStream = traceStream;
@@ -228,7 +230,8 @@ TokenGroup<BaseTokenKind, BaseFill> tokenize(const char* input, int size, std::o
     """.format(
         rules=rules,
         unknowns="\n".join([
-            f"<{state.name}>(.|\\n) {{ impl.before(__LINE__, {errtok}, \".|\\n\"); impl.unknown(); impl.after(__LINE__); }}" for state in config.states
+            f"<{state.name}>(.|\\n) {{ impl.before(__LINE__, {errtok}, \".|\\n\"); impl.unknown(); impl.after(__LINE__); }}"
+            for state in config.states
             if (state.kind == "xstate" and state.name not in ["BODY_SRC"])
         ]),
         errtok=errtok,

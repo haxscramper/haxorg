@@ -10,17 +10,6 @@
 
 
 template <>
-struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        OrgTokenKind const& p,
-        FormatContext&      ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgTokenKind>::to_string(p), ctx);
-    }
-};
-
-template <>
 struct std::formatter<OrgSpecName> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
@@ -32,48 +21,17 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
 };
 
 
-struct OrgFill {
-    Opt<BaseFill> base;
-    Str           getText() const { return base ? base.value().text : ""; }
-    bool          isEmpty() const { return !base.has_value(); }
-    int           getLine() const { return base ? base->line : -1; }
-    int           getCol() const { return base ? base->col : -1; }
-};
-
-template <>
-struct std::formatter<OrgFill> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(OrgFill const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        if (p.isEmpty()) {
-            return fmt.format("<none>", ctx);
-        } else {
-            return fmt.format(
-                std::format(
-                    "{}:{}:{}",
-                    p.getLine(),
-                    p.getCol(),
-                    escape_for_write(p.getText())),
-                ctx);
-        }
-    }
-};
-
-
-using OrgToken       = Token<OrgTokenKind, OrgFill>;
-using OrgTokenId     = TokenId<OrgTokenKind, OrgFill>;
-using OrgTokenStore  = TokenStore<OrgTokenKind, OrgFill>;
-using OrgTokenGroup  = TokenGroup<OrgTokenKind, OrgFill>;
-using OrgNode        = Node<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgId          = NodeId<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgNodeGroup   = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
-using BaseTokenGroup = TokenGroup<BaseTokenKind, BaseFill>;
-using BaseLexer      = LexerCommon<BaseTokenKind, BaseFill>;
-using OrgLexer       = LexerCommon<OrgTokenKind, OrgFill>;
-using OrgTokSet      = IntSet<OrgTokenKind>;
-using OrgAdapter     = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgSet         = IntSet<OrgNodeKind>;
+using OrgToken      = Token<OrgTokenKind, OrgFill>;
+using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
+using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
+using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
+using OrgNode       = Node<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgId         = NodeId<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgNodeGroup  = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
+using OrgTokSet     = IntSet<OrgTokenKind>;
+using OrgAdapter    = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgSet        = IntSet<OrgNodeKind>;
 
 extern template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
 extern const OrgSet OrgAttachableCommands;

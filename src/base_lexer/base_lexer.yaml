@@ -17,7 +17,7 @@ states:
 
 rx_macros:
   - { name: space, value: "[\\h\\xA0]" }
-  - { name: lead_space, value: "^[\\h\\xA0]*"}
+  - { name: lead_space, value: "^[\\h\\xA0]*" }
   # Group of built-in org-mode properties that can be statically identified
   # and lexed to corresponding tokens. All unknown properties and directives
   # will be converted to raw string literals and processed at later
@@ -33,15 +33,52 @@ rx_macros:
   - { name: maybe_12h_time, value: "(\\s?(am|AM|pm|PM))?" }
 
 tokens:
-  - { name: "Indent" }
-  - { name: "Dedent" }
-  - { name: "SameIndent" }
-  - { name: "ListStart" }
-  - { name: "ListEnd" }
-  - { name: StmtListOpen }
-  - { name: StmtListClose }
-  - { name: ListItemEnd }
-  - { name: Unknown }
+  - name: Indent
+  - name: Dedent
+  - name: SameIndent
+  - name: ListBegin
+  - name: ListEnd
+  - name: StmtListBegin
+  - name: StmtListEnd
+  - name: ListItemEnd
+  - name: Unknown
+  - name: ListItemBegin
+  - name: Punctuation
+  - name: CmdPrefix
+  - name: LinkTargetBegin
+  - name: LinkTargetEnd
+  - name: LinkDescriptionBegin
+  - name: LinkProtocol
+  - name: CmdValue
+  - name: CmdContentBegin
+  - name: CmdKey
+  - name: HashTagBegin
+  - name: BraceBegin
+  - name: BoldBegin
+  - name: BoldEnd
+  - name: ItalicBegin
+  - name: ItalicEnd
+  - name: VerbatimBegin
+  - name: VerbatimEnd
+  - name: StrikeBegin
+  - name: StrikeEnd
+  - name: LatexParBegin
+  - name: LatexParEnd
+  - name: LatexInlineRaw
+  - name: UnderlineBegin
+  - name: UnderlineEnd
+  - name: TimeRepeater
+  - name: BacktickBegin
+  - name: BacktickEnd
+  - name: CmdAdmonitionBegin
+  - name: CmdFlag
+  - name: CodeText
+  - name: CmdContentEnd
+  - name: LinkInternal
+  - name: LinkFull
+  - name: LinkTarget
+  - name: LinkDescriptionEnd
+  - name: CmdAdmonitionEnd
 
 rules:
   #region Blocks
@@ -207,6 +244,11 @@ rules:
     token: CmdPropertyRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
+  - re: "include{prop_colon}"
+    states: [COMMAND]
+    token: CmdInclude
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
   - re: ".*"
     states: [COMMAND_RAW]
     token: RawText
@@ -228,7 +270,7 @@ rules:
     token: TrailingPipe
   - re: "{lead_space}\\|([:-]+[\\|\\+]+)+[:|-]*\\|"
     token: TableSeparator
-    
+
   #endregion
 
   #endregion
@@ -247,6 +289,21 @@ rules:
   - re: "title{prop_colon}"
     states: [COMMAND]
     token: CmdTitle
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "creator{prop_colon}"
+    states: [COMMAND]
+    token: CmdCreator
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "author{prop_colon}"
+    states: [COMMAND]
+    token: CmdAuthor
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "language{prop_colon}"
+    states: [COMMAND]
+    token: CmdLanguage
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
   #endregion
 
@@ -269,7 +326,6 @@ rules:
     token: SubtreePriority
     states: [SUBTREE_HEAD]
 
-  
   - { re: "{lead_space}[0-9]+[\\.\\)](?={space}+)", token: LeadingNumber }
   - { re: "[0-9]+", token: Number }
   - re: "^{space}+"
@@ -279,13 +335,13 @@ rules:
 
   #region Properties
   - re: "{lead_space}:LOGBOOK:"
-    token: TreePropertyLogbook
+    token: ColonLogbook
   - re: "{lead_space}:PROPERTIES:"
-    token: TreePropertyProperties
+    token: ColonProperties
   - re: "{lead_space}:END:"
-    token: TreePropertyEnd
+    token: ColonEnd
   - re: "{lead_space}:({literal_properties}):"
-    token: TreePropertyLiteral
+    token: ColonLiteralProperty
     actions:
       - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
 
@@ -309,9 +365,9 @@ rules:
 
   # Properties with text content
   - re: "{lead_space}:(created|origin|blocker):"
-    token: TreePropertyText
+    token: ColonPropertyText
   - re: "{lead_space}:\\w+:"
-    token: TreePropertyName
+    token: ColonPropertyName
   #endregion
 
   #endregion
@@ -327,13 +383,14 @@ rules:
   - { re: "\\]\\[", token: LinkSplit }
   #endregion
 
-  - { re: "\\[", token: BraceOpen }
-  - { re: "\\]", token: BraceClose }
+  - { re: "\\[", token: BraceBegin }
+  - { re: "\\]", token: BraceEnd }
   - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
   - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}{maybe_12h_time}", token: Time }
   - { re: "\\d{{1,}}:\\d{{2}}{maybe_12h_time}", token: Time }
   - { re: "=>", token: TimeArrow }
   - { re: "--", token: DoubleDash }
+  - { lit: "::", token: DoubleColon }
   - { re: "#{space}+.*?$", token: Comment }
 
   - { lit: "{lead_space}CLOCK:", token: TreeClock }
@@ -345,6 +402,7 @@ rules:
   - { re: "[\\.?]", token: AnyPunct }
   - { re: "{lead_space}-(?={space}+)", token: LeadingMinus }
   - { re: "{lead_space}\\+(?={space}+)", token: LeadingPlus }
+  - { re: "\\[(\\s|x|X|-)\\]", token: Checkbox }
 
   - { re: "\\+", token: Plus }
   - { re: "^\\-{{5,}}", token: TextSeparator }
@@ -354,35 +412,40 @@ rules:
   - { re: "\\\\\\\\", token: DoubleSlash }
   - { re: "#\\w+", token: HashIdent }
   - { re: "##", token: DoubleHash }
-  - { lit: "(", token: LeftPar }
-  - { lit: ")", token: RightPar }
+  - { lit: "(", token: ParBegin }
+  - { lit: ")", token: ParEnd }
   - { lit: "~", token: Tilda }
   - { lit: "=", token: Equals }
   - { lit: ";", token: Semicolon }
   - { lit: "*", token: Asterisk }
   - { lit: ",", token: Comma }
-  - { lit: "<<", token: DoubleLeftAngle }
-  - { lit: ">>", token: DoubleRightAngle }
-  - { lit: "<", token: LeftAngle }
-  - { lit: ">", token: RightAngle }
+  - { lit: "<<<", token: TripleAngleBegin }
+  - { lit: ">>>", token: TripleAngleEnd }
+  - { lit: "<<", token: DoubleAngleBegin }
+  - { lit: ">>", token: DoubleAngleEnd }
+  - { lit: "<", token: AngleBegin }
+  - { lit: ">", token: AngleEnd }
   - { lit: "^", token: Circumflex }
   - { lit: ":", token: Colon }
   - { lit: "{{{", token: MacroBegin }
   - { lit: "}}}", token: MacroEnd }
-  - { lit: "{", token: LeftCurly }
-  - { lit: "}", token: RightCurly }
+  - { lit: "{", token: CurlyBegin }
+  - { lit: "}", token: CurlyEnd }
 
   - { re: "\\\\\\w+", token: Symbol }
-  - { re: "\\\\.", token: EscapedChar }
+  - { re: "\\\\.", token: Escaped }
   - { lit: "%", token: Percent }
   - { re: "@\\w+", token: At }
   - { lit: "|", token: Pipe }
   - { lit: "```", token: TripleBacktick }
   - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
+  - { re: "[A-Z]+", token: BigIdent }
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
   - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
+  - { re: "src_\\w+", token: TextSrcBegin }
+  - { lit: "<%%", token: DynamicTimeContent }
   #endregion
   #endregion
 
