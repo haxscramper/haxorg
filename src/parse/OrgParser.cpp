@@ -33,6 +33,8 @@ const OrgTokSet ParagraphTerminator{
     otk::CmdQuoteEnd,
     otk::CmdQuoteBegin,
     otk::StmtListEnd,
+    otk::CmdPrefix,
+    otk::StmtListEnd,
 };
 } // namespace
 
@@ -44,6 +46,13 @@ void OrgParser::space(OrgLexer& lex, int line, char const* function) {
 
 void OrgParser::newline(OrgLexer& lex, int line, char const* function) {
     while (lex.at(Newline)) { skip(lex, std::nullopt, line, function); }
+}
+
+SubLexer<OrgTokenKind, OrgFill> subToEol(OrgLexer& lex) {
+    SubLexer sub{lex};
+    while (!lex.at(Newline)) { sub.add(lex.pop()); }
+    if (!sub.tokens.empty()) { sub.start(); }
+    return sub;
 }
 
 Vec<OrgTokenId> strip(
@@ -810,7 +819,7 @@ OrgId OrgParser::parseBlockExport(OrgLexer& lex) {
     newline(lex);
 
     // command content
-    while (lex.at(OrgTokSet{otk::CodeText, otk::Newline})) {
+    while (lex.at(OrgTokSet{otk::SrcContent, otk::Newline})) {
         token(org::RawText, pop(lex, lex.kind()));
     }
 
@@ -871,12 +880,12 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
 
         start(org::StmtList);
         skip(lex, otk::CmdContentBegin);
-        while (!lex.at(otk::CmdContentEnd)) {
+        while (!lex.at(Vec{otk::CmdPrefix, otk::CmdSrcEnd})) {
             start(org::CodeLine);
             while (!lex.at(OrgTokSet{otk::CmdContentEnd, otk::Newline})) {
                 switch (lex.kind()) {
-                    case otk::CodeText: {
-                        token(org::CodeText, pop(lex, otk::CodeText));
+                    case otk::SrcContent: {
+                        token(org::CodeText, pop(lex, otk::SrcContent));
                         break;
                     }
                     case otk::ParBegin: {
@@ -909,7 +918,6 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
             end(); // finish code line
         }
 
-        skip(lex, otk::CmdContentEnd);
         end(); // finish statement
     };
     // eval_result
@@ -1234,7 +1242,12 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex);
             start(org::CommandCaption);
             start(org::CommandArguments);
-            parseParagraph(lex);
+            auto sub = subToEol(lex);
+            if (sub.empty()) {
+                parseParagraph(sub);
+            } else {
+                empty();
+            }
             end();
             break;
         }
@@ -1466,7 +1479,6 @@ OrgId OrgParser::parseFull(OrgLexer& lex) {
     auto __trace = trace(lex);
     auto id      = parseTop(lex);
     extendSubtreeTrails(OrgId(0));
-    extendAttachedTrails(OrgId(0));
     return id;
 }
 
@@ -1622,65 +1634,4 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
 
     aux(position, 0);
     assertValidStructure(group, position);
-}
-
-
-void OrgParser::extendAttachedTrails(OrgId position) {
-    __perf_trace("extendAttachedTrails");
-    Func<OrgId(OrgId)> aux;
-    aux = [&](OrgId id) -> OrgId {
-        auto& g = *group;
-
-        OrgNode node = g.at(id);
-        if (OrgAttachableCommands.contains(node.kind)) {
-            OrgId const annotation = id;
-            // Get ID of the nested statement list
-            OrgId const stmt = g.subnode(annotation, 1);
-            CHECK(g.at(stmt).kind == org::StmtList);
-            // Next element after command block is the non-optional newline
-            // to separate them.
-            CHECK(g.at(stmt + 1).kind == org::Newline);
-            OrgId   nextId = stmt + 2;
-            OrgNode next   = g.at(nextId);
-
-            // DLOG(INFO) << "Next element from" << annotation << "has
-            // kind"
-            //          << next.kind << "at" << nextId;
-
-            if (OrgAttachableCommands.contains(next.kind)) {
-                // Nested annotations are recursively placed inside
-                // each other by extending the trail
-                id = aux(nextId);
-                g.at(annotation).extend((id - annotation) - 1);
-                g.at(stmt).extend((id - stmt) - 1);
-
-            } else if (OrgTrailableCommands.contains(next.kind)) {
-                // Element that can be put as the final part of the
-                // trailable statement
-                if (auto nextSub = g.allSubnodesOf(nextId)) {
-                    OrgId const end = nextSub->last;
-                    g.at(annotation).extend(end - annotation);
-                    g.at(stmt).extend(end - stmt);
-                    id = end + 1;
-                } else {
-                    LOG(WARNING) << "No subnodes found in the next node"
-                                 << nextId.format();
-                    ++id;
-                }
-
-            } else {
-                // Next element after line command is neither trailable
-                // nor another command. Switching the subnode kind to
-                // empty.
-                g.at(stmt) = getEmpty();
-                ++id;
-            }
-        } else {
-            ++id;
-        }
-
-        return id;
-    };
-
-    while (position < group->nodes.back()) { position = aux(position); }
 }

@@ -53,7 +53,6 @@ enum class OrgTokenKind : unsigned short int {
   CmdTblfm,
   CmdTitle,
   CmdValue,
-  CodeText,
   Colon,
   ColonEnd,
   ColonLiteralProperty,

@@ -69,7 +69,13 @@ auto in_set(T const& value, Args&&... args) -> bool {
     return set.contains(value);
 }
 
-OrgFill fill(OrgLexer& lex) { return OrgFill{.text = lex.tok()->text}; }
+OrgFill fill(OrgLexer& lex) {
+    return OrgFill{
+        .text = lex.tok()->text,
+        .line = lex.tok()->line,
+        .col  = lex.tok()->col,
+    };
+}
 
 template <typename T>
 struct std::formatter<std::reference_wrapper<T>>
@@ -224,6 +230,12 @@ struct RecombineState {
         }
     }
 
+    OrgFill loc_fill() {
+        return OrgFill{
+            .line = lex.tok()->line,
+            .col  = lex.tok()->col,
+        };
+    }
 
     OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to});
@@ -400,19 +412,19 @@ struct RecombineState {
         switch (map_kind) {
             case otk::LineCommand: map_line_command(); break;
             case otk::CmdExampleEnd: {
-                add_fake(otk::CmdPrefix);
+                add_fake(otk::CmdPrefix, loc_fill());
                 pop_as(otk::CmdExampleEnd);
                 break;
             }
 
             case otk::CmdExportEnd: {
-                add_fake(otk::CmdPrefix);
+                add_fake(otk::CmdPrefix, loc_fill());
                 pop_as(otk::CmdExportEnd);
                 break;
             }
 
             case otk::CmdSrcEnd: {
-                add_fake(otk::CmdPrefix);
+                add_fake(otk::CmdPrefix, loc_fill());
                 pop_as(otk::CmdSrcEnd);
                 break;
             }

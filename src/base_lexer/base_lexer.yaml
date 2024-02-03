@@ -72,8 +72,7 @@ tokens:
   - name: BacktickEnd
   - name: CmdAdmonitionBegin
   - name: CmdFlag
-  - name: CodeText
-  - name: CmdContentEnd
+  - name: CmdContedntEnd
   - name: LinkInternal
   - name: LinkFull
   - name: LinkTarget

@@ -577,6 +577,7 @@ struct SubLexer : public LexerCommon<K, V> {
     Vec<TokenId<K, V>> tokens;
 
 
+    bool empty() const { return tokens.empty(); }
     bool hasNext(int offset = 1) const override {
         auto idx = subPos + offset;
         return !pos.isNil() && (0 <= idx) && (idx < tokens.size());

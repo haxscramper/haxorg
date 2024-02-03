@@ -138,6 +138,22 @@ items:
       [[person:Test Test]]
       [[person:Test Test][*description*]]
 
+  - name: "Standalone caption"
+    source: |
+      - [2023-11-09 Thu 18:33:38 +04]
+        #+caption:
+
+  - name: "Source block with broken indentation"
+    source: |
+      - Some Content
+        #+caption:
+        #+begin_src sh
+      parallel ^
+          -P 10 --bar --files ^
+        #+end_src
+
+
+
 
 
 
