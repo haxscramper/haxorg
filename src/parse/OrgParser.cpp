@@ -225,6 +225,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::DoubleQuote:
             case otk::Percent:
             case otk::Semicolon:
+            case otk::DoubleColon:
             case otk::Circumflex: {
                 token(org::Punctuation, pop(lex, lex.kind()));
                 break;
@@ -235,6 +236,7 @@ void OrgParser::textFold(OrgLexer& lex) {
                 break;
             }
 
+            case otk::MiscUnicode:
             case otk::WeekdayName:
             case otk::Time:
             case otk::Date:
@@ -268,10 +270,10 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::MonospaceBegin: {
                 start(org::Monospace);
                 skip(lex, otk::MonospaceBegin);
-                while (!lex.at(otk::MonospaceEnd)) {
+                while (!lex.finished() && !lex.at(otk::MonospaceEnd)) {
                     token(org::RawText, pop(lex, lex.kind()));
                 }
-                skip(lex, otk::MonospaceEnd);
+                if (!lex.finished()) { skip(lex, otk::MonospaceEnd); }
                 end();
                 break;
             }
@@ -780,7 +782,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
 
     skip(lex);
 
-    if (lex.at(otk::Newline)) {
+    if (lex.at(Newline)) {
         empty();
     } else {
         if (lex.at(otk::RawText)) {
@@ -790,7 +792,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         };
     }
 
-    skip(lex, otk::Newline);
+    skip(lex, Newline);
 
     while (!lex.at(Vec<otk>{otk::CmdPrefix, endTok})) {
         parseStmtListItem(lex);
@@ -942,6 +944,7 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
                     otk::LeadingMinus}));
     }
     space(lex);
+    skip(lex, otk::StmtListBegin);
     // counter, 1
     {
         empty(); // TODO parse counter
@@ -962,7 +965,6 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     // body, 5
     start(org::StmtList);
     {
-        skip(lex, otk::StmtListBegin);
         while (!lex.at(otk::StmtListEnd)) { parseStmtListItem(lex); }
         skip(lex, otk::StmtListEnd);
         skip(lex, otk::ListItemEnd);

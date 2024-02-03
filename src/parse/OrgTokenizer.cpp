@@ -267,6 +267,9 @@ struct RecombineState {
         otk::LongNewline,
         otk::AnyPunct,
         otk::LeadingSpace,
+        otk::Colon,
+        otk::Semicolon,
+        otk::Comma,
     };
 
     void recombine_markup() {

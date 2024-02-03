@@ -398,7 +398,7 @@ rules:
   - { re: "#{space}+.*?$", token: Comment }
 
   - { re: "{lead_space}CLOCK:", token: TreeClock }
-  - { re: "(CLOSED|SCHEDULED):", token: TreeTime }
+  - { re: "(CLOSED|SCHEDULED|DEADLINE):", token: TreeTime }
 
   #region Punctuation
   - { lit: "&", token: Ampersand }

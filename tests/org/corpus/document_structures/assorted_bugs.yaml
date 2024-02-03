@@ -155,12 +155,32 @@ items:
     source: |
       - [[id:16cb0d5f-1e66-47ef-bc29-9f41ecb81f73][Descriuption]]  is not
         reproducible
+  - name: "Interleaving monospace and verbatim"
+    source: |
+      - If ~A~ is
+        passes ~set(QWE OFF)~, but =11=  =cc= in
+
+  - name: "List item with checkbox"
+    source: |
+      - [-] *DONE*
 
 
+  - name: "Yes, this is legal, and emacs can even parse this properly"
+    # Double nested quote does not work though 
+    source: |
+      - Some text
+        - safas
+          - adfgdsfgsd
+            - WsDSFs
 
+              #+begin_center
+              #+begin_quote
+      - One
+        - Two
+      - Three
+        - sajfasd
+              #+end_quote
+              #+end_center
 
-
-
-
-        
+          - DF
 
