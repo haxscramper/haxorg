@@ -686,10 +686,11 @@ struct LineToken {
 
 
 struct GroupToken {
-    DECL_DESCRIBED_ENUM(Kind, Line, ListItem, Subtree, Properties);
+    DECL_DESCRIBED_ENUM(Kind, Line, ListItem, Subtree, Properties, Root);
 
     Span<LineToken> lines;
     Kind            kind;
+    Vec<GroupToken> subgroups;
 
     BOOST_DESCRIBE_CLASS(GroupToken, (), (kind, lines), (), ());
 
@@ -725,8 +726,8 @@ Vec<LineToken> to_lines(OrgLexer& lex) {
 }
 
 
-Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
-    Vec<GroupToken> groups;
+GroupToken to_groups(Vec<LineToken>& lines) {
+    GroupToken groups{.kind = GK::Root};
 
 
     auto it             = lines.begin();
@@ -755,7 +756,8 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
                         nextline();
                     }
                 }
-                groups.push_back({make_span(start, it), GK::Line});
+                groups.subgroups.push_back(
+                    {make_span(start, it), GK::Line});
                 break;
             }
 
@@ -769,14 +771,16 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
                     }
                 }
 
-                groups.push_back({make_span(start, it), GK::ListItem});
+                groups.subgroups.push_back(
+                    {make_span(start, it), GK::ListItem});
 
                 break;
             }
 
             case LK::BlockOpen: {
                 skip_block();
-                groups.push_back({make_span(start, it), GK::Line});
+                groups.subgroups.push_back(
+                    {make_span(start, it), GK::Line});
                 break;
             }
 
@@ -784,7 +788,8 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
                 while (it != end && it->kind == LK::Property) {
                     nextline();
                 }
-                groups.push_back({make_span(start, it), GK::Properties});
+                groups.subgroups.push_back(
+                    {make_span(start, it), GK::Properties});
                 break;
             }
 
@@ -820,20 +825,24 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
     return groups;
 }
 
-void OrgTokenizer::recombine(OrgLexer& lex) {
-    // Convert stream of leading space indentations into indent, dedent
-    // and 'same indent' tokens.
-    Vec<LineToken>  lines  = to_lines(lex);
-    Vec<GroupToken> groups = to_groups(lines);
-    OrgTokenGroup   regroup;
-    Vec<int>        indentStack{};
-    regroup.tokens.reserve(lex.in->size());
+struct GroupVisitorState {
+    OrgTokenizer* d;
+    OrgLexer&     lex;
+    bool const&   TraceState;
+    OrgTokenGroup regroup;
 
-    auto add_fake = [&](OrgTokenKind kind,
-                        int          line     = __builtin_LINE(),
-                        char const*  function = __builtin_FUNCTION()) {
+    GroupVisitorState(OrgTokenizer* d, OrgLexer& lex)
+        : d(d), lex(lex), TraceState(d->TraceState) {
+        regroup.tokens.reserve(lex.in->size());
+    }
+
+    void add_fake(
+        OrgTokenKind kind,
+        CVec<int>    indentStack,
+        int          line     = __builtin_LINE(),
+        char const*  function = __builtin_FUNCTION()) {
         auto idx = regroup.add(OrgToken{kind});
-        print(
+        d->print(
             lex,
             fmt("    [{:<3}] fake  {:<48} indents {:<32}",
                 idx.getIndex(),
@@ -841,13 +850,15 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
                 fmt1(indentStack)),
             line,
             function);
-    };
+    }
 
-    auto add_base = [&](OrgToken const& tok,
-                        int             line     = __builtin_LINE(),
-                        char const*     function = __builtin_FUNCTION()) {
+    void add_base(
+        OrgToken const& tok,
+        CVec<int>       indentStack,
+        int             line     = __builtin_LINE(),
+        char const*     function = __builtin_FUNCTION()) {
         auto idx = regroup.add(tok);
-        print(
+        d->print(
             lex,
             fmt("    [{:<3}] token {:<48} indents {:<32}",
                 idx.getIndex(),
@@ -855,163 +866,178 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
                 fmt1(indentStack)),
             line,
             function);
-    };
-
-    if (TraceState) {
-        std::stringstream ss;
-        for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
-            auto const& gr = groups.at(gr_index);
-            ss << fmt(
-                "[{}] group:{} indent {}\n",
-                gr_index,
-                gr.kind,
-                gr.indent());
-            for (int line_index = 0; line_index < gr.lines.size();
-                 ++line_index) {
-                auto const& line = gr.lines.at(line_index);
-                ss << fmt(
-                    "  [{}] line:{} indent={}\n",
-                    line_index,
-                    line.kind,
-                    line.indent);
-                for (int token_idx = 0; token_idx < line.tokens.size();
-                     ++token_idx) {
-                    ss << fmt(
-                        "    [{}] {}\n",
-                        token_idx,
-                        line.tokens.at(token_idx));
-                }
-            }
-        }
-
-        print(lex, "\n" + ss.str());
     }
 
-    for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
-        auto const& gr = groups.at(gr_index);
-        print(
-            lex,
-            fmt("GROUP [{:<2}] indent={} kind={}",
-                gr_index,
-                gr.indent(),
-                gr.kind));
-
-        if (gr.kind == GK::ListItem) {
-            if (indentStack.empty()) {
-                add_fake(otk::ListBegin);
-                indentStack.push_back(gr.indent());
-            } else if (indentStack.back() < gr.indent()) {
-                add_fake(otk::StmtListBegin);
-                add_fake(otk::ListItemEnd);
-                add_fake(otk::Indent);
-                indentStack.push_back(gr.indent());
-            } else if (gr.indent() < indentStack.back()) {
-                while (!indentStack.empty()
-                       && gr.indent() < indentStack.back()) {
-                    add_fake(otk::StmtListEnd);
-                    add_fake(otk::ListItemEnd);
-                    add_fake(otk::Dedent);
-                    indentStack.pop_back();
-                }
-            } else if (indentStack.back() == gr.indent()) {
-                add_fake(otk::StmtListEnd);
-                add_fake(otk::ListItemEnd);
-                add_fake(otk::SameIndent);
-            }
-
-        } else if (!indentStack.empty()) {
-            /* List item content can be indented like this, but
-             * it will still be added to the current list content.
-             * `indentStack.back() < gr.indent()` is not checked
-             *
-             * ```
-             * - List Item
-             *
-             *   #+begin_src
-             *
-             *   #+end_src
-             * ```
-             */
-
-            while (!indentStack.empty()
-                   && gr.indent() <= indentStack.back()) {
-                add_fake(otk::StmtListEnd);
-                add_fake(otk::ListItemEnd);
-                indentStack.pop_back();
-
-                if (indentStack.empty()) {
-                    add_fake(otk::ListEnd);
-                } else {
-                    add_fake(otk::Dedent);
-                }
-            }
-        }
-
-        for (CR<LineToken> line : gr.lines) {
-            print(
+    void rec_convert_groups(CR<Vec<GroupToken>> groups) {
+        Vec<int> ind{};
+        for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
+            auto const& gr = groups.at(gr_index);
+            d->print(
                 lex,
-                fmt("  LINE: indent={} kind={}", line.indent, line.kind));
+                fmt("GROUP [{:<2}] indent={} kind={}",
+                    gr_index,
+                    gr.indent(),
+                    gr.kind));
 
-            auto const& tokens = line.tokens;
-            for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
-                auto const& tok = tokens.at(tok_idx);
-                switch (tok.kind) {
-                    case otk::TreeClock:
-                    case otk::Minus: {
-                        // Is the first token on the line or preceded by
-                        // leading space.
-                        if ((tok_idx == 0
-                             || tokens.get(tok_idx - 1).value().get().kind
-                                    == otk::LeadingSpace)
-                            && gr.kind == GK::ListItem) {
-                            add_base(tok);
+            if (gr.kind == GK::ListItem) {
+                if (ind.empty()) {
+                    add_fake(otk::ListBegin, ind);
+                    ind.push_back(gr.indent());
+                } else if (ind.back() < gr.indent()) {
+                    add_fake(otk::StmtListBegin, ind);
+                    add_fake(otk::ListItemEnd, ind);
+                    add_fake(otk::Indent, ind);
+                    ind.push_back(gr.indent());
+                } else if (gr.indent() < ind.back()) {
+                    while (!ind.empty() && gr.indent() < ind.back()) {
+                        add_fake(otk::StmtListEnd, ind);
+                        add_fake(otk::ListItemEnd, ind);
+                        add_fake(otk::Dedent, ind);
+                        ind.pop_back();
+                    }
+                } else if (ind.back() == gr.indent()) {
+                    add_fake(otk::StmtListEnd, ind);
+                    add_fake(otk::ListItemEnd, ind);
+                    add_fake(otk::SameIndent, ind);
+                }
 
+            } else if (!ind.empty()) {
+                /* List item content can be indented like this, but
+                 * it will still be added to the current list content.
+                 * `ind.back() < gr.indent()` is not checked
+                 *                  * ```
+                 * - List Item
+                 *                  *   #+begin_src
+                 *                  *   #+end_src
+                 * ```
+                 */
+
+                while (!ind.empty() && gr.indent() <= ind.back()) {
+                    add_fake(otk::StmtListEnd, ind);
+                    add_fake(otk::ListItemEnd, ind);
+                    ind.pop_back();
+
+                    if (ind.empty()) {
+                        add_fake(otk::ListEnd, ind);
+                    } else {
+                        add_fake(otk::Dedent, ind);
+                    }
+                }
+            }
+
+            for (CR<LineToken> line : gr.lines) {
+                d->print(
+                    lex,
+                    fmt("  LINE: indent={} kind={}",
+                        line.indent,
+                        line.kind));
+
+                auto const& tokens = line.tokens;
+                for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
+                    auto const& tok = tokens.at(tok_idx);
+                    switch (tok.kind) {
+                        case otk::TreeClock:
+                        case otk::Minus: {
+                            // Is the first token on the line or preceded
+                            // by leading space.
+                            if ((tok_idx == 0
+                                 || tokens.get(tok_idx - 1)
+                                            .value()
+                                            .get()
+                                            .kind
+                                        == otk::LeadingSpace)
+                                && gr.kind == GK::ListItem) {
+                                add_base(tok, ind);
+
+                                if (auto next = tokens.get(tok_idx + 1);
+                                    next->get().kind == otk::Whitespace) {
+                                    add_base(next->get(), ind);
+                                    ++tok_idx;
+                                }
+
+                                add_fake(otk::StmtListBegin, ind);
+                            } else {
+                                add_base(tok, ind);
+                            }
+                            break;
+                        }
+
+                        case otk::LeadingNumber:
+                        case otk::LeadingMinus: {
+                            add_base(tok, ind);
                             if (auto next = tokens.get(tok_idx + 1);
                                 next->get().kind == otk::Whitespace) {
-                                add_base(next->get());
+                                add_base(next->get(), ind);
                                 ++tok_idx;
                             }
 
-                            add_fake(otk::StmtListBegin);
-                        } else {
-                            add_base(tok);
+                            if (gr.kind == GK::ListItem) {
+                                add_fake(otk::StmtListBegin, ind);
+                            }
+                            break;
                         }
-                        break;
-                    }
-
-                    case otk::LeadingNumber:
-                    case otk::LeadingMinus: {
-                        add_base(tok);
-                        if (auto next = tokens.get(tok_idx + 1);
-                            next->get().kind == otk::Whitespace) {
-                            add_base(next->get());
-                            ++tok_idx;
+                        default: {
+                            add_base(tok, ind);
                         }
-
-                        if (gr.kind == GK::ListItem) {
-                            add_fake(otk::StmtListBegin);
-                        }
-                        break;
-                    }
-                    default: {
-                        add_base(tok);
                     }
                 }
             }
         }
-    }
 
-    if (!indentStack.empty()) {
-        for (auto const& _ : indentStack) {
-            add_fake(otk::StmtListEnd);
-            add_fake(otk::ListItemEnd);
-            indentStack.pop_back();
+        if (!ind.empty()) {
+            for (auto const& _ : ind) {
+                add_fake(otk::StmtListEnd, ind);
+                add_fake(otk::ListItemEnd, ind);
+                ind.pop_back();
+            }
+            add_fake(otk::ListEnd, ind);
         }
-        add_fake(otk::ListEnd);
     }
 
+    void print_groups(CR<GroupToken> groups) {
+        std::stringstream                                 ss;
+        Func<void(CR<Vec<GroupToken>> groups, int level)> rec_print_group;
 
-    Lexer<OrgTokenKind, OrgFill> relex{&regroup};
+        rec_print_group = [&](CR<Vec<GroupToken>> groups, int level) {
+            for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
+                auto const& gr = groups.at(gr_index);
+                ss << fmt(
+                    "[{}] group:{} indent {}\n",
+                    gr_index,
+                    gr.kind,
+                    gr.indent());
+                for (int line_index = 0; line_index < gr.lines.size();
+                     ++line_index) {
+                    auto const& line = gr.lines.at(line_index);
+                    ss << fmt(
+                        "  [{}] line:{} indent={}\n",
+                        line_index,
+                        line.kind,
+                        line.indent);
+                    for (int token_idx = 0; token_idx < line.tokens.size();
+                         ++token_idx) {
+                        ss
+                            << fmt("    [{}] {}\n",
+                                   token_idx,
+                                   line.tokens.at(token_idx));
+                    }
+                }
+            }
+        };
+
+        rec_print_group(groups.subgroups, 0);
+        d->print(lex, "\n" + ss.str());
+    }
+};
+
+void OrgTokenizer::recombine(OrgLexer& lex) {
+    // Convert stream of leading space indentations into indent, dedent
+    // and 'same indent' tokens.
+    Vec<LineToken>    lines = to_lines(lex);
+    GroupToken        root  = to_groups(lines);
+    GroupVisitorState visitor{this, lex};
+    visitor.rec_convert_groups(root.subgroups);
+    Lexer<OrgTokenKind, OrgFill> relex{&visitor.regroup};
     RecombineState               recombine_state{this, relex};
     recombine_state.recombine_impl();
 }
