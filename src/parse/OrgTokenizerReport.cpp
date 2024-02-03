@@ -9,7 +9,7 @@ void OrgTokenizer::report(CR<Report> in) {
     if (in.kind == ReportKind::Enter) { ++depth; }
 
     ColStream os = getStream();
-    os << repeat("  ", depth);
+    os << repeat("  ", depth + in.extraIndent);
 
 
     auto getLoc = [&]() -> std::string {
@@ -36,7 +36,7 @@ void OrgTokenizer::report(CR<Report> in) {
 
     switch (in.kind) {
         case ReportKind::Print: {
-            os << "  ~ ";
+            os << "    ";
             if (in.msg) { os << *in.msg; }
             if (in.subname) { os << ":" << *in.subname; }
             os << fmt(" {}:{}", (in.function ? in.function : ""), in.line)

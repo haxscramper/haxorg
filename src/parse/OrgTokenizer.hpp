@@ -61,9 +61,10 @@ struct OrgTokenizer
         bool       addBuffered = false;
         ReportKind kind;
         OrgToken   tok;
-        OrgTokenId id      = OrgTokenId::Nil();
-        Opt<Str>   subname = std::nullopt;
-        OrgLexer*  lex     = nullptr;
+        OrgTokenId id          = OrgTokenId::Nil();
+        Opt<Str>   subname     = std::nullopt;
+        OrgLexer*  lex         = nullptr;
+        int        extraIndent = 0;
     };
 
 
@@ -95,5 +96,6 @@ struct OrgTokenizer
         OrgLexer&          lex,
         const std::string& msg,
         int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION());
+        char const*        function = __builtin_FUNCTION(),
+        int                extraIndent = 0);
 };
