@@ -180,17 +180,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             end();                                                        \
             skip(lex);                                                    \
         } else {                                                          \
-            auto msg                                                      \
-                = "Mismatched kind Beginings pending tree was '$#', but " \
-                  "found '$#' at $# parser $#"                            \
-                % to_string_vec(                                          \
-                      pending().kind,                                     \
-                      org::Kind,                                          \
-                      getLocMsg(lex),                                     \
-                      __LINE__);                                          \
-            print(msg);                                                   \
-            LOG(FATAL) << msg;                                            \
-            fail(pop(lex, otk::Kind##End));                               \
+            token(org::Punctuation, pop(lex));                            \
         }                                                                 \
         break;                                                            \
     }
@@ -234,6 +224,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::Ampersand:
             case otk::DoubleQuote:
             case otk::Percent:
+            case otk::Semicolon:
             case otk::Circumflex: {
                 token(org::Punctuation, pop(lex, lex.kind()));
                 break;
@@ -852,8 +843,8 @@ OrgId OrgParser::parseExample(OrgLexer& lex) {
     }
 
     { // command content
-        while (lex.at(OrgTokSet{otk::RawText, otk::Newline})) {
-            token(org::RawText, pop(lex, lex.kind()));
+        while (lex.at(OrgTokSet{otk::CmdExampleLine, otk::Newline})) {
+            token(org::RawText, pop(lex));
         }
     }
 
