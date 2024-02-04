@@ -857,7 +857,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                         OrgAdapter(&p.nodes, *par.parent),
                         *par.subnodeIdx);
                     if (name) {
-                        par.os << fmt(" {}", *name);
+                        par.os << " " << par.os.magenta()
+                               << fmt("{}", *name) << par.os.end();
                     } else {
                         par.os << fmt(
                             "'Missing field name for element {} of node "
@@ -870,8 +871,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             }
             case Pos::LineEnd: {
                 if (parseAddedOnLine.contains(par.current)) {
-                    par.os
-                        << fmt(" @{}", parseAddedOnLine.at(par.current));
+                    par.os << " " << par.os.red()
+                           << fmt(" @{}", parseAddedOnLine.at(par.current))
+                           << par.os.end();
                 }
                 break;
             }
@@ -903,20 +905,22 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                     spec.debugFile("parsed.yaml"),
                     std::format("{}", yamlRepr(p.nodes)) + "\n");
 
-                std::stringstream buffer;
-                ColStream         text{buffer};
-                text.colored = false;
+                for (auto const& [colored, path] : Vec<Pair<bool, Str>>{
+                         {false, "parsed.txt"},
+                         {true, "parsed_colored.txt"}}) {
+                    std::stringstream buffer;
+                    ColStream         text{buffer};
+                    text.colored = colored;
 
+                    OrgAdapter(&p.nodes, OrgId(0))
+                        .treeRepr(
+                            text,
+                            0,
+                            OrgNodeGroup::TreeReprConf{
+                                .customWrite = writeImpl});
 
-                OrgAdapter(&p.nodes, OrgId(0))
-                    .treeRepr(
-                        text,
-                        0,
-                        OrgNodeGroup::TreeReprConf{
-                            .customWrite = writeImpl});
-
-                writeFile(
-                    spec.debugFile("parsed.txt"), buffer.str() + "\n");
+                    writeFile(spec.debugFile(path), buffer.str() + "\n");
+                }
             }
         } else {
             return RunResult{};
@@ -972,6 +976,22 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                     spec.debugFile("sem.yaml"),
                     std::format("{}", exporter.evalTop(document)) + "\n",
                     spec.debug.traceAll || spec.debug.printSemToFile);
+
+                {
+                    std::ofstream file{spec.debugFile("sem.txt")};
+                    ColStream     os{file};
+                    os.colored = false;
+                    ExporterTree tree{os};
+                    tree.evalTop(document);
+                }
+
+                {
+                    std::ofstream file{spec.debugFile("sem_colored.txt")};
+                    ColStream     os{file};
+                    os.colored = true;
+                    ExporterTree tree{os};
+                    tree.evalTop(document);
+                }
             }
 
             if (spec.sem.has_value()) {

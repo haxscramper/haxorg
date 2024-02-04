@@ -162,7 +162,7 @@ items:
 
   - name: "List item with checkbox"
     source: |
-      - [-] *DONE*
+      - [-] *DONE*ch
 
 
   - name: "Yes, this is legal, and emacs can even parse this properly"

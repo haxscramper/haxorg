@@ -148,16 +148,25 @@ void NodeGroup<N, K, V>::treeRepr(
         conf.customWrite(par);
     }
 
-    if (conf.withSubnodeIdx) { os << fmt("[{}]", subnodeIdx); }
+    if (conf.withSubnodeIdx) {
+        os << os.cyan() << fmt("[{}]", subnodeIdx) << os.end();
+    }
+
     if (conf.withTreeMask) { os << fmt(" MASK:{}", node.getMask()); }
-    if (conf.withTreeId) { os << fmt(" ID:{}", node.getUnmasked()); }
+
+    if (conf.withTreeId) {
+        os << " " << os.blue() << fmt("ID:{}", node.getUnmasked())
+           << os.end();
+    }
 
     if (at(node).isTerminal()) {
         auto tok = at(node).getToken();
         if (tok.isNil()) {
-            os << " # <nil>";
+            os << " # " << os.cyan() << "<nil>" << os.end();
         } else {
-            os << std::format("# {} {}", tok, at(tok));
+            os << " # " << fmt1(tok.getUnmasked()) << " " << os.green()
+               << fmt1(at(tok).kind) << os.end() << " " << os.yellow()
+               << fmt1(at(tok).value) << os.end();
         }
     } else {
         if (conf.withExt) { os << fmt(" EXT:{}", at(node).getExtent()); }

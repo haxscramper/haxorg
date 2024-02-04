@@ -117,3 +117,7 @@ struct std::formatter<Str, CharT> : std::formatter<std::string, CharT> {
 
 template <>
 struct std::hash<Str> : std::hash<std::string> {};
+
+inline Str operator""_ss(char const* value, unsigned long size) {
+    return Str(value, size);
+}

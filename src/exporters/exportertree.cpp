@@ -20,9 +20,7 @@ void ExporterTree::visitField(
     int&             i,
     const char*      name,
     CVec<sem::SemId> org) {
-    if (skipAsEmpty(org)) {
-        return;
-    }
+    if (skipAsEmpty(org)) { return; }
 
     __scope();
     indent();
@@ -30,7 +28,7 @@ void ExporterTree::visitField(
     for (const auto& [idx, sub] : enumerate(org)) {
         __scope();
         indent();
-        os << "[" << idx << "]:\n";
+        os << "[" << fmt1(idx) << "]:\n";
         visit(i, sub);
     }
 }
@@ -76,28 +74,31 @@ void ExporterTree::init(sem::SemId org) {
 
     if (conf.withOriginalId) {
         os << " ID:" << org.getReadableId()
-           << " OID:" << org->original.id.getUnmasked();
+           << " OID:" << fmt1(org->original.id.getUnmasked());
     }
 
     if (conf.withLineCol && org->loc.has_value()) {
         auto& [line, col, pos] = org->loc.value();
-        os << " " << os.cyan() << line << ":" << col << "(" << pos << ")"
-           << os.end();
+        os << " " << os.cyan() << line << ":" << fmt1(col) << "("
+           << fmt1(pos) << ")" << os.end();
     }
     os << "\n";
 }
 
 template <typename T>
 void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
-    if (skipAsEmpty(value)) {
-        return;
-    }
+    if (skipAsEmpty(value)) { return; }
 
     __scope();
     indent();
-    os << name << " (" << os.green() << typeName<T>() << os.end() << ")";
+    os << name << " (" << os.green() << TypeName<T>::get() << os.end()
+       << ")";
     if constexpr (std::is_same_v<T, int>) {
-        os << " = " << os.cyan() << value << os.end() << "\n";
+        os << " = " << os.cyan() << fmt1(value) << os.end() << "\n";
+    } else if constexpr (std::is_same_v<T, bool>) {
+        os << " = " << os.blue() << fmt1(value) << os.end() << "\n";
+    } else if constexpr (std::is_enum_v<T>) {
+        os << " = " << os.green() << fmt1(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
         os << " = " << os.yellow() << escape_literal(value) << os.end()
            << "\n";
@@ -129,7 +130,7 @@ void ExporterTree::visit(int& arg, CR<T> opt) {
     } else {
         __scope();
         indent();
-        os << os.red() << typeName<T>() << os.end() << "\n";
+        os << os.red() << TypeName<T>::get() << os.end() << "\n";
     }
 }
 

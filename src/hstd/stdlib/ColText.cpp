@@ -87,7 +87,7 @@ std::string to_colored_string(
         auto prev = ColStyle();
         for (const auto& rune : runes) {
             result += ansiDiff(prev, rune.style);
-            result += to_string(rune.rune);
+            result += rune.rune;
             prev = rune.style;
         }
 
@@ -96,17 +96,13 @@ std::string to_colored_string(
             result += ansiEsc(0);
         }
     } else {
-        for (const auto rune : runes) {
-            result += rune.rune;
-        }
+        for (const auto rune : runes) { result += rune.rune; }
     }
     return result;
 }
 
 void ColStream::flush() {
-    if (!buffered) {
-        ostream->flush();
-    }
+    if (!buffered) { ostream->flush(); }
 }
 
 void ColStream::write(const ColRune& text) {
@@ -131,9 +127,7 @@ ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts) {
     if (opts.flags.contains(HDisplayFlag::UseQuotes)) {
         for (Str const& it : visibleUnicodeName(
                  value, !opts.flags.contains(HDisplayFlag::UseAscii))) {
-            if (!first) {
-                os << " ";
-            }
+            if (!first) { os << " "; }
             first = false;
             os << std::format("'{}'", it);
         }
