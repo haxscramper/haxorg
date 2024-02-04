@@ -325,19 +325,6 @@ struct RecombineState {
         auto next = lex.tok(+1);
         pop_as(otk::CmdPrefix);
         switch (next.kind) {
-            case otk::CmdCenterBegin: pop_as(otk::CmdCenterBegin); break;
-            case otk::CmdCenterEnd: pop_as(otk::CmdCenterEnd); break;
-            case otk::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
-            case otk::CmdTitle: pop_as(otk::CmdTitle); break;
-            case otk::CmdCaption: pop_as(otk::CmdCaption); break;
-            case otk::CmdFiletags: pop_as(otk::CmdFiletags); break;
-            case otk::CmdColumns: pop_as(otk::CmdColumns); break;
-            case otk::CmdQuoteBegin: pop_as(otk::CmdQuoteBegin); break;
-            case otk::CmdQuoteEnd: pop_as(otk::CmdQuoteEnd); break;
-            case otk::CmdExampleBegin: pop_as(otk::CmdExampleBegin); break;
-            case otk::CmdExampleEnd: pop_as(otk::CmdExampleEnd); break;
-            case otk::CmdExportBegin: pop_as(otk::CmdExportBegin); break;
-            case otk::CmdExportEnd: pop_as(otk::CmdExportEnd); break;
             case otk::CmdPropertyArgs: {
                 auto split = next->text.split(' ');
                 add_fake(
@@ -346,12 +333,8 @@ struct RecombineState {
                 lex.next();
                 break;
             }
-            case otk::CmdPropertyText: pop_as(otk::CmdPropertyText); break;
-            case otk::CmdPropertyRaw: pop_as(otk::CmdPropertyRaw); break;
-            case otk::CmdOptions: pop_as(otk::CmdOptions); break;
             default: {
-                LOG(FATAL) << fmt(
-                    "Unhandled line command conversion rules {}", next);
+                pop_as(next.kind);
             }
         }
 
@@ -583,6 +566,7 @@ struct LineToken {
         otk::CmdPropertyText,
         otk::CmdOptions,
         otk::CmdFiletags,
+        otk::CmdTblfm,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {

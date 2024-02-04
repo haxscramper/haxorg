@@ -59,6 +59,7 @@ struct ParseSpec {
             ((bool), printBaseLexedToFile, false),
             ((bool), printParsedToFile, false),
             ((bool), printSemToFile, false),
+            ((int), maxBaseLexUnknownCount, 100),
             /// directory to write debug files to
             ((std::string), debugOutDir, ""));
     };

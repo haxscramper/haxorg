@@ -122,6 +122,11 @@ struct YamlSchemaBuilder<Str> {
 };
 
 template <>
+struct YamlSchemaBuilder<int> {
+    static yaml get() { return yaml{"int"}; }
+};
+
+template <>
 struct YamlSchemaBuilder<yaml> {
     static yaml get() { return yaml{"any"}; }
 };

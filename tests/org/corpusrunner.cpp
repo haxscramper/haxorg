@@ -756,7 +756,10 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                     spec.debugFile("trace_lex_base.log"));
             }
 
-            p.tokenizeBase(spec.source, fileTrace.get());
+            LexerParams params;
+            params.maxUnknown  = spec.debug.maxBaseLexUnknownCount;
+            params.traceStream = fileTrace.get();
+            p.tokenizeBase(spec.source, params);
         } else {
             return RunResult{};
         }

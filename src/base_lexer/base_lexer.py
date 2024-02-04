@@ -224,10 +224,10 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %%
 
-TokenGroup<OrgTokenKind, OrgFill> tokenize(const char* input, int size, std::ostream* traceStream) {{
+TokenGroup<OrgTokenKind, OrgFill> tokenize(const char* input, int size, LexerParams const& p) {{
     base_lexer::Lexer lex(input);
     lex.impl.impl = &lex;
-    lex.impl.traceStream = traceStream;
+    lex.impl.p = p;
     lex.impl.tokens.tokens.reserve(size / 3);
     lex.lex();
     return lex.impl.tokens;

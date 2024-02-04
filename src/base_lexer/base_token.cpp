@@ -14,13 +14,13 @@ void OrgLexerImpl::add(OrgTokenKind token) {
             static_cast<int>(impl->columno()),
         }});
 
-    if (traceStream) {
-        (*traceStream) << std::format(
+    if (p.traceStream) {
+        (*p.traceStream) << std::format(
             "   {:0>4}] = {} {}",
             id.getIndex(),
             token,
             escape_for_write(impl->matcher().str()))
-                       << std::endl;
+                         << std::endl;
     }
 }
 
@@ -52,9 +52,8 @@ void OrgLexerImpl::pop_expect_impl(int current, int next, int line) {
     states.pop_back();
     if (!states.empty()) { CHECK(states.back().stateId == next); }
 
-    if (traceStream) {
-
-        (*traceStream) << std::format(
+    if (p.traceStream) {
+        (*p.traceStream) << std::format(
             "         - {} -> {} at {} with {}",
             state_name(current),
             state_name(next),
@@ -81,8 +80,8 @@ void OrgLexerImpl::push_expect_impl(int current, int next, int line) {
         .rule    = line,
     });
 
-    if (traceStream) {
-        (*traceStream) << std::format(
+    if (p.traceStream) {
+        (*p.traceStream) << std::format(
             "         + {} -> {} at {} with {}",
             state_name(current),
             state_name(next),
@@ -95,10 +94,10 @@ void OrgLexerImpl::before(
     int          line,
     OrgTokenKind kind,
     const char*  pattern) {
-    if (traceStream) {
-        (*traceStream) << std::format(
+    if (p.traceStream) {
+        (*p.traceStream) << std::format(
             ">  {:0>4}]   {} {}", line, escape_for_write(pattern), view())
-                       << std::endl;
+                         << std::endl;
     }
 }
 
@@ -141,12 +140,12 @@ std::string OrgLexerImpl::view() {
 }
 
 void OrgLexerImpl::unknown() {
-    if (traceStream) {
-        (*traceStream) << "  X unknown " << view() << std::endl;
+    if (p.traceStream) {
+        (*p.traceStream) << "  X unknown " << view() << std::endl;
     } else {
         LOG(ERROR) << "Unknown " << view();
     }
 
-    CHECK(++visitedUnknown < maxUnknown)
-        << std::format("Max {} visited {}", maxUnknown, visitedUnknown);
+    CHECK(++p.visitedUnknown < p.maxUnknown) << std::format(
+        "Max {} visited {}", p.maxUnknown, p.visitedUnknown);
 }

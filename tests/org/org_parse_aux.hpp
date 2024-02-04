@@ -17,6 +17,7 @@ struct MockFull {
     SPtr<OrgParser>              parser;
     UPtr<OrgSpec>                spec;
     OrgTokenGroup                baseTokens;
+    Opt<int>                     maxUnknownBaseTokens;
 
     MockFull(bool tracedParser, bool tracedLexer)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
@@ -35,18 +36,18 @@ struct MockFull {
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
-    void tokenizeBase(
-        CR<std::string> content,
-        std::ostream*   trace = nullptr) {
-        baseTokens = ::tokenize(content.data(), content.size(), trace);
+    void tokenizeBase(CR<std::string> content, LexerParams const& p) {
+        baseTokens = ::tokenize(content.data(), content.size(), p);
     }
 
     void tokenizeConvert() { tokenizer->convert(baseTokens); }
 
     void parse() { (void)parser->parseFull(lex); }
 
-    void run(CR<std::string> content) {
-        tokenizeBase(content);
+    void run(
+        CR<std::string>    content,
+        LexerParams const& p = LexerParams{}) {
+        tokenizeBase(content, p);
         tokenizeConvert();
         parse();
     }

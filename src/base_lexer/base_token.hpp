@@ -66,20 +66,19 @@ struct std::formatter<OrgFill> : std::formatter<std::string> {
     }
 };
 
+struct LexerParams {
+    int           maxUnknown     = 100;
+    int           visitedUnknown = 0;
+    std::ostream* traceStream    = nullptr;
+};
 
-OrgTokenGroup tokenize(
-    const char*   input,
-    int           size,
-    std::ostream* traceStream);
+
+OrgTokenGroup tokenize(const char* input, int size, LexerParams const& p);
 
 
 struct OrgLexerImpl {
     reflex::AbstractLexer<reflex::Matcher>* impl;
-
-    int           maxUnknown     = 100;
-    int           visitedUnknown = 0;
-    std::ostream* traceStream;
-
+    LexerParams                             p;
 
     struct PushInfo {
         int         stateId; /// Name of the state pushed into stack

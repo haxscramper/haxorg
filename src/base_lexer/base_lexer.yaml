@@ -95,6 +95,17 @@ rules:
     token: CmdQuoteEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
+  #tag begin_verse
+  - re: "begin_verse"
+    states: [COMMAND]
+    token: CmdVerseBegin
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  - re: "end_verse"
+    states: [COMMAND]
+    token: CmdVerseEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
   #tag begin_center
   - re: "begin_center"
     states: [COMMAND]
@@ -242,6 +253,11 @@ rules:
     token: CmdFiletags
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
+  - re: "tblfm{prop_colon}"
+    states: [COMMAND]
+    token: CmdTblfm
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
   - re: "property{prop_colon}"
     states: [COMMAND]
     token: CmdPropertyRaw
@@ -257,16 +273,6 @@ rules:
     token: RawText
 
   #region Table-command
-  - re: "tblfm{prop_colon}"
-    states: [COMMAND]
-    token: CmdTblfm
-    actions: [{ do: push, to: COMMAND_TBLFM, from: COMMAND }]
-  - { re: "\\$\\d+", states: [COMMAND_TBLFM], token: TblColumnRef }
-  - { re: "=", states: [COMMAND_TBLFM], token: TblAssign }
-  - { re: "@-?\\d+", states: [COMMAND_TBLFM], token: TblRelativeColumnRef }
-  - { re: "{space}+", states: [COMMAND_TBLFM], token: Whitespace }
-  - { re: "[-]", states: [COMMAND_TBLFM], token: TblOperator }
-
   - re: "{lead_space}\\|"
     token: LeadingPipe
   - re: "\\|$"

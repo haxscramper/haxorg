@@ -75,6 +75,8 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdTblfm: return "CmdTblfm";
         case OrgTokenKind::CmdTitle: return "CmdTitle";
         case OrgTokenKind::CmdValue: return "CmdValue";
+        case OrgTokenKind::CmdVerseBegin: return "CmdVerseBegin";
+        case OrgTokenKind::CmdVerseEnd: return "CmdVerseEnd";
         case OrgTokenKind::Colon: return "Colon";
         case OrgTokenKind::ColonEnd: return "ColonEnd";
         case OrgTokenKind::ColonLiteralProperty: return "ColonLiteralProperty";
@@ -165,10 +167,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::SubtreeStars: return "SubtreeStars";
         case OrgTokenKind::Symbol: return "Symbol";
         case OrgTokenKind::TableSeparator: return "TableSeparator";
-        case OrgTokenKind::TblAssign: return "TblAssign";
-        case OrgTokenKind::TblColumnRef: return "TblColumnRef";
-        case OrgTokenKind::TblOperator: return "TblOperator";
-        case OrgTokenKind::TblRelativeColumnRef: return "TblRelativeColumnRef";
         case OrgTokenKind::TextSeparator: return "TextSeparator";
         case OrgTokenKind::TextSrcBegin: return "TextSrcBegin";
         case OrgTokenKind::Tilda: return "Tilda";
@@ -246,6 +244,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdTblfm") { return OrgTokenKind::CmdTblfm; } else
   if (value == "CmdTitle") { return OrgTokenKind::CmdTitle; } else
   if (value == "CmdValue") { return OrgTokenKind::CmdValue; } else
+  if (value == "CmdVerseBegin") { return OrgTokenKind::CmdVerseBegin; } else
+  if (value == "CmdVerseEnd") { return OrgTokenKind::CmdVerseEnd; } else
   if (value == "Colon") { return OrgTokenKind::Colon; } else
   if (value == "ColonEnd") { return OrgTokenKind::ColonEnd; } else
   if (value == "ColonLiteralProperty") { return OrgTokenKind::ColonLiteralProperty; } else
@@ -336,10 +336,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "SubtreeStars") { return OrgTokenKind::SubtreeStars; } else
   if (value == "Symbol") { return OrgTokenKind::Symbol; } else
   if (value == "TableSeparator") { return OrgTokenKind::TableSeparator; } else
-  if (value == "TblAssign") { return OrgTokenKind::TblAssign; } else
-  if (value == "TblColumnRef") { return OrgTokenKind::TblColumnRef; } else
-  if (value == "TblOperator") { return OrgTokenKind::TblOperator; } else
-  if (value == "TblRelativeColumnRef") { return OrgTokenKind::TblRelativeColumnRef; } else
   if (value == "TextSeparator") { return OrgTokenKind::TextSeparator; } else
   if (value == "TextSrcBegin") { return OrgTokenKind::TextSrcBegin; } else
   if (value == "Tilda") { return OrgTokenKind::Tilda; } else
