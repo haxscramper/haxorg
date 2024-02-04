@@ -467,20 +467,15 @@ SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
 
 
 SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
-    __perf_trace("convert", "convertLink");
+    __perf_trace("convert", "convertFootnote");
     auto __trace = trace(a);
     if (a.kind() == org::InlineFootnote) {
         auto note        = Sem<Footnote>(p, a);
-        note->definition = convert(note, a[0]);
+        note->definition = convert(note, one(a, N::Definition));
         return note;
     } else {
         auto link = Sem<Footnote>(p, a);
-        if (a.size() == 1) {
-            link->tag = a[0].val().text;
-        } else {
-            LOG(FATAL) << ("TODO");
-        }
-
+        link->tag = one(a, N::Definition).val().text;
         return link;
     }
 }
@@ -855,15 +850,7 @@ SemId OrgConverter::convert(__args) {
         case org::Angle: return convertPlaceholder(p, a);
         case org::Empty: return Sem<Empty>(p, a);
         case org::Table: return convertTable(p, a);
-        case org::Footnote: {
-            if (a.size() == 1) {
-                return convertLink(p, a);
-            } else {
-                LOG(FATAL)
-                    << "TODO implement conversion of nested footnote";
-            }
-        }
-
+        case org::Footnote: return convertFootnote(p, a);
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
             Vec<SemId> nested = flatConvertAttached(p, a);

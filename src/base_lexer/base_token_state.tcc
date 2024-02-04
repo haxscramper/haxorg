@@ -29,8 +29,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Asterisk: return "Asterisk";
         case OrgTokenKind::At: return "At";
         case OrgTokenKind::Backtick: return "Backtick";
-        case OrgTokenKind::BacktickBegin: return "BacktickBegin";
-        case OrgTokenKind::BacktickEnd: return "BacktickEnd";
         case OrgTokenKind::BigIdent: return "BigIdent";
         case OrgTokenKind::BoldBegin: return "BoldBegin";
         case OrgTokenKind::BoldEnd: return "BoldEnd";
@@ -102,7 +100,8 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Equals: return "Equals";
         case OrgTokenKind::Escaped: return "Escaped";
         case OrgTokenKind::Exclamation: return "Exclamation";
-        case OrgTokenKind::FootnoteBegin: return "FootnoteBegin";
+        case OrgTokenKind::FootnoteInlineBegin: return "FootnoteInlineBegin";
+        case OrgTokenKind::FootnoteLinked: return "FootnoteLinked";
         case OrgTokenKind::ForwardSlash: return "ForwardSlash";
         case OrgTokenKind::HashIdent: return "HashIdent";
         case OrgTokenKind::HashTagBegin: return "HashTagBegin";
@@ -175,7 +174,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::TreeTime: return "TreeTime";
         case OrgTokenKind::TripleAngleBegin: return "TripleAngleBegin";
         case OrgTokenKind::TripleAngleEnd: return "TripleAngleEnd";
-        case OrgTokenKind::TripleBacktick: return "TripleBacktick";
         case OrgTokenKind::UnderlineBegin: return "UnderlineBegin";
         case OrgTokenKind::UnderlineEnd: return "UnderlineEnd";
         case OrgTokenKind::Unknown: return "Unknown";
@@ -195,8 +193,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Asterisk") { return OrgTokenKind::Asterisk; } else
   if (value == "At") { return OrgTokenKind::At; } else
   if (value == "Backtick") { return OrgTokenKind::Backtick; } else
-  if (value == "BacktickBegin") { return OrgTokenKind::BacktickBegin; } else
-  if (value == "BacktickEnd") { return OrgTokenKind::BacktickEnd; } else
   if (value == "BigIdent") { return OrgTokenKind::BigIdent; } else
   if (value == "BoldBegin") { return OrgTokenKind::BoldBegin; } else
   if (value == "BoldEnd") { return OrgTokenKind::BoldEnd; } else
@@ -268,7 +264,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Equals") { return OrgTokenKind::Equals; } else
   if (value == "Escaped") { return OrgTokenKind::Escaped; } else
   if (value == "Exclamation") { return OrgTokenKind::Exclamation; } else
-  if (value == "FootnoteBegin") { return OrgTokenKind::FootnoteBegin; } else
+  if (value == "FootnoteInlineBegin") { return OrgTokenKind::FootnoteInlineBegin; } else
+  if (value == "FootnoteLinked") { return OrgTokenKind::FootnoteLinked; } else
   if (value == "ForwardSlash") { return OrgTokenKind::ForwardSlash; } else
   if (value == "HashIdent") { return OrgTokenKind::HashIdent; } else
   if (value == "HashTagBegin") { return OrgTokenKind::HashTagBegin; } else
@@ -341,7 +338,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "TreeTime") { return OrgTokenKind::TreeTime; } else
   if (value == "TripleAngleBegin") { return OrgTokenKind::TripleAngleBegin; } else
   if (value == "TripleAngleEnd") { return OrgTokenKind::TripleAngleEnd; } else
-  if (value == "TripleBacktick") { return OrgTokenKind::TripleBacktick; } else
   if (value == "UnderlineBegin") { return OrgTokenKind::UnderlineBegin; } else
   if (value == "UnderlineEnd") { return OrgTokenKind::UnderlineEnd; } else
   if (value == "Unknown") { return OrgTokenKind::Unknown; } else

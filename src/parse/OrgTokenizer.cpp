@@ -230,8 +230,9 @@ struct RecombineState {
         }
     }
 
-    OrgFill loc_fill() {
+    OrgFill loc_fill(CR<Str> text = "") {
         return OrgFill{
+            .text = text,
             .line = lex.tok()->line,
             .col  = lex.tok()->col,
         };
@@ -455,6 +456,14 @@ struct RecombineState {
             case otk::LinkSplit: {
                 add_fake(otk::LinkTargetEnd);
                 pop_as(otk::LinkDescriptionBegin);
+                break;
+            }
+
+            case otk::FootnoteLinked: {
+                auto text = lex.val().text.dropPrefix("[fn:").dropSuffix(
+                    "]");
+                add_fake(otk::FootnoteLinked, loc_fill(text));
+                lex.next();
                 break;
             }
 

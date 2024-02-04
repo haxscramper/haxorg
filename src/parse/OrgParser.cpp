@@ -199,7 +199,6 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_MARKUP(Underline);
             CASE_MARKUP(Strike);
             CASE_MARKUP(Verbatim);
-            CASE_MARKUP(Backtick);
 
             CASE_SINGLE(Escaped);
             CASE_SINGLE(RawText);
@@ -230,6 +229,8 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::CurlyEnd:
             case otk::Exclamation:
             case otk::Dollar:
+            case otk::Backtick:
+            case otk::Pipe:
             case otk::Circumflex: {
                 token(org::Punctuation, pop(lex, lex.kind()));
                 break;
@@ -254,7 +255,8 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::HashIdent: parseHashTag(lex); break;
             case otk::LinkBegin: parseLink(lex); break;
             case otk::MacroBegin: parseMacro(lex); break;
-            case otk::FootnoteBegin: parseFootnote(lex); break;
+            case otk::FootnoteInlineBegin:
+            case otk::FootnoteLinked: parseFootnote(lex); break;
             case otk::Symbol: parseSymbol(lex); break;
 
             case otk::BraceBegin: {
@@ -592,26 +594,20 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
 OrgId OrgParser::parseFootnote(OrgLexer& lex) {
     __perf_trace("parseFootnote");
     auto __trace = trace(lex);
-    // TODO replace 'footnote start' + '::' with a 'inline footnote start'
-    // / 'footnote start nodes'
-    skip(lex, otk::FootnoteBegin);
-    if (lex.at(otk::Colon)) {
-        start(org::InlineFootnote);
-        skip(lex, otk::Colon);
-        Vec<OrgTokenId> sub;
-        while (!lex.at(otk::BraceEnd)) { sub.push_back(lex.pop()); }
-        SubLexer subLexer{lex.in, sub};
-        start(org::Paragraph);
-        parseText(subLexer);
-        end();
-    } else {
+    if (lex.at(otk::FootnoteLinked)) {
         start(org::Footnote);
-        parseIdent(lex);
+        empty();
+        token(org::RawText, pop(lex));
+        return end();
+    } else {
+        start(org::InlineFootnote);
+        skip(lex, otk::FootnoteInlineBegin);
+        SubLexer sub{lex};
+        while (!lex.at(otk::BraceEnd)) { sub.add(pop(lex)); }
+        parseParagraph(sub);
+        skip(lex, otk::BraceEnd);
+        return end();
     }
-
-    skip(lex, otk::BraceEnd);
-
-    return end();
 }
 
 
@@ -734,6 +730,7 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
                 }
                 end();
             }
+            space(lex);
         }
 
         return end();

@@ -207,6 +207,20 @@ items:
       cd 1
       #+end_src
 
+  - name: "Quote block parameters"
+    source: |
+      #+begin_quote :cc @user
+      Text
+      #+end_quote
 
+  - name: "Link 1"
+    source: |
+      - [[https://www.law.cornell.edu/uscode/text/22/6001][22 U.S. Code &sect; 6001 - Findings | U.S. Code | US Law | LII / Legal
+        Information Institute]]
+
+  - name: "Footnotes"
+    source: |
+      one[fn:one-1191]
+      one[fn::one q]
 
 

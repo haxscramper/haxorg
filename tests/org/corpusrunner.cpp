@@ -851,38 +851,42 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     UnorderedMap<OrgId, int> parseAddedOnLine;
 
-    auto writeImpl = [&](OrgNodeGroup::TreeReprConf::WriteParams const&
-                             par) {
-        switch (par.pos) {
-            case Pos::AfterKind: {
-                if (par.parent && par.subnodeIdx) {
-                    auto name = p.spec->fieldName(
-                        OrgAdapter(&p.nodes, *par.parent),
-                        *par.subnodeIdx);
-                    if (name) {
-                        par.os << " " << par.os.magenta()
-                               << fmt("{}", *name) << par.os.end();
-                    } else {
-                        par.os << fmt(
-                            "'Missing field name for element {} of node "
-                            "{}'",
-                            *par.subnodeIdx,
-                            OrgAdapter(&p.nodes, *par.parent).getKind());
+    auto writeImpl =
+        [&](OrgNodeGroup::TreeReprConf::WriteParams const& par) {
+            switch (par.pos) {
+                case Pos::AfterKind: {
+                    if (par.parent && par.subnodeIdx) {
+                        auto name = p.spec->fieldName(
+                            OrgAdapter(&p.nodes, *par.parent),
+                            *par.subnodeIdx);
+                        if (name) {
+                            par.os << " " << par.os.magenta()
+                                   << fmt("{}", *name) << par.os.end();
+                        } else {
+                            par.os << " " << par.os.red()
+                                   << fmt("!! Missing field name for "
+                                          "element {} of node "
+                                          "{} !!",
+                                          *par.subnodeIdx,
+                                          OrgAdapter(&p.nodes, *par.parent)
+                                              .getKind())
+                                   << par.os.end() << " ";
+                        }
                     }
+                    break;
                 }
-                break;
-            }
-            case Pos::LineEnd: {
-                if (parseAddedOnLine.contains(par.current)) {
-                    par.os << " " << par.os.red()
-                           << fmt(" @{}", parseAddedOnLine.at(par.current))
-                           << par.os.end();
+                case Pos::LineEnd: {
+                    if (parseAddedOnLine.contains(par.current)) {
+                        par.os << " " << par.os.red()
+                               << fmt(" @{}",
+                                      parseAddedOnLine.at(par.current))
+                               << par.os.end();
+                    }
+                    break;
                 }
-                break;
+                default:
             }
-            default:
-        }
-    };
+        };
 
     { // Parsing
         if (spec.debug.doParse) {
@@ -910,7 +914,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
                 for (auto const& [colored, path] : Vec<Pair<bool, Str>>{
                          {false, "parsed.txt"},
-                         {true, "parsed_colored.txt"}}) {
+                         {true, "parsed_colored.ansi"}}) {
                     std::stringstream buffer;
                     ColStream         text{buffer};
                     text.colored = colored;
@@ -989,7 +993,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 }
 
                 {
-                    std::ofstream file{spec.debugFile("sem_colored.txt")};
+                    std::ofstream file{spec.debugFile("sem_colored.ansi")};
                     ColStream     os{file};
                     os.colored = true;
                     ExporterTree tree{os};

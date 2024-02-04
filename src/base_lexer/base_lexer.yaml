@@ -66,8 +66,6 @@ tokens:
   - name: UnderlineBegin
   - name: UnderlineEnd
   - name: TimeRepeater
-  - name: BacktickBegin
-  - name: BacktickEnd
   - name: CmdAdmonitionBegin
   - name: CmdFlag
   - name: CmdContentEnd
@@ -378,7 +376,8 @@ rules:
   #region Text-elements
   #region Links and footnotes
   - { re: "{space}+", token: Whitespace }
-  - { lit: "[fn:", token: FootnoteBegin }
+  - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }
+  - { re: "\\[fn::", token: FootnoteInlineBegin }
   - { re: "\\[\\[({dsl_links}):(.(?^\\]\\[))*\\]\\]", token: DslLink }
   - { re: "\\[\\[({dsl_links}):.*?\\]\\[", token: DslLinkBegin }
   - { re: "\\[\\[\\w+:", token: LinkBegin }
@@ -444,7 +443,6 @@ rules:
   - { lit: "%", token: Percent }
   - { re: "@\\w+", token: At }
   - { lit: "|", token: Pipe }
-  - { lit: "```", token: TripleBacktick }
   - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "\\w+", token: Word }
