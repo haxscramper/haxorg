@@ -22,7 +22,7 @@ TEST(ManualFileRun, TestDoc1) {
             });
         }
     }
-
+    LOG(INFO) << "doc1.org ok";
     {
         std::string content = readFile("/home/haxscramper/tmp/doc2.org");
         auto        spec    = ParseSpec::FromSource(std::move(content));

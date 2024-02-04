@@ -547,6 +547,7 @@ struct LineToken {
         otk::CmdExampleEnd,
         otk::CmdQuoteEnd,
         otk::CmdExportEnd,
+        otk::CmdVerseEnd,
     };
 
     IntSet<OrgTokenKind> CmdBlockOpen{
@@ -555,6 +556,7 @@ struct LineToken {
         otk::CmdExampleBegin,
         otk::CmdSrcBegin,
         otk::CmdQuoteBegin,
+        otk::CmdVerseBegin,
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{

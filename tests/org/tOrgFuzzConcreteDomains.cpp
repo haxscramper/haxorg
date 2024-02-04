@@ -484,6 +484,16 @@ Domain<prt::Center> GenerateNode(CR<GenerateNodeContext> ctx) {
 }
 
 template <>
+Domain<prt::Verse> GenerateNode(CR<GenerateNodeContext> ctx) {
+    ctx.debug("Verse");
+    return InitNode<prt::Verse>(ctx).WithRepeatedProtobufField(
+        "subnodes",
+        VectorOf(GenerateAnyNodeWrapper(
+                     GenerateNode<prt::Paragraph>(ctx.rec(osk::Center))))
+            .WithMinSize(1));
+}
+
+template <>
 Domain<prt::Quote> GenerateNode(CR<GenerateNodeContext> ctx) {
     ctx.debug("Quote");
     return InitNode<prt::Quote>(ctx).WithRepeatedProtobufField(

@@ -203,6 +203,20 @@ void proto_serde<::orgproto::Quote, sem::Quote>::read(sem::ContextStore* context
   proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.text(), in.for_field(&sem::Quote::text));
 }
 
+void proto_serde<::orgproto::Verse, sem::Verse>::write(::orgproto::Verse* out, sem::Verse const& in) {
+  proto_serde<::orgproto::Verse, sem::Org>::write(out, in);
+  if (in.loc) {
+    proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void proto_serde<::orgproto::Verse, sem::Verse>::read(sem::ContextStore* context, ::orgproto::Verse const& out, proto_write_accessor<sem::Verse> in) {
+  proto_serde<::orgproto::Verse, sem::Org>::read(context, out, in.as<sem::Org>());
+  if (out.has_loc()) {
+    proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(context, out.loc(), in.for_field(&sem::Verse::loc));
+  }
+}
+
 void proto_serde<::orgproto::Example, sem::Example>::write(::orgproto::Example* out, sem::Example const& in) {
   proto_serde<::orgproto::Example, sem::Org>::write(out, in);
   if (in.loc) {

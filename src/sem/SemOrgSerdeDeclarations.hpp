@@ -14,6 +14,7 @@
         __MAP(kCaption, caption, Caption)  \
         __MAP(kCommandgroup, commandgroup, CommandGroup)  \
         __MAP(kQuote, quote, Quote)  \
+        __MAP(kVerse, verse, Verse)  \
         __MAP(kExample, example, Example)  \
         __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
         __MAP(kCmdargument, cmdargument, CmdArgument)  \
@@ -136,6 +137,13 @@ template <>
 struct proto_serde<::orgproto::Quote, sem::Quote> {
   static void write(::orgproto::Quote* out, sem::Quote const& in);
   static void read(sem::ContextStore* context, ::orgproto::Quote const& out, proto_write_accessor<sem::Quote> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Verse, sem::Verse> {
+  static void write(::orgproto::Verse* out, sem::Verse const& in);
+  static void read(sem::ContextStore* context, ::orgproto::Verse const& out, proto_write_accessor<sem::Verse> in);
 };
 
 

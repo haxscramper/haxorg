@@ -200,6 +200,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Quote> _self) -> sem::SemIdT<sem::Paragraph> { return _self->text; },
                   [](sem::SemIdT<sem::Quote> _self, sem::SemIdT<sem::Paragraph> text) { _self->text = text; })
     ;
+  pybind11::class_<sem::SemIdT<sem::Verse>, sem::SemId>(m, "SemVerse")
+    .def(pybind11::init([]() -> sem::SemIdT<sem::Verse> { return sem::SemIdT<sem::Verse>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Verse> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Verse> _self, Opt<LineCol> loc) { _self->loc = loc; })
+    ;
   pybind11::class_<sem::SemIdT<sem::Example>, sem::SemId>(m, "SemExample")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Example> { return sem::SemIdT<sem::Example>::Nil(); }))
     .def_property("loc",
@@ -1506,6 +1512,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Caption", OrgSemKind::Caption)
     .value("CommandGroup", OrgSemKind::CommandGroup)
     .value("Quote", OrgSemKind::Quote)
+    .value("Verse", OrgSemKind::Verse)
     .value("Example", OrgSemKind::Example)
     .value("CmdArguments", OrgSemKind::CmdArguments)
     .value("CmdArgument", OrgSemKind::CmdArgument)

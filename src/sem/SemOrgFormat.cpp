@@ -326,6 +326,12 @@ auto Formatter::toString(SemIdT<Quote> id) -> Res {
         str("#+begin_quote"), toSubnodes(id), str("#+end_quote")));
 }
 
+auto Formatter::toString(SemIdT<Verse> id) -> Res {
+    return b.stack(Splice<Res>(
+        str("#+begin_verse"), toSubnodes(id), str("#+end_verse")));
+}
+
+
 auto Formatter::toString(SemIdT<Include> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }

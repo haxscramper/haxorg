@@ -335,6 +335,25 @@ struct Quote : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Quote; }
 };
 
+/// \brief Verse quotation block
+struct Verse : public sem::Block {
+  using Block::Block;
+  BOOST_DESCRIBE_CLASS(Verse,
+                       (Block),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemIdT<Verse>(sem::SemId, Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemIdT<Verse> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::Verse; }
+};
+
 /// \brief Example block
 struct Example : public sem::Block {
   using Block::Block;

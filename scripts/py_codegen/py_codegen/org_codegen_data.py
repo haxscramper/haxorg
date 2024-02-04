@@ -333,6 +333,11 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             fields=[id_field("Paragraph", "text", GenTuDoc("Quote content"))],
         ),
+        d_org(
+            "Verse",
+            GenTuDoc("Verse quotation block"),
+            bases=[t_org("Block")],
+        ),
         d_org("Example", GenTuDoc("Example block"), bases=[t_org("Block")]),
         d_org(
             "CmdArguments",
