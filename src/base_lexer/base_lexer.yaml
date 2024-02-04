@@ -49,9 +49,7 @@ tokens:
   - name: LinkTargetEnd
   - name: LinkDescriptionBegin
   - name: LinkProtocol
-  - name: CmdValue
   - name: CmdContentBegin
-  - name: CmdKey
   - name: HashTagBegin
   - name: BraceBegin
   - name: BoldBegin
@@ -88,7 +86,7 @@ rules:
   - re: "begin_quote"
     states: [COMMAND]
     token: CmdQuoteBegin
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "end_quote"
     states: [COMMAND]
@@ -99,7 +97,7 @@ rules:
   - re: "begin_verse"
     states: [COMMAND]
     token: CmdVerseBegin
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "end_verse"
     states: [COMMAND]
@@ -110,7 +108,7 @@ rules:
   - re: "begin_center"
     states: [COMMAND]
     token: CmdCenterBegin
-    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "end_center"
     states: [COMMAND]
@@ -196,11 +194,6 @@ rules:
       re: ":\\w+",
       states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
       token: CmdColonIdent,
-    }
-  - {
-      re: "\\w+",
-      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
-      token: CmdIdent,
     }
   - {
       re: "{space}+",

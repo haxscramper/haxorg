@@ -716,13 +716,13 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
         return empty();
     } else {
         start(org::InlineStmtList);
-        while (lex.at(OrgTokSet{otk::CmdValue, otk::CmdKey})) {
-            if (lex.at(otk::CmdKey)) {
+        while (lex.at(OrgTokSet{otk::CmdRawArg, otk::CmdColonIdent})) {
+            if (lex.at(otk::CmdColonIdent)) {
                 start(org::CmdValue);
                 {
-                    token(org::Ident, pop(lex, otk::CmdKey));
+                    token(org::Ident, pop(lex, otk::CmdColonIdent));
                     space(lex);
-                    token(org::RawText, pop(lex, otk::CmdValue));
+                    token(org::RawText, pop(lex, otk::CmdRawArg));
                 }
                 end();
             } else {
@@ -730,7 +730,7 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
                 {
                     empty();
                     space(lex);
-                    token(org::RawText, pop(lex, otk::CmdValue));
+                    token(org::RawText, pop(lex, otk::CmdRawArg));
                 }
                 end();
             }
@@ -790,14 +790,13 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     if (lex.at(Newline)) {
         empty();
     } else {
-        if (lex.at(otk::RawText)) {
-            skip(lex);
-        } else if (lex.at(otk::Word)) {
-            skip(lex);
-        };
+        space(lex);
+        parseCommandArguments(lex);
+        space(lex);
     }
 
     skip(lex, Newline);
+
 
     while (!lex.at(Vec<otk>{otk::CmdPrefix, endTok})) {
         parseStmtListItem(lex);
@@ -819,7 +818,7 @@ OrgId OrgParser::parseBlockExport(OrgLexer& lex) {
 
     // command arguments
     space(lex);
-    token(org::Ident, pop(lex, otk::CmdValue));
+    token(org::Ident, pop(lex, otk::CmdRawArg));
     space(lex);
     parseSrcArguments(lex);
     newline(lex);
@@ -871,8 +870,8 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
     // header_args_lang
     {
         space(lex);
-        if (lex.at(otk::CmdValue)) {
-            const auto lang = pop(lex, otk::CmdValue);
+        if (lex.at(otk::CmdRawArg)) {
+            const auto lang = pop(lex, otk::CmdRawArg);
             if (lex.val().text.empty()) {
                 empty();
             } else {
@@ -1354,7 +1353,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex);
             start(org::CmdPropertyArgs);
-            token(org::RawText, pop(lex, otk::CmdValue));
+            token(org::RawText, pop(lex, otk::CmdRawArg));
             parseCommandArguments(lex);
             parseParagraph(lex);
             break;
@@ -1364,7 +1363,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex);
             start(org::CmdPropertyArgs);
-            token(org::RawText, pop(lex, otk::CmdValue));
+            token(org::RawText, pop(lex, otk::CmdRawArg));
             parseCommandArguments(lex);
             break;
         }

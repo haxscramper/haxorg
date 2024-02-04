@@ -190,9 +190,6 @@ void proto_serde<::orgproto::Quote, sem::Quote>::write(::orgproto::Quote* out, s
   if (in.loc) {
     proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
   }
-  if (!in.text.isNil()) {
-    proto_serde<orgproto::Paragraph, sem::Paragraph>::write(out->mutable_text(), *((in.text).get()));
-  }
 }
 
 void proto_serde<::orgproto::Quote, sem::Quote>::read(sem::ContextStore* context, ::orgproto::Quote const& out, proto_write_accessor<sem::Quote> in) {
@@ -200,7 +197,6 @@ void proto_serde<::orgproto::Quote, sem::Quote>::read(sem::ContextStore* context
   if (out.has_loc()) {
     proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(context, out.loc(), in.for_field(&sem::Quote::loc));
   }
-  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.text(), in.for_field(&sem::Quote::text));
 }
 
 void proto_serde<::orgproto::Verse, sem::Verse>::write(::orgproto::Verse* out, sem::Verse const& in) {

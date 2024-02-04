@@ -196,9 +196,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("loc",
                   [](sem::SemIdT<sem::Quote> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::Quote> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Quote> _self) -> sem::SemIdT<sem::Paragraph> { return _self->text; },
-                  [](sem::SemIdT<sem::Quote> _self, sem::SemIdT<sem::Paragraph> text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Verse>, sem::SemId>(m, "SemVerse")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Verse> { return sem::SemIdT<sem::Verse>::Nil(); }))

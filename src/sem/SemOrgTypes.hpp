@@ -322,15 +322,12 @@ struct Quote : public sem::Org {
                        (),
                        (loc,
                         staticKind,
-                        text,
                         (sem::SemIdT<Quote>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
   Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
-  /// \brief Quote content
-  sem::SemIdT<sem::Paragraph> text = SemIdT<Paragraph>::Nil();
   static sem::SemIdT<Quote> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Quote; }
 };

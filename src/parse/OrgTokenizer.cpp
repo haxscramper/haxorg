@@ -329,7 +329,7 @@ struct RecombineState {
                 auto split = next->text.split(' ');
                 add_fake(
                     otk::CmdPropertyArgs, OrgFill{.text = split.at(0)});
-                add_fake(otk::CmdValue, OrgFill{.text = split.at(1)});
+                add_fake(otk::CmdRawArg, OrgFill{.text = split.at(1)});
                 lex.next();
                 break;
             }
@@ -356,7 +356,7 @@ struct RecombineState {
                 while (lex.at(otk::Whitespace)) { lex.next(); }
                 break;
             case otk::CmdPropertyText:
-                pop_as(otk::CmdValue);
+                pop_as(otk::CmdRawArg);
                 while (!lex.at(line_end)) { map_interpreted_token(); }
                 break;
             default:
@@ -380,18 +380,7 @@ struct RecombineState {
     };
 
     void map_command_args() {
-        while (!line_end.contains(lex.kind())) {
-            switch (lex.kind()) {
-                case otk::CmdColonIdent: pop_as(otk::CmdKey); break;
-                case otk::CmdRawArg:
-                case otk::CmdIdent: pop_as(otk::CmdValue); break;
-                case otk::Whitespace: lex.next(); break;
-                default: {
-                    LOG(FATAL) << fmt(
-                        "Unhandled command argument kind {}", lex.kind());
-                }
-            }
-        }
+        while (!line_end.contains(lex.kind())) { pop_as(lex.kind()); }
     }
 
     void map_interpreted_token() {

@@ -57,9 +57,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdExportLine: return "CmdExportLine";
         case OrgTokenKind::CmdFiletags: return "CmdFiletags";
         case OrgTokenKind::CmdFlag: return "CmdFlag";
-        case OrgTokenKind::CmdIdent: return "CmdIdent";
         case OrgTokenKind::CmdInclude: return "CmdInclude";
-        case OrgTokenKind::CmdKey: return "CmdKey";
         case OrgTokenKind::CmdLanguage: return "CmdLanguage";
         case OrgTokenKind::CmdLatexHeader: return "CmdLatexHeader";
         case OrgTokenKind::CmdOptions: return "CmdOptions";
@@ -74,7 +72,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdSrcEnd: return "CmdSrcEnd";
         case OrgTokenKind::CmdTblfm: return "CmdTblfm";
         case OrgTokenKind::CmdTitle: return "CmdTitle";
-        case OrgTokenKind::CmdValue: return "CmdValue";
         case OrgTokenKind::CmdVerseBegin: return "CmdVerseBegin";
         case OrgTokenKind::CmdVerseEnd: return "CmdVerseEnd";
         case OrgTokenKind::Colon: return "Colon";
@@ -226,9 +223,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdExportLine") { return OrgTokenKind::CmdExportLine; } else
   if (value == "CmdFiletags") { return OrgTokenKind::CmdFiletags; } else
   if (value == "CmdFlag") { return OrgTokenKind::CmdFlag; } else
-  if (value == "CmdIdent") { return OrgTokenKind::CmdIdent; } else
   if (value == "CmdInclude") { return OrgTokenKind::CmdInclude; } else
-  if (value == "CmdKey") { return OrgTokenKind::CmdKey; } else
   if (value == "CmdLanguage") { return OrgTokenKind::CmdLanguage; } else
   if (value == "CmdLatexHeader") { return OrgTokenKind::CmdLatexHeader; } else
   if (value == "CmdOptions") { return OrgTokenKind::CmdOptions; } else
@@ -243,7 +238,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdSrcEnd") { return OrgTokenKind::CmdSrcEnd; } else
   if (value == "CmdTblfm") { return OrgTokenKind::CmdTblfm; } else
   if (value == "CmdTitle") { return OrgTokenKind::CmdTitle; } else
-  if (value == "CmdValue") { return OrgTokenKind::CmdValue; } else
   if (value == "CmdVerseBegin") { return OrgTokenKind::CmdVerseBegin; } else
   if (value == "CmdVerseEnd") { return OrgTokenKind::CmdVerseEnd; } else
   if (value == "Colon") { return OrgTokenKind::Colon; } else

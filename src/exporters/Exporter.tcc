@@ -141,7 +141,6 @@ template <typename V, typename R>
 void Exporter<V, R>::visitQuote(R& res, In<sem::Quote> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);
-  __org_field(res, object, text);
   __org_field(res, object, subnodes);
 }
 

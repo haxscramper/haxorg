@@ -331,7 +331,6 @@ def get_types() -> Sequence[GenTuStruct]:
             "Quote",
             GenTuDoc("Quotation block"),
             bases=[t_org("Org")],
-            fields=[id_field("Paragraph", "text", GenTuDoc("Quote content"))],
         ),
         d_org(
             "Verse",

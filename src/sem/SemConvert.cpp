@@ -699,7 +699,10 @@ SemIdT<AdmonitionBlock> OrgConverter::convertAdmonitionBlock(__args) {
 
 SemIdT<Quote> OrgConverter::convertQuote(__args) {
     SemIdT<Quote> quote = Sem<Quote>(p, a);
-    quote->text         = convertParagraph(quote, a[0]);
+    for (const auto& sub : many(a, N::Body)) {
+        auto aux = convert(quote, sub);
+        quote->push_back(aux);
+    }
     return quote;
 }
 
