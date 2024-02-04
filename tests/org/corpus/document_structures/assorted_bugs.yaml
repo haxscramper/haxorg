@@ -193,13 +193,20 @@ items:
 
   - name: "Table with trailing medium newline"
     source: |
-    
+
       | language | profiling            | tools              | etc. |
       |----------+----------------------+--------------------+------|
       | cxx      | gprof, perfetto, ... | vscode, conan, ... |      |
       | python   | ....                 | poetry, mypy       | ..   |
 
       ---------
+
+  - name: "Source block without language name"
+    source: |
+      #+begin_src
+      cd 1
+      #+end_src
+
 
 
 

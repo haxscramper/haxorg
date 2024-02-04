@@ -228,6 +228,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::DoubleColon:
             case otk::CurlyBegin:
             case otk::CurlyEnd:
+            case otk::Exclamation:
             case otk::Dollar:
             case otk::Circumflex: {
                 token(org::Punctuation, pop(lex, lex.kind()));
@@ -870,12 +871,17 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
     // header_args_lang
     {
         space(lex);
-        const auto lang = pop(lex, otk::CmdValue);
-        if (lex.val().text.empty()) {
-            empty();
+        if (lex.at(otk::CmdValue)) {
+            const auto lang = pop(lex, otk::CmdValue);
+            if (lex.val().text.empty()) {
+                empty();
+            } else {
+                token(org::Ident, lang);
+            }
         } else {
-            token(org::Ident, lang);
+            empty();
         }
+
         space(lex);
 
         parseSrcArguments(lex);

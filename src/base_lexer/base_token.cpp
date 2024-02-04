@@ -24,6 +24,9 @@ void OrgLexerImpl::add(OrgTokenKind token) {
     }
 }
 
+void OrgLexerImpl::maybe_pop_expect_impl(int current, int next, int line) {
+    if (impl->start() == current) { pop_expect_impl(current, next, line); }
+}
 
 void OrgLexerImpl::pop_expect_impl(int current, int next, int line) {
     if (current != -1) {

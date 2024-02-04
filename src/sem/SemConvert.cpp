@@ -497,8 +497,9 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
 
     } else {
         Str protocol = normalize(one(a, N::Protocol).val().text);
-        if (protocol == "") {
-            link->data = Link::Raw{.text = one(a, N::Link).val().text};
+        if (protocol == "http" || protocol == "https") {
+            link->data = Link::Raw{
+                .text = protocol + ":"_ss + one(a, N::Link).val().text};
         } else if (protocol == "id") {
             link->data = Link::Id{.text = one(a, N::Link).val().text};
 

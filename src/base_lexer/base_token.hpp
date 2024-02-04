@@ -97,6 +97,7 @@ struct OrgLexerImpl {
     std::string   view();
     void          unknown();
 
+    void maybe_pop_expect_impl(int current, int next, int line);
     void pop_expect_impl(int current, int next, int line);
     void push_expect_impl(int current, int next, int line);
     void before(int line, OrgTokenKind kind, char const* pattern);

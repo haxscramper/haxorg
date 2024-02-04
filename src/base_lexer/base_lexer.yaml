@@ -25,7 +25,7 @@ rx_macros:
   - { name: literal_properties, value: "id|effort" }
   - { name: argument_properties, value: "header-args" }
   - { name: text_properties, value: "description" }
-  - { name: dsl_links, value: "file|attachment|id" }
+  - { name: dsl_links, value: "file|attachment|id|http|https" }
   # Property colon with optional text extension pattern an any number of
   # following spaces. Used both in line command directives and subtree
   # properties
@@ -214,6 +214,7 @@ rules:
   - lit: "#+"
     states: [LEAD]
     token: LineCommand
+    keepLead: true
     actions:
       - { do: pop, to: INITIAL, from: LEAD }
       - { do: push, to: COMMAND, from: INITIAL }
@@ -332,6 +333,7 @@ rules:
   - { re: "[0-9]+", token: Number }
   - re: "^{space}+"
     token: LeadingSpace
+    keepLead: true
     actions:
       - { do: push, to: LEAD, from: INITIAL }
 
@@ -457,6 +459,7 @@ rules:
   - re: "\\n"
     states: [LEAD]
     token: Newline
+    keepLead: true
     actions: [{ do: pop, from: LEAD, to: INITIAL }]
 
   - re: "\\n{space}*\\n({space}*\\n)+"
@@ -481,14 +484,17 @@ rules:
   - re: "\\n{space}*\\n({space}*\\n)+"
     token: LongNewline
     states: [LEAD, SUBTREE_HEAD]
+    keepLead: true
     actions: [{ do: pop, to: INITIAL }]
   - re: "\\n{space}*\\n"
     token: MediumNewline
     states: [LEAD, SUBTREE_HEAD]
+    keepLead: true
     actions: [{ do: pop, to: INITIAL }]
   - re: "\\n"
     token: Newline
     states: [LEAD, SUBTREE_HEAD]
+    keepLead: true
     actions: [{ do: pop, to: INITIAL }]
 
   - re: "\\n{space}*\\n({space}*\\n)+"

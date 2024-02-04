@@ -23,6 +23,7 @@ class Rule(BaseModel):
     states: Optional[List[str]] = None
     actions: Optional[List[Action]] = None
     line: Optional[int] = None
+    keepLead: bool = False
 
 
 class State(BaseModel):
@@ -91,7 +92,11 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
     else:
         state_prefix = f"{state_prefix}\"{rule.lit}\"".ljust(MATCH_WIDTH)
 
-    actions = []
+    actions = [] 
+
+    if not rule.keepLead:
+        actions.append(
+            f"maybe_pop_expect(LEAD, INITIAL, {rule.line});")
 
     if rule.actions:
         for action in rule.actions:
@@ -103,7 +108,7 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
                 case "pop":
                     actions.append(
                         f"pop_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
-
+                    
                 case "set":
                     actions.append(f"start({action.to});")
 
@@ -197,6 +202,7 @@ def generate_reflex_code(config: Configuration) -> str:
 #include "base_token.hpp"
 
 #define pop_expect(current, next, line) impl.pop_expect_impl(current, next, line)
+#define maybe_pop_expect(current, next, line) impl.maybe_pop_expect_impl(current, next, line)
 #define push_expect(current, next, line) impl.push_expect_impl(current, next, line)
 %}}
 

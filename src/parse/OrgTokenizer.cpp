@@ -303,6 +303,12 @@ struct RecombineState {
         } else if (!prev_empty && next_empty) {
             add_fake(close, {lex.tok().value});
             lex.next();
+        } else if (prev_empty && lex.kind() == otk::Tilda) {
+            add_fake(open, {lex.tok().value});
+            lex.next();
+        } else if (next_empty && lex.kind() == otk::Tilda) {
+            add_fake(close, {lex.tok().value});
+            lex.next();
         } else {
             pop_as(otk::Punctuation);
         }
@@ -829,6 +835,13 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
                 }
                 it = start;
                 return std::nullopt;
+            }
+
+            case LK::BlockClose: {
+                nextline();
+                return GroupToken{
+                    .data = GroupToken::Leaf{make_span(start, it)},
+                    .kind = GK::Line};
             }
 
             default: {
