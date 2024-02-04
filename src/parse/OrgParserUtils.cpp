@@ -150,7 +150,7 @@ void OrgParser::expect(
             line,
             item,
             getLocMsg(lex),
-            lex.kind());
+            lex.finished() ? "<lexer-finished>" : fmt1(lex.kind()));
         if (TraceState) {
             report(
                 Builder(
@@ -253,10 +253,14 @@ void OrgParser::fatalError(
     }
 
     throw std::logic_error(
-        fmt("{} {} at {} in {}:{}",
+        fmt("{} {} at {} in {}:{} {}",
             msg,
-            lex.tok(),
+            lex.finished() ? "<lexer-finished>" : fmt1(lex.tok()),
             getLocMsg(lex),
             function,
-            line));
+            line,
+            lex.printToString([](ColStream& os, OrgToken const& t) {
+                os << os.yellow() << escape_for_write(t.value.text)
+                   << os.end() << fmt1(t.value);
+            })));
 }

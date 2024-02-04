@@ -226,6 +226,9 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::Percent:
             case otk::Semicolon:
             case otk::DoubleColon:
+            case otk::CurlyBegin:
+            case otk::CurlyEnd:
+            case otk::Dollar:
             case otk::Circumflex: {
                 token(org::Punctuation, pop(lex, lex.kind()));
                 break;
@@ -292,6 +295,7 @@ void OrgParser::textFold(OrgLexer& lex) {
                 break;
             }
 
+            case otk::Comment:
             case otk::LeadingSpace: {
                 skip(lex);
                 break;
@@ -664,7 +668,7 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
                     end();
                 }
                 skip(lex, otk::TrailingPipe);
-                skip(lex, otk::Newline);
+                skip(lex, Newline);
                 end();
                 break;
             }
@@ -1203,7 +1207,7 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
 
     if (lex.at(otk::Newline)) { newline(lex); }
 
-    if (lex.at(otk::ColonProperties)) { // 7
+    if (lex.at(OrgTokSet{otk::ColonProperties, otk::ColonLogbook})) { // 7
         parseSubtreeDrawer(lex);
     } else {
         empty();

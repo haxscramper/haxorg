@@ -184,3 +184,22 @@ items:
 
           - DF
 
+  - name: "Logbook without properties"
+    source: |
+      ****** XX
+            :LOGBOOK:
+            - Tag "#activity##qq" Added on [1999-12-01 Fri 23:20:25 +04]
+            :END:
+
+  - name: "Table with trailing medium newline"
+    source: |
+    
+      | language | profiling            | tools              | etc. |
+      |----------+----------------------+--------------------+------|
+      | cxx      | gprof, perfetto, ... | vscode, conan, ... |      |
+      | python   | ....                 | poetry, mypy       | ..   |
+
+      ---------
+
+
+

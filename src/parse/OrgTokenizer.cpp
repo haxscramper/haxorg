@@ -270,6 +270,7 @@ struct RecombineState {
         otk::Colon,
         otk::Semicolon,
         otk::Comma,
+        otk::StmtListBegin,
     };
 
     void recombine_markup() {
@@ -446,7 +447,13 @@ struct RecombineState {
             }
 
             case otk::Word: {
-                pop_as(otk::Word);
+                if (rs::all_of(lex.tok().value.text, [](char c) {
+                        return isupper(c);
+                    })) {
+                    pop_as(otk::BigIdent);
+                } else {
+                    pop_as(otk::Word);
+                }
                 break;
             }
 
@@ -1023,8 +1030,8 @@ struct GroupVisitorState {
         char const* function = __builtin_FUNCTION()) {
 
         auto aligned = text
-                     + Str(" ").repeated(
-                         96 - (text.runeLen() + level * 2));
+                     + Str(" ").repeated(std::clamp<int>(
+                         96 - (text.runeLen() + level * 2), 0, 96));
 
         d->print(lex, aligned, __LINE__, "group", level);
     };
@@ -1086,7 +1093,7 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
     Vec<LineToken>    lines = to_lines(lex);
     Vec<GroupToken>   root  = to_groups(lines);
     GroupVisitorState visitor{this, lex};
-    visitor.print_groups(root);
+    if (TraceState) { visitor.print_groups(root); }
     visitor.rec_convert_groups(root);
     Lexer<OrgTokenKind, OrgFill> relex{&visitor.regroup};
     RecombineState               recombine_state{this, relex};
