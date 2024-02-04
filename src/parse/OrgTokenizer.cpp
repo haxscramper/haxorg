@@ -272,6 +272,8 @@ struct RecombineState {
         otk::Semicolon,
         otk::Comma,
         otk::StmtListBegin,
+        otk::ParBegin,
+        otk::ParEnd,
     };
 
     void recombine_markup() {
@@ -304,10 +306,14 @@ struct RecombineState {
         } else if (!prev_empty && next_empty) {
             add_fake(close, {lex.tok().value});
             lex.next();
-        } else if (prev_empty && lex.kind() == otk::Tilda) {
+        } else if (
+            prev_empty
+            && (lex.kind() == otk::Tilda || lex.kind() == otk::Equals)) {
             add_fake(open, {lex.tok().value});
             lex.next();
-        } else if (next_empty && lex.kind() == otk::Tilda) {
+        } else if (
+            next_empty
+            && (lex.kind() == otk::Tilda || lex.kind() == otk::Equals)) {
             add_fake(close, {lex.tok().value});
             lex.next();
         } else {
@@ -608,8 +614,16 @@ struct LineToken {
     void setLeadingSpaceKind(CR<Span<OrgToken>> tokens) {
         if (auto next = tokens.get(1); next) {
             switch (next->get().kind) {
-                case otk::TreeClock:
-                case otk::Minus: kind = Kind::ListItem; break;
+                case otk::TreeClock: kind = Kind::ListItem; break;
+                case otk::Minus: {
+                    if (auto next2 = tokens.get(2);
+                        next2 && next2->get().kind == otk::Whitespace) {
+                        kind = Kind::ListItem;
+                    } else {
+                        kind = Kind::IndentedLine;
+                    }
+                    break;
+                }
 
                 case otk::ColonEnd:
                 case otk::ColonPropertyText:
@@ -897,9 +911,14 @@ struct GroupVisitorState {
     void rec_add_line(
         CR<GroupToken> gr,
         CR<LineToken>  line,
-        CVec<int>      ind) {
+        CVec<int>      ind,
+        int            code_line = __builtin_LINE(),
+        char const*    function  = __builtin_FUNCTION()) {
         d->print(
-            lex, fmt("  LINE: indent={} kind={}", line.indent, line.kind));
+            lex,
+            fmt("  LINE: indent={} kind={}", line.indent, line.kind),
+            code_line,
+            function);
 
         auto const& tokens = line.tokens;
         for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
@@ -912,6 +931,9 @@ struct GroupVisitorState {
                     if ((tok_idx == 0
                          || tokens.get(tok_idx - 1).value().get().kind
                                 == otk::LeadingSpace)
+                        && tokens.get(tok_idx + 1)
+                        && tokens.get(tok_idx + 1)->get().kind
+                               == otk::Whitespace
                         && gr.kind == GK::ListItem) {
                         add_base(tok, ind);
 

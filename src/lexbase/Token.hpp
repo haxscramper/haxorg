@@ -439,6 +439,10 @@ struct LexerCommon {
         }
     }
 
+    bool can_search(K kind) { return !finished() && !at(kind); }
+    bool can_search(IntSet<K> kind) { return !finished() && !at(kind); }
+    bool can_search(Vec<K> kind) { return !finished() && !at(kind); }
+
     bool at(IntSet<K> kind, int offset = 0) const {
         return hasNext(offset) && kind.contains(tok(offset).kind);
     }

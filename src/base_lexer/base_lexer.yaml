@@ -376,6 +376,7 @@ rules:
   #region Text-elements
   #region Links and footnotes
   - { re: "{space}+", token: Whitespace }
+  - { re: "https?[^\\s\\]}}]+", token: RawLink }
   - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }
   - { re: "\\[fn::", token: FootnoteInlineBegin }
   - { re: "\\[\\[({dsl_links}):(.(?^\\]\\[))*\\]\\]", token: DslLink }
@@ -433,8 +434,6 @@ rules:
   - { lit: ">", token: AngleEnd }
   - { lit: "^", token: Circumflex }
   - { lit: ":", token: Colon }
-  - { lit: "{{{", token: MacroBegin }
-  - { lit: "}}}", token: MacroEnd }
   - { lit: "{", token: CurlyBegin }
   - { lit: "}", token: CurlyEnd }
 

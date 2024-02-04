@@ -223,4 +223,57 @@ items:
       one[fn:one-1191]
       one[fn::one q]
 
+  - name: "Verbatim"
+    source: |
+      =Vec<Vec<Cell>>=
 
+  - name: "Verbatim 2"
+    source: |
+      (=termcolor=  is  not  really
+
+  - name: "Raw link in footnote"
+    source: |
+      article[fn::https://zza]
+
+  - name: "Convoluted verbatim wraps"
+    source: |
+      the ~=<XXX>~  part from the  message itself:  "depends on \=\=  <XXX> but
+      <YYY> is going to be installed= etc.
+
+  - name: "List-like starter"
+    source: |
+      - [17:47] 
+        -> 'all content') seems like a good target.
+
+  - name: "Table with close content"
+    source: |
+      #+caption: Response
+      #+begin_quote
+      A
+      | B | C |
+      | E | Q |
+      A
+      #+end_quote
+
+  - name: "Closing curly in link"
+    source: |
+      src_sh{ping
+        https://google.com},
+
+  - name: "At tag in subtree title"
+    source: |
+      **** COMPLETED qxasd :work:activity##meeting:@repeated:
+
+  - name: "Starting at mention in subtree tags"
+    source: |
+      **** COMPLETED Store vscode configuration in dotfiles :@config:software##vscode:
+
+  - name: "Colon-looking content"
+    source: |
+      #+begin_quote
+      :x:  3:03 PM
+      #+end_quote
+
+  - name: "Inline source code balancing"
+    source: |
+      src_json{{"ad_0": {"content": "for", "ads": "?"}}}

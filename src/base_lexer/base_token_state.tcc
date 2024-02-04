@@ -133,8 +133,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::ListItemBegin: return "ListItemBegin";
         case OrgTokenKind::ListItemEnd: return "ListItemEnd";
         case OrgTokenKind::LongNewline: return "LongNewline";
-        case OrgTokenKind::MacroBegin: return "MacroBegin";
-        case OrgTokenKind::MacroEnd: return "MacroEnd";
         case OrgTokenKind::MediumNewline: return "MediumNewline";
         case OrgTokenKind::Minus: return "Minus";
         case OrgTokenKind::MiscUnicode: return "MiscUnicode";
@@ -148,6 +146,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Pipe: return "Pipe";
         case OrgTokenKind::Plus: return "Plus";
         case OrgTokenKind::Punctuation: return "Punctuation";
+        case OrgTokenKind::RawLink: return "RawLink";
         case OrgTokenKind::RawText: return "RawText";
         case OrgTokenKind::SameIndent: return "SameIndent";
         case OrgTokenKind::Semicolon: return "Semicolon";
@@ -297,8 +296,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "ListItemBegin") { return OrgTokenKind::ListItemBegin; } else
   if (value == "ListItemEnd") { return OrgTokenKind::ListItemEnd; } else
   if (value == "LongNewline") { return OrgTokenKind::LongNewline; } else
-  if (value == "MacroBegin") { return OrgTokenKind::MacroBegin; } else
-  if (value == "MacroEnd") { return OrgTokenKind::MacroEnd; } else
   if (value == "MediumNewline") { return OrgTokenKind::MediumNewline; } else
   if (value == "Minus") { return OrgTokenKind::Minus; } else
   if (value == "MiscUnicode") { return OrgTokenKind::MiscUnicode; } else
@@ -312,6 +309,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Pipe") { return OrgTokenKind::Pipe; } else
   if (value == "Plus") { return OrgTokenKind::Plus; } else
   if (value == "Punctuation") { return OrgTokenKind::Punctuation; } else
+  if (value == "RawLink") { return OrgTokenKind::RawLink; } else
   if (value == "RawText") { return OrgTokenKind::RawText; } else
   if (value == "SameIndent") { return OrgTokenKind::SameIndent; } else
   if (value == "Semicolon") { return OrgTokenKind::Semicolon; } else
