@@ -217,12 +217,8 @@ struct AstCheckFail {
 
     int count() const {
         int result = 0;
-        for (const auto& nested : nested) {
-            result += nested.count();
-        }
-        if (isMissing || !msg.empty() || !expected.empty()) {
-            ++result;
-        }
+        for (const auto& nested : nested) { result += nested.count(); }
+        if (isMissing || !msg.empty() || !expected.empty()) { ++result; }
         return result;
     };
 
@@ -240,9 +236,7 @@ struct AstCheckFail {
             auto parentFailed = false;
             if (!fail.empty(false)) {
                 parentFailed = true;
-                if (!fail.msg.empty()) {
-                    s << fail.msg << " ";
-                }
+                if (!fail.msg.empty()) { s << fail.msg << " "; }
                 if (!fail.expected.empty()) {
                     if (fail.isMissing) {
                         s << "missing subnode " << fg::Green << fail.range
@@ -294,9 +288,7 @@ struct AstCheckFail {
             auto idx = 0;
             for (const auto& nested : fail.nested) {
                 if (!nested.empty() && 0 < nested.count()) {
-                    if (0 < idx) {
-                        s << "\n";
-                    }
+                    if (0 < idx) { s << "\n"; }
                     aux(nested, parentFailed ? level + 1 : level);
                     ++idx;
                 }
@@ -410,9 +402,7 @@ struct AstPattern {
                         for (const auto alt : arange.alts) {
                             const auto& n = alt.findMissing(
                                 node, path + idx);
-                            if (!n.empty()) {
-                                result.nested.push_back(n);
-                            }
+                            if (!n.empty()) { result.nested.push_back(n); }
                         }
                         break;
                     }
@@ -509,9 +499,7 @@ struct AstSpec {
                 node);
             if (0 < missing.count()) {
                 const auto fail = missing.format(node);
-                if (!fail.empty()) {
-                    return fail;
-                }
+                if (!fail.empty()) { return fail; }
             }
         }
         return std::nullopt;
@@ -526,9 +514,7 @@ struct AstSpec {
         if (spec[node.getKind()].has_value()) {
             const auto fail = spec[node.getKind()].value().validateAst(
                 node.getKind(), sub.getKind(), idx, node.size());
-            if (!fail.empty()) {
-                return fail.format(node);
-            }
+            if (!fail.empty()) { return fail.format(node); }
         }
         return std::nullopt;
     }
@@ -562,9 +548,7 @@ struct AstSpec {
             });
 
         for (const auto& [lhs, rhs] : carthesian(result, result)) {
-            if (lhs == rhs) {
-                continue;
-            }
+            if (lhs == rhs) { continue; }
 
             auto overlap = lhs->second.overlap(rhs->second);
             if (overlap.has_value()) {
@@ -589,15 +573,11 @@ struct AstSpec {
         UnorderedSet<int> visited;
         for (const auto& [_, range] : result) {
             max = std::max(max, range.last);
-            for (const auto& value : range) {
-                visited.insert(value);
-            }
+            for (const auto& value : range) { visited.insert(value); }
         }
 
         UnorderedSet<int> all;
-        for (int i = 0; i < max; ++i) {
-            all.insert(i);
-        }
+        for (int i = 0; i < max; ++i) { all.insert(i); }
 
         auto diff = all - visited;
         if (!diff.empty()) {
@@ -652,9 +632,7 @@ struct AstSpec {
                   << indent(p.doc, 2 * (level + 1), ' ', "## ") << s.end();
             }
 
-            if (!p.expected.empty()) {
-                s << fmt1(p.expected);
-            }
+            if (!p.expected.empty()) { s << fmt1(p.expected); }
 
             for (const auto [idx, arange] : enumerate(p.ranges)) {
                 s << "\n"
@@ -772,6 +750,9 @@ struct AstSpec {
             const auto slice = range.toSlice(node.size());
             if (!slice.has_value()) {
                 throw makeMissingSlice(node.getKind(), name, slice, range);
+            }
+            for (auto const& idx : slice.value()) {
+                result.push_back(node.at(idx));
             }
             return result;
         } else {
