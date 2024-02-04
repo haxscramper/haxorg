@@ -904,7 +904,16 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 }
             };
 
-            p.parse();
+            (void)p.parser->parseTop(p.lex);
+
+            if (spec.debug.traceAll || spec.debug.printParsed
+                || spec.debug.printParsedToFile) {
+                writeFile(
+                    spec.debugFile("parsed_non_extended.yaml"),
+                    std::format("{}", yamlRepr(p.nodes)) + "\n");
+            }
+
+            p.parser->extendSubtreeTrails(OrgId(0));
 
             if (spec.debug.traceAll || spec.debug.printParsed
                 || spec.debug.printParsedToFile) {

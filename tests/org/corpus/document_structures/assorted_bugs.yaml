@@ -277,3 +277,27 @@ items:
   - name: "Inline source code balancing"
     source: |
       src_json{{"ad_0": {"content": "for", "ads": "?"}}}
+
+  - name: "Abomination v1"
+    source: |
+      out                things                like                src_cpp{void
+      std::allocator_traits<std::allocator<Node<OrgNodeKind,
+      OrgTokenKind>>>::construct<Node<OrgNodeKind,               OrgTokenKind>,
+      Node<OrgNodeKind,  OrgTokenKind> const&>(std::allocator<Node<OrgNodeKind,
+      OrgTokenKind>>&,   Node<OrgNodeKind,  OrgTokenKind>*,   Node<OrgNodeKind,
+      OrgTokenKind> const&)}
+
+  - name: "Uppercase subtree tag content"
+    source: |
+      **** CANCELED [#C] User qweq :complexity##intricate_13:ARCHIVE:
+
+  - name: "Empty paragraph"
+    source: |
+      ****** AAA
+
+  - name: "tbflm"
+    source: |
+      #+TBLFM: $6=round(1000*$5/$4)/1000
+
+      **** Sdfzsdf
+

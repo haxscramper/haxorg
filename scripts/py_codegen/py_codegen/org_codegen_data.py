@@ -1685,6 +1685,7 @@ def get_enums():
                 GenTuEnumField("QuoteBlock", GenTuDoc("`#+quote:` block in code")),
                 GenTuEnumField("AdmonitionBlock", GenTuDoc("")),
                 GenTuEnumField("CenterBlock", GenTuDoc("'")),
+                GenTuEnumField("VerseBlock", GenTuDoc("")),
                 GenTuEnumField("Example", GenTuDoc("Verbatim example text block")),
                 GenTuEnumField(
                     "SrcCode",

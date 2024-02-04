@@ -188,6 +188,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "QuoteBlock") { return OrgNodeKind::QuoteBlock; } else
   if (value == "AdmonitionBlock") { return OrgNodeKind::AdmonitionBlock; } else
   if (value == "CenterBlock") { return OrgNodeKind::CenterBlock; } else
+  if (value == "VerseBlock") { return OrgNodeKind::VerseBlock; } else
   if (value == "Example") { return OrgNodeKind::Example; } else
   if (value == "SrcCode") { return OrgNodeKind::SrcCode; } else
   if (value == "SrcInlineCode") { return OrgNodeKind::SrcInlineCode; } else
@@ -324,6 +325,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::QuoteBlock: return "QuoteBlock";
     case OrgNodeKind::AdmonitionBlock: return "AdmonitionBlock";
     case OrgNodeKind::CenterBlock: return "CenterBlock";
+    case OrgNodeKind::VerseBlock: return "VerseBlock";
     case OrgNodeKind::Example: return "Example";
     case OrgNodeKind::SrcCode: return "SrcCode";
     case OrgNodeKind::SrcInlineCode: return "SrcInlineCode";

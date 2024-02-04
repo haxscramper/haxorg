@@ -190,6 +190,7 @@ enum class OrgNodeKind : short int {
   AdmonitionBlock,
   /// \brief '
   CenterBlock,
+  VerseBlock,
   /// \brief Verbatim example text block
   Example,
   /// \brief Block of source code - can be multiline, single-line and

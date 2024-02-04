@@ -1299,6 +1299,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("QuoteBlock", OrgNodeKind::QuoteBlock, R"RAW(`#+quote:` block in code)RAW")
     .value("AdmonitionBlock", OrgNodeKind::AdmonitionBlock)
     .value("CenterBlock", OrgNodeKind::CenterBlock, R"RAW(')RAW")
+    .value("VerseBlock", OrgNodeKind::VerseBlock)
     .value("Example", OrgNodeKind::Example, R"RAW(Verbatim example text block)RAW")
     .value("SrcCode", OrgNodeKind::SrcCode, R"RAW(Block of source code - can be multiline, single-line and)RAW")
     .value("SrcInlineCode", OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
