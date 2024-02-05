@@ -93,8 +93,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::DoubleHash: return "DoubleHash";
         case OrgTokenKind::DoubleQuote: return "DoubleQuote";
         case OrgTokenKind::DoubleSlash: return "DoubleSlash";
-        case OrgTokenKind::DslLink: return "DslLink";
-        case OrgTokenKind::DslLinkBegin: return "DslLinkBegin";
         case OrgTokenKind::DynamicTimeContent: return "DynamicTimeContent";
         case OrgTokenKind::EndOfFile: return "EndOfFile";
         case OrgTokenKind::Equals: return "Equals";
@@ -256,8 +254,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "DoubleHash") { return OrgTokenKind::DoubleHash; } else
   if (value == "DoubleQuote") { return OrgTokenKind::DoubleQuote; } else
   if (value == "DoubleSlash") { return OrgTokenKind::DoubleSlash; } else
-  if (value == "DslLink") { return OrgTokenKind::DslLink; } else
-  if (value == "DslLinkBegin") { return OrgTokenKind::DslLinkBegin; } else
   if (value == "DynamicTimeContent") { return OrgTokenKind::DynamicTimeContent; } else
   if (value == "EndOfFile") { return OrgTokenKind::EndOfFile; } else
   if (value == "Equals") { return OrgTokenKind::Equals; } else

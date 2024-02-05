@@ -473,10 +473,7 @@ struct RecombineState {
                 break;
             }
 
-            case otk::DslLinkBegin:
-            case otk::DslLink: {
-                add_fake(otk::LinkBegin);
-                add_fake(otk::LinkTargetBegin);
+            case otk::RawLink: {
                 auto text = strip(
                     lex.val().text, CharSet{'['}, CharSet{']', '['});
 
@@ -486,10 +483,7 @@ struct RecombineState {
                 add_fake(
                     otk::RawText,
                     OrgFill{.text = join(":", split.at(slice(1, 1_B)))});
-
                 lex.next();
-                add_fake(otk::LinkTargetEnd);
-                if (map_kind == otk::DslLink) { add_fake(otk::LinkEnd); }
                 break;
             }
 

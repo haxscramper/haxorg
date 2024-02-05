@@ -376,14 +376,10 @@ rules:
   #region Text-elements
   #region Links and footnotes
   - { re: "{space}+", token: Whitespace }
-  - { re: "https?[^\\s\\]}}]+", token: RawLink }
+  - { re: "{dsl_links}[^\\s\\]}}]+", token: RawLink }
   - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }
   - { re: "\\[fn::", token: FootnoteInlineBegin }
-  # The re/flex syntax is a bit weird in this regard, but effectively `.|(?^)` here means
-  # "any content *not followed by*" an intermediate link breaking token `][``
-  - { re: "\\[\\[({dsl_links}):(.|(?^\\]\\[))*\\]\\]", token: DslLink }
-  - { re: "\\[\\[({dsl_links}):.*?\\]\\[", token: DslLinkBegin }
-  - { re: "\\[\\[\\w+:", token: LinkBegin }
+  - { re: "\\[\\[", token: LinkBegin }
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }
   #endregion

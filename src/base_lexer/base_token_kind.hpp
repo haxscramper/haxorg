@@ -71,8 +71,6 @@ enum class OrgTokenKind : unsigned short int {
   DoubleHash,
   DoubleQuote,
   DoubleSlash,
-  DslLink,
-  DslLinkBegin,
   DynamicTimeContent,
   EndOfFile,
   Equals,
