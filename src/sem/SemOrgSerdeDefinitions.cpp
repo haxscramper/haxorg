@@ -800,11 +800,13 @@ void proto_serde<::orgproto::Subtree::Property::Trigger, sem::Subtree::Property:
 }
 
 void proto_serde<::orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::write(::orgproto::Subtree::Property::Origin* out, sem::Subtree::Property::Origin const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+  if (!in.text.isNil()) {
+    proto_serde<orgproto::Paragraph, sem::Paragraph>::write(out->mutable_text(), *((in.text).get()));
+  }
 }
 
 void proto_serde<::orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::read(sem::ContextStore* context, ::orgproto::Subtree::Property::Origin const& out, proto_write_accessor<sem::Subtree::Property::Origin> in) {
-  proto_serde<std::string, Str>::read(context, out.text(), in.for_field(&sem::Subtree::Property::Origin::text));
+  proto_serde<orgproto::Paragraph, sem::SemIdT<sem::Paragraph>>::read(context, out.text(), in.for_field(&sem::Subtree::Property::Origin::text));
 }
 
 void proto_serde<::orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass>::write(::orgproto::Subtree::Property::ExportLatexClass* out, sem::Subtree::Property::ExportLatexClass const& in) {

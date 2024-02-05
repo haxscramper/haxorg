@@ -430,14 +430,11 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
             SubLexer sub{lex};
             while (lex.can_search(otk::LinkEnd)) { sub.add(pop(lex)); }
             if (sub.empty()) {
-                LOG(FATAL) << lex.printToString(
-                    [](ColStream& os, OrgToken const& t) {
-                        os << os.yellow() << escape_for_write(t.value.text)
-                           << os.end() << fmt1(t.value);
-                    });
+                empty();
+            } else {
+                sub.start();
+                parseParagraph(sub);
             }
-            sub.start();
-            parseParagraph(sub);
         } else {
             empty();
         }

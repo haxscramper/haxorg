@@ -300,4 +300,17 @@ items:
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
       **** Sdfzsdf
+  - name: "DSL link for HTTP"
+    source: |
+      public. [[https://github.com/tconfrey/BrainTool]] seems like an
+
+  - name: "DSL link with file"
+    source: |
+      [[file:notes.images/2023-03-30_17-27.png]]
+
+  - name: "Not a time range"
+    source: |
+      [2023-08-02 Wed 13:39:46 +04] -- [2023-08-02 Wed 13:39:46 +04]
+
+
 

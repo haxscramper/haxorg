@@ -18,6 +18,17 @@ using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
 using Property = sem::Subtree::Property;
 
+Str get_text(
+    OrgAdapter  a,
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION()) {
+    if (a.isTerminal()) {
+        return a.val().text;
+    } else {
+        LOG(FATAL) << fmt("{} {} {}", function, line, a.treeRepr(false));
+    }
+}
+
 template <class E>
 Opt<E> parseOrgEnum(std::string const& name) {
     bool found = false;
@@ -80,12 +91,12 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
     auto                              __trace = trace(a);
     auto                              result  = Sem<HashTag>(p, a);
     Func<SemIdT<HashTag>(OrgAdapter)> aux;
-    result->head = strip(a.at(0).val().text, CharSet{'#'}, CharSet{});
+    result->head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
 
 
     aux = [p, &aux, this](OrgAdapter a) -> SemIdT<HashTag> {
         SemIdT<HashTag> result = Sem<HashTag>(p, a);
-        result->head = strip(a.at(0).val().text, CharSet{'#'}, CharSet{});
+        result->head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
                 auto conv = aux(node);
@@ -153,13 +164,13 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
     auto __trace = trace(a);
 
     std::string name = normalize(
-        strip(one(a, N::Name).val().text, CharSet{':'}, CharSet{':'}));
+        strip(get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'}));
 
     Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
-        res.backend = one(a, N::Subname).val().text;
-        for (Str const& pair : one(a, N::Values).val().text.split(' ')) {
+        res.backend = get_text(one(a, N::Subname));
+        for (Str const& pair : get_text(one(a, N::Values)).split(' ')) {
             auto kv           = pair.split(':');
             res.values[kv[0]] = kv[1];
         }
@@ -167,7 +178,7 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         result = Property(res);
 
     } else if (name == "id") {
-        tree->treeId = one(a, N::Values).val().text;
+        tree->treeId = get_text(one(a, N::Values));
 
     } else if (name == "created") {
         Property::Created created;
@@ -178,13 +189,13 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 
     } else if (name == "origin") {
         Property::Origin origin;
-        origin.text = one(a, N::Values).val().text;
+        origin.text = convert(tree, one(a, N::Values));
         result      = Property(origin);
 
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
                 sem::Subtree::Property::Visibility::Level>(
-                one(a, N::Values).val().text);
+                get_text(one(a, N::Values)));
             visibility) {
             Property::Visibility prop;
             prop.level = visibility.value();
@@ -192,7 +203,7 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         }
 
     } else if (name == "effort") {
-        Str const&       value    = one(a, N::Values).val().text;
+        Str const&       value    = get_text(one(a, N::Values));
         Vec<Str>         duration = value.split(":");
         Property::Effort prop;
 
@@ -206,27 +217,27 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         result = Property(prop);
 
     } else {
-        LOG(ERROR) << "Unknown property name" << one(a, N::Name).val().text
+        LOG(ERROR) << "Unknown property name" << get_text(one(a, N::Name))
                    << "\n"
                    << a.treeRepr();
     }
 
     if (false && result) {
-        const auto inh = one(a, N::InheritanceMode).val().text;
+        const auto inh = get_text(one(a, N::InheritanceMode));
         if (inh == "!!") {
             result->inheritanceMode = Property::InheritanceMode::OnlyThis;
         } else if (inh == "!") {
             result->inheritanceMode = Property::InheritanceMode::OnlySub;
         }
 
-        const auto sub = one(a, N::SubSetRule).val().text;
+        const auto sub = get_text(one(a, N::SubSetRule));
         if (sub == "+") {
             result->subSetRule = Property::SetMode::Add;
         } else if (sub == "-") {
             result->subSetRule = Property::SetMode::Subtract;
         }
 
-        const auto main = one(a, N::MainSetRule).val().text;
+        const auto main = get_text(one(a, N::MainSetRule));
         if (main == "+") {
             result->subSetRule = Property::SetMode::Add;
         } else if (main == "-") {
@@ -242,7 +253,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     auto __trace = trace(a);
     auto tree    = Sem<Subtree>(p, a);
 
-    tree->level = one(a, N::Prefix).val().text.size();
+    tree->level = get_text(one(a, N::Prefix)).size();
 
     {
         auto __field = field(N::Title, a);
@@ -294,7 +305,7 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
 
     if (a.kind() == org::DynamicInactiveTime
         || a.kind() == org::DynamicActiveTime) {
-        time->time = Time::Dynamic{.expr = a.val().text};
+        time->time = Time::Dynamic{.expr = get_text(a)};
     } else if (
         a.kind() == org::StaticActiveTime
         || a.kind() == org::StaticInactiveTime) {
@@ -303,7 +314,7 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         Mode repeatMode = Mode::None;
 
         if (one(a, N::Repeater).kind() != org::Empty) {
-            Str repeat = one(a, N::Repeater).val().text;
+            Str repeat = get_text(one(a, N::Repeater));
             if (repeat.starts_with("++")) {
                 repeatMode = Mode::FirstMatch;
                 repeat     = repeat.dropPrefix("++");
@@ -318,12 +329,12 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
 
         std::string datetime;
         if (one(a, N::Year).kind() != org::Empty) {
-            datetime += one(a, N::Year).val().text;
+            datetime += get_text(one(a, N::Year));
         }
 
         if (one(a, N::Clock).kind() != org::Empty) {
             if (!datetime.empty()) { datetime += " "; }
-            datetime += one(a, N::Clock).val().text;
+            datetime += get_text(one(a, N::Clock));
         }
 
         struct Spec {
@@ -411,9 +422,9 @@ SemIdT<Symbol> OrgConverter::convertSymbol(__args) {
     auto sym     = Sem<Symbol>(p, a);
 
     int idx   = 0;
-    sym->name = one(a, N::Name).val().text.substr(1);
+    sym->name = get_text(one(a, N::Name)).substr(1);
     for (const auto& sub : one(a, N::Args)) {
-        auto params = sub.val().text.split(" ");
+        auto params = get_text(sub).split(" ");
         for (int i = 0; i < params.size();) {
             if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
                 sym->parameters.push_back(Symbol::Param{
@@ -475,7 +486,7 @@ SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
         return note;
     } else {
         auto link = Sem<Footnote>(p, a);
-        link->tag = one(a, N::Definition).val().text;
+        link->tag = get_text(one(a, N::Definition));
         return link;
     }
 }
@@ -485,18 +496,18 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
     auto __trace = trace(a);
     auto link    = Sem<Link>(p, a);
     if (a.kind() == org::RawLink) {
-        link->data = Link::Raw{.text = a.val().text};
+        link->data = Link::Raw{.text = get_text(a)};
 
     } else if (a.kind() == org::Footnote) {
-        link->data = Link::Footnote{.target = one(a, N::Name).val().text};
+        link->data = Link::Footnote{.target = get_text(one(a, N::Name))};
 
     } else {
-        Str protocol = normalize(one(a, N::Protocol).val().text);
+        Str protocol = normalize(get_text(one(a, N::Protocol)));
         if (protocol == "http" || protocol == "https") {
             link->data = Link::Raw{
-                .text = protocol + ":"_ss + one(a, N::Link).val().text};
+                .text = protocol + ":"_ss + get_text(one(a, N::Link))};
         } else if (protocol == "id") {
-            link->data = Link::Id{.text = one(a, N::Link).val().text};
+            link->data = Link::Id{.text = get_text(one(a, N::Link))};
 
         } else if (protocol == "person") {
             // FIXME extract paragraph data
@@ -505,10 +516,10 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
             link->data = Link::Person{};
 
         } else if (protocol == "file") {
-            link->data = Link::File{.file = one(a, N::Link).val().text};
+            link->data = Link::File{.file = get_text(one(a, N::Link))};
 
         } else {
-            LOG(ERROR) << "Unhandled protocol kind" << protocol << "\n"
+            LOG(ERROR) << "Unhandled protocol kind '" << protocol << "'\n"
                        << a.treeRepr();
         }
     }
@@ -670,10 +681,10 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
         eexport->placement = (*place)->getString();
     }
 
-    eexport->exporter   = one(a, N::Name).val().text;
+    eexport->exporter   = get_text(one(a, N::Name));
     eexport->parameters = values;
     for (auto const& item : many(a, N::Body)) {
-        eexport->content = item.val().text;
+        eexport->content = get_text(item);
     }
 
     return eexport;
@@ -726,8 +737,8 @@ SemIdT<AtMention> OrgConverter::convertAtMention(__args) {
 
 SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
     SemIdT<CmdArgument> result = Sem<CmdArgument>(p, a);
-    Str                 key    = one(a, N::Name).val().text;
-    result->value              = one(a, N::Value).val().text;
+    Str                 key    = get_text(one(a, N::Name));
+    result->value              = get_text(one(a, N::Value));
 
     if (!key.empty()) {
         // result->key = key.remove(':');
@@ -894,7 +905,7 @@ SemId OrgConverter::convert(__args) {
 void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
     if (opts->isGenerated()) { opts->original = a; }
     auto item = a.at(0);
-    for (auto const& value : item.val().text.split(' ')) {
+    for (auto const& value : get_text(item).split(' ')) {
         if (value.contains(':')) {
             auto split = value.split(':');
             auto head  = split[0];
@@ -960,24 +971,24 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
                 case org::LatexClass: {
                     Prop::ExportLatexClass res{};
-                    res.latexClass = sub.at(0).val().text;
+                    res.latexClass = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexHeader: {
                     Prop::ExportLatexHeader res{};
-                    res.header = sub.at(0).val().text;
+                    res.header = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexCompiler: {
                     Prop::ExportLatexCompiler res{};
-                    res.compiler = sub.at(0).val().text;
+                    res.compiler = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexClassOptions: {
-                    auto value = sub.at(0).val().text;
+                    auto value = get_text(sub.at(0));
                     if (value.starts_with('[')) {
                         LOG(FATAL) << "TODO";
                         // value.remove('[');

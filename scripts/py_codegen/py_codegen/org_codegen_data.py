@@ -1021,7 +1021,7 @@ def get_types() -> Sequence[GenTuStruct]:
                             GenTuStruct(
                                 t("Origin"),
                                 GenTuDoc(""),
-                                fields=[GenTuField(t_str(), "text", GenTuDoc(""))],
+                                fields=[id_field("Paragraph", "text", GenTuDoc(""))],
                                 nested=[GenTuPass("Origin() {}")]),
                             GenTuStruct(
                                 t("ExportLatexClass"),

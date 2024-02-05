@@ -777,7 +777,7 @@ message Subtree {
       string                                     debug                            = 1000;
     }
     message Origin {
-      string                                       text                             = 1;
+      Paragraph                                    text                             = 1;
       string                                     debug                            = 1000;
     }
     message ExportLatexClass {

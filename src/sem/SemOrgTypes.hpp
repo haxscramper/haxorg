@@ -990,7 +990,7 @@ struct Subtree : public sem::Org {
     struct Origin {
       Origin() {}
       BOOST_DESCRIBE_CLASS(Origin, (), (), (), (text))
-      Str text;
+      sem::SemIdT<sem::Paragraph> text = SemIdT<Paragraph>::Nil();
     };
 
     struct ExportLatexClass {

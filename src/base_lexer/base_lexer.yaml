@@ -379,7 +379,9 @@ rules:
   - { re: "https?[^\\s\\]}}]+", token: RawLink }
   - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }
   - { re: "\\[fn::", token: FootnoteInlineBegin }
-  - { re: "\\[\\[({dsl_links}):(.(?^\\]\\[))*\\]\\]", token: DslLink }
+  # The re/flex syntax is a bit weird in this regard, but effectively `.|(?^)` here means
+  # "any content *not followed by*" an intermediate link breaking token `][``
+  - { re: "\\[\\[({dsl_links}):(.|(?^\\]\\[))*\\]\\]", token: DslLink }
   - { re: "\\[\\[({dsl_links}):.*?\\]\\[", token: DslLinkBegin }
   - { re: "\\[\\[\\w+:", token: LinkBegin }
   - { re: "\\]\\]", token: LinkEnd }
