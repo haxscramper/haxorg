@@ -3,8 +3,9 @@
 import yaml
 from yaml.loader import SafeLoader
 from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Literal
+from beartype.typing import List, Optional, Literal, Dict
 from beartype import beartype
+from collections import OrderedDict
 import os
 
 
@@ -19,7 +20,8 @@ class Action(BaseModel):
 class Rule(BaseModel):
     re: Optional[str] = None
     lit: Optional[str] = None
-    token: str
+    token: Optional[str] = None
+    sub: Optional[str] = None
     states: Optional[List[str]] = None
     actions: Optional[List[Action]] = None
     line: Optional[int] = None
@@ -28,8 +30,8 @@ class Rule(BaseModel):
 
 class State(BaseModel):
     name: str
-    kind: str
-    line: Optional[int]
+    kind: Literal["xstate", "state"]
+    line: Optional[int] = None
 
 
 class RxMacro(BaseModel):
@@ -43,6 +45,12 @@ class TokenDesc(BaseModel):
     name: str
 
 
+def sub_state_name(name: str) -> str:
+    return f"sub_state_{name}"
+
+def sub_run_name(name: str) -> str:
+    return f"lex_sub_{name}"
+
 class Configuration(BaseModel):
     states: List[State]  # List of states that lexer can transition between
     rules: List[Rule]  # Regex/literal matching rules
@@ -50,6 +58,24 @@ class Configuration(BaseModel):
     tokens: List[TokenDesc] = Field(default_factory=list)
     # Regular expression macros to save on re-typing the same thing
     rx_macros: List[RxMacro] = Field(default_factory=list)
+    sub_lexers: OrderedDict[str, List[Rule]]
+
+    def get_states(self) -> List[State]:
+        result = self.states
+
+        for name in self.sub_lexers.keys():
+            result.append(State(name=sub_state_name(name), kind="xstate"))
+
+        return result
+
+    @beartype
+    def get_all_rules(self) -> List[Rule]:
+        result: List[Rule] = self.rules
+        for name, sub_rules in self.sub_lexers.items():
+            for rule in sub_rules:
+                result.append(rule.model_copy(update=dict(states=[sub_state_name(name)])))
+
+        return result
 
 
 class SafeLineLoader(SafeLoader):
@@ -72,6 +98,9 @@ def parse_yaml_to_pydantic(file_path: str) -> Configuration:
     for rule in data["rules"]:
         rule["line"] = rule.pop("__line__", None)
 
+    del data["sub_lexers"]["__line__"]
+    print(data["sub_lexers"])
+
     return Configuration(**data)
 
 
@@ -92,11 +121,10 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
     else:
         state_prefix = f"{state_prefix}\"{rule.lit}\"".ljust(MATCH_WIDTH)
 
-    actions = [] 
+    actions = []
 
     if not rule.keepLead:
-        actions.append(
-            f"maybe_pop_expect(LEAD, INITIAL, {rule.line});")
+        actions.append(f"maybe_pop_expect(LEAD, INITIAL, {rule.line});")
 
     if rule.actions:
         for action in rule.actions:
@@ -108,7 +136,7 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
                 case "pop":
                     actions.append(
                         f"pop_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
-                    
+
                 case "set":
                     actions.append(f"start({action.to});")
 
@@ -121,14 +149,22 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
                 case _:
                     raise ValueError(f"Unexpected action 'do' value: {action.do}")
 
+    if rule.token:
+        actions.insert(0, f"impl.add({ENUM_NAME}::{rule.token});")
+
+    else:
+        actions = [
+            f"{sub_run_name(rule.sub)}();"
+        ] + actions
+
     actions_code = " ".join(actions)
+
     content = " ".join([
         f"impl.before({rule.line}, {ENUM_NAME}::{rule.token}, R\"raw({rule.re or rule.lit})raw\");",
-        f"impl.add({ENUM_NAME}::{rule.token});",
         actions_code,
         f"impl.after({rule.line});",
     ])
-    return f"{state_prefix} {{ /*{rule.line:<4}*/ {content} }}"
+    return f"{state_prefix} {{ /*{rule.line or 1:<4}*/ {content} }}"
 
 
 @beartype
@@ -142,13 +178,13 @@ enum class {enum} : unsigned short int {{
            tokens=",\n  ".join(
                sorted(
                    set([token.name for token in config.tokens] +
-                       [rule.token for rule in config.rules]))))
+                       [rule.token for rule in config.get_all_rules() if rule.token]))))
 
 
 @beartype
 def generate_state(config: Configuration) -> str:
     tokens = sorted(
-        set([rule.token for rule in config.rules] + [tok.name for tok in config.tokens]))
+        set([rule.token for rule in config.get_all_rules() if rule.token] + [tok.name for tok in config.tokens]))
     return """
 std::string OrgLexerImpl::state_name(int state) {{
     switch(state) {{
@@ -171,7 +207,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
 """.format(
         mappings="\n".join([
             f"        case {idx + 1}: return \"{state.name}\";"
-            for idx, state in enumerate(config.states)
+            for idx, state in enumerate(config.get_states())
         ]),
         values="\n".join([
             f"        case OrgTokenKind::{name}: return \"{name}\";" for name in tokens
@@ -186,6 +222,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
 @beartype
 def generate_reflex_code(config: Configuration) -> str:
     macros = {m.name: m.value for m in config.rx_macros}
+
     rules = "\n".join([rule_to_reflex_code(rule, macros) for rule in config.rules])
     errtok = ENUM_NAME + "::Unknown"
 
@@ -213,6 +250,8 @@ def generate_reflex_code(config: Configuration) -> str:
 %class{{
   public:
     OrgLexerImpl impl;
+
+  {sub_lexer_declarations}
 }}
 
 %%
@@ -224,25 +263,46 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %%
 
+{sub_lexer_definitions}
+
 TokenGroup<OrgTokenKind, OrgFill> tokenize(const char* input, int size, LexerParams const& p) {{
     base_lexer::Lexer lex(input);
+    OrgTokenGroup result;
+    lex.impl.tokens = &result;
     lex.impl.impl = &lex;
     lex.impl.p = p;
     lex.impl.tokens.tokens.reserve(size / 3);
     lex.lex();
-    return lex.impl.tokens;
+    return result;
 }}
 
     """.format(
         rules=rules,
         unknowns="\n".join([
             f"<{state.name}>(.|\\n) {{ impl.before(__LINE__, {errtok}, \".|\\n\"); impl.unknown(); impl.after(__LINE__); }}"
-            for state in config.states
+            for state in config.get_states()
             if (state.kind == "xstate" and state.name not in ["BODY_SRC"])
         ]),
         errtok=errtok,
         states="\n".join(
-            [f"%{state.kind} {state.name}".format() for state in config.states]))
+            [f"%{state.kind} {state.name}".format() for state in config.get_states()]),
+        sub_lexer_declarations=[
+            f"void {sub_run_name(name)}(std::string const& values);"
+            for name in config.sub_lexers.keys()
+        ],
+        sub_lexer_definitions=[
+            f"""
+void base_lexer::Lexer::{sub_run_name(name)}(std::string const& values) {{
+    base_lexer::Lexer lex(values.c_str());
+    lex.start({sub_state_name(name)});
+    lex.impl.tokens = this->tokens;
+    lex.impl.p = this->impl.p;
+    ++lex.impl.p.indentation;
+    lex.lex();
+}}                              
+                               """ for name in config.sub_lexers.keys()
+        ],
+    )
 
 
 # Example usage:

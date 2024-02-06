@@ -32,6 +32,14 @@ rx_macros:
   - { name: prop_colon, value: "\\+?:[\\h\\xA0]*" }
   - { name: maybe_12h_time, value: "(\\s?(am|AM|pm|PM))?" }
 
+sub_lexers:
+  what:
+    - re: "^#\\+"
+      token: LineCommand
+      actions:
+        - { do: push, to: COMMAND, from: INITIAL }
+      
+
 tokens:
   - name: Indent
   - name: Dedent
@@ -210,6 +218,11 @@ rules:
   #tag Prefix
   - re: "^#\\+"
     token: LineCommand
+    actions:
+      - { do: push, to: COMMAND, from: INITIAL }
+
+  - re: "^######\\+"
+    sub: what
     actions:
       - { do: push, to: COMMAND, from: INITIAL }
 

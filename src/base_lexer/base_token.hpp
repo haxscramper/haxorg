@@ -70,6 +70,7 @@ struct LexerParams {
     int           maxUnknown     = 100;
     int           visitedUnknown = 0;
     std::ostream* traceStream    = nullptr;
+    int           indentation    = 0;
 };
 
 
@@ -90,11 +91,11 @@ struct OrgLexerImpl {
 
     Vec<PushInfo> states;
 
-    OrgTokenGroup tokens;
-    void          add(OrgTokenKind token);
-    std::string   state_name(int name);
-    std::string   view();
-    void          unknown();
+    OrgTokenGroup* tokens;
+    void           add(OrgTokenKind token);
+    std::string    state_name(int name);
+    std::string    view();
+    void           unknown();
 
     void maybe_pop_expect_impl(int current, int next, int line);
     void pop_expect_impl(int current, int next, int line);
