@@ -100,6 +100,7 @@ enum class OrgTokenKind : unsigned short int {
   LinkFull,
   LinkProtocol,
   LinkProtocolHttp,
+  LinkProtocolId,
   LinkSplit,
   LinkTarget,
   LinkTargetBegin,

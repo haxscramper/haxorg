@@ -115,6 +115,21 @@ void OrgLexerImpl::after(int line) {
     // }
 }
 
+std::pair<const char*, size_t> OrgLexerImpl::get_capture(
+    const char* name) {
+    std::pair<size_t, const char*> id = impl->matcher().group_id();
+    while (id.first != 0
+           && (id.second == NULL || strcmp(id.second, name) != 0)) {
+        id = impl->matcher().group_next_id();
+    }
+
+    if (id.first != 0) {
+        return impl->matcher()[id.first];
+    } else {
+        LOG(FATAL) << "??? " << name;
+    }
+}
+
 std::string OrgLexerImpl::view() {
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
     std::string    text      = impl->matcher().str();

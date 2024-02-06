@@ -106,4 +106,6 @@ struct OrgLexerImpl {
     void push_expect_impl(int current, int next, int line);
     void before(int line, Opt<OrgTokenKind> kind, char const* pattern);
     void after(int line);
+
+    std::pair<const char*, size_t> get_capture(char const* name);
 };

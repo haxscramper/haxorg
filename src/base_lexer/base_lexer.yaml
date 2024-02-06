@@ -32,6 +32,7 @@ rx_macros:
   - { name: prop_colon, value: "\\+?:[\\h\\xA0]*" }
   - { name: maybe_12h_time, value: "(\\s?(am|AM|pm|PM))?" }
   - { name: "any_non_space_link", value: "[^\\s\\]}}]" }
+  - { name: "any_non_brace_link", value: "[^\\]}}]" }
 
 sub_lexers:
   http_link:
@@ -39,6 +40,21 @@ sub_lexers:
       token: LinkProtocolHttp
 
     - re: ":\\/\\/.*?$"
+      token: LinkTarget
+
+  link_protocol_split: 
+    - re: "^\\[\\["
+      token: LinkBegin
+
+    - re: "id"
+      token: LinkProtocolId 
+
+  raw_dsl_link:
+    - re: "^\\[\\[\\w+"
+      sub: 
+        link_protocol_split
+
+    - re: ":.*?$"
       token: LinkTarget
 
 tokens:
@@ -390,7 +406,9 @@ rules:
 
   - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }
   - { re: "\\[fn::", token: FootnoteInlineBegin }
-  - { re: "\\[\\[", token: LinkBegin }
+  - re: "\\[\\[({dsl_links}):({any_non_brace_link})+"
+    sub: raw_dsl_link
+
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }
   #endregion

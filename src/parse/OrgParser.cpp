@@ -414,6 +414,11 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
                 token(org::RawText, pop(lex, otk::LinkTarget));
                 break;
             }
+            case otk::LinkProtocolId: {
+                token(org::Ident, pop(lex, otk::LinkProtocolId));
+                token(org::RawText, pop(lex, otk::LinkTarget));
+                break;
+            }
             default:
                 token(org::Ident, pop(lex, otk::LinkProtocol));
                 SubLexer sub{lex};
