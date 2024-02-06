@@ -36,7 +36,7 @@ rx_macros:
 sub_lexers:
   http_link:
     - re: "^https?"
-      token: LinkProtocol
+      token: LinkProtocolHttp
 
     - re: ":\\/\\/.*?$"
       token: LinkTarget
@@ -78,7 +78,6 @@ tokens:
   - name: CmdAdmonitionBegin
   - name: CmdFlag
   - name: CmdContentEnd
-  - name: LinkInternal
   - name: LinkFull
   - name: LinkTarget
   - name: LinkDescriptionEnd

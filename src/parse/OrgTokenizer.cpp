@@ -448,23 +448,6 @@ struct RecombineState {
                 break;
             }
 
-            case otk::LinkBegin: {
-                add_fake(otk::LinkBegin);
-                add_fake(otk::LinkTargetBegin);
-                auto text = strip(
-                    lex.val().text, CharSet{'['}, CharSet{']', '[', ':'});
-
-                add_fake(otk::LinkProtocol, OrgFill{.text = text});
-                lex.next();
-                break;
-            }
-
-            case otk::LinkSplit: {
-                add_fake(otk::LinkTargetEnd);
-                pop_as(otk::LinkDescriptionBegin);
-                break;
-            }
-
             case otk::FootnoteLinked: {
                 auto text = lex.val().text.dropPrefix("[fn:").dropSuffix(
                     "]");

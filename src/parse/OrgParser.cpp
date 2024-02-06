@@ -276,6 +276,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::AngleBegin: parsePlaceholder(lex); break;
             case otk::TextSrcBegin: parseSrcInline(lex); break;
             case otk::HashIdent: parseHashTag(lex); break;
+            case otk::LinkProtocolHttp:
             case otk::LinkProtocol:
             case otk::LinkBegin: parseLink(lex); break;
             case otk::FootnoteInlineBegin:
@@ -398,37 +399,33 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
 OrgId OrgParser::parseLink(OrgLexer& lex) {
     __perf_trace("parseLink");
     auto __trace = trace(lex);
-    start(org::Link);
-    if (lex.at(otk::LinkProtocol)) {
-        token(org::Ident, pop(lex, otk::LinkProtocol));
+    if (lex.at(otk::LinkProtocolHttp)) {
+        start(org::Link);
+        token(org::Ident, pop(lex, otk::LinkProtocolHttp));
         token(org::RawText, pop(lex, otk::LinkTarget));
+        empty();
         return end();
     } else {
+        start(org::Link);
         skip(lex, otk::LinkBegin);
-        skip(lex, otk::LinkTargetBegin);
-        if (lex.at(otk::LinkInternal)) {
-            empty();
-            token(org::RawText, pop(lex, otk::LinkInternal));
-        } else if (lex.at(otk::LinkFull)) {
-            empty();
-            token(org::RawText, pop(lex, otk::LinkFull));
-        } else {
-            token(org::Ident, pop(lex, otk::LinkProtocol));
-            if (lex.at(otk::RawText)) {
-                token(org::RawText, pop(lex));
-            } else {
+        switch (lex.kind()) {
+            case otk::LinkProtocolHttp: {
+                token(org::Ident, pop(lex, otk::LinkProtocolHttp));
+                token(org::RawText, pop(lex, otk::LinkTarget));
+                break;
+            }
+            default:
+                token(org::Ident, pop(lex, otk::LinkProtocol));
                 SubLexer sub{lex};
-                while (
-                    !lex.at(OrgTokSet{otk::LinkTargetEnd, otk::LinkEnd})) {
+                while (!lex.at(OrgTokSet{otk::LinkSplit, otk::LinkEnd})) {
                     sub.add(pop(lex));
                 }
                 sub.start();
                 parseParagraph(sub);
-            }
         }
 
-        if (lex.at(otk::LinkTargetEnd)) {
-            skip(lex, otk::LinkTargetEnd);
+        if (lex.at(otk::LinkSplit)) {
+            skip(lex, otk::LinkSplit);
             SubLexer sub{lex};
             while (lex.can_search(otk::LinkEnd)) { sub.add(pop(lex)); }
             if (sub.empty()) {
