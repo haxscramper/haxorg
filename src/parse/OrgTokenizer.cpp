@@ -473,21 +473,6 @@ struct RecombineState {
                 break;
             }
 
-            case otk::RawLink: {
-                auto text = strip(
-                    lex.val().text, CharSet{'['}, CharSet{']', '['});
-
-                auto split = text.split(':');
-
-                add_fake(otk::LinkProtocol, OrgFill{.text = split.at(0)});
-                add_fake(
-                    otk::RawText,
-                    OrgFill{.text = join(":", split.at(slice(1, 1_B)))});
-                lex.next();
-                break;
-            }
-
-
             default: {
                 pop();
             }

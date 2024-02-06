@@ -16,7 +16,7 @@ std::string OrgLexerImpl::state_name(int state) {
         case 12: return "BODY_EXPORT";
         case 13: return "PROPERTIES";
         case 14: return "PROPERTY_LITERAL";
-        case 15: return "sub_state_what";
+        case 15: return "sub_state_http_link";
         default: return std::to_string(state);
     }
 }
@@ -145,7 +145,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Pipe: return "Pipe";
         case OrgTokenKind::Plus: return "Plus";
         case OrgTokenKind::Punctuation: return "Punctuation";
-        case OrgTokenKind::RawLink: return "RawLink";
         case OrgTokenKind::RawText: return "RawText";
         case OrgTokenKind::SameIndent: return "SameIndent";
         case OrgTokenKind::Semicolon: return "Semicolon";
@@ -306,7 +305,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Pipe") { return OrgTokenKind::Pipe; } else
   if (value == "Plus") { return OrgTokenKind::Plus; } else
   if (value == "Punctuation") { return OrgTokenKind::Punctuation; } else
-  if (value == "RawLink") { return OrgTokenKind::RawLink; } else
   if (value == "RawText") { return OrgTokenKind::RawText; } else
   if (value == "SameIndent") { return OrgTokenKind::SameIndent; } else
   if (value == "Semicolon") { return OrgTokenKind::Semicolon; } else

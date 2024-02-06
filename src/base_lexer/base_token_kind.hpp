@@ -122,7 +122,6 @@ enum class OrgTokenKind : unsigned short int {
   Pipe,
   Plus,
   Punctuation,
-  RawLink,
   RawText,
   SameIndent,
   Semicolon,

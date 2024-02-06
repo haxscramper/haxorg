@@ -276,7 +276,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::AngleBegin: parsePlaceholder(lex); break;
             case otk::TextSrcBegin: parseSrcInline(lex); break;
             case otk::HashIdent: parseHashTag(lex); break;
-            case otk::RawLink:
+            case otk::LinkProtocol:
             case otk::LinkBegin: parseLink(lex); break;
             case otk::FootnoteInlineBegin:
             case otk::FootnoteLinked: parseFootnote(lex); break;
@@ -398,10 +398,12 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
 OrgId OrgParser::parseLink(OrgLexer& lex) {
     __perf_trace("parseLink");
     auto __trace = trace(lex);
-    if (lex.at(otk::RawLink)) {
-        return token(org::RawLink, pop(lex));
+    start(org::Link);
+    if (lex.at(otk::LinkProtocol)) {
+        token(org::Ident, pop(lex, otk::LinkProtocol));
+        token(org::RawText, pop(lex, otk::LinkTarget));
+        return end();
     } else {
-        start(org::Link);
         skip(lex, otk::LinkBegin);
         skip(lex, otk::LinkTargetBegin);
         if (lex.at(otk::LinkInternal)) {

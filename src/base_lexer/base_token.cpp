@@ -6,7 +6,7 @@
 #include "base_token_state.tcc"
 
 void OrgLexerImpl::add(OrgTokenKind token) {
-    auto id = tokens.add(OrgToken{
+    auto id = tokens->add(OrgToken{
         token,
         OrgFill{
             impl->matcher().str(),
@@ -16,7 +16,8 @@ void OrgLexerImpl::add(OrgTokenKind token) {
 
     if (p.traceStream) {
         (*p.traceStream) << std::format(
-            "   {:0>4}] = {} {}",
+            "{}   {:0>4}] = {} {}",
+            get_print_indent(),
             id.getIndex(),
             token,
             escape_for_write(impl->matcher().str()))
@@ -54,7 +55,8 @@ void OrgLexerImpl::pop_expect_impl(int current, int next, int line) {
 
     if (p.traceStream) {
         (*p.traceStream) << std::format(
-            "         - {} -> {} at {} with {}",
+            "{}         - {} -> {} at {} with {}",
+            get_print_indent(),
             state_name(current),
             state_name(next),
             line,
@@ -82,7 +84,8 @@ void OrgLexerImpl::push_expect_impl(int current, int next, int line) {
 
     if (p.traceStream) {
         (*p.traceStream) << std::format(
-            "         + {} -> {} at {} with {}",
+            "{}         + {} -> {} at {} with {}",
+            get_print_indent(),
             state_name(current),
             state_name(next),
             line,
@@ -91,13 +94,16 @@ void OrgLexerImpl::push_expect_impl(int current, int next, int line) {
 }
 
 void OrgLexerImpl::before(
-    int          line,
-    OrgTokenKind kind,
-    const char*  pattern) {
+    int               line,
+    Opt<OrgTokenKind> kind,
+    const char*       pattern) {
     if (p.traceStream) {
         (*p.traceStream) << std::format(
-            ">  {:0>4}]   {} {}", line, escape_for_write(pattern), view())
-                         << std::endl;
+            "{}>  {:0>4}]   {} {}",
+            get_print_indent(),
+            line,
+            escape_for_write(pattern),
+            view()) << std::endl;
     }
 }
 
@@ -141,11 +147,16 @@ std::string OrgLexerImpl::view() {
 
 void OrgLexerImpl::unknown() {
     if (p.traceStream) {
-        (*p.traceStream) << "  X unknown " << view() << std::endl;
+        (*p.traceStream) << get_print_indent() << "  X unknown " << view()
+                         << std::endl;
     } else {
         LOG(ERROR) << "Unknown " << view();
     }
 
     CHECK(++p.visitedUnknown < p.maxUnknown) << std::format(
         "Max {} visited {}", p.maxUnknown, p.visitedUnknown);
+}
+
+std::string OrgLexerImpl::get_print_indent() const {
+    return std::string(p.indentation * 3, ' ');
 }

@@ -25,20 +25,21 @@ rx_macros:
   - { name: literal_properties, value: "id|effort" }
   - { name: argument_properties, value: "header-args" }
   - { name: text_properties, value: "description" }
-  - { name: dsl_links, value: "file|attachment|id|http|https" }
+  - { name: dsl_links, value: "file|attachment|id" }
   # Property colon with optional text extension pattern an any number of
   # following spaces. Used both in line command directives and subtree
   # properties
   - { name: prop_colon, value: "\\+?:[\\h\\xA0]*" }
   - { name: maybe_12h_time, value: "(\\s?(am|AM|pm|PM))?" }
+  - { name: "any_non_space_link", value: "[^\\s\\]}}]" }
 
 sub_lexers:
-  what:
-    - re: "^#\\+"
-      token: LineCommand
-      actions:
-        - { do: push, to: COMMAND, from: INITIAL }
-      
+  http_link:
+    - re: "^https?"
+      token: LinkProtocol
+
+    - re: ":\\/\\/.*?$"
+      token: LinkTarget
 
 tokens:
   - name: Indent
@@ -221,10 +222,6 @@ rules:
     actions:
       - { do: push, to: COMMAND, from: INITIAL }
 
-  - re: "^######\\+"
-    sub: what
-    actions:
-      - { do: push, to: COMMAND, from: INITIAL }
 
   - lit: "#+"
     states: [LEAD]
@@ -389,7 +386,9 @@ rules:
   #region Text-elements
   #region Links and footnotes
   - { re: "{space}+", token: Whitespace }
-  - { re: "{dsl_links}[^\\s\\]}}]+", token: RawLink }
+  - re: "https?{any_non_space_link}+"
+    sub: "http_link"
+
   - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }
   - { re: "\\[fn::", token: FootnoteInlineBegin }
   - { re: "\\[\\[", token: LinkBegin }
