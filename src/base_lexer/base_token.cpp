@@ -6,12 +6,18 @@
 #include "base_token_state.tcc"
 
 void OrgLexerImpl::add(OrgTokenKind token) {
+    using Loc   = LexerParams::Loc;
+    Loc sub_loc = rs::fold_left(
+        p.sub_locations, Loc{}, [](CR<Loc> l, CR<Loc> r) -> Loc {
+            return {l.line + r.line, l.col + r.col};
+        });
+
     auto id = tokens->add(OrgToken{
         token,
         OrgFill{
             impl->matcher().str(),
-            static_cast<int>(impl->lineno() + p.init_line.value_or(0)),
-            static_cast<int>(impl->columno() + p.init_column.value_or(0)),
+            static_cast<int>(impl->lineno() + sub_loc.line),
+            static_cast<int>(impl->columno() + sub_loc.col),
         }});
 
     if (p.traceStream) {
@@ -149,11 +155,12 @@ std::string OrgLexerImpl::view() {
     }
 
     return std::format(
-        "{}:{} (orig:{}:{}) {} (ST:{}) {} (INT:{}) {} {}",
+        "{}:{} (orig:{}) {} (ST:{}) {} (INT:{}) {} {}",
         impl->lineno(),
         impl->columno(),
-        p.init_line,
-        p.init_column,
+        p.sub_locations | rv::transform([](auto it) {
+            return fmt("{}:{}", it.line, it.col);
+        }) | rs::to<std::vector>(),
         state_name(impl->start()),
         impl->start(),
         escape_for_write(text).toBase(),

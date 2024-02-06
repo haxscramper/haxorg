@@ -318,8 +318,7 @@ void base_lexer::Lexer::{sub_run_name(name)}(std::string const& values) {{
     lex.impl.tokens = this->impl.tokens;
     lex.impl.impl = &lex;
     lex.impl.p = this->impl.p;
-    lex.impl.p.init_line = impl.impl->lineno();
-    lex.impl.p.init_column = impl.impl->columno();
+    lex.impl.p.sub_locations.push_back({{static_cast<int>(impl.impl->lineno()), static_cast<int>(impl.impl->columno())}});
     ++lex.impl.p.indentation;
     lex.lex();
 }}                              

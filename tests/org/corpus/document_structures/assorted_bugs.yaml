@@ -319,6 +319,12 @@ items:
       [[https://github.com][asdfasdf]]
       https://m
 
+  - name: "ID link"
+    source: |
+      [[id:5530c9ff-9466-46a2-9a27-ce060c0e3e95][[2022-08-25 Thu 14:43:50] from
+        haxconf:desktop/awesome_wm.lua:679  (B370DD3E)]]
+
+
 
 
 

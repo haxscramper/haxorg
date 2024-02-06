@@ -67,12 +67,15 @@ struct std::formatter<OrgFill> : std::formatter<std::string> {
 };
 
 struct LexerParams {
+    struct Loc {
+        int line;
+        int col;
+    };
     int           maxUnknown     = 100;
     int           visitedUnknown = 0;
     std::ostream* traceStream    = nullptr;
     int           indentation    = 0;
-    Opt<int>      init_line      = std::nullopt;
-    Opt<int>      init_column    = std::nullopt;
+    Vec<Loc>      sub_locations;
 };
 
 
