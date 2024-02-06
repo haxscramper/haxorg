@@ -19,6 +19,7 @@ std::string OrgLexerImpl::state_name(int state) {
         case 15: return "sub_state_http_link";
         case 16: return "sub_state_link_protocol_split";
         case 17: return "sub_state_raw_dsl_link";
+        case 18: return "sub_state_no_protocol_file_link";
         default: return std::to_string(state);
     }
 }
@@ -124,12 +125,14 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::LinkEnd: return "LinkEnd";
         case OrgTokenKind::LinkFull: return "LinkFull";
         case OrgTokenKind::LinkProtocol: return "LinkProtocol";
+        case OrgTokenKind::LinkProtocolFile: return "LinkProtocolFile";
         case OrgTokenKind::LinkProtocolHttp: return "LinkProtocolHttp";
         case OrgTokenKind::LinkProtocolId: return "LinkProtocolId";
         case OrgTokenKind::LinkSplit: return "LinkSplit";
         case OrgTokenKind::LinkTarget: return "LinkTarget";
         case OrgTokenKind::LinkTargetBegin: return "LinkTargetBegin";
         case OrgTokenKind::LinkTargetEnd: return "LinkTargetEnd";
+        case OrgTokenKind::LinkTargetFile: return "LinkTargetFile";
         case OrgTokenKind::ListBegin: return "ListBegin";
         case OrgTokenKind::ListEnd: return "ListEnd";
         case OrgTokenKind::ListItemBegin: return "ListItemBegin";
@@ -285,12 +288,14 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "LinkEnd") { return OrgTokenKind::LinkEnd; } else
   if (value == "LinkFull") { return OrgTokenKind::LinkFull; } else
   if (value == "LinkProtocol") { return OrgTokenKind::LinkProtocol; } else
+  if (value == "LinkProtocolFile") { return OrgTokenKind::LinkProtocolFile; } else
   if (value == "LinkProtocolHttp") { return OrgTokenKind::LinkProtocolHttp; } else
   if (value == "LinkProtocolId") { return OrgTokenKind::LinkProtocolId; } else
   if (value == "LinkSplit") { return OrgTokenKind::LinkSplit; } else
   if (value == "LinkTarget") { return OrgTokenKind::LinkTarget; } else
   if (value == "LinkTargetBegin") { return OrgTokenKind::LinkTargetBegin; } else
   if (value == "LinkTargetEnd") { return OrgTokenKind::LinkTargetEnd; } else
+  if (value == "LinkTargetFile") { return OrgTokenKind::LinkTargetFile; } else
   if (value == "ListBegin") { return OrgTokenKind::ListBegin; } else
   if (value == "ListEnd") { return OrgTokenKind::ListEnd; } else
   if (value == "ListItemBegin") { return OrgTokenKind::ListItemBegin; } else

@@ -501,6 +501,9 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
     } else if (a.kind() == org::Footnote) {
         link->data = Link::Footnote{.target = get_text(one(a, N::Name))};
 
+    } else if (one(a, N::Protocol).kind() == org::Empty) {
+        // TODO
+
     } else {
         Str protocol = normalize(get_text(one(a, N::Protocol)));
         if (protocol == "http" || protocol == "https") {
@@ -896,7 +899,7 @@ SemId OrgConverter::convert(__args) {
         }
 
         default:
-            LOG(FATAL) << fmt("Unhandled node type {} {}", a.kind(), a.id);
+            LOG(ERROR) << fmt("Unhandled node type {} {}", a.kind(), a.id);
             return Sem<Empty>(p, a);
     }
 #undef CASE

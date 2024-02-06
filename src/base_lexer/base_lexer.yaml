@@ -49,6 +49,12 @@ sub_lexers:
     - re: "id"
       token: LinkProtocolId 
 
+    - re: "file"
+      token: LinkProtocolFile
+
+    - re: https?
+      token: LinkProtocolHttp
+
   raw_dsl_link:
     - re: "^\\[\\[\\w+"
       sub: 
@@ -56,6 +62,13 @@ sub_lexers:
 
     - re: ":.*?$"
       token: LinkTarget
+
+  no_protocol_file_link:
+    - re: "^\\[\\["
+      token: LinkBegin
+
+    - re: "[\\|\\.].*?$"
+      token: LinkTargetFile
 
 tokens:
   - name: Indent
@@ -408,6 +421,12 @@ rules:
   - { re: "\\[fn::", token: FootnoteInlineBegin }
   - re: "\\[\\[({dsl_links}):({any_non_brace_link})+"
     sub: raw_dsl_link
+
+  - re: "\\[\\[https?:\\/\\/{any_non_space_link}+"
+    sub: "raw_dsl_link"
+
+  - re: "\\[\\[(\\/|\\.){any_non_brace_link}+"
+    sub: no_protocol_file_link
 
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }

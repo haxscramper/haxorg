@@ -419,6 +419,16 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
                 token(org::RawText, pop(lex, otk::LinkTarget));
                 break;
             }
+            case otk::LinkProtocolFile: {
+                token(org::Ident, pop(lex, otk::LinkProtocolFile));
+                token(org::RawText, pop(lex, otk::LinkTarget));
+                break;
+            }
+            case otk::LinkTargetFile: {
+                empty();
+                token(org::RawText, pop(lex, otk::LinkTargetFile));
+                break;
+            }
             default:
                 token(org::Ident, pop(lex, otk::LinkProtocol));
                 SubLexer sub{lex};
@@ -653,12 +663,12 @@ OrgId OrgParser::parseFootnote(OrgLexer& lex) {
         while (!lex.finished() && !lex.at(otk::BraceEnd)) {
             sub.add(pop(lex));
         }
+        sub.start();
         parseParagraph(sub);
         skip(lex, otk::BraceEnd);
         return end();
     }
 }
-
 
 OrgId OrgParser::parseIdent(OrgLexer& lex) {
     __perf_trace("parseIdent");
