@@ -10,8 +10,8 @@ void OrgLexerImpl::add(OrgTokenKind token) {
         token,
         OrgFill{
             impl->matcher().str(),
-            static_cast<int>(impl->lineno()),
-            static_cast<int>(impl->columno()),
+            static_cast<int>(impl->lineno() + p.init_line.value_or(0)),
+            static_cast<int>(impl->columno() + p.init_column.value_or(0)),
         }});
 
     if (p.traceStream) {
@@ -134,9 +134,11 @@ std::string OrgLexerImpl::view() {
     }
 
     return std::format(
-        "{}:{} {} (ST:{}) {} (INT:{}) {} {}",
+        "{}:{} (orig:{}:{}) {} (ST:{}) {} (INT:{}) {} {}",
         impl->lineno(),
         impl->columno(),
+        p.init_line,
+        p.init_column,
         state_name(impl->start()),
         impl->start(),
         escape_for_write(text).toBase(),

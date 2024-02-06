@@ -71,6 +71,8 @@ struct LexerParams {
     int           visitedUnknown = 0;
     std::ostream* traceStream    = nullptr;
     int           indentation    = 0;
+    Opt<int>      init_line      = std::nullopt;
+    Opt<int>      init_column    = std::nullopt;
 };
 
 

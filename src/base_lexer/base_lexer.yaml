@@ -386,7 +386,7 @@ rules:
   #region Text-elements
   #region Links and footnotes
   - { re: "{space}+", token: Whitespace }
-  - re: "https?{any_non_space_link}+"
+  - re: "https?:\\/\\/{any_non_space_link}+"
     sub: "http_link"
 
   - { re: "\\[fn:[^:].*?\\]", token: FootnoteLinked }

@@ -79,12 +79,15 @@ class Configuration(BaseModel):
                 result.append(rule.model_copy(update=dict(states=[sub_state_name(name)])))
 
             if not any(rule.re == "<<EOF>>" for rule in sub_rules):
-                result.append(Rule(
-                    re="<<EOF>>",
-                    states=[sub_state_name(name)],
-                    actions=[Action(do="raw", raw="return 0;")],
-                    keepLead=True,
-                ))
+                result.append(
+                    Rule(
+                        re="<<EOF>>",
+                        states=[sub_state_name(name)],
+                        actions=[
+                            Action(do="raw", raw="return 0;"),
+                        ],
+                        keepLead=True,
+                    ))
 
         result += [r for r in self.rules]
 
@@ -315,6 +318,8 @@ void base_lexer::Lexer::{sub_run_name(name)}(std::string const& values) {{
     lex.impl.tokens = this->impl.tokens;
     lex.impl.impl = &lex;
     lex.impl.p = this->impl.p;
+    lex.impl.p.init_line = impl.impl->lineno();
+    lex.impl.p.init_column = impl.impl->columno();
     ++lex.impl.p.indentation;
     lex.lex();
 }}                              
