@@ -372,9 +372,14 @@ struct LexerCommon {
                  i < params.maxTokens && hasNext(i);
                  ++i) {
                 const auto& t = tok(i);
-                os << " "
-                   << styledUnicodeMapping(
-                          std::format("{}", t.kind), AsciiStyle::Italic);
+                if (os.colored) {
+                    os << " "
+                       << styledUnicodeMapping(
+                              std::format("{}", t.kind),
+                              AsciiStyle::Italic);
+                } else {
+                    os << " " << std::format("{}", t.kind);
+                }
                 format(os, t);
             }
         }
