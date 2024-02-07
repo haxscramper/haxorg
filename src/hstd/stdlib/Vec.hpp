@@ -8,6 +8,12 @@
 #include <vector>
 #include <span>
 
+template <typename T>
+concept IsIterableRange = requires(T t) {
+    { std::begin(t) } -> std::input_or_output_iterator;
+    { std::end(t) } -> std::input_or_output_iterator;
+};
+
 /// \brief Derivation of the standard vector with better API for quick
 /// operations. and added overloads for slicing and backwards indexing.
 ///
@@ -251,6 +257,51 @@ class Vec : public std::vector<T> {
 
 
     std::vector<T> const& toBase() const { return *this; }
+
+
+    template <IsIterableRange Range>
+    static void Splice_Impl1(std::vector<T>& result, Range&& range) {
+        std::copy(
+            std::begin(range),
+            std::end(range),
+            std::back_inserter(result));
+    }
+
+
+    static void Splice_Impl1(Vec<T>& result, T&& arg) {
+        result.push_back(std::forward<T>(arg));
+    }
+
+    static void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) {
+        result.append(std::forward<Vec<T>>(arg));
+    }
+
+    static void Splice_Impl(Vec<T>& result) {}
+
+    template <typename... Rest>
+    static void Splice_Impl(
+        Vec<T>&  result,
+        Vec<T>&& first,
+        Rest&&... rest) {
+        Splice_Impl1(result, std::forward<Vec<T>>(first));
+        Splice_Impl(result, std::forward<Rest>(rest)...);
+    }
+
+    template <typename First, typename... Rest>
+    static void Splice_Impl(
+        Vec<T>& result,
+        First&& first,
+        Rest&&... rest) {
+        Splice_Impl1(result, std::forward<First>(first));
+        Splice_Impl(result, std::forward<Rest>(rest)...);
+    }
+
+    template <typename... Args>
+    static Vec<T> Splice(Args&&... args) {
+        Vec<T> result;
+        Splice_Impl<T>(result, std::forward<Args>(args)...);
+        return result;
+    }
 };
 
 static_assert(

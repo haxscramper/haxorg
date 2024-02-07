@@ -15,50 +15,6 @@ auto Formatter::toString(SemId id) -> Res {
     }
 }
 
-template <typename T>
-concept RangeV3 = requires(T t) {
-    { std::begin(t) } -> std::input_or_output_iterator;
-    { std::end(t) } -> std::input_or_output_iterator;
-};
-
-
-template <typename T, RangeV3 Range>
-void Splice_Impl1(std::vector<T>& result, Range&& range) {
-    std::copy(
-        std::begin(range), std::end(range), std::back_inserter(result));
-}
-
-template <typename T>
-void Splice_Impl1(Vec<T>& result, T&& arg) {
-    result.push_back(std::forward<T>(arg));
-}
-
-template <typename T>
-void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) {
-    result.append(std::forward<Vec<T>>(arg));
-}
-
-template <typename T>
-void Splice_Impl(Vec<T>& result) {}
-
-template <typename T, typename... Rest>
-void Splice_Impl(Vec<T>& result, Vec<T>&& first, Rest&&... rest) {
-    Splice_Impl1(result, std::forward<Vec<T>>(first));
-    Splice_Impl(result, std::forward<Rest>(rest)...);
-}
-
-template <typename T, typename First, typename... Rest>
-void Splice_Impl(Vec<T>& result, First&& first, Rest&&... rest) {
-    Splice_Impl1(result, std::forward<First>(first));
-    Splice_Impl(result, std::forward<Rest>(rest)...);
-}
-
-template <typename T, typename... Args>
-Vec<T> Splice(Args&&... args) {
-    Vec<T> result;
-    Splice_Impl<T>(result, std::forward<Args>(args)...);
-    return result;
-}
 
 void Formatter::add_subnodes(Res result, SemId id) {
     for (auto const& it : id->subnodes) { b.add_at(result, toString(it)); }
@@ -70,7 +26,7 @@ auto Formatter::toString(SemIdT<Macro> id) -> Res {
     if (id->arguments.empty()) {
         return str(Str("{{{") + id->name + Str("}}}"));
     } else {
-        return b.line(Splice<Res>(
+        return b.line(Vec<Res>::Splice(
             str(Str("{{{") + id->name + Str("(")),
             id->arguments //
                 | rv::transform([&](CR<Str> s) { return str(s); }),
@@ -139,7 +95,7 @@ auto Formatter::toString(SemIdT<Empty> id) -> Res { return str(""); }
 auto Formatter::toString(SemIdT<Newline> id) -> Res { return str("\n"); }
 
 auto Formatter::toString(SemIdT<Monospace> id) -> Res {
-    return b.line(Splice<Res>(str("~"), toSubnodes(id), str("~")));
+    return b.line(Vec<Res>::Splice(str("~"), toSubnodes(id), str("~")));
 }
 
 auto Formatter::toString(SemIdT<Link> id) -> Res {
@@ -192,7 +148,7 @@ auto Formatter::toString(SemIdT<Par> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Placeholder> id) -> Res {
-    return b.line(Splice<Res>(str("<"), toSubnodes(id), str(">")));
+    return b.line(Vec<Res>::Splice(str("<"), toSubnodes(id), str(">")));
 }
 
 auto Formatter::toString(SemIdT<BigIdent> id) -> Res {
@@ -260,12 +216,12 @@ auto Formatter::toString(SemIdT<Completion> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Center> id) -> Res {
-    return b.stack(Splice<Res>(
+    return b.stack(Vec<Res>::Splice(
         str("#+begin_center"), toSubnodes(id), str("#+end_center")));
 }
 
 auto Formatter::toString(SemIdT<Bold> id) -> Res {
-    return b.line(Splice<Res>(str("*"), toSubnodes(id), str("*")));
+    return b.line(Vec<Res>::Splice(str("*"), toSubnodes(id), str("*")));
 }
 
 auto Formatter::toString(SemIdT<Space> id) -> Res { return str(id->text); }
@@ -279,7 +235,7 @@ auto Formatter::toString(SemIdT<AtMention> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Italic> id) -> Res {
-    return b.line(Splice<Res>(str("/"), toSubnodes(id), str("/")));
+    return b.line(Vec<Res>::Splice(str("/"), toSubnodes(id), str("/")));
 }
 
 auto Formatter::toString(SemIdT<Table> id) -> Res {
@@ -291,7 +247,7 @@ auto Formatter::toString(SemIdT<AdmonitionBlock> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Strike> id) -> Res {
-    return b.line(Splice<Res>(str("+"), toSubnodes(id), str("+")));
+    return b.line(Vec<Res>::Splice(str("+"), toSubnodes(id), str("+")));
 }
 
 auto Formatter::toString(SemIdT<CmdArguments> id) -> Res {
@@ -322,16 +278,16 @@ auto Formatter::toString(SemIdT<DocumentOptions> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Verbatim> id) -> Res {
-    return b.line(Splice<Res>(str("="), toSubnodes(id), str("=")));
+    return b.line(Vec<Res>::Splice(str("="), toSubnodes(id), str("=")));
 }
 
 auto Formatter::toString(SemIdT<Quote> id) -> Res {
-    return b.stack(Splice<Res>(
+    return b.stack(Vec<Res>::Splice(
         str("#+begin_quote"), toSubnodes(id), str("#+end_quote")));
 }
 
 auto Formatter::toString(SemIdT<Verse> id) -> Res {
-    return b.stack(Splice<Res>(
+    return b.stack(Vec<Res>::Splice(
         str("#+begin_verse"), toSubnodes(id), str("#+end_verse")));
 }
 
@@ -349,12 +305,12 @@ auto Formatter::toString(SemIdT<FileTarget> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Export> id) -> Res {
-    return b.stack(Splice<Res>(
+    return b.stack(Vec<Res>::Splice(
         str("#+begin_export"), toSubnodes(id), str("#+end_export")));
 }
 
 auto Formatter::toString(SemIdT<Example> id) -> Res {
-    return b.stack(Splice<Res>(
+    return b.stack(Vec<Res>::Splice(
         str("#+begin_example"), toSubnodes(id), str("#+end_example")));
 }
 
@@ -374,7 +330,7 @@ auto Formatter::toString(SemIdT<Paragraph> id) -> Res {
 }
 
 auto Formatter::toString(SemIdT<Underline> id) -> Res {
-    return b.line(Splice<Res>(str("_"), toSubnodes(id), str("_")));
+    return b.line(Vec<Res>::Splice(str("_"), toSubnodes(id), str("_")));
 }
 
 auto Formatter::toString(SemIdT<ParseError> id) -> Res {
