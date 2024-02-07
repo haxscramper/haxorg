@@ -2,13 +2,20 @@
 
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <hstd/wrappers/perfetto_aux.hpp>
+#include <sem/perfetto_org.hpp>
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/system/Formatter.hpp>
+#include <sem/perfetto_org.hpp>
 
+#ifdef ORG_USE_PERFETTO
+#    pragma clang diagnostic ignored "-Wmacro-redefined"
+#    define __perf_trace(name) TRACE_EVENT("lexing", name)
+#else
+#    define __perf_trace(...)
+#endif
 
 struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     Builder& with_id(OrgTokenId const& id) {
@@ -707,6 +714,7 @@ auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
 }
 
 Vec<LineToken> to_lines(OrgLexer& lex) {
+    __perf_trace("to_lines");
     Vec<LineToken> lines;
     auto const&    tokens = lex.in;
     auto           start  = tokens->begin();
@@ -727,6 +735,7 @@ Vec<LineToken> to_lines(OrgLexer& lex) {
 
 
 Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
+    __perf_trace("to_groups");
     using Iter = Vec<LineToken>::iterator;
     Func<Opt<GroupToken>(Iter & it)> rec_group;
     rec_group = [&](Iter& it) -> Opt<GroupToken> {
@@ -1075,10 +1084,16 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
     Vec<GroupToken>   root  = to_groups(lines);
     GroupVisitorState visitor{this, lex};
     if (TraceState) { visitor.print_groups(root); }
-    visitor.rec_convert_groups(root);
+    {
+        __perf_trace("rec convert groups");
+        visitor.rec_convert_groups(root);
+    }
     Lexer<OrgTokenKind, OrgFill> relex{&visitor.regroup};
     RecombineState               recombine_state{this, relex};
-    recombine_state.recombine_impl();
+    {
+        __perf_trace("recombine");
+        recombine_state.recombine_impl();
+    }
 }
 
 void OrgTokenizer::convert(OrgTokenGroup& input) {

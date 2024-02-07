@@ -28,9 +28,9 @@ bool SetStackSize(rlim_t stackSize) {
 }
 
 
-#ifdef ORG_USE_PERFETTO
-#    include <hstd/wrappers/perfetto_aux.hpp>
-#endif
+#include <sem/perfetto_org.hpp>
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+
 
 FILE* trace_out;
 
@@ -87,7 +87,8 @@ int main(int argc, char** argv) {
     SetStackSize(32 * 1024 * 1024);
 
 #ifdef ORG_USE_PERFETTO
-    StartProcessTracing("Perfetto track example");
+    std::unique_ptr<perfetto::TracingSession>
+        tracing_session = StartProcessTracing("Perfetto track example");
 #endif
 
     ::testing::InitGoogleTest(&argc, argv);
@@ -98,7 +99,9 @@ int main(int argc, char** argv) {
     test_records << to_compact_json(records);
 
 #ifdef ORG_USE_PERFETTO
-    StopTracing(std::move(tracing_session));
+    StopTracing(
+        std::move(tracing_session),
+        "/tmp/t_common_main_perfetto_trace.pftrace");
 #endif
 
     return result;

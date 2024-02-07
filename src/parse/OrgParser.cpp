@@ -3,9 +3,10 @@
 #pragma clang diagnostic ignored "-Wformat-security"
 #include <absl/log/log.h>
 #include <absl/log/check.h>
-#include <hstd/wrappers/perfetto_aux.hpp>
+#include <sem/perfetto_org.hpp>
 
 #ifdef ORG_USE_PERFETTO
+#    pragma clang diagnostic ignored "-Wmacro-redefined"
 #    define __perf_trace(name) TRACE_EVENT("parsing", name)
 #else
 #    define __perf_trace(...)

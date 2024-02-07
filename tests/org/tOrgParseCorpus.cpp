@@ -14,7 +14,7 @@
 #include <fnmatch.h>
 #include "../testprofiler.hpp"
 
-#include <hstd/wrappers/perfetto_aux.hpp>
+#include <sem/perfetto_org.hpp>
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";

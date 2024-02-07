@@ -12,6 +12,15 @@
 #include <fstream>
 #include <cstdlib>
 #include <gtest/gtest.h>
+#include <sem/perfetto_org.hpp>
+
+#ifdef ORG_USE_PERFETTO
+#    pragma clang diagnostic ignored "-Wmacro-redefined"
+#    define __perf_trace(name) TRACE_EVENT("cli", name)
+#else
+#    define __perf_trace(...)
+#endif
+
 
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
@@ -739,6 +748,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
     CR<std::string> from) {
+    __perf_trace("run spec");
     MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
     { // Input source
@@ -749,6 +759,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
 
     { // Lexing
+        __perf_trace("lex");
         if (spec.debug.doLexBase) {
             SPtr<std::ofstream> fileTrace;
             if (spec.debug.traceAll || spec.debug.traceLexBase) {
@@ -759,6 +770,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             LexerParams params;
             params.maxUnknown  = spec.debug.maxBaseLexUnknownCount;
             params.traceStream = fileTrace.get();
+            __perf_trace("tokenize base");
             p.tokenizeBase(spec.source, params);
         } else {
             return RunResult{};
@@ -783,6 +795,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
             }
 
+            __perf_trace("tokenize convert");
             p.tokenizeConvert();
         } else {
             return RunResult{};
@@ -792,6 +805,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             || spec.debug.printLexedToFile) {
             auto content = std::format("{}", yamlRepr(p.tokens));
 
+            __perf_trace("write lexer yaml file");
             if (spec.debug.traceAll || spec.debug.printLexedToFile) {
                 writeFile(spec.debugFile("lexed.yaml"), content + "\n");
             } else {
@@ -889,6 +903,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         };
 
     { // Parsing
+        __perf_trace("parse");
         if (spec.debug.doParse) {
             p.parser->TraceState = spec.debug.traceAll
                                 || spec.debug.traceParse;
@@ -967,6 +982,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     { // Sem conversion
         if (spec.debug.doSem) {
+            __perf_trace("sem convert");
             sem::ContextStore context;
             sem::OrgConverter converter(&context);
 
