@@ -191,6 +191,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::SemIdT<sem::Block>, sem::SemId>(m, "SemBlock")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Block> { return sem::SemIdT<sem::Block>::Nil(); }))
     ;
+  pybind11::class_<sem::SemIdT<sem::Tblfm>, sem::SemId>(m, "SemTblfm")
+    .def(pybind11::init([]() -> sem::SemIdT<sem::Tblfm> { return sem::SemIdT<sem::Tblfm>::Nil(); }))
+    .def_property("loc",
+                  [](sem::SemIdT<sem::Tblfm> _self) -> Opt<LineCol> { return _self->loc; },
+                  [](sem::SemIdT<sem::Tblfm> _self, Opt<LineCol> loc) { _self->loc = loc; })
+    ;
   pybind11::class_<sem::SemIdT<sem::Quote>, sem::SemId>(m, "SemQuote")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Quote> { return sem::SemIdT<sem::Quote>::Nil(); }))
     .def_property("loc",
@@ -1509,6 +1515,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Center", OrgSemKind::Center)
     .value("Caption", OrgSemKind::Caption)
     .value("CommandGroup", OrgSemKind::CommandGroup)
+    .value("Tblfm", OrgSemKind::Tblfm)
     .value("Quote", OrgSemKind::Quote)
     .value("Verse", OrgSemKind::Verse)
     .value("Example", OrgSemKind::Example)

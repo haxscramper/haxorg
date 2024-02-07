@@ -122,6 +122,10 @@ auto Formatter::toString(SemIdT<Code> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
+auto Formatter::toString(SemIdT<Tblfm> id) -> Res {
+    return str(__PRETTY_FUNCTION__);
+}
+
 auto Formatter::toString(SemIdT<List> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }

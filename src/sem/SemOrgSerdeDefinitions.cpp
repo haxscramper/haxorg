@@ -185,6 +185,20 @@ void proto_serde<::orgproto::CommandGroup, sem::CommandGroup>::read(sem::Context
   }
 }
 
+void proto_serde<::orgproto::Tblfm, sem::Tblfm>::write(::orgproto::Tblfm* out, sem::Tblfm const& in) {
+  proto_serde<::orgproto::Tblfm, sem::Org>::write(out, in);
+  if (in.loc) {
+    proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void proto_serde<::orgproto::Tblfm, sem::Tblfm>::read(sem::ContextStore* context, ::orgproto::Tblfm const& out, proto_write_accessor<sem::Tblfm> in) {
+  proto_serde<::orgproto::Tblfm, sem::Org>::read(context, out, in.as<sem::Org>());
+  if (out.has_loc()) {
+    proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(context, out.loc(), in.for_field(&sem::Tblfm::loc));
+  }
+}
+
 void proto_serde<::orgproto::Quote, sem::Quote>::write(::orgproto::Quote* out, sem::Quote const& in) {
   proto_serde<::orgproto::Quote, sem::Org>::write(out, in);
   if (in.loc) {

@@ -328,6 +328,11 @@ def get_types() -> Sequence[GenTuStruct]:
             concreteKind=False,
         ),
         d_org(
+            "Tblfm",
+            GenTuDoc("Tblfm command type"),
+            bases=[t_org("Command")],
+        ),
+        d_org(
             "Quote",
             GenTuDoc("Quotation block"),
             bases=[t_org("Org")],

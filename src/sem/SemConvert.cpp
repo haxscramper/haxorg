@@ -572,6 +572,15 @@ SemIdT<Caption> OrgConverter::convertCaption(__args) {
 }
 
 
+SemIdT<Tblfm> OrgConverter::convertTblfm(__args) {
+    __perf_trace("convert", "convertTblfm");
+    auto __trace = trace(a);
+    auto tblfm   = Sem<Tblfm>(p, a);
+
+    return tblfm;
+}
+
+
 SemIdT<Word> OrgConverter::convertWord(__args) {
     auto __trace = trace(a);
     return SemLeaf<Word>(p, a);
@@ -865,6 +874,7 @@ SemId OrgConverter::convert(__args) {
         case org::Empty: return Sem<Empty>(p, a);
         case org::Table: return convertTable(p, a);
         case org::Footnote: return convertFootnote(p, a);
+        case org::CommandTblfm: return convertTblfm(p, a);
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
             Vec<SemId> nested = flatConvertAttached(p, a);

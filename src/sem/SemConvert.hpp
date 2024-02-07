@@ -144,6 +144,7 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<RawText>         convertRawText(Up, In);
     SemIdT<List>            convertList(Up, In);
     SemIdT<ListItem>        convertListItem(Up, In);
+    SemIdT<Tblfm>           convertTblfm(Up, In);
     SemIdT<Caption>         convertCaption(Up, In);
     SemIdT<Quote>           convertQuote(Up, In);
     SemIdT<Placeholder>     convertPlaceholder(Up, In);

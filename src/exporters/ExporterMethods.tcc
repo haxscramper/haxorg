@@ -18,6 +18,7 @@ void visitAttached(R& res, In<sem::Attached> object);
 void visitCaption(R& res, In<sem::Caption> object);
 void visitCommandGroup(R& res, In<sem::CommandGroup> object);
 void visitBlock(R& res, In<sem::Block> object);
+void visitTblfm(R& res, In<sem::Tblfm> object);
 void visitQuote(R& res, In<sem::Quote> object);
 void visitVerse(R& res, In<sem::Verse> object);
 void visitExample(R& res, In<sem::Example> object);

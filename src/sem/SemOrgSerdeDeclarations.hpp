@@ -13,6 +13,7 @@
         __MAP(kCenter, center, Center)  \
         __MAP(kCaption, caption, Caption)  \
         __MAP(kCommandgroup, commandgroup, CommandGroup)  \
+        __MAP(kTblfm, tblfm, Tblfm)  \
         __MAP(kQuote, quote, Quote)  \
         __MAP(kVerse, verse, Verse)  \
         __MAP(kExample, example, Example)  \
@@ -130,6 +131,13 @@ template <>
 struct proto_serde<::orgproto::CommandGroup, sem::CommandGroup> {
   static void write(::orgproto::CommandGroup* out, sem::CommandGroup const& in);
   static void read(sem::ContextStore* context, ::orgproto::CommandGroup const& out, proto_write_accessor<sem::CommandGroup> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Tblfm, sem::Tblfm> {
+  static void write(::orgproto::Tblfm* out, sem::Tblfm const& in);
+  static void read(sem::ContextStore* context, ::orgproto::Tblfm const& out, proto_write_accessor<sem::Tblfm> in);
 };
 
 

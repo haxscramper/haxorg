@@ -558,6 +558,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Center") { return OrgSemKind::Center; } else
   if (value == "Caption") { return OrgSemKind::Caption; } else
   if (value == "CommandGroup") { return OrgSemKind::CommandGroup; } else
+  if (value == "Tblfm") { return OrgSemKind::Tblfm; } else
   if (value == "Quote") { return OrgSemKind::Quote; } else
   if (value == "Verse") { return OrgSemKind::Verse; } else
   if (value == "Example") { return OrgSemKind::Example; } else
@@ -615,6 +616,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Center: return "Center";
     case OrgSemKind::Caption: return "Caption";
     case OrgSemKind::CommandGroup: return "CommandGroup";
+    case OrgSemKind::Tblfm: return "Tblfm";
     case OrgSemKind::Quote: return "Quote";
     case OrgSemKind::Verse: return "Verse";
     case OrgSemKind::Example: return "Example";

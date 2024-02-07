@@ -138,6 +138,13 @@ void Exporter<V, R>::visitBlock(R& res, In<sem::Block> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitTblfm(R& res, In<sem::Tblfm> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitQuote(R& res, In<sem::Quote> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);

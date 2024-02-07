@@ -53,6 +53,13 @@ Domain<prt::DocumentGroup> GenerateNode<prt::DocumentGroup>(
 }
 
 template <>
+Domain<prt::Tblfm> GenerateNode<prt::Tblfm>(CR<GenerateNodeContext> ctx) {
+    ctx.debug("Tblfm");
+    return InitNode<prt::Tblfm>(ctx).WithRepeatedFieldMaxSize(
+        "subnodes", 0);
+}
+
+template <>
 Domain<prt::Monospace> GenerateNode<prt::Monospace>(
     CR<GenerateNodeContext> ctx) {
     ctx.debug("Monospace");
