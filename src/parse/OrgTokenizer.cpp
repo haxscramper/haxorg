@@ -853,14 +853,16 @@ struct GroupVisitorState {
         int          line     = __builtin_LINE(),
         char const*  function = __builtin_FUNCTION()) {
         auto idx = regroup.add(OrgToken{kind});
-        d->print(
-            lex,
-            fmt("    [{:<3}] fake  {:<48} indents {:<32}",
-                idx.getIndex(),
-                fmt1(kind),
-                fmt1(indentStack)),
-            line,
-            function);
+        if (TraceState) {
+            d->print(
+                lex,
+                fmt("    [{:<3}] fake  {:<48} indents {:<32}",
+                    idx.getIndex(),
+                    fmt1(kind),
+                    fmt1(indentStack)),
+                line,
+                function);
+        }
     }
 
     void add_base(
@@ -869,14 +871,16 @@ struct GroupVisitorState {
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION()) {
         auto idx = regroup.add(tok);
-        d->print(
-            lex,
-            fmt("    [{:<3}] token {:<48} indents {:<32}",
-                idx.getIndex(),
-                fmt1(tok),
-                fmt1(indentStack)),
-            line,
-            function);
+        if (TraceState) {
+            d->print(
+                lex,
+                fmt("    [{:<3}] token {:<48} indents {:<32}",
+                    idx.getIndex(),
+                    fmt1(tok),
+                    fmt1(indentStack)),
+                line,
+                function);
+        }
     }
 
     void rec_add_line(
@@ -885,11 +889,13 @@ struct GroupVisitorState {
         CVec<int>      ind,
         int            code_line = __builtin_LINE(),
         char const*    function  = __builtin_FUNCTION()) {
-        d->print(
-            lex,
-            fmt("  LINE: indent={} kind={}", line.indent, line.kind),
-            code_line,
-            function);
+        if (TraceState) {
+            d->print(
+                lex,
+                fmt("  LINE: indent={} kind={}", line.indent, line.kind),
+                code_line,
+                function);
+        }
 
         auto const& tokens = line.tokens;
         for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
@@ -1030,18 +1036,22 @@ struct GroupVisitorState {
 
 
         auto print_line = [&](CR<LineToken> line, Str prefix, int level) {
-            print1(
-                fmt("[{}] line:{} indent={}",
-                    prefix,
-                    line.kind,
-                    line.indent),
-                level);
-
-            for (int token_idx = 0; token_idx < line.tokens.size();
-                 ++token_idx) {
+            if (TraceState) {
                 print1(
-                    fmt("[{}] {}", token_idx, line.tokens.at(token_idx)),
-                    level + 1);
+                    fmt("[{}] line:{} indent={}",
+                        prefix,
+                        line.kind,
+                        line.indent),
+                    level);
+
+                for (int token_idx = 0; token_idx < line.tokens.size();
+                     ++token_idx) {
+                    print1(
+                        fmt("[{}] {}",
+                            token_idx,
+                            line.tokens.at(token_idx)),
+                        level + 1);
+                }
             }
         };
 
@@ -1049,12 +1059,14 @@ struct GroupVisitorState {
         rec_print_group = [&](CR<Vec<GroupToken>> groups, int level) {
             for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
                 auto const& gr = groups.at(gr_index);
-                print1(
-                    fmt("[{}] group:{} indent {}",
-                        gr_index,
-                        gr.kind,
-                        gr.indent()),
-                    level);
+                if (TraceState) {
+                    print1(
+                        fmt("[{}] group:{} indent {}",
+                            gr_index,
+                            gr.kind,
+                            gr.indent()),
+                        level);
+                }
 
                 if (gr.isNested()) {
                     print_line(gr.getNested().begin, "begin", level + 2);
