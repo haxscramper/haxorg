@@ -75,6 +75,23 @@ class LinePrinterLogSink : public absl::LogSink {
     std::ofstream file;
 };
 
+class QuietTestPrinter : public ::testing::EmptyTestEventListener {
+    // Called after a failed assertion or a SUCCESS().
+    void OnTestPartResult(
+        const ::testing::TestPartResult& test_part_result) override {
+        if (test_part_result.failed()) {
+            std::cout << fmt(
+                "{} in {}:{}\n{}\n",
+                test_part_result.failed() ? "*** Failure" : "Success",
+                test_part_result.file_name() ? test_part_result.file_name()
+                                             : "<none>",
+                test_part_result.line_number(),
+                test_part_result.summary());
+        }
+    }
+};
+
+
 int main(int argc, char** argv) {
     // LinePrinterLogSink Sink("/tmp/test_log.log");
     // absl::AddLogSink(&Sink);
@@ -86,12 +103,29 @@ int main(int argc, char** argv) {
     // accomodate for the document depth increased stack limit is required.
     SetStackSize(32 * 1024 * 1024);
 
+
 #ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession>
         tracing_session = StartProcessTracing("Perfetto track example");
 #endif
 
     ::testing::InitGoogleTest(&argc, argv);
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--hax_vscode_run") {
+            // Removes the default console output listener from the list so
+            // it will not receive events from Google Test and won't print
+            // any output.
+            ::testing::TestEventListeners& listeners = ::testing::UnitTest::
+                                                           GetInstance()
+                                                               ->listeners();
+
+            // Adds a listener to the end. Google Test takes the ownership.
+            delete listeners.Release(listeners.default_result_printer());
+            listeners.Append(new QuietTestPrinter());
+        }
+    }
+
     auto result = RUN_ALL_TESTS();
 
     json          records = TestProfiler::getJsonRecords();

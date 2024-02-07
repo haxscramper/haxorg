@@ -7,6 +7,7 @@ from beartype.typing import Tuple, Optional
 from beartype import beartype
 from dataclasses import dataclass
 import json
+from plumbum import local, ProcessExecutionError
 
 from py_scriptutils.tracer import TraceCollector
 
@@ -77,7 +78,18 @@ class GTestParams():
 
     def item_name(self):
         return self.parameter_name or self.test_name
+    
+    def gtest_params(self):
+        if self.parameter_name:
+            result = [f"--gtest_filter={self.class_name}.{self.test_name}/{self.parameter_name}"]
+        else:
+            result = [f"--gtest_filter={self.class_name}.{self.test_name}"]
 
+        result.append("--gtest_brief=1")
+        result.append("--hax_vscode_run")
+
+        return result
+        
     def fullname(self):
         if self.parameter_name:
             return f"{self.class_name}/{self.test_name}.{self.parameter_name}"
@@ -86,9 +98,11 @@ class GTestParams():
 
 
 def parse_google_tests(binary_path: str) -> list[GTestParams]:
-    result = subprocess.run([binary_path, "--gtest_list_tests"],
-                            capture_output=True,
-                            text=True)
+    result = subprocess.run(
+        [binary_path, "--gtest_list_tests"],
+        capture_output=True,
+        text=True,
+    )
     tests = []
     current_suite = None
 
@@ -104,7 +118,8 @@ def parse_google_tests(binary_path: str) -> list[GTestParams]:
                         class_name=current_suite,
                         test_name=main_name,
                         parameter_name=parameter_name,
-                        parameter_desc=json.loads(line.strip().split('# GetParam() = ')[1]),
+                        parameter_desc=json.loads(
+                            line.strip().split('# GetParam() = ')[1]),
                     ))
 
             else:
@@ -133,15 +148,29 @@ class GTestClass(pytest.Class):
 
     def collect(self):
         for test in self.tests:
-            yield GTestItem.from_parent(self,
-                                        gtest=test,
-                                        name=test.item_name(),
-                                        callobj=lambda: None)
+            yield GTestItem.from_parent(
+                self,
+                gtest=test,
+                name=test.item_name(),
+                callobj=lambda: None,
+            )
 
     def _getobj(self):
         # Return a dummy class object
         return type(self.name, (object,), {})
 
+
+@dataclass
+class GTestRunError(Exception):
+    shell_error: ProcessExecutionError
+
+    def __str__(self):
+        return self.shell_error.stdout
+
+# def pytest_exception_interact(node, call, report):
+#     if report.failed and isinstance(call.excinfo.value, GTestRunError):
+#         # Modify the report's long representation (longrepr) to only include the desired output
+#         report.longrepr = str(call.excinfo.value.shell_error.stderr)
 
 class GTestItem(pytest.Function):
 
@@ -150,12 +179,18 @@ class GTestItem(pytest.Function):
         self.gtest = gtest
 
     def runtest(self):
-        subprocess.run([binary_path, f"--gtest_filter={self.gtest.fullname()}"])
+        try:
+            local[binary_path](*self.gtest.gtest_params())
+
+        except ProcessExecutionError as e:
+            raise GTestRunError(e) from None
+
 
     @property
     def location(self) -> Tuple[str, Optional[int], str]:
         # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
-        return (self.gtest.get_source_file(), self.gtest.get_source_line(), self.gtest.fullname())
+        return (self.gtest.get_source_file(), self.gtest.get_source_line(),
+                self.gtest.fullname())
 
     def _getobj(self):
         # Return a dummy function

@@ -35,8 +35,6 @@ Vec<TestParams> generateTestRuns() {
         }
     };
 
-    LOG(INFO) << "Searching for corpus tests in " << __CURRENT_FILE_DIR__;
-
     for (fs::directory_entry const& it : fs::recursive_directory_iterator(
              __CURRENT_FILE_DIR__ / "corpus")) {
         fs::path path{it.path()};

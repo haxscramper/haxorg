@@ -11,8 +11,17 @@ from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
-from py_codegen.gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuFunction,
-                                   GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
+from py_codegen.gen_tu_cpp import (
+    GenTuEnum,
+    GenTuEnumField,
+    GenTuField,
+    GenTuFunction,
+    GenTuStruct,
+    GenTuTypedef,
+    QualType,
+    QualTypeKind,
+    GenTuUnion,
+)
 from py_codegen.refl_read import ConvTu
 
 
