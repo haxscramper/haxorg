@@ -188,8 +188,9 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
             created.time = par->at(0).as<sem::Time>();
             result       = Property(created);
         } else {
-            LOG(ERROR) << "Could not extract time from 'created' property\n"
-                       << a.treeRepr(true);
+            LOG(ERROR)
+                << "Could not extract time from 'created' property\n"
+                << a.treeRepr(true);
         }
 
     } else if (name == "origin") {
@@ -692,7 +693,6 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
         }
     }
 
-
     auto values = convertCmdArguments(eexport, one(a, N::Args));
     if (auto place = values->popArg("placement"); place) {
         eexport->placement = (*place)->getString();
@@ -700,7 +700,7 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
 
     eexport->exporter   = get_text(one(a, N::Name));
     eexport->parameters = values;
-    for (auto const& item : many(a, N::Body)) {
+    for (auto const& item : one(a, N::Body)) {
         eexport->content = get_text(item);
     }
 
@@ -766,20 +766,26 @@ SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
 }
 
 SemIdT<CmdArguments> OrgConverter::convertCmdArguments(__args) {
-    SemIdT<CmdArguments> result = Sem<CmdArguments>(p, a);
+    SemIdT<CmdArguments> result  = Sem<CmdArguments>(p, a);
+    auto                 add_arg = [&](SemIdT<CmdArgument> arg) {
+        if (arg->key) {
+            bool ok = result->named.insert({arg->key.value(), arg}).second;
+            CHECK(ok); // TODO generate proper error message
+        } else {
+            result->positional.push_back(arg);
+        }
+    };
+
     if (a.getKind() == org::CmdArguments) {
         for (auto const& item : one(a, N::Values)) {
-            SemIdT<CmdArgument> arg = convertCmdArgument(result, item);
-            if (arg->key) {
-                bool ok = result->named.insert({arg->key.value(), arg})
-                              .second;
-                CHECK(ok); // TODO generate proper error message
-            } else {
-                result->positional.push_back(arg);
-            }
+            add_arg(convertCmdArgument(result, item));
+        }
+    } else if (a.getKind() == org::InlineStmtList) {
+        for (auto const& it : a) {
+            add_arg(convertCmdArgument(result, it));
         }
     } else {
-        CHECK(a.getKind() == org::Empty);
+        CHECK(a.getKind() == org::Empty) << a.treeRepr();
     }
 
     return result;
@@ -1007,15 +1013,6 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 }
                 case org::LatexClassOptions: {
                     auto value = get_text(sub.at(0));
-                    if (value.starts_with('[')) {
-                        LOG(FATAL) << "TODO";
-                        // value.remove('[');
-                    }
-                    if (value.starts_with(']')) {
-                        LOG(FATAL) << "TODO";
-                        //  value = value.chopped(1);
-                    }
-
                     Prop::ExportLatexClassOptions res;
                     res.options.push_back(value);
                     doc->options->properties.push_back(Prop(res));

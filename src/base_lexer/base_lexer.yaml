@@ -185,9 +185,13 @@ rules:
     actions:
       - { do: pop, from: BODY_EXPORT, to: INITIAL }
 
-  - re: "^.*$"
-    states: [COMMAND_EXPORT]
+  - re: ".*"
+    states: [BODY_EXPORT]
     token: CmdExportLine
+
+  - re: "\\n"
+    states: [BODY_EXPORT]
+    token: Newline
 
   - re: "\\n"
     states: [COMMAND_EXPORT]
@@ -265,6 +269,21 @@ rules:
     states: [COMMAND]
     actions:
       - { do: push, from: COMMAND, to: COMMAND_RAW }
+
+  - re: "latex_class{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexClass
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_class_options{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexClassOptions
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_compiler{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexCompiler
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "latex_header{prop_colon}"
     states: [COMMAND]

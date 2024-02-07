@@ -61,6 +61,9 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdFlag: return "CmdFlag";
         case OrgTokenKind::CmdInclude: return "CmdInclude";
         case OrgTokenKind::CmdLanguage: return "CmdLanguage";
+        case OrgTokenKind::CmdLatexClass: return "CmdLatexClass";
+        case OrgTokenKind::CmdLatexClassOptions: return "CmdLatexClassOptions";
+        case OrgTokenKind::CmdLatexCompiler: return "CmdLatexCompiler";
         case OrgTokenKind::CmdLatexHeader: return "CmdLatexHeader";
         case OrgTokenKind::CmdOptions: return "CmdOptions";
         case OrgTokenKind::CmdPrefix: return "CmdPrefix";
@@ -224,6 +227,9 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdFlag") { return OrgTokenKind::CmdFlag; } else
   if (value == "CmdInclude") { return OrgTokenKind::CmdInclude; } else
   if (value == "CmdLanguage") { return OrgTokenKind::CmdLanguage; } else
+  if (value == "CmdLatexClass") { return OrgTokenKind::CmdLatexClass; } else
+  if (value == "CmdLatexClassOptions") { return OrgTokenKind::CmdLatexClassOptions; } else
+  if (value == "CmdLatexCompiler") { return OrgTokenKind::CmdLatexCompiler; } else
   if (value == "CmdLatexHeader") { return OrgTokenKind::CmdLatexHeader; } else
   if (value == "CmdOptions") { return OrgTokenKind::CmdOptions; } else
   if (value == "CmdPrefix") { return OrgTokenKind::CmdPrefix; } else

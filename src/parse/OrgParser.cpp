@@ -899,13 +899,15 @@ OrgId OrgParser::parseBlockExport(OrgLexer& lex) {
     space(lex);
     token(org::Ident, pop(lex, otk::CmdRawArg));
     space(lex);
-    parseSrcArguments(lex);
+    parseCommandArguments(lex);
     newline(lex);
 
     // command content
-    while (lex.at(OrgTokSet{otk::SrcContent, otk::Newline})) {
+    start(org::StmtList);
+    while (lex.at(OrgTokSet{otk::CmdExportLine, otk::Newline})) {
         token(org::RawText, pop(lex, lex.kind()));
     }
+    end();
 
     skip(lex, otk::CmdPrefix);
     skip(lex, otk::CmdExportEnd);
@@ -1385,6 +1387,36 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
+
+        case otk::CmdLatexClass:
+        case otk::CmdLatexCompiler: {
+            skip(lex, otk::CmdPrefix);
+            switch (cmd_kind) {
+                case otk::CmdLatexCompiler:
+                    start(org::LatexCompiler);
+                    skip(lex, otk::CmdLatexCompiler);
+                    break;
+                case otk::CmdLatexClass:
+                    start(org::LatexClass);
+                    skip(lex, otk::CmdLatexClass);
+                    break;
+                default:
+            }
+
+            token(org::Ident, pop(lex, otk::CmdRawArg));
+            break;
+        }
+
+
+        case otk::CmdLatexClassOptions: {
+            skip(lex, otk::CmdPrefix);
+            skip(lex, otk::CmdLatexClassOptions);
+            start(org::LatexClassOptions);
+            token(org::RawText, pop(lex, otk::CmdRawArg));
+            break;
+        }
+
+
 #if false
         case otk::CmdAttrHtml: {
             skip(lex, otk::CmdPrefix);
@@ -1402,32 +1434,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case otk::CmdLatexClassOptions: {
-            skip(lex, otk::CmdPrefix);
-            skip(lex, otk::CmdLatexClassOptions);
-            start(org::LatexClassOptions);
-            token(org::RawText, pop(lex, otk::RawText));
-            break;
-        }
 
-        case otk::CmdLatexClass:
-        case otk::CmdLatexCompiler: {
-            skip(lex, otk::CmdPrefix);
-            switch (cmd_kind) {
-                case otk::CmdLatexCompiler:
-                    start(org::LatexCompiler);
-                    skip(lex, otk::CmdLatexCompiler);
-                    break;
-                case otk::CmdLatexClass:
-                    start(org::LatexClass);
-                    skip(lex, otk::CmdLatexClass);
-                    break;
-                default:
-            }
-
-            token(org::Ident, pop(lex, otk::Word));
-            break;
-        }
 #endif
 
         case otk::CmdPropertyRaw: {

@@ -394,7 +394,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 field1(0, N::Name, org::Ident),
                 fieldN(1, N::Args, {org::Empty, org::CmdArguments}),
-                field1(2, N::Body, org::RawText),
+                Field(
+                    Range(2, N::Body),
+                    OrgPattern(org::StmtList)
+                        .sub({Field(
+                            Range(slice(0, 1_B), N::Lines),
+                            OrgPattern(org::RawText))})),
             })},
         SpecPair{
             org::CommandInclude,
