@@ -1672,8 +1672,6 @@ struct Link : public sem::Org {
                         data,
                         (sem::SemIdT<Link>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId>(sem::Document const&) const) resolve,
-                        (Opt<sem::SemId>() const) resolve,
                         (sem::Link::Raw const&() const) getRaw,
                         (sem::Link::Raw&()) getRaw,
                         (sem::Link::Id const&() const) getId,
@@ -1694,8 +1692,6 @@ struct Link : public sem::Org {
   sem::Link::Data data;
   static sem::SemIdT<Link> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
-  Opt<sem::SemId> resolve(sem::Document const& doc) const;
-  Opt<sem::SemId> resolve() const;
   sem::Link::Raw const& getRaw() const { return std::get<0>(data); }
   sem::Link::Raw& getRaw() { return std::get<0>(data); }
   sem::Link::Id const& getId() const { return std::get<1>(data); }
@@ -1718,10 +1714,6 @@ struct Document : public sem::Org {
                        (),
                        (loc,
                         staticKind,
-                        idTable,
-                        nameTable,
-                        footnoteTable,
-                        anchorTable,
                         title,
                         author,
                         creator,
@@ -1731,18 +1723,12 @@ struct Document : public sem::Org {
                         exportFileName,
                         (sem::SemIdT<Document>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId>(sem::SemId const&) const) resolve,
-                        (Opt<sem::SemIdT<sem::Subtree>>(Str const&) const) getSubtree,
                         (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
                         (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
   /// \brief Document
   Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
-  UnorderedMap<Str, sem::SemId> idTable;
-  UnorderedMap<Str, sem::SemId> nameTable;
-  UnorderedMap<Str, sem::SemId> footnoteTable;
-  UnorderedMap<Str, sem::SemId> anchorTable;
   Opt<sem::SemIdT<sem::Paragraph>> title = std::nullopt;
   Opt<sem::SemIdT<sem::Paragraph>> author = std::nullopt;
   Opt<sem::SemIdT<sem::Paragraph>> creator = std::nullopt;
@@ -1752,8 +1738,6 @@ struct Document : public sem::Org {
   Opt<Str> exportFileName = std::nullopt;
   static sem::SemIdT<Document> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
-  Opt<sem::SemId> resolve(sem::SemId const& node) const;
-  Opt<sem::SemIdT<sem::Subtree>> getSubtree(Str const& id) const;
   Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
   Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
 };

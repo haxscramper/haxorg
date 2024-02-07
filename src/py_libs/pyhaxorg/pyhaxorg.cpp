@@ -905,10 +905,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("data",
                   [](sem::SemIdT<sem::Link> _self) -> sem::Link::Data { return _self->data; },
                   [](sem::SemIdT<sem::Link> _self, sem::Link::Data data) { _self->data = data; })
-    .def("resolve",
-         [](sem::SemIdT<sem::Link> _self, sem::Document const& doc) -> Opt<sem::SemId> { return _self->resolve(doc); },
-         pybind11::arg("doc"))
-    .def("resolve", [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemId> { return _self->resolve(); })
     .def("getRaw", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Raw& { return _self->getRaw(); })
     .def("getId", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Id& { return _self->getId(); })
     .def("getPerson", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Person& { return _self->getPerson(); })
@@ -949,18 +945,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("loc",
                   [](sem::SemIdT<sem::Document> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::Document> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("idTable",
-                  [](sem::SemIdT<sem::Document> _self) -> UnorderedMap<Str, sem::SemId> { return _self->idTable; },
-                  [](sem::SemIdT<sem::Document> _self, UnorderedMap<Str, sem::SemId> idTable) { _self->idTable = idTable; })
-    .def_property("nameTable",
-                  [](sem::SemIdT<sem::Document> _self) -> UnorderedMap<Str, sem::SemId> { return _self->nameTable; },
-                  [](sem::SemIdT<sem::Document> _self, UnorderedMap<Str, sem::SemId> nameTable) { _self->nameTable = nameTable; })
-    .def_property("footnoteTable",
-                  [](sem::SemIdT<sem::Document> _self) -> UnorderedMap<Str, sem::SemId> { return _self->footnoteTable; },
-                  [](sem::SemIdT<sem::Document> _self, UnorderedMap<Str, sem::SemId> footnoteTable) { _self->footnoteTable = footnoteTable; })
-    .def_property("anchorTable",
-                  [](sem::SemIdT<sem::Document> _self) -> UnorderedMap<Str, sem::SemId> { return _self->anchorTable; },
-                  [](sem::SemIdT<sem::Document> _self, UnorderedMap<Str, sem::SemId> anchorTable) { _self->anchorTable = anchorTable; })
     .def_property("title",
                   [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->title; },
                   [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::Paragraph>> title) { _self->title = title; })
@@ -982,12 +966,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("exportFileName",
                   [](sem::SemIdT<sem::Document> _self) -> Opt<Str> { return _self->exportFileName; },
                   [](sem::SemIdT<sem::Document> _self, Opt<Str> exportFileName) { _self->exportFileName = exportFileName; })
-    .def("resolve",
-         [](sem::SemIdT<sem::Document> _self, sem::SemId const& node) -> Opt<sem::SemId> { return _self->resolve(node); },
-         pybind11::arg("node"))
-    .def("getSubtree",
-         [](sem::SemIdT<sem::Document> _self, Str const& id) -> Opt<sem::SemIdT<sem::Subtree>> { return _self->getSubtree(id); },
-         pybind11::arg("id"))
     .def("getProperties",
          [](sem::SemIdT<sem::Document> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subKind); },
          pybind11::arg("kind"),

@@ -65,40 +65,6 @@ Vec<SemId> Org::getParentChain() const {
     return result;
 }
 
-
-Opt<SemId> Link::resolve(Document const& doc) const {
-    // TODO add target lookup that will create a full list
-    // of all possible targets and genrate warning message.
-    //
-    // IDEA another feature that can be implemented using
-    // document walker is autocompletion logic of some
-    // sort.
-    switch (getLinkKind()) {
-        case Link::Kind::Id: {
-            Opt<SemId> target = doc.idTable.get(getId().text);
-            if (target) { return target.value(); }
-            break;
-        }
-
-        case Link::Kind::Footnote: {
-            auto target = doc.footnoteTable.get(getFootnote().target);
-            if (target) { return target.value(); }
-            break;
-        }
-    }
-
-    return std::nullopt;
-}
-
-Opt<SemId> Link::resolve() const {
-    if (auto doc = getDocument(); doc) {
-        return resolve(*doc.value().get());
-    } else {
-        return std::nullopt;
-    }
-}
-
-
 namespace {
 void eachSubnodeRecImpl(
     CR<SemId::SubnodeVisitor> visitor,
@@ -276,6 +242,7 @@ Opt<Property> Subtree::getContextualProperty(
                 }
                 return Property(res);
             }
+            default: LOG(FATAL);
         }
     }
 }
@@ -340,19 +307,6 @@ Opt<Subtree::Property> Document::getProperty(
         return std::nullopt;
     } else {
         return options->getProperty(kind, subkind);
-    }
-}
-
-Opt<SemIdT<Subtree>> Document::getSubtree(CR<Str> id) const {
-    return idTable.get(id);
-}
-
-Opt<SemId> Document::resolve(CR<SemId> node) const {
-    CHECK(!node.isNil());
-    CHECK(this != nullptr);
-    switch (node->getKind()) {
-        case osk::Link: return node.as<Link>()->resolve(*this);
-        default: return std::nullopt;
     }
 }
 

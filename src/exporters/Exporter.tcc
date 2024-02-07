@@ -649,10 +649,6 @@ template <typename V, typename R>
 void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);
-  __org_field(res, object, idTable);
-  __org_field(res, object, nameTable);
-  __org_field(res, object, footnoteTable);
-  __org_field(res, object, anchorTable);
   __org_field(res, object, title);
   __org_field(res, object, author);
   __org_field(res, object, creator);

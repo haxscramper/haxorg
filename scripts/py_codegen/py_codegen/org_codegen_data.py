@@ -1219,16 +1219,6 @@ def get_types() -> Sequence[GenTuStruct]:
                            GenTuDoc(""),
                            value="std::nullopt")
             ],
-            methods=[
-                GenTuFunction(
-                    t_opt(t_id()),
-                    "resolve",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[GenTuIdent(t_cr(t_nest("Document", [])), "doc")],
-                ),
-                GenTuFunction(t_opt(t_id()), "resolve", GenTuDoc(""), isConst=True),
-            ],
             nested=[
                 GenTuTypeGroup(
                     [
@@ -1266,20 +1256,6 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             methods=[
                 GenTuFunction(
-                    t_opt(t_id()),
-                    "resolve",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[GenTuIdent(t_cr(t_id()), "node")],
-                ),
-                GenTuFunction(
-                    t_opt(t_id("Subtree")),
-                    "getSubtree",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[GenTuIdent(t_cr(t_str()), "id")],
-                ),
-                GenTuFunction(
                     t_vec(t_nest("Property", ["Subtree"])),
                     "getProperties",
                     GenTuDoc(""),
@@ -1301,10 +1277,6 @@ def get_types() -> Sequence[GenTuStruct]:
                 ),
             ],
             fields=[
-                GenTuField(t_map(t_str(), t_id()), "idTable", GenTuDoc("")),
-                GenTuField(t_map(t_str(), t_id()), "nameTable", GenTuDoc("")),
-                GenTuField(t_map(t_str(), t_id()), "footnoteTable", GenTuDoc("")),
-                GenTuField(t_map(t_str(), t_id()), "anchorTable", GenTuDoc("")),
                 opt_field(t_id("Paragraph"), "title", GenTuDoc("")),
                 opt_field(t_id("Paragraph"), "author", GenTuDoc("")),
                 opt_field(t_id("Paragraph"), "creator", GenTuDoc("")),

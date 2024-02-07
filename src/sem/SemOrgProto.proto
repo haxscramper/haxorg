@@ -1124,17 +1124,13 @@ message Document {
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;
   OrgSemKind                                       staticKind                       = 3;
-  map<string, AnyNode>                             idTable                          = 4;
-  map<string, AnyNode>                             nameTable                        = 5;
-  map<string, AnyNode>                             footnoteTable                    = 6;
-  map<string, AnyNode>                             anchorTable                      = 7;
-  optional Paragraph                               title                            = 8;
-  optional Paragraph                               author                           = 9;
-  optional Paragraph                               creator                          = 10;
-  optional RawText                                 email                            = 11;
-  repeated string                                  language                         = 12;
-  DocumentOptions                                  options                          = 13;
-  optional string                                  exportFileName                   = 14;
+  optional Paragraph                               title                            = 4;
+  optional Paragraph                               author                           = 5;
+  optional Paragraph                               creator                          = 6;
+  optional RawText                                 email                            = 7;
+  repeated string                                  language                         = 8;
+  DocumentOptions                                  options                          = 9;
+  optional string                                  exportFileName                   = 10;
   string                                         debug                            = 1000;
 }
 

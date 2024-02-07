@@ -1028,29 +1028,5 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
         doc->subnodes.push_back(convert(doc, adapter));
     }
 
-
-    doc.eachSubnodeRec([&](sem::SemId const& org) {
-        switch (org->getKind()) {
-            case osk::Subtree: {
-                auto subtree = org.as<Subtree>();
-                if (auto id = subtree->treeId) {
-                    doc->idTable.insert({id.value(), org});
-                }
-
-                break;
-            }
-
-            case osk::Paragraph: {
-                auto par = org.as<Paragraph>();
-                if (par->isFootnoteDefinition()) {
-                    auto tag = par->at(0).as<Footnote>()->tag;
-                    doc->footnoteTable.insert({tag, par});
-                }
-                break;
-            }
-        }
-    });
-
-
     return doc;
 }

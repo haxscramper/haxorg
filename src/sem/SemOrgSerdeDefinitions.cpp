@@ -1506,10 +1506,6 @@ void proto_serde<::orgproto::Document, sem::Document>::write(::orgproto::Documen
   if (in.loc) {
     proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
   }
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::write(out->mutable_idtable(), in.idTable);
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::write(out->mutable_nametable(), in.nameTable);
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::write(out->mutable_footnotetable(), in.footnoteTable);
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::write(out->mutable_anchortable(), in.anchorTable);
   if (in.title) {
     proto_serde<orgproto::Paragraph, sem::Paragraph>::write(out->mutable_title(), *((*in.title).get()));
   }
@@ -1536,10 +1532,6 @@ void proto_serde<::orgproto::Document, sem::Document>::read(sem::ContextStore* c
   if (out.has_loc()) {
     proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(context, out.loc(), in.for_field(&sem::Document::loc));
   }
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.idtable(), in.for_field(&sem::Document::idTable));
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.nametable(), in.for_field(&sem::Document::nameTable));
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.footnotetable(), in.for_field(&sem::Document::footnoteTable));
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AnyNode>, UnorderedMap<Str, sem::SemId>>::read(context, out.anchortable(), in.for_field(&sem::Document::anchorTable));
   if (out.has_title()) {
     proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemIdT<sem::Paragraph>>>::read(context, out.title(), in.for_field(&sem::Document::title));
   }
