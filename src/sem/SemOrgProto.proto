@@ -839,6 +839,10 @@ message Subtree {
       Time                                         time                             = 1;
       string                                     debug                            = 1000;
     }
+    message Unknown {
+      AnyNode                                      value                            = 1;
+      string                                     debug                            = 1000;
+    }
     message Data {
       oneof kind {
         Subtree.Property.Nonblocking               nonblocking                      = 1;
@@ -855,6 +859,7 @@ message Subtree {
         Subtree.Property.Blocker                   blocker                          = 12;
         Subtree.Property.Unnumbered                unnumbered                       = 13;
         Subtree.Property.Created                   created                          = 14;
+        Subtree.Property.Unknown                   unknown                          = 15;
       }
     }
     enum Kind {
@@ -872,6 +877,7 @@ message Subtree {
       Kind_Blocker_f                                                                = 11;
       Kind_Unnumbered_f                                                             = 12;
       Kind_Created_f                                                                = 13;
+      Kind_Unknown_f                                                                = 14;
     }
     Subtree.Property.SetMode                       mainSetRule                      = 1;
     Subtree.Property.SetMode                       subSetRule                       = 2;

@@ -1116,6 +1116,18 @@ def get_types() -> Sequence[GenTuStruct]:
                                 nested=[GenTuPass("Created() {}")],
                                 fields=[id_field("Time", "time", GenTuDoc(""))],
                             ),
+                            GenTuStruct(
+                                t("Unknown"),
+                                GenTuDoc("Unknown property name"),
+                                nested=[GenTuPass("Unknown() {}")],
+                                fields=[
+                                    GenTuField(
+                                        t_id(),
+                                        "value",
+                                        GenTuDoc("Converted value of the property"),
+                                        value=f"SemId::Nil()")
+                                ],
+                            )
                         ]),
                         GenTuPass("Property(CR<Data> data) : data(data) {}"),
                         GenTuPass(
@@ -1434,6 +1446,7 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
     ]
+
 
 def get_enums():
     return [

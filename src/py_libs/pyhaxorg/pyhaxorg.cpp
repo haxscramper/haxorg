@@ -621,6 +621,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def("getBlocker", static_cast<sem::Subtree::Property::Blocker&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getBlocker))
     .def("getUnnumbered", static_cast<sem::Subtree::Property::Unnumbered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnnumbered))
     .def("getCreated", static_cast<sem::Subtree::Property::Created&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCreated))
+    .def("getUnknown", static_cast<sem::Subtree::Property::Unknown&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnknown))
     .def("getKind", static_cast<sem::Subtree::Property::Kind(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getKind))
     ;
   pybind11::enum_<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode")
@@ -698,6 +699,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def(pybind11::init<>())
     .def_readwrite("time", &sem::Subtree::Property::Created::time)
     ;
+  pybind11::class_<sem::Subtree::Property::Unknown>(m, "SubtreePropertyUnknown")
+    .def(pybind11::init<>())
+    .def_readwrite("value", &sem::Subtree::Property::Unknown::value, R"RAW(Converted value of the property)RAW")
+    ;
   pybind11::enum_<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind")
     .value("Nonblocking", sem::Subtree::Property::Kind::Nonblocking)
     .value("Trigger", sem::Subtree::Property::Kind::Trigger)
@@ -713,6 +718,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Blocker", sem::Subtree::Property::Kind::Blocker)
     .value("Unnumbered", sem::Subtree::Property::Kind::Unnumbered)
     .value("Created", sem::Subtree::Property::Kind::Created)
+    .value("Unknown", sem::Subtree::Property::Kind::Unknown)
     .export_values()
     ;
   pybind11::class_<sem::SemIdT<sem::LatexBody>, sem::SemId>(m, "SemLatexBody")

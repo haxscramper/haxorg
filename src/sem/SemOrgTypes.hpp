@@ -1081,9 +1081,17 @@ struct Subtree : public sem::Org {
       sem::SemIdT<sem::Time> time = SemIdT<Time>::Nil();
     };
 
-    using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created>;
-    enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created)
+    /// \brief Unknown property name
+    struct Unknown {
+      Unknown() {}
+      BOOST_DESCRIBE_CLASS(Unknown, (), (), (), (value))
+      /// \brief Converted value of the property
+      sem::SemId value = SemId::Nil();
+    };
+
+    using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created, sem::Subtree::Property::Unknown>;
+    enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, Unknown, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, Unknown)
     using variant_enum_type = sem::Subtree::Property::Kind;
     using variant_data_type = sem::Subtree::Property::Data;
     Property(CR<Data> data) : data(data) {}
@@ -1124,6 +1132,8 @@ struct Subtree : public sem::Org {
                           (sem::Subtree::Property::Unnumbered&()) getUnnumbered,
                           (sem::Subtree::Property::Created const&() const) getCreated,
                           (sem::Subtree::Property::Created&()) getCreated,
+                          (sem::Subtree::Property::Unknown const&() const) getUnknown,
+                          (sem::Subtree::Property::Unknown&()) getUnknown,
                           (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
                           (sem::Subtree::Property::Kind() const) getKind))
     sem::Subtree::Property::SetMode mainSetRule = SetMode::Override;
@@ -1158,6 +1168,8 @@ struct Subtree : public sem::Org {
     sem::Subtree::Property::Unnumbered& getUnnumbered() { return std::get<12>(data); }
     sem::Subtree::Property::Created const& getCreated() const { return std::get<13>(data); }
     sem::Subtree::Property::Created& getCreated() { return std::get<13>(data); }
+    sem::Subtree::Property::Unknown const& getUnknown() const { return std::get<14>(data); }
+    sem::Subtree::Property::Unknown& getUnknown() { return std::get<14>(data); }
     static sem::Subtree::Property::Kind getKind(sem::Subtree::Property::Data const& __input) { return static_cast<sem::Subtree::Property::Kind>(__input.index()); }
     sem::Subtree::Property::Kind getKind() const { return getKind(data); }
   };

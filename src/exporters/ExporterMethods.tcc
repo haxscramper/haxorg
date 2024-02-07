@@ -70,6 +70,7 @@ void visit(R& res, sem::Subtree::Property::ExportOptions const& object);
 void visit(R& res, sem::Subtree::Property::Blocker const& object);
 void visit(R& res, sem::Subtree::Property::Unnumbered const& object);
 void visit(R& res, sem::Subtree::Property::Created const& object);
+void visit(R& res, sem::Subtree::Property::Unknown const& object);
 void visitLatexBody(R& res, In<sem::LatexBody> object);
 void visitInlineMath(R& res, In<sem::InlineMath> object);
 void visitLeaf(R& res, In<sem::Leaf> object);

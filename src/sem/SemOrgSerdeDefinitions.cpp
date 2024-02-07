@@ -917,6 +917,16 @@ void proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property:
   proto_serde<orgproto::Time, sem::SemIdT<sem::Time>>::read(context, out.time(), in.for_field(&sem::Subtree::Property::Created::time));
 }
 
+void proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::write(::orgproto::Subtree::Property::Unknown* out, sem::Subtree::Property::Unknown const& in) {
+  if (!in.value.isNil()) {
+    proto_serde<orgproto::AnyNode, sem::SemId>::write(out->mutable_value(), in.value);
+  }
+}
+
+void proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::read(sem::ContextStore* context, ::orgproto::Subtree::Property::Unknown const& out, proto_write_accessor<sem::Subtree::Property::Unknown> in) {
+  proto_serde<orgproto::AnyNode, sem::SemId>::read(context, out.value(), in.for_field(&sem::Subtree::Property::Unknown::value));
+}
+
 void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in) {
   out->set_mainsetrule(static_cast<orgproto::Subtree_Property_SetMode>(in.mainSetRule));
   out->set_subsetrule(static_cast<orgproto::Subtree_Property_SetMode>(in.subSetRule));
@@ -963,6 +973,9 @@ void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(:
       break;
     case 13:
       proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::write(out->mutable_data()->mutable_created(), std::get<13>(in.data));
+      break;
+    case 14:
+      proto_serde<orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::write(out->mutable_data()->mutable_unknown(), std::get<14>(in.data));
       break;
   }
 }
@@ -1013,6 +1026,9 @@ void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::read(se
       break;
     case ::orgproto::Subtree::Property::Data::kCreated:
       proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::read(context, out.data().created(), in.for_field_variant<13>(context, &sem::Subtree::Property::data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kUnknown:
+      proto_serde<orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::read(context, out.data().unknown(), in.for_field_variant<14>(context, &sem::Subtree::Property::data));
       break;
   }
 }

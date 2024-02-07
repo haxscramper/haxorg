@@ -217,9 +217,9 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         result = Property(prop);
 
     } else {
-        LOG(ERROR) << "Unknown property name" << get_text(one(a, N::Name))
-                   << "\n"
-                   << a.treeRepr();
+        Property::Unknown prop;
+        prop.value = convert(tree, one(a, N::Values));
+        result     = Property(prop);
     }
 
     if (false && result) {

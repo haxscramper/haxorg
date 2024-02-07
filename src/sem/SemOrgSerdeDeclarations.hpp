@@ -457,6 +457,13 @@ struct proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Propert
 
 
 template <>
+struct proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown> {
+  static void write(::orgproto::Subtree::Property::Unknown* out, sem::Subtree::Property::Unknown const& in);
+  static void read(sem::ContextStore* context, ::orgproto::Subtree::Property::Unknown const& out, proto_write_accessor<sem::Subtree::Property::Unknown> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property> {
   static void write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in);
   static void read(sem::ContextStore* context, ::orgproto::Subtree::Property const& out, proto_write_accessor<sem::Subtree::Property> in);
