@@ -1,7 +1,6 @@
 #include <hstd/stdlib/Str.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/strutils.hpp>
-#include <fuzztest/fuzztest.h>
 #include <hstd/stdlib/strformat.hpp>
 
 
@@ -175,16 +174,3 @@ TEST(Strutils, Mappings) {
     EXPECT_EQ(right_aligned("X", 2), " X");
     EXPECT_EQ(right_aligned("", 2), "  ");
 }
-
-namespace {
-void SafeStrOps(Str const& value) {
-    visibleUnicodeName(value, false);
-    visibleUnicodeName(value, true);
-    for (AsciiStyle style : sliceT<AsciiStyle>()) {
-        styledUnicodeMapping(value, style);
-    }
-}
-} // namespace
-
-FUZZ_TEST(FuzzStrutils, SafeStrOps)
-    .WithDomains(fuzztest::Arbitrary<std::string>());

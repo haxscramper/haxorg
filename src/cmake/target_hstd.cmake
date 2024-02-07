@@ -17,6 +17,7 @@ target_link_libraries(
     yaml-cpp
     absl::base
     absl::log
+    absl::flags
     perfetto
     range-v3
 )
@@ -31,8 +32,6 @@ target_link_libraries(
     tests_hstd PUBLIC
     gtest
     hstd
+    absl::flags
+    absl::flags_parse
 )
-
-include_directories("${BASE}/deps/fuzztest")
-
-link_fuzztest(tests_hstd)

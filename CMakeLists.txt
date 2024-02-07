@@ -60,8 +60,7 @@ option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
-option(ORG_USE_SANITIZER "Use sanitizers" ON)
-option(ORG_USE_FUZZER "User fuzzer compilation" OFF)
+option(ORG_USE_SANITIZER "Use sanitizers" ON) 
 
 if (${ORG_USE_SANITIZER})
     # Enable the sanitizer options. They are set globally primarity for the
@@ -91,25 +90,21 @@ target_include_directories(immer_lib INTERFACE "${DEPS_DIR}/immer")
 add_library(lager_lib INTERFACE)
 target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 
-add_subdirectory("${DEPS_DIR}/fuzztest")
 add_subdirectory("${DEPS_DIR}/pybind11")
+
+add_subdirectory("${DEPS_DIR}/abseil-cpp")
+add_subdirectory("${DEPS_DIR}/googletest")
+
+
+set(protobuf_INSTALL OFF)
 set(protobuf_BUILD_TESTS OFF)
+set(utf8_range_ENABLE_TESTS OFF)
+set(utf8_range_ENABLE_INSTALL OFF)
 add_subdirectory("${DEPS_DIR}/protobuf")
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(thirdparty/json)
-
-if(${ORG_USE_FUZZER})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${LLVM_GNU_CLANG_DIR} -lclang_rt.fuzzer_no_main")
-endif()
-
-include_directories("${BASE}/deps/fuzztest")
-
-if(${ORG_USE_FUZZER})
-    fuzztest_setup_fuzzing_flags()
-endif()
-
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)

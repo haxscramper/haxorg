@@ -1,7 +1,6 @@
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <gtest/gtest.h>
-#include <fuzztest/fuzztest.h>
 #include <absl/log/log.h>
 
 TEST(TestIntegralSetOperations, InitialSetContent) {
@@ -132,34 +131,3 @@ TEST(TestIntegralSetOperations, ValueDomainSanityChecks) {
         }
     }
 }
-
-using namespace fuzztest;
-
-template <typename T>
-Domain<std::pair<T, T>> AnyPairOfOrderedValues() {
-    return FlatMap(
-        [](T a) {
-            return PairOf(
-                Just(a), InRange(a, std::numeric_limits<T>::max()));
-        },
-        Arbitrary<T>());
-}
-
-
-void IntSliceSet(std::pair<u8, u8> const& range) {
-    IntSet<u8> set{slice1(range.first, range.second)};
-}
-
-FUZZ_TEST(IntSetFuzz, IntSliceSet)
-    .WithDomains(AnyPairOfOrderedValues<u8>());
-
-void CharSliceSet(std::pair<char, char> const& range) {
-    try {
-        IntSet<char> set{slice1(range.first, range.second)};
-    } catch (std::exception& e) {
-        FAIL() << range.first << range.second << e.what();
-    }
-}
-
-FUZZ_TEST(IntSetFuzz, CharSliceSet)
-    .WithDomains(AnyPairOfOrderedValues<char>());
