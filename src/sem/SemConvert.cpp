@@ -184,8 +184,13 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         Property::Created created;
         auto              par = convertParagraph(tree, one(a, N::Values));
 
-        created.time = par->at(0).as<sem::Time>();
-        result       = Property(created);
+        if (par->at(0).is(osk::Time)) {
+            created.time = par->at(0).as<sem::Time>();
+            result       = Property(created);
+        } else {
+            LOG(ERROR) << "Could not extract time from 'created' property\n"
+                       << a.treeRepr(true);
+        }
 
     } else if (name == "origin") {
         Property::Origin origin;

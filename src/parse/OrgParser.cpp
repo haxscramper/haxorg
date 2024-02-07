@@ -273,7 +273,15 @@ void OrgParser::textFold(OrgLexer& lex) {
                 break;
             }
 
-            case otk::AngleBegin: parsePlaceholder(lex); break;
+            case otk::AngleBegin: {
+                if (lex.at(otk::Date, +1)) {
+                    parseTimeStamp(lex);
+                } else {
+                    parsePlaceholder(lex);
+                }
+                break;
+            }
+
             case otk::TextSrcBegin: parseSrcInline(lex); break;
             case otk::HashIdent: parseHashTag(lex); break;
             case otk::LinkProtocolHttp:
