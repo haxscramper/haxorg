@@ -452,7 +452,8 @@ struct LexerCommon {
         return hasNext(offset) && kind.contains(tok(offset).kind);
     }
 
-    int find(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {
+    template <typename Target>
+    int find(CR<IntSet<K>> skip, CR<Target> target) const {
         int offset = 0;
         while (at(skip, offset)) { ++offset; }
 
@@ -461,6 +462,10 @@ struct LexerCommon {
         } else {
             return -1;
         }
+    }
+
+    bool ahead(CR<IntSet<K>> skip, CR<Vec<K>> target) const {
+        return find(skip, target) != -1;
     }
 
     bool ahead(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {

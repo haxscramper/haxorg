@@ -2,11 +2,9 @@ items:
   - name: "Hashtag with single word subtag"
     source: "#test##a"
     tokens:
-      - {kind: ParagraphBegin, str: ""}
-      - {kind: HashTag, str: "#test"}
-      - {kind: HashTagSub, str: "##"}
+      - {kind: HashIdent, str: "#test"}
+      - {kind: DoubleHash, str: "##"}
       - {kind: Word, str: a}
-      - {kind: ParagraphEnd, str: ""}
 
 
   - name: "Hashtag with two word subtags"
@@ -17,4 +15,4 @@ items:
       - {kind: StmtList, extent: 3}
       - {kind: Paragraph, extent: 2}
       - {kind: HashTag, extent: 1}
-      - {kind: RawText, tok_idx: 1, str: {base: {text: "#test"}}}
+      - {kind: RawText, tok_idx: 0, str: "#test"}

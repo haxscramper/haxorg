@@ -55,6 +55,9 @@ sub_lexers:
     - re: https?
       token: LinkProtocolHttp
 
+    - re: "\\w+:"
+      token: LinkProtocol
+
   raw_dsl_link:
     - re: "^\\[\\[\\w+"
       sub: 
@@ -69,6 +72,19 @@ sub_lexers:
 
     - re: "[\\|\\.].*?$"
       token: LinkTargetFile
+
+  link_protocol_internal:
+    - re: "^\\[\\["
+      token: LinkBegin
+
+    - re: "\\]\\["
+      token: LinkSplit
+
+    - re: "\\]\\]"
+      token: LinkEnd
+
+    - re: "\\w+"
+      token: LinkProtocolInternal
 
 tokens:
   - name: Indent
@@ -446,6 +462,12 @@ rules:
 
   - re: "\\[\\[(\\/|\\.){any_non_brace_link}+"
     sub: no_protocol_file_link
+
+  - re: "\\[\\[\\w+(\\]\\]|\\]\\[)"
+    sub: link_protocol_internal
+
+  - re: "\\[\\[\\w+:"
+    sub: link_protocol_split
 
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }

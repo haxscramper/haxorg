@@ -5,16 +5,14 @@ items:
   - name: "Bold text"
     source: "*bold*"
     tokens:
-      - {kind: ParagraphBegin}
       - {kind: BoldBegin, str: "*"}
       - {kind: Word, str: "bold"}
       - {kind: BoldEnd, str: "*"}
-      - {kind: ParagraphEnd}
     subnodes:
       - {kind: StmtList, extent: 3}
       - {kind: Paragraph, extent: 2}
       - {kind: Bold, extent: 1}
-      - {kind: Word, tok_idx: 2, str: "bold"}
+      - {kind: Word, tok_idx: 1, str: "bold"}
     sem:
       kind: Document
       subnodes:
@@ -27,17 +25,17 @@ items:
 
   - source: "/italic/"
     tokens:
-      - {kind: ParagraphBegin}
       - {kind: ItalicBegin, str: "/"}
       - {kind: Word, str: "italic"}
       - {kind: ItalicEnd, str: "/"}
-      - {kind: ParagraphEnd}
 
   # - name: "Link with description"
   #   source: "[[link:http][description]]"
 
   - name: "Symbol"
     source: "\\symbol{}"
+    debug:
+      traceAll: true
     sem:
       kind: Document
       subnodes:
@@ -85,7 +83,6 @@ items:
   - name: "Ambigious italic text"
     source: "One/Another/<Placeholder>"
     tokens:
-      - {kind: ParagraphBegin, str: ""}
       - {kind: Word, str: One}
       - {kind: Punctuation, str: /}
       - {kind: Word, str: Another}
@@ -93,4 +90,3 @@ items:
       - {kind: AngleBegin, str: <}
       - {kind: Word, str: Placeholder}
       - {kind: AngleEnd, str: ">"}
-      - {kind: ParagraphEnd, str: ""}

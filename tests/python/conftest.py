@@ -163,9 +163,18 @@ class GTestClass(pytest.Class):
 @dataclass
 class GTestRunError(Exception):
     shell_error: ProcessExecutionError
+    item: 'GTestItem'
 
     def __str__(self):
-        return self.shell_error.stdout
+        result = []
+        result.append("error message: " + " ".join(self.item.gtest.gtest_params()))
+        if self.shell_error.stdout:
+            result.append(self.shell_error.stdout)
+
+        if self.shell_error.stderr:
+            result.append(self.shell_error.stderr)
+
+        return "\n".join(result)
 
 # def pytest_exception_interact(node, call, report):
 #     if report.failed and isinstance(call.excinfo.value, GTestRunError):
@@ -183,7 +192,7 @@ class GTestItem(pytest.Function):
             local[binary_path](*self.gtest.gtest_params())
 
         except ProcessExecutionError as e:
-            raise GTestRunError(e) from None
+            raise GTestRunError(e, self) from None
 
 
     @property

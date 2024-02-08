@@ -438,6 +438,11 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
                 token(org::RawText, pop(lex, otk::LinkTargetFile));
                 break;
             }
+            case otk::LinkProtocolInternal: {
+                empty();
+                token(org::RawText, pop(lex, otk::LinkProtocolInternal));
+                break;
+            }
             default:
                 token(org::Ident, pop(lex, otk::LinkProtocol));
                 SubLexer sub{lex};
@@ -618,7 +623,8 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     __perf_trace("parseTimeRange");
-    auto            __trace = trace(lex);
+    auto            __trace  = trace(lex);
+    bool            isActive = lex.at(otk::AngleBegin);
     const OrgTokSet times{
         otk::BraceBegin,
         otk::BraceEnd,
@@ -635,12 +641,17 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     };
 
 
-    if (lex.ahead(times, OrgTokSet{otk::DoubleDash})) {
+    if (lex.ahead(
+            times,
+            Vec{
+                isActive ? otk::AngleEnd : otk::BraceEnd,
+                otk::DoubleDash,
+                isActive ? otk::AngleBegin : otk::BraceBegin,
+            })) {
         start(org::TimeRange);
         parseTimeStamp(lex);
         skip(lex, otk::DoubleDash);
         parseTimeStamp(lex);
-        print("???");
         space(lex);
         if (lex.at(otk::TimeArrow)) {
             skip(lex, otk::TimeArrow);
@@ -1555,7 +1566,7 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
         }
         default: {
             SubLexer sub{lex};
-            while (lex.hasNext() && !lex.at(ParagraphTerminator)) {
+            while (lex.can_search(ParagraphTerminator)) {
                 sub.add(lex.pop());
             }
 
@@ -1570,7 +1581,7 @@ OrgId OrgParser::parseTop(OrgLexer& lex) {
     __perf_trace("parseTop");
     auto __trace = trace(lex);
     start(org::StmtList);
-    while (lex.hasNext()) {
+    while (!lex.finished()) {
         if (lex.at(otk::Comment)) {
             skip(lex);
         } else {

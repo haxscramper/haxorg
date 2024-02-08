@@ -575,7 +575,8 @@ CorpusRunner::RunResult::LexCompare compareTokens(
 CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
     CR<OrgNodeGroup> parsed,
     CR<OrgNodeGroup> expected) {
-    BacktrackRes nodeSimilarity = longestCommonSubsequence<OrgNode>(
+    BacktrackRes nodeSimilarity;
+    auto         paths = longestCommonSubsequence<OrgNode>(
         parsed.nodes.content,
         expected.nodes.content,
         [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
@@ -588,8 +589,9 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                     return lhs.getExtent() == rhs.getExtent();
                 }
             }
-        })[0];
+        });
 
+    if (!paths.empty()) { nodeSimilarity = paths[0]; }
 
     ShiftedDiff nodeDiff{nodeSimilarity, parsed.size(), expected.size()};
 

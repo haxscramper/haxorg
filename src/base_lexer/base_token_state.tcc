@@ -20,6 +20,7 @@ std::string OrgLexerImpl::state_name(int state) {
         case 16: return "sub_state_link_protocol_split";
         case 17: return "sub_state_raw_dsl_link";
         case 18: return "sub_state_no_protocol_file_link";
+        case 19: return "sub_state_link_protocol_internal";
         default: return std::to_string(state);
     }
 }
@@ -131,6 +132,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::LinkProtocolFile: return "LinkProtocolFile";
         case OrgTokenKind::LinkProtocolHttp: return "LinkProtocolHttp";
         case OrgTokenKind::LinkProtocolId: return "LinkProtocolId";
+        case OrgTokenKind::LinkProtocolInternal: return "LinkProtocolInternal";
         case OrgTokenKind::LinkSplit: return "LinkSplit";
         case OrgTokenKind::LinkTarget: return "LinkTarget";
         case OrgTokenKind::LinkTargetBegin: return "LinkTargetBegin";
@@ -297,6 +299,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "LinkProtocolFile") { return OrgTokenKind::LinkProtocolFile; } else
   if (value == "LinkProtocolHttp") { return OrgTokenKind::LinkProtocolHttp; } else
   if (value == "LinkProtocolId") { return OrgTokenKind::LinkProtocolId; } else
+  if (value == "LinkProtocolInternal") { return OrgTokenKind::LinkProtocolInternal; } else
   if (value == "LinkSplit") { return OrgTokenKind::LinkSplit; } else
   if (value == "LinkTarget") { return OrgTokenKind::LinkTarget; } else
   if (value == "LinkTargetBegin") { return OrgTokenKind::LinkTargetBegin; } else
