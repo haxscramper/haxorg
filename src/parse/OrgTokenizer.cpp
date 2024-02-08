@@ -627,6 +627,10 @@ struct LineToken {
                 indent = first->text.length();
                 break;
             }
+
+            case otk::LeadingPlus:
+            case otk::LeadingNumber:
+            case otk::TreeClock:
             case otk::LeadingMinus: {
                 indent = rs::count(first->text, ' ');
                 break;
@@ -1049,6 +1053,7 @@ struct GroupVisitorState {
                 add_fake(otk::StmtListEnd, ind);
                 add_fake(otk::ListItemEnd, ind);
                 ind.pop_back();
+                if (!ind.empty()) { add_fake(otk::Dedent, ind); }
             }
             add_fake(otk::ListEnd, ind);
         }

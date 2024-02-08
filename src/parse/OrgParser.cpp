@@ -646,18 +646,28 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         otk::Whitespace,
     };
 
-
-    if (lex.ahead(
-            times,
-            Vec{
+    Lexer tmp{lex.in};
+    tmp.pos          = lex.pos;
+    bool isTimeRange = false;
+    while (!tmp.finished() && tmp.at(times)) {
+        if (tmp.at(Vec{
                 isActive ? otk::AngleEnd : otk::BraceEnd,
                 otk::DoubleDash,
                 isActive ? otk::AngleBegin : otk::BraceBegin,
             })) {
+            isTimeRange = true;
+            break;
+        } else {
+            tmp.next();
+        }
+    }
+
+    if (isTimeRange) {
         start(org::TimeRange);
         parseTimeStamp(lex);
         skip(lex, otk::DoubleDash);
         parseTimeStamp(lex);
+        print("?)");
         space(lex);
         if (lex.at(otk::TimeArrow)) {
             skip(lex, otk::TimeArrow);

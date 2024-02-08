@@ -128,13 +128,11 @@ items:
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
-      - {kind: LeadingSpace, str: "  "}
-      - {kind: Minus, str: "-"}
+      - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: Nested1}
       - {kind: Newline, str: "\n"}
-      - {kind: LeadingSpace, str: "  "}
-      - {kind: Minus, str: "-"}
+      - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: Nested2}
       - {kind: Newline, str: "\n"}
@@ -142,52 +140,34 @@ items:
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: Item2}
       - {kind: Newline, str: "\n"}
-      - {kind: EndOfFile, str: ""}
-
+      - {kind: EndOfFile}
 
 
     tokens:
       - {kind: ListBegin}
-
-      # First list
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-
-      ## Content of the first list
       - {kind: StmtListBegin}
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
-
       - {kind: ListItemEnd}
-
-      # Increase internal indentation
       - {kind: Indent}
-
-      # Begin of the second list item
-      - {kind: LeadingMinus, str: "-"}
+      - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
-
-      # Second list item content
       - {kind: StmtListBegin}
       - {kind: Word, str: Nested1}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
-
       - {kind: ListItemEnd}
-
-      # Another list item on the same level
       - {kind: SameIndent}
-
-      - {kind: LeadingMinus, str: "-"}
+      - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
       - {kind: Word, str: Nested2}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
-
-      # Decrease list item indentation, return on one level up
       - {kind: Dedent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
@@ -196,8 +176,8 @@ items:
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
-      # End of the whole list
       - {kind: ListEnd}
+
 
     sem:
       kind: Document
@@ -209,7 +189,7 @@ items:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item1}
-                - {kind: Newline, text: "\n"}
+                    - {kind: Newline, text: "\n"}
                 - kind: List
                   subnodes:
                     - kind: ListItem
@@ -217,19 +197,19 @@ items:
                         - kind: Paragraph
                           subnodes:
                             - {kind: Word, text: Nested1}
-                        - {kind: Newline, text: "\n"}
+                            - {kind: Newline, text: "\n"}
                     - kind: ListItem
                       subnodes:
                         - kind: Paragraph
                           subnodes:
                             - {kind: Word, text: Nested2}
-                        - {kind: Newline, text: "\n"}
+                            - {kind: Newline, text: "\n"}
             - kind: ListItem
               subnodes:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item2}
-                - {kind: Newline, text: "\n"}
+                    - {kind: Newline, text: "\n"}
 
   - name: "List with space in the nested content"
     source: |
@@ -243,33 +223,26 @@ items:
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: Word, str: "Item1"}
+      - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-      - {kind: LeadingMinus, str: "-"}
+      - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
-
-      # Second level of list nesting contains more than one paragraph of
-      # text
       - {kind: StmtListBegin}
-
-      # List body contains two paragrapsh
-      - {kind: Word, str: "Nested1"}
-      - {kind: Newline, str: "\n\n"} 
-
-      - {kind: Word, str: "Nested2"}
+      - {kind: Word, str: Nested1}
+      - {kind: MediumNewline, str: "\n\n"}
+      - {kind: LeadingSpace, str: "    "}
+      - {kind: Word, str: Nested2}
       - {kind: Newline, str: "\n"}
-
       - {kind: StmtListEnd}
-
       - {kind: ListItemEnd}
       - {kind: Dedent}
       - {kind: StmtListEnd}
-
       - {kind: ListItemEnd}
       - {kind: ListEnd}
+
       
   - name: "List with unindented source code block"
     source: |
@@ -284,31 +257,21 @@ items:
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-
-      # First paragraph of text in the list
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
-
-      # Source code block in the resulting text
+      - {kind: LeadingSpace, str: "  "}
       - {kind: CmdPrefix, str: "#+"}
-      - {kind: CmdSrcBegin, str: "begin_src"}
-      - {kind: CmdArgumentsBegin}
-      - {kind: CmdValue, str: "nim"}
-      - {kind: CmdArgumentsEnd}
-
+      - {kind: CmdSrcBegin, str: begin_src}
+      - {kind: Whitespace, str: " "}
+      - {kind: CmdRawArg, str: nim}
       - {kind: CmdContentBegin}
-
-      - {kind: CodeText, str: "  indented"}
+      - {kind: SrcContent, str: "  indented"}
       - {kind: Newline, str: "\n"}
-      - {kind: CodeText, str: "  two_lines"}
+      - {kind: SrcContent, str: "  two_lines"}
       - {kind: Newline, str: "\n"}
-
-      - {kind: CmdContentEnd}
-
       - {kind: CmdPrefix}
       - {kind: CmdSrcEnd, str: "  #+end_src"}
       - {kind: Newline, str: "\n"}
-
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
@@ -470,26 +433,25 @@ items:
         #+end_src
 
     tokens:
-      - {kind: ListBegin, str: ""}
+      - {kind: ListBegin}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin, str: ""}
+      - {kind: StmtListBegin}
       - {kind: Newline, str: "\n"}
+      - {kind: LeadingSpace, str: "  "}
       - {kind: CmdPrefix, str: "#+"}
       - {kind: CmdSrcBegin, str: begin_src}
-      - {kind: CmdArgumentsBegin, str: ""}
-      - {kind: CmdValue, str: xml}
-      - {kind: CmdArgumentsEnd, str: ""}
-      - {kind: CmdContentBegin, str: ""}
-      - {kind: CodeText, str: "  <Thing>"}
+      - {kind: Whitespace, str: " "}
+      - {kind: CmdRawArg, str: xml}
+      - {kind: CmdContentBegin}
+      - {kind: SrcContent, str: "  <Thing>"}
       - {kind: Newline, str: "\n"}
-      - {kind: CmdContentEnd}
-      - {kind: CmdPrefix, str: ""}
+      - {kind: CmdPrefix}
       - {kind: CmdSrcEnd, str: "  #+end_src"}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd, str: ""}
-      - {kind: ListItemEnd, str: ""}
-      - {kind: ListEnd, str: ""}
+      - {kind: StmtListEnd}
+      - {kind: ListItemEnd}
+      - {kind: ListEnd}
 
 
   - name: "Indent and dedent long list, subset"

@@ -36,6 +36,8 @@ items:
       #+end_src
 
   - name: "Subtree state transitions"
+    debug:
+      traceAll: true
     source: |
 
       **** COMPLETED Subtree title
@@ -167,6 +169,8 @@ items:
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
     # Double nested quote does not work though 
+    debug:
+      traceAll: true
     source: |
       - Some text
         - safas
