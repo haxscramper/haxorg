@@ -21,42 +21,34 @@ items:
 
     tokens:
       - {kind: SubtreeStars, str: "*"}
-      - {kind: Space, str: " "}
-      - {kind: ParagraphBegin}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: "Subtree"}
-      - {kind: ParagraphEnd}
 
   - name: "Subtree with time annotations"
     source: "* [2023-03-05] Subtree title"
     tokens:
       - {kind: SubtreeStars, str: "*"}
-      - {kind: Space, str: " "}
-      - {kind: ParagraphBegin}
+      - {kind: Whitespace, str: " "}
       - {kind: BraceBegin, str: "["}
-      - {kind: StaticTimeDatePart, str: "2023-03-05"}
+      - {kind: Date, str: "2023-03-05"}
       - {kind: BraceEnd, str: "]"}
-      - {kind: Space, str: " "}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: Subtree}
-      - {kind: Space, str: " "}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: title}
-      - {kind: ParagraphEnd}
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
     tokens:
       - {kind: SubtreeStars, str: "**"}
-      - {kind: Space, str: " "}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "CLI"}
-      - {kind: Space, str: " "}
+      - {kind: Whitespace, str: " "}
+      - {kind: BigIdent, str: "CLI"}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: "Tools"}
-      - {kind: ParagraphEnd}
-      - {kind: Newline, str: "\n\n"}
-      - {kind: ParagraphBegin}
+      - {kind: MediumNewline, str: "\n\n"}
       - {kind: Word, str: Nested}
-      - {kind: Space, str: " "}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: content}
-      - {kind: ParagraphEnd}
 
   - name: "Headline after paragraph"
     source: |
@@ -64,23 +56,21 @@ items:
       * New headline
 
     tokens:
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Paragraph}
-      - {kind: Space, str: " "}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: text}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: SubtreeStars, str: "*"}
-      - {kind: Space, str: " "}
-      - {kind: ParagraphBegin}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: New}
-      - {kind: Space, str: " "}
+      - {kind: Whitespace, str: " "}
       - {kind: Word, str: headline}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
 
 
 
   - name: "Lorem ipsum subtree"
+    debug: 
+      traceAll: true
     file: org/lorem_ipsum_subtree.org
 

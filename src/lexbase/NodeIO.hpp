@@ -125,7 +125,7 @@ struct convert<OrgToken> {
     static Node encode(OrgToken const& str) {
         Node result;
         result["kind"] = fmt1(str.kind);
-        result["str"]  = str->text;
+        if (!str->text.empty()) { result["str"] = str->text; }
         return result;
     }
     static bool decode(Node const& in, OrgToken& out) {

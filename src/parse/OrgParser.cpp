@@ -39,6 +39,12 @@ const OrgTokSet ParagraphTerminator{
     otk::LeadingPipe,
 };
 
+OrgTokSet ListStarts{
+    otk::LeadingMinus,
+    otk::LeadingNumber,
+    otk::TreeClock,
+};
+
 const OrgTokSet BlockTerminator{
     otk::SubtreeStars,
 };
@@ -1036,15 +1042,7 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     auto __trace = trace(lex);
     start(org::ListItem);
     // prefix, 0
-    {
-        token(
-            org::RawText,
-            pop(lex,
-                OrgTokSet{
-                    otk::LeadingNumber,
-                    otk::TreeClock,
-                    otk::LeadingMinus}));
-    }
+    { token(org::RawText, pop(lex, ListStarts)); }
     space(lex);
     skip(lex, otk::StmtListBegin);
     // counter, 1
@@ -1083,8 +1081,11 @@ OrgId OrgParser::parseList(OrgLexer& lex) {
     __perf_trace("parseList");
     auto __trace = trace(lex);
     start(org::List);
-    while (lex.at(OrgTokSet{
-        otk::LeadingMinus, otk::LeadingNumber, otk::TreeClock})) {
+
+    print(fmt("{}", lex.tok()));
+
+    while (lex.at(ListStarts)
+           || (lex.at(otk::LeadingSpace) && lex.at(ListStarts, +1))) {
         parseListItem(lex);
         if (lex.at(otk::SameIndent)) { skip(lex); }
     }
@@ -1237,7 +1238,9 @@ OrgId OrgParser::parseSubtreeTitle(OrgLexer& lex) {
                      })
                    | rs::to<std::vector>;
 
-        return Newline.contains((lex.begin() + ahead.size())->kind);
+        auto tag_end = lex.begin() + ahead.size();
+        return tag_end == lex.whole_fixed().end()
+            || Newline.contains(tag_end->kind);
     };
 
     while (lex.can_search(Newline) && !is_at_subtree_tags(lex)) {
@@ -1341,18 +1344,23 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
     auto __trace  = trace(lex);
     auto cmd_kind = lex.kind(+1);
     switch (cmd_kind) {
-        case otk::CmdTitle: {
-            skip(lex, otk::CmdPrefix);
-            skip(lex);
-            start(org::CommandTitle);
-            parseParagraph(lex);
-            break;
-        }
+            // case otk::CmdTitle: {
+            //     skip(lex, otk::CmdPrefix);
+            //     skip(lex);
+            //     start(org::CommandTitle);
+            //     parseParagraph(lex);
+            //     break;
+            // }
 
+        case otk::CmdTitle:
         case otk::CmdCaption: {
             skip(lex, otk::CmdPrefix);
             skip(lex);
-            start(org::CommandCaption);
+            if (cmd_kind == otk::CmdTitle) {
+                start(org::CommandTitle);
+            } else {
+                start(org::CommandCaption);
+            }
             start(org::CommandArguments);
             auto sub = subToEol(lex);
             if (sub.empty()) {

@@ -620,11 +620,26 @@ struct LineToken {
         }
     }
 
-    void updateForTokens() {
+    void setIndent() {
         CR<OrgToken> first = tokens.at(0);
         switch (first.kind) {
             case otk::LeadingSpace: {
                 indent = first->text.length();
+                break;
+            }
+            case otk::LeadingMinus: {
+                indent = rs::count(first->text, ' ');
+                break;
+            }
+            default:
+        }
+    }
+
+    void updateForTokens() {
+        CR<OrgToken> first = tokens.at(0);
+        setIndent();
+        switch (first.kind) {
+            case otk::LeadingSpace: {
                 setLeadingSpaceKind(tokens);
                 break;
             }
@@ -955,13 +970,26 @@ struct GroupVisitorState {
     void rec_convert_groups(CR<Vec<GroupToken>> groups) {
         Vec<int> ind{};
         for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
-            auto const& gr = groups.at(gr_index);
+            auto const& gr  = groups.at(gr_index);
+            auto        dbg = [&](int         line = __builtin_LINE(),
+                           char const* function = __builtin_FUNCTION()) {
+                if (TraceState) {
+                    print1(
+                        fmt("indent: {}, gr.indent(): {}",
+                            ind,
+                            gr.indent()),
+                        2,
+                        line,
+                        function);
+                }
+            };
             if (gr.kind == GK::ListItem) {
+                dbg();
                 if (ind.empty()) {
                     add_fake(otk::ListBegin, ind);
                     ind.push_back(gr.indent());
                 } else if (ind.back() < gr.indent()) {
-                    add_fake(otk::StmtListBegin, ind);
+                    add_fake(otk::StmtListEnd, ind);
                     add_fake(otk::ListItemEnd, ind);
                     add_fake(otk::Indent, ind);
                     ind.push_back(gr.indent());
@@ -977,6 +1005,7 @@ struct GroupVisitorState {
                     add_fake(otk::ListItemEnd, ind);
                     add_fake(otk::SameIndent, ind);
                 }
+                dbg();
 
             } else if (!ind.empty()) {
                 /* List item content can be indented like this, but
@@ -989,6 +1018,7 @@ struct GroupVisitorState {
                  * ```
                  */
 
+                dbg();
                 while (!ind.empty() && gr.indent() <= ind.back()) {
                     add_fake(otk::StmtListEnd, ind);
                     add_fake(otk::ListItemEnd, ind);
@@ -1000,6 +1030,7 @@ struct GroupVisitorState {
                         add_fake(otk::Dedent, ind);
                     }
                 }
+                dbg();
             }
 
             if (gr.isNested()) {
@@ -1029,9 +1060,10 @@ struct GroupVisitorState {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
 
+        int  width   = 96 + 9;
         auto aligned = text
                      + Str(" ").repeated(std::clamp<int>(
-                         96 - (text.runeLen() + level * 2), 0, 96));
+                         width - (text.runeLen() + level * 2), 0, width));
 
         d->print(lex, aligned, __LINE__, "group", level);
     };

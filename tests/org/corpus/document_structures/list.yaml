@@ -6,12 +6,10 @@ items:
     name: "Single item"
     tokens:
       - {kind: ListBegin}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: item}
-      - {kind: ParagraphEnd}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
@@ -25,12 +23,10 @@ items:
       - {kind: ListBegin}
 
       # First list item
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Item1}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
@@ -39,12 +35,10 @@ items:
       - {kind: SameIndent}
 
       # Second list item
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Item2}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
@@ -76,30 +70,25 @@ items:
 
     tokens:
       - {kind: ListBegin}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
 
       # First content block in the input
       - {kind: Word, str: "Item1"}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
-      - {kind: ParagraphBegin}
+      - {kind: LeadingSpace, str: "  "}
       - {kind: Word, str: "Line1"}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
 
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: SameIndent}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       # Second item
       - {kind: Word, str: "Item2"}
-      - {kind: ParagraphEnd}
 
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
@@ -118,13 +107,13 @@ items:
                     - {kind: Word, text: Item1}
                     - {kind: Newline, text: "\n"}
                     - {kind: Word, text: Line1}
-                - {kind: Newline, text: "\n"}
+                    - {kind: Newline, text: "\n"}
             - kind: ListItem
               subnodes:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item2}
-                - {kind: Newline, text: "\n"}
+                    - {kind: Newline, text: "\n"}
 
 
   - name: "Nested list with two items"
@@ -161,14 +150,12 @@ items:
       - {kind: ListBegin}
 
       # First list
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
 
       ## Content of the first list
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Item1}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
 
@@ -178,14 +165,12 @@ items:
       - {kind: Indent}
 
       # Begin of the second list item
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
 
       # Second list item content
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Nested1}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
 
@@ -194,24 +179,20 @@ items:
       # Another list item on the same level
       - {kind: SameIndent}
 
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Nested2}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
 
       # Decrease list item indentation, return on one level up
       - {kind: Dedent}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Item2}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
@@ -259,32 +240,26 @@ items:
 
     tokens:
       - {kind: ListBegin}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
       - {kind: Word, str: "Item1"}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
 
       # Second level of list nesting contains more than one paragraph of
       # text
       - {kind: StmtListBegin}
 
       # List body contains two paragrapsh
-      - {kind: ParagraphBegin}
       - {kind: Word, str: "Nested1"}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n\n"} 
 
-      - {kind: ParagraphBegin}
       - {kind: Word, str: "Nested2"}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
 
       - {kind: StmtListEnd}
@@ -306,14 +281,12 @@ items:
 
     tokens:
       - {kind: ListBegin}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
 
       # First paragraph of text in the list
-      - {kind: ParagraphBegin}
       - {kind: Word, str: Item1}
-      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
 
       # Source code block in the resulting text
@@ -341,6 +314,8 @@ items:
       - {kind: ListEnd}
 
   - name: "Indent and dedent long list"
+    debug:
+      traceAll: true
     source: |
         - item1
         - item2
@@ -358,101 +333,74 @@ items:
         - item3
     tokens:
       - {kind: ListBegin}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item1"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item1}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: SameIndent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item2"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item2}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "  -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item11"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item11}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "    -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item111"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item111}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: SameIndent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "    -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item112"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item112}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Dedent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "  -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item12"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item12}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: SameIndent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "  -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item13"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item13}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "    -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item131"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item131}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "      -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item1311"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item1311}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
@@ -460,46 +408,34 @@ items:
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Dedent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "  -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item14"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item14}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "    -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item141"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item141}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "      -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item1411"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item1411}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "        -"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item14111"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item14111}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
@@ -513,17 +449,18 @@ items:
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Dedent}
-
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
-      - {kind: ParagraphBegin}
-      - {kind: Word, str: "item3"}
-      - {kind: ParagraphEnd}
+      - {kind: Word, str: item3}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
+
+
+
+
 
   - name: "Source code block as list item"
     source: |
@@ -534,8 +471,8 @@ items:
 
     tokens:
       - {kind: ListBegin, str: ""}
-      - {kind: ListItemBegin, str: "-"}
-      - {kind: Space, str: " "}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin, str: ""}
       - {kind: Newline, str: "\n"}
       - {kind: CmdPrefix, str: "#+"}
