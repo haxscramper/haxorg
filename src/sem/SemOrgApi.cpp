@@ -25,76 +25,53 @@ struct value_domain<sem::Subtree::Period::Kind>
           sem::Subtree::Period::Kind::Clocked,
           sem::Subtree::Period::Kind::Repeated> {};
 
-sem::OrgVariant SemId::asVariant() {
+namespace sem {
+sem::OrgVariant asVariant(SemId<Org> in) {
 #define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: return this->as<__Kind>();
+    case OrgSemKind::__Kind: return in.as<__Kind>();
 
-    switch (this->getKind()) { EACH_SEM_ORG_KIND(__case) }
+    switch (in->getKind()) { EACH_SEM_ORG_KIND(__case) }
 
 #undef __case
 }
+} // namespace sem
 
-SemId SemId::getParent() const { return (*this)->getParent(); }
+Org::Org() : subnodes({}) {}
 
-Org::Org(SemId parent) : parent(parent), subnodes({}) {}
+Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
 
-Org::Org(SemId parent, OrgAdapter original)
-    : parent(parent), original(original), subnodes({}) {}
-
-Org::Org(SemId parent, CVec<SemId> subnodes)
-    : parent(parent), subnodes(subnodes) {}
-
-Vec<SemId> SemId::getParentChain(bool withSelf) const {
-    Vec<SemId> result;
-    if (withSelf) { result.push_back(*this); }
-    result.append(get()->getParentChain());
-
-    return result;
-}
-
-Vec<SemId> Org::getParentChain() const {
-    Vec<SemId> result;
-
-    SemId now = parent;
-
-    while (now) {
-        result.push_back(now);
-        now = now.getParent();
-    }
-
-    return result;
-}
+Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 namespace {
 void eachSubnodeRecImpl(
-    CR<SemId::SubnodeVisitor> visitor,
-    SemId                     org,
-    bool                      originalBase);
+    CR<SemId<Org>::SubnodeVisitor> visitor,
+    SemId<Org>                     org,
+    bool                           originalBase);
 
 template <sem::NotOrg T>
-void visitField(CR<SemId::SubnodeVisitor>, CR<T>) {}
+void visitField(CR<SemId<Org>::SubnodeVisitor>, CR<T>) {}
 
 
-void visitField(CR<SemId::SubnodeVisitor> visitor, SemId node) {
+void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, SemId<Org> node) {
     if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
 }
 
 template <typename T>
-void visitField(CR<SemId::SubnodeVisitor> visitor, CVec<T> value) {
+void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, CVec<T> value) {
     for (const auto& it : value) { visitField(visitor, it); }
 }
 
 
 template <typename T>
-void visitField(CR<SemId::SubnodeVisitor> visitor, CR<Opt<T>> value) {
+void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, CR<Opt<T>> value) {
     if (value) { visitField(visitor, *value); }
 }
 
 template <typename T>
 void recVisitOrgNodesImpl(
-    CR<SemId::SubnodeVisitor> visitor,
-    sem::SemIdT<T>            tree,
-    bool                      originalBase) {
+    CR<SemId<Org>::SubnodeVisitor> visitor,
+    sem::SemId<T>                  tree,
+    bool                           originalBase) {
     if (originalBase) { visitor(tree); }
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
@@ -110,28 +87,20 @@ void recVisitOrgNodesImpl(
 }
 
 void eachSubnodeRecImpl(
-    CR<SemId::SubnodeVisitor> visitor,
-    SemId                     org,
-    bool                      originalBase) {
+    CR<SemId<Org>::SubnodeVisitor> visitor,
+    SemId<Org>                     org,
+    bool                           originalBase) {
     std::visit(
         [&](const auto& node) {
             recVisitOrgNodesImpl(visitor, node, originalBase);
         },
-        org.asVariant());
+        asVariant(org));
 }
 } // namespace
 
-void SemId::eachSubnodeRec(SubnodeVisitor cb) {
+template <>
+void SemId<Org>::eachSubnodeRec(SubnodeVisitor cb) {
     eachSubnodeRecImpl(cb, *this, true);
-}
-
-Opt<SemIdT<Subtree>> Org::getParentSubtree() const {
-    for (const auto& item : getParentChain()) {
-        if (item->getKind() == OrgSemKind::Subtree) {
-            return item.as<Subtree>();
-        }
-    }
-    return std::nullopt;
 }
 
 Vec<Subtree::Period> Subtree::getTimePeriods(
@@ -175,11 +144,14 @@ Vec<Property> Subtree::getContextualProperties(
     Vec<Property> result;
     result.append(getProperties(kind));
 
-    for (SemId parent : getParent().getParentChain(true)) {
-        if (parent->is(osk::Subtree)) {
-            result.append(parent.as<Subtree>()->getProperties(kind));
-        }
-    }
+    // TODO replace this function with one that accepts a list of parent
+    // subtrees and then computes contextual properties
+    //
+    // for (SemId parent : getParent().getParentChain(true)) {
+    //     if (parent->is(osk::Subtree)) {
+    //         result.append(parent.as<Subtree>()->getProperties(kind));
+    //     }
+    // }
 
     std::reverse(result.begin(), result.end());
 
@@ -319,7 +291,7 @@ bool List::isDescriptionList() const {
     return false;
 }
 
-Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
+Opt<SemId<Org>> Stmt::getAttached(OrgSemKind kind) {
     for (const auto& sub : attached) {
         if (sub->getKind() == kind) { return sub; }
     }
@@ -327,26 +299,11 @@ Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
     return std::nullopt;
 }
 
-
-Opt<SemIdT<Document>> Org::getDocument() const {
-    for (const auto& item : getParentChain()) {
-        if (item->getKind() == OrgSemKind::Document) {
-            auto result = item.as<Document>();
-            return result;
-        }
-    }
-    LOG(FATAL);
-    return std::nullopt;
-}
-
-void Org::push_back(SemId sub) {
+void Org::push_back(SemId<Org> sub) {
     auto dat = subnodes.data();
     subnodes.push_back(sub);
 }
 
-bool SemId::is(OrgSemKind kind) const {
-    return !isNil() && get()->is(kind);
-}
 
 Str CmdArgument::getString() const { return value; }
 
@@ -373,7 +330,7 @@ Opt<int> CmdArgument::getInt() const {
     }
 }
 
-Opt<SemIdT<CmdArgument>> CmdArguments::popArg(Str key) {
+Opt<SemId<CmdArgument>> CmdArguments::popArg(Str key) {
     if (named.contains(key)) {
         auto result = named.at(key);
         named.erase(key);

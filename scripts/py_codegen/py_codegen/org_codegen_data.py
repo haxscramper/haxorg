@@ -69,7 +69,7 @@ def t_map(key: QualType, val: QualType) -> QualType:
 
 @beartype
 def id_field(id: str, name: str, doc: GenTuDoc) -> GenTuField:
-    return GenTuField(t_id(id), name, doc, value=f"SemIdT<{id}>::Nil()")
+    return GenTuField(t_id(id), name, doc, value=f"SemId<{id}>::Nil()")
 
 
 def vec_field(typ, name, doc):
@@ -119,7 +119,6 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
                 GenTuDoc(""),
                 isStatic=True,
                 arguments=[
-                    GenTuIdent(t_id(), "parent"),
                     GenTuIdent(t_opt(t("OrgAdapter")), "original", value="std::nullopt"),
                 ],
             ),
@@ -156,7 +155,7 @@ def get_types() -> Sequence[GenTuStruct]:
             nested=[
                 GenTuPass("Stmt() {}"),
                 GenTuPass(
-                    "Stmt(SemId parent, CVec<SemId> attached, CVec<SemId> subnodes) : Org(parent, subnodes), attached(attached) {}"
+                    "Stmt(CVec<SemId<Org>> attached, CVec<SemId> subnodes) : Org(parent, subnodes), attached(attached) {}"
                 ),
             ],
         ),
@@ -726,7 +725,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                     t_opt(t_id("StmtList")),
                                     "desc",
                                     GenTuDoc("Optional description of the log entry"),
-                                    value="SemIdT<StmtList>::Nil()",
+                                    value="SemId<StmtList>::Nil()",
                                 )
                             ],
                             nested=[GenTuPass("DescribedLog() {}")]),
@@ -793,7 +792,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                     t_var(t_id("Time"), t_id("TimeRange")),
                                     "range",
                                     GenTuDoc("Start-end or only start period"),
-                                    value="SemIdT<Time>::Nil()",
+                                    value="SemId<Time>::Nil()",
                                 ),
                                        ignore=True)
                             ],
@@ -930,7 +929,7 @@ def get_types() -> Sequence[GenTuStruct]:
                         k_args(GenTuField(t_var(t_id("Time"), t_id("TimeRange")),
                                           "period",
                                           GenTuDoc("Stored time point/range"),
-                                          value="sem::SemIdT<sem::Time>::Nil()"),
+                                          value="sem::SemId<sem::Time>::Nil()"),
                                ignore=True),
                     ],
                     methods=[
@@ -938,13 +937,13 @@ def get_types() -> Sequence[GenTuStruct]:
                             t_id("Time"),
                             "getTime",
                             GenTuDoc("Get associated time point"),
-                            impl="return std::get<SemIdT<Time>>(period);",
+                            impl="return std::get<SemId<Time>>(period);",
                         ),
                         GenTuFunction(
-                            t_id("Time"),
+                            t_id("TimeRange"),
                             "getTimeRange",
                             GenTuDoc("Get associated time period"),
-                            impl="return std::get<SemIdT<TimeRange>>(period);",
+                            impl="return std::get<SemId<TimeRange>>(period);",
                         ),
                     ],
                     #  ;; TODO constructors
@@ -983,7 +982,7 @@ def get_types() -> Sequence[GenTuStruct]:
                             ],
                         ),
                         GenTuPass(
-                            "Period(CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}"
+                            "Period(CR<Variant<SemId<Time>, SemId<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}"
                         ),
                     ],
                 ),
@@ -1125,7 +1124,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                         t_id(),
                                         "value",
                                         GenTuDoc("Converted value of the property"),
-                                        value=f"SemId::Nil()")
+                                        value=f"SemId<Org>::Nil()")
                                 ],
                             )
                         ]),

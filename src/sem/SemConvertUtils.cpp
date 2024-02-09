@@ -249,7 +249,7 @@ finally OrgConverter::field(
 }
 
 void OrgConverter::print_json(
-    SemId       semResult,
+    SemId<Org>  semResult,
     int         line,
     const char* function) {
     if (TraceState) {

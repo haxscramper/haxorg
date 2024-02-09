@@ -118,7 +118,7 @@ class ProtoBuilder():
                                 aux_field(
                                     it=tu.GenTuField(tu.QualType.ForName("Str"), "debug"),
                                     indexer=(it for it in [999]),
-                                    indent=indent + 1,
+                                    indent=indent,
                                 )
                             ]))
 
@@ -210,10 +210,11 @@ class ProtoBuilder():
                 )
 
             case "SemId":
-                return "AnyNode"
-
-            case "SemIdT":
-                return self.rewrite_for_proto_grammar(it.Parameters[0])
+                if it.par0().name == "Org":
+                    return "AnyNode"
+                
+                else:
+                    return self.rewrite_for_proto_grammar(it.Parameters[0])
 
             case _:
                 spaces = [s.name for s in it.Spaces if s.name != "sem"]

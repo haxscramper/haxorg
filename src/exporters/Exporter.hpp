@@ -41,17 +41,17 @@ struct Exporter {
             VisitTop,
             VisitVariant);
 
-        Kind            kind;
-        Opt<sem::SemId> visitedNode  = std::nullopt;
-        R*              visitedValue = nullptr;
-        int             level        = 0;
-        std::string     file;
-        int             line = 0;
-        std::string     field;
-        std::string     function;
-        bool            isStart = true;
-        std::string     type;
-        std::string     msg;
+        Kind                      kind;
+        Opt<sem::SemId<sem::Org>> visitedNode  = std::nullopt;
+        R*                        visitedValue = nullptr;
+        int                       level        = 0;
+        std::string               file;
+        int                       line = 0;
+        std::string               field;
+        std::string               function;
+        bool                      isStart = true;
+        std::string               type;
+        std::string               msg;
     };
 
     using VisitEventCb = Func<void(VisitEvent const&)>;
@@ -131,7 +131,7 @@ struct Exporter {
     using __ExporterBase::visit##__Kind;
 
     template <typename T>
-    using In = sem::SemIdT<T>;
+    using In = sem::SemId<T>;
 
 
 #define EXPORTER_USING()                                                  \
@@ -147,30 +147,32 @@ struct Exporter {
     using __ExporterBase::In;                                             \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
-    void visitField(R& arg, const char* name, sem::SemId org);
+    void visitField(R& arg, const char* name, sem::SemId<sem::Org> org);
 
-    void visitSubnode(R& tmp, int, sem::SemId val);
+    void visitSubnode(R& tmp, int, sem::SemId<sem::Org> val);
 
     /// \brief Create default instance of the new result type
-    R newRes(sem::SemId) { return SerdeDefaultProvider<R>::get(); }
+    R newRes(sem::SemId<sem::Org>) {
+        return SerdeDefaultProvider<R>::get();
+    }
 
 
     /// \brief Additional hook that is called for each node before
     /// descending into specifically named overload
-    void visitDispatchHook(R&, sem::SemId) {}
+    void visitDispatchHook(R&, sem::SemId<sem::Org>) {}
     /// \brief Start of the top-level visit, triggered in `visitTop`
-    void visitStart(sem::SemId node) {
+    void visitStart(sem::SemId<sem::Org> node) {
         __visit_scope(VisitEvent::Kind::VisitStart, .visitedNode = node);
     }
     /// \brief End of the top-level visit, triggered in the `visitTop`
-    void visitEnd(sem::SemId node) {
+    void visitEnd(sem::SemId<sem::Org> node) {
         __visit_scope(VisitEvent::Kind::VisitEnd, .visitedNode = node);
     }
 
     /// \brief Main dispatch implementation for all sem types. Dispatch
     /// happens based on the kind of the provided sem node and not it's
     /// RTTI type.
-    void visitDispatch(R& res, sem::SemId arg);
+    void visitDispatch(R& res, sem::SemId<sem::Org> arg);
 
     template <sem::NotOrg T>
     void visitDescribedOrgFields(R& res, CR<T> value);
@@ -185,14 +187,14 @@ struct Exporter {
     /// \brief Pop visit after sem visit dispatch completed
 
 
-    void pushVisit(R& res, sem::SemId arg) {
+    void pushVisit(R& res, sem::SemId<sem::Org> arg) {
         __visit_scope(
             VisitEvent::Kind::PushVisit,
             .visitedValue = &res,
             .visitedNode  = arg);
     }
 
-    void popVisit(R& res, sem::SemId arg) {
+    void popVisit(R& res, sem::SemId<sem::Org> arg) {
         __visit_scope(
             VisitEvent::Kind::PopVisit,
             .visitedValue = &res,
@@ -207,14 +209,16 @@ struct Exporter {
     /// `visitMoreSpecificNodeType`. Former will also bypass all push/pop
     /// hooks while the latter will only override core functionality of the
     /// dispatch.
-    void visit(R& res, sem::SemId arg) { visitDispatch(res, arg); }
+    void visit(R& res, sem::SemId<sem::Org> arg) {
+        visitDispatch(res, arg);
+    }
 
 
     /// \brief Default implementation of the top visit
     ///
     /// User can redefined this function as well, or provided it's own
     /// implementation.
-    R evalTop(sem::SemId org);
+    R evalTop(sem::SemId<sem::Org> org);
 
 
     V* _this() { return static_cast<V*>(this); }

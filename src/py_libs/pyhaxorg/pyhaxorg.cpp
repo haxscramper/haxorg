@@ -7,38 +7,38 @@
   #define PY_HAXORG_COMPILING
   #include "pyhaxorg_manual_impl.hpp"
 #endif
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::Row>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::Row>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::HashTag>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Row>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::CmdArgument>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::SubtreeLog>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::SubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::SubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MODULE(pyhaxorg, m) {
-  bind_vector<sem::SemId>(m, "VecOfSemId");
-  bind_vector<sem::SemIdT<sem::Row>>(m, "VecOfSemIdTOfRow");
-  bind_vector<sem::SemIdT<sem::HashTag>>(m, "VecOfSemIdTOfHashTag");
+  bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
+  bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow");
+  bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag");
   bind_vector<Str>(m, "VecOfStr");
-  bind_vector<sem::SemIdT<sem::CmdArgument>>(m, "VecOfSemIdTOfCmdArgument");
+  bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument");
   bind_vector<sem::Code::Switch>(m, "VecOfSwitch");
   bind_vector<int>(m, "VecOfint");
   bind_vector<sem::Symbol::Param>(m, "VecOfParam");
-  bind_vector<sem::SemIdT<sem::SubtreeLog>>(m, "VecOfSemIdTOfSubtreeLog");
+  bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog");
   bind_vector<sem::Subtree::Property>(m, "VecOfProperty");
   bind_vector<sem::Subtree::Period>(m, "VecOfPeriod");
   #ifndef IN_CLANGD_PROCESSING
@@ -48,10 +48,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::SemIdT<sem::Stmt>, sem::SemId>(m, "SemStmt")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Stmt> { return sem::SemIdT<sem::Stmt>::Nil(); }))
     .def_property("attached",
-                  [](sem::SemIdT<sem::Stmt> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::Stmt> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+                  [](sem::SemIdT<sem::Stmt> _self) -> Vec<sem::SemId<sem::Org>> { return _self->attached; },
+                  [](sem::SemIdT<sem::Stmt> _self, Vec<sem::SemId<sem::Org>> attached) { _self->attached = attached; })
     .def("getAttached",
-         [](sem::SemIdT<sem::Stmt> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         [](sem::SemIdT<sem::Stmt> _self, OrgSemKind kind) -> Opt<sem::SemId<sem::Org>> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::SemIdT<sem::Inline>, sem::SemId>(m, "SemInline")
@@ -81,13 +81,13 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Table> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::Table> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("rows",
-                  [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemIdT<sem::Row>> { return _self->rows; },
-                  [](sem::SemIdT<sem::Table> _self, Vec<sem::SemIdT<sem::Row>> rows) { _self->rows = rows; })
+                  [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemId<sem::Row>> { return _self->rows; },
+                  [](sem::SemIdT<sem::Table> _self, Vec<sem::SemId<sem::Row>> rows) { _self->rows = rows; })
     .def_property("attached",
-                  [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::Table> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+                  [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemId<sem::Org>> { return _self->attached; },
+                  [](sem::SemIdT<sem::Table> _self, Vec<sem::SemId<sem::Org>> attached) { _self->attached = attached; })
     .def("getAttached",
-         [](sem::SemIdT<sem::Table> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         [](sem::SemIdT<sem::Table> _self, OrgSemKind kind) -> Opt<sem::SemId<sem::Org>> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::SemIdT<sem::HashTag>, sem::SemId>(m, "SemHashTag")
@@ -99,8 +99,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::HashTag> _self) -> Str { return _self->head; },
                   [](sem::SemIdT<sem::HashTag> _self, Str head) { _self->head = head; })
     .def_property("subtags",
-                  [](sem::SemIdT<sem::HashTag> _self) -> Vec<sem::SemIdT<sem::HashTag>> { return _self->subtags; },
-                  [](sem::SemIdT<sem::HashTag> _self, Vec<sem::SemIdT<sem::HashTag>> subtags) { _self->subtags = subtags; })
+                  [](sem::SemIdT<sem::HashTag> _self) -> Vec<sem::SemId<sem::HashTag>> { return _self->subtags; },
+                  [](sem::SemIdT<sem::HashTag> _self, Vec<sem::SemId<sem::HashTag>> subtags) { _self->subtags = subtags; })
     .def("prefixMatch",
          [](sem::SemIdT<sem::HashTag> _self, Vec<Str> const& prefix) -> bool { return _self->prefixMatch(prefix); },
          pybind11::arg("prefix"),
@@ -115,8 +115,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Footnote> _self) -> Str { return _self->tag; },
                   [](sem::SemIdT<sem::Footnote> _self, Str tag) { _self->tag = tag; })
     .def_property("definition",
-                  [](sem::SemIdT<sem::Footnote> _self) -> Opt<sem::SemId> { return _self->definition; },
-                  [](sem::SemIdT<sem::Footnote> _self, Opt<sem::SemId> definition) { _self->definition = definition; })
+                  [](sem::SemIdT<sem::Footnote> _self) -> Opt<sem::SemId<sem::Org>> { return _self->definition; },
+                  [](sem::SemIdT<sem::Footnote> _self, Opt<sem::SemId<sem::Org>> definition) { _self->definition = definition; })
     ;
   pybind11::class_<sem::SemIdT<sem::Completion>, sem::SemId>(m, "SemCompletion")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Completion> { return sem::SemIdT<sem::Completion>::Nil(); }))
@@ -139,11 +139,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Paragraph> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::Paragraph> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("attached",
-                  [](sem::SemIdT<sem::Paragraph> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::Paragraph> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+                  [](sem::SemIdT<sem::Paragraph> _self) -> Vec<sem::SemId<sem::Org>> { return _self->attached; },
+                  [](sem::SemIdT<sem::Paragraph> _self, Vec<sem::SemId<sem::Org>> attached) { _self->attached = attached; })
     .def("isFootnoteDefinition", [](sem::SemIdT<sem::Paragraph> _self) -> bool { return _self->isFootnoteDefinition(); }, R"RAW(Check if paragraph defines footnote)RAW")
     .def("getAttached",
-         [](sem::SemIdT<sem::Paragraph> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         [](sem::SemIdT<sem::Paragraph> _self, OrgSemKind kind) -> Opt<sem::SemId<sem::Org>> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::SemIdT<sem::Format>, sem::SemId>(m, "SemFormat")
@@ -173,8 +173,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Caption> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::Caption> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("text",
-                  [](sem::SemIdT<sem::Caption> _self) -> sem::SemIdT<sem::Paragraph> { return _self->text; },
-                  [](sem::SemIdT<sem::Caption> _self, sem::SemIdT<sem::Paragraph> text) { _self->text = text; })
+                  [](sem::SemIdT<sem::Caption> _self) -> sem::SemId<sem::Paragraph> { return _self->text; },
+                  [](sem::SemIdT<sem::Caption> _self, sem::SemId<sem::Paragraph> text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::CommandGroup>, sem::SemId>(m, "SemCommandGroup")
     .def(pybind11::init([]() -> sem::SemIdT<sem::CommandGroup> { return sem::SemIdT<sem::CommandGroup>::Nil(); }))
@@ -182,10 +182,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::CommandGroup> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::CommandGroup> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("attached",
-                  [](sem::SemIdT<sem::CommandGroup> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::CommandGroup> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+                  [](sem::SemIdT<sem::CommandGroup> _self) -> Vec<sem::SemId<sem::Org>> { return _self->attached; },
+                  [](sem::SemIdT<sem::CommandGroup> _self, Vec<sem::SemId<sem::Org>> attached) { _self->attached = attached; })
     .def("getAttached",
-         [](sem::SemIdT<sem::CommandGroup> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         [](sem::SemIdT<sem::CommandGroup> _self, OrgSemKind kind) -> Opt<sem::SemId<sem::Org>> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::SemIdT<sem::Block>, sem::SemId>(m, "SemBlock")
@@ -221,13 +221,13 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::CmdArguments> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::CmdArguments> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("positional",
-                  [](sem::SemIdT<sem::CmdArguments> _self) -> Vec<sem::SemIdT<sem::CmdArgument>> { return _self->positional; },
-                  [](sem::SemIdT<sem::CmdArguments> _self, Vec<sem::SemIdT<sem::CmdArgument>> positional) { _self->positional = positional; })
+                  [](sem::SemIdT<sem::CmdArguments> _self) -> Vec<sem::SemId<sem::CmdArgument>> { return _self->positional; },
+                  [](sem::SemIdT<sem::CmdArguments> _self, Vec<sem::SemId<sem::CmdArgument>> positional) { _self->positional = positional; })
     .def_property("named",
-                  [](sem::SemIdT<sem::CmdArguments> _self) -> UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> { return _self->named; },
-                  [](sem::SemIdT<sem::CmdArguments> _self, UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> named) { _self->named = named; })
+                  [](sem::SemIdT<sem::CmdArguments> _self) -> UnorderedMap<Str, sem::SemId<sem::CmdArgument>> { return _self->named; },
+                  [](sem::SemIdT<sem::CmdArguments> _self, UnorderedMap<Str, sem::SemId<sem::CmdArgument>> named) { _self->named = named; })
     .def("popArg",
-         [](sem::SemIdT<sem::CmdArguments> _self, Str key) -> Opt<sem::SemIdT<sem::CmdArgument>> { return _self->popArg(key); },
+         [](sem::SemIdT<sem::CmdArguments> _self, Str key) -> Opt<sem::SemId<sem::CmdArgument>> { return _self->popArg(key); },
          pybind11::arg("key"),
          R"RAW(Remove argument value from the map and return it if present)RAW")
     ;
@@ -258,8 +258,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Export> _self) -> Str { return _self->exporter; },
                   [](sem::SemIdT<sem::Export> _self, Str exporter) { _self->exporter = exporter; })
     .def_property("parameters",
-                  [](sem::SemIdT<sem::Export> _self) -> Opt<sem::SemIdT<sem::CmdArguments>> { return _self->parameters; },
-                  [](sem::SemIdT<sem::Export> _self, Opt<sem::SemIdT<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
+                  [](sem::SemIdT<sem::Export> _self) -> Opt<sem::SemId<sem::CmdArguments>> { return _self->parameters; },
+                  [](sem::SemIdT<sem::Export> _self, Opt<sem::SemId<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
     .def_property("placement",
                   [](sem::SemIdT<sem::Export> _self) -> Opt<Str> { return _self->placement; },
                   [](sem::SemIdT<sem::Export> _self, Opt<Str> placement) { _self->placement = placement; })
@@ -294,8 +294,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Code> _self) -> sem::Code::Exports { return _self->exports; },
                   [](sem::SemIdT<sem::Code> _self, sem::Code::Exports exports) { _self->exports = exports; })
     .def_property("parameters",
-                  [](sem::SemIdT<sem::Code> _self) -> Opt<sem::SemIdT<sem::CmdArguments>> { return _self->parameters; },
-                  [](sem::SemIdT<sem::Code> _self, Opt<sem::SemIdT<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
+                  [](sem::SemIdT<sem::Code> _self) -> Opt<sem::SemId<sem::CmdArguments>> { return _self->parameters; },
+                  [](sem::SemIdT<sem::Code> _self, Opt<sem::SemId<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
     .def_property("cache",
                   [](sem::SemIdT<sem::Code> _self) -> bool { return _self->cache; },
                   [](sem::SemIdT<sem::Code> _self, bool cache) { _self->cache = cache; })
@@ -419,11 +419,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::TimeRange> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::TimeRange> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("from_",
-                  [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemIdT<sem::Time> { return _self->from; },
-                  [](sem::SemIdT<sem::TimeRange> _self, sem::SemIdT<sem::Time> from) { _self->from = from; })
+                  [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemId<sem::Time> { return _self->from; },
+                  [](sem::SemIdT<sem::TimeRange> _self, sem::SemId<sem::Time> from) { _self->from = from; })
     .def_property("to",
-                  [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemIdT<sem::Time> { return _self->to; },
-                  [](sem::SemIdT<sem::TimeRange> _self, sem::SemIdT<sem::Time> to) { _self->to = to; })
+                  [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemId<sem::Time> { return _self->to; },
+                  [](sem::SemIdT<sem::TimeRange> _self, sem::SemId<sem::Time> to) { _self->to = to; })
     ;
   pybind11::class_<sem::SemIdT<sem::Macro>, sem::SemId>(m, "SemMacro")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Macro> { return sem::SemIdT<sem::Macro>::Nil(); }))
@@ -449,8 +449,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Symbol> _self) -> Vec<sem::Symbol::Param> { return _self->parameters; },
                   [](sem::SemIdT<sem::Symbol> _self, Vec<sem::Symbol::Param> parameters) { _self->parameters = parameters; })
     .def_property("positional",
-                  [](sem::SemIdT<sem::Symbol> _self) -> Vec<sem::SemId> { return _self->positional; },
-                  [](sem::SemIdT<sem::Symbol> _self, Vec<sem::SemId> positional) { _self->positional = positional; })
+                  [](sem::SemIdT<sem::Symbol> _self) -> Vec<sem::SemId<sem::Org>> { return _self->positional; },
+                  [](sem::SemIdT<sem::Symbol> _self, Vec<sem::SemId<sem::Org>> positional) { _self->positional = positional; })
     ;
   pybind11::class_<sem::Symbol::Param>(m, "SymbolParam")
     .def(pybind11::init<>())
@@ -466,7 +466,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::LogEntry { return _self->log; },
                   [](sem::SemIdT<sem::SubtreeLog> _self, sem::SubtreeLog::LogEntry log) { _self->log = log; })
     .def("setDescription",
-         [](sem::SemIdT<sem::SubtreeLog> _self, sem::SemIdT<sem::StmtList> desc) -> void { return _self->setDescription(desc); },
+         [](sem::SemIdT<sem::SubtreeLog> _self, sem::SemId<sem::StmtList> desc) -> void { return _self->setDescription(desc); },
          pybind11::arg("desc"))
     .def("getPriority", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Priority& { return _self->getPriority(); })
     .def("getNote", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Note& { return _self->getNote(); })
@@ -540,32 +540,32 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Subtree> _self) -> Opt<Str> { return _self->todo; },
                   [](sem::SemIdT<sem::Subtree> _self, Opt<Str> todo) { _self->todo = todo; })
     .def_property("completion",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Completion>> { return _self->completion; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Completion>> completion) { _self->completion = completion; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemId<sem::Completion>> { return _self->completion; },
+                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemId<sem::Completion>> completion) { _self->completion = completion; })
     .def_property("description",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->description; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self->description = description; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemId<sem::Paragraph>> { return _self->description; },
+                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemId<sem::Paragraph>> description) { _self->description = description; })
     .def_property("tags",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::SemIdT<sem::HashTag>> { return _self->tags; },
-                  [](sem::SemIdT<sem::Subtree> _self, Vec<sem::SemIdT<sem::HashTag>> tags) { _self->tags = tags; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::SemId<sem::HashTag>> { return _self->tags; },
+                  [](sem::SemIdT<sem::Subtree> _self, Vec<sem::SemId<sem::HashTag>> tags) { _self->tags = tags; })
     .def_property("title",
-                  [](sem::SemIdT<sem::Subtree> _self) -> sem::SemIdT<sem::Paragraph> { return _self->title; },
-                  [](sem::SemIdT<sem::Subtree> _self, sem::SemIdT<sem::Paragraph> title) { _self->title = title; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> sem::SemId<sem::Paragraph> { return _self->title; },
+                  [](sem::SemIdT<sem::Subtree> _self, sem::SemId<sem::Paragraph> title) { _self->title = title; })
     .def_property("logbook",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::SemIdT<sem::SubtreeLog>> { return _self->logbook; },
-                  [](sem::SemIdT<sem::Subtree> _self, Vec<sem::SemIdT<sem::SubtreeLog>> logbook) { _self->logbook = logbook; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::SemId<sem::SubtreeLog>> { return _self->logbook; },
+                  [](sem::SemIdT<sem::Subtree> _self, Vec<sem::SemId<sem::SubtreeLog>> logbook) { _self->logbook = logbook; })
     .def_property("properties",
                   [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::Subtree::Property> { return _self->properties; },
                   [](sem::SemIdT<sem::Subtree> _self, Vec<sem::Subtree::Property> properties) { _self->properties = properties; })
     .def_property("closed",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self->closed; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> closed) { _self->closed = closed; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemId<sem::Time>> { return _self->closed; },
+                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemId<sem::Time>> closed) { _self->closed = closed; })
     .def_property("deadline",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self->deadline; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> deadline) { _self->deadline = deadline; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemId<sem::Time>> { return _self->deadline; },
+                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemId<sem::Time>> deadline) { _self->deadline = deadline; })
     .def_property("scheduled",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self->scheduled; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> scheduled) { _self->scheduled = scheduled; })
+                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemId<sem::Time>> { return _self->scheduled; },
+                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemId<sem::Time>> scheduled) { _self->scheduled = scheduled; })
     .def("getTimePeriods",
          [](sem::SemIdT<sem::Subtree> _self, IntSet<sem::Subtree::Period::Kind> kinds) -> Vec<sem::Subtree::Period> { return _self->getTimePeriods(kinds); },
          pybind11::arg("kinds"))
@@ -589,8 +589,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::Subtree::Period>(m, "SubtreePeriod")
     .def(pybind11::init<>())
     .def_readwrite("kind", &sem::Subtree::Period::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
-    .def("getTime", static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
-    .def("getTimeRange", static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
+    .def("getTime", static_cast<sem::SemId<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
+    .def("getTimeRange", static_cast<sem::SemId<sem::TimeRange>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
     ;
   pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
     .value("Clocked", sem::Subtree::Period::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
@@ -884,8 +884,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::ListItem> _self) -> sem::ListItem::Checkbox { return _self->checkbox; },
                   [](sem::SemIdT<sem::ListItem> _self, sem::ListItem::Checkbox checkbox) { _self->checkbox = checkbox; })
     .def_property("header",
-                  [](sem::SemIdT<sem::ListItem> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->header; },
-                  [](sem::SemIdT<sem::ListItem> _self, Opt<sem::SemIdT<sem::Paragraph>> header) { _self->header = header; })
+                  [](sem::SemIdT<sem::ListItem> _self) -> Opt<sem::SemId<sem::Paragraph>> { return _self->header; },
+                  [](sem::SemIdT<sem::ListItem> _self, Opt<sem::SemId<sem::Paragraph>> header) { _self->header = header; })
     .def("isDescriptionItem", [](sem::SemIdT<sem::ListItem> _self) -> bool { return _self->isDescriptionItem(); })
     ;
   pybind11::enum_<sem::ListItem::Checkbox>(m, "ListItemCheckbox")
@@ -900,8 +900,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Link> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::Link> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("description",
-                  [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->description; },
-                  [](sem::SemIdT<sem::Link> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self->description = description; })
+                  [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemId<sem::Paragraph>> { return _self->description; },
+                  [](sem::SemIdT<sem::Link> _self, Opt<sem::SemId<sem::Paragraph>> description) { _self->description = description; })
     .def_property("data",
                   [](sem::SemIdT<sem::Link> _self) -> sem::Link::Data { return _self->data; },
                   [](sem::SemIdT<sem::Link> _self, sem::Link::Data data) { _self->data = data; })
@@ -946,23 +946,23 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Document> _self) -> Opt<LineCol> { return _self->loc; },
                   [](sem::SemIdT<sem::Document> _self, Opt<LineCol> loc) { _self->loc = loc; })
     .def_property("title",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->title; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::Paragraph>> title) { _self->title = title; })
+                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemId<sem::Paragraph>> { return _self->title; },
+                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemId<sem::Paragraph>> title) { _self->title = title; })
     .def_property("author",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->author; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::Paragraph>> author) { _self->author = author; })
+                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemId<sem::Paragraph>> { return _self->author; },
+                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemId<sem::Paragraph>> author) { _self->author = author; })
     .def_property("creator",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->creator; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::Paragraph>> creator) { _self->creator = creator; })
+                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemId<sem::Paragraph>> { return _self->creator; },
+                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemId<sem::Paragraph>> creator) { _self->creator = creator; })
     .def_property("email",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::RawText>> { return _self->email; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::RawText>> email) { _self->email = email; })
+                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemId<sem::RawText>> { return _self->email; },
+                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemId<sem::RawText>> email) { _self->email = email; })
     .def_property("language",
                   [](sem::SemIdT<sem::Document> _self) -> Vec<Str> { return _self->language; },
                   [](sem::SemIdT<sem::Document> _self, Vec<Str> language) { _self->language = language; })
     .def_property("options",
-                  [](sem::SemIdT<sem::Document> _self) -> sem::SemIdT<sem::DocumentOptions> { return _self->options; },
-                  [](sem::SemIdT<sem::Document> _self, sem::SemIdT<sem::DocumentOptions> options) { _self->options = options; })
+                  [](sem::SemIdT<sem::Document> _self) -> sem::SemId<sem::DocumentOptions> { return _self->options; },
+                  [](sem::SemIdT<sem::Document> _self, sem::SemId<sem::DocumentOptions> options) { _self->options = options; })
     .def_property("exportFileName",
                   [](sem::SemIdT<sem::Document> _self) -> Opt<Str> { return _self->exportFileName; },
                   [](sem::SemIdT<sem::Document> _self, Opt<Str> exportFileName) { _self->exportFileName = exportFileName; })

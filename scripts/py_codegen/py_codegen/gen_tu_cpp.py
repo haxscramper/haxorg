@@ -562,11 +562,16 @@ def n_sem() -> QualType:
 
 @beartype
 def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
-    return (QualType(name="SemIdT",
-                     Parameters=[(target if isinstance(target, QualType) else QualType(
-                         name=target, Spaces=[n_sem()]))],
-                     Spaces=[n_sem()]) if target else QualType(name="SemId",
-                                                               Spaces=[n_sem()]))
+    org_t = target if target else QualType(name="Org", Spaces=[n_sem()])
+    org_t = org_t if isinstance(
+        org_t,
+        QualType,
+    ) else QualType(
+        name=org_t,
+        Spaces=[n_sem()],
+    )
+
+    return (QualType(name="SemId", Parameters=[org_t], Spaces=[n_sem()]))
 
 
 @beartype
@@ -604,6 +609,7 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
 
     return scope
 
+
 @beartype
 def get_type_base_fields(
     value: GenTuStruct,
@@ -640,7 +646,7 @@ def get_base_list(
 
     return fields
 
+
 @beartype
 def in_type_list(typ: QualType, enum_type_list: List[QualType]) -> bool:
     return any(typ.flatQualName() == it.flatQualName() for it in enum_type_list)
-

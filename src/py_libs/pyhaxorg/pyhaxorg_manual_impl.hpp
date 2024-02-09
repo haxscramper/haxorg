@@ -1,6 +1,6 @@
 #pragma once
-// Separate reflection tool will collect the attributes, regular clang process
-// does not need to run with a plugin enabled
+// Separate reflection tool will collect the attributes, regular clang
+// process does not need to run with a plugin enabled
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #undef slots
@@ -29,9 +29,7 @@ void bind_int_set(py::module& m, const char* PyNameType) {
     py::class_<IntSet<T>>(m, (std::string(PyNameType) + "IntVec").c_str())
         .def(py::init([](py::list list) -> IntSet<T> {
             IntSet<T> result;
-            for (auto const& it : list) {
-                result.incl(it.cast<T>());
-            }
+            for (auto const& it : list) { result.incl(it.cast<T>()); }
 
             return result;
         }));
@@ -70,17 +68,13 @@ struct ExporterJson;
 struct ExporterYaml;
 struct ExporterTree;
 
-#define __id(I) , sem::SemIdT<sem::I>
-/// \brief Global variant of all sem node derivations
-using OrgIdVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
-#undef __id
 
-OrgIdVariant castAs(sem::SemId id);
+OrgIdVariant castAs(sem::SemId<sem::Org> id);
 
-std::vector<sem::SemId> getSubnodeRange(
-    sem::SemId      id,
-    pybind11::slice slice);
-sem::SemId getSingleSubnode(sem::SemId id, int index);
+std::vector<sem::SemId<sem::Org>> getSubnodeRange(
+    sem::SemId<sem::Org> id,
+    pybind11::slice      slice);
+sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index);
 
 struct [[refl]] OrgExporterJson {
     SPtr<ExporterJson> impl;
@@ -534,17 +528,13 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     template <typename T>
     void fallbackFieldVisitor(Res& res, const char* name, CVec<T> value) {
         __fallback_visit("using fallback field visitor for vector");
-        for (T const& it : value) {
-            _this()->visit(res, it);
-        }
+        for (T const& it : value) { _this()->visit(res, it); }
     }
 
     template <typename T>
     void fallbackFieldVisitor(Res& res, const char* name, Opt<T> value) {
         __fallback_visit("using fallback field visitor for vector");
-        if (value) {
-            _this()->visit(res, value.value());
-        }
+        if (value) { _this()->visit(res, value.value()); }
     }
 
 

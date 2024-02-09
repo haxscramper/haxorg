@@ -24,7 +24,7 @@ void OrgExporterJson::exportToFile(std::string path) {
     writeFile(fs::path{path}, exportToString());
 }
 
-void OrgExporterJson::visitNode(sem::SemId node) {
+void OrgExporterJson::visitNode(sem::SemId<sem::Org> node) {
     result = impl->evalTop(node);
 }
 
@@ -97,9 +97,9 @@ void OrgContext::run() {
 }
 
 
-std::vector<sem::SemId> getSubnodeRange(
-    sem::SemId      id,
-    pybind11::slice slice) {
+std::vector<sem::SemId<sem::Org>> getSubnodeRange(
+    sem::SemId<sem::Org> id,
+    pybind11::slice      slice) {
 
     size_t start;
     size_t stop;
@@ -119,11 +119,11 @@ std::vector<sem::SemId> getSubnodeRange(
     return result;
 }
 
-sem::SemId getSingleSubnode(sem::SemId id, int index) {
+sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index) {
     return id->at(index);
 }
 
-OrgIdVariant castAs(sem::SemId id) {
+OrgIdVariant castAs(sem::SemId<sem::Org> id) {
     switch (id->getKind()) {
 
 #define _case(__Kind)                                                     \
@@ -260,9 +260,7 @@ void ExporterPython::visitDispatch(Res& res, sem::SemId arg) {
         .visitedValue = &res,
         .visitedNode  = arg);
 
-    if (arg.isNil()) {
-        return;
-    }
+    if (arg.isNil()) { return; }
 
     auto kind = arg->getKind();
     switch (kind) {
@@ -302,13 +300,9 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
         os << " node:" << fmt1(ev.visitedNode->getKind());
     }
 
-    if (0 < ev.field.length()) {
-        os << " field:" << ev.field;
-    }
+    if (0 < ev.field.length()) { os << " field:" << ev.field; }
 
-    if (!ev.msg.empty()) {
-        os << " msg:" << ev.msg;
-    }
+    if (!ev.msg.empty()) { os << " msg:" << ev.msg; }
 
     os << " on " << fs::path(ev.file).stem() << ":" << ev.line << " "
        << " " << os.end();

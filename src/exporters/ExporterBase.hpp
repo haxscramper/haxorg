@@ -21,12 +21,12 @@ void Exporter<V, R>::visitField(R& arg, const char* name, sem::SemId org) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitSubnode(R& tmp, int, sem::SemId val) {
+void Exporter<V, R>::visitSubnode(R& tmp, int, sem::SemId<sem::Org> val) {
     _this()->visit(tmp, val);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitDispatch(R& res, sem::SemId arg) {
+void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
     __visit_scope(
         VisitEvent::Kind::VisitDispatch,
         .visitedValue = &res,
@@ -56,7 +56,7 @@ void Exporter<V, R>::visitDispatch(R& res, sem::SemId arg) {
 }
 
 template <typename V, typename R>
-R Exporter<V, R>::evalTop(sem::SemId org) {
+R Exporter<V, R>::evalTop(sem::SemId<sem::Org> org) {
     __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
 
     _this()->visitStart(org);
