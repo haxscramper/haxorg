@@ -49,8 +49,6 @@ struct SemId;
 using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
 
-struct ContextStore;
-
 struct SemValue {
     int         getInt() const;
     std::string getString() const;
@@ -77,6 +75,10 @@ struct SemId {
 
     static SemId Nil() { return SemId(nullptr); }
 
+    SemId() { value = nullptr; }
+    SemId(SPtr<O> const& value) : value(value) {}
+    SemId(O* value) : value(value) {}
+
     operator SemId<Org>() {
         return SemId<Org>{std::shared_ptr<Org>(value)};
     }
@@ -92,10 +94,11 @@ struct SemId {
     /// the same reason storing pointers in containers is discouraged.
     ///
     /// {@
-    O*       get();
-    O const* get() const;
-    O*       operator->() { return get(); }
-    O const* operator->() const { return get(); }
+    O*              get();
+    O const*        get() const;
+    O*              operator->() { return get(); }
+    O const*        operator->() const { return get(); }
+    SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
 
     template <typename T>
     T* getAs() {
@@ -121,8 +124,10 @@ struct SemId {
     /// \brief Convert this node to one with specified kind
     template <typename T>
     SemId<T> as() const {
-        CHECK(value->getKind() == T::staticKind);
-        return SemId<Org>{std::shared_ptr<Org>(value)};
+        if constexpr (!std::is_abstract_v<T>) {
+            CHECK(value->getKind() == T::staticKind);
+        }
+        return SemId<T>{std::dynamic_pointer_cast<T>(value)};
     }
 
     /// \brief Get parent node ID for the node pointed to by this ID

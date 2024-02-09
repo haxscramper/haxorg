@@ -121,15 +121,15 @@ class CorpusRunner {
 
 
     RunResult::SemCompare compareSem(
-        CR<ParseSpec> spec,
-        sem::SemId    node,
-        json          expected);
+        CR<ParseSpec>        spec,
+        sem::SemId<sem::Org> node,
+        json                 expected);
 
     RunResult runSpec(CR<ParseSpec> spec, CR<std::string> from);
 
     ExportResult runExporter(
         ParseSpec const&                 spec,
-        sem::SemId                       top,
+        sem::SemId<sem::Org>             top,
         ParseSpec::ExporterExpect const& exp);
 
     RunResult::ExportCompare::Run compareExport(
@@ -168,7 +168,7 @@ struct TestParams {
                    spec.specLocation.column);
     }
 
-           // Provide a friend overload.
+    // Provide a friend overload.
     friend void PrintTo(const TestParams& point, std::ostream* os) {
         json loc;
         loc["path"] = point.file.native();

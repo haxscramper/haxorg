@@ -7,7 +7,10 @@
 #include <exporters/Exporter.cpp>
 template class Exporter<ExporterTree, int>;
 
-void ExporterTree::visitField(int& arg, const char* name, sem::SemId org) {
+void ExporterTree::visitField(
+    int&                 arg,
+    const char*          name,
+    sem::SemId<sem::Org> org) {
 
     __scope();
     indent();
@@ -17,9 +20,9 @@ void ExporterTree::visitField(int& arg, const char* name, sem::SemId org) {
 }
 
 void ExporterTree::visitField(
-    int&             i,
-    const char*      name,
-    CVec<sem::SemId> org) {
+    int&                       i,
+    const char*                name,
+    CVec<sem::SemId<sem::Org>> org) {
     if (skipAsEmpty(org)) { return; }
 
     __scope();
@@ -33,13 +36,13 @@ void ExporterTree::visitField(
     }
 }
 
-void ExporterTree::treeRepr(sem::SemId org) {
+void ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
     ColStream os{std::cout};
     ExporterTree(os).evalTop(org);
 }
 
 void ExporterTree::treeRepr(
-    sem::SemId                   org,
+    sem::SemId<sem::Org>         org,
     const std::filesystem::path& path) {
     std::ofstream file{path.native()};
     if (file.is_open()) {
@@ -52,14 +55,16 @@ void ExporterTree::treeRepr(
     }
 }
 
-void ExporterTree::treeRepr(sem::SemId org, CR<TreeReprConf> conf) {
+void ExporterTree::treeRepr(
+    sem::SemId<sem::Org> org,
+    CR<TreeReprConf>     conf) {
     ColStream    os{std::cout};
     ExporterTree exporter{os};
     exporter.conf = conf;
     exporter.evalTop(org);
 }
 
-void ExporterTree::init(sem::SemId org) {
+void ExporterTree::init(sem::SemId<sem::Org> org) {
     auto ctx = stack.back();
     indent();
     os << os.green() << std::format("{}", org->getKind()) << os.end();
@@ -68,13 +73,8 @@ void ExporterTree::init(sem::SemId org) {
         os << " [" << ctx.subnodeIdx << "]";
     }
 
-    os << " P: "
-       << (org.getParent().isNil() ? "<nil>"_qs
-                                   : org.getParent().getReadableId());
-
     if (conf.withOriginalId) {
-        os << " ID:" << org.getReadableId()
-           << " OID:" << fmt1(org->original.id.getUnmasked());
+        os << " OID:" << fmt1(org->original.id.getUnmasked());
     }
 
     if (conf.withLineCol && org->loc.has_value()) {
@@ -110,15 +110,15 @@ void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
 
 template <typename T>
 void ExporterTree::visitField(
-    int&           arg,
-    const char*    name,
-    sem::SemIdT<T> org) {
-    visitField(arg, name, org.toId());
+    int&          arg,
+    const char*   name,
+    sem::SemId<T> org) {
+    visitField(arg, name, org.asOrg());
 }
 
 template <typename T>
-void ExporterTree::visit(int& arg, sem::SemIdT<T> org) {
-    visit(arg, org.toId());
+void ExporterTree::visit(int& arg, sem::SemId<T> org) {
+    visit(arg, org.asOrg());
 }
 
 template <typename T>

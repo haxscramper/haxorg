@@ -23,6 +23,7 @@ from py_codegen.astbuilder_pybind11 import (
     py_type,
 )
 
+
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
         GenTuPass("#pragma once"),
@@ -30,8 +31,6 @@ def with_enum_reflection_api(body: List[Any]) -> List[Any]:
         GenTuPass("#include <hstd/system/reflection.hpp>"),
         GenTuPass("#include <hstd/stdlib/Opt.hpp>"),
     ] + body
-
-
 
 
 @beartype
@@ -150,13 +149,13 @@ def in_sem(typ: QualType) -> QualType:
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
     base_type = QualType.ForName(typ.name.name, Spaces=[QualType.ForName("sem")])
-    id_type = QualType.ForName("SemIdT",
+    id_type = QualType.ForName("SemId",
                                Parameters=[base_type],
                                Spaces=[QualType.ForName("sem")])
-    res = Py11Class(PyName="Sem" + typ.name.name, Class=id_type, PyBases=typ.bases)
-
-    res.AddInit([], [ast.Return(ast.CallStatic(id_type, "Nil"))])
-    res.Bases.append(QualType.ForName("SemId", Spaces=[QualType.ForName("sem")]))
+    res = Py11Class(PyName="Sem" + typ.name.name,
+                    Class=base_type,
+                    Bases=[id_type],
+                    PyBases=typ.bases)
 
     _self = id_self(id_type)
 
@@ -165,23 +164,14 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
             if _field.isStatic or hasattr(_field, "ignore"):
                 continue
 
-            res.Fields.append(
-                Py11Field.FromGenTu(
-                    _field,
-                    GetImpl=[b.text(f"return {_self.name}->{_field.name};")],
-                    SetImpl=[b.text(f"{_self.name}->{_field.name} = {_field.name};")]))
+            res.Fields.append(Py11Field.FromGenTu(_field))
 
     def map_obj_methods(Record: GenTuStruct):
         for meth in Record.methods:
             if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
                 continue
-
-            passcall = ast.XCallPtr(b.text(_self.name), meth.name,
-                                    [b.text(arg.name) for arg in meth.arguments])
-            if meth.result and meth.result != "void":
-                passcall = ast.Return(passcall)
-
-            res.Methods.append(Py11Method.FromGenTu(meth, Body=[passcall]))
+            
+            res.Methods.append(Py11Method.FromGenTu(meth))
 
     def map_bases(Record: GenTuStruct):
         for base in Record.bases:
@@ -215,9 +205,6 @@ def pybind_nested_type(value: GenTuStruct) -> Py11Class:
         res.Fields.append(Py11Field.FromGenTu(_field))
 
     return res
-
-
-
 
 
 @beartype
@@ -285,8 +272,6 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
         res.Decls.append(Py11Enum.FromGenTu(item, py_type(item.name).Name))
 
     return res
-
-
 
 
 @beartype
@@ -490,16 +475,14 @@ def to_base_types(obj):
     return aux(obj, seen)
 
 
-
-
-
 @beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
     proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
 
     protobuf = proto.build_protobuf()
-    protobuf_writer_declarations, protobuf_writer_implementation = proto.build_protobuf_writer()
+    protobuf_writer_declarations, protobuf_writer_implementation = proto.build_protobuf_writer(
+    )
 
     import yaml
 

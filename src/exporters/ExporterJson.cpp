@@ -23,9 +23,7 @@ json ExporterJson::newRes(sem::SemId org) {
             res["loc"]    = loc;
         }
 
-        if (!skipId) {
-            res["id"] = org.getReadableId();
-        }
+        if (!skipId) { res["id"] = org.getReadableId(); }
 
         return res;
     }
@@ -65,18 +63,14 @@ void ExporterJson::visitField(
 template <typename T>
 json ExporterJson::eval(CR<UnorderedMap<Str, T>> map) {
     json tmp = json::object();
-    for (const auto& [key, val] : map) {
-        tmp[key] = eval(val);
-    }
+    for (const auto& [key, val] : map) { tmp[key] = eval(val); }
     return tmp;
 }
 
 template <typename T>
 json ExporterJson::eval(CR<Vec<T>> values) {
     json tmp = json::array();
-    for (const auto& it : values) {
-        tmp.push_back(eval(it));
-    }
+    for (const auto& it : values) { tmp.push_back(eval(it)); }
     return tmp;
 }
 
@@ -92,4 +86,4 @@ json ExporterJson::eval(CR<T> arg) {
 }
 
 
-void tmp() { ExporterJson().evalTop(sem::SemId::Nil()); }
+void tmp() { ExporterJson().evalTop(sem::SemId<sem::Org>::Nil()); }

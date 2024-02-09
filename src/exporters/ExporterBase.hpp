@@ -10,7 +10,10 @@
     visitFieldRedirect(res, #name, obj->name);
 
 template <typename V, typename R>
-void Exporter<V, R>::visitField(R& arg, const char* name, sem::SemId org) {
+void Exporter<V, R>::visitField(
+    R&                   arg,
+    const char*          name,
+    sem::SemId<sem::Org> org) {
     __visit_scope(
         VisitEvent::Kind::VisitEnd,
         .visitedNode  = org,
@@ -32,9 +35,7 @@ void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
         .visitedValue = &res,
         .visitedNode  = arg);
 
-    if (arg.isNil()) {
-        return;
-    }
+    if (arg.isNil()) { return; }
 
     auto kind = arg->getKind();
     switch (kind) {

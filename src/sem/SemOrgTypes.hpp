@@ -17,7 +17,7 @@ namespace sem{
 struct Stmt : public sem::Org {
   using Org::Org;
   Stmt() {}
-  Stmt(CVec<SemId<Org>> attached, CVec<SemId> subnodes) : Org(parent, subnodes), attached(attached) {}
+  Stmt(CVec<SemId<Org>> attached, CVec<SemId<Org>> subnodes) : Org(subnodes), attached(attached) {}
   BOOST_DESCRIBE_CLASS(Stmt,
                        (Org),
                        (),

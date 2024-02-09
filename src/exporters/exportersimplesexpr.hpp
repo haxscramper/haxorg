@@ -22,11 +22,11 @@ struct ExporterSimpleSExpr
     layout::BlockStore        b;
     layout::SimpleStringStore store;
     ExporterSimpleSExpr() : store{&b} {}
-    Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
+    Res newRes(CR<sem::SemId<sem::Org>> id) { return Res::Nil(); }
 
     Res string(std::string const& str) { return b.text(store.str(str)); }
 
-    void visit(Res& res, sem::SemId org);
+    void visit(Res& res, sem::SemId<sem::Org> org);
 
 
     template <sem::NotOrg T>
@@ -37,9 +37,7 @@ struct ExporterSimpleSExpr
     template <typename T>
     void visit(Res& res, CVec<T> value) {
         res = b.stack();
-        for (const auto& it : value) {
-            b.add_at(res, eval(it));
-        }
+        for (const auto& it : value) { b.add_at(res, eval(it)); }
     }
 
 
@@ -70,9 +68,7 @@ struct ExporterSimpleSExpr
     template <typename T>
     void visitField(Res& res, char const* name, CVec<T> value) {
         if (!value.empty()) {
-            if (b.at(res).isLine()) {
-                b.add_at(res, string(" "));
-            }
+            if (b.at(res).isLine()) { b.add_at(res, string(" ")); }
             b.add_at(
                 res, b.line({string(name), string(": "), eval(value)}));
         }
@@ -80,17 +76,13 @@ struct ExporterSimpleSExpr
 
     template <typename T>
     void visitField(Res& res, char const* name, CR<Opt<T>> value) {
-        if (value) {
-            visitField(res, name, *value);
-        }
+        if (value) { visitField(res, name, *value); }
     }
 
     template <typename T>
     void visitField(Res& res, char const* name, CR<T> value) {
         CHECK(!res.isNil());
-        if (b.at(res).isLine()) {
-            b.add_at(res, string(" "));
-        }
+        if (b.at(res).isLine()) { b.add_at(res, string(" ")); }
         b.add_at(res, b.line({string(name), string(": "), eval(value)}));
     }
 
@@ -105,9 +97,7 @@ struct ExporterSimpleSExpr
 
     void visitDocument(Res& res, In<sem::Document> value) {
         res = b.stack();
-        for (const auto& it : value->subnodes) {
-            b.add_at(res, eval(it));
-        }
+        for (const auto& it : value->subnodes) { b.add_at(res, eval(it)); }
     }
 };
 

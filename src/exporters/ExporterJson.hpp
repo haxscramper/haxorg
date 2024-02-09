@@ -47,11 +47,11 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     template <typename T>
     json eval(CR<T> arg);
 
-    json newRes(sem::SemId org);
+    json newRes(sem::SemId<sem::Org> org);
 
     template <typename T>
-    json newRes(sem::SemIdT<T> org) {
-        return newRes(org.toId());
+    json newRes(sem::SemId<T> org) {
+        return newRes(org.template as<sem::Org>());
     }
 
     template <typename T>
@@ -70,9 +70,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
 
     template <typename T>
     void visitField(json& j, const char* name, CVec<T> field) {
-        if (!skipEmptyLists || !field.empty()) {
-            j[name] = eval(field);
-        }
+        if (!skipEmptyLists || !field.empty()) { j[name] = eval(field); }
     }
 
     void visitDocument(json& j, In<sem::Document> doc) {
@@ -84,7 +82,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     bool skipId         = false;
     bool skipNullFields = false;
 
-    virtual void visitDispatchHook(json&, sem::SemId) {}
+    virtual void visitDispatchHook(json&, sem::SemId<sem::Org>) {}
 };
 
 extern template class Exporter<ExporterJson, json>;

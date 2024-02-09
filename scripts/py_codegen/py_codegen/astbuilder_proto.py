@@ -230,11 +230,12 @@ class ProtoBuilder():
             return [self.rewrite_for_proto_serde(p) for p in typ.Parameters]
 
         match typ:
-            case tu.QualType(name="SemId"):
-                return tu.QualType.ForName("AnyNode").withExtraSpace("orgproto")
-
-            case tu.QualType(name="SemIdT", Parameters=[nodeType]):
-                return nodeType.withoutSpace("sem").withExtraSpace("orgproto")
+            case tu.QualType(name="SemId", Parameters=[nodeType]):
+                if nodeType.name == "Org":
+                    return tu.QualType.ForName("AnyNode").withExtraSpace("orgproto")
+                
+                else:
+                    return nodeType.withoutSpace("sem").withExtraSpace("orgproto")
 
             case tu.QualType(name="bool"):
                 return typ
@@ -371,7 +372,6 @@ class ProtoBuilder():
                 ),
                 "read",
                 [
-                    self.t.text(self.ctx_store_param().name),
                     self.ast.XCallRef(proto_ptr, opc),
                     field_read,
                 ],
@@ -392,14 +392,6 @@ class ProtoBuilder():
                     ]))
 
         return read_op
-
-    def ctx_store_param(self) -> cpp.ParmVarParams:
-        return cpp.ParmVarParams(
-            name="context",
-            type=tu.QualType.ForName("ContextStore",
-                                     ptrCount=1,
-                                     Spaces=[tu.QualType.ForName("sem")]),
-        )
 
     def get_field_write_op(
         self,
@@ -521,7 +513,7 @@ class ProtoBuilder():
                     self.ast.XCallRef(
                         t.text(ORG_VALUE_NAME),
                         "for_field_variant",
-                        [self.t.text("context"), field_ptr],
+                        [field_ptr],
                         Params=[tu.QualType.ForExpr(str(idx))],
                     )
                 ])
@@ -633,7 +625,6 @@ class ProtoBuilder():
                                         Parameters=[proto_param_type, base]),
                             "read",
                             [
-                                self.t.text(self.ctx_store_param().name),
                                 out,
                                 self.ast.XCallRef(_in, "as", Params=[base]),
                             ],
@@ -657,7 +648,6 @@ class ProtoBuilder():
                     Params=cpp.FunctionParams(
                         Name="read",
                         Args=[
-                            self.ctx_store_param(),
                             cpp.ParmVarParams(
                                 name=PROTO_VALUE_NAME,
                                 type=proto_param_type.asConstRef(),

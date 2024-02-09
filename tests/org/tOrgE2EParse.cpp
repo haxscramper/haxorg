@@ -2,8 +2,6 @@
 #include "org_parse_aux.hpp"
 #include <gtest/gtest.h>
 
-#include <sem/semdatastream.hpp>
-
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <gtest/gtest.h>
@@ -190,10 +188,10 @@ struct reporting_comparator<T> {
 };
 
 template <typename T>
-struct reporting_comparator<sem::SemIdT<T>> {
+struct reporting_comparator<sem::SemId<T>> {
     static void compare(
-        CR<sem::SemIdT<T>>          lhs,
-        CR<sem::SemIdT<T>>          rhs,
+        CR<sem::SemId<T>>           lhs,
+        CR<sem::SemId<T>>           rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.isNil() != rhs.isNil()) {
@@ -209,10 +207,10 @@ struct reporting_comparator<sem::SemIdT<T>> {
 };
 
 template <>
-struct reporting_comparator<sem::SemId> {
+struct reporting_comparator<sem::SemId<sem::Org>> {
     static void compare(
-        CR<sem::SemId>              lhs,
-        CR<sem::SemId>              rhs,
+        CR<sem::SemId<sem::Org>>    lhs,
+        CR<sem::SemId<sem::Org>>    rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.isNil() != rhs.isNil()) {
@@ -234,7 +232,7 @@ struct reporting_comparator<sem::SemId> {
             switch (lhs->getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind:                                              \
-        reporting_comparator<sem::SemIdT<sem::__Kind>>::compare(          \
+        reporting_comparator<sem::SemId<sem::__Kind>>::compare(           \
             lhs.as<sem::__Kind>(), rhs.as<sem::__Kind>(), out, context);  \
         break;
 
@@ -252,31 +250,18 @@ compare_report cmp_field_value(CR<T> lhs, CR<T> rhs, Field T::*fieldPtr) {
 };
 
 
-template <typename T>
-auto cmp_stores(
-    sem::KindStore<T> const& lhsStore,
-    sem::KindStore<T> const& rhsStore,
-    Vec<compare_report>&     out) {
-    EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size())
-        << fmt("{}", T::staticKind);
-    for (int i = 0; i < lhsStore.size(); ++i) {
-        reporting_comparator<T>::compare(
-            lhsStore.values.at(i), rhsStore.values.at(i), out, {});
-    }
-}
-
 TEST(TestFiles, AllNodeSerde) {
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
 
-    sem::ContextStore write_context;
-    sem::OrgConverter converter{&write_context};
+    sem::OrgConverter converter{};
     sem::SemId        write_node = converter.toDocument(
         OrgAdapter(&p.nodes, OrgId(0)));
     orgproto::AnyNode result;
-    proto_serde<orgproto::AnyNode, sem::SemId>::write(&result, write_node);
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+        &result, write_node);
 
     google::protobuf::util::JsonPrintOptions options;
     options.add_whitespace = true;
@@ -289,16 +274,14 @@ TEST(TestFiles, AllNodeSerde) {
         writeFile("/tmp/proto_write.json", proto_write_json);
     }
 
-    sem::ContextStore read_context;
-    sem::SemId        read_node = sem::SemId::Nil();
-    proto_serde<orgproto::AnyNode, sem::SemId>::read(
-        &read_context,
+    sem::SemId read_node = sem::SemId<sem::Org>::Nil();
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
         result,
-        proto_write_accessor<sem::SemId>::for_ref(read_node));
+        proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
 
     {
         orgproto::AnyNode result2;
-        proto_serde<orgproto::AnyNode, sem::SemId>::write(
+        proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
             &result2, read_node);
         std::string proto_read_json;
         (void)google::protobuf::util::MessageToJsonString(
@@ -313,14 +296,9 @@ TEST(TestFiles, AllNodeSerde) {
     writeFile("/tmp/node_write.json", write_json.dump(2));
     writeFile("/tmp/node_read.json", read_json.dump(2));
 
-    EXPECT_EQ(write_context.stores.size(), 1);
-    EXPECT_EQ(read_context.stores.size(), 1);
+    Vec<compare_report> out;
 
-    sem::ParseUnitStore const& original = write_context.stores.at(0);
-    sem::ParseUnitStore const& parsed   = read_context.stores.at(0);
-    Vec<compare_report>        out;
-
-    reporting_comparator<sem::SemId>::compare(
+    reporting_comparator<sem::SemId<sem::Org>>::compare(
         write_node, read_node, out, {});
 
     for (auto const& it : out) {
@@ -346,8 +324,7 @@ TEST(TestFiles, AllNodeCoverage) {
     p.run(source);
 
     SemSet            foundNodes;
-    sem::ContextStore context;
-    sem::OrgConverter converter{&context};
+    sem::OrgConverter converter{};
     sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
     context.eachNode([&](sem::OrgVariant const& var) {
         std::visit(

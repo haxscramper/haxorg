@@ -1,9 +1,9 @@
 #include <sem/SemOrgSerde.hpp>
 #include <sem/SemOrgSerdeDeclarations.hpp>
 
-void proto_serde<orgproto::AnyNode, sem::SemId>::write(
-    orgproto::AnyNode* out,
-    const sem::SemId&  in) {
+void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+    orgproto::AnyNode*          out,
+    const sem::SemId<sem::Org>& in) {
 
 #define _case(_fieldEnum, _field, __Kind)                                 \
     case OrgSemKind::__Kind: {                                            \
@@ -19,22 +19,16 @@ void proto_serde<orgproto::AnyNode, sem::SemId>::write(
 #undef _case
 }
 
-void proto_serde<orgproto::AnyNode, sem::SemId>::read(
-    sem::ContextStore*               context,
-    const orgproto::AnyNode&         out,
-    proto_write_accessor<sem::SemId> in) {
+void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+    const orgproto::AnyNode&                   out,
+    proto_write_accessor<sem::SemId<sem::Org>> in) {
 #define _case(_fieldEnum, _field, __Kind)                                 \
     case orgproto::AnyNode::KindCase::_fieldEnum: {                       \
-        if (in.get().isNil()) {                                           \
-            in.get() = context->createIn(                                 \
-                0, OrgSemKind::__Kind, sem::SemId::Nil());                \
-            in.get().context = context;                                   \
-        }                                                                 \
-        sem::SemIdT<sem::__Kind> tmp_id = in.get().as<sem::__Kind>();     \
-        proto_serde<orgproto::__Kind, sem::SemIdT<sem::__Kind>>::read(    \
-            context,                                                      \
+        if (in.get().isNil()) { in.get() = sem::SemId<sem::Org>::New(); } \
+        sem::SemId<sem::__Kind> tmp_id = in.get().as<sem::__Kind>();      \
+        proto_serde<orgproto::__Kind, sem::SemId<sem::__Kind>>::read(     \
             out._field(),                                                 \
-            proto_write_accessor<sem::SemIdT<sem::__Kind>>::for_ref(      \
+            proto_write_accessor<sem::SemId<sem::__Kind>>::for_ref(       \
                 tmp_id));                                                 \
                                                                           \
         break;                                                            \
@@ -53,7 +47,6 @@ void proto_serde<orgproto::AnyNode, sem::SemId>::read(
         }
     }
     CHECK(!in.get().isNil());
-    CHECK(in.get().context != nullptr);
 
 #undef _case
 }

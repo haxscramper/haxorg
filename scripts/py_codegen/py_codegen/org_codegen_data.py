@@ -155,7 +155,7 @@ def get_types() -> Sequence[GenTuStruct]:
             nested=[
                 GenTuPass("Stmt() {}"),
                 GenTuPass(
-                    "Stmt(CVec<SemId<Org>> attached, CVec<SemId> subnodes) : Org(parent, subnodes), attached(attached) {}"
+                    "Stmt(CVec<SemId<Org>> attached, CVec<SemId<Org>> subnodes) : Org(subnodes), attached(attached) {}"
                 ),
             ],
         ),

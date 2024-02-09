@@ -104,11 +104,8 @@ struct OrgConverter : public OperationsTracer {
 
   public:
     UPtr<OrgSpec> spec;
-    ContextStore* context;
 
-    OrgConverter(ContextStore* context) : context(context) {
-        spec = getOrgSpec();
-    }
+    OrgConverter() { spec = getOrgSpec(); }
 
     OrgAdapter one(OrgAdapter node, OrgSpecName name) {
         return spec->getSingleSubnode(node, name);
@@ -214,9 +211,9 @@ struct OrgConverter : public OperationsTracer {
         char const* function = __builtin_FUNCTION());
 
     void print_json(
-        SemId<sem::Org>       semResult,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        SemId<sem::Org> semResult,
+        int             line     = __builtin_LINE(),
+        char const*     function = __builtin_FUNCTION());
 
     void print(
         std::string msg,
