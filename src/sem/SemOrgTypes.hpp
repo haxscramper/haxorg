@@ -16,6 +16,7 @@ namespace sem{
 /// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
 struct Stmt : public sem::Org {
   using Org::Org;
+  virtual ~Stmt() = default;
   Stmt() {}
   Stmt(CVec<SemId<Org>> attached, CVec<SemId<Org>> subnodes) : Org(subnodes), attached(attached) {}
   BOOST_DESCRIBE_CLASS(Stmt,
@@ -30,12 +31,14 @@ struct Stmt : public sem::Org {
 /// \brief Base class for all inline elements
 struct Inline : public sem::Org {
   using Org::Org;
+  virtual ~Inline() = default;
   BOOST_DESCRIBE_CLASS(Inline, (Org), (), (), ())
 };
 
 /// \brief Zero or more statement nodes
 struct StmtList : public sem::Org {
   using Org::Org;
+  virtual ~StmtList() = default;
   BOOST_DESCRIBE_CLASS(StmtList,
                        (Org),
                        (),
@@ -55,6 +58,7 @@ struct StmtList : public sem::Org {
 /// \brief Node without content
 struct Empty : public sem::Org {
   using Org::Org;
+  virtual ~Empty() = default;
   BOOST_DESCRIBE_CLASS(Empty,
                        (Org),
                        (),
@@ -74,6 +78,7 @@ struct Empty : public sem::Org {
 /// \brief Table row
 struct Row : public sem::Org {
   using Org::Org;
+  virtual ~Row() = default;
   BOOST_DESCRIBE_CLASS(Row,
                        (Org),
                        (),
@@ -93,6 +98,7 @@ struct Row : public sem::Org {
 /// \brief Table
 struct Table : public sem::Stmt {
   using Stmt::Stmt;
+  virtual ~Table() = default;
   BOOST_DESCRIBE_CLASS(Table,
                        (Stmt),
                        (),
@@ -115,6 +121,7 @@ struct Table : public sem::Stmt {
 /// \brief Single or nested inline hash-tag
 struct HashTag : public sem::Inline {
   using Inline::Inline;
+  virtual ~HashTag() = default;
   BOOST_DESCRIBE_CLASS(HashTag,
                        (Inline),
                        (),
@@ -145,6 +152,7 @@ struct HashTag : public sem::Inline {
 /// \note in-text link to the footnotes are implemented using `Link` nodes
 struct Footnote : public sem::Inline {
   using Inline::Inline;
+  virtual ~Footnote() = default;
   BOOST_DESCRIBE_CLASS(Footnote,
                        (Inline),
                        (),
@@ -170,6 +178,7 @@ struct Footnote : public sem::Inline {
 /// \brief Completion status of the subtree list element
 struct Completion : public sem::Inline {
   using Inline::Inline;
+  virtual ~Completion() = default;
   BOOST_DESCRIBE_CLASS(Completion,
                        (Inline),
                        (),
@@ -198,6 +207,7 @@ struct Completion : public sem::Inline {
 /// \brief Top-level or inline paragraph
 struct Paragraph : public sem::Stmt {
   using Stmt::Stmt;
+  virtual ~Paragraph() = default;
   BOOST_DESCRIBE_CLASS(Paragraph,
                        (Stmt),
                        (),
@@ -220,12 +230,14 @@ struct Paragraph : public sem::Stmt {
 /// \brief Base class for branch of formatting node classes
 struct Format : public sem::Org {
   using Org::Org;
+  virtual ~Format() = default;
   BOOST_DESCRIBE_CLASS(Format, (Org), (), (), ())
 };
 
 /// \brief Center nested content in export
 struct Center : public sem::Format {
   using Format::Format;
+  virtual ~Center() = default;
   BOOST_DESCRIBE_CLASS(Center,
                        (Format),
                        (),
@@ -245,30 +257,35 @@ struct Center : public sem::Format {
 /// \brief Base class for block or line commands
 struct Command : public sem::Org {
   using Org::Org;
+  virtual ~Command() = default;
   BOOST_DESCRIBE_CLASS(Command, (Org), (), (), ())
 };
 
 /// \brief Line commands
 struct LineCommand : public sem::Command {
   using Command::Command;
+  virtual ~LineCommand() = default;
   BOOST_DESCRIBE_CLASS(LineCommand, (Command), (), (), ())
 };
 
 /// \brief Standalone commands that can be placed individuall on the the top level and don't have to be attached to any subsequent elements
 struct Standalone : public sem::LineCommand {
   using LineCommand::LineCommand;
+  virtual ~Standalone() = default;
   BOOST_DESCRIBE_CLASS(Standalone, (LineCommand), (), (), ())
 };
 
 /// \brief Line command that might get attached to some block element
 struct Attached : public sem::LineCommand {
   using LineCommand::LineCommand;
+  virtual ~Attached() = default;
   BOOST_DESCRIBE_CLASS(Attached, (LineCommand), (), (), ())
 };
 
 /// \brief Caption annotation for any subsequent node
 struct Caption : public sem::Attached {
   using Attached::Attached;
+  virtual ~Caption() = default;
   BOOST_DESCRIBE_CLASS(Caption,
                        (Attached),
                        (),
@@ -291,6 +308,7 @@ struct Caption : public sem::Attached {
 /// \brief Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public sem::Stmt {
   using Stmt::Stmt;
+  virtual ~CommandGroup() = default;
   BOOST_DESCRIBE_CLASS(CommandGroup,
                        (Stmt),
                        (),
@@ -310,12 +328,14 @@ struct CommandGroup : public sem::Stmt {
 /// \brief Block command type
 struct Block : public sem::Command {
   using Command::Command;
+  virtual ~Block() = default;
   BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ())
 };
 
 /// \brief Tblfm command type
 struct Tblfm : public sem::Command {
   using Command::Command;
+  virtual ~Tblfm() = default;
   BOOST_DESCRIBE_CLASS(Tblfm,
                        (Command),
                        (),
@@ -335,6 +355,7 @@ struct Tblfm : public sem::Command {
 /// \brief Quotation block
 struct Quote : public sem::Org {
   using Org::Org;
+  virtual ~Quote() = default;
   BOOST_DESCRIBE_CLASS(Quote,
                        (Org),
                        (),
@@ -354,6 +375,7 @@ struct Quote : public sem::Org {
 /// \brief Verse quotation block
 struct Verse : public sem::Block {
   using Block::Block;
+  virtual ~Verse() = default;
   BOOST_DESCRIBE_CLASS(Verse,
                        (Block),
                        (),
@@ -373,6 +395,7 @@ struct Verse : public sem::Block {
 /// \brief Example block
 struct Example : public sem::Block {
   using Block::Block;
+  virtual ~Example() = default;
   BOOST_DESCRIBE_CLASS(Example,
                        (Block),
                        (),
@@ -392,6 +415,7 @@ struct Example : public sem::Block {
 /// \brief Additional arguments for command blocks
 struct CmdArguments : public sem::Org {
   using Org::Org;
+  virtual ~CmdArguments() = default;
   BOOST_DESCRIBE_CLASS(CmdArguments,
                        (Org),
                        (),
@@ -422,6 +446,7 @@ struct CmdArguments : public sem::Org {
 /// \brief Single key-value (or positional)
 struct CmdArgument : public sem::Org {
   using Org::Org;
+  virtual ~CmdArgument() = default;
   BOOST_DESCRIBE_CLASS(CmdArgument,
                        (Org),
                        (),
@@ -456,6 +481,7 @@ struct CmdArgument : public sem::Org {
 /// \brief Direct export passthrough
 struct Export : public sem::Block {
   using Block::Block;
+  virtual ~Export() = default;
   /// \brief Export block format type
   enum class Format : short int {
     /// \brief Export directly in the paragraph
@@ -500,6 +526,7 @@ struct Export : public sem::Block {
 /// \brief Block of text with admonition tag: 'note',', 'warning','
 struct AdmonitionBlock : public sem::Block {
   using Block::Block;
+  virtual ~AdmonitionBlock() = default;
   BOOST_DESCRIBE_CLASS(AdmonitionBlock,
                        (Block),
                        (),
@@ -519,6 +546,7 @@ struct AdmonitionBlock : public sem::Block {
 /// \brief Base class for all code blocks
 struct Code : public sem::Block {
   using Block::Block;
+  virtual ~Code() = default;
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
   struct Switch {
     Switch() {}
@@ -658,6 +686,7 @@ struct Code : public sem::Block {
 /// \brief Single static or dynamic timestamp (active or inactive)
 struct Time : public sem::Org {
   using Org::Org;
+  virtual ~Time() = default;
   bool isStatic() const { return std::holds_alternative<Static>(time); }
   /// \brief Repetition information for static time
   struct Repeat {
@@ -737,6 +766,7 @@ struct Time : public sem::Org {
 /// \brief Range of time delimited by two points
 struct TimeRange : public sem::Org {
   using Org::Org;
+  virtual ~TimeRange() = default;
   BOOST_DESCRIBE_CLASS(TimeRange,
                        (Org),
                        (),
@@ -762,6 +792,7 @@ struct TimeRange : public sem::Org {
 /// \brief Inline macro invocation
 struct Macro : public sem::Org {
   using Org::Org;
+  virtual ~Macro() = default;
   BOOST_DESCRIBE_CLASS(Macro,
                        (Org),
                        (),
@@ -787,6 +818,7 @@ struct Macro : public sem::Org {
 /// \brief Text symbol or symbol command
 struct Symbol : public sem::Org {
   using Org::Org;
+  virtual ~Symbol() = default;
   /// \brief Symbol parameters
   struct Param {
     BOOST_DESCRIBE_CLASS(Param, (), (), (), (key, value))
@@ -824,6 +856,7 @@ struct Symbol : public sem::Org {
 /// \brief Single subtree log entry
 struct SubtreeLog : public sem::Org {
   using Org::Org;
+  virtual ~SubtreeLog() = default;
   /// \brief Base value for the log variant
   struct DescribedLog {
     DescribedLog() {}
@@ -950,6 +983,7 @@ struct SubtreeLog : public sem::Org {
 /// \brief Subtree
 struct Subtree : public sem::Org {
   using Org::Org;
+  virtual ~Subtree() = default;
   /// \brief Type of the subtree associated time periods
   struct Period {
     Period() {}
@@ -1238,12 +1272,14 @@ struct Subtree : public sem::Org {
 /// \brief Latex code body
 struct LatexBody : public sem::Org {
   using Org::Org;
+  virtual ~LatexBody() = default;
   BOOST_DESCRIBE_CLASS(LatexBody, (Org), (), (), ())
 };
 
 /// \brief Inline math
 struct InlineMath : public sem::LatexBody {
   using LatexBody::LatexBody;
+  virtual ~InlineMath() = default;
   BOOST_DESCRIBE_CLASS(InlineMath,
                        (LatexBody),
                        (),
@@ -1263,6 +1299,7 @@ struct InlineMath : public sem::LatexBody {
 /// \brief Final node
 struct Leaf : public sem::Org {
   using Org::Org;
+  virtual ~Leaf() = default;
   BOOST_DESCRIBE_CLASS(Leaf, (Org), (), (), (text))
   /// \brief Final leaf value
   Str text = "";
@@ -1271,6 +1308,7 @@ struct Leaf : public sem::Org {
 /// \brief Escaped text
 struct Escaped : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~Escaped() = default;
   BOOST_DESCRIBE_CLASS(Escaped,
                        (Leaf),
                        (),
@@ -1290,6 +1328,7 @@ struct Escaped : public sem::Leaf {
 /// \brief \n newline
 struct Newline : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~Newline() = default;
   BOOST_DESCRIBE_CLASS(Newline,
                        (Leaf),
                        (),
@@ -1309,6 +1348,7 @@ struct Newline : public sem::Leaf {
 /// \brief ' "space",
 struct Space : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~Space() = default;
   BOOST_DESCRIBE_CLASS(Space,
                        (Leaf),
                        (),
@@ -1328,6 +1368,7 @@ struct Space : public sem::Leaf {
 /// \brief word
 struct Word : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~Word() = default;
   BOOST_DESCRIBE_CLASS(Word,
                        (Leaf),
                        (),
@@ -1347,6 +1388,7 @@ struct Word : public sem::Leaf {
 /// \brief @mention
 struct AtMention : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~AtMention() = default;
   BOOST_DESCRIBE_CLASS(AtMention,
                        (Leaf),
                        (),
@@ -1365,6 +1407,7 @@ struct AtMention : public sem::Leaf {
 
 struct RawText : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~RawText() = default;
   BOOST_DESCRIBE_CLASS(RawText,
                        (Leaf),
                        (),
@@ -1383,6 +1426,7 @@ struct RawText : public sem::Leaf {
 
 struct Punctuation : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~Punctuation() = default;
   BOOST_DESCRIBE_CLASS(Punctuation,
                        (Leaf),
                        (),
@@ -1401,6 +1445,7 @@ struct Punctuation : public sem::Leaf {
 
 struct Placeholder : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~Placeholder() = default;
   BOOST_DESCRIBE_CLASS(Placeholder,
                        (Leaf),
                        (),
@@ -1419,6 +1464,7 @@ struct Placeholder : public sem::Leaf {
 
 struct BigIdent : public sem::Leaf {
   using Leaf::Leaf;
+  virtual ~BigIdent() = default;
   BOOST_DESCRIBE_CLASS(BigIdent,
                        (Leaf),
                        (),
@@ -1437,11 +1483,13 @@ struct BigIdent : public sem::Leaf {
 
 struct Markup : public sem::Org {
   using Org::Org;
+  virtual ~Markup() = default;
   BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ())
 };
 
 struct Bold : public sem::Markup {
   using Markup::Markup;
+  virtual ~Bold() = default;
   BOOST_DESCRIBE_CLASS(Bold,
                        (Markup),
                        (),
@@ -1460,6 +1508,7 @@ struct Bold : public sem::Markup {
 
 struct Underline : public sem::Markup {
   using Markup::Markup;
+  virtual ~Underline() = default;
   BOOST_DESCRIBE_CLASS(Underline,
                        (Markup),
                        (),
@@ -1478,6 +1527,7 @@ struct Underline : public sem::Markup {
 
 struct Monospace : public sem::Markup {
   using Markup::Markup;
+  virtual ~Monospace() = default;
   BOOST_DESCRIBE_CLASS(Monospace,
                        (Markup),
                        (),
@@ -1496,6 +1546,7 @@ struct Monospace : public sem::Markup {
 
 struct MarkQuote : public sem::Markup {
   using Markup::Markup;
+  virtual ~MarkQuote() = default;
   BOOST_DESCRIBE_CLASS(MarkQuote,
                        (Markup),
                        (),
@@ -1514,6 +1565,7 @@ struct MarkQuote : public sem::Markup {
 
 struct Verbatim : public sem::Markup {
   using Markup::Markup;
+  virtual ~Verbatim() = default;
   BOOST_DESCRIBE_CLASS(Verbatim,
                        (Markup),
                        (),
@@ -1532,6 +1584,7 @@ struct Verbatim : public sem::Markup {
 
 struct Italic : public sem::Markup {
   using Markup::Markup;
+  virtual ~Italic() = default;
   BOOST_DESCRIBE_CLASS(Italic,
                        (Markup),
                        (),
@@ -1550,6 +1603,7 @@ struct Italic : public sem::Markup {
 
 struct Strike : public sem::Markup {
   using Markup::Markup;
+  virtual ~Strike() = default;
   BOOST_DESCRIBE_CLASS(Strike,
                        (Markup),
                        (),
@@ -1568,6 +1622,7 @@ struct Strike : public sem::Markup {
 
 struct Par : public sem::Markup {
   using Markup::Markup;
+  virtual ~Par() = default;
   BOOST_DESCRIBE_CLASS(Par,
                        (Markup),
                        (),
@@ -1586,6 +1641,7 @@ struct Par : public sem::Markup {
 
 struct List : public sem::Org {
   using Org::Org;
+  virtual ~List() = default;
   BOOST_DESCRIBE_CLASS(List,
                        (Org),
                        (),
@@ -1606,6 +1662,7 @@ struct List : public sem::Org {
 
 struct ListItem : public sem::Org {
   using Org::Org;
+  virtual ~ListItem() = default;
   enum class Checkbox : short int { None, Done, Empty, };
   BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty)
   BOOST_DESCRIBE_CLASS(ListItem,
@@ -1632,6 +1689,7 @@ struct ListItem : public sem::Org {
 
 struct Link : public sem::Org {
   using Org::Org;
+  virtual ~Link() = default;
   struct Raw {
     BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
     Str text;
@@ -1708,6 +1766,7 @@ struct Link : public sem::Org {
 
 struct Document : public sem::Org {
   using Org::Org;
+  virtual ~Document() = default;
   BOOST_DESCRIBE_CLASS(Document,
                        (Org),
                        (),
@@ -1744,6 +1803,7 @@ struct Document : public sem::Org {
 
 struct ParseError : public sem::Org {
   using Org::Org;
+  virtual ~ParseError() = default;
   BOOST_DESCRIBE_CLASS(ParseError,
                        (Org),
                        (),
@@ -1762,6 +1822,7 @@ struct ParseError : public sem::Org {
 
 struct FileTarget : public sem::Org {
   using Org::Org;
+  virtual ~FileTarget() = default;
   BOOST_DESCRIBE_CLASS(FileTarget,
                        (Org),
                        (),
@@ -1792,6 +1853,7 @@ struct FileTarget : public sem::Org {
 
 struct TextSeparator : public sem::Org {
   using Org::Org;
+  virtual ~TextSeparator() = default;
   BOOST_DESCRIBE_CLASS(TextSeparator,
                        (Org),
                        (),
@@ -1810,6 +1872,7 @@ struct TextSeparator : public sem::Org {
 
 struct Include : public sem::Org {
   using Org::Org;
+  virtual ~Include() = default;
   struct Example {
     BOOST_DESCRIBE_CLASS(Example, (), (), (), ())
   };
@@ -1871,6 +1934,7 @@ struct Include : public sem::Org {
 
 struct DocumentOptions : public sem::Org {
   using Org::Org;
+  virtual ~DocumentOptions() = default;
   struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc))
     bool exportToc;
@@ -1958,6 +2022,7 @@ struct DocumentOptions : public sem::Org {
 
 struct DocumentGroup : public sem::Org {
   using Org::Org;
+  virtual ~DocumentGroup() = default;
   BOOST_DESCRIBE_CLASS(DocumentGroup,
                        (Org),
                        (),

@@ -6,24 +6,21 @@
 
 template class Exporter<ExporterJson, json>;
 
-json ExporterJson::newRes(sem::SemId org) {
+json ExporterJson::newRes(sem::SemId<sem::Org> org) {
     if (org.isNil()) {
         return json();
     } else {
         json res    = json::object();
         res["kind"] = fmt1(org->getKind());
         if (!skipLocation) {
-            json loc      = json::object();
-            loc["line"]   = org->loc ? json(org->loc->line) : json();
-            loc["col"]    = org->loc ? json(org->loc->column) : json();
-            loc["parent"] = org->parent.id;
-            loc["id"]     = org->original.id.isNil()
-                              ? json()
-                              : json(org->original.id.getValue());
-            res["loc"]    = loc;
+            json loc    = json::object();
+            loc["line"] = org->loc ? json(org->loc->line) : json();
+            loc["col"]  = org->loc ? json(org->loc->column) : json();
+            loc["id"]   = org->original.id.isNil()
+                            ? json()
+                            : json(org->original.id.getValue());
+            res["loc"]  = loc;
         }
-
-        if (!skipId) { res["id"] = org.getReadableId(); }
 
         return res;
     }
@@ -45,7 +42,8 @@ void ExporterJson::visitSubtreeValueFields(
 }
 
 
-template json ExporterJson::eval<sem::SemId>(CR<sem::SemId>);
+template json ExporterJson::eval<sem::SemId<sem::Org>>(
+    CR<sem::SemId<sem::Org>>);
 
 
 template <typename T>

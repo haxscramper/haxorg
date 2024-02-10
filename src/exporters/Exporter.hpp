@@ -213,11 +213,6 @@ struct Exporter {
         visitDispatch(res, arg);
     }
 
-    template <typename T>
-    void visit(R& res, sem::SemId<T> const& arg) {
-        visitDispatch(res, arg.asOrg());
-    }
-
     /// \brief Default implementation of the top visit
     ///
     /// User can redefined this function as well, or provided it's own

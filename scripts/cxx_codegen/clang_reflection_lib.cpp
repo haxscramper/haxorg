@@ -472,6 +472,8 @@ void ReflASTVisitor::fillType(
                 add_debug(param, "Type parameter");
                 fillType(param, Arg, Loc);
             }
+        } else {
+            add_debug(Out, "not tst");
         }
     }
 }

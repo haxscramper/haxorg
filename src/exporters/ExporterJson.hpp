@@ -77,6 +77,11 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         visitField(j, "subnodes", doc->subnodes);
     }
 
+    template <typename T>
+    void visit(json& res, sem::SemId<T> const& arg) {
+        visitDispatch(res, arg.asOrg());
+    }
+
     bool skipEmptyLists = false;
     bool skipLocation   = false;
     bool skipId         = false;

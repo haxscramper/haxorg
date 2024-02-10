@@ -85,7 +85,10 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
     res.__setattr__("isOrgType", True)
     kind: str = res.name.name
     base = res.bases[0]
-    res.nested = [GenTuPass(f"using {base.name}::{base.name};")] + res.nested
+    res.nested = [
+        GenTuPass(f"using {base.name}::{base.name};"),
+        GenTuPass(f"virtual ~{name}() = default;")
+    ] + res.nested
     if res.concreteKind:
         res.fields.insert(
             0,

@@ -6,7 +6,7 @@
 template class Exporter<ExporterSimpleSExpr, layout::BlockId>;
 
 
-void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
+void ExporterSimpleSExpr::visit(Res& res, sem::SemId<sem::Org> org) {
     if (org.isNil()) {
         res = string("<nil>");
     } else {

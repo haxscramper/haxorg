@@ -70,7 +70,7 @@ struct SemId {
 
     template <typename... Args>
     static SemId<O> New(Args&&... args) {
-        return std::make_shared<O>(std::forward(args)...);
+        return std::make_shared<O>(std::forward<Args>(args)...);
     }
 
     static SemId Nil() { return SemId(nullptr); }
@@ -94,8 +94,8 @@ struct SemId {
     /// the same reason storing pointers in containers is discouraged.
     ///
     /// {@
-    O*              get();
-    O const*        get() const;
+    O*              get() { return value.get(); }
+    O const*        get() const { return value.get(); }
     O*              operator->() { return get(); }
     O const*        operator->() const { return get(); }
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
@@ -110,16 +110,6 @@ struct SemId {
         return dynamic_cast<T const*>(get());
     }
     /// @}
-
-    /// \brief Add new subnode
-    ///
-    /// \note This method *must* be used instead of the
-    /// `id->push_back(convert())` and similar because otherwise it might
-    /// cause dangling pointers due to the following sequence: (1) `->` is
-    /// evaluated, (2) `convert()` is evaluated, (3) `push_back` is called
-    /// on the pointer created earlier, which might be invalidated due to
-    /// relocation in p2
-    void push_back(SemId sub);
 
     /// \brief Convert this node to one with specified kind
     template <typename T>
@@ -147,12 +137,12 @@ struct SemId {
 
 template <typename T>
 struct remove_sem_org {
-    using type = remove_smart_pointer<T>;
+    using type = remove_smart_pointer<T>::type;
 };
 
 template <typename T>
 struct remove_sem_org<SemId<T>> {
-    using type = remove_smart_pointer<T>;
+    using type = remove_smart_pointer<T>::type;
 };
 
 sem::OrgVariant asVariant(SemId<Org> in);
@@ -223,8 +213,8 @@ template <typename T>
 struct std::formatter<sem::SemId<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const sem::SemId<sem::Org>& p,
-        FormatContext&              ctx) const {
+        const sem::SemId<T>& p,
+        FormatContext&       ctx) const {
         return fmt_ctx(p->getKind(), ctx);
     }
 };

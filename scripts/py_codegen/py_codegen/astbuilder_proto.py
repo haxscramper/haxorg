@@ -304,11 +304,11 @@ class ProtoBuilder():
             field_read = dot_field
             field_type = field.type
 
-        if not is_read_getter and field_type.name == "SemIdT":
-            field_read = self.t.line(
-                [self.t.text("*(("), field_read,
-                 self.t.text(").get())")])
-            field_type = field_type.Parameters[0]
+        # if not is_read_getter and field_type.name == "SemId":
+        #     field_read = self.t.line(
+        #         [self.t.text("*(("), field_read,
+        #          self.t.text(").get())")])
+        #     field_type = field_type.Parameters[0]
 
         field_proto_type = self.rewrite_for_proto_serde(field_type)
         is_enum_field = tu.in_type_list(field_type, self.enum_type_list)

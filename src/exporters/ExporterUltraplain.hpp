@@ -6,7 +6,7 @@ struct ExporterUltraplain
     EXPORTER_USING()
 #undef __ExporterBase
 
-    static std::string toStr(sem::SemId node);
+    static std::string toStr(sem::SemId<sem::Org> node);
 
     void visitLink(std::string& res, In<sem::Link> link);
 

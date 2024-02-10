@@ -156,7 +156,7 @@ auto Formatter::toString(SemId<BigIdent> id) -> Res {
 }
 
 auto Formatter::toString(SemId<HashTag> id) -> Res {
-    std::function<std::string(sem::HashTag const& hash)> aux;
+    std::function<std::string(sem::SemId<sem::HashTag> const& hash)> aux;
     aux = [&aux](sem::SemId<sem::HashTag> const& hash) -> std::string {
         if (hash->subtags.empty()) {
             return hash->head;
@@ -172,7 +172,7 @@ auto Formatter::toString(SemId<HashTag> id) -> Res {
         }
     };
 
-    return str(aux(*id.get()));
+    return str(aux(id));
 }
 
 auto Formatter::toString(SemId<MarkQuote> id) -> Res {

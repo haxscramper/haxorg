@@ -5,4 +5,4 @@ instrument:
   xray: false
 
 tasks:
-  skip_python_refl: true
+  skip_python_refl: false

@@ -24,7 +24,9 @@ void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
     proto_write_accessor<sem::SemId<sem::Org>> in) {
 #define _case(_fieldEnum, _field, __Kind)                                 \
     case orgproto::AnyNode::KindCase::_fieldEnum: {                       \
-        if (in.get().isNil()) { in.get() = sem::SemId<sem::Org>::New(); } \
+        if (in.get().isNil()) {                                           \
+            in.get() = sem::SemId<sem::__Kind>::New();                    \
+        }                                                                 \
         sem::SemId<sem::__Kind> tmp_id = in.get().as<sem::__Kind>();      \
         proto_serde<orgproto::__Kind, sem::SemId<sem::__Kind>>::read(     \
             out._field(),                                                 \

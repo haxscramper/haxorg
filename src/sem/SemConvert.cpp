@@ -184,7 +184,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         Property::Created created;
         auto              par = convertParagraph(tree, one(a, N::Values));
 
-        if (par->at(0).is(osk::Time)) {
+        if (par->at(0)->is(osk::Time)) {
             created.time = par->at(0).as<sem::Time>();
             result       = Property(created);
         } else {
@@ -195,8 +195,9 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 
     } else if (name == "origin") {
         Property::Origin origin;
-        origin.text = convert(tree, one(a, N::Values));
-        result      = Property(origin);
+        origin.text = convert(tree, one(a, N::Values))
+                          .as<sem::Paragraph>();
+        result = Property(origin);
 
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
@@ -462,9 +463,9 @@ SemId<Paragraph> OrgConverter::convertParagraph(__args) {
     bool first   = true;
     for (const auto& item : a) {
         if (first && item.kind() == org::Footnote) {
-            par.push_back(convertFootnote(par, item));
+            par->push_back(convertFootnote(par, item));
         } else {
-            par.push_back(convert(par, item));
+            par->push_back(convert(par, item));
         }
         first = false;
     }
@@ -477,7 +478,9 @@ SemId<StmtList> OrgConverter::convertStmtList(__args) {
     auto __trace = trace(a);
     auto stmt    = Sem<StmtList>(p, a);
 
-    for (OrgAdapter const& sub : a) { stmt.push_back(convert(stmt, sub)); }
+    for (OrgAdapter const& sub : a) {
+        stmt->push_back(convert(stmt, sub));
+    }
 
     return stmt;
 }
@@ -546,7 +549,7 @@ SemId<List> OrgConverter::convertList(__args) {
     __perf_trace("convert", "convertList");
     auto __trace = trace(a);
     auto list    = Sem<List>(p, a);
-    for (const auto& it : a) { list.push_back(convert(list, it)); }
+    for (const auto& it : a) { list->push_back(convert(list, it)); }
 
     return list;
 }
@@ -561,7 +564,7 @@ SemId<ListItem> OrgConverter::convertListItem(__args) {
 
     {
         for (const auto& sub : one(a, N::Body)) {
-            item.push_back(convert(item, sub));
+            item->push_back(convert(item, sub));
         }
     }
 

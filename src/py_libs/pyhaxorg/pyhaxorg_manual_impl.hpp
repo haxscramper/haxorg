@@ -458,7 +458,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             switch (kind) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
-        _this()->visit##__Kind(res, node);                                \
+        _this()->visit##__Kind(res, node.template as<sem::__Kind>());     \
         break;                                                            \
     }
 
@@ -482,7 +482,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
                 .field        = std::string(name),
-                .visitedNode  = value,
+                .visitedNode  = value.asOrg(),
                 .msg          = "has universal CB");
 
             visitAnyField->operator()(_self, res, name, value);
@@ -491,7 +491,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
                 .field        = std::string(name),
-                .visitedNode  = value,
+                .visitedNode  = value.asOrg(),
                 .msg          = "has specific visitor CB");
 
             visitOrgFieldCb.at(kind)(_self, res, name, value);
@@ -500,7 +500,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
                 .field        = std::string(name),
-                .visitedNode  = value,
+                .visitedNode  = value.asOrg(),
                 .msg          = "has specific eval CB");
 
             res = evalOrgFieldCb.at(kind)(_self, name, value);
@@ -509,7 +509,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
                 .field        = std::string(name),
-                .visitedNode  = value,
+                .visitedNode  = value.asOrg(),
                 .msg          = "using default visit");
 
             visit(res, value);

@@ -58,9 +58,9 @@ std::string OrgExporterTree::toString(
 }
 
 void OrgExporterTree::toFile(
-    sem::SemId       node,
-    std::string      path,
-    ExporterTreeOpts opts) {
+    sem::SemId<sem::Org> node,
+    std::string          path,
+    ExporterTreeOpts     opts) {
     std::ofstream file{path};
     stream(file, node, opts);
 }
@@ -123,7 +123,7 @@ sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index) {
     return id->at(index);
 }
 
-OrgIdVariant castAs(sem::SemId<sem::Org> id) {
+sem::OrgVariant castAs(sem::SemId<sem::Org> id) {
     switch (id->getKind()) {
 
 #define _case(__Kind)                                                     \
@@ -263,7 +263,7 @@ void ExporterPython::visitField(
     }
 }
 
-ExporterPython::Res ExporterPython::evalTop(sem::SemId org) {
+ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
     __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
     if (evalTopCb) {
         return evalTopCb->operator()(_self, org);

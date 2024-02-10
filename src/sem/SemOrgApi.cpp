@@ -76,8 +76,9 @@ void recVisitOrgNodesImpl(
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
-        recVisitOrgNodesImpl<typename decltype(Base)::type>(
-            visitor, tree, false);
+        using BaseType = typename decltype(Base)::type;
+        recVisitOrgNodesImpl<BaseType>(
+            visitor, tree.template as<BaseType>(), false);
     });
 
     mp_for_each<Md>([&](auto const& field) {

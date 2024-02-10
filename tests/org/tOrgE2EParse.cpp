@@ -326,10 +326,6 @@ TEST(TestFiles, AllNodeCoverage) {
     SemSet            foundNodes;
     sem::OrgConverter converter{};
     sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
-    context.eachNode([&](sem::OrgVariant const& var) {
-        std::visit(
-            [&](auto const& id) { foundNodes.incl(id->getKind()); }, var);
-    });
 
     using osk = OrgSemKind;
     SemSet wipNotParseable{

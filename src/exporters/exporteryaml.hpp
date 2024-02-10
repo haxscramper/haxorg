@@ -97,6 +97,11 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         if (!skipNullFields || !result.IsNull()) { j[name] = result; }
     }
 
+    template <typename T>
+    void visit(yaml& res, sem::SemId<T> const& arg) {
+        visitDispatch(res, arg.asOrg());
+    }
+
     bool skipNullFields  = false;
     bool skipFalseFields = false;
     bool skipZeroFields  = false;

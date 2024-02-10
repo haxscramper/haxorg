@@ -137,7 +137,7 @@ from copy import deepcopy, copy
 @beartype
 def in_sem(typ: QualType) -> QualType:
     typ = deepcopy(typ)
-    if typ.name in ["SemId", "SemIdT", "Param"] + org_type_names:
+    if typ.name in ["SemId", "Param"] + org_type_names:
         typ.Spaces.insert(0, QualType.ForName("sem"))
 
     typ.Parameters = [in_sem(P) for P in typ.Parameters]
