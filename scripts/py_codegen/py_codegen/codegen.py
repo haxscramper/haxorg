@@ -152,10 +152,13 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     id_type = QualType.ForName("SemId",
                                Parameters=[base_type],
                                Spaces=[QualType.ForName("sem")])
-    res = Py11Class(PyName="Sem" + typ.name.name,
-                    Class=base_type,
-                    Bases=[id_type],
-                    PyBases=typ.bases)
+
+    res = Py11Class(
+        PyName=typ.name.name,
+        Class=base_type,
+        PyBases=typ.bases,
+        PyHolderType=id_type,
+    )
 
     for base in typ.bases:
         res.Bases.append(base)
@@ -506,6 +509,8 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     autogen_structs = get_bind_methods(ast, expanded)
 
     for _struct in tu.structs:
+        # There is no topological sorting on the type declarations, so to make the initialization 
+        # work in correct order I need to push some of the [[refl]] annotated types at the top. 
         if _struct.name.name == "Org":
             from py_scriptutils.script_logging import pprint_to_file
             pprint_to_file(_struct, "/tmp/sem_org_struct.py")
@@ -518,19 +523,26 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                     [GenTuIdent(QualType.ForName("int"), "idx")],
                     IsConst=True,
                 ))
-            
+
             org_decl.Methods.append(
                 Py11Method(
                     PyName="__iter__",
                     CxxName="at",
                     ResultTy=QualType.ForName("auto"),
                     Args=[GenTuIdent(t_id().par0().asConstRef(), "node")],
-                    Body=[ast.b.text("return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());")],
+                    Body=[
+                        ast.b.text(
+                            "return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());"
+                        )
+                    ],
                     DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
                     ExplicitClassParam=True,
                 ))
 
             autogen_structs.Decls.insert(0, org_decl)
+
+        elif _struct.name.name == "LineCol":
+            autogen_structs.Decls.insert(0, pybind_org_id(ast, ast.b, _struct, {}))
 
         else:
             autogen_structs.Decls.append(pybind_nested_type(_struct))

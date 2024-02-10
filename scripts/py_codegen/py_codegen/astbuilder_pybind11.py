@@ -52,7 +52,7 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["Vec"]:
             name = "List"
 
-        case ["Opt"]:
+        case ["Opt"] | ["std", "optional"]:
             name = "Optional"
 
         case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
@@ -60,7 +60,7 @@ def py_type(Typ: QualType) -> pya.PyType:
             name = "str"
 
         case ["SemId"]:
-            name = "Sem" + Typ.Parameters[0].name
+            name = Typ.Parameters[0].name
 
         case "Bool":
             name = "bool"
@@ -77,12 +77,17 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["UserTime"]:
             name = "datetime"
 
+        case ["UnorderedMap"]:
+            name = "Dict"
+            
+
         case _:
             name = "".join(flat)
 
     res = pya.PyType(name)
-    for param in Typ.Parameters:
-        res.Params.append(py_type(param))
+    if Typ.name != "SemId":
+        for param in Typ.Parameters:
+            res.Params.append(py_type(param))
 
     return res
 
@@ -174,8 +179,9 @@ class Py11Method:
             call_pass = ast.Lambda(
                 LambdaParams(
                     ResultTy=self.ResultTy,
-                    Args=([] if self.ExplicitClassParam else [ParmVarParams(Class, "_self")])
-                    + [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
+                    Args=([] if self.ExplicitClassParam else
+                          [ParmVarParams(Class, "_self")]) +
+                    [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
                     Body=self.Body,
                 ))
 
@@ -337,6 +343,7 @@ class Py11Class:
     PyName: str
     Class: QualType
     Bases: List[QualType] = field(default_factory=list)
+    PyHolderType: Optional[QualType] = None
     Fields: List[Py11Field] = field(default_factory=list)
     Methods: List[Py11Method] = field(default_factory=list)
     InitImpls: List[Py11Method] = field(default_factory=list)
@@ -406,7 +413,10 @@ class Py11Class:
                                 "pybind11::init",
                                 [
                                     ast.Lambda(
-                                        LambdaParams(ResultTy=self.Class, Body=Init.Body))
+                                        LambdaParams(
+                                            ResultTy=self.Class,
+                                            Body=Init.Body,
+                                        ))
                                 ],
                             )
                         ],
@@ -432,9 +442,12 @@ class Py11Class:
         sub.append(b.text(";"))
 
         return b.stack([
-            ast.XCall("pybind11::class_",
-                      [b.text("m"), ast.Literal(self.PyName)],
-                      Params=[self.Class] + self.Bases),
+            ast.XCall(
+                "pybind11::class_",
+                [b.text("m"), ast.Literal(self.PyName)],
+                Params=[self.Class] + ([self.PyHolderType] if self.PyHolderType else []) +
+                self.Bases,
+            ),
             b.indent(2, b.stack(sub))
         ])
 
@@ -466,9 +479,6 @@ class Py11Module:
         for _enum in [E for E in self.Decls if isinstance(E, Py11Enum)]:
             passes.append(ast.Enum(_enum.build_typedef()))
             passes.append(ast.string(""))
-
-        for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
-            passes.append(ast.string(f"{_class.PyName}: Type"))
 
         for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
             passes.append(ast.Class(_class.build_typedef(ast)))
