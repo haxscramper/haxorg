@@ -78,21 +78,26 @@ void OrgExporterTree::stream(
     impl->evalTop(node);
 }
 
-void OrgContext::run() {
-#if false
-    tokens.base = source.data();
-    info        = LineColInfo{source};
-    parser      = OrgParser::initImpl(&nodes, false);
-    tokenizer   = OrgTokenizer::initImpl(&tokens, false);
-    str         = std::make_shared<PosStr>(source);
+sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {
+    return parseString(readFile(fs::path{file}));
+}
 
-    tokenizer->reserve(source.size() / 3);
-    parser->reserve(source.size() / 3);
+sem::SemId<sem::Document> OrgContext::parseString(const std::string text) {
+    LexerParams   p;
+    OrgTokenGroup baseTokens = ::tokenize(text.data(), text.size(), p);
+    OrgTokenGroup tokens;
+    OrgTokenizer  tokenizer{&tokens};
 
-    tokenizer->lexGlobal(*str);
-    parser->parseFull(lex);
-    node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
-#endif
+    tokenizer.convert(baseTokens);
+    Lexer<OrgTokenKind, OrgFill> lex{&tokens};
+
+    OrgNodeGroup nodes{&tokens};
+    OrgParser    parser{&nodes};
+    (void)parser.parseFull(lex);
+
+    sem::OrgConverter converter{};
+
+    return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
 

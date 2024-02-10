@@ -464,6 +464,7 @@ class LeafFieldType(Enum):
     Str = 8
     Any = 9
 
+SemOrg: Type
 SemStmt: Type
 SemInline: Type
 SemStmtList: Type
@@ -574,107 +575,114 @@ SemDocumentOptions: Type
 DocumentOptionsDoExport: Type
 DocumentOptionsExportFixed: Type
 SemDocumentGroup: Type
-Org: Type
 OrgExporterJson: Type
 ExporterTreeOpts: Type
 OrgExporterTree: Type
 OrgExporterYaml: Type
 OrgContext: Type
 ExporterPython: Type
-class SemStmt(SemStmt[Stmt]):
+class SemOrg(SemOrg[Org]):
+    def isGenerated() -> bool: ...
+    def push_back(sub: SemOrg[Org]) -> None: ...
+    def at(idx: int) -> SemOrg[Org]: ...
+    def is(kind: OrgSemKind) -> bool: ...
+    loc: stdoptional[LineCol]
+    subnodes: List[SemOrg[Org]]
+
+class SemStmt(SemStmt[Stmt], Org):
     def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
     attached: List[SemOrg[Org]]
 
-class SemInline(SemInline[Inline]):
+class SemInline(SemInline[Inline], Org):
     pass
 
-class SemStmtList(SemStmtList[StmtList]):
+class SemStmtList(SemStmtList[StmtList], Org):
     loc: Optional[LineCol]
 
-class SemEmpty(SemEmpty[Empty]):
+class SemEmpty(SemEmpty[Empty], Org):
     loc: Optional[LineCol]
 
-class SemRow(SemRow[Row]):
+class SemRow(SemRow[Row], Org):
     loc: Optional[LineCol]
 
-class SemTable(SemTable[Table]):
+class SemTable(SemTable[Table], Stmt):
     def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
     loc: Optional[LineCol]
     rows: List[SemRow[Row]]
     attached: List[SemOrg[Org]]
 
-class SemHashTag(SemHashTag[HashTag]):
+class SemHashTag(SemHashTag[HashTag], Inline):
     def prefixMatch(prefix: List[str]) -> bool: ...
     loc: Optional[LineCol]
     head: str
     subtags: List[SemHashTag[HashTag]]
 
-class SemFootnote(SemFootnote[Footnote]):
+class SemFootnote(SemFootnote[Footnote], Inline):
     loc: Optional[LineCol]
     tag: str
     definition: Optional[SemOrg[Org]]
 
-class SemCompletion(SemCompletion[Completion]):
+class SemCompletion(SemCompletion[Completion], Inline):
     loc: Optional[LineCol]
     done: int
     full: int
     isPercent: bool
 
-class SemParagraph(SemParagraph[Paragraph]):
+class SemParagraph(SemParagraph[Paragraph], Stmt):
     def isFootnoteDefinition() -> bool: ...
     def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
     loc: Optional[LineCol]
     attached: List[SemOrg[Org]]
 
-class SemFormat(SemFormat[Format]):
+class SemFormat(SemFormat[Format], Org):
     pass
 
-class SemCenter(SemCenter[Center]):
+class SemCenter(SemCenter[Center], Format):
     loc: Optional[LineCol]
 
-class SemCommand(SemCommand[Command]):
+class SemCommand(SemCommand[Command], Org):
     pass
 
-class SemLineCommand(SemLineCommand[LineCommand]):
+class SemLineCommand(SemLineCommand[LineCommand], Command):
     pass
 
-class SemStandalone(SemStandalone[Standalone]):
+class SemStandalone(SemStandalone[Standalone], LineCommand):
     pass
 
-class SemAttached(SemAttached[Attached]):
+class SemAttached(SemAttached[Attached], LineCommand):
     pass
 
-class SemCaption(SemCaption[Caption]):
+class SemCaption(SemCaption[Caption], Attached):
     loc: Optional[LineCol]
     text: SemParagraph[Paragraph]
 
-class SemCommandGroup(SemCommandGroup[CommandGroup]):
+class SemCommandGroup(SemCommandGroup[CommandGroup], Stmt):
     def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
     loc: Optional[LineCol]
     attached: List[SemOrg[Org]]
 
-class SemBlock(SemBlock[Block]):
+class SemBlock(SemBlock[Block], Command):
     pass
 
-class SemTblfm(SemTblfm[Tblfm]):
+class SemTblfm(SemTblfm[Tblfm], Command):
     loc: Optional[LineCol]
 
-class SemQuote(SemQuote[Quote]):
+class SemQuote(SemQuote[Quote], Org):
     loc: Optional[LineCol]
 
-class SemVerse(SemVerse[Verse]):
+class SemVerse(SemVerse[Verse], Block):
     loc: Optional[LineCol]
 
-class SemExample(SemExample[Example]):
+class SemExample(SemExample[Example], Block):
     loc: Optional[LineCol]
 
-class SemCmdArguments(SemCmdArguments[CmdArguments]):
+class SemCmdArguments(SemCmdArguments[CmdArguments], Org):
     def popArg(key: str) -> Optional[SemCmdArgument[CmdArgument]]: ...
     loc: Optional[LineCol]
     positional: List[SemCmdArgument[CmdArgument]]
     named: UnorderedMap[str, SemCmdArgument[CmdArgument]]
 
-class SemCmdArgument(SemCmdArgument[CmdArgument]):
+class SemCmdArgument(SemCmdArgument[CmdArgument], Org):
     def getInt() -> Optional[int]: ...
     def getBool() -> Optional[bool]: ...
     def getString() -> str: ...
@@ -682,7 +690,7 @@ class SemCmdArgument(SemCmdArgument[CmdArgument]):
     key: Optional[str]
     value: str
 
-class SemExport(SemExport[Export]):
+class SemExport(SemExport[Export], Block):
     loc: Optional[LineCol]
     format: ExportFormat
     exporter: str
@@ -690,10 +698,10 @@ class SemExport(SemExport[Export]):
     placement: Optional[str]
     content: str
 
-class SemAdmonitionBlock(SemAdmonitionBlock[AdmonitionBlock]):
+class SemAdmonitionBlock(SemAdmonitionBlock[AdmonitionBlock], Block):
     loc: Optional[LineCol]
 
-class SemCode(SemCode[Code]):
+class SemCode(SemCode[Code], Block):
     loc: Optional[LineCol]
     lang: Optional[str]
     switches: List[CodeSwitch]
@@ -730,7 +738,7 @@ class CodeSwitchEmphasizeLine:
 class CodeSwitchDedent:
     value: int
 
-class SemTime(SemTime[Time]):
+class SemTime(SemTime[Time], Org):
     def getStatic() -> TimeStatic: ...
     def getDynamic() -> TimeDynamic: ...
     def getTimeKind() -> TimeTimeKind: ...
@@ -750,17 +758,17 @@ class TimeStatic:
 class TimeDynamic:
     expr: str
 
-class SemTimeRange(SemTimeRange[TimeRange]):
+class SemTimeRange(SemTimeRange[TimeRange], Org):
     loc: Optional[LineCol]
     from_: SemTime[Time]
     to: SemTime[Time]
 
-class SemMacro(SemMacro[Macro]):
+class SemMacro(SemMacro[Macro], Org):
     loc: Optional[LineCol]
     name: str
     arguments: List[str]
 
-class SemSymbol(SemSymbol[Symbol]):
+class SemSymbol(SemSymbol[Symbol], Org):
     loc: Optional[LineCol]
     name: str
     parameters: List[SymbolParam]
@@ -770,7 +778,7 @@ class SymbolParam:
     key: Optional[str]
     value: str
 
-class SemSubtreeLog(SemSubtreeLog[SubtreeLog]):
+class SemSubtreeLog(SemSubtreeLog[SubtreeLog], Org):
     def setDescription(desc: SemStmtList[StmtList]) -> None: ...
     def getPriority() -> SubtreeLogPriority: ...
     def getNote() -> SubtreeLogNote: ...
@@ -810,7 +818,7 @@ class SubtreeLogTag:
     tag: SemHashTag[HashTag]
     added: bool
 
-class SemSubtree(SemSubtree[Subtree]):
+class SemSubtree(SemSubtree[Subtree], Org):
     def getTimePeriods(kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(kind: SubtreePropertyKind, subkind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
@@ -904,89 +912,89 @@ class SubtreePropertyCreated:
 class SubtreePropertyUnknown:
     value: SemOrg[Org]
 
-class SemLatexBody(SemLatexBody[LatexBody]):
+class SemLatexBody(SemLatexBody[LatexBody], Org):
     pass
 
-class SemInlineMath(SemInlineMath[InlineMath]):
+class SemInlineMath(SemInlineMath[InlineMath], LatexBody):
     loc: Optional[LineCol]
 
-class SemLeaf(SemLeaf[Leaf]):
+class SemLeaf(SemLeaf[Leaf], Org):
     text: str
 
-class SemEscaped(SemEscaped[Escaped]):
-    loc: Optional[LineCol]
-    text: str
-
-class SemNewline(SemNewline[Newline]):
+class SemEscaped(SemEscaped[Escaped], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemSpace(SemSpace[Space]):
+class SemNewline(SemNewline[Newline], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemWord(SemWord[Word]):
+class SemSpace(SemSpace[Space], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemAtMention(SemAtMention[AtMention]):
+class SemWord(SemWord[Word], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemRawText(SemRawText[RawText]):
+class SemAtMention(SemAtMention[AtMention], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemPunctuation(SemPunctuation[Punctuation]):
+class SemRawText(SemRawText[RawText], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemPlaceholder(SemPlaceholder[Placeholder]):
+class SemPunctuation(SemPunctuation[Punctuation], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemBigIdent(SemBigIdent[BigIdent]):
+class SemPlaceholder(SemPlaceholder[Placeholder], Leaf):
     loc: Optional[LineCol]
     text: str
 
-class SemMarkup(SemMarkup[Markup]):
+class SemBigIdent(SemBigIdent[BigIdent], Leaf):
+    loc: Optional[LineCol]
+    text: str
+
+class SemMarkup(SemMarkup[Markup], Org):
     pass
 
-class SemBold(SemBold[Bold]):
+class SemBold(SemBold[Bold], Markup):
     loc: Optional[LineCol]
 
-class SemUnderline(SemUnderline[Underline]):
+class SemUnderline(SemUnderline[Underline], Markup):
     loc: Optional[LineCol]
 
-class SemMonospace(SemMonospace[Monospace]):
+class SemMonospace(SemMonospace[Monospace], Markup):
     loc: Optional[LineCol]
 
-class SemMarkQuote(SemMarkQuote[MarkQuote]):
+class SemMarkQuote(SemMarkQuote[MarkQuote], Markup):
     loc: Optional[LineCol]
 
-class SemVerbatim(SemVerbatim[Verbatim]):
+class SemVerbatim(SemVerbatim[Verbatim], Markup):
     loc: Optional[LineCol]
 
-class SemItalic(SemItalic[Italic]):
+class SemItalic(SemItalic[Italic], Markup):
     loc: Optional[LineCol]
 
-class SemStrike(SemStrike[Strike]):
+class SemStrike(SemStrike[Strike], Markup):
     loc: Optional[LineCol]
 
-class SemPar(SemPar[Par]):
+class SemPar(SemPar[Par], Markup):
     loc: Optional[LineCol]
 
-class SemList(SemList[List]):
+class SemList(SemList[List], Org):
     def isDescriptionList() -> bool: ...
     loc: Optional[LineCol]
 
-class SemListItem(SemListItem[ListItem]):
+class SemListItem(SemListItem[ListItem], Org):
     def isDescriptionItem() -> bool: ...
     loc: Optional[LineCol]
     checkbox: ListItemCheckbox
     header: Optional[SemParagraph[Paragraph]]
 
-class SemLink(SemLink[Link]):
+class SemLink(SemLink[Link], Org):
     def getRaw() -> LinkRaw: ...
     def getId() -> LinkId: ...
     def getPerson() -> LinkPerson: ...
@@ -1012,7 +1020,7 @@ class LinkFootnote:
 class LinkFile:
     file: str
 
-class SemDocument(SemDocument[Document]):
+class SemDocument(SemDocument[Document], Org):
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
     loc: Optional[LineCol]
@@ -1024,10 +1032,10 @@ class SemDocument(SemDocument[Document]):
     options: SemDocumentOptions[DocumentOptions]
     exportFileName: Optional[str]
 
-class SemParseError(SemParseError[ParseError]):
+class SemParseError(SemParseError[ParseError], Org):
     loc: Optional[LineCol]
 
-class SemFileTarget(SemFileTarget[FileTarget]):
+class SemFileTarget(SemFileTarget[FileTarget], Org):
     loc: Optional[LineCol]
     path: str
     line: Optional[int]
@@ -1036,10 +1044,10 @@ class SemFileTarget(SemFileTarget[FileTarget]):
     targetId: Optional[str]
     regexp: Optional[str]
 
-class SemTextSeparator(SemTextSeparator[TextSeparator]):
+class SemTextSeparator(SemTextSeparator[TextSeparator], Org):
     loc: Optional[LineCol]
 
-class SemInclude(SemInclude[Include]):
+class SemInclude(SemInclude[Include], Org):
     def getExample() -> IncludeExample: ...
     def getExport() -> IncludeExport: ...
     def getSrc() -> IncludeSrc: ...
@@ -1060,7 +1068,7 @@ class IncludeSrc:
 class IncludeOrgDocument:
     pass
 
-class SemDocumentOptions(SemDocumentOptions[DocumentOptions]):
+class SemDocumentOptions(SemDocumentOptions[DocumentOptions], Org):
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
     def getDoExport() -> DocumentOptionsDoExport: ...
@@ -1091,16 +1099,8 @@ class DocumentOptionsDoExport:
 class DocumentOptionsExportFixed:
     exportLevels: int
 
-class SemDocumentGroup(SemDocumentGroup[DocumentGroup]):
+class SemDocumentGroup(SemDocumentGroup[DocumentGroup], Org):
     loc: Optional[LineCol]
-
-class Org:
-    def isGenerated() -> bool: ...
-    def push_back(sub: SemOrg[Org]) -> None: ...
-    def at(idx: int) -> SemOrg[Org]: ...
-    def is(kind: OrgSemKind) -> bool: ...
-    loc: stdoptional[LineCol]
-    subnodes: List[SemOrg[Org]]
 
 class OrgExporterJson:
     def visitNode(node: SemOrg[Org]) -> None: ...
@@ -1125,9 +1125,8 @@ class OrgExporterYaml:
     def exportToFile(path: str) -> None: ...
 
 class OrgContext:
-    def parseFile(file: str) -> None: ...
-    def parseString(text: str) -> None: ...
-    def getNode() -> SemDocument[Document]: ...
+    def parseFile(file: str) -> SemDocument[Document]: ...
+    def parseString(text: str) -> SemDocument[Document]: ...
 
 class ExporterPython:
     def enablePyStreamTrace(stream: object) -> None: ...

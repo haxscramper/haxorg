@@ -156,6 +156,9 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                     Class=base_type,
                     Bases=[id_type],
                     PyBases=typ.bases)
+    
+    for base in typ.bases:
+        res.Bases.append(base)
 
     _self = id_self(id_type)
 
@@ -170,7 +173,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
         for meth in Record.methods:
             if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
                 continue
-            
+
             res.Methods.append(Py11Method.FromGenTu(meth))
 
     def map_bases(Record: GenTuStruct):
@@ -257,7 +260,7 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
-            if hasattr(value, "isOrgType"):
+            if hasattr(value, "isOrgType") or value.name.name == "Org":
                 res.Decls.append(pybind_org_id(ast, b, value, base_map))
 
             else:
@@ -502,7 +505,11 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     autogen_structs = get_bind_methods(ast, expanded)
 
     for _struct in tu.structs:
-        autogen_structs.Decls.append(pybind_nested_type(_struct))
+        if _struct.name.name == "Org":
+            autogen_structs.Decls.insert(0, pybind_org_id(ast, ast.b, _struct, {}))
+
+        else:
+            autogen_structs.Decls.append(pybind_nested_type(_struct))
 
     for _enum in tu.enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
