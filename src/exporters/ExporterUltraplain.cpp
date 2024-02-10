@@ -6,7 +6,7 @@
 template class Exporter<ExporterUltraplain, std::string>;
 
 
-std::string ExporterUltraplain::toStr(sem::SemId node) {
+std::string ExporterUltraplain::toStr(sem::SemId<sem::Org> node) {
     return strip(
         ExporterUltraplain{}.evalTop(node), CharSet{' '}, CharSet{' '});
 }

@@ -7,265 +7,159 @@
   #define PY_HAXORG_COMPILING
   #include "pyhaxorg_manual_impl.hpp"
 #endif
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::Row>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::Row>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::HashTag>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Row>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::CmdArgument>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::SubtreeLog>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::SubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::SubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MODULE(pyhaxorg, m) {
-  bind_vector<sem::SemId>(m, "VecOfSemId");
-  bind_vector<sem::SemIdT<sem::Row>>(m, "VecOfSemIdTOfRow");
-  bind_vector<sem::SemIdT<sem::HashTag>>(m, "VecOfSemIdTOfHashTag");
+  bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
+  bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow");
+  bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag");
   bind_vector<Str>(m, "VecOfStr");
-  bind_vector<sem::SemIdT<sem::CmdArgument>>(m, "VecOfSemIdTOfCmdArgument");
+  bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument");
   bind_vector<sem::Code::Switch>(m, "VecOfSwitch");
   bind_vector<int>(m, "VecOfint");
   bind_vector<sem::Symbol::Param>(m, "VecOfParam");
-  bind_vector<sem::SemIdT<sem::SubtreeLog>>(m, "VecOfSemIdTOfSubtreeLog");
+  bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog");
   bind_vector<sem::Subtree::Property>(m, "VecOfProperty");
   bind_vector<sem::Subtree::Period>(m, "VecOfPeriod");
   #ifndef IN_CLANGD_PROCESSING
     #define PY_HAXORG_COMPILING
     #include "pyhaxorg_manual_wrap.hpp"
   #endif
-  pybind11::class_<sem::SemIdT<sem::Stmt>, sem::SemId>(m, "SemStmt")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Stmt> { return sem::SemIdT<sem::Stmt>::Nil(); }))
-    .def_property("attached",
-                  [](sem::SemIdT<sem::Stmt> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::Stmt> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+  pybind11::class_<sem::Stmt, sem::SemId<sem::Stmt>>(m, "SemStmt")
+    .def_readwrite("attached", &sem::Stmt::attached)
     .def("getAttached",
-         [](sem::SemIdT<sem::Stmt> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         static_cast<Opt<sem::SemId<sem::Org>>(sem::Stmt::*)(OrgSemKind)>(&sem::Stmt::getAttached),
          pybind11::arg("kind"))
     ;
-  pybind11::class_<sem::SemIdT<sem::Inline>, sem::SemId>(m, "SemInline")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Inline> { return sem::SemIdT<sem::Inline>::Nil(); }))
+  pybind11::class_<sem::Inline, sem::SemId<sem::Inline>>(m, "SemInline")
     ;
-  pybind11::class_<sem::SemIdT<sem::StmtList>, sem::SemId>(m, "SemStmtList")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::StmtList> { return sem::SemIdT<sem::StmtList>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::StmtList> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::StmtList> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::StmtList, sem::SemId<sem::StmtList>>(m, "SemStmtList")
+    .def_readwrite("loc", &sem::StmtList::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Empty>, sem::SemId>(m, "SemEmpty")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Empty> { return sem::SemIdT<sem::Empty>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Empty> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Empty> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Empty, sem::SemId<sem::Empty>>(m, "SemEmpty")
+    .def_readwrite("loc", &sem::Empty::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Row>, sem::SemId>(m, "SemRow")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Row> { return sem::SemIdT<sem::Row>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Row> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Row> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Row, sem::SemId<sem::Row>>(m, "SemRow")
+    .def_readwrite("loc", &sem::Row::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Table>, sem::SemId>(m, "SemTable")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Table> { return sem::SemIdT<sem::Table>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Table> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Table> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("rows",
-                  [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemIdT<sem::Row>> { return _self->rows; },
-                  [](sem::SemIdT<sem::Table> _self, Vec<sem::SemIdT<sem::Row>> rows) { _self->rows = rows; })
-    .def_property("attached",
-                  [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::Table> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+  pybind11::class_<sem::Table, sem::SemId<sem::Table>>(m, "SemTable")
+    .def_readwrite("loc", &sem::Table::loc, R"RAW(Document)RAW")
+    .def_readwrite("rows", &sem::Table::rows, R"RAW(List of rows for the table)RAW")
+    .def_readwrite("attached", &sem::Table::attached)
     .def("getAttached",
-         [](sem::SemIdT<sem::Table> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         static_cast<Opt<sem::SemId<sem::Org>>(sem::Table::*)(OrgSemKind)>(&sem::Table::getAttached),
          pybind11::arg("kind"))
     ;
-  pybind11::class_<sem::SemIdT<sem::HashTag>, sem::SemId>(m, "SemHashTag")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::HashTag> { return sem::SemIdT<sem::HashTag>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::HashTag> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::HashTag> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("head",
-                  [](sem::SemIdT<sem::HashTag> _self) -> Str { return _self->head; },
-                  [](sem::SemIdT<sem::HashTag> _self, Str head) { _self->head = head; })
-    .def_property("subtags",
-                  [](sem::SemIdT<sem::HashTag> _self) -> Vec<sem::SemIdT<sem::HashTag>> { return _self->subtags; },
-                  [](sem::SemIdT<sem::HashTag> _self, Vec<sem::SemIdT<sem::HashTag>> subtags) { _self->subtags = subtags; })
+  pybind11::class_<sem::HashTag, sem::SemId<sem::HashTag>>(m, "SemHashTag")
+    .def_readwrite("loc", &sem::HashTag::loc, R"RAW(Document)RAW")
+    .def_readwrite("head", &sem::HashTag::head, R"RAW(Main part of the tag)RAW")
+    .def_readwrite("subtags", &sem::HashTag::subtags, R"RAW(List of nested tags)RAW")
     .def("prefixMatch",
-         [](sem::SemIdT<sem::HashTag> _self, Vec<Str> const& prefix) -> bool { return _self->prefixMatch(prefix); },
+         static_cast<bool(sem::HashTag::*)(Vec<Str> const&) const>(&sem::HashTag::prefixMatch),
          pybind11::arg("prefix"),
          R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Footnote>, sem::SemId>(m, "SemFootnote")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Footnote> { return sem::SemIdT<sem::Footnote>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Footnote> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Footnote> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("tag",
-                  [](sem::SemIdT<sem::Footnote> _self) -> Str { return _self->tag; },
-                  [](sem::SemIdT<sem::Footnote> _self, Str tag) { _self->tag = tag; })
-    .def_property("definition",
-                  [](sem::SemIdT<sem::Footnote> _self) -> Opt<sem::SemId> { return _self->definition; },
-                  [](sem::SemIdT<sem::Footnote> _self, Opt<sem::SemId> definition) { _self->definition = definition; })
+  pybind11::class_<sem::Footnote, sem::SemId<sem::Footnote>>(m, "SemFootnote")
+    .def_readwrite("loc", &sem::Footnote::loc, R"RAW(Document)RAW")
+    .def_readwrite("tag", &sem::Footnote::tag, R"RAW(Footnote text target name)RAW")
+    .def_readwrite("definition", &sem::Footnote::definition, R"RAW(Link to possibly resolved definition)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Completion>, sem::SemId>(m, "SemCompletion")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Completion> { return sem::SemIdT<sem::Completion>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Completion> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Completion> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("done",
-                  [](sem::SemIdT<sem::Completion> _self) -> int { return _self->done; },
-                  [](sem::SemIdT<sem::Completion> _self, int done) { _self->done = done; })
-    .def_property("full",
-                  [](sem::SemIdT<sem::Completion> _self) -> int { return _self->full; },
-                  [](sem::SemIdT<sem::Completion> _self, int full) { _self->full = full; })
-    .def_property("isPercent",
-                  [](sem::SemIdT<sem::Completion> _self) -> bool { return _self->isPercent; },
-                  [](sem::SemIdT<sem::Completion> _self, bool isPercent) { _self->isPercent = isPercent; })
+  pybind11::class_<sem::Completion, sem::SemId<sem::Completion>>(m, "SemCompletion")
+    .def_readwrite("loc", &sem::Completion::loc, R"RAW(Document)RAW")
+    .def_readwrite("done", &sem::Completion::done, R"RAW(Number of completed tasks)RAW")
+    .def_readwrite("full", &sem::Completion::full, R"RAW(Full number of tasks)RAW")
+    .def_readwrite("isPercent", &sem::Completion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Paragraph>, sem::SemId>(m, "SemParagraph")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Paragraph> { return sem::SemIdT<sem::Paragraph>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Paragraph> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Paragraph> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("attached",
-                  [](sem::SemIdT<sem::Paragraph> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::Paragraph> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
-    .def("isFootnoteDefinition", [](sem::SemIdT<sem::Paragraph> _self) -> bool { return _self->isFootnoteDefinition(); }, R"RAW(Check if paragraph defines footnote)RAW")
+  pybind11::class_<sem::Paragraph, sem::SemId<sem::Paragraph>>(m, "SemParagraph")
+    .def_readwrite("loc", &sem::Paragraph::loc, R"RAW(Document)RAW")
+    .def_readwrite("attached", &sem::Paragraph::attached)
+    .def("isFootnoteDefinition", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::isFootnoteDefinition), R"RAW(Check if paragraph defines footnote)RAW")
     .def("getAttached",
-         [](sem::SemIdT<sem::Paragraph> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         static_cast<Opt<sem::SemId<sem::Org>>(sem::Paragraph::*)(OrgSemKind)>(&sem::Paragraph::getAttached),
          pybind11::arg("kind"))
     ;
-  pybind11::class_<sem::SemIdT<sem::Format>, sem::SemId>(m, "SemFormat")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Format> { return sem::SemIdT<sem::Format>::Nil(); }))
+  pybind11::class_<sem::Format, sem::SemId<sem::Format>>(m, "SemFormat")
     ;
-  pybind11::class_<sem::SemIdT<sem::Center>, sem::SemId>(m, "SemCenter")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Center> { return sem::SemIdT<sem::Center>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Center> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Center> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Center, sem::SemId<sem::Center>>(m, "SemCenter")
+    .def_readwrite("loc", &sem::Center::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Command>, sem::SemId>(m, "SemCommand")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Command> { return sem::SemIdT<sem::Command>::Nil(); }))
+  pybind11::class_<sem::Command, sem::SemId<sem::Command>>(m, "SemCommand")
     ;
-  pybind11::class_<sem::SemIdT<sem::LineCommand>, sem::SemId>(m, "SemLineCommand")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::LineCommand> { return sem::SemIdT<sem::LineCommand>::Nil(); }))
+  pybind11::class_<sem::LineCommand, sem::SemId<sem::LineCommand>>(m, "SemLineCommand")
     ;
-  pybind11::class_<sem::SemIdT<sem::Standalone>, sem::SemId>(m, "SemStandalone")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Standalone> { return sem::SemIdT<sem::Standalone>::Nil(); }))
+  pybind11::class_<sem::Standalone, sem::SemId<sem::Standalone>>(m, "SemStandalone")
     ;
-  pybind11::class_<sem::SemIdT<sem::Attached>, sem::SemId>(m, "SemAttached")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Attached> { return sem::SemIdT<sem::Attached>::Nil(); }))
+  pybind11::class_<sem::Attached, sem::SemId<sem::Attached>>(m, "SemAttached")
     ;
-  pybind11::class_<sem::SemIdT<sem::Caption>, sem::SemId>(m, "SemCaption")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Caption> { return sem::SemIdT<sem::Caption>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Caption> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Caption> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Caption> _self) -> sem::SemIdT<sem::Paragraph> { return _self->text; },
-                  [](sem::SemIdT<sem::Caption> _self, sem::SemIdT<sem::Paragraph> text) { _self->text = text; })
+  pybind11::class_<sem::Caption, sem::SemId<sem::Caption>>(m, "SemCaption")
+    .def_readwrite("loc", &sem::Caption::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::Caption::text, R"RAW(Content description)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::CommandGroup>, sem::SemId>(m, "SemCommandGroup")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::CommandGroup> { return sem::SemIdT<sem::CommandGroup>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::CommandGroup> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::CommandGroup> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("attached",
-                  [](sem::SemIdT<sem::CommandGroup> _self) -> Vec<sem::SemId> { return _self->attached; },
-                  [](sem::SemIdT<sem::CommandGroup> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+  pybind11::class_<sem::CommandGroup, sem::SemId<sem::CommandGroup>>(m, "SemCommandGroup")
+    .def_readwrite("loc", &sem::CommandGroup::loc, R"RAW(Document)RAW")
+    .def_readwrite("attached", &sem::CommandGroup::attached)
     .def("getAttached",
-         [](sem::SemIdT<sem::CommandGroup> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         static_cast<Opt<sem::SemId<sem::Org>>(sem::CommandGroup::*)(OrgSemKind)>(&sem::CommandGroup::getAttached),
          pybind11::arg("kind"))
     ;
-  pybind11::class_<sem::SemIdT<sem::Block>, sem::SemId>(m, "SemBlock")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Block> { return sem::SemIdT<sem::Block>::Nil(); }))
+  pybind11::class_<sem::Block, sem::SemId<sem::Block>>(m, "SemBlock")
     ;
-  pybind11::class_<sem::SemIdT<sem::Tblfm>, sem::SemId>(m, "SemTblfm")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Tblfm> { return sem::SemIdT<sem::Tblfm>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Tblfm> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Tblfm> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Tblfm, sem::SemId<sem::Tblfm>>(m, "SemTblfm")
+    .def_readwrite("loc", &sem::Tblfm::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Quote>, sem::SemId>(m, "SemQuote")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Quote> { return sem::SemIdT<sem::Quote>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Quote> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Quote> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Quote, sem::SemId<sem::Quote>>(m, "SemQuote")
+    .def_readwrite("loc", &sem::Quote::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Verse>, sem::SemId>(m, "SemVerse")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Verse> { return sem::SemIdT<sem::Verse>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Verse> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Verse> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Verse, sem::SemId<sem::Verse>>(m, "SemVerse")
+    .def_readwrite("loc", &sem::Verse::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Example>, sem::SemId>(m, "SemExample")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Example> { return sem::SemIdT<sem::Example>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Example> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Example> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Example, sem::SemId<sem::Example>>(m, "SemExample")
+    .def_readwrite("loc", &sem::Example::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::CmdArguments>, sem::SemId>(m, "SemCmdArguments")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::CmdArguments> { return sem::SemIdT<sem::CmdArguments>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::CmdArguments> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::CmdArguments> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("positional",
-                  [](sem::SemIdT<sem::CmdArguments> _self) -> Vec<sem::SemIdT<sem::CmdArgument>> { return _self->positional; },
-                  [](sem::SemIdT<sem::CmdArguments> _self, Vec<sem::SemIdT<sem::CmdArgument>> positional) { _self->positional = positional; })
-    .def_property("named",
-                  [](sem::SemIdT<sem::CmdArguments> _self) -> UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> { return _self->named; },
-                  [](sem::SemIdT<sem::CmdArguments> _self, UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> named) { _self->named = named; })
+  pybind11::class_<sem::CmdArguments, sem::SemId<sem::CmdArguments>>(m, "SemCmdArguments")
+    .def_readwrite("loc", &sem::CmdArguments::loc, R"RAW(Document)RAW")
+    .def_readwrite("positional", &sem::CmdArguments::positional, R"RAW(Positional arguments that had no keys)RAW")
+    .def_readwrite("named", &sem::CmdArguments::named, R"RAW(Stored key-value mapping)RAW")
     .def("popArg",
-         [](sem::SemIdT<sem::CmdArguments> _self, Str key) -> Opt<sem::SemIdT<sem::CmdArgument>> { return _self->popArg(key); },
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdArguments::*)(Str)>(&sem::CmdArguments::popArg),
          pybind11::arg("key"),
          R"RAW(Remove argument value from the map and return it if present)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::CmdArgument>, sem::SemId>(m, "SemCmdArgument")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::CmdArgument> { return sem::SemIdT<sem::CmdArgument>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::CmdArgument> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("key",
-                  [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<Str> { return _self->key; },
-                  [](sem::SemIdT<sem::CmdArgument> _self, Opt<Str> key) { _self->key = key; })
-    .def_property("value",
-                  [](sem::SemIdT<sem::CmdArgument> _self) -> Str { return _self->value; },
-                  [](sem::SemIdT<sem::CmdArgument> _self, Str value) { _self->value = value; })
-    .def("getInt", [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<int> { return _self->getInt(); }, R"RAW(Parse argument as integer value)RAW")
-    .def("getBool", [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<bool> { return _self->getBool(); }, R"RAW(Get argument as bool)RAW")
-    .def("getString", [](sem::SemIdT<sem::CmdArgument> _self) -> Str { return _self->getString(); }, R"RAW(Get original string)RAW")
+  pybind11::class_<sem::CmdArgument, sem::SemId<sem::CmdArgument>>(m, "SemCmdArgument")
+    .def_readwrite("loc", &sem::CmdArgument::loc, R"RAW(Document)RAW")
+    .def_readwrite("key", &sem::CmdArgument::key, R"RAW(Key)RAW")
+    .def_readwrite("value", &sem::CmdArgument::value, R"RAW(Value)RAW")
+    .def("getInt", static_cast<Opt<int>(sem::CmdArgument::*)() const>(&sem::CmdArgument::getInt), R"RAW(Parse argument as integer value)RAW")
+    .def("getBool", static_cast<Opt<bool>(sem::CmdArgument::*)() const>(&sem::CmdArgument::getBool), R"RAW(Get argument as bool)RAW")
+    .def("getString", static_cast<Str(sem::CmdArgument::*)() const>(&sem::CmdArgument::getString), R"RAW(Get original string)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Export>, sem::SemId>(m, "SemExport")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Export> { return sem::SemIdT<sem::Export>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Export> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Export> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("format",
-                  [](sem::SemIdT<sem::Export> _self) -> sem::Export::Format { return _self->format; },
-                  [](sem::SemIdT<sem::Export> _self, sem::Export::Format format) { _self->format = format; })
-    .def_property("exporter",
-                  [](sem::SemIdT<sem::Export> _self) -> Str { return _self->exporter; },
-                  [](sem::SemIdT<sem::Export> _self, Str exporter) { _self->exporter = exporter; })
-    .def_property("parameters",
-                  [](sem::SemIdT<sem::Export> _self) -> Opt<sem::SemIdT<sem::CmdArguments>> { return _self->parameters; },
-                  [](sem::SemIdT<sem::Export> _self, Opt<sem::SemIdT<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
-    .def_property("placement",
-                  [](sem::SemIdT<sem::Export> _self) -> Opt<Str> { return _self->placement; },
-                  [](sem::SemIdT<sem::Export> _self, Opt<Str> placement) { _self->placement = placement; })
-    .def_property("content",
-                  [](sem::SemIdT<sem::Export> _self) -> Str { return _self->content; },
-                  [](sem::SemIdT<sem::Export> _self, Str content) { _self->content = content; })
+  pybind11::class_<sem::Export, sem::SemId<sem::Export>>(m, "SemExport")
+    .def_readwrite("loc", &sem::Export::loc, R"RAW(Document)RAW")
+    .def_readwrite("format", &sem::Export::format, R"RAW(Export block type)RAW")
+    .def_readwrite("exporter", &sem::Export::exporter, R"RAW(Exporter backend name)RAW")
+    .def_readwrite("parameters", &sem::Export::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("placement", &sem::Export::placement, R"RAW(Customized position of the text in the final exporting document.)RAW")
+    .def_readwrite("content", &sem::Export::content, R"RAW(Raw exporter content string)RAW")
     ;
   pybind11::enum_<sem::Export::Format>(m, "ExportFormat")
     .value("Inline", sem::Export::Format::Inline, R"RAW(Export directly in the paragraph)RAW")
@@ -273,44 +167,20 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Block", sem::Export::Format::Block, R"RAW(Multiple lines of export)RAW")
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::AdmonitionBlock>, sem::SemId>(m, "SemAdmonitionBlock")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::AdmonitionBlock> { return sem::SemIdT<sem::AdmonitionBlock>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::AdmonitionBlock> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::AdmonitionBlock> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::AdmonitionBlock, sem::SemId<sem::AdmonitionBlock>>(m, "SemAdmonitionBlock")
+    .def_readwrite("loc", &sem::AdmonitionBlock::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Code>, sem::SemId>(m, "SemCode")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Code> { return sem::SemIdT<sem::Code>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Code> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Code> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("lang",
-                  [](sem::SemIdT<sem::Code> _self) -> Opt<Str> { return _self->lang; },
-                  [](sem::SemIdT<sem::Code> _self, Opt<Str> lang) { _self->lang = lang; })
-    .def_property("switches",
-                  [](sem::SemIdT<sem::Code> _self) -> Vec<sem::Code::Switch> { return _self->switches; },
-                  [](sem::SemIdT<sem::Code> _self, Vec<sem::Code::Switch> switches) { _self->switches = switches; })
-    .def_property("exports",
-                  [](sem::SemIdT<sem::Code> _self) -> sem::Code::Exports { return _self->exports; },
-                  [](sem::SemIdT<sem::Code> _self, sem::Code::Exports exports) { _self->exports = exports; })
-    .def_property("parameters",
-                  [](sem::SemIdT<sem::Code> _self) -> Opt<sem::SemIdT<sem::CmdArguments>> { return _self->parameters; },
-                  [](sem::SemIdT<sem::Code> _self, Opt<sem::SemIdT<sem::CmdArguments>> parameters) { _self->parameters = parameters; })
-    .def_property("cache",
-                  [](sem::SemIdT<sem::Code> _self) -> bool { return _self->cache; },
-                  [](sem::SemIdT<sem::Code> _self, bool cache) { _self->cache = cache; })
-    .def_property("eval",
-                  [](sem::SemIdT<sem::Code> _self) -> bool { return _self->eval; },
-                  [](sem::SemIdT<sem::Code> _self, bool eval) { _self->eval = eval; })
-    .def_property("noweb",
-                  [](sem::SemIdT<sem::Code> _self) -> bool { return _self->noweb; },
-                  [](sem::SemIdT<sem::Code> _self, bool noweb) { _self->noweb = noweb; })
-    .def_property("hlines",
-                  [](sem::SemIdT<sem::Code> _self) -> bool { return _self->hlines; },
-                  [](sem::SemIdT<sem::Code> _self, bool hlines) { _self->hlines = hlines; })
-    .def_property("tangle",
-                  [](sem::SemIdT<sem::Code> _self) -> bool { return _self->tangle; },
-                  [](sem::SemIdT<sem::Code> _self, bool tangle) { _self->tangle = tangle; })
+  pybind11::class_<sem::Code, sem::SemId<sem::Code>>(m, "SemCode")
+    .def_readwrite("loc", &sem::Code::loc, R"RAW(Document)RAW")
+    .def_readwrite("lang", &sem::Code::lang, R"RAW(Code block language name)RAW")
+    .def_readwrite("switches", &sem::Code::switches, R"RAW(Switch options for block)RAW")
+    .def_readwrite("exports", &sem::Code::exports, R"RAW(What to export)RAW")
+    .def_readwrite("parameters", &sem::Code::parameters, R"RAW(Additional parameters that are language-specific)RAW")
+    .def_readwrite("cache", &sem::Code::cache, R"RAW(Do cache values?)RAW")
+    .def_readwrite("eval", &sem::Code::eval, R"RAW(Eval on export?)RAW")
+    .def_readwrite("noweb", &sem::Code::noweb, R"RAW(Web-tangle code on export/run)RAW")
+    .def_readwrite("hlines", &sem::Code::hlines, R"RAW(?)RAW")
+    .def_readwrite("tangle", &sem::Code::tangle, R"RAW(?)RAW")
     ;
   pybind11::class_<sem::Code::Switch>(m, "CodeSwitch")
     .def(pybind11::init<>())
@@ -362,20 +232,13 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Results", sem::Code::Exports::Results, R"RAW(Show only evaluation results)RAW")
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::Time>, sem::SemId>(m, "SemTime")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Time> { return sem::SemIdT<sem::Time>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Time> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Time> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("isActive",
-                  [](sem::SemIdT<sem::Time> _self) -> bool { return _self->isActive; },
-                  [](sem::SemIdT<sem::Time> _self, bool isActive) { _self->isActive = isActive; })
-    .def_property("time",
-                  [](sem::SemIdT<sem::Time> _self) -> sem::Time::TimeVariant { return _self->time; },
-                  [](sem::SemIdT<sem::Time> _self, sem::Time::TimeVariant time) { _self->time = time; })
-    .def("getStatic", [](sem::SemIdT<sem::Time> _self) -> sem::Time::Static& { return _self->getStatic(); })
-    .def("getDynamic", [](sem::SemIdT<sem::Time> _self) -> sem::Time::Dynamic& { return _self->getDynamic(); })
-    .def("getTimeKind", [](sem::SemIdT<sem::Time> _self) -> sem::Time::TimeKind { return _self->getTimeKind(); })
+  pybind11::class_<sem::Time, sem::SemId<sem::Time>>(m, "SemTime")
+    .def_readwrite("loc", &sem::Time::loc, R"RAW(Document)RAW")
+    .def_readwrite("isActive", &sem::Time::isActive, R"RAW(<active> vs [inactive])RAW")
+    .def_readwrite("time", &sem::Time::time)
+    .def("getStatic", static_cast<sem::Time::Static&(sem::Time::*)()>(&sem::Time::getStatic))
+    .def("getDynamic", static_cast<sem::Time::Dynamic&(sem::Time::*)()>(&sem::Time::getDynamic))
+    .def("getTimeKind", static_cast<sem::Time::TimeKind(sem::Time::*)() const>(&sem::Time::getTimeKind))
     ;
   pybind11::class_<sem::Time::Repeat>(m, "TimeRepeat")
     .def(pybind11::init<>())
@@ -413,68 +276,40 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Dynamic", sem::Time::TimeKind::Dynamic)
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::TimeRange>, sem::SemId>(m, "SemTimeRange")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::TimeRange> { return sem::SemIdT<sem::TimeRange>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::TimeRange> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::TimeRange> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("from_",
-                  [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemIdT<sem::Time> { return _self->from; },
-                  [](sem::SemIdT<sem::TimeRange> _self, sem::SemIdT<sem::Time> from) { _self->from = from; })
-    .def_property("to",
-                  [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemIdT<sem::Time> { return _self->to; },
-                  [](sem::SemIdT<sem::TimeRange> _self, sem::SemIdT<sem::Time> to) { _self->to = to; })
+  pybind11::class_<sem::TimeRange, sem::SemId<sem::TimeRange>>(m, "SemTimeRange")
+    .def_readwrite("loc", &sem::TimeRange::loc, R"RAW(Document)RAW")
+    .def_readwrite("from_", &sem::TimeRange::from, R"RAW(Starting time)RAW")
+    .def_readwrite("to", &sem::TimeRange::to, R"RAW(Finishing time)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Macro>, sem::SemId>(m, "SemMacro")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Macro> { return sem::SemIdT<sem::Macro>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Macro> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Macro> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("name",
-                  [](sem::SemIdT<sem::Macro> _self) -> Str { return _self->name; },
-                  [](sem::SemIdT<sem::Macro> _self, Str name) { _self->name = name; })
-    .def_property("arguments",
-                  [](sem::SemIdT<sem::Macro> _self) -> Vec<Str> { return _self->arguments; },
-                  [](sem::SemIdT<sem::Macro> _self, Vec<Str> arguments) { _self->arguments = arguments; })
+  pybind11::class_<sem::Macro, sem::SemId<sem::Macro>>(m, "SemMacro")
+    .def_readwrite("loc", &sem::Macro::loc, R"RAW(Document)RAW")
+    .def_readwrite("name", &sem::Macro::name, R"RAW(Macro name)RAW")
+    .def_readwrite("arguments", &sem::Macro::arguments, R"RAW(Raw uninterpreted macro arguments)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Symbol>, sem::SemId>(m, "SemSymbol")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Symbol> { return sem::SemIdT<sem::Symbol>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Symbol> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Symbol> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("name",
-                  [](sem::SemIdT<sem::Symbol> _self) -> Str { return _self->name; },
-                  [](sem::SemIdT<sem::Symbol> _self, Str name) { _self->name = name; })
-    .def_property("parameters",
-                  [](sem::SemIdT<sem::Symbol> _self) -> Vec<sem::Symbol::Param> { return _self->parameters; },
-                  [](sem::SemIdT<sem::Symbol> _self, Vec<sem::Symbol::Param> parameters) { _self->parameters = parameters; })
-    .def_property("positional",
-                  [](sem::SemIdT<sem::Symbol> _self) -> Vec<sem::SemId> { return _self->positional; },
-                  [](sem::SemIdT<sem::Symbol> _self, Vec<sem::SemId> positional) { _self->positional = positional; })
+  pybind11::class_<sem::Symbol, sem::SemId<sem::Symbol>>(m, "SemSymbol")
+    .def_readwrite("loc", &sem::Symbol::loc, R"RAW(Document)RAW")
+    .def_readwrite("name", &sem::Symbol::name, R"RAW(Name of the symbol)RAW")
+    .def_readwrite("parameters", &sem::Symbol::parameters, R"RAW(Optional list of parameters)RAW")
+    .def_readwrite("positional", &sem::Symbol::positional, R"RAW(Positional parameters)RAW")
     ;
   pybind11::class_<sem::Symbol::Param>(m, "SymbolParam")
     .def(pybind11::init<>())
     .def_readwrite("key", &sem::Symbol::Param::key, R"RAW(Key -- for non-positional)RAW")
     .def_readwrite("value", &sem::Symbol::Param::value, R"RAW(Uninterpreted value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::SubtreeLog>, sem::SemId>(m, "SemSubtreeLog")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::SubtreeLog> { return sem::SemIdT<sem::SubtreeLog>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::SubtreeLog> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::SubtreeLog> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("log",
-                  [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::LogEntry { return _self->log; },
-                  [](sem::SemIdT<sem::SubtreeLog> _self, sem::SubtreeLog::LogEntry log) { _self->log = log; })
+  pybind11::class_<sem::SubtreeLog, sem::SemId<sem::SubtreeLog>>(m, "SemSubtreeLog")
+    .def_readwrite("loc", &sem::SubtreeLog::loc, R"RAW(Document)RAW")
+    .def_readwrite("log", &sem::SubtreeLog::log)
     .def("setDescription",
-         [](sem::SemIdT<sem::SubtreeLog> _self, sem::SemIdT<sem::StmtList> desc) -> void { return _self->setDescription(desc); },
+         static_cast<void(sem::SubtreeLog::*)(sem::SemId<sem::StmtList>)>(&sem::SubtreeLog::setDescription),
          pybind11::arg("desc"))
-    .def("getPriority", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Priority& { return _self->getPriority(); })
-    .def("getNote", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Note& { return _self->getNote(); })
-    .def("getRefile", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Refile& { return _self->getRefile(); })
-    .def("getClock", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Clock& { return _self->getClock(); })
-    .def("getState", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::State& { return _self->getState(); })
-    .def("getTag", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Tag& { return _self->getTag(); })
-    .def("getLogKind", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Kind { return _self->getLogKind(); })
+    .def("getPriority", static_cast<sem::SubtreeLog::Priority&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getPriority))
+    .def("getNote", static_cast<sem::SubtreeLog::Note&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getNote))
+    .def("getRefile", static_cast<sem::SubtreeLog::Refile&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getRefile))
+    .def("getClock", static_cast<sem::SubtreeLog::Clock&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getClock))
+    .def("getState", static_cast<sem::SubtreeLog::State&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getState))
+    .def("getTag", static_cast<sem::SubtreeLog::Tag&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getTag))
+    .def("getLogKind", static_cast<sem::SubtreeLog::Kind(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::getLogKind))
     ;
   pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
     .def(pybind11::init<>())
@@ -525,72 +360,45 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Tag", sem::SubtreeLog::Kind::Tag)
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::Subtree>, sem::SemId>(m, "SemSubtree")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Subtree> { return sem::SemIdT<sem::Subtree>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("level",
-                  [](sem::SemIdT<sem::Subtree> _self) -> int { return _self->level; },
-                  [](sem::SemIdT<sem::Subtree> _self, int level) { _self->level = level; })
-    .def_property("treeId",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<Str> { return _self->treeId; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<Str> treeId) { _self->treeId = treeId; })
-    .def_property("todo",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<Str> { return _self->todo; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<Str> todo) { _self->todo = todo; })
-    .def_property("completion",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Completion>> { return _self->completion; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Completion>> completion) { _self->completion = completion; })
-    .def_property("description",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->description; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self->description = description; })
-    .def_property("tags",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::SemIdT<sem::HashTag>> { return _self->tags; },
-                  [](sem::SemIdT<sem::Subtree> _self, Vec<sem::SemIdT<sem::HashTag>> tags) { _self->tags = tags; })
-    .def_property("title",
-                  [](sem::SemIdT<sem::Subtree> _self) -> sem::SemIdT<sem::Paragraph> { return _self->title; },
-                  [](sem::SemIdT<sem::Subtree> _self, sem::SemIdT<sem::Paragraph> title) { _self->title = title; })
-    .def_property("logbook",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::SemIdT<sem::SubtreeLog>> { return _self->logbook; },
-                  [](sem::SemIdT<sem::Subtree> _self, Vec<sem::SemIdT<sem::SubtreeLog>> logbook) { _self->logbook = logbook; })
-    .def_property("properties",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Vec<sem::Subtree::Property> { return _self->properties; },
-                  [](sem::SemIdT<sem::Subtree> _self, Vec<sem::Subtree::Property> properties) { _self->properties = properties; })
-    .def_property("closed",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self->closed; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> closed) { _self->closed = closed; })
-    .def_property("deadline",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self->deadline; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> deadline) { _self->deadline = deadline; })
-    .def_property("scheduled",
-                  [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self->scheduled; },
-                  [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> scheduled) { _self->scheduled = scheduled; })
+  pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>>(m, "SemSubtree")
+    .def_readwrite("loc", &sem::Subtree::loc, R"RAW(Document)RAW")
+    .def_readwrite("level", &sem::Subtree::level, R"RAW(Subtree level)RAW")
+    .def_readwrite("treeId", &sem::Subtree::treeId, R"RAW(:ID: property)RAW")
+    .def_readwrite("todo", &sem::Subtree::todo, R"RAW(Todo state of the tree)RAW")
+    .def_readwrite("completion", &sem::Subtree::completion, R"RAW(Task completion state)RAW")
+    .def_readwrite("description", &sem::Subtree::description)
+    .def_readwrite("tags", &sem::Subtree::tags, R"RAW(Trailing tags)RAW")
+    .def_readwrite("title", &sem::Subtree::title, R"RAW(Main title)RAW")
+    .def_readwrite("logbook", &sem::Subtree::logbook, R"RAW(Associated subtree log)RAW")
+    .def_readwrite("properties", &sem::Subtree::properties, R"RAW(Immediate properties)RAW")
+    .def_readwrite("closed", &sem::Subtree::closed, R"RAW(When subtree was marked as closed)RAW")
+    .def_readwrite("deadline", &sem::Subtree::deadline, R"RAW(When is the deadline)RAW")
+    .def_readwrite("scheduled", &sem::Subtree::scheduled, R"RAW(When the event is scheduled)RAW")
     .def("getTimePeriods",
-         [](sem::SemIdT<sem::Subtree> _self, IntSet<sem::Subtree::Period::Kind> kinds) -> Vec<sem::Subtree::Period> { return _self->getTimePeriods(kinds); },
+         static_cast<Vec<sem::Subtree::Period>(sem::Subtree::*)(IntSet<sem::Subtree::Period::Kind>) const>(&sem::Subtree::getTimePeriods),
          pybind11::arg("kinds"))
     .def("getProperties",
-         [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subkind); },
+         static_cast<Vec<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getProperty",
-         [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Opt<sem::Subtree::Property> { return _self->getProperty(kind, subkind); },
+         static_cast<Opt<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getContextualProperties",
-         [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Vec<sem::Subtree::Property> { return _self->getContextualProperties(kind, subkind); },
+         static_cast<Vec<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getContextualProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getContextualProperty",
-         [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Opt<sem::Subtree::Property> { return _self->getContextualProperty(kind, subkind); },
+         static_cast<Opt<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getContextualProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     ;
   pybind11::class_<sem::Subtree::Period>(m, "SubtreePeriod")
     .def(pybind11::init<>())
     .def_readwrite("kind", &sem::Subtree::Period::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
-    .def("getTime", static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
-    .def("getTimeRange", static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
+    .def("getTime", static_cast<sem::SemId<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
+    .def("getTimeRange", static_cast<sem::SemId<sem::TimeRange>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
     ;
   pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
     .value("Clocked", sem::Subtree::Period::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
@@ -721,172 +529,85 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Unknown", sem::Subtree::Property::Kind::Unknown)
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::LatexBody>, sem::SemId>(m, "SemLatexBody")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::LatexBody> { return sem::SemIdT<sem::LatexBody>::Nil(); }))
+  pybind11::class_<sem::LatexBody, sem::SemId<sem::LatexBody>>(m, "SemLatexBody")
     ;
-  pybind11::class_<sem::SemIdT<sem::InlineMath>, sem::SemId>(m, "SemInlineMath")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::InlineMath> { return sem::SemIdT<sem::InlineMath>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::InlineMath> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::InlineMath> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::InlineMath, sem::SemId<sem::InlineMath>>(m, "SemInlineMath")
+    .def_readwrite("loc", &sem::InlineMath::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Leaf>, sem::SemId>(m, "SemLeaf")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Leaf> { return sem::SemIdT<sem::Leaf>::Nil(); }))
-    .def_property("text",
-                  [](sem::SemIdT<sem::Leaf> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::Leaf> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::Leaf, sem::SemId<sem::Leaf>>(m, "SemLeaf")
+    .def_readwrite("text", &sem::Leaf::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Escaped>, sem::SemId>(m, "SemEscaped")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Escaped> { return sem::SemIdT<sem::Escaped>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Escaped> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Escaped> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Escaped> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::Escaped> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::Escaped, sem::SemId<sem::Escaped>>(m, "SemEscaped")
+    .def_readwrite("loc", &sem::Escaped::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::Escaped::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Newline>, sem::SemId>(m, "SemNewline")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Newline> { return sem::SemIdT<sem::Newline>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Newline> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Newline> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Newline> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::Newline> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::Newline, sem::SemId<sem::Newline>>(m, "SemNewline")
+    .def_readwrite("loc", &sem::Newline::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::Newline::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Space>, sem::SemId>(m, "SemSpace")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Space> { return sem::SemIdT<sem::Space>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Space> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Space> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Space> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::Space> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::Space, sem::SemId<sem::Space>>(m, "SemSpace")
+    .def_readwrite("loc", &sem::Space::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::Space::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Word>, sem::SemId>(m, "SemWord")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Word> { return sem::SemIdT<sem::Word>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Word> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Word> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Word> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::Word> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::Word, sem::SemId<sem::Word>>(m, "SemWord")
+    .def_readwrite("loc", &sem::Word::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::Word::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::AtMention>, sem::SemId>(m, "SemAtMention")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::AtMention> { return sem::SemIdT<sem::AtMention>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::AtMention> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::AtMention> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::AtMention> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::AtMention> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::AtMention, sem::SemId<sem::AtMention>>(m, "SemAtMention")
+    .def_readwrite("loc", &sem::AtMention::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::AtMention::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::RawText>, sem::SemId>(m, "SemRawText")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::RawText> { return sem::SemIdT<sem::RawText>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::RawText> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::RawText> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::RawText> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::RawText> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::RawText, sem::SemId<sem::RawText>>(m, "SemRawText")
+    .def_readwrite("loc", &sem::RawText::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::RawText::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Punctuation>, sem::SemId>(m, "SemPunctuation")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Punctuation> { return sem::SemIdT<sem::Punctuation>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Punctuation> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Punctuation> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Punctuation> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::Punctuation> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::Punctuation, sem::SemId<sem::Punctuation>>(m, "SemPunctuation")
+    .def_readwrite("loc", &sem::Punctuation::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::Punctuation::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Placeholder>, sem::SemId>(m, "SemPlaceholder")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Placeholder> { return sem::SemIdT<sem::Placeholder>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Placeholder> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Placeholder> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::Placeholder> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::Placeholder> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::Placeholder, sem::SemId<sem::Placeholder>>(m, "SemPlaceholder")
+    .def_readwrite("loc", &sem::Placeholder::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::Placeholder::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::BigIdent>, sem::SemId>(m, "SemBigIdent")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::BigIdent> { return sem::SemIdT<sem::BigIdent>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::BigIdent> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::BigIdent> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("text",
-                  [](sem::SemIdT<sem::BigIdent> _self) -> Str { return _self->text; },
-                  [](sem::SemIdT<sem::BigIdent> _self, Str text) { _self->text = text; })
+  pybind11::class_<sem::BigIdent, sem::SemId<sem::BigIdent>>(m, "SemBigIdent")
+    .def_readwrite("loc", &sem::BigIdent::loc, R"RAW(Document)RAW")
+    .def_readwrite("text", &sem::BigIdent::text, R"RAW(Final leaf value)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Markup>, sem::SemId>(m, "SemMarkup")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Markup> { return sem::SemIdT<sem::Markup>::Nil(); }))
+  pybind11::class_<sem::Markup, sem::SemId<sem::Markup>>(m, "SemMarkup")
     ;
-  pybind11::class_<sem::SemIdT<sem::Bold>, sem::SemId>(m, "SemBold")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Bold> { return sem::SemIdT<sem::Bold>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Bold> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Bold> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Bold, sem::SemId<sem::Bold>>(m, "SemBold")
+    .def_readwrite("loc", &sem::Bold::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Underline>, sem::SemId>(m, "SemUnderline")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Underline> { return sem::SemIdT<sem::Underline>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Underline> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Underline> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Underline, sem::SemId<sem::Underline>>(m, "SemUnderline")
+    .def_readwrite("loc", &sem::Underline::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Monospace>, sem::SemId>(m, "SemMonospace")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Monospace> { return sem::SemIdT<sem::Monospace>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Monospace> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Monospace> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Monospace, sem::SemId<sem::Monospace>>(m, "SemMonospace")
+    .def_readwrite("loc", &sem::Monospace::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::MarkQuote>, sem::SemId>(m, "SemMarkQuote")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::MarkQuote> { return sem::SemIdT<sem::MarkQuote>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::MarkQuote> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::MarkQuote> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::MarkQuote, sem::SemId<sem::MarkQuote>>(m, "SemMarkQuote")
+    .def_readwrite("loc", &sem::MarkQuote::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Verbatim>, sem::SemId>(m, "SemVerbatim")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Verbatim> { return sem::SemIdT<sem::Verbatim>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Verbatim> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Verbatim> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Verbatim, sem::SemId<sem::Verbatim>>(m, "SemVerbatim")
+    .def_readwrite("loc", &sem::Verbatim::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Italic>, sem::SemId>(m, "SemItalic")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Italic> { return sem::SemIdT<sem::Italic>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Italic> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Italic> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Italic, sem::SemId<sem::Italic>>(m, "SemItalic")
+    .def_readwrite("loc", &sem::Italic::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Strike>, sem::SemId>(m, "SemStrike")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Strike> { return sem::SemIdT<sem::Strike>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Strike> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Strike> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Strike, sem::SemId<sem::Strike>>(m, "SemStrike")
+    .def_readwrite("loc", &sem::Strike::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Par>, sem::SemId>(m, "SemPar")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Par> { return sem::SemIdT<sem::Par>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Par> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Par> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::Par, sem::SemId<sem::Par>>(m, "SemPar")
+    .def_readwrite("loc", &sem::Par::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::List>, sem::SemId>(m, "SemList")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::List> { return sem::SemIdT<sem::List>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::List> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::List> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def("isDescriptionList", [](sem::SemIdT<sem::List> _self) -> bool { return _self->isDescriptionList(); })
+  pybind11::class_<sem::List, sem::SemId<sem::List>>(m, "SemList")
+    .def_readwrite("loc", &sem::List::loc, R"RAW(Document)RAW")
+    .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList))
     ;
-  pybind11::class_<sem::SemIdT<sem::ListItem>, sem::SemId>(m, "SemListItem")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::ListItem> { return sem::SemIdT<sem::ListItem>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::ListItem> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::ListItem> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("checkbox",
-                  [](sem::SemIdT<sem::ListItem> _self) -> sem::ListItem::Checkbox { return _self->checkbox; },
-                  [](sem::SemIdT<sem::ListItem> _self, sem::ListItem::Checkbox checkbox) { _self->checkbox = checkbox; })
-    .def_property("header",
-                  [](sem::SemIdT<sem::ListItem> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->header; },
-                  [](sem::SemIdT<sem::ListItem> _self, Opt<sem::SemIdT<sem::Paragraph>> header) { _self->header = header; })
-    .def("isDescriptionItem", [](sem::SemIdT<sem::ListItem> _self) -> bool { return _self->isDescriptionItem(); })
+  pybind11::class_<sem::ListItem, sem::SemId<sem::ListItem>>(m, "SemListItem")
+    .def_readwrite("loc", &sem::ListItem::loc, R"RAW(Document)RAW")
+    .def_readwrite("checkbox", &sem::ListItem::checkbox)
+    .def_readwrite("header", &sem::ListItem::header)
+    .def("isDescriptionItem", static_cast<bool(sem::ListItem::*)() const>(&sem::ListItem::isDescriptionItem))
     ;
   pybind11::enum_<sem::ListItem::Checkbox>(m, "ListItemCheckbox")
     .value("None", sem::ListItem::Checkbox::None)
@@ -894,23 +615,16 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Empty", sem::ListItem::Checkbox::Empty)
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::Link>, sem::SemId>(m, "SemLink")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Link> { return sem::SemIdT<sem::Link>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Link> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Link> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("description",
-                  [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->description; },
-                  [](sem::SemIdT<sem::Link> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self->description = description; })
-    .def_property("data",
-                  [](sem::SemIdT<sem::Link> _self) -> sem::Link::Data { return _self->data; },
-                  [](sem::SemIdT<sem::Link> _self, sem::Link::Data data) { _self->data = data; })
-    .def("getRaw", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Raw& { return _self->getRaw(); })
-    .def("getId", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Id& { return _self->getId(); })
-    .def("getPerson", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Person& { return _self->getPerson(); })
-    .def("getFootnote", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Footnote& { return _self->getFootnote(); })
-    .def("getFile", [](sem::SemIdT<sem::Link> _self) -> sem::Link::File& { return _self->getFile(); })
-    .def("getLinkKind", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Kind { return _self->getLinkKind(); })
+  pybind11::class_<sem::Link, sem::SemId<sem::Link>>(m, "SemLink")
+    .def_readwrite("loc", &sem::Link::loc, R"RAW(Document)RAW")
+    .def_readwrite("description", &sem::Link::description)
+    .def_readwrite("data", &sem::Link::data)
+    .def("getRaw", static_cast<sem::Link::Raw&(sem::Link::*)()>(&sem::Link::getRaw))
+    .def("getId", static_cast<sem::Link::Id&(sem::Link::*)()>(&sem::Link::getId))
+    .def("getPerson", static_cast<sem::Link::Person&(sem::Link::*)()>(&sem::Link::getPerson))
+    .def("getFootnote", static_cast<sem::Link::Footnote&(sem::Link::*)()>(&sem::Link::getFootnote))
+    .def("getFile", static_cast<sem::Link::File&(sem::Link::*)()>(&sem::Link::getFile))
+    .def("getLinkKind", static_cast<sem::Link::Kind(sem::Link::*)() const>(&sem::Link::getLinkKind))
     ;
   pybind11::class_<sem::Link::Raw>(m, "LinkRaw")
     .def(pybind11::init<>())
@@ -940,90 +654,47 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("File", sem::Link::Kind::File)
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::Document>, sem::SemId>(m, "SemDocument")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Document> { return sem::SemIdT<sem::Document>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("title",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->title; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::Paragraph>> title) { _self->title = title; })
-    .def_property("author",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->author; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::Paragraph>> author) { _self->author = author; })
-    .def_property("creator",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->creator; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::Paragraph>> creator) { _self->creator = creator; })
-    .def_property("email",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<sem::SemIdT<sem::RawText>> { return _self->email; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<sem::SemIdT<sem::RawText>> email) { _self->email = email; })
-    .def_property("language",
-                  [](sem::SemIdT<sem::Document> _self) -> Vec<Str> { return _self->language; },
-                  [](sem::SemIdT<sem::Document> _self, Vec<Str> language) { _self->language = language; })
-    .def_property("options",
-                  [](sem::SemIdT<sem::Document> _self) -> sem::SemIdT<sem::DocumentOptions> { return _self->options; },
-                  [](sem::SemIdT<sem::Document> _self, sem::SemIdT<sem::DocumentOptions> options) { _self->options = options; })
-    .def_property("exportFileName",
-                  [](sem::SemIdT<sem::Document> _self) -> Opt<Str> { return _self->exportFileName; },
-                  [](sem::SemIdT<sem::Document> _self, Opt<Str> exportFileName) { _self->exportFileName = exportFileName; })
+  pybind11::class_<sem::Document, sem::SemId<sem::Document>>(m, "SemDocument")
+    .def_readwrite("loc", &sem::Document::loc, R"RAW(Document)RAW")
+    .def_readwrite("title", &sem::Document::title)
+    .def_readwrite("author", &sem::Document::author)
+    .def_readwrite("creator", &sem::Document::creator)
+    .def_readwrite("email", &sem::Document::email)
+    .def_readwrite("language", &sem::Document::language)
+    .def_readwrite("options", &sem::Document::options)
+    .def_readwrite("exportFileName", &sem::Document::exportFileName)
     .def("getProperties",
-         [](sem::SemIdT<sem::Document> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subKind); },
+         static_cast<Vec<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     .def("getProperty",
-         [](sem::SemIdT<sem::Document> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Opt<sem::Subtree::Property> { return _self->getProperty(kind, subKind); },
+         static_cast<Opt<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     ;
-  pybind11::class_<sem::SemIdT<sem::ParseError>, sem::SemId>(m, "SemParseError")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::ParseError> { return sem::SemIdT<sem::ParseError>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::ParseError> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::ParseError> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::ParseError, sem::SemId<sem::ParseError>>(m, "SemParseError")
+    .def_readwrite("loc", &sem::ParseError::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::FileTarget>, sem::SemId>(m, "SemFileTarget")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::FileTarget> { return sem::SemIdT<sem::FileTarget>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::FileTarget> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::FileTarget> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("path",
-                  [](sem::SemIdT<sem::FileTarget> _self) -> Str { return _self->path; },
-                  [](sem::SemIdT<sem::FileTarget> _self, Str path) { _self->path = path; })
-    .def_property("line",
-                  [](sem::SemIdT<sem::FileTarget> _self) -> Opt<int> { return _self->line; },
-                  [](sem::SemIdT<sem::FileTarget> _self, Opt<int> line) { _self->line = line; })
-    .def_property("searchTarget",
-                  [](sem::SemIdT<sem::FileTarget> _self) -> Opt<Str> { return _self->searchTarget; },
-                  [](sem::SemIdT<sem::FileTarget> _self, Opt<Str> searchTarget) { _self->searchTarget = searchTarget; })
-    .def_property("restrictToHeadlines",
-                  [](sem::SemIdT<sem::FileTarget> _self) -> bool { return _self->restrictToHeadlines; },
-                  [](sem::SemIdT<sem::FileTarget> _self, bool restrictToHeadlines) { _self->restrictToHeadlines = restrictToHeadlines; })
-    .def_property("targetId",
-                  [](sem::SemIdT<sem::FileTarget> _self) -> Opt<Str> { return _self->targetId; },
-                  [](sem::SemIdT<sem::FileTarget> _self, Opt<Str> targetId) { _self->targetId = targetId; })
-    .def_property("regexp",
-                  [](sem::SemIdT<sem::FileTarget> _self) -> Opt<Str> { return _self->regexp; },
-                  [](sem::SemIdT<sem::FileTarget> _self, Opt<Str> regexp) { _self->regexp = regexp; })
+  pybind11::class_<sem::FileTarget, sem::SemId<sem::FileTarget>>(m, "SemFileTarget")
+    .def_readwrite("loc", &sem::FileTarget::loc, R"RAW(Document)RAW")
+    .def_readwrite("path", &sem::FileTarget::path)
+    .def_readwrite("line", &sem::FileTarget::line)
+    .def_readwrite("searchTarget", &sem::FileTarget::searchTarget)
+    .def_readwrite("restrictToHeadlines", &sem::FileTarget::restrictToHeadlines)
+    .def_readwrite("targetId", &sem::FileTarget::targetId)
+    .def_readwrite("regexp", &sem::FileTarget::regexp)
     ;
-  pybind11::class_<sem::SemIdT<sem::TextSeparator>, sem::SemId>(m, "SemTextSeparator")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::TextSeparator> { return sem::SemIdT<sem::TextSeparator>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::TextSeparator> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::TextSeparator> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::TextSeparator, sem::SemId<sem::TextSeparator>>(m, "SemTextSeparator")
+    .def_readwrite("loc", &sem::TextSeparator::loc, R"RAW(Document)RAW")
     ;
-  pybind11::class_<sem::SemIdT<sem::Include>, sem::SemId>(m, "SemInclude")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::Include> { return sem::SemIdT<sem::Include>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::Include> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::Include> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("data",
-                  [](sem::SemIdT<sem::Include> _self) -> sem::Include::Data { return _self->data; },
-                  [](sem::SemIdT<sem::Include> _self, sem::Include::Data data) { _self->data = data; })
-    .def("getExample", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Example& { return _self->getExample(); })
-    .def("getExport", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Export& { return _self->getExport(); })
-    .def("getSrc", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Src& { return _self->getSrc(); })
-    .def("getOrgDocument", [](sem::SemIdT<sem::Include> _self) -> sem::Include::OrgDocument& { return _self->getOrgDocument(); })
-    .def("getIncludeKind", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Kind { return _self->getIncludeKind(); })
+  pybind11::class_<sem::Include, sem::SemId<sem::Include>>(m, "SemInclude")
+    .def_readwrite("loc", &sem::Include::loc, R"RAW(Document)RAW")
+    .def_readwrite("data", &sem::Include::data)
+    .def("getExample", static_cast<sem::Include::Example&(sem::Include::*)()>(&sem::Include::getExample))
+    .def("getExport", static_cast<sem::Include::Export&(sem::Include::*)()>(&sem::Include::getExport))
+    .def("getSrc", static_cast<sem::Include::Src&(sem::Include::*)()>(&sem::Include::getSrc))
+    .def("getOrgDocument", static_cast<sem::Include::OrgDocument&(sem::Include::*)()>(&sem::Include::getOrgDocument))
+    .def("getIncludeKind", static_cast<sem::Include::Kind(sem::Include::*)() const>(&sem::Include::getIncludeKind))
     ;
   pybind11::class_<sem::Include::Example>(m, "IncludeExample")
     .def(pybind11::init<>())
@@ -1044,73 +715,36 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("OrgDocument", sem::Include::Kind::OrgDocument)
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::DocumentOptions>, sem::SemId>(m, "SemDocumentOptions")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::DocumentOptions> { return sem::SemIdT<sem::DocumentOptions>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, Opt<LineCol> loc) { _self->loc = loc; })
-    .def_property("brokenLinks",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::BrokenLinks { return _self->brokenLinks; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, sem::DocumentOptions::BrokenLinks brokenLinks) { _self->brokenLinks = brokenLinks; })
-    .def_property("initialVisibility",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::Visibility { return _self->initialVisibility; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, sem::DocumentOptions::Visibility initialVisibility) { _self->initialVisibility = initialVisibility; })
-    .def_property("tocExport",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::TocExport { return _self->tocExport; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, sem::DocumentOptions::TocExport tocExport) { _self->tocExport = tocExport; })
-    .def_property("properties",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> Vec<sem::Subtree::Property> { return _self->properties; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, Vec<sem::Subtree::Property> properties) { _self->properties = properties; })
-    .def_property("smartQuotes",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->smartQuotes; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool smartQuotes) { _self->smartQuotes = smartQuotes; })
-    .def_property("emphasizedText",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->emphasizedText; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool emphasizedText) { _self->emphasizedText = emphasizedText; })
-    .def_property("specialStrings",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->specialStrings; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool specialStrings) { _self->specialStrings = specialStrings; })
-    .def_property("fixedWidthSections",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->fixedWidthSections; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool fixedWidthSections) { _self->fixedWidthSections = fixedWidthSections; })
-    .def_property("includeTimestamps",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->includeTimestamps; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool includeTimestamps) { _self->includeTimestamps = includeTimestamps; })
-    .def_property("preserveLineBreaks",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->preserveLineBreaks; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool preserveLineBreaks) { _self->preserveLineBreaks = preserveLineBreaks; })
-    .def_property("plaintextSubscripts",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->plaintextSubscripts; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool plaintextSubscripts) { _self->plaintextSubscripts = plaintextSubscripts; })
-    .def_property("exportArchived",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->exportArchived; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool exportArchived) { _self->exportArchived = exportArchived; })
-    .def_property("exportWithAuthor",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->exportWithAuthor; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool exportWithAuthor) { _self->exportWithAuthor = exportWithAuthor; })
-    .def_property("exportBrokenLinks",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->exportBrokenLinks; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool exportBrokenLinks) { _self->exportBrokenLinks = exportBrokenLinks; })
-    .def_property("exportWithClock",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->exportWithClock; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool exportWithClock) { _self->exportWithClock = exportWithClock; })
-    .def_property("exportWithCreator",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->exportWithCreator; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, bool exportWithCreator) { _self->exportWithCreator = exportWithCreator; })
-    .def_property("data",
-                  [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::TocExport { return _self->data; },
-                  [](sem::SemIdT<sem::DocumentOptions> _self, sem::DocumentOptions::TocExport data) { _self->data = data; })
+  pybind11::class_<sem::DocumentOptions, sem::SemId<sem::DocumentOptions>>(m, "SemDocumentOptions")
+    .def_readwrite("loc", &sem::DocumentOptions::loc, R"RAW(Document)RAW")
+    .def_readwrite("brokenLinks", &sem::DocumentOptions::brokenLinks)
+    .def_readwrite("initialVisibility", &sem::DocumentOptions::initialVisibility)
+    .def_readwrite("tocExport", &sem::DocumentOptions::tocExport)
+    .def_readwrite("properties", &sem::DocumentOptions::properties)
+    .def_readwrite("smartQuotes", &sem::DocumentOptions::smartQuotes)
+    .def_readwrite("emphasizedText", &sem::DocumentOptions::emphasizedText)
+    .def_readwrite("specialStrings", &sem::DocumentOptions::specialStrings)
+    .def_readwrite("fixedWidthSections", &sem::DocumentOptions::fixedWidthSections)
+    .def_readwrite("includeTimestamps", &sem::DocumentOptions::includeTimestamps)
+    .def_readwrite("preserveLineBreaks", &sem::DocumentOptions::preserveLineBreaks)
+    .def_readwrite("plaintextSubscripts", &sem::DocumentOptions::plaintextSubscripts)
+    .def_readwrite("exportArchived", &sem::DocumentOptions::exportArchived)
+    .def_readwrite("exportWithAuthor", &sem::DocumentOptions::exportWithAuthor)
+    .def_readwrite("exportBrokenLinks", &sem::DocumentOptions::exportBrokenLinks)
+    .def_readwrite("exportWithClock", &sem::DocumentOptions::exportWithClock)
+    .def_readwrite("exportWithCreator", &sem::DocumentOptions::exportWithCreator)
+    .def_readwrite("data", &sem::DocumentOptions::data)
     .def("getProperties",
-         [](sem::SemIdT<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subKind); },
+         static_cast<Vec<sem::Subtree::Property>(sem::DocumentOptions::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::DocumentOptions::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     .def("getProperty",
-         [](sem::SemIdT<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Opt<sem::Subtree::Property> { return _self->getProperty(kind, subKind); },
+         static_cast<Opt<sem::Subtree::Property>(sem::DocumentOptions::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::DocumentOptions::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
-    .def("getDoExport", [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::DoExport& { return _self->getDoExport(); })
-    .def("getExportFixed", [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::ExportFixed& { return _self->getExportFixed(); })
-    .def("getTocExportKind", [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::TocExportKind { return _self->getTocExportKind(); })
+    .def("getDoExport", static_cast<sem::DocumentOptions::DoExport&(sem::DocumentOptions::*)()>(&sem::DocumentOptions::getDoExport))
+    .def("getExportFixed", static_cast<sem::DocumentOptions::ExportFixed&(sem::DocumentOptions::*)()>(&sem::DocumentOptions::getExportFixed))
+    .def("getTocExportKind", static_cast<sem::DocumentOptions::TocExportKind(sem::DocumentOptions::*)() const>(&sem::DocumentOptions::getTocExportKind))
     ;
   pybind11::class_<sem::DocumentOptions::DoExport>(m, "DocumentOptionsDoExport")
     .def(pybind11::init<>())
@@ -1142,11 +776,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("ShowEverything", sem::DocumentOptions::Visibility::ShowEverything)
     .export_values()
     ;
-  pybind11::class_<sem::SemIdT<sem::DocumentGroup>, sem::SemId>(m, "SemDocumentGroup")
-    .def(pybind11::init([]() -> sem::SemIdT<sem::DocumentGroup> { return sem::SemIdT<sem::DocumentGroup>::Nil(); }))
-    .def_property("loc",
-                  [](sem::SemIdT<sem::DocumentGroup> _self) -> Opt<LineCol> { return _self->loc; },
-                  [](sem::SemIdT<sem::DocumentGroup> _self, Opt<LineCol> loc) { _self->loc = loc; })
+  pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>>(m, "SemDocumentGroup")
+    .def_readwrite("loc", &sem::DocumentGroup::loc, R"RAW(Document)RAW")
     ;
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")
     .value("Unnamed", OrgSpecName::Unnamed)
@@ -1544,10 +1175,30 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("DocumentGroup", OrgSemKind::DocumentGroup)
     .export_values()
     ;
+  pybind11::class_<sem::Org>(m, "Org")
+    .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
+    .def_readwrite("subnodes", &sem::Org::subnodes, R"RAW(\brief List of subnodes.
+
+Some of the derived nodes don't make the use of subnode list
+(word, punctuation etc), but it was left on the top level of the
+hierarchy for conveinience purposes. It is not expected that 'any'
+node can have subnodes.)RAW")
+    .def("isGenerated", static_cast<bool(sem::Org::*)() const>(&sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
+    .def("push_back",
+         static_cast<void(sem::Org::*)(sem::SemId<sem::Org>)>(&sem::Org::push_back),
+         pybind11::arg("sub"))
+    .def("at",
+         static_cast<sem::SemId<sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
+         pybind11::arg("idx"),
+         R"RAW(\brief Get subnode at specified index)RAW")
+    .def("is",
+         static_cast<bool(sem::Org::*)(OrgSemKind) const>(&sem::Org::is),
+         pybind11::arg("kind"))
+    ;
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
     .def(pybind11::init<>())
     .def("visitNode",
-         static_cast<void(OrgExporterJson::*)(sem::SemId)>(&OrgExporterJson::visitNode),
+         static_cast<void(OrgExporterJson::*)(sem::SemId<sem::Org>)>(&OrgExporterJson::visitNode),
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
@@ -1568,11 +1219,11 @@ return state.)RAW")
   pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
     .def(pybind11::init<>())
     .def("toString",
-         static_cast<std::string(OrgExporterTree::*)(sem::SemId, ExporterTreeOpts)>(&OrgExporterTree::toString),
+         static_cast<std::string(OrgExporterTree::*)(sem::SemId<sem::Org>, ExporterTreeOpts)>(&OrgExporterTree::toString),
          pybind11::arg("node"),
          pybind11::arg("opts"))
     .def("toFile",
-         static_cast<void(OrgExporterTree::*)(sem::SemId, std::string, ExporterTreeOpts)>(&OrgExporterTree::toFile),
+         static_cast<void(OrgExporterTree::*)(sem::SemId<sem::Org>, std::string, ExporterTreeOpts)>(&OrgExporterTree::toFile),
          pybind11::arg("node"),
          pybind11::arg("path"),
          pybind11::arg("opts"))
@@ -1580,7 +1231,7 @@ return state.)RAW")
   pybind11::class_<OrgExporterYaml>(m, "OrgExporterYaml")
     .def(pybind11::init<>())
     .def("visitNode",
-         static_cast<void(OrgExporterYaml::*)(sem::SemId)>(&OrgExporterYaml::visitNode),
+         static_cast<void(OrgExporterYaml::*)(sem::SemId<sem::Org>)>(&OrgExporterYaml::visitNode),
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
@@ -1597,7 +1248,7 @@ return state.)RAW")
     .def("parseString",
          static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseString),
          pybind11::arg("text"))
-    .def("getNode", static_cast<sem::SemIdT<sem::Document>(OrgContext::*)()>(&OrgContext::getNode))
+    .def("getNode", static_cast<sem::SemId<sem::Document>(OrgContext::*)()>(&OrgContext::getNode))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init<>())
@@ -1692,10 +1343,10 @@ return state.)RAW")
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("evalTop",
-         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::evalTop),
+         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::evalTop),
          pybind11::arg("org"))
     .def("eval",
-         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::eval),
+         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::eval),
          pybind11::arg("org"))
     ;
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")

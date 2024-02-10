@@ -38,11 +38,11 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     };
 
-    static void treeRepr(sem::SemId org);
+    static void treeRepr(sem::SemId<sem::Org> org);
     static void treeRepr(
-        sem::SemId                   org,
+        sem::SemId<sem::Org>         org,
         const std::filesystem::path& path);
-    static void treeRepr(sem::SemId org, CR<TreeReprConf> conf);
+    static void treeRepr(sem::SemId<sem::Org> org, CR<TreeReprConf> conf);
 
     struct TreeReprCtx {
         int level      = 0;
@@ -60,9 +60,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
     void popIndent() { stack.pop_back(); }
-    void pushVisit(int&, sem::SemId org) { pushIndent(); }
-    void popVisit(int&, sem::SemId org) { popIndent(); }
-    void visitDispatchHook(int&, sem::SemId org) { init(org); }
+    void pushVisit(int&, sem::SemId<sem::Org> org) { pushIndent(); }
+    void popVisit(int&, sem::SemId<sem::Org> org) { popIndent(); }
+    void visitDispatchHook(int&, sem::SemId<sem::Org> org) { init(org); }
     void indent() { os << Str("  ").repeated(stack.back().level); }
 
     struct ScopedField {
@@ -77,7 +77,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
 
-    void init(sem::SemId org);
+    void init(sem::SemId<sem::Org> org);
 
     template <typename T>
     bool skipAsEmpty(CR<Opt<T>> opt) {
@@ -140,19 +140,22 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         // TODO
     }
 
-    void visitField(int& i, const char* name, CVec<sem::SemId> org);
+    void visitField(
+        int&                       i,
+        const char*                name,
+        CVec<sem::SemId<sem::Org>> org);
 
 
     template <typename T>
     void visitField(int& arg, const char* name, CR<T> value);
 
-    void visitField(int& arg, const char* name, sem::SemId org);
+    void visitField(int& arg, const char* name, sem::SemId<sem::Org> org);
 
     template <typename T>
-    void visitField(int& arg, const char* name, sem::SemIdT<T> org);
+    void visitField(int& arg, const char* name, sem::SemId<T> org);
 
     template <typename T>
-    void visit(int& arg, sem::SemIdT<T> org);
+    void visit(int& arg, sem::SemId<T> org);
 
     ExporterTree(ColStream& os) : os(os) {}
 };

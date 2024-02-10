@@ -27,6 +27,8 @@ TEST(ManualFileRun, TestDoc1) {
         std::string content = readFile("/home/haxscramper/tmp/doc2.org");
         auto        spec    = ParseSpec::FromSource(std::move(content));
         spec.debug.maxBaseLexUnknownCount = 0;
+        // spec.debug.printSemToFile         = true;
+        spec.debug.debugOutDir = "/tmp/doc2_run";
         gtest_run_spec(TestParams{
             .spec = spec,
             .file = "doc2",

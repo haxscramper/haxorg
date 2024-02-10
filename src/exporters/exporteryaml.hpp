@@ -51,62 +51,55 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         return tmp;
     }
 
-    yaml newRes(sem::SemId org);
+    yaml newRes(sem::SemId<sem::Org> org);
 
     template <typename T>
     void visitField(yaml& j, const char* name, CR<Opt<T>> value) {
         if (value) {
             j[name] = eval(value.value());
         } else {
-            if (!skipNullFields) {
-                j[name] = yaml();
-            }
+            if (!skipNullFields) { j[name] = yaml(); }
         }
     }
 
     template <typename T>
     yaml eval(CR<Vec<T>> values) {
         yaml tmp;
-        for (const auto& it : values) {
-            tmp.push_back(eval(it));
-        }
+        for (const auto& it : values) { tmp.push_back(eval(it)); }
         return tmp;
     }
 
     template <typename T>
     yaml eval(CR<UnorderedMap<Str, T>> map) {
         yaml tmp;
-        for (const auto& [key, val] : map) {
-            tmp[key] = eval(val);
-        }
+        for (const auto& [key, val] : map) { tmp[key] = eval(val); }
         return tmp;
     }
 
     void visitField(
         yaml&       y,
         char const* name,
-        CR<UnorderedMap<int, sem::SemId>>) {}
+        CR<UnorderedMap<int, sem::SemId<sem::Org>>>) {}
 
     void visitField(yaml& j, const char* name, int field) {
         yaml result = eval(field);
-        if (!skipZeroFields || field != 0) {
-            j[name] = result;
-        }
+        if (!skipZeroFields || field != 0) { j[name] = result; }
     }
 
     void visitField(yaml& j, const char* name, bool field) {
-        if (!skipFalseFields || field != false) {
-            j[name] = eval(field);
-        }
+        if (!skipFalseFields || field != false) { j[name] = eval(field); }
     }
 
 
     template <typename T>
     void visitField(yaml& j, const char* name, CR<T> field) {
         yaml result = eval(field);
-        if (!skipNullFields || !result.IsNull()) {
-            j[name] = result;
-        }
+        if (!skipNullFields || !result.IsNull()) { j[name] = result; }
+    }
+
+    template <typename T>
+    void visit(yaml& res, sem::SemId<T> const& arg) {
+        visitDispatch(res, arg.asOrg());
     }
 
     bool skipNullFields  = false;

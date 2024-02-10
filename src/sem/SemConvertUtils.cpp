@@ -153,7 +153,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
 
 struct Builder : OperationsMsgBulder<Builder, OrgConverter::Report> {
-    Builder& with_sem(SemId sem) {
+    Builder& with_sem(SemId<Org> sem) {
         report.semResult = sem;
         return *this;
     }
@@ -249,7 +249,7 @@ finally OrgConverter::field(
 }
 
 void OrgConverter::print_json(
-    SemId       semResult,
+    SemId<Org>  semResult,
     int         line,
     const char* function) {
     if (TraceState) {

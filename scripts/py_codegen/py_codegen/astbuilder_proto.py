@@ -118,7 +118,7 @@ class ProtoBuilder():
                                 aux_field(
                                     it=tu.GenTuField(tu.QualType.ForName("Str"), "debug"),
                                     indexer=(it for it in [999]),
-                                    indent=indent + 1,
+                                    indent=indent,
                                 )
                             ]))
 
@@ -210,10 +210,11 @@ class ProtoBuilder():
                 )
 
             case "SemId":
-                return "AnyNode"
-
-            case "SemIdT":
-                return self.rewrite_for_proto_grammar(it.Parameters[0])
+                if it.par0().name == "Org":
+                    return "AnyNode"
+                
+                else:
+                    return self.rewrite_for_proto_grammar(it.Parameters[0])
 
             case _:
                 spaces = [s.name for s in it.Spaces if s.name != "sem"]
@@ -229,11 +230,12 @@ class ProtoBuilder():
             return [self.rewrite_for_proto_serde(p) for p in typ.Parameters]
 
         match typ:
-            case tu.QualType(name="SemId"):
-                return tu.QualType.ForName("AnyNode").withExtraSpace("orgproto")
-
-            case tu.QualType(name="SemIdT", Parameters=[nodeType]):
-                return nodeType.withoutSpace("sem").withExtraSpace("orgproto")
+            case tu.QualType(name="SemId", Parameters=[nodeType]):
+                if nodeType.name == "Org":
+                    return tu.QualType.ForName("AnyNode").withExtraSpace("orgproto")
+                
+                else:
+                    return nodeType.withoutSpace("sem").withExtraSpace("orgproto")
 
             case tu.QualType(name="bool"):
                 return typ
@@ -302,11 +304,11 @@ class ProtoBuilder():
             field_read = dot_field
             field_type = field.type
 
-        if not is_read_getter and field_type.name == "SemIdT":
-            field_read = self.t.line(
-                [self.t.text("*(("), field_read,
-                 self.t.text(").get())")])
-            field_type = field_type.Parameters[0]
+        # if not is_read_getter and field_type.name == "SemId":
+        #     field_read = self.t.line(
+        #         [self.t.text("*(("), field_read,
+        #          self.t.text(").get())")])
+        #     field_type = field_type.Parameters[0]
 
         field_proto_type = self.rewrite_for_proto_serde(field_type)
         is_enum_field = tu.in_type_list(field_type, self.enum_type_list)
@@ -370,7 +372,6 @@ class ProtoBuilder():
                 ),
                 "read",
                 [
-                    self.t.text(self.ctx_store_param().name),
                     self.ast.XCallRef(proto_ptr, opc),
                     field_read,
                 ],
@@ -391,14 +392,6 @@ class ProtoBuilder():
                     ]))
 
         return read_op
-
-    def ctx_store_param(self) -> cpp.ParmVarParams:
-        return cpp.ParmVarParams(
-            name="context",
-            type=tu.QualType.ForName("ContextStore",
-                                     ptrCount=1,
-                                     Spaces=[tu.QualType.ForName("sem")]),
-        )
 
     def get_field_write_op(
         self,
@@ -520,7 +513,7 @@ class ProtoBuilder():
                     self.ast.XCallRef(
                         t.text(ORG_VALUE_NAME),
                         "for_field_variant",
-                        [self.t.text("context"), field_ptr],
+                        [field_ptr],
                         Params=[tu.QualType.ForExpr(str(idx))],
                     )
                 ])
@@ -632,7 +625,6 @@ class ProtoBuilder():
                                         Parameters=[proto_param_type, base]),
                             "read",
                             [
-                                self.t.text(self.ctx_store_param().name),
                                 out,
                                 self.ast.XCallRef(_in, "as", Params=[base]),
                             ],
@@ -656,7 +648,6 @@ class ProtoBuilder():
                     Params=cpp.FunctionParams(
                         Name="read",
                         Args=[
-                            self.ctx_store_param(),
                             cpp.ParmVarParams(
                                 name=PROTO_VALUE_NAME,
                                 type=proto_param_type.asConstRef(),

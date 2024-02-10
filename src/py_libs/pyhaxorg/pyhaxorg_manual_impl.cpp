@@ -4,7 +4,6 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exportertree.hpp>
-#include <sem/semdatastream.hpp>
 #include <datetime.h>
 #include <fstream>
 
@@ -24,7 +23,7 @@ void OrgExporterJson::exportToFile(std::string path) {
     writeFile(fs::path{path}, exportToString());
 }
 
-void OrgExporterJson::visitNode(sem::SemId node) {
+void OrgExporterJson::visitNode(sem::SemId<sem::Org> node) {
     result = impl->evalTop(node);
 }
 
@@ -42,7 +41,7 @@ void OrgExporterYaml::exportToFile(std::string path) {
     writeFile(fs::path{path}, exportToString());
 }
 
-void OrgExporterYaml::visitNode(sem::SemId node) {
+void OrgExporterYaml::visitNode(sem::SemId<sem::Org> node) {
     result = impl->evalTop(node);
 }
 
@@ -51,25 +50,25 @@ OrgExporterTree::OrgExporterTree() {
 }
 
 std::string OrgExporterTree::toString(
-    sem::SemId       node,
-    ExporterTreeOpts opts) {
+    sem::SemId<sem::Org> node,
+    ExporterTreeOpts     opts) {
     std::stringstream os;
     stream(os, node, opts);
     return os.str();
 }
 
 void OrgExporterTree::toFile(
-    sem::SemId       node,
-    std::string      path,
-    ExporterTreeOpts opts) {
+    sem::SemId<sem::Org> node,
+    std::string          path,
+    ExporterTreeOpts     opts) {
     std::ofstream file{path};
     stream(file, node, opts);
 }
 
 void OrgExporterTree::stream(
-    std::ostream&    stream,
-    sem::SemId       node,
-    ExporterTreeOpts opts) {
+    std::ostream&        stream,
+    sem::SemId<sem::Org> node,
+    ExporterTreeOpts     opts) {
     os                         = ColStream{stream};
     os.colored                 = opts.withColor;
     impl->conf.withLineCol     = opts.withLineCol;
@@ -97,21 +96,22 @@ void OrgContext::run() {
 }
 
 
-std::vector<sem::SemId> getSubnodeRange(
-    sem::SemId      id,
-    pybind11::slice slice) {
+std::vector<sem::SemId<sem::Org>> getSubnodeRange(
+    sem::SemId<sem::Org> id,
+    pybind11::slice      slice) {
 
     size_t start;
     size_t stop;
     size_t step;
     size_t slicelength;
 
-    Vec<sem::SemId> const& data = id->subnodes;
+    Vec<sem::SemId<sem::Org>> const& data = id->subnodes;
     if (!slice.compute(data.size(), &start, &stop, &step, &slicelength)) {
         throw py::error_already_set();
     }
 
-    std::vector<sem::SemId> result{slicelength, sem::SemId::Nil()};
+    std::vector<sem::SemId<sem::Org>> result{
+        slicelength, sem::SemId<sem::Org>::Nil()};
     for (size_t i = 0; i < slicelength; ++i) {
         result[i] = data[start];
         start += step;
@@ -119,11 +119,11 @@ std::vector<sem::SemId> getSubnodeRange(
     return result;
 }
 
-sem::SemId getSingleSubnode(sem::SemId id, int index) {
+sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index) {
     return id->at(index);
 }
 
-OrgIdVariant castAs(sem::SemId id) {
+sem::OrgVariant castAs(sem::SemId<sem::Org> id) {
     switch (id->getKind()) {
 
 #define _case(__Kind)                                                     \
@@ -139,75 +139,6 @@ void init_py_manual_api(pybind11::module& m) {
     PyDateTime_IMPORT;
     assert(PyDateTimeAPI);
     bind_int_set<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
-
-    pybind11::class_<sem::SemId>(m, "SemId")
-        .def(pybind11::init(
-            []() -> sem::SemId { return sem::SemId::Nil(); }))
-        .def("getKind", &sem::SemId::getKind)
-        .def(
-            "getParent",
-            [](sem::SemId _self) -> sem::SemId {
-                return _self.getParent();
-            })
-        .def(
-            "getParentChain",
-            [](sem::SemId _self, bool withSelf) {
-                return _self.getParentChain(withSelf);
-            },
-            py::arg_v("withSelf", false))
-        .def(
-            "__repr__",
-            [](sem::SemId id) {
-                return id.isNil() ? "Nil" : id.getReadableId();
-            })
-        .def(
-            "getDocument", [](sem::SemId id) { return id->getDocument(); })
-        .def(
-            "getReadableId",
-            [](sem::SemId id) { return id.getReadableId(); })
-        .def(
-            "_is",
-            [](sem::SemId id, OrgSemKind kind) -> bool {
-                return id->is(kind);
-            })
-        .def(
-            "_as",
-            [](sem::SemId _self, OrgSemKind kind) -> Opt<OrgIdVariant> {
-                if (kind != _self.getKind()) {
-                    return std::nullopt;
-                } else {
-                    switch (_self.getKind()) {
-#define _Kind(__Kind)                                                     \
-    case OrgSemKind::__Kind: return OrgIdVariant{_self.as<sem::__Kind>()};
-                        EACH_SEM_ORG_KIND(_Kind)
-#undef _Kind
-                    }
-                }
-            })
-        .def(
-            "__len__",
-            [](sem::SemId const& id) -> int {
-                return id->subnodes.size();
-            })
-        .def(
-            "__iter__",
-            [](sem::SemId const& id) {
-                return py::make_iterator(
-                    id->subnodes.begin(), id->subnodes.end());
-            })
-        .def(
-            "__getitem__",
-            [](sem::SemId _self, int index) {
-                return getSingleSubnode(_self, index);
-            })
-        .def(
-            "__getitem__",
-            [](sem::SemId _self, py::slice slice) {
-                return getSubnodeRange(_self, slice);
-            })
-        .def("eachSubnodeRec", [](sem::SemId _self, py::function cb) {
-            _self.eachSubnodeRec([&](sem::SemId id) { cb(id); });
-        });
 }
 
 void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
@@ -254,15 +185,13 @@ void ExporterPython::enableFileTrace(const std::string& path) {
     };
 }
 
-void ExporterPython::visitDispatch(Res& res, sem::SemId arg) {
+void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
     __visit_scope(
         VisitEvent::Kind::VisitDispatch,
         .visitedValue = &res,
         .visitedNode  = arg);
 
-    if (arg.isNil()) {
-        return;
-    }
+    if (arg.isNil()) { return; }
 
     auto kind = arg->getKind();
     switch (kind) {
@@ -299,16 +228,12 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
        << fmt1(ev.kind);
 
     if (ev.visitedNode) {
-        os << " node:" << fmt1(ev.visitedNode->getKind());
+        os << " node:" << fmt1((*ev.visitedNode)->getKind());
     }
 
-    if (0 < ev.field.length()) {
-        os << " field:" << ev.field;
-    }
+    if (0 < ev.field.length()) { os << " field:" << ev.field; }
 
-    if (!ev.msg.empty()) {
-        os << " msg:" << ev.msg;
-    }
+    if (!ev.msg.empty()) { os << " msg:" << ev.msg; }
 
     os << " on " << fs::path(ev.file).stem() << ":" << ev.line << " "
        << " " << os.end();
@@ -321,9 +246,9 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
 }
 
 void ExporterPython::visitField(
-    Res&        res,
-    const char* name,
-    sem::SemId  value) {
+    Res&                 res,
+    const char*          name,
+    sem::SemId<sem::Org> value) {
     switch (value->getKind()) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
@@ -338,7 +263,7 @@ void ExporterPython::visitField(
     }
 }
 
-ExporterPython::Res ExporterPython::evalTop(sem::SemId org) {
+ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
     __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
     if (evalTopCb) {
         return evalTopCb->operator()(_self, org);

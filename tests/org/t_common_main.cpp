@@ -107,7 +107,14 @@ int main(int argc, char** argv) {
 #ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession>
         tracing_session = StartProcessTracing("Perfetto track example");
+
+    finally end_trace{[&]() {
+        StopTracing(
+            std::move(tracing_session),
+            "/tmp/t_common_main_perfetto_trace.pftrace");
+    }};
 #endif
+
 
     ::testing::InitGoogleTest(&argc, argv);
 
@@ -132,11 +139,6 @@ int main(int argc, char** argv) {
     std::ofstream test_records{"/tmp/compact_records.json"};
     test_records << to_compact_json(records);
 
-#ifdef ORG_USE_PERFETTO
-    StopTracing(
-        std::move(tracing_session),
-        "/tmp/t_common_main_perfetto_trace.pftrace");
-#endif
 
     return result;
 }

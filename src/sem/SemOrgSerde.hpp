@@ -72,26 +72,24 @@ struct proto_write_accessor<T>
 
     template <typename FieldType, typename Var, int Field>
     struct variant_init {
-        static void init(sem::ContextStore* context, Var& variant) {
+        static void init(Var& variant) {
             variant = variant_from_index<Var>(Field);
         }
     };
 
     template <typename Var, int Field>
-    struct variant_init<sem::SemId, Var, Field> {
-        static void init(sem::ContextStore* context, Var& variant) {
-            auto tmp    = sem::SemId::Nil();
-            tmp.context = context;
-            variant     = tmp;
+    struct variant_init<sem::SemId<sem::Org>, Var, Field> {
+        static void init(Var& variant) {
+            auto tmp = sem::SemId<sem::Org>::Nil();
+            variant  = tmp;
         }
     };
 
     template <typename FieldType, typename Var, int Field>
-    struct variant_init<sem::SemIdT<FieldType>, Var, Field> {
-        static void init(sem::ContextStore* context, Var& variant) {
-            auto tmp    = sem::SemIdT<FieldType>::Nil();
-            tmp.context = context;
-            variant     = tmp;
+    struct variant_init<sem::SemId<FieldType>, Var, Field> {
+        static void init(Var& variant) {
+            auto tmp = sem::SemId<FieldType>::Nil();
+            variant  = tmp;
         }
     };
 
@@ -99,14 +97,11 @@ struct proto_write_accessor<T>
         int N,
         typename F,
         typename VarType = std::variant_alternative_t<N, F>>
-    proto_write_accessor<VarType> for_field_variant(
-        sem::ContextStore* context,
-        F T::*field) {
+    proto_write_accessor<VarType> for_field_variant(F T::*field) {
         return proto_write_accessor<VarType>{
-            [impl = this->impl, field, context]() -> VarType& {
+            [impl = this->impl, field]() -> VarType& {
                 if ((impl().*field).index() != N) {
-                    variant_init<VarType, F, N>::init(
-                        context, impl().*field);
+                    variant_init<VarType, F, N>::init(impl().*field);
                 }
                 return std::get<VarType>(impl().*field);
             }};
@@ -115,54 +110,44 @@ struct proto_write_accessor<T>
 
 template <typename T>
 struct proto_init {
-    static void init_default(sem::ContextStore* context, T& value) {}
+    static void init_default(T& value) {}
 };
 
 template <typename T>
 struct proto_init<Opt<T>> {
-    static void init_default(sem::ContextStore* context, Opt<T>& value) {
+    static void init_default(Opt<T>& value) {
         value = SerdeDefaultProvider<T>::get();
     }
 };
 
 
 template <>
-struct proto_init<sem::SemId> {
+struct proto_init<sem::SemId<sem::Org>> {
     static void init_default(
-        sem::ContextStore* context,
-        sem::SemId&        value) {
-        value         = sem::SemId::Nil();
-        value.context = context;
+
+        sem::SemId<sem::Org>& value) {
+        value = sem::SemId<sem::Org>::Nil();
     }
 };
 
 template <typename T>
-struct proto_init<sem::SemIdT<T>> {
-    static void init_default(
-        sem::ContextStore* context,
-        sem::SemIdT<T>&    value) {
-        value         = sem::SemIdT<T>::Nil();
-        value.context = context;
+struct proto_init<sem::SemId<T>> {
+    static void init_default(sem::SemId<T>& value) {
+        value = sem::SemId<T>::Nil();
     }
 };
 
 template <>
-struct proto_init<Opt<sem::SemId>> {
-    static void init_default(
-        sem::ContextStore* context,
-        Opt<sem::SemId>&   value) {
-        value          = sem::SemId::Nil();
-        value->context = context;
+struct proto_init<Opt<sem::SemId<sem::Org>>> {
+    static void init_default(Opt<sem::SemId<sem::Org>>& value) {
+        value = sem::SemId<sem::Org>::Nil();
     }
 };
 
 template <typename T>
-struct proto_init<Opt<sem::SemIdT<T>>> {
-    static void init_default(
-        sem::ContextStore*   context,
-        Opt<sem::SemIdT<T>>& value) {
-        value          = sem::SemId::Nil();
-        value->context = context;
+struct proto_init<Opt<sem::SemId<T>>> {
+    static void init_default(Opt<sem::SemId<T>>& value) {
+        value = sem::SemId<T>::Nil();
     }
 };
 
@@ -172,12 +157,9 @@ struct proto_serde<Opt<Proto>, Opt<T>> {
         proto_serde<Proto, T>::write(out, in.value());
     }
 
-    static void read(
-        sem::ContextStore*           context,
-        Proto const&                 out,
-        proto_write_accessor<Opt<T>> in) {
-        proto_init<Opt<T>>::init_default(context, in.get());
-        proto_serde<Proto, T>::read(context, out, in.for_value());
+    static void read(Proto const& out, proto_write_accessor<Opt<T>> in) {
+        proto_init<Opt<T>>::init_default(in.get());
+        proto_serde<Proto, T>::read(out, in.for_value());
     }
 };
 
@@ -192,63 +174,63 @@ struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<T>> {
     }
 
     static void read(
-        sem::ContextStore*                  context,
         gpb::RepeatedPtrField<Proto> const& out,
         proto_write_accessor<Vec<T>>        in) {
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             proto_serde<Proto, T>::read(
-                context, it, proto_write_accessor<T>::for_ref(ref));
+                it, proto_write_accessor<T>::for_ref(ref));
         }
     }
 };
 
 template <typename Proto>
-struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<sem::SemId>> {
+struct proto_serde<
+    gpb::RepeatedPtrField<Proto>,
+    Vec<sem::SemId<sem::Org>>> {
     static void write(
-        gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemId> const&        in) {
+        gpb::RepeatedPtrField<Proto>*    out,
+        Vec<sem::SemId<sem::Org>> const& in) {
         for (auto const& it : in) {
-            proto_serde<Proto, sem::SemId>::write(out->Add(), it);
+            proto_serde<Proto, sem::SemId<sem::Org>>::write(
+                out->Add(), it);
         }
     }
 
     static void read(
-        sem::ContextStore*                    context,
-        gpb::RepeatedPtrField<Proto> const&   out,
-        proto_write_accessor<Vec<sem::SemId>> in) {
+        gpb::RepeatedPtrField<Proto> const&             out,
+        proto_write_accessor<Vec<sem::SemId<sem::Org>>> in) {
         for (auto const& it : out) {
             auto& items = in.get();
-            items.emplace_back(sem::SemId::Nil());
-            proto_serde<Proto, sem::SemId>::read(
-                context,
+            items.emplace_back(sem::SemId<sem::Org>::Nil());
+            proto_serde<Proto, sem::SemId<sem::Org>>::read(
                 it,
-                proto_write_accessor<sem::SemId>{
-                    [&in]() -> sem::SemId& { return in.get().back(); }});
+                proto_write_accessor<sem::SemId<sem::Org>>{
+                    [&in]() -> sem::SemId<sem::Org>& {
+                        return in.get().back();
+                    }});
         }
     }
 };
 
 template <typename Proto, typename T>
-struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<sem::SemIdT<T>>> {
+struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<sem::SemId<T>>> {
     static void write(
         gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemIdT<T>> const&    in) {
+        Vec<sem::SemId<T>> const&     in) {
         for (auto const& it : in) {
-            proto_serde<Proto, sem::SemId>::write(out->Add(), it.toId());
+            proto_serde<Proto, sem::SemId<sem::Org>>::write(
+                out->Add(), it.asOrg());
         }
     }
 
     static void read(
-        sem::ContextStore*                        context,
-        gpb::RepeatedPtrField<Proto> const&       out,
-        proto_write_accessor<Vec<sem::SemIdT<T>>> in) {
+        gpb::RepeatedPtrField<Proto> const&      out,
+        proto_write_accessor<Vec<sem::SemId<T>>> in) {
         for (auto const& it : out) {
-            auto& ref = in.get().emplace_back(sem::SemIdT<T>::Nil());
-            proto_serde<Proto, sem::SemIdT<T>>::read(
-                context,
-                it,
-                proto_write_accessor<sem::SemIdT<T>>::for_ref(ref));
+            auto& ref = in.get().emplace_back(sem::SemId<T>::Nil());
+            proto_serde<Proto, sem::SemId<T>>::read(
+                it, proto_write_accessor<sem::SemId<T>>::for_ref(ref));
         }
     }
 };
@@ -263,7 +245,6 @@ struct proto_serde<gpb::RepeatedField<::int32_t>, Vec<T>> {
     }
 
     static void read(
-        sem::ContextStore*                   context,
         gpb::RepeatedField<::int32_t> const& out,
         proto_write_accessor<Vec<T>>         in) {
         for (auto const& it : out) { in.get().push_back(it); }
@@ -286,29 +267,14 @@ struct proto_serde<gpb::Map<ProtoKey, ProtoVal>, UnorderedMap<K, V>> {
         }
     }
 
-    template <sem::IsOrgId U = V>
-    static void read(
-        sem::ContextStore*                       context,
-        gpb::Map<ProtoKey, ProtoVal> const&      out,
-        proto_write_accessor<UnorderedMap<K, U>> in) {
-        for (auto const& [key, val] : out) {
-            in.get().insert_or_assign(key, U::Nil());
-            proto_serde<ProtoVal, V>::read(
-                context, val, proto_write_accessor<V>{[&in, &key]() -> V& {
-                    return in.get().at(key);
-                }});
-        }
-    }
-
     template <IsDefaultConstructible U = V>
     static void read(
-        sem::ContextStore*                       context,
         gpb::Map<ProtoKey, ProtoVal> const&      out,
         proto_write_accessor<UnorderedMap<K, V>> in) {
         for (auto const& [key, val] : out) {
             in.get().insert_or_assign(key, SerdeDefaultProvider<V>::get());
             proto_serde<ProtoVal, V>::read(
-                context, val, proto_write_accessor<V>{[&in, &key]() -> V& {
+                val, proto_write_accessor<V>{[&in, &key]() -> V& {
                     return in.get().at(key);
                 }});
         }
@@ -316,116 +282,111 @@ struct proto_serde<gpb::Map<ProtoKey, ProtoVal>, UnorderedMap<K, V>> {
 };
 
 template <>
-struct proto_serde<orgproto::AnyNode, sem::SemId> {
-    static void write(orgproto::AnyNode* out, sem::SemId const& in);
+struct proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>> {
+    static void write(
+        orgproto::AnyNode*          out,
+        sem::SemId<sem::Org> const& in);
 
     static void write(
         gpb::RepeatedPtrField<orgproto::AnyNode>* out,
-        Vec<sem::SemId> const&                    in) {
+        Vec<sem::SemId<sem::Org>> const&          in) {
         for (auto const& it : in) {
-            proto_serde<orgproto::AnyNode, sem::SemId>::write(
+            proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
                 out->Add(), it);
         }
     }
 
     static void read(
-        sem::ContextStore*               context,
-        orgproto::AnyNode const&         out,
-        proto_write_accessor<sem::SemId> in);
+        orgproto::AnyNode const&                   out,
+        proto_write_accessor<sem::SemId<sem::Org>> in);
 
     static void read(
-        sem::ContextStore*                              context,
         gpb::RepeatedPtrField<orgproto::AnyNode> const& out,
-        proto_write_accessor<Vec<sem::SemId>>           in) {
+        proto_write_accessor<Vec<sem::SemId<sem::Org>>> in) {
         LOG(FATAL) << "??";
     }
 };
 
 template <typename Proto>
-struct proto_serde<Proto, sem::SemId> {
-    static void write(Proto* out, sem::SemId const& in) {
+struct proto_serde<Proto, sem::SemId<sem::Org>> {
+    static void write(Proto* out, sem::SemId<sem::Org> const& in) {
         using org_type = proto_org_map<Proto>::org_kind;
         proto_serde<Proto, org_type>::write(out, *in.as<org_type>().get());
     }
 
     static void read(
-        sem::ContextStore*               context,
-        Proto const&                     out,
-        proto_write_accessor<sem::SemId> in) {
+        Proto const&                               out,
+        proto_write_accessor<sem::SemId<sem::Org>> in) {
         using org_type = proto_org_map<Proto>::org_kind;
-        if (in.get().isNil()) {
-            in.get() = context->createIn(
-                0, org_type::staticKind, sem::SemId::Nil());
-            in.get().context = context;
-        }
-        sem::SemId id = in.get();
+        if (in.get().isNil()) { in.get() = sem::SemId<org_type>::New(); }
+        sem::SemId<sem::Org> id = in.get();
         proto_serde<Proto, org_type>::read(
-            context,
-            out,
-            proto_write_accessor<org_type>{
-                [id]() -> org_type& { return *id.as<org_type>().get(); }});
+            out, proto_write_accessor<org_type>{[id]() -> org_type& {
+                return *id.as<org_type>().get();
+            }});
         CHECK(!in.get().isNil());
     }
 };
 
 
 template <typename T>
-struct proto_serde<orgproto::AnyNode, sem::SemIdT<T>> {
-    static void write(orgproto::AnyNode* out, sem::SemIdT<T> const& in) {
-        proto_serde<orgproto::AnyNode, sem::SemId>::write(out, in.toId());
+struct proto_serde<orgproto::AnyNode, sem::SemId<T>> {
+    static void write(orgproto::AnyNode* out, sem::SemId<T> const& in) {
+        proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+            out, in.asOrg());
     }
 
     template <typename Proto>
-    static void write(Proto* out, sem::SemIdT<T> const& in) {
-        proto_serde<orgproto::AnyNode, sem::SemId>::write(
-            out->Add(), in.toId());
+    static void write(Proto* out, sem::SemId<T> const& in) {
+        proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+            out->Add(), in.asOrg());
     }
 
     template <typename Proto>
     static void write(
         gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemIdT<T>> const&    in) {
+        Vec<sem::SemId<T>> const&     in) {
         LOG(FATAL) << "??";
     }
 };
 
 template <typename Proto, typename T>
-struct proto_serde<Proto, sem::SemIdT<T>> {
-    static void write(orgproto::AnyNode* out, sem::SemIdT<T> const& in) {
-        proto_serde<orgproto::AnyNode, sem::SemId>::write(out, in.toId());
+struct proto_serde<Proto, sem::SemId<T>> {
+    static void write(orgproto::AnyNode* out, sem::SemId<T> const& in) {
+        proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+            out, in.asOrg());
     }
 
-    static void write(Proto* out, sem::SemIdT<T> const& in) {
-        proto_serde<Proto, sem::SemId>::write(out, in.toId());
+    static void write(Proto* out, sem::SemId<T> const& in) {
+        proto_serde<Proto, sem::SemId<sem::Org>>::write(out, in.asOrg());
     }
 
     static void write(
         gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemIdT<T>> const&    in) {
+        Vec<sem::SemId<T>> const&     in) {
         for (auto const& it : in) {
-            proto_serde<Proto, sem::SemId>::write(out->Add(), it.toId());
+            proto_serde<Proto, sem::SemId<sem::Org>>::write(
+                out->Add(), it.asOrg());
         }
     }
 
     static void read(
-        sem::ContextStore*                   context,
-        Proto const&                         out,
-        proto_write_accessor<sem::SemIdT<T>> in) {
-        sem::SemId tmp = in.get();
-        proto_serde<Proto, sem::SemId>::read(
-            context, out, proto_write_accessor<sem::SemId>::for_ref(tmp));
-        in.get() = tmp.as<T>();
+        Proto const&                        out,
+        proto_write_accessor<sem::SemId<T>> in) {
+        sem::SemId<sem::Org> tmp = in.get().asOrg();
+        proto_serde<Proto, sem::SemId<sem::Org>>::read(
+            out, proto_write_accessor<sem::SemId<sem::Org>>::for_ref(tmp));
+        in.get() = tmp.template as<T>();
         CHECK(!in.get().isNil());
     }
 
     static void read(
-        sem::ContextStore*                   context,
-        orgproto::AnyNode const&             out,
-        proto_write_accessor<sem::SemIdT<T>> in) {
+        orgproto::AnyNode const&            out,
+        proto_write_accessor<sem::SemId<T>> in) {
         sem::SemId tmp = in.get();
-        proto_serde<orgproto::AnyNode, sem::SemId>::read(
-            context, out, proto_write_accessor<sem::SemId>::for_ref(tmp));
-        in.get() = tmp.as<T>();
+        proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+            out, proto_write_accessor<sem::SemId<sem::Org>>::for_ref(tmp));
+        in.get() = tmp.template as<T>();
         CHECK(!in.get().isNil());
     }
 };
@@ -433,23 +394,17 @@ struct proto_serde<Proto, sem::SemIdT<T>> {
 template <typename Proto>
 struct proto_serde<Proto, sem::Org> {
     static void write(Proto* out, sem::Org const& in) {
-        proto_serde<orgproto::AnyNode, sem::SemId>::write(
+        proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
             out->mutable_subnodes(), in.subnodes);
         out->set_statickind(
             static_cast<orgproto::OrgSemKind>(in.getKind()));
     }
 
-    static void read(
-        sem::ContextStore*             context,
-        Proto const&                   out,
-        proto_write_accessor<sem::Org> in) {
+    static void read(Proto const& out, proto_write_accessor<sem::Org> in) {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
-            Vec<sem::SemId>>::
-            read(
-                context,
-                out.subnodes(),
-                in.for_field(&sem::Org::subnodes));
+            Vec<sem::SemId<sem::Org>>>::
+            read(out.subnodes(), in.for_field(&sem::Org::subnodes));
     }
 };
 
@@ -458,20 +413,17 @@ struct proto_serde<Proto, sem::Stmt> {
     static void write(Proto* out, sem::Stmt const& in) {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
-            Vec<sem::SemId>>::write(out->mutable_attached(), in.attached);
+            Vec<sem::SemId<sem::Org>>>::
+            write(out->mutable_attached(), in.attached);
     }
 
     static void read(
-        sem::ContextStore*              context,
         Proto const&                    out,
         proto_write_accessor<sem::Stmt> in) {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
-            Vec<sem::SemId>>::
-            read(
-                context,
-                out.attached(),
-                in.for_field(&sem::Stmt::attached));
+            Vec<sem::SemId<sem::Org>>>::
+            read(out.attached(), in.for_field(&sem::Stmt::attached));
     }
 };
 
@@ -482,7 +434,6 @@ struct proto_serde<Proto, sem::Leaf> {
         out->set_text(in.text);
     }
     static void read(
-        sem::ContextStore*              context,
         Proto const&                    out,
         proto_write_accessor<sem::Leaf> in) {
         in.get().text = out.text();
@@ -497,7 +448,6 @@ struct proto_serde<orgproto::LineCol, LineCol> {
         out->set_pos(in.pos);
     }
     static void read(
-        sem::ContextStore*            context,
         orgproto::LineCol const&      out,
         proto_write_accessor<LineCol> in) {
         in.get().pos    = out.pos();
@@ -510,7 +460,6 @@ template <>
 struct proto_serde<std::string, Str> {
     static void write(std::string* out, Str const& in) { *out = in; }
     static void read(
-        sem::ContextStore*        context,
         std::string const&        out,
         proto_write_accessor<Str> in) {
         in.get() = out;
@@ -520,7 +469,6 @@ struct proto_serde<std::string, Str> {
 template <>
 struct proto_serde<std::string, std::string> {
     static void read(
-        sem::ContextStore*                context,
         std::string const&                out,
         proto_write_accessor<std::string> in) {
         in.get() = out;
@@ -530,10 +478,7 @@ struct proto_serde<std::string, std::string> {
 
 template <>
 struct proto_serde<int, int> {
-    static void read(
-        sem::ContextStore*        context,
-        int const&                out,
-        proto_write_accessor<int> in) {
+    static void read(int const& out, proto_write_accessor<int> in) {
         in.get() = out;
     }
 };
@@ -544,7 +489,6 @@ struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
         Proto*                               out,
         sem::SubtreeLog::DescribedLog const& in) {}
     static void read(
-        sem::ContextStore*                                  context,
         Proto const&                                        out,
         proto_write_accessor<sem::SubtreeLog::DescribedLog> in) {}
 };
@@ -558,7 +502,6 @@ struct proto_serde<orgproto::UserTime, UserTime> {
         out->set_align(static_cast<orgproto::Alignment>(in.align));
     }
     static void read(
-        sem::ContextStore*             context,
         orgproto::UserTime const&      out,
         proto_write_accessor<UserTime> in) {
         in.get().time = absl::FromUnixSeconds(out.time());

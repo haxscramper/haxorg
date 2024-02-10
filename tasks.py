@@ -529,10 +529,14 @@ def update_py_haxorg_reflection(ctx: Context):
                     ],
                 )
             except ProcessExecutionError as e:
-                log.error("Reflection tool failed: %s", e)
+                log("tasks").error("Reflection tool failed: %s", e)
                 raise
 
-    log("tasks").info("Updated reflection")
+            log("tasks").info("Updated reflection")
+
+        else:
+            log("tasks").info("Python reflection run not needed " + op.explain("py haxorg reflection"))
+
 
 
 LD_PRELOAD_ASAN = {

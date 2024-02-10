@@ -427,7 +427,7 @@ void exporterVisit(
        << fmt1(ev.kind);
 
     if (ev.visitedNode) {
-        os << " node:" << fmt1(ev.visitedNode->getKind());
+        os << " node:" << fmt1((*ev.visitedNode)->getKind());
     }
 
     if (0 < ev.field.length()) { os << " field:" << ev.field; }
@@ -444,7 +444,7 @@ void exporterVisit(
 
 CorpusRunner::ExportResult CorpusRunner::runExporter(
     ParseSpec const&                 spec,
-    sem::SemId                       top,
+    sem::SemId<sem::Org>             top,
     const ParseSpec::ExporterExpect& exp) {
     using ER = ExportResult;
 
@@ -454,8 +454,8 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
     };
 
     auto withTreeExporter =
-        [this,
-         &strForStore](sem::SemId top, layout::BlockStore& b, auto& run) {
+        [this, &strForStore](
+            sem::SemId<sem::Org> top, layout::BlockStore& b, auto& run) {
             auto block = run.evalTop(top);
             return ER(ER::Text{
                 .textLyt = toTextLyt(b, block, strForStore(run.store))});
@@ -668,9 +668,9 @@ void filterFields(
 }
 
 CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
-    CR<ParseSpec> spec,
-    sem::SemId    node,
-    json          expected) {
+    CR<ParseSpec>        spec,
+    sem::SemId<sem::Org> node,
+    json                 expected) {
 
     ExporterJson     exporter;
     OperationsTracer trace{spec.debugFile("sem_export_trace.txt")};
@@ -985,8 +985,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     { // Sem conversion
         if (spec.debug.doSem) {
             __perf_trace("sem convert");
-            sem::ContextStore context;
-            sem::OrgConverter converter(&context);
+            sem::OrgConverter converter{};
 
             converter.TraceState = spec.debug.traceAll
                                 || spec.debug.traceSem;

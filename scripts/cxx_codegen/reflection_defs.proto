@@ -186,6 +186,7 @@ message Record {
     /// optional types (not important, I know), so I need to hack it around as a boolean
     /// field here. 
     bool HasName = 13;
+    bool IsAbstract = 14;
 }
 
 message TU {

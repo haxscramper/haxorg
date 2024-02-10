@@ -2,11 +2,11 @@
 
 using namespace sem;
 
-auto Formatter::toString(SemId id) -> Res {
+auto Formatter::toString(SemId<Org> id) -> Res {
     if (id.isNil()) {
         return str("");
     } else {
-        switch (id.getKind()) {
+        switch (id->getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: return toString(id.as<__Kind>());
             EACH_SEM_ORG_KIND(_case)
@@ -16,13 +16,13 @@ auto Formatter::toString(SemId id) -> Res {
 }
 
 
-void Formatter::add_subnodes(Res result, SemId id) {
+void Formatter::add_subnodes(Res result, SemId<Org> id) {
     for (auto const& it : id->subnodes) { b.add_at(result, toString(it)); }
 }
 
-auto Formatter::toString(SemIdT<Word> id) -> Res { return str(id->text); }
+auto Formatter::toString(SemId<Word> id) -> Res { return str(id->text); }
 
-auto Formatter::toString(SemIdT<Macro> id) -> Res {
+auto Formatter::toString(SemId<Macro> id) -> Res {
     if (id->arguments.empty()) {
         return str(Str("{{{") + id->name + Str("}}}"));
     } else {
@@ -35,7 +35,7 @@ auto Formatter::toString(SemIdT<Macro> id) -> Res {
     }
 }
 
-auto Formatter::toString(SemIdT<Document> id) -> Res {
+auto Formatter::toString(SemId<Document> id) -> Res {
     Res result = b.stack();
 
     if (id->title) {
@@ -54,11 +54,11 @@ auto Formatter::toString(SemIdT<Document> id) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemIdT<RawText> id) -> Res {
+auto Formatter::toString(SemId<RawText> id) -> Res {
     return str(id->text);
 }
 
-auto Formatter::toString(SemIdT<Footnote> id) -> Res {
+auto Formatter::toString(SemId<Footnote> id) -> Res {
     if (id->definition) {
         return b.line({
             str("[fn::"),
@@ -70,39 +70,39 @@ auto Formatter::toString(SemIdT<Footnote> id) -> Res {
     }
 }
 
-auto Formatter::toString(SemIdT<CmdArgument> id) -> Res {
+auto Formatter::toString(SemId<CmdArgument> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Code> id) -> Res {
+auto Formatter::toString(SemId<Code> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Tblfm> id) -> Res {
+auto Formatter::toString(SemId<Tblfm> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<List> id) -> Res {
+auto Formatter::toString(SemId<List> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<SubtreeLog> id) -> Res {
+auto Formatter::toString(SemId<SubtreeLog> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Empty> id) -> Res { return str(""); }
+auto Formatter::toString(SemId<Empty> id) -> Res { return str(""); }
 
-auto Formatter::toString(SemIdT<Newline> id) -> Res { return str("\n"); }
+auto Formatter::toString(SemId<Newline> id) -> Res { return str("\n"); }
 
-auto Formatter::toString(SemIdT<Monospace> id) -> Res {
+auto Formatter::toString(SemId<Monospace> id) -> Res {
     return b.line(Vec<Res>::Splice(str("~"), toSubnodes(id), str("~")));
 }
 
-auto Formatter::toString(SemIdT<Link> id) -> Res {
+auto Formatter::toString(SemId<Link> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Symbol> id) -> Res {
+auto Formatter::toString(SemId<Symbol> id) -> Res {
     Res result = b.line({str("\\" + id->name)});
     for (auto const& [key, value] : id->parameters) {
         if (key) {
@@ -127,42 +127,42 @@ auto Formatter::toString(SemIdT<Symbol> id) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemIdT<Caption> id) -> Res {
+auto Formatter::toString(SemId<Caption> id) -> Res {
     return b.line({str("#+caption: "), toString(id->text)});
 }
 
-auto Formatter::toString(SemIdT<DocumentGroup> id) -> Res {
+auto Formatter::toString(SemId<DocumentGroup> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<CommandGroup> id) -> Res {
+auto Formatter::toString(SemId<CommandGroup> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Escaped> id) -> Res {
+auto Formatter::toString(SemId<Escaped> id) -> Res {
     return str("\\" + id->text);
 }
 
-auto Formatter::toString(SemIdT<Par> id) -> Res {
+auto Formatter::toString(SemId<Par> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Placeholder> id) -> Res {
+auto Formatter::toString(SemId<Placeholder> id) -> Res {
     return b.line(Vec<Res>::Splice(str("<"), toSubnodes(id), str(">")));
 }
 
-auto Formatter::toString(SemIdT<BigIdent> id) -> Res {
+auto Formatter::toString(SemId<BigIdent> id) -> Res {
     return str(id->text);
 }
 
-auto Formatter::toString(SemIdT<HashTag> id) -> Res {
-    std::function<std::string(sem::HashTag const& hash)> aux;
-    aux = [&aux](sem::HashTag const& hash) -> std::string {
-        if (hash.subtags.empty()) {
-            return hash.head;
+auto Formatter::toString(SemId<HashTag> id) -> Res {
+    std::function<std::string(sem::SemId<sem::HashTag> const& hash)> aux;
+    aux = [&aux](sem::SemId<sem::HashTag> const& hash) -> std::string {
+        if (hash->subtags.empty()) {
+            return hash->head;
         } else {
-            return hash.head + "##["
-                 + (hash.subtags            //
+            return hash->head + "##["
+                 + (hash->subtags           //
                     | rv::transform(aux)    //
                     | rv::intersperse(",")  //
                     | rv::join              //
@@ -172,19 +172,19 @@ auto Formatter::toString(SemIdT<HashTag> id) -> Res {
         }
     };
 
-    return str(aux(*id.get()));
+    return str(aux(id));
 }
 
-auto Formatter::toString(SemIdT<MarkQuote> id) -> Res {
+auto Formatter::toString(SemId<MarkQuote> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<TextSeparator> id) -> Res {
+auto Formatter::toString(SemId<TextSeparator> id) -> Res {
 
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Time> id) -> Res {
+auto Formatter::toString(SemId<Time> id) -> Res {
     Res result = b.line();
 
     b.add_at(result, str(id->isActive ? "<" : "["));
@@ -199,66 +199,66 @@ auto Formatter::toString(SemIdT<Time> id) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemIdT<StmtList> id) -> Res {
+auto Formatter::toString(SemId<StmtList> id) -> Res {
     return b.line(toSubnodes(id));
 }
 
-auto Formatter::toString(SemIdT<TimeRange> id) -> Res {
+auto Formatter::toString(SemId<TimeRange> id) -> Res {
     return b.line({toString(id->from), str("--"), toString(id->to)});
 }
 
-auto Formatter::toString(SemIdT<Row> id) -> Res {
+auto Formatter::toString(SemId<Row> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Completion> id) -> Res {
+auto Formatter::toString(SemId<Completion> id) -> Res {
     return str(fmt("[{}/{}]", id->done, id->full));
 }
 
-auto Formatter::toString(SemIdT<Center> id) -> Res {
+auto Formatter::toString(SemId<Center> id) -> Res {
     return b.stack(Vec<Res>::Splice(
         str("#+begin_center"), toSubnodes(id), str("#+end_center")));
 }
 
-auto Formatter::toString(SemIdT<Bold> id) -> Res {
+auto Formatter::toString(SemId<Bold> id) -> Res {
     return b.line(Vec<Res>::Splice(str("*"), toSubnodes(id), str("*")));
 }
 
-auto Formatter::toString(SemIdT<Space> id) -> Res { return str(id->text); }
+auto Formatter::toString(SemId<Space> id) -> Res { return str(id->text); }
 
-auto Formatter::toString(SemIdT<ListItem> id) -> Res {
+auto Formatter::toString(SemId<ListItem> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<AtMention> id) -> Res {
+auto Formatter::toString(SemId<AtMention> id) -> Res {
     return str("@" + id->text);
 }
 
-auto Formatter::toString(SemIdT<Italic> id) -> Res {
+auto Formatter::toString(SemId<Italic> id) -> Res {
     return b.line(Vec<Res>::Splice(str("/"), toSubnodes(id), str("/")));
 }
 
-auto Formatter::toString(SemIdT<Table> id) -> Res {
+auto Formatter::toString(SemId<Table> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<AdmonitionBlock> id) -> Res {
+auto Formatter::toString(SemId<AdmonitionBlock> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Strike> id) -> Res {
+auto Formatter::toString(SemId<Strike> id) -> Res {
     return b.line(Vec<Res>::Splice(str("+"), toSubnodes(id), str("+")));
 }
 
-auto Formatter::toString(SemIdT<CmdArguments> id) -> Res {
+auto Formatter::toString(SemId<CmdArguments> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<InlineMath> id) -> Res {
+auto Formatter::toString(SemId<InlineMath> id) -> Res {
     return b.line({str("\\("), toString(id->at(0)), str("\\)")});
 }
 
-auto Formatter::toString(SemIdT<Subtree> id) -> Res {
+auto Formatter::toString(SemId<Subtree> id) -> Res {
     Res result = b.stack();
 
     Res head = b.line({
@@ -268,57 +268,57 @@ auto Formatter::toString(SemIdT<Subtree> id) -> Res {
         toString(id->title),
     });
 
-    add_subnodes(result, id.toId());
+    add_subnodes(result, id.asOrg());
 
     return result;
 }
 
-auto Formatter::toString(SemIdT<DocumentOptions> id) -> Res {
+auto Formatter::toString(SemId<DocumentOptions> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Verbatim> id) -> Res {
+auto Formatter::toString(SemId<Verbatim> id) -> Res {
     return b.line(Vec<Res>::Splice(str("="), toSubnodes(id), str("=")));
 }
 
-auto Formatter::toString(SemIdT<Quote> id) -> Res {
+auto Formatter::toString(SemId<Quote> id) -> Res {
     return b.stack(Vec<Res>::Splice(
         str("#+begin_quote"), toSubnodes(id), str("#+end_quote")));
 }
 
-auto Formatter::toString(SemIdT<Verse> id) -> Res {
+auto Formatter::toString(SemId<Verse> id) -> Res {
     return b.stack(Vec<Res>::Splice(
         str("#+begin_verse"), toSubnodes(id), str("#+end_verse")));
 }
 
 
-auto Formatter::toString(SemIdT<Include> id) -> Res {
+auto Formatter::toString(SemId<Include> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Punctuation> id) -> Res {
+auto Formatter::toString(SemId<Punctuation> id) -> Res {
     return str(id->text);
 }
 
-auto Formatter::toString(SemIdT<FileTarget> id) -> Res {
+auto Formatter::toString(SemId<FileTarget> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemIdT<Export> id) -> Res {
+auto Formatter::toString(SemId<Export> id) -> Res {
     return b.stack(Vec<Res>::Splice(
         str("#+begin_export"), toSubnodes(id), str("#+end_export")));
 }
 
-auto Formatter::toString(SemIdT<Example> id) -> Res {
+auto Formatter::toString(SemId<Example> id) -> Res {
     return b.stack(Vec<Res>::Splice(
         str("#+begin_example"), toSubnodes(id), str("#+end_example")));
 }
 
-auto Formatter::toString(SemIdT<Paragraph> id) -> Res {
+auto Formatter::toString(SemId<Paragraph> id) -> Res {
     Res result = b.stack();
     for (auto const& line :
-         id->subnodes | rv::split_when([](sem::SemId id) {
-             return id.getKind() == OrgSemKind::Newline;
+         id->subnodes | rv::split_when([](sem::SemId<sem::Org> id) {
+             return id->getKind() == OrgSemKind::Newline;
          })) {
         Res line_out = b.line();
         for (auto const& item : line) {
@@ -329,10 +329,10 @@ auto Formatter::toString(SemIdT<Paragraph> id) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemIdT<Underline> id) -> Res {
+auto Formatter::toString(SemId<Underline> id) -> Res {
     return b.line(Vec<Res>::Splice(str("_"), toSubnodes(id), str("_")));
 }
 
-auto Formatter::toString(SemIdT<ParseError> id) -> Res {
+auto Formatter::toString(SemId<ParseError> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }

@@ -11,7 +11,7 @@ class ExporterUltraplain(ExporterBase):
     def __init__(self):
         super().__init__(self)
 
-    def newOrg(self, node: org.SemId):
+    def newOrg(self, node: org.Org):
         return ""
 
     def visitWord(self, res: str, node: org.SemWord):
@@ -21,6 +21,6 @@ class ExporterUltraplain(ExporterBase):
         res += node.text
 
     @staticmethod
-    def getStr(node: org.SemId) -> str:
+    def getStr(node: org.Org) -> str:
         exp = ExporterUltraplain()
         return exp.exp.evalTop(node)

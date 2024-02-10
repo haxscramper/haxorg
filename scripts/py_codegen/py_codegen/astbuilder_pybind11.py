@@ -59,7 +59,7 @@ def py_type(Typ: QualType) -> pya.PyType:
                                                         ] | ["std", "basic_string"]:
             name = "str"
 
-        case ["SemIdT"]:
+        case ["SemId"]:
             name = "Sem" + Typ.Parameters[0].name
 
         case "Bool":
@@ -81,9 +81,8 @@ def py_type(Typ: QualType) -> pya.PyType:
             name = "".join(flat)
 
     res = pya.PyType(name)
-    if Typ.name not in ["SemIdT"]:
-        for param in Typ.Parameters:
-            res.Params.append(py_type(param))
+    for param in Typ.Parameters:
+        res.Params.append(py_type(param))
 
     return res
 
@@ -144,7 +143,8 @@ class Py11Method:
             Name=self.PyName,
             ResultTy=py_type(self.ResultTy),
             Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
-            IsStub=True))
+            IsStub=True,
+        ))
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         if self.CxxName == "enableFileTrace":
@@ -460,24 +460,6 @@ class Py11Module:
 
         for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
             passes.append(ast.string(f"{_class.PyName}: Type"))
-
-        passes.append(
-            ast.string("""
-class SemId:
-    def getKind(self) -> OrgSemKind: ...
-    def __iter__(self) -> Iterator[SemId]: ...
-    def __len__(self) -> int: ...
-    def getDocument(self) -> Optional[SemId]
-
-    @overload
-    def __getitem__(self, idx: int) -> SemId: ...
-
-    @overload
-    def __getitem__(self, slice) -> List[SemId]: ...
-
-    def eachSubnodeRec(self, cb) -> None: ...
-    def _is(self, kind: OrgSemKind) -> bool: ...
-"""))
 
         for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
             passes.append(ast.Class(_class.build_typedef(ast)))

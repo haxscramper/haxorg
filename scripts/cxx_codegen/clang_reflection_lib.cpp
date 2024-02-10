@@ -268,12 +268,19 @@ void ReflASTVisitor::log_visit(
     int                line,
     char const*        function) {
     if (verbose) {
-        std::cout << std::format(
-            "\n--------------------------------------------------\n{}\n---"
-            "\n{}\n"
-            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
-            std::format("line:{} function:{} msg:{}", line, function, msg),
-            (Decl ? "\n" + dump(Decl) : ""));
+        if (Decl) {
+            std::cout << std::format(
+                "\n--------------------------------------------------\n{}"
+                "\n---"
+                "\n{}\n"
+                "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+                std::format(
+                    "line:{} function:{} msg:{}", line, function, msg),
+                (Decl ? "\n" + dump(Decl) : ""));
+        } else {
+            std::cout << std::format(
+                "line:{} function:{} msg:{}\n", line, function, msg);
+        }
     }
 }
 
@@ -472,6 +479,8 @@ void ReflASTVisitor::fillType(
                 add_debug(param, "Type parameter");
                 fillType(param, Arg, Loc);
             }
+        } else {
+            add_debug(Out, "not tst");
         }
     }
 }
@@ -828,7 +837,12 @@ void ReflASTVisitor::fillCxxRecordDecl(
 }
 
 bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
-    if (shouldVisit(Decl) && Decl->getDeclContext()->isTranslationUnit()) {
+    if ((visitMode == VisitMode::AllAnnotated //
+         && isRefl(Decl))                     //
+        ||                                    //
+        (visitMode == VisitMode::AllTargeted  //
+         && shouldVisit(Decl)                 //
+         && Decl->getDeclContext()->isTranslationUnit())) {
         log_visit(Decl);
 
         llvm::TimeTraceScope timeScope{
@@ -836,6 +850,14 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
 
         Record* rec = out->add_records();
         fillCxxRecordDecl(rec, Decl);
+        if (Decl->hasDefinition()) {
+            rec->set_isabstract(Decl->isAbstract());
+        }
+    } else {
+        log_visit(
+            nullptr,
+            "declaration context is not translation unit "
+                + Decl->getNameAsString());
     }
 
     return true;
@@ -946,8 +968,14 @@ bool ReflASTVisitor::VisitRecordDecl(c::RecordDecl* Decl) {
     c::TypedefDecl* Typedef   = findTypedefForDecl(Decl, Ctx);
     c::FieldDecl*   FieldDecl = findFieldForDecl(Decl, Ctx);
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
+        log_visit(
+            nullptr,
+            "empty name and no typedef " + Decl->getNameAsString());
         return true;
     } else if (Decl->getNameAsString().empty() && FieldDecl != nullptr) {
+        log_visit(
+            nullptr,
+            "empty name and has field " + Decl->getNameAsString());
         return true;
     } else if (shouldVisit(Decl)) {
         if (!llvm::isa<c::CXXRecordDecl>(Decl)) {
@@ -957,7 +985,13 @@ bool ReflASTVisitor::VisitRecordDecl(c::RecordDecl* Decl) {
 
             Record* rec = out->add_records();
             fillRecordDecl(rec, Decl);
+        } else {
+            log_visit(
+                nullptr,
+                "not a cxx record decl " + Decl->getNameAsString());
         }
+    } else {
+        log_visit(Decl, "not visiting record");
     }
 
     return true;

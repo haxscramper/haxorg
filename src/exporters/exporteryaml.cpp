@@ -7,7 +7,7 @@ template class Exporter<ExporterYaml, yaml>;
 
 using osm = OrgSemKind;
 
-yaml ExporterYaml::newRes(sem::SemId org) {
+yaml ExporterYaml::newRes(sem::SemId<sem::Org> org) {
     yaml res;
     res["kind"] = std::format("{}", org->getKind());
 
@@ -25,18 +25,14 @@ yaml ExporterYaml::newRes(sem::SemId org) {
     if (!skipLocation) {
         yaml loc;
         loc.SetStyle(YAML::EmitterStyle::Flow);
-        loc["parent"] = org->parent.id;
-        loc["line"]   = org->loc ? yaml(org->loc->line) : yaml();
-        loc["col"]    = org->loc ? yaml(org->loc->column) : yaml();
-        loc["id"]     = org->original.id.isNil()
-                          ? yaml()
-                          : yaml(org->original.id.getValue());
-        res["loc"]    = loc;
+        loc["line"] = org->loc ? yaml(org->loc->line) : yaml();
+        loc["col"]  = org->loc ? yaml(org->loc->column) : yaml();
+        loc["id"]   = org->original.id.isNil()
+                        ? yaml()
+                        : yaml(org->original.id.getValue());
+        res["loc"]  = loc;
     }
 
-    if (!skipId) {
-        res["id"] = org.getReadableId();
-    }
 
     return res;
 }

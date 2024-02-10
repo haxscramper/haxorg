@@ -12,11 +12,11 @@ struct Formatter {
     layout::SimpleStringStore store;
 
     Formatter() : store{&b} {}
-    Res toString(SemId id);
-    Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
+    Res toString(SemId<Org> id);
+    Res newRes(CR<sem::SemId<Org>> id) { return Res::Nil(); }
     Res str(std::string const& str) { return b.text(store.str(str)); }
 
-    Vec<Res> toSubnodes(sem::SemId id) {
+    Vec<Res> toSubnodes(sem::SemId<Org> id) {
         Vec<Res> result;
         for (auto const& it : id->subnodes) {
             result.push_back(toString(it));
@@ -25,9 +25,9 @@ struct Formatter {
         return result;
     }
 
-    void add_subnodes(Res result, SemId id);
+    void add_subnodes(Res result, SemId<Org> id);
 
-#define _case(__Kind) Res toString(sem::SemIdT<__Kind> id);
+#define _case(__Kind) Res toString(sem::SemId<__Kind> id);
     EACH_SEM_ORG_KIND(_case)
 #undef _case
 };

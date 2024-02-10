@@ -245,7 +245,8 @@ int main(int argc, const char** argv) {
     if (!JSONDB) {
         LOG_CERR() << "Failed to process provided JSON DB, failure was:"
                    << std::endl;
-        LOG_CERR() << ErrorMessage;
+        LOG_CERR() << ErrorMessage << std::endl;
+        LOG_CERR() << "CompilationDB = " << CompilationDB << std::endl;
         return 1;
     } else {
         LOG_CERR() << "Using compilation database " << CompilationDB
