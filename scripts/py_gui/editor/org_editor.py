@@ -18,7 +18,16 @@ exp = org.OrgExporterTree()
 opts = org.ExporterTreeOpts()
 opts.withColor = False
 text = exp.toString(node, opts)
-engine.rootContext().setContextProperty("initialText", text.replace("\n", "<br/>"))
+print(node[0].getKind())
+engine.rootContext().setContextProperty("initialText", text)
+
+for sub in node:
+    match sub:
+        case org.SemSubtree(level=level):
+            print("Is subtree", level)
+
+        case _:
+            print(sub.getKind())
 
 
 qml_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'org_editor.qml')
@@ -28,4 +37,6 @@ if not engine.rootObjects():
     sys.exit(-1)
 
 
-sys.exit(app.exec())
+# sys.exit(app.exec())
+
+print("all ok")

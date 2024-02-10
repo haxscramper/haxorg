@@ -121,22 +121,28 @@ class Py11Method:
     Body: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     IsConst: bool = False
+    DefParams: Optional[List[BlockId]] = None
+    ExplicitClassParam: bool = False
 
     @staticmethod
-    def FromGenTu(meth: GenTuFunction,
-                  Body: Optional[List[BlockId]] = None,
-                  pySideOverride: Optional[str] = None) -> 'Py11Method':
+    def FromGenTu(
+        meth: GenTuFunction,
+        Body: Optional[List[BlockId]] = None,
+        pySideOverride: Optional[str] = None,
+    ) -> 'Py11Method':
 
         if meth.name == "enableFileTrace":
             pprint_to_file(meth, "/tmp/enableFileTrace_FromGenTu.py")
 
-        return Py11Method(PyName=meth.name if pySideOverride is None else pySideOverride,
-                          Body=Body,
-                          ResultTy=meth.result,
-                          CxxName=meth.name,
-                          Doc=meth.doc,
-                          IsConst=meth.isConst,
-                          Args=meth.arguments)
+        return Py11Method(
+            PyName=meth.name if pySideOverride is None else pySideOverride,
+            Body=Body,
+            ResultTy=meth.result,
+            CxxName=meth.name,
+            Doc=meth.doc,
+            IsConst=meth.isConst,
+            Args=meth.arguments,
+        )
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
@@ -147,18 +153,17 @@ class Py11Method:
         ))
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
-        if self.CxxName == "enableFileTrace":
-            pprint_to_file(self, "/tmp/enableFileTrace_build_bind.py")
-
         b = ast.b
         if self.Body is None:
-            function_type = QualType(func=QualType.Function(
-                ReturnTy=self.ResultTy,
-                Args=[A.type for A in self.Args],
-                Class=Class,
-                IsConst=self.IsConst,
-            ),
-                                     Kind=QualTypeKind.FunctionPtr)
+            function_type = QualType(
+                func=QualType.Function(
+                    ReturnTy=self.ResultTy,
+                    Args=[A.type for A in self.Args],
+                    Class=Class,
+                    IsConst=self.IsConst,
+                ),
+                Kind=QualTypeKind.FunctionPtr,
+            )
             call_pass = ast.XCall(
                 "static_cast",
                 args=[ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))],
@@ -169,19 +174,22 @@ class Py11Method:
             call_pass = ast.Lambda(
                 LambdaParams(
                     ResultTy=self.ResultTy,
-                    Args=[ParmVarParams(Class, "_self")] +
-                    [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
+                    Args=([] if self.ExplicitClassParam else [ParmVarParams(Class, "_self")])
+                    + [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
                     Body=self.Body,
                 ))
 
         argument_binder = [
             ast.XCall("pybind11::arg", [ast.Literal(Arg.name)]) if Arg.value is None else
             ast.XCall("pybind11::arg_v",
-                      [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in self.Args
+                      [ast.Literal(Arg.name), b.text(Arg.value)])
+            for Arg in (self.Args[1:] if self.ExplicitClassParam else self.Args)
         ]
 
         doc_comment = [ast.StringLiteral(self.Doc.brief, forceRawStr=True)
                       ] if self.Doc.brief else []
+
+        def_params = self.DefParams if self.DefParams else []
 
         return ast.XCall(
             ".def",
@@ -190,6 +198,7 @@ class Py11Method:
                 call_pass,
                 *argument_binder,
                 *doc_comment,
+                *def_params,
             ],
             Line=len(self.Args) == 0,
         )

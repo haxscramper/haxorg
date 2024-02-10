@@ -49,6 +49,7 @@ Some of the derived nodes don't make the use of subnode list
 (word, punctuation etc), but it was left on the top level of the
 hierarchy for conveinience purposes. It is not expected that 'any'
 node can have subnodes.)RAW")
+    .def("getKind", static_cast<OrgSemKind(sem::Org::*)() const>(&sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
     .def("isGenerated", static_cast<bool(sem::Org::*)() const>(&sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
     .def("push_back",
          static_cast<void(sem::Org::*)(sem::SemId<sem::Org>)>(&sem::Org::push_back),
@@ -60,6 +61,12 @@ node can have subnodes.)RAW")
     .def("is",
          static_cast<bool(sem::Org::*)(OrgSemKind) const>(&sem::Org::is),
          pybind11::arg("kind"))
+    .def("__getitem__",
+         static_cast<sem::SemId<sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
+         pybind11::arg("idx"))
+    .def("__iter__",
+         [](sem::Org const& node) -> auto { return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end()); },
+         pybind11::keep_alive<0, 1>())
     ;
   #ifndef IN_CLANGD_PROCESSING
     #define PY_HAXORG_COMPILING

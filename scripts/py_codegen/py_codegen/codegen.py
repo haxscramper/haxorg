@@ -156,7 +156,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                     Class=base_type,
                     Bases=[id_type],
                     PyBases=typ.bases)
-    
+
     for base in typ.bases:
         res.Bases.append(base)
 
@@ -171,7 +171,8 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
     def map_obj_methods(Record: GenTuStruct):
         for meth in Record.methods:
-            if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
+            if meth.isStatic or meth.isPureVirtual or (meth.name == "getKind" and
+                                                       Record.name.name != "Org"):
                 continue
 
             res.Methods.append(Py11Method.FromGenTu(meth))
@@ -506,7 +507,30 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
 
     for _struct in tu.structs:
         if _struct.name.name == "Org":
-            autogen_structs.Decls.insert(0, pybind_org_id(ast, ast.b, _struct, {}))
+            from py_scriptutils.script_logging import pprint_to_file
+            pprint_to_file(_struct, "/tmp/sem_org_struct.py")
+            org_decl = pybind_org_id(ast, ast.b, _struct, {})
+            org_decl.Methods.append(
+                Py11Method(
+                    "__getitem__",
+                    "at",
+                    t_id(),
+                    [GenTuIdent(QualType.ForName("int"), "idx")],
+                    IsConst=True,
+                ))
+            
+            org_decl.Methods.append(
+                Py11Method(
+                    PyName="__iter__",
+                    CxxName="at",
+                    ResultTy=QualType.ForName("auto"),
+                    Args=[GenTuIdent(t_id().par0().asConstRef(), "node")],
+                    Body=[ast.b.text("return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());")],
+                    DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
+                    ExplicitClassParam=True,
+                ))
+
+            autogen_structs.Decls.insert(0, org_decl)
 
         else:
             autogen_structs.Decls.append(pybind_nested_type(_struct))
