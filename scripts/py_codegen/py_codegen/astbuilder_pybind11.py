@@ -79,7 +79,6 @@ def py_type(Typ: QualType) -> pya.PyType:
 
         case ["UnorderedMap"]:
             name = "Dict"
-            
 
         case _:
             name = "".join(flat)
@@ -105,8 +104,9 @@ def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
 @beartype
 def py_ident(name: str) -> str:
     match name:
-        case "from":
-            return "from_"
+        case "from" | "is":
+            return name + "_"
+
         case _:
             return name
 
@@ -140,7 +140,7 @@ class Py11Method:
             pprint_to_file(meth, "/tmp/enableFileTrace_FromGenTu.py")
 
         return Py11Method(
-            PyName=meth.name if pySideOverride is None else pySideOverride,
+            PyName=py_ident(meth.name) if pySideOverride is None else pySideOverride,
             Body=Body,
             ResultTy=meth.result,
             CxxName=meth.name,
@@ -151,7 +151,7 @@ class Py11Method:
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
-            Name=self.PyName,
+            Name=py_ident(self.PyName),
             ResultTy=py_type(self.ResultTy),
             Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
             IsStub=True,
@@ -172,7 +172,8 @@ class Py11Method:
             call_pass = ast.XCall(
                 "static_cast",
                 args=[ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))],
-                Params=[function_type])
+                Params=[function_type],
+            )
 
         else:
             function_type = None

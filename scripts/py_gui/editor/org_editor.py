@@ -21,9 +21,11 @@ text = exp.toString(node, opts)
 print(node[0].getKind())
 engine.rootContext().setContextProperty("initialText", text)
 
+print(type(org.Subtree))
+
 for sub in node:
     match sub:
-        case org.SemSubtree(level=level):
+        case org.Subtree(level=level):
             print("Is subtree", level)
 
         case _:

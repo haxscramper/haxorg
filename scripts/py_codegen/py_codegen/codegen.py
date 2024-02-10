@@ -277,7 +277,11 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
     iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback, [])
 
     for item in get_enums() + [get_osk_enum(expanded)]:
-        res.Decls.append(Py11Enum.FromGenTu(item, py_type(item.name).Name))
+        wrap = Py11Enum.FromGenTu(item, py_type(item.name).Name)
+        for field in wrap.Fields:
+            field.PyName += "_"
+            
+        res.Decls.append(wrap)
 
     return res
 
@@ -542,7 +546,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             autogen_structs.Decls.insert(0, org_decl)
 
         elif _struct.name.name == "LineCol":
-            autogen_structs.Decls.insert(0, pybind_org_id(ast, ast.b, _struct, {}))
+            autogen_structs.Decls.insert(0, pybind_nested_type(_struct))
 
         else:
             autogen_structs.Decls.append(pybind_nested_type(_struct))
