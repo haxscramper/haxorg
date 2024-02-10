@@ -35,7 +35,7 @@ class ExporterLatex(ExporterBase):
         super().__init__(self)
         self.t = TextLayout()
 
-    def newOrg(self, node: org.SemId):
+    def newOrg(self, node: org.Org):
         return self.t.text("TODO" + str(node.getKind()))
 
     def string(self, node: str | BlockId) -> BlockId:
@@ -175,10 +175,10 @@ class ExporterLatex(ExporterBase):
     def evalItalic(self, node: org.SemItalic) -> BlockId:
         return self.command("textit", [self.evalLine(node)])
 
-    def evalLine(self, node: org.SemId) -> BlockId:
+    def evalLine(self, node: org.Org) -> BlockId:
         return self.t.line([self.exp.eval(it) for it in node])
 
-    def evalStack(self, node: org.SemId) -> BlockId:
+    def evalStack(self, node: org.Org) -> BlockId:
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.SemParagraph) -> BlockId:
@@ -224,7 +224,7 @@ class ExporterLatex(ExporterBase):
 
         headerExports: List[org.SemExport] = []
 
-        def visit(_id: org.SemId):
+        def visit(_id: org.Org):
             nonlocal headerExports
             if _id._is(osk.Export):
                 exp: org.SemExport = _id._as(osk.Export)
@@ -264,7 +264,7 @@ class ExporterLatex(ExporterBase):
         return TexCommand.part
         lclass = self.getLatexClass(node.getDocument())
 
-    def getRefKind(self, node: org.SemId) -> Optional[str]:
+    def getRefKind(self, node: org.Org) -> Optional[str]:
         match node.getKind():
             case osk.Subtree:
                 cmd = self.getSubtreeCommand(node._as(osk.Subtree))

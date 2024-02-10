@@ -212,8 +212,11 @@ class CollectorRunResult:
 
 
 @beartype
-def run_collector(conf: TuOptions, input: Path,
-                  output: Path) -> Optional[CollectorRunResult]:
+def run_collector(
+    conf: TuOptions,
+    input: Path,
+    output: Path,
+) -> Optional[CollectorRunResult]:
     # Execute reflection data collector binary, producing a new converted translation
     # unit or an empty result of conversion has failed.
     assert input.exists()

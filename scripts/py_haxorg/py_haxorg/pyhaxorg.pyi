@@ -93,6 +93,7 @@ class SubtreePropertyKind(Enum):
     Blocker = 12
     Unnumbered = 13
     Created = 14
+    Unknown = 15
 
 class ListItemCheckbox(Enum):
     _None = 1
@@ -112,6 +113,10 @@ class IncludeKind(Enum):
     Src = 3
     OrgDocument = 4
 
+class DocumentOptionsTocExportKind(Enum):
+    DoExport = 1
+    ExportFixed = 2
+
 class DocumentOptionsBrokenLinks(Enum):
     Raise = 1
     Ignore = 2
@@ -127,26 +132,6 @@ class DocumentOptionsVisibility(Enum):
     Show5Levels = 7
     ShowEverything = 8
 
-class OrgSemPlacement(Enum):
-    TreeTitle = 1
-    TreeBody = 2
-    LinkDescription = 3
-    ListItemBody = 4
-    ListItemDesc = 5
-    DocBody = 6
-
-class OrgHorizontalDirection(Enum):
-    ohdNone = 1
-    ohdLeft = 2
-    ohdRight = 3
-    ohdCenter = 4
-
-class OrgVerticalDirection(Enum):
-    ovdNone = 1
-    ovdTop = 2
-    ovdCenter = 3
-    ovdBottom = 4
-
 class OrgSpecName(Enum):
     Unnamed = 1
     Result = 2
@@ -154,60 +139,61 @@ class OrgSpecName(Enum):
     Day = 4
     Clock = 5
     Repeater = 6
-    Link = 7
-    Tags = 8
-    Tag = 9
-    State = 10
-    Protocol = 11
-    Desc = 12
-    Times = 13
-    Drawer = 14
-    Args = 15
-    Name = 16
-    Definition = 17
-    Body = 18
-    HeaderArgs = 19
-    File = 20
-    Kind = 21
-    Lang = 22
-    Prefix = 23
-    Text = 24
-    Todo = 25
-    Urgency = 26
-    Title = 27
-    Completion = 28
-    Head = 29
-    Subnodes = 30
-    Properties = 31
-    Logbook = 32
-    Description = 33
-    Logs = 34
-    Newstate = 35
-    Oldstate = 36
-    Time = 37
-    From = 38
-    EndArgs = 39
-    Flags = 40
-    Value = 41
-    Assoc = 42
-    Main = 43
-    Hash = 44
-    Bullet = 45
-    Counter = 46
-    Checkbox = 47
-    Header = 48
-    To = 49
-    Diff = 50
-    Property = 51
-    Subname = 52
-    Values = 53
-    Cells = 54
-    Rows = 55
-    Lines = 56
-    Chunks = 57
-    InheritanceMode = 58
-    MainSetRule = 59
-    SubSetRule = 60
+    Zone = 7
+    Link = 8
+    Tags = 9
+    Tag = 10
+    State = 11
+    Protocol = 12
+    Desc = 13
+    Times = 14
+    Drawer = 15
+    Args = 16
+    Name = 17
+    Definition = 18
+    Body = 19
+    HeaderArgs = 20
+    File = 21
+    Kind = 22
+    Lang = 23
+    Prefix = 24
+    Text = 25
+    Todo = 26
+    Urgency = 27
+    Title = 28
+    Completion = 29
+    Head = 30
+    Subnodes = 31
+    Properties = 32
+    Logbook = 33
+    Description = 34
+    Logs = 35
+    Newstate = 36
+    Oldstate = 37
+    Time = 38
+    From = 39
+    EndArgs = 40
+    Flags = 41
+    Value = 42
+    Assoc = 43
+    Main = 44
+    Hash = 45
+    Bullet = 46
+    Counter = 47
+    Checkbox = 48
+    Header = 49
+    To = 50
+    Diff = 51
+    Property = 52
+    Subname = 53
+    Values = 54
+    Cells = 55
+    Rows = 56
+    Lines = 57
+    Chunks = 58
+    InheritanceMode = 59
+    MainSetRule = 60
+    SubSetRule = 61
 
 class OrgNodeKind(Enum):
     _None = 1
@@ -265,115 +251,84 @@ class OrgNodeKind(Enum):
     QuoteBlock = 53
     AdmonitionBlock = 54
     CenterBlock = 55
-    Example = 56
-    SrcCode = 57
-    SrcInlineCode = 58
-    CallCode = 59
-    PassCode = 60
-    CmdArguments = 61
-    CmdFlag = 62
-    CmdKey = 63
-    CmdValue = 64
-    CmdNamedValue = 65
-    UrgencyStatus = 66
-    TextSeparator = 67
-    Paragraph = 68
-    AnnotatedParagraph = 69
-    Bold = 70
-    Italic = 71
-    Verbatim = 72
-    Backtick = 73
-    Underline = 74
-    Strike = 75
-    Quote = 76
-    Angle = 77
-    Monospace = 78
-    Par = 79
-    InlineMath = 80
-    DisplayMath = 81
-    Space = 82
-    Punctuation = 83
-    Colon = 84
-    Word = 85
-    Escaped = 86
-    Newline = 87
-    SkipNewline = 88
-    SkipSpace = 89
-    SkipAny = 90
-    RawLink = 91
-    Link = 92
-    Macro = 93
-    BackendRaw = 94
-    Symbol = 95
-    TimeAssoc = 96
-    StaticActiveTime = 97
-    StaticInactiveTime = 98
-    DynamicActiveTime = 99
-    DynamicInactiveTime = 100
-    TimeRange = 101
-    SimpleTime = 102
-    Details = 103
-    Summary = 104
-    Table = 105
-    TableRow = 106
-    TableCell = 107
-    InlineFootnote = 108
-    Footnote = 109
-    Horizontal = 110
-    Filetags = 111
-    OrgTag = 112
-    HashTag = 113
-    MetaSymbol = 114
-    AtMention = 115
-    BracTag = 116
-    Drawer = 117
-    LatexClass = 118
-    LatexHeader = 119
-    LatexCompiler = 120
-    LatexClassOptions = 121
-    HtmlHead = 122
-    Columns = 123
-    PropertyList = 124
-    Property = 125
-    Placeholder = 126
-    SubtreeDescription = 127
-    SubtreeUrgency = 128
-    Logbook = 129
-    LogbookEntry = 130
+    VerseBlock = 56
+    Example = 57
+    SrcCode = 58
+    SrcInlineCode = 59
+    CallCode = 60
+    PassCode = 61
+    CmdArguments = 62
+    CmdFlag = 63
+    CmdKey = 64
+    CmdValue = 65
+    CmdNamedValue = 66
+    UrgencyStatus = 67
+    TextSeparator = 68
+    Paragraph = 69
+    AnnotatedParagraph = 70
+    Bold = 71
+    Italic = 72
+    Verbatim = 73
+    Backtick = 74
+    Underline = 75
+    Strike = 76
+    Quote = 77
+    Angle = 78
+    Monospace = 79
+    Par = 80
+    InlineMath = 81
+    DisplayMath = 82
+    Space = 83
+    Punctuation = 84
+    Colon = 85
+    Word = 86
+    Escaped = 87
+    Newline = 88
+    RawLink = 89
+    Link = 90
+    Macro = 91
+    BackendRaw = 92
+    Symbol = 93
+    TimeAssoc = 94
+    StaticActiveTime = 95
+    StaticInactiveTime = 96
+    DynamicActiveTime = 97
+    DynamicInactiveTime = 98
+    TimeRange = 99
+    SimpleTime = 100
+    Details = 101
+    Summary = 102
+    Table = 103
+    TableRow = 104
+    TableCell = 105
+    InlineFootnote = 106
+    Footnote = 107
+    Horizontal = 108
+    Filetags = 109
+    OrgTag = 110
+    HashTag = 111
+    MetaSymbol = 112
+    AtMention = 113
+    BracTag = 114
+    Drawer = 115
+    LatexClass = 116
+    LatexHeader = 117
+    LatexCompiler = 118
+    LatexClassOptions = 119
+    HtmlHead = 120
+    Columns = 121
+    CmdPropertyArgs = 122
+    CmdPropertyText = 123
+    CmdPropertyRaw = 124
+    PropertyList = 125
+    Property = 126
+    Placeholder = 127
+    SubtreeDescription = 128
+    SubtreeUrgency = 129
+    Logbook = 130
     LogbookStateChange = 131
-    LogbookNote = 132
-    LogbookClock = 133
-    LogbookRefile = 134
-    LogbookPriority = 135
-    LogbookPriorityChangeAction = 136
-    LogbookReschedule = 137
-    LogbookTagChange = 138
-    LogbookTagChangeAction = 139
-    RadioTarget = 140
-    Target = 141
-
-class OrgTextContext(Enum):
-    otcPlain = 1
-    otcSubtree0 = 2
-    otcSubtree1 = 3
-    otcSubtree2 = 4
-    otcSubtree3 = 5
-    otcSubtree4 = 6
-    otcSubtree5 = 7
-    otcSubtree6 = 8
-    otcSubtree7 = 9
-    otcSubtree8 = 10
-    otcSubtree9 = 11
-    otcSubtree10 = 12
-    otcSubtree11 = 13
-    otcSubtree12 = 14
-    otcSubtreeOther = 15
-    otcBold = 16
-    otcItalic = 17
-    otcStrike = 18
-    otcUnderline = 19
-    otcMonospaceInline = 20
-    otcMonospaceBlock = 21
+    RadioTarget = 132
+    Target = 133
 
 class OrgBigIdentKind(Enum):
     _None = 1
@@ -442,318 +397,6 @@ class OrgBigIdentKind(Enum):
     StructElse = 64
     StructWhile = 65
 
-class OrgTokenKind(Enum):
-    _None = 1
-    Eof = 2
-    GroupStart = 3
-    GroupEnd = 4
-    ErrorTerminator = 5
-    CommandPrefix = 6
-    LineCommand = 7
-    CommandBegin = 8
-    CommandEnd = 9
-    DoubleColon = 10
-    Text = 11
-    StmtList = 12
-    StmtListOpen = 13
-    StmtListClose = 14
-    ListStart = 15
-    ListItemStart = 16
-    ListClock = 17
-    ListPlus = 18
-    ListStar = 19
-    ListDescOpen = 20
-    ListDescClose = 21
-    ListItemEnd = 22
-    ListEnd = 23
-    Checkbox = 24
-    SubtreeTodoState = 25
-    SubtreeUrgency = 26
-    SubtreeCompletion = 27
-    SubtreeStars = 28
-    SubtreeTagSeparator = 29
-    SubtreeTime = 30
-    SubtreeEnd = 31
-    ImplicitTime = 32
-    TimeDuration = 33
-    InactiveTimeBegin = 34
-    InactiveTimeEnd = 35
-    ActiveTimeBegin = 36
-    ActiveTimeEnd = 37
-    DynamicTimeContent = 38
-    StaticTimeDatePart = 39
-    StaticTimeDayPart = 40
-    StaticTimeClockPart = 41
-    StaticTimeRepeater = 42
-    TimeDash = 43
-    TimeArrow = 44
-    Comment = 45
-    ListDoubleColon = 46
-    CommandArgumentsBegin = 47
-    CommandArgumentsEnd = 48
-    CommandKey = 49
-    CommandValue = 50
-    CommandFlag = 51
-    CommandBracket = 52
-    ColonLiteral = 53
-    ColonIdent = 54
-    ColonProperties = 55
-    ColonDescription = 56
-    ColonEnd = 57
-    ColonLogbook = 58
-    RawLogbook = 59
-    LogbookStart = 60
-    LogbookEnd = 61
-    RawProperty = 62
-    Link = 63
-    CommandContentStart = 64
-    CommandContentEnd = 65
-    CodeContent = 66
-    CodeContentBegin = 67
-    CodeContentEnd = 68
-    CodeText = 69
-    TableContent = 70
-    QuoteContent = 71
-    BackendPass = 72
-    LogBook = 73
-    Drawer = 74
-    Indent = 75
-    Dedent = 76
-    SameIndent = 77
-    NoIndent = 78
-    BoldOpen = 79
-    BoldClose = 80
-    BoldInline = 81
-    BoldInlineOpen = 82
-    BoldInlineClose = 83
-    ItalicOpen = 84
-    ItalicClose = 85
-    ItalicInline = 86
-    ItalicInlineOpen = 87
-    ItalicInlineClose = 88
-    VerbatimOpen = 89
-    VerbatimClose = 90
-    VerbatimInline = 91
-    VerbatimInlineOpen = 92
-    VerbatimInlineClose = 93
-    MonospaceOpen = 94
-    MonospaceClose = 95
-    MonospaceInline = 96
-    MonospaceInlineOpen = 97
-    MonospaceInlineClose = 98
-    BacktickOpen = 99
-    BacktickClose = 100
-    BacktickInline = 101
-    BacktickInlineOpen = 102
-    BacktickInlineClose = 103
-    UnderlineOpen = 104
-    UnderlineClose = 105
-    UnderlineInline = 106
-    UnderlineInlineOpen = 107
-    UnderlineInlineClose = 108
-    StrikeOpen = 109
-    StrikeClose = 110
-    StrikeInline = 111
-    StrikeInlineOpen = 112
-    StrikeInlineClose = 113
-    QuoteOpen = 114
-    QuoteClose = 115
-    Punctuation = 116
-    LinkOpen = 117
-    LinkClose = 118
-    RawUrl = 119
-    LinkTargetOpen = 120
-    LinkTargetClose = 121
-    LinkInternal = 122
-    LinkProtocol = 123
-    LinkFull = 124
-    LinkPath = 125
-    LinkTarget = 126
-    LinkExtraSeparator = 127
-    LinkExtra = 128
-    LinkDescriptionOpen = 129
-    LinkDescriptionClose = 130
-    TextSeparator = 131
-    ParagraphStart = 132
-    ParagraphEnd = 133
-    FootnoteStart = 134
-    FootnoteEnd = 135
-    Word = 136
-    Escaped = 137
-    DoubleSlash = 138
-    Newline = 139
-    SkipSpace = 140
-    SkipNewline = 141
-    SkipAny = 142
-    MaybeWord = 143
-    Space = 144
-    BigIdent = 145
-    RawText = 146
-    InlineSrc = 147
-    InlineCall = 148
-    CurlyStart = 149
-    CurlyEnd = 150
-    SymbolStart = 151
-    Ident = 152
-    DollarOpen = 153
-    DollarClose = 154
-    DoubleDollarOpen = 155
-    DoubleDollarClose = 156
-    LatexParOpen = 157
-    LatexParClose = 158
-    LatexBraceOpen = 159
-    LatexBraceClose = 160
-    LatexInlineRaw = 161
-    DoubleAt = 162
-    AtBracket = 163
-    AtMention = 164
-    HashTag = 165
-    HashTagSub = 166
-    HashTagOpen = 167
-    HashTagClose = 168
-    Comma = 169
-    ParOpen = 170
-    ParClose = 171
-    Colon = 172
-    Circumflex = 173
-    MacroOpen = 174
-    MacroClose = 175
-    MetaBraceOpen = 176
-    MetaBraceBody = 177
-    MetaBraceClose = 178
-    MetaArgsOpen = 179
-    MetaArgsBody = 180
-    MetaArgsClose = 181
-    SrcOpen = 182
-    SrcName = 183
-    SrcArgs = 184
-    SrcBody = 185
-    SrcClose = 186
-    CallOpen = 187
-    CallName = 188
-    CallInsideHeader = 189
-    CallArgs = 190
-    EndHeader = 191
-    CallClose = 192
-    CmdArguments = 193
-    TableBegin = 194
-    TableEnd = 195
-    CellBody = 196
-    RowSpec = 197
-    CellSpec = 198
-    Content = 199
-    ContentStart = 200
-    ContentEnd = 201
-    PipeOpen = 202
-    PipeSeparator = 203
-    PipeClose = 204
-    PipeCellOpen = 205
-    DashSeparator = 206
-    CornerPlus = 207
-    Command = 208
-    CommandArgs = 209
-    Body = 210
-    LangName = 211
-    DoubleAngleOpen = 212
-    DoubleAngleClose = 213
-    TripleAngleOpen = 214
-    TripleAngleClose = 215
-    AngleOpen = 216
-    AngleClose = 217
-    TextBlock = 218
-
-class OrgCommandKind(Enum):
-    _None = 1
-    Include = 2
-    Filetags = 3
-    Setupfile = 4
-    Columns = 5
-    OtherProperty = 6
-    BeginTable = 7
-    EndTable = 8
-    Row = 9
-    Cell = 10
-    BeginAdmonition = 11
-    EndAdmonition = 12
-    BeginDynamic = 13
-    EndDynamic = 14
-    BeginCenter = 15
-    EndCenter = 16
-    BeginQuote = 17
-    EndQuote = 18
-    BeginSrc = 19
-    EndSrc = 20
-    BeginExport = 21
-    EndExport = 22
-    BeginExample = 23
-    EndExample = 24
-    BeginDetails = 25
-    EndDetails = 26
-    BeginSummary = 27
-    EndSummary = 28
-    LatexClassOptions = 29
-    LatexClass = 30
-    LatexCompiler = 31
-    AttrLatex = 32
-    AttrImg = 33
-    AttrHtml = 34
-    HtmlHead = 35
-    Language = 36
-    Options = 37
-    Title = 38
-    Property = 39
-    Author = 40
-    Bind = 41
-    Creator = 42
-    LatexHeader = 43
-    Results = 44
-    Call = 45
-    Name = 46
-    Caption = 47
-    Header = 48
-    TableFormula = 49
-
-class OrgPropertyKind(Enum):
-    Title = 1
-    Author = 2
-    Date = 3
-    Email = 4
-    Language = 5
-    Url = 6
-    SourceUrl = 7
-    AttrImg = 8
-    Toplevel = 9
-    Blocker = 10
-    Created = 11
-    Unnumbered = 12
-    Trigger = 13
-    Ordered = 14
-    Noblocking = 15
-    ExportOptions = 16
-    BackendExportOptions = 17
-    AttrBackend = 18
-    ColumnSpec = 19
-    Name = 20
-    Caption = 21
-    LinkAbbrev = 22
-    Filetags = 23
-    TagConf = 24
-    LatexHeader = 25
-    OtherProperty = 26
-    Id = 27
-
-class OrgUnnumberedKind(Enum):
-    Notoc = 1
-    _True = 2
-    _False = 3
-
-class OrgBlockLexerState(Enum):
-    _None = 1
-    InHeader = 2
-    InBody = 3
-    Ended = 4
-    Complete = 5
-
 class OrgSemKind(Enum):
     StmtList = 1
     Empty = 2
@@ -766,47 +409,49 @@ class OrgSemKind(Enum):
     Center = 9
     Caption = 10
     CommandGroup = 11
-    Quote = 12
-    Example = 13
-    CmdArguments = 14
-    CmdArgument = 15
-    Export = 16
-    AdmonitionBlock = 17
-    Code = 18
-    Time = 19
-    TimeRange = 20
-    Macro = 21
-    Symbol = 22
-    SubtreeLog = 23
-    Subtree = 24
-    InlineMath = 25
-    Escaped = 26
-    Newline = 27
-    Space = 28
-    Word = 29
-    AtMention = 30
-    RawText = 31
-    Punctuation = 32
-    Placeholder = 33
-    BigIdent = 34
-    Bold = 35
-    Underline = 36
-    Monospace = 37
-    MarkQuote = 38
-    Verbatim = 39
-    Italic = 40
-    Strike = 41
-    Par = 42
-    List = 43
-    ListItem = 44
-    Link = 45
-    Document = 46
-    ParseError = 47
-    FileTarget = 48
-    TextSeparator = 49
-    Include = 50
-    DocumentOptions = 51
-    DocumentGroup = 52
+    Tblfm = 12
+    Quote = 13
+    Verse = 14
+    Example = 15
+    CmdArguments = 16
+    CmdArgument = 17
+    Export = 18
+    AdmonitionBlock = 19
+    Code = 20
+    Time = 21
+    TimeRange = 22
+    Macro = 23
+    Symbol = 24
+    SubtreeLog = 25
+    Subtree = 26
+    InlineMath = 27
+    Escaped = 28
+    Newline = 29
+    Space = 30
+    Word = 31
+    AtMention = 32
+    RawText = 33
+    Punctuation = 34
+    Placeholder = 35
+    BigIdent = 36
+    Bold = 37
+    Underline = 38
+    Monospace = 39
+    MarkQuote = 40
+    Verbatim = 41
+    Italic = 42
+    Strike = 43
+    Par = 44
+    List = 45
+    ListItem = 46
+    Link = 47
+    Document = 48
+    ParseError = 49
+    FileTarget = 50
+    TextSeparator = 51
+    Include = 52
+    DocumentOptions = 53
+    DocumentGroup = 54
 
 class LeafFieldType(Enum):
     Int = 1
@@ -838,7 +483,9 @@ SemAttached: Type
 SemCaption: Type
 SemCommandGroup: Type
 SemBlock: Type
+SemTblfm: Type
 SemQuote: Type
+SemVerse: Type
 SemExample: Type
 SemCmdArguments: Type
 SemCmdArgument: Type
@@ -884,6 +531,7 @@ SubtreePropertyExportOptions: Type
 SubtreePropertyBlocker: Type
 SubtreePropertyUnnumbered: Type
 SubtreePropertyCreated: Type
+SubtreePropertyUnknown: Type
 SemLatexBody: Type
 SemInlineMath: Type
 SemLeaf: Type
@@ -923,136 +571,134 @@ IncludeExport: Type
 IncludeSrc: Type
 IncludeOrgDocument: Type
 SemDocumentOptions: Type
+DocumentOptionsDoExport: Type
+DocumentOptionsExportFixed: Type
 SemDocumentGroup: Type
-OrgExporterJson: Type
+Org: Type
 OrgExporterJson: Type
 ExporterTreeOpts: Type
-ExporterTreeOpts: Type
-OrgExporterTree: Type
 OrgExporterTree: Type
 OrgExporterYaml: Type
-OrgExporterYaml: Type
-OrgContext: Type
 OrgContext: Type
 ExporterPython: Type
-ExporterPython: Type
+class SemStmt(SemStmt[Stmt]):
+    def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
+    attached: List[SemOrg[Org]]
 
-class SemId:
-    def getKind(self) -> OrgSemKind: ...
-    def __iter__(self) -> Iterator[SemId]: ...
-    def __len__(self) -> int: ...
-    def getDocument(self) -> Optional[SemId]
-
-    @overload
-    def __getitem__(self, idx: int) -> SemId: ...
-
-    @overload
-    def __getitem__(self, slice) -> List[SemId]: ...
-
-    def eachSubnodeRec(self, cb) -> None: ...
-    def _is(self, kind: OrgSemKind) -> bool: ...
-
-class SemStmt(SemId):
-    def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
-    attached: List[SemId]
-
-class SemInline(SemId):
+class SemInline(SemInline[Inline]):
     pass
 
-class SemStmtList(SemId):
-    pass
+class SemStmtList(SemStmtList[StmtList]):
+    loc: Optional[LineCol]
 
-class SemEmpty(SemId):
-    pass
+class SemEmpty(SemEmpty[Empty]):
+    loc: Optional[LineCol]
 
-class SemRow(SemId):
-    pass
+class SemRow(SemRow[Row]):
+    loc: Optional[LineCol]
 
-class SemTable(SemId):
-    def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
-    rows: List[SemRow]
-    attached: List[SemId]
+class SemTable(SemTable[Table]):
+    def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
+    loc: Optional[LineCol]
+    rows: List[SemRow[Row]]
+    attached: List[SemOrg[Org]]
 
-class SemHashTag(SemId):
+class SemHashTag(SemHashTag[HashTag]):
     def prefixMatch(prefix: List[str]) -> bool: ...
+    loc: Optional[LineCol]
     head: str
-    subtags: List[SemHashTag]
+    subtags: List[SemHashTag[HashTag]]
 
-class SemFootnote(SemId):
+class SemFootnote(SemFootnote[Footnote]):
+    loc: Optional[LineCol]
     tag: str
-    definition: Optional[SemId]
+    definition: Optional[SemOrg[Org]]
 
-class SemCompletion(SemId):
+class SemCompletion(SemCompletion[Completion]):
+    loc: Optional[LineCol]
     done: int
     full: int
     isPercent: bool
 
-class SemParagraph(SemId):
+class SemParagraph(SemParagraph[Paragraph]):
     def isFootnoteDefinition() -> bool: ...
-    def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
-    attached: List[SemId]
+    def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
+    loc: Optional[LineCol]
+    attached: List[SemOrg[Org]]
 
-class SemFormat(SemId):
+class SemFormat(SemFormat[Format]):
     pass
 
-class SemCenter(SemId):
+class SemCenter(SemCenter[Center]):
+    loc: Optional[LineCol]
+
+class SemCommand(SemCommand[Command]):
     pass
 
-class SemCommand(SemId):
+class SemLineCommand(SemLineCommand[LineCommand]):
     pass
 
-class SemLineCommand(SemId):
+class SemStandalone(SemStandalone[Standalone]):
     pass
 
-class SemStandalone(SemId):
+class SemAttached(SemAttached[Attached]):
     pass
 
-class SemAttached(SemId):
+class SemCaption(SemCaption[Caption]):
+    loc: Optional[LineCol]
+    text: SemParagraph[Paragraph]
+
+class SemCommandGroup(SemCommandGroup[CommandGroup]):
+    def getAttached(kind: OrgSemKind) -> Optional[SemOrg[Org]]: ...
+    loc: Optional[LineCol]
+    attached: List[SemOrg[Org]]
+
+class SemBlock(SemBlock[Block]):
     pass
 
-class SemCaption(SemId):
-    text: SemParagraph
+class SemTblfm(SemTblfm[Tblfm]):
+    loc: Optional[LineCol]
 
-class SemCommandGroup(SemId):
-    def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
-    attached: List[SemId]
+class SemQuote(SemQuote[Quote]):
+    loc: Optional[LineCol]
 
-class SemBlock(SemId):
-    pass
+class SemVerse(SemVerse[Verse]):
+    loc: Optional[LineCol]
 
-class SemQuote(SemId):
-    text: SemParagraph
+class SemExample(SemExample[Example]):
+    loc: Optional[LineCol]
 
-class SemExample(SemId):
-    pass
+class SemCmdArguments(SemCmdArguments[CmdArguments]):
+    def popArg(key: str) -> Optional[SemCmdArgument[CmdArgument]]: ...
+    loc: Optional[LineCol]
+    positional: List[SemCmdArgument[CmdArgument]]
+    named: UnorderedMap[str, SemCmdArgument[CmdArgument]]
 
-class SemCmdArguments(SemId):
-    def popArg(key: str) -> Optional[SemCmdArgument]: ...
-    positional: List[SemCmdArgument]
-    named: UnorderedMap[str, SemCmdArgument]
-
-class SemCmdArgument(SemId):
+class SemCmdArgument(SemCmdArgument[CmdArgument]):
     def getInt() -> Optional[int]: ...
     def getBool() -> Optional[bool]: ...
     def getString() -> str: ...
+    loc: Optional[LineCol]
     key: Optional[str]
     value: str
 
-class SemExport(SemId):
+class SemExport(SemExport[Export]):
+    loc: Optional[LineCol]
     format: ExportFormat
     exporter: str
-    parameters: SemCmdArguments
+    parameters: Optional[SemCmdArguments[CmdArguments]]
     placement: Optional[str]
     content: str
 
-class SemAdmonitionBlock(SemId):
-    pass
+class SemAdmonitionBlock(SemAdmonitionBlock[AdmonitionBlock]):
+    loc: Optional[LineCol]
 
-class SemCode(SemId):
+class SemCode(SemCode[Code]):
+    loc: Optional[LineCol]
     lang: Optional[str]
     switches: List[CodeSwitch]
     exports: CodeExports
-    parameters: SemCmdArguments
+    parameters: Optional[SemCmdArguments[CmdArguments]]
     cache: bool
     eval: bool
     noweb: bool
@@ -1084,10 +730,11 @@ class CodeSwitchEmphasizeLine:
 class CodeSwitchDedent:
     value: int
 
-class SemTime(SemId):
+class SemTime(SemTime[Time]):
     def getStatic() -> TimeStatic: ...
     def getDynamic() -> TimeDynamic: ...
     def getTimeKind() -> TimeTimeKind: ...
+    loc: Optional[LineCol]
     isActive: bool
     time: TimeTimeVariant
 
@@ -1103,25 +750,28 @@ class TimeStatic:
 class TimeDynamic:
     expr: str
 
-class SemTimeRange(SemId):
-    from_: SemTime
-    to: SemTime
+class SemTimeRange(SemTimeRange[TimeRange]):
+    loc: Optional[LineCol]
+    from_: SemTime[Time]
+    to: SemTime[Time]
 
-class SemMacro(SemId):
+class SemMacro(SemMacro[Macro]):
+    loc: Optional[LineCol]
     name: str
     arguments: List[str]
 
-class SemSymbol(SemId):
+class SemSymbol(SemSymbol[Symbol]):
+    loc: Optional[LineCol]
     name: str
     parameters: List[SymbolParam]
-    positional: List[SemId]
+    positional: List[SemOrg[Org]]
 
 class SymbolParam:
     key: Optional[str]
     value: str
 
-class SemSubtreeLog(SemId):
-    def setDescription(desc: SemStmtList) -> None: ...
+class SemSubtreeLog(SemSubtreeLog[SubtreeLog]):
+    def setDescription(desc: SemStmtList[StmtList]) -> None: ...
     def getPriority() -> SubtreeLogPriority: ...
     def getNote() -> SubtreeLogNote: ...
     def getRefile() -> SubtreeLogRefile: ...
@@ -1129,22 +779,23 @@ class SemSubtreeLog(SemId):
     def getState() -> SubtreeLogState: ...
     def getTag() -> SubtreeLogTag: ...
     def getLogKind() -> SubtreeLogKind: ...
+    loc: Optional[LineCol]
     log: SubtreeLogLogEntry
 
 class SubtreeLogDescribedLog:
-    desc: Optional[SemStmtList]
+    desc: Optional[SemStmtList[StmtList]]
 
 class SubtreeLogPriority:
     oldPriority: Optional[str]
     newPriority: Optional[str]
-    on: SemTime
+    on: SemTime[Time]
 
 class SubtreeLogNote:
-    on: SemTime
+    on: SemTime[Time]
 
 class SubtreeLogRefile:
-    on: SemTime
-    from_: SemLink
+    on: SemTime[Time]
+    from_: SemLink[Link]
 
 class SubtreeLogClock:
     pass
@@ -1152,36 +803,37 @@ class SubtreeLogClock:
 class SubtreeLogState:
     from_: OrgBigIdentKind
     to: OrgBigIdentKind
-    on: SemTime
+    on: SemTime[Time]
 
 class SubtreeLogTag:
-    on: SemTime
-    tag: SemHashTag
+    on: SemTime[Time]
+    tag: SemHashTag[HashTag]
     added: bool
 
-class SemSubtree(SemId):
+class SemSubtree(SemSubtree[Subtree]):
     def getTimePeriods(kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(kind: SubtreePropertyKind, subkind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
     def getContextualProperties(kind: SubtreePropertyKind, subkind: str) -> List[SubtreeProperty]: ...
     def getContextualProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
+    loc: Optional[LineCol]
     level: int
     treeId: Optional[str]
     todo: Optional[str]
-    completion: Optional[SemCompletion]
-    description: Optional[SemParagraph]
-    tags: List[SemHashTag]
-    title: SemParagraph
-    logbook: List[SemSubtreeLog]
+    completion: Optional[SemCompletion[Completion]]
+    description: Optional[SemParagraph[Paragraph]]
+    tags: List[SemHashTag[HashTag]]
+    title: SemParagraph[Paragraph]
+    logbook: List[SemSubtreeLog[SubtreeLog]]
     properties: List[SubtreeProperty]
-    closed: Optional[SemTime]
-    deadline: Optional[SemTime]
-    scheduled: Optional[SemTime]
+    closed: Optional[SemTime[Time]]
+    deadline: Optional[SemTime[Time]]
+    scheduled: Optional[SemTime[Time]]
 
 class SubtreePeriod:
-    def getTime() -> SemTime: ...
-    def getTimeRange() -> SemTime: ...
-    kind: Kind
+    def getTime() -> SemTime[Time]: ...
+    def getTimeRange() -> SemTimeRange[TimeRange]: ...
+    kind: SubtreePeriodKind
 
 class SubtreeProperty:
     def getNonblocking() -> SubtreePropertyNonblocking: ...
@@ -1198,6 +850,7 @@ class SubtreeProperty:
     def getBlocker() -> SubtreePropertyBlocker: ...
     def getUnnumbered() -> SubtreePropertyUnnumbered: ...
     def getCreated() -> SubtreePropertyCreated: ...
+    def getUnknown() -> SubtreePropertyUnknown: ...
     def getKind() -> SubtreePropertyKind: ...
     mainSetRule: SubtreePropertySetMode
     subSetRule: SubtreePropertySetMode
@@ -1211,7 +864,7 @@ class SubtreePropertyTrigger:
     pass
 
 class SubtreePropertyOrigin:
-    text: str
+    text: SemParagraph[Paragraph]
 
 class SubtreePropertyExportLatexClass:
     latexClass: str
@@ -1246,89 +899,102 @@ class SubtreePropertyUnnumbered:
     pass
 
 class SubtreePropertyCreated:
-    time: SemTime
+    time: SemTime[Time]
 
-class SemLatexBody(SemId):
+class SubtreePropertyUnknown:
+    value: SemOrg[Org]
+
+class SemLatexBody(SemLatexBody[LatexBody]):
     pass
 
-class SemInlineMath(SemId):
-    pass
+class SemInlineMath(SemInlineMath[InlineMath]):
+    loc: Optional[LineCol]
 
-class SemLeaf(SemId):
+class SemLeaf(SemLeaf[Leaf]):
     text: str
 
-class SemEscaped(SemId):
+class SemEscaped(SemEscaped[Escaped]):
+    loc: Optional[LineCol]
     text: str
 
-class SemNewline(SemId):
+class SemNewline(SemNewline[Newline]):
+    loc: Optional[LineCol]
     text: str
 
-class SemSpace(SemId):
+class SemSpace(SemSpace[Space]):
+    loc: Optional[LineCol]
     text: str
 
-class SemWord(SemId):
+class SemWord(SemWord[Word]):
+    loc: Optional[LineCol]
     text: str
 
-class SemAtMention(SemId):
+class SemAtMention(SemAtMention[AtMention]):
+    loc: Optional[LineCol]
     text: str
 
-class SemRawText(SemId):
+class SemRawText(SemRawText[RawText]):
+    loc: Optional[LineCol]
     text: str
 
-class SemPunctuation(SemId):
+class SemPunctuation(SemPunctuation[Punctuation]):
+    loc: Optional[LineCol]
     text: str
 
-class SemPlaceholder(SemId):
+class SemPlaceholder(SemPlaceholder[Placeholder]):
+    loc: Optional[LineCol]
     text: str
 
-class SemBigIdent(SemId):
+class SemBigIdent(SemBigIdent[BigIdent]):
+    loc: Optional[LineCol]
     text: str
 
-class SemMarkup(SemId):
+class SemMarkup(SemMarkup[Markup]):
     pass
 
-class SemBold(SemId):
-    pass
+class SemBold(SemBold[Bold]):
+    loc: Optional[LineCol]
 
-class SemUnderline(SemId):
-    pass
+class SemUnderline(SemUnderline[Underline]):
+    loc: Optional[LineCol]
 
-class SemMonospace(SemId):
-    pass
+class SemMonospace(SemMonospace[Monospace]):
+    loc: Optional[LineCol]
 
-class SemMarkQuote(SemId):
-    pass
+class SemMarkQuote(SemMarkQuote[MarkQuote]):
+    loc: Optional[LineCol]
 
-class SemVerbatim(SemId):
-    pass
+class SemVerbatim(SemVerbatim[Verbatim]):
+    loc: Optional[LineCol]
 
-class SemItalic(SemId):
-    pass
+class SemItalic(SemItalic[Italic]):
+    loc: Optional[LineCol]
 
-class SemStrike(SemId):
-    pass
+class SemStrike(SemStrike[Strike]):
+    loc: Optional[LineCol]
 
-class SemPar(SemId):
-    pass
+class SemPar(SemPar[Par]):
+    loc: Optional[LineCol]
 
-class SemList(SemId):
+class SemList(SemList[List]):
     def isDescriptionList() -> bool: ...
+    loc: Optional[LineCol]
 
-class SemListItem(SemId):
+class SemListItem(SemListItem[ListItem]):
     def isDescriptionItem() -> bool: ...
+    loc: Optional[LineCol]
     checkbox: ListItemCheckbox
-    header: Optional[SemParagraph]
+    header: Optional[SemParagraph[Paragraph]]
 
-class SemLink(SemId):
-    def resolve(doc: Document) -> Optional[SemId]: ...
-    def resolve() -> Optional[SemId]: ...
+class SemLink(SemLink[Link]):
     def getRaw() -> LinkRaw: ...
     def getId() -> LinkId: ...
     def getPerson() -> LinkPerson: ...
     def getFootnote() -> LinkFootnote: ...
     def getFile() -> LinkFile: ...
     def getLinkKind() -> LinkKind: ...
-    description: Optional[SemParagraph]
+    loc: Optional[LineCol]
+    description: Optional[SemParagraph[Paragraph]]
     data: LinkData
 
 class LinkRaw:
@@ -1346,27 +1012,23 @@ class LinkFootnote:
 class LinkFile:
     file: str
 
-class SemDocument(SemId):
-    def resolve(node: SemId) -> Optional[SemId]: ...
-    def getSubtree(id: str) -> Optional[SemSubtree]: ...
+class SemDocument(SemDocument[Document]):
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
-    idTable: UnorderedMap[str, SemId]
-    nameTable: UnorderedMap[str, SemId]
-    footnoteTable: UnorderedMap[str, SemId]
-    anchorTable: UnorderedMap[str, SemId]
-    title: Optional[SemParagraph]
-    author: Optional[SemParagraph]
-    creator: Optional[SemParagraph]
-    email: Optional[SemRawText]
-    language: Optional[List[str]]
-    options: SemDocumentOptions
+    loc: Optional[LineCol]
+    title: Optional[SemParagraph[Paragraph]]
+    author: Optional[SemParagraph[Paragraph]]
+    creator: Optional[SemParagraph[Paragraph]]
+    email: Optional[SemRawText[RawText]]
+    language: List[str]
+    options: SemDocumentOptions[DocumentOptions]
     exportFileName: Optional[str]
 
-class SemParseError(SemId):
-    pass
+class SemParseError(SemParseError[ParseError]):
+    loc: Optional[LineCol]
 
-class SemFileTarget(SemId):
+class SemFileTarget(SemFileTarget[FileTarget]):
+    loc: Optional[LineCol]
     path: str
     line: Optional[int]
     searchTarget: Optional[str]
@@ -1374,15 +1036,16 @@ class SemFileTarget(SemId):
     targetId: Optional[str]
     regexp: Optional[str]
 
-class SemTextSeparator(SemId):
-    pass
+class SemTextSeparator(SemTextSeparator[TextSeparator]):
+    loc: Optional[LineCol]
 
-class SemInclude(SemId):
+class SemInclude(SemInclude[Include]):
     def getExample() -> IncludeExample: ...
     def getExport() -> IncludeExport: ...
     def getSrc() -> IncludeSrc: ...
     def getOrgDocument() -> IncludeOrgDocument: ...
     def getIncludeKind() -> IncludeKind: ...
+    loc: Optional[LineCol]
     data: IncludeData
 
 class IncludeExample:
@@ -1397,9 +1060,13 @@ class IncludeSrc:
 class IncludeOrgDocument:
     pass
 
-class SemDocumentOptions(SemId):
+class SemDocumentOptions(SemDocumentOptions[DocumentOptions]):
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
+    def getDoExport() -> DocumentOptionsDoExport: ...
+    def getExportFixed() -> DocumentOptionsExportFixed: ...
+    def getTocExportKind() -> DocumentOptionsTocExportKind: ...
+    loc: Optional[LineCol]
     brokenLinks: DocumentOptionsBrokenLinks
     initialVisibility: DocumentOptionsVisibility
     tocExport: DocumentOptionsTocExport
@@ -1416,15 +1083,27 @@ class SemDocumentOptions(SemId):
     exportBrokenLinks: bool
     exportWithClock: bool
     exportWithCreator: bool
+    data: DocumentOptionsTocExport
 
-class SemDocumentGroup(SemId):
-    pass
+class DocumentOptionsDoExport:
+    exportToc: bool
+
+class DocumentOptionsExportFixed:
+    exportLevels: int
+
+class SemDocumentGroup(SemDocumentGroup[DocumentGroup]):
+    loc: Optional[LineCol]
+
+class Org:
+    def isGenerated() -> bool: ...
+    def push_back(sub: SemOrg[Org]) -> None: ...
+    def at(idx: int) -> SemOrg[Org]: ...
+    def is(kind: OrgSemKind) -> bool: ...
+    loc: stdoptional[LineCol]
+    subnodes: List[SemOrg[Org]]
 
 class OrgExporterJson:
-    pass
-
-class OrgExporterJson:
-    def visitNode(node: SemId) -> None: ...
+    def visitNode(node: SemOrg[Org]) -> None: ...
     def exportToString() -> str: ...
     def exportToFile(path: str) -> None: ...
 
@@ -1436,69 +1115,49 @@ class ExporterTreeOpts:
     startLevel: int
     withColor: bool
 
-class ExporterTreeOpts:
-    withLineCol: bool
-    withOriginalId: bool
-    withSubnodeIdx: bool
-    skipEmptyFields: bool
-    startLevel: int
-    withColor: bool
-
 class OrgExporterTree:
-    pass
-
-class OrgExporterTree:
-    def toString(node: SemId, opts: ExporterTreeOpts) -> str: ...
-    def toFile(node: SemId, path: str, opts: ExporterTreeOpts) -> None: ...
+    def toString(node: SemOrg[Org], opts: ExporterTreeOpts) -> str: ...
+    def toFile(node: SemOrg[Org], path: str, opts: ExporterTreeOpts) -> None: ...
 
 class OrgExporterYaml:
-    pass
-
-class OrgExporterYaml:
-    def visitNode(node: SemId) -> None: ...
+    def visitNode(node: SemOrg[Org]) -> None: ...
     def exportToString() -> str: ...
     def exportToFile(path: str) -> None: ...
-
-class OrgContext:
-    pass
 
 class OrgContext:
     def parseFile(file: str) -> None: ...
     def parseString(text: str) -> None: ...
-    def getNode() -> SemDocument: ...
-
-class ExporterPython:
-    pass
+    def getNode() -> SemDocument[Document]: ...
 
 class ExporterPython:
     def enablePyStreamTrace(stream: object) -> None: ...
     def enableBufferTrace() -> None: ...
     def getTraceBuffer() -> str: ...
     def enableFileTrace(path: str) -> None: ...
-    def setVisitAnyIdAround(cb: function) -> None: ...
-    def setVisitAnyIdIn(cb: function) -> None: ...
-    def setVisitAnyField(cb: function) -> None: ...
-    def setEvalTopCb(cb: function) -> None: ...
-    def setVisitIdAround(kind: OrgSemKind, cb: function) -> None: ...
-    def setEvalIdAround(kind: OrgSemKind, cb: function) -> None: ...
-    def setVisitIdInCb(kind: OrgSemKind, cb: function) -> None: ...
-    def setEvalIdIn(kind: OrgSemKind, cb: function) -> None: ...
-    def setVisitLeafField(kind: LeafFieldType, cb: function) -> None: ...
-    def setEvalLeafField(kind: LeafFieldType, cb: function) -> None: ...
-    def setVisitOrgField(kind: OrgSemKind, cb: function) -> None: ...
-    def setEvalOrgField(kind: OrgSemKind, cb: function) -> None: ...
+    def setVisitAnyIdAround(cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitAnyIdIn(cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitAnyField(cb: ExporterPythonPyFunc) -> None: ...
+    def setEvalTopCb(cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitIdAround(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setEvalIdAround(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitIdInCb(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setEvalIdIn(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitLeafField(kind: LeafFieldType, cb: ExporterPythonPyFunc) -> None: ...
+    def setEvalLeafField(kind: LeafFieldType, cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitOrgField(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setEvalOrgField(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
     def setSelf(val: object) -> None: ...
-    def setNewOrgRes(kind: OrgSemKind, cb: function) -> None: ...
-    def setNewAnyOrgRes(cb: function) -> None: ...
-    def setNewLeafRes(kind: LeafFieldType, cb: function) -> None: ...
-    def setNewAnyLeafRes(cb: function) -> None: ...
-    def setPushVisitAnyId(cb: function) -> None: ...
-    def setPopVisitAnyId(cb: function) -> None: ...
-    def setPushVisitId(kind: OrgSemKind, cb: function) -> None: ...
-    def setPopVisitIdCb(kind: OrgSemKind, cb: function) -> None: ...
-    def setVisitAnyHookCb(cb: function) -> None: ...
-    def setVisitIdHook(kind: OrgSemKind, cb: function) -> None: ...
-    def evalTop(org: SemId) -> Res: ...
-    def eval(org: SemId) -> Res: ...
+    def setNewOrgRes(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setNewAnyOrgRes(cb: ExporterPythonPyFunc) -> None: ...
+    def setNewLeafRes(kind: LeafFieldType, cb: ExporterPythonPyFunc) -> None: ...
+    def setNewAnyLeafRes(cb: ExporterPythonPyFunc) -> None: ...
+    def setPushVisitAnyId(cb: ExporterPythonPyFunc) -> None: ...
+    def setPopVisitAnyId(cb: ExporterPythonPyFunc) -> None: ...
+    def setPushVisitId(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setPopVisitIdCb(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitAnyHookCb(cb: ExporterPythonPyFunc) -> None: ...
+    def setVisitIdHook(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
+    def evalTop(org: SemOrg[Org]) -> ExporterPythonRes: ...
+    def eval(org: SemOrg[Org]) -> ExporterPythonRes: ...
 
 /* clang-format on */

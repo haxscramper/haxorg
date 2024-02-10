@@ -112,6 +112,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
+    result.IsAbstract = record.is_abstract
     result.has_name = record.has_name
     for _field in record.fields:
         if _field.is_type_decl:

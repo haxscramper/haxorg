@@ -181,7 +181,8 @@ echo "method field", value.run_method()
 
 def test_type_cross_dependency():
     with TemporaryDirectory() as dir:
-        code_dir = Path(dir)
+        # code_dir = Path(dir)
+        code_dir = Path("/tmp/test_type_cross_dependency")
         value = run_provider(
             {
                 "a.hpp": "struct B; struct A { B* field; };",
@@ -193,7 +194,7 @@ def test_type_cross_dependency():
         a = first_true(value.wraps, pred=lambda it: it.name == "a")
         b = first_true(value.wraps, pred=lambda it: it.name == "b")
         assert a
-        assert b
+        assert b    
         assert a.name == "a"
         assert b.name == "b"
 

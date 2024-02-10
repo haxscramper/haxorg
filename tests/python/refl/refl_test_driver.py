@@ -123,7 +123,7 @@ def run_provider(
     if not code_dir.exists():
         code_dir.mkdir(parents=True)
 
-    with (NamedTemporaryFile(mode="w", suffix=".json") as compile_commands):
+    with (NamedTemporaryFile(mode="w", suffix=".json", delete=False) as compile_commands):
         if isinstance(text, str):
             text = {"automatic_provider_run_file.hpp": text}
 

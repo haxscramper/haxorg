@@ -461,24 +461,6 @@ class Py11Module:
         for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
             passes.append(ast.string(f"{_class.PyName}: Type"))
 
-        passes.append(
-            ast.string("""
-class SemId:
-    def getKind(self) -> OrgSemKind: ...
-    def __iter__(self) -> Iterator[SemId]: ...
-    def __len__(self) -> int: ...
-    def getDocument(self) -> Optional[SemId]
-
-    @overload
-    def __getitem__(self, idx: int) -> SemId: ...
-
-    @overload
-    def __getitem__(self, slice) -> List[SemId]: ...
-
-    def eachSubnodeRec(self, cb) -> None: ...
-    def _is(self, kind: OrgSemKind) -> bool: ...
-"""))
-
         for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
             passes.append(ast.Class(_class.build_typedef(ast)))
             passes.append(ast.string(""))

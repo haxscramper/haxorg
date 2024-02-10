@@ -1175,6 +1175,26 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("DocumentGroup", OrgSemKind::DocumentGroup)
     .export_values()
     ;
+  pybind11::class_<sem::Org>(m, "Org")
+    .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
+    .def_readwrite("subnodes", &sem::Org::subnodes, R"RAW(\brief List of subnodes.
+
+Some of the derived nodes don't make the use of subnode list
+(word, punctuation etc), but it was left on the top level of the
+hierarchy for conveinience purposes. It is not expected that 'any'
+node can have subnodes.)RAW")
+    .def("isGenerated", static_cast<bool(sem::Org::*)() const>(&sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
+    .def("push_back",
+         static_cast<void(sem::Org::*)(sem::SemId<sem::Org>)>(&sem::Org::push_back),
+         pybind11::arg("sub"))
+    .def("at",
+         static_cast<sem::SemId<sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
+         pybind11::arg("idx"),
+         R"RAW(\brief Get subnode at specified index)RAW")
+    .def("is",
+         static_cast<bool(sem::Org::*)(OrgSemKind) const>(&sem::Org::is),
+         pybind11::arg("kind"))
+    ;
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
     .def(pybind11::init<>())
     .def("visitNode",

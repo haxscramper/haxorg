@@ -190,7 +190,8 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 @beartype
 def pybind_nested_type(value: GenTuStruct) -> Py11Class:
     res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
-    res.InitDefault()
+    if not value.IsAbstract:
+        res.InitDefault()
 
     for meth in value.methods:
         if meth.isStatic or meth.isPureVirtual:
@@ -531,11 +532,11 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
 
                 T = rec_drop(T)
 
-                if T in seen_types:
+                if hash(T) in seen_types:
                     return
 
                 else:
-                    seen_types.add(T)
+                    seen_types.add(hash(T))
 
                 if T.name == "Vec":
                     stdvec_t = QualType.ForName("vector",
@@ -574,8 +575,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     return GenFiles([
         GenUnit(
             GenTu(
-                # "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-                "/tmp/pyhaxorg.pyi",
+                "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
         GenUnit(

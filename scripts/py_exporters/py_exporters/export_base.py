@@ -6,7 +6,7 @@ import re
 
 class ExporterBase:
 
-    def evalTop(self, node: org.SemId):
+    def evalTop(self, node: org.Org):
         return self.exp.evalTop(node)
 
     def __init__(self, derived):

@@ -1,4 +1,5 @@
 #pragma once
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <hstd/system/basic_typedefs.hpp>
 #include <sem/SemOrgEnums.hpp>
@@ -13,6 +14,7 @@
 #include <parse/OrgTypes.hpp>
 #include <format>
 #include <hstd/system/reflection.hpp>
+
 
 using SemSet = IntSet<OrgSemKind>;
 
@@ -149,7 +151,7 @@ sem::OrgVariant asVariant(SemId<Org> in);
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
-struct Org {
+struct [[refl]] Org {
     /// \brief Adapter to the original parsed node.
     ///
     /// Set by the conversion functions from linearized representation,
@@ -159,30 +161,33 @@ struct Org {
     Org(CVec<SemId<Org>> subnodes);
     Org();
     Org(OrgAdapter original);
+    virtual ~Org() = default;
 
     /// \brief Get get kind of the original node.
     OrgNodeKind getOriginalKind() const { return original.getKind(); }
     /// \brief Get kind of this sem node
     virtual OrgSemKind getKind() const = 0;
     /// \brief Whether original node adapter is missing
-    bool isGenerated() const { return original.empty(); }
+    [[refl]] bool isGenerated() const { return original.empty(); }
     /// \brief Location of the node in the original source file
-    Opt<LineCol> loc = std::nullopt;
+    [[refl]] Opt<LineCol> loc = std::nullopt;
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list
     /// (word, punctuation etc), but it was left on the top level of the
     /// hierarchy for conveinience purposes. It is not expected that 'any'
     /// node can have subnodes.
-    Vec<SemId<Org>> subnodes;
+    [[refl]] Vec<SemId<Org>> subnodes;
 
-    void push_back(SemId<Org> sub);
+    [[refl]] void push_back(SemId<Org> sub);
 
     /// \brief Get subnode at specified index
-    inline SemId<Org> at(int idx) const { return subnodes[idx]; }
+    [[refl]] inline SemId<Org> at(int idx) const { return subnodes[idx]; }
 
-    bool is(OrgSemKind kind) const { return getKind() == kind; }
-    bool is(CR<SemSet> kinds) const { return kinds.contains(getKind()); }
+    [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
+    bool          is(CR<IntSet<OrgSemKind>> kinds) const {
+        return kinds.contains(getKind());
+    }
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };

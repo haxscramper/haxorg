@@ -132,6 +132,7 @@ class GenTuStruct:
     nested: List[GenTuEntry] = field(default_factory=list)
     concreteKind: bool = True
     IsForwardDecl: bool = False
+    IsAbstract: bool = False
     has_name: bool = True
     original: Optional[Path] = field(default=None)
 
