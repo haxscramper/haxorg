@@ -39,12 +39,20 @@ Window {
                 rotation: treeDelegate.expanded ? 90 : 0
             }
 
+            function textItem(model) {
+                if (model.kind === "Word") {
+                    return "Word: " + model.Word_text;
+                } else {
+                    return model.kind;
+                }
+            }
+
             Text {
                 id: label
                 x: padding + (treeDelegate.isTreeNode ? (treeDelegate.depth + 1) * treeDelegate.indent : 0)
                 width: treeDelegate.width - treeDelegate.padding - x
                 clip: true
-                text: model.display
+                text: textItem(model)
             }
         }
     }
