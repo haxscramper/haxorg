@@ -115,6 +115,8 @@ include(src/cmake/target_lsp.cmake)
 
 add_subdirectory(scripts/cxx_repository)
 
+add_subdirectory(src/editor)
+
 
 
 
