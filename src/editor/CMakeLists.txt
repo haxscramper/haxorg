@@ -4,7 +4,7 @@ project(editor VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Core)
 
 qt_standard_project_setup()
 
@@ -18,6 +18,11 @@ qt_add_qml_module(org_editor
     QML_FILES Main.qml
 )
 
+target_link_libraries(org_editor PUBLIC haxorg)
+set_common_files(org_editor)
+set_target_output(org_editor)
+set_target_flags(org_editor)
+
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
@@ -30,8 +35,10 @@ set_target_properties(org_editor PROPERTIES
 )
 
 target_link_libraries(org_editor
-    PRIVATE Qt6::Quick
+    PRIVATE Qt6::Quick Qt6::Core
 )
+
+target_compile_definitions(org_editor PRIVATE QT_QML_DEBUG)
 
 include(GNUInstallDirs)
 install(TARGETS org_editor
@@ -39,3 +46,4 @@ install(TARGETS org_editor
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+

@@ -1,14 +1,14 @@
 import QtQuick
 
 Window {
-    width: 600
-    height: 400
+    width: 1000
+    height: 1000
     visible: true
 
     TreeView {
         anchors.fill: parent
         // The model needs to be a QAbstractItemModel
-        // model: yourTreeModel
+        model: documentModel
 
         delegate: Item {
             id: treeDelegate
