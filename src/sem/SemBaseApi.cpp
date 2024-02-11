@@ -2,6 +2,7 @@
 #include <parse/OrgTokenizer.hpp>
 #include <parse/OrgParser.hpp>
 #include <sem/SemConvert.hpp>
+#include <exporters/ExporterJson.hpp>
 #include <fstream>
 
 using namespace org;
@@ -33,4 +34,9 @@ ParseParams& ParseParams::withLexBaseTrace(CR<fs::path> file) {
     lexBaseTrace = std::static_pointer_cast<std::ostream>(
         std::make_shared<std::ofstream>(file.native()));
     return *this;
+}
+
+json org::toJson(sem::SemId<sem::Org> node) {
+    ExporterJson exp{};
+    return exp.evalTop(node);
 }

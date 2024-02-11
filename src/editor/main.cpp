@@ -8,6 +8,8 @@
 #include <QQmlContext>
 #include <absl/log/log.h>
 #include <org_qml.hpp>
+#include "org_qml_node_edit.hpp"
+
 
 namespace org_qml {
 #define _case(__Kind)                                                     \
@@ -26,6 +28,7 @@ namespace org_qml {
 EACH_SEM_ORG_KIND(_case)
 #undef _case
 } // namespace org_qml
+
 
 class OrgNodeItem {
   public:
@@ -69,6 +72,23 @@ class OrgNodeItem {
     std::vector<UPtr<OrgNodeItem>> subnodes;
     sem::SemId<sem::Org>           node;
     OrgNodeItem*                   parent;
+
+    QVariant getNodeRich() {
+        return QVariant::fromValue(OrgNodeTextWrapper{node});
+    }
+
+    QVariant getNodeHandle() {
+        switch (node->getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind:                                              \
+        return QVariant::fromValue(                                       \
+            org_qml::serde<org_qml::__Kind, sem::SemId<sem::__Kind>>::    \
+                cxx_to_qml(node.as<sem::__Kind>()));
+
+            EACH_SEM_ORG_KIND(_case)
+#undef _case
+        }
+    }
 };
 
 class OrgDocumentModel : public QAbstractItemModel {
@@ -77,13 +97,15 @@ class OrgDocumentModel : public QAbstractItemModel {
     {
         KindRole = Qt::UserRole + 1,
         DataRole,
+        RichTextRole,
         LastExplicitRole,
     };
 
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
-        roles[KindRole] = "kind";
-        roles[DataRole] = "data";
+        roles[KindRole]     = "kind";
+        roles[DataRole]     = "data";
+        roles[RichTextRole] = "rich";
         return roles;
     }
 
@@ -181,22 +203,19 @@ class OrgDocumentModel : public QAbstractItemModel {
                     index.internalPointer());
                 return item->data(index.column());
             }
+
             case OrgNodeItemRole::KindRole: {
                 return QString::fromStdString(fmt1(item->node->getKind()));
             }
-            case OrgNodeItemRole::DataRole: {
-                switch (item->node->getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind:                                              \
-        return QVariant::fromValue(                                       \
-            org_qml::serde<org_qml::__Kind, sem::SemId<sem::__Kind>>::    \
-                cxx_to_qml(item->node.as<sem::__Kind>()));
 
-
-                    EACH_SEM_ORG_KIND(_case)
-#undef _case
-                }
+            case OrgNodeItemRole::RichTextRole: {
+                return item->getNodeRich();
             }
+
+            case OrgNodeItemRole::DataRole: {
+                return item->getNodeHandle();
+            }
+
             default: {
                 return QVariant();
             }
@@ -207,14 +226,17 @@ class OrgDocumentModel : public QAbstractItemModel {
     UPtr<OrgNodeItem> rootItem;
 };
 
+
 int main(int argc, char* argv[]) {
-    auto document = org::parseString(
+    OrgBackend backend;
+    backend.document = org::parseString(
         readFile("/home/haxscramper/tmp/doc1.org"));
 
     QGuiApplication       app(argc, argv);
     QQmlApplicationEngine engine;
-    OrgDocumentModel      model{document};
+    OrgDocumentModel      model{backend.document};
     engine.rootContext()->setContextProperty("documentModel", &model);
+    engine.rootContext()->setContextProperty("backend", &backend);
 
     const QUrl url(u"qrc:/editor/Main.qml"_qs);
     QObject::connect(

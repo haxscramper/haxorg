@@ -1,6 +1,7 @@
 #pragma once
 #include <sem/SemOrg.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 namespace org {
 
@@ -14,4 +15,6 @@ struct ParseParams {
 sem::SemId<sem::Document> parseString(
     CR<std::string> text,
     CR<ParseParams> params = ParseParams{});
+
+json toJson(sem::SemId<sem::Org>);
 } // namespace org
