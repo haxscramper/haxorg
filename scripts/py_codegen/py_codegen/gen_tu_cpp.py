@@ -67,7 +67,7 @@ class GenTuEnum:
 class GenTuFunction:
     result: QualType
     name: str
-    doc: GenTuDoc
+    doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     params: List[GenTuParam] = field(default_factory=list)
     arguments: List[GenTuIdent] = field(default_factory=list)
     impl: Optional[Union[str, BlockId]] = None
@@ -125,7 +125,7 @@ GenTuEntry = Union[
 @dataclass
 class GenTuStruct:
     name: QualType
-    doc: GenTuDoc
+    doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     fields: List[GenTuField] = field(default_factory=list)
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
@@ -135,6 +135,7 @@ class GenTuStruct:
     IsAbstract: bool = False
     has_name: bool = True
     original: Optional[Path] = field(default=None)
+    GenDescribe: bool = True
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)
@@ -301,22 +302,23 @@ class GenConverter:
                 ]) for method in record.methods
             ]
 
-            params.nested.append(
-                self.ast.XCall(
-                    "BOOST_DESCRIBE_CLASS",
-                    [
-                        self.ast.string(record.name.name),
-                        self.ast.pars(self.ast.csv([B.name for B in record.bases],
-                                                   False)),
-                        self.ast.pars(self.ast.string("")),
-                        self.ast.pars(self.ast.string("")),
-                        self.ast.pars(
-                            self.ast.csv(fields + methods,
-                                         len(fields) < 6 and len(methods) < 2)),
-                    ],
-                    False,
-                    len(fields) < 4 and len(methods) < 1,
-                ))
+            if record.GenDescribe:
+                params.nested.append(
+                    self.ast.XCall(
+                        "BOOST_DESCRIBE_CLASS",
+                        [
+                            self.ast.string(record.name.name),
+                            self.ast.pars(self.ast.csv([B.name for B in record.bases],
+                                                    False)),
+                            self.ast.pars(self.ast.string("")),
+                            self.ast.pars(self.ast.string("")),
+                            self.ast.pars(
+                                self.ast.csv(fields + methods,
+                                            len(fields) < 6 and len(methods) < 2)),
+                        ],
+                        False,
+                        len(fields) < 4 and len(methods) < 1,
+                    ))
 
         return self.ast.Record(params)
 

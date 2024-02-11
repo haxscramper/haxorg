@@ -8,9 +8,7 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Core)
 
 qt_standard_project_setup()
 
-qt_add_executable(org_editor
-    main.cpp
-)
+qt_add_executable(org_editor)
 
 qt_add_qml_module(org_editor
     URI editor
@@ -18,6 +16,7 @@ qt_add_qml_module(org_editor
     QML_FILES Main.qml
 )
 
+glob_add_sources2(org_editor "${BASE}/src/editor/.*")
 target_link_libraries(org_editor PUBLIC haxorg)
 set_common_files(org_editor)
 set_target_output(org_editor)
