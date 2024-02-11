@@ -605,7 +605,8 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 @beartype
 def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
                  tu: ConvTu) -> Tuple[List[GenTuEntry], List[GenTuEntry]]:
-    result: List[GenTuEntry] = []
+    qml_wrapped: List[GenTuEntry] = []
+    qml_toplevel: List[GenTuEntry] = []
 
     def qml_type(typ: QualType) -> QualType:
         if typ.name == "Str" or typ.name == "string":
@@ -616,15 +617,20 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
 
     def gen_qml_wrap_struct(struct: GenTuStruct) -> GenTuStruct:
         result = GenTuStruct(
-            name=struct.name.withoutSpace("sem").withExtraSpace("qml").withExtraSpace(
-                "org"),
+            name=struct.name.withoutSpace("sem").withExtraSpace("org_qml"),
             GenDescribe=False,
-            bases=[b.withoutSpace("sem") for b in struct.bases]
-            if struct.bases else [QualType.ForName("QObject")],
+            bases=[b.withoutSpace("sem") for b in struct.bases],
         )
 
-        result.nested.append(GenTuPass("Q_OBJECT"))
+        result.nested.append(GenTuPass("Q_GADGET"))
         result.nested.append(GenTuPass("public:"))
+        qml_toplevel.append(
+            GenTuPass(ast.Call(
+                ast.string("Q_DECLARE_METATYPE"),
+                [ast.Type(result.name)],
+            )))
+        
+        BASE_NODE_FIELD = "__data"
 
         if hasattr(struct, "isOrgType"):
             pass
@@ -632,14 +638,14 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
         elif struct.name.name == "Org":
             result.fields.append(GenTuField(
                 type=t_id(struct.name),
-                name="value",
+                name=BASE_NODE_FIELD,
             ))
 
         else:
             result.fields.append(
                 GenTuField(
                     type=struct.name.withGlobalSpace(),
-                    name="value",
+                    name=BASE_NODE_FIELD,
                 ))
 
         def capitalize_first(s: str) -> str:
@@ -654,7 +660,6 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
                     "Vec",
                     "vector",
                     "optional",
-                    "Str",
                     "Org",
                     "UnorderedMap",
             ]:
@@ -676,10 +681,10 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
 
                 if hasattr(struct, "isOrgType"):
                     field_access = ast.string(
-                        f"value.getAs<sem::{struct.name.name}>()->{field.name}")
+                        f"{BASE_NODE_FIELD}.getAs<sem::{struct.name.name}>()->{field.name}")
 
                 else:
-                    field_access = ast.string(f"value.{field.name}")
+                    field_access = ast.string(f"{BASE_NODE_FIELD}.{field.name}")
 
                 serde_type = QualType(
                     name="serde",
@@ -725,12 +730,12 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
 
     for item in tu.structs:
         if item.name.name in ["Org", "LineCol"]:
-            result.append(gen_qml_wrap_struct(item))
+            qml_wrapped.append(gen_qml_wrap_struct(item))
 
     for item in expanded:
-        result.append(gen_qml_wrap_struct(item))
+        qml_wrapped.append(gen_qml_wrap_struct(item))
 
-    return result, []
+    return qml_wrapped, qml_toplevel
 
 
 @beartype

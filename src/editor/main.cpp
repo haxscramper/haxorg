@@ -6,8 +6,26 @@
 #include <QVariant>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <any>
 #include <absl/log/log.h>
+#include <org_qml.hpp>
+
+namespace org_qml {
+#define _case(__Kind)                                                     \
+    template <>                                                           \
+    struct serde<::org_qml::__Kind, ::sem::SemId<::sem::__Kind>> {        \
+        using qml_type = ::org_qml::__Kind;                               \
+        using cxx_type = ::sem::SemId<::sem::__Kind>;                     \
+        static qml_type cxx_to_qml(cxx_type value) {                      \
+            return qml_type{value};                                       \
+        }                                                                 \
+        static cxx_type qml_to_cxx(qml_type value) {                      \
+            return value.__data.as<::sem::__Kind>();                      \
+        }                                                                 \
+    };
+
+EACH_SEM_ORG_KIND(_case)
+#undef _case
+} // namespace org_qml
 
 class OrgNodeItem {
   public:
@@ -58,30 +76,16 @@ class OrgDocumentModel : public QAbstractItemModel {
     enum OrgNodeItemRole
     {
         KindRole = Qt::UserRole + 1,
+        DataRole,
         LastExplicitRole,
     };
 
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
-        for (auto const& [idx, name] : fieldRoles) {
-            // qt has some very weird relationship with the std-string
-            // related converters (linker errors due to ABI differences
-            // with stdc++ from llvm), so converting from raw data here
-            roles[idx] = QByteArray::fromRawData(
-                name.byteData.data(), name.byteData.size());
-        }
         roles[KindRole] = "kind";
+        roles[DataRole] = "data";
         return roles;
     }
-
-    struct OrgFieldExpose {
-        OrgSemKind  typeKind;
-        Str         fieldName;
-        std::any    fieldPtr;
-        std::string byteData;
-    };
-
-    UnorderedMap<int, OrgFieldExpose> fieldRoles;
 
     explicit OrgDocumentModel(
         const sem::SemId<sem::Org>& rootData,
@@ -89,28 +93,6 @@ class OrgDocumentModel : public QAbstractItemModel {
         : QAbstractItemModel(parent)
         , rootItem(std::make_unique<OrgNodeItem>(rootData, nullptr)) {
         setupModelData(rootItem, rootData);
-
-#define _case(__Kind)                                                     \
-    {                                                                     \
-        int fieldIdx = 0;                                                 \
-        for_each_field_with_bases<sem::__Kind>([&](auto const& field) {   \
-            int roleIdx = OrgNodeItemRole::LastExplicitRole + 1           \
-                        + (int)(OrgSemKind::__Kind) * 100 + fieldIdx;     \
-            std::string value = fmt(                                      \
-                "{}_{}", OrgSemKind::__Kind, field.name);                 \
-                                                                          \
-            fieldRoles[roleIdx] = OrgFieldExpose{                         \
-                OrgSemKind::__Kind,                                       \
-                field.name,                                               \
-                std::any{field.pointer},                                  \
-                value,                                                    \
-            };                                                            \
-            ++fieldIdx;                                                   \
-        });                                                               \
-    }
-
-        EACH_SEM_ORG_KIND(_case)
-#undef _case
     }
 
     void setupModelData(
@@ -202,67 +184,21 @@ class OrgDocumentModel : public QAbstractItemModel {
             case OrgNodeItemRole::KindRole: {
                 return QString::fromStdString(fmt1(item->node->getKind()));
             }
-            default: {
-                if (fieldRoles.contains(role)) {
-                    auto const& expose = fieldRoles.at(role);
-
-                    QVariant result{};
-
-                    auto aux = [&]<typename T>(sem::SemId<T> node) {
-                        for_each_field_with_bases<T>([&](auto const&
-                                                             field) {
-                            using FieldType = decltype(field.pointer);
-                            if (typeid(FieldType) == expose.fieldPtr.type()
-                                && field.pointer
-                                       == std::any_cast<FieldType>(
-                                           expose.fieldPtr)) {
-                                auto fieldValue = static_cast<T*>(
-                                                      node.get())
-                                                      ->*field.pointer;
-                                using FieldValueType = std::remove_cvref_t<
-                                    decltype(fieldValue)>;
-                                if constexpr (std::is_convertible_v<
-                                                  FieldValueType,
-                                                  QVariant>) {
-                                    result = fieldValue;
-                                } else if constexpr (std::is_same_v<
-                                                         FieldValueType,
-                                                         Str>) {
-                                    result = QString::fromStdString(
-                                        fieldValue);
-                                }
-                            }
-                        });
-                    };
-
-                    switch (expose.typeKind) {
+            case OrgNodeItemRole::DataRole: {
+                switch (item->node->getKind()) {
 #define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        if (item->node->is(expose.typeKind)) {                            \
-            aux(item->node.as<sem::__Kind>());                            \
-        } else {                                                          \
-            LOG(ERROR) << fmt(                                            \
-                "Requesting invalid role for type {}.{}",                 \
-                expose.typeKind,                                          \
-                expose.fieldName);                                        \
-        }                                                                 \
-        break;                                                            \
-    }
+    case OrgSemKind::__Kind:                                              \
+        return QVariant::fromValue(                                       \
+            org_qml::serde<org_qml::__Kind, sem::SemId<sem::__Kind>>::    \
+                cxx_to_qml(item->node.as<sem::__Kind>()));
 
-                        EACH_SEM_ORG_KIND(_case)
+
+                    EACH_SEM_ORG_KIND(_case)
 #undef _case
-                    }
-
-                    if (result.isValid()) {
-                        return result;
-                    } else {
-                        return QVariant();
-                    }
-
-
-                } else {
-                    return QVariant();
                 }
+            }
+            default: {
+                return QVariant();
             }
         }
     }

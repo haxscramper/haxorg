@@ -41,7 +41,7 @@ Window {
 
             function textItem(model) {
                 if (model.kind === "Word") {
-                    return "Word: " + model.Word_text;
+                    return "Word: " + model.data.text;
                 } else {
                     return model.kind;
                 }
