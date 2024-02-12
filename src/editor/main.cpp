@@ -37,13 +37,23 @@ class OrgNodeItem {
         OrgNodeItem*                parent)
         : node(data), parent(parent) {}
 
-    void push_back(UPtr<OrgNodeItem>&& item) {
-        subnodes.push_back(std::move(item));
+    OrgNodeItem* at(int row) {
+        if (row < item_cache.size()) {
+            return item_cache.at(row).get();
+        } else {
+            if (row < node->subnodes.size()) {
+                auto& sub = item_cache.emplace_back(
+                    std::make_unique<OrgNodeItem>(
+                        node->subnodes.at(row), this));
+                return sub.get();
+            } else {
+                return nullptr;
+            }
+        }
     }
 
-    OrgNodeItem* at(int row) { return subnodes.at(row).get(); }
-    int          size() const { return subnodes.size(); }
-    int          columnCount() const { return 1; }
+    int size() const { return node->subnodes.size(); }
+    int columnCount() const { return 1; }
 
     QVariant data(int column) const {
         if (column == 0) {
@@ -55,9 +65,8 @@ class OrgNodeItem {
 
     int row() const {
         if (parent) {
-            for (int idx = 0; idx < parent->subnodes.size(); ++idx) {
-                if (parent->subnodes[idx]->node.get()
-                    == this->node.get()) {
+            for (int idx = 0; idx < parent->size(); ++idx) {
+                if (parent->at(idx)->node.get() == this->node.get()) {
                     return idx;
                 }
             }
@@ -69,7 +78,7 @@ class OrgNodeItem {
 
     OrgNodeItem* getparent() { return parent; }
 
-    std::vector<UPtr<OrgNodeItem>> subnodes;
+    std::vector<UPtr<OrgNodeItem>> item_cache;
     sem::SemId<sem::Org>           node;
     OrgNodeItem*                   parent;
 
@@ -113,19 +122,7 @@ class OrgDocumentModel : public QAbstractItemModel {
         const sem::SemId<sem::Org>& rootData,
         QObject*                    parent = nullptr)
         : QAbstractItemModel(parent)
-        , rootItem(std::make_unique<OrgNodeItem>(rootData, nullptr)) {
-        setupModelData(rootItem, rootData);
-    }
-
-    void setupModelData(
-        UPtr<OrgNodeItem>&   parent,
-        sem::SemId<sem::Org> orgData) {
-        for (const auto& subnode : orgData->subnodes) {
-            auto& sub = parent->subnodes.emplace_back(
-                std::make_unique<OrgNodeItem>(subnode, parent.get()));
-            setupModelData(sub, subnode);
-        }
-    }
+        , rootItem(std::make_unique<OrgNodeItem>(rootData, nullptr)) {}
 
     ~OrgDocumentModel() override = default;
 
