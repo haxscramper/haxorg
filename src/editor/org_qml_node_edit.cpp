@@ -9,6 +9,7 @@ void OrgNodeTextWrapper::setRichText(const QString& value) {
 
 QString OrgNodeTextWrapper::getRichText() {
     ExporterQTextDocument exp;
+    exp.addNewline = false;
     exp.evalTop(cursor->node);
     return exp.document->toHtml();
 }

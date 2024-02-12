@@ -27,27 +27,9 @@ Window {
             Layout.fillHeight: true
             model: documentModel
             id: treeView
-
-            Component.onCompleted: {
-                console.log("Component on complte");
-                function expandAll(index) {
-                    if (!index.isValid) return;
-
-                    const rowCount = treeView.model.rowCount(index);
-                    for (let i = 0; i < rowCount; ++i) {
-                        const childIndex = treeView.model.index(i, 0, index);
-                        treeView.expand(childIndex);
-                        expandAll(childIndex); // Recursively expand children
-                    }
-                }
-
-                // Start the recursive expansion with the root index
-                expandAll(treeView.rootIndex);
-            }
-
             delegate: Item {
                 id: tree_item
-                implicitHeight: 20
+                // implicitHeight: 90
 
                 readonly property real indent: 20
                 readonly property real padding: 5
@@ -61,7 +43,7 @@ Window {
 
                 RowLayout {
                     x: padding + (tree_item.isTreeNode ? (tree_item.depth + 1) * tree_item.indent : 0)
-                    height: 20
+                    height: 90
 
                     Text {
                         id: indicator
@@ -82,7 +64,7 @@ Window {
                     Component {
                         id: label
                         Text {
-                            width: tree_item.width - tree_item.padding - x
+                            width: 400
                             clip: true
                             text: model.kind
                             textFormat: Text.RichText
@@ -91,14 +73,20 @@ Window {
 
                     Component {
                         id: edit
-                        TextEdit {
-                            id: text_edit
-                            width: tree_item.width - tree_item.padding - x
-                            clip: true
-                            text: model.rich.text
-                            textFormat: TextEdit.RichText
-                            onEditingFinished: {
-                                model.rich.text = text_edit.text
+                        Rectangle {
+                            border.width: 2
+                            border.color: "black"
+                            height: textEdit.height
+                            width: textEdit.width
+                            TextEdit {
+                                padding: 5
+                                id: textEdit
+                                text: model.rich.text
+                                font.pixelSize: 12
+                                textFormat: TextEdit.RichText
+                                onEditingFinished: {
+                                    model.rich.text = textEdit.text
+                                }
                             }
                         }
                     }

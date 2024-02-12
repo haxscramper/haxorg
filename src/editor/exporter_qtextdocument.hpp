@@ -14,6 +14,13 @@ struct ExporterQTextDocument : public Exporter<ExporterQTextDocument> {
     SPtr<QTextDocument>  document;
     QTextCursor          cursor;
     Vec<QTextCharFormat> styles;
+    bool                 addNewline = true;
+
+    ExporterQTextDocument& withNewline(bool newline) {
+        addNewline = newline;
+        return *this;
+    }
+
     void write(QString const& str) { cursor.insertText(str); }
     void mergeFmt(QTextCharFormat const& format) {
         styles.push_back(cursor.charFormat());
@@ -52,14 +59,31 @@ struct ExporterQTextDocument : public Exporter<ExporterQTextDocument> {
     ExporterQTextDocument()
         : document(new QTextDocument()), cursor(document.get()) {}
 
-#define __leaf(__Kind)                                                    \
-    void visit##__Kind(export_type&, In<sem::__Kind> word) {              \
-        write(QString::fromStdString(word->text));                        \
+    void visitNewline(export_type&, In<sem::Newline> word) {
+        if (addNewline) {
+            write(QString::fromStdString(word->text));
+        } else {
+            write(" ");
+        }
     }
-
-    EACH_SEM_ORG_LEAF_KIND(__leaf)
-
-#undef __leaf
+    void visitSpace(export_type&, In<sem::Space> word) {
+        write(QString::fromStdString(word->text));
+    }
+    void visitWord(export_type&, In<sem::Word> word) {
+        write(QString::fromStdString(word->text));
+    }
+    void visitRawText(export_type&, In<sem::RawText> word) {
+        write(QString::fromStdString(word->text));
+    }
+    void visitPunctuation(export_type&, In<sem::Punctuation> word) {
+        write(QString::fromStdString(word->text));
+    }
+    void visitPlaceholder(export_type&, In<sem::Placeholder> word) {
+        write(QString::fromStdString(word->text));
+    }
+    void visitBigIdent(export_type&, In<sem::BigIdent> word) {
+        write(QString::fromStdString(word->text));
+    }
 
 
     void eachSub(In<sem::Subtree> tree) {
