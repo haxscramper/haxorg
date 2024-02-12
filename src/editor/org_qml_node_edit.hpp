@@ -62,7 +62,13 @@ class OrgNodeCursor {
         }
     }
 
-    int size() const { return node->subnodes.size(); }
+    int size() const {
+        if (node->is(OrgSemKind::Paragraph)) {
+            return 0;
+        } else {
+            return node->subnodes.size();
+        }
+    }
     int columnCount() const { return 1; }
 
     QVariant data(int column) const {

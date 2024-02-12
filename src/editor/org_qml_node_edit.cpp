@@ -1,5 +1,5 @@
 #include "org_qml_node_edit.hpp"
-
+#include "exporter_qtextdocument.hpp"
 
 void OrgNodeTextWrapper::setRichText(const QString& value) {
     if (cursor->node->is(OrgSemKind::Word)) {
@@ -8,12 +8,9 @@ void OrgNodeTextWrapper::setRichText(const QString& value) {
 }
 
 QString OrgNodeTextWrapper::getRichText() {
-    if (cursor->node->is(OrgSemKind::Word)) {
-        return QString::fromStdString(
-            cursor->node.getAs<sem::Word>()->text);
-    } else {
-        return "none";
-    }
+    ExporterQTextDocument exp;
+    exp.evalTop(cursor->node);
+    return exp.document->toHtml();
 }
 
 QVariant OrgNodeCursor::getNodeHandle() {

@@ -76,7 +76,7 @@ Window {
 
                     Loader {
                         id: nodeEdit
-                        sourceComponent: model.kind === "Word" ? edit : label;
+                        sourceComponent: model.kind === "Paragraph" ? edit : label;
                     }
 
                     Component {
@@ -85,6 +85,7 @@ Window {
                             width: tree_item.width - tree_item.padding - x
                             clip: true
                             text: model.kind
+                            textFormat: Text.RichText
                         }
                     }
 
@@ -95,6 +96,7 @@ Window {
                             width: tree_item.width - tree_item.padding - x
                             clip: true
                             text: model.rich.text
+                            textFormat: TextEdit.RichText
                             onEditingFinished: {
                                 model.rich.text = text_edit.text
                             }
