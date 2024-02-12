@@ -76,16 +76,12 @@ Window {
 
                     Loader {
                         id: nodeEdit
-                        anchors.fill: parent
                         sourceComponent: model.kind === "Word" ? edit : label;
-                        width: item.width
-                        height: item.height
                     }
 
                     Component {
                         id: label
                         Text {
-                            x: padding + (tree_item.isTreeNode ? (tree_item.depth + 1) * tree_item.indent : 0)
                             width: tree_item.width - tree_item.padding - x
                             clip: true
                             text: model.kind
@@ -96,13 +92,10 @@ Window {
                         id: edit
                         TextEdit {
                             id: text_edit
-                            x: padding + (tree_item.isTreeNode ? (tree_item.depth + 1) * tree_item.indent : 0)
                             width: tree_item.width - tree_item.padding - x
                             clip: true
                             text: model.rich.text
                             onEditingFinished: {
-                                console.log(text_edit.text)
-                                console.log(model.rich.text)
                                 model.rich.text = text_edit.text
                             }
                         }
