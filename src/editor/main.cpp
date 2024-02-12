@@ -9,8 +9,7 @@
 #include <absl/log/log.h>
 #include <org_qml.hpp>
 #include "org_qml_node_edit.hpp"
-
-
+#include <QSortFilterProxyModel>
 
 
 class OrgDocumentModel : public QAbstractItemModel {
@@ -137,6 +136,21 @@ class OrgDocumentModel : public QAbstractItemModel {
 };
 
 
+struct OrgDocumentFilter : public QSortFilterProxyModel {
+  protected:
+    virtual bool filterAcceptsRow(
+        int                source_row,
+        const QModelIndex& source_parent) const override {
+        QModelIndex index = sourceModel()->index(
+            source_row, 0, source_parent);
+        OrgNodeCursor* data = static_cast<OrgNodeCursor*>(
+            index.internalPointer());
+
+        return !SemSet{OrgSemKind::Newline}.contains(
+            data->node->getKind());
+    }
+};
+
 int main(int argc, char* argv[]) {
     OrgBackend backend;
     backend.document = org::parseString(
@@ -145,7 +159,9 @@ int main(int argc, char* argv[]) {
     QGuiApplication       app(argc, argv);
     QQmlApplicationEngine engine;
     OrgDocumentModel      model{backend.document};
-    engine.rootContext()->setContextProperty("documentModel", &model);
+    OrgDocumentFilter     filter{};
+    filter.setSourceModel(&model);
+    engine.rootContext()->setContextProperty("documentModel", &filter);
     engine.rootContext()->setContextProperty("backend", &backend);
 
     const QUrl url(u"qrc:/editor/Main.qml"_qs);

@@ -31,7 +31,7 @@ Window {
             Component.onCompleted: {
                 console.log("Component on complte");
                 function expandAll(index) {
-                    if (!index.isValid()) return;
+                    if (!index.isValid) return;
 
                     const rowCount = treeView.model.rowCount(index);
                     for (let i = 0; i < rowCount; ++i) {
