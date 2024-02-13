@@ -17,13 +17,16 @@ qt_add_qml_module(org_editor
 )
 
 glob_add_sources2(org_editor "${BASE}/src/editor/.*")
-target_link_libraries(org_editor PUBLIC haxorg)
+
+add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
+
+target_link_libraries(org_editor PUBLIC haxorg lexbor_static)
 set_common_files(org_editor)
 set_target_output(org_editor)
 set_target_flags(org_editor)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
+# If you are developing for iOS or macOS you should consider sett5ing an
 # explicit, fixed bundle identifier manually though.
 set_target_properties(org_editor PROPERTIES
 #    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.org_editor
