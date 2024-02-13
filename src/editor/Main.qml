@@ -28,8 +28,9 @@ Window {
             model: documentModel
             id: treeView
             delegate: Item {
-                id: tree_item
-                // implicitHeight: 90
+                id: treeItem
+                implicitHeight: itemRow.height
+                implicitWidth: itemRow.width
 
                 readonly property real indent: 20
                 readonly property real padding: 5
@@ -42,15 +43,15 @@ Window {
                 required property int depth
 
                 RowLayout {
-                    x: padding + (tree_item.isTreeNode ? (tree_item.depth + 1) * tree_item.indent : 0)
-                    height: 90
+                    id: itemRow
+                    x: padding + (treeItem.isTreeNode ? (treeItem.depth + 1) * treeItem.indent : 0)
 
                     Text {
                         id: indicator
-                        visible: tree_item.isTreeNode && tree_item.hasChildren
+                        visible: treeItem.isTreeNode && treeItem.hasChildren
                         anchors.verticalCenter: label.verticalCenter
                         text: "▸"
-                        rotation: tree_item.expanded ? 90 : 0
+                        rotation: treeItem.expanded ? 90 : 0
                         TapHandler {
                             onTapped: treeView.toggleExpanded(row)
                         }
