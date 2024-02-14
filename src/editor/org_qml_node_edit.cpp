@@ -20,7 +20,7 @@ LxbDoc parseHtmlFragmentToLxb(const QString& html) {
 
     const lexbor_str_t lxb_html = lexbor_str(result.constData());
     lxb_status_t       status   = lxb_html_document_parse(
-        document.get(), lxb_html.data, lxb_html.length);
+        document.get(), lxb_html.data, result.length());
 
     if (status != LXB_STATUS_OK) { LOG(FATAL) << "Cannot parse"; }
 
@@ -33,13 +33,14 @@ void printHtmlStructure(lxb_dom_node_t* node, int depth = 0) {
 
     switch (node->type) {
         case LXB_DOM_NODE_TYPE_ELEMENT: {
-            auto           element  = lxb_dom_interface_element(node);
+            auto           element = lxb_dom_interface_element(node);
+            std::size_t    len{};
             CP<lxb_char_t> tag_name = lxb_dom_element_qualified_name(
-                element, nullptr);
+                element, &len);
 
             std::cout << "<element> "
-                      << std::string(
-                             reinterpret_cast<const char*>(tag_name));
+                      << escape_literal(std::string(
+                             reinterpret_cast<const char*>(tag_name)));
             break;
         }
         case LXB_DOM_NODE_TYPE_TEXT: {
@@ -48,8 +49,8 @@ void printHtmlStructure(lxb_dom_node_t* node, int depth = 0) {
             CP<lxb_char_t> text_content = lxb_dom_node_text_content(
                 node, &len);
             std::cout << "<text> "
-                      << std::string(
-                             reinterpret_cast<const char*>(text_content));
+                      << escape_literal(std::string(
+                             reinterpret_cast<const char*>(text_content)));
             break;
         }
         case LXB_DOM_NODE_TYPE_UNDEF: {
@@ -114,29 +115,7 @@ void printHtmlStructure(lxb_dom_node_t* node, int depth = 0) {
 
 void OrgNodeTextWrapper::setRichText(const QString& value) {
     LxbDoc doc = parseHtmlFragmentToLxb(value);
-    LOG(INFO) << "Set " << to_std(value);
-
-    lexbor_str_t res    = {0};
-    lxb_status_t status = lxb_html_serialize_pretty_deep_str(
-        lxb_dom_interface_node(doc.get()),
-        LXB_HTML_SERIALIZE_OPT_WITHOUT_CLOSING //
-            | LXB_HTML_SERIALIZE_OPT_RAW
-            | LXB_HTML_SERIALIZE_OPT_TAG_WITH_NS
-            | LXB_HTML_SERIALIZE_OPT_UNDEF
-            | LXB_HTML_SERIALIZE_OPT_FULL_DOCTYPE,
-        0,
-        &res);
-
-    if (status != LXB_STATUS_OK) {
-        LOG(FATAL) << "Failed to serialization tree";
-    } else {
-        LOG(INFO) << "res data rendering";
-        LOG(INFO) << res.data;
-        LOG(INFO) << "----";
-    }
-
-
-    printHtmlStructure(lxb_dom_interface_node(doc.get()));
+    printHtmlStructure(lxb_dom_interface_node(doc->body));
 }
 
 QString OrgNodeTextWrapper::getRichText() {
