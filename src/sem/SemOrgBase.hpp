@@ -81,9 +81,7 @@ struct SemId {
     SemId(SPtr<O> const& value) : value(value) {}
     SemId(O* value) : value(value) {}
 
-    operator SemId<Org>() {
-        return SemId<Org>{std::shared_ptr<Org>(value)};
-    }
+    operator SemId<Org>() { return asOrg(); }
 
     /// \name Get pointer to the associated sem org node from ID
     ///
