@@ -27,6 +27,11 @@ Window {
             Layout.fillHeight: true
             model: documentModel
             id: treeView
+
+            Component.onCompleted: {
+                treeView.expandRecursively(-1, -1)
+            }
+
             delegate: Item {
                 id: treeItem
                 implicitHeight: itemRow.height
@@ -41,6 +46,8 @@ Window {
                 required property bool expanded
                 required property int hasChildren
                 required property int depth
+
+
 
                 RowLayout {
                     id: itemRow
