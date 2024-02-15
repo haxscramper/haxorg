@@ -218,11 +218,8 @@ Opt<SemId<Org>> toNode(LxbNode node) {
 }
 
 void OrgNodeTextWrapper::setRichText(const QString& value) {
-    LxbDoc doc = parseHtmlFragmentToLxb(value);
-    LOG(INFO) << getHtmlTree(lxb_dom_interface_node(doc->body));
-    Opt<SemId<Org>> org = toNode(lxb_dom_interface_node(doc->body));
-    ExporterTree::treeRepr(org.value());
-    std::cout << std::endl;
+    LxbDoc          doc       = parseHtmlFragmentToLxb(value);
+    Opt<SemId<Org>> org       = toNode(lxb_dom_interface_node(doc->body));
     *cursor->node.value.get() = *org.value().value.get();
 }
 

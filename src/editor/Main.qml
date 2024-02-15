@@ -65,28 +65,44 @@ Window {
                     Component {
                         id: label
                         Text {
+                            id: labelText
                             width: 400
                             clip: true
                             text: model.kind
                             textFormat: Text.RichText
+                            wrapMode: TextEdit.WordWrap
                         }
                     }
 
                     Component {
                         id: edit
                         Rectangle {
+                            id: editRect
                             border.width: 2
                             border.color: "black"
-                            height: textEdit.height
+                            height: textEdit.contentHeight + 2 * textEdit.padding
                             width: textEdit.width
                             TextEdit {
                                 padding: 5
                                 id: textEdit
                                 text: model.rich.text
+                                width: 500
                                 font.pixelSize: 12
                                 textFormat: TextEdit.RichText
+                                wrapMode: TextEdit.WordWrap
+                                property bool completed: false
                                 onEditingFinished: {
                                     model.rich.text = textEdit.text
+                                }
+
+                                Component.onCompleted: {
+                                    textEdit.completed = true;
+                                }
+
+                                onTextChanged: {
+                                    if(textEdit.completed) {
+                                        treeView.forceLayout();
+                                    }
                                 }
                             }
                         }
