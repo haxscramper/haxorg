@@ -150,20 +150,49 @@ std::string getHtmlTree(LxbNode node) {
 Opt<SemId<Org>> toNode(LxbNode node) {
     std::string     tag = getTag(node);
     Opt<SemId<Org>> result;
-    auto            addAllSub = [&]() {
-        for (auto const& sub : getSubnodes(node)) {
-            auto subOrg = toNode(sub);
-            if (subOrg) { (*result)->push_back(subOrg.value()); }
-        }
+
+    auto add = [&](CR<Opt<SemId<Org>>> subOrg) {
+        if (subOrg) { (*result)->push_back(subOrg.value()); }
     };
+
     switch (node->type) {
         case LXB_DOM_NODE_TYPE_ELEMENT: {
             if (tag == "p") {
                 result = SemId<Paragraph>::New();
-                addAllSub();
+                for (auto const& sub : getSubnodes(node)) {
+                    if (sub->type == LXB_DOM_NODE_TYPE_TEXT) {
+                        Str  text    = getText(sub);
+                        bool isFirst = true;
+                        for (auto const& word : text.split(' ')) {
+                            if (word.empty()) {
+                                continue;
+                            } else if (!isFirst) {
+                                auto space  = SemId<Space>::New();
+                                space->text = " ";
+                                add(space);
+                            }
+
+                            auto wordOrg  = SemId<Word>::New();
+                            wordOrg->text = word;
+                            add(wordOrg);
+                            isFirst = false;
+                        }
+                    } else {
+                        add(toNode(sub));
+                    }
+                }
             } else if (tag == "body") {
-                result = SemId<StmtList>::New();
-                addAllSub();
+                result                = SemId<StmtList>::New();
+                Vec<LxbNode> subnodes = getSubnodes(node);
+                for (int i = 0; i < subnodes.size(); ++i) {
+                    LxbNode sub = subnodes.at(i);
+                    if (i == 0 && sub->type == LXB_DOM_NODE_TYPE_TEXT
+                        && getText(sub) == "\n") {
+                        continue;
+                    } else {
+                        add(toNode(sub));
+                    }
+                }
             } else {
                 LOG(ERROR) << "Unhandled tag conversion HTML->org";
                 LOG(ERROR) << getHtmlTree(node);
@@ -194,6 +223,7 @@ void OrgNodeTextWrapper::setRichText(const QString& value) {
     Opt<SemId<Org>> org = toNode(lxb_dom_interface_node(doc->body));
     ExporterTree::treeRepr(org.value());
     std::cout << std::endl;
+    *cursor->node.value.get() = *org.value().value.get();
 }
 
 QString OrgNodeTextWrapper::getRichText() {
