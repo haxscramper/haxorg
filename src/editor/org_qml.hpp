@@ -9,434 +9,517 @@ struct LineCol {
   Q_PROPERTY( int column READ getColumn WRITE setColumn )
   Q_PROPERTY( int pos READ getPos WRITE setPos )
   ::LineCol __data;
-  int getLine() { return org_qml::serde<int, int>::cxx_to_qml(__data.line); }
-  void setLine(int line) { __data.line = org_qml::serde<int, int>::qml_to_cxx(line); }
-  int getColumn() { return org_qml::serde<int, int>::cxx_to_qml(__data.column); }
-  void setColumn(int column) { __data.column = org_qml::serde<int, int>::qml_to_cxx(column); }
-  int getPos() { return org_qml::serde<int, int>::cxx_to_qml(__data.pos); }
-  void setPos(int pos) { __data.pos = org_qml::serde<int, int>::qml_to_cxx(pos); }
+  int getLine();
+  void setLine(int line);
+  int getColumn();
+  void setColumn(int column);
+  int getPos();
+  void setPos(int pos);
 };
 
 struct Org {
   Q_GADGET
   public:
+  Org() = default;
+  Org(sem::SemId<sem::Org> const& id) : __data(id.as<sem::Org>()) {}
   sem::SemId<sem::Org> __data;
 };
 
 struct Stmt : public Org {
   Q_GADGET
   public:
+  Stmt() = default;
+  Stmt(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Inline : public Org {
   Q_GADGET
   public:
+  Inline() = default;
+  Inline(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct StmtList : public Org {
   Q_GADGET
   public:
+  StmtList() = default;
+  StmtList(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Empty : public Org {
   Q_GADGET
   public:
+  Empty() = default;
+  Empty(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Row : public Org {
   Q_GADGET
   public:
+  Row() = default;
+  Row(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Table : public Stmt {
   Q_GADGET
   public:
+  Table() = default;
+  Table(sem::SemId<sem::Org> const& id) : Stmt(id) {}
 };
 
 struct HashTag : public Inline {
   Q_GADGET
   public:
+  HashTag() = default;
+  HashTag(sem::SemId<sem::Org> const& id) : Inline(id) {}
   Q_PROPERTY( QString head READ getHead WRITE setHead )
-  QString getHead() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::HashTag>()->head); }
-  void setHead(QString head) { __data.getAs<sem::HashTag>()->head = org_qml::serde<QString, Str>::qml_to_cxx(head); }
+  QString getHead();
+  void setHead(QString head);
 };
 
 struct Footnote : public Inline {
   Q_GADGET
   public:
+  Footnote() = default;
+  Footnote(sem::SemId<sem::Org> const& id) : Inline(id) {}
   Q_PROPERTY( QString tag READ getTag WRITE setTag )
-  QString getTag() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::Footnote>()->tag); }
-  void setTag(QString tag) { __data.getAs<sem::Footnote>()->tag = org_qml::serde<QString, Str>::qml_to_cxx(tag); }
+  QString getTag();
+  void setTag(QString tag);
 };
 
 struct Completion : public Inline {
   Q_GADGET
   public:
+  Completion() = default;
+  Completion(sem::SemId<sem::Org> const& id) : Inline(id) {}
   Q_PROPERTY( int done READ getDone WRITE setDone )
   Q_PROPERTY( int full READ getFull WRITE setFull )
   Q_PROPERTY( bool isPercent READ getIsPercent WRITE setIsPercent )
-  int getDone() { return org_qml::serde<int, int>::cxx_to_qml(__data.getAs<sem::Completion>()->done); }
-  void setDone(int done) { __data.getAs<sem::Completion>()->done = org_qml::serde<int, int>::qml_to_cxx(done); }
-  int getFull() { return org_qml::serde<int, int>::cxx_to_qml(__data.getAs<sem::Completion>()->full); }
-  void setFull(int full) { __data.getAs<sem::Completion>()->full = org_qml::serde<int, int>::qml_to_cxx(full); }
-  bool getIsPercent() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::Completion>()->isPercent); }
-  void setIsPercent(bool isPercent) { __data.getAs<sem::Completion>()->isPercent = org_qml::serde<bool, bool>::qml_to_cxx(isPercent); }
+  int getDone();
+  void setDone(int done);
+  int getFull();
+  void setFull(int full);
+  bool getIsPercent();
+  void setIsPercent(bool isPercent);
 };
 
 struct Paragraph : public Stmt {
   Q_GADGET
   public:
+  Paragraph() = default;
+  Paragraph(sem::SemId<sem::Org> const& id) : Stmt(id) {}
 };
 
 struct Format : public Org {
   Q_GADGET
   public:
+  Format() = default;
+  Format(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Center : public Format {
   Q_GADGET
   public:
+  Center() = default;
+  Center(sem::SemId<sem::Org> const& id) : Format(id) {}
 };
 
 struct Command : public Org {
   Q_GADGET
   public:
+  Command() = default;
+  Command(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct LineCommand : public Command {
   Q_GADGET
   public:
+  LineCommand() = default;
+  LineCommand(sem::SemId<sem::Org> const& id) : Command(id) {}
 };
 
 struct Standalone : public LineCommand {
   Q_GADGET
   public:
+  Standalone() = default;
+  Standalone(sem::SemId<sem::Org> const& id) : LineCommand(id) {}
 };
 
 struct Attached : public LineCommand {
   Q_GADGET
   public:
+  Attached() = default;
+  Attached(sem::SemId<sem::Org> const& id) : LineCommand(id) {}
 };
 
 struct Caption : public Attached {
   Q_GADGET
   public:
-  Q_PROPERTY( sem::SemId<sem::Paragraph> text READ getText WRITE setText )
-  sem::SemId<sem::Paragraph> getText() { return org_qml::serde<sem::SemId<sem::Paragraph>, sem::SemId<sem::Paragraph>>::cxx_to_qml(__data.getAs<sem::Caption>()->text); }
-  void setText(sem::SemId<sem::Paragraph> text) { __data.getAs<sem::Caption>()->text = org_qml::serde<sem::SemId<sem::Paragraph>, sem::SemId<sem::Paragraph>>::qml_to_cxx(text); }
+  Caption() = default;
+  Caption(sem::SemId<sem::Org> const& id) : Attached(id) {}
+  Q_PROPERTY( org_qml::Paragraph text READ getText WRITE setText )
+  org_qml::Paragraph getText();
+  void setText(org_qml::Paragraph text);
 };
 
 struct CommandGroup : public Stmt {
   Q_GADGET
   public:
+  CommandGroup() = default;
+  CommandGroup(sem::SemId<sem::Org> const& id) : Stmt(id) {}
 };
 
 struct Block : public Command {
   Q_GADGET
   public:
+  Block() = default;
+  Block(sem::SemId<sem::Org> const& id) : Command(id) {}
 };
 
 struct Tblfm : public Command {
   Q_GADGET
   public:
+  Tblfm() = default;
+  Tblfm(sem::SemId<sem::Org> const& id) : Command(id) {}
 };
 
 struct Quote : public Org {
   Q_GADGET
   public:
+  Quote() = default;
+  Quote(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Verse : public Block {
   Q_GADGET
   public:
+  Verse() = default;
+  Verse(sem::SemId<sem::Org> const& id) : Block(id) {}
 };
 
 struct Example : public Block {
   Q_GADGET
   public:
+  Example() = default;
+  Example(sem::SemId<sem::Org> const& id) : Block(id) {}
 };
 
 struct CmdArguments : public Org {
   Q_GADGET
   public:
+  CmdArguments() = default;
+  CmdArguments(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct CmdArgument : public Org {
   Q_GADGET
   public:
+  CmdArgument() = default;
+  CmdArgument(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( QString value READ getValue WRITE setValue )
-  QString getValue() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::CmdArgument>()->value); }
-  void setValue(QString value) { __data.getAs<sem::CmdArgument>()->value = org_qml::serde<QString, Str>::qml_to_cxx(value); }
+  QString getValue();
+  void setValue(QString value);
 };
 
 struct Export : public Block {
   Q_GADGET
   public:
+  Export() = default;
+  Export(sem::SemId<sem::Org> const& id) : Block(id) {}
   Q_PROPERTY( sem::Export::Format format READ getFormat WRITE setFormat )
   Q_PROPERTY( QString exporter READ getExporter WRITE setExporter )
   Q_PROPERTY( QString content READ getContent WRITE setContent )
-  sem::Export::Format getFormat() { return org_qml::serde<sem::Export::Format, sem::Export::Format>::cxx_to_qml(__data.getAs<sem::Export>()->format); }
-  void setFormat(sem::Export::Format format) { __data.getAs<sem::Export>()->format = org_qml::serde<sem::Export::Format, sem::Export::Format>::qml_to_cxx(format); }
-  QString getExporter() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::Export>()->exporter); }
-  void setExporter(QString exporter) { __data.getAs<sem::Export>()->exporter = org_qml::serde<QString, Str>::qml_to_cxx(exporter); }
-  QString getContent() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::Export>()->content); }
-  void setContent(QString content) { __data.getAs<sem::Export>()->content = org_qml::serde<QString, Str>::qml_to_cxx(content); }
+  sem::Export::Format getFormat();
+  void setFormat(sem::Export::Format format);
+  QString getExporter();
+  void setExporter(QString exporter);
+  QString getContent();
+  void setContent(QString content);
 };
 
 struct AdmonitionBlock : public Block {
   Q_GADGET
   public:
+  AdmonitionBlock() = default;
+  AdmonitionBlock(sem::SemId<sem::Org> const& id) : Block(id) {}
 };
 
 struct Code : public Block {
   Q_GADGET
   public:
+  Code() = default;
+  Code(sem::SemId<sem::Org> const& id) : Block(id) {}
   Q_PROPERTY( sem::Code::Exports exports READ getExports WRITE setExports )
   Q_PROPERTY( bool cache READ getCache WRITE setCache )
   Q_PROPERTY( bool eval READ getEval WRITE setEval )
   Q_PROPERTY( bool noweb READ getNoweb WRITE setNoweb )
   Q_PROPERTY( bool hlines READ getHlines WRITE setHlines )
   Q_PROPERTY( bool tangle READ getTangle WRITE setTangle )
-  sem::Code::Exports getExports() { return org_qml::serde<sem::Code::Exports, sem::Code::Exports>::cxx_to_qml(__data.getAs<sem::Code>()->exports); }
-  void setExports(sem::Code::Exports exports) { __data.getAs<sem::Code>()->exports = org_qml::serde<sem::Code::Exports, sem::Code::Exports>::qml_to_cxx(exports); }
-  bool getCache() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::Code>()->cache); }
-  void setCache(bool cache) { __data.getAs<sem::Code>()->cache = org_qml::serde<bool, bool>::qml_to_cxx(cache); }
-  bool getEval() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::Code>()->eval); }
-  void setEval(bool eval) { __data.getAs<sem::Code>()->eval = org_qml::serde<bool, bool>::qml_to_cxx(eval); }
-  bool getNoweb() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::Code>()->noweb); }
-  void setNoweb(bool noweb) { __data.getAs<sem::Code>()->noweb = org_qml::serde<bool, bool>::qml_to_cxx(noweb); }
-  bool getHlines() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::Code>()->hlines); }
-  void setHlines(bool hlines) { __data.getAs<sem::Code>()->hlines = org_qml::serde<bool, bool>::qml_to_cxx(hlines); }
-  bool getTangle() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::Code>()->tangle); }
-  void setTangle(bool tangle) { __data.getAs<sem::Code>()->tangle = org_qml::serde<bool, bool>::qml_to_cxx(tangle); }
+  sem::Code::Exports getExports();
+  void setExports(sem::Code::Exports exports);
+  bool getCache();
+  void setCache(bool cache);
+  bool getEval();
+  void setEval(bool eval);
+  bool getNoweb();
+  void setNoweb(bool noweb);
+  bool getHlines();
+  void setHlines(bool hlines);
+  bool getTangle();
+  void setTangle(bool tangle);
 };
 
 struct Time : public Org {
   Q_GADGET
   public:
+  Time() = default;
+  Time(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( bool isActive READ getIsActive WRITE setIsActive )
   Q_PROPERTY( sem::Time::TimeVariant time READ getTime WRITE setTime )
-  bool getIsActive() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::Time>()->isActive); }
-  void setIsActive(bool isActive) { __data.getAs<sem::Time>()->isActive = org_qml::serde<bool, bool>::qml_to_cxx(isActive); }
-  sem::Time::TimeVariant getTime() { return org_qml::serde<sem::Time::TimeVariant, sem::Time::TimeVariant>::cxx_to_qml(__data.getAs<sem::Time>()->time); }
-  void setTime(sem::Time::TimeVariant time) { __data.getAs<sem::Time>()->time = org_qml::serde<sem::Time::TimeVariant, sem::Time::TimeVariant>::qml_to_cxx(time); }
+  bool getIsActive();
+  void setIsActive(bool isActive);
+  sem::Time::TimeVariant getTime();
+  void setTime(sem::Time::TimeVariant time);
 };
 
 struct TimeRange : public Org {
   Q_GADGET
   public:
-  Q_PROPERTY( sem::SemId<sem::Time> from READ getFrom WRITE setFrom )
-  Q_PROPERTY( sem::SemId<sem::Time> to READ getTo WRITE setTo )
-  sem::SemId<sem::Time> getFrom() { return org_qml::serde<sem::SemId<sem::Time>, sem::SemId<sem::Time>>::cxx_to_qml(__data.getAs<sem::TimeRange>()->from); }
-  void setFrom(sem::SemId<sem::Time> from) { __data.getAs<sem::TimeRange>()->from = org_qml::serde<sem::SemId<sem::Time>, sem::SemId<sem::Time>>::qml_to_cxx(from); }
-  sem::SemId<sem::Time> getTo() { return org_qml::serde<sem::SemId<sem::Time>, sem::SemId<sem::Time>>::cxx_to_qml(__data.getAs<sem::TimeRange>()->to); }
-  void setTo(sem::SemId<sem::Time> to) { __data.getAs<sem::TimeRange>()->to = org_qml::serde<sem::SemId<sem::Time>, sem::SemId<sem::Time>>::qml_to_cxx(to); }
+  TimeRange() = default;
+  TimeRange(sem::SemId<sem::Org> const& id) : Org(id) {}
+  Q_PROPERTY( org_qml::Time from READ getFrom WRITE setFrom )
+  Q_PROPERTY( org_qml::Time to READ getTo WRITE setTo )
+  org_qml::Time getFrom();
+  void setFrom(org_qml::Time from);
+  org_qml::Time getTo();
+  void setTo(org_qml::Time to);
 };
 
 struct Macro : public Org {
   Q_GADGET
   public:
+  Macro() = default;
+  Macro(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( QString name READ getName WRITE setName )
-  QString getName() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::Macro>()->name); }
-  void setName(QString name) { __data.getAs<sem::Macro>()->name = org_qml::serde<QString, Str>::qml_to_cxx(name); }
+  QString getName();
+  void setName(QString name);
 };
 
 struct Symbol : public Org {
   Q_GADGET
   public:
+  Symbol() = default;
+  Symbol(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( QString name READ getName WRITE setName )
-  QString getName() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::Symbol>()->name); }
-  void setName(QString name) { __data.getAs<sem::Symbol>()->name = org_qml::serde<QString, Str>::qml_to_cxx(name); }
+  QString getName();
+  void setName(QString name);
 };
 
 struct SubtreeLog : public Org {
   Q_GADGET
   public:
+  SubtreeLog() = default;
+  SubtreeLog(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( sem::SubtreeLog::LogEntry log READ getLog WRITE setLog )
-  sem::SubtreeLog::LogEntry getLog() { return org_qml::serde<sem::SubtreeLog::LogEntry, sem::SubtreeLog::LogEntry>::cxx_to_qml(__data.getAs<sem::SubtreeLog>()->log); }
-  void setLog(sem::SubtreeLog::LogEntry log) { __data.getAs<sem::SubtreeLog>()->log = org_qml::serde<sem::SubtreeLog::LogEntry, sem::SubtreeLog::LogEntry>::qml_to_cxx(log); }
+  sem::SubtreeLog::LogEntry getLog();
+  void setLog(sem::SubtreeLog::LogEntry log);
 };
 
 struct Subtree : public Org {
   Q_GADGET
   public:
+  Subtree() = default;
+  Subtree(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( int level READ getLevel WRITE setLevel )
-  Q_PROPERTY( sem::SemId<sem::Paragraph> title READ getTitle WRITE setTitle )
-  int getLevel() { return org_qml::serde<int, int>::cxx_to_qml(__data.getAs<sem::Subtree>()->level); }
-  void setLevel(int level) { __data.getAs<sem::Subtree>()->level = org_qml::serde<int, int>::qml_to_cxx(level); }
-  sem::SemId<sem::Paragraph> getTitle() { return org_qml::serde<sem::SemId<sem::Paragraph>, sem::SemId<sem::Paragraph>>::cxx_to_qml(__data.getAs<sem::Subtree>()->title); }
-  void setTitle(sem::SemId<sem::Paragraph> title) { __data.getAs<sem::Subtree>()->title = org_qml::serde<sem::SemId<sem::Paragraph>, sem::SemId<sem::Paragraph>>::qml_to_cxx(title); }
+  Q_PROPERTY( org_qml::Paragraph title READ getTitle WRITE setTitle )
+  int getLevel();
+  void setLevel(int level);
+  org_qml::Paragraph getTitle();
+  void setTitle(org_qml::Paragraph title);
 };
 
 struct LatexBody : public Org {
   Q_GADGET
   public:
+  LatexBody() = default;
+  LatexBody(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct InlineMath : public LatexBody {
   Q_GADGET
   public:
+  InlineMath() = default;
+  InlineMath(sem::SemId<sem::Org> const& id) : LatexBody(id) {}
 };
 
 struct Leaf : public Org {
   Q_GADGET
   public:
+  Leaf() = default;
+  Leaf(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( QString text READ getText WRITE setText )
-  QString getText() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::Leaf>()->text); }
-  void setText(QString text) { __data.getAs<sem::Leaf>()->text = org_qml::serde<QString, Str>::qml_to_cxx(text); }
+  QString getText();
+  void setText(QString text);
 };
 
 struct Escaped : public Leaf {
   Q_GADGET
   public:
+  Escaped() = default;
+  Escaped(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct Newline : public Leaf {
   Q_GADGET
   public:
+  Newline() = default;
+  Newline(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct Space : public Leaf {
   Q_GADGET
   public:
+  Space() = default;
+  Space(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct Word : public Leaf {
   Q_GADGET
   public:
+  Word() = default;
+  Word(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct AtMention : public Leaf {
   Q_GADGET
   public:
+  AtMention() = default;
+  AtMention(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct RawText : public Leaf {
   Q_GADGET
   public:
+  RawText() = default;
+  RawText(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct Punctuation : public Leaf {
   Q_GADGET
   public:
+  Punctuation() = default;
+  Punctuation(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct Placeholder : public Leaf {
   Q_GADGET
   public:
+  Placeholder() = default;
+  Placeholder(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct BigIdent : public Leaf {
   Q_GADGET
   public:
+  BigIdent() = default;
+  BigIdent(sem::SemId<sem::Org> const& id) : Leaf(id) {}
 };
 
 struct Markup : public Org {
   Q_GADGET
   public:
+  Markup() = default;
+  Markup(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Bold : public Markup {
   Q_GADGET
   public:
+  Bold() = default;
+  Bold(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct Underline : public Markup {
   Q_GADGET
   public:
+  Underline() = default;
+  Underline(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct Monospace : public Markup {
   Q_GADGET
   public:
+  Monospace() = default;
+  Monospace(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct MarkQuote : public Markup {
   Q_GADGET
   public:
+  MarkQuote() = default;
+  MarkQuote(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct Verbatim : public Markup {
   Q_GADGET
   public:
+  Verbatim() = default;
+  Verbatim(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct Italic : public Markup {
   Q_GADGET
   public:
+  Italic() = default;
+  Italic(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct Strike : public Markup {
   Q_GADGET
   public:
+  Strike() = default;
+  Strike(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct Par : public Markup {
   Q_GADGET
   public:
+  Par() = default;
+  Par(sem::SemId<sem::Org> const& id) : Markup(id) {}
 };
 
 struct List : public Org {
   Q_GADGET
   public:
+  List() = default;
+  List(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct ListItem : public Org {
   Q_GADGET
   public:
+  ListItem() = default;
+  ListItem(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( sem::ListItem::Checkbox checkbox READ getCheckbox WRITE setCheckbox )
-  sem::ListItem::Checkbox getCheckbox() { return org_qml::serde<sem::ListItem::Checkbox, sem::ListItem::Checkbox>::cxx_to_qml(__data.getAs<sem::ListItem>()->checkbox); }
-  void setCheckbox(sem::ListItem::Checkbox checkbox) { __data.getAs<sem::ListItem>()->checkbox = org_qml::serde<sem::ListItem::Checkbox, sem::ListItem::Checkbox>::qml_to_cxx(checkbox); }
+  sem::ListItem::Checkbox getCheckbox();
+  void setCheckbox(sem::ListItem::Checkbox checkbox);
 };
 
 struct Link : public Org {
   Q_GADGET
   public:
+  Link() = default;
+  Link(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( sem::Link::Data data READ getData WRITE setData )
-  sem::Link::Data getData() { return org_qml::serde<sem::Link::Data, sem::Link::Data>::cxx_to_qml(__data.getAs<sem::Link>()->data); }
-  void setData(sem::Link::Data data) { __data.getAs<sem::Link>()->data = org_qml::serde<sem::Link::Data, sem::Link::Data>::qml_to_cxx(data); }
-};
-
-struct Document : public Org {
-  Q_GADGET
-  public:
-  Q_PROPERTY( sem::SemId<sem::DocumentOptions> options READ getOptions WRITE setOptions )
-  sem::SemId<sem::DocumentOptions> getOptions() { return org_qml::serde<sem::SemId<sem::DocumentOptions>, sem::SemId<sem::DocumentOptions>>::cxx_to_qml(__data.getAs<sem::Document>()->options); }
-  void setOptions(sem::SemId<sem::DocumentOptions> options) { __data.getAs<sem::Document>()->options = org_qml::serde<sem::SemId<sem::DocumentOptions>, sem::SemId<sem::DocumentOptions>>::qml_to_cxx(options); }
-};
-
-struct ParseError : public Org {
-  Q_GADGET
-  public:
-};
-
-struct FileTarget : public Org {
-  Q_GADGET
-  public:
-  Q_PROPERTY( QString path READ getPath WRITE setPath )
-  Q_PROPERTY( bool restrictToHeadlines READ getRestrictToHeadlines WRITE setRestrictToHeadlines )
-  QString getPath() { return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::FileTarget>()->path); }
-  void setPath(QString path) { __data.getAs<sem::FileTarget>()->path = org_qml::serde<QString, Str>::qml_to_cxx(path); }
-  bool getRestrictToHeadlines() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::FileTarget>()->restrictToHeadlines); }
-  void setRestrictToHeadlines(bool restrictToHeadlines) { __data.getAs<sem::FileTarget>()->restrictToHeadlines = org_qml::serde<bool, bool>::qml_to_cxx(restrictToHeadlines); }
-};
-
-struct TextSeparator : public Org {
-  Q_GADGET
-  public:
-};
-
-struct Include : public Org {
-  Q_GADGET
-  public:
-  Q_PROPERTY( sem::Include::Data data READ getData WRITE setData )
-  sem::Include::Data getData() { return org_qml::serde<sem::Include::Data, sem::Include::Data>::cxx_to_qml(__data.getAs<sem::Include>()->data); }
-  void setData(sem::Include::Data data) { __data.getAs<sem::Include>()->data = org_qml::serde<sem::Include::Data, sem::Include::Data>::qml_to_cxx(data); }
+  sem::Link::Data getData();
+  void setData(sem::Link::Data data);
 };
 
 struct DocumentOptions : public Org {
   Q_GADGET
   public:
+  DocumentOptions() = default;
+  DocumentOptions(sem::SemId<sem::Org> const& id) : Org(id) {}
   Q_PROPERTY( sem::DocumentOptions::BrokenLinks brokenLinks READ getBrokenLinks WRITE setBrokenLinks )
   Q_PROPERTY( sem::DocumentOptions::Visibility initialVisibility READ getInitialVisibility WRITE setInitialVisibility )
   Q_PROPERTY( sem::DocumentOptions::TocExport tocExport READ getTocExport WRITE setTocExport )
@@ -453,43 +536,92 @@ struct DocumentOptions : public Org {
   Q_PROPERTY( bool exportWithClock READ getExportWithClock WRITE setExportWithClock )
   Q_PROPERTY( bool exportWithCreator READ getExportWithCreator WRITE setExportWithCreator )
   Q_PROPERTY( sem::DocumentOptions::TocExport data READ getData WRITE setData )
-  sem::DocumentOptions::BrokenLinks getBrokenLinks() { return org_qml::serde<sem::DocumentOptions::BrokenLinks, sem::DocumentOptions::BrokenLinks>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->brokenLinks); }
-  void setBrokenLinks(sem::DocumentOptions::BrokenLinks brokenLinks) { __data.getAs<sem::DocumentOptions>()->brokenLinks = org_qml::serde<sem::DocumentOptions::BrokenLinks, sem::DocumentOptions::BrokenLinks>::qml_to_cxx(brokenLinks); }
-  sem::DocumentOptions::Visibility getInitialVisibility() { return org_qml::serde<sem::DocumentOptions::Visibility, sem::DocumentOptions::Visibility>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->initialVisibility); }
-  void setInitialVisibility(sem::DocumentOptions::Visibility initialVisibility) { __data.getAs<sem::DocumentOptions>()->initialVisibility = org_qml::serde<sem::DocumentOptions::Visibility, sem::DocumentOptions::Visibility>::qml_to_cxx(initialVisibility); }
-  sem::DocumentOptions::TocExport getTocExport() { return org_qml::serde<sem::DocumentOptions::TocExport, sem::DocumentOptions::TocExport>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->tocExport); }
-  void setTocExport(sem::DocumentOptions::TocExport tocExport) { __data.getAs<sem::DocumentOptions>()->tocExport = org_qml::serde<sem::DocumentOptions::TocExport, sem::DocumentOptions::TocExport>::qml_to_cxx(tocExport); }
-  bool getSmartQuotes() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->smartQuotes); }
-  void setSmartQuotes(bool smartQuotes) { __data.getAs<sem::DocumentOptions>()->smartQuotes = org_qml::serde<bool, bool>::qml_to_cxx(smartQuotes); }
-  bool getEmphasizedText() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->emphasizedText); }
-  void setEmphasizedText(bool emphasizedText) { __data.getAs<sem::DocumentOptions>()->emphasizedText = org_qml::serde<bool, bool>::qml_to_cxx(emphasizedText); }
-  bool getSpecialStrings() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->specialStrings); }
-  void setSpecialStrings(bool specialStrings) { __data.getAs<sem::DocumentOptions>()->specialStrings = org_qml::serde<bool, bool>::qml_to_cxx(specialStrings); }
-  bool getFixedWidthSections() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->fixedWidthSections); }
-  void setFixedWidthSections(bool fixedWidthSections) { __data.getAs<sem::DocumentOptions>()->fixedWidthSections = org_qml::serde<bool, bool>::qml_to_cxx(fixedWidthSections); }
-  bool getIncludeTimestamps() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->includeTimestamps); }
-  void setIncludeTimestamps(bool includeTimestamps) { __data.getAs<sem::DocumentOptions>()->includeTimestamps = org_qml::serde<bool, bool>::qml_to_cxx(includeTimestamps); }
-  bool getPreserveLineBreaks() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->preserveLineBreaks); }
-  void setPreserveLineBreaks(bool preserveLineBreaks) { __data.getAs<sem::DocumentOptions>()->preserveLineBreaks = org_qml::serde<bool, bool>::qml_to_cxx(preserveLineBreaks); }
-  bool getPlaintextSubscripts() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->plaintextSubscripts); }
-  void setPlaintextSubscripts(bool plaintextSubscripts) { __data.getAs<sem::DocumentOptions>()->plaintextSubscripts = org_qml::serde<bool, bool>::qml_to_cxx(plaintextSubscripts); }
-  bool getExportArchived() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->exportArchived); }
-  void setExportArchived(bool exportArchived) { __data.getAs<sem::DocumentOptions>()->exportArchived = org_qml::serde<bool, bool>::qml_to_cxx(exportArchived); }
-  bool getExportWithAuthor() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->exportWithAuthor); }
-  void setExportWithAuthor(bool exportWithAuthor) { __data.getAs<sem::DocumentOptions>()->exportWithAuthor = org_qml::serde<bool, bool>::qml_to_cxx(exportWithAuthor); }
-  bool getExportBrokenLinks() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->exportBrokenLinks); }
-  void setExportBrokenLinks(bool exportBrokenLinks) { __data.getAs<sem::DocumentOptions>()->exportBrokenLinks = org_qml::serde<bool, bool>::qml_to_cxx(exportBrokenLinks); }
-  bool getExportWithClock() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->exportWithClock); }
-  void setExportWithClock(bool exportWithClock) { __data.getAs<sem::DocumentOptions>()->exportWithClock = org_qml::serde<bool, bool>::qml_to_cxx(exportWithClock); }
-  bool getExportWithCreator() { return org_qml::serde<bool, bool>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->exportWithCreator); }
-  void setExportWithCreator(bool exportWithCreator) { __data.getAs<sem::DocumentOptions>()->exportWithCreator = org_qml::serde<bool, bool>::qml_to_cxx(exportWithCreator); }
-  sem::DocumentOptions::TocExport getData() { return org_qml::serde<sem::DocumentOptions::TocExport, sem::DocumentOptions::TocExport>::cxx_to_qml(__data.getAs<sem::DocumentOptions>()->data); }
-  void setData(sem::DocumentOptions::TocExport data) { __data.getAs<sem::DocumentOptions>()->data = org_qml::serde<sem::DocumentOptions::TocExport, sem::DocumentOptions::TocExport>::qml_to_cxx(data); }
+  sem::DocumentOptions::BrokenLinks getBrokenLinks();
+  void setBrokenLinks(sem::DocumentOptions::BrokenLinks brokenLinks);
+  sem::DocumentOptions::Visibility getInitialVisibility();
+  void setInitialVisibility(sem::DocumentOptions::Visibility initialVisibility);
+  sem::DocumentOptions::TocExport getTocExport();
+  void setTocExport(sem::DocumentOptions::TocExport tocExport);
+  bool getSmartQuotes();
+  void setSmartQuotes(bool smartQuotes);
+  bool getEmphasizedText();
+  void setEmphasizedText(bool emphasizedText);
+  bool getSpecialStrings();
+  void setSpecialStrings(bool specialStrings);
+  bool getFixedWidthSections();
+  void setFixedWidthSections(bool fixedWidthSections);
+  bool getIncludeTimestamps();
+  void setIncludeTimestamps(bool includeTimestamps);
+  bool getPreserveLineBreaks();
+  void setPreserveLineBreaks(bool preserveLineBreaks);
+  bool getPlaintextSubscripts();
+  void setPlaintextSubscripts(bool plaintextSubscripts);
+  bool getExportArchived();
+  void setExportArchived(bool exportArchived);
+  bool getExportWithAuthor();
+  void setExportWithAuthor(bool exportWithAuthor);
+  bool getExportBrokenLinks();
+  void setExportBrokenLinks(bool exportBrokenLinks);
+  bool getExportWithClock();
+  void setExportWithClock(bool exportWithClock);
+  bool getExportWithCreator();
+  void setExportWithCreator(bool exportWithCreator);
+  sem::DocumentOptions::TocExport getData();
+  void setData(sem::DocumentOptions::TocExport data);
+};
+
+struct Document : public Org {
+  Q_GADGET
+  public:
+  Document() = default;
+  Document(sem::SemId<sem::Org> const& id) : Org(id) {}
+  Q_PROPERTY( org_qml::DocumentOptions options READ getOptions WRITE setOptions )
+  org_qml::DocumentOptions getOptions();
+  void setOptions(org_qml::DocumentOptions options);
+};
+
+struct ParseError : public Org {
+  Q_GADGET
+  public:
+  ParseError() = default;
+  ParseError(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
+struct FileTarget : public Org {
+  Q_GADGET
+  public:
+  FileTarget() = default;
+  FileTarget(sem::SemId<sem::Org> const& id) : Org(id) {}
+  Q_PROPERTY( QString path READ getPath WRITE setPath )
+  Q_PROPERTY( bool restrictToHeadlines READ getRestrictToHeadlines WRITE setRestrictToHeadlines )
+  QString getPath();
+  void setPath(QString path);
+  bool getRestrictToHeadlines();
+  void setRestrictToHeadlines(bool restrictToHeadlines);
+};
+
+struct TextSeparator : public Org {
+  Q_GADGET
+  public:
+  TextSeparator() = default;
+  TextSeparator(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
+struct Include : public Org {
+  Q_GADGET
+  public:
+  Include() = default;
+  Include(sem::SemId<sem::Org> const& id) : Org(id) {}
+  Q_PROPERTY( sem::Include::Data data READ getData WRITE setData )
+  sem::Include::Data getData();
+  void setData(sem::Include::Data data);
 };
 
 struct DocumentGroup : public Org {
   Q_GADGET
   public:
+  DocumentGroup() = default;
+  DocumentGroup(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 }
@@ -553,11 +685,11 @@ Q_DECLARE_METATYPE(org_qml::Par)
 Q_DECLARE_METATYPE(org_qml::List)
 Q_DECLARE_METATYPE(org_qml::ListItem)
 Q_DECLARE_METATYPE(org_qml::Link)
+Q_DECLARE_METATYPE(org_qml::DocumentOptions)
 Q_DECLARE_METATYPE(org_qml::Document)
 Q_DECLARE_METATYPE(org_qml::ParseError)
 Q_DECLARE_METATYPE(org_qml::FileTarget)
 Q_DECLARE_METATYPE(org_qml::TextSeparator)
 Q_DECLARE_METATYPE(org_qml::Include)
-Q_DECLARE_METATYPE(org_qml::DocumentOptions)
 Q_DECLARE_METATYPE(org_qml::DocumentGroup)
 /* clang-format on */

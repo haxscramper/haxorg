@@ -47,11 +47,9 @@ Window {
                 required property int hasChildren
                 required property int depth
 
-
-
                 RowLayout {
                     id: itemRow
-                    x: padding + (treeItem.isTreeNode ? (treeItem.depth + 1) * treeItem.indent : 0)
+                    x: padding
 
                     Text {
                         id: indicator
@@ -75,7 +73,7 @@ Window {
                             id: labelText
                             width: 400
                             clip: true
-                            text: model.kind
+                            text: model.data.title
                             textFormat: Text.RichText
                             wrapMode: TextEdit.WordWrap
                         }

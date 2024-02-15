@@ -107,12 +107,6 @@ class LinkKind(Enum):
     Footnote = 4
     File = 5
 
-class IncludeKind(Enum):
-    Example = 1
-    Export = 2
-    Src = 3
-    OrgDocument = 4
-
 class DocumentOptionsTocExportKind(Enum):
     DoExport = 1
     ExportFixed = 2
@@ -131,6 +125,12 @@ class DocumentOptionsVisibility(Enum):
     Show4Levels = 6
     Show5Levels = 7
     ShowEverything = 8
+
+class IncludeKind(Enum):
+    Example = 1
+    Export = 2
+    Src = 3
+    OrgDocument = 4
 
 class OrgSpecName(Enum):
     Unnamed_ = 1
@@ -445,12 +445,12 @@ class OrgSemKind(Enum):
     List_ = 45
     ListItem_ = 46
     Link_ = 47
-    Document_ = 48
-    ParseError_ = 49
-    FileTarget_ = 50
-    TextSeparator_ = 51
-    Include_ = 52
-    DocumentOptions_ = 53
+    DocumentOptions_ = 48
+    Document_ = 49
+    ParseError_ = 50
+    FileTarget_ = 51
+    TextSeparator_ = 52
+    Include_ = 53
     DocumentGroup_ = 54
 
 class LeafFieldType(Enum):
@@ -911,6 +911,37 @@ class LinkFootnote:
 class LinkFile:
     file: str
 
+class DocumentOptions(Org):
+    def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
+    def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
+    def getDoExport() -> DocumentOptionsDoExport: ...
+    def getExportFixed() -> DocumentOptionsExportFixed: ...
+    def getTocExportKind() -> DocumentOptionsTocExportKind: ...
+    loc: Optional[LineCol]
+    brokenLinks: DocumentOptionsBrokenLinks
+    initialVisibility: DocumentOptionsVisibility
+    tocExport: DocumentOptionsTocExport
+    properties: List[SubtreeProperty]
+    smartQuotes: bool
+    emphasizedText: bool
+    specialStrings: bool
+    fixedWidthSections: bool
+    includeTimestamps: bool
+    preserveLineBreaks: bool
+    plaintextSubscripts: bool
+    exportArchived: bool
+    exportWithAuthor: bool
+    exportBrokenLinks: bool
+    exportWithClock: bool
+    exportWithCreator: bool
+    data: DocumentOptionsTocExport
+
+class DocumentOptionsDoExport:
+    exportToc: bool
+
+class DocumentOptionsExportFixed:
+    exportLevels: int
+
 class Document(Org):
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
@@ -958,37 +989,6 @@ class IncludeSrc:
 
 class IncludeOrgDocument:
     pass
-
-class DocumentOptions(Org):
-    def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
-    def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
-    def getDoExport() -> DocumentOptionsDoExport: ...
-    def getExportFixed() -> DocumentOptionsExportFixed: ...
-    def getTocExportKind() -> DocumentOptionsTocExportKind: ...
-    loc: Optional[LineCol]
-    brokenLinks: DocumentOptionsBrokenLinks
-    initialVisibility: DocumentOptionsVisibility
-    tocExport: DocumentOptionsTocExport
-    properties: List[SubtreeProperty]
-    smartQuotes: bool
-    emphasizedText: bool
-    specialStrings: bool
-    fixedWidthSections: bool
-    includeTimestamps: bool
-    preserveLineBreaks: bool
-    plaintextSubscripts: bool
-    exportArchived: bool
-    exportWithAuthor: bool
-    exportBrokenLinks: bool
-    exportWithClock: bool
-    exportWithCreator: bool
-    data: DocumentOptionsTocExport
-
-class DocumentOptionsDoExport:
-    exportToc: bool
-
-class DocumentOptionsExportFixed:
-    exportLevels: int
 
 class DocumentGroup(Org):
     loc: Optional[LineCol]

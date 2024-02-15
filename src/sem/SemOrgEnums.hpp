@@ -51,12 +51,12 @@
     __IMPL(List) \
     __IMPL(ListItem) \
     __IMPL(Link) \
+    __IMPL(DocumentOptions) \
     __IMPL(Document) \
     __IMPL(ParseError) \
     __IMPL(FileTarget) \
     __IMPL(TextSeparator) \
     __IMPL(Include) \
-    __IMPL(DocumentOptions) \
     __IMPL(DocumentGroup)
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Urgency, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
@@ -471,7 +471,7 @@ struct value_domain<OrgBigIdentKind> : public value_domain_ungapped<OrgBigIdentK
                                                                     OrgBigIdentKind::None,
                                                                     OrgBigIdentKind::StructWhile> {};
 
-enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, Document, ParseError, FileTarget, TextSeparator, Include, DocumentOptions, DocumentGroup, };
+enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

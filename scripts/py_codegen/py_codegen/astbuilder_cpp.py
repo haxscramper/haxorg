@@ -75,14 +75,14 @@ class QualType(BaseModel, extra="forbid"):
 
     def par0(self):
         return self.Parameters[0]
-    
+
     def par1(self):
         return self.Parameters[1]
 
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':
         return QualType(name=name, **args)
-    
+
     @staticmethod
     def ForExpr(expr: str, **args) -> 'QualType':
         return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
@@ -128,6 +128,8 @@ class QualType(BaseModel, extra="forbid"):
         return self.model_copy(update=dict(Spaces=[]))
 
     def withChangedSpace(self, name: Union['QualType', str]) -> 'QualType':
+        """Change the namespace of the qualified type from the current list to the [name]
+        Resulting type will have only [name] as the space"""
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
         return self.model_copy(update=dict(Spaces=[added]))
@@ -341,9 +343,11 @@ class MethodDeclParams:
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
     def asMethodDef(self, Class: QualType) -> MethodDefParams:
-        return MethodDefParams(IsConst=self.isConst,
-                               Class=Class,
-                               Params=copy(self.Params))
+        return MethodDefParams(
+            IsConst=self.isConst,
+            Class=Class,
+            Params=copy(self.Params),
+        )
 
 
 @beartype

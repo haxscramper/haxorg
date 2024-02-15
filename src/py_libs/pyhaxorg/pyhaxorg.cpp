@@ -687,67 +687,6 @@ node can have subnodes.)RAW")
     .value("File", sem::Link::Kind::File)
     .export_values()
     ;
-  pybind11::class_<sem::Document, sem::SemId<sem::Document>, sem::Org>(m, "Document")
-    .def_readwrite("loc", &sem::Document::loc, R"RAW(Document)RAW")
-    .def_readwrite("title", &sem::Document::title)
-    .def_readwrite("author", &sem::Document::author)
-    .def_readwrite("creator", &sem::Document::creator)
-    .def_readwrite("email", &sem::Document::email)
-    .def_readwrite("language", &sem::Document::language)
-    .def_readwrite("options", &sem::Document::options)
-    .def_readwrite("exportFileName", &sem::Document::exportFileName)
-    .def("getProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperties),
-         pybind11::arg("kind"),
-         pybind11::arg_v("subKind", ""))
-    .def("getProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperty),
-         pybind11::arg("kind"),
-         pybind11::arg_v("subKind", ""))
-    ;
-  pybind11::class_<sem::ParseError, sem::SemId<sem::ParseError>, sem::Org>(m, "ParseError")
-    .def_readwrite("loc", &sem::ParseError::loc, R"RAW(Document)RAW")
-    ;
-  pybind11::class_<sem::FileTarget, sem::SemId<sem::FileTarget>, sem::Org>(m, "FileTarget")
-    .def_readwrite("loc", &sem::FileTarget::loc, R"RAW(Document)RAW")
-    .def_readwrite("path", &sem::FileTarget::path)
-    .def_readwrite("line", &sem::FileTarget::line)
-    .def_readwrite("searchTarget", &sem::FileTarget::searchTarget)
-    .def_readwrite("restrictToHeadlines", &sem::FileTarget::restrictToHeadlines)
-    .def_readwrite("targetId", &sem::FileTarget::targetId)
-    .def_readwrite("regexp", &sem::FileTarget::regexp)
-    ;
-  pybind11::class_<sem::TextSeparator, sem::SemId<sem::TextSeparator>, sem::Org>(m, "TextSeparator")
-    .def_readwrite("loc", &sem::TextSeparator::loc, R"RAW(Document)RAW")
-    ;
-  pybind11::class_<sem::Include, sem::SemId<sem::Include>, sem::Org>(m, "Include")
-    .def_readwrite("loc", &sem::Include::loc, R"RAW(Document)RAW")
-    .def_readwrite("data", &sem::Include::data)
-    .def("getExample", static_cast<sem::Include::Example&(sem::Include::*)()>(&sem::Include::getExample))
-    .def("getExport", static_cast<sem::Include::Export&(sem::Include::*)()>(&sem::Include::getExport))
-    .def("getSrc", static_cast<sem::Include::Src&(sem::Include::*)()>(&sem::Include::getSrc))
-    .def("getOrgDocument", static_cast<sem::Include::OrgDocument&(sem::Include::*)()>(&sem::Include::getOrgDocument))
-    .def("getIncludeKind", static_cast<sem::Include::Kind(sem::Include::*)() const>(&sem::Include::getIncludeKind))
-    ;
-  pybind11::class_<sem::Include::Example>(m, "IncludeExample")
-    .def(pybind11::init<>())
-    ;
-  pybind11::class_<sem::Include::Export>(m, "IncludeExport")
-    .def(pybind11::init<>())
-    ;
-  pybind11::class_<sem::Include::Src>(m, "IncludeSrc")
-    .def(pybind11::init<>())
-    ;
-  pybind11::class_<sem::Include::OrgDocument>(m, "IncludeOrgDocument")
-    .def(pybind11::init<>())
-    ;
-  pybind11::enum_<sem::Include::Kind>(m, "IncludeKind")
-    .value("Example", sem::Include::Kind::Example)
-    .value("Export", sem::Include::Kind::Export)
-    .value("Src", sem::Include::Kind::Src)
-    .value("OrgDocument", sem::Include::Kind::OrgDocument)
-    .export_values()
-    ;
   pybind11::class_<sem::DocumentOptions, sem::SemId<sem::DocumentOptions>, sem::Org>(m, "DocumentOptions")
     .def_readwrite("loc", &sem::DocumentOptions::loc, R"RAW(Document)RAW")
     .def_readwrite("brokenLinks", &sem::DocumentOptions::brokenLinks)
@@ -807,6 +746,67 @@ node can have subnodes.)RAW")
     .value("Show4Levels", sem::DocumentOptions::Visibility::Show4Levels)
     .value("Show5Levels", sem::DocumentOptions::Visibility::Show5Levels)
     .value("ShowEverything", sem::DocumentOptions::Visibility::ShowEverything)
+    .export_values()
+    ;
+  pybind11::class_<sem::Document, sem::SemId<sem::Document>, sem::Org>(m, "Document")
+    .def_readwrite("loc", &sem::Document::loc, R"RAW(Document)RAW")
+    .def_readwrite("title", &sem::Document::title)
+    .def_readwrite("author", &sem::Document::author)
+    .def_readwrite("creator", &sem::Document::creator)
+    .def_readwrite("email", &sem::Document::email)
+    .def_readwrite("language", &sem::Document::language)
+    .def_readwrite("options", &sem::Document::options)
+    .def_readwrite("exportFileName", &sem::Document::exportFileName)
+    .def("getProperties",
+         static_cast<Vec<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperties),
+         pybind11::arg("kind"),
+         pybind11::arg_v("subKind", ""))
+    .def("getProperty",
+         static_cast<Opt<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperty),
+         pybind11::arg("kind"),
+         pybind11::arg_v("subKind", ""))
+    ;
+  pybind11::class_<sem::ParseError, sem::SemId<sem::ParseError>, sem::Org>(m, "ParseError")
+    .def_readwrite("loc", &sem::ParseError::loc, R"RAW(Document)RAW")
+    ;
+  pybind11::class_<sem::FileTarget, sem::SemId<sem::FileTarget>, sem::Org>(m, "FileTarget")
+    .def_readwrite("loc", &sem::FileTarget::loc, R"RAW(Document)RAW")
+    .def_readwrite("path", &sem::FileTarget::path)
+    .def_readwrite("line", &sem::FileTarget::line)
+    .def_readwrite("searchTarget", &sem::FileTarget::searchTarget)
+    .def_readwrite("restrictToHeadlines", &sem::FileTarget::restrictToHeadlines)
+    .def_readwrite("targetId", &sem::FileTarget::targetId)
+    .def_readwrite("regexp", &sem::FileTarget::regexp)
+    ;
+  pybind11::class_<sem::TextSeparator, sem::SemId<sem::TextSeparator>, sem::Org>(m, "TextSeparator")
+    .def_readwrite("loc", &sem::TextSeparator::loc, R"RAW(Document)RAW")
+    ;
+  pybind11::class_<sem::Include, sem::SemId<sem::Include>, sem::Org>(m, "Include")
+    .def_readwrite("loc", &sem::Include::loc, R"RAW(Document)RAW")
+    .def_readwrite("data", &sem::Include::data)
+    .def("getExample", static_cast<sem::Include::Example&(sem::Include::*)()>(&sem::Include::getExample))
+    .def("getExport", static_cast<sem::Include::Export&(sem::Include::*)()>(&sem::Include::getExport))
+    .def("getSrc", static_cast<sem::Include::Src&(sem::Include::*)()>(&sem::Include::getSrc))
+    .def("getOrgDocument", static_cast<sem::Include::OrgDocument&(sem::Include::*)()>(&sem::Include::getOrgDocument))
+    .def("getIncludeKind", static_cast<sem::Include::Kind(sem::Include::*)() const>(&sem::Include::getIncludeKind))
+    ;
+  pybind11::class_<sem::Include::Example>(m, "IncludeExample")
+    .def(pybind11::init<>())
+    ;
+  pybind11::class_<sem::Include::Export>(m, "IncludeExport")
+    .def(pybind11::init<>())
+    ;
+  pybind11::class_<sem::Include::Src>(m, "IncludeSrc")
+    .def(pybind11::init<>())
+    ;
+  pybind11::class_<sem::Include::OrgDocument>(m, "IncludeOrgDocument")
+    .def(pybind11::init<>())
+    ;
+  pybind11::enum_<sem::Include::Kind>(m, "IncludeKind")
+    .value("Example", sem::Include::Kind::Example)
+    .value("Export", sem::Include::Kind::Export)
+    .value("Src", sem::Include::Kind::Src)
+    .value("OrgDocument", sem::Include::Kind::OrgDocument)
     .export_values()
     ;
   pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>, sem::Org>(m, "DocumentGroup")
@@ -1199,12 +1199,12 @@ node can have subnodes.)RAW")
     .value("List_", OrgSemKind::List)
     .value("ListItem_", OrgSemKind::ListItem)
     .value("Link_", OrgSemKind::Link)
+    .value("DocumentOptions_", OrgSemKind::DocumentOptions)
     .value("Document_", OrgSemKind::Document)
     .value("ParseError_", OrgSemKind::ParseError)
     .value("FileTarget_", OrgSemKind::FileTarget)
     .value("TextSeparator_", OrgSemKind::TextSeparator)
     .value("Include_", OrgSemKind::Include)
-    .value("DocumentOptions_", OrgSemKind::DocumentOptions)
     .value("DocumentGroup_", OrgSemKind::DocumentGroup)
     .export_values()
     ;

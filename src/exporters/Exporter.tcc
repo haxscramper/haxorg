@@ -646,6 +646,39 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Link::File const& object) { __obj_field(res, object, file); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentOptions::TocExport const& object) { visitVariants(res, sem::DocumentOptions::getTocExportKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, loc);
+  __org_field(res, object, brokenLinks);
+  __org_field(res, object, initialVisibility);
+  __org_field(res, object, tocExport);
+  __org_field(res, object, properties);
+  __org_field(res, object, smartQuotes);
+  __org_field(res, object, emphasizedText);
+  __org_field(res, object, specialStrings);
+  __org_field(res, object, fixedWidthSections);
+  __org_field(res, object, includeTimestamps);
+  __org_field(res, object, preserveLineBreaks);
+  __org_field(res, object, plaintextSubscripts);
+  __org_field(res, object, exportArchived);
+  __org_field(res, object, exportWithAuthor);
+  __org_field(res, object, exportBrokenLinks);
+  __org_field(res, object, exportWithClock);
+  __org_field(res, object, exportWithCreator);
+  __org_field(res, object, data);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentOptions::DoExport const& object) { __obj_field(res, object, exportToc); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportFixed const& object) { __obj_field(res, object, exportLevels); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);
@@ -708,39 +741,6 @@ void Exporter<V, R>::visit(R& res, sem::Include::Src const& object) {  }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Include::OrgDocument const& object) {  }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::TocExport const& object) { visitVariants(res, sem::DocumentOptions::getTocExportKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> object) {
-  __visit_specific_kind(res, object);
-  __org_field(res, object, loc);
-  __org_field(res, object, brokenLinks);
-  __org_field(res, object, initialVisibility);
-  __org_field(res, object, tocExport);
-  __org_field(res, object, properties);
-  __org_field(res, object, smartQuotes);
-  __org_field(res, object, emphasizedText);
-  __org_field(res, object, specialStrings);
-  __org_field(res, object, fixedWidthSections);
-  __org_field(res, object, includeTimestamps);
-  __org_field(res, object, preserveLineBreaks);
-  __org_field(res, object, plaintextSubscripts);
-  __org_field(res, object, exportArchived);
-  __org_field(res, object, exportWithAuthor);
-  __org_field(res, object, exportBrokenLinks);
-  __org_field(res, object, exportWithClock);
-  __org_field(res, object, exportWithCreator);
-  __org_field(res, object, data);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::DoExport const& object) { __obj_field(res, object, exportToc); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportFixed const& object) { __obj_field(res, object, exportLevels); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {

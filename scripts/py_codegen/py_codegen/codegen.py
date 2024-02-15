@@ -603,14 +603,24 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
 
 @beartype
-def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
-                 tu: ConvTu) -> Tuple[List[GenTuEntry], List[GenTuEntry]]:
+@dataclass
+class QmlWrap():
+    wrapped: List[GenTuEntry]
+    toplevel: List[GenTuEntry]
+    implementation: List[GenTuEntry]
+
+
+@beartype
+def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> QmlWrap:
     qml_wrapped: List[GenTuEntry] = []
     qml_toplevel: List[GenTuEntry] = []
 
     def qml_type(typ: QualType) -> QualType:
         if typ.name == "Str" or typ.name == "string":
             return QualType.ForName("QString")
+
+        elif typ.name == "SemId":
+            return typ.par0().withChangedSpace("org_qml")
 
         else:
             return typ
@@ -629,7 +639,7 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
                 ast.string("Q_DECLARE_METATYPE"),
                 [ast.Type(result.name)],
             )))
-        
+
         BASE_NODE_FIELD = "__data"
 
         if hasattr(struct, "isOrgType"):
@@ -650,6 +660,27 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
 
         def capitalize_first(s: str) -> str:
             return s[0].upper() + s[1:] if s else ""
+
+        if hasattr(struct, "isOrgType") or struct.name.name == "Org":
+            result.nested.append(GenTuPass(
+                ast.string(f"{struct.name.name}() = default;")))
+
+            if struct.name.name == "Org":
+                result.nested.append(
+                    GenTuPass(
+                        ast.string(
+                            "{name}(sem::SemId<sem::Org> const& id) : __data(id.as<sem::{name}>()) {{}}"
+                            .format(name=struct.name.name,))))
+
+            else:
+                result.nested.append(
+                    GenTuPass(
+                        ast.string(
+                            "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".
+                            format(
+                                name=struct.name.name,
+                                base=struct.bases[0].name,
+                            ))))
 
         for field in struct.fields:
             if field.isStatic:
@@ -681,7 +712,8 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
 
                 if hasattr(struct, "isOrgType"):
                     field_access = ast.string(
-                        f"{BASE_NODE_FIELD}.getAs<sem::{struct.name.name}>()->{field.name}")
+                        f"{BASE_NODE_FIELD}.getAs<sem::{struct.name.name}>()->{field.name}"
+                    )
 
                 else:
                     field_access = ast.string(f"{BASE_NODE_FIELD}.{field.name}")
@@ -735,7 +767,22 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct],
     for item in expanded:
         qml_wrapped.append(gen_qml_wrap_struct(item))
 
-    return qml_wrapped, qml_toplevel
+    qml_implementation: List[GenTuEntry] = []
+    gen = GenConverter(ast)
+    for item in qml_wrapped:
+        match item:
+            case GenTuStruct():
+                for meth in item.methods:
+                    declaration: MethodDeclParams = gen.convertMethod(meth)
+                    meth.impl = None
+                    qml_implementation.append(
+                        GenTuPass(ast.MethodDef(declaration.asMethodDef(item.name))))
+
+    return QmlWrap(
+        wrapped=qml_wrapped,
+        toplevel=qml_toplevel,
+        implementation=qml_implementation,
+    )
 
 
 @beartype
@@ -762,7 +809,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     org_type_names = [Typ.name for Typ in expanded]
 
     autogen_structs = gen_pybind11_wrappers(ast, expanded, tu)
-    qml_wrapped, qml_toplevel = gen_qml_wrap(ast, expanded, tu)
+    qml = gen_qml_wrap(ast, expanded, tu)
 
     return GenFiles([
         GenUnit(
@@ -776,9 +823,16 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 [
                     GenTuPass("#pragma once"),
                     GenTuPass("#include \"org_qml_manual.hpp\""),
-                    GenTuNamespace("org_qml", qml_wrapped),
-                ] + qml_toplevel,
-            )),
+                    GenTuNamespace("org_qml", qml.wrapped),
+                ] + qml.toplevel,
+            ),
+            GenTu(
+                "{root}/src/editor/org_qml.cpp",
+                [
+                    GenTuPass("#include \"org_qml_manual2.hpp\""),
+                ] + qml.implementation,
+            ),
+        ),
         GenUnit(
             GenTu("{base}/sem/SemOrgProto.proto", [
                 GenTuPass('syntax = "proto3";'),

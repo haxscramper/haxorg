@@ -594,12 +594,12 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "List") { return OrgSemKind::List; } else
   if (value == "ListItem") { return OrgSemKind::ListItem; } else
   if (value == "Link") { return OrgSemKind::Link; } else
+  if (value == "DocumentOptions") { return OrgSemKind::DocumentOptions; } else
   if (value == "Document") { return OrgSemKind::Document; } else
   if (value == "ParseError") { return OrgSemKind::ParseError; } else
   if (value == "FileTarget") { return OrgSemKind::FileTarget; } else
   if (value == "TextSeparator") { return OrgSemKind::TextSeparator; } else
   if (value == "Include") { return OrgSemKind::Include; } else
-  if (value == "DocumentOptions") { return OrgSemKind::DocumentOptions; } else
   if (value == "DocumentGroup") { return OrgSemKind::DocumentGroup; } else
   { return std::nullopt; }
 }
@@ -652,12 +652,12 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::List: return "List";
     case OrgSemKind::ListItem: return "ListItem";
     case OrgSemKind::Link: return "Link";
+    case OrgSemKind::DocumentOptions: return "DocumentOptions";
     case OrgSemKind::Document: return "Document";
     case OrgSemKind::ParseError: return "ParseError";
     case OrgSemKind::FileTarget: return "FileTarget";
     case OrgSemKind::TextSeparator: return "TextSeparator";
     case OrgSemKind::Include: return "Include";
-    case OrgSemKind::DocumentOptions: return "DocumentOptions";
     case OrgSemKind::DocumentGroup: return "DocumentGroup";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }

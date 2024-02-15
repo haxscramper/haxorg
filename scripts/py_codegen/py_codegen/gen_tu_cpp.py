@@ -214,7 +214,7 @@ class GenConverter:
     def convertFunction(self, func: GenTuFunction) -> FunctionParams:
         decl = FunctionParams(ResultTy=func.result,
                               Name=func.name,
-                              doc=self.convertDoc(func.doc))
+                              doc=self.convertDoc(func.doc),)
 
         if func.params:
             decl.Template.Stacks = [self.convertParams(func.params)]
@@ -250,6 +250,15 @@ class GenConverter:
     def convertTypedef(self, typedef: GenTuTypedef) -> BlockId:
         return self.ast.Using(
             UsingParams(newName=typedef.name.name, baseType=typedef.base))
+    
+    def convertMethod(self, method: GenTuFunction) -> MethodDeclParams:
+        return MethodDeclParams(
+            Params=self.convertFunction(method),
+            isStatic=method.isStatic,
+            isConst=method.isConst,
+            isVirtual=method.isVirtual,
+        )
+
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(
@@ -279,11 +288,7 @@ class GenConverter:
                     ))
 
             for method in record.methods:
-                params.members.append(
-                    MethodDeclParams(Params=self.convertFunction(method),
-                                     isStatic=method.isStatic,
-                                     isConst=method.isConst,
-                                     isVirtual=method.isVirtual))
+                params.members.append(self.convertMethod(method))
 
             for nested in record.nested:
                 assert not isinstance(nested, GenTuTypeGroup)
@@ -308,13 +313,13 @@ class GenConverter:
                         "BOOST_DESCRIBE_CLASS",
                         [
                             self.ast.string(record.name.name),
-                            self.ast.pars(self.ast.csv([B.name for B in record.bases],
-                                                    False)),
+                            self.ast.pars(
+                                self.ast.csv([B.name for B in record.bases], False)),
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(
                                 self.ast.csv(fields + methods,
-                                            len(fields) < 6 and len(methods) < 2)),
+                                             len(fields) < 6 and len(methods) < 2)),
                         ],
                         False,
                         len(fields) < 4 and len(methods) < 1,
