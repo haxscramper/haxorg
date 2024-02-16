@@ -15,6 +15,7 @@ qt_add_qml_module(org_editor
     VERSION 1.0
     QML_FILES Main.qml
     QML_FILES ParagraphEditor.qml
+    QML_FILES DocumentItem.qml
 )
 
 glob_add_sources2(org_editor "${BASE}/src/editor/.*")

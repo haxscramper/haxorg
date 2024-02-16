@@ -27,7 +27,7 @@ Item {
             textFormat: TextEdit.RichText
             wrapMode: TextEdit.WordWrap
 
-            property int prevHeight: height
+            property int prevHeight: 0
             property bool completed: false
 
             onEditingFinished: {
@@ -39,11 +39,14 @@ Item {
             }
 
             onContentHeightChanged: {
-                if(textEdit.completed) {
-                    if (prevHeight !== height) {
-                        console.log(`Changed height from ${prevHeight} to ${height}`)
+                if (prevHeight !== height) {
+                    if(textEdit.completed) {
+                        if(prevHeight !== 0) {
+                            geometryChanged()
+                            console.log(`Changed height from ${prevHeight} to ${height} textEdit.completed=${textEdit.completed}`)
+                        }
+
                         prevHeight = height;
-                        geometryChanged()
                     }
                 }
             }
