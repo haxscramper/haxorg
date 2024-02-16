@@ -3,8 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 Item {
-    implicitHeight: itemRow.height
-    implicitWidth: itemRow.width
+    id: treeItem
 
     readonly property real indent: 20
     readonly property real padding: 5
@@ -21,21 +20,40 @@ Item {
         x: padding
 
         Text {
-            id: indicator
-            visible: treeItem.isTreeNode && treeItem.hasChildren
-            anchors.verticalCenter: label.verticalCenter
-            text: "▸"
-            font.pixelSize: 16
-            rotation: treeItem.expanded ? 90 : 0
-            TapHandler {
-                onTapped: treeView.toggleExpanded(row)
-            }
+            text: `${treeItem.height} ${itemRow.height} ${model.index}`
+        }
+
+        Rectangle {
+            height: 10
+            width: 10 * model.index
+        }
+
+        Rectangle {
+            height: nodeSelect.height
+            width: 10
+            border.color: "red"
+            border.width: 2
         }
 
         Loader {
             id: nodeSelect
 
-            function getSourceComponent() {
+            // Binding {
+            //     target: treeItem
+            //     property: "height"
+            //     value: nodeSelect.sourceComponent.height
+            //     when: nodeSelect.status == Loader.Ready
+            // }
+
+            onStatusChanged: {
+                if (nodeSelect.status === Loader.Ready) {
+                    console.log(`treeItem.height = ${treeItem.height} nodeSelect.item.height = ${nodeSelect.item.height}`)
+                    treeItem.height = nodeSelect.item.height;
+                    treeItem.heightChanged()
+                }
+            }
+
+            sourceComponent: {
                 if (model.kind === "Paragraph") {
                     return edit;
                 } else if (model.kind === "Subtree") {
@@ -44,9 +62,17 @@ Item {
                     return unknown;
                 }
             }
+        }
 
-            height: sourceComponent.height
-            sourceComponent: getSourceComponent()
+        Component {
+            id: edit
+            ParagraphEditor {
+                textWidth: window.width - 50
+                modelData: model.data
+                onGeometryChanged: {
+                    treeView.forceLayout()
+                }
+            }
         }
 
         Component {
@@ -67,9 +93,22 @@ Item {
             id: label
             RowLayout {
                 Text {
-                    text: Array(model.data.level + 1).join("*")
+                    id: indicator
+                    visible: treeItem.isTreeNode && treeItem.hasChildren
+                    anchors.verticalCenter: label.verticalCenter
+                    text: "▸"
+                    font.pixelSize: 16
+                    rotation: treeItem.expanded ? 90 : 0
+                    TapHandler {
+                        onTapped: treeView.toggleExpanded(row)
+                    }
+                }
+
+                Text {
+                    text: model.data.level ? Array(model.data.level + 1).join("*") : "?"
                     font.pixelSize: 16
                 }
+
                 Text {
                     width: 400
                     clip: true
@@ -77,17 +116,6 @@ Item {
                     text: model.data.title.getRichText()
                     textFormat: Text.RichText
                     wrapMode: TextEdit.WordWrap
-                }
-            }
-        }
-
-        Component {
-            id: edit
-            ParagraphEditor {
-                textWidth: window.width - 50
-                modelData: model.data
-                onGeometryChanged: {
-                    treeView.forceLayout()
                 }
             }
         }

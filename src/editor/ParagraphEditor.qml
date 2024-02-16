@@ -43,7 +43,6 @@ Item {
                     if(textEdit.completed) {
                         if(prevHeight !== 0) {
                             geometryChanged()
-                            console.log(`Changed height from ${prevHeight} to ${height} textEdit.completed=${textEdit.completed}`)
                         }
 
                         prevHeight = height;

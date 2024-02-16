@@ -27,16 +27,18 @@ Window {
             clip: true
             Layout.fillWidth: true
             Layout.fillHeight: true
+
             TreeView {
                 model: documentModel
                 id: treeView
 
                 Component.onCompleted: {
                     treeView.expandRecursively(-1, -1)
+                    treeView.forceLayout()
                 }
 
                 delegate: DocumentItem {
-                    id: treeItem
+
                 }
             }
         }
