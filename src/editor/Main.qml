@@ -3,7 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 Window {
-    width: 1000
+    id: window
+    width: 1500
     height: 1000
     visible: true
 
@@ -69,46 +70,27 @@ Window {
 
                     Component {
                         id: label
-                        Text {
-                            id: labelText
-                            width: 400
-                            clip: true
-                            text: model.data.title.getRichText()
-                            textFormat: Text.RichText
-                            wrapMode: TextEdit.WordWrap
+                        RowLayout {
+                            Text {
+                                text: Array(model.data.level + 1).join("*")
+                            }
+                            Text {
+                                width: 400
+                                clip: true
+                                text: model.data.title.getRichText()
+                                textFormat: Text.RichText
+                                wrapMode: TextEdit.WordWrap
+                            }
                         }
                     }
 
                     Component {
                         id: edit
-                        Rectangle {
-                            id: editRect
-                            border.width: 2
-                            border.color: "black"
-                            height: textEdit.contentHeight + 2 * textEdit.padding
-                            width: textEdit.width
-                            TextEdit {
-                                padding: 5
-                                id: textEdit
-                                text: model.data.getRichText()
-                                width: 500
-                                font.pixelSize: 12
-                                textFormat: TextEdit.RichText
-                                wrapMode: TextEdit.WordWrap
-                                property bool completed: false
-                                onEditingFinished: {
-                                    model.data.setRichText(textEdit.text)
-                                }
-
-                                Component.onCompleted: {
-                                    textEdit.completed = true;
-                                }
-
-                                onTextChanged: {
-                                    if(textEdit.completed) {
-                                        treeView.forceLayout();
-                                    }
-                                }
+                        ParagraphEditor {
+                            textWidth: window.width - 50
+                            modelData: model.data
+                            onGeometryChanged: {
+                                treeView.forceLayout()
                             }
                         }
                     }
