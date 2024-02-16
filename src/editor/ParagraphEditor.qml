@@ -17,15 +17,19 @@ Item {
         width: textEdit.width
         radius: textEdit.padding
 
+
         TextEdit {
             padding: 5
             id: textEdit
             text: modelData.getRichText()
             width: textWidth
-            font.pixelSize: 12
+            font.pixelSize: 16
             textFormat: TextEdit.RichText
             wrapMode: TextEdit.WordWrap
+
+            property int prevHeight: height
             property bool completed: false
+
             onEditingFinished: {
                 modelData.setRichText(textEdit.text)
             }
@@ -34,9 +38,13 @@ Item {
                 textEdit.completed = true;
             }
 
-            onTextChanged: {
+            onContentHeightChanged: {
                 if(textEdit.completed) {
-                    geometryChanged()
+                    if (prevHeight !== height) {
+                        console.log(`Changed height from ${prevHeight} to ${height}`)
+                        prevHeight = height;
+                        geometryChanged()
+                    }
                 }
             }
         }

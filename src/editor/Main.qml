@@ -65,7 +65,29 @@ Window {
 
                     Loader {
                         id: nodeEdit
-                        sourceComponent: model.kind === "Paragraph" ? edit : label;
+                        sourceComponent: {
+                            if (model.kind === "Paragraph") {
+                                return edit;
+                            } else if (model.kind === "Subtree") {
+                                return label;
+                            } else {
+                                return unknown;
+                            }
+                        }
+                    }
+
+                    Component {
+                        id: unknown
+                        RowLayout {
+                            Text {
+                                width: 400
+                                clip: true
+                                font.pixelSize: 16
+                                text: model.kind
+                                textFormat: Text.RichText
+                                wrapMode: TextEdit.WordWrap
+                            }
+                        }
                     }
 
                     Component {
@@ -73,10 +95,12 @@ Window {
                         RowLayout {
                             Text {
                                 text: Array(model.data.level + 1).join("*")
+                                font.pixelSize: 16
                             }
                             Text {
                                 width: 400
                                 clip: true
+                                font.pixelSize: 16
                                 text: model.data.title.getRichText()
                                 textFormat: Text.RichText
                                 wrapMode: TextEdit.WordWrap
