@@ -73,7 +73,7 @@ Window {
                             id: labelText
                             width: 400
                             clip: true
-                            text: model.data.title
+                            text: model.data.title.getRichText()
                             textFormat: Text.RichText
                             wrapMode: TextEdit.WordWrap
                         }
@@ -90,14 +90,14 @@ Window {
                             TextEdit {
                                 padding: 5
                                 id: textEdit
-                                text: model.rich.text
+                                text: model.data.getRichText()
                                 width: 500
                                 font.pixelSize: 12
                                 textFormat: TextEdit.RichText
                                 wrapMode: TextEdit.WordWrap
                                 property bool completed: false
                                 onEditingFinished: {
-                                    model.rich.text = textEdit.text
+                                    model.data.setRichText(textEdit.text)
                                 }
 
                                 Component.onCompleted: {

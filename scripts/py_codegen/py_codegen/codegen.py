@@ -645,12 +645,6 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> Qm
         if hasattr(struct, "isOrgType"):
             pass
 
-        elif struct.name.name == "Org":
-            result.fields.append(GenTuField(
-                type=t_id(struct.name),
-                name=BASE_NODE_FIELD,
-            ))
-
         else:
             result.fields.append(
                 GenTuField(
@@ -661,26 +655,18 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> Qm
         def capitalize_first(s: str) -> str:
             return s[0].upper() + s[1:] if s else ""
 
-        if hasattr(struct, "isOrgType") or struct.name.name == "Org":
+        if hasattr(struct, "isOrgType"):
             result.nested.append(GenTuPass(
                 ast.string(f"{struct.name.name}() = default;")))
 
-            if struct.name.name == "Org":
-                result.nested.append(
-                    GenTuPass(
-                        ast.string(
-                            "{name}(sem::SemId<sem::Org> const& id) : __data(id.as<sem::{name}>()) {{}}"
-                            .format(name=struct.name.name,))))
-
-            else:
-                result.nested.append(
-                    GenTuPass(
-                        ast.string(
-                            "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".
-                            format(
-                                name=struct.name.name,
-                                base=struct.bases[0].name,
-                            ))))
+            result.nested.append(
+                GenTuPass(
+                    ast.string(
+                        "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".
+                        format(
+                            name=struct.name.name,
+                            base=struct.bases[0].name,
+                        ))))
 
         for field in struct.fields:
             if field.isStatic:
@@ -761,7 +747,7 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> Qm
         return result
 
     for item in tu.structs:
-        if item.name.name in ["Org", "LineCol"]:
+        if item.name.name in ["LineCol"]:
             qml_wrapped.append(gen_qml_wrap_struct(item))
 
     for item in expanded:

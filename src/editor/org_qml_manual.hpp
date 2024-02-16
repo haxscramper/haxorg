@@ -1,3 +1,4 @@
+#pragma once
 #include <QObject>
 #include <sem/SemOrg.hpp>
 
@@ -17,5 +18,15 @@ struct serde<QString, Str> {
         QByteArray tmp = value.toLatin1();
         return std::string{tmp.data(), static_cast<size_t>(tmp.size())};
     }
+};
+
+struct Org {
+    Q_GADGET
+  public:
+    Org() = default;
+    Org(sem::SemId<sem::Org> const& id) : __data(id.as<sem::Org>()) {}
+    sem::SemId<sem::Org> __data;
+    Q_INVOKABLE QString  getRichText() const;
+    Q_INVOKABLE void     setRichText(QString const& value);
 };
 } // namespace org_qml

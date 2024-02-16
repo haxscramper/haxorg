@@ -11,18 +11,6 @@ inline std::string to_std(QString const& value) {
     return std::string{tmp.data(), static_cast<size_t>(tmp.size())};
 }
 
-class OrgNodeCursor;
-
-class OrgNodeTextWrapper {
-    Q_GADGET
-    Q_PROPERTY(QString text READ getRichText WRITE setRichText);
-
-  public:
-    void           setRichText(QString const& value);
-    QString        getRichText();
-    OrgNodeCursor* cursor;
-};
-
 class OrgNodeCursor {
   public:
     explicit OrgNodeCursor(
@@ -75,17 +63,11 @@ class OrgNodeCursor {
         }
     }
 
-    OrgNodeCursor* getparent() { return parent; }
-
+    OrgNodeCursor*                   getparent() { return parent; }
     std::vector<UPtr<OrgNodeCursor>> item_cache;
     sem::SemId<sem::Org>             node;
     OrgNodeCursor*                   parent;
-
-    QVariant getNodeRich() {
-        return QVariant::fromValue(OrgNodeTextWrapper{this});
-    }
-
-    QVariant getNodeHandle();
+    QVariant                         getNodeHandle();
 };
 
 
@@ -98,5 +80,3 @@ struct OrgBackend : public QObject {
             "/tmp/result.json", org::toJson(document.asOrg()).dump(2));
     }
 };
-
-Q_DECLARE_METATYPE(OrgNodeTextWrapper)

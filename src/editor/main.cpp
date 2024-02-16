@@ -18,15 +18,13 @@ class OrgDocumentModel : public QAbstractItemModel {
     {
         KindRole = Qt::UserRole + 1,
         DataRole,
-        RichTextRole,
         LastExplicitRole,
     };
 
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
-        roles[KindRole]     = "kind";
-        roles[DataRole]     = "data";
-        roles[RichTextRole] = "rich";
+        roles[KindRole] = "kind";
+        roles[DataRole] = "data";
         return roles;
     }
 
@@ -108,17 +106,11 @@ class OrgDocumentModel : public QAbstractItemModel {
 
         switch (role) {
             case Qt::DisplayRole: {
-                OrgNodeCursor* item = static_cast<OrgNodeCursor*>(
-                    index.internalPointer());
                 return item->data(index.column());
             }
 
             case OrgNodeItemRole::KindRole: {
                 return QString::fromStdString(fmt1(item->node->getKind()));
-            }
-
-            case OrgNodeItemRole::RichTextRole: {
-                return item->getNodeRich();
             }
 
             case OrgNodeItemRole::DataRole: {

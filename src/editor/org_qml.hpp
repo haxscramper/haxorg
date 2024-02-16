@@ -17,14 +17,6 @@ struct LineCol {
   void setPos(int pos);
 };
 
-struct Org {
-  Q_GADGET
-  public:
-  Org() = default;
-  Org(sem::SemId<sem::Org> const& id) : __data(id.as<sem::Org>()) {}
-  sem::SemId<sem::Org> __data;
-};
-
 struct Stmt : public Org {
   Q_GADGET
   public:
@@ -626,7 +618,6 @@ struct DocumentGroup : public Org {
 
 }
 Q_DECLARE_METATYPE(org_qml::LineCol)
-Q_DECLARE_METATYPE(org_qml::Org)
 Q_DECLARE_METATYPE(org_qml::Stmt)
 Q_DECLARE_METATYPE(org_qml::Inline)
 Q_DECLARE_METATYPE(org_qml::StmtList)
