@@ -26,7 +26,7 @@ Window {
     Component {
         id: empty
         Text {
-            text: "loading ..."
+            text: "loadi asdfas fas dfng ..."
         }
     }
 
@@ -34,6 +34,8 @@ Window {
         id: view
         DocumentView {
             backend: mainDocument
+            width: window.width
+            height: window.height
         }
     }
 }
