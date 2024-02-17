@@ -70,13 +70,3 @@ class OrgNodeCursor {
     QVariant                         getNodeHandle();
 };
 
-
-struct OrgBackend : public QObject {
-    Q_OBJECT
-  public:
-    sem::SemId<sem::Document> document;
-    Q_INVOKABLE void          saveDocument() {
-        writeFile(
-            "/tmp/result.json", org::toJson(document.asOrg()).dump(2));
-    }
-};

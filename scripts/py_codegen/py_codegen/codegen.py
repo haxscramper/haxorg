@@ -805,7 +805,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             )),
         GenUnit(
             GenTu(
-                "{root}/src/editor/org_qml.hpp",
+                "{root}/src/editor/gui_lib/org_qml.hpp",
                 [
                     GenTuPass("#pragma once"),
                     GenTuPass("#include \"org_qml_manual.hpp\""),
@@ -813,7 +813,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 ] + qml.toplevel,
             ),
             GenTu(
-                "{root}/src/editor/org_qml.cpp",
+                "{root}/src/editor/gui_lib/org_qml.cpp",
                 [
                     GenTuPass("#include \"org_qml_manual2.hpp\""),
                 ] + qml.implementation,
