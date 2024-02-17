@@ -8,15 +8,15 @@ struct OrgBackend : public QObject {
     sem::SemId<sem::Document>     document;
     SPtr<OrgDocumentModel>        model;
     SPtr<OrgDocumentSearchFilter> filter;
-    SPtr<OrgSubtreeSearchModel>   fuzzySorted;
+    SPtr<OrgSubtreeSearchModel>   outline;
 
     OrgBackend() {}
 
     Q_INVOKABLE void loadDocument(CR<QString> path) {
-        document    = org::parseString(readFile(to_std(path)));
-        model       = std::make_shared<OrgDocumentModel>(document);
-        filter      = std::make_shared<OrgDocumentSearchFilter>(&model);
-        fuzzySorted = std::make_shared<OrgSubtreeSearchModel>(&model);
+        document = org::parseString(readFile(to_std(path)));
+        model    = std::make_shared<OrgDocumentModel>(document);
+        filter   = std::make_shared<OrgDocumentSearchFilter>(model.get());
+        outline  = std::make_shared<OrgSubtreeSearchModel>(model.get());
 
         filter->acceptNode = [](CR<sem::SemId<sem::Org>> id) -> bool {
             return id->getKind() != OrgSemKind::Newline;
@@ -24,7 +24,7 @@ struct OrgBackend : public QObject {
     }
 
     Q_INVOKABLE OrgDocumentSearchFilter* getOutlineModel() {
-        return &fuzzySorted.get()->filter;
+        return &outline.get()->filter;
     }
 
     Q_INVOKABLE OrgDocumentSearchFilter* getDocumentModel() {
