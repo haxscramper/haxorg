@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import org_editor_lib
+import OrgQml
 
 Window {
     id: window
@@ -8,77 +10,30 @@ Window {
     height: 1000
     visible: true
 
-    RowLayout {
-        anchors.fill: parent
-        ColumnLayout {
-            width: 200
-            Layout.fillHeight: true
-            ScrollView {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                TreeView {
-                    model: sortedSubtree
-                    id: subtreeView
-                    delegate: Item {
-                        implicitHeight: 20
-                        RowLayout {
-                            Text {
-                                text: Array(model.data.level + 1).join("*") + " "
-                            }
-
-                            Text {
-                                text: model.data.title.getRichText()
-                                wrapMode: Text.WrapAnywhere
-                                width: 180
-                            }
-                        }
-                    }
-
-                    Component.onCompleted: {
-                        subtreeView.expandRecursively(-1, -1)
-                        subtreeView.forceLayout()
-                    }
-                }
-            }
+    OrgBackend {
+        id: mainDocument
+        Component.onCompleted: {
+            mainDocument.loadDocument("/home/haxscramper/tmp/doc1.org");
+            loader.forceActiveFocus()
         }
+    }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Button {
-                property int save_count: 0
+    Loader {
+        id: loader
+        sourceComponent: mainDocument.hasDocument ? view : empty
+    }
 
-                id: save_button
-                Layout.preferredWidth: 200
-                Layout.preferredHeight: 50
-                text: "Save " + save_count
-                onClicked: {
-                    ++save_count;
-                    backend.saveDocument();
-                }
-            }
+    Component {
+        id: empty
+        Text {
+            text: "loading ..."
+        }
+    }
 
-            ScrollView {
-                clip: true
-                Layout.leftMargin: 5
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                TreeView {
-                    model: documentModel
-                    id: treeView
-
-                    Component.onCompleted: {
-                        treeView.expandRecursively(-1, -1)
-                        treeView.forceLayout()
-                    }
-
-                    delegate: DocumentItem {
-
-                    }
-                }
-            }
+    Component {
+        id: view
+        DocumentView {
+            backend: mainDocument
         }
     }
 }
