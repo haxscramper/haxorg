@@ -103,7 +103,6 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         //        res = lineWrap("p", {lineSubnodes(tree)});
     }
 
-
     Res createTocList(sem::SemId<sem::Org> node);
 
     void visitSubtree(Res& res, In<sem::Subtree> tree);
@@ -114,6 +113,10 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
 
     void visitVerbatim(Res& res, In<sem::Verbatim> verb) {
         res = lineSubnodes(verb);
+    }
+
+    void visitBold(Res& res, In<sem::Bold> bold) {
+        res = lineWrap("b", {lineSubnodes(bold)});
     }
 
     void visitMarkQuote(Res& res, In<sem::MarkQuote> mark) {
