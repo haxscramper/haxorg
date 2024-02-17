@@ -22,8 +22,16 @@ Window {
                     id: subtreeView
                     delegate: Item {
                         implicitHeight: 20
-                        Text {
-                            text: Array(model.data.level + 1).join("*") + " " + model.data.title.getRichText()
+                        RowLayout {
+                            Text {
+                                text: Array(model.data.level + 1).join("*") + " "
+                            }
+
+                            Text {
+                                text: model.data.title.getRichText()
+                                wrapMode: Text.WrapAnywhere
+                                width: 180
+                            }
                         }
                     }
 

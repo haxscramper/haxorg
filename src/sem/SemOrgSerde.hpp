@@ -498,7 +498,7 @@ template <>
 struct proto_serde<orgproto::UserTime, UserTime> {
     static void write(orgproto::UserTime* out, UserTime const& in) {
         out->set_time(absl::ToUnixSeconds(in.time));
-        out->set_zone(in.zone.name());
+        if (in.zone) { out->set_zone(in.zone->name()); }
         out->set_align(static_cast<orgproto::Alignment>(in.align));
     }
     static void read(
