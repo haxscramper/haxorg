@@ -8,38 +8,67 @@ Window {
     height: 1000
     visible: true
 
-    ColumnLayout {
+    RowLayout {
         anchors.fill: parent
-        Button {
-            property int save_count: 0
+        ColumnLayout {
+            width: 200
+            Layout.fillHeight: true
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                TreeView {
+                    model: sortedSubtree
+                    id: subtreeView
+                    delegate: Item {
+                        implicitHeight: 20
+                        Text {
+                            text: Array(model.data.level + 1).join("*") + " " + model.data.title.getRichText()
+                        }
+                    }
 
-            id: save_button
-            Layout.preferredWidth: 200
-            Layout.preferredHeight: 50
-            text: "Save " + save_count
-            onClicked: {
-                ++save_count;
-                backend.saveDocument();
+                    Component.onCompleted: {
+                        subtreeView.expandRecursively(-1, -1)
+                        subtreeView.forceLayout()
+                    }
+                }
             }
         }
 
-        ScrollView {
-            clip: true
-            Layout.leftMargin: 5
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Button {
+                property int save_count: 0
 
-            TreeView {
-                model: documentModel
-                id: treeView
-
-                Component.onCompleted: {
-                    treeView.expandRecursively(-1, -1)
-                    treeView.forceLayout()
+                id: save_button
+                Layout.preferredWidth: 200
+                Layout.preferredHeight: 50
+                text: "Save " + save_count
+                onClicked: {
+                    ++save_count;
+                    backend.saveDocument();
                 }
+            }
 
-                delegate: DocumentItem {
+            ScrollView {
+                clip: true
+                Layout.leftMargin: 5
+                Layout.fillWidth: true
+                Layout.fillHeight: true
 
+                TreeView {
+                    model: documentModel
+                    id: treeView
+
+                    Component.onCompleted: {
+                        treeView.expandRecursively(-1, -1)
+                        treeView.forceLayout()
+                    }
+
+                    delegate: DocumentItem {
+
+                    }
                 }
             }
         }

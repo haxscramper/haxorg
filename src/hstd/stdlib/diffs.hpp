@@ -315,14 +315,10 @@ inline bool hasInvisibleChanges(
         SeqEdit& edit = diff[idx];
         switch (edit.kind) {
             case SeqEditKind::Delete:
-                if (invis(oldSeq[edit.sourcePos])) {
-                    return true;
-                }
+                if (invis(oldSeq[edit.sourcePos])) { return true; }
                 break;
             case SeqEditKind::Insert:
-                if (invis(newSeq[edit.targetPos])) {
-                    return true;
-                }
+                if (invis(newSeq[edit.targetPos])) { return true; }
                 break;
             case SeqEditKind::None:
             case SeqEditKind::Transpose: break;
@@ -349,9 +345,7 @@ inline bool hasInvisible(
     CharSet     startSet = Invis + CharSet{' '}) {
     // Does string have significant invisible characters?
     CharSet invisSet = startSet;
-    if (scanInvisible(text, invisSet)) {
-        return true;
-    }
+    if (scanInvisible(text, invisSet)) { return true; }
     return false;
 }
 
@@ -363,9 +357,7 @@ inline bool hasInvisible(CR<Vec<Str>> text) {
         // first visible character, space is also considered significant,
         // but removed afterwards, so `" a"/"a"` is not considered to have
         // invisible characters.
-        if (scanInvisible(text[idx], invisSet)) {
-            return true;
-        }
+        if (scanInvisible(text[idx], invisSet)) { return true; }
     }
     return false;
 }
@@ -373,9 +365,7 @@ inline bool hasInvisible(CR<Vec<Str>> text) {
 inline Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
     Str result;
     // Convert all characters in the string into visible ones
-    for (const auto& ch : str) {
-        result += conf.explainChar(ch);
-    }
+    for (const auto& ch : str) { result += conf.explainChar(ch); }
     return result;
 }
 
@@ -671,9 +661,7 @@ struct FormattedDiff {
     }
 
     generator<DiffLine> stackedLines() {
-        for (const auto& line : stacked().elements) {
-            co_yield line;
-        }
+        for (const auto& line : stacked().elements) { co_yield line; }
     }
 
     generator<Pair<DiffLine, DiffLine>> unifiedLines() const {
@@ -952,14 +940,10 @@ struct FuzzyMatcher {
         int&                     recursionCount) {
         // Count recursions
         ++recursionCount;
-        if (recursionLimit <= recursionCount) {
-            return false;
-        }
+        if (recursionLimit <= recursionCount) { return false; }
 
         // Detect end of Strs
-        if (!pattern.hasData() || !str.hasData()) {
-            return false;
-        }
+        if (!pattern.hasData() || !str.hasData()) { return false; }
 
         // Recursion params
         bool              recursiveMatch = false;
@@ -974,9 +958,7 @@ struct FuzzyMatcher {
             if (this->isEqual(pattern.front(), str.front())) {
 
                 // Supplied matches buffer was too short
-                if (MatchBufferSize <= nextMatch) {
-                    return false;
-                }
+                if (MatchBufferSize <= nextMatch) { return false; }
 
                 // "Copy-on-Write" srcMatches into matches
                 if (first_match && srcMatches) {
@@ -987,7 +969,7 @@ struct FuzzyMatcher {
                 // Recursive call that "skips" this match
                 MatchPositionType recursiveMatches[MatchBufferSize];
                 int               recursiveScore;
-                str.moveStart(1);
+                str.moveStart(1, str.data() + str.size());
                 if (fuzzy_match_recursive(
                         pattern,
                         str,
@@ -1013,9 +995,9 @@ struct FuzzyMatcher {
                 // Advance
                 matches[nextMatch++] = std::distance(
                     str.data(), strBegin.data());
-                pattern.moveStart(1);
+                pattern.moveStart(1, pattern.data() + pattern.size());
             }
-            str.moveStart(1);
+            str.moveStart(1, str.data() + str.size());
         }
 
         // Determine if full pattern was matched
@@ -1026,7 +1008,7 @@ struct FuzzyMatcher {
 
             // Iterate str to end
             while (str.hasData()) {
-                str.moveStart(1);
+                str.moveStart(1, str.data() + str.size());
             }
 
             // Initialize score

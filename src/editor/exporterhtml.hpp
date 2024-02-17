@@ -132,6 +132,14 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         }
     }
 
+    void visitTime(Res& res, In<sem::Time> time) {
+        if (time->isStatic()) {
+            res = string(fmt("[{}]", time->getStatic().time.format()));
+        } else {
+            res = string(time->getDynamic().expr);
+        }
+    }
+
     void visitDocument(Res& res, In<sem::Document> doc);
 
 #define __leaf(__Kind)                                                    \

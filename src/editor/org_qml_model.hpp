@@ -138,15 +138,14 @@ struct OrgDocumentSearchFilter : public QSortFilterProxyModel {
         return getNode(index);
     }
 
-    Func<bool(CR<sem::SemId<sem::Org>>)> acceptNode;
-    Func<bool(CR<sem::SemId<sem::Org>>, CR<sem::SemId<sem::Org>>)>
-        nodeLessThan;
+    Func<bool(sem::OrgArg)>              acceptNode;
+    Func<bool(sem::OrgArg, sem::OrgArg)> nodeLessThan;
 
     bool lessThan(
         const QModelIndex& source_left,
         const QModelIndex& source_right) const override {
         if (nodeLessThan) {
-            return true;
+            return source_left.row() < source_right.row();
         } else {
             return nodeLessThan(
                 getNode(source_left), getNode(source_right));
@@ -164,3 +163,17 @@ struct OrgDocumentSearchFilter : public QSortFilterProxyModel {
     }
 };
 
+struct OrgSubtreeSearchModel : QObject {
+    Q_OBJECT
+
+  public:
+    OrgSubtreeSearchModel(OrgDocumentModel* baseModel);
+
+    OrgDocumentSearchFilter filter;
+    UnorderedMap<u64, int>  scoreCache;
+    std::string             pattern;
+    int                     getScore(sem::OrgArg arg);
+
+    Q_INVOKABLE void setPattern(CR<QString> pattern);
+    Q_INVOKABLE void setScoreSorted(bool sorted);
+};

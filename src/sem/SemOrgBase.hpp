@@ -134,6 +134,7 @@ struct SemId {
     void eachSubnodeRec(SubnodeVisitor cb);
 };
 
+using OrgArg = sem::SemId<sem::Org> const&;
 
 template <typename T>
 struct remove_sem_org {

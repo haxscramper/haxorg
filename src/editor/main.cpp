@@ -19,12 +19,15 @@ int main(int argc, char* argv[]) {
     QQmlApplicationEngine   engine;
     OrgDocumentModel        model{backend.document};
     OrgDocumentSearchFilter filter{&model};
+    OrgSubtreeSearchModel   fuzzySorted{&model};
 
     filter.acceptNode = [](CR<sem::SemId<sem::Org>> id) -> bool {
         return id->getKind() != OrgSemKind::Newline;
     };
 
     engine.rootContext()->setContextProperty("documentModel", &filter);
+    engine.rootContext()->setContextProperty(
+        "sortedSubtree", &fuzzySorted.filter);
     engine.rootContext()->setContextProperty("backend", &backend);
 
     const QUrl url(u"qrc:/editor/Main.qml"_qs);
