@@ -38,7 +38,7 @@ Item {
                 textEdit.completed = true;
             }
 
-            onContentHeightChanged: {
+            onTextChanged: {
                 if (prevHeight !== height) {
                     if(textEdit.completed) {
                         if(prevHeight !== 0) {

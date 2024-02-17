@@ -25,6 +25,7 @@ Window {
 
         ScrollView {
             clip: true
+            Layout.leftMargin: 5
             Layout.fillWidth: true
             Layout.fillHeight: true
 
