@@ -425,6 +425,12 @@ struct RecombineState {
                 break;
             }
 
+            // case otk::Escaped: {
+            //     add_fake(otk::Escaped, loc_fill(tok->text.substr(1)));
+            //     pop_as(otk::Escaped);
+            //     break;
+            // }
+
             case otk::Plus:
             case otk::ForwardSlash:
             case otk::Equals:

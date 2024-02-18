@@ -149,6 +149,11 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     from py_exporters.export_tex import ExporterLatex
     from py_textlayout.py_textlayout_wrap import TextOptions
 
+    tree = org.OrgExporterTree()
+    tree_opts = org.ExporterTreeOpts()
+    tree_opts.withColor = False
+    tree.toFile(node, "/tmp/tex_tree.txt", tree_opts)
+
     log().info("Exporting to latex")
     tex = ExporterLatex()
     if opts.exportTraceFile:

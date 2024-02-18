@@ -126,7 +126,7 @@ class ExporterLatex(ExporterBase):
         #     return res
         #
         # else:
-        #     return self.string("")
+        #     return self.string("")2
 
             case org.LinkKind.Raw:
                 return self.string(self.escape(node.getRaw().text))
@@ -165,7 +165,7 @@ class ExporterLatex(ExporterBase):
         return self.command("underline", [self.lineSubnodes(node)])
 
     def evalBold(self, node: org.Bold) -> BlockId:
-        return self.command("bold", [self.lineSubnodes(node)])
+        return self.command("textbf", [self.lineSubnodes(node)])
 
     def evalVerbatim(self, node: org.Verbatim) -> BlockId:
         return self.command("textsc", [self.lineSubnodes(node)])
@@ -215,7 +215,8 @@ class ExporterLatex(ExporterBase):
                          args=[self.getLatexClass(node)]))
 
         self.t.add_at(res, self.command("usepackage", ["csquotes"]))
-        self.t.add_at(res, self.command("usepackage", opts=["bookmarks"], args=["hyperref"]))
+        self.t.add_at(res,
+                      self.command("usepackage", opts=["bookmarks"], args=["hyperref"]))
         self.t.add_at(res, self.command("usepackage", ["xcolor"]))
 
         for value in TexCommand:
@@ -248,6 +249,8 @@ class ExporterLatex(ExporterBase):
 
   \\newcommand{\\quot}[1]{\\textcolor{brown}{#1}}
         """))
+
+        self.t.add_at(res, self.command("begin", [self.string("document")]))
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))

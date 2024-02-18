@@ -334,6 +334,14 @@ items:
     source: |
        [[./notes.images/file.png]],
 
+  - name: "Inline latex expression"
+    source: |
+      \(2006 - 17 = 1989\)
+
+  - name: "Escaped eq"
+    source: |
+      text \=\= text
+
 
 
 

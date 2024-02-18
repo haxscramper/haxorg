@@ -155,7 +155,7 @@ void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
         int idx = 0;
         for (const auto& it : value) {
             indent();
-            os << "@[" << idx << "]:\n";
+            os << "@[" << fmt1(idx) << "]:\n";
             visit(arg, it);
             ++idx;
         }
