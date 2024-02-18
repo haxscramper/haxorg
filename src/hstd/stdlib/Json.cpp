@@ -20,9 +20,7 @@ std::string to_compact_json(
     Func<int(json const&)> getSize;
     getSize = [&](json const& j) -> int {
         std::size_t hash = std::hash<json>{}(j);
-        if (!sizes.contains(hash)) {
-            sizes[hash] = j.dump().size();
-        }
+        if (!sizes.contains(hash)) { sizes[hash] = j.dump().size(); }
 
         return sizes.at(hash);
     };
@@ -52,9 +50,7 @@ std::string to_compact_json(
                         result += "\n";
                         result += std::string(indent, ' ');
                         result += format(indent + options.indent, sub);
-                        if (i < j.size() - 1) {
-                            result += ",";
-                        }
+                        if (i < j.size() - 1) { result += ","; }
                     }
 
                     result += "]";
@@ -85,15 +81,16 @@ std::string to_compact_json(
                         result += std::string(indent, ' ');
                         result += "\"" + key + "\": ";
                         result += format(indent + options.indent, sub);
-                        if (i < j.size() - 1) {
-                            result += ",";
-                        }
+                        if (i < j.size() - 1) { result += ","; }
                         ++i;
                     }
 
                     result += "}";
 
                     return result;
+                }
+                default: {
+                    return "";
                 }
             }
         }

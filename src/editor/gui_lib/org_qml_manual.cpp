@@ -7,6 +7,9 @@
 #include <lexbor/html/node.h>
 #include <lexbor/html/serialize.h>
 #include <exporters/exportertree.hpp>
+#include <exporters/ExporterJson.hpp>
+#include <QJsonArray>
+#include <QJsonValue>
 
 using namespace sem;
 
@@ -233,4 +236,63 @@ void org_qml::Org::setRichText(const QString& value) {
     // ExporterTree::treeRepr(org.value());
     // std::cout << std::endl;
     *__data.get() = *org.value().value.get();
+}
+
+QJsonValue org_qml::Org::getJson() const {
+    ExporterJson exp{};
+    json         result = exp.evalTop(__data);
+
+    Func<QJsonValue(CR<json> in)> aux;
+    aux = [&aux](CR<json> in) -> QJsonValue {
+        switch (in.type()) {
+            case json::value_t::array: {
+                QJsonArray result;
+                for (auto const& it : in) { result.append(aux(it)); }
+                return result;
+            }
+
+            case json::value_t::object: {
+                QJsonObject result;
+                for (auto const& [key, sub] : in.items()) {
+                    result.insert(QString::fromStdString(key), aux(sub));
+                }
+                return result;
+            }
+
+            case json::value_t::number_integer: {
+                return in.get<int>();
+            }
+
+            case json::value_t::string: {
+                return QString::fromStdString(in.get<std::string>());
+            }
+
+            case json::value_t::boolean: {
+                return in.get<bool>();
+            }
+
+            case json::value_t::binary:
+            case json::value_t::discarded:
+            case json::value_t::null: {
+                return QJsonValue();
+            }
+
+            case json::value_t::number_float: {
+                return in.get<float>();
+            }
+
+            case json::value_t::number_unsigned: {
+                return QJsonValue(
+                    static_cast<qint64>(in.get<unsigned int>()));
+            }
+        }
+    };
+
+
+    return aux(result);
+}
+
+org_qml::Org org_qml::Org::at(int index) {
+    return org_qml::serde<Org, sem::SemId<sem::Org>>::cxx_to_qml(
+        __data->at(index));
 }

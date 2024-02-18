@@ -14,9 +14,8 @@ struct OrgBackend : public QObject {
 
     OrgBackend() {}
 
-    Q_INVOKABLE void loadDocument(CR<QString> path) {
-        LOG(INFO) << "Loading document from " << to_std(path);
-        document = org::parseString(readFile(to_std(path)));
+    void parseString(CR<std::string> text) {
+        document = org::parseString(text);
         model    = std::make_shared<OrgDocumentModel>(document);
         filter   = std::make_shared<OrgDocumentSearchFilter>(model.get());
         outline  = std::make_shared<OrgSubtreeSearchModel>(model.get());
@@ -28,7 +27,16 @@ struct OrgBackend : public QObject {
         emit hasDocumentChanged(getHasDocument());
     }
 
-    Q_PROPERTY(bool hasDocument READ getHasDocument NOTIFY hasDocumentChanged)
+    Q_INVOKABLE void parseDocumentString(CR<QString> text) {
+        parseString(to_std(text));
+    }
+
+    Q_INVOKABLE void parseDocumentFile(CR<QString> path) {
+        parseString(readFile(to_std(path)));
+    }
+
+    Q_PROPERTY(
+        bool hasDocument READ getHasDocument NOTIFY hasDocumentChanged)
 
     bool getHasDocument() const { return !document.isNil(); }
 
@@ -38,6 +46,12 @@ struct OrgBackend : public QObject {
 
     Q_INVOKABLE OrgDocumentSearchFilter* getDocumentModel() {
         return filter.get();
+    }
+
+    Q_INVOKABLE org_qml::Document getDocument() {
+        return org_qml::serde<
+            org_qml::Document,
+            sem::SemId<sem::Document>>::cxx_to_qml(document);
     }
 
     Q_INVOKABLE void saveDocumentToJson(CR<QString> path) {

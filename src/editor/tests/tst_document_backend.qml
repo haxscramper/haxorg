@@ -16,9 +16,21 @@ TestCase {
     }
 
     function test_document_load() {
-        compare(spy.count, 0, "no document loaded at the start")
-        backend.loadDocument("/home/haxscramper/tmp/doc1.org")
+        var startCount = spy.count
+        backend.parseDocumentFile("/home/haxscramper/tmp/doc1.org")
         compare(backend.hasDocument, true, "has document")
-        compare(spy.count, 1, "has documents loaded at the start")
+        compare(spy.count, startCount + 1, "has documents loaded at the start")
+    }
+
+    function test_document_from_string() {
+        backend.parseDocumentString("*bold*")
+        var doc = backend.getDocument()
+        compare(doc.getKind(), "Document")
+        compare(doc.size(), 1)
+        compare(doc.at(0).getKind(), "Paragraph")
+        compare(doc.at(0).size(), 1)
+        var j = doc.getJson()
+        compare(j.kind, "Document")
+        comapre(j.subnodes.size(), 1)
     }
 }

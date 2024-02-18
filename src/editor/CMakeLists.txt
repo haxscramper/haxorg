@@ -35,6 +35,7 @@ qt_add_qml_module(org_editor_tests URI org_editor_tests VERSION 1.0 QML_FILES ${
 target_link_libraries(org_editor_tests PUBLIC haxorg Qt6::Test Qt6::QuickTest Qt6::Quick Qt6::Core org_editor_libplugin)
 set_target_properties(org_editor_tests PROPERTIES OUTPUT_NAME "gui_tests")
 target_include_directories(org_editor_tests PUBLIC "${BASE}/sem/editor")
+target_compile_definitions(org_editor_tests PUBLIC QT_QML_DEBUG)
 
 set_common_files(org_editor_tests)
 set_target_output(org_editor_tests)
@@ -49,6 +50,7 @@ qt_add_qml_module(org_editor_app URI org_editor_app VERSION 1.0 QML_FILES ${QML_
 target_link_libraries(org_editor_app PUBLIC haxorg Qt6::Quick Qt6::Core org_editor_libplugin)
 set_target_properties(org_editor_app PROPERTIES OUTPUT_NAME "org-editor")
 target_include_directories(org_editor_app PUBLIC "${BASE}/sem/editor")
+target_compile_definitions(org_editor_app PUBLIC QT_QML_DEBUG)
 
 set_common_files(org_editor_app)
 set_target_output(org_editor_app)
