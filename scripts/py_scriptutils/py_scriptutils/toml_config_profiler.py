@@ -166,7 +166,8 @@ def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]
             result.append(path)
 
         elif with_trace:
-            log("org.cli").debug(f"Trying {path} for config -- file does not exist, skipping")
+            log("org.cli").debug(
+                f"Trying {path} for config -- file does not exist, skipping")
 
     return result
 
@@ -217,9 +218,15 @@ def run_config_provider(
     with_trace: bool,
     content_value_substitution: Dict[str, str] = {},
 ) -> dict:
+    """
+    Search for the existing paths in the `search_paths`, pase the toml files and
+    return merged dictionary.
+    """
     try:
-        file_paths = find_config_files(with_trace=with_trace,
-                                       potential_paths=search_paths)
+        file_paths = find_config_files(
+            with_trace=with_trace,
+            potential_paths=search_paths,
+        )
 
         if (not file_paths):
             return {}
@@ -245,10 +252,10 @@ def run_config_provider(
 
 
 @beartype
-def make_config_provider(config_file_name: str):
+def make_config_provider(config_file_name: str, with_trace: bool = False):
 
     def implementation(file_path: str, cmd_name: str):
-        D = run_config_provider(file_path, cmd_name, False, config_file_name)
+        D = run_config_provider([file_path], with_trace=with_trace)
         return D
 
     return implementation
