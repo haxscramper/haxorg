@@ -10,6 +10,7 @@ from datetime import datetime
 
 from py_exporters.export_base import ExporterBase
 from py_exporters.export_ultraplain import ExporterUltraplain
+from py_scriptutils.script_logging import to_debug_json
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId
@@ -106,23 +107,24 @@ class ExporterLatex(ExporterBase):
 
     def evalLink(self, node: org.Link) -> BlockId:
         match node.getLinkKind():
-            case org.LinkKind.Id:
-                target = node.resolve()
-                if target:
-                    res = self.t.line([
-                        self.command("ref", [
-                            self.string((self.getRefKind(target) or "") +
-                                        target.getReadableId())
-                        ])
-                    ])
-
-                    if node.description:
-                        self.t.add_at(res, self.exp.eval(node.description))
-
-                    return res
-
-                else:
-                    return self.string("")
+            # case org.LinkKind.Id:
+            #     return
+                # target = node.resolve()
+                # if target:
+                #     res = self.t.line([
+                #         self.command("ref", [
+                #             self.string((self.getRefKind(target) or "") +
+                #                         target.getReadableId())
+                #         ])
+                #     ])
+                #
+                #     if node.description:
+                #         self.t.add_at(res, self.exp.eval(node.description))
+                #
+                #     return res
+                #
+                # else:
+                #     return self.string("")
 
             case org.LinkKind.Raw:
                 return self.string(self.escape(node.getRaw().text))
@@ -306,8 +308,24 @@ class ExporterLatex(ExporterBase):
         return res
 
     def evalTime(self, node: org.Time) -> BlockId:
-        time_val: datetime = datetime.fromtimestamp(node.getStatic().time)
-        return self.string(time_val.strftime("%Y-%m-%d %H:%M:%S"))
+        brk: org.UserTimeBreakdown = node.getStatic().time.getBreakdown()
+        kwargs = dict(
+            year=brk.year,
+            month=brk.month,
+            day=brk.day,
+        )
+
+        if brk.hour:
+            kwargs["hour"] = brk.hour
+
+        if brk.minute:
+            kwargs["minute"] = brk.minute
+
+        if brk.second:
+            kwargs["second"] = brk.second
+
+        time = datetime(**kwargs)
+        return self.string(time.strftime("%Y-%m-%d %H:%M:%S"))
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line(

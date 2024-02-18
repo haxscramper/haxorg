@@ -74,9 +74,6 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["py", "object"] | ["pybind11", "object"]:
             name = "object"
 
-        case ["UserTime"]:
-            name = "datetime"
-
         case ["UnorderedMap"]:
             name = "Dict"
 

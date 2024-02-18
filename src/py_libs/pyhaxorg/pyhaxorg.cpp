@@ -1177,6 +1177,21 @@ node can have subnodes.)RAW")
     .value("Include", OrgSemKind::Include)
     .value("DocumentGroup", OrgSemKind::DocumentGroup)
     ;
+  pybind11::class_<UserTimeBreakdown>(m, "UserTimeBreakdown")
+    .def(pybind11::init<>())
+    .def_readwrite("year", &UserTimeBreakdown::year)
+    .def_readwrite("month", &UserTimeBreakdown::month)
+    .def_readwrite("day", &UserTimeBreakdown::day)
+    .def_readwrite("hour", &UserTimeBreakdown::hour)
+    .def_readwrite("minute", &UserTimeBreakdown::minute)
+    .def_readwrite("second", &UserTimeBreakdown::second)
+    .def_readwrite("zone", &UserTimeBreakdown::zone)
+    ;
+  pybind11::class_<UserTime>(m, "UserTime")
+    .def(pybind11::init<>())
+    .def("getBreakdown", static_cast<UserTimeBreakdown(UserTime::*)() const>(&UserTime::getBreakdown))
+    .def("format", static_cast<std::string(UserTime::*)() const>(&UserTime::format))
+    ;
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
     .def(pybind11::init<>())
     .def("visitNode",

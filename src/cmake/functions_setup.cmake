@@ -2,6 +2,8 @@ function(set_target_flags TARGET)
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
+  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
+  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Qunused-arguments")
   # add_target_property(${TARGET} COMPILE_OPTIONS
   #                     @${BASE}/scripts/cxx_repository/warning_config.txt)
@@ -13,8 +15,12 @@ function(set_target_flags TARGET)
   if(${ORG_USE_XRAY})
 
   else()
-      add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
-      add_target_property(${TARGET} LINK_OPTIONS "-fuse-ld=mold")
+      # mold: aborted
+      # mold: If mold failed due to a spurious failure of pthread_create, it's likely because of https://github.com/oneapi-src/oneTBB/pull/824. You should ensure that you are using 2021.9.0 or newer version of libtbb.
+      # no fucking idea how to fix this shit and yes, I do use 'recent' enough tbb
+      #
+      # add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
+      # add_target_property(${TARGET} LINK_OPTIONS "-fuse-ld=mold")
   endif()
 
 

@@ -644,7 +644,7 @@ class TimeRepeat:
 
 class TimeStatic:
     repeat: Optional[TimeRepeat]
-    time: datetime
+    time: UserTime
 
 class TimeDynamic:
     expr: str
@@ -992,6 +992,19 @@ class IncludeOrgDocument:
 
 class DocumentGroup(Org):
     loc: Optional[LineCol]
+
+class UserTimeBreakdown:
+    year: Optional[int]
+    month: Optional[int]
+    day: Optional[int]
+    hour: Optional[int]
+    minute: Optional[int]
+    second: Optional[int]
+    zone: Optional[str]
+
+class UserTime:
+    def getBreakdown() -> UserTimeBreakdown: ...
+    def format() -> str: ...
 
 class OrgExporterJson:
     def visitNode(node: Org) -> None: ...
