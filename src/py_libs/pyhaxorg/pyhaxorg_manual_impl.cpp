@@ -246,8 +246,6 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
     os << " on " << fs::path(ev.file).stem() << ":" << fmt1(ev.line) << " "
        << " " << os.end();
 
-    if (0 < ev.type.length()) { os << " type:" << ev.type; }
-
     exportTracer->endStream(os);
 }
 

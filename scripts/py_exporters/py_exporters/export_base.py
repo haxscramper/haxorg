@@ -2,6 +2,7 @@ import py_haxorg.pyhaxorg as org
 from py_textlayout.py_textlayout_wrap import *
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 import re
+from py_scriptutils.script_logging import log
 
 
 class ExporterBase:
@@ -44,7 +45,7 @@ class ExporterBase:
         ]
 
         for method_name in dir(derived):
-            if method_name.startswith("__") or method_name in direct_mappings:
+            if method_name.startswith("__") or method_name in direct_mappings or method_name in ["evalTop"]:
                 continue
 
             for (prefix, setter) in prefix_to_setter_with_kind:
@@ -59,5 +60,10 @@ class ExporterBase:
                     if kind_enum:
                         setter(kind_enum, getattr(type(derived), method_name))
                         break
+
+                    else:
+                        log("haxorg.export").warning(
+                            f"Method {method_name} (kind {kind_str}) of {type(derived)} is not a kind enum visitor, not OrgSemKind, not LeafFieldType"
+                        )
 
         self.exp.setSelf(self)

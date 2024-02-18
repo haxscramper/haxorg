@@ -141,7 +141,7 @@ class ExporterLatex(ExporterBase):
             self.t.add_at(res, self.command("item"))
 
         self.t.add_at(res, self.string(" "))
-        self.t.add_at(res, self.evalStack(node))
+        self.t.add_at(res, self.stackSubnodes(node))
 
         return res
 
@@ -158,13 +158,13 @@ class ExporterLatex(ExporterBase):
         return self.string(node.text)
 
     def evalUnderline(self, node: org.Underline) -> BlockId:
-        return self.command("underline", [self.evalLine(node)])
+        return self.command("underline", [self.lineSubnodes(node)])
 
     def evalBold(self, node: org.Bold) -> BlockId:
-        return self.command("bold", [self.evalLine(node)])
+        return self.command("bold", [self.lineSubnodes(node)])
 
     def evalVerbatim(self, node: org.Verbatim) -> BlockId:
-        return self.command("textsc", [self.evalLine(node)])
+        return self.command("textsc", [self.lineSubnodes(node)])
 
     def evalRawText(self, node: org.RawText) -> BlockId:
         return self.string(self.escape(node.text))
@@ -173,16 +173,16 @@ class ExporterLatex(ExporterBase):
         return self.string(self.escape(node.text))
 
     def evalItalic(self, node: org.Italic) -> BlockId:
-        return self.command("textit", [self.evalLine(node)])
+        return self.command("textit", [self.lineSubnodes(node)])
 
-    def evalLine(self, node: org.Org) -> BlockId:
+    def lineSubnodes(self, node: org.Org) -> BlockId:
         return self.t.line([self.exp.eval(it) for it in node])
 
-    def evalStack(self, node: org.Org) -> BlockId:
+    def stackSubnodes(self, node: org.Org) -> BlockId:
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        return self.evalLine(node)
+        return self.lineSubnodes(node)
 
     def evalExport(self, node: org.Export) -> BlockId:
         if node.exporter != "latex" or node.placement:
@@ -194,7 +194,7 @@ class ExporterLatex(ExporterBase):
     def evalList(self, node: org.List) -> BlockId:
         return self.t.stack([
             self.command("begin", ["itemize"]),
-            self.evalStack(node),
+            self.stackSubnodes(node),
             self.command("end", ["itemize"])
         ])
 
@@ -231,8 +231,6 @@ class ExporterLatex(ExporterBase):
                 if exp.placement == "header":
                     headerExports.append(exp)
 
-        node.eachSubnodeRec(visit)
-
         for exp in headerExports:
             self.t.add_at(res, self.string(exp.content))
 
@@ -267,7 +265,7 @@ class ExporterLatex(ExporterBase):
     def getRefKind(self, node: org.Org) -> Optional[str]:
         match node.getKind():
             case osk.Subtree:
-                cmd = self.getSubtreeCommand(node._as(osk.Subtree))
+                cmd = self.getSubtreeCommand(node)
                 match cmd:
                     case TexCommand.chapter:
                         return "chap:"

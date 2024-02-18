@@ -262,9 +262,6 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     for item in get_enums() + [get_osk_enum(expanded)]:
         wrap = Py11Enum.FromGenTu(item, py_type(item.name).Name)
-        for field in wrap.Fields:
-            field.PyName += "_"
-
         res.Decls.append(wrap)
 
     return res
