@@ -239,14 +239,14 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
 
     if (0 < ev.field.length()) { os << " field:" << ev.field; }
 
-    if (!ev.msg.empty()) { os << " msg:" << ev.msg; }
+    if (!ev.msg.empty()) {
+        os << " msg:" << os.yellow() << ev.msg << os.end();
+    }
 
     os << " on " << fs::path(ev.file).stem() << ":" << fmt1(ev.line) << " "
        << " " << os.end();
 
-    if (0 < ev.type.length()) {
-        os << " type:" << demangle(ev.type.c_str());
-    }
+    if (0 < ev.type.length()) { os << " type:" << ev.type; }
 
     exportTracer->endStream(os);
 }

@@ -500,7 +500,7 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = get_script_root("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg.cpp"
+    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
 
     with FileOperation.InTmp(
             input=[

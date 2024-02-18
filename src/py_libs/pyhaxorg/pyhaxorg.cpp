@@ -3,10 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <sem/SemOrg.hpp>
 #include <pybind11/stl.h>
-#ifndef IN_CLANGD_PROCESSING
-  #define PY_HAXORG_COMPILING
-  #include "pyhaxorg_manual_impl.hpp"
-#endif
+#include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
@@ -74,10 +71,6 @@ node can have subnodes.)RAW")
     .def_readwrite("column", &LineCol::column)
     .def_readwrite("pos", &LineCol::pos)
     ;
-  #ifndef IN_CLANGD_PROCESSING
-    #define PY_HAXORG_COMPILING
-    #include "pyhaxorg_manual_wrap.hpp"
-  #endif
   pybind11::class_<sem::Stmt, sem::SemId<sem::Stmt>, sem::Org>(m, "Stmt")
     .def_readwrite("attached", &sem::Stmt::attached)
     .def("getAttached",
@@ -1246,8 +1239,9 @@ return state.)RAW")
     .def("enableBufferTrace", static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
     .def("getTraceBuffer", static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
-         static_cast<void(ExporterPython::*)(std::string const&)>(&ExporterPython::enableFileTrace),
-         pybind11::arg("path"))
+         static_cast<void(ExporterPython::*)(std::string const&, bool)>(&ExporterPython::enableFileTrace),
+         pybind11::arg("path"),
+         pybind11::arg("colored"))
     .def("setVisitAnyIdAround",
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdAround),
          pybind11::arg("cb"))

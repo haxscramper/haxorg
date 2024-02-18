@@ -234,24 +234,8 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     iterate_context: List[Any] = []
 
-    res.Before.append(
-        ast.PPIfStmt(
-            PPIfStmtParams([
-                ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                    ast.Define("PY_HAXORG_COMPILING"),
-                    ast.Include("pyhaxorg_manual_impl.hpp")
-                ])
-            ])))
-
-    res.Decls.append(
-        Py11BindPass(
-            ast.PPIfStmt(
-                PPIfStmtParams([
-                    ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                        ast.Define("PY_HAXORG_COMPILING"),
-                        ast.Include("pyhaxorg_manual_wrap.hpp")
-                    ])
-                ]))))
+    res.Before.append(ast.Include("pyhaxorg_manual_impl.hpp"))
+    res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
     base_map: dict[str, GenTuStruct] = {}
 
@@ -662,8 +646,7 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> Qm
             result.nested.append(
                 GenTuPass(
                     ast.string(
-                        "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".
-                        format(
+                        "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".format(
                             name=struct.name.name,
                             base=struct.bases[0].name,
                         ))))
@@ -860,7 +843,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         GenUnit(
             GenTu(
                 "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
-                # "/tmp/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
                     GenTuInclude("pybind11/pybind11.h", True),

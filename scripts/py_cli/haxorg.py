@@ -126,7 +126,7 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     tex = ExporterLatex()
     if opts.exportTraceFile:
         log("haxorg.cli").debug(f"Enabled export file trace to {opts.exportTraceFile}")
-        tex.exp.enableFileTrace(opts.exportTraceFile)
+        tex.exp.enableFileTrace(opts.exportTraceFile, True)
 
     res = tex.exp.evalTop(node)
     with open(opts.outfile, "w") as out:

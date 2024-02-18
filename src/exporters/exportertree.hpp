@@ -99,38 +99,6 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     template <typename T>
     void visit(int& arg, CR<Opt<T>> opt);
-    template <typename T>
-    struct TypeName {
-        static Str get() {
-            return Str(demangle(typeid(T).name())).replaceAll("sem::", "");
-        }
-    };
-
-
-    template <typename T>
-    struct TypeName<Opt<T>> {
-        static Str get() {
-            return Str("Opt<") + TypeName<T>::get() + Str(">");
-        }
-    };
-
-    template <typename K, typename V>
-    struct TypeName<UnorderedMap<K, V>> {
-        static Str get() {
-            return "UnorderedMap<"_ss + TypeName<K>::get() + ", "_ss
-                 + TypeName<V>::get() + ">"_ss;
-        }
-    };
-
-    template <typename... Args>
-    struct TypeName<Variant<Args...>> {
-        static Str get() {
-            return "Variant<"_ss
-                 + Str(join(", ", Vec<Str>{TypeName<Args>::get()...}))
-                 + ">"_ss;
-        }
-    };
-
 
     template <typename T>
     void visit(int& arg, CR<T> opt);
