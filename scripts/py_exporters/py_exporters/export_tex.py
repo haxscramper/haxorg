@@ -49,10 +49,12 @@ class ExporterLatex(ExporterBase):
     def wrap(self, node: str | BlockId, opens: str, closes: str) -> BlockId:
         return self.t.line([self.string(opens), self.string(node), self.string(closes)])
 
-    def command(self,
-                name: str,
-                args: List[str | BlockId] = [],
-                opts: List[str | BlockId] = []) -> BlockId:
+    def command(
+        self,
+        name: str,
+        args: List[str | BlockId] = [],
+        opts: List[str | BlockId] = [],
+    ) -> BlockId:
         return self.t.line([
             self.t.text("\\" + name), *[self.wrap(it, "[", "]") for it in opts],
             *[self.wrap(it, "{", "}") for it in args]
@@ -107,24 +109,24 @@ class ExporterLatex(ExporterBase):
 
     def evalLink(self, node: org.Link) -> BlockId:
         match node.getLinkKind():
-            # case org.LinkKind.Id:
-            #     return
-                # target = node.resolve()
-                # if target:
-                #     res = self.t.line([
-                #         self.command("ref", [
-                #             self.string((self.getRefKind(target) or "") +
-                #                         target.getReadableId())
-                #         ])
-                #     ])
-                #
-                #     if node.description:
-                #         self.t.add_at(res, self.exp.eval(node.description))
-                #
-                #     return res
-                #
-                # else:
-                #     return self.string("")
+        # case org.LinkKind.Id:
+        #     return
+        # target = node.resolve()
+        # if target:
+        #     res = self.t.line([
+        #         self.command("ref", [
+        #             self.string((self.getRefKind(target) or "") +
+        #                         target.getReadableId())
+        #         ])
+        #     ])
+        #
+        #     if node.description:
+        #         self.t.add_at(res, self.exp.eval(node.description))
+        #
+        #     return res
+        #
+        # else:
+        #     return self.string("")
 
             case org.LinkKind.Raw:
                 return self.string(self.escape(node.getRaw().text))
@@ -213,7 +215,7 @@ class ExporterLatex(ExporterBase):
                          args=[self.getLatexClass(node)]))
 
         self.t.add_at(res, self.command("usepackage", ["csquotes"]))
-        self.t.add_at(res, self.command("usepackage", ["bookmarks"], ["hyperref"]))
+        self.t.add_at(res, self.command("usepackage", opts=["bookmarks"], args=["hyperref"]))
         self.t.add_at(res, self.command("usepackage", ["xcolor"]))
 
         for value in TexCommand:
