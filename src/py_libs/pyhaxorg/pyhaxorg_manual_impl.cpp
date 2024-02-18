@@ -11,6 +11,9 @@
 #include <memory>
 
 #include <exporters/Exporter.cpp>
+#include <sem/perfetto_org.hpp>
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+
 
 template class Exporter<ExporterPython, py::object>;
 

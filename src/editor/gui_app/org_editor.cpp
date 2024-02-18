@@ -9,6 +9,8 @@
 #include <absl/log/log.h>
 #include <gui_lib/org_qml.hpp>
 #include <gui_lib/org_qml_backend.hpp>
+#include <sem/perfetto_org.hpp>
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 int main(int argc, char* argv[]) {
     QGuiApplication       app(argc, argv);

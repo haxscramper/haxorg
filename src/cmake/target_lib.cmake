@@ -55,6 +55,7 @@ target_link_libraries(haxorg PUBLIC
     protobuf::libprotoc
     absl::base
     absl::log
+    perfetto
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
