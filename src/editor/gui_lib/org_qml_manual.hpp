@@ -3,6 +3,11 @@
 #include <sem/SemOrg.hpp>
 #include <QJsonObject>
 
+inline std::string to_std(QString const& value) {
+    QByteArray tmp = value.toLatin1();
+    return std::string{tmp.data(), static_cast<size_t>(tmp.size())};
+}
+
 namespace org_qml {
 template <typename QmlOut, typename CxxIn>
 struct serde {
@@ -32,6 +37,7 @@ struct Org {
     Q_INVOKABLE QJsonValue getJson() const;
     Q_INVOKABLE Org        at(int index);
     Q_INVOKABLE int        size() { return __data->subnodes.size(); }
+    Q_INVOKABLE QString    getOrgText();
 
     Q_INVOKABLE QString getKind() const {
         return QString::fromStdString(fmt1(__data->getKind()));

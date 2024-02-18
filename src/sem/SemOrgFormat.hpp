@@ -16,6 +16,12 @@ struct Formatter {
     Res newRes(CR<sem::SemId<Org>> id) { return Res::Nil(); }
     Res str(std::string const& str) { return b.text(store.str(str)); }
 
+    static Str format(OrgArg id) {
+        Formatter fmt;
+        auto      result = fmt.toString(id);
+        return fmt.store.toString(result);
+    }
+
     Vec<Res> toSubnodes(sem::SemId<Org> id) {
         Vec<Res> result;
         for (auto const& it : id->subnodes) {

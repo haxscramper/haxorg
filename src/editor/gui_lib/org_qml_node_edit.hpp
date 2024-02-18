@@ -6,10 +6,6 @@
 #include "org_qml.hpp"
 #include "org_qml_manual2.hpp"
 
-inline std::string to_std(QString const& value) {
-    QByteArray tmp = value.toLatin1();
-    return std::string{tmp.data(), static_cast<size_t>(tmp.size())};
-}
 
 class OrgNodeCursor {
   public:

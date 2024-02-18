@@ -10,6 +10,7 @@
 #include <exporters/ExporterJson.hpp>
 #include <QJsonArray>
 #include <QJsonValue>
+#include <sem/SemOrgFormat.hpp>
 
 using namespace sem;
 
@@ -295,4 +296,8 @@ QJsonValue org_qml::Org::getJson() const {
 org_qml::Org org_qml::Org::at(int index) {
     return org_qml::serde<Org, sem::SemId<sem::Org>>::cxx_to_qml(
         __data->at(index));
+}
+
+QString org_qml::Org::getOrgText() {
+    return QString::fromStdString(sem::Formatter::format(__data));
 }
