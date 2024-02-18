@@ -1,4 +1,5 @@
 #include "pyhaxorg_manual_impl.hpp"
+#include "sem/SemOrgSerde.hpp"
 
 #include <exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
@@ -98,6 +99,28 @@ sem::SemId<sem::Document> OrgContext::parseString(const std::string text) {
     sem::OrgConverter converter{};
 
     return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+}
+
+sem::SemId<sem::Document> OrgContext::parseProtobuf(
+    const std::string& file) {
+    sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
+    std::ifstream     stream{file};
+    orgproto::AnyNode result;
+    result.ParseFromIstream(&stream);
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+        result,
+        proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
+    return read_node.as<sem::Document>();
+}
+
+void OrgContext::saveProtobuf(
+    sem::SemId<sem::Document> doc,
+    const std::string&        file) {
+    std::ofstream     stream{file};
+    orgproto::AnyNode result;
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+        &result, doc.asOrg());
+    result.SerializeToOstream(&stream);
 }
 
 

@@ -17,7 +17,7 @@
 #include <exporters/Exporter.hpp>
 #include <pybind11/stl_bind.h>
 
-
+#include <SemOrgProto.pb.h>
 #include <py_type_casters.hpp>
 
 #include <frameobject.h>
@@ -135,6 +135,11 @@ struct [[refl]] OrgContext {
 
     [[refl]] sem::SemId<sem::Document> parseFile(std::string file);
     [[refl]] sem::SemId<sem::Document> parseString(std::string const text);
+    [[refl]] sem::SemId<sem::Document> parseProtobuf(
+        std::string const& file);
+    [[refl]] void saveProtobuf(
+        sem::SemId<sem::Document> doc,
+        std::string const&        file);
 };
 
 

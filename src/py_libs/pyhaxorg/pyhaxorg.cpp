@@ -1230,6 +1230,13 @@ return state.)RAW")
     .def("parseString",
          static_cast<sem::SemId<sem::Document>(OrgContext::*)(std::string const)>(&OrgContext::parseString),
          pybind11::arg("text"))
+    .def("parseProtobuf",
+         static_cast<sem::SemId<sem::Document>(OrgContext::*)(std::string const&)>(&OrgContext::parseProtobuf),
+         pybind11::arg("file"))
+    .def("saveProtobuf",
+         static_cast<void(OrgContext::*)(sem::SemId<sem::Document>, std::string const&)>(&OrgContext::saveProtobuf),
+         pybind11::arg("doc"),
+         pybind11::arg("file"))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init<>())

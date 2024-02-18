@@ -12,6 +12,7 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import tracer
 from pydantic import BaseModel, Field, Extra
 from py_scriptutils.script_logging import log
+from py_scriptutils.files import FileOperation
 from pathlib import Path
 from py_scriptutils.toml_config_profiler import (
     make_config_provider,
@@ -32,8 +33,36 @@ class CliRootOptions(BaseModel, extra="forbid"):
     sem_traceDir: Optional[str] = None
     sem_trace: bool = False
     config: Optional[str] = None
-    cache: Optional[str] = None
+    cache: Optional[str] = Field(
+        description="Optional directory to cache file parsing to speed up large corpus processing",
+        default=None,
+    )
+
     trace_path: Optional[str] = None
+
+@beartype
+def parseFile(root: CliRootOptions, file: Path) -> org.Org:
+    cache_file = None if not root.cache else Path(root.cache).joinpath(file.name)
+    ctx = org.OrgContext()
+    if cache_file:
+        with FileOperation.InOut([file], [cache_file]) as op:
+            if op.should_run():
+                log("haxorg.cache").info(f"{file} cached in {cache_file}")
+                node = ctx.parseFile(str(file.resolve()))
+                if not cache_file.parent.exists():
+                    cache_file.parent.mkdir()
+
+                ctx.saveProtobuf(node, str(cache_file))
+
+            else:
+                log("haxorg.cache").info(f"{file} read from cache {cache_file}")
+                node = ctx.parseProtobuf(str(cache_file))
+
+            return node
+
+    else:
+        return ctx.parseFile(str(file.resolve()))
+
 
 
 def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict, config: Optional[str]):
@@ -61,7 +90,7 @@ def base_cli_options(f):
 @click.pass_context
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
     """Base command."""
-    pack_context(ctx, "cli", CliRootOptions, config=config, kwargs=kwargs)
+    pack_context(ctx, "root", CliRootOptions, config=config, kwargs=kwargs)
     pass
 
 
@@ -116,9 +145,7 @@ def export_tex_options(f):
 def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     pack_context(ctx, "tex", TexExportOptions, config=config, kwargs=kwargs)
     opts: TexExportOptions = ctx.obj["tex"]
-    ctx = org.OrgContext()
-
-    node = ctx.parseFile(str(opts.infile))
+    node = parseFile(ctx.obj["root"], opts.infile)
     from py_exporters.export_tex import ExporterLatex
     from py_textlayout.py_textlayout_wrap import TextOptions
 
