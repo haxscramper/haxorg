@@ -13,7 +13,7 @@ Window {
     OrgBackend {
         id: mainDocument
         Component.onCompleted: {
-            mainDocument.loadDocument("/home/haxscramper/tmp/doc1.org");
+            mainDocument.parseDocumentFile("/home/haxscramper/tmp/doc1.org");
             loader.forceActiveFocus()
         }
     }
