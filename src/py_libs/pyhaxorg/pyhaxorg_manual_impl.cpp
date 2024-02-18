@@ -176,14 +176,15 @@ void ExporterPython::enableBufferTrace() {
 
 std::string ExporterPython::getTraceBuffer() const { return traceBuffer; }
 
-void ExporterPython::enableFileTrace(const std::string& path) {
-    assert(false);
-    // writeStreamContext         = openFileOrStream(QFileInfo(path),
-    // true);
-    traceStream.ostream             = writeStreamContext->stream.get();
-    traceStream.colored             = false;
-    this->exportTracer              = OperationsTracer{};
-    this->exportTracer->stream      = writeStreamContext->stream;
+void ExporterPython::enableFileTrace(
+    const std::string& path,
+    bool               colored) {
+    writeStreamContext         = std::make_shared<IoContext>();
+    writeStreamContext->stream = std::make_shared<std::ofstream>(path);
+    traceStream.ostream        = writeStreamContext->stream.get();
+    traceStream.colored        = colored;
+    this->exportTracer         = OperationsTracer{};
+    this->exportTracer->stream = writeStreamContext->stream;
     this->exportTracer->traceToFile = true;
     this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
         this->traceVisit(ev);
@@ -240,7 +241,7 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
 
     if (!ev.msg.empty()) { os << " msg:" << ev.msg; }
 
-    os << " on " << fs::path(ev.file).stem() << ":" << ev.line << " "
+    os << " on " << fs::path(ev.file).stem() << ":" << fmt1(ev.line) << " "
        << " " << os.end();
 
     if (0 < ev.type.length()) {

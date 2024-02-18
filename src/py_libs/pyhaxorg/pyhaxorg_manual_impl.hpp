@@ -214,7 +214,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     [[refl]] void        enablePyStreamTrace(py::object stream);
     [[refl]] void        enableBufferTrace();
     [[refl]] std::string getTraceBuffer() const;
-    [[refl]] void        enableFileTrace(std::string const& path);
+    [[refl]] void enableFileTrace(std::string const& path, bool colored);
 
     Opt<PyFunc>   visitAnyNodeAround;
     [[refl]] void setVisitAnyIdAround(PyFunc cb) {

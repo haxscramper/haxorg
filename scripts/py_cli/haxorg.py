@@ -10,7 +10,7 @@ from beartype.typing import Optional, List
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import tracer
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, Extra
 from py_scriptutils.script_logging import log
 from pathlib import Path
 from py_scriptutils.toml_config_profiler import (
@@ -24,7 +24,7 @@ from py_scriptutils.toml_config_profiler import (
 CONFIG_FILE_NAME = "pyhaxorg.toml"
 
 
-class CliRootOptions(BaseModel):
+class CliRootOptions(BaseModel, extra="forbid"):
     lex_traceDir: Optional[str] = None
     lex_trace: bool = False
     parse_traceDir: Optional[str] = None
@@ -71,7 +71,7 @@ def finalize_trace(tr: tracer.TraceCollector, opts: CliRootOptions):
         log().info(f"Wrote execution trace to {opts.trace_path}")
 
 
-class CliExportOptions(BaseModel):
+class CliExportOptions(BaseModel, extra="forbid"):
     pass
 
 
@@ -91,12 +91,18 @@ def export(ctx: click.Context, config: Optional[str] = None, **kwargs):
 cli.add_command(export)
 
 
-class TexExportOptions(BaseModel):
+class TexExportOptions(BaseModel, extra="forbid"):
     infile: Path
     outfile: Path
     backend: str = Field(
         description="TeX backend to use",
         default="pdflatex",
+    )
+
+    exportTraceFile: Optional[str] = Field(
+        description="Write python export trace to this file",
+        default=None,
+        alias="export_trace_file"
     )
 
 
@@ -118,6 +124,10 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
 
     log().info("Exporting to latex")
     tex = ExporterLatex()
+    if opts.exportTraceFile:
+        log("haxorg.cli").debug(f"Enabled export file trace to {opts.exportTraceFile}")
+        tex.exp.enableFileTrace(opts.exportTraceFile)
+
     res = tex.exp.evalTop(node)
     with open(opts.outfile, "w") as out:
         out.write(tex.t.toString(res, TextOptions()))

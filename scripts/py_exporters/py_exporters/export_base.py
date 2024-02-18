@@ -43,7 +43,6 @@ class ExporterBase:
             (r"newLeaf(.*)", self.exp.setNewLeafRes),
         ]
 
-        # Process methods that match the patterns for OrgSemKind or LeafFieldType
         for method_name in dir(derived):
             if method_name.startswith("__") or method_name in direct_mappings:
                 continue
@@ -61,5 +60,4 @@ class ExporterBase:
                         setter(kind_enum, getattr(type(derived), method_name))
                         break
 
-        # Always execute this at the end
         self.exp.setSelf(self)

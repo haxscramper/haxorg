@@ -535,8 +535,8 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
             log("tasks").info("Updated reflection")
 
         else:
-            log("tasks").info("Python reflection run not needed " + op.explain("py haxorg reflection"))
-
+            log("tasks").info("Python reflection run not needed " +
+                              op.explain("py haxorg reflection"))
 
 
 LD_PRELOAD_ASAN = {
@@ -718,6 +718,21 @@ def std_coverage(ctx: Context):
 def org_coverage(ctx: Context):
     """Generate test coverage information for ORG"""
     binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
+
+
+@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
+def py_cli(
+    ctx: Context,
+    arg: List[str] = [],
+):
+    log("tasks").info(LD_PRELOAD_ASAN)
+    log("tasks").info(arg)
+    run_command(
+        ctx,
+        "poetry",
+        ["run", get_script_root("scripts/py_cli/haxorg.py"), *arg],
+        env=LD_PRELOAD_ASAN,
+    )
 
 
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
