@@ -4,6 +4,7 @@ from py_scriptutils.tracer import TraceCollector
 from conf_gtest import GTestFile
 from conf_qtest import QTestFile
 from beartype import beartype
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
 trace_collector: TraceCollector = None
 
@@ -41,8 +42,15 @@ def trace_test(request):
 
 def pytest_collect_file(parent, path):
     path = Path(path)
+    def debug(it, file):
+        pprint_to_file(to_debug_json(it), file + ".json")
+
     if path.name == "test_integrate_cxx_org.py":
-        return GTestFile.from_parent(parent, path=path)
-    
+        result = GTestFile.from_parent(parent, path=path)
+        debug(result, "/tmp/google_tests")
+        return result
+            
     elif path.name == "test_integrate_qt.py":
-        return QTestFile.from_parent(parent, path=path)
+        result = QTestFile.from_parent(parent, path=path)
+        debug(result, "/tmp/qt_tests")
+        return result

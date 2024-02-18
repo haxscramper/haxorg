@@ -31,6 +31,15 @@ TestCase {
         compare(doc.at(0).size(), 1)
         var j = doc.getJson()
         compare(j.kind, "Document")
-        comapre(j.subnodes.size(), 1)
+        compare(j.subnodes.length, 1)
+        compare(j.subnodes[0].subnodes[0].subnodes[0].kind, "Word")
+    }
+
+    function test_document_format() {
+        backend.parseDocumentString("*bold*")
+        compare(backend.getDocument().getOrgText(), "*bold*")
+
+        backend.parseDocumentString("* Document\n\n\nword")
+        compare(backend.getDocument().getOrgText(), "* Document\n\n\nword")
     }
 }

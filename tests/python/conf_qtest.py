@@ -3,10 +3,11 @@ import json
 from plumbum import local, ProcessExecutionError
 from beartype import beartype
 from dataclasses import dataclass
-from beartype.typing import Optional, Tuple
+from beartype.typing import Optional, Tuple, List
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
+import os
 
 
 @beartype
@@ -16,33 +17,47 @@ class QTestParams():
     meth_name: str
 
     def class_name(self):
-        return self.test_name.replace(" ", "_")
-    
+        return self.test_name.replace(" ", "")
+
     def item_name(self):
-        return self.meth_name
+        return self.meth_name.replace("test_", "")
 
     def qtest_params(self):
         result = [f"{self.test_name}::{self.meth_name}"]
         return result
 
     def fullname(self):
-        return f"{self.class_name()}::{self.item_name()}"
+        return f"{self.class_name()}.{self.item_name()}"
 
 
 def parse_qt_tests(binary_path: str) -> list[QTestParams]:
+    dbg = open("/tmp/debug", "w")
+    print("1", file=dbg)
     cmd = local[binary_path]
+    cmd = cmd.with_cwd(str(get_haxorg_repo_root_path()))
+    print("2", file=dbg)
     print(binary_path)
+    print("3", file=dbg)
+
+    for key in sorted(os.environ.keys()):
+        print(key, os.getenv(key), file=dbg)
+
     code, stdout, stderr = cmd.run(["-functions"])
-    assert(code == 0, f"{stdout}\n{stderr}")
+    print(binary_path, file=dbg)
+    print(stdout, file=dbg)
+    print(stderr, file=dbg)
+    print(code, file=dbg)
+    assert (code == 0, f"{stdout}\n{stderr}")
     tests = []
 
+    line: str
     for line in stderr.splitlines():
         if "QML debugging" in line:
             continue
 
         else:
             class_name, test_name = line.strip().split('::')
-            test_name.strip("()")
+            test_name = test_name.replace("()", "")
             tests.append(QTestParams(test_name=class_name, meth_name=test_name))
 
     return tests
@@ -65,7 +80,7 @@ class QTestClass(pytest.Class):
         for test in self.tests:
             yield QTestItem.from_parent(
                 self,
-                Qtest=test,
+                qtest=test,
                 name=test.item_name(),
                 callobj=lambda: None,
             )
@@ -82,7 +97,7 @@ class QTestRunError(Exception):
 
     def __str__(self):
         result = []
-        result.append("error message: " + " ".join(self.item.Qtest.Qtest_params()))
+        result.append("error message: " + " ".join(self.item.qtest.qtest_params()))
         if self.shell_error.stdout:
             result.append(self.shell_error.stdout)
 
@@ -94,16 +109,21 @@ class QTestRunError(Exception):
 
 class QTestItem(pytest.Function):
 
-    def __init__(self, Qtest: QTestParams, *args, **kwargs):
+    def __init__(self, qtest: QTestParams, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.Qtest = Qtest
+        self.qtest = qtest
 
     def runtest(self):
         try:
-            local[binary_path](*self.Qtest.Qtest_params())
+            local[binary_path](*self.qtest.qtest_params())
 
         except ProcessExecutionError as e:
             raise QTestRunError(e, self) from None
+
+    @property
+    def location(self) -> Tuple[str, Optional[int], str]:
+        # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
+        return ("location", None, self.qtest.fullname())
 
     def _getobj(self):
         # Return a dummy function
@@ -111,15 +131,22 @@ class QTestItem(pytest.Function):
 
 
 class QTestFile(pytest.Module):
-
-    def collect(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.test_classes: List[QTestClass] = []
         class_tests = {}
         for test in parse_qt_tests(binary_path):
             class_tests.setdefault(test.class_name(), []).append(test)
 
         for class_name, tests in class_tests.items():
-            test_class = QTestClass.from_parent(self, name=class_name)
+            test_class: QTestClass = QTestClass.from_parent(self, name=class_name)
             for test in tests:
                 test_class.add_test(test)
 
-            yield test_class
+            self.test_classes.append(test_class)
+        
+
+    def collect(self):
+        for it in self.test_classes:
+            yield it
+
