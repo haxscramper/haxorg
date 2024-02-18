@@ -265,14 +265,16 @@ class Py11Enum:
         b = ast.b
 
         return b.stack([
-            ast.XCall("pybind11::enum_",
-                      [b.text("m"), ast.Literal(self.PyName)],
-                      Params=[self.Enum]),
+            ast.XCall(
+                "pybind11::enum_",
+                [b.text("m"), ast.Literal(self.PyName)],
+                Params=[self.Enum],
+            ),
             b.indent(
                 2,
                 b.stack([Field.build_bind(self, ast) for Field in self.Fields] +
-                        [ast.XCall(".export_values", []),
-                         b.text(";")]))
+                        [b.text(";")]),
+            )
         ])
 
 

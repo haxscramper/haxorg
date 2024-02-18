@@ -67,12 +67,12 @@ class ExporterLatex(ExporterBase):
 
         return res
 
-    def evalPlaceholder(self, node: org.SemPlaceholder) -> BlockId:
+    def evalPlaceholder(self, node: org.Placeholder) -> BlockId:
         return self.command(
             "textsc",
             [self.command("texttt", [self.string(self.string("<" + node.text + ">"))])])
 
-    def evalBigIdent(self, node: org.SemBigIdent) -> BlockId:
+    def evalBigIdent(self, node: org.BigIdent) -> BlockId:
         specialColor = ""
         match node.text:
             case "TODO":
@@ -91,10 +91,10 @@ class ExporterLatex(ExporterBase):
         else:
             return self.string(node.text)
 
-    def evalNewline(self, node: org.SemNewline) -> BlockId:
+    def evalNewline(self, node: org.Newline) -> BlockId:
         return self.string(node.text)
 
-    def evalCenter(self, node: org.SemCenter) -> BlockId:
+    def evalCenter(self, node: org.Center) -> BlockId:
         res = self.t.stack([])
         self.t.add_at(res, self.command("begin", [self.string("center")]))
         for item in node:
@@ -104,7 +104,7 @@ class ExporterLatex(ExporterBase):
 
         return res
 
-    def evalLink(self, node: org.SemLink) -> BlockId:
+    def evalLink(self, node: org.Link) -> BlockId:
         match node.getLinkKind():
             case org.LinkKind.Id:
                 target = node.resolve()
@@ -130,7 +130,7 @@ class ExporterLatex(ExporterBase):
             case _:
                 return self.string(f"TODO LINK KIND {node.getLinkKind()}")
 
-    def evalListItem(self, node: org.SemListItem) -> BlockId:
+    def evalListItem(self, node: org.ListItem) -> BlockId:
         res = self.t.line([])
         if node.isDescriptionItem():
             self.t.add_at(
@@ -145,34 +145,34 @@ class ExporterLatex(ExporterBase):
 
         return res
 
-    def evalTextSeparator(self, node: org.SemTextSeparator) -> BlockId:
+    def evalTextSeparator(self, node: org.TextSeparator) -> BlockId:
         return self.command("sepline")
 
-    def evalPunctuation(self, node: org.SemPunctuation) -> BlockId:
+    def evalPunctuation(self, node: org.Punctuation) -> BlockId:
         return self.string(self.escape(node.text))
 
-    def evalWord(self, node: org.SemWord) -> BlockId:
+    def evalWord(self, node: org.Word) -> BlockId:
         return self.string(self.escape(node.text))
 
-    def evalSpace(self, node: org.SemSpace) -> BlockId:
+    def evalSpace(self, node: org.Space) -> BlockId:
         return self.string(node.text)
 
-    def evalUnderline(self, node: org.SemUnderline) -> BlockId:
+    def evalUnderline(self, node: org.Underline) -> BlockId:
         return self.command("underline", [self.evalLine(node)])
 
-    def evalBold(self, node: org.SemBold) -> BlockId:
+    def evalBold(self, node: org.Bold) -> BlockId:
         return self.command("bold", [self.evalLine(node)])
 
-    def evalVerbatim(self, node: org.SemVerbatim) -> BlockId:
+    def evalVerbatim(self, node: org.Verbatim) -> BlockId:
         return self.command("textsc", [self.evalLine(node)])
 
-    def evalRawText(self, node: org.SemRawText) -> BlockId:
+    def evalRawText(self, node: org.RawText) -> BlockId:
         return self.string(self.escape(node.text))
 
-    def evalEscaped(self, node: org.SemEscaped) -> BlockId:
+    def evalEscaped(self, node: org.Escaped) -> BlockId:
         return self.string(self.escape(node.text))
 
-    def evalItalic(self, node: org.SemItalic) -> BlockId:
+    def evalItalic(self, node: org.Italic) -> BlockId:
         return self.command("textit", [self.evalLine(node)])
 
     def evalLine(self, node: org.Org) -> BlockId:
@@ -181,27 +181,27 @@ class ExporterLatex(ExporterBase):
     def evalStack(self, node: org.Org) -> BlockId:
         return self.t.stack([self.exp.eval(it) for it in node])
 
-    def evalParagraph(self, node: org.SemParagraph) -> BlockId:
+    def evalParagraph(self, node: org.Paragraph) -> BlockId:
         return self.evalLine(node)
 
-    def evalExport(self, node: org.SemExport) -> BlockId:
+    def evalExport(self, node: org.Export) -> BlockId:
         if node.exporter != "latex" or node.placement:
             return self.string("")
 
         else:
             return self.string(node.content)
 
-    def evalList(self, node: org.SemList) -> BlockId:
+    def evalList(self, node: org.List) -> BlockId:
         return self.t.stack([
             self.command("begin", ["itemize"]),
             self.evalStack(node),
             self.command("end", ["itemize"])
         ])
 
-    def getLatexClassOptions(self, node: org.SemDocument) -> List[BlockId]:
+    def getLatexClassOptions(self, node: org.Document) -> List[BlockId]:
         return []
 
-    def evalDocument(self, node: org.SemDocument) -> BlockId:
+    def evalDocument(self, node: org.Document) -> BlockId:
         res = self.t.stack([])
 
         self.t.add_at(
@@ -222,12 +222,12 @@ class ExporterLatex(ExporterBase):
             self.t.add_at(cmd, self.wrap(self.command(value.name, ["#1"]), "{", "}"))
             self.t.add_at(res, cmd)
 
-        headerExports: List[org.SemExport] = []
+        headerExports: List[org.Export] = []
 
         def visit(_id: org.Org):
             nonlocal headerExports
             if _id._is(osk.Export):
-                exp: org.SemExport = _id._as(osk.Export)
+                exp: org.Export = _id._as(osk.Export)
                 if exp.placement == "header":
                     headerExports.append(exp)
 
@@ -254,13 +254,13 @@ class ExporterLatex(ExporterBase):
 
         return res
 
-    def getLatexClass(self, node: org.SemDocument) -> str:
+    def getLatexClass(self, node: org.Document) -> str:
         return "book"
 
     def getOrgCommand(self, cmd: TexCommand) -> str:
         return "orgCmd" + str(cmd.name).capitalize()
 
-    def getSubtreeCommand(self, node: org.SemSubtree) -> Optional[TexCommand]:
+    def getSubtreeCommand(self, node: org.Subtree) -> Optional[TexCommand]:
         return TexCommand.part
         lclass = self.getLatexClass(node.getDocument())
 
@@ -276,7 +276,7 @@ class ExporterLatex(ExporterBase):
                     case TexCommand.part:
                         return "part:"
 
-    def evalSubtree(self, node: org.SemSubtree) -> BlockId:
+    def evalSubtree(self, node: org.Subtree) -> BlockId:
         res = self.t.stack([])
         title_text = self.t.line([])
         for item in node.title:
@@ -307,11 +307,11 @@ class ExporterLatex(ExporterBase):
 
         return res
 
-    def evalTime(self, node: org.SemTime) -> BlockId:
+    def evalTime(self, node: org.Time) -> BlockId:
         time_val: datetime = datetime.fromtimestamp(node.getStatic().time)
         return self.string(time_val.strftime("%Y-%m-%d %H:%M:%S"))
 
-    def evalTimeRange(self, node: org.SemTimeRange) -> BlockId:
+    def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line(
             [self.exp.eval(node.from_),
              self.string("--"),
