@@ -5,14 +5,14 @@
 #include <absl/time/civil_time.h>
 #include <absl/time/time.h>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Opt.hpp>
 
 struct UserTime {
     DECL_DESCRIBED_ENUM(Alignment, Year, Month, Day, Hour, Minute, Second);
-    Str toString() const { return absl::FormatTime(time, zone); }
 
-    absl::Time     time;
-    absl::TimeZone zone;
-    Alignment      align;
+    absl::Time          time;
+    Opt<absl::TimeZone> zone;
+    Alignment           align;
     BOOST_DESCRIBE_CLASS(UserTime, (), (time, zone, align), (), ());
 
     std::string format() const {
@@ -26,8 +26,12 @@ struct UserTime {
             case Alignment::Second: format = "%Y-%m-%d %H:%M:%S"; break;
         }
 
-        format += " %z";
+        if (zone) { format += " %z"; }
 
-        return absl::FormatTime(format, time, zone);
+        if (zone) {
+            return absl::FormatTime(format, time, *zone);
+        } else {
+            return absl::FormatTime(format, time, absl::TimeZone{});
+        }
     }
 };

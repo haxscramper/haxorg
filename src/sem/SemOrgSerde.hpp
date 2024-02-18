@@ -498,16 +498,18 @@ template <>
 struct proto_serde<orgproto::UserTime, UserTime> {
     static void write(orgproto::UserTime* out, UserTime const& in) {
         out->set_time(absl::ToUnixSeconds(in.time));
-        out->set_zone(in.zone.name());
+        if (in.zone) { out->set_zone(in.zone->name()); }
         out->set_align(static_cast<orgproto::Alignment>(in.align));
     }
     static void read(
         orgproto::UserTime const&      out,
         proto_write_accessor<UserTime> in) {
         in.get().time = absl::FromUnixSeconds(out.time());
-        absl::TimeZone tz;
-        if (!absl::LoadTimeZone(out.zone(), &tz)) {}
-        in.get().zone  = tz;
+        if (out.has_zone()) {
+            absl::TimeZone tz;
+            if (!absl::LoadTimeZone(out.zone(), &tz)) {}
+            in.get().zone = tz;
+        }
         in.get().align = static_cast<UserTime::Alignment>(out.align());
     }
 };

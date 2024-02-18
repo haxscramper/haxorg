@@ -20,7 +20,7 @@ using namespace boost::describe;
 /// possible to implement exporter that mutates some internal state -- in
 /// this case \tparam R can be set to some dummy type such as `int` and
 /// freely passed around.
-template <typename V, typename R>
+template <typename V, typename R = std::monostate>
 struct Exporter {
     struct VisitEvent {
         DECL_DESCRIBED_ENUM(
@@ -133,6 +133,9 @@ struct Exporter {
     template <typename T>
     using In = sem::SemId<T>;
 
+    using export_type = R;
+    using crtp_type   = V;
+
 
 #define EXPORTER_USING()                                                  \
     using __ExporterBase::visitField;                                     \
@@ -145,6 +148,8 @@ struct Exporter {
     using __ExporterBase::visitEnd;                                       \
     using __ExporterBase::evalTop;                                        \
     using __ExporterBase::In;                                             \
+    using __ExporterBase::export_type;                                    \
+    using __ExporterBase::crtp_type;                                      \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
     void visitField(R& arg, const char* name, sem::SemId<sem::Org> org);

@@ -5,10 +5,10 @@
 #include <variant>
 #include <format>
 
-struct LineCol {
-    int line;
-    int column;
-    int pos = -1;
+struct [[refl]] LineCol {
+    [[refl]] int line;
+    [[refl]] int column;
+    [[refl]] int pos = -1;
 
     bool operator==(LineCol const& other) const {
         return line == other.line && column == other.column

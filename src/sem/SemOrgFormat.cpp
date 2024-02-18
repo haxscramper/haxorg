@@ -268,7 +268,11 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
         toString(id->title),
     });
 
-    add_subnodes(result, id.asOrg());
+    b.add_at(result, head);
+    if (!id->subnodes.empty()) {
+        add_subnodes(result, id.asOrg());
+    }
+
 
     return result;
 }

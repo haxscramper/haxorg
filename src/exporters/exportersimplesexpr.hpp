@@ -89,7 +89,7 @@ struct ExporterSimpleSExpr
     void visitTime(Res& res, In<sem::Time> time) {
         if (time->isStatic()) {
             res = b.line(
-                {string(" "), eval(time->getStatic().time.toString())});
+                {string(" "), eval(time->getStatic().time.format())});
         } else {
             res = string("dynamic-time");
         }

@@ -318,12 +318,12 @@ enum OrgSemKind {
   OrgSemKind_List_f                                                                 = 44;
   OrgSemKind_ListItem_f                                                             = 45;
   OrgSemKind_Link_f                                                                 = 46;
-  OrgSemKind_Document_f                                                             = 47;
-  OrgSemKind_ParseError_f                                                           = 48;
-  OrgSemKind_FileTarget_f                                                           = 49;
-  OrgSemKind_TextSeparator_f                                                        = 50;
-  OrgSemKind_Include_f                                                              = 51;
-  OrgSemKind_DocumentOptions_f                                                      = 52;
+  OrgSemKind_DocumentOptions_f                                                      = 47;
+  OrgSemKind_Document_f                                                             = 48;
+  OrgSemKind_ParseError_f                                                           = 49;
+  OrgSemKind_FileTarget_f                                                           = 50;
+  OrgSemKind_TextSeparator_f                                                        = 51;
+  OrgSemKind_Include_f                                                              = 52;
   OrgSemKind_DocumentGroup_f                                                        = 53;
 }
 
@@ -1120,6 +1120,63 @@ message Link {
   string                                           debug                            = 1000;
 }
 
+message DocumentOptions {
+  message DoExport {
+    bool                                           exportToc                        = 1;
+    string                                         debug                            = 1000;
+  }
+  message ExportFixed {
+    int32                                          exportLevels                     = 1;
+    string                                         debug                            = 1000;
+  }
+  message TocExport {
+    oneof kind {
+      DocumentOptions.DoExport                     doexport                         = 1;
+      DocumentOptions.ExportFixed                  exportfixed                      = 2;
+    }
+  }
+  enum TocExportKind {
+    TocExportKind_DoExport_f                                                        = 0;
+    TocExportKind_ExportFixed_f                                                     = 1;
+  }
+  enum BrokenLinks {
+    BrokenLinks_Raise_f                                                             = 0;
+    BrokenLinks_Ignore_f                                                            = 1;
+    BrokenLinks_Mark_f                                                              = 2;
+  }
+  enum Visibility {
+    Visibility_Overview_f                                                           = 0;
+    Visibility_Content_f                                                            = 1;
+    Visibility_ShowAll_f                                                            = 2;
+    Visibility_Show2Levels_f                                                        = 3;
+    Visibility_Show3Levels_f                                                        = 4;
+    Visibility_Show4Levels_f                                                        = 5;
+    Visibility_Show5Levels_f                                                        = 6;
+    Visibility_ShowEverything_f                                                     = 7;
+  }
+  repeated AnyNode                                 subnodes                         = 1;
+  optional LineCol                                 loc                              = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  DocumentOptions.BrokenLinks                      brokenLinks                      = 4;
+  DocumentOptions.Visibility                       initialVisibility                = 5;
+  DocumentOptions.TocExport                        tocExport                        = 6;
+  repeated Subtree.Property                        properties                       = 7;
+  bool                                             smartQuotes                      = 8;
+  bool                                             emphasizedText                   = 9;
+  bool                                             specialStrings                   = 10;
+  bool                                             fixedWidthSections               = 11;
+  bool                                             includeTimestamps                = 12;
+  bool                                             preserveLineBreaks               = 13;
+  bool                                             plaintextSubscripts              = 14;
+  bool                                             exportArchived                   = 15;
+  bool                                             exportWithAuthor                 = 16;
+  bool                                             exportBrokenLinks                = 17;
+  bool                                             exportWithClock                  = 18;
+  bool                                             exportWithCreator                = 19;
+  DocumentOptions.TocExport                        data                             = 20;
+  string                                           debug                            = 1000;
+}
+
 message Document {
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;
@@ -1195,63 +1252,6 @@ message Include {
   string                                           debug                            = 1000;
 }
 
-message DocumentOptions {
-  message DoExport {
-    bool                                           exportToc                        = 1;
-    string                                         debug                            = 1000;
-  }
-  message ExportFixed {
-    int32                                          exportLevels                     = 1;
-    string                                         debug                            = 1000;
-  }
-  message TocExport {
-    oneof kind {
-      DocumentOptions.DoExport                     doexport                         = 1;
-      DocumentOptions.ExportFixed                  exportfixed                      = 2;
-    }
-  }
-  enum TocExportKind {
-    TocExportKind_DoExport_f                                                        = 0;
-    TocExportKind_ExportFixed_f                                                     = 1;
-  }
-  enum BrokenLinks {
-    BrokenLinks_Raise_f                                                             = 0;
-    BrokenLinks_Ignore_f                                                            = 1;
-    BrokenLinks_Mark_f                                                              = 2;
-  }
-  enum Visibility {
-    Visibility_Overview_f                                                           = 0;
-    Visibility_Content_f                                                            = 1;
-    Visibility_ShowAll_f                                                            = 2;
-    Visibility_Show2Levels_f                                                        = 3;
-    Visibility_Show3Levels_f                                                        = 4;
-    Visibility_Show4Levels_f                                                        = 5;
-    Visibility_Show5Levels_f                                                        = 6;
-    Visibility_ShowEverything_f                                                     = 7;
-  }
-  repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  DocumentOptions.BrokenLinks                      brokenLinks                      = 4;
-  DocumentOptions.Visibility                       initialVisibility                = 5;
-  DocumentOptions.TocExport                        tocExport                        = 6;
-  repeated Subtree.Property                        properties                       = 7;
-  bool                                             smartQuotes                      = 8;
-  bool                                             emphasizedText                   = 9;
-  bool                                             specialStrings                   = 10;
-  bool                                             fixedWidthSections               = 11;
-  bool                                             includeTimestamps                = 12;
-  bool                                             preserveLineBreaks               = 13;
-  bool                                             plaintextSubscripts              = 14;
-  bool                                             exportArchived                   = 15;
-  bool                                             exportWithAuthor                 = 16;
-  bool                                             exportBrokenLinks                = 17;
-  bool                                             exportWithClock                  = 18;
-  bool                                             exportWithCreator                = 19;
-  DocumentOptions.TocExport                        data                             = 20;
-  string                                           debug                            = 1000;
-}
-
 message DocumentGroup {
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;
@@ -1308,12 +1308,12 @@ message AnyNode {
     List                                             list                             = 45;
     ListItem                                         listitem                         = 46;
     Link                                             link                             = 47;
-    Document                                         document                         = 48;
-    ParseError                                       parseerror                       = 49;
-    FileTarget                                       filetarget                       = 50;
-    TextSeparator                                    textseparator                    = 51;
-    Include                                          include                          = 52;
-    DocumentOptions                                  documentoptions                  = 53;
+    DocumentOptions                                  documentoptions                  = 48;
+    Document                                         document                         = 49;
+    ParseError                                       parseerror                       = 50;
+    FileTarget                                       filetarget                       = 51;
+    TextSeparator                                    textseparator                    = 52;
+    Include                                          include                          = 53;
     DocumentGroup                                    documentgroup                    = 54;
   }
 }

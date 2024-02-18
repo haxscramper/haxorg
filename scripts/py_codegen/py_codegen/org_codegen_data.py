@@ -1253,81 +1253,6 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
         ),
         d_org(
-            "Document",
-            GenTuDoc(""),
-            bases=[t_org("Org")],
-            methods=[
-                GenTuFunction(
-                    t_vec(t_nest("Property", ["Subtree"])),
-                    "getProperties",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
-                    ],
-                ),
-                GenTuFunction(
-                    t_opt(t_nest("Property", ["Subtree"])),
-                    "getProperty",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
-                    ],
-                ),
-            ],
-            fields=[
-                opt_field(t_id("Paragraph"), "title", GenTuDoc("")),
-                opt_field(t_id("Paragraph"), "author", GenTuDoc("")),
-                opt_field(t_id("Paragraph"), "creator", GenTuDoc("")),
-                opt_field(t_id("RawText"), "email", GenTuDoc("")),
-                GenTuField(t_vec(t_str()), "language", GenTuDoc("")),
-                id_field("DocumentOptions", "options", GenTuDoc("")),
-                opt_field(t_str(), "exportFileName", GenTuDoc("")),
-            ],
-        ),
-        d_org(
-            "ParseError",
-            GenTuDoc(""),
-            bases=[t_org("Org")],
-        ),
-        d_org(
-            "FileTarget",
-            GenTuDoc(""),
-            bases=[t_org("Org")],
-            fields=[
-                GenTuField(t_str(), "path", GenTuDoc("")),
-                opt_field(t_int(), "line", GenTuDoc("")),
-                opt_field(t_str(), "searchTarget", GenTuDoc("")),
-                GenTuField(t_bool(), "restrictToHeadlines", GenTuDoc(""), value="false"),
-                opt_field(t_str(), "targetId", GenTuDoc("")),
-                opt_field(t_str(), "regexp", GenTuDoc("")),
-            ],
-        ),
-        d_org(
-            "TextSeparator",
-            GenTuDoc(""),
-            bases=[t_org("Org")],
-        ),
-        d_org(
-            "Include",
-            GenTuDoc(""),
-            bases=[t_org("Org")],
-            nested=[
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(t("Example"), GenTuDoc("")),
-                        GenTuStruct(t("Export"), GenTuDoc("")),
-                        GenTuStruct(t("Src"), GenTuDoc("")),
-                        GenTuStruct(t("OrgDocument"), GenTuDoc("")),
-                    ],
-                    kindGetter="getIncludeKind",
-                )
-            ],
-        ),
-        d_org(
             "DocumentOptions",
             GenTuDoc(""),
             bases=[t_org("Org")],
@@ -1412,6 +1337,81 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_bool(), "exportBrokenLinks", GenTuDoc(""), value="false"),
                 GenTuField(t_bool(), "exportWithClock", GenTuDoc(""), value="false"),
                 GenTuField(t_bool(), "exportWithCreator", GenTuDoc(""), value="false"),
+            ],
+        ),
+        d_org(
+            "Document",
+            GenTuDoc(""),
+            bases=[t_org("Org")],
+            methods=[
+                GenTuFunction(
+                    t_vec(t_nest("Property", ["Subtree"])),
+                    "getProperties",
+                    GenTuDoc(""),
+                    isConst=True,
+                    arguments=[
+                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
+                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                    ],
+                ),
+                GenTuFunction(
+                    t_opt(t_nest("Property", ["Subtree"])),
+                    "getProperty",
+                    GenTuDoc(""),
+                    isConst=True,
+                    arguments=[
+                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
+                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                    ],
+                ),
+            ],
+            fields=[
+                opt_field(t_id("Paragraph"), "title", GenTuDoc("")),
+                opt_field(t_id("Paragraph"), "author", GenTuDoc("")),
+                opt_field(t_id("Paragraph"), "creator", GenTuDoc("")),
+                opt_field(t_id("RawText"), "email", GenTuDoc("")),
+                GenTuField(t_vec(t_str()), "language", GenTuDoc("")),
+                id_field("DocumentOptions", "options", GenTuDoc("")),
+                opt_field(t_str(), "exportFileName", GenTuDoc("")),
+            ],
+        ),
+        d_org(
+            "ParseError",
+            GenTuDoc(""),
+            bases=[t_org("Org")],
+        ),
+        d_org(
+            "FileTarget",
+            GenTuDoc(""),
+            bases=[t_org("Org")],
+            fields=[
+                GenTuField(t_str(), "path", GenTuDoc("")),
+                opt_field(t_int(), "line", GenTuDoc("")),
+                opt_field(t_str(), "searchTarget", GenTuDoc("")),
+                GenTuField(t_bool(), "restrictToHeadlines", GenTuDoc(""), value="false"),
+                opt_field(t_str(), "targetId", GenTuDoc("")),
+                opt_field(t_str(), "regexp", GenTuDoc("")),
+            ],
+        ),
+        d_org(
+            "TextSeparator",
+            GenTuDoc(""),
+            bases=[t_org("Org")],
+        ),
+        d_org(
+            "Include",
+            GenTuDoc(""),
+            bases=[t_org("Org")],
+            nested=[
+                GenTuTypeGroup(
+                    [
+                        GenTuStruct(t("Example"), GenTuDoc("")),
+                        GenTuStruct(t("Export"), GenTuDoc("")),
+                        GenTuStruct(t("Src"), GenTuDoc("")),
+                        GenTuStruct(t("OrgDocument"), GenTuDoc("")),
+                    ],
+                    kindGetter="getIncludeKind",
+                )
             ],
         ),
         d_org(

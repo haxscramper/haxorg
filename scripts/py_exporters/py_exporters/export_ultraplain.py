@@ -14,10 +14,10 @@ class ExporterUltraplain(ExporterBase):
     def newOrg(self, node: org.Org):
         return ""
 
-    def visitWord(self, res: str, node: org.SemWord):
+    def visitWord(self, res: str, node: org.Word):
         res += node.text
 
-    def visitSpace(self, res: str, node: org.SemSpace):
+    def visitSpace(self, res: str, node: org.Space):
         res += node.text
 
     @staticmethod

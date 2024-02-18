@@ -4,6 +4,69 @@ from rich.console import Console
 import traceback
 from rich.pretty import pprint
 import sys
+from types import MethodType
+
+
+def to_debug_json(
+    obj,
+    include_single_underscore_attrs: bool = False,
+    include_double_underscore_attrs: bool = False,
+):
+    visited = set()
+
+    def aux(obj):
+        if isinstance(obj, (int, float, str, bool, type(None))):
+            return obj
+
+        if id(obj) in visited:
+            return f"cycle {type(obj)} {id(obj)}"
+
+        visited.add(id(obj))
+
+        # Handle different data types
+        if isinstance(obj, dict):
+            result = {}
+            for key, value in obj.items():
+                result[key] = aux(value)
+            return result
+
+        elif isinstance(obj, (list, tuple, set, frozenset)):
+            return [aux(item) for item in obj]
+
+        elif callable(obj):
+            return f"{obj}"
+
+        else:
+            def include_attr(name: str) -> bool:
+                has_double = name.startswith("__")
+                has_single = name.startswith("_")
+                is_regular = not has_single
+                return (has_double and include_double_underscore_attrs) or (
+                    not has_double and has_single and
+                    include_single_underscore_attrs) or is_regular
+
+            if hasattr(obj, "__dict__"):
+                result = {}
+                for key, value in obj.__dict__.items():
+                    if include_attr(key):
+                        result[key] = aux(value)
+
+                return result
+
+            elif hasattr(obj, "__slots__"):
+                result = {}
+                for slot_name in obj.__slots__:
+                    if include_attr(slot_name):
+                        value = getattr(obj, slot_name)
+                        result[slot_name] = aux(value)
+
+                return result
+
+            else:
+                return f"unhandled {type(obj)}"
+
+    return aux(obj)
+
 
 def pprint_to_file(value, path: str):
     # Built-in python pprint is too broken for regular uses -- output is not
@@ -11,6 +74,7 @@ def pprint_to_file(value, path: str):
     # not find any way to print converted translation unit safely.
     with open(path, "w") as file:
         pprint(value, console=Console(file=file, force_terminal=True, color_system=None))
+
 
 logging.basicConfig(
     level="NOTSET",
@@ -68,4 +132,3 @@ sys.excepthook = custom_traceback_handler
 
 log("graphviz._tools").setLevel(logging.ERROR)
 log("matplotlib").setLevel(logging.WARNING)
-

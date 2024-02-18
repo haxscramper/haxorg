@@ -49,12 +49,12 @@
         __MAP(kList, list, List)  \
         __MAP(kListitem, listitem, ListItem)  \
         __MAP(kLink, link, Link)  \
+        __MAP(kDocumentoptions, documentoptions, DocumentOptions)  \
         __MAP(kDocument, document, Document)  \
         __MAP(kParseerror, parseerror, ParseError)  \
         __MAP(kFiletarget, filetarget, FileTarget)  \
         __MAP(kTextseparator, textseparator, TextSeparator)  \
         __MAP(kInclude, include, Include)  \
-        __MAP(kDocumentoptions, documentoptions, DocumentOptions)  \
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
@@ -660,6 +660,27 @@ struct proto_serde<::orgproto::Link, sem::Link> {
 
 
 template <>
+struct proto_serde<::orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport> {
+  static void write(::orgproto::DocumentOptions::DoExport* out, sem::DocumentOptions::DoExport const& in);
+  static void read(::orgproto::DocumentOptions::DoExport const& out, proto_write_accessor<sem::DocumentOptions::DoExport> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentOptions::ExportFixed, sem::DocumentOptions::ExportFixed> {
+  static void write(::orgproto::DocumentOptions::ExportFixed* out, sem::DocumentOptions::ExportFixed const& in);
+  static void read(::orgproto::DocumentOptions::ExportFixed const& out, proto_write_accessor<sem::DocumentOptions::ExportFixed> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions> {
+  static void write(::orgproto::DocumentOptions* out, sem::DocumentOptions const& in);
+  static void read(::orgproto::DocumentOptions const& out, proto_write_accessor<sem::DocumentOptions> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Document, sem::Document> {
   static void write(::orgproto::Document* out, sem::Document const& in);
   static void read(::orgproto::Document const& out, proto_write_accessor<sem::Document> in);
@@ -719,27 +740,6 @@ template <>
 struct proto_serde<::orgproto::Include, sem::Include> {
   static void write(::orgproto::Include* out, sem::Include const& in);
   static void read(::orgproto::Include const& out, proto_write_accessor<sem::Include> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport> {
-  static void write(::orgproto::DocumentOptions::DoExport* out, sem::DocumentOptions::DoExport const& in);
-  static void read(::orgproto::DocumentOptions::DoExport const& out, proto_write_accessor<sem::DocumentOptions::DoExport> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportFixed, sem::DocumentOptions::ExportFixed> {
-  static void write(::orgproto::DocumentOptions::ExportFixed* out, sem::DocumentOptions::ExportFixed const& in);
-  static void read(::orgproto::DocumentOptions::ExportFixed const& out, proto_write_accessor<sem::DocumentOptions::ExportFixed> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions> {
-  static void write(::orgproto::DocumentOptions* out, sem::DocumentOptions const& in);
-  static void read(::orgproto::DocumentOptions const& out, proto_write_accessor<sem::DocumentOptions> in);
 };
 
 

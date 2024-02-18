@@ -128,32 +128,13 @@ struct [[refl]] OrgExporterYaml {
 };
 
 struct [[refl]] OrgContext {
-    OrgTokenGroup             tokens;
-    SPtr<OrgTokenizer>        tokenizer;
-    OrgNodeGroup              nodes;
-    SPtr<OrgParser>           parser;
-    std::string               source;
-    sem::OrgConverter         converter;
     sem::SemId<sem::Document> node = sem::SemId<sem::Document>::Nil();
 
-    OrgContext()
-        : tokenizer(), nodes(&tokens), converter(sem::OrgConverter()) {}
-
-    void run();
+    OrgContext() {}
 
 
-    [[refl]] void parseFile(std::string file) {
-        source = readFile(fs::path{file});
-        run();
-    }
-
-    [[refl]] void parseString(std::string text) {
-        source = text;
-        run();
-    }
-
-
-    [[refl]] sem::SemId<sem::Document> getNode() { return node; }
+    [[refl]] sem::SemId<sem::Document> parseFile(std::string file);
+    [[refl]] sem::SemId<sem::Document> parseString(std::string const text);
 };
 
 

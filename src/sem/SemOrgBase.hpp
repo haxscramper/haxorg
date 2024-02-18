@@ -81,9 +81,7 @@ struct SemId {
     SemId(SPtr<O> const& value) : value(value) {}
     SemId(O* value) : value(value) {}
 
-    operator SemId<Org>() {
-        return SemId<Org>{std::shared_ptr<Org>(value)};
-    }
+    operator SemId<Org>() { return asOrg(); }
 
     /// \name Get pointer to the associated sem org node from ID
     ///
@@ -136,6 +134,7 @@ struct SemId {
     void eachSubnodeRec(SubnodeVisitor cb);
 };
 
+using OrgArg = sem::SemId<sem::Org> const&;
 
 template <typename T>
 struct remove_sem_org {
@@ -166,7 +165,7 @@ struct [[refl]] Org {
     /// \brief Get get kind of the original node.
     OrgNodeKind getOriginalKind() const { return original.getKind(); }
     /// \brief Get kind of this sem node
-    virtual OrgSemKind getKind() const = 0;
+    [[refl]] virtual OrgSemKind getKind() const = 0;
     /// \brief Whether original node adapter is missing
     [[refl]] bool isGenerated() const { return original.empty(); }
     /// \brief Location of the node in the original source file

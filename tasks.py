@@ -495,7 +495,7 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 
 
 @org_task(pre=[cmake_utils, python_protobuf_files])
-def update_py_haxorg_reflection(ctx: Context):
+def update_py_haxorg_reflection(ctx: Context, force: bool = False):
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
@@ -511,7 +511,7 @@ def update_py_haxorg_reflection(ctx: Context):
             output=[out_file],
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
-        if op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]:
+        if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
             try:
                 run_command(
                     ctx,

@@ -20,23 +20,17 @@ struct ExporterUltraplain
     }
 
     void visitTime(std::string& res, In<sem::Time> time) {
-        if (time->isStatic()) {
-            res += time->getStatic().time.toString();
-        }
+        if (time->isStatic()) { res += time->getStatic().time.format(); }
     }
 
     template <typename T>
     void visit(std::string& res, CVec<T> values) {
-        for (const auto& value : values) {
-            visit(res, value);
-        }
+        for (const auto& value : values) { visit(res, value); }
     }
 
     template <typename T>
     void visit(std::string& res, CR<Opt<T>> opt) {
-        if (opt) {
-            visit(res, *opt);
-        }
+        if (opt) { visit(res, *opt); }
     }
 
     template <typename T>
