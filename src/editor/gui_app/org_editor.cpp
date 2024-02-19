@@ -16,7 +16,8 @@ int main(int argc, char* argv[]) {
     QGuiApplication       app(argc, argv);
     QQmlApplicationEngine engine;
     qmlRegisterType<OrgBackend>("OrgQml", 1, 0, "OrgBackend");
-    const QUrl url(u"qrc:/org_editor_app/gui_app/OrgEditor.qml"_qs);
+    const QUrl url(u"qrc:/org_editor_app/gui_app/OrgTreeTable.qml"_qs);
+    // const QUrl url(u"qrc:/org_editor_app/gui_app/OrgEditor.qml"_qs);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,

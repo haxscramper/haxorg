@@ -88,31 +88,7 @@ class OrgDocumentModel : public QAbstractItemModel {
     }
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override {
-
-        if (!index.isValid()) { return QVariant(); }
-
-        OrgNodeCursor* item = static_cast<OrgNodeCursor*>(
-            index.internalPointer());
-
-        switch (role) {
-            case Qt::DisplayRole: {
-                return item->data(index.column());
-            }
-
-            case OrgNodeItemRole::KindRole: {
-                return QString::fromStdString(fmt1(item->node->getKind()));
-            }
-
-            case OrgNodeItemRole::DataRole: {
-                return item->getNodeHandle();
-            }
-
-            default: {
-                return QVariant();
-            }
-        }
-    }
+        const override;
 
   private:
     UPtr<OrgNodeCursor> rootItem;
@@ -120,9 +96,12 @@ class OrgDocumentModel : public QAbstractItemModel {
 
 
 struct OrgDocumentSearchFilter : public QSortFilterProxyModel {
-    OrgDocumentSearchFilter(OrgDocumentModel* baseModel) {
+    OrgDocumentSearchFilter(OrgDocumentModel* baseModel, QObject* parent)
+        : QSortFilterProxyModel(parent) {
         setSourceModel(baseModel);
     }
+
+    virtual ~OrgDocumentSearchFilter() { __builtin_debugtrap(); };
 
     sem::SemId<sem::Org> getNode(QModelIndex const& source_index) const {
         OrgNodeCursor* data = static_cast<OrgNodeCursor*>(
@@ -167,12 +146,12 @@ struct OrgSubtreeSearchModel : QObject {
     Q_OBJECT
 
   public:
-    OrgSubtreeSearchModel(OrgDocumentModel* baseModel);
+    OrgSubtreeSearchModel(OrgDocumentModel* baseModel, QObject* parent);
 
-    OrgDocumentSearchFilter filter;
-    UnorderedMap<u64, int>  scoreCache;
-    std::string             pattern;
-    int                     getScore(sem::OrgArg arg);
+    SPtr<OrgDocumentSearchFilter> filter;
+    UnorderedMap<u64, int>        scoreCache;
+    std::string                   pattern;
+    int                           getScore(sem::OrgArg arg);
 
     Q_INVOKABLE void setPattern(CR<QString> pattern);
     Q_INVOKABLE void setScoreSorted(bool sorted);
