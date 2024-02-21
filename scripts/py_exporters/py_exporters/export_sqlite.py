@@ -80,9 +80,10 @@ def registerDocument(node: org.Org, engine: Engine):
                     start = 2 if 2 < len(
                         subnodes) and subnodes[0].getKind() == osk.Time else 0
 
-                    for node in subnodes[start:]:
-                        if node.getKind() == osk.Word:
+                    for sub in subnodes[start:]:
+                        if sub.getKind() == osk.Word:
                             wordcount += 1
+
 
                     if subnodes[0].getKind() == osk.Time:
                         session.add(

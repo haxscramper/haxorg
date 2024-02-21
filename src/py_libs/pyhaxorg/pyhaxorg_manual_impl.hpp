@@ -132,7 +132,6 @@ struct [[refl]] OrgContext {
 
     OrgContext() {}
 
-
     [[refl]] sem::SemId<sem::Document> parseFile(std::string file);
     [[refl]] sem::SemId<sem::Document> parseString(std::string const text);
     [[refl]] sem::SemId<sem::Document> parseProtobuf(
