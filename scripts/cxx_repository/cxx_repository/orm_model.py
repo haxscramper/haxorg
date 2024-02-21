@@ -1,23 +1,11 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base
+from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn
 
 Base = declarative_base()
 
 
-def IdColumn():
-    return Column(Integer, primary_key=True, autoincrement=True)
 
-
-def ForeignId(name: str, nullable: bool = False):
-    return Column(Integer, ForeignKey(name), nullable=nullable)
-
-
-def IntColumn(nullable: bool = False):
-    return Column(Integer, nullable=nullable)
-
-
-def StrColumn(nullable: bool = False):
-    return Column(String, nullable=nullable)
 
 
 # Table Definitions

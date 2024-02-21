@@ -923,7 +923,6 @@ SemId<Org> OrgConverter::convert(__args) {
         }
 
         default:
-            LOG(ERROR) << fmt("Unhandled node type {} {}", a.kind(), a.id);
             return Sem<Empty>(p, a);
     }
 #undef CASE

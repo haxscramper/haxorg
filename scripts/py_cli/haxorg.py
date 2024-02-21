@@ -134,10 +134,8 @@ class TexExportOptions(BaseModel, extra="forbid"):
         alias="export_trace_file"
     )
 
-
 def export_tex_options(f):
     return apply_options(f, options_from_model(TexExportOptions))
-
 
 @click.command("tex")
 @export_tex_options
@@ -166,8 +164,39 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
 
     log("haxorg.cli").info(f"Wrote latex export to {opts.outfile}")
 
-
 export.add_command(export_tex)
+
+#tag SQLite export
+
+class ExportSQliteOptions(BaseModel):
+    infile: List[Path]
+    outfile: Path
+
+def export_sqlite_options(f):
+    return apply_options(f, options_from_model(ExportSQliteOptions))
+
+@click.command("sqlite")
+@export_sqlite_options
+@click.pass_context
+def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs):
+    pack_context(ctx, "sqlite", ExportSQliteOptions, config=config, kwargs=kwargs)
+    opts: ExportSQliteOptions = ctx.obj["sqlite"]
+    nodes: List[org.Org] = [parseFile(ctx.obj["root"], file) for file in opts.infile]
+    from py_exporters.export_sqlite import registerDocument, Base
+    from sqlalchemy import create_engine, Engine
+    if opts.outfile.exists():
+        opts.outfile.unlink()
+
+    engine: Engine = create_engine("sqlite:///" + str(opts.outfile))
+    Base.metadata.create_all(engine)
+    for node in nodes:
+        registerDocument(node, engine)
+
+    log("haxorg.sql").info(f"Finished DB write to {opts.outfile}")
+
+
+export.add_command(export_sqlite)
+
 
 if __name__ == "__main__":
     cli()
