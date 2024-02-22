@@ -198,14 +198,16 @@ finally OrgConverter::trace(
                 .report);
 
         return finally{[this, line, function, adapter, subname]() {
-            report(Builder(
-                       OrgConverter::ReportKind::Leave,
-                       nullptr,
-                       line,
-                       function)
-                       .with_node(adapter)
-                       .with_msg(subname)
-                       .report);
+            try {
+                report(Builder(
+                           OrgConverter::ReportKind::Leave,
+                           nullptr,
+                           line,
+                           function)
+                           .with_node(adapter)
+                           .with_msg(subname)
+                           .report);
+            } catch (...) { __builtin_debugtrap(); }
         }};
 
     } else {

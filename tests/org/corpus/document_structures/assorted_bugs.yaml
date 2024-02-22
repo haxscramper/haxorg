@@ -414,5 +414,15 @@ items:
 
           :END:
 
+  - name: "Leading plus in list"
+    source: |
+      - A
+      - B
+
+      + A
+      + B
+
+
+
 
 

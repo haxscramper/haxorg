@@ -202,7 +202,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
                 sem::Subtree::Property::Visibility::Level>(
-                get_text(one(a, N::Values)));
+                get_text(one(a, N::Values).at(0)));
             visibility) {
             Property::Visibility prop;
             prop.level = visibility.value();
@@ -922,8 +922,7 @@ SemId<Org> OrgConverter::convert(__args) {
             }
         }
 
-        default:
-            return Sem<Empty>(p, a);
+        default: return Sem<Empty>(p, a);
     }
 #undef CASE
 }

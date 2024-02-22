@@ -385,6 +385,10 @@ rules:
     states: [COMMAND]
     token: CmdPropertyArgs
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "header{prop_colon}"
+    states: [COMMAND]
+    token: CmdHeader
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
 
   #endregion
@@ -533,7 +537,7 @@ rules:
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
-  - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
+  - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©|°", token: MiscUnicode }
   - { lit: "<%%", token: DynamicTimeContent }
   #endregion
   #endregion

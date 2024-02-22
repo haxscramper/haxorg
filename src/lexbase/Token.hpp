@@ -537,8 +537,8 @@ struct LexerCommon {
         int                count = 0;
         while (start.contains(kind())) { next(); }
         count++;
-        while (0 < count) {
-            if (start.contains(kind())) {
+        while (0 < count && !finished()) {
+            if (!finished() && start.contains(kind())) {
                 while (start.contains(kind())) {
                     // TODO identical to the inner loop -- implement unit
                     // test to get coverage for this case to make sure this

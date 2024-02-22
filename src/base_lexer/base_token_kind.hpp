@@ -33,6 +33,7 @@ enum class OrgTokenKind : unsigned short int {
   CmdExportLine,
   CmdFiletags,
   CmdFlag,
+  CmdHeader,
   CmdInclude,
   CmdLanguage,
   CmdLatexClass,

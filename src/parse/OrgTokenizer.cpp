@@ -541,6 +541,7 @@ struct LineToken {
 
     IntSet<OrgTokenKind> CmdBlockLine{
         otk::CmdTitle,
+        otk::CmdHeader,
         otk::CmdCaption,
         otk::CmdColumns,
         otk::CmdPropertyArgs,
@@ -1001,6 +1002,7 @@ struct GroupVisitorState {
                     break;
                 }
 
+                case otk::LeadingPlus:
                 case otk::LeadingNumber:
                 case otk::LeadingMinus: {
                     add_base(tok, ind);

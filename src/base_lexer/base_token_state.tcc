@@ -60,6 +60,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdExportLine: return "CmdExportLine";
         case OrgTokenKind::CmdFiletags: return "CmdFiletags";
         case OrgTokenKind::CmdFlag: return "CmdFlag";
+        case OrgTokenKind::CmdHeader: return "CmdHeader";
         case OrgTokenKind::CmdInclude: return "CmdInclude";
         case OrgTokenKind::CmdLanguage: return "CmdLanguage";
         case OrgTokenKind::CmdLatexClass: return "CmdLatexClass";
@@ -227,6 +228,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdExportLine") { return OrgTokenKind::CmdExportLine; } else
   if (value == "CmdFiletags") { return OrgTokenKind::CmdFiletags; } else
   if (value == "CmdFlag") { return OrgTokenKind::CmdFlag; } else
+  if (value == "CmdHeader") { return OrgTokenKind::CmdHeader; } else
   if (value == "CmdInclude") { return OrgTokenKind::CmdInclude; } else
   if (value == "CmdLanguage") { return OrgTokenKind::CmdLanguage; } else
   if (value == "CmdLatexClass") { return OrgTokenKind::CmdLatexClass; } else

@@ -42,6 +42,7 @@ const OrgTokSet ParagraphTerminator{
 OrgTokSet ListStarts{
     otk::LeadingMinus,
     otk::LeadingNumber,
+    otk::LeadingPlus,
     otk::TreeClock,
 };
 
@@ -226,33 +227,6 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::Whitespace:
                 token(org::Space, pop(lex, lex.kind()));
                 break;
-            case otk::BraceEnd:
-            case otk::ParEnd:
-            case otk::ParBegin:
-            case otk::DoubleSlash:
-            case otk::Comma:
-            case otk::AnyPunct:
-            case otk::DoubleDash:
-            case otk::Minus:
-            case otk::SingleQuote:
-            case otk::Ampersand:
-            case otk::DoubleQuote:
-            case otk::Percent:
-            case otk::Semicolon:
-            case otk::DoubleColon:
-            case otk::CurlyEnd:
-            case otk::Exclamation:
-            case otk::Dollar:
-            case otk::Backtick:
-            case otk::Pipe:
-            case otk::VerbatimEnd:
-            case otk::TrailingPipe:
-            case otk::MonospaceEnd:
-            case otk::LinkSplit:
-            case otk::Circumflex: {
-                token(org::Punctuation, pop(lex, lex.kind()));
-                break;
-            }
             case otk::CurlyBegin: {
                 if (lex.at(
                         Vec{otk::CurlyBegin,
@@ -349,9 +323,14 @@ void OrgParser::textFold(OrgLexer& lex) {
             }
 
             case otk::TripleAngleBegin: {
-                skip(lex, otk::TripleAngleBegin);
-                token(org::RadioTarget, pop(lex, otk::RawText));
-                skip(lex, otk::TripleAngleEnd);
+                if (lex.at(otk::RawText, +1)) {
+                    skip(lex, otk::TripleAngleBegin);
+                    token(org::RadioTarget, pop(lex, otk::RawText));
+                    skip(lex, otk::TripleAngleEnd);
+                } else {
+                    token(org::Punctuation, pop(lex, lex.kind()));
+                }
+
                 break;
             }
 
@@ -373,7 +352,8 @@ void OrgParser::textFold(OrgLexer& lex) {
             }
 
             default: {
-                fatalError(lex, "unhandled token");
+                token(org::Punctuation, pop(lex, lex.kind()));
+                break;
             }
         }
     }
@@ -828,7 +808,11 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
                 {
                     token(org::Ident, pop(lex, otk::CmdColonIdent));
                     space(lex);
-                    token(org::RawText, pop(lex, otk::CmdRawArg));
+                    if (lex.at(otk::CmdRawArg)) {
+                        token(org::RawText, pop(lex, otk::CmdRawArg));
+                    } else {
+                        empty();
+                    }
                 }
                 end();
             } else {
@@ -1521,6 +1505,15 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
+        case otk::CmdHeader: {
+            skip(lex, otk::CmdPrefix);
+            skip(lex);
+            start(org::CommandHeader);
+            parseCommandArguments(lex);
+            break;
+        }
+
+
         case otk::CmdPropertyArgs: {
             skip(lex, otk::CmdPrefix);
             skip(lex);
@@ -1545,7 +1538,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             switch (cmd_kind) {
                 case otk::CmdTblfm: start(org::CommandTblfm); break;
                 case otk::CmdColumns: start(org::Columns); break;
-                default: LOG(FATAL);
+                default: fatalError(lex, "asdf");
             }
             token(org::RawText, pop(lex, otk::RawText));
             break;
@@ -1553,8 +1546,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
 
         default: {
-            LOG(FATAL) << fmt(
-                "Unhandled token kind {} {}", lex.kind(+1), lex);
+            fatalError(
+                lex, fmt("Unhandled command kind {}", lex.kind(+1)));
         }
     }
 
