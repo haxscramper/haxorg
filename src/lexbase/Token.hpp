@@ -614,7 +614,10 @@ struct SubLexer : public LexerCommon<K, V> {
     SubLexer(LexerCommon<K, V> const& in) : LexerCommon<K, V>(in.in) {}
 
     SubLexer(TokenGroup<K, V>* in, Vec<TokenId<K, V>> _tokens)
-        : LexerCommon<K, V>(in, _tokens.at(0)), tokens(_tokens) {}
+        : LexerCommon<K, V>(
+            in,
+            _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
+        , tokens(_tokens) {}
 };
 
 

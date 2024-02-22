@@ -425,11 +425,12 @@ struct RecombineState {
                 break;
             }
 
-            // case otk::Escaped: {
-            //     add_fake(otk::Escaped, loc_fill(tok->text.substr(1)));
-            //     pop_as(otk::Escaped);
-            //     break;
-            // }
+                // case otk::Escaped: {
+                //     add_fake(otk::Escaped,
+                //     loc_fill(tok->text.substr(1)));
+                //     pop_as(otk::Escaped);
+                //     break;
+                // }
 
             case otk::Plus:
             case otk::ForwardSlash:
@@ -742,128 +743,172 @@ auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
         &*begin, static_cast<int>(std::distance(begin, end))};
 }
 
-Vec<LineToken> to_lines(OrgLexer& lex) {
-    __perf_trace("to_lines");
-    Vec<LineToken> lines;
-    auto const&    tokens = lex.in;
-    auto           start  = tokens->begin();
+struct TokenVisitor {
+    OrgTokenizer*  d;
+    bool const&    TraceState;
+    Vec<LineToken> to_lines(OrgLexer& lex) {
+        __perf_trace("to_lines");
+        Vec<LineToken> lines;
+        auto const&    tokens = lex.in;
+        auto           start  = tokens->begin();
 
-    for (auto it = tokens->begin(); it != tokens->end(); ++it) {
-        if (line_end.contains(it->kind)) {
-            lines.push_back(LineToken{make_span(start, std::next(it))});
-            start = std::next(it);
-        }
-    }
-
-    if (start != tokens->end()) {
-        lines.push_back(LineToken{make_span(start, tokens->end())});
-    }
-
-    return lines;
-}
-
-
-Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
-    __perf_trace("to_groups");
-    using Iter = Vec<LineToken>::iterator;
-    Func<Opt<GroupToken>(Iter & it)> rec_group;
-    rec_group = [&](Iter& it) -> Opt<GroupToken> {
-        auto end      = lines.end();
-        auto nextline = [&]() { ++it; };
-
-        auto start = it;
-        switch (start->kind) {
-            case LK::Line: {
-                while (it != end
-                       && (it->kind == LK::Line
-                           || it->kind == LK::IndentedLine)) {
-                    nextline();
+        for (auto it = tokens->begin(); it != tokens->end(); ++it) {
+            if (line_end.contains(it->kind)) {
+                auto span = make_span(start, std::next(it));
+                auto line = LineToken{span};
+                if (TraceState) {
+                    // d->print(lex, fmt("{}", span));
+                    d->print(lex, fmt("{} {}", line.kind, line.tokens));
                 }
-
-                return GroupToken{
-                    .data = GroupToken::Leaf{make_span(start, it)},
-                    .kind = GK::Line};
-            }
-
-            case LK::ListItem: {
-                nextline();
-                while (it != end && it->kind == LK::IndentedLine
-                       && start->indent <= it->indent) {
-                    nextline();
-                }
-
-                return GroupToken{
-                    .data = GroupToken::Leaf{make_span(start, it)},
-                    .kind = GK::ListItem};
-            }
-
-            case LK::BlockOpen: {
-                GroupToken::Nested sub;
-                sub.begin = *it;
-                nextline();
-                while (it != end && it->kind != LK::BlockClose) {
-                    auto res = rec_group(it);
-                    if (res) { sub.subgroups.push_back(*res); }
-                }
-                if (it != end) {
-                    sub.end = *it;
-                    nextline();
-                }
-
-
-                return GroupToken{.data = sub, .kind = GK::Block};
-            }
-
-            case LK::Property: {
-                while (it != end && it->kind == LK::Property) {
-                    nextline();
-                }
-
-                return GroupToken{
-                    .data = GroupToken::Leaf{make_span(start, it)},
-                    .kind = GK::Properties};
-            }
-
-            case LK::IndentedLine: {
-                it               = start;
-                int start_indent = start->indent;
-                while (it != end && start_indent <= it->indent) {
-                    it->decreaseIndent(start_indent);
-                    ++it;
-                }
-                it = start;
-                return std::nullopt;
-            }
-
-            case LK::BlockClose: {
-                nextline();
-                return GroupToken{
-                    .data = GroupToken::Leaf{make_span(start, it)},
-                    .kind = GK::Line};
-            }
-
-            default: {
-                LOG(FATAL) << fmt(
-                    "Unhandled line kind {} {}", start->kind, it->tokens);
-                return std::nullopt;
+                lines.push_back(line);
+                start = std::next(it);
             }
         }
-    };
 
-    Vec<GroupToken> root{};
-
-    auto it = lines.begin();
-    while (it != lines.end()) {
-        auto start = it;
-        auto rec   = rec_group(it);
-        if (rec) {
-            CHECK(start != it);
-            root.push_back(rec.value());
+        if (start != tokens->end()) {
+            auto span = make_span(start, tokens->end());
+            if (TraceState) { d->print(lex, fmt("{}", span)); }
+            lines.push_back(LineToken{span});
         }
+
+        return lines;
     }
 
-    return root;
-}
+
+    Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
+        __perf_trace("to_groups");
+        using Iter = Vec<LineToken>::iterator;
+        Func<Opt<GroupToken>(Iter & it)> rec_group;
+        rec_group = [&](Iter& it) -> Opt<GroupToken> {
+            auto end      = lines.end();
+            auto nextline = [&]() { ++it; };
+
+            auto start = it;
+            switch (start->kind) {
+                case LK::IndentedLine:
+                case LK::Line: {
+                    int start_indent = start->indent;
+                    while (it != end
+                           && (it->kind == LK::Line
+                               || it->kind == LK::IndentedLine)
+                           && (start_indent <= it->indent)) {
+                        nextline();
+                    }
+
+                    return GroupToken{
+                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .kind = GK::Line};
+                }
+
+                case LK::ListItem: {
+                    nextline();
+                    while (it != end && it->kind == LK::IndentedLine
+                           && start->indent <= it->indent) {
+                        nextline();
+                    }
+
+                    return GroupToken{
+                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .kind = GK::ListItem};
+                }
+
+                case LK::BlockOpen: {
+                    GroupToken::Nested sub;
+                    sub.begin = *it;
+                    nextline();
+                    while (it != end && it->kind != LK::BlockClose) {
+                        auto res = rec_group(it);
+                        if (res) { sub.subgroups.push_back(*res); }
+                    }
+                    if (it != end) {
+                        sub.end = *it;
+                        nextline();
+                    }
+
+
+                    return GroupToken{.data = sub, .kind = GK::Block};
+                }
+
+                case LK::Property: {
+                    while (it != end && it->kind == LK::Property) {
+                        nextline();
+                    }
+
+                    return GroupToken{
+                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .kind = GK::Properties};
+                }
+
+                    // case LK::IndentedLine: {
+                    //     it               = start;
+                    //     int start_indent = start->indent;
+                    //     SubLexer<OrgTokenKind, OrgFill> tmp{nullptr,
+                    //     {}}; if (TraceState) {
+                    //         d->print(
+                    //             tmp,
+                    //             fmt("----- {} {} {}",
+                    //                 start->indent,
+                    //                 start->kind,
+                    //                 start->tokens));
+                    //     }
+                    //     while (it != end && start_indent <= it->indent)
+                    //     {
+                    //         if (TraceState) {
+                    //             d->print(
+                    //                 tmp,
+                    //                 fmt(">> {} {} {}",
+                    //                     it->indent,
+                    //                     it->kind,
+                    //                     it->tokens));
+                    //         }
+                    //         it->decreaseIndent(start_indent);
+                    //         if (TraceState) {
+                    //             d->print(
+                    //                 tmp,
+                    //                 fmt("<< {} {} {}",
+                    //                     it->indent,
+                    //                     it->kind,
+                    //                     it->tokens));
+                    //         }
+                    //         ++it;
+                    //     }
+                    //     it = start;
+                    //     return std::nullopt;
+                    // }
+
+                case LK::BlockClose: {
+                    nextline();
+                    return GroupToken{
+                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .kind = GK::Line};
+                }
+
+                default: {
+                    LOG(FATAL)
+                        << fmt("Unhandled line kind {} {}",
+                               start->kind,
+                               it->tokens);
+                    return std::nullopt;
+                }
+            }
+        };
+
+        Vec<GroupToken> root{};
+
+        auto it = lines.begin();
+        while (it != lines.end()) {
+            auto start = it;
+            auto rec   = rec_group(it);
+            if (rec) {
+                CHECK(start != it);
+                root.push_back(rec.value());
+            }
+        }
+
+        return root;
+    }
+};
+
 
 struct GroupVisitorState {
     OrgTokenizer* d;
@@ -1079,29 +1124,25 @@ struct GroupVisitorState {
         d->print(lex, aligned, __LINE__, "group", level);
     };
 
-    void print_groups(CR<Vec<GroupToken>> groups) {
+    void print_line(CR<LineToken> line, Str prefix, int level) {
+        if (TraceState) {
+            print1(
+                fmt("[{}] line:{} indent={}",
+                    prefix,
+                    line.kind,
+                    line.indent),
+                level);
 
-
-        auto print_line = [&](CR<LineToken> line, Str prefix, int level) {
-            if (TraceState) {
+            for (int token_idx = 0; token_idx < line.tokens.size();
+                 ++token_idx) {
                 print1(
-                    fmt("[{}] line:{} indent={}",
-                        prefix,
-                        line.kind,
-                        line.indent),
-                    level);
-
-                for (int token_idx = 0; token_idx < line.tokens.size();
-                     ++token_idx) {
-                    print1(
-                        fmt("[{}] {}",
-                            token_idx,
-                            line.tokens.at(token_idx)),
-                        level + 1);
-                }
+                    fmt("[{}] {}", token_idx, line.tokens.at(token_idx)),
+                    level + 1);
             }
-        };
+        }
+    };
 
+    void print_groups(CR<Vec<GroupToken>> groups) {
         Func<void(CR<Vec<GroupToken>> groups, int level)> rec_print_group;
         rec_print_group = [&](CR<Vec<GroupToken>> groups, int level) {
             for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
@@ -1139,9 +1180,14 @@ struct GroupVisitorState {
 void OrgTokenizer::recombine(OrgLexer& lex) {
     // Convert stream of leading space indentations into indent, dedent
     // and 'same indent' tokens.
-    Vec<LineToken>    lines = to_lines(lex);
-    Vec<GroupToken>   root  = to_groups(lines);
+    TokenVisitor      token{this, this->TraceState};
+    Vec<LineToken>    lines = token.to_lines(lex);
+    Vec<GroupToken>   root  = token.to_groups(lines);
     GroupVisitorState visitor{this, lex};
+
+    if (TraceState) {
+        for (auto const& line : lines) { visitor.print_line(line, "", 0); }
+    }
     if (TraceState) { visitor.print_groups(root); }
     {
         __perf_trace("rec convert groups");

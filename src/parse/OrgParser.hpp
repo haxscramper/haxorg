@@ -119,7 +119,12 @@ struct OrgParser : public OperationsTracer {
     }
 
 
-    OrgId   empty() { return token(getEmpty()); }
+    OrgId empty(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        return token(getEmpty(), line, function);
+    }
+
     OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
 
     bool at(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item);

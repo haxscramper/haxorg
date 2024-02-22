@@ -604,9 +604,14 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
             empty();
         }
 
-        if (lex.at(Vec{otk::StrikeBegin, otk::Number})) {
+        if (lex.at(otk::StrikeBegin)
+            && lex.at(OrgTokSet{otk::Number, otk::Word}, +1)) {
             skip(lex);
-            token(org::RawText, pop(lex, otk::Number));
+            if (lex.at(otk::Number)) {
+                token(org::RawText, pop(lex, otk::Number));
+            } else {
+                token(org::RawText, pop(lex, otk::Word));
+            }
             space(lex);
         } else {
             empty();
@@ -1305,9 +1310,31 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
             start(org::InlineStmtList);
             token(org::Word, pop(lex));
             space(lex);
-            parseTimeStamp(lex);
+            parseTimeRange(lex);
             space(lex);
             end();
+        }
+
+        // Optional standalone timestamp or time range right after the
+        // subtree. The check is for token sequence
+        // <newline> <space>? <angle/brace> <date>
+        auto [it, lex_end] = lex.whole_fixed().range_current();
+        if (it->kind == otk::Newline) {
+            ++it;
+            if (it->kind == otk::LeadingSpace) { ++it; }
+            if (it->kind == otk::AngleBegin
+                || it->kind == otk::BraceBegin) {
+                ++it;
+                if (it->kind == otk::Date) {
+                    lex.skip(otk::Newline);
+                    space(lex);
+                    start(org::InlineStmtList);
+                    empty();
+                    parseTimeRange(lex);
+                    space(lex);
+                    end();
+                }
+            }
         }
 
         return end();
