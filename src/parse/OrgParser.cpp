@@ -248,6 +248,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::VerbatimEnd:
             case otk::TrailingPipe:
             case otk::MonospaceEnd:
+            case otk::LinkSplit:
             case otk::Circumflex: {
                 token(org::Punctuation, pop(lex, lex.kind()));
                 break;
@@ -1152,9 +1153,18 @@ OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 parseParagraph(sub);
                 break;
             }
+            case otk::ColonPropertyName: {
+                space(lex);
+                start(org::InlineStmtList);
+                while (lex.can_search(Newline)) {
+                    token(org::RawText, lex.pop());
+                }
+                end();
+                break;
+            }
             default: {
-                LOG(FATAL)
-                    << fmt("Unhandled property kind parse {}", head);
+                fatalError(
+                    lex, fmt("Unhandled property kind parse {}", head));
             }
         }
         skip(lex, otk::Newline);

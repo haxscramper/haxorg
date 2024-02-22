@@ -342,7 +342,77 @@ items:
     source: |
       text \=\= text
 
+  - name: "Floating standalone list start"
+    source: |
+      - list item
+        -
 
+      - asfdsa
+
+  - name: "List end gap"
+    source: |
+      - asdfasdf
+        - Most p
+          someth
+          proble
+          need d
+          explan
+
+      - Developm
+
+  - name: "Startup config"
+    source: |
+      #+STARTUP: content
+
+  - name: "Double hash in text"
+    source: |
+      asfasd##asdf
+
+  - name: "Not a full link"
+    source: |
+      ([1][2])
+
+  - name: "Invalid deadline annotation"
+    # Missing `:` after the deadline annotations causes the parser to treat 
+    # property list as a standalone block of text, not attached to the subtree
+    # and fail because of that 
+    source: |
+      **** COMPLETED Зачет АПО ЭВМ
+          CLOSED: [2022-04-08 Fri 21:45:09] DEADLINE <2022-04-08 Fri 12:40:00>
+          :PROPERTIES:
+          :CREATED: [2022-03-31 Thu 20:04:58]
+          :ID: 6091a6a4-ab86-4206-a3e5-a48f8207a223
+          :ORIGIN: from ~personal:todo/inbox.org:nil~
+          :END:
+
+  - name: "Diary time format"
+    source: |
+      <%%(and (diary-block-d 2022 7 4 17) (diary-day '(1 3 5)))>
+
+  - name: "Subtree with complex logbook notes"
+    source: |
+      *** COMPLETED adfasdf
+          :PROPERTIES:
+          :CREATED: [2000-02-25 Fri 23:23:45]
+          :END:
+          :LOGBOOK:
+          - State "WIP"        from "TODO"       [2000-02-26 Sat 19:41:07]
+          - Note taken on [2000-02-26 Sat 19:41:09] \\
+            sources later.
+          - Note taken on [2000-02-26 Sat 20:00:54] \\
+            #+begin_src c++
+            void init(void){
+            #+end_src
+
+            converted into
+
+            #+begin_src nim
+            setbuf(stderr, `nil`)
+            #+end_src
+          - Note taken on [2000-02-26 Sat 20:03:42] \\
+            ~cast[T](expr)~ generation is broken, closing ~)~ is reversed (fixed)
+
+          :END:
 
 
 
