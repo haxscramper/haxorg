@@ -528,4 +528,13 @@ items:
       [[id:3034c11f-d398-4bc5-a6f2-ecf4d8693f6c][2022/2022-03 March/2022-03-07
       Monday/[2022-03-07 Mon 14:58:22]]]
 
+  - name: "Timestamp repeaters"
+    source: |
+      * TODO V
+        SCHEDULED: <2023-09-18 Mon 11:00:00 +04 +1d>
+
+      * TODO A
+        SCHEDULED: <2024-02-20 Tue 19:00:00 +04 ++1w>
+
+
 

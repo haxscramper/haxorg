@@ -312,9 +312,9 @@ void OrgParser::textFold(OrgLexer& lex) {
 
 
             case otk::DoubleAngleBegin: {
-                if (lex.at(otk::Whitespace, +1)) {
-                    token(org::Punctuation, pop(lex, lex.kind()));
-                } else {
+                if (lex.ahead(
+                        {otk::Word, otk::Whitespace, otk::Punctuation},
+                        otk::DoubleAngleEnd)) {
                     skip(lex, otk::DoubleAngleBegin);
                     SubLexer sub{lex};
                     while (lex.can_search(otk::DoubleAngleEnd)) {
@@ -323,6 +323,8 @@ void OrgParser::textFold(OrgLexer& lex) {
                     sub.start();
                     parseParagraph(sub);
                     skip(lex, otk::DoubleAngleEnd);
+                } else {
+                    token(org::Punctuation, pop(lex, lex.kind()));
                 }
 
                 break;
@@ -547,10 +549,10 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 
 OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
     __perf_trace("parseTimeStamp");
-    auto __trace = trace(lex);
+    auto __trace   = trace(lex);
+    auto start_tok = lex.tok();
     expect(lex, OrgTokSet{otk::BraceBegin, otk::AngleBegin});
     bool active = lex.at(otk::AngleBegin);
-    skip(lex, active ? otk::AngleBegin : otk::BraceBegin);
     if (lex.at(otk::DynamicTimeContent)) {
         if (active) {
             start(org::DynamicActiveTime);
@@ -564,8 +566,10 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
     } else {
         if (active) {
             start(org::StaticActiveTime);
+            skip(lex, otk::AngleBegin);
         } else {
             start(org::StaticInactiveTime);
+            skip(lex, otk::BraceBegin);
         }
 
         // Date part is usually used, but I think supporting *time* stamps
@@ -590,21 +594,25 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
             empty();
         }
 
-        if (lex.at(otk::StrikeBegin)
-            && lex.at(OrgTokSet{otk::Number, otk::Word}, +1)) {
+
+        if (lex.at(otk::StrikeBegin) && lex.at(otk::Number, +1)) {
             skip(lex);
-            if (lex.at(otk::Number)) {
-                token(org::RawText, pop(lex, otk::Number));
-            } else {
-                token(org::RawText, pop(lex, otk::Word));
-            }
+            token(org::RawText, pop(lex, otk::Number));
             space(lex);
         } else {
             empty();
         }
 
-        if (lex.at(otk::TimeRepeater)) {
-            token(org::RawText, pop(lex, otk::TimeRepeater));
+        if (lex.at(otk::StrikeBegin)) {
+            // ++1w +1d & other repeaters
+            token(org::RawText, pop(lex, otk::StrikeBegin));
+            if (lex.at(otk::Punctuation)) {
+                token(org::RawText, pop(lex, otk::Punctuation));
+            } else {
+                empty();
+            }
+
+            token(org::RawText, pop(lex, otk::Word));
             space(lex);
         } else {
             empty();
@@ -1574,7 +1582,11 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
                 skip(lex, otk::StmtListEnd);
                 skip(lex, otk::ListItemEnd);
             }
-            skip(lex, otk::ListEnd);
+            if (lex.at(otk::ListEnd)) {
+                skip(lex, otk::ListEnd);
+            } else {
+                skip(lex, otk::Dedent);
+            }
             return result;
         }
 

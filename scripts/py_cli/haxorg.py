@@ -47,7 +47,7 @@ def parseFile(root: CliRootOptions, file: Path) -> org.Org:
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
             if op.should_run():
-                log("haxorg.cache").info(f"{file} cached in {cache_file}")
+                log("haxorg.cache").info(f"{file} parsing")
                 node = ctx.parseFile(str(file.resolve()))
                 if not cache_file.parent.exists():
                     cache_file.parent.mkdir()

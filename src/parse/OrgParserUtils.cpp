@@ -252,13 +252,17 @@ void OrgParser::fatalError(
         report(build.report);
     }
 
+    Opt<OrgToken> tok = lex.hasNext(-1) ? Opt<OrgToken>{lex.tok(-1)}
+                                        : std::nullopt;
+
     throw std::logic_error(
-        fmt("{} {} at {} in {}:{} {}",
+        fmt("{} {} at {} in {}:{} (prev: {}) {}",
             msg,
             lex.finished() ? "<lexer-finished>" : fmt1(lex.tok()),
             getLocMsg(lex),
             function,
             line,
+            tok,
             lex.printToString([](ColStream& os, OrgToken const& t) {
                 os << os.yellow() << escape_for_write(t.value.text)
                    << os.end() << fmt1(t.value);

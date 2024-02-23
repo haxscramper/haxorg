@@ -101,11 +101,26 @@ def registerDocument(node: org.Org, engine: Engine):
                             plaintext=ExporterUltraplain.getStr(node),
                         ))
 
-            case osk.Newline:
+            case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.Caption:
+                pass
+
+            case osk.Code:
+                pass
+
+            case osk.Quote:
+                pass
+
+            case osk.Export:
+                pass
+
+            case osk.Example:
+                pass
+
+            case osk.Table:
                 pass
 
             case _:
-                log(CAT).warning(f"Unhandled sql export {node.getKind()}")
+                log(CAT).warning(f"Unhandled sql export {node.getKind()} {node.loc.line}")
 
     aux(node)
     session.commit()
