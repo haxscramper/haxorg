@@ -12,6 +12,8 @@
         __MAP(kParagraph, paragraph, Paragraph)  \
         __MAP(kCenter, center, Center)  \
         __MAP(kCaption, caption, Caption)  \
+        __MAP(kCmdname, cmdname, CmdName)  \
+        __MAP(kCmdresults, cmdresults, CmdResults)  \
         __MAP(kCommandgroup, commandgroup, CommandGroup)  \
         __MAP(kTblfm, tblfm, Tblfm)  \
         __MAP(kQuote, quote, Quote)  \
@@ -124,6 +126,20 @@ template <>
 struct proto_serde<::orgproto::Caption, sem::Caption> {
   static void write(::orgproto::Caption* out, sem::Caption const& in);
   static void read(::orgproto::Caption const& out, proto_write_accessor<sem::Caption> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdName, sem::CmdName> {
+  static void write(::orgproto::CmdName* out, sem::CmdName const& in);
+  static void read(::orgproto::CmdName const& out, proto_write_accessor<sem::CmdName> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdResults, sem::CmdResults> {
+  static void write(::orgproto::CmdResults* out, sem::CmdResults const& in);
+  static void read(::orgproto::CmdResults const& out, proto_write_accessor<sem::CmdResults> in);
 };
 
 

@@ -422,6 +422,19 @@ items:
       + A
       + B
 
+  - name: "Name and results"
+    source: |
+      #+name: xxx
+      #+BEGIN_SRC sch :file imgs/sch_1.tmp.png :exports none
+      R 1 2; right
+      C 2 3; down
+      L 3 4; left
+      V 4 1; up
+      #+END_SRC
+
+      #+RESULTS:
+      [[file:imgs/sch_1.tmp.png]]
+
 
 
 

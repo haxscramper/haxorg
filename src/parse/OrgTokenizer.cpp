@@ -542,6 +542,8 @@ struct LineToken {
     IntSet<OrgTokenKind> CmdBlockLine{
         otk::CmdTitle,
         otk::CmdHeader,
+        otk::CmdName,
+        otk::CmdResults,
         otk::CmdCaption,
         otk::CmdColumns,
         otk::CmdPropertyArgs,

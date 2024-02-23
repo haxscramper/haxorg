@@ -131,6 +131,14 @@ auto Formatter::toString(SemId<Caption> id) -> Res {
     return b.line({str("#+caption: "), toString(id->text)});
 }
 
+auto Formatter::toString(SemId<CmdResults> id) -> Res {
+    return b.line({str("#+results: ")});
+}
+
+auto Formatter::toString(SemId<CmdName> id) -> Res {
+    return b.line({str("#+name: ")});
+}
+
 auto Formatter::toString(SemId<DocumentGroup> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
@@ -269,9 +277,7 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
     });
 
     b.add_at(result, head);
-    if (!id->subnodes.empty()) {
-        add_subnodes(result, id.asOrg());
-    }
+    if (!id->subnodes.empty()) { add_subnodes(result, id.asOrg()); }
 
 
     return result;

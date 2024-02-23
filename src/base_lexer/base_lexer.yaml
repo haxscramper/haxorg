@@ -389,6 +389,14 @@ rules:
     states: [COMMAND]
     token: CmdHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "results{prop_colon}"
+    states: [COMMAND]
+    token: CmdResults
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "name{prop_colon}"
+    states: [COMMAND]
+    token: CmdName
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
 
   #endregion

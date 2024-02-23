@@ -154,6 +154,20 @@ struct Caption : public Attached {
   void setText(org_qml::Paragraph text);
 };
 
+struct CmdName : public Attached {
+  Q_GADGET
+  public:
+  CmdName() = default;
+  CmdName(sem::SemId<sem::Org> const& id) : Attached(id) {}
+};
+
+struct CmdResults : public Attached {
+  Q_GADGET
+  public:
+  CmdResults() = default;
+  CmdResults(sem::SemId<sem::Org> const& id) : Attached(id) {}
+};
+
 struct CommandGroup : public Stmt {
   Q_GADGET
   public:
@@ -635,6 +649,8 @@ Q_DECLARE_METATYPE(org_qml::LineCommand)
 Q_DECLARE_METATYPE(org_qml::Standalone)
 Q_DECLARE_METATYPE(org_qml::Attached)
 Q_DECLARE_METATYPE(org_qml::Caption)
+Q_DECLARE_METATYPE(org_qml::CmdName)
+Q_DECLARE_METATYPE(org_qml::CmdResults)
 Q_DECLARE_METATYPE(org_qml::CommandGroup)
 Q_DECLARE_METATYPE(org_qml::Block)
 Q_DECLARE_METATYPE(org_qml::Tblfm)

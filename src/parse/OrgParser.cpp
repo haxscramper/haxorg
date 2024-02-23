@@ -1505,10 +1505,19 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
+        case otk::CmdName:
+        case otk::CmdResults:
         case otk::CmdHeader: {
             skip(lex, otk::CmdPrefix);
             skip(lex);
-            start(org::CommandHeader);
+            switch (cmd_kind) {
+                case otk::CmdHeader: start(org::CommandHeader); break;
+                case otk::CmdName: start(org::CommandName); break;
+                case otk::CmdResults: start(org::CommandResults); break;
+                default:
+            }
+
+
             parseCommandArguments(lex);
             break;
         }

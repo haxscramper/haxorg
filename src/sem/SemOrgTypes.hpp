@@ -305,6 +305,44 @@ struct Caption : public sem::Attached {
   virtual OrgSemKind getKind() const { return OrgSemKind::Caption; }
 };
 
+struct CmdName : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdName() = default;
+  BOOST_DESCRIBE_CLASS(CmdName,
+                       (Attached),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemId<CmdName>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemId<CmdName> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdName; }
+};
+
+struct CmdResults : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdResults() = default;
+  BOOST_DESCRIBE_CLASS(CmdResults,
+                       (Attached),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemId<CmdResults>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemId<CmdResults> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdResults; }
+};
+
 /// \brief Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public sem::Stmt {
   using Stmt::Stmt;

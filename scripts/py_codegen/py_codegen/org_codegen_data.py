@@ -317,6 +317,16 @@ def get_types() -> Sequence[GenTuStruct]:
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
         ),
         d_org(
+            "CmdName",
+            GenTuDoc(""),
+            bases=[t_org("Attached")],
+        ),
+        d_org(
+            "CmdResults",
+            GenTuDoc(""),
+            bases=[t_org("Attached")],
+        ),
+        d_org(
             "CommandGroup",
             GenTuDoc(
                 "Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command"
@@ -1617,6 +1627,8 @@ def get_enums():
                 GenTuEnumField("CommandAttrHtml", GenTuDoc("`#+attr_html:`")),
                 GenTuEnumField("CommandName",
                                GenTuDoc("`#+name:` - name of the associated entry")),
+                GenTuEnumField("CommandResults",
+                               GenTuDoc("`#+results:` - source code block evaluation results")),
                 GenTuEnumField(
                     "CommandHeader",
                     GenTuDoc(
