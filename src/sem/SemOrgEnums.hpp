@@ -151,6 +151,8 @@ enum class OrgNodeKind : short int {
   CommandLanguage,
   /// \brief `#+attr_html:`
   CommandAttrHtml,
+  /// \brief `#+attr_image:`
+  CommandAttrImage,
   /// \brief `#+name:` - name of the associated entry
   CommandName,
   /// \brief `#+results:` - source code block evaluation results

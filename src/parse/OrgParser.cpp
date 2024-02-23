@@ -1466,27 +1466,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-
-#if false
-        case otk::CmdAttrHtml: {
-            skip(lex, otk::CmdPrefix);
-            skip(lex);
-            start(org::CommandAttrHtml);
-            parseSrcArguments(lex);
-            break;
-        }
-
-        case otk::CmdHtmlHead: {
-            skip(lex, otk::CmdPrefix);
-            skip(lex, otk::CmdHtmlHead);
-            start(org::HtmlHead);
-            token(org::RawText, pop(lex, otk::RawText));
-            break;
-        }
-
-
-#endif
-
         case otk::CmdPropertyRaw: {
             skip(lex, otk::CmdPrefix);
             skip(lex);
@@ -1505,6 +1484,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
+        case otk::CmdAttrHtml:
         case otk::CmdName:
         case otk::CmdResults:
         case otk::CmdHeader: {
@@ -1514,6 +1494,10 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 case otk::CmdHeader: start(org::CommandHeader); break;
                 case otk::CmdName: start(org::CommandName); break;
                 case otk::CmdResults: start(org::CommandResults); break;
+                case otk::CmdAttrHtml: start(org::CommandAttrHtml); break;
+                case otk::CmdAttrImage:
+                    start(org::CommandAttrImage);
+                    break;
                 default:
             }
 

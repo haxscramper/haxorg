@@ -397,6 +397,14 @@ rules:
     states: [COMMAND]
     token: CmdName
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "attr_html{prop_colon}"
+    states: [COMMAND]
+    token: CmdAttrHtml
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "attr_image{prop_colon}"
+    states: [COMMAND]
+    token: CmdAttrImage
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
 
   #endregion

@@ -1625,6 +1625,7 @@ def get_enums():
                 ),
                 GenTuEnumField("CommandLanguage", GenTuDoc("`#+language:`")),
                 GenTuEnumField("CommandAttrHtml", GenTuDoc("`#+attr_html:`")),
+                GenTuEnumField("CommandAttrImage", GenTuDoc("`#+attr_image:`")),
                 GenTuEnumField("CommandName",
                                GenTuDoc("`#+name:` - name of the associated entry")),
                 GenTuEnumField("CommandResults",

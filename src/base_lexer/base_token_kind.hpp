@@ -16,6 +16,8 @@ enum class OrgTokenKind : unsigned short int {
   Circumflex,
   CmdAdmonitionBegin,
   CmdAdmonitionEnd,
+  CmdAttrHtml,
+  CmdAttrImage,
   CmdAuthor,
   CmdCaption,
   CmdCenterBegin,

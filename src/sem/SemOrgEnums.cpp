@@ -164,6 +164,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CommandInclude") { return OrgNodeKind::CommandInclude; } else
   if (value == "CommandLanguage") { return OrgNodeKind::CommandLanguage; } else
   if (value == "CommandAttrHtml") { return OrgNodeKind::CommandAttrHtml; } else
+  if (value == "CommandAttrImage") { return OrgNodeKind::CommandAttrImage; } else
   if (value == "CommandName") { return OrgNodeKind::CommandName; } else
   if (value == "CommandResults") { return OrgNodeKind::CommandResults; } else
   if (value == "CommandHeader") { return OrgNodeKind::CommandHeader; } else
@@ -302,6 +303,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CommandInclude: return "CommandInclude";
     case OrgNodeKind::CommandLanguage: return "CommandLanguage";
     case OrgNodeKind::CommandAttrHtml: return "CommandAttrHtml";
+    case OrgNodeKind::CommandAttrImage: return "CommandAttrImage";
     case OrgNodeKind::CommandName: return "CommandName";
     case OrgNodeKind::CommandResults: return "CommandResults";
     case OrgNodeKind::CommandHeader: return "CommandHeader";

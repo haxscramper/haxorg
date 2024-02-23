@@ -546,6 +546,8 @@ struct LineToken {
         otk::CmdResults,
         otk::CmdCaption,
         otk::CmdColumns,
+        otk::CmdAttrHtml,
+        otk::CmdAttrImage,
         otk::CmdPropertyArgs,
         otk::CmdPropertyRaw,
         otk::CmdPropertyText,
