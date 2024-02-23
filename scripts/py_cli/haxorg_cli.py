@@ -14,7 +14,9 @@ from beartype import beartype
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
+from py_scriptutils.tracer import TraceCollector
 
+@beartype
 def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict, config: Optional[str]):
     """
     Convert the provided CLI parameters into the object of type `T` for
@@ -28,6 +30,7 @@ def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict, config: O
 
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
+
 
 
 class CliRootOptions(BaseModel, extra="forbid"):
@@ -46,7 +49,25 @@ class CliRootOptions(BaseModel, extra="forbid"):
 
     trace_path: Optional[str] = None
 
+@beartype
+class CliRunContext:
+    def __init__(self, opts: CliRootOptions) -> None:
+        self.tracer = TraceCollector()
+        self.opts = opts
+    
+    def event(self, name: str, category: str, args: dict[str, any] = {}):
+        return self.tracer.complete_event(name=name, category=category, args=args)
+    
+    def is_trace_enabled(self) -> bool:
+        return bool(self.opts.trace_path)
+    
+    def finalize(self):
+        if self.is_trace_enabled():
+            self.tracer.export_to_json(Path(self.opts.trace_path))
+            log("haxorg.cli").info(f"Wrote execution trace to {self.opts.trace_path}")
 
+def get_run(ctx: click.Context) -> CliRunContext:
+    return ctx.obj["run"]
 
 @beartype
 def parseFile(root: CliRootOptions, file: Path) -> org.Org:
