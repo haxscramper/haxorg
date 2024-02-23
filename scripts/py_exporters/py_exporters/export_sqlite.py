@@ -17,6 +17,20 @@ class Document(Base):
     id = IdColumn()
 
 
+class Location(Base):
+    __tablename__ = "Location"
+    id = IdColumn()
+    line = IntColumn()
+    column = IntColumn()
+    file = ForeignId(name="File.id")
+
+
+class File(Base):
+    __tablename__ = "File"
+    id = IdColumn()
+    path = StrColumn()
+
+
 class Subtree(Base):
     __tablename__ = "Subtree"
     id = IdColumn()
@@ -27,6 +41,7 @@ class Subtree(Base):
     scheduled = DateTimeColumn(nullable=True)
     deadline = DateTimeColumn(nullable=True)
     closed = DateTimeColumn(nullable=True)
+    location = ForeignId(name="Location.id")
 
 
 class BlockKind(enum.Enum):
@@ -44,17 +59,37 @@ class Block(Base):
     timestamp = DateTimeColumn(nullable=True)
     parent = ForeignId(name="Block.id", nullable=True)
     wordcount = IntColumn(nullable=True)
+    location = ForeignId(name="Location.id")
 
 
 CAT = "haxorg.sqlite"
 
 
 @beartype
-def registerDocument(node: org.Org, engine: Engine):
+def registerDocument(node: org.Org, engine: Engine, file: str):
     Base.metadata.bind = engine
     sesion_maker = sessionmaker(bind=engine)
     session = sesion_maker()
     osk = org.OrgSemKind
+
+    file_record = File(path=file)
+    session.add(file_record)
+    session.commit()
+
+    counter = 0
+
+    def get_location(node: org.Org) -> int:
+        nonlocal counter
+        result = file_record.id * 1E6 + counter
+        counter += 1
+        session.add(
+            Location(
+                line=node.loc.line,
+                column=node.loc.column,
+                file=file_record.id,
+                id=result,
+            ))
+        return result
 
     @beartype
     def aux(node: org.Org):
@@ -64,6 +99,7 @@ def registerDocument(node: org.Org, engine: Engine):
                     Subtree(
                         level=node.level,
                         plaintext_title=ExporterUltraplain.getStr(node.title),
+                        location=get_location(node),
                     ))
 
                 for sub in node:
@@ -84,7 +120,6 @@ def registerDocument(node: org.Org, engine: Engine):
                         if sub.getKind() == osk.Word:
                             wordcount += 1
 
-
                     if subnodes[0].getKind() == osk.Time:
                         session.add(
                             Block(
@@ -92,14 +127,17 @@ def registerDocument(node: org.Org, engine: Engine):
                                 timestamp=evalDateTime(subnodes[0].getStatic().time),
                                 wordcount=wordcount,
                                 plaintext=ExporterUltraplain.getStr(node),
+                                location=get_location(node),
                             ))
 
                     else:
-                        session.add(Block(
-                            kind=BlockKind.Paragraph,
-                            wordcount=wordcount,
-                            plaintext=ExporterUltraplain.getStr(node),
-                        ))
+                        session.add(
+                            Block(
+                                kind=BlockKind.Paragraph,
+                                wordcount=wordcount,
+                                plaintext=ExporterUltraplain.getStr(node),
+                                location=get_location(node),
+                            ))
 
             case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.Caption:
                 pass

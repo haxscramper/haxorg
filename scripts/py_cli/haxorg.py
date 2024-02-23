@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 
 from beartype import beartype
-from beartype.typing import Optional, List
+from beartype.typing import Optional, List, Tuple
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import tracer
@@ -213,7 +213,7 @@ def export_sqlite_options(f):
 def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs):
     pack_context(ctx, "sqlite", ExportSQliteOptions, config=config, kwargs=kwargs)
     opts: ExportSQliteOptions = ctx.obj["sqlite"]
-    nodes: List[org.Org] = [parseFile(ctx.obj["root"], file) for file in opts.infile]
+    nodes: List[Tuple[org.Org, str]] = [(parseFile(ctx.obj["root"], file), str(file)) for file in opts.infile]
     from py_exporters.export_sqlite import registerDocument, Base
     from sqlalchemy import create_engine, Engine
     if opts.outfile.exists():
@@ -221,8 +221,8 @@ def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs):
 
     engine: Engine = create_engine("sqlite:///" + str(opts.outfile))
     Base.metadata.create_all(engine)
-    for node in nodes:
-        registerDocument(node, engine)
+    for node, file in nodes:
+        registerDocument(node, engine, file)
 
     log("haxorg.sql").info(f"Finished DB write to {opts.outfile}")
 
