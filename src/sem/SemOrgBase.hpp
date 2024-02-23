@@ -75,7 +75,7 @@ struct SemId {
         return std::make_shared<O>(std::forward<Args>(args)...);
     }
 
-    static SemId Nil() { return SemId(nullptr); }
+    static SemId Nil() { return SemId(SPtr<O>{}); }
 
     SemId() { value = nullptr; }
     SemId(SPtr<O> const& value) : value(value) {}
