@@ -184,6 +184,7 @@ OrgId OrgParser::parseLatex(OrgLexer& lex) {
 void OrgParser::textFold(OrgLexer& lex) {
     __perf_trace("textFold");
     auto __trace = trace(lex);
+
 #define CASE_MARKUP(Kind)                                                 \
     case otk::Kind##Begin: {                                              \
         start(org::Kind);                                                 \
@@ -311,14 +312,19 @@ void OrgParser::textFold(OrgLexer& lex) {
 
 
             case otk::DoubleAngleBegin: {
-                skip(lex, otk::DoubleAngleBegin);
-                SubLexer sub{lex};
-                while (lex.can_search(otk::DoubleAngleEnd)) {
-                    sub.add(lex.pop());
+                if (lex.at(otk::Whitespace, +1)) {
+                    token(org::Punctuation, pop(lex, lex.kind()));
+                } else {
+                    skip(lex, otk::DoubleAngleBegin);
+                    SubLexer sub{lex};
+                    while (lex.can_search(otk::DoubleAngleEnd)) {
+                        sub.add(lex.pop());
+                    }
+                    sub.start();
+                    parseParagraph(sub);
+                    skip(lex, otk::DoubleAngleEnd);
                 }
-                sub.start();
-                parseParagraph(sub);
-                skip(lex, otk::DoubleAngleEnd);
+
                 break;
             }
 
@@ -1403,6 +1409,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
+        case otk::CmdInclude:
         case otk::CmdCreator:
         case otk::CmdAuthor:
         case otk::CmdLatexHeader:
@@ -1413,6 +1420,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 case otk::CmdAuthor: start(org::CommandAuthor); break;
                 case otk::CmdOptions: start(org::CommandOptions); break;
                 case otk::CmdLatexHeader: start(org::LatexHeader); break;
+                case otk::CmdInclude: start(org::CommandInclude); break;
                 case otk::CmdColumns: start(org::Columns); break;
                 default:
             }

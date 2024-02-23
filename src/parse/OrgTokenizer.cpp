@@ -540,23 +540,15 @@ struct LineToken {
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{
-        otk::CmdTitle,
-        otk::CmdHeader,
-        otk::CmdName,
-        otk::CmdResults,
-        otk::CmdCaption,
-        otk::CmdColumns,
-        otk::CmdAttrHtml,
-        otk::CmdAttrImage,
-        otk::CmdPropertyArgs,
-        otk::CmdPropertyRaw,
-        otk::CmdPropertyText,
-        otk::CmdOptions,
-        otk::CmdFiletags,
-        otk::CmdTblfm,
-        otk::CmdLatexClass,
-        otk::CmdLatexCompiler,
-        otk::CmdLatexClassOptions,
+        otk::CmdTitle,         otk::CmdHeader,
+        otk::CmdName,          otk::CmdInclude,
+        otk::CmdResults,       otk::CmdCaption,
+        otk::CmdColumns,       otk::CmdAttrHtml,
+        otk::CmdAttrImage,     otk::CmdPropertyArgs,
+        otk::CmdPropertyRaw,   otk::CmdPropertyText,
+        otk::CmdOptions,       otk::CmdFiletags,
+        otk::CmdTblfm,         otk::CmdLatexClass,
+        otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
         otk::CmdLatexHeader,
     };
 

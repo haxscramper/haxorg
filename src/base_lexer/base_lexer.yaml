@@ -553,7 +553,7 @@ rules:
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
-  - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©|°", token: MiscUnicode }
+  - { re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆", token: MiscUnicode }
   - { lit: "<%%", token: DynamicTimeContent }
   #endregion
   #endregion

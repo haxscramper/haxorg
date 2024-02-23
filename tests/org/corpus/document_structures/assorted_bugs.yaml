@@ -435,7 +435,97 @@ items:
       #+RESULTS:
       [[file:imgs/sch_1.tmp.png]]
 
+  - name: "Attr HTML"
+    source: |
+      #+ATTR_HTML: :width 300px border="2" rules="all" frame="border"
+      | test num | image                   |   |
+      |----------+-------------------------+---|
+      | test 1   | [[file:sch_1.tmp.png]]  |   |
+      | test 2   | file:imgs/sch_1.tmp.png |   |
 
+  - name: "Inline symbol"
+    source: |
+      \ointV[(]{ ... }
 
+  - name: "Begin latex"
+    source: |
+      #+begin_latex
+      \begin{algorithm}
+        \caption{An algorithm}
+      \end{algorithm}
+      #+end_latex
+
+  - name: "Invalid double angle"
+    source: 
+      << has space
+
+  - name: "Double angle missing end"
+    source: 
+      <<no-end
+
+  - name: "Double brace end at the hashtag"
+    source: |
+      #fanfiction##[character##[image,description,new]] 
+
+  - name: "Call named command"
+    source: |
+      #+call: sh_example(arg=133)
+
+  - name: "Random unicode 2"
+    source: |
+      computed as x×(1−a)+y×a.
+
+  - name: "ANSII escape"
+    source: |
+      #+begin_src bash
+      echo -e "ee \e[41mwefae\e[49m 123"
+      #+end_src
+
+      #+RESULTS:
+      : ee [41mwefae[49m 123
+
+  - name: "MAcro with arguments"
+    source: |
+      {{{results(hello 12)}}}
+
+  - name: "More list bugs"
+    source: 
+      _ Comment 
+        - From 
+        - I changed 
+      - Disabled 
+
+  - name: "Angle"
+    source: |
+      #+begin_src nim
+      dumpTree:
+        @@@<<(posComment(1))
+      #+end_src
+
+      #+RESULTS:
+      : StmtList
+      :   Prefix
+      :     Ident "@@@<<"
+      :     Par
+      :       Call
+      :         Ident "posComment"
+      :         IntLit 1
+
+  - name: "Property exports"
+    source: |
+      #+property: header-args    :exports code
+
+  - name: "Columns"
+    source: |
+      #+columns: %7TODO(To do) %40ITEM(Task) %TAGS(Tags) %6CLOCKSUM(Clock)
+
+  - name: "Filetags"
+    source: |
+      #+FILETAGS: :DO_NOT_ORG_ROAM:
+
+  - name: "Double bracket link"
+    source: |
+      [[id:3034c11f-d398-4bc5-a6f2-ecf4d8693f6c][2022/2022-03 March/2022-03-07
+      Monday/[2022-03-07 Mon 14:58:22]]]
 
 
