@@ -7,78 +7,18 @@ from dataclasses import dataclass
 
 from beartype import beartype
 from beartype.typing import Optional, List, Tuple
-
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import tracer
-from pydantic import BaseModel, Field, Extra
+
 from py_scriptutils.script_logging import log
-from py_scriptutils.files import FileOperation
 from pathlib import Path
-from py_scriptutils.toml_config_profiler import (
-    make_config_provider,
-    run_config_provider,
+from haxorg_cli import (
+    BaseModel,
     apply_options,
     options_from_model,
-    merge_cli_model,
+    pack_context,
+    base_cli_options,
+    CliRootOptions,
 )
-
-CONFIG_FILE_NAME = "pyhaxorg.toml"
-
-
-class CliRootOptions(BaseModel, extra="forbid"):
-    lex_traceDir: Optional[str] = None
-    lex_trace: bool = False
-    parse_traceDir: Optional[str] = None
-    parse_trace: bool = False
-    sem_traceDir: Optional[str] = None
-    sem_trace: bool = False
-    config: Optional[str] = None
-    cache: Optional[str] = Field(
-        description="Optional directory to cache file parsing to speed up large corpus processing",
-        default=None,
-    )
-
-    trace_path: Optional[str] = None
-
-@beartype
-def parseFile(root: CliRootOptions, file: Path) -> org.Org:
-    cache_file = None if not root.cache else Path(root.cache).joinpath(file.name)
-    ctx = org.OrgContext()
-    if cache_file:
-        with FileOperation.InOut([file], [cache_file]) as op:
-            if op.should_run():
-                log("haxorg.cache").info(f"{file} parsing")
-                node = ctx.parseFile(str(file.resolve()))
-                if not cache_file.parent.exists():
-                    cache_file.parent.mkdir()
-
-                ctx.saveProtobuf(node, str(cache_file))
-
-            else:
-                log("haxorg.cache").info(f"{file} read from cache {cache_file}")
-                node = ctx.parseProtobuf(str(cache_file))
-
-            return node
-
-    else:
-        return ctx.parseFile(str(file.resolve()))
-
-
-
-def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict, config: Optional[str]):
-    """
-    Convert the provided CLI parameters into the object of type `T` for
-    more typesafe usage
-    """
-    config_base = run_config_provider(
-        ([str(Path(config).resolve())] if config else []), True) if config else {}
-    conf = merge_cli_model(ctx, config_base, kwargs, T)
-    ctx.ensure_object(dict)
-    ctx.obj[name] = conf
-
-
-def base_cli_options(f):
-    return apply_options(f, options_from_model(CliRootOptions))
 
 
 @click.group()
@@ -120,115 +60,14 @@ def export(ctx: click.Context, config: Optional[str] = None, **kwargs):
 cli.add_command(export)
 
 
-class TexExportOptions(BaseModel, extra="forbid"):
-    infile: Path
-    outfile: Path
-    backend: str = Field(
-        description="TeX backend to use",
-        default="pdflatex",
-    )
-
-    exportTraceFile: Optional[str] = Field(
-        description="Write python export trace to this file",
-        default=None,
-        alias="export_trace_file"
-    )
-
-def export_tex_options(f):
-    return apply_options(f, options_from_model(TexExportOptions))
-
-@click.command("tex")
-@export_tex_options
-@click.pass_context
-def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
-    pack_context(ctx, "tex", TexExportOptions, config=config, kwargs=kwargs)
-    opts: TexExportOptions = ctx.obj["tex"]
-    node = parseFile(ctx.obj["root"], opts.infile)
-    from py_exporters.export_tex import ExporterLatex
-    from py_textlayout.py_textlayout_wrap import TextOptions
-
-    tree = org.OrgExporterTree()
-    tree_opts = org.ExporterTreeOpts()
-    tree_opts.withColor = False
-    tree.toFile(node, "/tmp/tex_tree.txt", tree_opts)
-
-    log().info("Exporting to latex")
-    tex = ExporterLatex()
-    if opts.exportTraceFile:
-        log("haxorg.cli").debug(f"Enabled export file trace to {opts.exportTraceFile}")
-        tex.exp.enableFileTrace(opts.exportTraceFile, True)
-
-    res = tex.exp.evalTop(node)
-    with open(opts.outfile, "w") as out:
-        out.write(tex.t.toString(res, TextOptions()))
-
-    log("haxorg.cli").info(f"Wrote latex export to {opts.outfile}")
-
+from haxorg_export_tex import export_tex
 export.add_command(export_tex)
 
-class ExportUltraplainOptions(BaseModel):
-    infile: Path
-    outfile: Path
-    exportTraceFile: Optional[str] = Field(
-        description="Write python export trace to this file",
-        default=None,
-        alias="export_trace_file"
-    )
-
-def export_ultraplain_options(f):
-    return apply_options(f, options_from_model(ExportUltraplainOptions))
-
-@click.command("ultraplain")
-@export_ultraplain_options
-@click.pass_context
-def export_ultraplain(ctx: click.Context, config: Optional[str] = None, **kwargs):
-    pack_context(ctx, "ultraplain", ExportUltraplainOptions, config=config, kwargs=kwargs)
-    opts: ExportUltraplainOptions = ctx.obj["ultraplain"]
-    node = parseFile(ctx.obj["root"], opts.infile)
-    from py_exporters.export_ultraplain import ExporterUltraplain
-    exp = ExporterUltraplain()
-    if opts.exportTraceFile:
-        exp.exp.enableFileTrace(opts.exportTraceFile, False)
-
-    with open(opts.outfile, "w") as file:
-        exp.exp.evalTop(node)
-        file.write(exp.result)
-
-    log("haxorg.ultraplain").info(f"Finished DB write to {opts.outfile}")
-
-
+from haxorg_export_ultraplain import export_ultraplain
 export.add_command(export_ultraplain)
 
-
-class ExportSQliteOptions(BaseModel):
-    infile: List[Path]
-    outfile: Path
-
-def export_sqlite_options(f):
-    return apply_options(f, options_from_model(ExportSQliteOptions))
-
-@click.command("sqlite")
-@export_sqlite_options
-@click.pass_context
-def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs):
-    pack_context(ctx, "sqlite", ExportSQliteOptions, config=config, kwargs=kwargs)
-    opts: ExportSQliteOptions = ctx.obj["sqlite"]
-    nodes: List[Tuple[org.Org, str]] = [(parseFile(ctx.obj["root"], file), str(file)) for file in opts.infile]
-    from py_exporters.export_sqlite import registerDocument, Base
-    from sqlalchemy import create_engine, Engine
-    if opts.outfile.exists():
-        opts.outfile.unlink()
-
-    engine: Engine = create_engine("sqlite:///" + str(opts.outfile))
-    Base.metadata.create_all(engine)
-    for node, file in nodes:
-        registerDocument(node, engine, file)
-
-    log("haxorg.sql").info(f"Finished DB write to {opts.outfile}")
-
-
+from haxorg_export_sqlite import export_sqlite
 export.add_command(export_sqlite)
-
 
 if __name__ == "__main__":
     cli()
