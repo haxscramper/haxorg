@@ -154,13 +154,6 @@ struct Caption : public Attached {
   void setText(org_qml::Paragraph text);
 };
 
-struct CmdFiletags : public LineCommand {
-  Q_GADGET
-  public:
-  CmdFiletags() = default;
-  CmdFiletags(sem::SemId<sem::Org> const& id) : LineCommand(id) {}
-};
-
 struct CmdName : public Attached {
   Q_GADGET
   public:
@@ -656,7 +649,6 @@ Q_DECLARE_METATYPE(org_qml::LineCommand)
 Q_DECLARE_METATYPE(org_qml::Standalone)
 Q_DECLARE_METATYPE(org_qml::Attached)
 Q_DECLARE_METATYPE(org_qml::Caption)
-Q_DECLARE_METATYPE(org_qml::CmdFiletags)
 Q_DECLARE_METATYPE(org_qml::CmdName)
 Q_DECLARE_METATYPE(org_qml::CmdResults)
 Q_DECLARE_METATYPE(org_qml::CommandGroup)

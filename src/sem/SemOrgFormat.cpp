@@ -139,10 +139,6 @@ auto Formatter::toString(SemId<CmdName> id) -> Res {
     return b.line({str("#+name: ")});
 }
 
-auto Formatter::toString(SemId<CmdFiletags> id) -> Res {
-    return b.line({str("#+filetags: ")});
-}
-
 auto Formatter::toString(SemId<DocumentGroup> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }

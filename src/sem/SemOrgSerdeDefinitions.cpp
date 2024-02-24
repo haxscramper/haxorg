@@ -169,20 +169,6 @@ void proto_serde<::orgproto::Caption, sem::Caption>::read(::orgproto::Caption co
   proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::read(out.text(), in.for_field(&sem::Caption::text));
 }
 
-void proto_serde<::orgproto::CmdFiletags, sem::CmdFiletags>::write(::orgproto::CmdFiletags* out, sem::CmdFiletags const& in) {
-  proto_serde<::orgproto::CmdFiletags, sem::Org>::write(out, in);
-  if (in.loc) {
-    proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
-  }
-}
-
-void proto_serde<::orgproto::CmdFiletags, sem::CmdFiletags>::read(::orgproto::CmdFiletags const& out, proto_write_accessor<sem::CmdFiletags> in) {
-  proto_serde<::orgproto::CmdFiletags, sem::Org>::read(out, in.as<sem::Org>());
-  if (out.has_loc()) {
-    proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(out.loc(), in.for_field(&sem::CmdFiletags::loc));
-  }
-}
-
 void proto_serde<::orgproto::CmdName, sem::CmdName>::write(::orgproto::CmdName* out, sem::CmdName const& in) {
   proto_serde<::orgproto::CmdName, sem::Org>::write(out, in);
   if (in.loc) {

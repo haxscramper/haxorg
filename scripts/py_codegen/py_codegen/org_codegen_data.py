@@ -317,11 +317,6 @@ def get_types() -> Sequence[GenTuStruct]:
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
         ),
         d_org(
-            "CmdFiletags",
-            GenTuDoc("#+filetags:"),
-            bases=[t_org("LineCommand")],
-        ),
-        d_org(
             "CmdName",
             GenTuDoc(""),
             bases=[t_org("Attached")],
@@ -1630,6 +1625,7 @@ def get_enums():
                 ),
                 GenTuEnumField("CommandLanguage", GenTuDoc("`#+language:`")),
                 GenTuEnumField("CommandAttrHtml", GenTuDoc("`#+attr_html:`")),
+                GenTuEnumField("CommandStartup", GenTuDoc("`#+startup:`")),
                 GenTuEnumField("CommandAttrImage", GenTuDoc("`#+attr_image:`")),
                 GenTuEnumField("CommandName",
                                GenTuDoc("`#+name:` - name of the associated entry")),

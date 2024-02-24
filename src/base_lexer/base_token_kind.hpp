@@ -54,6 +54,7 @@ enum class OrgTokenKind : unsigned short int {
   CmdResults,
   CmdSrcBegin,
   CmdSrcEnd,
+  CmdStartup,
   CmdTblfm,
   CmdTitle,
   CmdVerseBegin,

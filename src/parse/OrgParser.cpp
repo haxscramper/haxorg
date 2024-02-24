@@ -1428,6 +1428,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdCreator:
         case otk::CmdAuthor:
         case otk::CmdLatexHeader:
+        case otk::CmdStartup:
         case otk::CmdLanguage: {
             switch (cmd_kind) {
                 case otk::CmdCreator: start(org::CommandCreator); break;
@@ -1437,7 +1438,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 case otk::CmdLatexHeader: start(org::LatexHeader); break;
                 case otk::CmdInclude: start(org::CommandInclude); break;
                 case otk::CmdColumns: start(org::Columns); break;
-                default:
+                case otk::CmdStartup: start(org::CommandStartup ); break;
+                default: fatalError(lex, "");
             }
 
             skip(lex, otk::CmdPrefix);

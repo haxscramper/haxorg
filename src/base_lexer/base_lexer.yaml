@@ -292,36 +292,16 @@ rules:
     actions:
       - { do: push, from: COMMAND, to: COMMAND_RAW }
 
-  - re: "latex_class{prop_colon}"
+  - re: "startup{prop_colon}"
     states: [COMMAND]
-    token: CmdLatexClass
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_class_options{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexClassOptions
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_compiler{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexCompiler
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_header{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexHeader
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+    token: CmdStartup
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: "options{prop_colon}"
     states: [COMMAND]
     token: CmdOptions
     # Full options parsing is deferred to the sem stage
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "filetags{prop_colon}"
-    states: [COMMAND]
-    token: CmdFiletags
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   - re: "tblfm{prop_colon}"
     states: [COMMAND]
@@ -384,6 +364,12 @@ rules:
     states: [COMMAND]
     token: CmdLanguage
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "filetags{prop_colon}"
+    states: [COMMAND]
+    token: CmdFiletags
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
   #endregion
 
   #region Argument-commands
@@ -410,6 +396,26 @@ rules:
   - re: "attr_image{prop_colon}"
     states: [COMMAND]
     token: CmdAttrImage
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_class{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexClass
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_class_options{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexClassOptions
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_compiler{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexCompiler
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_header{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
 

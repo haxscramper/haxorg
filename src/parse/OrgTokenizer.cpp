@@ -549,7 +549,7 @@ struct LineToken {
         otk::CmdOptions,       otk::CmdFiletags,
         otk::CmdTblfm,         otk::CmdLatexClass,
         otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
-        otk::CmdLatexHeader,
+        otk::CmdLatexHeader,   otk::CmdStartup,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {

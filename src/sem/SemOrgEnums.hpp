@@ -14,7 +14,6 @@
     __IMPL(Paragraph) \
     __IMPL(Center) \
     __IMPL(Caption) \
-    __IMPL(CmdFiletags) \
     __IMPL(CmdName) \
     __IMPL(CmdResults) \
     __IMPL(CommandGroup) \
@@ -152,6 +151,8 @@ enum class OrgNodeKind : short int {
   CommandLanguage,
   /// \brief `#+attr_html:`
   CommandAttrHtml,
+  /// \brief `#+startup:`
+  CommandStartup,
   /// \brief `#+attr_image:`
   CommandAttrImage,
   /// \brief `#+name:` - name of the associated entry
@@ -478,7 +479,7 @@ struct value_domain<OrgBigIdentKind> : public value_domain_ungapped<OrgBigIdentK
                                                                     OrgBigIdentKind::None,
                                                                     OrgBigIdentKind::StructWhile> {};
 
-enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CmdFiletags, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

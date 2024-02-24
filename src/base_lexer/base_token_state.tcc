@@ -82,6 +82,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdResults: return "CmdResults";
         case OrgTokenKind::CmdSrcBegin: return "CmdSrcBegin";
         case OrgTokenKind::CmdSrcEnd: return "CmdSrcEnd";
+        case OrgTokenKind::CmdStartup: return "CmdStartup";
         case OrgTokenKind::CmdTblfm: return "CmdTblfm";
         case OrgTokenKind::CmdTitle: return "CmdTitle";
         case OrgTokenKind::CmdVerseBegin: return "CmdVerseBegin";
@@ -256,6 +257,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdResults") { return OrgTokenKind::CmdResults; } else
   if (value == "CmdSrcBegin") { return OrgTokenKind::CmdSrcBegin; } else
   if (value == "CmdSrcEnd") { return OrgTokenKind::CmdSrcEnd; } else
+  if (value == "CmdStartup") { return OrgTokenKind::CmdStartup; } else
   if (value == "CmdTblfm") { return OrgTokenKind::CmdTblfm; } else
   if (value == "CmdTitle") { return OrgTokenKind::CmdTitle; } else
   if (value == "CmdVerseBegin") { return OrgTokenKind::CmdVerseBegin; } else
