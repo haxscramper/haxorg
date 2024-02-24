@@ -36,8 +36,6 @@ items:
       #+end_src
 
   - name: "Subtree state transitions"
-    debug:
-      traceAll: true
     source: |
 
       **** COMPLETED Subtree title
@@ -56,6 +54,8 @@ items:
         :END:
 
   - name: "Non-DSL link"
+    debug:
+      traceAll: true
     source: |
       [[person:Random User]]
 

@@ -519,10 +519,10 @@ SemId<Link> OrgConverter::convertLink(__args) {
             link->data = Link::Id{.text = get_text(one(a, N::Link))};
 
         } else if (protocol == "person") {
-            // FIXME extract paragraph data
-            // link->data = Link::Person{.name = one(a,
-            // N::Link).val().text};
             link->data = Link::Person{};
+            for (auto const& it : one(a, N::Link)) {
+                link->getPerson().name += get_text(it);
+            }
 
         } else if (protocol == "file") {
             link->data = Link::File{.file = get_text(one(a, N::Link))};

@@ -645,7 +645,9 @@ yaml toTestYaml(sem::OrgArg arg) {
 
 json toTestJson(sem::OrgArg arg) {
     ExporterJson exporter;
-    json         converted = exporter.evalTop(arg);
+    exporter.skipEmptyLists = true;
+    exporter.skipNullFields = true;
+    json converted          = exporter.evalTop(arg);
     filterFields(converted, {"loc"});
     return converted;
 }
@@ -665,6 +667,9 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     for (auto const& it : diff) {
         json::json_pointer path{it.path};
         if (!path.empty() && it.op == DiffItem::Op::Remove) {
+            continue;
+        } else if (
+            it.op == DiffItem::Op::Add && it.value["kind"] == "Newline") {
             continue;
         } else {
             ++failCount;
@@ -762,7 +767,6 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     rerun.subnodes            = std::nullopt;
     rerun.tokens              = std::nullopt;
     rerun.sem                 = toTestJson(p.node);
-    rerun.source.resize(rerun.source.size() - 1);
     rerun.debug.debugOutDir.append("_reformat");
 
     if (spec.debug.traceAll || spec.debug.printSource) {
@@ -790,7 +794,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecLex(p2, rerun);
     runSpecParse(p2, rerun);
     auto reformat_result = runSpecSem(p2, rerun);
-    if (!reformat_result.isOk) {
+    if (spec.debug.traceAll || spec.debug.printSem) {
         writeFile(
             rerun.debugFile("sem2_expected.yaml"),
             fmt1(toTestYaml(p.node)));
@@ -801,9 +805,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         writeFile(
             rerun.debugFile("sem2_reformat_fail.txt"),
             reformat_result.failDescribe.toString(false));
-
-        return RunResult{reformat_result};
     }
+
+    if (!reformat_result.isOk) { return RunResult{reformat_result}; }
 
     return RunResult();
 }

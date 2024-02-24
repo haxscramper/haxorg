@@ -115,7 +115,32 @@ auto Formatter::toString(SemId<Monospace> id) -> Res {
 }
 
 auto Formatter::toString(SemId<Link> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    Res head = str("");
+    switch (id->getLinkKind()) {
+        case Link::Kind::Person: {
+            head = str("person:" + id->getPerson().name);
+            break;
+        }
+        default: {
+            LOG(FATAL) << fmt1(id->getLinkKind());
+        }
+    }
+
+    if (id->description) {
+        return b.line({
+            str("[["),
+            head,
+            str("]["),
+            toString(id->description.value()),
+            str("]]"),
+        });
+    } else {
+        return b.line({
+            str("[["),
+            head,
+            str("]]"),
+        });
+    }
 }
 
 auto Formatter::toString(SemId<Symbol> id) -> Res {
@@ -187,7 +212,7 @@ auto Formatter::toString(SemId<HashTag> id) -> Res {
     std::function<std::string(sem::SemId<sem::HashTag> const& hash)> aux;
     aux = [&aux](sem::SemId<sem::HashTag> const& hash) -> std::string {
         if (hash->subtags.empty()) {
-            return hash->head;
+            return "#" + hash->head;
         } else {
             return hash->head + "##["
                  + (hash->subtags           //

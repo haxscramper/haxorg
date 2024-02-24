@@ -474,8 +474,12 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
                 while (!lex.at(OrgTokSet{otk::LinkSplit, otk::LinkEnd})) {
                     sub.add(pop(lex));
                 }
-                sub.start();
-                parseParagraph(sub);
+                if (sub.empty()) {
+                    empty();
+                } else {
+                    sub.start();
+                    parseParagraph(sub);
+                }
         }
 
         if (lex.at(otk::LinkSplit)) {
