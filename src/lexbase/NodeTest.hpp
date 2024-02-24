@@ -52,10 +52,6 @@ struct ParseSpec {
             ((bool), traceParse, false),
             /// Conversion of the tree to the
             ((bool), traceSem, false),
-            /// Output trace to the
-            ((bool), traceLexToFile, false),
-            ((bool), traceParseToFile, false),
-            ((bool), traceSemToFile, false),
             /// Print lex/parse/sem/source values for processing
             ((bool), printLexed, false),
             ((bool), printBaseLexed, false),

@@ -800,9 +800,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     __perf_trace("lex");
 
     p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
-    if (spec.debug.traceAll || spec.debug.traceLexToFile) {
-        p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
-    }
+    p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
 
     __perf_trace("tokenize convert");
     p.tokenizeConvert();
@@ -895,10 +893,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
 
     p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
-
-    if (spec.debug.traceAll || spec.debug.traceParseToFile) {
-        p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
-    }
+    p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
 
     p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
         if (rep.kind == OrgParser::ReportKind::AddToken
@@ -971,9 +966,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     sem::OrgConverter converter{};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
-    if (spec.debug.traceAll || spec.debug.traceSemToFile) {
-        converter.setTraceFile(spec.debugFile("trace_sem.log"));
-    }
+    converter.setTraceFile(spec.debugFile("trace_sem.log"));
 
     auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
 
@@ -1034,9 +1027,6 @@ void gtest_run_spec(CR<TestParams> params) {
             .traceLex         = true,
             .traceParse       = true,
             .traceSem         = true,
-            .traceLexToFile   = true,
-            .traceParseToFile = true,
-            .traceSemToFile   = true,
             .printLexed       = true,
             .printBaseLexed   = true,
             .printParsed      = true,
