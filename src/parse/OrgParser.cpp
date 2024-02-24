@@ -1389,14 +1389,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
     auto __trace  = trace(lex);
     auto cmd_kind = lex.kind(+1);
     switch (cmd_kind) {
-            // case otk::CmdTitle: {
-            //     skip(lex, otk::CmdPrefix);
-            //     skip(lex);
-            //     start(org::CommandTitle);
-            //     parseParagraph(lex);
-            //     break;
-            // }
-
         case otk::CmdTitle:
         case otk::CmdCaption: {
             skip(lex, otk::CmdPrefix);
@@ -1447,6 +1439,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdFiletags);
             start(org::Filetags);
             while (lex.at(otk::Colon) && lex.at(otk::Word, +1)) {
+                skip(lex, otk::Colon);
                 parseHashTag(lex);
             }
             skip(lex, otk::Colon);

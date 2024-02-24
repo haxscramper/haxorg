@@ -410,52 +410,53 @@ class OrgSemKind(Enum):
     Paragraph = 8
     Center = 9
     Caption = 10
-    CmdName = 11
-    CmdResults = 12
-    CommandGroup = 13
-    Tblfm = 14
-    Quote = 15
-    Verse = 16
-    Example = 17
-    CmdArguments = 18
-    CmdArgument = 19
-    Export = 20
-    AdmonitionBlock = 21
-    Code = 22
-    Time = 23
-    TimeRange = 24
-    Macro = 25
-    Symbol = 26
-    SubtreeLog = 27
-    Subtree = 28
-    InlineMath = 29
-    Escaped = 30
-    Newline = 31
-    Space = 32
-    Word = 33
-    AtMention = 34
-    RawText = 35
-    Punctuation = 36
-    Placeholder = 37
-    BigIdent = 38
-    Bold = 39
-    Underline = 40
-    Monospace = 41
-    MarkQuote = 42
-    Verbatim = 43
-    Italic = 44
-    Strike = 45
-    Par = 46
-    List = 47
-    ListItem = 48
-    Link = 49
-    DocumentOptions = 50
-    Document = 51
-    ParseError = 52
-    FileTarget = 53
-    TextSeparator = 54
-    Include = 55
-    DocumentGroup = 56
+    CmdFiletags = 11
+    CmdName = 12
+    CmdResults = 13
+    CommandGroup = 14
+    Tblfm = 15
+    Quote = 16
+    Verse = 17
+    Example = 18
+    CmdArguments = 19
+    CmdArgument = 20
+    Export = 21
+    AdmonitionBlock = 22
+    Code = 23
+    Time = 24
+    TimeRange = 25
+    Macro = 26
+    Symbol = 27
+    SubtreeLog = 28
+    Subtree = 29
+    InlineMath = 30
+    Escaped = 31
+    Newline = 32
+    Space = 33
+    Word = 34
+    AtMention = 35
+    RawText = 36
+    Punctuation = 37
+    Placeholder = 38
+    BigIdent = 39
+    Bold = 40
+    Underline = 41
+    Monospace = 42
+    MarkQuote = 43
+    Verbatim = 44
+    Italic = 45
+    Strike = 46
+    Par = 47
+    List = 48
+    ListItem = 49
+    Link = 50
+    DocumentOptions = 51
+    Document = 52
+    ParseError = 53
+    FileTarget = 54
+    TextSeparator = 55
+    Include = 56
+    DocumentGroup = 57
 
 class LeafFieldType(Enum):
     Int = 1
@@ -550,6 +551,9 @@ class Attached(LineCommand):
 class Caption(Attached):
     loc: Optional[LineCol]
     text: Paragraph
+
+class CmdFiletags(LineCommand):
+    loc: Optional[LineCol]
 
 class CmdName(Attached):
     loc: Optional[LineCol]

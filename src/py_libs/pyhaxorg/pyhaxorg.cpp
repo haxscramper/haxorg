@@ -141,6 +141,9 @@ node can have subnodes.)RAW")
     .def_readwrite("loc", &sem::Caption::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Caption::text, R"RAW(Content description)RAW")
     ;
+  pybind11::class_<sem::CmdFiletags, sem::SemId<sem::CmdFiletags>, sem::LineCommand>(m, "CmdFiletags")
+    .def_readwrite("loc", &sem::CmdFiletags::loc, R"RAW(Document)RAW")
+    ;
   pybind11::class_<sem::CmdName, sem::SemId<sem::CmdName>, sem::Attached>(m, "CmdName")
     .def_readwrite("loc", &sem::CmdName::loc, R"RAW(Document)RAW")
     ;
@@ -1140,6 +1143,7 @@ node can have subnodes.)RAW")
     .value("Paragraph", OrgSemKind::Paragraph)
     .value("Center", OrgSemKind::Center)
     .value("Caption", OrgSemKind::Caption)
+    .value("CmdFiletags", OrgSemKind::CmdFiletags)
     .value("CmdName", OrgSemKind::CmdName)
     .value("CmdResults", OrgSemKind::CmdResults)
     .value("CommandGroup", OrgSemKind::CommandGroup)

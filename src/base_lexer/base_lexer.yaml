@@ -315,7 +315,7 @@ rules:
   - re: "filetags{prop_colon}"
     states: [COMMAND]
     token: CmdFiletags
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   - re: "tblfm{prop_colon}"
     states: [COMMAND]

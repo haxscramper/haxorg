@@ -561,6 +561,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
   if (value == "Center") { return OrgSemKind::Center; } else
   if (value == "Caption") { return OrgSemKind::Caption; } else
+  if (value == "CmdFiletags") { return OrgSemKind::CmdFiletags; } else
   if (value == "CmdName") { return OrgSemKind::CmdName; } else
   if (value == "CmdResults") { return OrgSemKind::CmdResults; } else
   if (value == "CommandGroup") { return OrgSemKind::CommandGroup; } else
@@ -621,6 +622,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Paragraph: return "Paragraph";
     case OrgSemKind::Center: return "Center";
     case OrgSemKind::Caption: return "Caption";
+    case OrgSemKind::CmdFiletags: return "CmdFiletags";
     case OrgSemKind::CmdName: return "CmdName";
     case OrgSemKind::CmdResults: return "CmdResults";
     case OrgSemKind::CommandGroup: return "CommandGroup";

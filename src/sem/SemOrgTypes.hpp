@@ -305,6 +305,26 @@ struct Caption : public sem::Attached {
   virtual OrgSemKind getKind() const { return OrgSemKind::Caption; }
 };
 
+/// \brief #+filetags:
+struct CmdFiletags : public sem::LineCommand {
+  using LineCommand::LineCommand;
+  virtual ~CmdFiletags() = default;
+  BOOST_DESCRIBE_CLASS(CmdFiletags,
+                       (LineCommand),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemId<CmdFiletags>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemId<CmdFiletags> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdFiletags; }
+};
+
 struct CmdName : public sem::Attached {
   using Attached::Attached;
   virtual ~CmdName() = default;

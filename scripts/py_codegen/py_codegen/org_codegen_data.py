@@ -317,6 +317,11 @@ def get_types() -> Sequence[GenTuStruct]:
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
         ),
         d_org(
+            "CmdFiletags",
+            GenTuDoc("#+filetags:"),
+            bases=[t_org("LineCommand")],
+        ),
+        d_org(
             "CmdName",
             GenTuDoc(""),
             bases=[t_org("Attached")],

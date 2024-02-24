@@ -16,6 +16,7 @@ void visitLineCommand(R& res, In<sem::LineCommand> object);
 void visitStandalone(R& res, In<sem::Standalone> object);
 void visitAttached(R& res, In<sem::Attached> object);
 void visitCaption(R& res, In<sem::Caption> object);
+void visitCmdFiletags(R& res, In<sem::CmdFiletags> object);
 void visitCmdName(R& res, In<sem::CmdName> object);
 void visitCmdResults(R& res, In<sem::CmdResults> object);
 void visitCommandGroup(R& res, In<sem::CommandGroup> object);
