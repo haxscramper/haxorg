@@ -217,6 +217,14 @@ void Exporter<V, R>::visitAdmonitionBlock(R& res, In<sem::AdmonitionBlock> objec
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCall(R& res, In<sem::Call> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, loc);
+  __org_field(res, object, name);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);

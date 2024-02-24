@@ -205,7 +205,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         // Inline node kinds
         SpecPair{
-            org::CallCode,
+            org::InlineCallCode,
             OrgPattern({
                 Field(Range(0, N::Name), OrgPattern(org::Ident)),
                 Field(
@@ -217,7 +217,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     Range(4, N::Result),
                     OrgPattern({org::RawText, org::Empty})),
             })},
-
         SpecPair{
             org::SrcInlineCode,
             OrgPattern({

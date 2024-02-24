@@ -139,6 +139,10 @@ auto Formatter::toString(SemId<CmdName> id) -> Res {
     return b.line({str("#+name: ")});
 }
 
+auto Formatter::toString(SemId<Call> id) -> Res {
+    return b.line({str("#+call: ")});
+}
+
 auto Formatter::toString(SemId<DocumentGroup> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }

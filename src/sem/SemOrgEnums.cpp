@@ -195,7 +195,8 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "Example") { return OrgNodeKind::Example; } else
   if (value == "SrcCode") { return OrgNodeKind::SrcCode; } else
   if (value == "SrcInlineCode") { return OrgNodeKind::SrcInlineCode; } else
-  if (value == "CallCode") { return OrgNodeKind::CallCode; } else
+  if (value == "InlineCallCode") { return OrgNodeKind::InlineCallCode; } else
+  if (value == "CmdCallCode") { return OrgNodeKind::CmdCallCode; } else
   if (value == "PassCode") { return OrgNodeKind::PassCode; } else
   if (value == "CmdArguments") { return OrgNodeKind::CmdArguments; } else
   if (value == "CmdFlag") { return OrgNodeKind::CmdFlag; } else
@@ -335,7 +336,8 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::Example: return "Example";
     case OrgNodeKind::SrcCode: return "SrcCode";
     case OrgNodeKind::SrcInlineCode: return "SrcInlineCode";
-    case OrgNodeKind::CallCode: return "CallCode";
+    case OrgNodeKind::InlineCallCode: return "InlineCallCode";
+    case OrgNodeKind::CmdCallCode: return "CmdCallCode";
     case OrgNodeKind::PassCode: return "PassCode";
     case OrgNodeKind::CmdArguments: return "CmdArguments";
     case OrgNodeKind::CmdFlag: return "CmdFlag";
@@ -574,6 +576,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
   if (value == "Export") { return OrgSemKind::Export; } else
   if (value == "AdmonitionBlock") { return OrgSemKind::AdmonitionBlock; } else
+  if (value == "Call") { return OrgSemKind::Call; } else
   if (value == "Code") { return OrgSemKind::Code; } else
   if (value == "Time") { return OrgSemKind::Time; } else
   if (value == "TimeRange") { return OrgSemKind::TimeRange; } else
@@ -634,6 +637,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CmdArgument: return "CmdArgument";
     case OrgSemKind::Export: return "Export";
     case OrgSemKind::AdmonitionBlock: return "AdmonitionBlock";
+    case OrgSemKind::Call: return "Call";
     case OrgSemKind::Code: return "Code";
     case OrgSemKind::Time: return "Time";
     case OrgSemKind::TimeRange: return "TimeRange";

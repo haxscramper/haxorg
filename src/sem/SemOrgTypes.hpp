@@ -581,6 +581,29 @@ struct AdmonitionBlock : public sem::Block {
   virtual OrgSemKind getKind() const { return OrgSemKind::AdmonitionBlock; }
 };
 
+/// \brief Inline, statement or block call
+struct Call : public sem::Org {
+  using Org::Org;
+  virtual ~Call() = default;
+  BOOST_DESCRIBE_CLASS(Call,
+                       (Org),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        name,
+                        (sem::SemId<Call>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  /// \brief Call target name
+  Opt<Str> name = std::nullopt;
+  static sem::SemId<Call> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
+};
+
 /// \brief Base class for all code blocks
 struct Code : public sem::Block {
   using Block::Block;

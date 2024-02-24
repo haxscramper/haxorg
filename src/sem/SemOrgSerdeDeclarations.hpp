@@ -23,6 +23,7 @@
         __MAP(kCmdargument, cmdargument, CmdArgument)  \
         __MAP(kExport, export_, Export)  \
         __MAP(kAdmonitionblock, admonitionblock, AdmonitionBlock)  \
+        __MAP(kCall, call, Call)  \
         __MAP(kCode, code, Code)  \
         __MAP(kTime, time, Time)  \
         __MAP(kTimerange, timerange, TimeRange)  \
@@ -203,6 +204,13 @@ template <>
 struct proto_serde<::orgproto::AdmonitionBlock, sem::AdmonitionBlock> {
   static void write(::orgproto::AdmonitionBlock* out, sem::AdmonitionBlock const& in);
   static void read(::orgproto::AdmonitionBlock const& out, proto_write_accessor<sem::AdmonitionBlock> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Call, sem::Call> {
+  static void write(::orgproto::Call* out, sem::Call const& in);
+  static void read(::orgproto::Call const& out, proto_write_accessor<sem::Call> in);
 };
 
 

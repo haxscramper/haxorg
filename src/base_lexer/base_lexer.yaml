@@ -345,6 +345,11 @@ rules:
     token: CmdPropertyText
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
+  - re: "call{prop_colon}"
+    states: [COMMAND]
+    token: CmdCall
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
   - re: "title{prop_colon}"
     states: [COMMAND]
     token: CmdTitle

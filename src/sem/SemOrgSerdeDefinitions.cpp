@@ -355,6 +355,26 @@ void proto_serde<::orgproto::AdmonitionBlock, sem::AdmonitionBlock>::read(::orgp
   }
 }
 
+void proto_serde<::orgproto::Call, sem::Call>::write(::orgproto::Call* out, sem::Call const& in) {
+  proto_serde<::orgproto::Call, sem::Org>::write(out, in);
+  if (in.loc) {
+    proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
+  }
+  if (in.name) {
+    proto_serde<std::string, Str>::write(out->mutable_name(), *in.name);
+  }
+}
+
+void proto_serde<::orgproto::Call, sem::Call>::read(::orgproto::Call const& out, proto_write_accessor<sem::Call> in) {
+  proto_serde<::orgproto::Call, sem::Org>::read(out, in.as<sem::Org>());
+  if (out.has_loc()) {
+    proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(out.loc(), in.for_field(&sem::Call::loc));
+  }
+  if (out.has_name()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.name(), in.for_field(&sem::Call::name));
+  }
+}
+
 void proto_serde<::orgproto::Code::Switch::LineStart, sem::Code::Switch::LineStart>::write(::orgproto::Code::Switch::LineStart* out, sem::Code::Switch::LineStart const& in) {
   out->set_start(in.start);
   out->set_extendlast(in.extendLast);

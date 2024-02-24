@@ -19,6 +19,7 @@ enum class OrgTokenKind : unsigned short int {
   CmdAttrHtml,
   CmdAttrImage,
   CmdAuthor,
+  CmdCall,
   CmdCaption,
   CmdCenterBegin,
   CmdCenterEnd,

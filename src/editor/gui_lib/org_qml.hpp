@@ -250,6 +250,13 @@ struct AdmonitionBlock : public Block {
   AdmonitionBlock(sem::SemId<sem::Org> const& id) : Block(id) {}
 };
 
+struct Call : public Org {
+  Q_GADGET
+  public:
+  Call() = default;
+  Call(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
 struct Code : public Block {
   Q_GADGET
   public:
@@ -661,6 +668,7 @@ Q_DECLARE_METATYPE(org_qml::CmdArguments)
 Q_DECLARE_METATYPE(org_qml::CmdArgument)
 Q_DECLARE_METATYPE(org_qml::Export)
 Q_DECLARE_METATYPE(org_qml::AdmonitionBlock)
+Q_DECLARE_METATYPE(org_qml::Call)
 Q_DECLARE_METATYPE(org_qml::Code)
 Q_DECLARE_METATYPE(org_qml::Time)
 Q_DECLARE_METATYPE(org_qml::TimeRange)

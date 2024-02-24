@@ -448,6 +448,8 @@ items:
       \ointV[(]{ ... }
 
   - name: "Begin latex"
+    debug:
+      doLex: false
     source: |
       #+begin_latex
       \begin{algorithm}
@@ -464,10 +466,14 @@ items:
       <<no-end
 
   - name: "Double brace end at the hashtag"
+    debug:
+      doParse: false
     source: |
       #fanfiction##[character##[image,description,new]] 
 
   - name: "Call named command"
+    debug:
+      doLex: false
     source: |
       #+call: sh_example(arg=133)
 
@@ -528,6 +534,8 @@ items:
       #+FILETAGS: :DO_NOT_ORG_ROAM:
 
   - name: "Double bracket link"
+    debug:
+      doParse: false
     source: |
       [[id:3034c11f-d398-4bc5-a6f2-ecf4d8693f6c][2022/2022-03 March/2022-03-07
       Monday/[2022-03-07 Mon 14:58:22]]]

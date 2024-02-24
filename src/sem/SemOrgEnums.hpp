@@ -25,6 +25,7 @@
     __IMPL(CmdArgument) \
     __IMPL(Export) \
     __IMPL(AdmonitionBlock) \
+    __IMPL(Call) \
     __IMPL(Code) \
     __IMPL(Time) \
     __IMPL(TimeRange) \
@@ -206,8 +207,10 @@ enum class OrgNodeKind : short int {
   SrcCode,
   /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
   SrcInlineCode,
-  /// \brief Call to named source code block. Inline, multiline, or single-line.
-  CallCode,
+  /// \brief Call to named source code block.
+  InlineCallCode,
+  /// \brief Call to named source code block.
+  CmdCallCode,
   /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
   PassCode,
   /// \brief Command arguments
@@ -479,7 +482,7 @@ struct value_domain<OrgBigIdentKind> : public value_domain_ungapped<OrgBigIdentK
                                                                     OrgBigIdentKind::None,
                                                                     OrgBigIdentKind::StructWhile> {};
 
-enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

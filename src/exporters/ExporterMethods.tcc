@@ -28,6 +28,7 @@ void visitCmdArguments(R& res, In<sem::CmdArguments> object);
 void visitCmdArgument(R& res, In<sem::CmdArgument> object);
 void visitExport(R& res, In<sem::Export> object);
 void visitAdmonitionBlock(R& res, In<sem::AdmonitionBlock> object);
+void visitCall(R& res, In<sem::Call> object);
 void visitCode(R& res, In<sem::Code> object);
 void visit(R& res, sem::Code::Switch::Data const& object);
 void visit(R& res, sem::Code::Switch const& object);

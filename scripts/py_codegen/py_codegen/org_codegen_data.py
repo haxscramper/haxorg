@@ -454,6 +454,18 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Block")],
         ),
         d_org(
+            "Call",
+            GenTuDoc("Inline, statement or block call"),
+            bases=[t_org("Org")],
+            fields=[
+                opt_field(
+                    t_str(),
+                    "name",
+                    GenTuDoc("Call target name"),
+                ),
+            ],
+        ),
+        d_org(
             "Code",
             GenTuDoc("Base class for all code blocks"),
             bases=[t_org("Block")],
@@ -1703,9 +1715,15 @@ def get_enums():
                     ),
                 ),
                 GenTuEnumField(
-                    "CallCode",
+                    "InlineCallCode",
                     GenTuDoc(
-                        "Call to named source code block. Inline, multiline, or single-line."
+                        "Call to named source code block."
+                    ),
+                ),
+                GenTuEnumField(
+                    "CmdCallCode",
+                    GenTuDoc(
+                        "Call to named source code block."
                     ),
                 ),
                 GenTuEnumField(
