@@ -131,7 +131,37 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
     skip(lex, otk::CurlyBegin);
     skip(lex, otk::CurlyBegin);
     skip(lex, otk::CurlyBegin);
-    parseCSVArguments(lex);
+    bool isResult = lex.tok().value.text == "results";
+
+    auto tok = token(org::Ident, pop(lex, OrgTokSet{otk::Word}));
+
+    if (lex.at(otk::ParBegin)) {
+        skip(lex, otk::ParBegin);
+        bool isVerbatimWrap = lex.at(otk::VerbatimBegin) && isResult;
+        if (isVerbatimWrap) { skip(lex, otk::VerbatimBegin); }
+
+        auto argEnd   = isVerbatimWrap ? Vec{otk::VerbatimEnd, otk::ParEnd}
+                                       : Vec{otk::ParEnd};
+        auto macroEnd = Vec{
+            otk::CurlyEnd,
+            otk::CurlyEnd,
+            otk::CurlyEnd,
+        };
+
+        while (lex.can_search(macroEnd) && lex.can_search(argEnd)) {
+            start(org::InlineStmtList);
+            while (lex.can_search(otk::Comma) && lex.can_search(argEnd)) {
+                token(org::RawText, pop(lex));
+            }
+            end();
+            if (lex.at(otk::Comma)) { skip(lex); }
+            space(lex);
+        }
+
+        if (isVerbatimWrap) { skip(lex, otk::VerbatimEnd); }
+        skip(lex, otk::ParEnd);
+    }
+
     skip(lex, otk::CurlyEnd);
     skip(lex, otk::CurlyEnd);
     skip(lex, otk::CurlyEnd);
@@ -489,7 +519,7 @@ OrgId OrgParser::parseSymbol(OrgLexer& lex) {
     start(org::InlineStmtList);
     while (lex.at(otk::BraceBegin)) {
         skip(lex, otk::BraceBegin);
-        token(org::RawText, pop(lex, otk::RawText));
+        token(org::RawText, pop(lex));
         skip(lex, otk::BraceEnd);
     }
     end();
@@ -1438,7 +1468,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 case otk::CmdLatexHeader: start(org::LatexHeader); break;
                 case otk::CmdInclude: start(org::CommandInclude); break;
                 case otk::CmdColumns: start(org::Columns); break;
-                case otk::CmdStartup: start(org::CommandStartup ); break;
+                case otk::CmdStartup: start(org::CommandStartup); break;
                 default: fatalError(lex, "");
             }
 

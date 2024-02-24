@@ -487,6 +487,10 @@ items:
   - name: "MAcro with arguments"
     source: |
       {{{results(hello 12)}}}
+      {{{keyword(NAME)}}}
+      {{{modification-time(FORMAT, VC)}}}
+      {{{property(PROPERTY-NAME, SEARCH OPTION)}}}
+
 
   - name: "More list bugs"
     source: 
