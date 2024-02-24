@@ -28,21 +28,34 @@ struct ParseSpec {
             ((MatchMode), nodeMatch, MatchMode::Full));
     };
 
-
+    /// `debug:` field in the yaml specification. All the fields in the
+    /// YAML are directly mapped to the parse spec debug configuration.
+    ///
+    /// ```yaml
+    /// - name: "Call named command"
+    ///   debug:
+    ///   doLex: false
+    /// ```
     struct Dbg {
         DECL_FIELDS(
             Dbg,
             (),
+            /// Enable file-based tracing for all steps of the spec
+            /// checking
             ((bool), traceAll, false),
-            /// Do trace for lex/parse/sem
+            /// Trace execution of the re/flex lexer
             ((bool), traceLex, false),
+            /// Trace conversion from base token list to the regrouped
+            /// tokens
             ((bool), traceLexBase, false),
+            /// Tracing of converted token stream to DOD org-mode tree
             ((bool), traceParse, false),
+            /// Conversion of the tree to the
             ((bool), traceSem, false),
-            /// Output trace to the file
-            ((bool), lexToFile, false),
-            ((bool), parseToFile, false),
-            ((bool), semToFile, false),
+            /// Output trace to the
+            ((bool), traceLexToFile, false),
+            ((bool), traceParseToFile, false),
+            ((bool), traceSemToFile, false),
             /// Print lex/parse/sem/source values for processing
             ((bool), printLexed, false),
             ((bool), printBaseLexed, false),
@@ -54,6 +67,10 @@ struct ParseSpec {
             ((bool), doLex, true),
             ((bool), doLexBase, true),
             ((bool), doSem, true),
+            /// If the initial sem stage completed without issues, format
+            /// the document to string and then parse it again, comparing
+            /// parsed tree V1 vs parsed tree V2
+            ((bool), doFormatReparse, true),
             /// Print sem/lex/parse output debug information to the file
             ((bool), printLexedToFile, false),
             ((bool), printBaseLexedToFile, false),

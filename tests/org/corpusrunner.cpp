@@ -793,7 +793,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         if (spec.debug.doLex) {
             p.tokenizer->TraceState = spec.debug.traceAll
                                    || spec.debug.traceLex;
-            if (spec.debug.traceAll || spec.debug.lexToFile) {
+            if (spec.debug.traceAll || spec.debug.traceLexToFile) {
                 p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
             }
 
@@ -910,7 +910,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             p.parser->TraceState = spec.debug.traceAll
                                 || spec.debug.traceParse;
 
-            if (spec.debug.traceAll || spec.debug.parseToFile) {
+            if (spec.debug.traceAll || spec.debug.traceParseToFile) {
                 p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
             }
 
@@ -989,7 +989,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
             converter.TraceState = spec.debug.traceAll
                                 || spec.debug.traceSem;
-            if (spec.debug.traceAll || spec.debug.semToFile) {
+            if (spec.debug.traceAll || spec.debug.traceSemToFile) {
                 converter.setTraceFile(spec.debugFile("trace_sem.log"));
             }
 
@@ -1072,9 +1072,9 @@ void gtest_run_spec(CR<TestParams> params) {
             .traceLex         = true,
             .traceParse       = true,
             .traceSem         = true,
-            .lexToFile        = true,
-            .parseToFile      = true,
-            .semToFile        = true,
+            .traceLexToFile   = true,
+            .traceParseToFile = true,
+            .traceSemToFile   = true,
             .printLexed       = true,
             .printBaseLexed   = true,
             .printParsed      = true,
