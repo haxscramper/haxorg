@@ -62,7 +62,7 @@ class Block(Base):
     location = ForeignId(name="Location.id")
 
 
-CAT = "haxorg.sqlite"
+CAT = "haxorg.export.sqlite"
 
 
 @beartype
@@ -139,7 +139,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                                 location=get_location(node),
                             ))
 
-            case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.Caption:
+            case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.Caption | osk.Tblfm | osk.Include:
                 pass
 
             case osk.Code:
