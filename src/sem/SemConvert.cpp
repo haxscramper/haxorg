@@ -317,22 +317,22 @@ SemId<Time> OrgConverter::convertTime(__args) {
         a.kind() == org::StaticActiveTime
         || a.kind() == org::StaticInactiveTime) {
 
-        using Mode      = Time::Repeat::Mode;
-        Mode repeatMode = Mode::None;
+        // using Mode      = Time::Repeat::Mode;
+        // Mode repeatMode = Mode::None;
 
-        if (one(a, N::Repeater).kind() != org::Empty) {
-            Str repeat = get_text(one(a, N::Repeater));
-            if (repeat.starts_with("++")) {
-                repeatMode = Mode::FirstMatch;
-                repeat     = repeat.dropPrefix("++");
-            } else if (repeat.starts_with(".+")) {
-                repeatMode = Mode::SameDay;
-                repeat     = repeat.dropPrefix(".+");
-            } else if (repeat.starts_with("+")) {
-                repeatMode = Mode::Exact;
-                repeat     = repeat.dropPrefix("+");
-            }
-        }
+        // if (one(a, N::Repeater).kind() != org::Empty) {
+        //     Str repeat = get_text(one(a, N::Repeater));
+        //     if (repeat.starts_with("++")) {
+        //         repeatMode = Mode::FirstMatch;
+        //         repeat     = repeat.dropPrefix("++");
+        //     } else if (repeat.starts_with(".+")) {
+        //         repeatMode = Mode::SameDay;
+        //         repeat     = repeat.dropPrefix(".+");
+        //     } else if (repeat.starts_with("+")) {
+        //         repeatMode = Mode::Exact;
+        //         repeat     = repeat.dropPrefix("+");
+        //     }
+        // }
 
         std::string datetime;
         if (one(a, N::Year).kind() != org::Empty) {
@@ -388,11 +388,11 @@ SemId<Time> OrgConverter::convertTime(__args) {
             .time = UserTime{
                 .time = parsedDateTime, .align = matching.align}};
 
-        if (repeatMode != Mode::None) {
-            time->getStatic().repeat = Time::Repeat{
-                .mode = repeatMode,
-            };
-        }
+        // if (repeatMode != Mode::None) {
+        //     time->getStatic().repeat = Time::Repeat{
+        //         .mode = repeatMode,
+        //     };
+        // }
     }
 
     print_json(time);

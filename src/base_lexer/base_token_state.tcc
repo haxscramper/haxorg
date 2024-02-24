@@ -21,6 +21,7 @@ std::string OrgLexerImpl::state_name(int state) {
         case 17: return "sub_state_raw_dsl_link";
         case 18: return "sub_state_no_protocol_file_link";
         case 19: return "sub_state_link_protocol_internal";
+        case 20: return "sub_state_timestamp_repeater";
         default: return std::to_string(state);
     }
 }
@@ -181,7 +182,9 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Tilda: return "Tilda";
         case OrgTokenKind::Time: return "Time";
         case OrgTokenKind::TimeArrow: return "TimeArrow";
-        case OrgTokenKind::TimeRepeater: return "TimeRepeater";
+        case OrgTokenKind::TimeRepeaterDuration: return "TimeRepeaterDuration";
+        case OrgTokenKind::TimeRepeaterSpec: return "TimeRepeaterSpec";
+        case OrgTokenKind::TimeWarnPeriod: return "TimeWarnPeriod";
         case OrgTokenKind::TrailingPipe: return "TrailingPipe";
         case OrgTokenKind::TreeClock: return "TreeClock";
         case OrgTokenKind::TreeTime: return "TreeTime";
@@ -353,7 +356,9 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Tilda") { return OrgTokenKind::Tilda; } else
   if (value == "Time") { return OrgTokenKind::Time; } else
   if (value == "TimeArrow") { return OrgTokenKind::TimeArrow; } else
-  if (value == "TimeRepeater") { return OrgTokenKind::TimeRepeater; } else
+  if (value == "TimeRepeaterDuration") { return OrgTokenKind::TimeRepeaterDuration; } else
+  if (value == "TimeRepeaterSpec") { return OrgTokenKind::TimeRepeaterSpec; } else
+  if (value == "TimeWarnPeriod") { return OrgTokenKind::TimeWarnPeriod; } else
   if (value == "TrailingPipe") { return OrgTokenKind::TrailingPipe; } else
   if (value == "TreeClock") { return OrgTokenKind::TreeClock; } else
   if (value == "TreeTime") { return OrgTokenKind::TreeTime; } else

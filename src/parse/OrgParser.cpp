@@ -595,6 +595,7 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
         }
 
 
+        // timezone
         if (lex.at(otk::StrikeBegin) && lex.at(otk::Number, +1)) {
             skip(lex);
             token(org::RawText, pop(lex, otk::Number));
@@ -603,17 +604,21 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
             empty();
         }
 
-        if (lex.at(otk::StrikeBegin)) {
-            // ++1w +1d & other repeaters
-            token(org::RawText, pop(lex, otk::StrikeBegin));
-            if (lex.at(otk::Punctuation)) {
-                token(org::RawText, pop(lex, otk::Punctuation));
-            } else {
-                empty();
-            }
 
-            token(org::RawText, pop(lex, otk::Word));
+        if (lex.at(otk::TimeRepeaterSpec)) {
+            token(org::RawText, pop(lex, otk::TimeRepeaterSpec));
+            start(org::InlineStmtList);
+            while (lex.at(otk::TimeRepeaterDuration)) {
+                token(org::RawText, pop(lex));
+            }
+            end();
             space(lex);
+        } else {
+            empty();
+        }
+
+        if (lex.at(otk::TimeWarnPeriod)) {
+            token(org::RawText, pop(lex, otk::TimeWarnPeriod));
         } else {
             empty();
         }
@@ -640,10 +645,12 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         otk::Date,
         otk::WeekdayName,
         otk::Time,
-        otk::TimeRepeater,
         otk::Number,
         otk::StrikeBegin,
         otk::Whitespace,
+        otk::TimeRepeaterSpec,
+        otk::TimeWarnPeriod,
+        otk::TimeRepeaterDuration,
     };
 
     Lexer tmp{lex.in};
@@ -1317,22 +1324,30 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
         // subtree. The check is for token sequence
         // <newline> <space>? <angle/brace> <date>
         auto [it, lex_end] = lex.whole_fixed().range_current();
-        if (it->kind == otk::Newline) {
+        if (it != lex_end && it->kind == otk::Newline) {
             ++it;
+            if (it == lex_end) { goto not_a_timestamp; }
             if (it->kind == otk::LeadingSpace) { ++it; }
-            if (it->kind == otk::AngleBegin
-                || it->kind == otk::BraceBegin) {
-                ++it;
-                if (it->kind == otk::Date) {
-                    lex.skip(otk::Newline);
-                    space(lex);
-                    start(org::InlineStmtList);
-                    empty();
-                    parseTimeRange(lex);
-                    space(lex);
-                    end();
-                }
+            if (it == lex_end) { goto not_a_timestamp; }
+            if (it->kind != otk::AngleBegin
+                && it->kind != otk::BraceBegin) {
+                goto not_a_timestamp;
             }
+
+            ++it;
+
+            if (it == lex_end) { goto not_a_timestamp; }
+            if (it->kind == otk::Date) {
+                lex.skip(otk::Newline);
+                space(lex);
+                start(org::InlineStmtList);
+                empty();
+                parseTimeRange(lex);
+                space(lex);
+                end();
+            }
+
+        not_a_timestamp:
         }
 
         return end();
