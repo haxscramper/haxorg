@@ -1391,6 +1391,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 opt_field(t_id("Paragraph"), "title", GenTuDoc("")),
                 opt_field(t_id("Paragraph"), "author", GenTuDoc("")),
                 opt_field(t_id("Paragraph"), "creator", GenTuDoc("")),
+                vec_field(t_id("HashTag"), "filetags", GenTuDoc("")),
                 opt_field(t_id("RawText"), "email", GenTuDoc("")),
                 GenTuField(t_vec(t_str()), "language", GenTuDoc("")),
                 id_field("DocumentOptions", "options", GenTuDoc("")),

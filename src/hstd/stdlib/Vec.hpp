@@ -299,7 +299,7 @@ class Vec : public std::vector<T> {
     template <typename... Args>
     static Vec<T> Splice(Args&&... args) {
         Vec<T> result;
-        Splice_Impl<T>(result, std::forward<Args>(args)...);
+        Splice_Impl(result, std::forward<Args>(args)...);
         return result;
     }
 };

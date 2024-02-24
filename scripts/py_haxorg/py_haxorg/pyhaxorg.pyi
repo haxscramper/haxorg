@@ -966,6 +966,7 @@ class Document(Org):
     title: Optional[Paragraph]
     author: Optional[Paragraph]
     creator: Optional[Paragraph]
+    filetags: List[HashTag]
     email: Optional[RawText]
     language: List[str]
     options: DocumentOptions

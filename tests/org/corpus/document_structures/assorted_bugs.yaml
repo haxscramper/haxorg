@@ -530,6 +530,8 @@ items:
       #+columns: %7TODO(To do) %40ITEM(Task) %TAGS(Tags) %6CLOCKSUM(Clock)
 
   - name: "Filetags"
+    debug:
+      traceAll: true
     source: |
       #+FILETAGS: :DO_NOT_ORG_ROAM:
 

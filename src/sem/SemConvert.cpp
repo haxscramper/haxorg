@@ -961,12 +961,15 @@ void fillDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a) {
 }
 
 SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
+    auto __trace = trace(adapter);
+
     SemId<Document> doc = Sem<Document>(adapter);
     doc->options        = Sem<DocumentOptions>(adapter);
     using Prop          = Subtree::Property;
 
     if (adapter.kind() == org::StmtList) {
         for (const auto& sub : adapter) {
+            auto __trace = trace(adapter, fmt1(sub.getKind()));
             switch (sub.kind()) {
                 case org::Columns: {
                     LOG(WARNING) << "TODO: Skipping 'columns' node";
@@ -1014,6 +1017,14 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
+                case org::Filetags: {
+
+                    for (auto const& hash : many(sub, N::Tags)) {
+                        doc->filetags.push_back(convertHashTag(hash));
+                    }
+                    break;
+                }
+
                 default: {
                     doc->subnodes.push_back(convert(sub));
                     break;

@@ -1925,6 +1925,7 @@ struct Document : public sem::Org {
                         title,
                         author,
                         creator,
+                        filetags,
                         email,
                         language,
                         options,
@@ -1940,6 +1941,7 @@ struct Document : public sem::Org {
   Opt<sem::SemId<sem::Paragraph>> title = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> author = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> creator = std::nullopt;
+  Vec<sem::SemId<sem::HashTag>> filetags = {};
   Opt<sem::SemId<sem::RawText>> email = std::nullopt;
   Vec<Str> language;
   sem::SemId<sem::DocumentOptions> options = SemId<DocumentOptions>::Nil();

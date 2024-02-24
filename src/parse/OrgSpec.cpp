@@ -124,6 +124,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     "Statement list of the nested nodes"),
             })},
         SpecPair{
+            org::Filetags,
+            OrgPattern({
+                field1(slice(0, 2_B), N::Tags, org::HashTag, "File tags"),
+            })},
+        SpecPair{
             org::HashTag,
             OrgPattern({
                 fieldN(
@@ -436,7 +441,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                      org::RawText,
                      org::Empty}),
             })},
-
         SpecPair{
             org::Footnote,
             OrgPattern(

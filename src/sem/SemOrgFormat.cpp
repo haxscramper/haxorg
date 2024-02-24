@@ -42,6 +42,22 @@ auto Formatter::toString(SemId<Document> id) -> Res {
         b.add_at(result, b.line({str("#+title: "), toString(*id->title)}));
     }
 
+    if (!id->filetags.empty()) {
+        b.add_at(
+            result,
+            b.line(
+                {str("#+filetags: :"),
+                 b.join(
+                     Vec<Res>::Splice(
+                         id->filetags
+                         | rv::transform(
+                             [&](CR<SemId<HashTag>> tag) -> Res {
+                                 return toString(tag);
+                             })),
+                     str(":")),
+                 str(":")}));
+    }
+
     if (id->author) {
         b.add_at(
             result, b.line({str("#+author: "), toString(*id->author)}));

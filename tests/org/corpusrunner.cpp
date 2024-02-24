@@ -633,19 +633,29 @@ void filterFields(
     }
 }
 
+yaml toTestYaml(sem::OrgArg arg) {
+    ExporterYaml exporter;
+    exporter.skipNullFields  = true;
+    exporter.skipFalseFields = true;
+    exporter.skipZeroFields  = true;
+    exporter.skipLocation    = true;
+    exporter.skipId          = true;
+    return exporter.evalTop(arg);
+}
+
+json toTestJson(sem::OrgArg arg) {
+    ExporterJson exporter;
+    json         converted = exporter.evalTop(arg);
+    filterFields(converted, {"loc"});
+    return converted;
+}
+
 CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     CR<ParseSpec>        spec,
     sem::SemId<sem::Org> node,
     json                 expected) {
 
-    ExporterJson     exporter;
-    OperationsTracer trace{spec.debugFile("sem_export_trace.txt")};
-    exporter.visitEventCb = [&](ExporterJson::VisitEvent const& ev) {
-        exporterVisit<ExporterJson>(trace, ev);
-    };
-
-    json converted = exporter.evalTop(node);
-    filterFields(converted, {"loc"});
+    json          converted = toTestJson(node);
     Vec<DiffItem> diff      = json_diff(converted, expected);
     int           failCount = 0;
     ColStream     os;
@@ -712,15 +722,6 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     }
 }
 
-yaml toTestYaml(sem::OrgArg arg) {
-    ExporterYaml exporter;
-    exporter.skipNullFields  = true;
-    exporter.skipFalseFields = true;
-    exporter.skipZeroFields  = true;
-    exporter.skipLocation    = true;
-    exporter.skipId          = true;
-    return exporter.evalTop(arg);
-}
 
 CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
@@ -752,24 +753,57 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     if (!spec.debug.doFormatReparse) { return skip; }
 
-    ParseSpec rerun = spec;
-    MockFull  p2(spec.debug.traceParse, spec.debug.traceLex);
-    rerun.source      = sem::Formatter::format(p.node);
-    rerun.base_tokens = std::nullopt;
-    rerun.subnodes    = std::nullopt;
-    rerun.tokens      = std::nullopt;
-    rerun.sem         = toJson(toTestYaml(p.node));
+    ParseSpec      rerun = spec;
+    MockFull       p2(spec.debug.traceParse, spec.debug.traceLex);
+    sem::Formatter formatter;
+    auto           fmt_result = formatter.toString(p.node);
+    rerun.source              = formatter.store.toString(fmt_result);
+    rerun.base_tokens         = std::nullopt;
+    rerun.subnodes            = std::nullopt;
+    rerun.tokens              = std::nullopt;
+    rerun.sem                 = toTestJson(p.node);
+    rerun.source.resize(rerun.source.size() - 1);
     rerun.debug.debugOutDir.append("_reformat");
 
     if (spec.debug.traceAll || spec.debug.printSource) {
-        writeFile(spec.debugFile("reformat.org"), rerun.source);
+        writeFile(
+            rerun.debugFile("org2_format_tree.org"),
+            formatter.store.toTreeRepr(fmt_result));
+        writeFile(rerun.debugFile("org2_format.org"), rerun.source);
+        writeFile(rerun.debugFile("org2_source.org"), spec.source);
+
+        auto read = [](char c) { return visibleName(c).first; };
+
+        writeFile(
+            rerun.debugFile("org2_format_array.org"),
+            fmt1(
+                rerun.source | rv::transform(read)
+                | rs::to<std::vector>()));
+        writeFile(
+            rerun.debugFile("org2_source_array.org"),
+            fmt1(
+                spec.source | rv::transform(read)
+                | rs::to<std::vector>()));
     }
 
     runSpecBaseLex(p2, rerun);
     runSpecLex(p2, rerun);
     runSpecParse(p2, rerun);
     auto reformat_result = runSpecSem(p2, rerun);
-    if (!reformat_result.isOk) { return RunResult{reformat_result}; }
+    if (!reformat_result.isOk) {
+        writeFile(
+            rerun.debugFile("sem2_expected.yaml"),
+            fmt1(toTestYaml(p.node)));
+        writeFile(
+            rerun.debugFile("sem2_parsed.yaml"),
+            fmt1(toTestYaml(p2.node)));
+
+        writeFile(
+            rerun.debugFile("sem2_reformat_fail.txt"),
+            reformat_result.failDescribe.toString(false));
+
+        return RunResult{reformat_result};
+    }
 
     return RunResult();
 }

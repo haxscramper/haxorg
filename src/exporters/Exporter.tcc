@@ -707,6 +707,7 @@ void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
   __org_field(res, object, title);
   __org_field(res, object, author);
   __org_field(res, object, creator);
+  __org_field(res, object, filetags);
   __org_field(res, object, email);
   __org_field(res, object, language);
   __org_field(res, object, options);

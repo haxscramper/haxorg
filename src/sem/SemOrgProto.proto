@@ -1213,10 +1213,11 @@ message Document {
   optional Paragraph                               title                            = 4;
   optional Paragraph                               author                           = 5;
   optional Paragraph                               creator                          = 6;
-  optional RawText                                 email                            = 7;
-  repeated string                                  language                         = 8;
-  DocumentOptions                                  options                          = 9;
-  optional string                                  exportFileName                   = 10;
+  repeated HashTag                                 filetags                         = 7;
+  optional RawText                                 email                            = 8;
+  repeated string                                  language                         = 9;
+  DocumentOptions                                  options                          = 10;
+  optional string                                  exportFileName                   = 11;
   string                                           debug                            = 1000;
 }
 
