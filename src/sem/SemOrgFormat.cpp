@@ -322,6 +322,13 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
     });
 
     b.add_at(result, head);
+
+    if (id->scheduled) {
+        b.add_at(
+            result,
+            b.line({str("SCHEDULED: "), toString(*id->scheduled)}));
+    }
+
     if (!id->subnodes.empty()) { add_subnodes(result, id.asOrg()); }
 
 

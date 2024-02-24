@@ -266,7 +266,11 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
         tree->title  = convertParagraph(one(a, N::Title));
     }
 
-    { auto __field = field(N::Todo, a); }
+    {
+        auto __field = field(N::Todo, a);
+        auto todo    = one(a, N::Todo);
+        if (!todo.empty()) { tree->todo = get_text(todo); }
+    }
 
     {
         auto __field = field(N::Tags, a);

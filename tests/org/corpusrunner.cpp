@@ -669,7 +669,14 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         if (!path.empty() && it.op == DiffItem::Op::Remove) {
             continue;
         } else if (
-            it.op == DiffItem::Op::Add && it.value["kind"] == "Newline") {
+            it.op == DiffItem::Op::Add && it.value.is_object()
+            && it.value["kind"] == "Newline") {
+            continue;
+        } else if (
+            it.op == DiffItem::Op::Replace && it.value.is_string()
+            && rs::all_of(it.value.get<std::string>(), [](char c) {
+                   return c == '\n';
+               })) {
             continue;
         } else {
             ++failCount;
@@ -794,7 +801,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecLex(p2, rerun);
     runSpecParse(p2, rerun);
     auto reformat_result = runSpecSem(p2, rerun);
-    if (spec.debug.traceAll || spec.debug.printSem) {
+    if (!reformat_result.isOk || spec.debug.traceAll
+        || spec.debug.printSem) {
         writeFile(
             rerun.debugFile("sem2_expected.yaml"),
             fmt1(toTestYaml(p.node)));

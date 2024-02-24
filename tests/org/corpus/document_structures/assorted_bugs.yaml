@@ -54,8 +54,6 @@ items:
         :END:
 
   - name: "Non-DSL link"
-    debug:
-      traceAll: true
     source: |
       [[person:Random User]]
 
@@ -530,8 +528,6 @@ items:
       #+columns: %7TODO(To do) %40ITEM(Task) %TAGS(Tags) %6CLOCKSUM(Clock)
 
   - name: "Filetags"
-    debug:
-      traceAll: true
     source: |
       #+FILETAGS: :DO_NOT_ORG_ROAM:
 
@@ -543,6 +539,8 @@ items:
       Monday/[2022-03-07 Mon 14:58:22]]]
 
   - name: "Timestamp repeaters"
+    debug:
+      traceAll: true
     source: |
       * TODO V
         SCHEDULED: <2023-09-18 Mon 11:00:00 +04 +1d>
