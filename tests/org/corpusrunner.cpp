@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <sem/perfetto_org.hpp>
+#include <sem/SemOrgFormat.hpp>
 
 #ifdef ORG_USE_PERFETTO
 #    pragma clang diagnostic ignored "-Wmacro-redefined"
@@ -711,13 +712,23 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     }
 }
 
+yaml toTestYaml(sem::OrgArg arg) {
+    ExporterYaml exporter;
+    exporter.skipNullFields  = true;
+    exporter.skipFalseFields = true;
+    exporter.skipZeroFields  = true;
+    exporter.skipLocation    = true;
+    exporter.skipId          = true;
+    return exporter.evalTop(arg);
+}
+
 CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
     CR<std::string> from) {
     __perf_trace("run spec");
     MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
-    if (spec.debug.printSource) {
+    if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(spec.debugFile("source.org"), spec.source);
     }
 
@@ -738,6 +749,27 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     if (!spec.debug.doSem) { return skip; }
     auto sem_result = runSpecSem(p, spec);
     if (!parse_result.isOk) { return RunResult{sem_result}; }
+
+    if (!spec.debug.doFormatReparse) { return skip; }
+
+    ParseSpec rerun = spec;
+    MockFull  p2(spec.debug.traceParse, spec.debug.traceLex);
+    rerun.source      = sem::Formatter::format(p.node);
+    rerun.base_tokens = std::nullopt;
+    rerun.subnodes    = std::nullopt;
+    rerun.tokens      = std::nullopt;
+    rerun.sem         = toJson(toTestYaml(p.node));
+    rerun.debug.debugOutDir.append("_reformat");
+
+    if (spec.debug.traceAll || spec.debug.printSource) {
+        writeFile(spec.debugFile("reformat.org"), rerun.source);
+    }
+
+    runSpecBaseLex(p2, rerun);
+    runSpecLex(p2, rerun);
+    runSpecParse(p2, rerun);
+    auto reformat_result = runSpecSem(p2, rerun);
+    if (!reformat_result.isOk) { return RunResult{reformat_result}; }
 
     return RunResult();
 }
@@ -969,18 +1001,14 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     converter.setTraceFile(spec.debugFile("trace_sem.log"));
 
     auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    p.node        = document.asOrg();
 
     if (spec.debug.traceAll || spec.debug.printSem
         || spec.debug.printSemToFile) {
-        ExporterYaml exporter;
-        exporter.skipNullFields  = true;
-        exporter.skipFalseFields = true;
-        exporter.skipZeroFields  = true;
-        exporter.skipLocation    = true;
-        exporter.skipId          = true;
+
         writeFileOrStdout(
             spec.debugFile("sem.yaml"),
-            std::format("{}", exporter.evalTop(document)) + "\n",
+            std::format("{}", toTestYaml(document)) + "\n",
             spec.debug.traceAll || spec.debug.printSemToFile);
 
         {
