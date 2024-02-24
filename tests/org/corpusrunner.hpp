@@ -8,10 +8,6 @@
 #include <lexbase/NodeTest.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 
-inline bool useQFormat() {
-    return getenv("IN_QT_RUN")
-        && getenv("IN_QT_RUN") == std::string("true");
-}
 
 class CorpusRunner {
   public:
@@ -66,25 +62,8 @@ class CorpusRunner {
 
         struct NodeCompare : CompareBase {};
         struct LexCompare : CompareBase {};
-        struct BaseLexCompare : CompareBase {};
         struct SemCompare : CompareBase {};
-
-        struct ExportCompare {
-            struct Run {
-                ColText failDescribe;
-                bool    isOk;
-            };
-
-            Vec<Run> run;
-
-            bool isOk() const {
-                return run.empty()
-                    || std::all_of(run.begin(), run.end(), [](CR<Run> r) {
-                           return r.isOk;
-                       });
-            }
-        };
-
+        struct Skip {};
         struct None {};
 
         SUB_VARIANTS(
@@ -93,21 +72,22 @@ class CorpusRunner {
             data,
             getKind,
             None,
+            Skip,
             NodeCompare,
             LexCompare,
-            SemCompare,
-            BaseLexCompare,
-            ExportCompare);
+            SemCompare);
 
         RunResult() {}
         RunResult(CR<Data> data) : data(data) {}
         Data data;
 
+        bool isSkip() const { return std::holds_alternative<Skip>(data); }
+
         bool isOk() const {
             return std::visit(
                 overloaded{
                     [](CR<CompareBase> n) { return n.isOk; },
-                    [](CR<ExportCompare> e) { return e.isOk(); },
+                    [](CR<Skip> n) { return true; },
                     [](CR<None> n) { return true; },
                 },
                 data);
@@ -126,15 +106,15 @@ class CorpusRunner {
         json                 expected);
 
     RunResult runSpec(CR<ParseSpec> spec, CR<std::string> from);
+    RunResult::LexCompare  runSpecBaseLex(MockFull& p, CR<ParseSpec> spec);
+    RunResult::LexCompare  runSpecLex(MockFull& p, CR<ParseSpec> spec);
+    RunResult::NodeCompare runSpecParse(MockFull& p, CR<ParseSpec> spec);
+    RunResult::SemCompare  runSpecSem(MockFull& p, CR<ParseSpec> spec);
 
     ExportResult runExporter(
         ParseSpec const&                 spec,
         sem::SemId<sem::Org>             top,
         ParseSpec::ExporterExpect const& exp);
-
-    RunResult::ExportCompare::Run compareExport(
-        ParseSpec::ExporterExpect const& exp,
-        ExportResult const&              result);
 };
 
 struct TestParams {
