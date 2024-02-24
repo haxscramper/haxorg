@@ -49,7 +49,7 @@ Opt<E> parseOrgEnum(std::string const& name) {
     }
 }
 
-#define __args Up p, In a
+#define __args In a
 
 using N   = OrgSpecName;
 using osk = OrgSemKind;
@@ -80,7 +80,7 @@ OrgBigIdentKind parseBigIdent(std::string const& id) {
 SemId<Table> OrgConverter::convertTable(__args) {
     __perf_trace("convert", "convertTable");
     auto __trace = trace(a);
-    auto result  = Sem<Table>(p, a);
+    auto result  = Sem<Table>(a);
 
     return result;
 };
@@ -89,13 +89,13 @@ SemId<Table> OrgConverter::convertTable(__args) {
 SemId<HashTag> OrgConverter::convertHashTag(__args) {
     __perf_trace("convert", "convertHashTag");
     auto                             __trace = trace(a);
-    auto                             result  = Sem<HashTag>(p, a);
+    auto                             result  = Sem<HashTag>(a);
     Func<SemId<HashTag>(OrgAdapter)> aux;
     result->head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
 
 
-    aux = [p, &aux, this](OrgAdapter a) -> SemId<HashTag> {
-        SemId<HashTag> result = Sem<HashTag>(p, a);
+    aux = [&aux, this](OrgAdapter a) -> SemId<HashTag> {
+        SemId<HashTag> result = Sem<HashTag>(a);
         result->head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
@@ -118,7 +118,7 @@ SemId<HashTag> OrgConverter::convertHashTag(__args) {
 
 SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     __perf_trace("convert", "convertSubtreeLog");
-    auto log = Sem<SubtreeLog>(p, a);
+    auto log = Sem<SubtreeLog>(a);
 
     using Entry = SubtreeLog::LogEntry;
     using Log   = SubtreeLog;
@@ -133,13 +133,13 @@ void OrgConverter::convertSubtreeDrawer(SemId<Subtree>& tree, In a) {
         for (const auto& group : a) {
             switch (group.kind()) {
                 case org::SubtreeDescription: {
-                    tree->description = convertParagraph(tree, group[0]);
+                    tree->description = convertParagraph(group[0]);
                     break;
                 }
 
                 case org::Logbook: {
                     for (auto const& entry : group) {
-                        auto log = convertSubtreeLog(tree, entry);
+                        auto log = convertSubtreeLog(entry);
                         tree->logbook.push_back(log);
                     }
                     break;
@@ -182,7 +182,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 
     } else if (name == "created") {
         Property::Created created;
-        auto              par = convertParagraph(tree, one(a, N::Values));
+        auto              par = convertParagraph(one(a, N::Values));
 
         if (par->at(0)->is(osk::Time)) {
             created.time = par->at(0).as<sem::Time>();
@@ -195,9 +195,8 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 
     } else if (name == "origin") {
         Property::Origin origin;
-        origin.text = convert(tree, one(a, N::Values))
-                          .as<sem::Paragraph>();
-        result = Property(origin);
+        origin.text = convert(one(a, N::Values)).as<sem::Paragraph>();
+        result      = Property(origin);
 
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
@@ -225,7 +224,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 
     } else {
         Property::Unknown prop;
-        prop.value = convert(tree, one(a, N::Values));
+        prop.value = convert(one(a, N::Values));
         result     = Property(prop);
     }
 
@@ -258,13 +257,13 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 SemId<Subtree> OrgConverter::convertSubtree(__args) {
     __perf_trace("convert", "convertSubtree");
     auto __trace = trace(a);
-    auto tree    = Sem<Subtree>(p, a);
+    auto tree    = Sem<Subtree>(a);
 
     tree->level = get_text(one(a, N::Prefix)).size();
 
     {
         auto __field = field(N::Title, a);
-        tree->title  = convertParagraph(tree, one(a, N::Title));
+        tree->title  = convertParagraph(one(a, N::Title));
     }
 
     { auto __field = field(N::Todo, a); }
@@ -272,7 +271,7 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Tags, a);
         for (const auto& hash : one(a, N::Tags)) {
-            tree->tags.push_back(convertHashTag(tree, hash));
+            tree->tags.push_back(convertHashTag(hash));
         }
     }
 
@@ -284,7 +283,7 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Body, a);
         for (auto const& sub : one(a, N::Body)) {
-            auto subres = convert(tree, sub);
+            auto subres = convert(sub);
             tree->push_back(subres);
         }
     }
@@ -306,7 +305,7 @@ SemId<Time> OrgConverter::convertTime(__args) {
 
     CHECK(cond) << "convert subtree" << fmt1(a.kind());
 
-    auto time      = Sem<Time>(p, a);
+    auto time      = Sem<Time>(a);
     time->isActive = (a.kind() == org::DynamicActiveTime)
                   || (a.kind() == org::StaticActiveTime);
 
@@ -402,14 +401,14 @@ SemId<Time> OrgConverter::convertTime(__args) {
 SemId<TimeRange> OrgConverter::convertTimeRange(__args) {
     __perf_trace("convert", "convertTimeRange");
     auto __trace = trace(a);
-    auto range   = Sem<TimeRange>(p, a);
+    auto range   = Sem<TimeRange>(a);
     {
         auto __field = field(N::From, a);
-        range->from  = convertTime(range, one(a, N::From));
+        range->from  = convertTime(one(a, N::From));
     }
     {
         auto __field = field(N::To, a);
-        range->to    = convertTime(range, one(a, N::To));
+        range->to    = convertTime(one(a, N::To));
     }
     return range;
 }
@@ -417,7 +416,7 @@ SemId<TimeRange> OrgConverter::convertTimeRange(__args) {
 SemId<Macro> OrgConverter::convertMacro(__args) {
     __perf_trace("convert", "convertMacro");
     auto __trace = trace(a);
-    auto macro   = Sem<Macro>(p, a);
+    auto macro   = Sem<Macro>(a);
 
 
     return macro;
@@ -426,7 +425,7 @@ SemId<Macro> OrgConverter::convertMacro(__args) {
 SemId<Symbol> OrgConverter::convertSymbol(__args) {
     __perf_trace("convert", "convertSymbol");
     auto __trace = trace(a);
-    auto sym     = Sem<Symbol>(p, a);
+    auto sym     = Sem<Symbol>(a);
 
     int idx   = 0;
     sym->name = get_text(one(a, N::Name)).substr(1);
@@ -446,7 +445,7 @@ SemId<Symbol> OrgConverter::convertSymbol(__args) {
     }
 
     for (const auto& sub : one(a, N::Body)) {
-        sym->positional.push_back(convert(sym, sub));
+        sym->positional.push_back(convert(sub));
     }
 
     return sym;
@@ -459,13 +458,13 @@ SemId<Paragraph> OrgConverter::convertParagraph(__args) {
 
     __perf_trace("convert", "convertParagraph");
     auto __trace = trace(a);
-    auto par     = Sem<Paragraph>(p, a);
+    auto par     = Sem<Paragraph>(a);
     bool first   = true;
     for (const auto& item : a) {
         if (first && item.kind() == org::Footnote) {
-            par->push_back(convertFootnote(par, item));
+            par->push_back(convertFootnote(item));
         } else {
-            par->push_back(convert(par, item));
+            par->push_back(convert(item));
         }
         first = false;
     }
@@ -476,11 +475,9 @@ SemId<Paragraph> OrgConverter::convertParagraph(__args) {
 SemId<StmtList> OrgConverter::convertStmtList(__args) {
     __perf_trace("convert", "convertStmtList");
     auto __trace = trace(a);
-    auto stmt    = Sem<StmtList>(p, a);
+    auto stmt    = Sem<StmtList>(a);
 
-    for (OrgAdapter const& sub : a) {
-        stmt->push_back(convert(stmt, sub));
-    }
+    for (OrgAdapter const& sub : a) { stmt->push_back(convert(sub)); }
 
     return stmt;
 }
@@ -490,11 +487,11 @@ SemId<Footnote> OrgConverter::convertFootnote(__args) {
     __perf_trace("convert", "convertFootnote");
     auto __trace = trace(a);
     if (a.kind() == org::InlineFootnote) {
-        auto note        = Sem<Footnote>(p, a);
-        note->definition = convert(note, one(a, N::Definition));
+        auto note        = Sem<Footnote>(a);
+        note->definition = convert(one(a, N::Definition));
         return note;
     } else {
-        auto link = Sem<Footnote>(p, a);
+        auto link = Sem<Footnote>(a);
         link->tag = get_text(one(a, N::Definition));
         return link;
     }
@@ -503,7 +500,7 @@ SemId<Footnote> OrgConverter::convertFootnote(__args) {
 SemId<Link> OrgConverter::convertLink(__args) {
     __perf_trace("convert", "convertLink");
     auto __trace = trace(a);
-    auto link    = Sem<Link>(p, a);
+    auto link    = Sem<Link>(a);
     if (a.kind() == org::RawLink) {
         link->data = Link::Raw{.text = get_text(a)};
 
@@ -538,7 +535,7 @@ SemId<Link> OrgConverter::convertLink(__args) {
 
     if (a.kind() == org::Link) {
         if (one(a, N::Desc).kind() == org::Paragraph) {
-            link->description = convertParagraph(link, one(a, N::Desc));
+            link->description = convertParagraph(one(a, N::Desc));
         }
     }
 
@@ -548,8 +545,8 @@ SemId<Link> OrgConverter::convertLink(__args) {
 SemId<List> OrgConverter::convertList(__args) {
     __perf_trace("convert", "convertList");
     auto __trace = trace(a);
-    auto list    = Sem<List>(p, a);
-    for (const auto& it : a) { list->push_back(convert(list, it)); }
+    auto list    = Sem<List>(a);
+    for (const auto& it : a) { list->push_back(convert(it)); }
 
     return list;
 }
@@ -557,14 +554,14 @@ SemId<List> OrgConverter::convertList(__args) {
 SemId<ListItem> OrgConverter::convertListItem(__args) {
     __perf_trace("convert", "convertListItem");
     auto __trace = trace(a);
-    auto item    = Sem<ListItem>(p, a);
+    auto item    = Sem<ListItem>(a);
     if (one(a, N::Header).kind() != org::Empty) {
-        item->header = convertParagraph(item, one(a, N::Header));
+        item->header = convertParagraph(one(a, N::Header));
     }
 
     {
         for (const auto& sub : one(a, N::Body)) {
-            item->push_back(convert(item, sub));
+            item->push_back(convert(sub));
         }
     }
 
@@ -574,8 +571,8 @@ SemId<ListItem> OrgConverter::convertListItem(__args) {
 SemId<Caption> OrgConverter::convertCaption(__args) {
     __perf_trace("convert", "convertCaption");
     auto __trace  = trace(a);
-    auto caption  = Sem<Caption>(p, a);
-    caption->text = convertParagraph(caption, one(a, N::Args)[0]);
+    auto caption  = Sem<Caption>(a);
+    caption->text = convertParagraph(one(a, N::Args)[0]);
 
     return caption;
 }
@@ -584,7 +581,7 @@ SemId<Caption> OrgConverter::convertCaption(__args) {
 SemId<Tblfm> OrgConverter::convertTblfm(__args) {
     __perf_trace("convert", "convertTblfm");
     auto __trace = trace(a);
-    auto tblfm   = Sem<Tblfm>(p, a);
+    auto tblfm   = Sem<Tblfm>(a);
 
     return tblfm;
 }
@@ -592,102 +589,102 @@ SemId<Tblfm> OrgConverter::convertTblfm(__args) {
 
 SemId<Word> OrgConverter::convertWord(__args) {
     auto __trace = trace(a);
-    return SemLeaf<Word>(p, a);
+    return SemLeaf<Word>(a);
 }
 
 SemId<Placeholder> OrgConverter::convertPlaceholder(__args) {
     __perf_trace("convert", "convertPlaceholder");
     auto __trace = trace(a);
-    return SemLeaf<Placeholder>(p, one(a, N::Body));
+    return SemLeaf<Placeholder>(one(a, N::Body));
 }
 
 SemId<Newline> OrgConverter::convertNewline(__args) {
     auto __trace = trace(a);
-    return SemLeaf<Newline>(p, a);
+    return SemLeaf<Newline>(a);
 }
 
 SemId<Space> OrgConverter::convertSpace(__args) {
-    return SemLeaf<Space>(p, a);
+    return SemLeaf<Space>(a);
 }
 
 SemId<Escaped> OrgConverter::convertEscaped(__args) {
-    return SemLeaf<Escaped>(p, a);
+    return SemLeaf<Escaped>(a);
 }
 
 SemId<RawText> OrgConverter::convertRawText(__args) {
-    return SemLeaf<RawText>(p, a);
+    return SemLeaf<RawText>(a);
 }
 
 SemId<Punctuation> OrgConverter::convertPunctuation(__args) {
     auto __trace = trace(a);
-    return SemLeaf<Punctuation>(p, a);
+    return SemLeaf<Punctuation>(a);
 }
 
 SemId<BigIdent> OrgConverter::convertBigIdent(__args) {
     __perf_trace("convert", "convertBigIdent");
     auto __trace = trace(a);
-    return SemLeaf<BigIdent>(p, a);
+    return SemLeaf<BigIdent>(a);
 }
 
 SemId<sem::ParseError> OrgConverter::convertParseError(__args) {
-    return Sem<sem::ParseError>(p, a);
+    return Sem<sem::ParseError>(a);
 }
 
 
 SemId<MarkQuote> OrgConverter::convertMarkQuote(__args) {
     __perf_trace("convert", "convertMarkQuote");
     auto __trace = trace(a);
-    return convertAllSubnodes<MarkQuote>(p, a);
+    return convertAllSubnodes<MarkQuote>(a);
 }
 
 SemId<Verbatim> OrgConverter::convertVerbatim(__args) {
     __perf_trace("convert", "convertVerbatim");
     auto __trace = trace(a);
-    return convertAllSubnodes<Verbatim>(p, a);
+    return convertAllSubnodes<Verbatim>(a);
 }
 
 SemId<Bold> OrgConverter::convertBold(__args) {
     __perf_trace("convert", "convertBold");
     auto __trace = trace(a);
-    return convertAllSubnodes<Bold>(p, a);
+    return convertAllSubnodes<Bold>(a);
 }
 
 SemId<Monospace> OrgConverter::convertMonospace(__args) {
     __perf_trace("convert", "convertMonospace");
     auto __trace = trace(a);
-    return convertAllSubnodes<Monospace>(p, a);
+    return convertAllSubnodes<Monospace>(a);
 }
 
 SemId<Strike> OrgConverter::convertStrike(__args) {
     __perf_trace("convert", "convertStrike");
     auto __trace = trace(a);
-    return convertAllSubnodes<Strike>(p, a);
+    return convertAllSubnodes<Strike>(a);
 }
 
 SemId<Par> OrgConverter::convertPar(__args) {
     __perf_trace("convert", "convertPar");
     auto __trace = trace(a);
-    return convertAllSubnodes<Par>(p, a);
+    return convertAllSubnodes<Par>(a);
 }
 
 SemId<Italic> OrgConverter::convertItalic(__args) {
     __perf_trace("convert", "convertItalic");
     auto __trace = trace(a);
-    return convertAllSubnodes<Italic>(p, a);
+    return convertAllSubnodes<Italic>(a);
 }
 
 SemId<Underline> OrgConverter::convertUnderline(__args) {
     __perf_trace("convert", "convertUnderline");
     auto __trace = trace(a);
-    return convertAllSubnodes<Underline>(p, a);
+    return convertAllSubnodes<Underline>(a);
 }
 
 SemId<Example> OrgConverter::convertExample(__args) {
-    return convertAllSubnodes<Example>(p, a);
+    return convertAllSubnodes<Example>(a);
 }
 
 SemId<Export> OrgConverter::convertExport(__args) {
-    auto eexport = Sem<Export>(p, a);
+    auto eexport = Sem<Export>(a);
     switch (a.kind()) {
         case org::BlockExport:
             eexport->format = Export::Format::Block;
@@ -696,7 +693,7 @@ SemId<Export> OrgConverter::convertExport(__args) {
         }
     }
 
-    auto values = convertCmdArguments(eexport, one(a, N::Args));
+    auto values = convertCmdArguments(one(a, N::Args));
     if (auto place = values->popArg("placement"); place) {
         eexport->placement = (*place)->getString();
     }
@@ -711,22 +708,22 @@ SemId<Export> OrgConverter::convertExport(__args) {
 }
 
 SemId<Center> OrgConverter::convertCenter(__args) {
-    SemId<Center> res = Sem<Center>(p, a);
+    SemId<Center> res = Sem<Center>(a);
     for (const auto& sub : many(a, N::Body)) {
-        auto aux = convert(res, sub);
+        auto aux = convert(sub);
         res->push_back(aux);
     }
     return res;
 }
 
 SemId<AdmonitionBlock> OrgConverter::convertAdmonitionBlock(__args) {
-    return convertAllSubnodes<AdmonitionBlock>(p, a);
+    return convertAllSubnodes<AdmonitionBlock>(a);
 }
 
 SemId<Quote> OrgConverter::convertQuote(__args) {
-    SemId<Quote> quote = Sem<Quote>(p, a);
+    SemId<Quote> quote = Sem<Quote>(a);
     for (const auto& sub : many(a, N::Body)) {
-        auto aux = convert(quote, sub);
+        auto aux = convert(sub);
         quote->push_back(aux);
     }
     return quote;
@@ -734,29 +731,29 @@ SemId<Quote> OrgConverter::convertQuote(__args) {
 
 SemId<LatexBody> OrgConverter::convertMath(__args) {
     if (a.kind() == org::InlineMath) {
-        return Sem<InlineMath>(p, a).as<LatexBody>();
+        return Sem<InlineMath>(a).as<LatexBody>();
     } else {
         LOG(FATAL) << "Unhanled kind for inline math TODO";
     }
 }
 
 SemId<Include> OrgConverter::convertInclude(__args) {
-    SemId<Include> include = Sem<Include>(p, a);
+    SemId<Include> include = Sem<Include>(a);
     LOG(WARNING) << "TODO implement include";
 
     return include;
 }
 
 SemId<TextSeparator> OrgConverter::convertTextSeparator(__args) {
-    return Sem<TextSeparator>(p, a);
+    return Sem<TextSeparator>(a);
 }
 
 SemId<AtMention> OrgConverter::convertAtMention(__args) {
-    return SemLeaf<AtMention>(p, a);
+    return SemLeaf<AtMention>(a);
 }
 
 SemId<CmdArgument> OrgConverter::convertCmdArgument(__args) {
-    SemId<CmdArgument> result = Sem<CmdArgument>(p, a);
+    SemId<CmdArgument> result = Sem<CmdArgument>(a);
     Str                key    = get_text(one(a, N::Name));
     result->value             = get_text(one(a, N::Value));
 
@@ -769,7 +766,7 @@ SemId<CmdArgument> OrgConverter::convertCmdArgument(__args) {
 }
 
 SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
-    SemId<CmdArguments> result  = Sem<CmdArguments>(p, a);
+    SemId<CmdArguments> result  = Sem<CmdArguments>(a);
     auto                add_arg = [&](SemId<CmdArgument> arg) {
         if (arg->key) {
             bool ok = result->named.insert({arg->key.value(), arg}).second;
@@ -781,12 +778,10 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 
     if (a.getKind() == org::CmdArguments) {
         for (auto const& item : one(a, N::Values)) {
-            add_arg(convertCmdArgument(result, item));
+            add_arg(convertCmdArgument(item));
         }
     } else if (a.getKind() == org::InlineStmtList) {
-        for (auto const& it : a) {
-            add_arg(convertCmdArgument(result, it));
-        }
+        for (auto const& it : a) { add_arg(convertCmdArgument(it)); }
     } else {
         CHECK(a.getKind() == org::Empty) << a.treeRepr();
     }
@@ -795,7 +790,7 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 }
 
 SemId<Code> OrgConverter::convertCode(__args) {
-    SemId<Code> result = Sem<Code>(p, a);
+    SemId<Code> result = Sem<Code>(a);
     auto        body   = one(a, N::Body);
 
     return result;
@@ -808,7 +803,7 @@ Vec<SemId<Org>> OrgConverter::flatConvertAttached(__args) {
     aux = [&](OrgAdapter a) {
         SemId res = SemId<Org>::Nil();
         switch (a.kind()) {
-            case org::CommandCaption: res = convertCaption(p, a); break;
+            case org::CommandCaption: res = convertCaption(a); break;
             default:
                 LOG(FATAL)
                     << "TODO unhandled kind $#" % to_string_vec(a.kind());
@@ -832,11 +827,11 @@ SemId<Org> OrgConverter::convert(__args) {
     if (!a.isValid()) {
         LOG(WARNING) << "Invalid node encountered during conversion"
                      << fmt1(a.id);
-        return Sem<Space>(p, a);
+        return Sem<Space>(a);
     }
 
 #define CASE(Kind)                                                        \
-    case org::Kind: return convert##Kind(p, a);
+    case org::Kind: return convert##Kind(a);
     switch (a.kind()) {
         CASE(Newline);
         CASE(StmtList);
@@ -862,36 +857,36 @@ SemId<Org> OrgConverter::convert(__args) {
         CASE(AtMention);
         CASE(Underline);
         case org::SrcInlineCode:
-        case org::SrcCode: return convertCode(p, a);
-        case org::InlineFootnote: return convertFootnote(p, a);
-        case org::BlockExport: return convertExport(p, a);
-        case org::Macro: return convertMacro(p, a);
-        case org::Monospace: return convertMonospace(p, a);
-        case org::CenterBlock: return convertCenter(p, a);
-        case org::Example: return convertExample(p, a);
-        case org::AdmonitionBlock: return convertAdmonitionBlock(p, a);
-        case org::HashTag: return convertHashTag(p, a);
-        case org::Error: return convertParseError(p, a);
-        case org::ListTag: return convert(p, a[0]);
-        case org::InlineMath: return convertMath(p, a);
-        case org::RawLink: return convertLink(p, a);
+        case org::SrcCode: return convertCode(a);
+        case org::InlineFootnote: return convertFootnote(a);
+        case org::BlockExport: return convertExport(a);
+        case org::Macro: return convertMacro(a);
+        case org::Monospace: return convertMonospace(a);
+        case org::CenterBlock: return convertCenter(a);
+        case org::Example: return convertExample(a);
+        case org::AdmonitionBlock: return convertAdmonitionBlock(a);
+        case org::HashTag: return convertHashTag(a);
+        case org::Error: return convertParseError(a);
+        case org::ListTag: return convert(a[0]);
+        case org::InlineMath: return convertMath(a);
+        case org::RawLink: return convertLink(a);
         case org::StaticActiveTime:
         case org::StaticInactiveTime:
         case org::DynamicActiveTime:
-        case org::DynamicInactiveTime: return convertTime(p, a);
-        case org::Quote: return convertMarkQuote(p, a);
-        case org::QuoteBlock: return convertQuote(p, a);
-        case org::Colon: return convertPunctuation(p, a);
-        case org::CommandInclude: return convertInclude(p, a);
-        case org::Symbol: return convertSymbol(p, a);
-        case org::Angle: return convertPlaceholder(p, a);
-        case org::Empty: return Sem<Empty>(p, a);
-        case org::Table: return convertTable(p, a);
-        case org::Footnote: return convertFootnote(p, a);
-        case org::CommandTblfm: return convertTblfm(p, a);
+        case org::DynamicInactiveTime: return convertTime(a);
+        case org::Quote: return convertMarkQuote(a);
+        case org::QuoteBlock: return convertQuote(a);
+        case org::Colon: return convertPunctuation(a);
+        case org::CommandInclude: return convertInclude(a);
+        case org::Symbol: return convertSymbol(a);
+        case org::Angle: return convertPlaceholder(a);
+        case org::Empty: return Sem<Empty>(a);
+        case org::Table: return convertTable(a);
+        case org::Footnote: return convertFootnote(a);
+        case org::CommandTblfm: return convertTblfm(a);
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
-            Vec<SemId<Org>> nested = flatConvertAttached(p, a);
+            Vec<SemId<Org>> nested = flatConvertAttached(a);
             for (const auto& it : nested) { CHECK(!it.isNil()); }
 
             CHECK(!nested.empty()) << "nested command wrap"
@@ -914,7 +909,7 @@ SemId<Org> OrgConverter::convert(__args) {
                 return lastNested;
 
             } else {
-                SemId<CommandGroup> group = Sem<CommandGroup>(p, a);
+                SemId<CommandGroup> group = Sem<CommandGroup>(a);
                 for (const auto& it : nested) {
                     group->attached.push_back(it);
                 }
@@ -922,7 +917,7 @@ SemId<Org> OrgConverter::convert(__args) {
             }
         }
 
-        default: return Sem<Empty>(p, a);
+        default: return Sem<Empty>(a);
     }
 #undef CASE
 }
@@ -966,8 +961,8 @@ void fillDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a) {
 }
 
 SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
-    SemId<Document> doc = Sem<Document>(SemId<Org>::Nil(), adapter);
-    doc->options        = Sem<DocumentOptions>(doc, adapter);
+    SemId<Document> doc = Sem<Document>(adapter);
+    doc->options        = Sem<DocumentOptions>(adapter);
     using Prop          = Subtree::Property;
 
     if (adapter.kind() == org::StmtList) {
@@ -978,7 +973,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
                 case org::CommandTitle: {
-                    doc->title = convertParagraph(doc, sub[0]);
+                    doc->title = convertParagraph(sub[0]);
                     break;
                 }
                 case org::CommandOptions: {
@@ -1020,13 +1015,13 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
                 default: {
-                    doc->subnodes.push_back(convert(doc, sub));
+                    doc->subnodes.push_back(convert(sub));
                     break;
                 }
             }
         }
     } else {
-        doc->subnodes.push_back(convert(doc, adapter));
+        doc->subnodes.push_back(convert(adapter));
     }
 
     return doc;
