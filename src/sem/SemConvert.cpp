@@ -94,6 +94,18 @@ SemId<HashTag> OrgConverter::convertHashTag(__args) {
     return result;
 };
 
+template <sem::IsOrg T>
+Vec<SemId<T>> filter_subnodes(sem::OrgArg node, CR<SemSet> limiter) {
+    return node->subnodes //
+         | rv::take_while([&limiter](sem::OrgArg arg) {
+               return limiter.contains(arg->getKind());
+           })
+         | rv::remove_if(
+               [](sem::OrgArg arg) { return !arg->is(T::staticKind); })
+         | rv::transform([](OrgArg arg) { return arg.as<T>(); })
+         | rs::to<Vec>();
+}
+
 SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     __perf_trace("convert", "convertSubtreeLog");
     auto log = Sem<SubtreeLog>(a);
@@ -102,32 +114,23 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     using Entry          = SubtreeLog::LogEntry;
     using Log            = SubtreeLog;
     SemId<ListItem> item = convertListItem(a);
+    SemId<Org>      par0 = item->at(0);
 
-    auto get_subkind = [&](osk kind) {
-        return item->at(0)->subnodes //
-             | rv::take_while([](sem::OrgArg arg) {
-                   return !(arg->is(osk::Newline));
-               }) //
-             | rv::remove_if(
-                   [kind](sem::OrgArg arg) { return !arg->is(kind); });
-    };
+    SemSet limit{osk::Newline};
 
-
-    Vec<Str> words = get_subkind(osk::Word)
-                   | rv::transform([](OrgArg arg) {
-                         return normalize(arg.as<Word>()->text);
-                     })
-                   | rs::to<Vec>();
-
+    Vec<Str> words = //
+        own_view(filter_subnodes<Word>(par0, limit))
+        | rv::transform(
+            [](OrgArg arg) { return normalize(arg.as<Word>()->text); })
+        | rs::to<Vec>();
 
     if (words.empty()) {
-        Vec<SemId<Org>> times = item->at(0)->subnodes
-                              | rv::remove_if([](sem::OrgArg arg) {
-                                    return !(
-                                        arg->is(osk::Time)
-                                        || arg->is(osk::TimeRange));
-                                })
-                              | rs::to<Vec>();
+        Vec<SemId<Org>> times =   //
+            item->at(0)->subnodes //
+            | rv::remove_if([](sem::OrgArg arg) {
+                  return !(arg->is(osk::Time) || arg->is(osk::TimeRange));
+              })
+            | rs::to<Vec>();
 
         auto clock = Log::Clock{};
         if (times.at(0)->is(osk::Time)) {
@@ -137,22 +140,13 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
         }
 
         log->log = clock;
-
     } else {
-
-        Vec<SemId<Time>> times = get_subkind(osk::Time)
-                               | rv::transform([](OrgArg arg) {
-                                     return arg.as<Time>();
-                                 })
-                               | rs::to<Vec>();
+        Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
 
         if (words.at(0) == "tag") {
             auto                tag  = Log::Tag{};
-            Vec<SemId<HashTag>> tags = get_subkind(osk::HashTag)
-                                     | rv::transform([](OrgArg arg) {
-                                           return arg.as<HashTag>();
-                                       })
-                                     | rs::to<Vec>();
+            Vec<SemId<HashTag>> tags = filter_subnodes<HashTag>(
+                par0, limit);
 
             tag.tag = tags.at(0);
             tag.on  = times.at(0);
@@ -165,17 +159,30 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             log->log = tag;
 
         } else if (words.at(0) == "state") {
-            Vec<Str> big_idents = get_subkind(osk::BigIdent)
-                                | rv::transform([](OrgArg arg) {
-                                      return arg.as<BigIdent>()->text;
-                                  })
-                                | rs::to<Vec>();
+            Vec<Str> big_idents = //
+                own_view(filter_subnodes<BigIdent>(par0, limit))
+                | rv::transform(
+                    [](SemId<BigIdent> arg) { return arg->text; })
+                | rs::to<Vec>();
 
             auto states = Log::State{};
             states.from = big_idents.at(0);
             if (1 < big_idents.size()) { states.to = big_idents.at(1); }
             states.on = times.at(0);
             log->log  = states;
+
+            LOG(FATAL) << ExporterTree::treeRepr(item).toString();
+
+
+        } else if (words.at(0) == "refiled") {
+            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
+            Vec<SemId<Link>> link  = filter_subnodes<Link>(par0, limit);
+
+            auto refile = Log::Refile{};
+            refile.on   = times.at(0);
+            refile.from = link.at(0);
+
+            log->log = refile;
 
         } else {
             LOG(FATAL) << ExporterTree::treeRepr(item).toString();

@@ -380,13 +380,40 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
             switch (log->getLogKind()) {
                 case Log::Kind::Tag: {
                     auto const& tag = log->getTag();
-                    log_head        = b.line({
+
+                    log_head = b.line({
                         str("- Tag \""),
                         toString(tag.tag),
                         str("\""),
                         str(tag.added ? " Added" : " Removed"),
                         str(" on "),
                         toString(tag.on),
+                    });
+
+                    break;
+                }
+
+                case Log::Kind::Refile: {
+                    auto const& refile = log->getRefile();
+
+                    log_head = b.line({
+                        str("- Refiled on "),
+                        toString(refile.on),
+                        str(" from "),
+                        toString(refile.from),
+                    });
+
+                    break;
+                }
+
+                case Log::Kind::Clock: {
+                    auto const& clock = log->getClock();
+
+                    log_head = b.line({
+                        str("CLOCK: "),
+                        clock.range.index() == 0
+                            ? toString(std::get<0>(clock.range))
+                            : toString(std::get<1>(clock.range)),
                     });
 
                     break;
