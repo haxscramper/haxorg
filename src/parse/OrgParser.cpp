@@ -1003,7 +1003,11 @@ OrgId OrgParser::parseExample(OrgLexer& lex) {
 
     { // command content
         while (lex.at(OrgTokSet{otk::CmdExampleLine, otk::Newline})) {
-            token(org::RawText, pop(lex));
+            if (lex.at(Vec{otk::Newline, otk::CmdPrefix})) {
+                skip(lex);
+            } else {
+                token(org::RawText, pop(lex));
+            }
         }
     }
 

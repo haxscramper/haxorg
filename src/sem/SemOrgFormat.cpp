@@ -35,6 +35,21 @@ auto Formatter::toString(SemId<Macro> id) -> Res {
     }
 }
 
+std::string nestedHashtag(sem::SemId<sem::HashTag> const& hash) {
+    if (hash->subtags.empty()) {
+        return hash->head;
+    } else {
+        return hash->head + "##["
+             + (hash->subtags                  //
+                | rv::transform(nestedHashtag) //
+                | rv::intersperse(",")         //
+                | rv::join                     //
+                | rs::to<std::string>()        //
+                )
+             + "]";
+    }
+}
+
 auto Formatter::toString(SemId<Document> id) -> Res {
     Res result = b.stack();
 
@@ -52,7 +67,7 @@ auto Formatter::toString(SemId<Document> id) -> Res {
                          id->filetags
                          | rv::transform(
                              [&](CR<SemId<HashTag>> tag) -> Res {
-                                 return toString(tag);
+                                 return str(nestedHashtag(tag));
                              })),
                      str(":")),
                  str(":")}));
@@ -121,6 +136,11 @@ auto Formatter::toString(SemId<Link> id) -> Res {
             head = str("person:" + id->getPerson().name);
             break;
         }
+        case Link::Kind::File: {
+            head = str("file:" + id->getFile().file);
+            break;
+        }
+
         default: {
             LOG(FATAL) << fmt1(id->getLinkKind());
         }
@@ -208,24 +228,9 @@ auto Formatter::toString(SemId<BigIdent> id) -> Res {
     return str(id->text);
 }
 
-auto Formatter::toString(SemId<HashTag> id) -> Res {
-    std::function<std::string(sem::SemId<sem::HashTag> const& hash)> aux;
-    aux = [&aux](sem::SemId<sem::HashTag> const& hash) -> std::string {
-        if (hash->subtags.empty()) {
-            return "#" + hash->head;
-        } else {
-            return hash->head + "##["
-                 + (hash->subtags           //
-                    | rv::transform(aux)    //
-                    | rv::intersperse(",")  //
-                    | rv::join              //
-                    | rs::to<std::string>() //
-                    )
-                 + "]";
-        }
-    };
 
-    return str(aux(id));
+auto Formatter::toString(SemId<HashTag> id) -> Res {
+    return str("#" + nestedHashtag(id));
 }
 
 auto Formatter::toString(SemId<MarkQuote> id) -> Res {
@@ -233,8 +238,7 @@ auto Formatter::toString(SemId<MarkQuote> id) -> Res {
 }
 
 auto Formatter::toString(SemId<TextSeparator> id) -> Res {
-
-    return str(__PRETTY_FUNCTION__);
+    return str("------------");
 }
 
 auto Formatter::toString(SemId<Time> id) -> Res {
@@ -368,7 +372,9 @@ auto Formatter::toString(SemId<FileTarget> id) -> Res {
 
 auto Formatter::toString(SemId<Export> id) -> Res {
     return b.stack(Vec<Res>::Splice(
-        str("#+begin_export"), toSubnodes(id), str("#+end_export")));
+        str("#+begin_export " + id->exporter),
+        toSubnodes(id),
+        str("#+end_export")));
 }
 
 auto Formatter::toString(SemId<Example> id) -> Res {

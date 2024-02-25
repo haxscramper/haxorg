@@ -782,19 +782,6 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             formatter.store.toTreeRepr(fmt_result));
         writeFile(rerun.debugFile("org2_format.org"), rerun.source);
         writeFile(rerun.debugFile("org2_source.org"), spec.source);
-
-        auto read = [](char c) { return visibleName(c).first; };
-
-        writeFile(
-            rerun.debugFile("org2_format_array.org"),
-            fmt1(
-                rerun.source | rv::transform(read)
-                | rs::to<std::vector>()));
-        writeFile(
-            rerun.debugFile("org2_source_array.org"),
-            fmt1(
-                spec.source | rv::transform(read)
-                | rs::to<std::vector>()));
     }
 
     runSpecBaseLex(p2, rerun);
@@ -803,6 +790,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     auto reformat_result = runSpecSem(p2, rerun);
     if (!reformat_result.isOk || spec.debug.traceAll
         || spec.debug.printSem) {
+
+        auto read = [](char c) { return visibleName(c).first; };
+
         writeFile(
             rerun.debugFile("sem2_expected.yaml"),
             fmt1(toTestYaml(p.node)));
@@ -812,7 +802,59 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
         writeFile(
             rerun.debugFile("sem2_reformat_fail.txt"),
-            reformat_result.failDescribe.toString(false));
+            R"(
+
+source:
+
+${split}
+${source}
+${split}
+
+formatted:
+
+${split}
+${formatted}
+${split}
+
+sourcearray:
+
+${split}
+${sourcearray}
+${split}
+
+formattedarray:
+
+${split}
+${formattedarray}
+${split}
+
+blocks:
+
+${split}
+${blocks}
+${split}
+
+fail:
+
+${split}
+${fail}
+${split}
+)"
+                % fold_format_pairs({
+                    {"split", Str("-").repeated(60)},
+                    {"blocks", formatter.store.toTreeRepr(fmt_result)},
+                    {"source", spec.source},
+                    {"formatted", rerun.source},
+                    {"formattedarray",
+                     fmt1(
+                         rerun.source | rv::transform(read)
+                         | rs::to<std::vector>())},
+                    {"sourcearray",
+                     fmt1(
+                         spec.source | rv::transform(read)
+                         | rs::to<std::vector>())},
+                    {"fail", reformat_result.failDescribe.toString(false)},
+                }));
     }
 
     if (!reformat_result.isOk) { return RunResult{reformat_result}; }

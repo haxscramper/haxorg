@@ -425,12 +425,24 @@ struct RecombineState {
                 break;
             }
 
-                // case otk::Escaped: {
-                //     add_fake(otk::Escaped,
-                //     loc_fill(tok->text.substr(1)));
-                //     pop_as(otk::Escaped);
-                //     break;
-                // }
+            case otk::At: {
+                add_fake(
+                    otk::At, loc_fill(lex.tok().value.text.substr(1)));
+                lex.next();
+                break;
+            }
+
+            case otk::LinkTarget: {
+                if (lex.tok().value.text.starts_with(':')) {
+                    add_fake(
+                        otk::LinkTarget,
+                        loc_fill(lex.tok().value.text.substr(1)));
+                    lex.next();
+                } else {
+                    pop_as(otk::LinkTarget);
+                }
+                break;
+            }
 
             case otk::Plus:
             case otk::ForwardSlash:

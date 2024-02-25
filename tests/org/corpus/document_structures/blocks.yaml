@@ -8,3 +8,6 @@ items:
       [[file:../../fic.images/images_20220622-173100_screenshot.png]]
       #+end_center
 
+    debug:
+      traceAll: true
+

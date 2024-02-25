@@ -269,7 +269,7 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Todo, a);
         auto todo    = one(a, N::Todo);
-        if (!todo.empty()) { tree->todo = get_text(todo); }
+        if (todo.getKind() != org::Empty) { tree->todo = get_text(todo); }
     }
 
     {
@@ -421,7 +421,7 @@ SemId<Macro> OrgConverter::convertMacro(__args) {
     __perf_trace("convert", "convertMacro");
     auto __trace = trace(a);
     auto macro   = Sem<Macro>(a);
-
+    macro->name  = get_text(one(a, N::Name));
 
     return macro;
 }
@@ -684,7 +684,12 @@ SemId<Underline> OrgConverter::convertUnderline(__args) {
 }
 
 SemId<Example> OrgConverter::convertExample(__args) {
-    return convertAllSubnodes<Example>(a);
+    SemId<Example> result = Sem<Example>(a);
+    for (auto const& it : many(a, N::Body)) {
+        result->subnodes.push_back(convert(it));
+    }
+
+    return result;
 }
 
 SemId<Export> OrgConverter::convertExport(__args) {
