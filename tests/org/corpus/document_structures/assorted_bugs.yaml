@@ -167,8 +167,6 @@ items:
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
     # Double nested quote does not work though 
-    debug:
-      traceAll: true
     source: |
       - Some text
         - safas
@@ -311,8 +309,6 @@ items:
       [[file:notes.images/2023-03-30_17-27.png]]
 
   - name: "Not a time range"
-    debug:
-      traceAll: true
     source: |
       [2023-08-02 Wed 13:39:46 +04] -- [2023-08-02 Wed 13:39:46 +04]
 
@@ -539,8 +535,6 @@ items:
       Monday/[2022-03-07 Mon 14:58:22]]]
 
   - name: "Timestamp repeaters"
-    debug:
-      traceAll: true
     source: |
       * TODO V
         SCHEDULED: <2023-09-18 Mon 11:00:00 +04 +1d>

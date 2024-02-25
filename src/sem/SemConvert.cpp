@@ -161,12 +161,13 @@ void OrgConverter::convertSubtreeDrawer(SemId<Subtree>& tree, In a) {
 
 void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
     __perf_trace("convert", "convertPropertyList");
-    auto __trace = trace(a);
 
     std::string name = normalize(
         strip(get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'}));
 
-    Opt<Property> result;
+    auto __trace = trace(a, fmt("property-{}", name));
+
+    Property result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
         res.backend = get_text(one(a, N::Subname));
@@ -182,10 +183,11 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 
     } else if (name == "created") {
         Property::Created created;
-        auto              par = convertParagraph(one(a, N::Values));
+        auto              par  = convertParagraph(one(a, N::Values));
+        auto              par0 = par->at(0);
 
-        if (par->at(0)->is(osk::Time)) {
-            created.time = par->at(0).as<sem::Time>();
+        if (par0->is(osk::Time)) {
+            created.time = par0.as<sem::Time>();
             result       = Property(created);
         } else {
             LOG(ERROR)
@@ -228,30 +230,30 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         result     = Property(prop);
     }
 
-    if (false && result) {
+    if (false) {
         const auto inh = get_text(one(a, N::InheritanceMode));
         if (inh == "!!") {
-            result->inheritanceMode = Property::InheritanceMode::OnlyThis;
+            result.inheritanceMode = Property::InheritanceMode::OnlyThis;
         } else if (inh == "!") {
-            result->inheritanceMode = Property::InheritanceMode::OnlySub;
+            result.inheritanceMode = Property::InheritanceMode::OnlySub;
         }
 
         const auto sub = get_text(one(a, N::SubSetRule));
         if (sub == "+") {
-            result->subSetRule = Property::SetMode::Add;
+            result.subSetRule = Property::SetMode::Add;
         } else if (sub == "-") {
-            result->subSetRule = Property::SetMode::Subtract;
+            result.subSetRule = Property::SetMode::Subtract;
         }
 
         const auto main = get_text(one(a, N::MainSetRule));
         if (main == "+") {
-            result->subSetRule = Property::SetMode::Add;
+            result.subSetRule = Property::SetMode::Add;
         } else if (main == "-") {
-            result->subSetRule = Property::SetMode::Subtract;
+            result.subSetRule = Property::SetMode::Subtract;
         }
-
-        tree->properties.push_back(*result);
     }
+
+    tree->properties.push_back(result);
 }
 
 SemId<Subtree> OrgConverter::convertSubtree(__args) {
@@ -801,6 +803,10 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 SemId<Code> OrgConverter::convertCode(__args) {
     SemId<Code> result = Sem<Code>(a);
     auto        body   = one(a, N::Body);
+
+    if (one(a, N::Lang).getKind() != org::Empty) {
+        result->lang = get_text(one(a, N::Lang));
+    }
 
     return result;
 }

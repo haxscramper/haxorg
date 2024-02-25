@@ -277,8 +277,6 @@ items:
       - {kind: ListEnd}
 
   - name: "Indent and dedent long list"
-    debug:
-      traceAll: true
     source: |
         - item1
         - item2

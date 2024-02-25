@@ -19,6 +19,10 @@
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
 
+bool enableFullTraceOnCli = false;
+void enable_full_trace_on_cli() { enableFullTraceOnCli = true; }
+
+
 Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
 
@@ -204,6 +208,7 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 
 TEST_P(ParseFile, CorpusAll) {
     TestParams params = GetParam();
+    if (enableFullTraceOnCli) { params.spec.debug.traceAll = true; }
     gtest_run_spec(params);
 }
 

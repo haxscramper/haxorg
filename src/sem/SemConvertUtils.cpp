@@ -100,6 +100,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         case ReportKind::EnterField: {
             os << "{ " << fmt1(in.field.value()) << fmt(" @{}", in.line)
                << " " << getLoc();
+            if (in.msg) { os << " " << *in.msg; }
             break;
         }
 
@@ -121,9 +122,10 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
             }
 
             os << " " << getLoc();
+            if (in.msg) { os << " " << *in.msg; }
             if (in.node.has_value() && in.node->isValid()
                 && in.node->get().isTerminal()) {
-                os << escape_literal(in.node->val().text);
+                os << " " << escape_literal(in.node->val().text);
             }
             break;
         }
@@ -199,13 +201,13 @@ finally OrgConverter::trace(
 
         return finally{[this, line, function, adapter, subname]() {
             report(Builder(
-                        OrgConverter::ReportKind::Leave,
-                        nullptr,
-                        line,
-                        function)
-                        .with_node(adapter)
-                        .with_msg(subname)
-                        .report);
+                       OrgConverter::ReportKind::Leave,
+                       nullptr,
+                       line,
+                       function)
+                       .with_node(adapter)
+                       .with_msg(subname)
+                       .report);
         }};
 
     } else {

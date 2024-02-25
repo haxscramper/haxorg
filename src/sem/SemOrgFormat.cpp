@@ -50,6 +50,16 @@ std::string nestedHashtag(sem::SemId<sem::HashTag> const& hash) {
     }
 }
 
+Formatter::Res colonHashtags(Formatter* f, CVec<SemId<HashTag>> tags) {
+    return f->b.join(
+        Vec<Formatter::Res>::Splice(
+            tags
+            | rv::transform([&](CR<SemId<HashTag>> tag) -> Formatter::Res {
+                  return f->str(nestedHashtag(tag));
+              })),
+        f->str(":"));
+}
+
 auto Formatter::toString(SemId<Document> id) -> Res {
     Res result = b.stack();
 
@@ -62,14 +72,7 @@ auto Formatter::toString(SemId<Document> id) -> Res {
             result,
             b.line(
                 {str("#+filetags: :"),
-                 b.join(
-                     Vec<Res>::Splice(
-                         id->filetags
-                         | rv::transform(
-                             [&](CR<SemId<HashTag>> tag) -> Res {
-                                 return str(nestedHashtag(tag));
-                             })),
-                     str(":")),
+                 colonHashtags(this, id->filetags),
                  str(":")}));
     }
 
@@ -318,20 +321,62 @@ auto Formatter::toString(SemId<InlineMath> id) -> Res {
 auto Formatter::toString(SemId<Subtree> id) -> Res {
     Res result = b.stack();
 
-    Res head = b.line({
-        str(std::string(id->level, '*')),
-        str(" "),
+    Res title = b.line({
         id->todo ? str(id->todo.value() + Str(" ")) : str(""),
         toString(id->title),
     });
 
-    b.add_at(result, head);
+    if (!id->tags.empty()) {
+        b.add_at(title, str(" :"));
+        b.add_at(title, colonHashtags(this, id->tags));
+        b.add_at(title, str(":"));
+    }
+
+    Res head = b.stack({title});
 
     if (id->scheduled) {
         b.add_at(
-            result,
-            b.line({str("SCHEDULED: "), toString(*id->scheduled)}));
+            head, b.line({str("SCHEDULED: "), toString(*id->scheduled)}));
     }
+
+    if (id->deadline) {
+        b.add_at(
+            head, b.line({str("DEADLINE: "), toString(*id->deadline)}));
+    }
+
+    if (id->closed) {
+        b.add_at(head, b.line({str("CLOSED: "), toString(*id->closed)}));
+    }
+
+    if (!id->properties.empty()) {
+        b.add_at(head, str(":PROPERTIES:"));
+        for (auto const& prop : id->properties) {
+            using P = sem::Subtree::Property;
+            switch (prop.getKind()) {
+                case P::Kind::Created: {
+                    b.add_at(
+                        head,
+                        b.line(
+                            {str(":CREATED: "),
+                             toString(prop.getCreated().time)}));
+                    break;
+                }
+                default: {
+                    LOG(FATAL) << fmt1(prop.getKind());
+                }
+            }
+        }
+
+        b.add_at(head, str(":END:"));
+    }
+
+    b.add_at(
+        result,
+        b.line({
+            str(std::string(id->level, '*')),
+            str(" "),
+            head,
+        }));
 
     if (!id->subnodes.empty()) { add_subnodes(result, id.asOrg()); }
 

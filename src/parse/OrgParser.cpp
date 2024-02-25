@@ -1028,11 +1028,10 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
     {
         space(lex);
         if (lex.at(otk::CmdRawArg)) {
-            const auto lang = pop(lex, otk::CmdRawArg);
             if (lex.val().text.empty()) {
                 empty();
             } else {
-                token(org::Ident, lang);
+                token(org::Ident, pop(lex, otk::CmdRawArg));
             }
         } else {
             empty();

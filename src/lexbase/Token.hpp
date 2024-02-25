@@ -438,7 +438,10 @@ struct LexerCommon {
             return false;
         } else {
             for (const auto& [idx, kind] : enumerate(kind)) {
-                if (tok(idx + offset).kind != kind) { return false; }
+                if (!hasNext(idx + offset)
+                    || tok(idx + offset).kind != kind) {
+                    return false;
+                }
             }
             return true;
         }

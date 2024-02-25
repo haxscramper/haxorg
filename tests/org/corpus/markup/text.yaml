@@ -34,8 +34,6 @@ items:
 
   - name: "Symbol"
     source: "\\symbol{}"
-    debug:
-      traceAll: true
     sem:
       kind: Document
       subnodes:

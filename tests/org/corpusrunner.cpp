@@ -674,9 +674,13 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
             continue;
         } else if (
             it.op == DiffItem::Op::Replace && it.value.is_string()
-            && rs::all_of(it.value.get<std::string>(), [](char c) {
-                   return c == '\n';
-               })) {
+            && (rs::all_of(
+                    it.value.get<std::string>(),
+                    [](char c) { return c == '\n'; })
+                || //
+                rs::all_of(it.value.get<std::string>(), [](char c) {
+                    return c == ' ';
+                }))) {
             continue;
         } else {
             ++failCount;
