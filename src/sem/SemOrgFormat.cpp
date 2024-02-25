@@ -38,6 +38,8 @@ auto Formatter::toString(SemId<Macro> id) -> Res {
 std::string nestedHashtag(sem::SemId<sem::HashTag> const& hash) {
     if (hash->subtags.empty()) {
         return hash->head;
+    } else if (hash->subtags.size() == 1) {
+        return hash->head + "##" + nestedHashtag(hash->subtags.at(0));
     } else {
         return hash->head + "##["
              + (hash->subtags                  //
@@ -367,6 +369,35 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
             }
         }
 
+        b.add_at(head, str(":END:"));
+    }
+
+    if (!id->logbook.empty()) {
+        b.add_at(head, str(":LOGBOOK:"));
+        for (auto const& log : id->logbook) {
+            using Log    = sem::SubtreeLog;
+            Res log_head = str("");
+            switch (log->getLogKind()) {
+                case Log::Kind::Tag: {
+                    auto const& tag = log->getTag();
+                    log_head        = b.line({
+                        str("- Tag \""),
+                        toString(tag.tag),
+                        str("\""),
+                        str(tag.added ? " Added" : " Removed"),
+                        str(" on "),
+                        toString(tag.on),
+                    });
+
+                    break;
+                }
+                default: {
+                    LOG(FATAL) << fmt1(log->getLogKind());
+                }
+            }
+
+            b.add_at(head, log_head);
+        }
         b.add_at(head, str(":END:"));
     }
 

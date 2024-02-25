@@ -31,6 +31,7 @@ template <typename T>
 class Vec : public std::vector<T> {
   public:
     using Base = std::vector<T>;
+    using Base::Base;
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
     Vec(Vec<T> const& init) : std::vector<T>(init) {}
 
