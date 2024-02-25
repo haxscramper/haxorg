@@ -375,11 +375,13 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
     if (!id->logbook.empty()) {
         b.add_at(head, str(":LOGBOOK:"));
         for (auto const& log : id->logbook) {
-            using Log    = sem::SubtreeLog;
-            Res log_head = str("");
+            using Log                     = sem::SubtreeLog;
+            Res                  log_head = str("");
+            Opt<SemId<StmtList>> desc;
             switch (log->getLogKind()) {
                 case Log::Kind::Tag: {
                     auto const& tag = log->getTag();
+                    if (tag.desc) { desc = tag.desc; }
 
                     log_head = b.line({
                         str("- Tag \""),
@@ -395,12 +397,31 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
 
                 case Log::Kind::Refile: {
                     auto const& refile = log->getRefile();
+                    if (refile.desc) { desc = refile.desc; }
 
                     log_head = b.line({
                         str("- Refiled on "),
                         toString(refile.on),
                         str(" from "),
                         toString(refile.from),
+                    });
+
+                    break;
+                }
+
+                case Log::Kind::State: {
+                    auto const& state = log->getState();
+                    if (state.desc) {
+                        CHECK(!state.desc->isNil());
+                        desc = state.desc;
+                    }
+
+                    log_head = b.line({
+                        str(
+                            fmt("- State \"{}\" from \"{}\" ",
+                                state.from,
+                                state.to)),
+                        toString(state.on),
                     });
 
                     break;
@@ -423,7 +444,15 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
                 }
             }
 
-            b.add_at(head, log_head);
+            if (desc) {
+                b.add_at(log_head, str(" \\\\"));
+                CHECK(!desc.value().isNil()) << fmt1(log->getLogKind());
+                b.add_at(head, log_head);
+                b.add_at(
+                    head, b.indent(2, b.stack(toSubnodes(desc.value()))));
+            } else {
+                b.add_at(head, log_head);
+            }
         }
         b.add_at(head, str(":END:"));
     }

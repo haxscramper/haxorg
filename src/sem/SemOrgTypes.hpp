@@ -923,7 +923,7 @@ struct SubtreeLog : public sem::Org {
     DescribedLog() {}
     BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
     /// \brief Optional description of the log entry
-    Opt<sem::SemId<sem::StmtList>> desc = SemId<StmtList>::Nil();
+    Opt<sem::SemId<sem::StmtList>> desc = std::nullopt;
   };
 
   /// \brief Priority added

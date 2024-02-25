@@ -98,7 +98,7 @@ template <sem::IsOrg T>
 Vec<SemId<T>> filter_subnodes(sem::OrgArg node, CR<SemSet> limiter) {
     return node->subnodes //
          | rv::take_while([&limiter](sem::OrgArg arg) {
-               return limiter.contains(arg->getKind());
+               return !limiter.contains(arg->getKind());
            })
          | rv::remove_if(
                [](sem::OrgArg arg) { return !arg->is(T::staticKind); })
@@ -171,9 +171,6 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             states.on = times.at(0);
             log->log  = states;
 
-            LOG(FATAL) << ExporterTree::treeRepr(item).toString();
-
-
         } else if (words.at(0) == "refiled") {
             Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link  = filter_subnodes<Link>(par0, limit);
@@ -187,6 +184,37 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
         } else {
             LOG(FATAL) << ExporterTree::treeRepr(item).toString();
         }
+    }
+
+    auto description = //
+        par0->subnodes //
+        | rv::drop_while([](sem::OrgArg arg) {
+              return !(
+                  arg->is(osk::Punctuation)
+                  && arg.as<Punctuation>()->text == "\\\\");
+          })
+        | rv::drop(1) //
+        | rv::drop_while([](sem::OrgArg arg) {
+              return arg->is(osk::Newline) || arg->is(osk::Space);
+          })
+        | rs::to<Vec>();
+
+    if (!description.empty() || 1 < item->subnodes.size()) {
+        SemId<StmtList> desc = SemId<StmtList>::New();
+        if (!description.empty()) {
+            SemId<Paragraph> para = SemId<Paragraph>::New();
+            for (auto const& it : description) { para->push_back(it); }
+            desc->push_back(para);
+        }
+
+        if (1 < item->subnodes.size()) {
+            for (int i = 1; i < item->subnodes.size(); ++i) {
+                desc->push_back(item->subnodes.at(i));
+            }
+        }
+
+        CHECK(!desc.isNil());
+        log->setDescription(desc);
     }
 
 

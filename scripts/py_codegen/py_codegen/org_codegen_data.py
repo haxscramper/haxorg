@@ -746,11 +746,10 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuStruct(t("DescribedLog"),
                             GenTuDoc("Base value for the log variant"),
                             fields=[
-                                GenTuField(
-                                    t_opt(t_id("StmtList")),
+                                opt_field(
+                                    t_id("StmtList"),
                                     "desc",
                                     GenTuDoc("Optional description of the log entry"),
-                                    value="SemId<StmtList>::Nil()",
                                 )
                             ],
                             nested=[GenTuPass("DescribedLog() {}")]),
@@ -1642,8 +1641,9 @@ def get_enums():
                 GenTuEnumField("CommandAttrImage", GenTuDoc("`#+attr_image:`")),
                 GenTuEnumField("CommandName",
                                GenTuDoc("`#+name:` - name of the associated entry")),
-                GenTuEnumField("CommandResults",
-                               GenTuDoc("`#+results:` - source code block evaluation results")),
+                GenTuEnumField(
+                    "CommandResults",
+                    GenTuDoc("`#+results:` - source code block evaluation results")),
                 GenTuEnumField(
                     "CommandHeader",
                     GenTuDoc(
@@ -1717,15 +1717,11 @@ def get_enums():
                 ),
                 GenTuEnumField(
                     "InlineCallCode",
-                    GenTuDoc(
-                        "Call to named source code block."
-                    ),
+                    GenTuDoc("Call to named source code block."),
                 ),
                 GenTuEnumField(
                     "CmdCallCode",
-                    GenTuDoc(
-                        "Call to named source code block."
-                    ),
+                    GenTuDoc("Call to named source code block."),
                 ),
                 GenTuEnumField(
                     "PassCode",

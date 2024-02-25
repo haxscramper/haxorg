@@ -669,8 +669,11 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         if (!path.empty() && it.op == DiffItem::Op::Remove) {
             continue;
         } else if (
-            it.op == DiffItem::Op::Add && it.value.is_object()
-            && it.value["kind"] == "Newline") {
+            it.op == DiffItem::Op::Add       //
+            && it.value.is_object()          //
+            && it.value.contains("kind")     //
+            && it.value["kind"] == "Newline" //
+        ) {
             continue;
         } else if (
             it.op == DiffItem::Op::Replace && it.value.is_string()
