@@ -206,74 +206,6 @@ enum OrgNodeKind {
   OrgNodeKind_Target_f                                                              = 136;
 }
 
-enum OrgBigIdentKind {
-  OrgBigIdentKind_None_f                                                            = 0;
-  OrgBigIdentKind_Must_f                                                            = 1;
-  OrgBigIdentKind_MustNot_f                                                         = 2;
-  OrgBigIdentKind_Should_f                                                          = 3;
-  OrgBigIdentKind_ShouldNot_f                                                       = 4;
-  OrgBigIdentKind_Required_f                                                        = 5;
-  OrgBigIdentKind_Optional_f                                                        = 6;
-  OrgBigIdentKind_ReallyShouldNot_f                                                 = 7;
-  OrgBigIdentKind_OughtTo_f                                                         = 8;
-  OrgBigIdentKind_WouldProbably_f                                                   = 9;
-  OrgBigIdentKind_MayWishTo_f                                                       = 10;
-  OrgBigIdentKind_Could_f                                                           = 11;
-  OrgBigIdentKind_Might_f                                                           = 12;
-  OrgBigIdentKind_Possible_f                                                        = 13;
-  OrgBigIdentKind_Todo_f                                                            = 14;
-  OrgBigIdentKind_Idea_f                                                            = 15;
-  OrgBigIdentKind_Error_f                                                           = 16;
-  OrgBigIdentKind_Fixme_f                                                           = 17;
-  OrgBigIdentKind_Doc_f                                                             = 18;
-  OrgBigIdentKind_Refactor_f                                                        = 19;
-  OrgBigIdentKind_Review_f                                                          = 20;
-  OrgBigIdentKind_Hack_f                                                            = 21;
-  OrgBigIdentKind_Implement_f                                                       = 22;
-  OrgBigIdentKind_Example_f                                                         = 23;
-  OrgBigIdentKind_Question_f                                                        = 24;
-  OrgBigIdentKind_Assume_f                                                          = 25;
-  OrgBigIdentKind_Internal_f                                                        = 26;
-  OrgBigIdentKind_Design_f                                                          = 27;
-  OrgBigIdentKind_Why_f                                                             = 28;
-  OrgBigIdentKind_Wip_f                                                             = 29;
-  OrgBigIdentKind_Fix_f                                                             = 30;
-  OrgBigIdentKind_Clean_f                                                           = 31;
-  OrgBigIdentKind_Feature_f                                                         = 32;
-  OrgBigIdentKind_Style_f                                                           = 33;
-  OrgBigIdentKind_Repo_f                                                            = 34;
-  OrgBigIdentKind_Skip_f                                                            = 35;
-  OrgBigIdentKind_Break_f                                                           = 36;
-  OrgBigIdentKind_Poc_f                                                             = 37;
-  OrgBigIdentKind_Next_f                                                            = 38;
-  OrgBigIdentKind_Later_f                                                           = 39;
-  OrgBigIdentKind_Postponed_f                                                       = 40;
-  OrgBigIdentKind_Stalled_f                                                         = 41;
-  OrgBigIdentKind_Done_f                                                            = 42;
-  OrgBigIdentKind_Partially_f                                                       = 43;
-  OrgBigIdentKind_Cancelled_f                                                       = 44;
-  OrgBigIdentKind_Failed_f                                                          = 45;
-  OrgBigIdentKind_Note_f                                                            = 46;
-  OrgBigIdentKind_Tip_f                                                             = 47;
-  OrgBigIdentKind_Important_f                                                       = 48;
-  OrgBigIdentKind_Caution_f                                                         = 49;
-  OrgBigIdentKind_Warning_f                                                         = 50;
-  OrgBigIdentKind_UserCodeComment_f                                                 = 51;
-  OrgBigIdentKind_UserCommitMsg_f                                                   = 52;
-  OrgBigIdentKind_UserTaskState_f                                                   = 53;
-  OrgBigIdentKind_UserAdmonition_f                                                  = 54;
-  OrgBigIdentKind_Other_f                                                           = 55;
-  OrgBigIdentKind_StructIf_f                                                        = 56;
-  OrgBigIdentKind_StructAnd_f                                                       = 57;
-  OrgBigIdentKind_StructOr_f                                                        = 58;
-  OrgBigIdentKind_StructNot_f                                                       = 59;
-  OrgBigIdentKind_StructGet_f                                                       = 60;
-  OrgBigIdentKind_StructSet_f                                                       = 61;
-  OrgBigIdentKind_StructThen_f                                                      = 62;
-  OrgBigIdentKind_StructElse_f                                                      = 63;
-  OrgBigIdentKind_StructWhile_f                                                     = 64;
-}
-
 enum OrgSemKind {
   OrgSemKind_StmtList_f                                                             = 0;
   OrgSemKind_Empty_f                                                                = 1;
@@ -741,8 +673,8 @@ message SubtreeLog {
   }
   message State {
     optional StmtList                              desc                             = 1;
-    OrgBigIdentKind                                from                             = 2;
-    OrgBigIdentKind                                to                               = 3;
+    string                                         from                             = 2;
+    string                                         to                               = 3;
     Time                                           on                               = 4;
     string                                         debug                            = 1000;
   }

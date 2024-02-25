@@ -36,9 +36,10 @@ void ExporterTree::visitField(
     }
 }
 
-void ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
-    ColStream os{std::cout};
+ColText ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
+    ColStream os{};
     ExporterTree(os).evalTop(org);
+    return os.getBuffer();
 }
 
 void ExporterTree::treeRepr(
@@ -55,13 +56,14 @@ void ExporterTree::treeRepr(
     }
 }
 
-void ExporterTree::treeRepr(
+ColText ExporterTree::treeRepr(
     sem::SemId<sem::Org> org,
     CR<TreeReprConf>     conf) {
-    ColStream    os{std::cout};
+    ColStream    os{};
     ExporterTree exporter{os};
     exporter.conf = conf;
     exporter.evalTop(org);
+    return os.getBuffer();
 }
 
 void ExporterTree::init(sem::SemId<sem::Org> org) {

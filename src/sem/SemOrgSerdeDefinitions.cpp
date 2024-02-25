@@ -731,8 +731,8 @@ void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(::
 
 void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::write(::orgproto::SubtreeLog::State* out, sem::SubtreeLog::State const& in) {
   proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::DescribedLog>::write(out, in);
-  out->set_from(static_cast<orgproto::OrgBigIdentKind>(in.from));
-  out->set_to(static_cast<orgproto::OrgBigIdentKind>(in.to));
+  proto_serde<std::string, Str>::write(out->mutable_from(), in.from);
+  proto_serde<std::string, Str>::write(out->mutable_to(), in.to);
   if (!in.on.isNil()) {
     proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
   }
@@ -740,8 +740,8 @@ void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::write(:
 
 void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::read(::orgproto::SubtreeLog::State const& out, proto_write_accessor<sem::SubtreeLog::State> in) {
   proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  in.for_field(&sem::SubtreeLog::State::from).get() = static_cast<OrgBigIdentKind>(out.from());
-  in.for_field(&sem::SubtreeLog::State::to).get() = static_cast<OrgBigIdentKind>(out.to());
+  proto_serde<std::string, Str>::read(out.from(), in.for_field(&sem::SubtreeLog::State::from));
+  proto_serde<std::string, Str>::read(out.to(), in.for_field(&sem::SubtreeLog::State::to));
   proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::State::on));
 }
 

@@ -334,73 +334,6 @@ class OrgNodeKind(Enum):
     RadioTarget = 136
     Target = 137
 
-class OrgBigIdentKind(Enum):
-    _None = 1
-    Must = 2
-    MustNot = 3
-    Should = 4
-    ShouldNot = 5
-    Required = 6
-    Optional = 7
-    ReallyShouldNot = 8
-    OughtTo = 9
-    WouldProbably = 10
-    MayWishTo = 11
-    Could = 12
-    Might = 13
-    Possible = 14
-    Todo = 15
-    Idea = 16
-    Error = 17
-    Fixme = 18
-    Doc = 19
-    Refactor = 20
-    Review = 21
-    Hack = 22
-    Implement = 23
-    Example = 24
-    Question = 25
-    Assume = 26
-    Internal = 27
-    Design = 28
-    Why = 29
-    Wip = 30
-    Fix = 31
-    Clean = 32
-    Feature = 33
-    Style = 34
-    Repo = 35
-    Skip = 36
-    Break = 37
-    Poc = 38
-    Next = 39
-    Later = 40
-    Postponed = 41
-    Stalled = 42
-    Done = 43
-    Partially = 44
-    Cancelled = 45
-    Failed = 46
-    Note = 47
-    Tip = 48
-    Important = 49
-    Caution = 50
-    Warning = 51
-    UserCodeComment = 52
-    UserCommitMsg = 53
-    UserTaskState = 54
-    UserAdmonition = 55
-    Other = 56
-    StructIf = 57
-    StructAnd = 58
-    StructOr = 59
-    StructNot = 60
-    StructGet = 61
-    StructSet = 62
-    StructThen = 63
-    StructElse = 64
-    StructWhile = 65
-
 class OrgSemKind(Enum):
     StmtList = 1
     Empty = 2
@@ -717,8 +650,8 @@ class SubtreeLogClock:
     pass
 
 class SubtreeLogState:
-    from_: OrgBigIdentKind
-    to: OrgBigIdentKind
+    from_: str
+    to: str
     on: Time
 
 class SubtreeLogTag:

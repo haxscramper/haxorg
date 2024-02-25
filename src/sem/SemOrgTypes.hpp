@@ -971,8 +971,8 @@ struct SubtreeLog : public sem::Org {
   struct State : public sem::SubtreeLog::DescribedLog {
     State() {}
     BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
-    OrgBigIdentKind from;
-    OrgBigIdentKind to;
+    Str from;
+    Str to;
     sem::SemId<sem::Time> on = SemId<Time>::Nil();
   };
 

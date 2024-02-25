@@ -55,28 +55,6 @@ using N   = OrgSpecName;
 using osk = OrgSemKind;
 
 
-OrgBigIdentKind parseBigIdent(std::string const& id) {
-    using K = OrgBigIdentKind;
-    if (id == "TODO") {
-        return K::Todo;
-    } else if (id == "WIP") {
-        return K::Wip;
-    } else if (id == "COMPLETED") {
-        return K::Done;
-    } else if (id == "DONE") {
-        return K::Done;
-    } else if (id == "CANCELED") {
-        return K::Cancelled;
-    } else if (id == "FAILED") {
-        return K::Failed;
-    } else if (id == "PARTIALLY") {
-        return K::Partially;
-    } else {
-        LOG(WARNING) << "Unexpected value to parse big ident" << id;
-        return K::Done;
-    }
-}
-
 SemId<Table> OrgConverter::convertTable(__args) {
     __perf_trace("convert", "convertTable");
     auto __trace = trace(a);
@@ -120,9 +98,69 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     __perf_trace("convert", "convertSubtreeLog");
     auto log = Sem<SubtreeLog>(a);
 
-    using Entry = SubtreeLog::LogEntry;
-    using Log   = SubtreeLog;
-    // TODO Implement subtree log conversion
+
+    using Entry          = SubtreeLog::LogEntry;
+    using Log            = SubtreeLog;
+    SemId<ListItem> item = convertListItem(a);
+
+    auto is_kind = [](osk kind) {
+        return [kind](sem::OrgArg arg) { return arg->is(kind); };
+    };
+
+    auto get_subkind = [&](osk kind) {
+        return item->subnodes | rv::take(10) | rv::filter(is_kind(kind));
+    };
+
+    std::vector<Str> words = get_subkind(osk::Word)
+                           | rv::transform([](OrgArg arg) {
+                                 LOG(INFO) << ExporterTree::treeRepr(arg)
+                                                  .toString();
+                                 return normalize(arg.as<Word>()->text);
+                             })
+                           | rs::to<std::vector>();
+
+    std::vector<SemId<Time>> times = get_subkind(osk::Time)
+                                   | rv::transform([](OrgArg arg) {
+                                         return arg.as<Time>();
+                                     })
+                                   | rs::to<std::vector>();
+
+
+    if (words.at(0) == "tag") {
+        auto                        tag  = Log::Tag{};
+        std::vector<SemId<HashTag>> tags = get_subkind(osk::HashTag)
+                                         | rv::transform([](OrgArg arg) {
+                                               return arg.as<HashTag>();
+                                           })
+                                         | rs::to<std::vector>();
+
+        tag.tag = tags.at(0);
+        tag.on  = times.at(0);
+        if (words.at(1) == "added") {
+            tag.added = true;
+        } else {
+            tag.added = false;
+        }
+
+        log->log = tag;
+
+    } else if (words.at(0) == "state") {
+        std::vector<Str> big_idents = get_subkind(osk::BigIdent)
+                                    | rv::transform([](OrgArg arg) {
+                                          return arg.as<BigIdent>()->text;
+                                      })
+                                    | rs::to<std::vector>();
+
+        auto states = Log::State{};
+        states.from = big_idents.at(0);
+        if (1 < big_idents.size()) { states.to = big_idents.at(1); }
+        states.on = times.at(0);
+        log->log  = states;
+
+    } else {
+        LOG(FATAL) << ExporterTree::treeRepr(item).toString();
+    }
+
     return log;
 }
 
@@ -139,7 +177,8 @@ void OrgConverter::convertSubtreeDrawer(SemId<Subtree>& tree, In a) {
 
                 case org::Logbook: {
                     for (auto const& entry : group) {
-                        auto log = convertSubtreeLog(entry);
+                        auto list = entry.at(0);
+                        auto log  = convertSubtreeLog(list);
                         tree->logbook.push_back(log);
                     }
                     break;

@@ -830,8 +830,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             ),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
-                                GenTuField(t("OrgBigIdentKind"), "from", GenTuDoc("")),
-                                GenTuField(t("OrgBigIdentKind"), "to", GenTuDoc("")),
+                                GenTuField(t_str(), "from", GenTuDoc("")),
+                                GenTuField(t_str(), "to", GenTuDoc("")),
                                 id_field("Time", "on", GenTuDoc("")),
                             ],
                             nested=[GenTuPass("State() {}")],
@@ -1969,127 +1969,5 @@ def get_enums():
                 GenTuEnumField("Target", GenTuDoc("`<<TARGET>>`")),
             ],
             #endregion
-        ),
-        GenTuEnum(
-            t("OrgBigIdentKind"),
-            GenTuDoc(""),
-            [
-                GenTuEnumField("None", GenTuDoc("")),
-                GenTuEnumField(
-                    "Must",
-                    GenTuDoc(
-                        'MUST This word, or the terms "REQUIRED" or "SHALL", mean that the definition is an absolute requirement of the specification.'
-                    ),
-                ),
-                GenTuEnumField(
-                    "MustNot",
-                    GenTuDoc(
-                        'MUST NOT This phrase, or the phrase "SHALL NOT", mean that the definition is an absolute prohibition of the specification.'
-                    ),
-                ),
-                GenTuEnumField(
-                    "Should",
-                    GenTuDoc(
-                        """SHOULD This word, or the adjective \"RECOMMENDED\", mean that there
-   may exist valid reasons in particular circumstances to ignore a
-   particular item, but the full implications must be understood and
-   carefully weighed before choosing a different course."""),
-                ),
-                GenTuEnumField(
-                    "ShouldNot",
-                    GenTuDoc(
-                        """SHOULD NOT This phrase, or the phrase \"NOT RECOMMENDED\" mean that
-   there may exist valid reasons in particular circumstances when the
-   particular behavior is acceptable or even useful, but the full
-   implications should be understood and the case carefully weighed
-   before implementing any behavior described with this label."""),
-                ),
-                GenTuEnumField("Required", GenTuDoc("")),
-                GenTuEnumField(
-                    "Optional",
-                    GenTuDoc(
-                        """MAY This word, or the adjective \"OPTIONAL\", mean that an item is
-   truly optional. One vendor may choose to include the item because a
-   particular marketplace requires it or because the vendor feels that
-   it enhances the product while another vendor may omit the same
-   item. An implementation which does not include a particular option
-   MUST be prepared to interoperate with another implementation which
-   does include the option, though perhaps with reduced functionality.
-   In the same vein an implementation which does include a particular
-   option MUST be prepared to interoperate with another implementation
-   which does not include the option (except, of course, for the
-   feature the option provides.)"""),
-                ),
-                GenTuEnumField("ReallyShouldNot", GenTuDoc("")),
-                GenTuEnumField("OughtTo", GenTuDoc("")),
-                GenTuEnumField("WouldProbably", GenTuDoc("")),
-                GenTuEnumField("MayWishTo", GenTuDoc("")),
-                GenTuEnumField("Could", GenTuDoc("")),
-                GenTuEnumField("Might", GenTuDoc("")),
-                GenTuEnumField("Possible", GenTuDoc("")),
-                GenTuEnumField("Todo", GenTuDoc("")),
-                GenTuEnumField("Idea", GenTuDoc("")),
-                GenTuEnumField("Error", GenTuDoc("")),
-                GenTuEnumField("Fixme", GenTuDoc("")),
-                GenTuEnumField("Doc", GenTuDoc("")),
-                GenTuEnumField("Refactor", GenTuDoc("")),
-                GenTuEnumField("Review", GenTuDoc("")),
-                GenTuEnumField("Hack", GenTuDoc("")),
-                GenTuEnumField("Implement", GenTuDoc("")),
-                GenTuEnumField("Example", GenTuDoc("")),
-                GenTuEnumField("Question", GenTuDoc("")),
-                GenTuEnumField("Assume", GenTuDoc("")),
-                GenTuEnumField("Internal", GenTuDoc("")),
-                GenTuEnumField("Design", GenTuDoc("")),
-                GenTuEnumField("Why", GenTuDoc("")),
-                GenTuEnumField("Wip", GenTuDoc("")),
-                GenTuEnumField("Fix", GenTuDoc("")),
-                GenTuEnumField("Clean", GenTuDoc("")),
-                GenTuEnumField("Feature", GenTuDoc("")),
-                GenTuEnumField("Style", GenTuDoc("")),
-                GenTuEnumField("Repo", GenTuDoc("")),
-                GenTuEnumField("Skip", GenTuDoc("")),
-                GenTuEnumField("Break", GenTuDoc("")),
-                GenTuEnumField("Poc", GenTuDoc("")),
-                GenTuEnumField("Next", GenTuDoc("")),
-                GenTuEnumField("Later", GenTuDoc("")),
-                GenTuEnumField("Postponed", GenTuDoc("")),
-                GenTuEnumField("Stalled", GenTuDoc("")),
-                GenTuEnumField("Done", GenTuDoc("")),
-                GenTuEnumField("Partially", GenTuDoc("")),
-                GenTuEnumField("Cancelled", GenTuDoc("")),
-                GenTuEnumField("Failed", GenTuDoc("")),
-                GenTuEnumField("Note", GenTuDoc("")),
-                GenTuEnumField("Tip", GenTuDoc("")),
-                GenTuEnumField("Important", GenTuDoc("")),
-                GenTuEnumField("Caution", GenTuDoc("")),
-                GenTuEnumField("Warning", GenTuDoc("")),
-                GenTuEnumField("UserCodeComment",
-                               GenTuDoc("User-defined comment message")),
-                GenTuEnumField("UserCommitMsg",
-                               GenTuDoc("User-defined commit message ident")),
-                GenTuEnumField("UserTaskState", GenTuDoc("User-defined task state")),
-                GenTuEnumField("UserAdmonition",
-                               GenTuDoc("User-defined admonition label")),
-                GenTuEnumField(
-                    "Other",
-                    GenTuDoc("User-defined big-idents, not included in default set.")),
-                # ;; It is not hard to support
-                # ;; https://en.wikipedia.org/wiki/Structured_English keywords. Maybe I
-                # ;; will merge it with haxdoc somehow, maybe not, for not I just placed
-                # ;; them here as a reminder to myself. My current idea is to overlay
-                # ;; semi-structured explanation in the documenation with actual code.
-                # ;; Structured keywords can be used as an anchor points (e.g. `IF` maps
-                # ;; to real condition, `THEN` to the body and so on).
-                GenTuEnumField("StructIf", GenTuDoc("")),
-                GenTuEnumField("StructAnd", GenTuDoc("")),
-                GenTuEnumField("StructOr", GenTuDoc("")),
-                GenTuEnumField("StructNot", GenTuDoc("")),
-                GenTuEnumField("StructGet", GenTuDoc("")),
-                GenTuEnumField("StructSet", GenTuDoc("")),
-                GenTuEnumField("StructThen", GenTuDoc("")),
-                GenTuEnumField("StructElse", GenTuDoc("")),
-                GenTuEnumField("StructWhile", GenTuDoc("")),
-            ],
         ),
     ]
