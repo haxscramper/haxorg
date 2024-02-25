@@ -19,6 +19,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         bool withOriginalId  = true;
         bool withSubnodeIdx  = true;
         bool skipEmptyFields = true;
+        bool skipLocation    = false;
         int  startLevel      = 0;
 
         SemSet skipNodes;
