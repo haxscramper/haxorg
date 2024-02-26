@@ -65,8 +65,11 @@ Formatter::Res colonHashtags(Formatter* f, CVec<SemId<HashTag>> tags) {
 auto Formatter::toString(SemId<Document> id) -> Res {
     Res result = b.stack();
 
+    bool hadDocumentProperties = false;
+
     if (id->title) {
         b.add_at(result, b.line({str("#+title: "), toString(*id->title)}));
+        hadDocumentProperties = true;
     }
 
     if (!id->filetags.empty()) {
@@ -76,12 +79,16 @@ auto Formatter::toString(SemId<Document> id) -> Res {
                 {str("#+filetags: :"),
                  colonHashtags(this, id->filetags),
                  str(":")}));
+        hadDocumentProperties = true;
     }
 
     if (id->author) {
         b.add_at(
             result, b.line({str("#+author: "), toString(*id->author)}));
+        hadDocumentProperties = true;
     }
+
+    if (hadDocumentProperties) { b.add_at(result, str("")); }
 
     for (auto const& sub : id->subnodes) {
         b.add_at(result, toString(sub));
@@ -128,7 +135,16 @@ auto Formatter::toString(SemId<SubtreeLog> id) -> Res {
 
 auto Formatter::toString(SemId<Empty> id) -> Res { return str(""); }
 
-auto Formatter::toString(SemId<Newline> id) -> Res { return str("\n"); }
+auto Formatter::toString(SemId<Newline> id) -> Res {
+
+    auto result = b.stack();
+
+    for (int i = 1; i < id->text.size(); ++i) {
+        b.add_at(result, str(""));
+    }
+
+    return result;
+}
 
 auto Formatter::toString(SemId<Monospace> id) -> Res {
     return b.line(Vec<Res>::Splice(str("~"), toSubnodes(id), str("~")));
@@ -321,7 +337,7 @@ auto Formatter::toString(SemId<InlineMath> id) -> Res {
 }
 
 auto Formatter::toString(SemId<Subtree> id) -> Res {
-    Res result = b.stack();
+
 
     Res title = b.line({
         id->todo ? str(id->todo.value() + Str(" ")) : str(""),
@@ -350,8 +366,12 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
         b.add_at(head, b.line({str("CLOSED: "), toString(*id->closed)}));
     }
 
-    if (!id->properties.empty()) {
+    if (!id->properties.empty() || id->treeId) {
         b.add_at(head, str(":PROPERTIES:"));
+        if (id->treeId) {
+            b.add_at(head, str(fmt(":ID: {}", *id->treeId)));
+        }
+
         for (auto const& prop : id->properties) {
             using P = sem::Subtree::Property;
             switch (prop.getKind()) {
@@ -457,16 +477,16 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
         b.add_at(head, str(":END:"));
     }
 
+    Res result = b.stack();
+
     b.add_at(
         result,
-        b.line({
-            str(std::string(id->level, '*')),
-            str(" "),
-            head,
-        }));
+        b.line({str(std::string(id->level, '*')), str(" "), head}));
 
-    if (!id->subnodes.empty()) { add_subnodes(result, id.asOrg()); }
-
+    if (!id->subnodes.empty()) {
+        b.add_at(result, str(""));
+        add_subnodes(result, id.asOrg());
+    }
 
     return result;
 }

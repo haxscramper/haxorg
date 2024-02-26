@@ -1420,6 +1420,7 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
         empty();
     }
 
+    newline(lex);
 
     start(org::StmtList); // 8
     end();
@@ -1453,9 +1454,9 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             start(org::CommandArguments);
             auto sub = subToEol(lex);
             if (sub.empty()) {
-                parseParagraph(sub);
-            } else {
                 empty();
+            } else {
+                parseParagraph(sub);
             }
             end();
             break;
@@ -1607,12 +1608,10 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         }
     }
 
-    // Placeholder statement list that might be extended in a latter pass
-    start(org::StmtList);
-    end();
+    newline(lex);
+
     // End main tree that was started in the case statement
     end();
-
     return back();
 }
 

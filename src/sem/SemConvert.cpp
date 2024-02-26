@@ -262,7 +262,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 
     auto __trace = trace(a, fmt("property-{}", name));
 
-    Property result;
+    Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
         res.backend = get_text(one(a, N::Subname));
@@ -274,7 +274,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         result = Property(res);
 
     } else if (name == "id") {
-        tree->treeId = get_text(one(a, N::Values));
+        tree->treeId = strip(get_text(one(a, N::Values)), {' '}, {' '});
 
     } else if (name == "created") {
         Property::Created created;
@@ -285,7 +285,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
             created.time = par0.as<sem::Time>();
             result       = Property(created);
         } else {
-            LOG(ERROR)
+            LOG(FATAL)
                 << "Could not extract time from 'created' property\n"
                 << a.treeRepr(true);
         }
@@ -303,6 +303,8 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
             Property::Visibility prop;
             prop.level = visibility.value();
             result     = Property(prop);
+        } else {
+            LOG(FATAL) << "Unknown visibility";
         }
 
     } else if (name == "effort") {
@@ -325,30 +327,30 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         result     = Property(prop);
     }
 
-    if (false) {
+    if (false && result) {
         const auto inh = get_text(one(a, N::InheritanceMode));
         if (inh == "!!") {
-            result.inheritanceMode = Property::InheritanceMode::OnlyThis;
+            result->inheritanceMode = Property::InheritanceMode::OnlyThis;
         } else if (inh == "!") {
-            result.inheritanceMode = Property::InheritanceMode::OnlySub;
+            result->inheritanceMode = Property::InheritanceMode::OnlySub;
         }
 
         const auto sub = get_text(one(a, N::SubSetRule));
         if (sub == "+") {
-            result.subSetRule = Property::SetMode::Add;
+            result->subSetRule = Property::SetMode::Add;
         } else if (sub == "-") {
-            result.subSetRule = Property::SetMode::Subtract;
+            result->subSetRule = Property::SetMode::Subtract;
         }
 
         const auto main = get_text(one(a, N::MainSetRule));
         if (main == "+") {
-            result.subSetRule = Property::SetMode::Add;
+            result->subSetRule = Property::SetMode::Add;
         } else if (main == "-") {
-            result.subSetRule = Property::SetMode::Subtract;
+            result->subSetRule = Property::SetMode::Subtract;
         }
     }
 
-    tree->properties.push_back(result);
+    if (result) { tree->properties.push_back(*result); }
 }
 
 SemId<Subtree> OrgConverter::convertSubtree(__args) {
@@ -617,7 +619,8 @@ SemId<Link> OrgConverter::convertLink(__args) {
             link->data = Link::Raw{
                 .text = protocol + ":"_ss + get_text(one(a, N::Link))};
         } else if (protocol == "id") {
-            link->data = Link::Id{.text = get_text(one(a, N::Link))};
+            link->data = Link::Id{
+                .text = strip(get_text(one(a, N::Link)), {' '}, {' '})};
 
         } else if (protocol == "person") {
             link->data = Link::Person{};
