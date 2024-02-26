@@ -900,10 +900,25 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 
 SemId<Code> OrgConverter::convertCode(__args) {
     SemId<Code> result = Sem<Code>(a);
-    auto        body   = one(a, N::Body);
 
     if (one(a, N::Lang).getKind() != org::Empty) {
         result->lang = get_text(one(a, N::Lang));
+    }
+
+    for (auto const& it : one(a, N::Body)) {
+        Code::Line& line = result->lines.emplace_back();
+        for (auto const& part : it) {
+            switch (part.kind()) {
+                case org::CodeText: {
+                    line.parts.push_back(Code::Line::Part(
+                        Code::Line::Part::Raw{.code = get_text(part)}));
+                    break;
+                }
+                default: {
+                    LOG(FATAL) << fmt1(part.kind());
+                }
+            }
+        }
     }
 
     return result;

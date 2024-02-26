@@ -121,11 +121,30 @@ auto Formatter::toString(SemId<Code> id) -> Res {
     auto result = b.stack();
 
 
-    auto head = b.line({str("#+begin_src ")});
+    auto head = b.line({str("#+begin_src")});
+    if (id->lang) { b.add_at(head, str(" " + *id->lang)); }
 
     b.add_at(result, head);
-    for(auto const& it : id->subnodes) {
+    for (auto const& it : id->lines) {
+        auto line = b.line();
+        for (auto const& part : it.parts) {
+            switch (part.getKind()) {
+                case Code::Line::Part::Kind::Raw: {
+                    b.add_at(line, str(part.getRaw().code));
+                    break;
+                }
+                case Code::Line::Part::Kind::Callout: {
+                    b.add_at(line, str(part.getCallout().name));
+                    break;
+                }
+                case Code::Line::Part::Kind::Tangle: {
+                    b.add_at(line, str(part.getTangle().target));
+                    break;
+                }
+            }
+        }
 
+        b.add_at(result, line);
     }
 
     b.add_at(result, str("#+end_src"));
