@@ -7,6 +7,11 @@ class ExportFormat(Enum):
     Line = 2
     Block = 3
 
+class CodeLinePartKind(Enum):
+    Raw = 1
+    Callout = 2
+    Tangle = 3
+
 class CodeSwitchKind(Enum):
     LineStart = 1
     CalloutFormat = 2
@@ -547,12 +552,32 @@ class Code(Block):
     lang: Optional[str]
     switches: List[CodeSwitch]
     exports: CodeExports
+    lines: List[CodeLine]
     parameters: Optional[CmdArguments]
     cache: bool
     eval: bool
     noweb: bool
     hlines: bool
     tangle: bool
+
+class CodeLine:
+    parts: List[CodeLinePart]
+
+class CodeLinePart:
+    def getRaw() -> CodeLinePartRaw: ...
+    def getCallout() -> CodeLinePartCallout: ...
+    def getTangle() -> CodeLinePartTangle: ...
+    def getKind() -> CodeLinePartKind: ...
+    data: CodeLinePartData
+
+class CodeLinePartRaw:
+    code: str
+
+class CodeLinePartCallout:
+    name: str
+
+class CodeLinePartTangle:
+    target: str
 
 class CodeSwitch:
     def getLineStart() -> CodeSwitchLineStart: ...

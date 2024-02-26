@@ -375,6 +375,66 @@ void proto_serde<::orgproto::Call, sem::Call>::read(::orgproto::Call const& out,
   }
 }
 
+void proto_serde<::orgproto::Code::Line::Part::Raw, sem::Code::Line::Part::Raw>::write(::orgproto::Code::Line::Part::Raw* out, sem::Code::Line::Part::Raw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_code(), in.code);
+}
+
+void proto_serde<::orgproto::Code::Line::Part::Raw, sem::Code::Line::Part::Raw>::read(::orgproto::Code::Line::Part::Raw const& out, proto_write_accessor<sem::Code::Line::Part::Raw> in) {
+  proto_serde<std::string, Str>::read(out.code(), in.for_field(&sem::Code::Line::Part::Raw::code));
+}
+
+void proto_serde<::orgproto::Code::Line::Part::Callout, sem::Code::Line::Part::Callout>::write(::orgproto::Code::Line::Part::Callout* out, sem::Code::Line::Part::Callout const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+}
+
+void proto_serde<::orgproto::Code::Line::Part::Callout, sem::Code::Line::Part::Callout>::read(::orgproto::Code::Line::Part::Callout const& out, proto_write_accessor<sem::Code::Line::Part::Callout> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Code::Line::Part::Callout::name));
+}
+
+void proto_serde<::orgproto::Code::Line::Part::Tangle, sem::Code::Line::Part::Tangle>::write(::orgproto::Code::Line::Part::Tangle* out, sem::Code::Line::Part::Tangle const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::Code::Line::Part::Tangle, sem::Code::Line::Part::Tangle>::read(::orgproto::Code::Line::Part::Tangle const& out, proto_write_accessor<sem::Code::Line::Part::Tangle> in) {
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Code::Line::Part::Tangle::target));
+}
+
+void proto_serde<::orgproto::Code::Line::Part, sem::Code::Line::Part>::write(::orgproto::Code::Line::Part* out, sem::Code::Line::Part const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::Code::Line::Part::Raw, sem::Code::Line::Part::Raw>::write(out->mutable_data()->mutable_raw(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::Code::Line::Part::Callout, sem::Code::Line::Part::Callout>::write(out->mutable_data()->mutable_callout(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::Code::Line::Part::Tangle, sem::Code::Line::Part::Tangle>::write(out->mutable_data()->mutable_tangle(), std::get<2>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::Code::Line::Part, sem::Code::Line::Part>::read(::orgproto::Code::Line::Part const& out, proto_write_accessor<sem::Code::Line::Part> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::Code::Line::Part::Data::kRaw:
+      proto_serde<orgproto::Code::Line::Part::Raw, sem::Code::Line::Part::Raw>::read(out.data().raw(), in.for_field_variant<0>(&sem::Code::Line::Part::data));
+      break;
+    case ::orgproto::Code::Line::Part::Data::kCallout:
+      proto_serde<orgproto::Code::Line::Part::Callout, sem::Code::Line::Part::Callout>::read(out.data().callout(), in.for_field_variant<1>(&sem::Code::Line::Part::data));
+      break;
+    case ::orgproto::Code::Line::Part::Data::kTangle:
+      proto_serde<orgproto::Code::Line::Part::Tangle, sem::Code::Line::Part::Tangle>::read(out.data().tangle(), in.for_field_variant<2>(&sem::Code::Line::Part::data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::Code::Line, sem::Code::Line>::write(::orgproto::Code::Line* out, sem::Code::Line const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Line::Part>, Vec<sem::Code::Line::Part>>::write(out->mutable_parts(), in.parts);
+}
+
+void proto_serde<::orgproto::Code::Line, sem::Code::Line>::read(::orgproto::Code::Line const& out, proto_write_accessor<sem::Code::Line> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Line::Part>, Vec<sem::Code::Line::Part>>::read(out.parts(), in.for_field(&sem::Code::Line::parts));
+}
+
 void proto_serde<::orgproto::Code::Switch::LineStart, sem::Code::Switch::LineStart>::write(::orgproto::Code::Switch::LineStart* out, sem::Code::Switch::LineStart const& in) {
   out->set_start(in.start);
   out->set_extendlast(in.extendLast);
@@ -467,6 +527,7 @@ void proto_serde<::orgproto::Code, sem::Code>::write(::orgproto::Code* out, sem:
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::write(out->mutable_switches(), in.switches);
   out->set_exports(static_cast<orgproto::Code_Exports>(in.exports));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Line>, Vec<sem::Code::Line>>::write(out->mutable_lines(), in.lines);
   if (in.parameters) {
     proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), *in.parameters);
   }
@@ -487,6 +548,7 @@ void proto_serde<::orgproto::Code, sem::Code>::read(::orgproto::Code const& out,
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::read(out.switches(), in.for_field(&sem::Code::switches));
   in.for_field(&sem::Code::exports).get() = static_cast<sem::Code::Exports>(out.exports());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Line>, Vec<sem::Code::Line>>::read(out.lines(), in.for_field(&sem::Code::lines));
   if (out.has_parameters()) {
     proto_serde<Opt<orgproto::CmdArguments>, Opt<sem::SemId<sem::CmdArguments>>>::read(out.parameters(), in.for_field(&sem::Code::parameters));
   }

@@ -608,6 +608,57 @@ struct Call : public sem::Org {
 struct Code : public sem::Block {
   using Block::Block;
   virtual ~Code() = default;
+  struct Line {
+    struct Part {
+      struct Raw {
+        BOOST_DESCRIBE_CLASS(Raw, (), (), (), (code))
+        Str code;
+      };
+
+      struct Callout {
+        BOOST_DESCRIBE_CLASS(Callout, (), (), (), (name))
+        Str name;
+      };
+
+      struct Tangle {
+        BOOST_DESCRIBE_CLASS(Tangle, (), (), (), (target))
+        Str target;
+      };
+
+      using Data = std::variant<sem::Code::Line::Part::Raw, sem::Code::Line::Part::Callout, sem::Code::Line::Part::Tangle>;
+      enum class Kind : short int { Raw, Callout, Tangle, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
+      using variant_enum_type = sem::Code::Line::Part::Kind;
+      using variant_data_type = sem::Code::Line::Part::Data;
+      BOOST_DESCRIBE_CLASS(Part,
+                           (),
+                           (),
+                           (),
+                           (data,
+                            (sem::Code::Line::Part::Raw const&() const) getRaw,
+                            (sem::Code::Line::Part::Raw&()) getRaw,
+                            (sem::Code::Line::Part::Callout const&() const) getCallout,
+                            (sem::Code::Line::Part::Callout&()) getCallout,
+                            (sem::Code::Line::Part::Tangle const&() const) getTangle,
+                            (sem::Code::Line::Part::Tangle&()) getTangle,
+                            (sem::Code::Line::Part::Kind(sem::Code::Line::Part::Data const&)) getKind,
+                            (sem::Code::Line::Part::Kind() const) getKind))
+      sem::Code::Line::Part::Data data;
+      sem::Code::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
+      sem::Code::Line::Part::Raw& getRaw() { return std::get<0>(data); }
+      sem::Code::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
+      sem::Code::Line::Part::Callout& getCallout() { return std::get<1>(data); }
+      sem::Code::Line::Part::Tangle const& getTangle() const { return std::get<2>(data); }
+      sem::Code::Line::Part::Tangle& getTangle() { return std::get<2>(data); }
+      static sem::Code::Line::Part::Kind getKind(sem::Code::Line::Part::Data const& __input) { return static_cast<sem::Code::Line::Part::Kind>(__input.index()); }
+      sem::Code::Line::Part::Kind getKind() const { return getKind(data); }
+    };
+
+    BOOST_DESCRIBE_CLASS(Line, (), (), (), (parts))
+    /// \brief parts of the single line
+    Vec<sem::Code::Line::Part> parts = {};
+  };
+
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
   struct Switch {
     Switch() {}
@@ -710,6 +761,7 @@ struct Code : public sem::Block {
                         lang,
                         switches,
                         exports,
+                        lines,
                         parameters,
                         cache,
                         eval,
@@ -728,6 +780,8 @@ struct Code : public sem::Block {
   Vec<sem::Code::Switch> switches = {};
   /// \brief What to export
   sem::Code::Exports exports = Exports::Both;
+  /// \brief Collected code lines
+  Vec<sem::Code::Line> lines = {};
   /// \brief Additional parameters that are language-specific
   Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Do cache values?

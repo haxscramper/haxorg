@@ -231,6 +231,7 @@ void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
   __org_field(res, object, lang);
   __org_field(res, object, switches);
   __org_field(res, object, exports);
+  __org_field(res, object, lines);
   __org_field(res, object, parameters);
   __org_field(res, object, cache);
   __org_field(res, object, eval);
@@ -239,6 +240,24 @@ void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
   __org_field(res, object, tangle);
   __org_field(res, object, subnodes);
 }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::Line const& object) { __obj_field(res, object, parts); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Data const& object) { visitVariants(res, sem::Code::Line::Part::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::Line::Part const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Raw const& object) { __obj_field(res, object, code); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Callout const& object) { __obj_field(res, object, name); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Tangle const& object) { __obj_field(res, object, target); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Code::Switch::Data const& object) { visitVariants(res, sem::Code::Switch::getKind(object), object); }

@@ -215,6 +215,41 @@ struct proto_serde<::orgproto::Call, sem::Call> {
 
 
 template <>
+struct proto_serde<::orgproto::Code::Line::Part::Raw, sem::Code::Line::Part::Raw> {
+  static void write(::orgproto::Code::Line::Part::Raw* out, sem::Code::Line::Part::Raw const& in);
+  static void read(::orgproto::Code::Line::Part::Raw const& out, proto_write_accessor<sem::Code::Line::Part::Raw> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::Line::Part::Callout, sem::Code::Line::Part::Callout> {
+  static void write(::orgproto::Code::Line::Part::Callout* out, sem::Code::Line::Part::Callout const& in);
+  static void read(::orgproto::Code::Line::Part::Callout const& out, proto_write_accessor<sem::Code::Line::Part::Callout> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::Line::Part::Tangle, sem::Code::Line::Part::Tangle> {
+  static void write(::orgproto::Code::Line::Part::Tangle* out, sem::Code::Line::Part::Tangle const& in);
+  static void read(::orgproto::Code::Line::Part::Tangle const& out, proto_write_accessor<sem::Code::Line::Part::Tangle> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::Line::Part, sem::Code::Line::Part> {
+  static void write(::orgproto::Code::Line::Part* out, sem::Code::Line::Part const& in);
+  static void read(::orgproto::Code::Line::Part const& out, proto_write_accessor<sem::Code::Line::Part> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::Line, sem::Code::Line> {
+  static void write(::orgproto::Code::Line* out, sem::Code::Line const& in);
+  static void read(::orgproto::Code::Line const& out, proto_write_accessor<sem::Code::Line> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Code::Switch::LineStart, sem::Code::Switch::LineStart> {
   static void write(::orgproto::Code::Switch::LineStart* out, sem::Code::Switch::LineStart const& in);
   static void read(::orgproto::Code::Switch::LineStart const& out, proto_write_accessor<sem::Code::Switch::LineStart> in);

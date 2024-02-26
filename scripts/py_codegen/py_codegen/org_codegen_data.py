@@ -471,6 +471,31 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Block")],
             nested=[
                 GenTuStruct(
+                    t("Line"),
+                    nested=[
+                        GenTuStruct(
+                            t("Part"),
+                            nested=[
+                                GenTuTypeGroup([
+                                    GenTuStruct(t("Raw"),
+                                                fields=[GenTuField(t_str(), "code")]),
+                                    GenTuStruct(t("Callout"),
+                                                fields=[GenTuField(t_str(), "name")]),
+                                    GenTuStruct(t("Tangle"),
+                                                fields=[GenTuField(t_str(), "target")]),
+                                ],),
+                            ],
+                        )
+                    ],
+                    fields=[
+                        vec_field(
+                            t_nest("Part", ["Code", "Line"]),
+                            "parts",
+                            GenTuDoc("parts of the single line"),
+                        )
+                    ],
+                ),
+                GenTuStruct(
                     t("Switch"),
                     GenTuDoc(
                         "Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block"
@@ -495,25 +520,30 @@ def get_types() -> Sequence[GenTuStruct]:
                                         value="false",
                                     ),
                                 ],
-                                nested=[GenTuPass("LineStart() {}")]),
-                            GenTuStruct(t("CalloutFormat"),
-                                        GenTuDoc(""),
-                                        fields=[
-                                            GenTuField(t_str(),
-                                                       "format",
-                                                       GenTuDoc(""),
-                                                       value='""')
-                                        ],
-                                        nested=[GenTuPass("CalloutFormat() {}")]),
-                            GenTuStruct(t("RemoveCallout"),
-                                        GenTuDoc(""),
-                                        fields=[
-                                            GenTuField(t_bool(),
-                                                       "remove",
-                                                       GenTuDoc(""),
-                                                       value="true")
-                                        ],
-                                        nested=[GenTuPass("RemoveCallout() {}")]),
+                                nested=[GenTuPass("LineStart() {}")],
+                            ),
+                            GenTuStruct(
+                                t("CalloutFormat"),
+                                GenTuDoc(""),
+                                fields=[
+                                    GenTuField(t_str(),
+                                               "format",
+                                               GenTuDoc(""),
+                                               value='""')
+                                ],
+                                nested=[GenTuPass("CalloutFormat() {}")],
+                            ),
+                            GenTuStruct(
+                                t("RemoveCallout"),
+                                GenTuDoc(""),
+                                fields=[
+                                    GenTuField(t_bool(),
+                                               "remove",
+                                               GenTuDoc(""),
+                                               value="true")
+                                ],
+                                nested=[GenTuPass("RemoveCallout() {}")],
+                            ),
                             GenTuStruct(
                                 t("EmphasizeLine"),
                                 GenTuDoc(
@@ -525,16 +555,16 @@ def get_types() -> Sequence[GenTuStruct]:
                                                GenTuDoc(""),
                                                value="{}")
                                 ],
-                                nested=[GenTuPass("EmphasizeLine() {}")]),
-                            GenTuStruct(t("Dedent"),
-                                        GenTuDoc(""),
-                                        fields=[
-                                            GenTuField(t_int(),
-                                                       "value",
-                                                       GenTuDoc(""),
-                                                       value="0")
-                                        ],
-                                        nested=[GenTuPass("Dedent() {}")]),
+                                nested=[GenTuPass("EmphasizeLine() {}")],
+                            ),
+                            GenTuStruct(
+                                t("Dedent"),
+                                GenTuDoc(""),
+                                fields=[
+                                    GenTuField(t_int(), "value", GenTuDoc(""), value="0")
+                                ],
+                                nested=[GenTuPass("Dedent() {}")],
+                            ),
                         ])
                     ],
                 ),
@@ -577,6 +607,7 @@ def get_types() -> Sequence[GenTuStruct]:
                            "exports",
                            GenTuDoc("What to export"),
                            value="Exports::Both"),
+                vec_field(t_nest("Line", ["Code"]), "lines", GenTuDoc("Collected code lines")),
                 opt_field(
                     t_id("CmdArguments"),
                     "parameters",

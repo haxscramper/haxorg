@@ -16,6 +16,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Switch>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Line>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Line>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Line::Part>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Line::Part>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
@@ -33,6 +37,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<Str>(m, "VecOfStr");
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument");
   bind_vector<sem::Code::Switch>(m, "VecOfSwitch");
+  bind_vector<sem::Code::Line>(m, "VecOfLine");
+  bind_vector<sem::Code::Line::Part>(m, "VecOfPart");
   bind_vector<int>(m, "VecOfint");
   bind_vector<sem::Symbol::Param>(m, "VecOfParam");
   bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog");
@@ -210,12 +216,42 @@ node can have subnodes.)RAW")
     .def_readwrite("lang", &sem::Code::lang, R"RAW(Code block language name)RAW")
     .def_readwrite("switches", &sem::Code::switches, R"RAW(Switch options for block)RAW")
     .def_readwrite("exports", &sem::Code::exports, R"RAW(What to export)RAW")
+    .def_readwrite("lines", &sem::Code::lines, R"RAW(Collected code lines)RAW")
     .def_readwrite("parameters", &sem::Code::parameters, R"RAW(Additional parameters that are language-specific)RAW")
     .def_readwrite("cache", &sem::Code::cache, R"RAW(Do cache values?)RAW")
     .def_readwrite("eval", &sem::Code::eval, R"RAW(Eval on export?)RAW")
     .def_readwrite("noweb", &sem::Code::noweb, R"RAW(Web-tangle code on export/run)RAW")
     .def_readwrite("hlines", &sem::Code::hlines, R"RAW(?)RAW")
     .def_readwrite("tangle", &sem::Code::tangle, R"RAW(?)RAW")
+    ;
+  pybind11::class_<sem::Code::Line>(m, "CodeLine")
+    .def(pybind11::init<>())
+    .def_readwrite("parts", &sem::Code::Line::parts, R"RAW(parts of the single line)RAW")
+    ;
+  pybind11::class_<sem::Code::Line::Part>(m, "CodeLinePart")
+    .def(pybind11::init<>())
+    .def_readwrite("data", &sem::Code::Line::Part::data)
+    .def("getRaw", static_cast<sem::Code::Line::Part::Raw&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getRaw))
+    .def("getCallout", static_cast<sem::Code::Line::Part::Callout&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getCallout))
+    .def("getTangle", static_cast<sem::Code::Line::Part::Tangle&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getTangle))
+    .def("getKind", static_cast<sem::Code::Line::Part::Kind(sem::Code::Line::Part::*)() const>(&sem::Code::Line::Part::getKind))
+    ;
+  pybind11::class_<sem::Code::Line::Part::Raw>(m, "CodeLinePartRaw")
+    .def(pybind11::init<>())
+    .def_readwrite("code", &sem::Code::Line::Part::Raw::code)
+    ;
+  pybind11::class_<sem::Code::Line::Part::Callout>(m, "CodeLinePartCallout")
+    .def(pybind11::init<>())
+    .def_readwrite("name", &sem::Code::Line::Part::Callout::name)
+    ;
+  pybind11::class_<sem::Code::Line::Part::Tangle>(m, "CodeLinePartTangle")
+    .def(pybind11::init<>())
+    .def_readwrite("target", &sem::Code::Line::Part::Tangle::target)
+    ;
+  pybind11::enum_<sem::Code::Line::Part::Kind>(m, "CodeLinePartKind")
+    .value("Raw", sem::Code::Line::Part::Kind::Raw)
+    .value("Callout", sem::Code::Line::Part::Kind::Callout)
+    .value("Tangle", sem::Code::Line::Part::Kind::Tangle)
     ;
   pybind11::class_<sem::Code::Switch>(m, "CodeSwitch")
     .def(pybind11::init<>())

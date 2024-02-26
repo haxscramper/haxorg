@@ -489,6 +489,38 @@ message Call {
 }
 
 message Code {
+  message Line {
+    message Part {
+      message Raw {
+        string                                     code                             = 1;
+        string                                     debug                            = 1000;
+      }
+      message Callout {
+        string                                     name                             = 1;
+        string                                     debug                            = 1000;
+      }
+      message Tangle {
+        string                                     target                           = 1;
+        string                                     debug                            = 1000;
+      }
+      message Data {
+        oneof kind {
+          Code.Line.Part.Raw                       raw                              = 1;
+          Code.Line.Part.Callout                   callout                          = 2;
+          Code.Line.Part.Tangle                    tangle                           = 3;
+        }
+      }
+      enum Kind {
+        Kind_Raw_f                                                                  = 0;
+        Kind_Callout_f                                                              = 1;
+        Kind_Tangle_f                                                               = 2;
+      }
+      Code.Line.Part.Data                          data                             = 1;
+      string                                       debug                            = 1000;
+    }
+    repeated Code.Line.Part                        parts                            = 1;
+    string                                         debug                            = 1000;
+  }
   message Switch {
     message LineStart {
       int32                                        start                            = 1;
@@ -545,12 +577,13 @@ message Code {
   optional string                                  lang                             = 4;
   repeated Code.Switch                             switches                         = 5;
   Code.Exports                                     exports                          = 6;
-  optional CmdArguments                            parameters                       = 7;
-  bool                                             cache                            = 8;
-  bool                                             eval                             = 9;
-  bool                                             noweb                            = 10;
-  bool                                             hlines                           = 11;
-  bool                                             tangle                           = 12;
+  repeated Code.Line                               lines                            = 7;
+  optional CmdArguments                            parameters                       = 8;
+  bool                                             cache                            = 9;
+  bool                                             eval                             = 10;
+  bool                                             noweb                            = 11;
+  bool                                             hlines                           = 12;
+  bool                                             tangle                           = 13;
   string                                           debug                            = 1000;
 }
 

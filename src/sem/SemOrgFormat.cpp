@@ -118,7 +118,19 @@ auto Formatter::toString(SemId<CmdArgument> id) -> Res {
 }
 
 auto Formatter::toString(SemId<Code> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    auto result = b.stack();
+
+
+    auto head = b.line({str("#+begin_src ")});
+
+    b.add_at(result, head);
+    for(auto const& it : id->subnodes) {
+
+    }
+
+    b.add_at(result, str("#+end_src"));
+
+    return result;
 }
 
 auto Formatter::toString(SemId<Tblfm> id) -> Res {
