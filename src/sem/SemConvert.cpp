@@ -611,7 +611,12 @@ SemId<Link> OrgConverter::convertLink(__args) {
         link->data = Link::Footnote{.target = get_text(one(a, N::Name))};
 
     } else if (one(a, N::Protocol).kind() == org::Empty) {
-        // TODO
+        Str target = get_text(one(a, N::Link));
+        if (target.starts_with(".") || target.starts_with("/")) {
+            link->data = Link::File{.file = target};
+        } else {
+            LOG(FATAL) << target;
+        }
 
     } else {
         Str protocol = normalize(get_text(one(a, N::Protocol)));

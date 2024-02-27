@@ -457,6 +457,12 @@ struct RecombineState {
                 break;
             }
 
+            case otk::Escaped: {
+                add_fake(otk::Escaped, loc_fill(lex.val().text.substr(1)));
+                lex.next();
+                break;
+            }
+
             case otk::Word: {
                 if (rs::all_of(lex.tok().value.text, [](char c) {
                         return isupper(c);

@@ -200,14 +200,29 @@ auto Formatter::toString(SemId<Monospace> id) -> Res {
 }
 
 auto Formatter::toString(SemId<Link> id) -> Res {
+    if (id->getLinkKind() == Link::Kind::Raw && !id->description) {
+        return str(id->getRaw().text);
+    }
+
     Res head = str("");
     switch (id->getLinkKind()) {
         case Link::Kind::Person: {
             head = str("person:" + id->getPerson().name);
             break;
         }
+
         case Link::Kind::File: {
             head = str("file:" + id->getFile().file);
+            break;
+        }
+
+        case Link::Kind::Id: {
+            head = str("id:" + id->getId().text);
+            break;
+        }
+
+        case Link::Kind::Raw: {
+            head = str(id->getRaw().text);
             break;
         }
 
