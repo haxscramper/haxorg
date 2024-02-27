@@ -174,7 +174,9 @@ auto Formatter::toString(SemId<Tblfm> id) -> Res {
 }
 
 auto Formatter::toString(SemId<List> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    Res result = b.stack();
+    for (auto const& it : id->subnodes) { b.add_at(result, toString(it)); }
+    return result;
 }
 
 auto Formatter::toString(SemId<SubtreeLog> id) -> Res {
@@ -184,7 +186,6 @@ auto Formatter::toString(SemId<SubtreeLog> id) -> Res {
 auto Formatter::toString(SemId<Empty> id) -> Res { return str(""); }
 
 auto Formatter::toString(SemId<Newline> id) -> Res {
-
     auto result = b.stack();
 
     for (int i = 1; i < id->text.size(); ++i) {
@@ -353,7 +354,25 @@ auto Formatter::toString(SemId<Bold> id) -> Res {
 auto Formatter::toString(SemId<Space> id) -> Res { return str(id->text); }
 
 auto Formatter::toString(SemId<ListItem> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    Res body = b.stack();
+    if (id->header) {
+        Res head = b.stack();
+        b.add_at(head, toString(*id->header));
+        b.add_at(head, str(" :: "));
+        b.add_at(head, toString(id->at(0)));
+        b.add_at(body, head);
+        b.add_at(body, str(""));
+
+        for (auto const& sub : id->subnodes | rv::drop(1)) {
+            b.add_at(body, toString(sub));
+        }
+    } else {
+        for (auto const& sub : id->subnodes) {
+            b.add_at(body, toString(sub));
+        }
+    }
+
+    return b.line({str("- "), body});
 }
 
 auto Formatter::toString(SemId<AtMention> id) -> Res {
