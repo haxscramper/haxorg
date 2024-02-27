@@ -696,7 +696,13 @@ struct LineToken {
     }
 
     void decreaseIndent(int level) {
-        CHECK(level <= indent);
+        CHECK(level <= indent) << fmt(
+            "Current level is {} and indent is {} line kind {} tokens {}",
+            level,
+            indent,
+            kind,
+            tokens);
+
         if (indent == level) {
             tokens = Span<OrgToken>(tokens.begin() + 1, tokens.end());
             updateForTokens();
@@ -853,43 +859,6 @@ struct TokenVisitor {
                         .data = GroupToken::Leaf{make_span(start, it)},
                         .kind = GK::Properties};
                 }
-
-                    // case LK::IndentedLine: {
-                    //     it               = start;
-                    //     int start_indent = start->indent;
-                    //     SubLexer<OrgTokenKind, OrgFill> tmp{nullptr,
-                    //     {}}; if (TraceState) {
-                    //         d->print(
-                    //             tmp,
-                    //             fmt("----- {} {} {}",
-                    //                 start->indent,
-                    //                 start->kind,
-                    //                 start->tokens));
-                    //     }
-                    //     while (it != end && start_indent <= it->indent)
-                    //     {
-                    //         if (TraceState) {
-                    //             d->print(
-                    //                 tmp,
-                    //                 fmt(">> {} {} {}",
-                    //                     it->indent,
-                    //                     it->kind,
-                    //                     it->tokens));
-                    //         }
-                    //         it->decreaseIndent(start_indent);
-                    //         if (TraceState) {
-                    //             d->print(
-                    //                 tmp,
-                    //                 fmt("<< {} {} {}",
-                    //                     it->indent,
-                    //                     it->kind,
-                    //                     it->tokens));
-                    //         }
-                    //         ++it;
-                    //     }
-                    //     it = start;
-                    //     return std::nullopt;
-                    // }
 
                 case LK::BlockClose: {
                     nextline();

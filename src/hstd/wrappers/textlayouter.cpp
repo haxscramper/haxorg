@@ -958,7 +958,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             case Block::Kind::Empty: name = "Em"; break;
         }
 
-        os << fmt1(pref2) << name << ":" << fmt1(blId.getIndex()) << " ";
+        os << fmt1(pref2) << name << ": ";
         if (id.isNil()) {
             os << "<nil>";
             return;
@@ -1027,10 +1027,19 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             }
             case Block::Kind::Text: {
                 std::string text;
-                for (auto const& it : bl.getText().text.strs) {
-                    text += str(it);
+                int         size = 0;
+                auto const& strs = bl.getText().text.strs;
+
+
+                for (auto const& it : strs) {
+                    size += str(it).size();
+                    if (strs.size() == 1) {
+                        text += str(it);
+                    } else {
+                        text += "〚"_ss + str(it) + "〛"_ss;
+                    }
                 }
-                os << " " << escape_literal(text);
+                os << " " << escape_literal(text) << fmt(" size={}", size);
                 break;
             }
 

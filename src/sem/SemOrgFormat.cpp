@@ -419,8 +419,6 @@ auto Formatter::toString(SemId<InlineMath> id) -> Res {
 }
 
 auto Formatter::toString(SemId<Subtree> id) -> Res {
-
-
     Res title = b.line({
         id->todo ? str(id->todo.value() + Str(" ")) : str(""),
         toString(id->title),
@@ -524,6 +522,21 @@ auto Formatter::toString(SemId<Subtree> id) -> Res {
                                 state.from,
                                 state.to)),
                         toString(state.on),
+                    });
+
+                    break;
+                }
+
+                case Log::Kind::Note: {
+                    auto const& note = log->getNote();
+                    if (note.desc) {
+                        CHECK(!note.desc->isNil());
+                        desc = note.desc;
+                    }
+
+                    log_head = b.line({
+                        str("- Note taken on "),
+                        toString(note.on),
                     });
 
                     break;

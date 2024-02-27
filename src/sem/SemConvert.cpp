@@ -172,17 +172,21 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             log->log  = states;
 
         } else if (words.at(0) == "refiled") {
-            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
-            Vec<SemId<Link>> link  = filter_subnodes<Link>(par0, limit);
+            Vec<SemId<Time>> times  = filter_subnodes<Time>(par0, limit);
+            Vec<SemId<Link>> link   = filter_subnodes<Link>(par0, limit);
+            auto             refile = Log::Refile{};
+            refile.on               = times.at(0);
+            refile.from             = link.at(0);
+            log->log                = refile;
 
-            auto refile = Log::Refile{};
-            refile.on   = times.at(0);
-            refile.from = link.at(0);
-
-            log->log = refile;
+        } else if (words.at(0) == "note") {
+            auto note = Log::Note{};
+            note.on   = times.at(0);
+            log->log  = note;
 
         } else {
-            LOG(FATAL) << ExporterTree::treeRepr(item).toString();
+            LOG(FATAL) << fmt1(words)
+                       << ExporterTree::treeRepr(item).toString();
         }
     }
 
