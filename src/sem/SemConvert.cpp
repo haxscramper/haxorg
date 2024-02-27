@@ -1120,6 +1120,32 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
 
+                case org::CommandStartup: {
+                    Str text = normalize(get_text(sub.at(0)));
+                    using K  = DocumentOptions::Visibility;
+                    if (text == "content") {
+                        doc->options->initialVisibility = K::Content;
+                    } else if (text == "overview") {
+                        doc->options->initialVisibility = K::Overview;
+                    } else if (text == "showall") {
+                        doc->options->initialVisibility = K::ShowAll;
+                    } else if (text == "show2levels") {
+                        doc->options->initialVisibility = K::Show2Levels;
+                    } else if (text == "show3levels") {
+                        doc->options->initialVisibility = K::Show3Levels;
+                    } else if (text == "show4levels") {
+                        doc->options->initialVisibility = K::Show4Levels;
+                    } else if (text == "show4levels") {
+                        doc->options->initialVisibility = K::Show4Levels;
+                    } else if (text == "showeverything") {
+                        doc->options->initialVisibility = K::
+                            ShowEverything;
+                    } else {
+                        LOG(FATAL) << text;
+                    }
+                    break;
+                }
+
                 case org::LatexClass: {
                     Prop::ExportLatexClass res{};
                     res.latexClass = get_text(sub.at(0));

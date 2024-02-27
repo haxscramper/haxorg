@@ -72,6 +72,23 @@ auto Formatter::toString(SemId<Document> id) -> Res {
         hadDocumentProperties = true;
     }
 
+    using Visibility = DocumentOptions::Visibility;
+    if (id->options->initialVisibility != Visibility::ShowEverything) {
+        Str res = "";
+        switch (id->options->initialVisibility) {
+            case Visibility::ShowEverything: res = "showeverything"; break;
+            case Visibility::Content: res = "content"; break;
+            case Visibility::Overview: res = "overview"; break;
+            case Visibility::ShowAll: res = "showall"; break;
+            case Visibility::Show2Levels: res = "show2levels"; break;
+            case Visibility::Show3Levels: res = "show3levels"; break;
+            case Visibility::Show4Levels: res = "show4levels"; break;
+            case Visibility::Show5Levels: res = "show5levels"; break;
+        }
+
+        b.add_at(result, b.line({str("#+startup: "), str(res)}));
+    }
+
     if (!id->filetags.empty()) {
         b.add_at(
             result,
