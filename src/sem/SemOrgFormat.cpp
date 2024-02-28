@@ -1,4 +1,5 @@
 #include <sem/SemOrgFormat.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 
 using namespace sem;
 
@@ -131,7 +132,11 @@ auto Formatter::toString(SemId<Footnote> id) -> Res {
 }
 
 auto Formatter::toString(SemId<CmdArgument> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    if (id->key) {
+        return str(fmt(":{} {}", id->key.value(), id->value));
+    } else {
+        return str(id->value);
+    }
 }
 
 auto Formatter::toString(SemId<Code> id) -> Res {
@@ -140,6 +145,11 @@ auto Formatter::toString(SemId<Code> id) -> Res {
 
     auto head = b.line({str("#+begin_src")});
     if (id->lang) { b.add_at(head, str(" " + *id->lang)); }
+
+    if (id->parameters) {
+        b.add_at(head, str(" "));
+        b.add_at(head, toString(id->parameters.value()));
+    }
 
     b.add_at(result, head);
     for (auto const& it : id->lines) {
@@ -411,7 +421,23 @@ auto Formatter::toString(SemId<Strike> id) -> Res {
 }
 
 auto Formatter::toString(SemId<CmdArguments> id) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    Vec<Res> result;
+    for (auto const& pos : id->positional) {
+        result.push_back(toString(pos));
+    }
+
+    Vec<Str> its;
+    for (auto const& k : id->named.keys()) { its.push_back(k); }
+
+    rs::sort(its, [](CR<Str> lhs, CR<Str> rhs) -> bool {
+        return lhs.toBase() < rhs.toBase();
+    });
+
+    for (auto const& key : its) {
+        result.push_back(toString(id->named.at(key)));
+    }
+
+    return b.join(result, str(" "));
 }
 
 auto Formatter::toString(SemId<InlineMath> id) -> Res {

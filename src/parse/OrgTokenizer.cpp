@@ -1088,9 +1088,17 @@ struct GroupVisitorState {
                 dbg();
             }
 
+            // Org-mode allows effectively any form of the source code
+            // indentation and because of the base lexer does not have
+            // enough context to figure out where indentation ends and
+            // source code begins token regrouping must do the transform
+            // here.
             if (gr.isSrc()) {
                 auto const& nest = gr.getNested();
                 rec_add_line(gr, nest.begin, ind);
+                // Find minimun indent org-mode allows the source code
+                // content to have indentation that is less than the
+                // `#+begin_src` start
                 int minIndent = nest.begin.indent;
                 for (auto const& sub : nest.subgroups) {
                     for (auto const& line : sub.getLeaf().lines) {
@@ -1100,6 +1108,10 @@ struct GroupVisitorState {
                     }
                 }
 
+                // Implement source code content push directly here, there
+                // are no additional variations that must be mapped --
+                // SrcContent with leading indentation is the first element
+                // on any line
                 for (auto const& sub : nest.subgroups) {
                     for (auto const& line : sub.getLeaf().lines) {
                         for (auto const& [idx, tok] :

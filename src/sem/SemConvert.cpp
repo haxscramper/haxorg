@@ -875,9 +875,7 @@ SemId<CmdArgument> OrgConverter::convertCmdArgument(__args) {
     Str                key    = get_text(one(a, N::Name));
     result->value             = get_text(one(a, N::Value));
 
-    if (!key.empty()) {
-        // result->key = key.remove(':');
-    }
+    if (!key.empty()) { result->key = key.substr(1); }
 
 
     return result;
@@ -910,8 +908,13 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 SemId<Code> OrgConverter::convertCode(__args) {
     SemId<Code> result = Sem<Code>(a);
 
+
     if (one(a, N::Lang).getKind() != org::Empty) {
         result->lang = get_text(one(a, N::Lang));
+    }
+
+    if (one(a, N::HeaderArgs).kind() != org::Empty) {
+        result->parameters = convertCmdArguments(one(a, N::HeaderArgs));
     }
 
     for (auto const& it : one(a, N::Body)) {
