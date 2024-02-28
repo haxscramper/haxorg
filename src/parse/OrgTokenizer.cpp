@@ -645,6 +645,17 @@ struct LineToken {
     void setIndent() {
         CR<OrgToken> first = tokens.at(0);
         switch (first.kind) {
+            case otk::SrcContent: {
+                for (auto const& ch : first->text) {
+                    if (ch == ' ') {
+                        ++indent;
+                    } else {
+                        break;
+                    }
+                }
+                break;
+            }
+
             case otk::LeadingSpace: {
                 indent = first->text.length();
                 break;
@@ -695,21 +706,6 @@ struct LineToken {
         }
     }
 
-    void decreaseIndent(int level) {
-        CHECK(level <= indent) << fmt(
-            "Current level is {} and indent is {} line kind {} tokens {}",
-            level,
-            indent,
-            kind,
-            tokens);
-
-        if (indent == level) {
-            tokens = Span<OrgToken>(tokens.begin() + 1, tokens.end());
-            updateForTokens();
-        }
-        indent -= level;
-    }
-
     LineToken(CR<Span<OrgToken>> tokens) : tokens(tokens) {
         if (!tokens.empty()) { updateForTokens(); }
     }
@@ -739,6 +735,26 @@ struct GroupToken {
     Data data;
 
     bool isNested() const { return getDataKind() == DataKind::Nested; }
+    bool isSrc() const {
+        if (!(isNested() && getNested().subgroups.has(0))) {
+            return false;
+        }
+
+        auto const& first = getNested()
+                                .subgroups.at(0)
+                                .getLeaf()
+                                .lines.get(0);
+        if (first) {
+            auto const& token = first->get().tokens.get(0);
+            if (token) {
+                return token->get().kind == otk::SrcContent;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 
     void push_back(Span<LineToken> lines, Kind kind) {
         getNested().subgroups.push_back(
@@ -845,7 +861,6 @@ struct TokenVisitor {
                         sub.end = *it;
                         nextline();
                     }
-
 
                     return GroupToken{.data = sub, .kind = GK::Block};
                 }
@@ -1073,7 +1088,42 @@ struct GroupVisitorState {
                 dbg();
             }
 
-            if (gr.isNested()) {
+            if (gr.isSrc()) {
+                auto const& nest = gr.getNested();
+                rec_add_line(gr, nest.begin, ind);
+                int minIndent = nest.begin.indent;
+                for (auto const& sub : nest.subgroups) {
+                    for (auto const& line : sub.getLeaf().lines) {
+                        if (!line.tokens.empty()) {
+                            minIndent = std::min(line.indent, minIndent);
+                        }
+                    }
+                }
+
+                for (auto const& sub : nest.subgroups) {
+                    for (auto const& line : sub.getLeaf().lines) {
+                        for (auto const& [idx, tok] :
+                             enumerate(line.tokens)) {
+                            if (idx == 0) {
+                                OrgToken tmp;
+                                tmp.kind  = tok.kind;
+                                tmp.value = OrgFill{
+                                    .col  = tok.value.col,
+                                    .line = tok.value.line,
+                                    .text = tok.value.text.substr(
+                                        minIndent),
+                                };
+
+                                add_base(tmp, ind);
+                            } else {
+                                add_base(tok, ind);
+                            }
+                        }
+                    }
+                }
+
+                rec_add_line(gr, nest.end, ind);
+            } else if (gr.isNested()) {
                 rec_add_line(gr, gr.getNested().begin, ind);
                 rec_convert_groups(gr.getNested().subgroups);
                 rec_add_line(gr, gr.getNested().end, ind);
