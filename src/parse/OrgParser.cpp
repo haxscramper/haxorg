@@ -212,26 +212,40 @@ OrgId OrgParser::parseLatex(OrgLexer& lex) {
 
 
 void OrgParser::textFold(OrgLexer& lex) {
+    // Text fold method will consume all tokens in the lexer, folding into
+    // series of tree nodes.
     __perf_trace("textFold");
     auto __trace = trace(lex);
 
-#define CASE_MARKUP(Kind)                                                 \
-    case otk::Kind##Begin: {                                              \
-        start(org::Kind);                                                 \
-        skip(lex);                                                        \
-        textFold(lex);                                                    \
-        break;                                                            \
-    }                                                                     \
-                                                                          \
-    case otk::Kind##End: {                                                \
-        if (pending().kind == org::Kind) {                                \
-            end();                                                        \
-            skip(lex);                                                    \
-        } else {                                                          \
-            token(org::Punctuation, pop(lex));                            \
-        }                                                                 \
-        break;                                                            \
-    }
+    auto case_begin = [&](org Kind) {
+        start(Kind);
+        skip(lex);
+        OrgTokenId startToken = lex.get();
+        int        startDepth = treeDepth();
+        textFold(lex);
+        // If the function returned earlier because the input has ended
+        // before the markup opening was terminated it means there is no
+        // correct markup in the text and it must be converted to the
+        // punctuation.
+        //
+        // `*bold` -> `textFold(*)` -- after pushing `bold` as a workd and
+        // returning, the `textFold(*)` will convert `Bold` into
+        // `Punctuation(*)`
+        if (startDepth < treeDepth()) {
+            auto unclosed                   = group->pendingTrees.back();
+            group->nodes.at(unclosed).kind  = org::Punctuation;
+            group->nodes.at(unclosed).value = startToken;
+        }
+    };
+
+    auto case_end = [&](org Kind) {
+        if (pending().kind == Kind) {
+            end();
+            skip(lex);
+        } else {
+            token(org::Punctuation, pop(lex));
+        }
+    };
 
 #define CASE_SINGLE(Kind)                                                 \
     case otk::Kind: {                                                     \
@@ -239,14 +253,8 @@ void OrgParser::textFold(OrgLexer& lex) {
         break;                                                            \
     }
 
-
     while (!lex.finished()) {
         switch (lex.kind()) {
-            CASE_MARKUP(Bold);
-            CASE_MARKUP(Italic);
-            CASE_MARKUP(Underline);
-            CASE_MARKUP(Strike);
-
             CASE_SINGLE(Escaped);
             CASE_SINGLE(RawText);
             CASE_SINGLE(Newline);
@@ -254,6 +262,16 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_SINGLE(BigIdent);
             CASE_SINGLE(Punctuation);
             CASE_SINGLE(Colon);
+
+
+            case otk::BoldBegin: case_begin(org::Bold); break;
+            case otk::BoldEnd: case_end(org::Bold); break;
+            case otk::ItalicBegin: case_begin(org::Italic); break;
+            case otk::ItalicEnd: case_end(org::Italic); break;
+            case otk::UnderlineBegin: case_begin(org::Underline); break;
+            case otk::UnderlineEnd: case_end(org::Underline); break;
+            case otk::StrikeBegin: case_begin(org::Strike); break;
+            case otk::StrikeEnd: case_end(org::Strike); break;
 
             case otk::Whitespace:
                 token(org::Space, pop(lex, lex.kind()));
@@ -419,11 +437,6 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
         << ("Text fold created unbalanced tree - starting with depth $# "
             "ended up on depth $# on position $# (starting from $#)"
             % to_string_vec(treeStart, treeEnd, getLocMsg(lex), forMsg));
-
-    while (treeStart < treeDepth()) {
-        print("Warn, force closing content on " + getLocMsg(lex));
-        end();
-    }
 
     OrgId last = back();
     return slice(first, last);

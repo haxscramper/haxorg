@@ -126,7 +126,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::Filetags,
             OrgPattern({
-                field1(slice(0, 2_B), N::Tags, org::HashTag, "File tags"),
+                field1(slice(0, 1_B), N::Tags, org::HashTag, "File tags"),
             })},
         SpecPair{
             org::HashTag,

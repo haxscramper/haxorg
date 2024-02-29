@@ -112,6 +112,8 @@ auto Formatter::toString(SemId<Document> id) -> Res {
         b.add_at(result, toString(sub));
     }
 
+    if (b.at(result).size() == 0) { b.add_at(result, str("")); }
+
     return result;
 }
 
