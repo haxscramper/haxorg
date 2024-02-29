@@ -748,10 +748,11 @@ struct GroupToken {
             return false;
         }
 
-        auto const& first = getNested()
-                                .subgroups.at(0)
-                                .getLeaf()
-                                .lines.get(0);
+        auto const& gr1 = getNested().subgroups.at(0);
+        if (gr1.isNested()) { return false; }
+
+        auto const& first = gr1.getLeaf().lines.get(0);
+
         if (first) {
             auto const& token = first->get().tokens.get(0);
             if (token) {

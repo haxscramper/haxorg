@@ -645,11 +645,29 @@ auto Formatter::toString(SemId<FileTarget> id) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
+template <typename T>
+Vec<T> OptVec(CR<Opt<T>> value) {
+    if (value) {
+        return Vec<T>{*value};
+    } else {
+        return Vec<T>{};
+    }
+}
+
 auto Formatter::toString(SemId<Export> id) -> Res {
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_export " + id->exporter),
-        toSubnodes(id),
-        str("#+end_export")));
+    Res head = b.line();
+    b.add_at(head, str("#+begin_export " + id->exporter));
+    if (id->parameters) {
+        b.add_at(head, str(" "));
+        b.add_at(head, toString(id->parameters.value()));
+    }
+
+    if (id->placement) {
+        b.add_at(head, str(":placement " + id->placement.value()));
+    }
+
+    return b.stack(
+        Vec<Res>::Splice(head, toSubnodes(id), str("#+end_export")));
 }
 
 auto Formatter::toString(SemId<Example> id) -> Res {

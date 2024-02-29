@@ -283,10 +283,10 @@ rules:
       - { do: pop, to: INITIAL, from: LEAD }
       - { do: push, to: COMMAND, from: INITIAL }
 
-  - re: ":.*"
+  - re: ":{space}.*"
     states: [LEAD]
     token: ColonExampleLine
-  - re: "^:.*"
+  - re: "^:{space}.*"
     states: [INITIAL]
     token: ColonExampleLine
 

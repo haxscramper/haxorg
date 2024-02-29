@@ -268,13 +268,20 @@ class Vec : public std::vector<T> {
             std::back_inserter(result));
     }
 
+    static void Splice_Impl1(Vec<T>& result, T const& arg) {
+        result.push_back(arg);
+    }
 
     static void Splice_Impl1(Vec<T>& result, T&& arg) {
         result.push_back(std::forward<T>(arg));
     }
 
-    static void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) {
+    static void Splice_Impl1(Vec<T>& result, Vec<T> const& arg) {
         result.append(std::forward<Vec<T>>(arg));
+    }
+
+    static void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) {
+        result.append(arg);
     }
 
     static void Splice_Impl(Vec<T>& result) {}
