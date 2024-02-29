@@ -908,7 +908,6 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 SemId<Code> OrgConverter::convertCode(__args) {
     SemId<Code> result = Sem<Code>(a);
 
-
     if (one(a, N::Lang).getKind() != org::Empty) {
         result->lang = get_text(one(a, N::Lang));
     }
@@ -917,17 +916,28 @@ SemId<Code> OrgConverter::convertCode(__args) {
         result->parameters = convertCmdArguments(one(a, N::HeaderArgs));
     }
 
-    for (auto const& it : one(a, N::Body)) {
+    if (a.kind() == org::SrcInlineCode) {
         Code::Line& line = result->lines.emplace_back();
-        for (auto const& part : it) {
-            switch (part.kind()) {
-                case org::CodeText: {
-                    line.parts.push_back(Code::Line::Part(
-                        Code::Line::Part::Raw{.code = get_text(part)}));
-                    break;
-                }
-                default: {
-                    LOG(FATAL) << fmt1(part.kind());
+        for (auto const& it : one(a, N::Body)) {
+            line.parts.push_back(Code::Line::Part(Code::Line::Part::Raw{
+                .code = get_text(it),
+            }));
+        }
+    } else {
+        for (auto const& it : one(a, N::Body)) {
+            Code::Line& line = result->lines.emplace_back();
+            for (auto const& part : it) {
+                switch (part.kind()) {
+                    case org::CodeText: {
+                        line.parts.push_back(
+                            Code::Line::Part(Code::Line::Part::Raw{
+                                .code = get_text(part),
+                            }));
+                        break;
+                    }
+                    default: {
+                        LOG(FATAL) << fmt1(part.kind());
+                    }
                 }
             }
         }

@@ -775,12 +775,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     ParseSpec      rerun = spec;
     MockFull       p2(spec.debug.traceParse, spec.debug.traceLex);
     sem::Formatter formatter;
-    auto           fmt_result = formatter.toString(p.node);
-    rerun.source              = formatter.store.toString(fmt_result);
-    rerun.base_tokens         = std::nullopt;
-    rerun.subnodes            = std::nullopt;
-    rerun.tokens              = std::nullopt;
-    rerun.sem                 = toTestJson(p.node);
+    auto           fmt_result = formatter.toString(
+        p.node, sem::Formatter::Context{});
+    rerun.source      = formatter.store.toString(fmt_result);
+    rerun.base_tokens = std::nullopt;
+    rerun.subnodes    = std::nullopt;
+    rerun.tokens      = std::nullopt;
+    rerun.sem         = toTestJson(p.node);
     rerun.debug.debugOutDir.append("_reformat");
 
     if (spec.debug.traceAll || spec.debug.printSource) {

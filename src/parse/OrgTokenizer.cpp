@@ -463,6 +463,13 @@ struct RecombineState {
                 break;
             }
 
+            case otk::TextSrcBegin: {
+                add_fake(
+                    otk::TextSrcBegin, loc_fill(lex.val().text.substr(4)));
+                lex.next();
+                break;
+            }
+
             case otk::Word: {
                 if (rs::all_of(lex.tok().value.text, [](char c) {
                         return isupper(c);

@@ -242,7 +242,7 @@ items:
 
   - name: "List-like starter"
     source: |
-      - [17:47] 
+      - [17:47]
         -> 'all content') seems like a good target.
 
   - name: "Table with close content"
