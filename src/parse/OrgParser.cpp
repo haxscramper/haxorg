@@ -1100,10 +1100,35 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
 
         end(); // finish statement
     };
-    // eval_result
-    { empty(); };
+
     skip(lex, otk::CmdPrefix);
     skip(lex, otk::CmdSrcEnd);
+
+
+    // eval_result
+    if (lex.ahead(
+            Newline + OrgTokSet{otk::Whitespace},
+            Vec<OrgTokenKind>{
+                otk::CmdPrefix,
+                otk::CmdResults,
+            })) {
+        while (!lex.at(otk::CmdPrefix)) {
+            space(lex);
+            newline(lex);
+        }
+        skip(lex, otk::CmdPrefix);
+        skip(lex, otk::CmdResults);
+        newline(lex);
+        if (lex.at(otk::ColonExampleLine)) {
+            start(org::StmtList);
+            while (lex.at(otk::ColonExampleLine)) {
+                token(org::RawText, lex.pop(otk::ColonExampleLine));
+                token(org::Newline, lex.pop(otk::Newline));
+            }
+            end();
+        }
+    }
+
     return end();
 }
 

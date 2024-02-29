@@ -42,12 +42,12 @@ sub_lexers:
     - re: ":\\/\\/.*?$"
       token: LinkTarget
 
-  link_protocol_split: 
+  link_protocol_split:
     - re: "^\\[\\["
       token: LinkBegin
 
     - re: "id"
-      token: LinkProtocolId 
+      token: LinkProtocolId
 
     - re: "file"
       token: LinkProtocolFile
@@ -60,8 +60,7 @@ sub_lexers:
 
   raw_dsl_link:
     - re: "^\\[\\[\\w+"
-      sub: 
-        link_protocol_split
+      sub: link_protocol_split
 
     - re: ":.*?$"
       token: LinkTarget
@@ -276,7 +275,6 @@ rules:
     actions:
       - { do: push, to: COMMAND, from: INITIAL }
 
-
   - lit: "#+"
     states: [LEAD]
     token: LineCommand
@@ -284,6 +282,13 @@ rules:
     actions:
       - { do: pop, to: INITIAL, from: LEAD }
       - { do: push, to: COMMAND, from: INITIAL }
+
+  - re: ":.*"
+    states: [LEAD]
+    token: ColonExampleLine
+  - re: "^:.*"
+    states: [INITIAL]
+    token: ColonExampleLine
 
   #region DSL-commands
   - re: "columns{prop_colon}"
@@ -577,7 +582,10 @@ rules:
   - { re: "\\w+", token: Word }
   - { re: "(\\w+-)+\\w+", token: Word }
   - { re: "\\$", token: Dollar }
-  - { re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆", token: MiscUnicode }
+  - {
+      re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆",
+      token: MiscUnicode,
+    }
   - { lit: "<%%", token: DynamicTimeContent }
   #endregion
   #endregion

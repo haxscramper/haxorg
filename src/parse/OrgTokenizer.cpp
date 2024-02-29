@@ -480,6 +480,14 @@ struct RecombineState {
                 break;
             }
 
+            case otk::ColonExampleLine: {
+                add_fake(
+                    otk::ColonExampleLine,
+                    loc_fill(lex.val().text.substr(2)));
+                lex.next();
+                break;
+            }
+
             case otk::FootnoteLinked: {
                 auto text = lex.val().text.dropPrefix("[fn:").dropSuffix(
                     "]");
@@ -794,7 +802,6 @@ struct TokenVisitor {
                 auto span = make_span(start, std::next(it));
                 auto line = LineToken{span};
                 if (TraceState) {
-                    // d->print(lex, fmt("{}", span));
                     d->print(lex, fmt("{} {}", line.kind, line.tokens));
                 }
                 lines.push_back(line);
