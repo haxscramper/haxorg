@@ -698,6 +698,15 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Link::Person const& object) { __obj_field(res, object, name); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Link::UserProtocol const& object) {
+  __obj_field(res, object, protocol);
+  __obj_field(res, object, target);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Link::Internal const& object) { __obj_field(res, object, target); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Link::Footnote const& object) { __obj_field(res, object, target); }
 
 template <typename V, typename R>

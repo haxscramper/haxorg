@@ -636,7 +636,7 @@ SemId<Link> OrgConverter::convertLink(__args) {
         if (target.starts_with(".") || target.starts_with("/")) {
             link->data = Link::File{.file = target};
         } else {
-            LOG(FATAL) << target;
+            link->data = Link::Internal{.target = target};
         }
 
     } else {
@@ -658,6 +658,7 @@ SemId<Link> OrgConverter::convertLink(__args) {
             link->data = Link::File{.file = get_text(one(a, N::Link))};
 
         } else {
+            link->data = Link::UserProtocol{.protocol = protocol};
             LOG(ERROR) << "Unhandled protocol kind '" << protocol << "'\n"
                        << a.treeRepr();
         }

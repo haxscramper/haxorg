@@ -27,6 +27,8 @@ items:
       [17:21] Moving
 
   - name: "Long newline after the command block end"
+    debug:
+      doFormatReparse: false
     source: |
       #+begin_src 
 
@@ -37,7 +39,6 @@ items:
 
   - name: "Subtree state transitions"
     source: |
-
       **** COMPLETED Subtree title
         CLOSED: [2023-11-08 Wed 14:53:12 +04]
         :PROPERTIES:
@@ -139,6 +140,8 @@ items:
       [[person:Test Test][*description*]]
 
   - name: "Standalone caption"
+    debug:
+      doFormatReparse: false
     source: |
       - [2023-11-09 Thu 18:33:38 +04]
         #+caption:
@@ -192,6 +195,8 @@ items:
             :END:
 
   - name: "Table with trailing medium newline"
+    debug:
+      doFormatReparse: false
     source: |
 
       | language | profiling            | tools              | etc. |
@@ -256,6 +261,8 @@ items:
       #+end_quote
 
   - name: "Closing curly in link"
+    debug:
+      doFormatReparse: false
     source: |
       src_sh{ping
         https://google.com},
@@ -296,6 +303,8 @@ items:
       ****** AAA
 
   - name: "tbflm"
+    debug: 
+      doFormatReparse: false
     source: |
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
@@ -417,6 +426,8 @@ items:
       + B
 
   - name: "Name and results"
+    debug:
+      doFormatReparse: false
     source: |
       #+name: xxx
       #+BEGIN_SRC sch :file imgs/sch_1.tmp.png :exports none

@@ -1100,6 +1100,15 @@ message Link {
     string                                         name                             = 1;
     string                                         debug                            = 1000;
   }
+  message UserProtocol {
+    string                                         protocol                         = 1;
+    string                                         target                           = 2;
+    string                                         debug                            = 1000;
+  }
+  message Internal {
+    string                                         target                           = 1;
+    string                                         debug                            = 1000;
+  }
   message Footnote {
     string                                         target                           = 1;
     string                                         debug                            = 1000;
@@ -1113,16 +1122,20 @@ message Link {
       Link.Raw                                     raw                              = 1;
       Link.Id                                      id                               = 2;
       Link.Person                                  person                           = 3;
-      Link.Footnote                                footnote                         = 4;
-      Link.File                                    file                             = 5;
+      Link.UserProtocol                            userprotocol                     = 4;
+      Link.Internal                                internal                         = 5;
+      Link.Footnote                                footnote                         = 6;
+      Link.File                                    file                             = 7;
     }
   }
   enum Kind {
     Kind_Raw_f                                                                      = 0;
     Kind_Id_f                                                                       = 1;
     Kind_Person_f                                                                   = 2;
-    Kind_Footnote_f                                                                 = 3;
-    Kind_File_f                                                                     = 4;
+    Kind_UserProtocol_f                                                             = 3;
+    Kind_Internal_f                                                                 = 4;
+    Kind_Footnote_f                                                                 = 5;
+    Kind_File_f                                                                     = 6;
   }
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;

@@ -110,6 +110,8 @@ void visitLink(R& res, In<sem::Link> object);
 void visit(R& res, sem::Link::Raw const& object);
 void visit(R& res, sem::Link::Id const& object);
 void visit(R& res, sem::Link::Person const& object);
+void visit(R& res, sem::Link::UserProtocol const& object);
+void visit(R& res, sem::Link::Internal const& object);
 void visit(R& res, sem::Link::Footnote const& object);
 void visit(R& res, sem::Link::File const& object);
 void visit(R& res, sem::DocumentOptions::TocExport const& object);

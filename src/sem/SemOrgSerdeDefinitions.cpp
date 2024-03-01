@@ -1577,6 +1577,24 @@ void proto_serde<::orgproto::Link::Person, sem::Link::Person>::read(::orgproto::
   proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Link::Person::name));
 }
 
+void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(::orgproto::Link::UserProtocol* out, sem::Link::UserProtocol const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_protocol(), in.protocol);
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(::orgproto::Link::UserProtocol const& out, proto_write_accessor<sem::Link::UserProtocol> in) {
+  proto_serde<std::string, Str>::read(out.protocol(), in.for_field(&sem::Link::UserProtocol::protocol));
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::UserProtocol::target));
+}
+
+void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::write(::orgproto::Link::Internal* out, sem::Link::Internal const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::read(::orgproto::Link::Internal const& out, proto_write_accessor<sem::Link::Internal> in) {
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::Internal::target));
+}
+
 void proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote>::write(::orgproto::Link::Footnote* out, sem::Link::Footnote const& in) {
   proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
 }
@@ -1612,10 +1630,16 @@ void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem:
       proto_serde<orgproto::Link::Person, sem::Link::Person>::write(out->mutable_data()->mutable_person(), std::get<2>(in.data));
       break;
     case 3:
-      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<3>(in.data));
+      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(out->mutable_data()->mutable_userprotocol(), std::get<3>(in.data));
       break;
     case 4:
-      proto_serde<orgproto::Link::File, sem::Link::File>::write(out->mutable_data()->mutable_file(), std::get<4>(in.data));
+      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::write(out->mutable_data()->mutable_internal(), std::get<4>(in.data));
+      break;
+    case 5:
+      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<5>(in.data));
+      break;
+    case 6:
+      proto_serde<orgproto::Link::File, sem::Link::File>::write(out->mutable_data()->mutable_file(), std::get<6>(in.data));
       break;
   }
 }
@@ -1638,11 +1662,17 @@ void proto_serde<::orgproto::Link, sem::Link>::read(::orgproto::Link const& out,
     case ::orgproto::Link::Data::kPerson:
       proto_serde<orgproto::Link::Person, sem::Link::Person>::read(out.data().person(), in.for_field_variant<2>(&sem::Link::data));
       break;
+    case ::orgproto::Link::Data::kUserprotocol:
+      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<3>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kInternal:
+      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::read(out.data().internal(), in.for_field_variant<4>(&sem::Link::data));
+      break;
     case ::orgproto::Link::Data::kFootnote:
-      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::read(out.data().footnote(), in.for_field_variant<3>(&sem::Link::data));
+      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::read(out.data().footnote(), in.for_field_variant<5>(&sem::Link::data));
       break;
     case ::orgproto::Link::Data::kFile:
-      proto_serde<orgproto::Link::File, sem::Link::File>::read(out.data().file(), in.for_field_variant<4>(&sem::Link::data));
+      proto_serde<orgproto::Link::File, sem::Link::File>::read(out.data().file(), in.for_field_variant<6>(&sem::Link::data));
       break;
   }
 }

@@ -259,6 +259,11 @@ auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
             break;
         }
 
+        case Link::Kind::Internal: {
+            head = str(id->getInternal().target);
+            break;
+        }
+
         case Link::Kind::Raw: {
             head = str(id->getRaw().text);
             break;

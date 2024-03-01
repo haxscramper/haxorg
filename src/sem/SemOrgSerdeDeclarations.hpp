@@ -714,6 +714,20 @@ struct proto_serde<::orgproto::Link::Person, sem::Link::Person> {
 
 
 template <>
+struct proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol> {
+  static void write(::orgproto::Link::UserProtocol* out, sem::Link::UserProtocol const& in);
+  static void read(::orgproto::Link::UserProtocol const& out, proto_write_accessor<sem::Link::UserProtocol> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Link::Internal, sem::Link::Internal> {
+  static void write(::orgproto::Link::Internal* out, sem::Link::Internal const& in);
+  static void read(::orgproto::Link::Internal const& out, proto_write_accessor<sem::Link::Internal> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote> {
   static void write(::orgproto::Link::Footnote* out, sem::Link::Footnote const& in);
   static void read(::orgproto::Link::Footnote const& out, proto_write_accessor<sem::Link::Footnote> in);

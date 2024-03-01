@@ -1868,6 +1868,17 @@ struct Link : public sem::Org {
     Str name;
   };
 
+  struct UserProtocol {
+    BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target))
+    Str protocol;
+    Str target;
+  };
+
+  struct Internal {
+    BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target))
+    Str target;
+  };
+
   struct Footnote {
     BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target))
     Str target;
@@ -1878,9 +1889,9 @@ struct Link : public sem::Org {
     Str file;
   };
 
-  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::Footnote, sem::Link::File>;
-  enum class Kind : short int { Raw, Id, Person, Footnote, File, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, Footnote, File)
+  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::UserProtocol, sem::Link::Internal, sem::Link::Footnote, sem::Link::File>;
+  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File)
   using variant_enum_type = sem::Link::Kind;
   using variant_data_type = sem::Link::Data;
   BOOST_DESCRIBE_CLASS(Link,
@@ -1899,6 +1910,10 @@ struct Link : public sem::Org {
                         (sem::Link::Id&()) getId,
                         (sem::Link::Person const&() const) getPerson,
                         (sem::Link::Person&()) getPerson,
+                        (sem::Link::UserProtocol const&() const) getUserProtocol,
+                        (sem::Link::UserProtocol&()) getUserProtocol,
+                        (sem::Link::Internal const&() const) getInternal,
+                        (sem::Link::Internal&()) getInternal,
                         (sem::Link::Footnote const&() const) getFootnote,
                         (sem::Link::Footnote&()) getFootnote,
                         (sem::Link::File const&() const) getFile,
@@ -1919,10 +1934,14 @@ struct Link : public sem::Org {
   sem::Link::Id& getId() { return std::get<1>(data); }
   sem::Link::Person const& getPerson() const { return std::get<2>(data); }
   sem::Link::Person& getPerson() { return std::get<2>(data); }
-  sem::Link::Footnote const& getFootnote() const { return std::get<3>(data); }
-  sem::Link::Footnote& getFootnote() { return std::get<3>(data); }
-  sem::Link::File const& getFile() const { return std::get<4>(data); }
-  sem::Link::File& getFile() { return std::get<4>(data); }
+  sem::Link::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
+  sem::Link::UserProtocol& getUserProtocol() { return std::get<3>(data); }
+  sem::Link::Internal const& getInternal() const { return std::get<4>(data); }
+  sem::Link::Internal& getInternal() { return std::get<4>(data); }
+  sem::Link::Footnote const& getFootnote() const { return std::get<5>(data); }
+  sem::Link::Footnote& getFootnote() { return std::get<5>(data); }
+  sem::Link::File const& getFile() const { return std::get<6>(data); }
+  sem::Link::File& getFile() { return std::get<6>(data); }
   static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
   sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
 };

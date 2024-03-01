@@ -1306,6 +1306,21 @@ def get_types() -> Sequence[GenTuStruct]:
                             fields=[(GenTuField(t_str(), "name", GenTuDoc("")))],
                         ),
                         GenTuStruct(
+                            t("UserProtocol"),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "protocol", GenTuDoc("")),
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                        ),
+                        GenTuStruct(
+                            t("Internal"),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                        ),
+                        GenTuStruct(
                             t("Footnote"),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "target", GenTuDoc("")))],

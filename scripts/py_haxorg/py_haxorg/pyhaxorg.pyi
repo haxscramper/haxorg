@@ -109,8 +109,10 @@ class LinkKind(Enum):
     Raw = 1
     Id = 2
     Person = 3
-    Footnote = 4
-    File = 5
+    UserProtocol = 4
+    Internal = 5
+    Footnote = 6
+    File = 7
 
 class DocumentOptionsTocExportKind(Enum):
     DoExport = 1
@@ -874,6 +876,8 @@ class Link(Org):
     def getRaw() -> LinkRaw: ...
     def getId() -> LinkId: ...
     def getPerson() -> LinkPerson: ...
+    def getUserProtocol() -> LinkUserProtocol: ...
+    def getInternal() -> LinkInternal: ...
     def getFootnote() -> LinkFootnote: ...
     def getFile() -> LinkFile: ...
     def getLinkKind() -> LinkKind: ...
@@ -889,6 +893,13 @@ class LinkId:
 
 class LinkPerson:
     name: str
+
+class LinkUserProtocol:
+    protocol: str
+    target: str
+
+class LinkInternal:
+    target: str
 
 class LinkFootnote:
     target: str
