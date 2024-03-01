@@ -8,17 +8,49 @@
 #include <lexbase/NodeTest.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 
+/// Whole result of the specification test run
+struct TestResult {
+    struct File {
+        Str  path;
+        bool rerun = false;
+    };
+
+    struct Skip {
+        Str msg;
+    };
+    struct Fail {
+        Str msg;
+    };
+    struct Success {
+        Str msg;
+    };
+
+    Vec<File> debugFiles;
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Skip, Fail, Success);
+    Data data;
+
+    BOOST_DESCRIBE_CLASS(TestResult, (), (debugFiles, data), (), ());
+};
+
+struct RunContext {};
+
 
 class CorpusRunner {
   public:
     // Define environment variable in the QT app run environment to get
     // better-formatted test diff output.
 
+    Vec<TestResult::File> files;
+    bool                  inRerun = false;
 
-    void writeFileOrStdout(
-        const fs::path&    target,
-        std::string const& content,
-        bool               useFile);
+    void writeFile(CR<ParseSpec> spec, CR<Str> name, CR<Str> content) {
+        files.push_back(TestResult::File{
+            .path  = name,
+            .rerun = inRerun,
+        });
+        ::writeFile(spec.debugFile(name), content);
+    }
 
     struct ExportResult {
         struct Plaintext {
@@ -161,4 +193,5 @@ struct TestParams {
     }
 };
 
-void gtest_run_spec(CR<TestParams> params);
+
+TestResult gtest_run_spec(CR<TestParams> params);

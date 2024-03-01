@@ -11,7 +11,6 @@
 #include <hstd/stdlib/diffs.hpp>
 #include <fstream>
 #include <cstdlib>
-#include <gtest/gtest.h>
 #include <sem/perfetto_org.hpp>
 #include <sem/SemOrgFormat.hpp>
 
@@ -148,18 +147,6 @@ Vec<DiffItem> json_diff(
     return result;
 }
 
-
-void CorpusRunner::writeFileOrStdout(
-    const fs::path&    target,
-    const std::string& content,
-    bool               useFile) {
-    if (useFile) {
-        writeFile(target, content);
-
-    } else {
-        std::cout << content;
-    }
-}
 
 void format(
     ColStream&               os,
@@ -749,7 +736,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
     if (spec.debug.traceAll || spec.debug.printSource) {
-        writeFile(spec.debugFile("source.org"), spec.source);
+        writeFile(spec, "source.org", spec.source);
     }
 
     auto skip = RunResult{RunResult::Skip{}};
@@ -772,6 +759,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     if (!spec.debug.doFormatReparse) { return skip; }
 
+    inRerun              = true;
     ParseSpec      rerun = spec;
     MockFull       p2(spec.debug.traceParse, spec.debug.traceLex);
     sem::Formatter formatter;
@@ -786,10 +774,11 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(
-            rerun.debugFile("org2_format_tree.org"),
+            rerun,
+            "org2_format_tree.org",
             formatter.store.toTreeRepr(fmt_result));
-        writeFile(rerun.debugFile("org2_format.org"), rerun.source);
-        writeFile(rerun.debugFile("org2_source.org"), spec.source);
+        writeFile(rerun, "org2_format.org", rerun.source);
+        writeFile(rerun, "org2_source.org", spec.source);
     }
 
     runSpecBaseLex(p2, rerun);
@@ -801,15 +790,11 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
         auto read = [](char c) { return visibleName(c).first; };
 
+        writeFile(rerun, "sem2_expected.yaml", fmt1(toTestYaml(p.node)));
+        writeFile(rerun, "sem2_parsed.yaml", fmt1(toTestYaml(p2.node)));
         writeFile(
-            rerun.debugFile("sem2_expected.yaml"),
-            fmt1(toTestYaml(p.node)));
-        writeFile(
-            rerun.debugFile("sem2_parsed.yaml"),
-            fmt1(toTestYaml(p2.node)));
-
-        writeFile(
-            rerun.debugFile("sem2_reformat_fail.txt"),
+            rerun,
+            "sem2_reformat_fail.txt",
             R"(
 
 source:
@@ -892,7 +877,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
         auto content = std::format("{}", yamlRepr(p.baseTokens));
 
         if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
-            writeFile(spec.debugFile("base_lexed.yaml"), content + "\n");
+            writeFile(spec, "base_lexed.yaml", content + "\n");
         } else {
             std::cout << content << std::endl;
         }
@@ -939,7 +924,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
 
         __perf_trace("write lexer yaml file");
         if (spec.debug.traceAll || spec.debug.printLexedToFile) {
-            writeFile(spec.debugFile("lexed.yaml"), content + "\n");
+            writeFile(spec, "lexed.yaml", content + "\n");
         } else {
             std::cout << content << std::endl;
         }
@@ -1035,7 +1020,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
     if (spec.debug.traceAll || spec.debug.printParsed
         || spec.debug.printParsedToFile) {
         writeFile(
-            spec.debugFile("parsed_non_extended.yaml"),
+            spec,
+            "parsed_non_extended.yaml",
             std::format("{}", yamlRepr(p.nodes)) + "\n");
     }
 
@@ -1044,7 +1030,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
     if (spec.debug.traceAll || spec.debug.printParsed
         || spec.debug.printParsedToFile) {
         writeFile(
-            spec.debugFile("parsed.yaml"),
+            spec,
+            "parsed.yaml",
             std::format("{}", yamlRepr(p.nodes)) + "\n");
 
         for (auto const& [colored, path] : Vec<Pair<bool, Str>>{
@@ -1059,7 +1046,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
                     0,
                     OrgNodeGroup::TreeReprConf{.customWrite = writeImpl});
 
-            writeFile(spec.debugFile(path), buffer.str() + "\n");
+            writeFile(spec, path, buffer.str() + "\n");
         }
     }
 
@@ -1131,20 +1118,24 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     }
 }
 
-void gtest_run_spec(CR<TestParams> params) {
+TestResult gtest_run_spec(CR<TestParams> params) {
     auto spec              = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
-    using RunResult  = CorpusRunner::RunResult;
-    RunResult result = runner.runSpec(spec, params.file.native());
+    using RunResult   = CorpusRunner::RunResult;
+    RunResult  result = runner.runSpec(spec, params.file.native());
+    TestResult test;
 
     if (result.isOk() && result.isSkip()) {
-        GTEST_SKIP() << "Partially covered test: "
-                     << (spec.debug.doLex ? "" : "lex is disabled ")     //
-                     << (spec.debug.doParse ? "" : "parse is disabled ") //
-                     << (spec.debug.doSem ? "" : "sem is disabled ");
+        test.data = TestResult::Skip{
+            .msg = fmt(
+                "Partially covered test: {}{}{}",
+                spec.debug.doLex ? "" : "lex is disabled ",
+                spec.debug.doParse ? "" : "parse is disabled ",
+                spec.debug.doSem ? "" : "sem is disabled "),
+        };
     } else if (result.isOk()) {
-        SUCCEED();
+        test.data = TestResult::Success{};
     } else {
         spec.debug = ParseSpec::Dbg{
             .debugOutDir      = "/tmp/corpus_runs/" + params.testName(),
@@ -1180,9 +1171,15 @@ void gtest_run_spec(CR<TestParams> params) {
             },
             fail.data);
 
-        writeFile(spec.debugFile("failure.txt"), os.toString(false));
+        runner.writeFile(spec, "failure.txt", os.toString(false));
 
-        FAIL() << params.fullName() << " failed, , wrote debug to "
-               << spec.debug.debugOutDir;
+        test.data = TestResult::Fail{
+            .msg = fmt(
+                "{} failed, , wrote debug to  {}",
+                params.fullName(),
+                spec.debug.debugOutDir),
+        };
     }
+
+    return test;
 }

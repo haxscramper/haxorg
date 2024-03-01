@@ -209,7 +209,23 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 TEST_P(ParseFile, CorpusAll) {
     TestParams params = GetParam();
     if (enableFullTraceOnCli) { params.spec.debug.traceAll = true; }
-    gtest_run_spec(params);
+    TestResult result = gtest_run_spec(params);
+    switch (result.getKind()) {
+        case TestResult::Kind::Fail: {
+            FAIL() << result.getFail().msg;
+            break;
+        }
+
+        case TestResult::Kind::Success: {
+            GTEST_SUCCEED() << result.getSuccess().msg;
+            break;
+        }
+
+        case TestResult::Kind::Skip: {
+            GTEST_SKIP() << result.getSkip().msg;
+            break;
+        }
+    }
 }
 
 INSTANTIATE_TEST_SUITE_P(
