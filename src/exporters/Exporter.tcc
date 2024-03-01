@@ -27,9 +27,17 @@ void Exporter<V, R>::visitEmpty(R& res, In<sem::Empty> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCell(R& res, In<sem::Cell> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, loc);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitRow(R& res, In<sem::Row> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);
+  __org_field(res, object, cells);
   __org_field(res, object, subnodes);
 }
 

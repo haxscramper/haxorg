@@ -179,9 +179,17 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
         d_org(
+            "Cell",
+            GenTuDoc("Table cell"),
+            bases=[t_org("Org")],
+        ),
+        d_org(
             "Row",
             GenTuDoc("Table row"),
             bases=[t_org("Org")],
+            fields=[
+                vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
+            ]
         ),
         d_org(
             "Table",

@@ -75,6 +75,26 @@ struct Empty : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Empty; }
 };
 
+/// \brief Table cell
+struct Cell : public sem::Org {
+  using Org::Org;
+  virtual ~Cell() = default;
+  BOOST_DESCRIBE_CLASS(Cell,
+                       (Org),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemId<Cell>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemId<Cell> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::Cell; }
+};
+
 /// \brief Table row
 struct Row : public sem::Org {
   using Org::Org;
@@ -85,12 +105,15 @@ struct Row : public sem::Org {
                        (),
                        (loc,
                         staticKind,
+                        cells,
                         (sem::SemId<Row>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
   Opt<LineCol> loc;
   /// \brief Document
   static OrgSemKind const staticKind;
+  /// \brief List of cells on the row
+  Vec<sem::SemId<sem::Cell>> cells = {};
   static sem::SemId<Row> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
 };

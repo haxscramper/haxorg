@@ -4,6 +4,7 @@
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
         __MAP(kStmtlist, stmtlist, StmtList)  \
         __MAP(kEmpty, empty, Empty)  \
+        __MAP(kCell, cell, Cell)  \
         __MAP(kRow, row, Row)  \
         __MAP(kTable, table, Table)  \
         __MAP(kHashtag, hashtag, HashTag)  \
@@ -71,6 +72,13 @@ template <>
 struct proto_serde<::orgproto::Empty, sem::Empty> {
   static void write(::orgproto::Empty* out, sem::Empty const& in);
   static void read(::orgproto::Empty const& out, proto_write_accessor<sem::Empty> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Cell, sem::Cell> {
+  static void write(::orgproto::Cell* out, sem::Cell const& in);
+  static void read(::orgproto::Cell const& out, proto_write_accessor<sem::Cell> in);
 };
 
 

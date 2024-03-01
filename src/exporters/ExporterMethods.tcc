@@ -3,6 +3,7 @@ void visitStmt(R& res, In<sem::Stmt> object);
 void visitInline(R& res, In<sem::Inline> object);
 void visitStmtList(R& res, In<sem::StmtList> object);
 void visitEmpty(R& res, In<sem::Empty> object);
+void visitCell(R& res, In<sem::Cell> object);
 void visitRow(R& res, In<sem::Row> object);
 void visitTable(R& res, In<sem::Table> object);
 void visitHashTag(R& res, In<sem::HashTag> object);

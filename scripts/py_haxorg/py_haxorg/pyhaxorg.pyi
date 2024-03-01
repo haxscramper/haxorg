@@ -342,61 +342,62 @@ class OrgNodeKind(Enum):
 class OrgSemKind(Enum):
     StmtList = 1
     Empty = 2
-    Row = 3
-    Table = 4
-    HashTag = 5
-    Footnote = 6
-    Completion = 7
-    Paragraph = 8
-    Center = 9
-    Caption = 10
-    CmdName = 11
-    CmdResults = 12
-    CommandGroup = 13
-    Tblfm = 14
-    Quote = 15
-    Verse = 16
-    Example = 17
-    CmdArguments = 18
-    CmdArgument = 19
-    Export = 20
-    AdmonitionBlock = 21
-    Call = 22
-    Code = 23
-    Time = 24
-    TimeRange = 25
-    Macro = 26
-    Symbol = 27
-    SubtreeLog = 28
-    Subtree = 29
-    InlineMath = 30
-    Escaped = 31
-    Newline = 32
-    Space = 33
-    Word = 34
-    AtMention = 35
-    RawText = 36
-    Punctuation = 37
-    Placeholder = 38
-    BigIdent = 39
-    Bold = 40
-    Underline = 41
-    Monospace = 42
-    MarkQuote = 43
-    Verbatim = 44
-    Italic = 45
-    Strike = 46
-    Par = 47
-    List = 48
-    ListItem = 49
-    Link = 50
-    DocumentOptions = 51
-    Document = 52
-    ParseError = 53
-    FileTarget = 54
-    TextSeparator = 55
-    Include = 56
-    DocumentGroup = 57
+    Cell = 3
+    Row = 4
+    Table = 5
+    HashTag = 6
+    Footnote = 7
+    Completion = 8
+    Paragraph = 9
+    Center = 10
+    Caption = 11
+    CmdName = 12
+    CmdResults = 13
+    CommandGroup = 14
+    Tblfm = 15
+    Quote = 16
+    Verse = 17
+    Example = 18
+    CmdArguments = 19
+    CmdArgument = 20
+    Export = 21
+    AdmonitionBlock = 22
+    Call = 23
+    Code = 24
+    Time = 25
+    TimeRange = 26
+    Macro = 27
+    Symbol = 28
+    SubtreeLog = 29
+    Subtree = 30
+    InlineMath = 31
+    Escaped = 32
+    Newline = 33
+    Space = 34
+    Word = 35
+    AtMention = 36
+    RawText = 37
+    Punctuation = 38
+    Placeholder = 39
+    BigIdent = 40
+    Bold = 41
+    Underline = 42
+    Monospace = 43
+    MarkQuote = 44
+    Verbatim = 45
+    Italic = 46
+    Strike = 47
+    Par = 48
+    List = 49
+    ListItem = 50
+    Link = 51
+    DocumentOptions = 52
+    Document = 53
+    ParseError = 54
+    FileTarget = 55
+    TextSeparator = 56
+    Include = 57
+    DocumentGroup = 58
 
 class LeafFieldType(Enum):
     Int = 1
@@ -438,8 +439,12 @@ class StmtList(Org):
 class Empty(Org):
     loc: Optional[LineCol]
 
+class Cell(Org):
+    loc: Optional[LineCol]
+
 class Row(Org):
     loc: Optional[LineCol]
+    cells: List[Cell]
 
 class Table(Stmt):
     def getAttached(kind: OrgSemKind) -> Optional[Org]: ...

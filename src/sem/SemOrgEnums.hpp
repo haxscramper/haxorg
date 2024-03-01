@@ -6,6 +6,7 @@
 #define EACH_SEM_ORG_KIND(__IMPL) \
     __IMPL(StmtList) \
     __IMPL(Empty) \
+    __IMPL(Cell) \
     __IMPL(Row) \
     __IMPL(Table) \
     __IMPL(HashTag) \
@@ -377,7 +378,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

@@ -29,11 +29,26 @@ void proto_serde<::orgproto::Empty, sem::Empty>::read(::orgproto::Empty const& o
   }
 }
 
+void proto_serde<::orgproto::Cell, sem::Cell>::write(::orgproto::Cell* out, sem::Cell const& in) {
+  proto_serde<::orgproto::Cell, sem::Org>::write(out, in);
+  if (in.loc) {
+    proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
+  }
+}
+
+void proto_serde<::orgproto::Cell, sem::Cell>::read(::orgproto::Cell const& out, proto_write_accessor<sem::Cell> in) {
+  proto_serde<::orgproto::Cell, sem::Org>::read(out, in.as<sem::Org>());
+  if (out.has_loc()) {
+    proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(out.loc(), in.for_field(&sem::Cell::loc));
+  }
+}
+
 void proto_serde<::orgproto::Row, sem::Row>::write(::orgproto::Row* out, sem::Row const& in) {
   proto_serde<::orgproto::Row, sem::Org>::write(out, in);
   if (in.loc) {
     proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
   }
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::write(out->mutable_cells(), in.cells);
 }
 
 void proto_serde<::orgproto::Row, sem::Row>::read(::orgproto::Row const& out, proto_write_accessor<sem::Row> in) {
@@ -41,6 +56,7 @@ void proto_serde<::orgproto::Row, sem::Row>::read(::orgproto::Row const& out, pr
   if (out.has_loc()) {
     proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(out.loc(), in.for_field(&sem::Row::loc));
   }
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::read(out.cells(), in.for_field(&sem::Row::cells));
 }
 
 void proto_serde<::orgproto::Table, sem::Table>::write(::orgproto::Table* out, sem::Table const& in) {

@@ -418,6 +418,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
+  if (value == "Cell") { return OrgSemKind::Cell; } else
   if (value == "Row") { return OrgSemKind::Row; } else
   if (value == "Table") { return OrgSemKind::Table; } else
   if (value == "HashTag") { return OrgSemKind::HashTag; } else
@@ -479,6 +480,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
     case OrgSemKind::StmtList: return "StmtList";
     case OrgSemKind::Empty: return "Empty";
+    case OrgSemKind::Cell: return "Cell";
     case OrgSemKind::Row: return "Row";
     case OrgSemKind::Table: return "Table";
     case OrgSemKind::HashTag: return "HashTag";

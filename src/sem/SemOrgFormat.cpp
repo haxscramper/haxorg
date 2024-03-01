@@ -393,6 +393,11 @@ auto Formatter::toString(SemId<Row> id, CR<Context> ctx) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
+auto Formatter::toString(SemId<Cell> id, CR<Context> ctx) -> Res {
+    return str(__PRETTY_FUNCTION__);
+}
+
+
 auto Formatter::toString(SemId<Completion> id, CR<Context> ctx) -> Res {
     return str(fmt("[{}/{}]", id->done, id->full));
 }
@@ -443,7 +448,26 @@ auto Formatter::toString(SemId<Italic> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
-    return str(__PRETTY_FUNCTION__);
+    Res result = b.stack();
+    for (auto const& in_row : id->rows) {
+        Res row = b.line({str("| ")});
+        for (auto const& in_cell : in_row->cells) {
+            Res cell = b.line();
+            for (auto const& item : in_cell->subnodes) {
+                b.add_at(cell, str(" "));
+                b.add_at(cell, toString(item, ctx));
+                b.add_at(cell, str(" "));
+            }
+
+            b.add_at(row, cell);
+            b.add_at(row, str("|"));
+        }
+
+
+        b.add_at(result, row);
+    }
+
+    return result;
 }
 
 auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)

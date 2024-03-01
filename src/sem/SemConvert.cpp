@@ -60,6 +60,21 @@ SemId<Table> OrgConverter::convertTable(__args) {
     auto __trace = trace(a);
     auto result  = Sem<Table>(a);
 
+    for (auto const& in_row : many(a, N::Rows)) {
+        SemId<Row> row = Sem<Row>(in_row);
+        for (auto const& in_cell : one(in_row, N::Body)) {
+            SemId<Cell> cell = Sem<Cell>(in_cell);
+            for (auto const& sub : one(in_cell, N::Body)) {
+                cell->push_back(convert(sub));
+            }
+
+            row->cells.push_back(cell);
+        }
+
+        result->rows.push_back(row);
+    }
+
+
     return result;
 };
 

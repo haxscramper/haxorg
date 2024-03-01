@@ -6,6 +6,8 @@
 #include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Cell>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Row>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
@@ -32,6 +34,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
+  bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
   bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow");
   bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag");
   bind_vector<Str>(m, "VecOfStr");
@@ -91,8 +94,12 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::Empty, sem::SemId<sem::Empty>, sem::Org>(m, "Empty")
     .def_readwrite("loc", &sem::Empty::loc, R"RAW(Document)RAW")
     ;
+  pybind11::class_<sem::Cell, sem::SemId<sem::Cell>, sem::Org>(m, "Cell")
+    .def_readwrite("loc", &sem::Cell::loc, R"RAW(Document)RAW")
+    ;
   pybind11::class_<sem::Row, sem::SemId<sem::Row>, sem::Org>(m, "Row")
     .def_readwrite("loc", &sem::Row::loc, R"RAW(Document)RAW")
+    .def_readwrite("cells", &sem::Row::cells, R"RAW(List of cells on the row)RAW")
     ;
   pybind11::class_<sem::Table, sem::SemId<sem::Table>, sem::Stmt>(m, "Table")
     .def_readwrite("loc", &sem::Table::loc, R"RAW(Document)RAW")
@@ -1091,6 +1098,7 @@ node can have subnodes.)RAW")
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
     .value("StmtList", OrgSemKind::StmtList)
     .value("Empty", OrgSemKind::Empty)
+    .value("Cell", OrgSemKind::Cell)
     .value("Row", OrgSemKind::Row)
     .value("Table", OrgSemKind::Table)
     .value("HashTag", OrgSemKind::HashTag)

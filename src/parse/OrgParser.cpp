@@ -805,30 +805,54 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
     __perf_trace("parseTable");
     auto __trace = trace(lex);
     start(org::Table);
+    empty(); // table parameters TODO
 
     while (lex.at(OrgTokSet{otk::LeadingPipe, otk::TableSeparator})) {
         switch (lex.kind()) {
             case otk::LeadingPipe: {
                 start(org::TableRow);
+                empty();              // no row parameters
+                empty();              // no row-level text
+                start(org::StmtList); // List of rows
+
                 while (lex.at(OrgTokSet{otk::LeadingPipe, otk::Pipe})) {
                     start(org::TableCell);
+                    empty();              // No cell parameters
+                    start(org::StmtList); // Cell content
                     SubLexer sub{lex};
                     skip(lex);
-                    while (
-                        !lex.at(OrgTokSet{otk::Pipe, otk::TrailingPipe})) {
-                        sub.add(pop(lex, lex.kind()));
+                    OrgTokSet CellEnd{otk::Pipe, otk::TrailingPipe};
+                    OrgTokSet CellStart{otk::Pipe, otk::LeadingPipe};
+                    while (!lex.at(CellEnd)) {
+                        if (lex.at(otk::Whitespace)
+                            && (lex.at(CellEnd, +1)
+                                || lex.at(CellStart, -1))) {
+                            lex.next();
+                        } else {
+                            sub.add(pop(lex, lex.kind()));
+                        }
                     }
-                    sub.start();
-                    parseParagraph(sub);
+                    if (sub.empty()) {
+                        start(org::Paragraph);
+                        end();
+                    } else {
+                        sub.start();
+                        parseParagraph(sub);
+                    }
+
+                    end();
                     end();
                 }
                 skip(lex, otk::TrailingPipe);
-                skip(lex, Newline);
+                if (lex.at(Newline)) { skip(lex, Newline); }
+
+                end();
                 end();
                 break;
             }
             case otk::TableSeparator: {
                 lex.next();
+                newline(lex);
                 break;
             }
             default: {

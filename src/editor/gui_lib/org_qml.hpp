@@ -45,6 +45,13 @@ struct Empty : public Org {
   Empty(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
+struct Cell : public Org {
+  Q_GADGET
+  public:
+  Cell() = default;
+  Cell(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
 struct Row : public Org {
   Q_GADGET
   public:
@@ -643,6 +650,7 @@ Q_DECLARE_METATYPE(org_qml::Stmt)
 Q_DECLARE_METATYPE(org_qml::Inline)
 Q_DECLARE_METATYPE(org_qml::StmtList)
 Q_DECLARE_METATYPE(org_qml::Empty)
+Q_DECLARE_METATYPE(org_qml::Cell)
 Q_DECLARE_METATYPE(org_qml::Row)
 Q_DECLARE_METATYPE(org_qml::Table)
 Q_DECLARE_METATYPE(org_qml::HashTag)

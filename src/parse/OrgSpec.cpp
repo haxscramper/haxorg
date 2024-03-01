@@ -365,7 +365,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::TableCell,
             OrgPattern({
                 fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
-                fieldN(1, N::Text, {org::Empty, org::StmtList}),
+                fieldN(1, N::Body, {org::Empty, org::StmtList}),
             })},
         SpecPair{org::CommandTitle, parTextCmdPattern},
         SpecPair{org::CommandCaption, parTextCmdPattern},
