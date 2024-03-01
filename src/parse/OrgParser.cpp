@@ -1610,7 +1610,14 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case otk::CmdAttrHtml:
+        case otk::CmdAttr: {
+            start(org::CommandAttr);
+            skip(lex, otk::CmdPrefix);
+            token(org::Ident, pop(lex, otk::CmdAttr));
+            parseCommandArguments(lex);
+            break;
+        }
+
         case otk::CmdName:
         case otk::CmdResults:
         case otk::CmdHeader: {
@@ -1620,10 +1627,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 case otk::CmdHeader: start(org::CommandHeader); break;
                 case otk::CmdName: start(org::CommandName); break;
                 case otk::CmdResults: start(org::CommandResults); break;
-                case otk::CmdAttrHtml: start(org::CommandAttrHtml); break;
-                case otk::CmdAttrImage:
-                    start(org::CommandAttrImage);
-                    break;
                 default:
             }
 

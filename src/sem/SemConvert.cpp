@@ -24,6 +24,8 @@ Str get_text(
     char const* function = __builtin_FUNCTION()) {
     if (a.isTerminal()) {
         return a.val().text;
+    } else if (a.kind() == org::Empty) {
+        return "";
     } else {
         LOG(FATAL) << fmt("{} {} {}", function, line, a.treeRepr(false));
     }
@@ -897,8 +899,9 @@ SemId<CmdArgument> OrgConverter::convertCmdArgument(__args) {
 }
 
 SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
-    SemId<CmdArguments> result  = Sem<CmdArguments>(a);
-    auto                add_arg = [&](SemId<CmdArgument> arg) {
+    SemId<CmdArguments> result = Sem<CmdArguments>(a);
+
+    auto add_arg = [&](SemId<CmdArgument> arg) {
         if (arg->key) {
             bool ok = result->named.insert({arg->key.value(), arg}).second;
             CHECK(ok); // TODO generate proper error message
@@ -916,6 +919,14 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
     } else {
         CHECK(a.getKind() == org::Empty) << a.treeRepr();
     }
+
+    return result;
+}
+
+SemId<CmdAttr> OrgConverter::convertCmdAttr(__args) {
+    SemId<CmdAttr> result = Sem<CmdAttr>(a);
+    result->target        = normalize(get_text(one(a, N::Name)));
+    result->parameters    = convertCmdArguments(one(a, N::Args));
 
     return result;
 }
@@ -1049,6 +1060,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::Table: return convertTable(a);
         case org::Footnote: return convertFootnote(a);
         case org::CommandTblfm: return convertTblfm(a);
+        case org::CommandAttr: return convertCmdAttr(a);
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
             Vec<SemId<Org>> nested = flatConvertAttached(a);

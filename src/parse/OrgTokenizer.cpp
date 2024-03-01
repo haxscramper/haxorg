@@ -347,6 +347,15 @@ struct RecombineState {
                 lex.next();
                 break;
             }
+
+            case otk::CmdAttr: {
+                auto const& text = lex.tok().value.text;
+                add_fake(
+                    otk::CmdAttr,
+                    loc_fill(text.substr(5, text.size() - 7)));
+                lex.next();
+                break;
+            }
             default: {
                 pop_as(next.kind);
             }
@@ -576,8 +585,8 @@ struct LineToken {
         otk::CmdTitle,         otk::CmdHeader,
         otk::CmdName,          otk::CmdInclude,
         otk::CmdResults,       otk::CmdCaption,
-        otk::CmdColumns,       otk::CmdAttrHtml,
-        otk::CmdAttrImage,     otk::CmdPropertyArgs,
+        otk::CmdColumns,       otk::CmdAttr,
+        otk::CmdAttr,          otk::CmdPropertyArgs,
         otk::CmdPropertyRaw,   otk::CmdPropertyText,
         otk::CmdOptions,       otk::CmdFiletags,
         otk::CmdTblfm,         otk::CmdLatexClass,

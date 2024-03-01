@@ -224,6 +224,19 @@ struct CmdArguments : public Org {
   CmdArguments(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
+struct CmdAttr : public Attached {
+  Q_GADGET
+  public:
+  CmdAttr() = default;
+  CmdAttr(sem::SemId<sem::Org> const& id) : Attached(id) {}
+  Q_PROPERTY( QString target READ getTarget WRITE setTarget )
+  Q_PROPERTY( org_qml::CmdArguments parameters READ getParameters WRITE setParameters )
+  QString getTarget();
+  void setTarget(QString target);
+  org_qml::CmdArguments getParameters();
+  void setParameters(org_qml::CmdArguments parameters);
+};
+
 struct CmdArgument : public Org {
   Q_GADGET
   public:
@@ -673,6 +686,7 @@ Q_DECLARE_METATYPE(org_qml::Quote)
 Q_DECLARE_METATYPE(org_qml::Verse)
 Q_DECLARE_METATYPE(org_qml::Example)
 Q_DECLARE_METATYPE(org_qml::CmdArguments)
+Q_DECLARE_METATYPE(org_qml::CmdAttr)
 Q_DECLARE_METATYPE(org_qml::CmdArgument)
 Q_DECLARE_METATYPE(org_qml::Export)
 Q_DECLARE_METATYPE(org_qml::AdmonitionBlock)

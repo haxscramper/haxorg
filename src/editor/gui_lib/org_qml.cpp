@@ -54,6 +54,18 @@ org_qml::Paragraph org_qml::Caption::getText() {
 void org_qml::Caption::setText(org_qml::Paragraph text) {
   __data.getAs<sem::Caption>()->text = org_qml::serde<org_qml::Paragraph, sem::SemId<sem::Paragraph>>::qml_to_cxx(text);
 }
+QString org_qml::CmdAttr::getTarget() {
+  return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::CmdAttr>()->target);
+}
+void org_qml::CmdAttr::setTarget(QString target) {
+  __data.getAs<sem::CmdAttr>()->target = org_qml::serde<QString, Str>::qml_to_cxx(target);
+}
+org_qml::CmdArguments org_qml::CmdAttr::getParameters() {
+  return org_qml::serde<org_qml::CmdArguments, sem::SemId<sem::CmdArguments>>::cxx_to_qml(__data.getAs<sem::CmdAttr>()->parameters);
+}
+void org_qml::CmdAttr::setParameters(org_qml::CmdArguments parameters) {
+  __data.getAs<sem::CmdAttr>()->parameters = org_qml::serde<org_qml::CmdArguments, sem::SemId<sem::CmdArguments>>::qml_to_cxx(parameters);
+}
 QString org_qml::CmdArgument::getValue() {
   return org_qml::serde<QString, Str>::cxx_to_qml(__data.getAs<sem::CmdArgument>()->value);
 }

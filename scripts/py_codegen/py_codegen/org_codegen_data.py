@@ -183,14 +183,12 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc("Table cell"),
             bases=[t_org("Org")],
         ),
-        d_org(
-            "Row",
-            GenTuDoc("Table row"),
-            bases=[t_org("Org")],
-            fields=[
-                vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
-            ]
-        ),
+        d_org("Row",
+              GenTuDoc("Table row"),
+              bases=[t_org("Org")],
+              fields=[
+                  vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
+              ]),
         d_org(
             "Table",
             GenTuDoc("Table"),
@@ -390,6 +388,15 @@ def get_types() -> Sequence[GenTuStruct]:
                     "named",
                     GenTuDoc("Stored key-value mapping"),
                 ),
+            ],
+        ),
+        d_org(
+            "CmdAttr",
+            GenTuDoc("Caption annotation for any subsequent node"),
+            bases=[t_org("Attached")],
+            fields=[
+                GenTuField(t_str(), "target", GenTuDoc("")),
+                id_field("CmdArguments", "parameters", GenTuDoc("HTML attributes"))
             ],
         ),
         d_org(
@@ -615,7 +622,8 @@ def get_types() -> Sequence[GenTuStruct]:
                            "exports",
                            GenTuDoc("What to export"),
                            value="Exports::Both"),
-                vec_field(t_nest("Line", ["Code"]), "lines", GenTuDoc("Collected code lines")),
+                vec_field(t_nest("Line", ["Code"]), "lines",
+                          GenTuDoc("Collected code lines")),
                 opt_field(
                     t_id("CmdArguments"),
                     "parameters",
@@ -1675,9 +1683,9 @@ def get_enums():
                     ),
                 ),
                 GenTuEnumField("CommandLanguage", GenTuDoc("`#+language:`")),
-                GenTuEnumField("CommandAttrHtml", GenTuDoc("`#+attr_html:`")),
+                GenTuEnumField("CommandAttr",
+                               GenTuDoc("`#+attr_html:`, `#+attr_image` etc.")),
                 GenTuEnumField("CommandStartup", GenTuDoc("`#+startup:`")),
-                GenTuEnumField("CommandAttrImage", GenTuDoc("`#+attr_image:`")),
                 GenTuEnumField("CommandName",
                                GenTuDoc("`#+name:` - name of the associated entry")),
                 GenTuEnumField(

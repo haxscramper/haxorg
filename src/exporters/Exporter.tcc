@@ -197,6 +197,15 @@ void Exporter<V, R>::visitCmdArguments(R& res, In<sem::CmdArguments> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCmdAttr(R& res, In<sem::CmdAttr> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, loc);
+  __org_field(res, object, target);
+  __org_field(res, object, parameters);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCmdArgument(R& res, In<sem::CmdArgument> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);

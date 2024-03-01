@@ -26,6 +26,7 @@ void visitQuote(R& res, In<sem::Quote> object);
 void visitVerse(R& res, In<sem::Verse> object);
 void visitExample(R& res, In<sem::Example> object);
 void visitCmdArguments(R& res, In<sem::CmdArguments> object);
+void visitCmdAttr(R& res, In<sem::CmdAttr> object);
 void visitCmdArgument(R& res, In<sem::CmdArgument> object);
 void visitExport(R& res, In<sem::Export> object);
 void visitAdmonitionBlock(R& res, In<sem::AdmonitionBlock> object);

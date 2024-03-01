@@ -475,6 +475,12 @@ auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
     return str(__PRETTY_FUNCTION__);
 }
 
+auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
+    return b.line(
+        {str("#+attr_"_ss + id->target + ": "_ss),
+         toString(id->parameters, ctx)});
+}
+
 auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
     return b.line(
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));

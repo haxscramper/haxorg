@@ -504,6 +504,31 @@ struct CmdArguments : public sem::Org {
   Opt<sem::SemId<sem::CmdArgument>> popArg(Str key);
 };
 
+/// \brief Caption annotation for any subsequent node
+struct CmdAttr : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdAttr() = default;
+  BOOST_DESCRIBE_CLASS(CmdAttr,
+                       (Attached),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        target,
+                        parameters,
+                        (sem::SemId<CmdAttr>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  Str target;
+  /// \brief HTML attributes
+  sem::SemId<sem::CmdArguments> parameters = SemId<CmdArguments>::Nil();
+  static sem::SemId<CmdAttr> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
+};
+
 /// \brief Single key-value (or positional)
 struct CmdArgument : public sem::Org {
   using Org::Org;

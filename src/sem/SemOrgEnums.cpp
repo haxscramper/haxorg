@@ -163,9 +163,8 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CommandCreator") { return OrgNodeKind::CommandCreator; } else
   if (value == "CommandInclude") { return OrgNodeKind::CommandInclude; } else
   if (value == "CommandLanguage") { return OrgNodeKind::CommandLanguage; } else
-  if (value == "CommandAttrHtml") { return OrgNodeKind::CommandAttrHtml; } else
+  if (value == "CommandAttr") { return OrgNodeKind::CommandAttr; } else
   if (value == "CommandStartup") { return OrgNodeKind::CommandStartup; } else
-  if (value == "CommandAttrImage") { return OrgNodeKind::CommandAttrImage; } else
   if (value == "CommandName") { return OrgNodeKind::CommandName; } else
   if (value == "CommandResults") { return OrgNodeKind::CommandResults; } else
   if (value == "CommandHeader") { return OrgNodeKind::CommandHeader; } else
@@ -304,9 +303,8 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CommandCreator: return "CommandCreator";
     case OrgNodeKind::CommandInclude: return "CommandInclude";
     case OrgNodeKind::CommandLanguage: return "CommandLanguage";
-    case OrgNodeKind::CommandAttrHtml: return "CommandAttrHtml";
+    case OrgNodeKind::CommandAttr: return "CommandAttr";
     case OrgNodeKind::CommandStartup: return "CommandStartup";
-    case OrgNodeKind::CommandAttrImage: return "CommandAttrImage";
     case OrgNodeKind::CommandName: return "CommandName";
     case OrgNodeKind::CommandResults: return "CommandResults";
     case OrgNodeKind::CommandHeader: return "CommandHeader";
@@ -435,6 +433,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Verse") { return OrgSemKind::Verse; } else
   if (value == "Example") { return OrgSemKind::Example; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
+  if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
   if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
   if (value == "Export") { return OrgSemKind::Export; } else
   if (value == "AdmonitionBlock") { return OrgSemKind::AdmonitionBlock; } else
@@ -497,6 +496,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Verse: return "Verse";
     case OrgSemKind::Example: return "Example";
     case OrgSemKind::CmdArguments: return "CmdArguments";
+    case OrgSemKind::CmdAttr: return "CmdAttr";
     case OrgSemKind::CmdArgument: return "CmdArgument";
     case OrgSemKind::Export: return "Export";
     case OrgSemKind::AdmonitionBlock: return "AdmonitionBlock";

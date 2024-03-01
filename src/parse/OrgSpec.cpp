@@ -450,6 +450,16 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::InlineFootnote,
             OrgPattern({Field(Range(0, N::Definition))})},
         SpecPair{
+            org::CommandAttr,
+            OrgPattern({
+                Field(
+                    Range(0, N::Name),
+                    OrgPattern({org::Empty, org::Ident})),
+                Field(
+                    Range(1, N::Args),
+                    OrgPattern({org::Empty, org::CmdArguments})),
+            })},
+        SpecPair{
             org::CommandHeader,
             OrgPattern({
                 Field(

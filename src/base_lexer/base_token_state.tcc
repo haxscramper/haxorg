@@ -44,8 +44,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Circumflex: return "Circumflex";
         case OrgTokenKind::CmdAdmonitionBegin: return "CmdAdmonitionBegin";
         case OrgTokenKind::CmdAdmonitionEnd: return "CmdAdmonitionEnd";
-        case OrgTokenKind::CmdAttrHtml: return "CmdAttrHtml";
-        case OrgTokenKind::CmdAttrImage: return "CmdAttrImage";
+        case OrgTokenKind::CmdAttr: return "CmdAttr";
         case OrgTokenKind::CmdAuthor: return "CmdAuthor";
         case OrgTokenKind::CmdCall: return "CmdCall";
         case OrgTokenKind::CmdCaption: return "CmdCaption";
@@ -221,8 +220,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Circumflex") { return OrgTokenKind::Circumflex; } else
   if (value == "CmdAdmonitionBegin") { return OrgTokenKind::CmdAdmonitionBegin; } else
   if (value == "CmdAdmonitionEnd") { return OrgTokenKind::CmdAdmonitionEnd; } else
-  if (value == "CmdAttrHtml") { return OrgTokenKind::CmdAttrHtml; } else
-  if (value == "CmdAttrImage") { return OrgTokenKind::CmdAttrImage; } else
+  if (value == "CmdAttr") { return OrgTokenKind::CmdAttr; } else
   if (value == "CmdAuthor") { return OrgTokenKind::CmdAuthor; } else
   if (value == "CmdCall") { return OrgTokenKind::CmdCall; } else
   if (value == "CmdCaption") { return OrgTokenKind::CmdCaption; } else

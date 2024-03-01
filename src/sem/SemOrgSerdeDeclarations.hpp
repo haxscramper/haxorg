@@ -21,6 +21,7 @@
         __MAP(kVerse, verse, Verse)  \
         __MAP(kExample, example, Example)  \
         __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
+        __MAP(kCmdattr, cmdattr, CmdAttr)  \
         __MAP(kCmdargument, cmdargument, CmdArgument)  \
         __MAP(kExport, export_, Export)  \
         __MAP(kAdmonitionblock, admonitionblock, AdmonitionBlock)  \
@@ -191,6 +192,13 @@ template <>
 struct proto_serde<::orgproto::CmdArguments, sem::CmdArguments> {
   static void write(::orgproto::CmdArguments* out, sem::CmdArguments const& in);
   static void read(::orgproto::CmdArguments const& out, proto_write_accessor<sem::CmdArguments> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdAttr, sem::CmdAttr> {
+  static void write(::orgproto::CmdAttr* out, sem::CmdAttr const& in);
+  static void read(::orgproto::CmdAttr const& out, proto_write_accessor<sem::CmdAttr> in);
 };
 
 

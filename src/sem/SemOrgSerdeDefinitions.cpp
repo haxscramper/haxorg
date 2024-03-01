@@ -303,6 +303,26 @@ void proto_serde<::orgproto::CmdArguments, sem::CmdArguments>::read(::orgproto::
   proto_serde<::google::protobuf::Map<std::string, orgproto::CmdArgument>, UnorderedMap<Str, sem::SemId<sem::CmdArgument>>>::read(out.named(), in.for_field(&sem::CmdArguments::named));
 }
 
+void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::write(::orgproto::CmdAttr* out, sem::CmdAttr const& in) {
+  proto_serde<::orgproto::CmdAttr, sem::Org>::write(out, in);
+  if (in.loc) {
+    proto_serde<orgproto::LineCol, LineCol>::write(out->mutable_loc(), *in.loc);
+  }
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+  if (!in.parameters.isNil()) {
+    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
+  }
+}
+
+void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::read(::orgproto::CmdAttr const& out, proto_write_accessor<sem::CmdAttr> in) {
+  proto_serde<::orgproto::CmdAttr, sem::Org>::read(out, in.as<sem::Org>());
+  if (out.has_loc()) {
+    proto_serde<Opt<orgproto::LineCol>, Opt<LineCol>>::read(out.loc(), in.for_field(&sem::CmdAttr::loc));
+  }
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::CmdAttr::target));
+  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::CmdAttr::parameters));
+}
+
 void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::CmdArgument* out, sem::CmdArgument const& in) {
   proto_serde<::orgproto::CmdArgument, sem::Org>::write(out, in);
   if (in.loc) {
