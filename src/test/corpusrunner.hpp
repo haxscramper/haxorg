@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include <lexbase/NodeTest.hpp>
+#include <test/NodeTest.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 
 /// Whole result of the specification test run
@@ -13,16 +13,22 @@ struct TestResult {
     struct File {
         Str  path;
         bool rerun = false;
+        BOOST_DESCRIBE_CLASS(File, (), (path, rerun), (), ());
     };
 
     struct Skip {
         Str msg;
+        BOOST_DESCRIBE_CLASS(Skip, (), (msg), (), ());
     };
+
     struct Fail {
         Str msg;
+        BOOST_DESCRIBE_CLASS(Fail, (), (msg), (), ());
     };
+
     struct Success {
         Str msg;
+        BOOST_DESCRIBE_CLASS(Success, (), (msg), (), ());
     };
 
     Vec<File> debugFiles;
@@ -51,34 +57,6 @@ class CorpusRunner {
         });
         ::writeFile(spec.debugFile(name), content);
     }
-
-    struct ExportResult {
-        struct Plaintext {
-            std::string text;
-        };
-
-        struct Text {
-            json textLyt;
-        };
-
-        struct Structured {
-            json data;
-        };
-
-        SUB_VARIANTS(
-            Kind,
-            Data,
-            data,
-            getKind,
-            Plaintext,
-            Text,
-            Structured);
-
-        ExportResult() {}
-        ExportResult(CR<Data> data) : data(data) {}
-        Data                      data;
-        ParseSpec::ExporterExpect expected;
-    };
 
     json toTextLyt(
         layout::BlockStore&       b,
@@ -142,11 +120,6 @@ class CorpusRunner {
     RunResult::LexCompare  runSpecLex(MockFull& p, CR<ParseSpec> spec);
     RunResult::NodeCompare runSpecParse(MockFull& p, CR<ParseSpec> spec);
     RunResult::SemCompare  runSpecSem(MockFull& p, CR<ParseSpec> spec);
-
-    ExportResult runExporter(
-        ParseSpec const&                 spec,
-        sem::SemId<sem::Org>             top,
-        ParseSpec::ExporterExpect const& exp);
 };
 
 struct TestParams {

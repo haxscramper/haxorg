@@ -1,5 +1,5 @@
 #include "../common.hpp"
-#include "org_parse_aux.hpp"
+#include <test/org_parse_aux.hpp>
 #include <gtest/gtest.h>
 
 #include <parse/OrgParser.hpp>
@@ -8,7 +8,7 @@
 
 #include <lexbase/AstSpec.hpp>
 #include <lexbase/AstDiff.hpp>
-#include <lexbase/NodeTest.hpp>
+#include <test/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
 

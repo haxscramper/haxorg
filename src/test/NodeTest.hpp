@@ -77,21 +77,6 @@ struct ParseSpec {
             ((std::string), debugOutDir, ""));
     };
 
-    struct ExporterExpect {
-        DECL_FIELDS(
-            ExporterExpect,
-            (),
-            ((std::string), name, ""),
-            /// Optional parameters to pass to the exporter run.
-            ((Opt<yaml>), parmeters, std::nullopt),
-            ((yaml), expected, yaml()),
-            ((bool), print, false),
-            ((bool), printToFile, false),
-            /// Print additional trace logs for exporter in the debug
-            /// directory for parent test?
-            ((bool), doTrace, false));
-    };
-
     fs::path debugFile(std::string relativePath, bool create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
@@ -141,11 +126,6 @@ struct ParseSpec {
         ParseSpec,
         (),
         ((ExpectedMode), expectedMode, ExpectedMode::Nested),
-        /// List of exporter executions along with the additional
-        /// parameters to supply to the exporter. Specific handling of
-        /// different exporter variations is implemented in the corpus
-        /// file.
-        ((Vec<ExporterExpect>), exporters, {}),
         /// Name of the method to call for lexing or parsing. Pointer to
         /// implementation is resolved externally, spec file just contains
         /// the required name.

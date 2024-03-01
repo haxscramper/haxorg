@@ -427,37 +427,6 @@ void exporterVisit(
     trace.endStream(os);
 }
 
-CorpusRunner::ExportResult CorpusRunner::runExporter(
-    ParseSpec const&                 spec,
-    sem::SemId<sem::Org>             top,
-    const ParseSpec::ExporterExpect& exp) {
-    using ER = ExportResult;
-
-    auto strForStore = [](layout::SimpleStringStore const& store)
-        -> Func<Str(layout::LytStr)> {
-        return [&](layout::LytStr str) { return store.str(str); };
-    };
-
-    auto withTreeExporter =
-        [this, &strForStore](
-            sem::SemId<sem::Org> top, layout::BlockStore& b, auto& run) {
-            auto block = run.evalTop(top);
-            return ER(ER::Text{
-                .textLyt = toTextLyt(b, block, strForStore(run.store))});
-        };
-
-    if (exp.name == "json") {
-        return ER(ER::Structured{.data = ExporterJson().evalTop(top)});
-    } else if (exp.name == "sexp") {
-        ExporterSimpleSExpr run;
-        return withTreeExporter(top, run.b, run);
-
-    } else {
-        throw std::domain_error(
-            "Unexpected export result name " + exp.name);
-    }
-}
-
 
 template <typename K, typename V>
 CorpusRunner::RunResult::LexCompare compareTokens(
@@ -1151,12 +1120,6 @@ TestResult gtest_run_spec(CR<TestParams> params) {
             .printParsedToFile    = true,
             .printSemToFile       = true,
         };
-
-        for (auto& exporter : spec.exporters) {
-            exporter.doTrace     = true;
-            exporter.print       = true;
-            exporter.printToFile = true;
-        }
 
         RunResult fail = runner.runSpec(spec, params.file.native());
         ColText   os;

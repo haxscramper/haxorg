@@ -1,9 +1,9 @@
-#include "corpusrunner.hpp"
+#include <test/corpusrunner.hpp>
 
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <lexbase/NodeIO.hpp>
-#include <lexbase/NodeTest.hpp>
+#include <test/NodeTest.hpp>
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
 
