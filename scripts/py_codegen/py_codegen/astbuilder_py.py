@@ -103,12 +103,18 @@ class ASTBuilder(base.AstbuilderBase):
     def Arg(self, p: IdentParams) -> BlockId:
         return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])
 
-    def FuncHead(self, p: FunctionDefParams) -> List[BlockId]:
+    def FuncHead(
+        self,
+        p: FunctionDefParams,
+        withSelf: bool = False,
+    ) -> List[BlockId]:
         b = self.b
         return [
             b.text("def "),
             b.text(p.Name),
-            self.pars(self.csv([self.Arg(A) for A in p.Args])),
+            self.pars(
+                self.csv(([b.text("self")] if withSelf else []) +
+                         [self.Arg(A) for A in p.Args])),
             b.text(" -> "),
             self.Type(p.ResultTy),
             b.text(":")
@@ -117,7 +123,7 @@ class ASTBuilder(base.AstbuilderBase):
     def Method(self, p: MethodParams) -> BlockId:
         b = self.b
 
-        def_head = self.FuncHead(p.Func)
+        def_head = self.FuncHead(p.Func, withSelf=True)
 
         if p.Func.IsStub:
             def_head.append(b.text(" ..."))

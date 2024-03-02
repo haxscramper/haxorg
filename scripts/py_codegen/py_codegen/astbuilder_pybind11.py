@@ -68,7 +68,7 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["void"]:
             name = "None"
 
-        case ["pybind11", "function"] | ["PyFunc"]:
+        case ["pybind11", "function"] | [*_, "PyFunc"]:
             name = "function"
 
         case ["py", "object"] | ["pybind11", "object"]:
