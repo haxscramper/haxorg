@@ -55,6 +55,9 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["Opt"] | ["std", "optional"]:
             name = "Optional"
 
+        case ["std", "variant"] | ["Var"]:
+            name = "Union"
+
         case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
                                                         ] | ["std", "basic_string"]:
             name = "str"
@@ -458,7 +461,14 @@ class Py11BindPass:
     Id: BlockId
 
 
-Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass]
+@beartype
+@dataclass
+class Py11TypedefPass:
+    name: pya.PyType
+    base: pya.PyType
+
+
+Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass]
 
 
 @beartype
@@ -476,13 +486,23 @@ class Py11Module:
         passes.append(ast.string("from enum import Enum"))
         passes.append(ast.string("from datetime import datetime, date, time"))
 
-        for _enum in [E for E in self.Decls if isinstance(E, Py11Enum)]:
-            passes.append(ast.Enum(_enum.build_typedef()))
-            passes.append(ast.string(""))
+        for item in self.Decls:
+            match item:
+                case Py11Enum():
+                    passes.append(ast.Enum(item.build_typedef()))
+                    passes.append(ast.string(""))
 
-        for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
-            passes.append(ast.Class(_class.build_typedef(ast)))
-            passes.append(ast.string(""))
+                case Py11Class():
+                    passes.append(ast.Class(item.build_typedef(ast)))
+                    passes.append(ast.string(""))
+
+                case Py11TypedefPass():
+                    passes.append(
+                        ast.b.line([
+                            ast.Type(item.name),
+                            ast.b.text(" = "),
+                            ast.Type(item.base),
+                        ]))
 
         return ast.b.stack(passes)
 

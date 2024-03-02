@@ -16,6 +16,7 @@ from py_codegen.astbuilder_pybind11 import (
     Py11Field,
     Py11Class,
     Py11BindPass,
+    Py11TypedefPass,
     Py11Enum,
     flat_scope,
     id_self,
@@ -257,6 +258,13 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
         elif isinstance(value, GenTuEnum):
             res.Decls.append(Py11Enum.FromGenTu(value, PyName=py_type(value.name).Name))
+
+        elif isinstance(value, GenTuTypedef):
+            res.Decls.append(
+                Py11TypedefPass(
+                    name=py_type(value.name),
+                    base=py_type(value.base),
+                ))
 
     iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback, [])
 
