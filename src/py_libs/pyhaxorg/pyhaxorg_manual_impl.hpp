@@ -26,6 +26,43 @@ namespace py = pybind11;
 
 PYBIND11_DECLARE_HOLDER_TYPE(T, sem::SemId<T>);
 
+template <typename E>
+class PyEnumIterator {
+  public:
+    explicit PyEnumIterator(E value = value_domain<E>::low())
+        : value(value) {}
+
+    E operator*() const { return value; }
+
+    PyEnumIterator& operator++() {
+        value = value_domain<E>::succ(value);
+        return *this;
+    }
+
+    bool operator!=(const PyEnumIterator& other) const {
+        return value_domain<E>::ord(value)
+            != value_domain<E>::ord(other.value);
+    }
+
+  private:
+    E value;
+};
+
+template <typename E>
+void bind_enum_iterator(py::module& m, const char* PyTypeName) {
+    py::class_<PyEnumIterator<E>>(
+        m, (std::string(PyTypeName) + "EnumIterator").c_str())
+        .def("__iter__", [](PyEnumIterator<E>& self) { return self; })
+        .def("__next__", [](PyEnumIterator<E>& self) {
+            auto current = *self;
+            if (current == value_domain<E>::high()) {
+                throw py::stop_iteration();
+            }
+            ++self;
+            return current;
+        });
+}
+
 template <typename T>
 void bind_int_set(py::module& m, const char* PyNameType) {
     py::class_<IntSet<T>>(m, (std::string(PyNameType) + "IntVec").c_str())
@@ -154,6 +191,14 @@ enum class [[refl]] LeafFieldType
     Str,
     Any
 };
+
+template <>
+struct value_domain<LeafFieldType>
+    : value_domain_ungapped<
+          LeafFieldType,
+          LeafFieldType::Int,
+          LeafFieldType::Any> {};
+
 
 template <typename T>
 struct LeafKindForT;

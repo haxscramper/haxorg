@@ -211,10 +211,14 @@ node can have subnodes.)RAW")
     .def_readwrite("placement", &sem::Export::placement, R"RAW(Customized position of the text in the final exporting document.)RAW")
     .def_readwrite("content", &sem::Export::content, R"RAW(Raw exporter content string)RAW")
     ;
+  bind_enum_iterator<sem::Export::Format>(m, "ExportFormat");
   pybind11::enum_<sem::Export::Format>(m, "ExportFormat")
     .value("Inline", sem::Export::Format::Inline, R"RAW(Export directly in the paragraph)RAW")
     .value("Line", sem::Export::Format::Line, R"RAW(Single line of export)RAW")
     .value("Block", sem::Export::Format::Block, R"RAW(Multiple lines of export)RAW")
+    .def("__iter__", [](sem::Export::Format _self) -> PyEnumIterator<sem::Export::Format> { return
+                                                                                            PyEnumIterator<sem::Export::Format>
+                                                                                            (); })
     ;
   pybind11::class_<sem::AdmonitionBlock, sem::SemId<sem::AdmonitionBlock>, sem::Block>(m, "AdmonitionBlock")
     .def_readwrite("loc", &sem::AdmonitionBlock::loc, R"RAW(Document)RAW")
@@ -260,10 +264,14 @@ node can have subnodes.)RAW")
     .def(pybind11::init<>())
     .def_readwrite("target", &sem::Code::Line::Part::Tangle::target)
     ;
+  bind_enum_iterator<sem::Code::Line::Part::Kind>(m, "CodeLinePartKind");
   pybind11::enum_<sem::Code::Line::Part::Kind>(m, "CodeLinePartKind")
     .value("Raw", sem::Code::Line::Part::Kind::Raw)
     .value("Callout", sem::Code::Line::Part::Kind::Callout)
     .value("Tangle", sem::Code::Line::Part::Kind::Tangle)
+    .def("__iter__", [](sem::Code::Line::Part::Kind _self) -> PyEnumIterator<sem::Code::Line::Part::Kind> { return
+                                                                                                            PyEnumIterator<sem::Code::Line::Part::Kind>
+                                                                                                            (); })
     ;
   pybind11::class_<sem::Code::Switch>(m, "CodeSwitch")
     .def(pybind11::init<>())
@@ -296,21 +304,33 @@ node can have subnodes.)RAW")
     .def(pybind11::init<>())
     .def_readwrite("value", &sem::Code::Switch::Dedent::value)
     ;
+  bind_enum_iterator<sem::Code::Switch::Kind>(m, "CodeSwitchKind");
   pybind11::enum_<sem::Code::Switch::Kind>(m, "CodeSwitchKind")
     .value("LineStart", sem::Code::Switch::Kind::LineStart)
     .value("CalloutFormat", sem::Code::Switch::Kind::CalloutFormat)
     .value("RemoveCallout", sem::Code::Switch::Kind::RemoveCallout)
     .value("EmphasizeLine", sem::Code::Switch::Kind::EmphasizeLine)
     .value("Dedent", sem::Code::Switch::Kind::Dedent)
+    .def("__iter__", [](sem::Code::Switch::Kind _self) -> PyEnumIterator<sem::Code::Switch::Kind> { return
+                                                                                                    PyEnumIterator<sem::Code::Switch::Kind>
+                                                                                                    (); })
     ;
+  bind_enum_iterator<sem::Code::Results>(m, "CodeResults");
   pybind11::enum_<sem::Code::Results>(m, "CodeResults")
     .value("Replace", sem::Code::Results::Replace, R"RAW(Remove old result, replace with new value)RAW")
+    .def("__iter__", [](sem::Code::Results _self) -> PyEnumIterator<sem::Code::Results> { return
+                                                                                          PyEnumIterator<sem::Code::Results>
+                                                                                          (); })
     ;
+  bind_enum_iterator<sem::Code::Exports>(m, "CodeExports");
   pybind11::enum_<sem::Code::Exports>(m, "CodeExports")
     .value("None", sem::Code::Exports::None, R"RAW(Hide both original code and run result)RAW")
     .value("Both", sem::Code::Exports::Both, R"RAW(Show output and code)RAW")
     .value("Code", sem::Code::Exports::Code, R"RAW(Show only code)RAW")
     .value("Results", sem::Code::Exports::Results, R"RAW(Show only evaluation results)RAW")
+    .def("__iter__", [](sem::Code::Exports _self) -> PyEnumIterator<sem::Code::Exports> { return
+                                                                                          PyEnumIterator<sem::Code::Exports>
+                                                                                          (); })
     ;
   pybind11::class_<sem::Time, sem::SemId<sem::Time>, sem::Org>(m, "Time")
     .def_readwrite("loc", &sem::Time::loc, R"RAW(Document)RAW")
@@ -326,12 +346,17 @@ node can have subnodes.)RAW")
     .def_readwrite("period", &sem::Time::Repeat::period, R"RAW(period)RAW")
     .def_readwrite("count", &sem::Time::Repeat::count, R"RAW(count)RAW")
     ;
+  bind_enum_iterator<sem::Time::Repeat::Mode>(m, "TimeRepeatMode");
   pybind11::enum_<sem::Time::Repeat::Mode>(m, "TimeRepeatMode")
     .value("None", sem::Time::Repeat::Mode::None, R"RAW(Do not repeat task on completion)RAW")
     .value("Exact", sem::Time::Repeat::Mode::Exact, R"RAW(?)RAW")
     .value("FirstMatch", sem::Time::Repeat::Mode::FirstMatch, R"RAW(Repeat on the first matching day in the future)RAW")
     .value("SameDay", sem::Time::Repeat::Mode::SameDay, R"RAW(Repeat task on the same day next week/month/year)RAW")
+    .def("__iter__", [](sem::Time::Repeat::Mode _self) -> PyEnumIterator<sem::Time::Repeat::Mode> { return
+                                                                                                    PyEnumIterator<sem::Time::Repeat::Mode>
+                                                                                                    (); })
     ;
+  bind_enum_iterator<sem::Time::Repeat::Period>(m, "TimeRepeatPeriod");
   pybind11::enum_<sem::Time::Repeat::Period>(m, "TimeRepeatPeriod")
     .value("Year", sem::Time::Repeat::Period::Year)
     .value("Month", sem::Time::Repeat::Period::Month)
@@ -339,6 +364,9 @@ node can have subnodes.)RAW")
     .value("Day", sem::Time::Repeat::Period::Day)
     .value("Hour", sem::Time::Repeat::Period::Hour)
     .value("Minute", sem::Time::Repeat::Period::Minute)
+    .def("__iter__", [](sem::Time::Repeat::Period _self) -> PyEnumIterator<sem::Time::Repeat::Period> { return
+                                                                                                        PyEnumIterator<sem::Time::Repeat::Period>
+                                                                                                        (); })
     ;
   pybind11::class_<sem::Time::Static>(m, "TimeStatic")
     .def(pybind11::init<>())
@@ -349,9 +377,13 @@ node can have subnodes.)RAW")
     .def(pybind11::init<>())
     .def_readwrite("expr", &sem::Time::Dynamic::expr)
     ;
+  bind_enum_iterator<sem::Time::TimeKind>(m, "TimeTimeKind");
   pybind11::enum_<sem::Time::TimeKind>(m, "TimeTimeKind")
     .value("Static", sem::Time::TimeKind::Static)
     .value("Dynamic", sem::Time::TimeKind::Dynamic)
+    .def("__iter__", [](sem::Time::TimeKind _self) -> PyEnumIterator<sem::Time::TimeKind> { return
+                                                                                            PyEnumIterator<sem::Time::TimeKind>
+                                                                                            (); })
     ;
   pybind11::class_<sem::TimeRange, sem::SemId<sem::TimeRange>, sem::Org>(m, "TimeRange")
     .def_readwrite("loc", &sem::TimeRange::loc, R"RAW(Document)RAW")
@@ -398,10 +430,14 @@ node can have subnodes.)RAW")
     .def_readwrite("newPriority", &sem::SubtreeLog::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
     .def_readwrite("on", &sem::SubtreeLog::Priority::on, R"RAW(When priority was changed)RAW")
     ;
+  bind_enum_iterator<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction");
   pybind11::enum_<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction")
     .value("Added", sem::SubtreeLog::Priority::Action::Added)
     .value("Removed", sem::SubtreeLog::Priority::Action::Removed)
     .value("Changed", sem::SubtreeLog::Priority::Action::Changed)
+    .def("__iter__", [](sem::SubtreeLog::Priority::Action _self) -> PyEnumIterator<sem::SubtreeLog::Priority::Action> { return
+                                                                                                                        PyEnumIterator<sem::SubtreeLog::Priority::Action>
+                                                                                                                        (); })
     ;
   pybind11::class_<sem::SubtreeLog::Note>(m, "SubtreeLogNote")
     .def(pybind11::init<>())
@@ -427,6 +463,7 @@ node can have subnodes.)RAW")
     .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, R"RAW(Tag in question)RAW")
     .def_readwrite("added", &sem::SubtreeLog::Tag::added, R"RAW(Added/removed?)RAW")
     ;
+  bind_enum_iterator<sem::SubtreeLog::Kind>(m, "SubtreeLogKind");
   pybind11::enum_<sem::SubtreeLog::Kind>(m, "SubtreeLogKind")
     .value("Priority", sem::SubtreeLog::Kind::Priority)
     .value("Note", sem::SubtreeLog::Kind::Note)
@@ -434,6 +471,9 @@ node can have subnodes.)RAW")
     .value("Clock", sem::SubtreeLog::Kind::Clock)
     .value("State", sem::SubtreeLog::Kind::State)
     .value("Tag", sem::SubtreeLog::Kind::Tag)
+    .def("__iter__", [](sem::SubtreeLog::Kind _self) -> PyEnumIterator<sem::SubtreeLog::Kind> { return
+                                                                                                PyEnumIterator<sem::SubtreeLog::Kind>
+                                                                                                (); })
     ;
   pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>, sem::Org>(m, "Subtree")
     .def_readwrite("loc", &sem::Subtree::loc, R"RAW(Document)RAW")
@@ -475,6 +515,7 @@ node can have subnodes.)RAW")
     .def("getTime", static_cast<sem::SemId<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
     .def("getTimeRange", static_cast<sem::SemId<sem::TimeRange>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
     ;
+  bind_enum_iterator<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
   pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
     .value("Clocked", sem::Subtree::Period::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
     .value("Scheduled", sem::Subtree::Period::Kind::Scheduled, R"RAW(Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned)RAW")
@@ -482,6 +523,9 @@ node can have subnodes.)RAW")
     .value("Deadline", sem::Subtree::Period::Kind::Deadline, R"RAW(Date of task completion. Must be a single time point)RAW")
     .value("Created", sem::Subtree::Period::Kind::Created, R"RAW(When the subtree was created)RAW")
     .value("Repeated", sem::Subtree::Period::Kind::Repeated, R"RAW(Last repeat time of the recurring tasks)RAW")
+    .def("__iter__", [](sem::Subtree::Period::Kind _self) -> PyEnumIterator<sem::Subtree::Period::Kind> { return
+                                                                                                          PyEnumIterator<sem::Subtree::Period::Kind>
+                                                                                                          (); })
     ;
   pybind11::class_<sem::Subtree::Property>(m, "SubtreeProperty")
     .def(pybind11::init<>())
@@ -506,15 +550,23 @@ node can have subnodes.)RAW")
     .def("getUnknown", static_cast<sem::Subtree::Property::Unknown&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnknown))
     .def("getKind", static_cast<sem::Subtree::Property::Kind(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getKind))
     ;
+  bind_enum_iterator<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode");
   pybind11::enum_<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode")
     .value("Override", sem::Subtree::Property::SetMode::Override)
     .value("Add", sem::Subtree::Property::SetMode::Add)
     .value("Subtract", sem::Subtree::Property::SetMode::Subtract)
+    .def("__iter__", [](sem::Subtree::Property::SetMode _self) -> PyEnumIterator<sem::Subtree::Property::SetMode> { return
+                                                                                                                    PyEnumIterator<sem::Subtree::Property::SetMode>
+                                                                                                                    (); })
     ;
+  bind_enum_iterator<sem::Subtree::Property::InheritanceMode>(m, "SubtreePropertyInheritanceMode");
   pybind11::enum_<sem::Subtree::Property::InheritanceMode>(m, "SubtreePropertyInheritanceMode")
     .value("ThisAndSub", sem::Subtree::Property::InheritanceMode::ThisAndSub)
     .value("OnlyThis", sem::Subtree::Property::InheritanceMode::OnlyThis)
     .value("OnlySub", sem::Subtree::Property::InheritanceMode::OnlySub)
+    .def("__iter__", [](sem::Subtree::Property::InheritanceMode _self) -> PyEnumIterator<sem::Subtree::Property::InheritanceMode> { return
+                                                                                                                                    PyEnumIterator<sem::Subtree::Property::InheritanceMode>
+                                                                                                                                    (); })
     ;
   pybind11::class_<sem::Subtree::Property::Nonblocking>(m, "SubtreePropertyNonblocking")
     .def(pybind11::init<>())
@@ -556,11 +608,15 @@ node can have subnodes.)RAW")
     .def(pybind11::init<>())
     .def_readwrite("level", &sem::Subtree::Property::Visibility::level)
     ;
+  bind_enum_iterator<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel");
   pybind11::enum_<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel")
     .value("Folded", sem::Subtree::Property::Visibility::Level::Folded)
     .value("Children", sem::Subtree::Property::Visibility::Level::Children)
     .value("Content", sem::Subtree::Property::Visibility::Level::Content)
     .value("All", sem::Subtree::Property::Visibility::Level::All)
+    .def("__iter__", [](sem::Subtree::Property::Visibility::Level _self) -> PyEnumIterator<sem::Subtree::Property::Visibility::Level> { return
+                                                                                                                                        PyEnumIterator<sem::Subtree::Property::Visibility::Level>
+                                                                                                                                        (); })
     ;
   pybind11::class_<sem::Subtree::Property::ExportOptions>(m, "SubtreePropertyExportOptions")
     .def(pybind11::init<>())
@@ -582,6 +638,7 @@ node can have subnodes.)RAW")
     .def(pybind11::init<>())
     .def_readwrite("value", &sem::Subtree::Property::Unknown::value, R"RAW(Converted value of the property)RAW")
     ;
+  bind_enum_iterator<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind");
   pybind11::enum_<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind")
     .value("Nonblocking", sem::Subtree::Property::Kind::Nonblocking)
     .value("Trigger", sem::Subtree::Property::Kind::Trigger)
@@ -598,6 +655,9 @@ node can have subnodes.)RAW")
     .value("Unnumbered", sem::Subtree::Property::Kind::Unnumbered)
     .value("Created", sem::Subtree::Property::Kind::Created)
     .value("Unknown", sem::Subtree::Property::Kind::Unknown)
+    .def("__iter__", [](sem::Subtree::Property::Kind _self) -> PyEnumIterator<sem::Subtree::Property::Kind> { return
+                                                                                                              PyEnumIterator<sem::Subtree::Property::Kind>
+                                                                                                              (); })
     ;
   pybind11::class_<sem::LatexBody, sem::SemId<sem::LatexBody>, sem::Org>(m, "LatexBody")
     ;
@@ -679,10 +739,14 @@ node can have subnodes.)RAW")
     .def_readwrite("header", &sem::ListItem::header)
     .def("isDescriptionItem", static_cast<bool(sem::ListItem::*)() const>(&sem::ListItem::isDescriptionItem))
     ;
+  bind_enum_iterator<sem::ListItem::Checkbox>(m, "ListItemCheckbox");
   pybind11::enum_<sem::ListItem::Checkbox>(m, "ListItemCheckbox")
     .value("None", sem::ListItem::Checkbox::None)
     .value("Done", sem::ListItem::Checkbox::Done)
     .value("Empty", sem::ListItem::Checkbox::Empty)
+    .def("__iter__", [](sem::ListItem::Checkbox _self) -> PyEnumIterator<sem::ListItem::Checkbox> { return
+                                                                                                    PyEnumIterator<sem::ListItem::Checkbox>
+                                                                                                    (); })
     ;
   pybind11::class_<sem::Link, sem::SemId<sem::Link>, sem::Org>(m, "Link")
     .def_readwrite("loc", &sem::Link::loc, R"RAW(Document)RAW")
@@ -726,6 +790,7 @@ node can have subnodes.)RAW")
     .def(pybind11::init<>())
     .def_readwrite("file", &sem::Link::File::file)
     ;
+  bind_enum_iterator<sem::Link::Kind>(m, "LinkKind");
   pybind11::enum_<sem::Link::Kind>(m, "LinkKind")
     .value("Raw", sem::Link::Kind::Raw)
     .value("Id", sem::Link::Kind::Id)
@@ -734,6 +799,9 @@ node can have subnodes.)RAW")
     .value("Internal", sem::Link::Kind::Internal)
     .value("Footnote", sem::Link::Kind::Footnote)
     .value("File", sem::Link::Kind::File)
+    .def("__iter__", [](sem::Link::Kind _self) -> PyEnumIterator<sem::Link::Kind> { return
+                                                                                    PyEnumIterator<sem::Link::Kind>
+                                                                                    (); })
     ;
   pybind11::class_<sem::DocumentOptions, sem::SemId<sem::DocumentOptions>, sem::Org>(m, "DocumentOptions")
     .def_readwrite("loc", &sem::DocumentOptions::loc, R"RAW(Document)RAW")
@@ -774,15 +842,24 @@ node can have subnodes.)RAW")
     .def(pybind11::init<>())
     .def_readwrite("exportLevels", &sem::DocumentOptions::ExportFixed::exportLevels)
     ;
+  bind_enum_iterator<sem::DocumentOptions::TocExportKind>(m, "DocumentOptionsTocExportKind");
   pybind11::enum_<sem::DocumentOptions::TocExportKind>(m, "DocumentOptionsTocExportKind")
     .value("DoExport", sem::DocumentOptions::TocExportKind::DoExport)
     .value("ExportFixed", sem::DocumentOptions::TocExportKind::ExportFixed)
+    .def("__iter__", [](sem::DocumentOptions::TocExportKind _self) -> PyEnumIterator<sem::DocumentOptions::TocExportKind> { return
+                                                                                                                            PyEnumIterator<sem::DocumentOptions::TocExportKind>
+                                                                                                                            (); })
     ;
+  bind_enum_iterator<sem::DocumentOptions::BrokenLinks>(m, "DocumentOptionsBrokenLinks");
   pybind11::enum_<sem::DocumentOptions::BrokenLinks>(m, "DocumentOptionsBrokenLinks")
     .value("Raise", sem::DocumentOptions::BrokenLinks::Raise)
     .value("Ignore", sem::DocumentOptions::BrokenLinks::Ignore)
     .value("Mark", sem::DocumentOptions::BrokenLinks::Mark)
+    .def("__iter__", [](sem::DocumentOptions::BrokenLinks _self) -> PyEnumIterator<sem::DocumentOptions::BrokenLinks> { return
+                                                                                                                        PyEnumIterator<sem::DocumentOptions::BrokenLinks>
+                                                                                                                        (); })
     ;
+  bind_enum_iterator<sem::DocumentOptions::Visibility>(m, "DocumentOptionsVisibility");
   pybind11::enum_<sem::DocumentOptions::Visibility>(m, "DocumentOptionsVisibility")
     .value("Overview", sem::DocumentOptions::Visibility::Overview)
     .value("Content", sem::DocumentOptions::Visibility::Content)
@@ -792,6 +869,9 @@ node can have subnodes.)RAW")
     .value("Show4Levels", sem::DocumentOptions::Visibility::Show4Levels)
     .value("Show5Levels", sem::DocumentOptions::Visibility::Show5Levels)
     .value("ShowEverything", sem::DocumentOptions::Visibility::ShowEverything)
+    .def("__iter__", [](sem::DocumentOptions::Visibility _self) -> PyEnumIterator<sem::DocumentOptions::Visibility> { return
+                                                                                                                      PyEnumIterator<sem::DocumentOptions::Visibility>
+                                                                                                                      (); })
     ;
   pybind11::class_<sem::Document, sem::SemId<sem::Document>, sem::Org>(m, "Document")
     .def_readwrite("loc", &sem::Document::loc, R"RAW(Document)RAW")
@@ -848,15 +928,20 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::Include::OrgDocument>(m, "IncludeOrgDocument")
     .def(pybind11::init<>())
     ;
+  bind_enum_iterator<sem::Include::Kind>(m, "IncludeKind");
   pybind11::enum_<sem::Include::Kind>(m, "IncludeKind")
     .value("Example", sem::Include::Kind::Example)
     .value("Export", sem::Include::Kind::Export)
     .value("Src", sem::Include::Kind::Src)
     .value("OrgDocument", sem::Include::Kind::OrgDocument)
+    .def("__iter__", [](sem::Include::Kind _self) -> PyEnumIterator<sem::Include::Kind> { return
+                                                                                          PyEnumIterator<sem::Include::Kind>
+                                                                                          (); })
     ;
   pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>, sem::Org>(m, "DocumentGroup")
     .def_readwrite("loc", &sem::DocumentGroup::loc, R"RAW(Document)RAW")
     ;
+  bind_enum_iterator<OrgSpecName>(m, "OrgSpecName");
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")
     .value("Unnamed", OrgSpecName::Unnamed)
     .value("Result", OrgSpecName::Result)
@@ -919,7 +1004,11 @@ node can have subnodes.)RAW")
     .value("InheritanceMode", OrgSpecName::InheritanceMode)
     .value("MainSetRule", OrgSpecName::MainSetRule)
     .value("SubSetRule", OrgSpecName::SubSetRule)
+    .def("__iter__", [](OrgSpecName _self) -> PyEnumIterator<OrgSpecName> { return
+                                                                            PyEnumIterator<OrgSpecName>
+                                                                            (); })
     ;
+  bind_enum_iterator<OrgNodeKind>(m, "OrgNodeKind");
   pybind11::enum_<OrgNodeKind>(m, "OrgNodeKind")
     .value("None", OrgNodeKind::None, R"RAW(Default valye for node - invalid state)RAW")
     .value("Document", OrgNodeKind::Document, R"RAW(Toplevel part of the ast, not created by parser, and only used in `semorg` stage)RAW")
@@ -1111,7 +1200,11 @@ node can have subnodes.)RAW")
     .value("LogbookStateChange", OrgNodeKind::LogbookStateChange, R"RAW(Annotation about change in the subtree todo state)RAW")
     .value("RadioTarget", OrgNodeKind::RadioTarget, R"RAW(`<<<RADIO>>>`)RAW")
     .value("Target", OrgNodeKind::Target, R"RAW(`<<TARGET>>`)RAW")
+    .def("__iter__", [](OrgNodeKind _self) -> PyEnumIterator<OrgNodeKind> { return
+                                                                            PyEnumIterator<OrgNodeKind>
+                                                                            (); })
     ;
+  bind_enum_iterator<OrgSemKind>(m, "OrgSemKind");
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
     .value("StmtList", OrgSemKind::StmtList)
     .value("Empty", OrgSemKind::Empty)
@@ -1172,6 +1265,9 @@ node can have subnodes.)RAW")
     .value("TextSeparator", OrgSemKind::TextSeparator)
     .value("Include", OrgSemKind::Include)
     .value("DocumentGroup", OrgSemKind::DocumentGroup)
+    .def("__iter__", [](OrgSemKind _self) -> PyEnumIterator<OrgSemKind> { return
+                                                                          PyEnumIterator<OrgSemKind>
+                                                                          (); })
     ;
   pybind11::class_<UserTimeBreakdown>(m, "UserTimeBreakdown")
     .def(pybind11::init<>())
@@ -1349,6 +1445,7 @@ return state.)RAW")
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::eval),
          pybind11::arg("org"))
     ;
+  bind_enum_iterator<LeafFieldType>(m, "LeafFieldType");
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
     .value("Int", LeafFieldType::Int)
     .value("UserTimeKind", LeafFieldType::UserTimeKind)
@@ -1359,6 +1456,9 @@ return state.)RAW")
     .value("QDateTime", LeafFieldType::QDateTime)
     .value("Str", LeafFieldType::Str)
     .value("Any", LeafFieldType::Any)
+    .def("__iter__", [](LeafFieldType _self) -> PyEnumIterator<LeafFieldType> { return
+                                                                                PyEnumIterator<LeafFieldType>
+                                                                                (); })
     ;
 }
 /* clang-format on */

@@ -263,8 +263,14 @@ class Py11Enum:
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
-
+        iter_type = QualType(name="PyEnumIterator", Parameters=[self.Enum])
         return b.stack([
+            ast.XCall(
+                "bind_enum_iterator",
+                args=[b.text("m"), ast.Literal(self.PyName)],
+                Params=[self.Enum],
+                Stmt=True,
+            ),
             ast.XCall(
                 "pybind11::enum_",
                 [b.text("m"), ast.Literal(self.PyName)],
@@ -272,8 +278,18 @@ class Py11Enum:
             ),
             b.indent(
                 2,
-                b.stack([Field.build_bind(self, ast) for Field in self.Fields] +
-                        [b.text(";")]),
+                b.stack([Field.build_bind(self, ast) for Field in self.Fields] + [
+                    Py11Method(
+                        PyName="__iter__",
+                        CxxName="",
+                        ResultTy=iter_type,
+                        Body=[
+                            ast.string("return "),
+                            ast.Type(iter_type),
+                            ast.string("();"),
+                        ],
+                    ).build_bind(self.Enum, ast)
+                ] + [b.text(";")]),
             )
         ])
 
