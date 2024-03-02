@@ -176,6 +176,8 @@ struct [[refl]] OrgContext {
     [[refl]] void saveProtobuf(
         sem::SemId<sem::Document> doc,
         std::string const&        file);
+
+    [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
 };
 
 

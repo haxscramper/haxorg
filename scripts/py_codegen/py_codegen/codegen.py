@@ -161,6 +161,9 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
         PyHolderType=id_type,
     )
 
+    if typ.concreteKind and typ.name.name != "Org":
+        res.InitDefault()
+
     for base in typ.bases:
         res.Bases.append(base)
 

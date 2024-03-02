@@ -1,6 +1,7 @@
 #include "pyhaxorg_manual_impl.hpp"
 #include "sem/SemOrgSerde.hpp"
 
+#include <sem/SemOrgFormat.hpp>
 #include <exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <exporters/exporteryaml.hpp>
@@ -304,4 +305,7 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
         _this()->visitEnd(org);
         return tmp;
     }
+}
+std::string OrgContext::formatToString(sem::SemId<sem::Org> arg) {
+    return sem::Formatter::format(arg);
 }

@@ -3,6 +3,7 @@ debug: true
 instrument:
   coverage: false
   xray: false
+  asan: false
 
 tasks:
-  skip_python_refl: true
+  skip_python_refl: false

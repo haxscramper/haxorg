@@ -91,6 +91,20 @@ def is_xray_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["xray"]
 
 
+def get_py_env(ctx: Context) -> Dict[str, str]:
+    if ctx.config.get("instrument")["asan"]:
+        return {
+            "LD_PRELOAD":
+                str(
+                    get_llvm_root(
+                        f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
+                    ))
+        }
+
+    else:
+        return {}
+
+
 def run_command(
     ctx: Context,
     cmd: Union[str, Path],
@@ -539,15 +553,6 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
                               op.explain("py haxorg reflection"))
 
 
-LD_PRELOAD_ASAN = {
-    "LD_PRELOAD":
-        str(
-            get_llvm_root(
-                f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
-            ))
-}
-
-
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[cmake_utils, update_py_haxorg_reflection])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
@@ -563,7 +568,7 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
                     get_build_root(),
                     get_script_root(),
                 ],
-                env=LD_PRELOAD_ASAN)
+                env=get_py_env(ctx))
 
     log("tasks").info("Updated code definitions")
 
@@ -725,68 +730,70 @@ def py_cli(
     ctx: Context,
     arg: List[str] = [],
 ):
-    log("tasks").info(LD_PRELOAD_ASAN)
+    log("tasks").info(get_py_env(ctx))
     log("tasks").info(arg)
     run_command(
         ctx,
         "poetry",
         ["run", get_script_root("scripts/py_cli/haxorg.py"), *arg],
-        env=LD_PRELOAD_ASAN,
+        env=get_py_env(ctx),
     )
 
 
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
-def py_tests(
-    ctx: Context,
-    debug_test: Optional[str] = None,
-    pytest_pass: List[str] = [],
-):
+def py_test_debug(ctx: Context, test: str):
+    log("tasks").info(get_py_env(ctx))
+    test: Path = Path(test)
+    if not test.is_absolute():
+        test = get_script_root(test)
+
+    retcode, _, _ = run_command(
+        ctx,
+        "poetry",
+        [
+            "run",
+            "lldb",  # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
+            # because the latter one is not guaranteed to be compiled with the python
+            # installed on the system. For example, 17.0.6 required python 3.10, but the
+            # arch linux already moved to 3.11 here.
+            "--batch",
+            "-o",
+            f"run {test}",
+            *LLDB_AUTO_BACKTRACE,
+            "--",
+            "python",
+        ],
+        allow_fail=True,
+        env=get_py_env(ctx),
+    )
+
+    if retcode != 0:
+        exit(1)
+
+
+@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
+def py_tests(ctx: Context, pytest_pass: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues. 
     """
 
-    log("tasks").info(LD_PRELOAD_ASAN)
+    log("tasks").info(get_py_env(ctx))
 
-    if debug_test:
-        debug_test: Path = Path(debug_test)
-        if not debug_test.is_absolute():
-            debug_test = get_script_root("tests").joinpath(debug_test)
+    retcode, _, _ = run_command(
+        ctx,
+        "poetry",
+        [
+            "run", "pytest", "-v", "-ra", "-s", "--tb=short", *pytest_pass
+            # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
+            # "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
+            # "--hypothesis-show-statistics",
+            # "--hypothesis-seed=11335865684259357953579948907097829183"
+        ],
+        allow_fail=True,
+        env=get_py_env(ctx),
+    )
 
-        retcode, _, _ = run_command(
-            ctx,
-            "poetry",
-            [
-                "run",
-                "lldb",  # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
-                # because the latter one is not guaranteed to be compiled with the python
-                # installed on the system. For example, 17.0.6 required python 3.10, but the
-                # arch linux already moved to 3.11 here.
-                "--batch",
-                "-o",
-                f"run {debug_test}",
-                *LLDB_AUTO_BACKTRACE,
-                "--",
-                "python",
-            ],
-            allow_fail=True,
-            env=LD_PRELOAD_ASAN,
-        )
-
-    else:
-        retcode, _, _ = run_command(
-            ctx,
-            "poetry",
-            [
-                "run", "pytest", "-v", "-ra", "-s", "--tb=short", *pytest_pass
-                # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
-                # "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
-                # "--hypothesis-show-statistics",
-                # "--hypothesis-seed=11335865684259357953579948907097829183"
-            ],
-            allow_fail=True,
-            env=LD_PRELOAD_ASAN,
-        )
     if retcode != 0:
         exit(1)
 

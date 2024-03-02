@@ -79,7 +79,8 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
     }
 
     using Visibility = DocumentOptions::Visibility;
-    if (id->options->initialVisibility != Visibility::ShowEverything) {
+    if (id->options
+        && id->options->initialVisibility != Visibility::ShowEverything) {
         Str res = "";
         switch (id->options->initialVisibility) {
             case Visibility::ShowEverything: res = "showeverything"; break;
