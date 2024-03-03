@@ -71,10 +71,7 @@ void OrgExporterTree::stream(
     std::ostream&        stream,
     sem::SemId<sem::Org> node,
     ExporterTreeOpts     opts) {
-    ColStream os{stream};
-    os.colored = opts.withColor;
-    os.ostream = &stream;
-
+    ColStream    os{};
     ExporterTree tree{os};
 
     tree.conf.withLineCol     = opts.withLineCol;
@@ -82,6 +79,10 @@ void OrgExporterTree::stream(
     tree.conf.skipEmptyFields = opts.skipEmptyFields;
     tree.conf.startLevel      = opts.startLevel;
     tree.evalTop(node);
+
+    LOG(INFO) << os.toString();
+
+    stream << os.toString(opts.withColor);
 }
 
 sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {
@@ -308,6 +309,5 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
     }
 }
 std::string OrgContext::formatToString(sem::SemId<sem::Org> arg) {
-    throw std::logic_error("Some exception whatever");
     return sem::Formatter::format(arg);
 }

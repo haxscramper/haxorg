@@ -560,7 +560,11 @@ auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<InlineMath> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str("\\("), toString(id->at(0), ctx), str("\\)")});
+    if (id->subnodes.size() == 0) {
+        return str("\\(\\)");
+    } else {
+        return b.line({str("\\("), toString(id->at(0), ctx), str("\\)")});
+    }
 }
 
 auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {

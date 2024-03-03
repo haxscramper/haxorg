@@ -34,11 +34,14 @@ class OrgGenCtx():
     opts: OrgGenOptions = field(default_factory=lambda: OrgGenOptions())
     steps: List[OrgGenPath] = field(default_factory=list)
 
+    def depth(self) -> int:
+        return len(self.steps)
+
     def count(self, kind: org.OrgSemKind) -> int:
         return len(list(filter(lambda it: it.kind == kind, self.steps)))
 
     def isAtRecursionLimit(self) -> bool:
-        return self.opts.maxRecursionDepth <= len(self.steps)
+        return self.opts.maxRecursionDepth <= self.depth()
 
     def getMaxSubnodeCount(self) -> int:
         return 0 if self.isAtRecursionLimit() else self.opts.maxSubnodeCount
@@ -58,7 +61,7 @@ class OrgGenCtx():
                 return replace(self, opts=arg)
 
     def withRelativeRecursionLimit(self, max: int) -> 'OrgGenCtx':
-        limit = len(self.steps) + max
+        limit = self.depth() + max
         if self.opts.maxRecursionDepth and self.opts.maxRecursionDepth < limit:
             limit = self.opts.maxRecursionDepth
 
@@ -79,7 +82,7 @@ class OrgGenCtx():
         ))
 
     def getSubnodeSet(self) -> list[org.OrgSemKind]:
-        if len(self.steps) == 0:
+        if self.depth() == 0:
             return [osk.Document]
 
         result = set(it for it in org.OrgSemKind.Document.__iter__())
@@ -160,11 +163,12 @@ class OrgGenCtx():
 
 @st.composite
 def build_subnodes(draw: st.DrawFn, ctx: OrgGenCtx):
-    return st.lists(
-        node_strategy(ctx=ctx),
-        min_size=ctx.getMinSubnodeCount(),
-        max_size=ctx.getMaxSubnodeCount(),
-    )
+    return draw(
+        st.lists(
+            node_strategy(ctx=ctx),
+            min_size=ctx.getMinSubnodeCount(),
+            max_size=ctx.getMaxSubnodeCount(),
+        ))
 
 
 @st.composite
@@ -172,7 +176,7 @@ def build_Document(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
         st.builds(
             org.Document,
-            subnodes=draw(build_subnodes(ctx=ctx.rec(osk.Document).withSubnodes(3, 10))),
+            subnodes=build_subnodes(ctx=ctx.rec(osk.Document).withSubnodes(3, 10)),
         ))
 
 
@@ -443,7 +447,7 @@ def build_MarkQuote(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Verbatim(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Verbatim))
+    return draw(st.builds(org.Verbatim, subnodes=build_subnodes(ctx.rec(osk.Verbatim))))
 
 
 @st.composite
@@ -636,9 +640,10 @@ def node_strategy(draw, ctx: OrgGenCtx):
 def test_render(doc: org.Document):
     ctx = org.OrgContext()
     tree = org.OrgExporterTree()
-    # log("t").info(tree.toString(doc, org.ExporterTreeOpts()))
+    log("t").info("----\n{}".format(
+        ctx.formatToString(doc)
+    ))
 
-    result = ctx.formatToString(doc)
 
 
 if __name__ == "__main__":
