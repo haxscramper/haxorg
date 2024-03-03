@@ -1074,17 +1074,17 @@ def get_types() -> Sequence[GenTuStruct]:
                             t_nest("SetMode", ["Subtree", "Property"]),
                             "mainSetRule",
                             GenTuDoc(""),
-                            value="SetMode::Override",
+                            value="sem::Subtree::Property::SetMode::Override",
                         ),
                         GenTuField(t_nest("SetMode", ["Subtree", "Property"]),
                                    "subSetRule",
                                    GenTuDoc(""),
-                                   value="SetMode::Override"),
+                                   value="sem::Subtree::Property::SetMode::Override"),
                         GenTuField(
                             t_nest("InheritanceMode", ["Subtree", "Property"]),
                             "inheritanceMode",
                             GenTuDoc(""),
-                            value="InheritanceMode::ThisAndSub",
+                            value="sem::Subtree::Property::InheritanceMode::ThisAndSub",
                         ),
                     ],
                     nested=[
@@ -1204,7 +1204,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                         t_id(),
                                         "value",
                                         GenTuDoc("Converted value of the property"),
-                                        value=f"sem::SemId<Org>::Nil()")
+                                        value=f"sem::SemId<sem::Org>::Nil()")
                                 ],
                             )
                         ]),

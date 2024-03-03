@@ -395,10 +395,9 @@ class Py11Class:
         for _field in value.fields:
             res.Fields.append(Py11Field.FromGenTu(_field))
 
-        res.InitDefault(ast)
         return res
 
-    def InitDefault(self, ast: ASTBuilder):
+    def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
 
         def to_arg(f: Py11Field) -> GenTuIdent:
             value = f.Default
@@ -418,12 +417,12 @@ class Py11Class:
                 "",
                 "",
                 self.Class,
-                Args=[to_arg(f) for f in self.Fields],
+                Args=[to_arg(f) for f in Fields],
                 Body=[
                     ast.b.line([ast.Type(self.Class),
                                 ast.string(" result{};")]), *[
                                     ast.string(f"result.{f.CxxName} = {f.PyName};")
-                                    for f in self.Fields
+                                    for f in Fields
                                 ],
                     ast.Return(ast.string("result"))
                 ],

@@ -1283,7 +1283,7 @@ struct Subtree : public sem::Org {
       Unknown() {}
       BOOST_DESCRIBE_CLASS(Unknown, (), (), (), (value))
       /// \brief Converted value of the property
-      sem::SemId<sem::Org> value = sem::SemId<Org>::Nil();
+      sem::SemId<sem::Org> value = sem::SemId<sem::Org>::Nil();
     };
 
     using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created, sem::Subtree::Property::Unknown>;
@@ -1333,9 +1333,9 @@ struct Subtree : public sem::Org {
                           (sem::Subtree::Property::Unknown&()) getUnknown,
                           (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
                           (sem::Subtree::Property::Kind() const) getKind))
-    sem::Subtree::Property::SetMode mainSetRule = SetMode::Override;
-    sem::Subtree::Property::SetMode subSetRule = SetMode::Override;
-    sem::Subtree::Property::InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
+    sem::Subtree::Property::SetMode mainSetRule = sem::Subtree::Property::SetMode::Override;
+    sem::Subtree::Property::SetMode subSetRule = sem::Subtree::Property::SetMode::Override;
+    sem::Subtree::Property::InheritanceMode inheritanceMode = sem::Subtree::Property::InheritanceMode::ThisAndSub;
     sem::Subtree::Property::Data data;
     sem::Subtree::Property::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
     sem::Subtree::Property::Nonblocking& getNonblocking() { return std::get<0>(data); }

@@ -146,6 +146,10 @@ def in_sem(typ: QualType) -> QualType:
     return typ
 
 
+def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
+    return [F for F in Fields if F.Type.name not in ["SemId"]]
+
+
 @beartype
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
@@ -195,7 +199,19 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     map_bases(typ)
 
     if typ.concreteKind and typ.name.name != "Org":
-        res.InitDefault(ast=ast)
+        rec_fields: List[Py11BindPass] = []
+
+        def cb(it: GenTuStruct):
+            for field in it.fields:
+                if not field.isStatic:
+                    rec_fields.append(Py11Field.FromGenTu(field))
+
+            for base in it.bases:
+                cb(base_map[base.name])
+
+        cb(typ)
+
+        res.InitDefault(ast=ast, Fields=filter_init_fields(rec_fields))
 
     return res
 
@@ -203,9 +219,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 @beartype
 def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
     res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
-    if not value.IsAbstract:
-        res.InitDefault(ast)
-
     for meth in value.methods:
         if meth.isStatic or meth.isPureVirtual:
             continue
@@ -217,6 +230,9 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
             continue
 
         res.Fields.append(Py11Field.FromGenTu(_field))
+
+    if not value.IsAbstract:
+        res.InitDefault(ast, filter_init_fields(res.Fields))
 
     return res
 
@@ -238,23 +254,10 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
     res = Py11Module("pyhaxorg")
     b: TextLayout = ast.b
 
-    iterate_context: List[Any] = []
-
     res.Before.append(ast.Include("pyhaxorg_manual_impl.hpp"))
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
-    base_map: dict[str, GenTuStruct] = {}
-
-    def baseCollectorCallback(value: Any) -> None:
-        if isinstance(value, GenTuStruct):
-            base_map[value.name.name] = value
-
-    # Walk over the data model and collect base type mapping
-    iterate_object_tree(
-        GenTuNamespace("sem", expanded),
-        iterate_context,
-        pre_visit=baseCollectorCallback,
-    )
+    base_map = get_base_map(expanded)
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
