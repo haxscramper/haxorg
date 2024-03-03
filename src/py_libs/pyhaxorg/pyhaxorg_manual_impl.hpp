@@ -89,6 +89,17 @@ void bind_vector(py::module& m, const char* PyNameType) {
 }
 
 template <typename K, typename V>
+void bind_unordered_map(py::module& m, const char* PyNameType) {
+    py::bind_map<std::unordered_map<K, V>>(
+        m, (std::string(PyNameType) + "StdUnorderedMap").c_str());
+
+    pybind11::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
+        m, (std::string(PyNameType) + "UnorderedMap").c_str())
+        .def(pybind11::init<>())
+        .def(pybind11::init<const UnorderedMap<K, V>&>());
+}
+
+template <typename K, typename V>
 void bind_mapping(py::module& m, const char* PyNameType) {
     using M = UnorderedMap<K, V>;
 

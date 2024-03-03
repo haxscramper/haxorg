@@ -560,10 +560,16 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                 else:
                     seen_types.add(hash(T))
 
-                if T.name == "Vec":
-                    stdvec_t = QualType.ForName("vector",
+                if T.name in ["Vec", "UnorderedMap"]:
+                    std_type: str = {
+                        "Vec": "vector",
+                        "UnorderedMap": "unordered_map"
+                    }[T.name]
+
+                    stdvec_t = QualType.ForName(std_type,
                                                 Spaces=[QualType.ForName("std")],
-                                                Parameters=[T.Parameters[0]])
+                                                Parameters=T.Parameters)
+                    
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
                     opaque_declarations.append(
@@ -571,12 +577,12 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
                     specialization_calls.append(
                         ast.XCall(
-                            "bind_vector",
+                            f"bind_{std_type}",
                             [
                                 ast.string("m"),
                                 ast.StringLiteral(py_type_bind(T).Name),
                             ],
-                            Params=[T.Parameters[0]],
+                            Params=T.Parameters,
                             Stmt=True,
                         ))
 

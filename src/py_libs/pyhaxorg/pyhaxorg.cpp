@@ -16,6 +16,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::SemId<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Line>)
@@ -32,6 +34,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, Str>)
+PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, Str>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
@@ -39,6 +43,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag");
   bind_vector<Str>(m, "VecOfStr");
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument");
+  bind_unordered_map<Str, sem::SemId<sem::CmdArgument>>(m, "UnorderedMapOfStrSemIdOfCmdArgument");
   bind_vector<sem::Code::Switch>(m, "VecOfSwitch");
   bind_vector<sem::Code::Line>(m, "VecOfLine");
   bind_vector<sem::Code::Line::Part>(m, "VecOfPart");
@@ -47,6 +52,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog");
   bind_vector<sem::Subtree::Property>(m, "VecOfProperty");
   bind_vector<sem::Subtree::Period>(m, "VecOfPeriod");
+  bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("subnodes", &sem::Org::subnodes, R"RAW(\brief List of subnodes.
