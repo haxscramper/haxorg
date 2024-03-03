@@ -66,7 +66,12 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void pushVisit(int&, sem::SemId<sem::Org> org) { pushIndent(); }
     void popVisit(int&, sem::SemId<sem::Org> org) { popIndent(); }
     void visitDispatchHook(int&, sem::SemId<sem::Org> org) { init(org); }
-    void indent() { os << Str("  ").repeated(stack.back().level); }
+    void indent() {
+        if (stack.back().level != 0) {
+            Str value = Str("  ").repeated(stack.back().level);
+            os << value;
+        }
+    }
 
     struct ScopedField {
         ExporterTree* exp;

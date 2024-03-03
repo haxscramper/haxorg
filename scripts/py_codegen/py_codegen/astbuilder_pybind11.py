@@ -191,13 +191,22 @@ class Py11Method:
             if self.IsInit:
                 call_pass = ast.XCall("pybind11::init", args=[call_pass])
 
-        argument_binder = [
-            ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
-            if Arg.value is None else ast.XCall("pybind11::arg_v", [
-                ast.Literal(Arg.name),
-                b.text(Arg.value) if isinstance(Arg.value, str) else Arg.value,
-            ]) for Arg in (self.Args[1:] if self.ExplicitClassParam and not self.IsInit else self.Args)
-        ]
+        argument_binder: list[BlockId] = []
+        for Arg in self.Args[
+                1:] if self.ExplicitClassParam and not self.IsInit else self.Args:
+            if Arg.type.name == "kwargs":
+                continue
+            
+            elif Arg.value is None:
+                argument_binder.append(ast.XCall("pybind11::arg",
+                                                 [ast.Literal(Arg.name)]))
+
+            else:
+                argument_binder.append(
+                    ast.XCall("pybind11::arg_v", [
+                        ast.Literal(Arg.name),
+                        b.text(Arg.value) if isinstance(Arg.value, str) else Arg.value,
+                    ]))
 
         doc_comment = [ast.StringLiteral(self.Doc.brief, forceRawStr=True)
                       ] if self.Doc.brief else []
@@ -417,14 +426,25 @@ class Py11Class:
                 "",
                 "",
                 self.Class,
-                Args=[to_arg(f) for f in Fields],
+                Args=[
+                    GenTuIdent(
+                        QualType(
+                            name="kwargs",
+                            Spaces=[QualType.ForName("pybind11")],
+                            isConst=True,
+                            RefKind=ReferenceKind.LValue,
+                        ), "kwargs")
+                ],
                 Body=[
                     ast.b.line([ast.Type(self.Class),
-                                ast.string(" result{};")]), *[
-                                    ast.string(f"result.{f.CxxName} = {f.PyName};")
-                                    for f in Fields
-                                ],
-                    ast.Return(ast.string("result"))
+                                ast.string(" result{};")]),
+                    ast.XCall(
+                        "init_fields_from_kwargs",
+                        args=[ast.string("result"),
+                              ast.string("kwargs")],
+                        Stmt=True,
+                    ),
+                    ast.Return(ast.string("result")),
                 ],
                 IsInit=True,
                 ExplicitClassParam=True,

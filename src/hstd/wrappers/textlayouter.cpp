@@ -8,6 +8,7 @@
 #include <absl/log/check.h>
 #include <numeric>
 #include <hstd/system/Formatter.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 using namespace layout;
 
@@ -811,6 +812,26 @@ int Block::size() const {
         data);
 }
 
+int Block::leafCount(CR<BlockStore> store) const {
+    auto recurseLeaves = [&](CVec<BlockId> sub) {
+        return rs::accumulate(
+            sub | rv::transform([&](CR<BlockId> id) -> int {
+                return store.store.at(id).leafCount(store);
+            }),
+            0);
+    };
+
+    return std::visit(
+        overloaded{
+            [&](CR<Wrap> w) { return recurseLeaves(w.wrapElements); },
+            [&](CR<Stack> s) { return recurseLeaves(s.elements); },
+            [&](CR<Choice> s) { return recurseLeaves(s.elements); },
+            [&](CR<Line> s) { return recurseLeaves(s.elements); },
+            [](const auto&) { return 1; },
+        },
+        data);
+}
+
 void Block::add(CR<BlockId> other) {
     return std::visit(
         overloaded{
@@ -1103,6 +1124,7 @@ Str SimpleStringStore::str(const LytStr& str) const {
 }
 
 Str SimpleStringStore::toString(const BlockId& blc, const Options& opts) {
+    if (store->at(blc).leafCount(*store) == 0) { return ""; }
     Layout::Ptr lyt = store->toLayout(blc, opts);
     Str         result;
     for (const auto& event : formatEvents(*store, lyt)) {

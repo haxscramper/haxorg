@@ -53,9 +53,7 @@ struct LytStrSpan {
     LytStrSpan()    = default;
     LytStrSpan(CR<LytStr> str) : strs({str}), len(str.len) {}
     LytStrSpan(CR<Vec<LytStr>> strs) : strs(strs) {
-        for (const auto& str : strs) {
-            len += str.len;
-        }
+        for (const auto& str : strs) { len += str.len; }
     }
 };
 
@@ -224,9 +222,7 @@ struct Solution : public SharedPtrApi<Solution> {
     Solution::Ptr plusConst(float val) {
         /// Add a constant to all values of this Solution::Ptr.
         Solution::Ptr result = clone_this();
-        for (auto& a : result->intercepts) {
-            a += val;
-        }
+        for (auto& a : result->intercepts) { a += val; }
         return result;
     }
 
@@ -250,6 +246,7 @@ struct Solution : public SharedPtrApi<Solution> {
 };
 
 struct Options;
+struct BlockStore;
 
 struct Block {
     using id_type = BlockId;
@@ -295,6 +292,7 @@ struct Block {
         Empty);
 
     int  size() const;
+    int  leafCount(CR<BlockStore> store) const;
     void add(CR<BlockId> other);
     void add(CVec<BlockId> others);
 
@@ -382,9 +380,7 @@ struct BlockStore {
         bool        isLine     = true,
         bool        isTrailing = false) {
         Vec<BlockId> tmp;
-        for (auto const& it : items) {
-            tmp.push_back(convert(it));
-        }
+        for (auto const& it : items) { tmp.push_back(convert(it)); }
         return this->join(tmp, join, isLine, isTrailing);
     }
 

@@ -114,6 +114,34 @@ void bind_mapping(py::module& m, const char* PyNameType) {
         .def("keys", &M::keys);
 }
 
+template <typename T>
+struct py_arg_convertor {
+    static void write(T& value, pybind11::handle const& py) {
+        value = py.cast<T>();
+    }
+};
+
+template <typename T>
+struct py_arg_convertor<Vec<T>> {
+    static void write(Vec<T>& value, pybind11::handle const& py) {
+        for (auto const& it : py) {
+            py_arg_convertor<T>::write(value.emplace_back(), it);
+        }
+    }
+};
+
+template <DescribedRecord R>
+void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
+    for_each_field_with_bases<R>([&](auto const& field) {
+        if (kwargs.contains(field.name)) {
+            auto& ref = value.*field.pointer;
+            py_arg_convertor<std::remove_cvref_t<decltype(ref)>>::write(
+                ref, kwargs[field.name]);
+        }
+    });
+}
+
+
 struct ExporterJson;
 struct ExporterYaml;
 struct ExporterTree;
@@ -133,6 +161,8 @@ struct [[refl]] OrgExporterJson {
     [[refl]] void visitNode(sem::SemId<sem::Org> node /*! Input node */);
     [[refl]] std::string exportToString();
     [[refl]] void        exportToFile(std::string path);
+
+    BOOST_DESCRIBE_CLASS(OrgExporterJson, (), (), (), ());
 };
 
 struct [[refl]] ExporterTreeOpts {
@@ -142,12 +172,22 @@ struct [[refl]] ExporterTreeOpts {
     [[refl]] bool skipEmptyFields = true;
     [[refl]] int  startLevel      = 0;
     [[refl]] bool withColor       = true;
+
+    BOOST_DESCRIBE_CLASS(
+        ExporterTreeOpts,
+        (),
+        (withLineCol,
+         withOriginalId,
+         withSubnodeIdx,
+         skipEmptyFields,
+         startLevel,
+         withColor),
+        (),
+        ());
 };
 
+
 struct [[refl]] OrgExporterTree {
-    SPtr<ExporterTree> impl;
-    OrgExporterTree();
-    ColStream            os;
     [[refl]] std::string toString(
         sem::SemId<sem::Org> node,
         ExporterTreeOpts     opts);
@@ -160,6 +200,8 @@ struct [[refl]] OrgExporterTree {
         std::ostream&        stream,
         sem::SemId<sem::Org> node,
         ExporterTreeOpts     opts);
+
+    BOOST_DESCRIBE_CLASS(OrgExporterTree, (), (), (), ());
 };
 
 
@@ -173,6 +215,8 @@ struct [[refl]] OrgExporterYaml {
     [[refl]] void        visitNode(sem::SemId<sem::Org> node);
     [[refl]] std::string exportToString();
     [[refl]] void        exportToFile(std::string path);
+
+    BOOST_DESCRIBE_CLASS(OrgExporterYaml, (), (), (), ());
 };
 
 struct [[refl]] OrgContext {
@@ -189,6 +233,8 @@ struct [[refl]] OrgContext {
         std::string const&        file);
 
     [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
+
+    BOOST_DESCRIBE_CLASS(OrgContext, (), (), (), ());
 };
 
 
@@ -260,6 +306,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 #define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
+
+    BOOST_DESCRIBE_CLASS(ExporterPython, (), (), (), ());
 
     using PyFunc     = py::function;
     using Res        = py::object;

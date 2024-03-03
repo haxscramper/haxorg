@@ -38,8 +38,6 @@ diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
             }};
 }
 
-BOOST_DESCRIBE_STRUCT(LineCol, (), (line, column, pos));
-
 struct compare_context {
     std::string type;
     std::string field;

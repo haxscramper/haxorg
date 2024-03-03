@@ -117,6 +117,7 @@ void ColStream::write(const ColText& text) {
     if (buffered) {
         append(text);
     } else {
+        CHECK(ostream != nullptr);
         (*ostream) << to_colored_string(text, colored);
     }
 }

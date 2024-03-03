@@ -50,16 +50,13 @@ void OrgExporterYaml::visitNode(sem::SemId<sem::Org> node) {
     result = impl->evalTop(node);
 }
 
-OrgExporterTree::OrgExporterTree() {
-    impl = std::make_shared<ExporterTree>(os);
-}
-
 std::string OrgExporterTree::toString(
     sem::SemId<sem::Org> node,
     ExporterTreeOpts     opts) {
-    std::stringstream os;
+    std::string       buf;
+    std::stringstream os{buf};
     stream(os, node, opts);
-    return os.str();
+    return buf;
 }
 
 void OrgExporterTree::toFile(
@@ -74,13 +71,17 @@ void OrgExporterTree::stream(
     std::ostream&        stream,
     sem::SemId<sem::Org> node,
     ExporterTreeOpts     opts) {
-    os                         = ColStream{stream};
-    os.colored                 = opts.withColor;
-    impl->conf.withLineCol     = opts.withLineCol;
-    impl->conf.withOriginalId  = opts.withOriginalId;
-    impl->conf.skipEmptyFields = opts.skipEmptyFields;
-    impl->conf.startLevel      = opts.startLevel;
-    impl->evalTop(node);
+    ColStream os{stream};
+    os.colored = opts.withColor;
+    os.ostream = &stream;
+
+    ExporterTree tree{os};
+
+    tree.conf.withLineCol     = opts.withLineCol;
+    tree.conf.withOriginalId  = opts.withOriginalId;
+    tree.conf.skipEmptyFields = opts.skipEmptyFields;
+    tree.conf.startLevel      = opts.startLevel;
+    tree.evalTop(node);
 }
 
 sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {

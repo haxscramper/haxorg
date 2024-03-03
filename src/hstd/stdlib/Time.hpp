@@ -15,6 +15,13 @@ struct [[refl]] UserTimeBreakdown {
     [[refl]] Opt<int>         minute;
     [[refl]] Opt<int>         second;
     [[refl]] Opt<std::string> zone;
+
+    BOOST_DESCRIBE_CLASS(
+        UserTimeBreakdown,
+        (),
+        (year, month, day, hour, minute, second, zone),
+        (),
+        ());
 };
 
 struct [[refl]] UserTime {
