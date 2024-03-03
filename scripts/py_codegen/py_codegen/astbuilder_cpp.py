@@ -539,16 +539,23 @@ class ASTBuilder(base.AstbuilderBase):
         return self.block(self.b.line([self.string("switch "),
                                        self.pars(params.Expr)]), cases)
 
-    def Call(self,
-             func: BlockId,
-             Args: List[BlockId] = [],
-             Params: Optional[List[QualType]] = None,
-             Stmt: bool = False,
-             Line: bool = True):
+    def Call(
+        self,
+        func: BlockId,
+        Args: List[BlockId] = [],
+        Params: Optional[List[QualType]] = None,
+        Stmt: bool = False,
+        Line: bool = True,
+        LineParameters: bool = True,
+    ):
         result = self.b.line([func])
         if Params is not None:
             self.b.add_at(result, self.string("<"))
-            self.b.add_at(result, self.csv([self.Type(t) for t in Params]))
+            self.b.add_at(
+                result, self.csv(
+                    [self.Type(t) for t in Params],
+                    isLine=LineParameters,
+                ))
             self.b.add_at(result, self.string(">"))
 
         self.b.add_at(result, self.string("("))
@@ -621,25 +628,34 @@ class ASTBuilder(base.AstbuilderBase):
                              Line=Line,
                              Params=Params)
 
-    def XCall(self,
-              opc: str,
-              args: List[BlockId],
-              Stmt: bool = False,
-              Line: bool = True,
-              Params: Optional[List[QualType]] = None) -> BlockId:
+    def XCall(
+        self,
+        opc: str,
+        args: List[BlockId],
+        Stmt: bool = False,
+        Line: bool = True,
+        Params: Optional[List[QualType]] = None,
+        LineParameters: bool = True,
+    ) -> BlockId:
         if opc[0].isalpha() or opc[0] == ".":
-            return self.Call(self.string(opc),
-                             Args=args,
-                             Stmt=Stmt,
-                             Line=Line,
-                             Params=Params)
+            return self.Call(
+                self.string(opc),
+                Args=args,
+                Stmt=Stmt,
+                Line=Line,
+                Params=Params,
+                LineParameters=LineParameters,
+            )
 
         elif Params:
-            return self.Call(self.string("operator" + opc),
-                             Args=args,
-                             Stmt=Stmt,
-                             Line=Line,
-                             Params=Params)
+            return self.Call(
+                self.string("operator" + opc),
+                Args=args,
+                Stmt=Stmt,
+                Line=Line,
+                Params=Params,
+                LineParameters=LineParameters,
+            )
 
         else:
             if len(args) == 1:

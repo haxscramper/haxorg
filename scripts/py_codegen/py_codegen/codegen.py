@@ -150,9 +150,11 @@ def in_sem(typ: QualType) -> QualType:
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
     base_type = QualType.ForName(typ.name.name, Spaces=[QualType.ForName("sem")])
-    id_type = QualType.ForName("SemId",
-                               Parameters=[base_type],
-                               Spaces=[QualType.ForName("sem")])
+    id_type = QualType.ForName(
+        "SemId",
+        Parameters=[base_type],
+        Spaces=[QualType.ForName("sem")],
+    )
 
     res = Py11Class(
         PyName=typ.name.name,
@@ -161,8 +163,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
         PyHolderType=id_type,
     )
 
-    if typ.concreteKind and typ.name.name != "Org":
-        res.InitDefault()
 
     for base in typ.bases:
         res.Bases.append(base)
@@ -195,14 +195,17 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     map_obj_methods(typ)
     map_bases(typ)
 
+    if typ.concreteKind and typ.name.name != "Org":
+        res.InitDefault(ast=ast)
+
     return res
 
 
 @beartype
-def pybind_nested_type(value: GenTuStruct) -> Py11Class:
+def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
     res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
     if not value.IsAbstract:
-        res.InitDefault()
+        res.InitDefault(ast)
 
     for meth in value.methods:
         if meth.isStatic or meth.isPureVirtual:
@@ -256,7 +259,7 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
                 res.Decls.append(pybind_org_id(ast, b, value, base_map))
 
             else:
-                new = pybind_nested_type(value)
+                new = pybind_nested_type(ast, value)
                 res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
@@ -518,10 +521,10 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
             autogen_structs.Decls.insert(0, org_decl)
 
         elif _struct.name.name == "LineCol":
-            autogen_structs.Decls.insert(0, pybind_nested_type(_struct))
+            autogen_structs.Decls.insert(0, pybind_nested_type(ast, _struct))
 
         else:
-            autogen_structs.Decls.append(pybind_nested_type(_struct))
+            autogen_structs.Decls.append(pybind_nested_type(ast, _struct))
 
     for _enum in tu.enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))

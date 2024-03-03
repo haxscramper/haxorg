@@ -21,7 +21,7 @@ class GenTuParam:
 class GenTuIdent:
     type: QualType
     name: str
-    value: Optional[str] = None
+    value: Optional[Union[BlockId, str]] = None
 
 
 @beartype

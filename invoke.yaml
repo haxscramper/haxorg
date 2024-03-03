@@ -6,4 +6,4 @@ instrument:
   asan: false
 
 tasks:
-  skip_python_refl: false
+  skip_python_refl: true

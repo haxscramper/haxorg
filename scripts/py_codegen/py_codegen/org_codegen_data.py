@@ -69,7 +69,7 @@ def t_map(key: QualType, val: QualType) -> QualType:
 
 @beartype
 def id_field(id: str, name: str, doc: GenTuDoc) -> GenTuField:
-    return GenTuField(t_id(id), name, doc, value=f"SemId<{id}>::Nil()")
+    return GenTuField(t_id(id), name, doc, value=f"sem::SemId<sem::{id}>::Nil()")
 
 
 def vec_field(typ, name, doc):
@@ -92,14 +92,23 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
     if res.concreteKind:
         res.fields.insert(
             0,
-            GenTuField(t_osk(),
-                       "staticKind",
-                       GenTuDoc("Document"),
-                       isConst=True,
-                       isStatic=True),
+            GenTuField(
+                t_osk(),
+                "staticKind",
+                GenTuDoc("Document"),
+                isConst=True,
+                isStatic=True,
+            ),
         )
 
-        res.fields.insert(0, GenTuField(t_opt(t("LineCol")), "loc", GenTuDoc("Document")))
+        res.fields.insert(
+            0,
+            GenTuField(
+                t_opt(t("LineCol")),
+                "loc",
+                GenTuDoc("Document"),
+                value="std::nullopt",
+            ))
 
         res.methods.insert(
             0,
@@ -445,7 +454,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     t_nest("Format", ["Export"]),
                     "format",
                     GenTuDoc("Export block type"),
-                    value="Format::Inline",
+                    value="sem::Export::Format::Inline",
                 ),
                 GenTuField(t_str(), "exporter", GenTuDoc("Exporter backend name")),
                 opt_field(
@@ -621,7 +630,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("Exports", ["Code"]),
                            "exports",
                            GenTuDoc("What to export"),
-                           value="Exports::Both"),
+                           value="sem::Code::Exports::Both"),
                 vec_field(t_nest("Line", ["Code"]), "lines",
                           GenTuDoc("Collected code lines")),
                 opt_field(
@@ -863,7 +872,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                     t_var(t_id("Time"), t_id("TimeRange")),
                                     "range",
                                     GenTuDoc("Start-end or only start period"),
-                                    value="SemId<Time>::Nil()",
+                                    value="sem::SemId<sem::Time>::Nil()",
                                 ),
                                        ignore=True)
                             ],
@@ -902,7 +911,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                     kindGetter="getLogKind",
                     variantField="log",
-                    variantValue="Note{}",
+                    variantValue="sem::SubtreeLog::Note{}",
                     variantName="LogEntry",
                 ),
             ],
@@ -1195,7 +1204,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                         t_id(),
                                         "value",
                                         GenTuDoc("Converted value of the property"),
-                                        value=f"SemId<Org>::Nil()")
+                                        value=f"sem::SemId<Org>::Nil()")
                                 ],
                             )
                         ]),
@@ -1260,7 +1269,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("Checkbox", ["ListItem"]),
                            "checkbox",
                            GenTuDoc(""),
-                           value="Checkbox::None"),
+                           value="sem::ListItem::Checkbox::None"),
                 GenTuField(t_opt(t_id("Paragraph")),
                            "header",
                            GenTuDoc(""),
@@ -1395,12 +1404,12 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("BrokenLinks", ["DocumentOptions"]),
                            "brokenLinks",
                            GenTuDoc(""),
-                           value="BrokenLinks::Mark"),
+                           value="sem::DocumentOptions::BrokenLinks::Mark"),
                 GenTuField(
                     t_nest("Visibility", ["DocumentOptions"]),
                     "initialVisibility",
                     GenTuDoc(""),
-                    value="Visibility::ShowEverything",
+                    value="sem::DocumentOptions::Visibility::ShowEverything",
                 ),
                 GenTuField(t_nest("TocExport", ["DocumentOptions"]),
                            "tocExport",
