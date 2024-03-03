@@ -308,5 +308,6 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
     }
 }
 std::string OrgContext::formatToString(sem::SemId<sem::Org> arg) {
+    throw std::logic_error("Some exception whatever");
     return sem::Formatter::format(arg);
 }

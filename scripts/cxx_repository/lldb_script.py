@@ -98,8 +98,24 @@ def skip_backtrace(debugger, command, result, internal_dict):
         print("{frame}".format(frame=frame))
 
 
+def stop_handler(frame, bp_loc, dict):
+    print("-" * 80)
+    thread = frame.GetThread()
+    for i in range(thread.GetNumFrames()):
+        print(thread.GetFrameAtIndex(i))
+
+    return True
+
+
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand(
-        "command script add -f {module}.skip_backtrace skip_backtrace".format(
-            module=__name__))
-    print("Install")
+        f"command script add -f {__name__}.skip_backtrace skip_backtrace")
+
+    target = debugger.GetSelectedTarget()
+    bp = target.BreakpointCreateForException(
+        lldb.eLanguageTypeC_plus_plus,
+        False,  # don't pause on catch
+        True  # do pause on throw
+    )
+    bp.SetScriptCallbackFunction(f"{__name__}.stop_handler")
+    bp.SetAutoContinue(True)

@@ -636,9 +636,7 @@ def node_strategy(draw, ctx: OrgGenCtx):
 def test_render(doc: org.Document):
     ctx = org.OrgContext()
     tree = org.OrgExporterTree()
-    log("t").info("---------------------")
-    log("t").info(tree.toString(doc, org.ExporterTreeOpts()))
-    log("t").info("---------------------")
+    # log("t").info(tree.toString(doc, org.ExporterTreeOpts()))
 
     result = ctx.formatToString(doc)
 

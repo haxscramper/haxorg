@@ -4,6 +4,7 @@
 using namespace sem;
 
 auto Formatter::toString(SemId<Org> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     if (id.isNil()) {
         return str("");
     } else {
@@ -24,10 +25,12 @@ void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
 }
 
 auto Formatter::toString(SemId<Word> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
 auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     if (id->arguments.empty()) {
         return str(Str("{{{") + id->name + Str("}}}"));
     } else {
@@ -68,6 +71,7 @@ Formatter::Res colonHashtags(Formatter* f, CVec<SemId<HashTag>> tags) {
 }
 
 auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
 
     bool hadDocumentProperties = false;
@@ -125,10 +129,12 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<RawText> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
 auto Formatter::toString(SemId<Footnote> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     if (id->definition) {
         return b.line({
             str("[fn::"),
@@ -141,6 +147,7 @@ auto Formatter::toString(SemId<Footnote> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<CmdArgument> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     if (id->key) {
         return str(fmt(":{} {}", id->key.value(), id->value));
     } else {
@@ -149,6 +156,7 @@ auto Formatter::toString(SemId<CmdArgument> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     bool isInline = ctx.isInline;
 
     auto result = isInline ? b.line() : b.stack();
@@ -204,10 +212,12 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Tblfm> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<List> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
     for (auto const& it : id->subnodes) {
         b.add_at(result, toString(it, ctx));
@@ -216,14 +226,17 @@ auto Formatter::toString(SemId<List> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<SubtreeLog> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<Empty> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str("");
 }
 
 auto Formatter::toString(SemId<Newline> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     auto result = b.stack();
 
     for (int i = 1; i < id->text.size(); ++i) {
@@ -234,11 +247,13 @@ auto Formatter::toString(SemId<Newline> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Monospace> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("~"), toSubnodes(id, ctx), str("~")));
 }
 
 auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     if (id->getLinkKind() == Link::Kind::Raw && !id->description) {
         return str(id->getRaw().text);
     }
@@ -293,6 +308,7 @@ auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Symbol> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res result = b.line({str("\\" + id->name)});
     for (auto const& [key, value] : id->parameters) {
         if (key) {
@@ -318,60 +334,74 @@ auto Formatter::toString(SemId<Symbol> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Caption> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+caption: "), toString(id->text, ctx)});
 }
 
 auto Formatter::toString(SemId<CmdResults> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+results: ")});
 }
 
 auto Formatter::toString(SemId<CmdName> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+name: ")});
 }
 
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+call: ")});
 }
 
 auto Formatter::toString(SemId<DocumentGroup> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<CommandGroup> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<Escaped> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str("\\" + id->text);
 }
 
 auto Formatter::toString(SemId<Par> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<Placeholder> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("<"), toSubnodes(id, ctx), str(">")));
 }
 
 auto Formatter::toString(SemId<BigIdent> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
 
 auto Formatter::toString(SemId<HashTag> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str("#" + nestedHashtag(id));
 }
 
 auto Formatter::toString(SemId<MarkQuote> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<TextSeparator> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str("------------");
 }
 
 auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res result = b.line();
 
     b.add_at(result, str(id->isActive ? "<" : "["));
@@ -387,42 +417,51 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<StmtList> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(toSubnodes(id, ctx));
 }
 
 auto Formatter::toString(SemId<TimeRange> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         {toString(id->from, ctx), str("--"), toString(id->to, ctx)});
 }
 
 auto Formatter::toString(SemId<Row> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<Cell> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 
 auto Formatter::toString(SemId<Completion> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(fmt("[{}/{}]", id->done, id->full));
 }
 
 auto Formatter::toString(SemId<Center> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_center"), toSubnodes(id, ctx), str("#+end_center")));
 }
 
 auto Formatter::toString(SemId<Bold> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("*"), toSubnodes(id, ctx), str("*")));
 }
 
 auto Formatter::toString(SemId<Space> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
 auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res body = b.stack();
     if (id->header) {
         Res head = b.stack();
@@ -445,15 +484,18 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<AtMention> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str("@" + id->text);
 }
 
 auto Formatter::toString(SemId<Italic> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("/"), toSubnodes(id, ctx), str("/")));
 }
 
 auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
     for (auto const& in_row : id->rows) {
         Res row = b.line({str("| ")});
@@ -478,21 +520,25 @@ auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
     -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         {str("#+attr_"_ss + id->target + ": "_ss),
          toString(id->parameters, ctx)});
 }
 
 auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));
 }
 
 auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Vec<Res> result;
     for (auto const& pos : id->positional) {
         result.push_back(toString(pos, ctx));
@@ -513,10 +559,12 @@ auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<InlineMath> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line({str("\\("), toString(id->at(0), ctx), str("\\)")});
 }
 
 auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res title = b.line({
         id->todo ? str(id->todo.value() + Str(" ")) : str(""),
         toString(id->title, ctx),
@@ -690,34 +738,41 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<DocumentOptions> id, CR<Context> ctx)
     -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<Verbatim> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("="), toSubnodes(id, ctx), str("=")));
 }
 
 auto Formatter::toString(SemId<Quote> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_quote"), toSubnodes(id, ctx), str("#+end_quote")));
 }
 
 auto Formatter::toString(SemId<Verse> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_verse"), toSubnodes(id, ctx), str("#+end_verse")));
 }
 
 
 auto Formatter::toString(SemId<Include> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 auto Formatter::toString(SemId<Punctuation> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
 auto Formatter::toString(SemId<FileTarget> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
@@ -731,6 +786,7 @@ Vec<T> OptVec(CR<Opt<T>> value) {
 }
 
 auto Formatter::toString(SemId<Export> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res head = b.line();
     b.add_at(head, str("#+begin_export " + id->exporter));
     if (id->parameters) {
@@ -747,6 +803,7 @@ auto Formatter::toString(SemId<Export> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Example> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_example"),
         toSubnodes(id, ctx),
@@ -754,6 +811,7 @@ auto Formatter::toString(SemId<Example> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     Res     result = b.stack();
     Context ctx2   = ctx;
     ctx2.isInline  = true;
@@ -771,10 +829,12 @@ auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<Underline> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("_"), toSubnodes(id, ctx), str("_")));
 }
 
 auto Formatter::toString(SemId<ParseError> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }

@@ -121,9 +121,9 @@ def run_command(
     else:
         assert which(cmd), cmd
 
-    args_repr = " ".join((str(s) for s in args))
+    args_repr = " ".join((f"'[cyan]{s}[/cyan]'" for s in args))
 
-    log("tasks").debug(f"Running [red]{cmd}[/red] [cyan]{args_repr}[/cyan]")
+    log("tasks").debug(f"Running [red]{cmd}[/red] {args_repr}")
 
     run = local[cmd]
     if env:
@@ -479,6 +479,19 @@ LLDB_AUTO_BACKTRACE: List[str] = [
 ]
 
 
+def get_lldb_py_import() -> List[str]:
+    return [
+        "-o",
+        f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}"
+    ]
+
+
+def get_lldb_source_on_crash() -> List[str]:
+    return [
+        "--source-on-crash",
+        str(get_script_root("scripts/cxx_repository/lldb-script.txt"))
+    ]
+
 @org_task(pre=[cmake_haxorg])
 def haxorg_code_forensics(ctx: Context, debug: bool = False):
     "Generate code forensics dump for the repository"
@@ -496,12 +509,10 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
         run_command(ctx, "lldb", [
             str(tool),
             "--batch",
-            "-o",
-            f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}",
+            *get_lldb_py_import(),
             "-o",
             "run",
-            "--source-on-crash",
-            str(get_script_root("scripts/cxx_repository/lldb-script.txt")),
+            *get_lldb_source_on_crash(),
             json.dumps(config),
         ])
     else:
@@ -757,9 +768,10 @@ def py_test_debug(ctx: Context, test: str):
             # installed on the system. For example, 17.0.6 required python 3.10, but the
             # arch linux already moved to 3.11 here.
             "--batch",
+            *get_lldb_py_import(),
             "-o",
             f"run {test}",
-            *LLDB_AUTO_BACKTRACE,
+            *get_lldb_source_on_crash(),
             "--",
             "python",
         ],
