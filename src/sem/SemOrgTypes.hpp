@@ -493,7 +493,7 @@ struct CmdArguments : public sem::Org {
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Positional arguments that had no keys
-  Vec<sem::SemId<sem::CmdArgument>> positional;
+  Vec<sem::SemId<sem::CmdArgument>> positional = {};
   /// \brief Stored key-value mapping
   UnorderedMap<Str, sem::SemId<sem::CmdArgument>> named;
   static sem::SemId<CmdArguments> create(Opt<OrgAdapter> original = std::nullopt);
@@ -2007,7 +2007,7 @@ struct DocumentOptions : public sem::Org {
   static OrgSemKind const staticKind;
   sem::DocumentOptions::BrokenLinks brokenLinks = sem::DocumentOptions::BrokenLinks::Mark;
   sem::DocumentOptions::Visibility initialVisibility = sem::DocumentOptions::Visibility::ShowEverything;
-  sem::DocumentOptions::TocExport tocExport = DoExport{false};
+  sem::DocumentOptions::TocExport tocExport = sem::DocumentOptions::DoExport{false};
   Vec<sem::Subtree::Property> properties;
   bool smartQuotes = false;
   bool emphasizedText = false;

@@ -387,8 +387,8 @@ def get_types() -> Sequence[GenTuStruct]:
                 )
             ],
             fields=[
-                GenTuField(
-                    t_vec(t_id("CmdArgument")),
+                vec_field(
+                    t_id("CmdArgument"),
                     "positional",
                     GenTuDoc("Positional arguments that had no keys"),
                 ),
@@ -1414,7 +1414,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("TocExport", ["DocumentOptions"]),
                            "tocExport",
                            GenTuDoc(""),
-                           value="DoExport{false}"),
+                           value="sem::DocumentOptions::DoExport{false}"),
                 GenTuField(t_vec(t_nest("Property", ["Subtree"])), "properties",
                            GenTuDoc("")),
                 GenTuField(t_bool(), "smartQuotes", GenTuDoc(""), value="false"),

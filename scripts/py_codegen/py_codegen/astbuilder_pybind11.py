@@ -181,7 +181,7 @@ class Py11Method:
             call_pass = ast.Lambda(
                 LambdaParams(
                     ResultTy=self.ResultTy,
-                    Args=([] if self.ExplicitClassParam else
+                    Args=([] if self.ExplicitClassParam or self.IsInit else
                           [ParmVarParams(Class, "_self")]) +
                     [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
                     Body=self.Body,
@@ -196,7 +196,7 @@ class Py11Method:
             if Arg.value is None else ast.XCall("pybind11::arg_v", [
                 ast.Literal(Arg.name),
                 b.text(Arg.value) if isinstance(Arg.value, str) else Arg.value,
-            ]) for Arg in (self.Args[1:] if self.ExplicitClassParam else self.Args)
+            ]) for Arg in (self.Args[1:] if self.ExplicitClassParam and not self.IsInit else self.Args)
         ]
 
         doc_comment = [ast.StringLiteral(self.Doc.brief, forceRawStr=True)
@@ -207,7 +207,7 @@ class Py11Method:
         return ast.XCall(
             ".def",
             [
-                ast.Literal(self.PyName),
+                *([] if self.IsInit else [ast.Literal(self.PyName)]),
                 call_pass,
                 *argument_binder,
                 *doc_comment,
@@ -401,14 +401,17 @@ class Py11Class:
     def InitDefault(self, ast: ASTBuilder):
 
         def to_arg(f: Py11Field) -> GenTuIdent:
+            value = f.Default
             if f.Type.name == "Vec" and f.Default == "{}":
-                return GenTuIdent(type=f.Type,
-                                  name=f.PyName,
-                                  value=ast.b.line([ast.Type(f.Type),
-                                                    ast.string("{}")]))
+                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
 
-            else:
-                return GenTuIdent(type=f.Type, name=f.PyName, value=f.Default)
+            elif f.Type.name == "UnorderedMap" and not f.Default:
+                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
+
+            elif f.Type.name in ["Str", "string"] and not f.Default:
+                value = ast.Literal("")
+
+            return GenTuIdent(type=f.Type, name=f.PyName, value=value)
 
         self.InitImpls.append(
             Py11Method(

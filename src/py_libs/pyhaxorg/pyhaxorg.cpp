@@ -77,10 +77,10 @@ node can have subnodes.)RAW")
          pybind11::keep_alive<0, 1>())
     ;
   pybind11::class_<LineCol>(m, "LineCol")
-    .def("", pybind11::init([]() -> LineCol {
-                            LineCol result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> LineCol {
+                        LineCol result{};
+                        return result;
+                        }))
     .def_readwrite("line", &LineCol::line)
     .def_readwrite("column", &LineCol::column)
     .def_readwrite("pos", &LineCol::pos)
@@ -94,53 +94,53 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::Inline, sem::SemId<sem::Inline>, sem::Org>(m, "Inline")
     ;
   pybind11::class_<sem::StmtList, sem::SemId<sem::StmtList>, sem::Org>(m, "StmtList")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::StmtList {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::StmtList {
                         sem::StmtList result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::StmtList::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Empty, sem::SemId<sem::Empty>, sem::Org>(m, "Empty")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Empty {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Empty {
                         sem::Empty result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Empty::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Cell, sem::SemId<sem::Cell>, sem::Org>(m, "Cell")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Cell {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Cell {
                         sem::Cell result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Cell::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Row, sem::SemId<sem::Row>, sem::Org>(m, "Row")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Cell>> cells) -> sem::Row {
+    .def(pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Cell>> cells) -> sem::Row {
                         sem::Row result{};
                         result.loc = loc;
                         result.cells = cells;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("cells", Vec<sem::SemId<sem::Cell>>{}))
     .def_readwrite("loc", &sem::Row::loc, R"RAW(Document)RAW")
     .def_readwrite("cells", &sem::Row::cells, R"RAW(List of cells on the row)RAW")
     ;
   pybind11::class_<sem::Table, sem::SemId<sem::Table>, sem::Stmt>(m, "Table")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Row>> rows, Vec<sem::SemId<sem::Org>> attached) -> sem::Table {
+    .def(pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Row>> rows, Vec<sem::SemId<sem::Org>> attached) -> sem::Table {
                         sem::Table result{};
                         result.loc = loc;
                         result.rows = rows;
                         result.attached = attached;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("rows", Vec<sem::SemId<sem::Row>>{}),
          pybind11::arg("attached"))
     .def_readwrite("loc", &sem::Table::loc, R"RAW(Document)RAW")
@@ -151,15 +151,15 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::HashTag, sem::SemId<sem::HashTag>, sem::Inline>(m, "HashTag")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str head, Vec<sem::SemId<sem::HashTag>> subtags) -> sem::HashTag {
+    .def(pybind11::init([](Opt<LineCol> loc, Str head, Vec<sem::SemId<sem::HashTag>> subtags) -> sem::HashTag {
                         sem::HashTag result{};
                         result.loc = loc;
                         result.head = head;
                         result.subtags = subtags;
                         return result;
                         }),
-         pybind11::arg("head"),
+         pybind11::arg_v("loc", std::nullopt),
+         pybind11::arg_v("head", ""),
          pybind11::arg_v("subtags", Vec<sem::SemId<sem::HashTag>>{}))
     .def_readwrite("loc", &sem::HashTag::loc, R"RAW(Document)RAW")
     .def_readwrite("head", &sem::HashTag::head, R"RAW(Main part of the tag)RAW")
@@ -170,14 +170,14 @@ node can have subnodes.)RAW")
          R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
     ;
   pybind11::class_<sem::Footnote, sem::SemId<sem::Footnote>, sem::Inline>(m, "Footnote")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str tag, Opt<sem::SemId<sem::Org>> definition) -> sem::Footnote {
+    .def(pybind11::init([](Opt<LineCol> loc, Str tag, Opt<sem::SemId<sem::Org>> definition) -> sem::Footnote {
                         sem::Footnote result{};
                         result.loc = loc;
                         result.tag = tag;
                         result.definition = definition;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("tag", ""),
          pybind11::arg_v("definition", std::nullopt))
     .def_readwrite("loc", &sem::Footnote::loc, R"RAW(Document)RAW")
@@ -185,8 +185,7 @@ node can have subnodes.)RAW")
     .def_readwrite("definition", &sem::Footnote::definition, R"RAW(Link to possibly resolved definition)RAW")
     ;
   pybind11::class_<sem::Completion, sem::SemId<sem::Completion>, sem::Inline>(m, "Completion")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, int done, int full, bool isPercent) -> sem::Completion {
+    .def(pybind11::init([](Opt<LineCol> loc, int done, int full, bool isPercent) -> sem::Completion {
                         sem::Completion result{};
                         result.loc = loc;
                         result.done = done;
@@ -194,6 +193,7 @@ node can have subnodes.)RAW")
                         result.isPercent = isPercent;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("done", 0),
          pybind11::arg_v("full", 0),
          pybind11::arg_v("isPercent", false))
@@ -203,13 +203,13 @@ node can have subnodes.)RAW")
     .def_readwrite("isPercent", &sem::Completion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
     ;
   pybind11::class_<sem::Paragraph, sem::SemId<sem::Paragraph>, sem::Stmt>(m, "Paragraph")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Org>> attached) -> sem::Paragraph {
+    .def(pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Org>> attached) -> sem::Paragraph {
                         sem::Paragraph result{};
                         result.loc = loc;
                         result.attached = attached;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg("attached"))
     .def_readwrite("loc", &sem::Paragraph::loc, R"RAW(Document)RAW")
     .def_readwrite("attached", &sem::Paragraph::attached)
@@ -221,12 +221,12 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::Format, sem::SemId<sem::Format>, sem::Org>(m, "Format")
     ;
   pybind11::class_<sem::Center, sem::SemId<sem::Center>, sem::Format>(m, "Center")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Center {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Center {
                         sem::Center result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Center::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Command, sem::SemId<sem::Command>, sem::Org>(m, "Command")
@@ -238,43 +238,43 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::Attached, sem::SemId<sem::Attached>, sem::LineCommand>(m, "Attached")
     ;
   pybind11::class_<sem::Caption, sem::SemId<sem::Caption>, sem::Attached>(m, "Caption")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, sem::SemId<sem::Paragraph> text) -> sem::Caption {
+    .def(pybind11::init([](Opt<LineCol> loc, sem::SemId<sem::Paragraph> text) -> sem::Caption {
                         sem::Caption result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", sem::SemId<sem::Paragraph>::Nil()))
     .def_readwrite("loc", &sem::Caption::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Caption::text, R"RAW(Content description)RAW")
     ;
   pybind11::class_<sem::CmdName, sem::SemId<sem::CmdName>, sem::Attached>(m, "CmdName")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::CmdName {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::CmdName {
                         sem::CmdName result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::CmdName::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::CmdResults, sem::SemId<sem::CmdResults>, sem::Attached>(m, "CmdResults")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::CmdResults {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::CmdResults {
                         sem::CmdResults result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::CmdResults::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::CommandGroup, sem::SemId<sem::CommandGroup>, sem::Stmt>(m, "CommandGroup")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Org>> attached) -> sem::CommandGroup {
+    .def(pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::Org>> attached) -> sem::CommandGroup {
                         sem::CommandGroup result{};
                         result.loc = loc;
                         result.attached = attached;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg("attached"))
     .def_readwrite("loc", &sem::CommandGroup::loc, R"RAW(Document)RAW")
     .def_readwrite("attached", &sem::CommandGroup::attached)
@@ -285,52 +285,52 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::Block, sem::SemId<sem::Block>, sem::Command>(m, "Block")
     ;
   pybind11::class_<sem::Tblfm, sem::SemId<sem::Tblfm>, sem::Command>(m, "Tblfm")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Tblfm {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Tblfm {
                         sem::Tblfm result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Tblfm::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Quote, sem::SemId<sem::Quote>, sem::Org>(m, "Quote")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Quote {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Quote {
                         sem::Quote result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Quote::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Verse, sem::SemId<sem::Verse>, sem::Block>(m, "Verse")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Verse {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Verse {
                         sem::Verse result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Verse::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Example, sem::SemId<sem::Example>, sem::Block>(m, "Example")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Example {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Example {
                         sem::Example result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Example::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::CmdArguments, sem::SemId<sem::CmdArguments>, sem::Org>(m, "CmdArguments")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::CmdArgument>> positional, UnorderedMap<Str, sem::SemId<sem::CmdArgument>> named) -> sem::CmdArguments {
+    .def(pybind11::init([](Opt<LineCol> loc, Vec<sem::SemId<sem::CmdArgument>> positional, UnorderedMap<Str, sem::SemId<sem::CmdArgument>> named) -> sem::CmdArguments {
                         sem::CmdArguments result{};
                         result.loc = loc;
                         result.positional = positional;
                         result.named = named;
                         return result;
                         }),
-         pybind11::arg("positional"),
-         pybind11::arg("named"))
+         pybind11::arg_v("loc", std::nullopt),
+         pybind11::arg_v("positional", Vec<sem::SemId<sem::CmdArgument>>{}),
+         pybind11::arg_v("named", UnorderedMap<Str, sem::SemId<sem::CmdArgument>>{}))
     .def_readwrite("loc", &sem::CmdArguments::loc, R"RAW(Document)RAW")
     .def_readwrite("positional", &sem::CmdArguments::positional, R"RAW(Positional arguments that had no keys)RAW")
     .def_readwrite("named", &sem::CmdArguments::named, R"RAW(Stored key-value mapping)RAW")
@@ -340,31 +340,31 @@ node can have subnodes.)RAW")
          R"RAW(Remove argument value from the map and return it if present)RAW")
     ;
   pybind11::class_<sem::CmdAttr, sem::SemId<sem::CmdAttr>, sem::Attached>(m, "CmdAttr")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str target, sem::SemId<sem::CmdArguments> parameters) -> sem::CmdAttr {
+    .def(pybind11::init([](Opt<LineCol> loc, Str target, sem::SemId<sem::CmdArguments> parameters) -> sem::CmdAttr {
                         sem::CmdAttr result{};
                         result.loc = loc;
                         result.target = target;
                         result.parameters = parameters;
                         return result;
                         }),
-         pybind11::arg("target"),
+         pybind11::arg_v("loc", std::nullopt),
+         pybind11::arg_v("target", ""),
          pybind11::arg_v("parameters", sem::SemId<sem::CmdArguments>::Nil()))
     .def_readwrite("loc", &sem::CmdAttr::loc, R"RAW(Document)RAW")
     .def_readwrite("target", &sem::CmdAttr::target)
     .def_readwrite("parameters", &sem::CmdAttr::parameters, R"RAW(HTML attributes)RAW")
     ;
   pybind11::class_<sem::CmdArgument, sem::SemId<sem::CmdArgument>, sem::Org>(m, "CmdArgument")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Opt<Str> key, Str value) -> sem::CmdArgument {
+    .def(pybind11::init([](Opt<LineCol> loc, Opt<Str> key, Str value) -> sem::CmdArgument {
                         sem::CmdArgument result{};
                         result.loc = loc;
                         result.key = key;
                         result.value = value;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("key", std::nullopt),
-         pybind11::arg("value"))
+         pybind11::arg_v("value", ""))
     .def_readwrite("loc", &sem::CmdArgument::loc, R"RAW(Document)RAW")
     .def_readwrite("key", &sem::CmdArgument::key, R"RAW(Key)RAW")
     .def_readwrite("value", &sem::CmdArgument::value, R"RAW(Value)RAW")
@@ -373,8 +373,7 @@ node can have subnodes.)RAW")
     .def("getString", static_cast<Str(sem::CmdArgument::*)() const>(&sem::CmdArgument::getString), R"RAW(Get original string)RAW")
     ;
   pybind11::class_<sem::Export, sem::SemId<sem::Export>, sem::Block>(m, "Export")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, sem::Export::Format format, Str exporter, Opt<sem::SemId<sem::CmdArguments>> parameters, Opt<Str> placement, Str content) -> sem::Export {
+    .def(pybind11::init([](Opt<LineCol> loc, sem::Export::Format format, Str exporter, Opt<sem::SemId<sem::CmdArguments>> parameters, Opt<Str> placement, Str content) -> sem::Export {
                         sem::Export result{};
                         result.loc = loc;
                         result.format = format;
@@ -384,11 +383,12 @@ node can have subnodes.)RAW")
                         result.content = content;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("format", sem::Export::Format::Inline),
-         pybind11::arg("exporter"),
+         pybind11::arg_v("exporter", ""),
          pybind11::arg_v("parameters", std::nullopt),
          pybind11::arg_v("placement", std::nullopt),
-         pybind11::arg("content"))
+         pybind11::arg_v("content", ""))
     .def_readwrite("loc", &sem::Export::loc, R"RAW(Document)RAW")
     .def_readwrite("format", &sem::Export::format, R"RAW(Export block type)RAW")
     .def_readwrite("exporter", &sem::Export::exporter, R"RAW(Exporter backend name)RAW")
@@ -408,29 +408,28 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::AdmonitionBlock, sem::SemId<sem::AdmonitionBlock>, sem::Block>(m, "AdmonitionBlock")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::AdmonitionBlock {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::AdmonitionBlock {
                         sem::AdmonitionBlock result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::AdmonitionBlock::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Call, sem::SemId<sem::Call>, sem::Org>(m, "Call")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Opt<Str> name) -> sem::Call {
+    .def(pybind11::init([](Opt<LineCol> loc, Opt<Str> name) -> sem::Call {
                         sem::Call result{};
                         result.loc = loc;
                         result.name = name;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("name", std::nullopt))
     .def_readwrite("loc", &sem::Call::loc, R"RAW(Document)RAW")
     .def_readwrite("name", &sem::Call::name, R"RAW(Call target name)RAW")
     ;
   pybind11::class_<sem::Code, sem::SemId<sem::Code>, sem::Block>(m, "Code")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Opt<Str> lang, Vec<sem::Code::Switch> switches, sem::Code::Exports exports, Vec<sem::Code::Line> lines, Opt<sem::SemId<sem::CmdArguments>> parameters, bool cache, bool eval, bool noweb, bool hlines, bool tangle) -> sem::Code {
+    .def(pybind11::init([](Opt<LineCol> loc, Opt<Str> lang, Vec<sem::Code::Switch> switches, sem::Code::Exports exports, Vec<sem::Code::Line> lines, Opt<sem::SemId<sem::CmdArguments>> parameters, bool cache, bool eval, bool noweb, bool hlines, bool tangle) -> sem::Code {
                         sem::Code result{};
                         result.loc = loc;
                         result.lang = lang;
@@ -445,6 +444,7 @@ node can have subnodes.)RAW")
                         result.tangle = tangle;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("lang", std::nullopt),
          pybind11::arg_v("switches", Vec<sem::Code::Switch>{}),
          pybind11::arg_v("exports", sem::Code::Exports::Both),
@@ -468,17 +468,17 @@ node can have subnodes.)RAW")
     .def_readwrite("tangle", &sem::Code::tangle, R"RAW(?)RAW")
     ;
   pybind11::class_<sem::Code::Line>(m, "CodeLine")
-    .def("", pybind11::init([]() -> sem::Code::Line {
-                            sem::Code::Line result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Line {
+                        sem::Code::Line result{};
+                        return result;
+                        }))
     .def_readwrite("parts", &sem::Code::Line::parts, R"RAW(parts of the single line)RAW")
     ;
   pybind11::class_<sem::Code::Line::Part>(m, "CodeLinePart")
-    .def("", pybind11::init([]() -> sem::Code::Line::Part {
-                            sem::Code::Line::Part result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Line::Part {
+                        sem::Code::Line::Part result{};
+                        return result;
+                        }))
     .def_readwrite("data", &sem::Code::Line::Part::data)
     .def("getRaw", static_cast<sem::Code::Line::Part::Raw&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getRaw))
     .def("getCallout", static_cast<sem::Code::Line::Part::Callout&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getCallout))
@@ -486,24 +486,24 @@ node can have subnodes.)RAW")
     .def("getKind", static_cast<sem::Code::Line::Part::Kind(sem::Code::Line::Part::*)() const>(&sem::Code::Line::Part::getKind))
     ;
   pybind11::class_<sem::Code::Line::Part::Raw>(m, "CodeLinePartRaw")
-    .def("", pybind11::init([]() -> sem::Code::Line::Part::Raw {
-                            sem::Code::Line::Part::Raw result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Line::Part::Raw {
+                        sem::Code::Line::Part::Raw result{};
+                        return result;
+                        }))
     .def_readwrite("code", &sem::Code::Line::Part::Raw::code)
     ;
   pybind11::class_<sem::Code::Line::Part::Callout>(m, "CodeLinePartCallout")
-    .def("", pybind11::init([]() -> sem::Code::Line::Part::Callout {
-                            sem::Code::Line::Part::Callout result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Line::Part::Callout {
+                        sem::Code::Line::Part::Callout result{};
+                        return result;
+                        }))
     .def_readwrite("name", &sem::Code::Line::Part::Callout::name)
     ;
   pybind11::class_<sem::Code::Line::Part::Tangle>(m, "CodeLinePartTangle")
-    .def("", pybind11::init([]() -> sem::Code::Line::Part::Tangle {
-                            sem::Code::Line::Part::Tangle result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Line::Part::Tangle {
+                        sem::Code::Line::Part::Tangle result{};
+                        return result;
+                        }))
     .def_readwrite("target", &sem::Code::Line::Part::Tangle::target)
     ;
   bind_enum_iterator<sem::Code::Line::Part::Kind>(m, "CodeLinePartKind");
@@ -518,10 +518,10 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Code::Switch>(m, "CodeSwitch")
-    .def("", pybind11::init([]() -> sem::Code::Switch {
-                            sem::Code::Switch result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Switch {
+                        sem::Code::Switch result{};
+                        return result;
+                        }))
     .def_readwrite("data", &sem::Code::Switch::data)
     .def("getLineStart", static_cast<sem::Code::Switch::LineStart&(sem::Code::Switch::*)()>(&sem::Code::Switch::getLineStart))
     .def("getCalloutFormat", static_cast<sem::Code::Switch::CalloutFormat&(sem::Code::Switch::*)()>(&sem::Code::Switch::getCalloutFormat))
@@ -531,39 +531,39 @@ node can have subnodes.)RAW")
     .def("getKind", static_cast<sem::Code::Switch::Kind(sem::Code::Switch::*)() const>(&sem::Code::Switch::getKind))
     ;
   pybind11::class_<sem::Code::Switch::LineStart>(m, "CodeSwitchLineStart")
-    .def("", pybind11::init([]() -> sem::Code::Switch::LineStart {
-                            sem::Code::Switch::LineStart result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Switch::LineStart {
+                        sem::Code::Switch::LineStart result{};
+                        return result;
+                        }))
     .def_readwrite("start", &sem::Code::Switch::LineStart::start, R"RAW(First line number)RAW")
     .def_readwrite("extendLast", &sem::Code::Switch::LineStart::extendLast, R"RAW(Continue numbering from the previous block nstead of starting anew)RAW")
     ;
   pybind11::class_<sem::Code::Switch::CalloutFormat>(m, "CodeSwitchCalloutFormat")
-    .def("", pybind11::init([]() -> sem::Code::Switch::CalloutFormat {
-                            sem::Code::Switch::CalloutFormat result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Switch::CalloutFormat {
+                        sem::Code::Switch::CalloutFormat result{};
+                        return result;
+                        }))
     .def_readwrite("format", &sem::Code::Switch::CalloutFormat::format)
     ;
   pybind11::class_<sem::Code::Switch::RemoveCallout>(m, "CodeSwitchRemoveCallout")
-    .def("", pybind11::init([]() -> sem::Code::Switch::RemoveCallout {
-                            sem::Code::Switch::RemoveCallout result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Switch::RemoveCallout {
+                        sem::Code::Switch::RemoveCallout result{};
+                        return result;
+                        }))
     .def_readwrite("remove", &sem::Code::Switch::RemoveCallout::remove)
     ;
   pybind11::class_<sem::Code::Switch::EmphasizeLine>(m, "CodeSwitchEmphasizeLine")
-    .def("", pybind11::init([]() -> sem::Code::Switch::EmphasizeLine {
-                            sem::Code::Switch::EmphasizeLine result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Switch::EmphasizeLine {
+                        sem::Code::Switch::EmphasizeLine result{};
+                        return result;
+                        }))
     .def_readwrite("line", &sem::Code::Switch::EmphasizeLine::line)
     ;
   pybind11::class_<sem::Code::Switch::Dedent>(m, "CodeSwitchDedent")
-    .def("", pybind11::init([]() -> sem::Code::Switch::Dedent {
-                            sem::Code::Switch::Dedent result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Code::Switch::Dedent {
+                        sem::Code::Switch::Dedent result{};
+                        return result;
+                        }))
     .def_readwrite("value", &sem::Code::Switch::Dedent::value)
     ;
   bind_enum_iterator<sem::Code::Switch::Kind>(m, "CodeSwitchKind");
@@ -601,14 +601,14 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Time, sem::SemId<sem::Time>, sem::Org>(m, "Time")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, bool isActive, sem::Time::TimeVariant time) -> sem::Time {
+    .def(pybind11::init([](Opt<LineCol> loc, bool isActive, sem::Time::TimeVariant time) -> sem::Time {
                         sem::Time result{};
                         result.loc = loc;
                         result.isActive = isActive;
                         result.time = time;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("isActive", false),
          pybind11::arg("time"))
     .def_readwrite("loc", &sem::Time::loc, R"RAW(Document)RAW")
@@ -619,10 +619,10 @@ node can have subnodes.)RAW")
     .def("getTimeKind", static_cast<sem::Time::TimeKind(sem::Time::*)() const>(&sem::Time::getTimeKind))
     ;
   pybind11::class_<sem::Time::Repeat>(m, "TimeRepeat")
-    .def("", pybind11::init([]() -> sem::Time::Repeat {
-                            sem::Time::Repeat result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Time::Repeat {
+                        sem::Time::Repeat result{};
+                        return result;
+                        }))
     .def_readwrite("mode", &sem::Time::Repeat::mode, R"RAW(mode)RAW")
     .def_readwrite("period", &sem::Time::Repeat::period, R"RAW(period)RAW")
     .def_readwrite("count", &sem::Time::Repeat::count, R"RAW(count)RAW")
@@ -654,18 +654,18 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Time::Static>(m, "TimeStatic")
-    .def("", pybind11::init([]() -> sem::Time::Static {
-                            sem::Time::Static result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Time::Static {
+                        sem::Time::Static result{};
+                        return result;
+                        }))
     .def_readwrite("repeat", &sem::Time::Static::repeat)
     .def_readwrite("time", &sem::Time::Static::time)
     ;
   pybind11::class_<sem::Time::Dynamic>(m, "TimeDynamic")
-    .def("", pybind11::init([]() -> sem::Time::Dynamic {
-                            sem::Time::Dynamic result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Time::Dynamic {
+                        sem::Time::Dynamic result{};
+                        return result;
+                        }))
     .def_readwrite("expr", &sem::Time::Dynamic::expr)
     ;
   bind_enum_iterator<sem::Time::TimeKind>(m, "TimeTimeKind");
@@ -679,14 +679,14 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::TimeRange, sem::SemId<sem::TimeRange>, sem::Org>(m, "TimeRange")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, sem::SemId<sem::Time> from_, sem::SemId<sem::Time> to) -> sem::TimeRange {
+    .def(pybind11::init([](Opt<LineCol> loc, sem::SemId<sem::Time> from_, sem::SemId<sem::Time> to) -> sem::TimeRange {
                         sem::TimeRange result{};
                         result.loc = loc;
                         result.from = from_;
                         result.to = to;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("from_", sem::SemId<sem::Time>::Nil()),
          pybind11::arg_v("to", sem::SemId<sem::Time>::Nil()))
     .def_readwrite("loc", &sem::TimeRange::loc, R"RAW(Document)RAW")
@@ -694,14 +694,14 @@ node can have subnodes.)RAW")
     .def_readwrite("to", &sem::TimeRange::to, R"RAW(Finishing time)RAW")
     ;
   pybind11::class_<sem::Macro, sem::SemId<sem::Macro>, sem::Org>(m, "Macro")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str name, Vec<Str> arguments) -> sem::Macro {
+    .def(pybind11::init([](Opt<LineCol> loc, Str name, Vec<Str> arguments) -> sem::Macro {
                         sem::Macro result{};
                         result.loc = loc;
                         result.name = name;
                         result.arguments = arguments;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("name", ""),
          pybind11::arg_v("arguments", Vec<Str>{}))
     .def_readwrite("loc", &sem::Macro::loc, R"RAW(Document)RAW")
@@ -709,8 +709,7 @@ node can have subnodes.)RAW")
     .def_readwrite("arguments", &sem::Macro::arguments, R"RAW(Raw uninterpreted macro arguments)RAW")
     ;
   pybind11::class_<sem::Symbol, sem::SemId<sem::Symbol>, sem::Org>(m, "Symbol")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str name, Vec<sem::Symbol::Param> parameters, Vec<sem::SemId<sem::Org>> positional) -> sem::Symbol {
+    .def(pybind11::init([](Opt<LineCol> loc, Str name, Vec<sem::Symbol::Param> parameters, Vec<sem::SemId<sem::Org>> positional) -> sem::Symbol {
                         sem::Symbol result{};
                         result.loc = loc;
                         result.name = name;
@@ -718,7 +717,8 @@ node can have subnodes.)RAW")
                         result.positional = positional;
                         return result;
                         }),
-         pybind11::arg("name"),
+         pybind11::arg_v("loc", std::nullopt),
+         pybind11::arg_v("name", ""),
          pybind11::arg("parameters"),
          pybind11::arg("positional"))
     .def_readwrite("loc", &sem::Symbol::loc, R"RAW(Document)RAW")
@@ -727,21 +727,21 @@ node can have subnodes.)RAW")
     .def_readwrite("positional", &sem::Symbol::positional, R"RAW(Positional parameters)RAW")
     ;
   pybind11::class_<sem::Symbol::Param>(m, "SymbolParam")
-    .def("", pybind11::init([]() -> sem::Symbol::Param {
-                            sem::Symbol::Param result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Symbol::Param {
+                        sem::Symbol::Param result{};
+                        return result;
+                        }))
     .def_readwrite("key", &sem::Symbol::Param::key, R"RAW(Key -- for non-positional)RAW")
     .def_readwrite("value", &sem::Symbol::Param::value, R"RAW(Uninterpreted value)RAW")
     ;
   pybind11::class_<sem::SubtreeLog, sem::SemId<sem::SubtreeLog>, sem::Org>(m, "SubtreeLog")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, sem::SubtreeLog::LogEntry log) -> sem::SubtreeLog {
+    .def(pybind11::init([](Opt<LineCol> loc, sem::SubtreeLog::LogEntry log) -> sem::SubtreeLog {
                         sem::SubtreeLog result{};
                         result.loc = loc;
                         result.log = log;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("log", sem::SubtreeLog::Note{}))
     .def_readwrite("loc", &sem::SubtreeLog::loc, R"RAW(Document)RAW")
     .def_readwrite("log", &sem::SubtreeLog::log)
@@ -757,17 +757,17 @@ node can have subnodes.)RAW")
     .def("getLogKind", static_cast<sem::SubtreeLog::Kind(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::getLogKind))
     ;
   pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
-    .def("", pybind11::init([]() -> sem::SubtreeLog::DescribedLog {
-                            sem::SubtreeLog::DescribedLog result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::SubtreeLog::DescribedLog {
+                        sem::SubtreeLog::DescribedLog result{};
+                        return result;
+                        }))
     .def_readwrite("desc", &sem::SubtreeLog::DescribedLog::desc, R"RAW(Optional description of the log entry)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Priority>(m, "SubtreeLogPriority")
-    .def("", pybind11::init([]() -> sem::SubtreeLog::Priority {
-                            sem::SubtreeLog::Priority result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::SubtreeLog::Priority {
+                        sem::SubtreeLog::Priority result{};
+                        return result;
+                        }))
     .def_readwrite("oldPriority", &sem::SubtreeLog::Priority::oldPriority, R"RAW(Previous priority for change and removal)RAW")
     .def_readwrite("newPriority", &sem::SubtreeLog::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
     .def_readwrite("on", &sem::SubtreeLog::Priority::on, R"RAW(When priority was changed)RAW")
@@ -784,40 +784,40 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::SubtreeLog::Note>(m, "SubtreeLogNote")
-    .def("", pybind11::init([]() -> sem::SubtreeLog::Note {
-                            sem::SubtreeLog::Note result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::SubtreeLog::Note {
+                        sem::SubtreeLog::Note result{};
+                        return result;
+                        }))
     .def_readwrite("on", &sem::SubtreeLog::Note::on, R"RAW(Where log was taken)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Refile>(m, "SubtreeLogRefile")
-    .def("", pybind11::init([]() -> sem::SubtreeLog::Refile {
-                            sem::SubtreeLog::Refile result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::SubtreeLog::Refile {
+                        sem::SubtreeLog::Refile result{};
+                        return result;
+                        }))
     .def_readwrite("on", &sem::SubtreeLog::Refile::on, R"RAW(When the refiling happened)RAW")
     .def_readwrite("from_", &sem::SubtreeLog::Refile::from, R"RAW(Link to the original subtree)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Clock>(m, "SubtreeLogClock")
-    .def("", pybind11::init([]() -> sem::SubtreeLog::Clock {
-                            sem::SubtreeLog::Clock result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::SubtreeLog::Clock {
+                        sem::SubtreeLog::Clock result{};
+                        return result;
+                        }))
     ;
   pybind11::class_<sem::SubtreeLog::State>(m, "SubtreeLogState")
-    .def("", pybind11::init([]() -> sem::SubtreeLog::State {
-                            sem::SubtreeLog::State result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::SubtreeLog::State {
+                        sem::SubtreeLog::State result{};
+                        return result;
+                        }))
     .def_readwrite("from_", &sem::SubtreeLog::State::from)
     .def_readwrite("to", &sem::SubtreeLog::State::to)
     .def_readwrite("on", &sem::SubtreeLog::State::on)
     ;
   pybind11::class_<sem::SubtreeLog::Tag>(m, "SubtreeLogTag")
-    .def("", pybind11::init([]() -> sem::SubtreeLog::Tag {
-                            sem::SubtreeLog::Tag result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::SubtreeLog::Tag {
+                        sem::SubtreeLog::Tag result{};
+                        return result;
+                        }))
     .def_readwrite("on", &sem::SubtreeLog::Tag::on, R"RAW(When the log was assigned)RAW")
     .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, R"RAW(Tag in question)RAW")
     .def_readwrite("added", &sem::SubtreeLog::Tag::added, R"RAW(Added/removed?)RAW")
@@ -837,8 +837,7 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>, sem::Org>(m, "Subtree")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, int level, Opt<Str> treeId, Opt<Str> todo, Opt<sem::SemId<sem::Completion>> completion, Opt<sem::SemId<sem::Paragraph>> description, Vec<sem::SemId<sem::HashTag>> tags, sem::SemId<sem::Paragraph> title, Vec<sem::SemId<sem::SubtreeLog>> logbook, Vec<sem::Subtree::Property> properties, Opt<sem::SemId<sem::Time>> closed, Opt<sem::SemId<sem::Time>> deadline, Opt<sem::SemId<sem::Time>> scheduled) -> sem::Subtree {
+    .def(pybind11::init([](Opt<LineCol> loc, int level, Opt<Str> treeId, Opt<Str> todo, Opt<sem::SemId<sem::Completion>> completion, Opt<sem::SemId<sem::Paragraph>> description, Vec<sem::SemId<sem::HashTag>> tags, sem::SemId<sem::Paragraph> title, Vec<sem::SemId<sem::SubtreeLog>> logbook, Vec<sem::Subtree::Property> properties, Opt<sem::SemId<sem::Time>> closed, Opt<sem::SemId<sem::Time>> deadline, Opt<sem::SemId<sem::Time>> scheduled) -> sem::Subtree {
                         sem::Subtree result{};
                         result.loc = loc;
                         result.level = level;
@@ -855,6 +854,7 @@ node can have subnodes.)RAW")
                         result.scheduled = scheduled;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("level", 0),
          pybind11::arg_v("treeId", std::nullopt),
          pybind11::arg_v("todo", std::nullopt),
@@ -901,10 +901,10 @@ node can have subnodes.)RAW")
          pybind11::arg_v("subkind", ""))
     ;
   pybind11::class_<sem::Subtree::Period>(m, "SubtreePeriod")
-    .def("", pybind11::init([]() -> sem::Subtree::Period {
-                            sem::Subtree::Period result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Period {
+                        sem::Subtree::Period result{};
+                        return result;
+                        }))
     .def_readwrite("kind", &sem::Subtree::Period::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
     .def("getTime", static_cast<sem::SemId<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
     .def("getTimeRange", static_cast<sem::SemId<sem::TimeRange>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
@@ -924,10 +924,10 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Subtree::Property>(m, "SubtreeProperty")
-    .def("", pybind11::init([]() -> sem::Subtree::Property {
-                            sem::Subtree::Property result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property {
+                        sem::Subtree::Property result{};
+                        return result;
+                        }))
     .def_readwrite("mainSetRule", &sem::Subtree::Property::mainSetRule)
     .def_readwrite("subSetRule", &sem::Subtree::Property::subSetRule)
     .def_readwrite("inheritanceMode", &sem::Subtree::Property::inheritanceMode)
@@ -972,73 +972,73 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Subtree::Property::Nonblocking>(m, "SubtreePropertyNonblocking")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Nonblocking {
-                            sem::Subtree::Property::Nonblocking result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Nonblocking {
+                        sem::Subtree::Property::Nonblocking result{};
+                        return result;
+                        }))
     .def_readwrite("isBlocking", &sem::Subtree::Property::Nonblocking::isBlocking)
     ;
   pybind11::class_<sem::Subtree::Property::Trigger>(m, "SubtreePropertyTrigger")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Trigger {
-                            sem::Subtree::Property::Trigger result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Trigger {
+                        sem::Subtree::Property::Trigger result{};
+                        return result;
+                        }))
     ;
   pybind11::class_<sem::Subtree::Property::Origin>(m, "SubtreePropertyOrigin")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Origin {
-                            sem::Subtree::Property::Origin result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Origin {
+                        sem::Subtree::Property::Origin result{};
+                        return result;
+                        }))
     .def_readwrite("text", &sem::Subtree::Property::Origin::text)
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexClass>(m, "SubtreePropertyExportLatexClass")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::ExportLatexClass {
-                            sem::Subtree::Property::ExportLatexClass result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::ExportLatexClass {
+                        sem::Subtree::Property::ExportLatexClass result{};
+                        return result;
+                        }))
     .def_readwrite("latexClass", &sem::Subtree::Property::ExportLatexClass::latexClass)
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexClassOptions>(m, "SubtreePropertyExportLatexClassOptions")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::ExportLatexClassOptions {
-                            sem::Subtree::Property::ExportLatexClassOptions result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::ExportLatexClassOptions {
+                        sem::Subtree::Property::ExportLatexClassOptions result{};
+                        return result;
+                        }))
     .def_readwrite("options", &sem::Subtree::Property::ExportLatexClassOptions::options)
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexHeader>(m, "SubtreePropertyExportLatexHeader")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::ExportLatexHeader {
-                            sem::Subtree::Property::ExportLatexHeader result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::ExportLatexHeader {
+                        sem::Subtree::Property::ExportLatexHeader result{};
+                        return result;
+                        }))
     .def_readwrite("header", &sem::Subtree::Property::ExportLatexHeader::header)
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexCompiler>(m, "SubtreePropertyExportLatexCompiler")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::ExportLatexCompiler {
-                            sem::Subtree::Property::ExportLatexCompiler result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::ExportLatexCompiler {
+                        sem::Subtree::Property::ExportLatexCompiler result{};
+                        return result;
+                        }))
     .def_readwrite("compiler", &sem::Subtree::Property::ExportLatexCompiler::compiler)
     ;
   pybind11::class_<sem::Subtree::Property::Ordered>(m, "SubtreePropertyOrdered")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Ordered {
-                            sem::Subtree::Property::Ordered result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Ordered {
+                        sem::Subtree::Property::Ordered result{};
+                        return result;
+                        }))
     .def_readwrite("isOrdered", &sem::Subtree::Property::Ordered::isOrdered)
     ;
   pybind11::class_<sem::Subtree::Property::Effort>(m, "SubtreePropertyEffort")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Effort {
-                            sem::Subtree::Property::Effort result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Effort {
+                        sem::Subtree::Property::Effort result{};
+                        return result;
+                        }))
     .def_readwrite("hours", &sem::Subtree::Property::Effort::hours)
     .def_readwrite("minutes", &sem::Subtree::Property::Effort::minutes)
     ;
   pybind11::class_<sem::Subtree::Property::Visibility>(m, "SubtreePropertyVisibility")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Visibility {
-                            sem::Subtree::Property::Visibility result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Visibility {
+                        sem::Subtree::Property::Visibility result{};
+                        return result;
+                        }))
     .def_readwrite("level", &sem::Subtree::Property::Visibility::level)
     ;
   bind_enum_iterator<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel");
@@ -1054,38 +1054,38 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Subtree::Property::ExportOptions>(m, "SubtreePropertyExportOptions")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::ExportOptions {
-                            sem::Subtree::Property::ExportOptions result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::ExportOptions {
+                        sem::Subtree::Property::ExportOptions result{};
+                        return result;
+                        }))
     .def_readwrite("backend", &sem::Subtree::Property::ExportOptions::backend)
     .def_readwrite("values", &sem::Subtree::Property::ExportOptions::values)
     ;
   pybind11::class_<sem::Subtree::Property::Blocker>(m, "SubtreePropertyBlocker")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Blocker {
-                            sem::Subtree::Property::Blocker result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Blocker {
+                        sem::Subtree::Property::Blocker result{};
+                        return result;
+                        }))
     .def_readwrite("blockers", &sem::Subtree::Property::Blocker::blockers)
     ;
   pybind11::class_<sem::Subtree::Property::Unnumbered>(m, "SubtreePropertyUnnumbered")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Unnumbered {
-                            sem::Subtree::Property::Unnumbered result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Unnumbered {
+                        sem::Subtree::Property::Unnumbered result{};
+                        return result;
+                        }))
     ;
   pybind11::class_<sem::Subtree::Property::Created>(m, "SubtreePropertyCreated")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Created {
-                            sem::Subtree::Property::Created result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Created {
+                        sem::Subtree::Property::Created result{};
+                        return result;
+                        }))
     .def_readwrite("time", &sem::Subtree::Property::Created::time)
     ;
   pybind11::class_<sem::Subtree::Property::Unknown>(m, "SubtreePropertyUnknown")
-    .def("", pybind11::init([]() -> sem::Subtree::Property::Unknown {
-                            sem::Subtree::Property::Unknown result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Subtree::Property::Unknown {
+                        sem::Subtree::Property::Unknown result{};
+                        return result;
+                        }))
     .def_readwrite("value", &sem::Subtree::Property::Unknown::value, R"RAW(Converted value of the property)RAW")
     ;
   bind_enum_iterator<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind");
@@ -1114,121 +1114,121 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::LatexBody, sem::SemId<sem::LatexBody>, sem::Org>(m, "LatexBody")
     ;
   pybind11::class_<sem::InlineMath, sem::SemId<sem::InlineMath>, sem::LatexBody>(m, "InlineMath")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::InlineMath {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::InlineMath {
                         sem::InlineMath result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::InlineMath::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Leaf, sem::SemId<sem::Leaf>, sem::Org>(m, "Leaf")
     .def_readwrite("text", &sem::Leaf::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Escaped, sem::SemId<sem::Escaped>, sem::Leaf>(m, "Escaped")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Escaped {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Escaped {
                         sem::Escaped result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::Escaped::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Escaped::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Newline, sem::SemId<sem::Newline>, sem::Leaf>(m, "Newline")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Newline {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Newline {
                         sem::Newline result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::Newline::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Newline::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Space, sem::SemId<sem::Space>, sem::Leaf>(m, "Space")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Space {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Space {
                         sem::Space result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::Space::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Space::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Word, sem::SemId<sem::Word>, sem::Leaf>(m, "Word")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Word {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Word {
                         sem::Word result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::Word::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Word::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::AtMention, sem::SemId<sem::AtMention>, sem::Leaf>(m, "AtMention")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::AtMention {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::AtMention {
                         sem::AtMention result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::AtMention::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::AtMention::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::RawText, sem::SemId<sem::RawText>, sem::Leaf>(m, "RawText")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::RawText {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::RawText {
                         sem::RawText result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::RawText::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::RawText::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Punctuation, sem::SemId<sem::Punctuation>, sem::Leaf>(m, "Punctuation")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Punctuation {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Punctuation {
                         sem::Punctuation result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::Punctuation::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Punctuation::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Placeholder, sem::SemId<sem::Placeholder>, sem::Leaf>(m, "Placeholder")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Placeholder {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::Placeholder {
                         sem::Placeholder result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::Placeholder::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Placeholder::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::BigIdent, sem::SemId<sem::BigIdent>, sem::Leaf>(m, "BigIdent")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str text) -> sem::BigIdent {
+    .def(pybind11::init([](Opt<LineCol> loc, Str text) -> sem::BigIdent {
                         sem::BigIdent result{};
                         result.loc = loc;
                         result.text = text;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("text", ""))
     .def_readwrite("loc", &sem::BigIdent::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::BigIdent::text, R"RAW(Final leaf value)RAW")
@@ -1236,96 +1236,96 @@ node can have subnodes.)RAW")
   pybind11::class_<sem::Markup, sem::SemId<sem::Markup>, sem::Org>(m, "Markup")
     ;
   pybind11::class_<sem::Bold, sem::SemId<sem::Bold>, sem::Markup>(m, "Bold")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Bold {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Bold {
                         sem::Bold result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Bold::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Underline, sem::SemId<sem::Underline>, sem::Markup>(m, "Underline")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Underline {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Underline {
                         sem::Underline result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Underline::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Monospace, sem::SemId<sem::Monospace>, sem::Markup>(m, "Monospace")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Monospace {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Monospace {
                         sem::Monospace result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Monospace::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::MarkQuote, sem::SemId<sem::MarkQuote>, sem::Markup>(m, "MarkQuote")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::MarkQuote {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::MarkQuote {
                         sem::MarkQuote result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::MarkQuote::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Verbatim, sem::SemId<sem::Verbatim>, sem::Markup>(m, "Verbatim")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Verbatim {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Verbatim {
                         sem::Verbatim result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Verbatim::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Italic, sem::SemId<sem::Italic>, sem::Markup>(m, "Italic")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Italic {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Italic {
                         sem::Italic result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Italic::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Strike, sem::SemId<sem::Strike>, sem::Markup>(m, "Strike")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Strike {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Strike {
                         sem::Strike result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Strike::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Par, sem::SemId<sem::Par>, sem::Markup>(m, "Par")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::Par {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::Par {
                         sem::Par result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::Par::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::List, sem::SemId<sem::List>, sem::Org>(m, "List")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::List {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::List {
                         sem::List result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::List::loc, R"RAW(Document)RAW")
     .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList))
     ;
   pybind11::class_<sem::ListItem, sem::SemId<sem::ListItem>, sem::Org>(m, "ListItem")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, sem::ListItem::Checkbox checkbox, Opt<sem::SemId<sem::Paragraph>> header) -> sem::ListItem {
+    .def(pybind11::init([](Opt<LineCol> loc, sem::ListItem::Checkbox checkbox, Opt<sem::SemId<sem::Paragraph>> header) -> sem::ListItem {
                         sem::ListItem result{};
                         result.loc = loc;
                         result.checkbox = checkbox;
                         result.header = header;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("checkbox", sem::ListItem::Checkbox::None),
          pybind11::arg_v("header", std::nullopt))
     .def_readwrite("loc", &sem::ListItem::loc, R"RAW(Document)RAW")
@@ -1345,14 +1345,14 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Link, sem::SemId<sem::Link>, sem::Org>(m, "Link")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Opt<sem::SemId<sem::Paragraph>> description, sem::Link::Data data) -> sem::Link {
+    .def(pybind11::init([](Opt<LineCol> loc, Opt<sem::SemId<sem::Paragraph>> description, sem::Link::Data data) -> sem::Link {
                         sem::Link result{};
                         result.loc = loc;
                         result.description = description;
                         result.data = data;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("description", std::nullopt),
          pybind11::arg("data"))
     .def_readwrite("loc", &sem::Link::loc, R"RAW(Document)RAW")
@@ -1368,53 +1368,53 @@ node can have subnodes.)RAW")
     .def("getLinkKind", static_cast<sem::Link::Kind(sem::Link::*)() const>(&sem::Link::getLinkKind))
     ;
   pybind11::class_<sem::Link::Raw>(m, "LinkRaw")
-    .def("", pybind11::init([]() -> sem::Link::Raw {
-                            sem::Link::Raw result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Link::Raw {
+                        sem::Link::Raw result{};
+                        return result;
+                        }))
     .def_readwrite("text", &sem::Link::Raw::text)
     ;
   pybind11::class_<sem::Link::Id>(m, "LinkId")
-    .def("", pybind11::init([]() -> sem::Link::Id {
-                            sem::Link::Id result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Link::Id {
+                        sem::Link::Id result{};
+                        return result;
+                        }))
     .def_readwrite("text", &sem::Link::Id::text)
     ;
   pybind11::class_<sem::Link::Person>(m, "LinkPerson")
-    .def("", pybind11::init([]() -> sem::Link::Person {
-                            sem::Link::Person result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Link::Person {
+                        sem::Link::Person result{};
+                        return result;
+                        }))
     .def_readwrite("name", &sem::Link::Person::name)
     ;
   pybind11::class_<sem::Link::UserProtocol>(m, "LinkUserProtocol")
-    .def("", pybind11::init([]() -> sem::Link::UserProtocol {
-                            sem::Link::UserProtocol result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Link::UserProtocol {
+                        sem::Link::UserProtocol result{};
+                        return result;
+                        }))
     .def_readwrite("protocol", &sem::Link::UserProtocol::protocol)
     .def_readwrite("target", &sem::Link::UserProtocol::target)
     ;
   pybind11::class_<sem::Link::Internal>(m, "LinkInternal")
-    .def("", pybind11::init([]() -> sem::Link::Internal {
-                            sem::Link::Internal result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Link::Internal {
+                        sem::Link::Internal result{};
+                        return result;
+                        }))
     .def_readwrite("target", &sem::Link::Internal::target)
     ;
   pybind11::class_<sem::Link::Footnote>(m, "LinkFootnote")
-    .def("", pybind11::init([]() -> sem::Link::Footnote {
-                            sem::Link::Footnote result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Link::Footnote {
+                        sem::Link::Footnote result{};
+                        return result;
+                        }))
     .def_readwrite("target", &sem::Link::Footnote::target)
     ;
   pybind11::class_<sem::Link::File>(m, "LinkFile")
-    .def("", pybind11::init([]() -> sem::Link::File {
-                            sem::Link::File result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Link::File {
+                        sem::Link::File result{};
+                        return result;
+                        }))
     .def_readwrite("file", &sem::Link::File::file)
     ;
   bind_enum_iterator<sem::Link::Kind>(m, "LinkKind");
@@ -1433,8 +1433,7 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::DocumentOptions, sem::SemId<sem::DocumentOptions>, sem::Org>(m, "DocumentOptions")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, sem::DocumentOptions::BrokenLinks brokenLinks, sem::DocumentOptions::Visibility initialVisibility, sem::DocumentOptions::TocExport tocExport, Vec<sem::Subtree::Property> properties, bool smartQuotes, bool emphasizedText, bool specialStrings, bool fixedWidthSections, bool includeTimestamps, bool preserveLineBreaks, bool plaintextSubscripts, bool exportArchived, bool exportWithAuthor, bool exportBrokenLinks, bool exportWithClock, bool exportWithCreator, sem::DocumentOptions::TocExport data) -> sem::DocumentOptions {
+    .def(pybind11::init([](Opt<LineCol> loc, sem::DocumentOptions::BrokenLinks brokenLinks, sem::DocumentOptions::Visibility initialVisibility, sem::DocumentOptions::TocExport tocExport, Vec<sem::Subtree::Property> properties, bool smartQuotes, bool emphasizedText, bool specialStrings, bool fixedWidthSections, bool includeTimestamps, bool preserveLineBreaks, bool plaintextSubscripts, bool exportArchived, bool exportWithAuthor, bool exportBrokenLinks, bool exportWithClock, bool exportWithCreator, sem::DocumentOptions::TocExport data) -> sem::DocumentOptions {
                         sem::DocumentOptions result{};
                         result.loc = loc;
                         result.brokenLinks = brokenLinks;
@@ -1456,9 +1455,10 @@ node can have subnodes.)RAW")
                         result.data = data;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("brokenLinks", sem::DocumentOptions::BrokenLinks::Mark),
          pybind11::arg_v("initialVisibility", sem::DocumentOptions::Visibility::ShowEverything),
-         pybind11::arg_v("tocExport", DoExport{false}),
+         pybind11::arg_v("tocExport", sem::DocumentOptions::DoExport{false}),
          pybind11::arg("properties"),
          pybind11::arg_v("smartQuotes", false),
          pybind11::arg_v("emphasizedText", false),
@@ -1504,17 +1504,17 @@ node can have subnodes.)RAW")
     .def("getTocExportKind", static_cast<sem::DocumentOptions::TocExportKind(sem::DocumentOptions::*)() const>(&sem::DocumentOptions::getTocExportKind))
     ;
   pybind11::class_<sem::DocumentOptions::DoExport>(m, "DocumentOptionsDoExport")
-    .def("", pybind11::init([]() -> sem::DocumentOptions::DoExport {
-                            sem::DocumentOptions::DoExport result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::DocumentOptions::DoExport {
+                        sem::DocumentOptions::DoExport result{};
+                        return result;
+                        }))
     .def_readwrite("exportToc", &sem::DocumentOptions::DoExport::exportToc)
     ;
   pybind11::class_<sem::DocumentOptions::ExportFixed>(m, "DocumentOptionsExportFixed")
-    .def("", pybind11::init([]() -> sem::DocumentOptions::ExportFixed {
-                            sem::DocumentOptions::ExportFixed result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::DocumentOptions::ExportFixed {
+                        sem::DocumentOptions::ExportFixed result{};
+                        return result;
+                        }))
     .def_readwrite("exportLevels", &sem::DocumentOptions::ExportFixed::exportLevels)
     ;
   bind_enum_iterator<sem::DocumentOptions::TocExportKind>(m, "DocumentOptionsTocExportKind");
@@ -1555,8 +1555,7 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::Document, sem::SemId<sem::Document>, sem::Org>(m, "Document")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Opt<sem::SemId<sem::Paragraph>> title, Opt<sem::SemId<sem::Paragraph>> author, Opt<sem::SemId<sem::Paragraph>> creator, Vec<sem::SemId<sem::HashTag>> filetags, Opt<sem::SemId<sem::RawText>> email, Vec<Str> language, sem::SemId<sem::DocumentOptions> options, Opt<Str> exportFileName) -> sem::Document {
+    .def(pybind11::init([](Opt<LineCol> loc, Opt<sem::SemId<sem::Paragraph>> title, Opt<sem::SemId<sem::Paragraph>> author, Opt<sem::SemId<sem::Paragraph>> creator, Vec<sem::SemId<sem::HashTag>> filetags, Opt<sem::SemId<sem::RawText>> email, Vec<Str> language, sem::SemId<sem::DocumentOptions> options, Opt<Str> exportFileName) -> sem::Document {
                         sem::Document result{};
                         result.loc = loc;
                         result.title = title;
@@ -1569,6 +1568,7 @@ node can have subnodes.)RAW")
                         result.exportFileName = exportFileName;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg_v("title", std::nullopt),
          pybind11::arg_v("author", std::nullopt),
          pybind11::arg_v("creator", std::nullopt),
@@ -1596,17 +1596,16 @@ node can have subnodes.)RAW")
          pybind11::arg_v("subKind", ""))
     ;
   pybind11::class_<sem::ParseError, sem::SemId<sem::ParseError>, sem::Org>(m, "ParseError")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::ParseError {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::ParseError {
                         sem::ParseError result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::ParseError::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::FileTarget, sem::SemId<sem::FileTarget>, sem::Org>(m, "FileTarget")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, Str path, Opt<int> line, Opt<Str> searchTarget, bool restrictToHeadlines, Opt<Str> targetId, Opt<Str> regexp) -> sem::FileTarget {
+    .def(pybind11::init([](Opt<LineCol> loc, Str path, Opt<int> line, Opt<Str> searchTarget, bool restrictToHeadlines, Opt<Str> targetId, Opt<Str> regexp) -> sem::FileTarget {
                         sem::FileTarget result{};
                         result.loc = loc;
                         result.path = path;
@@ -1617,7 +1616,8 @@ node can have subnodes.)RAW")
                         result.regexp = regexp;
                         return result;
                         }),
-         pybind11::arg("path"),
+         pybind11::arg_v("loc", std::nullopt),
+         pybind11::arg_v("path", ""),
          pybind11::arg_v("line", std::nullopt),
          pybind11::arg_v("searchTarget", std::nullopt),
          pybind11::arg_v("restrictToHeadlines", false),
@@ -1632,22 +1632,22 @@ node can have subnodes.)RAW")
     .def_readwrite("regexp", &sem::FileTarget::regexp)
     ;
   pybind11::class_<sem::TextSeparator, sem::SemId<sem::TextSeparator>, sem::Org>(m, "TextSeparator")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::TextSeparator {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::TextSeparator {
                         sem::TextSeparator result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::TextSeparator::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Include, sem::SemId<sem::Include>, sem::Org>(m, "Include")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc, sem::Include::Data data) -> sem::Include {
+    .def(pybind11::init([](Opt<LineCol> loc, sem::Include::Data data) -> sem::Include {
                         sem::Include result{};
                         result.loc = loc;
                         result.data = data;
                         return result;
                         }),
+         pybind11::arg_v("loc", std::nullopt),
          pybind11::arg("data"))
     .def_readwrite("loc", &sem::Include::loc, R"RAW(Document)RAW")
     .def_readwrite("data", &sem::Include::data)
@@ -1658,28 +1658,28 @@ node can have subnodes.)RAW")
     .def("getIncludeKind", static_cast<sem::Include::Kind(sem::Include::*)() const>(&sem::Include::getIncludeKind))
     ;
   pybind11::class_<sem::Include::Example>(m, "IncludeExample")
-    .def("", pybind11::init([]() -> sem::Include::Example {
-                            sem::Include::Example result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Include::Example {
+                        sem::Include::Example result{};
+                        return result;
+                        }))
     ;
   pybind11::class_<sem::Include::Export>(m, "IncludeExport")
-    .def("", pybind11::init([]() -> sem::Include::Export {
-                            sem::Include::Export result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Include::Export {
+                        sem::Include::Export result{};
+                        return result;
+                        }))
     ;
   pybind11::class_<sem::Include::Src>(m, "IncludeSrc")
-    .def("", pybind11::init([]() -> sem::Include::Src {
-                            sem::Include::Src result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Include::Src {
+                        sem::Include::Src result{};
+                        return result;
+                        }))
     ;
   pybind11::class_<sem::Include::OrgDocument>(m, "IncludeOrgDocument")
-    .def("", pybind11::init([]() -> sem::Include::OrgDocument {
-                            sem::Include::OrgDocument result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> sem::Include::OrgDocument {
+                        sem::Include::OrgDocument result{};
+                        return result;
+                        }))
     ;
   bind_enum_iterator<sem::Include::Kind>(m, "IncludeKind");
   pybind11::enum_<sem::Include::Kind>(m, "IncludeKind")
@@ -1694,12 +1694,12 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>, sem::Org>(m, "DocumentGroup")
-    .def("",
-         pybind11::init([](Opt<LineCol> loc) -> sem::DocumentGroup {
+    .def(pybind11::init([](Opt<LineCol> loc) -> sem::DocumentGroup {
                         sem::DocumentGroup result{};
                         result.loc = loc;
                         return result;
-                        }))
+                        }),
+         pybind11::arg_v("loc", std::nullopt))
     .def_readwrite("loc", &sem::DocumentGroup::loc, R"RAW(Document)RAW")
     ;
   bind_enum_iterator<OrgSpecName>(m, "OrgSpecName");
@@ -2037,10 +2037,10 @@ node can have subnodes.)RAW")
                      })
     ;
   pybind11::class_<UserTimeBreakdown>(m, "UserTimeBreakdown")
-    .def("", pybind11::init([]() -> UserTimeBreakdown {
-                            UserTimeBreakdown result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> UserTimeBreakdown {
+                        UserTimeBreakdown result{};
+                        return result;
+                        }))
     .def_readwrite("year", &UserTimeBreakdown::year)
     .def_readwrite("month", &UserTimeBreakdown::month)
     .def_readwrite("day", &UserTimeBreakdown::day)
@@ -2050,18 +2050,18 @@ node can have subnodes.)RAW")
     .def_readwrite("zone", &UserTimeBreakdown::zone)
     ;
   pybind11::class_<UserTime>(m, "UserTime")
-    .def("", pybind11::init([]() -> UserTime {
-                            UserTime result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> UserTime {
+                        UserTime result{};
+                        return result;
+                        }))
     .def("getBreakdown", static_cast<UserTimeBreakdown(UserTime::*)() const>(&UserTime::getBreakdown))
     .def("format", static_cast<std::string(UserTime::*)() const>(&UserTime::format))
     ;
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
-    .def("", pybind11::init([]() -> OrgExporterJson {
-                            OrgExporterJson result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> OrgExporterJson {
+                        OrgExporterJson result{};
+                        return result;
+                        }))
     .def("visitNode",
          static_cast<void(OrgExporterJson::*)(sem::SemId<sem::Org>)>(&OrgExporterJson::visitNode),
          pybind11::arg("node"),
@@ -2073,10 +2073,10 @@ return state.)RAW")
          pybind11::arg("path"))
     ;
   pybind11::class_<ExporterTreeOpts>(m, "ExporterTreeOpts")
-    .def("", pybind11::init([]() -> ExporterTreeOpts {
-                            ExporterTreeOpts result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> ExporterTreeOpts {
+                        ExporterTreeOpts result{};
+                        return result;
+                        }))
     .def_readwrite("withLineCol", &ExporterTreeOpts::withLineCol)
     .def_readwrite("withOriginalId", &ExporterTreeOpts::withOriginalId)
     .def_readwrite("withSubnodeIdx", &ExporterTreeOpts::withSubnodeIdx)
@@ -2085,10 +2085,10 @@ return state.)RAW")
     .def_readwrite("withColor", &ExporterTreeOpts::withColor)
     ;
   pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
-    .def("", pybind11::init([]() -> OrgExporterTree {
-                            OrgExporterTree result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> OrgExporterTree {
+                        OrgExporterTree result{};
+                        return result;
+                        }))
     .def("toString",
          static_cast<std::string(OrgExporterTree::*)(sem::SemId<sem::Org>, ExporterTreeOpts)>(&OrgExporterTree::toString),
          pybind11::arg("node"),
@@ -2100,10 +2100,10 @@ return state.)RAW")
          pybind11::arg("opts"))
     ;
   pybind11::class_<OrgExporterYaml>(m, "OrgExporterYaml")
-    .def("", pybind11::init([]() -> OrgExporterYaml {
-                            OrgExporterYaml result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> OrgExporterYaml {
+                        OrgExporterYaml result{};
+                        return result;
+                        }))
     .def("visitNode",
          static_cast<void(OrgExporterYaml::*)(sem::SemId<sem::Org>)>(&OrgExporterYaml::visitNode),
          pybind11::arg("node"),
@@ -2115,10 +2115,10 @@ return state.)RAW")
          pybind11::arg("path"))
     ;
   pybind11::class_<OrgContext>(m, "OrgContext")
-    .def("", pybind11::init([]() -> OrgContext {
-                            OrgContext result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> OrgContext {
+                        OrgContext result{};
+                        return result;
+                        }))
     .def("parseFile",
          static_cast<sem::SemId<sem::Document>(OrgContext::*)(std::string)>(&OrgContext::parseFile),
          pybind11::arg("file"))
@@ -2137,10 +2137,10 @@ return state.)RAW")
          pybind11::arg("arg"))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
-    .def("", pybind11::init([]() -> ExporterPython {
-                            ExporterPython result{};
-                            return result;
-                            }))
+    .def(pybind11::init([]() -> ExporterPython {
+                        ExporterPython result{};
+                        return result;
+                        }))
     .def("enablePyStreamTrace",
          static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::enablePyStreamTrace),
          pybind11::arg("stream"))
