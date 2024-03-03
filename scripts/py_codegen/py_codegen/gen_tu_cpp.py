@@ -591,7 +591,7 @@ def get_base_map(expanded: List[GenTuUnion]) -> Mapping[str, GenTuStruct]:
             base_map[obj.name.name] = obj
 
     context = []
-    iterate_object_tree(expanded, callback, context)
+    iterate_object_tree(expanded, context, pre_visit=callback)
     base_map["Org"] = GenTuStruct(
         QualType.ForName("Org"),
         GenTuDoc(""),

@@ -121,7 +121,7 @@ def get_exporter_methods(forward: bool,
 
             methods += variant_methods + [method]
 
-    iterate_object_tree(expanded, callback, iterate_tree_context)
+    iterate_object_tree(expanded, iterate_tree_context, pre_visit=callback)
     return methods
 
 
@@ -162,7 +162,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
         PyBases=typ.bases,
         PyHolderType=id_type,
     )
-
 
     for base in typ.bases:
         res.Bases.append(base)
@@ -250,8 +249,12 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
         if isinstance(value, GenTuStruct):
             base_map[value.name.name] = value
 
-    iterate_object_tree(GenTuNamespace("sem", expanded), baseCollectorCallback,
-                        iterate_context)
+    # Walk over the data model and collect base type mapping
+    iterate_object_tree(
+        GenTuNamespace("sem", expanded),
+        iterate_context,
+        pre_visit=baseCollectorCallback,
+    )
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
@@ -272,7 +275,12 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
                     base=py_type(value.base),
                 ))
 
-    iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback, [])
+    # Map data definitions into python wrappers
+    iterate_object_tree(
+        GenTuNamespace("sem", expanded),
+        [],
+        post_visit=codegenConstructCallback,
+    )
 
     for item in get_enums() + [get_osk_enum(expanded)]:
         wrap = Py11Enum.FromGenTu(item, py_type(item.name).Name)
@@ -569,7 +577,7 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                     stdvec_t = QualType.ForName(std_type,
                                                 Spaces=[QualType.ForName("std")],
                                                 Parameters=T.Parameters)
-                    
+
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
                     opaque_declarations.append(
@@ -592,7 +600,11 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
             rec_type(value)
 
-    iterate_object_tree(autogen_structs, record_specializations, type_use_context)
+    iterate_object_tree(
+        autogen_structs,
+        type_use_context,
+        pre_visit=record_specializations,
+    )
 
     for decl in opaque_declarations:
         autogen_structs.Before.append(decl)

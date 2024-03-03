@@ -40,7 +40,7 @@ class ProtoBuilder():
                 if obj.base.name == "variant":
                     self.variant_type_list[tuple(obj.name.flatQualName())] = obj
 
-        iterate_object_tree(self.types_list, find_enums, context)
+        iterate_object_tree(self.types_list, context, pre_visit=find_enums)
 
     def oneof_field_name(self, it: tu.GenTuField) -> str:
         if it.type.name == "Variant":
