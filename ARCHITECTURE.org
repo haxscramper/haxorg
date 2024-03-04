@@ -1,0 +1,25 @@
+* Development process
+
+Project's main build system is written in python and uses the =invoke= library to manage tasks and dependencies between them. Inside, there are two cmake configurations that are intended to be self-contained, e.g., one should be able to compile the whole thing without running any code generation components. Just check out submodules and build the C++ code. At least that is the intention, implementation is not quite there yet (see [[id:2e97816d-eb26-463c-9a9b-db60b15fdc55][Where?]]).
+
+* Sub-projects
+
+** Lexer configuration
+
+** Code generation
+
+** Reflection data collection
+
+Automatically wrapping all C++ code in =pybind11= wrappers is too time-consuming. It is more efficient to use =libtooling= API to collect all the required information about the types, methods, typedefs, enums and other things and automatically generate the wrappers.
+
+** Main org-mode parser
+
+** Test corpus verification
+
+Collection of yaml files with a smaller pieces of code and expected tokens, parsed trees and sem converted trees. This is main part of the test suite for checking if the implementation is working as expected.
+
+** Standard library helpers
+
+** Code forensics
+
+This is a script largely unrelated to the org-mode processing itself, an implementation of [[https://www.amazon.com/Your-Code-Crime-Scene-Bottlenecks/dp/1680500384][Code Forensics]] book. A smaller side project I put here because it uses the stdlib helpers and pretty much all of the other infrastructure I set up. Would be too much work to maintain it independently.
