@@ -492,6 +492,7 @@ def get_lldb_source_on_crash() -> List[str]:
         str(get_script_root("scripts/cxx_repository/lldb-script.txt"))
     ]
 
+
 @org_task(pre=[cmake_haxorg])
 def haxorg_code_forensics(ctx: Context, debug: bool = False):
     "Generate code forensics dump for the repository"
@@ -751,6 +752,34 @@ def py_cli(
     )
 
 
+def get_poetry_lldb(test: str) -> list[str]:
+    return [
+        "run",
+        "lldb",  # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
+        # because the latter one is not guaranteed to be compiled with the python
+        # installed on the system. For example, 17.0.6 required python 3.10, but the
+        # arch linux already moved to 3.11 here.
+        "--batch",
+        *get_lldb_py_import(),
+        "-o",
+        f"run {test}",
+        *get_lldb_source_on_crash(),
+        "--",
+        "python",
+    ]
+
+
+@task(iterable=["arg"])
+def py_debug_script(ctx: Context, arg):
+    run_command(
+        ctx,
+        "poetry",
+        get_poetry_lldb(" ".join(arg)),
+        allow_fail=True,
+        env=get_py_env(ctx),
+    )
+
+
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
 def py_test_debug(ctx: Context, test: str):
     log("tasks").info(get_py_env(ctx))
@@ -761,20 +790,7 @@ def py_test_debug(ctx: Context, test: str):
     retcode, _, _ = run_command(
         ctx,
         "poetry",
-        [
-            "run",
-            "lldb",  # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
-            # because the latter one is not guaranteed to be compiled with the python
-            # installed on the system. For example, 17.0.6 required python 3.10, but the
-            # arch linux already moved to 3.11 here.
-            "--batch",
-            *get_lldb_py_import(),
-            "-o",
-            f"run {test}",
-            *get_lldb_source_on_crash(),
-            "--",
-            "python",
-        ],
+        get_poetry_lldb(test),
         allow_fail=True,
         env=get_py_env(ctx),
     )

@@ -1882,9 +1882,11 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
             OrgNode node = g.at(id);
             if (node.kind == org::Subtree) {
                 print("Found subtree on the lower level " + id.format());
-                OrgId const tree  = id;
-                OrgId       subId = g.subnode(tree, 0);
-                int         sub   = g.val(subId).text.size();
+                OrgId const tree = id;
+                if (g.size(tree) == 0) { LOG(INFO) << g.treeRepr(tree); }
+
+                OrgId subId = g.subnode(tree, 0);
+                int   sub   = g.val(subId).text.size();
                 if (level < sub) {
                     OrgId stmt = g.subnode(tree, 8);
                     CHECK(g.at(stmt).kind == org::StmtList);

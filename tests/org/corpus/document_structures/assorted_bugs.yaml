@@ -565,3 +565,7 @@ items:
     source: |
       /q?/ - s
       z - /AS./
+
+  - name: "Open and close immediately"
+    source: |
+      //
