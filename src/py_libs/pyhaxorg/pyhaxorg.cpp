@@ -1922,6 +1922,10 @@ return state.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("baseTokenTracePath", &OrgContext::baseTokenTracePath)
+    .def_readwrite("tokenTracePath", &OrgContext::tokenTracePath)
+    .def_readwrite("parseTracePath", &OrgContext::parseTracePath)
+    .def_readwrite("semTracePath", &OrgContext::semTracePath)
     .def("parseFile",
          static_cast<sem::SemId<sem::Document>(OrgContext::*)(std::string)>(&OrgContext::parseFile),
          pybind11::arg("file"))

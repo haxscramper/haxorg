@@ -281,6 +281,7 @@ struct RecombineState {
         otk::StmtListBegin,
         otk::ParBegin,
         otk::ParEnd,
+        otk::AnyPunct,
     };
 
     void recombine_markup() {
@@ -303,9 +304,11 @@ struct RecombineState {
         bool next_empty = !next || EmptyToken.contains(next->kind);
 
         print(
-            fmt("prev kind {} next kind {}",
+            fmt("prev kind {} next kind {} prev_empty={} next_empty={}",
                 prev ? prev->kind : otk::Unknown,
-                next ? next->kind : otk::Unknown));
+                next ? next->kind : otk::Unknown,
+                prev_empty, 
+                next_empty));
 
         if (prev_empty && !next_empty) {
             add_fake(open, {lex.tok().value});

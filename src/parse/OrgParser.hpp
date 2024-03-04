@@ -11,8 +11,6 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public OperationsTracer {
   public:
-    bool TraceState = false;
-
     using OrgExpectable = Variant<
         OrgTokenKind,
         OrgTokSet,

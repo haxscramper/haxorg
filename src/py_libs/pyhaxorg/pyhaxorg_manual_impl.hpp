@@ -224,10 +224,10 @@ struct [[refl]] OrgContext {
 
     OrgContext() {}
 
-    Opt<std::string> baseTokenTracePath = std::nullopt;
-    Opt<std::string> tokenTracePath     = std::nullopt;
-    Opt<std::string> parseTracePath     = std::nullopt;
-    Opt<std::string> semTracePath       = std::nullopt;
+    [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
+    [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;
+    [[refl]] Opt<std::string> parseTracePath     = std::nullopt;
+    [[refl]] Opt<std::string> semTracePath       = std::nullopt;
 
     [[refl]] sem::SemId<sem::Document> parseFile(std::string file);
     [[refl]] sem::SemId<sem::Document> parseString(std::string const text);

@@ -90,19 +90,29 @@ sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {
 }
 
 sem::SemId<sem::Document> OrgContext::parseString(const std::string text) {
-    LexerParams   p;
+    LexerParams         p;
+    SPtr<std::ofstream> fileTrace;
+    if (baseTokenTracePath) {
+        fileTrace = std::make_shared<std::ofstream>(*baseTokenTracePath);
+    }
+    p.traceStream            = fileTrace.get();
     OrgTokenGroup baseTokens = ::tokenize(text.data(), text.size(), p);
     OrgTokenGroup tokens;
     OrgTokenizer  tokenizer{&tokens};
+
+    if (tokenTracePath) { tokenizer.setTraceFile(*tokenTracePath); }
 
     tokenizer.convert(baseTokens);
     Lexer<OrgTokenKind, OrgFill> lex{&tokens};
 
     OrgNodeGroup nodes{&tokens};
     OrgParser    parser{&nodes};
+    if (parseTracePath) { parser.setTraceFile(*parseTracePath); }
+
     (void)parser.parseFull(lex);
 
     sem::OrgConverter converter{};
+    if (semTracePath) { converter.setTraceFile(*semTracePath); }
 
     return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
