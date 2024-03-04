@@ -39,9 +39,11 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     pack_context(ctx, "root", StoryGridOpts, config=config, kwargs=kwargs)
     opts: StoryGridOpts = ctx.obj["root"]
     ctx: org.OrgContext = org.OrgContext()
-    ctx.parseTracePath = "/tmp/parse.log"
-    ctx.tokenTracePath = "/tmp/token.log"
+    # ctx.parseTracePath = "/tmp/parse.log"
+    # ctx.tokenTracePath = "/tmp/token.log"
     node = ctx.parseFile(str(opts.infile.resolve()))
+
+    print("parsed node ok")
 
 if __name__ == "__main__":
     cli()

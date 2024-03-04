@@ -554,13 +554,14 @@ items:
         SCHEDULED: <2024-02-20 Tue 19:00:00 +04 ++1w>
 
   - name: "Assorted timestamps"
-    source: 
+    source: |
       <2022-02-05 Sat .+1w>
       <2005-10-01 Sat +1m -3d>
       <2023-09-18 Mon 11:00:00 +04 +1d>
       <2024-02-20 Tue 19:00:00 +04 ++1w>
       <2024-02-20 Tue 19:00:00 +04 ++1w -1d>
 
-
-
-
+  - name: "Uncertain italic close"
+    source: |
+      /q?/ - s
+      z - /AS./

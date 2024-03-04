@@ -38,6 +38,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::BigIdent: return "BigIdent";
         case OrgTokenKind::BoldBegin: return "BoldBegin";
         case OrgTokenKind::BoldEnd: return "BoldEnd";
+        case OrgTokenKind::BoldUnknown: return "BoldUnknown";
         case OrgTokenKind::BraceBegin: return "BraceBegin";
         case OrgTokenKind::BraceEnd: return "BraceEnd";
         case OrgTokenKind::Checkbox: return "Checkbox";
@@ -122,6 +123,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Indent: return "Indent";
         case OrgTokenKind::ItalicBegin: return "ItalicBegin";
         case OrgTokenKind::ItalicEnd: return "ItalicEnd";
+        case OrgTokenKind::ItalicUnknown: return "ItalicUnknown";
         case OrgTokenKind::LatexInlineRaw: return "LatexInlineRaw";
         case OrgTokenKind::LatexParBegin: return "LatexParBegin";
         case OrgTokenKind::LatexParEnd: return "LatexParEnd";
@@ -156,6 +158,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::MiscUnicode: return "MiscUnicode";
         case OrgTokenKind::MonospaceBegin: return "MonospaceBegin";
         case OrgTokenKind::MonospaceEnd: return "MonospaceEnd";
+        case OrgTokenKind::MonospaceUnknown: return "MonospaceUnknown";
         case OrgTokenKind::Newline: return "Newline";
         case OrgTokenKind::Number: return "Number";
         case OrgTokenKind::ParBegin: return "ParBegin";
@@ -175,6 +178,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::StmtListEnd: return "StmtListEnd";
         case OrgTokenKind::StrikeBegin: return "StrikeBegin";
         case OrgTokenKind::StrikeEnd: return "StrikeEnd";
+        case OrgTokenKind::StrikeUnknown: return "StrikeUnknown";
         case OrgTokenKind::SubtreePriority: return "SubtreePriority";
         case OrgTokenKind::SubtreeStars: return "SubtreeStars";
         case OrgTokenKind::Symbol: return "Symbol";
@@ -194,9 +198,11 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::TripleAngleEnd: return "TripleAngleEnd";
         case OrgTokenKind::UnderlineBegin: return "UnderlineBegin";
         case OrgTokenKind::UnderlineEnd: return "UnderlineEnd";
+        case OrgTokenKind::UnderlineUnknown: return "UnderlineUnknown";
         case OrgTokenKind::Unknown: return "Unknown";
         case OrgTokenKind::VerbatimBegin: return "VerbatimBegin";
         case OrgTokenKind::VerbatimEnd: return "VerbatimEnd";
+        case OrgTokenKind::VerbatimUnknown: return "VerbatimUnknown";
         case OrgTokenKind::WeekdayName: return "WeekdayName";
         case OrgTokenKind::Whitespace: return "Whitespace";
         case OrgTokenKind::Word: return "Word";
@@ -214,6 +220,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "BigIdent") { return OrgTokenKind::BigIdent; } else
   if (value == "BoldBegin") { return OrgTokenKind::BoldBegin; } else
   if (value == "BoldEnd") { return OrgTokenKind::BoldEnd; } else
+  if (value == "BoldUnknown") { return OrgTokenKind::BoldUnknown; } else
   if (value == "BraceBegin") { return OrgTokenKind::BraceBegin; } else
   if (value == "BraceEnd") { return OrgTokenKind::BraceEnd; } else
   if (value == "Checkbox") { return OrgTokenKind::Checkbox; } else
@@ -298,6 +305,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Indent") { return OrgTokenKind::Indent; } else
   if (value == "ItalicBegin") { return OrgTokenKind::ItalicBegin; } else
   if (value == "ItalicEnd") { return OrgTokenKind::ItalicEnd; } else
+  if (value == "ItalicUnknown") { return OrgTokenKind::ItalicUnknown; } else
   if (value == "LatexInlineRaw") { return OrgTokenKind::LatexInlineRaw; } else
   if (value == "LatexParBegin") { return OrgTokenKind::LatexParBegin; } else
   if (value == "LatexParEnd") { return OrgTokenKind::LatexParEnd; } else
@@ -332,6 +340,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "MiscUnicode") { return OrgTokenKind::MiscUnicode; } else
   if (value == "MonospaceBegin") { return OrgTokenKind::MonospaceBegin; } else
   if (value == "MonospaceEnd") { return OrgTokenKind::MonospaceEnd; } else
+  if (value == "MonospaceUnknown") { return OrgTokenKind::MonospaceUnknown; } else
   if (value == "Newline") { return OrgTokenKind::Newline; } else
   if (value == "Number") { return OrgTokenKind::Number; } else
   if (value == "ParBegin") { return OrgTokenKind::ParBegin; } else
@@ -351,6 +360,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "StmtListEnd") { return OrgTokenKind::StmtListEnd; } else
   if (value == "StrikeBegin") { return OrgTokenKind::StrikeBegin; } else
   if (value == "StrikeEnd") { return OrgTokenKind::StrikeEnd; } else
+  if (value == "StrikeUnknown") { return OrgTokenKind::StrikeUnknown; } else
   if (value == "SubtreePriority") { return OrgTokenKind::SubtreePriority; } else
   if (value == "SubtreeStars") { return OrgTokenKind::SubtreeStars; } else
   if (value == "Symbol") { return OrgTokenKind::Symbol; } else
@@ -370,9 +380,11 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "TripleAngleEnd") { return OrgTokenKind::TripleAngleEnd; } else
   if (value == "UnderlineBegin") { return OrgTokenKind::UnderlineBegin; } else
   if (value == "UnderlineEnd") { return OrgTokenKind::UnderlineEnd; } else
+  if (value == "UnderlineUnknown") { return OrgTokenKind::UnderlineUnknown; } else
   if (value == "Unknown") { return OrgTokenKind::Unknown; } else
   if (value == "VerbatimBegin") { return OrgTokenKind::VerbatimBegin; } else
   if (value == "VerbatimEnd") { return OrgTokenKind::VerbatimEnd; } else
+  if (value == "VerbatimUnknown") { return OrgTokenKind::VerbatimUnknown; } else
   if (value == "WeekdayName") { return OrgTokenKind::WeekdayName; } else
   if (value == "Whitespace") { return OrgTokenKind::Whitespace; } else
   if (value == "Word") { return OrgTokenKind::Word; } else

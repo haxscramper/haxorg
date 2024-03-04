@@ -289,13 +289,22 @@ struct RecombineState {
         auto prev = prev_token();
         auto next = next_token();
 
-        auto [open, close] = //
-            UnorderedMap<otk, Pair<otk, otk>>{
-                {otk::Asterisk, {otk::BoldBegin, otk::BoldEnd}},
-                {otk::ForwardSlash, {otk::ItalicBegin, otk::ItalicEnd}},
-                {otk::Equals, {otk::VerbatimBegin, otk::VerbatimEnd}},
-                {otk::Plus, {otk::StrikeBegin, otk::StrikeEnd}},
-                {otk::Tilda, {otk::MonospaceBegin, otk::MonospaceEnd}},
+        auto [open, close, unknown] = //
+            UnorderedMap<otk, std::tuple<otk, otk, otk>>{
+                {otk::Asterisk,
+                 {otk::BoldBegin, otk::BoldEnd, otk::BoldUnknown}},
+                {otk::ForwardSlash,
+                 {otk::ItalicBegin, otk::ItalicEnd, otk::ItalicUnknown}},
+                {otk::Equals,
+                 {otk::VerbatimBegin,
+                  otk::VerbatimEnd,
+                  otk::VerbatimUnknown}},
+                {otk::Plus,
+                 {otk::StrikeBegin, otk::StrikeEnd, otk::StrikeUnknown}},
+                {otk::Tilda,
+                 {otk::MonospaceBegin,
+                  otk::MonospaceEnd,
+                  otk::MonospaceUnknown}},
             }
                 .at(lex.kind());
 
@@ -307,7 +316,7 @@ struct RecombineState {
             fmt("prev kind {} next kind {} prev_empty={} next_empty={}",
                 prev ? prev->kind : otk::Unknown,
                 next ? next->kind : otk::Unknown,
-                prev_empty, 
+                prev_empty,
                 next_empty));
 
         if (prev_empty && !next_empty) {
@@ -327,7 +336,7 @@ struct RecombineState {
             add_fake(close, {lex.tok().value});
             lex.next();
         } else {
-            pop_as(otk::Punctuation);
+            pop_as(unknown);
         }
     }
 

@@ -217,7 +217,7 @@ void OrgParser::textFold(OrgLexer& lex) {
     __perf_trace("textFold");
     auto __trace = trace(lex);
 
-    auto case_begin = [&](org Kind) {
+    auto _begin = [&](org Kind) {
         start(Kind);
         skip(lex);
         OrgTokenId startToken = lex.get();
@@ -238,7 +238,7 @@ void OrgParser::textFold(OrgLexer& lex) {
         }
     };
 
-    auto case_end = [&](org Kind) {
+    auto _end = [&](org Kind) {
         if (pending().kind == Kind) {
             end();
             skip(lex);
@@ -246,6 +246,15 @@ void OrgParser::textFold(OrgLexer& lex) {
             token(org::Punctuation, pop(lex));
         }
     };
+
+    auto _unknown = [&](org Kind) {
+        if (pending().kind == Kind) {
+            _end(Kind);
+        } else {
+            _begin(Kind);
+        }
+    };
+
 
 #define CASE_SINGLE(Kind)                                                 \
     case otk::Kind: {                                                     \
@@ -264,14 +273,18 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_SINGLE(Colon);
 
 
-            case otk::BoldBegin: case_begin(org::Bold); break;
-            case otk::BoldEnd: case_end(org::Bold); break;
-            case otk::ItalicBegin: case_begin(org::Italic); break;
-            case otk::ItalicEnd: case_end(org::Italic); break;
-            case otk::UnderlineBegin: case_begin(org::Underline); break;
-            case otk::UnderlineEnd: case_end(org::Underline); break;
-            case otk::StrikeBegin: case_begin(org::Strike); break;
-            case otk::StrikeEnd: case_end(org::Strike); break;
+            case otk::BoldBegin: _begin(org::Bold); break;
+            case otk::BoldEnd: _end(org::Bold); break;
+            case otk::BoldUnknown: _unknown(org::Bold); break;
+            case otk::ItalicBegin: _begin(org::Italic); break;
+            case otk::ItalicEnd: _end(org::Italic); break;
+            case otk::ItalicUnknown: _unknown(org::Italic); break;
+            case otk::UnderlineBegin: _begin(org::Underline); break;
+            case otk::UnderlineEnd: _end(org::Underline); break;
+            case otk::UnderlineUnknown: _unknown(org::Underline); break;
+            case otk::StrikeBegin: _begin(org::Strike); break;
+            case otk::StrikeEnd: _end(org::Strike); break;
+            case otk::StrikeUnknown: _unknown(org::Strike); break;
 
             case otk::Whitespace:
                 token(org::Space, pop(lex, lex.kind()));

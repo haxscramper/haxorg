@@ -136,6 +136,13 @@ tokens:
   - name: MonospaceBegin
   - name: MonospaceEnd
 
+  - name: ItalicUnknown
+  - name: BoldUnknown
+  - name: StrikeUnknown
+  - name: UnderlineUnknown
+  - name: VerbatimUnknown
+  - name: MonospaceUnknown
+
 rules:
   #region Blocks
   #tag begin_quote
