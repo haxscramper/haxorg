@@ -1,37 +1,67 @@
 #+title: haxorg
 
+Implementation of the org-mode parser and exporter in C++ with python API.
 
-Implementation of the org-mode parser and exporter in C++
+- Built for fast processing -- core is implemented in C++
+- With scripting in mind -- Python API, export to structured data (JSON, Yaml, S-expressions, protobuf)
+- Strictly defined schema -- strongly typed AST/DOM structure for individual nodes, auto-generated protobuf grammar, extensive use of vocabulary types in the data model.
+- Expressive debug capabilities -- built-in tracing framework for all document processing steps for ease of debugging
+- Extensive testing -- curated corpus of documents, fuzzy content generation for automatic bug detection using python hypothesis.
 
-The library is currently in the 'work in progress state' and is not generally usable.
+* Development phases
 
-Documentation deployment via CI is in todo, for now things are just documented in the source code.
+Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second phase]] of the Python API, improving the ergonomics and adding more tests. Next step is to implement the CI for testing, documentation and artifact builds.
 
-* Development process
+| Phase       | Status | Notes                                                     |
+|-------------+--------+-----------------------------------------------------------|
+| QML wrapper | POC    | Enable Qt/QML application to work with org-mode documents |
+| C++ core    | Alpha  | Whole pipeline is complete, working on testing            |
+| Python API  | WIP    | Whole DOM model is exposed, working on API improvements   |
+| C API       | Todo   | Make the library usable from virtually any PL             |
+| CI          | Todo   | Documentation, testing, artifact builds                   |
 
-Project's main build system is written in python and uses the =invoke= library to manage tasks and dependencies between them. Inside, there are two cmake configurations that are intended to be self-contained, e.g., one should be able to compile the whole thing without running any code generation components. Just check out submodules and build the C++ code. At least that is the intention, implementation is not quite there yet (see [[id:2e97816d-eb26-463c-9a9b-db60b15fdc55][Where?]]).
+** COMPLETED C++ Core
 
-* Sub-projects
+- [X] Machine-readable data model -- describe the data model in machine-readable format and generate C++ code for it
+- [X] Data transform pipeline -- lexer, parser, sem convert
+- [X] Document test corpus -- yaml specification for the given/expected files
+- [ ] WIP Org-mode AST back to string -- for document formatting and round-trip PBT testing (string1 -> AST1 -> string2 -> AST2, check AST1 == AST2)
 
-** Lexer configuration
+** WIP Python API
 
-** Code generation
+- [X] Automatically wrap C++ data model for python -- done, tested, working on ergonomics improvements
+- [ ] WIP Implement common data format exporters -- (latex, HTML, XML, Pandoc)
+- [ ] WIP Use hypothesis for fuzz testing -- porting earlier C++ =google/fuzztest= implementation
 
-** Reflection data collection
+** TODO CI
 
-Automatically wrapping all C++ code in =pybind11= wrappers is too time-consuming. It is more efficient to use =libtooling= API to collect all the required information about the types, methods, typedefs, enums and other things and automatically generate the wrappers.
+- Execute tests -- full C++ and python corpus, including support projects
+- Build and deploy documentation -- integrate Doxygen, Sphynx and ~*.org~ files for the documentation in a single unified static site deployment.
+- Create new release on each merge to master
 
-** Main org-mode parser
+** TODO C API
 
-** Test corpus verification
+- Automatic wrapper of the C++ API to C
+- Machine-readable description of the C API
 
-Collection of yaml files with a smaller pieces of code and expected tokens, parsed trees and sem converted trees. This is main part of the test suite for checking if the implementation is working as expected.
+* Tools
 
-** Standard library helpers
+** ~haxorg~
 
-** Code forensics
+Main entry point for file manipulation -- python script implementing commands for export, analysis and file modifications.
 
-This is a script largely unrelated to the org-mode processing itself, an implementation of [[https://www.amazon.com/Your-Code-Crime-Scene-Bottlenecks/dp/1680500384][Code Forensics]] book. A smaller side project I put here because it uses the stdlib helpers and pretty much all of the other infrastructure I set up. Would be too much work to maintain it independently.
+** ~pyhaxorg~
+
+=pybind11= python module exposing the org-mode AST for scripting.
+
+** TODO ~haxorg_lite~
+
+Not a fan of sprawling python dependencies when you only need to parse the file? Totally understandable. ~haxorg_lite~ is intended as a self-contained binary for the C++ parser core -- parse org-mode and output to json, yaml, binary protobuf, protobuf JSON, reformatted org-mode, S-expressions.
+
+# Binary parser CLI comes in two versions -- json-parameters and switch parameters.
+# <example of json-parameters>
+# <example of switch-parameters>
+# The interfaces are fully interchangeable as they are automatically generated from the CLI structure description thanks to the boost.describe (read more on how reflection is used in this project)
 
 * Development considerations, planning, some questions
 
