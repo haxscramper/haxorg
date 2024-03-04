@@ -1515,6 +1515,19 @@ files = [
 ]
 
 [[package]]
+name = "py-cli"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = "^3.9.0 <3.13"
+files = []
+develop = false
+
+[package.source]
+type = "directory"
+url = "scripts/py_cli"
+
+[[package]]
 name = "py-codegen"
 version = "0.1.0"
 description = ""
@@ -2395,4 +2408,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.0 <3.13"
-content-hash = "bebc5e40f71f8a500cccf38a9b8314dbf980d94cf6981d757450de65e85e64cd"
+content-hash = "5bdf5f1c15fc4d383e0c987a608eded87bf5d91e62b67dd87154ac8dfec5e5c3"

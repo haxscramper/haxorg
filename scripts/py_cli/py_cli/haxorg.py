@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rich_click as click
-from haxorg_cli import (
+from py_cli.haxorg_cli import (
     pack_context,
     base_cli_options,
     CliRootOptions,
