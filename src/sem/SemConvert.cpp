@@ -595,6 +595,12 @@ SemId<Paragraph> OrgConverter::convertParagraph(__args) {
         first = false;
     }
 
+    while (!par->subnodes.empty()
+           && SemSet{osk::Newline, osk::Space}.contains(
+               par->subnodes.back()->getKind())) {
+        par->subnodes.pop_back();
+    }
+
     return par;
 }
 

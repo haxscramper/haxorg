@@ -96,6 +96,15 @@ def rec_node(node: org.Org) -> List[Header]:
                                 match tag[0]:
                                     case "story_event":
                                         header.event = list(item.subnodes)
+
+                                    case "story_location":
+                                        header.location = list(item.subnodes)
+
+                                    case "story_pov":
+                                        header.pov = list(item.subnodes)
+
+                                    case _:
+                                        assert not tag[0].startswith("story_"), tag
                                         
 
         case org.Document():
@@ -143,7 +152,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     table = tags.table(border=1, style='border-collapse: collapse; width: 100%;')
     thead = tags.thead(style='position: sticky; top: 0; background-color: #ddd;')
     header_row = tags.tr()
-    for header in ["title", "event", "shift"]:
+    for header in ["title", "event", "location", "pov"]:
         header_row.add(tags.th(header))
     thead.add(header_row)
     table.add(thead)
@@ -151,11 +160,17 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     for h in headers:
         row = tags.tr()
         row.add(add_new(tags.td(), to_html(h.title)))
-        if h.event:
-            row.add(add_new(tags.td(), to_html(h.event)))
 
-        else:
-            row.add(text(""))
+        def opt(it):
+            if it:
+                row.add(add_new(tags.td(), to_html(it)))
+
+            else:
+                row.add(text(""))
+
+        opt(h.event)
+        opt(h.location)
+        opt(h.pov)
 
         table.add(row)
 
