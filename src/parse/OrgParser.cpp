@@ -1214,8 +1214,38 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
         }
     }
     // tag, 3
-    bool isAnnotatedParagraph = false;
-    { empty(); }
+    {
+        // Search ahead for the description list tag
+        Lexer<OrgTokenKind, OrgFill> tmp{lex.in};
+        tmp.pos = lex.pos;
+        while (tmp.can_search(otk::DoubleColon)) {
+            if (tmp.at(Newline)) { break; }
+            tmp.next();
+        }
+
+        print(
+            fmt("Searched for double colon to {} tmp-pos {} lex-pos {}",
+                tmp.tok(),
+                tmp.pos,
+                lex.pos));
+        if (tmp.at(otk::DoubleColon)) {
+            SubLexer sub{lex};
+
+            while (lex.can_search(otk::DoubleColon)) {
+                sub.add(lex.pop());
+            }
+
+            if (sub.empty()) {
+                empty();
+            } else {
+                sub.start();
+                parseParagraph(sub);
+                tmp.skip(otk::DoubleColon);
+            }
+        } else {
+            empty();
+        }
+    }
     // completion, 4
     { empty(); }
     // body, 5
