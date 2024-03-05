@@ -1,4 +1,7 @@
 #include <test/corpusrunner.hpp>
+#include <sem/perfetto_org.hpp>
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+
 
 namespace YAML {
 void from_json(json const& j, YAML::Node& out) { out = toYaml(j); }

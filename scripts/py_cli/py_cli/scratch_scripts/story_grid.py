@@ -17,14 +17,16 @@ from py_exporters.export_html import ExporterHtml, add_html, add_new
 from py_exporters.export_ultraplain import ExporterUltraplain
 
 import py_haxorg.pyhaxorg_wrap as org
+from py_haxorg.pyhaxorg_utils import evalDateTime
 
 from pathlib import Path
 from beartype import beartype
 from dataclasses import dataclass, field, fields
-from beartype.typing import Optional, Tuple, List
+from beartype.typing import Optional, Tuple, List, Union
 import dominate.tags as tags
 import dominate
 from dominate.util import text
+from datetime import datetime
 
 
 class StoryGridOpts(BaseModel, extra="forbid"):
@@ -44,12 +46,14 @@ def cli_options(f):
 class Header():
     title: List[org.Org]
     level: int
-    tags: List[org.HashTag] = field(default_factory=list)
+    words: Optional[int] = None
+    duration: Optional[str] = None
     location: Optional[List[org.Org]] = None
     pov: Optional[List[org.Org]] = None
     event: Optional[List[org.Org]] = None
     shift: Optional[Tuple[str, str]] = None
-    duration: Optional[str] = None
+    tags: List[org.HashTag] = field(default_factory=list)
+    time: Optional[Union[datetime, Tuple[datetime, datetime]]] = None
 
 
 def rec_filter_subnodes(node: org.Org, target: List[org.OrgSemKind]) -> List[org.Org]:
@@ -63,19 +67,31 @@ def rec_filter_subnodes(node: org.Org, target: List[org.OrgSemKind]) -> List[org
     return result
 
 
+osk = org.OrgSemKind
+
+
 @beartype
 def rec_node(node: org.Org) -> List[Header]:
     result = []
     match node:
         case org.Subtree():
             title = [sub for sub in node.title]
+            time = None
             if isinstance(title[0], (org.Time, org.TimeRange)):
-                title.pop(0)
-
+                time = title.pop(0)
                 if isinstance(title[0], org.Space):
                     title.pop(0)
 
             header = Header(title=title, level=node.level)
+
+            if isinstance(time, org.Time):
+                header.time = evalDateTime(time.getStatic().time)
+
+            elif isinstance(time, org.TimeRange):
+                header.time = (
+                    evalDateTime(time.from_.getStatic().time),
+                    evalDateTime(time.to.getStatic().time),
+                )
 
             for prop in node.properties:
                 match prop.getName():
@@ -93,6 +109,22 @@ def rec_node(node: org.Org) -> List[Header]:
             for tag in node.tags:
                 header.tags.append(tag)
 
+            def count_words(node: org.Org):
+                count = 0
+
+                if node.getKind() in [osk.Word, osk.RawText]:
+                    count += 1
+
+                for sub in node:
+                    count_words(sub)
+
+                if count != 0:
+                    if header.words:
+                        header.words += count
+
+                    else:
+                        header.words = count
+
             result.append(header)
             for sub in node:
                 if isinstance(sub, org.Subtree):
@@ -101,10 +133,13 @@ def rec_node(node: org.Org) -> List[Header]:
                 elif isinstance(sub, org.List):
                     if sub.isDescriptionList():
                         for item in sub:
-                            tag = [w.text for w in rec_filter_subnodes(item.header, [
-                                org.OrgSemKind.Word,
-                                org.OrgSemKind.RawText,
-                            ])] 
+                            tag = [
+                                w.text
+                                for w in rec_filter_subnodes(item.header, [
+                                    org.OrgSemKind.Word,
+                                    org.OrgSemKind.RawText,
+                                ])
+                            ]
 
                             if len(tag) == 1:
                                 match tag[0]:
@@ -119,7 +154,12 @@ def rec_node(node: org.Org) -> List[Header]:
 
                                     case _:
                                         assert not tag[0].startswith("story_"), tag
-                                        
+
+                    else:
+                        count_words(sub)
+
+                else:
+                    count_words(sub)
 
         case org.Document():
             for sub in node:
@@ -135,7 +175,7 @@ def to_html(node: org.Org | List[org.Org]):
             add_html(html, to_html(item))
 
         return html
-    
+
     elif isinstance(node, (str, int)):
         return text(str(node))
 
@@ -174,28 +214,83 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     table.add(thead)
 
     max_level = max(h.level for h in headers) * 1.0
+    max_words = max((h.words or 0) for h in headers)
 
-    for h in headers:
-        opacity = (max_level - h.level) / max_level * 0.75
-        row = tags.tr(style=f"background-color: rgba(255, 0, 0, {opacity:.2f});")
+    for idx, h in enumerate(headers):
+        row = tags.tr()
 
-        def opt(it):
+        def prev_time() -> Optional[Union[datetime, Tuple[datetime, datetime]]]:
+            offset = 1
+            while 0 <= (idx - offset):
+                prev_h = headers[idx - offset]
+                if isinstance(prev_h.time, (datetime, tuple)):
+                    return prev_h.time
+
+                else:
+                    offset += 1
+
+        def opt(it, **kwargs):
             if it:
-                row.add(add_new(tags.td(), to_html(it)))
+                row.add(add_new(tags.td(**kwargs), to_html(it)))
 
             else:
-                row.add(text(""))
+                row.add(tags.td())
 
         for field in fields(h):
             if field.name == "title":
                 prefix = "*" * h.level + "  "
-                row.add(add_new(tags.td(), [to_html(prefix), to_html(h.title)]))
+                opacity = (max_level - h.level) / max_level * 0.75
+                row.add(
+                    add_new(
+                        tags.td(
+                            style=f"background-color: rgba(255, 0, 0, {opacity:.2f});"),
+                        [to_html(prefix), to_html(h.title)],
+                    ))
+
+            elif field.name == "words":
+                if h.words:
+                    opacity = h.words / (max_words * 1.0)
+                    row.add(
+                        add_new(
+                            tags.td(
+                                style=f"background-color: rgba(0, 255, 0, {opacity:.2f});"
+                            ), to_html(h.words)))
+
+                else:
+                    opt(h.words)
+
+            elif field.name == "time":
+                if h.time:
+                    prev = prev_time()
+                    offset = ""
+                    start, end = (h.time, None) if isinstance(h.time, datetime) else h.time
+                    if prev:
+                        prev_start, prev_end = (prev, None) if isinstance(prev, datetime) else prev
+                        offset += "{}".format(
+                            start - prev_start
+                        )
+                        
+
+                    if isinstance(h.time, datetime):
+                        opt("{}{}".format(
+                            offset,
+                            start.strftime("[%Y-%m-%d]"),
+                        ))
+
+                    else:
+                        opt("{}{}-{}".format(
+                            offset,
+                            start.strftime("[%Y-%m-%d]"),
+                            end.strftime("[%Y-%m-%d]"),
+                        ))
+
+                else:
+                    opt(h.time)
 
             else:
                 opt(getattr(h, field.name))
 
         table.add(row)
-
 
     doc.add(table)
 

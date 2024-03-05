@@ -63,6 +63,9 @@ class ExporterHtml(ExporterBase):
     
     def evalWord(self, node: org.Word) -> text:
         return text(node.text)
+    
+    def evalRawText(self, node: org.RawText) -> text:
+        return text(node.text)
 
     def evalSpace(self, node: org.Space) -> text:
         return text(node.text)
@@ -71,6 +74,13 @@ class ExporterHtml(ExporterBase):
         return formatDateTime(node.getStatic().time)
     
     def evalBold(self, node: org.Bold) -> tags.b:
+        res = tags.b()
+        for sub in node:
+            add_html(res, self.eval(sub))
+
+        return res
+    
+    def evalVerbatim(self, node: org.Verbatim) -> tags.b:
         res = tags.b()
         for sub in node:
             add_html(res, self.eval(sub))
