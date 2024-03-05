@@ -173,8 +173,12 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     thead.add(header_row)
     table.add(thead)
 
+    max_level = max(h.level for h in headers) * 1.0
+
     for h in headers:
-        row = tags.tr()
+        opacity = (max_level - h.level) / max_level * 0.75
+        row = tags.tr(style=f"background-color: rgba(255, 0, 0, {opacity:.2f});")
+
         def opt(it):
             if it:
                 row.add(add_new(tags.td(), to_html(it)))
@@ -183,7 +187,12 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 row.add(text(""))
 
         for field in fields(h):
-            opt(getattr(h, field.name))
+            if field.name == "title":
+                prefix = "*" * h.level + "  "
+                row.add(add_new(tags.td(), [to_html(prefix), to_html(h.title)]))
+
+            else:
+                opt(getattr(h, field.name))
 
         table.add(row)
 

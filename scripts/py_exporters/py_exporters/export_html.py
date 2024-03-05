@@ -45,6 +45,22 @@ class ExporterHtml(ExporterBase):
     def evalPunctuation(self, node: org.Punctuation) -> text:
         return text(node.text)
     
+    def evalHashTag(self, node: org.HashTag) -> text:
+        def aux(sub: org.HashTag) -> str:
+            if len(sub.subtags) == 0:
+                return sub.head
+
+            elif len(sub.subtags) == 1:
+                return sub.head + "##" + aux(sub.subtags[0])
+            
+            else: 
+                return sub.head + "##" + "[" + ",".join([aux(it) for it in sub.subtags]) + "]"
+
+
+        return "#" + aux(node)
+
+
+    
     def evalWord(self, node: org.Word) -> text:
         return text(node.text)
 
