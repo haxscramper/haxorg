@@ -26,3 +26,4 @@ def evalDateTime(time: UserTime) -> datetime:
 @beartype
 def formatDateTime(time: UserTime) -> str:
     return evalDateTime(time).strftime("%Y-%m-%d %H:%M:%S")
+

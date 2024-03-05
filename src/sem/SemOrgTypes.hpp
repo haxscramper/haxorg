@@ -1281,9 +1281,11 @@ struct Subtree : public sem::Org {
     /// \brief Unknown property name
     struct Unknown {
       Unknown() {}
-      BOOST_DESCRIBE_CLASS(Unknown, (), (), (), (value))
+      BOOST_DESCRIBE_CLASS(Unknown, (), (), (), (value, name))
       /// \brief Converted value of the property
       sem::SemId<sem::Org> value = sem::SemId<sem::Org>::Nil();
+      /// \brief Original name of the property
+      Str name = "";
     };
 
     using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created, sem::Subtree::Property::Unknown>;

@@ -1067,10 +1067,12 @@ void proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property:
   if (!in.value.isNil()) {
     proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(out->mutable_value(), in.value);
   }
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
 }
 
 void proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::read(::orgproto::Subtree::Property::Unknown const& out, proto_write_accessor<sem::Subtree::Property::Unknown> in) {
   proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(out.value(), in.for_field(&sem::Subtree::Property::Unknown::value));
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Subtree::Property::Unknown::name));
 }
 
 void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in) {

@@ -1204,7 +1204,11 @@ def get_types() -> Sequence[GenTuStruct]:
                                         t_id(),
                                         "value",
                                         GenTuDoc("Converted value of the property"),
-                                        value=f"sem::SemId<sem::Org>::Nil()")
+                                        value=f"sem::SemId<sem::Org>::Nil()"),
+                                    GenTuField(t_str(),
+                                               "name",
+                                               GenTuDoc("Original name of the property"),
+                                               value='""')
                                 ],
                             )
                         ]),

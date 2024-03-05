@@ -504,7 +504,10 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Created const& object) { __obj_field(res, object, time); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Unknown const& object) { __obj_field(res, object, value); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Unknown const& object) {
+  __obj_field(res, object, value);
+  __obj_field(res, object, name);
+}
 
 template <typename V, typename R>
 void Exporter<V, R>::visitLatexBody(R& res, In<sem::LatexBody> object) {

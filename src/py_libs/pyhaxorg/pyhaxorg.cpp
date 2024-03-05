@@ -922,6 +922,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &sem::Subtree::Property::Unknown::value, R"RAW(Converted value of the property)RAW")
+    .def_readwrite("name", &sem::Subtree::Property::Unknown::name, R"RAW(Original name of the property)RAW")
     ;
   bind_enum_iterator<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind");
   pybind11::enum_<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind")

@@ -278,8 +278,9 @@ void OrgConverter::convertSubtreeDrawer(SemId<Subtree>& tree, In a) {
 void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
     __perf_trace("convert", "convertPropertyList");
 
-    std::string name = normalize(
-        strip(get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'}));
+    std::string basename = strip(
+        get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
+    std::string name = normalize(basename);
 
     auto __trace = trace(a, fmt("property-{}", name));
 
@@ -344,6 +345,7 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
 
     } else {
         Property::Unknown prop;
+        prop.name  = basename;
         prop.value = convert(one(a, N::Values));
         result     = Property(prop);
     }

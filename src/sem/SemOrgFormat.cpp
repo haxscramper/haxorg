@@ -467,12 +467,14 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
         Res head = b.stack();
         b.add_at(head, toString(*id->header, ctx));
         b.add_at(head, str(" :: "));
-        b.add_at(head, toString(id->at(0), ctx));
-        b.add_at(body, head);
-        b.add_at(body, str(""));
+        if (id->subnodes.has(0)) {
+            b.add_at(head, toString(id->at(0), ctx));
+            b.add_at(body, head);
+            b.add_at(body, str(""));
 
-        for (auto const& sub : id->subnodes | rv::drop(1)) {
-            b.add_at(body, toString(sub, ctx));
+            for (auto const& sub : id->subnodes | rv::drop(1)) {
+                b.add_at(body, toString(sub, ctx));
+            }
         }
     } else {
         for (auto const& sub : id->subnodes) {
@@ -614,6 +616,15 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                         b.line(
                             {str(":CREATED: "),
                              toString(prop.getCreated().time, ctx)}));
+                    break;
+                }
+                case P::Kind::Unknown: {
+                    b.add_at(
+                        head,
+                        b.line(
+                            {str(":"_ss + prop.getUnknown().name
+                                 + ": "_ss),
+                             toString(prop.getUnknown().value, ctx)}));
                     break;
                 }
                 default: {

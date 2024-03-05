@@ -853,6 +853,7 @@ message Subtree {
     }
     message Unknown {
       AnyNode                                      value                            = 1;
+      string                                       name                             = 2;
       string                                       debug                            = 1000;
     }
     message Data {

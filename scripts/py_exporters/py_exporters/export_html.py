@@ -9,7 +9,7 @@ from py_haxorg.pyhaxorg_utils import formatDateTime
 
 CAT = "haxorg.export.html"
 
-def add_sub(html, sub):
+def add_html(html, sub):
     if isinstance(sub, list):
         if isinstance(html, list):
             html.append(sub)
@@ -53,21 +53,21 @@ class ExporterHtml(ExporterBase):
     def evalBold(self, node: org.Bold) -> tags.b:
         res = tags.b()
         for sub in node:
-            add_sub(res, self.eval(sub))
+            add_html(res, self.eval(sub))
 
         return res
 
     def evalItalic(self, node: org.Italic) -> tags.i:
         res = tags.i()
         for sub in node:
-            add_sub(res, self.eval(sub))
+            add_html(res, self.eval(sub))
             
         return res
     
-    def evalParagraph(self, node: org.Paragraph) -> tags.p:
-        par = tags.p()
+    def evalParagraph(self, node: org.Paragraph):
+        par = []
         for sub in node:
-            add_sub(par, self.eval(sub))
+            add_html(par, self.eval(sub))
 
         return par
     
@@ -87,7 +87,7 @@ class ExporterHtml(ExporterBase):
 
         result = [tree]
         for sub in node:
-            add_sub(result, self.eval(sub))
+            add_html(result, self.eval(sub))
 
         return result
     
@@ -98,6 +98,6 @@ class ExporterHtml(ExporterBase):
             doc.title = self.eval(node.title)
 
         for sub in node:
-            add_sub(doc, self.eval(sub))
+            add_html(doc, self.eval(sub))
 
         return doc

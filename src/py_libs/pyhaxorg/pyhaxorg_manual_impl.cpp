@@ -53,10 +53,17 @@ void OrgExporterYaml::visitNode(sem::SemId<sem::Org> node) {
 std::string OrgExporterTree::toString(
     sem::SemId<sem::Org> node,
     ExporterTreeOpts     opts) {
-    std::string       buf;
-    std::stringstream os{buf};
-    stream(os, node, opts);
-    return buf;
+    ColStream    os{};
+    ExporterTree tree{os};
+
+    tree.conf.withLineCol     = opts.withLineCol;
+    tree.conf.withOriginalId  = opts.withOriginalId;
+    tree.conf.skipEmptyFields = opts.skipEmptyFields;
+    tree.conf.startLevel      = opts.startLevel;
+    tree.evalTop(node);
+
+    std::string result = os.toString(opts.withColor);
+    return result;
 }
 
 void OrgExporterTree::toFile(
@@ -79,8 +86,6 @@ void OrgExporterTree::stream(
     tree.conf.skipEmptyFields = opts.skipEmptyFields;
     tree.conf.startLevel      = opts.startLevel;
     tree.evalTop(node);
-
-    LOG(INFO) << os.toString();
 
     stream << os.toString(opts.withColor);
 }
