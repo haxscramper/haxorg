@@ -14,12 +14,13 @@ from py_scriptutils.toml_config_profiler import (
 )
 
 from py_exporters.export_html import ExporterHtml, add_html, add_new
+from py_exporters.export_ultraplain import ExporterUltraplain
 
 import py_haxorg.pyhaxorg_wrap as org
 
 from pathlib import Path
 from beartype import beartype
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from beartype.typing import Optional, Tuple, List
 import dominate.tags as tags
 import dominate
@@ -76,6 +77,19 @@ def rec_node(node: org.Org) -> List[Header]:
 
             header = Header(title=title, level=node.level)
 
+            for prop in node.properties:
+                match prop.getName():
+                    case "story_polarity_shift":
+                        plain = ExporterUltraplain.getStr(prop.getUnknown().value)
+                        header.shift = plain.split("/")
+
+                    case "story_duration":
+                        plain = ExporterUltraplain.getStr(prop.getUnknown().value)
+                        header.duration = plain
+
+                    case _:
+                        assert not prop.getName().startswith("story_"), prop.getName()
+
             for tag in node.tags:
                 header.tags.append(tag)
 
@@ -118,10 +132,12 @@ def to_html(node: org.Org | List[org.Org]):
     if isinstance(node, list):
         html = []
         for item in node:
-            exp = ExporterHtml()
-            add_html(html, exp.exp.evalTop(item))
+            add_html(html, to_html(item))
 
         return html
+    
+    elif isinstance(node, (str, int)):
+        return text(str(node))
 
     else:
         html = ExporterHtml()
@@ -152,15 +168,13 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     table = tags.table(border=1, style='border-collapse: collapse; width: 100%;')
     thead = tags.thead(style='position: sticky; top: 0; background-color: #ddd;')
     header_row = tags.tr()
-    for header in ["title", "event", "location", "pov"]:
-        header_row.add(tags.th(header))
+    for field in fields(Header([], 0)):
+        header_row.add(tags.th(field.name))
     thead.add(header_row)
     table.add(thead)
 
     for h in headers:
         row = tags.tr()
-        row.add(add_new(tags.td(), to_html(h.title)))
-
         def opt(it):
             if it:
                 row.add(add_new(tags.td(), to_html(it)))
@@ -168,9 +182,8 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
             else:
                 row.add(text(""))
 
-        opt(h.event)
-        opt(h.location)
-        opt(h.pov)
+        for field in fields(h):
+            opt(getattr(h, field.name))
 
         table.add(row)
 

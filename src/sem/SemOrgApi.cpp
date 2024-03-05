@@ -130,52 +130,15 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
     return res;
 }
 
-Vec<Property> Subtree::getProperties(Property::Kind kind, CR<Str> subkind)
+Vec<Property> Subtree::getProperties(Str const& kind, CR<Opt<Str>> subkind)
     const {
     Vec<Property> result;
     for (const auto& prop : properties) {
-        if (prop.matches(kind, subkind)) { result.push_back(prop); }
+        if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
     }
     return result;
 }
 
-Vec<Property> Subtree::getContextualProperties(
-    Property::Kind kind,
-    CR<Str>        subkind) const {
-    Vec<Property> result;
-    result.append(getProperties(kind));
-
-    // TODO replace this function with one that accepts a list of parent
-    // subtrees and then computes contextual properties
-    //
-    // for (SemId parent : getParent().getParentChain(true)) {
-    //     if (parent->is(osk::Subtree)) {
-    //         result.append(parent.as<Subtree>()->getProperties(kind));
-    //     }
-    // }
-
-    std::reverse(result.begin(), result.end());
-
-    Vec<Property> rulesApplied;
-    for (int i = 0; i < result.size(); ++i) {
-        const auto& prop = result[i];
-        if (prop.inheritanceMode
-            == Property::InheritanceMode::ThisAndSub) {
-            rulesApplied.push_back(prop);
-        } else if (
-            prop.inheritanceMode == Property::InheritanceMode::OnlyThis
-            && i == result.size() - 1) {
-            // 'this' is the target node
-            rulesApplied.push_back(prop);
-        } else if (
-            prop.inheritanceMode == Property::InheritanceMode::OnlySub
-            && i != result.size() - 1) {
-            rulesApplied.push_back(prop);
-        }
-    }
-
-    return rulesApplied;
-}
 
 bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
@@ -193,34 +156,7 @@ bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     }
 }
 
-Opt<Property> Subtree::getContextualProperty(
-    Property::Kind kind,
-    CR<Str>        subkind) const {
-    Vec<Property> props = getContextualProperties(kind);
-    if (props.empty()) {
-        return std::nullopt;
-    } else {
-        switch (props[0].getKind()) {
-            case Property::Kind::Nonblocking:
-            case Property::Kind::Unnumbered:
-            case Property::Kind::Ordered:
-            case Property::Kind::Created: return props[0];
-            case Property::Kind::ExportOptions: {
-                Property::ExportOptions res;
-                for (const auto& it : props) {
-                    Property::ExportOptions const& tmp = it.getExportOptions();
-                    for (auto const& [k, v] : tmp.values) {
-                        if (!res.values.contains(k)) { res.values[k] = v; }
-                    }
-                }
-                return Property(res);
-            }
-            default: LOG(FATAL);
-        }
-    }
-}
-
-Opt<Property> Subtree::getProperty(Property::Kind kind, CR<Str> subkind)
+Opt<Property> Subtree::getProperty(Str const& kind, CR<Opt<Str>> subkind)
     const {
     auto props = getProperties(kind, subkind);
     if (props.empty()) {
@@ -230,12 +166,29 @@ Opt<Property> Subtree::getProperty(Property::Kind kind, CR<Str> subkind)
     }
 }
 
-bool Subtree::Property::matches(Kind kind, CR<std::string> subkind) const {
-    if (getKind() == kind) {
+Str Subtree::Property::getName() const {
+    if (getKind() == Kind::Unknown) {
+        return getUnknown().name;
+    } else {
+        return fmt1(getKind());
+    }
+}
+
+Opt<Str> Subtree::Property::getSubKind() const {
+    if (getKind() == Kind::ExportOptions) {
+        return getExportOptions().backend;
+    } else {
+        return std::nullopt;
+    }
+}
+
+bool Subtree::Property::isMatching(Str const& kind, CR<Opt<Str>> subkind)
+    const {
+    if (normalize(fmt1(getKind())) == normalize(kind)) {
         return true;
     } else if (
-        getKind() == Property::Kind::ExportOptions
-        && normalize(getExportOptions().backend) == normalize(subkind)) {
+        getKind() == Property::Kind::ExportOptions && subkind
+        && normalize(getExportOptions().backend) == normalize(*subkind)) {
         return true;
     } else {
         return false;
@@ -243,18 +196,18 @@ bool Subtree::Property::matches(Kind kind, CR<std::string> subkind) const {
 }
 
 Vec<Subtree::Property> DocumentOptions::getProperties(
-    Subtree::Property::Kind kind,
-    CR<Str>                 subkind) const {
+    Str const&   kind,
+    CR<Opt<Str>> subkind) const {
     Vec<Subtree::Property> result;
     for (const auto& prop : properties) {
-        if (prop.matches(kind, subkind)) { result.push_back(prop); }
+        if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
     }
     return result;
 }
 
 Opt<Subtree::Property> DocumentOptions::getProperty(
-    Subtree::Property::Kind kind,
-    CR<Str>                 subkind) const {
+    CR<Str>      kind,
+    CR<Opt<Str>> subkind) const {
     auto props = getProperties(kind, subkind);
     if (props.empty()) {
         return std::nullopt;
@@ -264,8 +217,8 @@ Opt<Subtree::Property> DocumentOptions::getProperty(
 }
 
 Vec<Subtree::Property> Document::getProperties(
-    Subtree::Property::Kind kind,
-    CR<Str>                 subkind) const {
+    CR<Str>      kind,
+    CR<Opt<Str>> subkind) const {
     if (options.isNil()) {
         return {};
     } else {
@@ -274,8 +227,8 @@ Vec<Subtree::Property> Document::getProperties(
 }
 
 Opt<Subtree::Property> Document::getProperty(
-    Subtree::Property::Kind kind,
-    CR<Str>                 subkind) const {
+    CR<Str>      kind,
+    CR<Opt<Str>> subkind) const {
     if (options.isNil()) {
         return std::nullopt;
     } else {

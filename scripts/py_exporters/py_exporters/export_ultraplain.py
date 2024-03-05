@@ -21,6 +21,9 @@ class ExporterUltraplain(ExporterBase):
     def visitSpace(self, res: str, node: org.Space):
         self.result += node.text
 
+    def visitRawText(self, res: str, node: org.RawText):
+        self.result += node.text
+
     @staticmethod
     def getStr(node: org.Org) -> str:
         exp = ExporterUltraplain()

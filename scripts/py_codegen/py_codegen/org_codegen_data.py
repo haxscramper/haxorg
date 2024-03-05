@@ -959,8 +959,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
                     ],
                 ),
                 GenTuFunction(
@@ -969,28 +969,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
-                    ],
-                ),
-                GenTuFunction(
-                    t_vec(t_nest(t("Property"), ["Subtree"])),
-                    "getContextualProperties",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
-                    ],
-                ),
-                GenTuFunction(
-                    t_opt(t_nest("Property", ["Subtree"])),
-                    "getContextualProperty",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
                     ],
                 ),
             ],
@@ -1069,6 +1049,37 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuStruct(
                     t("Property"),
                     GenTuDoc("Single subtree property"),
+                    methods=[
+                        GenTuFunction(
+                            t_bool(),
+                            "isMatching",
+                            GenTuDoc(
+                                "Check if property matches specified kind and optional subkind. "
+                                "Built-in property checking is also done with this function -- 'created' etc."
+                            ),
+                            isConst=True,
+                            arguments=[
+                                GenTuIdent(t_cr(t_str()), "kind"),
+                                GenTuIdent(t_cr(t_opt(t_str())),
+                                           "subKind",
+                                           value="std::nullopt"),
+                            ],
+                        ),
+                        GenTuFunction(
+                            t_str(),
+                            "getName",
+                            GenTuDoc(
+                                "Get non-normalized name of the property (for built-in and user)"
+                            ),
+                            isConst=True,
+                        ),
+                        GenTuFunction(
+                            t_opt(t_str()),
+                            "getSubKind",
+                            GenTuDoc("Get non-normalized sub-kind for the property."),
+                            isConst=True,
+                        ),
+                    ],
                     fields=[
                         GenTuField(
                             t_nest("SetMode", ["Subtree", "Property"]),
@@ -1213,9 +1224,6 @@ def get_types() -> Sequence[GenTuStruct]:
                             )
                         ]),
                         GenTuPass("Property(CR<Data> data) : data(data) {}"),
-                        GenTuPass(
-                            'bool matches(Kind kind, CR<std::string> subkind = "") const;'
-                        ),
                     ],
                 ),
             ],
@@ -1359,8 +1367,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
                 GenTuFunction(
@@ -1369,8 +1377,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
             ],
@@ -1446,8 +1454,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
                 GenTuFunction(
@@ -1456,8 +1464,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
             ],

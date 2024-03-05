@@ -1294,7 +1294,6 @@ struct Subtree : public sem::Org {
     using variant_enum_type = sem::Subtree::Property::Kind;
     using variant_data_type = sem::Subtree::Property::Data;
     Property(CR<Data> data) : data(data) {}
-    bool matches(Kind kind, CR<std::string> subkind = "") const;
     BOOST_DESCRIBE_CLASS(Property,
                          (),
                          (),
@@ -1303,6 +1302,9 @@ struct Subtree : public sem::Org {
                           subSetRule,
                           inheritanceMode,
                           data,
+                          (bool(Str const&, Opt<Str> const&) const) isMatching,
+                          (Str() const) getName,
+                          (Opt<Str>() const) getSubKind,
                           (sem::Subtree::Property::Nonblocking const&() const) getNonblocking,
                           (sem::Subtree::Property::Nonblocking&()) getNonblocking,
                           (sem::Subtree::Property::Trigger const&() const) getTrigger,
@@ -1339,6 +1341,12 @@ struct Subtree : public sem::Org {
     sem::Subtree::Property::SetMode subSetRule = sem::Subtree::Property::SetMode::Override;
     sem::Subtree::Property::InheritanceMode inheritanceMode = sem::Subtree::Property::InheritanceMode::ThisAndSub;
     sem::Subtree::Property::Data data;
+    /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
+    bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+    /// \brief Get non-normalized name of the property (for built-in and user)
+    Str getName() const;
+    /// \brief Get non-normalized sub-kind for the property.
+    Opt<Str> getSubKind() const;
     sem::Subtree::Property::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
     sem::Subtree::Property::Nonblocking& getNonblocking() { return std::get<0>(data); }
     sem::Subtree::Property::Trigger const& getTrigger() const { return std::get<1>(data); }
@@ -1394,10 +1402,8 @@ struct Subtree : public sem::Org {
                         (sem::SemId<Subtree>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperty))
+                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
   /// \brief Document
   Opt<LineCol> loc = std::nullopt;
   /// \brief Document
@@ -1428,10 +1434,8 @@ struct Subtree : public sem::Org {
   static sem::SemId<Subtree> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Vec<sem::Subtree::Property> getContextualProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Opt<sem::Subtree::Property> getContextualProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
+  Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
 };
 
 /// \brief Latex code body
@@ -1995,8 +1999,8 @@ struct DocumentOptions : public sem::Org {
                         data,
                         (sem::SemId<DocumentOptions>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
+                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty,
                         (sem::DocumentOptions::DoExport const&() const) getDoExport,
                         (sem::DocumentOptions::DoExport&()) getDoExport,
                         (sem::DocumentOptions::ExportFixed const&() const) getExportFixed,
@@ -2026,8 +2030,8 @@ struct DocumentOptions : public sem::Org {
   sem::DocumentOptions::TocExport data;
   static sem::SemId<DocumentOptions> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
+  Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
   sem::DocumentOptions::DoExport const& getDoExport() const { return std::get<0>(data); }
   sem::DocumentOptions::DoExport& getDoExport() { return std::get<0>(data); }
   sem::DocumentOptions::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
@@ -2055,8 +2059,8 @@ struct Document : public sem::Org {
                         exportFileName,
                         (sem::SemId<Document>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
+                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
   /// \brief Document
   Opt<LineCol> loc = std::nullopt;
   /// \brief Document
@@ -2071,8 +2075,8 @@ struct Document : public sem::Org {
   Opt<Str> exportFileName = std::nullopt;
   static sem::SemId<Document> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
+  Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
 };
 
 struct ParseError : public sem::Org {

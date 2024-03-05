@@ -957,6 +957,13 @@ node can have subnodes.)RAW")
     .def_readwrite("subSetRule", &sem::Subtree::Property::subSetRule)
     .def_readwrite("inheritanceMode", &sem::Subtree::Property::inheritanceMode)
     .def_readwrite("data", &sem::Subtree::Property::data)
+    .def("isMatching",
+         static_cast<bool(sem::Subtree::Property::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::Property::isMatching),
+         pybind11::arg("kind"),
+         pybind11::arg_v("subKind", std::nullopt),
+         R"RAW(Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.)RAW")
+    .def("getName", static_cast<Str(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getName), R"RAW(Get non-normalized name of the property (for built-in and user))RAW")
+    .def("getSubKind", static_cast<Opt<Str>(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getSubKind), R"RAW(Get non-normalized sub-kind for the property.)RAW")
     .def("getNonblocking", static_cast<sem::Subtree::Property::Nonblocking&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getNonblocking))
     .def("getTrigger", static_cast<sem::Subtree::Property::Trigger&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getTrigger))
     .def("getOrigin", static_cast<sem::Subtree::Property::Origin&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getOrigin))
@@ -997,21 +1004,13 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::Subtree::Period>(sem::Subtree::*)(IntSet<sem::Subtree::Period::Kind>) const>(&sem::Subtree::getTimePeriods),
          pybind11::arg("kinds"))
     .def("getProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getProperties),
+         static_cast<Vec<sem::Subtree::Property>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperties),
          pybind11::arg("kind"),
-         pybind11::arg_v("subkind", ""))
+         pybind11::arg_v("subkind", std::nullopt))
     .def("getProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getProperty),
+         static_cast<Opt<sem::Subtree::Property>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperty),
          pybind11::arg("kind"),
-         pybind11::arg_v("subkind", ""))
-    .def("getContextualProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getContextualProperties),
-         pybind11::arg("kind"),
-         pybind11::arg_v("subkind", ""))
-    .def("getContextualProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::Subtree::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Subtree::getContextualProperty),
-         pybind11::arg("kind"),
-         pybind11::arg_v("subkind", ""))
+         pybind11::arg_v("subkind", std::nullopt))
     ;
   pybind11::class_<sem::LatexBody, sem::SemId<sem::LatexBody>, sem::Org>(m, "LatexBody")
     ;
@@ -1372,13 +1371,13 @@ node can have subnodes.)RAW")
     .def_readwrite("exportWithCreator", &sem::DocumentOptions::exportWithCreator)
     .def_readwrite("data", &sem::DocumentOptions::data)
     .def("getProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::DocumentOptions::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::DocumentOptions::getProperties),
+         static_cast<Vec<sem::Subtree::Property>(sem::DocumentOptions::*)(Str const&, Opt<Str> const&) const>(&sem::DocumentOptions::getProperties),
          pybind11::arg("kind"),
-         pybind11::arg_v("subKind", ""))
+         pybind11::arg_v("subKind", std::nullopt))
     .def("getProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::DocumentOptions::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::DocumentOptions::getProperty),
+         static_cast<Opt<sem::Subtree::Property>(sem::DocumentOptions::*)(Str const&, Opt<Str> const&) const>(&sem::DocumentOptions::getProperty),
          pybind11::arg("kind"),
-         pybind11::arg_v("subKind", ""))
+         pybind11::arg_v("subKind", std::nullopt))
     .def("getDoExport", static_cast<sem::DocumentOptions::DoExport&(sem::DocumentOptions::*)()>(&sem::DocumentOptions::getDoExport))
     .def("getExportFixed", static_cast<sem::DocumentOptions::ExportFixed&(sem::DocumentOptions::*)()>(&sem::DocumentOptions::getExportFixed))
     .def("getTocExportKind", static_cast<sem::DocumentOptions::TocExportKind(sem::DocumentOptions::*)() const>(&sem::DocumentOptions::getTocExportKind))
@@ -1399,13 +1398,13 @@ node can have subnodes.)RAW")
     .def_readwrite("options", &sem::Document::options)
     .def_readwrite("exportFileName", &sem::Document::exportFileName)
     .def("getProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperties),
+         static_cast<Vec<sem::Subtree::Property>(sem::Document::*)(Str const&, Opt<Str> const&) const>(&sem::Document::getProperties),
          pybind11::arg("kind"),
-         pybind11::arg_v("subKind", ""))
+         pybind11::arg_v("subKind", std::nullopt))
     .def("getProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::Document::*)(sem::Subtree::Property::Kind, Str const&) const>(&sem::Document::getProperty),
+         static_cast<Opt<sem::Subtree::Property>(sem::Document::*)(Str const&, Opt<Str> const&) const>(&sem::Document::getProperty),
          pybind11::arg("kind"),
-         pybind11::arg_v("subKind", ""))
+         pybind11::arg_v("subKind", std::nullopt))
     ;
   pybind11::class_<sem::ParseError, sem::SemId<sem::ParseError>, sem::Org>(m, "ParseError")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ParseError {
