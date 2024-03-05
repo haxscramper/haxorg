@@ -569,3 +569,7 @@ items:
   - name: "Open and close immediately"
     source: |
       //
+
+  - name: "Free-standing kind of markup"
+    source: |
+      word / word

@@ -28,7 +28,7 @@ Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
             for (int i : Vec<int>{-1, 1}) {
                 if (lex.hasNext(offset * i)) {
                     OrgToken tok = lex.tok(offset * i);
-                    if (tok->isFake()) {
+                    if (!tok->isFake()) {
                         return LineCol{tok.value.line, tok.value.col};
                     }
                     // If offset falls out of the lexer range on both

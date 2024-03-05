@@ -335,8 +335,10 @@ struct RecombineState {
             && (lex.kind() == otk::Tilda || lex.kind() == otk::Equals)) {
             add_fake(close, {lex.tok().value});
             lex.next();
-        } else {
+        } else if (next_empty && prev_empty) {
             pop_as(unknown);
+        } else {
+            pop_as(otk::Punctuation);
         }
     }
 
