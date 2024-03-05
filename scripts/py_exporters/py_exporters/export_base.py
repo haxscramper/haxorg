@@ -9,6 +9,9 @@ class ExporterBase:
 
     def evalTop(self, node: org.Org):
         return self.exp.evalTop(node)
+    
+    def eval(self, node: org.Org):
+        return self.exp.eval(node)
 
     def __init__(self, derived):
         self.exp = org.ExporterPython()
@@ -53,6 +56,9 @@ class ExporterBase:
                 if match:
                     kind_str = match.group(1)
                     kind_enum = getattr(org.OrgSemKind, kind_str, None)
+
+                    if len(kind_str) == 0:
+                        continue
 
                     if not kind_enum:
                         kind_enum = getattr(org.LeafFieldType, kind_str, None)

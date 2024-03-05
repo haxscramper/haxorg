@@ -573,3 +573,33 @@ items:
   - name: "Free-standing kind of markup"
     source: |
       word / word
+
+  - name: "Nested markup"
+    source: |
+      _*/+word+/*_
+
+  - name: "Nested markup off-balance 1"
+    source: |
+      _*/+word*_/+
+
+
+  - name: "Nested markup off-balance 2"
+    source: |
+      _*/+word*/+_
+
+
+  - name: "Nested markup off-balance 3"
+    source: |
+      _*/+word*+*_*/
+
+  - name: "Nested markup off-balance 4"
+    source: |
+      _*/+word*+*_*/_
+
+  - name: "Multiple markup words"
+    source: |
+      *w1* *w2* *w3* *w4* *w5*
+
+  - name: "Multiple markup words with unbalanced markup"
+    source: |
+      */w1* *_w2/* *_w3* *w4+* *_w5_*

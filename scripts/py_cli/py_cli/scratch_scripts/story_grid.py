@@ -43,6 +43,11 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     # ctx.tokenTracePath = "/tmp/token.log"
     node = ctx.parseFile(str(opts.infile.resolve()))
 
+    html = ExporterHtml()
+    res = html.exp.evalTop(node)
+    with open(opts.outfile, "w") as out:
+        out.write(str(res))
+
     print("parsed node ok")
 
 if __name__ == "__main__":
