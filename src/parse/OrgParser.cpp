@@ -1240,7 +1240,8 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
             } else {
                 sub.start();
                 parseParagraph(sub);
-                tmp.skip(otk::DoubleColon);
+                lex.skip(otk::DoubleColon);
+                space(lex);
             }
         } else {
             empty();

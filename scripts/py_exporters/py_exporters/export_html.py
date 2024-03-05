@@ -25,6 +25,10 @@ def add_html(html, sub):
         else:
             html.add(sub)
 
+def add_new(html, sub):
+    add_html(html, sub)
+    return html
+
 class ExporterHtml(ExporterBase):
     def __init__(self):
         super().__init__(self)

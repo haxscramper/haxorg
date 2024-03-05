@@ -1035,6 +1035,7 @@ SemId<Org> OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::InlineStmtList: return convertStmtList(a);
         case org::SrcInlineCode:
         case org::SrcCode: return convertCode(a);
         case org::InlineFootnote: return convertFootnote(a);
@@ -1097,7 +1098,10 @@ SemId<Org> OrgConverter::convert(__args) {
             }
         }
 
-        default: return Sem<Empty>(a);
+        default: {
+            print(fmt("ERR Unknown content {}", a.getKind()));
+            return Sem<Empty>(a);
+        }
     }
 #undef CASE
 }
