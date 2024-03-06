@@ -251,14 +251,15 @@ class ExporterLatex(ExporterBase):
   \\newcommand{\\quot}[1]{\\textcolor{brown}{#1}}
         """))
 
+        for it in node:
+            if isinstance(it, org.Export) and it.placement == "header":
+                self.t.add_at(res, self.string(it.content))
+
         self.t.add_at(res, self.command("begin", [self.string("document")]))
 
         for it in node:
-            if isinstance(it, org.Export):
-                placement = it.getParameter("placement")
-                print(org.treeRepr(it))
-                if placement:
-                    print(placement.getString())
+            if isinstance(it, org.Export) and it.placement == "header":
+                continue
 
             self.t.add_at(res, self.exp.eval(it))
 

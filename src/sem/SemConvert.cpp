@@ -847,7 +847,7 @@ SemId<Export> OrgConverter::convertExport(__args) {
     eexport->exporter   = get_text(one(a, N::Name));
     eexport->parameters = values;
     for (auto const& item : one(a, N::Body)) {
-        eexport->content = get_text(item);
+        eexport->content += get_text(item);
     }
 
     return eexport;
