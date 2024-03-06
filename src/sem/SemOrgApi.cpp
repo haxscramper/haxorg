@@ -104,6 +104,18 @@ void SemId<Org>::eachSubnodeRec(SubnodeVisitor cb) {
     eachSubnodeRecImpl(cb, *this, true);
 }
 
+Opt<SemId<CmdArgument>> CmdArguments::getParameter(CR<Str> param) const {
+    return named.get(normalize(param));
+}
+
+Opt<SemId<CmdArgument>> Block::getParameter(CR<Str> param) const {
+    if (parameters) {
+        return (*parameters)->getParameter(param);
+    } else {
+        return std::nullopt;
+    }
+}
+
 Vec<Subtree::Period> Subtree::getTimePeriods(
     IntSet<Period::Kind> kinds) const {
     Vec<Period> res;
@@ -278,16 +290,6 @@ Opt<int> CmdArgument::getInt() const {
     bool isOk   = false;
     int  result = value.toInt();
     if (isOk) {
-        return result;
-    } else {
-        return std::nullopt;
-    }
-}
-
-Opt<SemId<CmdArgument>> CmdArguments::popArg(Str key) {
-    if (named.contains(key)) {
-        auto result = named.at(key);
-        named.erase(key);
         return result;
     } else {
         return std::nullopt;

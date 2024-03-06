@@ -26,7 +26,7 @@ from beartype.typing import Optional, Tuple, List, Union
 import dominate.tags as tags
 import dominate
 from dominate.util import text
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class StoryGridOpts(BaseModel, extra="forbid"):
@@ -58,6 +58,9 @@ class Header():
 
 def rec_filter_subnodes(node: org.Org, target: List[org.OrgSemKind]) -> List[org.Org]:
     result = []
+    if node is None:
+        return result
+    
     if node.getKind() in target:
         result.append(node)
 
@@ -184,6 +187,43 @@ def to_html(node: org.Org | List[org.Org]):
         return html.exp.evalTop(node)
 
 
+def format_time_difference(delta: timedelta) -> List[str]:
+    # Define a year and a month in seconds for approximate calculation
+    # Assuming an average month length of 30.44 days and a year of 365.25 days
+    seconds_per_year = 365.25 * 24 * 60 * 60
+    seconds_per_month = 30.44 * 24 * 60 * 60
+    seconds_per_day = 24 * 60 * 60
+    seconds_per_hour = 60 * 60
+    seconds_per_minute = 60
+
+    duration_parts = []
+    # Calculate total difference in seconds
+    diff_seconds = int(delta.total_seconds())
+
+    # Calculate years, months, days, hours, minutes, and seconds
+    years, diff_seconds = divmod(diff_seconds, seconds_per_year)
+    months, diff_seconds = divmod(diff_seconds, seconds_per_month)
+    days, diff_seconds = divmod(diff_seconds, seconds_per_day)
+    hours, diff_seconds = divmod(diff_seconds, seconds_per_hour)
+    minutes, seconds = divmod(diff_seconds, seconds_per_minute)
+
+    # Append non-zero time periods to the duration_parts list
+    if years > 0:
+        duration_parts.append(f"{int(years)}y")
+    if months > 0:
+        duration_parts.append(f"{int(months)}m")
+    if days > 0:
+        duration_parts.append(f"{int(days)}d")
+    if hours > 0:
+        duration_parts.append(f"{int(hours)}h")
+    if minutes > 0:
+        duration_parts.append(f"{int(minutes)}min")
+    if seconds > 0 or not duration_parts:
+        duration_parts.append(f"{int(seconds)}s")
+
+    return duration_parts
+
+
 @click.command()
 @click.option("--config",
               type=click.Path(exists=True),
@@ -209,6 +249,9 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     thead = tags.thead(style='position: sticky; top: 0; background-color: #ddd;')
     header_row = tags.tr()
     for field in fields(Header([], 0)):
+        if field.name == "time":
+            header_row.add(tags.th("delta"))
+
         header_row.add(tags.th(field.name))
     thead.add(header_row)
     table.add(thead)
@@ -263,29 +306,28 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 if h.time:
                     prev = prev_time()
                     offset = ""
-                    start, end = (h.time, None) if isinstance(h.time, datetime) else h.time
+                    start, end = (h.time,
+                                  None) if isinstance(h.time, datetime) else h.time
                     if prev:
-                        prev_start, prev_end = (prev, None) if isinstance(prev, datetime) else prev
-                        offset += "{}".format(
-                            start - prev_start
-                        )
-                        
+                        prev_start, prev_end = (prev, None) if isinstance(
+                            prev, datetime) else prev
+                        offset += "{}".format(" ".join(
+                            format_time_difference(start - prev_start)[:2]))
 
                     if isinstance(h.time, datetime):
-                        opt("{}{}".format(
-                            offset,
-                            start.strftime("[%Y-%m-%d]"),
-                        ))
+                        opt(offset)
+                        opt("{}".format(start.strftime("[%Y-%m-%d]")))
 
                     else:
-                        opt("{}{}-{}".format(
-                            offset,
+                        opt(offset)
+                        opt("{}-{}".format(
                             start.strftime("[%Y-%m-%d]"),
                             end.strftime("[%Y-%m-%d]"),
                         ))
 
                 else:
-                    opt(h.time)
+                    opt("")
+                    opt("")
 
             else:
                 opt(getattr(h, field.name))

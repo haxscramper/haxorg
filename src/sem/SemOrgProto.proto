@@ -416,6 +416,7 @@ message CommandGroup {
 
 message Block {
   repeated AnyNode                                 subnodes                         = 1;
+  optional CmdArguments                            parameters                       = 2;
   string                                           debug                            = 1000;
 }
 
@@ -434,16 +435,18 @@ message Quote {
 }
 
 message Verse {
-  repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  optional LineCol                                 loc                              = 3;
+  OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
 message Example {
-  repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  optional LineCol                                 loc                              = 3;
+  OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
@@ -480,21 +483,22 @@ message Export {
     Format_Line_f                                                                   = 1;
     Format_Block_f                                                                  = 2;
   }
-  repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  Export.Format                                    format                           = 4;
-  string                                           exporter                         = 5;
-  optional CmdArguments                            parameters                       = 6;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  optional LineCol                                 loc                              = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  Export.Format                                    format                           = 5;
+  string                                           exporter                         = 6;
   optional string                                  placement                        = 7;
   string                                           content                          = 8;
   string                                           debug                            = 1000;
 }
 
 message AdmonitionBlock {
-  repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  optional LineCol                                 loc                              = 3;
+  OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
@@ -589,14 +593,14 @@ message Code {
     Exports_Code_f                                                                  = 2;
     Exports_Results_f                                                               = 3;
   }
-  repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  optional string                                  lang                             = 4;
-  repeated Code.Switch                             switches                         = 5;
-  Code.Exports                                     exports                          = 6;
-  repeated Code.Line                               lines                            = 7;
-  optional CmdArguments                            parameters                       = 8;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  optional LineCol                                 loc                              = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  optional string                                  lang                             = 5;
+  repeated Code.Switch                             switches                         = 6;
+  Code.Exports                                     exports                          = 7;
+  repeated Code.Line                               lines                            = 8;
   bool                                             cache                            = 9;
   bool                                             eval                             = 10;
   bool                                             noweb                            = 11;

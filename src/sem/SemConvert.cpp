@@ -838,9 +838,11 @@ SemId<Export> OrgConverter::convertExport(__args) {
     }
 
     auto values = convertCmdArguments(one(a, N::Args));
-    if (auto place = values->popArg("placement"); place) {
+    if (auto place = values->getParameter("placement"); place) {
         eexport->placement = (*place)->getString();
+        values->named.erase("placement");
     }
+
 
     eexport->exporter   = get_text(one(a, N::Name));
     eexport->parameters = values;

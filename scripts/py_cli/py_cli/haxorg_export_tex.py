@@ -1,4 +1,4 @@
-from haxorg_cli import *
+from py_cli.haxorg_cli import *
 
 class TexExportOptions(BaseModel, extra="forbid"):
     infile: Path

@@ -101,7 +101,8 @@ class CommandGroup(Stmt):
     attached: List[Org]
 
 class Block(Command):
-    pass
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
+    parameters: Optional[CmdArguments]
 
 class Tblfm(Command):
     loc: Optional[LineCol]
@@ -110,13 +111,17 @@ class Quote(Org):
     loc: Optional[LineCol]
 
 class Verse(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
+    parameters: Optional[CmdArguments]
 
 class Example(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
+    parameters: Optional[CmdArguments]
 
 class CmdArguments(Org):
-    def popArg(self, key: str) -> Optional[CmdArgument]: ...
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
     positional: List[CmdArgument]
     named: Dict[str, CmdArgument]
@@ -140,15 +145,18 @@ class ExportFormat(Enum):
     Block = 3
 
 class Export(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
     format: ExportFormat
     exporter: str
-    parameters: Optional[CmdArguments]
     placement: Optional[str]
     content: str
+    parameters: Optional[CmdArguments]
 
 class AdmonitionBlock(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
+    parameters: Optional[CmdArguments]
 
 class Call(Org):
     loc: Optional[LineCol]
@@ -222,17 +230,18 @@ class CodeExports(Enum):
     Results = 4
 
 class Code(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
     lang: Optional[str]
     switches: List[CodeSwitch]
     exports: CodeExports
     lines: List[CodeLine]
-    parameters: Optional[CmdArguments]
     cache: bool
     eval: bool
     noweb: bool
     hlines: bool
     tangle: bool
+    parameters: Optional[CmdArguments]
 
 class TimeRepeatMode(Enum):
     _None = 1

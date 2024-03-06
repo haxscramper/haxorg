@@ -353,6 +353,23 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc("Block command type"),
             bases=[t_org("Command")],
             concreteKind=False,
+            fields=[
+                opt_field(
+                    t_id("CmdArguments"),
+                    "parameters",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+            ],
+            methods=[
+                GenTuFunction(
+                    t_opt(t_id("CmdArgument")),
+                    "getParameter",
+                    GenTuDoc(""),
+                    arguments=[GenTuIdent(t_cr(t_str()), "key")],
+                    isConst=True,
+                    isVirtual=True,
+                )
+            ],
         ),
         d_org(
             "Tblfm",
@@ -377,13 +394,10 @@ def get_types() -> Sequence[GenTuStruct]:
             methods=[
                 GenTuFunction(
                     t_opt(t_id("CmdArgument")),
-                    "popArg",
-                    GenTuDoc(
-                        "Remove argument value from the map and return it if present",
-                        full=
-                        "Some argument values can be processed directly during convert, others will be mapped in respective exporter backends. This is a convenience method to remove things during convert stage",
-                    ),
-                    arguments=[GenTuIdent(t_str(), "key")],
+                    "getParameter",
+                    GenTuDoc(""),
+                    arguments=[GenTuIdent(t_cr(t_str()), "key")],
+                    isConst=True,
                 )
             ],
             fields=[
@@ -457,11 +471,6 @@ def get_types() -> Sequence[GenTuStruct]:
                     value="sem::Export::Format::Inline",
                 ),
                 GenTuField(t_str(), "exporter", GenTuDoc("Exporter backend name")),
-                opt_field(
-                    t_id("CmdArguments"),
-                    "parameters",
-                    GenTuDoc("Additional parameters aside from 'exporter',"),
-                ),
                 opt_field(
                     t_str(),
                     "placement",
@@ -633,11 +642,6 @@ def get_types() -> Sequence[GenTuStruct]:
                            value="sem::Code::Exports::Both"),
                 vec_field(t_nest("Line", ["Code"]), "lines",
                           GenTuDoc("Collected code lines")),
-                opt_field(
-                    t_id("CmdArguments"),
-                    "parameters",
-                    GenTuDoc("Additional parameters that are language-specific"),
-                ),
                 GenTuField(t_bool(), "cache", GenTuDoc("Do cache values?"),
                            value="false"),
                 GenTuField(t_bool(), "eval", GenTuDoc("Eval on export?"), value="false"),

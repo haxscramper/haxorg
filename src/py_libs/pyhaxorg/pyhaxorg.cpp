@@ -250,6 +250,10 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::Block, sem::SemId<sem::Block>, sem::Command>(m, "Block")
+    .def_readwrite("parameters", &sem::Block::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("getParameter",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Block::*)(Str const&) const>(&sem::Block::getParameter),
+         pybind11::arg("key"))
     ;
   pybind11::class_<sem::Tblfm, sem::SemId<sem::Tblfm>, sem::Command>(m, "Tblfm")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm {
@@ -274,6 +278,10 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("loc", &sem::Verse::loc, R"RAW(Document)RAW")
+    .def_readwrite("parameters", &sem::Verse::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("getParameter",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Verse::*)(Str const&) const>(&sem::Verse::getParameter),
+         pybind11::arg("key"))
     ;
   pybind11::class_<sem::Example, sem::SemId<sem::Example>, sem::Block>(m, "Example")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Example {
@@ -282,6 +290,10 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("loc", &sem::Example::loc, R"RAW(Document)RAW")
+    .def_readwrite("parameters", &sem::Example::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("getParameter",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Example::*)(Str const&) const>(&sem::Example::getParameter),
+         pybind11::arg("key"))
     ;
   pybind11::class_<sem::CmdArguments, sem::SemId<sem::CmdArguments>, sem::Org>(m, "CmdArguments")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdArguments {
@@ -292,10 +304,9 @@ node can have subnodes.)RAW")
     .def_readwrite("loc", &sem::CmdArguments::loc, R"RAW(Document)RAW")
     .def_readwrite("positional", &sem::CmdArguments::positional, R"RAW(Positional arguments that had no keys)RAW")
     .def_readwrite("named", &sem::CmdArguments::named, R"RAW(Stored key-value mapping)RAW")
-    .def("popArg",
-         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdArguments::*)(Str)>(&sem::CmdArguments::popArg),
-         pybind11::arg("key"),
-         R"RAW(Remove argument value from the map and return it if present)RAW")
+    .def("getParameter",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdArguments::*)(Str const&) const>(&sem::CmdArguments::getParameter),
+         pybind11::arg("key"))
     ;
   pybind11::class_<sem::CmdAttr, sem::SemId<sem::CmdAttr>, sem::Attached>(m, "CmdAttr")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdAttr {
@@ -340,9 +351,12 @@ node can have subnodes.)RAW")
     .def_readwrite("loc", &sem::Export::loc, R"RAW(Document)RAW")
     .def_readwrite("format", &sem::Export::format, R"RAW(Export block type)RAW")
     .def_readwrite("exporter", &sem::Export::exporter, R"RAW(Exporter backend name)RAW")
-    .def_readwrite("parameters", &sem::Export::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("placement", &sem::Export::placement, R"RAW(Customized position of the text in the final exporting document.)RAW")
     .def_readwrite("content", &sem::Export::content, R"RAW(Raw exporter content string)RAW")
+    .def_readwrite("parameters", &sem::Export::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("getParameter",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Export::*)(Str const&) const>(&sem::Export::getParameter),
+         pybind11::arg("key"))
     ;
   pybind11::class_<sem::AdmonitionBlock, sem::SemId<sem::AdmonitionBlock>, sem::Block>(m, "AdmonitionBlock")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AdmonitionBlock {
@@ -351,6 +365,10 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("loc", &sem::AdmonitionBlock::loc, R"RAW(Document)RAW")
+    .def_readwrite("parameters", &sem::AdmonitionBlock::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("getParameter",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::AdmonitionBlock::*)(Str const&) const>(&sem::AdmonitionBlock::getParameter),
+         pybind11::arg("key"))
     ;
   pybind11::class_<sem::Call, sem::SemId<sem::Call>, sem::Org>(m, "Call")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Call {
@@ -516,12 +534,15 @@ node can have subnodes.)RAW")
     .def_readwrite("switches", &sem::Code::switches, R"RAW(Switch options for block)RAW")
     .def_readwrite("exports", &sem::Code::exports, R"RAW(What to export)RAW")
     .def_readwrite("lines", &sem::Code::lines, R"RAW(Collected code lines)RAW")
-    .def_readwrite("parameters", &sem::Code::parameters, R"RAW(Additional parameters that are language-specific)RAW")
     .def_readwrite("cache", &sem::Code::cache, R"RAW(Do cache values?)RAW")
     .def_readwrite("eval", &sem::Code::eval, R"RAW(Eval on export?)RAW")
     .def_readwrite("noweb", &sem::Code::noweb, R"RAW(Web-tangle code on export/run)RAW")
     .def_readwrite("hlines", &sem::Code::hlines, R"RAW(?)RAW")
     .def_readwrite("tangle", &sem::Code::tangle, R"RAW(?)RAW")
+    .def_readwrite("parameters", &sem::Code::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("getParameter",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Code::*)(Str const&) const>(&sem::Code::getParameter),
+         pybind11::arg("key"))
     ;
   bind_enum_iterator<sem::Time::Repeat::Mode>(m, "TimeRepeatMode");
   pybind11::enum_<sem::Time::Repeat::Mode>(m, "TimeRepeatMode")

@@ -390,7 +390,14 @@ struct CommandGroup : public sem::Stmt {
 struct Block : public sem::Command {
   using Command::Command;
   virtual ~Block() = default;
-  BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ())
+  BOOST_DESCRIBE_CLASS(Block,
+                       (Command),
+                       (),
+                       (),
+                       (parameters, (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getParameter))
+  /// \brief Additional parameters aside from 'exporter',
+  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
+  virtual Opt<sem::SemId<sem::CmdArgument>> getParameter(Str const& key) const;
 };
 
 /// \brief Tblfm command type
@@ -487,7 +494,7 @@ struct CmdArguments : public sem::Org {
                         named,
                         (sem::SemId<CmdArguments>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId<sem::CmdArgument>>(Str)) popArg))
+                        (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getParameter))
   /// \brief Document
   Opt<LineCol> loc = std::nullopt;
   /// \brief Document
@@ -498,10 +505,7 @@ struct CmdArguments : public sem::Org {
   UnorderedMap<Str, sem::SemId<sem::CmdArgument>> named;
   static sem::SemId<CmdArguments> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  /// \brief Remove argument value from the map and return it if present
-  ///
-  /// Some argument values can be processed directly during convert, others will be mapped in respective exporter backends. This is a convenience method to remove things during convert stage
-  Opt<sem::SemId<sem::CmdArgument>> popArg(Str key);
+  Opt<sem::SemId<sem::CmdArgument>> getParameter(Str const& key) const;
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -586,7 +590,6 @@ struct Export : public sem::Block {
                         staticKind,
                         format,
                         exporter,
-                        parameters,
                         placement,
                         content,
                         (sem::SemId<Export>(Opt<OrgAdapter>)) create,
@@ -599,8 +602,6 @@ struct Export : public sem::Block {
   sem::Export::Format format = sem::Export::Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
-  /// \brief Additional parameters aside from 'exporter',
-  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Customized position of the text in the final exporting document.
   Opt<Str> placement = std::nullopt;
   /// \brief Raw exporter content string
@@ -810,7 +811,6 @@ struct Code : public sem::Block {
                         switches,
                         exports,
                         lines,
-                        parameters,
                         cache,
                         eval,
                         noweb,
@@ -830,8 +830,6 @@ struct Code : public sem::Block {
   sem::Code::Exports exports = sem::Code::Exports::Both;
   /// \brief Collected code lines
   Vec<sem::Code::Line> lines = {};
-  /// \brief Additional parameters that are language-specific
-  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Do cache values?
   bool cache = false;
   /// \brief Eval on export?

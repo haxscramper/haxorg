@@ -1,4 +1,4 @@
-import py_haxorg.pyhaxorg as org
+import py_haxorg.pyhaxorg_wrap as org
 from py_textlayout.py_textlayout_wrap import TextLayout
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 
@@ -254,6 +254,12 @@ class ExporterLatex(ExporterBase):
         self.t.add_at(res, self.command("begin", [self.string("document")]))
 
         for it in node:
+            if isinstance(it, org.Export):
+                placement = it.getParameter("placement")
+                print(org.treeRepr(it))
+                if placement:
+                    print(placement.getString())
+
             self.t.add_at(res, self.exp.eval(it))
 
         self.t.add_at(res, self.command("end", [self.string("document")]))
