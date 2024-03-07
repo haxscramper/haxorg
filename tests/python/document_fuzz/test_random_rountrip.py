@@ -6,6 +6,16 @@ from beartype import beartype
 from beartype.typing import List, Optional, Union
 import itertools
 from py_scriptutils.script_logging import log
+import pytest
+
+FILE = None
+
+def get_file():
+    global FILE
+    if not FILE:
+        FILE = open("/tmp/file.org", "w")
+
+    return FILE
 
 
 @beartype
@@ -84,6 +94,9 @@ class OrgGenCtx():
     def getSubnodeSet(self) -> list[org.OrgSemKind]:
         if self.depth() == 0:
             return [osk.Document]
+        
+        elif self.depth() == 1:
+            return [osk.Paragraph]
 
         result = set(it for it in org.OrgSemKind.Document.__iter__())
         markupLayerCount = 0
@@ -94,6 +107,34 @@ class OrgGenCtx():
             osk.Monospace,
             osk.Underline,
             osk.Strike,
+        ])
+
+        inParagraphKinds = org.SemSet([
+            osk.AtMention,
+            osk.HashTag,
+            osk.BigIdent,
+            osk.Word,
+            osk.Time,
+            osk.TimeRange,
+            osk.Link,
+            osk.Macro, 
+            osk.Symbol,
+            osk.InlineMath,
+            osk.Escaped,
+            osk.Placeholder,
+            osk.Punctuation,
+        ])
+
+        commandKinds = org.SemSet([
+            osk.Code,
+            osk.Export,
+            osk.Center,
+            osk.Example,
+            osk.Quote,
+            osk.Caption,
+            osk.Verse,
+            osk.CmdAttr,
+            osk.CmdName,
         ])
 
         result = result - set([
@@ -110,16 +151,28 @@ class OrgGenCtx():
             osk.MarkQuote,
             osk.ListItem,
             osk.DocumentGroup,
-        ])
+            osk.AdmonitionBlock,
+            osk.Include,
+            osk.CommandGroup,
+            osk.Tblfm,
+            osk.Call,
+            osk.CmdResults,
+            osk.Table,
+            osk.StmtList,
+            osk.Completion,
+        ]) - commandKinds
 
         for step in self.steps:
             if step.kind in markupKinds:
                 markupLayerCount += 1
 
-        if 2 <= markupLayerCount:
-            result = result - markupKinds
+        if 2 <= markupLayerCount or self.count(osk.Paragraph) == 0:
+            result = result
 
-        if self.count(osk.List):
+        if self.count(osk.Paragraph) == 0:
+            result = result - inParagraphKinds - markupKinds
+
+        if 3 <= self.count(osk.List):
             result.remove(osk.List)
 
         if self.isAtRecursionLimit():
@@ -132,33 +185,18 @@ class OrgGenCtx():
             )
 
         for step in self.steps:
-            result.remove(step.kind)
+            if step.kind in result:
+                result.remove(step.kind)
+
             match step.kind:
                 case osk.Paragraph:
-                    result = result - set(
-                        osk.Example,
-                        osk.Center,
-                        osk.Subtree,
-                        osk.Code,
-                        osk.CommandGroup,
-                        osk.Quote,
-                        osk.AdmonitionBlock,
-                        osk.Table,
-                        osk.TextSeparator,
-                        osk.Export,
-                        osk.List,
-                        osk.Caption,
-                        osk.Include,
-                        osk.StmtList,
-                        # Paragraph can contain newlines, but they are not
-                        # arbitrarily generated.
-                        osk.Newline,
-                    )
+                    result = inParagraphKinds
 
         return sorted(result, key=lambda it: it.value)
 
     def getSubnodeStrategy(self) -> st.SearchStrategy:
-        return st.sampled_from(self.getSubnodeSet())
+        kinds = self.getSubnodeSet()
+        return st.sampled_from(kinds)
 
 
 @st.composite
@@ -171,12 +209,48 @@ def build_subnodes(draw: st.DrawFn, ctx: OrgGenCtx):
         ))
 
 
+def build_alnum_ident() -> st.SearchStrategy:
+    return st.text(alphabet=st.one_of(st.characters(min_codepoint=65, max_codepoint=90),
+                                      st.characters(min_codepoint=97, max_codepoint=122)),
+                   min_size=1)
+
+
+def build_ascii_strategy(excluded_chars: str = "", **kwargs):
+    allowed_chars = [chr(i) for i in range(20, 128) if chr(i) not in excluded_chars]
+    text_strategy = st.text(alphabet=allowed_chars, **kwargs)
+    return text_strategy
+
+
+def interleave_strategy(
+        odd_item: st.SearchStrategy,
+        even_item: st.SearchStrategy,
+        n_strategy=st.integers(min_value=0, max_value=100),
+):
+
+    @st.composite
+    def interleave(draw):
+        n = draw(n_strategy)
+        print(f"N={n}", file=get_file())
+        odd_items = draw(st.lists(odd_item, min_size=n + 1, max_size=n + 1))
+        even_items = draw(st.lists(even_item, min_size=n, max_size=n))
+        result = [None] * (2 * n + 1)
+        result[::2] = odd_items
+        result[1::2] = even_items
+        return result
+
+    return interleave()
+
+
 @st.composite
 def build_Document(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
         st.builds(
             org.Document,
-            subnodes=build_subnodes(ctx=ctx.rec(osk.Document).withSubnodes(3, 10)),
+            subnodes=interleave_strategy(
+                odd_item=node_strategy(ctx=ctx.rec(osk.Document)),
+                even_item=st.builds(org.Newline, text=st.just("\n\n\n")),
+                n_strategy=st.integers(min_value=2, max_value=5),
+            ),
         ))
 
 
@@ -192,12 +266,18 @@ def build_Table(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_HashTag(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.HashTag))
+    return draw(
+        st.builds(org.HashTag,
+                  head=build_alnum_ident(),
+                  subtags=st.lists(build_HashTag(ctx=ctx.rec(osk.HashTag)))))
 
 
 @st.composite
 def build_Footnote(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Footnote))
+    return draw(
+        st.builds(org.Footnote,
+                  head=st.from_regex("[a-zA-Z]+", fullmatch=True),
+                  definition=st.one_of(None, build_Paragraph(ctx.rec(osk.Footnote)))))
 
 
 @st.composite
@@ -207,7 +287,13 @@ def build_Completion(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Paragraph(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Paragraph))
+    return draw(
+        st.builds(org.Paragraph,
+                  subnodes=interleave_strategy(
+                      odd_item=node_strategy(ctx.rec(osk.Paragraph)),
+                      even_item=build_Space(ctx),
+                      n_strategy=st.integers(1, ctx.getMaxSubnodeCount()),
+                  )))
 
 
 @st.composite
@@ -217,7 +303,7 @@ def build_Center(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Caption(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Caption))
+    return draw(st.builds(org.Caption, text=build_Paragraph(ctx=ctx.rec(osk.Caption))))
 
 
 @st.composite
@@ -297,17 +383,28 @@ def build_Tblfm(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Quote(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Quote))
+    return draw(st.builds(org.Quote, subnodes=build_subnodes(ctx.rec(osk.Quote))))
 
 
 @st.composite
 def build_Verse(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Verse))
+    return draw(st.builds(org.Verse,))
 
 
 @st.composite
 def build_Example(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Example))
+    return draw(
+        st.builds(org.Example,
+                  subnodes=interleave_strategy(
+                      odd_item=st.builds(org.RawText,
+                                         text=build_ascii_strategy(
+                                             "\n",
+                                             min_size=1,
+                                             max_size=20,
+                                         )),
+                      even_item=st.builds(org.Newline, text=st.just("\n")),
+                      n_strategy=st.integers(1, 4),
+                  )))
 
 
 @st.composite
@@ -317,7 +414,7 @@ def build_CmdArguments(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_CmdAttr(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.CmdAttr))
+    return draw(st.builds(org.CmdAttr, target=build_alnum_ident()))
 
 
 @st.composite
@@ -342,7 +439,13 @@ def build_Call(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Code(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Code))
+    return draw(
+        st.builds(org.Code,
+                  subnodes=interleave_strategy(
+                      odd_item=st.builds(org.RawText, text=st.text(min_size=4)),
+                      even_item=st.builds(org.Newline, text=st.just("\n")),
+                      n_strategy=st.integers(1, 4),
+                  )))
 
 
 @st.composite
@@ -352,7 +455,12 @@ def build_Time(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_TimeRange(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.TimeRange))
+    return draw(
+        st.builds(
+            org.TimeRange,
+            _from=build_Time(ctx=ctx),
+            to=build_Time(ctx=ctx),
+        ))
 
 
 @st.composite
@@ -402,7 +510,7 @@ def build_Word(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_AtMention(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.AtMention))
+    return draw(st.builds(org.AtMention, text=build_alnum_ident()))
 
 
 @st.composite
@@ -427,12 +535,12 @@ def build_BigIdent(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Bold(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Bold))
+    return draw(st.builds(org.Bold, subnodes=build_subnodes(ctx.rec(osk.Bold))))
 
 
 @st.composite
 def build_Underline(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Underline))
+    return draw(st.builds(org.Underline, subnodes=build_subnodes(ctx.rec(osk.Underline))))
 
 
 @st.composite
@@ -452,12 +560,12 @@ def build_Verbatim(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Italic(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Italic))
+    return draw(st.builds(org.Italic, subnodes=build_subnodes(ctx.rec(osk.Italic))))
 
 
 @st.composite
 def build_Strike(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Strike))
+    return draw(st.builds(org.Strike, subnodes=build_subnodes(ctx.rec(osk.Strike))))
 
 
 @st.composite
@@ -636,15 +744,19 @@ def node_strategy(draw, ctx: OrgGenCtx):
             assert False, item
 
 
+
+
 @given(node_strategy(OrgGenCtx()))
 def test_render(doc: org.Document):
     ctx = org.OrgContext()
     tree = org.OrgExporterTree()
-    log("t").info("----\n{}".format(
-        ctx.formatToString(doc)
-    ))
+    file = get_file()
+    file.write("================================================\n\n")
+    file.write(org.treeRepr(doc, colored=False))
+    file.write("\n\n\n")
+    file.write(ctx.formatToString(doc))
+    file.write("\n\n")
 
 
-
-if __name__ == "__main__":
-    test_render()
+# if __name__ == "__main__":
+#     test_render()
