@@ -25,5 +25,16 @@ def evalDateTime(time: UserTime) -> datetime:
 
 @beartype
 def formatDateTime(time: UserTime) -> str:
-    return evalDateTime(time).strftime("%Y-%m-%d %H:%M:%S")
+    brk: org.UserTimeBreakdown = time.getBreakdown()
+    format = "%Y-%m-%d"
+    if brk.hour:
+        format += " %H"
+
+    if brk.minute:
+        format += ":%M"
+
+    if brk.second:
+        format += ":%S"
+
+    return evalDateTime(time).strftime(format)
 

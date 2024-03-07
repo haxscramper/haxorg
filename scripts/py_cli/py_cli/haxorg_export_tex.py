@@ -1,4 +1,6 @@
 from py_cli.haxorg_cli import *
+from plumbum import local, FG, ProcessExecutionError, colors
+import re
 
 class TexExportOptions(BaseModel, extra="forbid"):
     infile: Path
@@ -13,9 +15,32 @@ class TexExportOptions(BaseModel, extra="forbid"):
         default=None,
         alias="export_trace_file")
 
+CAT = "haxorg.export.tex"
 
 def export_tex_options(f):
     return apply_options(f, options_from_model(TexExportOptions))
+
+
+def run_lualatex(filename: Path):
+    lualatex = local["lualatex"].with_cwd(str(filename.parent))
+    code, stdout, stderr = lualatex.run(("-interaction=nonstopmode", filename), retcode=None)
+
+    log_file = filename.with_suffix(".log")
+
+    with log_file.open('r', encoding='utf-8') as f:
+        log_content = f.read()
+
+    error_patterns = [
+        r"^!(.*?)\nerror\)",  # TeX errors
+        r"^Emergency stop",    # Emergency stop
+        r"^No pages?.*?output",  # No output produced
+    ]
+    has_errors = any(re.search(pattern, log_content, re.MULTILINE | re.DOTALL) for pattern in error_patterns)
+
+    if has_errors:
+        log(CAT).error(f"Error during compilation of {filename}:\n{log_content}")
+    else:
+        log(CAT).info(f"Compilation of {filename} successful!")
 
 
 @click.command("tex")
@@ -33,14 +58,15 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     tree_opts.withColor = False
     tree.toFile(node, "/tmp/tex_tree.txt", tree_opts)
 
-    log().info("Exporting to latex")
+    log(CAT).info("Exporting to latex")
     tex = ExporterLatex()
     if opts.exportTraceFile:
-        log("haxorg.cli").debug(f"Enabled export file trace to {opts.exportTraceFile}")
+        log(CAT).debug(f"Enabled export file trace to {opts.exportTraceFile}")
         tex.exp.enableFileTrace(opts.exportTraceFile, True)
 
     res = tex.exp.evalTop(node)
     with open(opts.outfile, "w") as out:
         out.write(tex.t.toString(res, TextOptions()))
 
-    log("haxorg.cli").info(f"Wrote latex export to {opts.outfile}")
+    log(CAT).info(f"Wrote latex export to {opts.outfile}")
+    run_lualatex(opts.outfile)

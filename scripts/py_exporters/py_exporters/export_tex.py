@@ -138,13 +138,11 @@ class ExporterLatex(ExporterBase):
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         res = self.t.line([])
-        if node.isDescriptionItem():
-            self.t.add_at(
-                res,
-                self.command("item", [self.exp.eval(node.header)] if node.header else []))
+        self.t.add_at(res, self.command("item"))
 
-        else:
-            self.t.add_at(res, self.command("item"))
+        if node.isDescriptionItem():
+            self.t.add_at(res, self.string(" "))
+            self.t.add_at(res, self.command("textbf", [self.exp.eval(node.header)]))
 
         self.t.add_at(res, self.string(" "))
         self.t.add_at(res, self.stackSubnodes(node))
@@ -217,10 +215,9 @@ class ExporterLatex(ExporterBase):
         property: org.SubtreeProperty = node.getProperty("ExportLatexClass")
         if property:
             return property.getExportLatexClass().latexClass
-        
+
         else:
             return "book"
-
 
     def evalDocument(self, node: org.Document) -> BlockId:
         self.document = node
@@ -291,24 +288,35 @@ class ExporterLatex(ExporterBase):
         lclass = self.getLatexClass(self.document)
         if lclass == "book":
             match node.level:
-                case 1: return TexCommand.chapter
-                case 2: return TexCommand.section
-                case 3: return TexCommand.subsection
-                case 4: return TexCommand.subsubsection
-                case 5: return TexCommand.paragraph
-                case 6: return TexCommand.subparagraph
-                case _: return TexCommand.textbf
+                case 1:
+                    return TexCommand.chapter
+                case 2:
+                    return TexCommand.section
+                case 3:
+                    return TexCommand.subsection
+                case 4:
+                    return TexCommand.subsubsection
+                case 5:
+                    return TexCommand.paragraph
+                case 6:
+                    return TexCommand.subparagraph
+                case _:
+                    return TexCommand.textbf
 
         else:
             match node.level:
-                case 1: return TexCommand.section
-                case 2: return TexCommand.subsection
-                case 3: return TexCommand.subsubsection
-                case 4: return TexCommand.paragraph
-                case 5: return TexCommand.subparagraph
-                case _: return TexCommand.textbf
-                
-
+                case 1:
+                    return TexCommand.section
+                case 2:
+                    return TexCommand.subsection
+                case 3:
+                    return TexCommand.subsubsection
+                case 4:
+                    return TexCommand.paragraph
+                case 5:
+                    return TexCommand.subparagraph
+                case _:
+                    return TexCommand.textbf
 
     def getRefKind(self, node: org.Org) -> Optional[str]:
         match node.getKind():

@@ -48,8 +48,9 @@ class Header():
     level: int
     words: Optional[int] = None
     duration: Optional[str] = None
-    location: Optional[List[org.Org]] = None
     pov: Optional[List[org.Org]] = None
+    location: Optional[List[org.Org]] = None
+    note: Optional[List[org.Org]] = None
     event: Optional[List[org.Org]] = None
     shift: Optional[Tuple[str, str]] = None
     tags: List[org.HashTag] = field(default_factory=list)
@@ -154,6 +155,9 @@ def rec_node(node: org.Org) -> List[Header]:
 
                                     case "story_pov":
                                         header.pov = list(item.subnodes)
+
+                                    case "story_note":
+                                        header.note = list(item.subnodes)
 
                                     case _:
                                         assert not tag[0].startswith("story_"), tag
