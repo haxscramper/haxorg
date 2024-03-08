@@ -815,11 +815,15 @@ def py_tests(ctx: Context, arg: List[str] = []):
         ctx,
         "poetry",
         [
-            "run", "pytest", "-v", "-ra", "-s", "--tb=short", *arg
-            # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
-            # "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
-            # "--hypothesis-show-statistics",
-            # "--hypothesis-seed=11335865684259357953579948907097829183"
+            "run",
+            "pytest",
+            "-v",
+            "-ra",
+            "-s",
+            "--tb=short",
+            "--cov=scripts",
+            "--cov-report=html",
+            *arg,
         ],
         allow_fail=True,
         env=get_py_env(ctx),
