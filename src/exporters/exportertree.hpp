@@ -19,6 +19,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         bool withOriginalId  = true;
         bool withSubnodeIdx  = true;
         bool skipEmptyFields = true;
+        bool skipLocation    = false;
         int  startLevel      = 0;
 
         SemSet skipNodes;
@@ -38,11 +39,13 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     };
 
-    static void treeRepr(sem::SemId<sem::Org> org);
-    static void treeRepr(
-        sem::SemId<sem::Org>         org,
-        const std::filesystem::path& path);
-    static void treeRepr(sem::SemId<sem::Org> org, CR<TreeReprConf> conf);
+    static ColText treeRepr(sem::SemId<sem::Org> org);
+    static void    treeRepr(
+           sem::SemId<sem::Org>         org,
+           const std::filesystem::path& path);
+    static ColText treeRepr(
+        sem::SemId<sem::Org> org,
+        CR<TreeReprConf>     conf);
 
     struct TreeReprCtx {
         int level      = 0;
@@ -63,7 +66,12 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void pushVisit(int&, sem::SemId<sem::Org> org) { pushIndent(); }
     void popVisit(int&, sem::SemId<sem::Org> org) { popIndent(); }
     void visitDispatchHook(int&, sem::SemId<sem::Org> org) { init(org); }
-    void indent() { os << Str("  ").repeated(stack.back().level); }
+    void indent() {
+        if (stack.back().level != 0) {
+            Str value = Str("  ").repeated(stack.back().level);
+            os << value;
+        }
+    }
 
     struct ScopedField {
         ExporterTree* exp;
@@ -99,38 +107,6 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     template <typename T>
     void visit(int& arg, CR<Opt<T>> opt);
-    template <typename T>
-    struct TypeName {
-        static Str get() {
-            return Str(demangle(typeid(T).name())).replaceAll("sem::", "");
-        }
-    };
-
-
-    template <typename T>
-    struct TypeName<Opt<T>> {
-        static Str get() {
-            return Str("Opt<") + TypeName<T>::get() + Str(">");
-        }
-    };
-
-    template <typename K, typename V>
-    struct TypeName<UnorderedMap<K, V>> {
-        static Str get() {
-            return "UnorderedMap<"_ss + TypeName<K>::get() + ", "_ss
-                 + TypeName<V>::get() + ">"_ss;
-        }
-    };
-
-    template <typename... Args>
-    struct TypeName<Variant<Args...>> {
-        static Str get() {
-            return "Variant<"_ss
-                 + Str(join(", ", Vec<Str>{TypeName<Args>::get()...}))
-                 + ">"_ss;
-        }
-    };
-
 
     template <typename T>
     void visit(int& arg, CR<T> opt);

@@ -1,5 +1,7 @@
 #include "pyhaxorg_manual_impl.hpp"
+#include "sem/SemOrgSerde.hpp"
 
+#include <sem/SemOrgFormat.hpp>
 #include <exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <exporters/exporteryaml.hpp>
@@ -10,6 +12,9 @@
 #include <memory>
 
 #include <exporters/Exporter.cpp>
+#include <sem/perfetto_org.hpp>
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+
 
 template class Exporter<ExporterPython, py::object>;
 
@@ -45,16 +50,20 @@ void OrgExporterYaml::visitNode(sem::SemId<sem::Org> node) {
     result = impl->evalTop(node);
 }
 
-OrgExporterTree::OrgExporterTree() {
-    impl = std::make_shared<ExporterTree>(os);
-}
-
 std::string OrgExporterTree::toString(
     sem::SemId<sem::Org> node,
     ExporterTreeOpts     opts) {
-    std::stringstream os;
-    stream(os, node, opts);
-    return os.str();
+    ColStream    os{};
+    ExporterTree tree{os};
+
+    tree.conf.withLineCol     = opts.withLineCol;
+    tree.conf.withOriginalId  = opts.withOriginalId;
+    tree.conf.skipEmptyFields = opts.skipEmptyFields;
+    tree.conf.startLevel      = opts.startLevel;
+    tree.evalTop(node);
+
+    std::string result = os.toString(opts.withColor);
+    return result;
 }
 
 void OrgExporterTree::toFile(
@@ -69,13 +78,16 @@ void OrgExporterTree::stream(
     std::ostream&        stream,
     sem::SemId<sem::Org> node,
     ExporterTreeOpts     opts) {
-    os                         = ColStream{stream};
-    os.colored                 = opts.withColor;
-    impl->conf.withLineCol     = opts.withLineCol;
-    impl->conf.withOriginalId  = opts.withOriginalId;
-    impl->conf.skipEmptyFields = opts.skipEmptyFields;
-    impl->conf.startLevel      = opts.startLevel;
-    impl->evalTop(node);
+    ColStream    os{};
+    ExporterTree tree{os};
+
+    tree.conf.withLineCol     = opts.withLineCol;
+    tree.conf.withOriginalId  = opts.withOriginalId;
+    tree.conf.skipEmptyFields = opts.skipEmptyFields;
+    tree.conf.startLevel      = opts.startLevel;
+    tree.evalTop(node);
+
+    stream << os.toString(opts.withColor);
 }
 
 sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {
@@ -83,21 +95,53 @@ sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {
 }
 
 sem::SemId<sem::Document> OrgContext::parseString(const std::string text) {
-    LexerParams   p;
+    LexerParams         p;
+    SPtr<std::ofstream> fileTrace;
+    if (baseTokenTracePath) {
+        fileTrace = std::make_shared<std::ofstream>(*baseTokenTracePath);
+    }
+    p.traceStream            = fileTrace.get();
     OrgTokenGroup baseTokens = ::tokenize(text.data(), text.size(), p);
     OrgTokenGroup tokens;
     OrgTokenizer  tokenizer{&tokens};
+
+    if (tokenTracePath) { tokenizer.setTraceFile(*tokenTracePath); }
 
     tokenizer.convert(baseTokens);
     Lexer<OrgTokenKind, OrgFill> lex{&tokens};
 
     OrgNodeGroup nodes{&tokens};
     OrgParser    parser{&nodes};
+    if (parseTracePath) { parser.setTraceFile(*parseTracePath); }
+
     (void)parser.parseFull(lex);
 
     sem::OrgConverter converter{};
+    if (semTracePath) { converter.setTraceFile(*semTracePath); }
 
     return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+}
+
+sem::SemId<sem::Document> OrgContext::parseProtobuf(
+    const std::string& file) {
+    sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
+    std::ifstream     stream{file};
+    orgproto::AnyNode result;
+    result.ParseFromIstream(&stream);
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+        result,
+        proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
+    return read_node.as<sem::Document>();
+}
+
+void OrgContext::saveProtobuf(
+    sem::SemId<sem::Document> doc,
+    const std::string&        file) {
+    std::ofstream     stream{file};
+    orgproto::AnyNode result;
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+        &result, doc.asOrg());
+    result.SerializeToOstream(&stream);
 }
 
 
@@ -176,14 +220,15 @@ void ExporterPython::enableBufferTrace() {
 
 std::string ExporterPython::getTraceBuffer() const { return traceBuffer; }
 
-void ExporterPython::enableFileTrace(const std::string& path) {
-    assert(false);
-    // writeStreamContext         = openFileOrStream(QFileInfo(path),
-    // true);
-    traceStream.ostream             = writeStreamContext->stream.get();
-    traceStream.colored             = false;
-    this->exportTracer              = OperationsTracer{};
-    this->exportTracer->stream      = writeStreamContext->stream;
+void ExporterPython::enableFileTrace(
+    const std::string& path,
+    bool               colored) {
+    writeStreamContext         = std::make_shared<IoContext>();
+    writeStreamContext->stream = std::make_shared<std::ofstream>(path);
+    traceStream.ostream        = writeStreamContext->stream.get();
+    traceStream.colored        = colored;
+    this->exportTracer         = OperationsTracer{};
+    this->exportTracer->stream = writeStreamContext->stream;
     this->exportTracer->traceToFile = true;
     this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
         this->traceVisit(ev);
@@ -238,14 +283,12 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
 
     if (0 < ev.field.length()) { os << " field:" << ev.field; }
 
-    if (!ev.msg.empty()) { os << " msg:" << ev.msg; }
-
-    os << " on " << fs::path(ev.file).stem() << ":" << ev.line << " "
-       << " " << os.end();
-
-    if (0 < ev.type.length()) {
-        os << " type:" << demangle(ev.type.c_str());
+    if (!ev.msg.empty()) {
+        os << " msg:" << os.yellow() << ev.msg << os.end();
     }
+
+    os << " on " << fs::path(ev.file).stem() << ":" << fmt1(ev.line) << " "
+       << " " << os.end();
 
     exportTracer->endStream(os);
 }
@@ -279,4 +322,7 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
         _this()->visitEnd(org);
         return tmp;
     }
+}
+std::string OrgContext::formatToString(sem::SemId<sem::Org> arg) {
+    return sem::Formatter::format(arg);
 }

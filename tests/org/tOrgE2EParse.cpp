@@ -1,5 +1,5 @@
 #include "../common.hpp"
-#include "org_parse_aux.hpp"
+#include <test/org_parse_aux.hpp>
 #include <gtest/gtest.h>
 
 #include <parse/OrgParser.hpp>
@@ -8,7 +8,7 @@
 
 #include <lexbase/AstSpec.hpp>
 #include <lexbase/AstDiff.hpp>
-#include <lexbase/NodeTest.hpp>
+#include <test/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
 
@@ -37,8 +37,6 @@ diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
                 return static_cast<int>(getNode(id).kind);
             }};
 }
-
-BOOST_DESCRIBE_STRUCT(LineCol, (), (line, column, pos));
 
 struct compare_context {
     std::string type;

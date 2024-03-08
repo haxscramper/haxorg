@@ -16,6 +16,7 @@ from py_codegen.astbuilder_pybind11 import (
     Py11Field,
     Py11Class,
     Py11BindPass,
+    Py11TypedefPass,
     Py11Enum,
     flat_scope,
     id_self,
@@ -120,7 +121,7 @@ def get_exporter_methods(forward: bool,
 
             methods += variant_methods + [method]
 
-    iterate_object_tree(expanded, callback, iterate_tree_context)
+    iterate_object_tree(expanded, iterate_tree_context, pre_visit=callback)
     return methods
 
 
@@ -145,13 +146,19 @@ def in_sem(typ: QualType) -> QualType:
     return typ
 
 
+def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
+    return [F for F in Fields if F.Type.name not in ["SemId"]]
+
+
 @beartype
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
     base_type = QualType.ForName(typ.name.name, Spaces=[QualType.ForName("sem")])
-    id_type = QualType.ForName("SemId",
-                               Parameters=[base_type],
-                               Spaces=[QualType.ForName("sem")])
+    id_type = QualType.ForName(
+        "SemId",
+        Parameters=[base_type],
+        Spaces=[QualType.ForName("sem")],
+    )
 
     res = Py11Class(
         PyName=typ.name.name,
@@ -191,15 +198,27 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     map_obj_methods(typ)
     map_bases(typ)
 
+    if typ.concreteKind and typ.name.name != "Org":
+        rec_fields: List[Py11BindPass] = []
+
+        def cb(it: GenTuStruct):
+            for field in it.fields:
+                if not field.isStatic:
+                    rec_fields.append(Py11Field.FromGenTu(field))
+
+            for base in it.bases:
+                cb(base_map[base.name])
+
+        cb(typ)
+
+        res.InitDefault(ast=ast, Fields=filter_init_fields(rec_fields))
+
     return res
 
 
 @beartype
-def pybind_nested_type(value: GenTuStruct) -> Py11Class:
+def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
     res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
-    if not value.IsAbstract:
-        res.InitDefault()
-
     for meth in value.methods:
         if meth.isStatic or meth.isPureVirtual:
             continue
@@ -211,6 +230,9 @@ def pybind_nested_type(value: GenTuStruct) -> Py11Class:
             continue
 
         res.Fields.append(Py11Field.FromGenTu(_field))
+
+    if not value.IsAbstract:
+        res.InitDefault(ast, filter_init_fields(res.Fields))
 
     return res
 
@@ -232,35 +254,10 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
     res = Py11Module("pyhaxorg")
     b: TextLayout = ast.b
 
-    iterate_context: List[Any] = []
+    res.Before.append(ast.Include("pyhaxorg_manual_impl.hpp"))
+    res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
-    res.Before.append(
-        ast.PPIfStmt(
-            PPIfStmtParams([
-                ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                    ast.Define("PY_HAXORG_COMPILING"),
-                    ast.Include("pyhaxorg_manual_impl.hpp")
-                ])
-            ])))
-
-    res.Decls.append(
-        Py11BindPass(
-            ast.PPIfStmt(
-                PPIfStmtParams([
-                    ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                        ast.Define("PY_HAXORG_COMPILING"),
-                        ast.Include("pyhaxorg_manual_wrap.hpp")
-                    ])
-                ]))))
-
-    base_map: dict[str, GenTuStruct] = {}
-
-    def baseCollectorCallback(value: Any) -> None:
-        if isinstance(value, GenTuStruct):
-            base_map[value.name.name] = value
-
-    iterate_object_tree(GenTuNamespace("sem", expanded), baseCollectorCallback,
-                        iterate_context)
+    base_map = get_base_map(expanded)
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
@@ -268,19 +265,28 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
                 res.Decls.append(pybind_org_id(ast, b, value, base_map))
 
             else:
-                new = pybind_nested_type(value)
+                new = pybind_nested_type(ast, value)
                 res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
             res.Decls.append(Py11Enum.FromGenTu(value, PyName=py_type(value.name).Name))
 
-    iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback, [])
+        elif isinstance(value, GenTuTypedef):
+            res.Decls.append(
+                Py11TypedefPass(
+                    name=py_type(value.name),
+                    base=py_type(value.base),
+                ))
+
+    # Map data definitions into python wrappers
+    iterate_object_tree(
+        GenTuNamespace("sem", expanded),
+        [],
+        post_visit=codegenConstructCallback,
+    )
 
     for item in get_enums() + [get_osk_enum(expanded)]:
         wrap = Py11Enum.FromGenTu(item, py_type(item.name).Name)
-        for field in wrap.Fields:
-            field.PyName += "_"
-
         res.Decls.append(wrap)
 
     return res
@@ -526,10 +532,10 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
             autogen_structs.Decls.insert(0, org_decl)
 
         elif _struct.name.name == "LineCol":
-            autogen_structs.Decls.insert(0, pybind_nested_type(_struct))
+            autogen_structs.Decls.insert(0, pybind_nested_type(ast, _struct))
 
         else:
-            autogen_structs.Decls.append(pybind_nested_type(_struct))
+            autogen_structs.Decls.append(pybind_nested_type(ast, _struct))
 
     for _enum in tu.enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
@@ -565,10 +571,16 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                 else:
                     seen_types.add(hash(T))
 
-                if T.name == "Vec":
-                    stdvec_t = QualType.ForName("vector",
+                if T.name in ["Vec", "UnorderedMap"]:
+                    std_type: str = {
+                        "Vec": "vector",
+                        "UnorderedMap": "unordered_map"
+                    }[T.name]
+
+                    stdvec_t = QualType.ForName(std_type,
                                                 Spaces=[QualType.ForName("std")],
-                                                Parameters=[T.Parameters[0]])
+                                                Parameters=T.Parameters)
+
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
                     opaque_declarations.append(
@@ -576,12 +588,12 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
                     specialization_calls.append(
                         ast.XCall(
-                            "bind_vector",
+                            f"bind_{std_type}",
                             [
                                 ast.string("m"),
                                 ast.StringLiteral(py_type_bind(T).Name),
                             ],
-                            Params=[T.Parameters[0]],
+                            Params=T.Parameters,
                             Stmt=True,
                         ))
 
@@ -591,7 +603,11 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
             rec_type(value)
 
-    iterate_object_tree(autogen_structs, record_specializations, type_use_context)
+    iterate_object_tree(
+        autogen_structs,
+        type_use_context,
+        pre_visit=record_specializations,
+    )
 
     for decl in opaque_declarations:
         autogen_structs.Before.append(decl)
@@ -662,8 +678,7 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> Qm
             result.nested.append(
                 GenTuPass(
                     ast.string(
-                        "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".
-                        format(
+                        "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".format(
                             name=struct.name.name,
                             base=struct.bases[0].name,
                         ))))
@@ -860,7 +875,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         GenUnit(
             GenTu(
                 "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
-                # "/tmp/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
                     GenTuInclude("pybind11/pybind11.h", True),

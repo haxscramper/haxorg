@@ -10,17 +10,22 @@ class ExporterUltraplain(ExporterBase):
 
     def __init__(self):
         super().__init__(self)
+        self.result = ""
 
     def newOrg(self, node: org.Org):
         return ""
 
     def visitWord(self, res: str, node: org.Word):
-        res += node.text
+        self.result += node.text
 
     def visitSpace(self, res: str, node: org.Space):
-        res += node.text
+        self.result += node.text
+
+    def visitRawText(self, res: str, node: org.RawText):
+        self.result += node.text
 
     @staticmethod
     def getStr(node: org.Org) -> str:
         exp = ExporterUltraplain()
-        return exp.exp.evalTop(node)
+        exp.exp.evalTop(node)
+        return exp.result

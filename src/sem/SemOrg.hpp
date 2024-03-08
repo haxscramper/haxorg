@@ -88,7 +88,6 @@ concept IsOrg = std::
     };
 
 
-__hack_fmt(OrgBigIdentKind);
 __hack_fmt(OrgNodeKind);
 __hack_fmt(sem::DocumentOptions::BrokenLinks);
 __hack_fmt(sem::DocumentOptions::Visibility);

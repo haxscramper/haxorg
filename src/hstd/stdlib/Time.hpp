@@ -7,7 +7,24 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Opt.hpp>
 
-struct UserTime {
+struct [[refl]] UserTimeBreakdown {
+    [[refl]] Opt<int>         year;
+    [[refl]] Opt<int>         month;
+    [[refl]] Opt<int>         day;
+    [[refl]] Opt<int>         hour;
+    [[refl]] Opt<int>         minute;
+    [[refl]] Opt<int>         second;
+    [[refl]] Opt<std::string> zone;
+
+    BOOST_DESCRIBE_CLASS(
+        UserTimeBreakdown,
+        (),
+        (year, month, day, hour, minute, second, zone),
+        (),
+        ());
+};
+
+struct [[refl]] UserTime {
     DECL_DESCRIBED_ENUM(Alignment, Year, Month, Day, Hour, Minute, Second);
 
     absl::Time          time;
@@ -15,23 +32,6 @@ struct UserTime {
     Alignment           align;
     BOOST_DESCRIBE_CLASS(UserTime, (), (time, zone, align), (), ());
 
-    std::string format() const {
-        std::string format;
-        switch (align) {
-            case Alignment::Year: format = "%Y"; break;
-            case Alignment::Month: format = "%Y-%m"; break;
-            case Alignment::Day: format = "%Y-%m-%d"; break;
-            case Alignment::Hour: format = "%Y-%m-%d %H"; break;
-            case Alignment::Minute: format = "%Y-%m-%d %H:%M"; break;
-            case Alignment::Second: format = "%Y-%m-%d %H:%M:%S"; break;
-        }
-
-        if (zone) { format += " %z"; }
-
-        if (zone) {
-            return absl::FormatTime(format, time, *zone);
-        } else {
-            return absl::FormatTime(format, time, absl::TimeZone{});
-        }
-    }
+    [[refl]] UserTimeBreakdown getBreakdown() const;
+    [[refl]] std::string       format() const;
 };

@@ -1,4 +1,4 @@
-#include <lexbase/NodeTest.hpp>
+#include <test/NodeTest.hpp>
 #include <string>
 #include <filesystem>
 #include <hstd/stdlib/Filesystem.hpp>
@@ -114,10 +114,6 @@ struct convert<ParseSpec::Dbg> : verbose_convert<ParseSpec::Dbg> {};
 
 template <>
 struct convert<ParseSpec::Conf> : verbose_convert<ParseSpec::Conf> {};
-
-template <>
-struct convert<ParseSpec::ExporterExpect>
-    : verbose_convert<ParseSpec::ExporterExpect> {};
 
 template <>
 struct convert<ParseSpec> : verbose_convert<ParseSpec> {};

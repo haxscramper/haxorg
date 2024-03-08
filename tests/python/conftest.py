@@ -53,4 +53,4 @@ def pytest_collect_file(parent, path):
     elif path.name == "test_integrate_qt.py":
         result = QTestFile.from_parent(parent, path=path)
         debug(result, "/tmp/qt_tests")
-        return result
+        # return result

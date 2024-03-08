@@ -21,6 +21,7 @@ std::string OrgLexerImpl::state_name(int state) {
         case 17: return "sub_state_raw_dsl_link";
         case 18: return "sub_state_no_protocol_file_link";
         case 19: return "sub_state_link_protocol_internal";
+        case 20: return "sub_state_timestamp_repeater";
         default: return std::to_string(state);
     }
 }
@@ -37,13 +38,16 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::BigIdent: return "BigIdent";
         case OrgTokenKind::BoldBegin: return "BoldBegin";
         case OrgTokenKind::BoldEnd: return "BoldEnd";
+        case OrgTokenKind::BoldUnknown: return "BoldUnknown";
         case OrgTokenKind::BraceBegin: return "BraceBegin";
         case OrgTokenKind::BraceEnd: return "BraceEnd";
         case OrgTokenKind::Checkbox: return "Checkbox";
         case OrgTokenKind::Circumflex: return "Circumflex";
         case OrgTokenKind::CmdAdmonitionBegin: return "CmdAdmonitionBegin";
         case OrgTokenKind::CmdAdmonitionEnd: return "CmdAdmonitionEnd";
+        case OrgTokenKind::CmdAttr: return "CmdAttr";
         case OrgTokenKind::CmdAuthor: return "CmdAuthor";
+        case OrgTokenKind::CmdCall: return "CmdCall";
         case OrgTokenKind::CmdCaption: return "CmdCaption";
         case OrgTokenKind::CmdCenterBegin: return "CmdCenterBegin";
         case OrgTokenKind::CmdCenterEnd: return "CmdCenterEnd";
@@ -60,12 +64,14 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdExportLine: return "CmdExportLine";
         case OrgTokenKind::CmdFiletags: return "CmdFiletags";
         case OrgTokenKind::CmdFlag: return "CmdFlag";
+        case OrgTokenKind::CmdHeader: return "CmdHeader";
         case OrgTokenKind::CmdInclude: return "CmdInclude";
         case OrgTokenKind::CmdLanguage: return "CmdLanguage";
         case OrgTokenKind::CmdLatexClass: return "CmdLatexClass";
         case OrgTokenKind::CmdLatexClassOptions: return "CmdLatexClassOptions";
         case OrgTokenKind::CmdLatexCompiler: return "CmdLatexCompiler";
         case OrgTokenKind::CmdLatexHeader: return "CmdLatexHeader";
+        case OrgTokenKind::CmdName: return "CmdName";
         case OrgTokenKind::CmdOptions: return "CmdOptions";
         case OrgTokenKind::CmdPrefix: return "CmdPrefix";
         case OrgTokenKind::CmdPropertyArgs: return "CmdPropertyArgs";
@@ -74,14 +80,17 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdQuoteBegin: return "CmdQuoteBegin";
         case OrgTokenKind::CmdQuoteEnd: return "CmdQuoteEnd";
         case OrgTokenKind::CmdRawArg: return "CmdRawArg";
+        case OrgTokenKind::CmdResults: return "CmdResults";
         case OrgTokenKind::CmdSrcBegin: return "CmdSrcBegin";
         case OrgTokenKind::CmdSrcEnd: return "CmdSrcEnd";
+        case OrgTokenKind::CmdStartup: return "CmdStartup";
         case OrgTokenKind::CmdTblfm: return "CmdTblfm";
         case OrgTokenKind::CmdTitle: return "CmdTitle";
         case OrgTokenKind::CmdVerseBegin: return "CmdVerseBegin";
         case OrgTokenKind::CmdVerseEnd: return "CmdVerseEnd";
         case OrgTokenKind::Colon: return "Colon";
         case OrgTokenKind::ColonEnd: return "ColonEnd";
+        case OrgTokenKind::ColonExampleLine: return "ColonExampleLine";
         case OrgTokenKind::ColonLiteralProperty: return "ColonLiteralProperty";
         case OrgTokenKind::ColonLogbook: return "ColonLogbook";
         case OrgTokenKind::ColonProperties: return "ColonProperties";
@@ -114,6 +123,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Indent: return "Indent";
         case OrgTokenKind::ItalicBegin: return "ItalicBegin";
         case OrgTokenKind::ItalicEnd: return "ItalicEnd";
+        case OrgTokenKind::ItalicUnknown: return "ItalicUnknown";
         case OrgTokenKind::LatexInlineRaw: return "LatexInlineRaw";
         case OrgTokenKind::LatexParBegin: return "LatexParBegin";
         case OrgTokenKind::LatexParEnd: return "LatexParEnd";
@@ -148,6 +158,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::MiscUnicode: return "MiscUnicode";
         case OrgTokenKind::MonospaceBegin: return "MonospaceBegin";
         case OrgTokenKind::MonospaceEnd: return "MonospaceEnd";
+        case OrgTokenKind::MonospaceUnknown: return "MonospaceUnknown";
         case OrgTokenKind::Newline: return "Newline";
         case OrgTokenKind::Number: return "Number";
         case OrgTokenKind::ParBegin: return "ParBegin";
@@ -167,6 +178,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::StmtListEnd: return "StmtListEnd";
         case OrgTokenKind::StrikeBegin: return "StrikeBegin";
         case OrgTokenKind::StrikeEnd: return "StrikeEnd";
+        case OrgTokenKind::StrikeUnknown: return "StrikeUnknown";
         case OrgTokenKind::SubtreePriority: return "SubtreePriority";
         case OrgTokenKind::SubtreeStars: return "SubtreeStars";
         case OrgTokenKind::Symbol: return "Symbol";
@@ -176,7 +188,9 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::Tilda: return "Tilda";
         case OrgTokenKind::Time: return "Time";
         case OrgTokenKind::TimeArrow: return "TimeArrow";
-        case OrgTokenKind::TimeRepeater: return "TimeRepeater";
+        case OrgTokenKind::TimeRepeaterDuration: return "TimeRepeaterDuration";
+        case OrgTokenKind::TimeRepeaterSpec: return "TimeRepeaterSpec";
+        case OrgTokenKind::TimeWarnPeriod: return "TimeWarnPeriod";
         case OrgTokenKind::TrailingPipe: return "TrailingPipe";
         case OrgTokenKind::TreeClock: return "TreeClock";
         case OrgTokenKind::TreeTime: return "TreeTime";
@@ -184,9 +198,11 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::TripleAngleEnd: return "TripleAngleEnd";
         case OrgTokenKind::UnderlineBegin: return "UnderlineBegin";
         case OrgTokenKind::UnderlineEnd: return "UnderlineEnd";
+        case OrgTokenKind::UnderlineUnknown: return "UnderlineUnknown";
         case OrgTokenKind::Unknown: return "Unknown";
         case OrgTokenKind::VerbatimBegin: return "VerbatimBegin";
         case OrgTokenKind::VerbatimEnd: return "VerbatimEnd";
+        case OrgTokenKind::VerbatimUnknown: return "VerbatimUnknown";
         case OrgTokenKind::WeekdayName: return "WeekdayName";
         case OrgTokenKind::Whitespace: return "Whitespace";
         case OrgTokenKind::Word: return "Word";
@@ -204,13 +220,16 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "BigIdent") { return OrgTokenKind::BigIdent; } else
   if (value == "BoldBegin") { return OrgTokenKind::BoldBegin; } else
   if (value == "BoldEnd") { return OrgTokenKind::BoldEnd; } else
+  if (value == "BoldUnknown") { return OrgTokenKind::BoldUnknown; } else
   if (value == "BraceBegin") { return OrgTokenKind::BraceBegin; } else
   if (value == "BraceEnd") { return OrgTokenKind::BraceEnd; } else
   if (value == "Checkbox") { return OrgTokenKind::Checkbox; } else
   if (value == "Circumflex") { return OrgTokenKind::Circumflex; } else
   if (value == "CmdAdmonitionBegin") { return OrgTokenKind::CmdAdmonitionBegin; } else
   if (value == "CmdAdmonitionEnd") { return OrgTokenKind::CmdAdmonitionEnd; } else
+  if (value == "CmdAttr") { return OrgTokenKind::CmdAttr; } else
   if (value == "CmdAuthor") { return OrgTokenKind::CmdAuthor; } else
+  if (value == "CmdCall") { return OrgTokenKind::CmdCall; } else
   if (value == "CmdCaption") { return OrgTokenKind::CmdCaption; } else
   if (value == "CmdCenterBegin") { return OrgTokenKind::CmdCenterBegin; } else
   if (value == "CmdCenterEnd") { return OrgTokenKind::CmdCenterEnd; } else
@@ -227,12 +246,14 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdExportLine") { return OrgTokenKind::CmdExportLine; } else
   if (value == "CmdFiletags") { return OrgTokenKind::CmdFiletags; } else
   if (value == "CmdFlag") { return OrgTokenKind::CmdFlag; } else
+  if (value == "CmdHeader") { return OrgTokenKind::CmdHeader; } else
   if (value == "CmdInclude") { return OrgTokenKind::CmdInclude; } else
   if (value == "CmdLanguage") { return OrgTokenKind::CmdLanguage; } else
   if (value == "CmdLatexClass") { return OrgTokenKind::CmdLatexClass; } else
   if (value == "CmdLatexClassOptions") { return OrgTokenKind::CmdLatexClassOptions; } else
   if (value == "CmdLatexCompiler") { return OrgTokenKind::CmdLatexCompiler; } else
   if (value == "CmdLatexHeader") { return OrgTokenKind::CmdLatexHeader; } else
+  if (value == "CmdName") { return OrgTokenKind::CmdName; } else
   if (value == "CmdOptions") { return OrgTokenKind::CmdOptions; } else
   if (value == "CmdPrefix") { return OrgTokenKind::CmdPrefix; } else
   if (value == "CmdPropertyArgs") { return OrgTokenKind::CmdPropertyArgs; } else
@@ -241,14 +262,17 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdQuoteBegin") { return OrgTokenKind::CmdQuoteBegin; } else
   if (value == "CmdQuoteEnd") { return OrgTokenKind::CmdQuoteEnd; } else
   if (value == "CmdRawArg") { return OrgTokenKind::CmdRawArg; } else
+  if (value == "CmdResults") { return OrgTokenKind::CmdResults; } else
   if (value == "CmdSrcBegin") { return OrgTokenKind::CmdSrcBegin; } else
   if (value == "CmdSrcEnd") { return OrgTokenKind::CmdSrcEnd; } else
+  if (value == "CmdStartup") { return OrgTokenKind::CmdStartup; } else
   if (value == "CmdTblfm") { return OrgTokenKind::CmdTblfm; } else
   if (value == "CmdTitle") { return OrgTokenKind::CmdTitle; } else
   if (value == "CmdVerseBegin") { return OrgTokenKind::CmdVerseBegin; } else
   if (value == "CmdVerseEnd") { return OrgTokenKind::CmdVerseEnd; } else
   if (value == "Colon") { return OrgTokenKind::Colon; } else
   if (value == "ColonEnd") { return OrgTokenKind::ColonEnd; } else
+  if (value == "ColonExampleLine") { return OrgTokenKind::ColonExampleLine; } else
   if (value == "ColonLiteralProperty") { return OrgTokenKind::ColonLiteralProperty; } else
   if (value == "ColonLogbook") { return OrgTokenKind::ColonLogbook; } else
   if (value == "ColonProperties") { return OrgTokenKind::ColonProperties; } else
@@ -281,6 +305,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Indent") { return OrgTokenKind::Indent; } else
   if (value == "ItalicBegin") { return OrgTokenKind::ItalicBegin; } else
   if (value == "ItalicEnd") { return OrgTokenKind::ItalicEnd; } else
+  if (value == "ItalicUnknown") { return OrgTokenKind::ItalicUnknown; } else
   if (value == "LatexInlineRaw") { return OrgTokenKind::LatexInlineRaw; } else
   if (value == "LatexParBegin") { return OrgTokenKind::LatexParBegin; } else
   if (value == "LatexParEnd") { return OrgTokenKind::LatexParEnd; } else
@@ -315,6 +340,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "MiscUnicode") { return OrgTokenKind::MiscUnicode; } else
   if (value == "MonospaceBegin") { return OrgTokenKind::MonospaceBegin; } else
   if (value == "MonospaceEnd") { return OrgTokenKind::MonospaceEnd; } else
+  if (value == "MonospaceUnknown") { return OrgTokenKind::MonospaceUnknown; } else
   if (value == "Newline") { return OrgTokenKind::Newline; } else
   if (value == "Number") { return OrgTokenKind::Number; } else
   if (value == "ParBegin") { return OrgTokenKind::ParBegin; } else
@@ -334,6 +360,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "StmtListEnd") { return OrgTokenKind::StmtListEnd; } else
   if (value == "StrikeBegin") { return OrgTokenKind::StrikeBegin; } else
   if (value == "StrikeEnd") { return OrgTokenKind::StrikeEnd; } else
+  if (value == "StrikeUnknown") { return OrgTokenKind::StrikeUnknown; } else
   if (value == "SubtreePriority") { return OrgTokenKind::SubtreePriority; } else
   if (value == "SubtreeStars") { return OrgTokenKind::SubtreeStars; } else
   if (value == "Symbol") { return OrgTokenKind::Symbol; } else
@@ -343,7 +370,9 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "Tilda") { return OrgTokenKind::Tilda; } else
   if (value == "Time") { return OrgTokenKind::Time; } else
   if (value == "TimeArrow") { return OrgTokenKind::TimeArrow; } else
-  if (value == "TimeRepeater") { return OrgTokenKind::TimeRepeater; } else
+  if (value == "TimeRepeaterDuration") { return OrgTokenKind::TimeRepeaterDuration; } else
+  if (value == "TimeRepeaterSpec") { return OrgTokenKind::TimeRepeaterSpec; } else
+  if (value == "TimeWarnPeriod") { return OrgTokenKind::TimeWarnPeriod; } else
   if (value == "TrailingPipe") { return OrgTokenKind::TrailingPipe; } else
   if (value == "TreeClock") { return OrgTokenKind::TreeClock; } else
   if (value == "TreeTime") { return OrgTokenKind::TreeTime; } else
@@ -351,9 +380,11 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "TripleAngleEnd") { return OrgTokenKind::TripleAngleEnd; } else
   if (value == "UnderlineBegin") { return OrgTokenKind::UnderlineBegin; } else
   if (value == "UnderlineEnd") { return OrgTokenKind::UnderlineEnd; } else
+  if (value == "UnderlineUnknown") { return OrgTokenKind::UnderlineUnknown; } else
   if (value == "Unknown") { return OrgTokenKind::Unknown; } else
   if (value == "VerbatimBegin") { return OrgTokenKind::VerbatimBegin; } else
   if (value == "VerbatimEnd") { return OrgTokenKind::VerbatimEnd; } else
+  if (value == "VerbatimUnknown") { return OrgTokenKind::VerbatimUnknown; } else
   if (value == "WeekdayName") { return OrgTokenKind::WeekdayName; } else
   if (value == "Whitespace") { return OrgTokenKind::Whitespace; } else
   if (value == "Word") { return OrgTokenKind::Word; } else

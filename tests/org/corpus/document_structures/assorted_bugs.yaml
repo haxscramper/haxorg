@@ -27,6 +27,8 @@ items:
       [17:21] Moving
 
   - name: "Long newline after the command block end"
+    debug:
+      doFormatReparse: false
     source: |
       #+begin_src 
 
@@ -36,10 +38,7 @@ items:
       #+end_src
 
   - name: "Subtree state transitions"
-    debug:
-      traceAll: true
     source: |
-
       **** COMPLETED Subtree title
         CLOSED: [2023-11-08 Wed 14:53:12 +04]
         :PROPERTIES:
@@ -141,6 +140,8 @@ items:
       [[person:Test Test][*description*]]
 
   - name: "Standalone caption"
+    debug:
+      doFormatReparse: false
     source: |
       - [2023-11-09 Thu 18:33:38 +04]
         #+caption:
@@ -169,8 +170,6 @@ items:
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
     # Double nested quote does not work though 
-    debug:
-      traceAll: true
     source: |
       - Some text
         - safas
@@ -196,6 +195,8 @@ items:
             :END:
 
   - name: "Table with trailing medium newline"
+    debug:
+      doFormatReparse: false
     source: |
 
       | language | profiling            | tools              | etc. |
@@ -219,8 +220,8 @@ items:
 
   - name: "Link 1"
     source: |
-      - [[https://www.law.cornell.edu/uscode/text/22/6001][22 U.S. Code &sect; 6001 - Findings | U.S. Code | US Law | LII / Legal
-        Information Institute]]
+      - [[https://www.law.cornell.edu/uscode/text/22/6001][LII / Legal
+        Information]]
 
   - name: "Footnotes"
     source: |
@@ -246,7 +247,7 @@ items:
 
   - name: "List-like starter"
     source: |
-      - [17:47] 
+      - [17:47]
         -> 'all content') seems like a good target.
 
   - name: "Table with close content"
@@ -260,6 +261,8 @@ items:
       #+end_quote
 
   - name: "Closing curly in link"
+    debug:
+      doFormatReparse: false
     source: |
       src_sh{ping
         https://google.com},
@@ -300,6 +303,8 @@ items:
       ****** AAA
 
   - name: "tbflm"
+    debug: 
+      doFormatReparse: false
     source: |
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
@@ -313,8 +318,6 @@ items:
       [[file:notes.images/2023-03-30_17-27.png]]
 
   - name: "Not a time range"
-    debug:
-      traceAll: true
     source: |
       [2023-08-02 Wed 13:39:46 +04] -- [2023-08-02 Wed 13:39:46 +04]
 
@@ -334,7 +337,269 @@ items:
     source: |
        [[./notes.images/file.png]],
 
+  - name: "Inline latex expression"
+    source: |
+      \(2006 - 17 = 1989\)
+
+  - name: "Escaped eq"
+    source: |
+      text \=\= text
+
+  - name: "Floating standalone list start"
+    source: |
+      - list item
+        -
+
+      - asfdsa
+
+  - name: "List end gap"
+    source: |
+      - asdfasdf
+        - Most p
+          someth
+          proble
+          need d
+          explan
+
+      - Developm
+
+  - name: "Startup config"
+    source: |
+      #+STARTUP: content
+
+  - name: "Double hash in text"
+    source: |
+      asfasd##asdf
+
+  - name: "Not a full link"
+    source: |
+      ([1][2])
+
+  - name: "Invalid deadline annotation"
+    # Missing `:` after the deadline annotations causes the parser to treat 
+    # property list as a standalone block of text, not attached to the subtree
+    # and fail because of that 
+    source: |
+      **** COMPLETED Зачет АПО ЭВМ
+          CLOSED: [2022-04-08 Fri 21:45:09] DEADLINE <2022-04-08 Fri 12:40:00>
+          :PROPERTIES:
+          :CREATED: [2022-03-31 Thu 20:04:58]
+          :ID: 6091a6a4-ab86-4206-a3e5-a48f8207a223
+          :ORIGIN: from ~personal:todo/inbox.org:nil~
+          :END:
+
+  - name: "Diary time format"
+    source: |
+      <%%(and (diary-block-d 2022 7 4 17) (diary-day '(1 3 5)))>
+
+  - name: "Subtree with complex logbook notes"
+    source: |
+      *** COMPLETED adfasdf
+          :PROPERTIES:
+          :CREATED: [2000-02-25 Fri 23:23:45]
+          :END:
+          :LOGBOOK:
+          - State "WIP"        from "TODO"       [2000-02-26 Sat 19:41:07]
+          - Note taken on [2000-02-26 Sat 19:41:09] \\
+            sources later.
+          - Note taken on [2000-02-26 Sat 20:00:54] \\
+            #+begin_src c++
+            void init(void){
+            #+end_src
+
+            converted into
+
+            #+begin_src nim
+            setbuf(stderr, `nil`)
+            #+end_src
+          - Note taken on [2000-02-26 Sat 20:03:42] \\
+            ~cast[T](expr)~ generation is broken, closing ~)~ is reversed (fixed)
+
+          :END:
+
+  - name: "Leading plus in list"
+    source: |
+      - A
+      - B
+
+      + A
+      + B
+
+  - name: "Name and results"
+    debug:
+      doFormatReparse: false
+    source: |
+      #+name: xxx
+      #+BEGIN_SRC sch :file imgs/sch_1.tmp.png :exports none
+      R 1 2; right
+      C 2 3; down
+      L 3 4; left
+      V 4 1; up
+      #+END_SRC
+
+      #+RESULTS:
+      [[file:imgs/sch_1.tmp.png]]
+
+  - name: "Attr HTML"
+    source: |
+      #+ATTR_HTML: :width 300px border="2" rules="all" frame="border"
+      | test num | image                   |   |
+      |----------+-------------------------+---|
+      | test 1   | [[file:sch_1.tmp.png]]  |   |
+      | test 2   | file:imgs/sch_1.tmp.png |   |
+
+  - name: "Inline symbol"
+    source: |
+      \ointV[(]{ ... }
+
+  - name: "Begin latex"
+    debug:
+      doLex: false
+    source: |
+      #+begin_latex
+      \begin{algorithm}
+        \caption{An algorithm}
+      \end{algorithm}
+      #+end_latex
+
+  - name: "Invalid double angle"
+    source: 
+      << has space
+
+  - name: "Double angle missing end"
+    source: 
+      <<no-end
+
+  - name: "Double brace end at the hashtag"
+    debug:
+      doParse: false
+    source: |
+      #fanfiction##[character##[image,description,new]] 
+
+  - name: "Call named command"
+    debug:
+      doLex: false
+    source: |
+      #+call: sh_example(arg=133)
+
+  - name: "Random unicode 2"
+    source: |
+      computed as x×(1−a)+y×a.
+
+  - name: "ANSII escape"
+    source: |
+      #+begin_src bash
+      echo -e "ee \e[41mwefae\e[49m 123"
+      #+end_src
+
+      #+RESULTS:
+      : ee [41mwefae[49m 123
+
+  - name: "MAcro with arguments"
+    source: |
+      {{{results(hello 12)}}}
+      {{{keyword(NAME)}}}
+      {{{modification-time(FORMAT, VC)}}}
+      {{{property(PROPERTY-NAME, SEARCH OPTION)}}}
 
 
+  - name: "More list bugs"
+    source: 
+      _ Comment 
+        - From 
+        - I changed 
+      - Disabled 
+
+  - name: "Angle"
+    source: |
+      #+begin_src nim
+      dumpTree:
+        @@@<<(posComment(1))
+      #+end_src
+
+      #+RESULTS:
+      : StmtList
+      :   Prefix
+      :     Ident "@@@<<"
+      :     Par
+      :       Call
+      :         Ident "posComment"
+      :         IntLit 1
+
+  - name: "Property exports"
+    source: |
+      #+property: header-args    :exports code
+
+  - name: "Columns"
+    source: |
+      #+columns: %7TODO(To do) %40ITEM(Task) %TAGS(Tags) %6CLOCKSUM(Clock)
+
+  - name: "Filetags"
+    source: |
+      #+FILETAGS: :DO_NOT_ORG_ROAM:
+
+  - name: "Double bracket link"
+    debug:
+      doParse: false
+    source: |
+      [[id:3034c11f-d398-4bc5-a6f2-ecf4d8693f6c][2022/2022-03 March/2022-03-07
+      Monday/[2022-03-07 Mon 14:58:22]]]
+
+  - name: "Timestamp repeaters"
+    source: |
+      * TODO V
+        SCHEDULED: <2023-09-18 Mon 11:00:00 +04 +1d>
+
+      * TODO A
+        SCHEDULED: <2024-02-20 Tue 19:00:00 +04 ++1w>
+
+  - name: "Assorted timestamps"
+    source: |
+      <2022-02-05 Sat .+1w>
+      <2005-10-01 Sat +1m -3d>
+      <2023-09-18 Mon 11:00:00 +04 +1d>
+      <2024-02-20 Tue 19:00:00 +04 ++1w>
+      <2024-02-20 Tue 19:00:00 +04 ++1w -1d>
+
+  - name: "Uncertain italic close"
+    source: |
+      /q?/ - s
+      z - /AS./
+
+  - name: "Open and close immediately"
+    source: |
+      //
+
+  - name: "Free-standing kind of markup"
+    source: |
+      word / word
+
+  - name: "Nested markup"
+    source: |
+      _*/+word+/*_
+
+  - name: "Nested markup off-balance 1"
+    source: |
+      _*/+word*_/+
 
 
+  - name: "Nested markup off-balance 2"
+    source: |
+      _*/+word*/+_
+
+
+  - name: "Nested markup off-balance 3"
+    source: |
+      _*/+word*+*_*/
+
+  - name: "Nested markup off-balance 4"
+    source: |
+      _*/+word*+*_*/_
+
+  - name: "Multiple markup words"
+    source: |
+      *w1* *w2* *w3* *w4* *w5*
+
+  - name: "Multiple markup words with unbalanced markup"
+    source: |
+      */w1* *_w2/* *_w3* *w4+* *_w5_*

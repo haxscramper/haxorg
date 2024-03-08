@@ -55,6 +55,9 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["Opt"] | ["std", "optional"]:
             name = "Optional"
 
+        case ["std", "variant"] | ["Var"]:
+            name = "Union"
+
         case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
                                                         ] | ["std", "basic_string"]:
             name = "str"
@@ -68,14 +71,11 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["void"]:
             name = "None"
 
-        case ["pybind11", "function"] | ["PyFunc"]:
+        case ["pybind11", "function"] | [*_, "PyFunc"]:
             name = "function"
 
         case ["py", "object"] | ["pybind11", "object"]:
             name = "object"
-
-        case ["UserTime"]:
-            name = "datetime"
 
         case ["UnorderedMap"]:
             name = "Dict"
@@ -126,6 +126,7 @@ class Py11Method:
     Body: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     IsConst: bool = False
+    IsInit: bool = False
     DefParams: Optional[List[BlockId]] = None
     ExplicitClassParam: bool = False
 
@@ -180,18 +181,32 @@ class Py11Method:
             call_pass = ast.Lambda(
                 LambdaParams(
                     ResultTy=self.ResultTy,
-                    Args=([] if self.ExplicitClassParam else
+                    Args=([] if self.ExplicitClassParam or self.IsInit else
                           [ParmVarParams(Class, "_self")]) +
                     [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
                     Body=self.Body,
+                    IsLine=False,
                 ))
 
-        argument_binder = [
-            ast.XCall("pybind11::arg", [ast.Literal(Arg.name)]) if Arg.value is None else
-            ast.XCall("pybind11::arg_v",
-                      [ast.Literal(Arg.name), b.text(Arg.value)])
-            for Arg in (self.Args[1:] if self.ExplicitClassParam else self.Args)
-        ]
+            if self.IsInit:
+                call_pass = ast.XCall("pybind11::init", args=[call_pass])
+
+        argument_binder: list[BlockId] = []
+        for Arg in self.Args[
+                1:] if self.ExplicitClassParam and not self.IsInit else self.Args:
+            if Arg.type.name == "kwargs":
+                continue
+            
+            elif Arg.value is None:
+                argument_binder.append(ast.XCall("pybind11::arg",
+                                                 [ast.Literal(Arg.name)]))
+
+            else:
+                argument_binder.append(
+                    ast.XCall("pybind11::arg_v", [
+                        ast.Literal(Arg.name),
+                        b.text(Arg.value) if isinstance(Arg.value, str) else Arg.value,
+                    ]))
 
         doc_comment = [ast.StringLiteral(self.Doc.brief, forceRawStr=True)
                       ] if self.Doc.brief else []
@@ -201,7 +216,7 @@ class Py11Method:
         return ast.XCall(
             ".def",
             [
-                ast.Literal(self.PyName),
+                *([] if self.IsInit else [ast.Literal(self.PyName)]),
                 call_pass,
                 *argument_binder,
                 *doc_comment,
@@ -263,8 +278,14 @@ class Py11Enum:
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
-
+        iter_type = QualType(name="PyEnumIterator", Parameters=[self.Enum])
         return b.stack([
+            ast.XCall(
+                "bind_enum_iterator",
+                args=[b.text("m"), ast.Literal(self.PyName)],
+                Params=[self.Enum],
+                Stmt=True,
+            ),
             ast.XCall(
                 "pybind11::enum_",
                 [b.text("m"), ast.Literal(self.PyName)],
@@ -272,8 +293,18 @@ class Py11Enum:
             ),
             b.indent(
                 2,
-                b.stack([Field.build_bind(self, ast) for Field in self.Fields] +
-                        [b.text(";")]),
+                b.stack([Field.build_bind(self, ast) for Field in self.Fields] + [
+                    Py11Method(
+                        PyName="__iter__",
+                        CxxName="",
+                        ResultTy=iter_type,
+                        Body=[
+                            ast.string("return "),
+                            ast.Type(iter_type),
+                            ast.string("();"),
+                        ],
+                    ).build_bind(self.Enum, ast)
+                ] + [b.text(";")]),
             )
         ])
 
@@ -287,6 +318,7 @@ class Py11Field:
     GetImpl: Optional[List[BlockId]] = None
     SetImpl: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
+    Default: Optional[Union[BlockId, str]] = None
 
     @staticmethod
     def FromGenTu(Field: GenTuField,
@@ -299,7 +331,9 @@ class Py11Field:
             CxxName=Field.name,
             GetImpl=GetImpl,
             Doc=Field.doc,
-            SetImpl=SetImpl)
+            SetImpl=SetImpl,
+            Default=Field.value,
+        )
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.FieldParams:
         return pya.FieldParams(py_type(self.Type), self.PyName)
@@ -353,10 +387,13 @@ class Py11Class:
     PyBases: List[QualType] = field(default_factory=list)
 
     @staticmethod
-    def FromGenTu(value: GenTuStruct, pyNameOveride: Optional[str] = None) -> 'Py11Class':
-        res = Py11Class(PyName=pyNameOveride or py_type(value.name).Name,
-                        Class=value.name)
-        res.InitDefault()
+    def FromGenTu(ast: ASTBuilder,
+                  value: GenTuStruct,
+                  pyNameOveride: Optional[str] = None) -> 'Py11Class':
+        res = Py11Class(
+            PyName=pyNameOveride or py_type(value.name).Name,
+            Class=value.name,
+        )
 
         for base in value.bases:
             res.Bases.append(base)
@@ -369,8 +406,49 @@ class Py11Class:
 
         return res
 
-    def InitDefault(self):
-        self.InitImpls.append(Py11Method("", "", QualType.ForName("")))
+    def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
+
+        def to_arg(f: Py11Field) -> GenTuIdent:
+            value = f.Default
+            if f.Type.name == "Vec" and f.Default == "{}":
+                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
+
+            elif f.Type.name == "UnorderedMap" and not f.Default:
+                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
+
+            elif f.Type.name in ["Str", "string"] and not f.Default:
+                value = ast.Literal("")
+
+            return GenTuIdent(type=f.Type, name=f.PyName, value=value)
+
+        self.InitImpls.append(
+            Py11Method(
+                "",
+                "",
+                self.Class,
+                Args=[
+                    GenTuIdent(
+                        QualType(
+                            name="kwargs",
+                            Spaces=[QualType.ForName("pybind11")],
+                            isConst=True,
+                            RefKind=ReferenceKind.LValue,
+                        ), "kwargs")
+                ],
+                Body=[
+                    ast.b.line([ast.Type(self.Class),
+                                ast.string(" result{};")]),
+                    ast.XCall(
+                        "init_fields_from_kwargs",
+                        args=[ast.string("result"),
+                              ast.string("kwargs")],
+                        Stmt=True,
+                    ),
+                    ast.Return(ast.string("result")),
+                ],
+                IsInit=True,
+                ExplicitClassParam=True,
+            ))
 
     def AddInit(self, Args: List[ParmVarParams], Impl: List[BlockId]):
         self.InitImpls.append(Py11Method("", "", QualType.ForName(""), Args, Body=Impl))
@@ -407,34 +485,7 @@ class Py11Class:
         sub: List[BlockId] = []
 
         for Init in self.InitImpls:
-            if Init.Body:
-                sub.append(
-                    ast.XCall(
-                        ".def",
-                        [
-                            ast.XCall(
-                                "pybind11::init",
-                                [
-                                    ast.Lambda(
-                                        LambdaParams(
-                                            ResultTy=self.Class,
-                                            Body=Init.Body,
-                                        ))
-                                ],
-                            )
-                        ],
-                    ))
-
-            else:
-                sub.append(
-                    ast.XCall(
-                        ".def",
-                        [ast.XCall(
-                            "pybind11::init",
-                            [],
-                            Params=[],
-                        )],
-                    ))
+            sub.append(Init.build_bind(self.Class, ast))
 
         for Field in self.Fields:
             sub.append(Field.build_bind(self.Class, ast))
@@ -461,7 +512,14 @@ class Py11BindPass:
     Id: BlockId
 
 
-Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass]
+@beartype
+@dataclass
+class Py11TypedefPass:
+    name: pya.PyType
+    base: pya.PyType
+
+
+Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass]
 
 
 @beartype
@@ -479,13 +537,23 @@ class Py11Module:
         passes.append(ast.string("from enum import Enum"))
         passes.append(ast.string("from datetime import datetime, date, time"))
 
-        for _enum in [E for E in self.Decls if isinstance(E, Py11Enum)]:
-            passes.append(ast.Enum(_enum.build_typedef()))
-            passes.append(ast.string(""))
+        for item in self.Decls:
+            match item:
+                case Py11Enum():
+                    passes.append(ast.Enum(item.build_typedef()))
+                    passes.append(ast.string(""))
 
-        for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
-            passes.append(ast.Class(_class.build_typedef(ast)))
-            passes.append(ast.string(""))
+                case Py11Class():
+                    passes.append(ast.Class(item.build_typedef(ast)))
+                    passes.append(ast.string(""))
+
+                case Py11TypedefPass():
+                    passes.append(
+                        ast.b.line([
+                            ast.Type(item.name),
+                            ast.b.text(" = "),
+                            ast.Type(item.base),
+                        ]))
 
         return ast.b.stack(passes)
 

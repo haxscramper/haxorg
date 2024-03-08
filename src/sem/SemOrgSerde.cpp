@@ -52,3 +52,36 @@ void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
 
 #undef _case
 }
+
+template <typename Proto>
+void proto_serde<Proto, sem::Block>::write(
+    Proto*            out,
+    const sem::Block& in) {
+    if (in.parameters) {
+        if (in.parameters) {
+            proto_serde<
+                orgproto::CmdArguments,
+                sem::SemId<sem::CmdArguments>>::
+                write(out->mutable_parameters(), *in.parameters);
+        }
+    }
+}
+
+template <typename Proto>
+void proto_serde<Proto, sem::Block>::read(
+    const Proto&                     out,
+    proto_write_accessor<sem::Block> in) {
+    if (out.has_parameters()) {
+        proto_serde<
+            Opt<orgproto::CmdArguments>,
+            Opt<sem::SemId<sem::CmdArguments>>>::
+            read(out.parameters(), in.for_field(&sem::Export::parameters));
+    }
+}
+
+
+template class proto_serde<::orgproto::Verse, sem::Block>;
+template class proto_serde<::orgproto::Export, sem::Block>;
+template class proto_serde<::orgproto::AdmonitionBlock, sem::Block>;
+template class proto_serde<::orgproto::Code, sem::Block>;
+template class proto_serde<::orgproto::Example, sem::Block>;

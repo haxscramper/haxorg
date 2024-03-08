@@ -91,6 +91,20 @@ def is_xray_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["xray"]
 
 
+def get_py_env(ctx: Context) -> Dict[str, str]:
+    if ctx.config.get("instrument")["asan"]:
+        return {
+            "LD_PRELOAD":
+                str(
+                    get_llvm_root(
+                        f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
+                    ))
+        }
+
+    else:
+        return {}
+
+
 def run_command(
     ctx: Context,
     cmd: Union[str, Path],
@@ -107,9 +121,9 @@ def run_command(
     else:
         assert which(cmd), cmd
 
-    args_repr = " ".join((str(s) for s in args))
+    args_repr = " ".join((f"'[cyan]{s}[/cyan]'" for s in args))
 
-    log("tasks").debug(f"Running [red]{cmd}[/red] [cyan]{args_repr}[/cyan]")
+    log("tasks").debug(f"Running [red]{cmd}[/red] {args_repr}")
 
     run = local[cmd]
     if env:
@@ -148,9 +162,12 @@ TASK_DEPS: Dict[Callable, List[Callable]] = {}
 
 
 @beartype
-def org_task(task_name: Optional[str] = None,
-             pre: List[Callable] = [],
-             force_notify: bool = False) -> Callable:
+def org_task(
+    task_name: Optional[str] = None,
+    pre: List[Callable] = [],
+    force_notify: bool = False,
+    **kwargs,
+) -> Callable:
 
     def org_inner(func: Callable) -> Callable:
         TASK_DEPS[func] = pre
@@ -181,7 +198,7 @@ def org_task(task_name: Optional[str] = None,
 
             return result
 
-        return task(wrapper, pre=pre)
+        return task(wrapper, pre=pre, **kwargs)
 
     return org_inner
 
@@ -465,6 +482,20 @@ LLDB_AUTO_BACKTRACE: List[str] = [
 ]
 
 
+def get_lldb_py_import() -> List[str]:
+    return [
+        "-o",
+        f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}"
+    ]
+
+
+def get_lldb_source_on_crash() -> List[str]:
+    return [
+        "--source-on-crash",
+        str(get_script_root("scripts/cxx_repository/lldb-script.txt"))
+    ]
+
+
 @org_task(pre=[cmake_haxorg])
 def haxorg_code_forensics(ctx: Context, debug: bool = False):
     "Generate code forensics dump for the repository"
@@ -482,12 +513,10 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
         run_command(ctx, "lldb", [
             str(tool),
             "--batch",
-            "-o",
-            f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}",
+            *get_lldb_py_import(),
             "-o",
             "run",
-            "--source-on-crash",
-            str(get_script_root("scripts/cxx_repository/lldb-script.txt")),
+            *get_lldb_source_on_crash(),
             json.dumps(config),
         ])
     else:
@@ -500,7 +529,7 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = get_script_root("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg.cpp"
+    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
 
     with FileOperation.InTmp(
             input=[
@@ -535,17 +564,8 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
             log("tasks").info("Updated reflection")
 
         else:
-            log("tasks").info("Python reflection run not needed " + op.explain("py haxorg reflection"))
-
-
-
-LD_PRELOAD_ASAN = {
-    "LD_PRELOAD":
-        str(
-            get_llvm_root(
-                f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
-            ))
-}
+            log("tasks").info("Python reflection run not needed " +
+                              op.explain("py haxorg reflection"))
 
 
 # TODO Make compiled reflection generation build optional
@@ -563,7 +583,7 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
                     get_build_root(),
                     get_script_root(),
                 ],
-                env=LD_PRELOAD_ASAN)
+                env=get_py_env(ctx))
 
     log("tasks").info("Updated code definitions")
 
@@ -721,57 +741,94 @@ def org_coverage(ctx: Context):
 
 
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
-def py_tests(
+def py_cli(
     ctx: Context,
-    debug_test: Optional[str] = None,
-    pytest_pass: List[str] = [],
+    arg: List[str] = [],
 ):
+    log("tasks").info(get_py_env(ctx))
+    log("tasks").info(arg)
+    run_command(
+        ctx,
+        "poetry",
+        ["run", get_script_root("scripts/py_cli/haxorg.py"), *arg],
+        env=get_py_env(ctx),
+    )
+
+
+def get_poetry_lldb(test: str) -> list[str]:
+    return [
+        "run",
+        "lldb",  # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
+        # because the latter one is not guaranteed to be compiled with the python
+        # installed on the system. For example, 17.0.6 required python 3.10, but the
+        # arch linux already moved to 3.11 here.
+        "--batch",
+        *get_lldb_py_import(),
+        "-o",
+        f"run {test}",
+        *get_lldb_source_on_crash(),
+        "--",
+        "python",
+    ]
+
+
+@task(iterable=["arg"])
+def py_debug_script(ctx: Context, arg):
+    run_command(
+        ctx,
+        "poetry",
+        get_poetry_lldb(" ".join(arg)),
+        allow_fail=True,
+        env=get_py_env(ctx),
+    )
+
+
+@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
+def py_test_debug(ctx: Context, test: str):
+    log("tasks").info(get_py_env(ctx))
+    test: Path = Path(test)
+    if not test.is_absolute():
+        test = get_script_root(test)
+
+    retcode, _, _ = run_command(
+        ctx,
+        "poetry",
+        get_poetry_lldb(test),
+        allow_fail=True,
+        env=get_py_env(ctx),
+    )
+
+    if retcode != 0:
+        exit(1)
+
+
+@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files], iterable=["arg"])
+def py_tests(ctx: Context, arg: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues. 
     """
 
-    log("tasks").info(LD_PRELOAD_ASAN)
+    log("tasks").info(get_py_env(ctx))
 
-    if debug_test:
-        debug_test: Path = Path(debug_test)
-        if not debug_test.is_absolute():
-            debug_test = get_script_root("tests").joinpath(debug_test)
+    retcode, _, _ = run_command(
+        ctx,
+        "poetry",
+        [
+            "run",
+            "pytest",
+            "-v",
+            "-ra",
+            "-s",
+            "--tb=short",
+            "--cov=scripts",
+            "--cov-report=html",
+            *arg,
+        ],
+        allow_fail=True,
+        env=get_py_env(ctx),
+    )
 
-        retcode, _, _ = run_command(
-            ctx,
-            "poetry",
-            [
-                "run",
-                "lldb",  # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
-                # because the latter one is not guaranteed to be compiled with the python
-                # installed on the system. For example, 17.0.6 required python 3.10, but the
-                # arch linux already moved to 3.11 here.
-                "--batch",
-                "-o",
-                f"run {debug_test}",
-                *LLDB_AUTO_BACKTRACE,
-                "--",
-                "python",
-            ],
-            allow_fail=True,
-            env=LD_PRELOAD_ASAN,
-        )
-
-    else:
-        retcode, _, _ = run_command(
-            ctx,
-            "poetry",
-            [
-                "run", "pytest", "-v", "-ra", "-s", "--tb=short", *pytest_pass
-                # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
-                # "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
-                # "--hypothesis-show-statistics",
-                # "--hypothesis-seed=11335865684259357953579948907097829183"
-            ],
-            allow_fail=True,
-            env=LD_PRELOAD_ASAN,
-        )
     if retcode != 0:
         exit(1)
 

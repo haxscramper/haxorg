@@ -45,6 +45,13 @@ struct Empty : public Org {
   Empty(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
+struct Cell : public Org {
+  Q_GADGET
+  public:
+  Cell() = default;
+  Cell(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
 struct Row : public Org {
   Q_GADGET
   public:
@@ -154,6 +161,20 @@ struct Caption : public Attached {
   void setText(org_qml::Paragraph text);
 };
 
+struct CmdName : public Attached {
+  Q_GADGET
+  public:
+  CmdName() = default;
+  CmdName(sem::SemId<sem::Org> const& id) : Attached(id) {}
+};
+
+struct CmdResults : public Attached {
+  Q_GADGET
+  public:
+  CmdResults() = default;
+  CmdResults(sem::SemId<sem::Org> const& id) : Attached(id) {}
+};
+
 struct CommandGroup : public Stmt {
   Q_GADGET
   public:
@@ -203,6 +224,19 @@ struct CmdArguments : public Org {
   CmdArguments(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
+struct CmdAttr : public Attached {
+  Q_GADGET
+  public:
+  CmdAttr() = default;
+  CmdAttr(sem::SemId<sem::Org> const& id) : Attached(id) {}
+  Q_PROPERTY( QString target READ getTarget WRITE setTarget )
+  Q_PROPERTY( org_qml::CmdArguments parameters READ getParameters WRITE setParameters )
+  QString getTarget();
+  void setTarget(QString target);
+  org_qml::CmdArguments getParameters();
+  void setParameters(org_qml::CmdArguments parameters);
+};
+
 struct CmdArgument : public Org {
   Q_GADGET
   public:
@@ -234,6 +268,13 @@ struct AdmonitionBlock : public Block {
   public:
   AdmonitionBlock() = default;
   AdmonitionBlock(sem::SemId<sem::Org> const& id) : Block(id) {}
+};
+
+struct Call : public Org {
+  Q_GADGET
+  public:
+  Call() = default;
+  Call(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Code : public Block {
@@ -622,6 +663,7 @@ Q_DECLARE_METATYPE(org_qml::Stmt)
 Q_DECLARE_METATYPE(org_qml::Inline)
 Q_DECLARE_METATYPE(org_qml::StmtList)
 Q_DECLARE_METATYPE(org_qml::Empty)
+Q_DECLARE_METATYPE(org_qml::Cell)
 Q_DECLARE_METATYPE(org_qml::Row)
 Q_DECLARE_METATYPE(org_qml::Table)
 Q_DECLARE_METATYPE(org_qml::HashTag)
@@ -635,6 +677,8 @@ Q_DECLARE_METATYPE(org_qml::LineCommand)
 Q_DECLARE_METATYPE(org_qml::Standalone)
 Q_DECLARE_METATYPE(org_qml::Attached)
 Q_DECLARE_METATYPE(org_qml::Caption)
+Q_DECLARE_METATYPE(org_qml::CmdName)
+Q_DECLARE_METATYPE(org_qml::CmdResults)
 Q_DECLARE_METATYPE(org_qml::CommandGroup)
 Q_DECLARE_METATYPE(org_qml::Block)
 Q_DECLARE_METATYPE(org_qml::Tblfm)
@@ -642,9 +686,11 @@ Q_DECLARE_METATYPE(org_qml::Quote)
 Q_DECLARE_METATYPE(org_qml::Verse)
 Q_DECLARE_METATYPE(org_qml::Example)
 Q_DECLARE_METATYPE(org_qml::CmdArguments)
+Q_DECLARE_METATYPE(org_qml::CmdAttr)
 Q_DECLARE_METATYPE(org_qml::CmdArgument)
 Q_DECLARE_METATYPE(org_qml::Export)
 Q_DECLARE_METATYPE(org_qml::AdmonitionBlock)
+Q_DECLARE_METATYPE(org_qml::Call)
 Q_DECLARE_METATYPE(org_qml::Code)
 Q_DECLARE_METATYPE(org_qml::Time)
 Q_DECLARE_METATYPE(org_qml::TimeRange)

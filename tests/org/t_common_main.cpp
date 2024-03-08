@@ -56,6 +56,8 @@ const char* __asan_default_options() {
     return "verbosity=1:detect_leaks=0";
 }
 
+extern void enable_full_trace_on_cli();
+
 class LinePrinterLogSink : public absl::LogSink {
   public:
     LinePrinterLogSink(const char* path) : file(path) {}
@@ -130,6 +132,8 @@ int main(int argc, char** argv) {
             // Adds a listener to the end. Google Test takes the ownership.
             delete listeners.Release(listeners.default_result_printer());
             listeners.Append(new QuietTestPrinter());
+        } else if (std::string(argv[i]) == "--trace_all_test") {
+            enable_full_trace_on_cli();
         }
     }
 

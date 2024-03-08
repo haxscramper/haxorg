@@ -11,8 +11,8 @@
 #include <hstd/stdlib/diffs.hpp>
 #include <fstream>
 #include <cstdlib>
-#include <gtest/gtest.h>
 #include <sem/perfetto_org.hpp>
+#include <sem/SemOrgFormat.hpp>
 
 #ifdef ORG_USE_PERFETTO
 #    pragma clang diagnostic ignored "-Wmacro-redefined"
@@ -148,25 +148,12 @@ Vec<DiffItem> json_diff(
 }
 
 
-void CorpusRunner::writeFileOrStdout(
-    const fs::path&    target,
-    const std::string& content,
-    bool               useFile) {
-    if (useFile) {
-        writeFile(target, content);
-
-    } else {
-        std::cout << content;
-    }
-}
-
 void format(
     ColStream&               os,
     CR<FormattedDiff>        text,
     Func<ColText(int, bool)> formatCb,
     int                      lhsSize          = 48,
     int                      rhsSize          = 16,
-    bool                     useQFormat       = false,
     bool                     dropLeadingKeep  = false,
     bool                     dropTrailingKeep = false) {
     if (text.isUnified()) {
@@ -209,17 +196,15 @@ void format(
             auto const& lhs = lines[i].first;
             auto const& rhs = lines[i].second;
 
-            auto lhsStyle = useQFormat ? ColStyle() : toStyle(lhs.prefix);
-            auto rhsStyle = useQFormat ? ColStyle() : toStyle(rhs.prefix);
+            auto lhsStyle = toStyle(lhs.prefix);
+            auto rhsStyle = toStyle(rhs.prefix);
 
             os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
                << ((lhs.empty() ? ColText("")
                                 : formatCb(lhs.index().value(), true)
                                       .withStyle(lhsStyle))
                    <<= lhsSize)
-               << (useQFormat
-                       ? ColText("")
-                       : (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2))
+               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
                << ((rhs.empty() ? ColText("")
                                 : formatCb(rhs.index().value(), false)
                                       .withStyle(rhsStyle))
@@ -442,53 +427,6 @@ void exporterVisit(
     trace.endStream(os);
 }
 
-CorpusRunner::ExportResult CorpusRunner::runExporter(
-    ParseSpec const&                 spec,
-    sem::SemId<sem::Org>             top,
-    const ParseSpec::ExporterExpect& exp) {
-    using ER = ExportResult;
-
-    auto strForStore = [](layout::SimpleStringStore const& store)
-        -> Func<Str(layout::LytStr)> {
-        return [&](layout::LytStr str) { return store.str(str); };
-    };
-
-    auto withTreeExporter =
-        [this, &strForStore](
-            sem::SemId<sem::Org> top, layout::BlockStore& b, auto& run) {
-            auto block = run.evalTop(top);
-            return ER(ER::Text{
-                .textLyt = toTextLyt(b, block, strForStore(run.store))});
-        };
-
-    if (exp.name == "json") {
-        return ER(ER::Structured{.data = ExporterJson().evalTop(top)});
-    } else if (exp.name == "sexp") {
-        ExporterSimpleSExpr run;
-        return withTreeExporter(top, run.b, run);
-
-    } else {
-        throw std::domain_error(
-            "Unexpected export result name " + exp.name);
-    }
-}
-
-CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
-    const ParseSpec::ExporterExpect& exp,
-    const ExportResult&              result) {
-    RunResult::ExportCompare::Run cmp;
-    cmp.isOk = true;
-    ColStream os;
-    switch (result.getKind()) {
-        default: {
-            DLOG(ERROR) << ("TODO" + fmt1(result.getKind()));
-            cmp.isOk = true;
-        }
-    }
-
-    cmp.failDescribe = os.getBuffer();
-    return cmp;
-}
 
 template <typename K, typename V>
 CorpusRunner::RunResult::LexCompare compareTokens(
@@ -522,7 +460,6 @@ CorpusRunner::RunResult::LexCompare compareTokens(
         ColStream os;
         int       lhsSize = 48;
         int       rhsSize = 30;
-        bool      inQt    = useQFormat();
 
         format(
             os,
@@ -533,21 +470,12 @@ CorpusRunner::RunResult::LexCompare compareTokens(
 
                 HDisplayOpts opts{};
                 opts.flags.excl(HDisplayFlag::UseQuotes);
-                if (useQFormat()) {
-                    opts.flags.incl(HDisplayFlag::UseAscii);
-                }
-
-                std::string pattern = //
-                    useQFormat()
-                        ? (isLhs ? "${kind} \"${text}\" <"
-                                 : "> \"${text}\" ${kind}")
-                        : "${index} ${kind} ${text}";
 
                 std::string text = escape_literal(
                     hshow(get_token_text(tok), opts).toString(false));
 
                 std::string result = //
-                    pattern
+                    "${index} ${kind} ${text}"
                     % fold_format_pairs({
                         {"index", fmt1(id)},
                         {"kind", fmt1(tok.kind)},
@@ -556,15 +484,10 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                     });
 
                 auto indexFmt = Str(std::format("[{}]", id));
-                return useQFormat()
-                         ? (isLhs
-                                ? indexFmt + right_aligned(result, lhsSize)
-                                : left_aligned(result, rhsSize) + indexFmt)
-                         : result;
+                return result;
             },
             lhsSize,
             rhsSize,
-            useQFormat(),
             false,
             false);
 
@@ -641,7 +564,6 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
             48,
             16,
             false,
-            false,
             false);
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
@@ -667,29 +589,57 @@ void filterFields(
     }
 }
 
+yaml toTestYaml(sem::OrgArg arg) {
+    ExporterYaml exporter;
+    exporter.skipNullFields  = true;
+    exporter.skipFalseFields = true;
+    exporter.skipZeroFields  = true;
+    exporter.skipLocation    = true;
+    exporter.skipId          = true;
+    return exporter.evalTop(arg);
+}
+
+json toTestJson(sem::OrgArg arg) {
+    ExporterJson exporter;
+    exporter.skipEmptyLists = true;
+    exporter.skipNullFields = true;
+    json converted          = exporter.evalTop(arg);
+    filterFields(converted, {"loc"});
+    return converted;
+}
+
 CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     CR<ParseSpec>        spec,
     sem::SemId<sem::Org> node,
     json                 expected) {
 
-    ExporterJson     exporter;
-    OperationsTracer trace{spec.debugFile("sem_export_trace.txt")};
-    exporter.visitEventCb = [&](ExporterJson::VisitEvent const& ev) {
-        exporterVisit<ExporterJson>(trace, ev);
-    };
-
-    json converted = exporter.evalTop(node);
-    filterFields(converted, {"loc"});
+    json          converted = toTestJson(node);
     Vec<DiffItem> diff      = json_diff(converted, expected);
     int           failCount = 0;
     ColStream     os;
-    if (useQFormat()) { os.colored = false; }
     UnorderedMap<std::string, DiffItem> ops;
 
 
     for (auto const& it : diff) {
         json::json_pointer path{it.path};
         if (!path.empty() && it.op == DiffItem::Op::Remove) {
+            continue;
+        } else if (
+            it.op == DiffItem::Op::Add       //
+            && it.value.is_object()          //
+            && it.value.contains("kind")     //
+            && it.value["kind"] == "Newline" //
+        ) {
+            continue;
+        } else if (
+            it.op == DiffItem::Op::Replace && it.value.is_string()
+            && (rs::all_of(
+                    it.value.get<std::string>(),
+                    [](char c) { return c == '\n'; })
+                || //
+                rs::all_of(it.value.get<std::string>(), [](char c) {
+                    return c == ' ';
+                }))) {
             continue;
         } else {
             ++failCount;
@@ -747,124 +697,243 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     }
 }
 
+
 CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
     CR<std::string> from) {
     __perf_trace("run spec");
     MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
-    { // Input source
-        if (spec.debug.printSource) {
-            writeFile(spec.debugFile("source.org"), spec.source);
+    if (spec.debug.traceAll || spec.debug.printSource) {
+        writeFile(spec, "source.org", spec.source);
+    }
+
+    auto skip = RunResult{RunResult::Skip{}};
+
+    if (!spec.debug.doLexBase) { return skip; }
+    auto base_lex_result = runSpecBaseLex(p, spec);
+    if (!base_lex_result.isOk) { return RunResult{base_lex_result}; }
+
+    if (!spec.debug.doLex) { return skip; }
+    auto lex_result = runSpecLex(p, spec);
+    if (!lex_result.isOk) { return RunResult{lex_result}; }
+
+    if (!spec.debug.doParse) { return skip; }
+    auto parse_result = runSpecParse(p, spec);
+    if (!parse_result.isOk) { return RunResult{parse_result}; }
+
+    if (!spec.debug.doSem) { return skip; }
+    auto sem_result = runSpecSem(p, spec);
+    if (!parse_result.isOk) { return RunResult{sem_result}; }
+
+    if (!spec.debug.doFormatReparse) { return skip; }
+
+    inRerun              = true;
+    ParseSpec      rerun = spec;
+    MockFull       p2(spec.debug.traceParse, spec.debug.traceLex);
+    sem::Formatter formatter;
+    auto           fmt_result = formatter.toString(
+        p.node, sem::Formatter::Context{});
+    rerun.source      = formatter.store.toString(fmt_result);
+    rerun.base_tokens = std::nullopt;
+    rerun.subnodes    = std::nullopt;
+    rerun.tokens      = std::nullopt;
+    rerun.sem         = toTestJson(p.node);
+    rerun.debug.debugOutDir.append("_reformat");
+
+    if (spec.debug.traceAll || spec.debug.printSource) {
+        writeFile(
+            rerun,
+            "org2_format_tree.org",
+            formatter.store.toTreeRepr(fmt_result));
+        writeFile(rerun, "org2_format.org", rerun.source);
+        writeFile(rerun, "org2_source.org", spec.source);
+    }
+
+    runSpecBaseLex(p2, rerun);
+    runSpecLex(p2, rerun);
+    runSpecParse(p2, rerun);
+    auto reformat_result = runSpecSem(p2, rerun);
+    if (!reformat_result.isOk || spec.debug.traceAll
+        || spec.debug.printSem) {
+
+        auto read = [](char c) { return visibleName(c).first; };
+
+        writeFile(rerun, "sem2_expected.yaml", fmt1(toTestYaml(p.node)));
+        writeFile(rerun, "sem2_parsed.yaml", fmt1(toTestYaml(p2.node)));
+        writeFile(
+            rerun,
+            "sem2_reformat_fail.txt",
+            R"(
+
+source:
+
+${split}
+${source}
+${split}
+
+formatted:
+
+${split}
+${formatted}
+${split}
+
+sourcearray:
+
+${split}
+${sourcearray}
+${split}
+
+formattedarray:
+
+${split}
+${formattedarray}
+${split}
+
+blocks:
+
+${split}
+${blocks}
+${split}
+
+fail:
+
+${split}
+${fail}
+${split}
+)"
+                % fold_format_pairs({
+                    {"split", Str("-").repeated(60)},
+                    {"blocks", formatter.store.toTreeRepr(fmt_result)},
+                    {"source", spec.source},
+                    {"formatted", rerun.source},
+                    {"formattedarray",
+                     fmt1(
+                         rerun.source | rv::transform(read)
+                         | rs::to<std::vector>())},
+                    {"sourcearray",
+                     fmt1(
+                         spec.source | rv::transform(read)
+                         | rs::to<std::vector>())},
+                    {"fail", reformat_result.failDescribe.toString(false)},
+                }));
+    }
+
+    if (!reformat_result.isOk) { return RunResult{reformat_result}; }
+
+    return RunResult();
+}
+
+CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
+    MockFull&     p,
+    CR<ParseSpec> spec) {
+    __perf_trace("lex base");
+
+    SPtr<std::ofstream> fileTrace;
+    if (spec.debug.traceAll || spec.debug.traceLexBase) {
+        fileTrace = std::make_shared<std::ofstream>(
+            spec.debugFile("trace_lex_base.log"));
+    }
+
+    LexerParams params;
+    params.maxUnknown  = spec.debug.maxBaseLexUnknownCount;
+    params.traceStream = fileTrace.get();
+    __perf_trace("tokenize base");
+    p.tokenizeBase(spec.source, params);
+
+    if (spec.debug.traceAll || spec.debug.printBaseLexed
+        || spec.debug.printBaseLexedToFile) {
+        auto content = std::format("{}", yamlRepr(p.baseTokens));
+
+        if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
+            writeFile(spec, "base_lexed.yaml", content + "\n");
+        } else {
+            std::cout << content << std::endl;
         }
     }
 
+    if (spec.base_tokens.has_value()) {
+        Str                   buffer;
+        RunResult::LexCompare result = compareTokens(
+            p.baseTokens,
+            fromFlatTokens<OrgTokenKind, OrgFill>(
+                spec.base_tokens.value(), buffer),
+            spec.conf.tokenMatch,
+            [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
+                if (lhs.kind != rhs.kind) {
+                    return false;
+                } else if (lhs.value.text != rhs.value.text) {
+                    return false;
+                } else {
+                    return true;
+                }
+            },
+            [](CR<OrgToken> tok) { return tok.value.text; });
 
-    { // Lexing
-        __perf_trace("lex");
-        if (spec.debug.doLexBase) {
-            SPtr<std::ofstream> fileTrace;
-            if (spec.debug.traceAll || spec.debug.traceLexBase) {
-                fileTrace = std::make_shared<std::ofstream>(
-                    spec.debugFile("trace_lex_base.log"));
-            }
+        return result;
+    } else {
+        return CorpusRunner::RunResult::LexCompare{{.isOk = true}};
+    }
+}
 
-            LexerParams params;
-            params.maxUnknown  = spec.debug.maxBaseLexUnknownCount;
-            params.traceStream = fileTrace.get();
-            __perf_trace("tokenize base");
-            p.tokenizeBase(spec.source, params);
+CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
+    MockFull&     p,
+    CR<ParseSpec> spec) {
+    __perf_trace("lex");
+
+    p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
+    p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
+
+    __perf_trace("tokenize convert");
+    p.tokenizeConvert();
+
+    if (spec.debug.traceAll || spec.debug.printLexed
+        || spec.debug.printLexedToFile) {
+        auto content = std::format("{}", yamlRepr(p.tokens));
+
+        __perf_trace("write lexer yaml file");
+        if (spec.debug.traceAll || spec.debug.printLexedToFile) {
+            writeFile(spec, "lexed.yaml", content + "\n");
         } else {
-            return RunResult{};
-        }
-
-        if (spec.debug.traceAll || spec.debug.printBaseLexed
-            || spec.debug.printBaseLexedToFile) {
-            auto content = std::format("{}", yamlRepr(p.baseTokens));
-
-            if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
-                writeFile(
-                    spec.debugFile("base_lexed.yaml"), content + "\n");
-            } else {
-                std::cout << content << std::endl;
-            }
-        }
-
-        if (spec.debug.doLex) {
-            p.tokenizer->TraceState = spec.debug.traceAll
-                                   || spec.debug.traceLex;
-            if (spec.debug.traceAll || spec.debug.lexToFile) {
-                p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
-            }
-
-            __perf_trace("tokenize convert");
-            p.tokenizeConvert();
-        } else {
-            return RunResult{};
-        }
-
-        if (spec.debug.traceAll || spec.debug.printLexed
-            || spec.debug.printLexedToFile) {
-            auto content = std::format("{}", yamlRepr(p.tokens));
-
-            __perf_trace("write lexer yaml file");
-            if (spec.debug.traceAll || spec.debug.printLexedToFile) {
-                writeFile(spec.debugFile("lexed.yaml"), content + "\n");
-            } else {
-                std::cout << content << std::endl;
-            }
-        }
-
-
-        if (spec.base_tokens.has_value()) {
-            Str                   buffer;
-            RunResult::LexCompare result = compareTokens(
-                p.baseTokens,
-                fromFlatTokens<OrgTokenKind, OrgFill>(
-                    spec.base_tokens.value(), buffer),
-                spec.conf.tokenMatch,
-                [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
-                    if (lhs.kind != rhs.kind) {
-                        return false;
-                    } else if (lhs.value.text != rhs.value.text) {
-                        return false;
-                    } else {
-                        return true;
-                    }
-                },
-                [](CR<OrgToken> tok) { return tok.value.text; });
-
-            if (!result.isOk) { return RunResult(result); }
-        }
-
-        if (spec.tokens.has_value()) {
-            Str                   buffer;
-            RunResult::LexCompare result = compareTokens(
-                p.tokens,
-                fromFlatTokens<OrgTokenKind, OrgFill>(
-                    spec.tokens.value(), buffer),
-                spec.conf.tokenMatch,
-                [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
-                    if (lhs.kind != rhs.kind) {
-                        return false;
-                    } else if (
-                        // Not 100% 'equal', but ATTW I want to save on
-                        // debugging why 'given' in tests sometimes has a
-                        // non-empty base and sometimes it is a true
-                        // nullopt_t value.
-                        lhs->text != rhs->text) {
-                        return false;
-                    } else {
-                        return true;
-                    }
-                },
-                [](CR<OrgToken> tok) { return tok->text; });
-
-            if (!result.isOk) { return RunResult(result); }
+            std::cout << content << std::endl;
         }
     }
+
+    if (spec.tokens.has_value()) {
+        Str                   buffer;
+        RunResult::LexCompare result = compareTokens(
+            p.tokens,
+            fromFlatTokens<OrgTokenKind, OrgFill>(
+                spec.tokens.value(), buffer),
+            spec.conf.tokenMatch,
+            [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
+                if (lhs.kind != rhs.kind) {
+                    return false;
+                } else if (
+                    // Not 100% 'equal', but ATTW I want to save on
+                    // debugging why 'given' in tests sometimes has a
+                    // non-empty base and sometimes it is a true
+                    // nullopt_t value.
+                    lhs->text != rhs->text) {
+                    return false;
+                } else {
+                    return true;
+                }
+            },
+            [](CR<OrgToken> tok) { return tok->text; });
+
+        return result;
+    } else {
+        return RunResult::LexCompare{{.isOk = true}};
+    }
+}
+
+CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
+    MockFull&     p,
+    CR<ParseSpec> spec) {
+
+    __perf_trace("parse");
     using Pos = OrgNodeGroup::TreeReprConf::WritePos;
-
     UnorderedMap<OrgId, int> parseAddedOnLine;
 
     auto writeImpl =
@@ -904,177 +973,144 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             }
         };
 
-    { // Parsing
-        __perf_trace("parse");
-        if (spec.debug.doParse) {
-            p.parser->TraceState = spec.debug.traceAll
-                                || spec.debug.traceParse;
 
-            if (spec.debug.traceAll || spec.debug.parseToFile) {
-                p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
-            }
+    p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
+    p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
 
-            p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
-                if (rep.kind == OrgParser::ReportKind::AddToken
-                    || rep.kind == OrgParser::ReportKind::StartNode) {
-                    parseAddedOnLine.insert_or_assign(*rep.node, rep.line);
-                }
-            };
+    p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
+        if (rep.kind == OrgParser::ReportKind::AddToken
+            || rep.kind == OrgParser::ReportKind::StartNode) {
+            parseAddedOnLine.insert_or_assign(*rep.node, rep.line);
+        }
+    };
 
-            (void)p.parser->parseTop(p.lex);
+    (void)p.parser->parseTop(p.lex);
 
-            if (spec.debug.traceAll || spec.debug.printParsed
-                || spec.debug.printParsedToFile) {
-                writeFile(
-                    spec.debugFile("parsed_non_extended.yaml"),
-                    std::format("{}", yamlRepr(p.nodes)) + "\n");
-            }
+    if (spec.debug.traceAll || spec.debug.printParsed
+        || spec.debug.printParsedToFile) {
+        writeFile(
+            spec,
+            "parsed_non_extended.yaml",
+            std::format("{}", yamlRepr(p.nodes)) + "\n");
+    }
 
-            p.parser->extendSubtreeTrails(OrgId(0));
+    p.parser->extendSubtreeTrails(OrgId(0));
 
-            if (spec.debug.traceAll || spec.debug.printParsed
-                || spec.debug.printParsedToFile) {
-                writeFile(
-                    spec.debugFile("parsed.yaml"),
-                    std::format("{}", yamlRepr(p.nodes)) + "\n");
+    if (spec.debug.traceAll || spec.debug.printParsed
+        || spec.debug.printParsedToFile) {
+        writeFile(
+            spec,
+            "parsed.yaml",
+            std::format("{}", yamlRepr(p.nodes)) + "\n");
 
-                for (auto const& [colored, path] : Vec<Pair<bool, Str>>{
-                         {false, "parsed.txt"},
-                         {true, "parsed_colored.ansi"}}) {
-                    std::stringstream buffer;
-                    ColStream         text{buffer};
-                    text.colored = colored;
+        for (auto const& [colored, path] : Vec<Pair<bool, Str>>{
+                 {false, "parsed.txt"}, {true, "parsed_colored.ansi"}}) {
+            std::stringstream buffer;
+            ColStream         text{buffer};
+            text.colored = colored;
 
-                    OrgAdapter(&p.nodes, OrgId(0))
-                        .treeRepr(
-                            text,
-                            0,
-                            OrgNodeGroup::TreeReprConf{
-                                .customWrite = writeImpl});
+            OrgAdapter(&p.nodes, OrgId(0))
+                .treeRepr(
+                    text,
+                    0,
+                    OrgNodeGroup::TreeReprConf{.customWrite = writeImpl});
 
-                    writeFile(spec.debugFile(path), buffer.str() + "\n");
-                }
-            }
-        } else {
-            return RunResult{};
+            writeFile(spec, path, buffer.str() + "\n");
+        }
+    }
+
+
+    if (spec.subnodes.has_value()) {
+        Str           buffer;
+        OrgNodeGroup  nodes;
+        OrgTokenGroup tokens;
+
+        if (spec.tokens.has_value()) {
+            tokens = fromFlatTokens<OrgTokenKind, OrgFill>(
+                spec.tokens.value(), buffer);
         }
 
         if (spec.subnodes.has_value()) {
-            Str           buffer;
-            OrgNodeGroup  nodes;
-            OrgTokenGroup tokens;
-
-            if (spec.tokens.has_value()) {
-                tokens = fromFlatTokens<OrgTokenKind, OrgFill>(
-                    spec.tokens.value(), buffer);
-            }
-
-            if (spec.subnodes.has_value()) {
-                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind, OrgFill>(
-                    spec.subnodes.value());
-            }
-
-            nodes.tokens = &tokens;
-
-            RunResult::NodeCompare result = compareNodes(p.nodes, nodes);
-            if (!result.isOk) { return RunResult(result); }
+            nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind, OrgFill>(
+                spec.subnodes.value());
         }
+
+        nodes.tokens = &tokens;
+
+        return compareNodes(p.nodes, nodes);
+    } else {
+        return RunResult::NodeCompare{{.isOk = true}};
     }
-
-
-    { // Sem conversion
-        if (spec.debug.doSem) {
-            __perf_trace("sem convert");
-            sem::OrgConverter converter{};
-
-            converter.TraceState = spec.debug.traceAll
-                                || spec.debug.traceSem;
-            if (spec.debug.traceAll || spec.debug.semToFile) {
-                converter.setTraceFile(spec.debugFile("trace_sem.log"));
-            }
-
-            auto document = converter.toDocument(
-                OrgAdapter(&p.nodes, OrgId(0)));
-
-
-            if (spec.debug.traceAll || spec.debug.printSem
-                || spec.debug.printSemToFile) {
-                ExporterYaml exporter;
-                exporter.skipNullFields  = true;
-                exporter.skipFalseFields = true;
-                exporter.skipZeroFields  = true;
-                exporter.skipLocation    = true;
-                exporter.skipId          = true;
-                writeFileOrStdout(
-                    spec.debugFile("sem.yaml"),
-                    std::format("{}", exporter.evalTop(document)) + "\n",
-                    spec.debug.traceAll || spec.debug.printSemToFile);
-
-                {
-                    std::ofstream file{spec.debugFile("sem.txt")};
-                    ColStream     os{file};
-                    os.colored = false;
-                    ExporterTree tree{os};
-                    tree.evalTop(document);
-                }
-
-                {
-                    std::ofstream file{spec.debugFile("sem_colored.ansi")};
-                    ColStream     os{file};
-                    os.colored = true;
-                    ExporterTree tree{os};
-                    tree.evalTop(document);
-                }
-            }
-
-            if (spec.sem.has_value()) {
-                RunResult::SemCompare result = compareSem(
-                    spec, document, spec.sem.value());
-
-
-                if (!result.isOk) { return RunResult(result); }
-            }
-
-            if (!spec.exporters.empty()) {
-                RunResult::ExportCompare cmp;
-                for (auto const& exp : spec.exporters) {
-                    cmp.run.push_back(compareExport(
-                        exp, runExporter(spec, document, exp)));
-                }
-
-                return RunResult(cmp);
-            }
-        }
-    }
-
-    return RunResult();
 }
 
+CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
+    MockFull&     p,
+    CR<ParseSpec> spec) {
+    __perf_trace("sem convert");
+    sem::OrgConverter converter{};
 
-void gtest_run_spec(CR<TestParams> params) {
+    converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
+    converter.setTraceFile(spec.debugFile("trace_sem.log"));
+
+    auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    p.node        = document.asOrg();
+
+    if (spec.debug.traceAll || spec.debug.printSem
+        || spec.debug.printSemToFile) {
+
+        writeFileOrStdout(
+            spec.debugFile("sem.yaml"),
+            std::format("{}", toTestYaml(document)) + "\n",
+            spec.debug.traceAll || spec.debug.printSemToFile);
+
+        {
+            std::ofstream file{spec.debugFile("sem.txt")};
+            ColStream     os{file};
+            os.colored = false;
+            ExporterTree tree{os};
+            tree.evalTop(document);
+        }
+
+        {
+            std::ofstream file{spec.debugFile("sem_colored.ansi")};
+            ColStream     os{file};
+            os.colored = true;
+            ExporterTree tree{os};
+            tree.evalTop(document);
+        }
+    }
+
+    if (spec.sem.has_value()) {
+        return compareSem(spec, document, spec.sem.value());
+    } else {
+        return RunResult::SemCompare{{.isOk = true}};
+    }
+}
+
+TestResult gtest_run_spec(CR<TestParams> params) {
     auto spec              = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
-    using RunResult  = CorpusRunner::RunResult;
-    RunResult result = runner.runSpec(spec, params.file.native());
+    using RunResult   = CorpusRunner::RunResult;
+    RunResult  result = runner.runSpec(spec, params.file.native());
+    TestResult test;
 
-    if (result.isOk()
-        && !(spec.debug.doLex && spec.debug.doParse && spec.debug.doSem)) {
-        GTEST_SKIP() << "Partially covered test: "
-                     << (spec.debug.doLex ? "" : "lex is disabled ")     //
-                     << (spec.debug.doParse ? "" : "parse is disabled ") //
-                     << (spec.debug.doSem ? "" : "sem is disabled ");
+    if (result.isOk() && result.isSkip()) {
+        test.data = TestResult::Skip{
+            .msg = fmt(
+                "Partially covered test: {}{}{}",
+                spec.debug.doLex ? "" : "lex is disabled ",
+                spec.debug.doParse ? "" : "parse is disabled ",
+                spec.debug.doSem ? "" : "sem is disabled "),
+        };
     } else if (result.isOk()) {
-        SUCCEED();
+        test.data = TestResult::Success{};
     } else {
         spec.debug = ParseSpec::Dbg{
             .debugOutDir      = "/tmp/corpus_runs/" + params.testName(),
             .traceLex         = true,
             .traceParse       = true,
             .traceSem         = true,
-            .lexToFile        = true,
-            .parseToFile      = true,
-            .semToFile        = true,
             .printLexed       = true,
             .printBaseLexed   = true,
             .printParsed      = true,
@@ -1085,12 +1121,6 @@ void gtest_run_spec(CR<TestParams> params) {
             .printSemToFile       = true,
         };
 
-        for (auto& exporter : spec.exporters) {
-            exporter.doTrace     = true;
-            exporter.print       = true;
-            exporter.printToFile = true;
-        }
-
         RunResult fail = runner.runSpec(spec, params.file.native());
         ColText   os;
 
@@ -1099,31 +1129,20 @@ void gtest_run_spec(CR<TestParams> params) {
                 [&](CR<RunResult::CompareBase> node) {
                     os = node.failDescribe;
                 },
-                [&](RunResult::ExportCompare const& node) {
-                    for (auto const& exp : node.run) {
-                        os.append(exp.failDescribe);
-                        os.append(ColText("\n"));
-                    }
-                },
+                [&](RunResult::Skip const& node) {},
                 [&](RunResult::None const& node) {},
             },
             fail.data);
 
-        writeFile(spec.debugFile("failure.txt"), os.toString(false));
+        runner.writeFile(spec, "failure.txt", os.toString(false));
 
-        // for copy-pasting to the run parameters in qt creator
-        writeFile(
-            spec.debugFile("qt_run.txt"),
-            "--gtest_filter='CorpusAllParametrized/ParseFile.CorpusAll/"
-                + params.testName() + "'");
-
-        if (useQFormat()) {
-            FAIL() << params.fullName() << "failed, wrote debug to"
-                   << spec.debug.debugOutDir << "\n"
-                   << os.toString(false);
-        } else {
-            FAIL() << params.fullName() << " failed, , wrote debug to "
-                   << spec.debug.debugOutDir;
-        }
+        test.data = TestResult::Fail{
+            .msg = fmt(
+                "{} failed, , wrote debug to  {}",
+                params.fullName(),
+                spec.debug.debugOutDir),
+        };
     }
+
+    return test;
 }

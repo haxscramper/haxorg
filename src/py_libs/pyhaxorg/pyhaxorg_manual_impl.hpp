@@ -17,7 +17,7 @@
 #include <exporters/Exporter.hpp>
 #include <pybind11/stl_bind.h>
 
-
+#include <SemOrgProto.pb.h>
 #include <py_type_casters.hpp>
 
 #include <frameobject.h>
@@ -25,6 +25,43 @@
 namespace py = pybind11;
 
 PYBIND11_DECLARE_HOLDER_TYPE(T, sem::SemId<T>);
+
+template <typename E>
+class PyEnumIterator {
+  public:
+    explicit PyEnumIterator(E value = value_domain<E>::low())
+        : value(value) {}
+
+    E operator*() const { return value; }
+
+    PyEnumIterator& operator++() {
+        value = value_domain<E>::succ(value);
+        return *this;
+    }
+
+    bool operator!=(const PyEnumIterator& other) const {
+        return value_domain<E>::ord(value)
+            != value_domain<E>::ord(other.value);
+    }
+
+  private:
+    E value;
+};
+
+template <typename E>
+void bind_enum_iterator(py::module& m, const char* PyTypeName) {
+    py::class_<PyEnumIterator<E>>(
+        m, (std::string(PyTypeName) + "EnumIterator").c_str())
+        .def("__iter__", [](PyEnumIterator<E>& self) { return self; })
+        .def("__next__", [](PyEnumIterator<E>& self) {
+            auto current = *self;
+            if (current == value_domain<E>::high()) {
+                throw py::stop_iteration();
+            }
+            ++self;
+            return current;
+        });
+}
 
 template <typename T>
 void bind_int_set(py::module& m, const char* PyNameType) {
@@ -52,6 +89,17 @@ void bind_vector(py::module& m, const char* PyNameType) {
 }
 
 template <typename K, typename V>
+void bind_unordered_map(py::module& m, const char* PyNameType) {
+    py::bind_map<std::unordered_map<K, V>>(
+        m, (std::string(PyNameType) + "StdUnorderedMap").c_str());
+
+    pybind11::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
+        m, (std::string(PyNameType) + "UnorderedMap").c_str())
+        .def(pybind11::init<>())
+        .def(pybind11::init<const UnorderedMap<K, V>&>());
+}
+
+template <typename K, typename V>
 void bind_mapping(py::module& m, const char* PyNameType) {
     using M = UnorderedMap<K, V>;
 
@@ -65,6 +113,34 @@ void bind_mapping(py::module& m, const char* PyNameType) {
         .def("get", &M::get)
         .def("keys", &M::keys);
 }
+
+template <typename T>
+struct py_arg_convertor {
+    static void write(T& value, pybind11::handle const& py) {
+        value = py.cast<T>();
+    }
+};
+
+template <typename T>
+struct py_arg_convertor<Vec<T>> {
+    static void write(Vec<T>& value, pybind11::handle const& py) {
+        for (auto const& it : py) {
+            py_arg_convertor<T>::write(value.emplace_back(), it);
+        }
+    }
+};
+
+template <DescribedRecord R>
+void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
+    for_each_field_with_bases<R>([&](auto const& field) {
+        if (kwargs.contains(field.name)) {
+            auto& ref = value.*field.pointer;
+            py_arg_convertor<std::remove_cvref_t<decltype(ref)>>::write(
+                ref, kwargs[field.name]);
+        }
+    });
+}
+
 
 struct ExporterJson;
 struct ExporterYaml;
@@ -85,6 +161,8 @@ struct [[refl]] OrgExporterJson {
     [[refl]] void visitNode(sem::SemId<sem::Org> node /*! Input node */);
     [[refl]] std::string exportToString();
     [[refl]] void        exportToFile(std::string path);
+
+    BOOST_DESCRIBE_CLASS(OrgExporterJson, (), (), (), ());
 };
 
 struct [[refl]] ExporterTreeOpts {
@@ -94,12 +172,22 @@ struct [[refl]] ExporterTreeOpts {
     [[refl]] bool skipEmptyFields = true;
     [[refl]] int  startLevel      = 0;
     [[refl]] bool withColor       = true;
+
+    BOOST_DESCRIBE_CLASS(
+        ExporterTreeOpts,
+        (),
+        (withLineCol,
+         withOriginalId,
+         withSubnodeIdx,
+         skipEmptyFields,
+         startLevel,
+         withColor),
+        (),
+        ());
 };
 
+
 struct [[refl]] OrgExporterTree {
-    SPtr<ExporterTree> impl;
-    OrgExporterTree();
-    ColStream            os;
     [[refl]] std::string toString(
         sem::SemId<sem::Org> node,
         ExporterTreeOpts     opts);
@@ -112,6 +200,8 @@ struct [[refl]] OrgExporterTree {
         std::ostream&        stream,
         sem::SemId<sem::Org> node,
         ExporterTreeOpts     opts);
+
+    BOOST_DESCRIBE_CLASS(OrgExporterTree, (), (), (), ());
 };
 
 
@@ -125,6 +215,8 @@ struct [[refl]] OrgExporterYaml {
     [[refl]] void        visitNode(sem::SemId<sem::Org> node);
     [[refl]] std::string exportToString();
     [[refl]] void        exportToFile(std::string path);
+
+    BOOST_DESCRIBE_CLASS(OrgExporterYaml, (), (), (), ());
 };
 
 struct [[refl]] OrgContext {
@@ -132,9 +224,22 @@ struct [[refl]] OrgContext {
 
     OrgContext() {}
 
+    [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
+    [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;
+    [[refl]] Opt<std::string> parseTracePath     = std::nullopt;
+    [[refl]] Opt<std::string> semTracePath       = std::nullopt;
 
     [[refl]] sem::SemId<sem::Document> parseFile(std::string file);
     [[refl]] sem::SemId<sem::Document> parseString(std::string const text);
+    [[refl]] sem::SemId<sem::Document> parseProtobuf(
+        std::string const& file);
+    [[refl]] void saveProtobuf(
+        sem::SemId<sem::Document> doc,
+        std::string const&        file);
+
+    [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
+
+    BOOST_DESCRIBE_CLASS(OrgContext, (), (), (), ());
 };
 
 
@@ -150,6 +255,14 @@ enum class [[refl]] LeafFieldType
     Str,
     Any
 };
+
+template <>
+struct value_domain<LeafFieldType>
+    : value_domain_ungapped<
+          LeafFieldType,
+          LeafFieldType::Int,
+          LeafFieldType::Any> {};
+
 
 template <typename T>
 struct LeafKindForT;
@@ -199,6 +312,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     EXPORTER_USING()
 #undef __ExporterBase
 
+    BOOST_DESCRIBE_CLASS(ExporterPython, (), (), (), ());
+
     using PyFunc     = py::function;
     using Res        = py::object;
     using SemCbMap   = UnorderedMap<OrgSemKind, PyFunc>;
@@ -214,7 +329,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     [[refl]] void        enablePyStreamTrace(py::object stream);
     [[refl]] void        enableBufferTrace();
     [[refl]] std::string getTraceBuffer() const;
-    [[refl]] void        enableFileTrace(std::string const& path);
+    [[refl]] void enableFileTrace(std::string const& path, bool colored);
 
     Opt<PyFunc>   visitAnyNodeAround;
     [[refl]] void setVisitAnyIdAround(PyFunc cb) {

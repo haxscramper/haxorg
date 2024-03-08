@@ -8,6 +8,7 @@
 #include <absl/log/check.h>
 #include <numeric>
 #include <hstd/system/Formatter.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 using namespace layout;
 
@@ -25,13 +26,9 @@ int Solution::nextKnot() {
 
 void Solution::moveToMargin(int margin) {
     if (curKnot() > margin) {
-        while (curKnot() > margin) {
-            retreat();
-        }
+        while (curKnot() > margin) { retreat(); }
     } else {
-        while (nextKnot() <= margin && nextKnot() != infty) {
-            advance();
-        }
+        while (nextKnot() <= margin && nextKnot() != infty) { advance(); }
     }
 }
 
@@ -79,14 +76,10 @@ void Solution::add(
 ///   Solutions provided, and which associates the minimum-cost layout with
 ///   each piece.
 Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
-    if (solutions.size() == 1) {
-        return solutions[0];
-    }
+    if (solutions.size() == 1) { return solutions[0]; }
 
     Solution::Ptr factory = Solution::shared();
-    for (auto& s : solutions) {
-        s->reset();
-    }
+    for (auto& s : solutions) { s->reset(); }
 
     int n            = solutions.size();
     int kL           = 0;
@@ -148,9 +141,7 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
 
             Vec<int> crossovers;
             for (int d : distancesToCross) {
-                if (kL + d <= kH) {
-                    crossovers.push_back(kL + d);
-                }
+                if (kL + d <= kH) { crossovers.push_back(kL + d); }
             }
 
             if (!crossovers.empty()) { // Proceed to crossover in [kL, kH]
@@ -159,9 +150,7 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
             } else { // Proceed to next piece
                 kL = kH + 1;
                 if (kL < infty) {
-                    for (auto& s : solutions) {
-                        s->moveToMargin(kL);
-                    }
+                    for (auto& s : solutions) { s->moveToMargin(kL); }
                 }
                 break;
             }
@@ -181,9 +170,7 @@ Layout::Ptr getStacked(const Vec<Layout::Ptr>& layouts) {
     Vec<LayoutElement::Ptr> lElts;
 
     for (const auto& l : layouts) {
-        for (const auto& e : l->elements) {
-            lElts.push_back(e);
-        }
+        for (const auto& e : l->elements) { lElts.push_back(e); }
 
         lElts.push_back(LayoutElement::shared(LayoutElement::Newline()));
     }
@@ -202,13 +189,9 @@ Layout::Ptr getStacked(const Vec<Layout::Ptr>& layouts) {
 Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
     CHECK(solutions.size() > 0);
 
-    if (solutions.size() == 1) {
-        return solutions[0];
-    }
+    if (solutions.size() == 1) { return solutions[0]; }
 
-    for (auto& s : solutions) {
-        s->reset();
-    }
+    for (auto& s : solutions) { s->reset(); }
 
     int           margin = 0; // Margin for all components
     Solution::Ptr result = Solution::shared();
@@ -257,15 +240,11 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
             }
         }
 
-        if (isInf(dStar)) {
-            break;
-        }
+        if (isInf(dStar)) { break; }
 
         margin += dStar;
 
-        for (auto& s : solutions) {
-            s->moveToMargin(margin);
-        }
+        for (auto& s : solutions) { s->moveToMargin(margin); }
     }
 
     return result;
@@ -342,9 +321,7 @@ Solution::Ptr hPlusSolution(
         int kn1 = s1->nextKnot();
         int kn2 = s2->nextKnot();
 
-        if (isInf(kn1) && isInf(kn2)) {
-            break;
-        }
+        if (isInf(kn1) && isInf(kn2)) { break; }
 
         // Note in the following that one of kn1 or kn2 may be infinite.
         if (kn1 - s1Margin <= kn2 - s2Margin) {
@@ -489,9 +466,7 @@ Opt<Solution::Ptr> doOptLineLayout(
 
 
     /// Procedure to perform optimal line layout.
-    if (store.at(self).getLine().elements.size() == 0) {
-        return rest;
-    }
+    if (store.at(self).getLine().elements.size() == 0) { return rest; }
 
     Vec<Vec<BlockId>> elementLines;
     elementLines.push_back(Vec<BlockId>());
@@ -545,9 +520,7 @@ Opt<Solution::Ptr> doOptChoiceLayout(
     Vec<Solution::Ptr> tmp;
     for (auto& it : store.at(self).getChoice().elements) {
         Opt<Solution::Ptr> lyt = optLayout(store, it, rest, opts);
-        if (lyt.has_value()) {
-            tmp.push_back(lyt.value());
-        }
+        if (lyt.has_value()) { tmp.push_back(lyt.value()); }
     }
     return minSolution(tmp);
 }
@@ -559,9 +532,7 @@ Opt<Solution::Ptr> doOptStackLayout(
     CR<Options>         opts) {
 
     /// Optimum layout for this block arranges the elements vertically.
-    if (store.at(self).getStack().elements.size() == 0) {
-        return rest;
-    }
+    if (store.at(self).getStack().elements.size() == 0) { return rest; }
 
     Vec<Solution::Ptr> solnCandidates;
     for (size_t idx = 0; idx < store.at(self).getStack().elements.size();
@@ -570,14 +541,10 @@ Opt<Solution::Ptr> doOptStackLayout(
         if (idx < store.at(self).getStack().elements.size() - 1) {
             Opt<Solution::Ptr> it;
             auto               opt = optLayout(store, elem, it, opts);
-            if (opt) {
-                solnCandidates.push_back(*opt);
-            }
+            if (opt) { solnCandidates.push_back(*opt); }
         } else {
             auto opt = optLayout(store, elem, rest, opts);
-            if (opt) {
-                solnCandidates.push_back(*opt);
-            }
+            if (opt) { solnCandidates.push_back(*opt); }
         }
     }
 
@@ -585,9 +552,7 @@ Opt<Solution::Ptr> doOptStackLayout(
 
     // Under some odd circumstances involving comments, we may have a
     // degenerate solution. WARNING
-    if (soln->layouts.size() == 0) {
-        return rest;
-    }
+    if (soln->layouts.size() == 0) { return rest; }
 
     // Add the cost of the line breaks between the elements.
     return Opt<Solution::Ptr>(soln->plusConst(static_cast<float>(
@@ -847,6 +812,26 @@ int Block::size() const {
         data);
 }
 
+int Block::leafCount(CR<BlockStore> store) const {
+    auto recurseLeaves = [&](CVec<BlockId> sub) {
+        return rs::accumulate(
+            sub | rv::transform([&](CR<BlockId> id) -> int {
+                return store.store.at(id).leafCount(store);
+            }),
+            0);
+    };
+
+    return std::visit(
+        overloaded{
+            [&](CR<Wrap> w) { return recurseLeaves(w.wrapElements); },
+            [&](CR<Stack> s) { return recurseLeaves(s.elements); },
+            [&](CR<Choice> s) { return recurseLeaves(s.elements); },
+            [&](CR<Line> s) { return recurseLeaves(s.elements); },
+            [](const auto&) { return 1; },
+        },
+        data);
+}
+
 void Block::add(CR<BlockId> other) {
     return std::visit(
         overloaded{
@@ -962,9 +947,7 @@ BlockId BlockStore::horizontal(
 
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
         const auto& item = blocks[idx];
-        if (idx > 0) {
-            add_at(result, sep);
-        }
+        if (idx > 0) { add_at(result, sep); }
         add_at(result, item);
     }
 
@@ -996,7 +979,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             case Block::Kind::Empty: name = "Em"; break;
         }
 
-        os << fmt1(pref2) << name << ":" << fmt1(blId.getIndex()) << " ";
+        os << fmt1(pref2) << name << ": ";
         if (id.isNil()) {
             os << "<nil>";
             return;
@@ -1007,15 +990,14 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             visited.incl(blId);
         }
 
-
-        os << "brk: {" << fmt1(bl.isBreaking) << "} "
-           << "mul: {" << fmt1(bl.breakMult) << "}";
+        if (bl.isBreaking) { os << "is-breaking "; }
+        if (bl.breakMult != 1) {
+            os << "break-mult " << fmt1(bl.breakMult);
+        }
 
         switch (bl.getKind()) {
             case Block::Kind::Line: {
-                if (bl.getLine().elements.empty()) {
-                    os << "[EMPTY]";
-                }
+                if (bl.getLine().elements.empty()) { os << "[EMPTY]"; }
 
                 for (const auto& elem : bl.getLine().elements) {
                     os << (doRecurse ? "\n" : "");
@@ -1028,9 +1010,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 break;
             }
             case Block::Kind::Choice: {
-                if (bl.getChoice().elements.empty()) {
-                    os << "[EMPTY]";
-                }
+                if (bl.getChoice().elements.empty()) { os << "[EMPTY]"; }
 
                 for (const auto& elem : bl.getChoice().elements) {
                     os << (doRecurse ? "\n" : "");
@@ -1043,9 +1023,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 break;
             }
             case Block::Kind::Stack: {
-                if (bl.getStack().elements.empty()) {
-                    os << "[EMPTY]";
-                }
+                if (bl.getStack().elements.empty()) { os << "[EMPTY]"; }
 
                 for (const auto& elem : bl.getStack().elements) {
                     os << (doRecurse ? "\n" : "");
@@ -1070,10 +1048,19 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             }
             case Block::Kind::Text: {
                 std::string text;
-                for (auto const& it : bl.getText().text.strs) {
-                    text += str(it);
+                int         size = 0;
+                auto const& strs = bl.getText().text.strs;
+
+
+                for (auto const& it : strs) {
+                    size += str(it).size();
+                    if (strs.size() == 1) {
+                        text += str(it);
+                    } else {
+                        text += "〚"_ss + str(it) + "〛"_ss;
+                    }
                 }
-                os << " '" << text << "'";
+                os << " " << escape_literal(text) << fmt(" size={}", size);
                 break;
             }
 
@@ -1137,6 +1124,7 @@ Str SimpleStringStore::str(const LytStr& str) const {
 }
 
 Str SimpleStringStore::toString(const BlockId& blc, const Options& opts) {
+    if (store->at(blc).leafCount(*store) == 0) { return ""; }
     Layout::Ptr lyt = store->toLayout(blc, opts);
     Str         result;
     for (const auto& event : formatEvents(*store, lyt)) {

@@ -81,7 +81,12 @@ Vec<BacktrackRes> longestCommonSubsequence(
         }
     };
 
-    return backtrack(lhsSize - 1, rhsSize - 1);
+    auto result = backtrack(lhsSize - 1, rhsSize - 1);
+    if (result.empty()) {
+        return Vec{BacktrackRes{}};
+    } else {
+        return result;
+    }
 }
 
 Vec<SeqEdit> myersDiff(

@@ -70,7 +70,5 @@ items:
 
 
   - name: "Lorem ipsum subtree"
-    debug: 
-      traceAll: true
     file: org/lorem_ipsum_subtree.org
 

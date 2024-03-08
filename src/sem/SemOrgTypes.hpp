@@ -48,7 +48,7 @@ struct StmtList : public sem::Org {
                         (sem::SemId<StmtList>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<StmtList> create(Opt<OrgAdapter> original = std::nullopt);
@@ -68,11 +68,31 @@ struct Empty : public sem::Org {
                         (sem::SemId<Empty>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Empty> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Empty; }
+};
+
+/// \brief Table cell
+struct Cell : public sem::Org {
+  using Org::Org;
+  virtual ~Cell() = default;
+  BOOST_DESCRIBE_CLASS(Cell,
+                       (Org),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemId<Cell>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc = std::nullopt;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemId<Cell> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::Cell; }
 };
 
 /// \brief Table row
@@ -85,12 +105,15 @@ struct Row : public sem::Org {
                        (),
                        (loc,
                         staticKind,
+                        cells,
                         (sem::SemId<Row>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
+  /// \brief List of cells on the row
+  Vec<sem::SemId<sem::Cell>> cells = {};
   static sem::SemId<Row> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
 };
@@ -109,7 +132,7 @@ struct Table : public sem::Stmt {
                         (sem::SemId<Table>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief List of rows for the table
@@ -134,7 +157,7 @@ struct HashTag : public sem::Inline {
                         (OrgSemKind() const) getKind,
                         (bool(Vec<Str> const&) const) prefixMatch))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Main part of the tag
@@ -164,7 +187,7 @@ struct Footnote : public sem::Inline {
                         (sem::SemId<Footnote>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Footnote text target name
@@ -191,7 +214,7 @@ struct Completion : public sem::Inline {
                         (sem::SemId<Completion>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Number of completed tasks
@@ -218,7 +241,7 @@ struct Paragraph : public sem::Stmt {
                         (OrgSemKind() const) getKind,
                         (bool() const) isFootnoteDefinition))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Paragraph> create(Opt<OrgAdapter> original = std::nullopt);
@@ -247,7 +270,7 @@ struct Center : public sem::Format {
                         (sem::SemId<Center>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Center> create(Opt<OrgAdapter> original = std::nullopt);
@@ -296,13 +319,51 @@ struct Caption : public sem::Attached {
                         (sem::SemId<Caption>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Content description
-  sem::SemId<sem::Paragraph> text = SemId<Paragraph>::Nil();
+  sem::SemId<sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
   static sem::SemId<Caption> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Caption; }
+};
+
+struct CmdName : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdName() = default;
+  BOOST_DESCRIBE_CLASS(CmdName,
+                       (Attached),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemId<CmdName>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc = std::nullopt;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemId<CmdName> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdName; }
+};
+
+struct CmdResults : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdResults() = default;
+  BOOST_DESCRIBE_CLASS(CmdResults,
+                       (Attached),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        (sem::SemId<CmdResults>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc = std::nullopt;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  static sem::SemId<CmdResults> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdResults; }
 };
 
 /// \brief Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command
@@ -318,7 +379,7 @@ struct CommandGroup : public sem::Stmt {
                         (sem::SemId<CommandGroup>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<CommandGroup> create(Opt<OrgAdapter> original = std::nullopt);
@@ -329,7 +390,14 @@ struct CommandGroup : public sem::Stmt {
 struct Block : public sem::Command {
   using Command::Command;
   virtual ~Block() = default;
-  BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ())
+  BOOST_DESCRIBE_CLASS(Block,
+                       (Command),
+                       (),
+                       (),
+                       (parameters, (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getParameter))
+  /// \brief Additional parameters aside from 'exporter',
+  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
+  virtual Opt<sem::SemId<sem::CmdArgument>> getParameter(Str const& key) const;
 };
 
 /// \brief Tblfm command type
@@ -345,7 +413,7 @@ struct Tblfm : public sem::Command {
                         (sem::SemId<Tblfm>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Tblfm> create(Opt<OrgAdapter> original = std::nullopt);
@@ -365,7 +433,7 @@ struct Quote : public sem::Org {
                         (sem::SemId<Quote>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Quote> create(Opt<OrgAdapter> original = std::nullopt);
@@ -385,7 +453,7 @@ struct Verse : public sem::Block {
                         (sem::SemId<Verse>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Verse> create(Opt<OrgAdapter> original = std::nullopt);
@@ -405,7 +473,7 @@ struct Example : public sem::Block {
                         (sem::SemId<Example>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Example> create(Opt<OrgAdapter> original = std::nullopt);
@@ -426,21 +494,43 @@ struct CmdArguments : public sem::Org {
                         named,
                         (sem::SemId<CmdArguments>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId<sem::CmdArgument>>(Str)) popArg))
+                        (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getParameter))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Positional arguments that had no keys
-  Vec<sem::SemId<sem::CmdArgument>> positional;
+  Vec<sem::SemId<sem::CmdArgument>> positional = {};
   /// \brief Stored key-value mapping
   UnorderedMap<Str, sem::SemId<sem::CmdArgument>> named;
   static sem::SemId<CmdArguments> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  /// \brief Remove argument value from the map and return it if present
-  ///
-  /// Some argument values can be processed directly during convert, others will be mapped in respective exporter backends. This is a convenience method to remove things during convert stage
-  Opt<sem::SemId<sem::CmdArgument>> popArg(Str key);
+  Opt<sem::SemId<sem::CmdArgument>> getParameter(Str const& key) const;
+};
+
+/// \brief Caption annotation for any subsequent node
+struct CmdAttr : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdAttr() = default;
+  BOOST_DESCRIBE_CLASS(CmdAttr,
+                       (Attached),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        target,
+                        parameters,
+                        (sem::SemId<CmdAttr>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc = std::nullopt;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  Str target;
+  /// \brief HTML attributes
+  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
+  static sem::SemId<CmdAttr> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
 };
 
 /// \brief Single key-value (or positional)
@@ -461,7 +551,7 @@ struct CmdArgument : public sem::Org {
                         (Opt<bool>() const) getBool,
                         (Str() const) getString))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Key
@@ -500,21 +590,18 @@ struct Export : public sem::Block {
                         staticKind,
                         format,
                         exporter,
-                        parameters,
                         placement,
                         content,
                         (sem::SemId<Export>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Export block type
-  sem::Export::Format format = Format::Inline;
+  sem::Export::Format format = sem::Export::Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
-  /// \brief Additional parameters aside from 'exporter',
-  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Customized position of the text in the final exporting document.
   Opt<Str> placement = std::nullopt;
   /// \brief Raw exporter content string
@@ -536,17 +623,91 @@ struct AdmonitionBlock : public sem::Block {
                         (sem::SemId<AdmonitionBlock>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<AdmonitionBlock> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::AdmonitionBlock; }
 };
 
+/// \brief Inline, statement or block call
+struct Call : public sem::Org {
+  using Org::Org;
+  virtual ~Call() = default;
+  BOOST_DESCRIBE_CLASS(Call,
+                       (Org),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        name,
+                        (sem::SemId<Call>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  /// \brief Document
+  Opt<LineCol> loc = std::nullopt;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  /// \brief Call target name
+  Opt<Str> name = std::nullopt;
+  static sem::SemId<Call> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
+};
+
 /// \brief Base class for all code blocks
 struct Code : public sem::Block {
   using Block::Block;
   virtual ~Code() = default;
+  struct Line {
+    struct Part {
+      struct Raw {
+        BOOST_DESCRIBE_CLASS(Raw, (), (), (), (code))
+        Str code;
+      };
+
+      struct Callout {
+        BOOST_DESCRIBE_CLASS(Callout, (), (), (), (name))
+        Str name;
+      };
+
+      struct Tangle {
+        BOOST_DESCRIBE_CLASS(Tangle, (), (), (), (target))
+        Str target;
+      };
+
+      using Data = std::variant<sem::Code::Line::Part::Raw, sem::Code::Line::Part::Callout, sem::Code::Line::Part::Tangle>;
+      enum class Kind : short int { Raw, Callout, Tangle, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
+      using variant_enum_type = sem::Code::Line::Part::Kind;
+      using variant_data_type = sem::Code::Line::Part::Data;
+      BOOST_DESCRIBE_CLASS(Part,
+                           (),
+                           (),
+                           (),
+                           (data,
+                            (sem::Code::Line::Part::Raw const&() const) getRaw,
+                            (sem::Code::Line::Part::Raw&()) getRaw,
+                            (sem::Code::Line::Part::Callout const&() const) getCallout,
+                            (sem::Code::Line::Part::Callout&()) getCallout,
+                            (sem::Code::Line::Part::Tangle const&() const) getTangle,
+                            (sem::Code::Line::Part::Tangle&()) getTangle,
+                            (sem::Code::Line::Part::Kind(sem::Code::Line::Part::Data const&)) getKind,
+                            (sem::Code::Line::Part::Kind() const) getKind))
+      sem::Code::Line::Part::Data data;
+      sem::Code::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
+      sem::Code::Line::Part::Raw& getRaw() { return std::get<0>(data); }
+      sem::Code::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
+      sem::Code::Line::Part::Callout& getCallout() { return std::get<1>(data); }
+      sem::Code::Line::Part::Tangle const& getTangle() const { return std::get<2>(data); }
+      sem::Code::Line::Part::Tangle& getTangle() { return std::get<2>(data); }
+      static sem::Code::Line::Part::Kind getKind(sem::Code::Line::Part::Data const& __input) { return static_cast<sem::Code::Line::Part::Kind>(__input.index()); }
+      sem::Code::Line::Part::Kind getKind() const { return getKind(data); }
+    };
+
+    BOOST_DESCRIBE_CLASS(Line, (), (), (), (parts))
+    /// \brief parts of the single line
+    Vec<sem::Code::Line::Part> parts = {};
+  };
+
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
   struct Switch {
     Switch() {}
@@ -649,7 +810,7 @@ struct Code : public sem::Block {
                         lang,
                         switches,
                         exports,
-                        parameters,
+                        lines,
                         cache,
                         eval,
                         noweb,
@@ -658,7 +819,7 @@ struct Code : public sem::Block {
                         (sem::SemId<Code>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Code block language name
@@ -666,9 +827,9 @@ struct Code : public sem::Block {
   /// \brief Switch options for block
   Vec<sem::Code::Switch> switches = {};
   /// \brief What to export
-  sem::Code::Exports exports = Exports::Both;
-  /// \brief Additional parameters that are language-specific
-  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
+  sem::Code::Exports exports = sem::Code::Exports::Both;
+  /// \brief Collected code lines
+  Vec<sem::Code::Line> lines = {};
   /// \brief Do cache values?
   bool cache = false;
   /// \brief Eval on export?
@@ -747,7 +908,7 @@ struct Time : public sem::Org {
                         (sem::Time::TimeKind(sem::Time::TimeVariant const&)) getTimeKind,
                         (sem::Time::TimeKind() const) getTimeKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
@@ -778,13 +939,13 @@ struct TimeRange : public sem::Org {
                         (sem::SemId<TimeRange>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Starting time
-  sem::SemId<sem::Time> from = SemId<Time>::Nil();
+  sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
   /// \brief Finishing time
-  sem::SemId<sem::Time> to = SemId<Time>::Nil();
+  sem::SemId<sem::Time> to = sem::SemId<sem::Time>::Nil();
   static sem::SemId<TimeRange> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::TimeRange; }
 };
@@ -804,7 +965,7 @@ struct Macro : public sem::Org {
                         (sem::SemId<Macro>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Macro name
@@ -840,7 +1001,7 @@ struct Symbol : public sem::Org {
                         (sem::SemId<Symbol>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Name of the symbol
@@ -862,7 +1023,7 @@ struct SubtreeLog : public sem::Org {
     DescribedLog() {}
     BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
     /// \brief Optional description of the log entry
-    Opt<sem::SemId<sem::StmtList>> desc = SemId<StmtList>::Nil();
+    Opt<sem::SemId<sem::StmtList>> desc = std::nullopt;
   };
 
   /// \brief Priority added
@@ -877,7 +1038,7 @@ struct SubtreeLog : public sem::Org {
     /// \brief New priority for change and addition
     Opt<std::string> newPriority = std::nullopt;
     /// \brief When priority was changed
-    sem::SemId<sem::Time> on = SemId<Time>::Nil();
+    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
   };
 
   /// \brief Timestamped note
@@ -885,7 +1046,7 @@ struct SubtreeLog : public sem::Org {
     Note() {}
     BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
     /// \brief Where log was taken
-    sem::SemId<sem::Time> on = SemId<Time>::Nil();
+    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
   };
 
   /// \brief Refiling action
@@ -893,9 +1054,9 @@ struct SubtreeLog : public sem::Org {
     Refile() {}
     BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
     /// \brief When the refiling happened
-    sem::SemId<sem::Time> on = SemId<Time>::Nil();
+    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
     /// \brief Link to the original subtree
-    sem::SemId<sem::Link> from = SemId<Link>::Nil();
+    sem::SemId<sem::Link> from = sem::SemId<sem::Link>::Nil();
   };
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
@@ -903,16 +1064,16 @@ struct SubtreeLog : public sem::Org {
     Clock() {}
     BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (range))
     /// \brief Start-end or only start period
-    Variant<sem::SemId<sem::Time>, sem::SemId<sem::TimeRange>> range = SemId<Time>::Nil();
+    Variant<sem::SemId<sem::Time>, sem::SemId<sem::TimeRange>> range = sem::SemId<sem::Time>::Nil();
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
   struct State : public sem::SubtreeLog::DescribedLog {
     State() {}
     BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
-    OrgBigIdentKind from;
-    OrgBigIdentKind to;
-    sem::SemId<sem::Time> on = SemId<Time>::Nil();
+    Str from;
+    Str to;
+    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
@@ -920,9 +1081,9 @@ struct SubtreeLog : public sem::Org {
     Tag() {}
     BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
     /// \brief When the log was assigned
-    sem::SemId<sem::Time> on = SemId<Time>::Nil();
+    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
     /// \brief Tag in question
-    sem::SemId<sem::HashTag> tag = SemId<HashTag>::Nil();
+    sem::SemId<sem::HashTag> tag = sem::SemId<sem::HashTag>::Nil();
     /// \brief Added/removed?
     bool added = false;
   };
@@ -957,10 +1118,10 @@ struct SubtreeLog : public sem::Org {
                         (sem::SubtreeLog::Kind(sem::SubtreeLog::LogEntry const&)) getLogKind,
                         (sem::SubtreeLog::Kind() const) getLogKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
-  sem::SubtreeLog::LogEntry log = Note{};
+  sem::SubtreeLog::LogEntry log = sem::SubtreeLog::Note{};
   static sem::SemId<SubtreeLog> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemId<sem::StmtList> desc);
@@ -1043,7 +1204,7 @@ struct Subtree : public sem::Org {
     struct Origin {
       Origin() {}
       BOOST_DESCRIBE_CLASS(Origin, (), (), (), (text))
-      sem::SemId<sem::Paragraph> text = SemId<Paragraph>::Nil();
+      sem::SemId<sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
     };
 
     struct ExportLatexClass {
@@ -1112,15 +1273,17 @@ struct Subtree : public sem::Org {
     struct Created {
       Created() {}
       BOOST_DESCRIBE_CLASS(Created, (), (), (), (time))
-      sem::SemId<sem::Time> time = SemId<Time>::Nil();
+      sem::SemId<sem::Time> time = sem::SemId<sem::Time>::Nil();
     };
 
     /// \brief Unknown property name
     struct Unknown {
       Unknown() {}
-      BOOST_DESCRIBE_CLASS(Unknown, (), (), (), (value))
+      BOOST_DESCRIBE_CLASS(Unknown, (), (), (), (value, name))
       /// \brief Converted value of the property
-      sem::SemId<sem::Org> value = SemId<Org>::Nil();
+      sem::SemId<sem::Org> value = sem::SemId<sem::Org>::Nil();
+      /// \brief Original name of the property
+      Str name = "";
     };
 
     using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created, sem::Subtree::Property::Unknown>;
@@ -1129,7 +1292,6 @@ struct Subtree : public sem::Org {
     using variant_enum_type = sem::Subtree::Property::Kind;
     using variant_data_type = sem::Subtree::Property::Data;
     Property(CR<Data> data) : data(data) {}
-    bool matches(Kind kind, CR<std::string> subkind = "") const;
     BOOST_DESCRIBE_CLASS(Property,
                          (),
                          (),
@@ -1138,6 +1300,9 @@ struct Subtree : public sem::Org {
                           subSetRule,
                           inheritanceMode,
                           data,
+                          (bool(Str const&, Opt<Str> const&) const) isMatching,
+                          (Str() const) getName,
+                          (Opt<Str>() const) getSubKind,
                           (sem::Subtree::Property::Nonblocking const&() const) getNonblocking,
                           (sem::Subtree::Property::Nonblocking&()) getNonblocking,
                           (sem::Subtree::Property::Trigger const&() const) getTrigger,
@@ -1170,10 +1335,16 @@ struct Subtree : public sem::Org {
                           (sem::Subtree::Property::Unknown&()) getUnknown,
                           (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
                           (sem::Subtree::Property::Kind() const) getKind))
-    sem::Subtree::Property::SetMode mainSetRule = SetMode::Override;
-    sem::Subtree::Property::SetMode subSetRule = SetMode::Override;
-    sem::Subtree::Property::InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
+    sem::Subtree::Property::SetMode mainSetRule = sem::Subtree::Property::SetMode::Override;
+    sem::Subtree::Property::SetMode subSetRule = sem::Subtree::Property::SetMode::Override;
+    sem::Subtree::Property::InheritanceMode inheritanceMode = sem::Subtree::Property::InheritanceMode::ThisAndSub;
     sem::Subtree::Property::Data data;
+    /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
+    bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+    /// \brief Get non-normalized name of the property (for built-in and user)
+    Str getName() const;
+    /// \brief Get non-normalized sub-kind for the property.
+    Opt<Str> getSubKind() const;
     sem::Subtree::Property::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
     sem::Subtree::Property::Nonblocking& getNonblocking() { return std::get<0>(data); }
     sem::Subtree::Property::Trigger const& getTrigger() const { return std::get<1>(data); }
@@ -1229,12 +1400,10 @@ struct Subtree : public sem::Org {
                         (sem::SemId<Subtree>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperty))
+                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Subtree level
@@ -1249,7 +1418,7 @@ struct Subtree : public sem::Org {
   /// \brief Trailing tags
   Vec<sem::SemId<sem::HashTag>> tags = {};
   /// \brief Main title
-  sem::SemId<sem::Paragraph> title = SemId<Paragraph>::Nil();
+  sem::SemId<sem::Paragraph> title = sem::SemId<sem::Paragraph>::Nil();
   /// \brief Associated subtree log
   Vec<sem::SemId<sem::SubtreeLog>> logbook = {};
   /// \brief Immediate properties
@@ -1263,10 +1432,8 @@ struct Subtree : public sem::Org {
   static sem::SemId<Subtree> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Vec<sem::Subtree::Property> getContextualProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Opt<sem::Subtree::Property> getContextualProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
+  Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
 };
 
 /// \brief Latex code body
@@ -1289,7 +1456,7 @@ struct InlineMath : public sem::LatexBody {
                         (sem::SemId<InlineMath>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<InlineMath> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1318,7 +1485,7 @@ struct Escaped : public sem::Leaf {
                         (sem::SemId<Escaped>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Escaped> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1338,7 +1505,7 @@ struct Newline : public sem::Leaf {
                         (sem::SemId<Newline>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Newline> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1358,7 +1525,7 @@ struct Space : public sem::Leaf {
                         (sem::SemId<Space>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Space> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1378,7 +1545,7 @@ struct Word : public sem::Leaf {
                         (sem::SemId<Word>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Word> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1398,7 +1565,7 @@ struct AtMention : public sem::Leaf {
                         (sem::SemId<AtMention>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<AtMention> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1417,7 +1584,7 @@ struct RawText : public sem::Leaf {
                         (sem::SemId<RawText>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<RawText> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1436,7 +1603,7 @@ struct Punctuation : public sem::Leaf {
                         (sem::SemId<Punctuation>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Punctuation> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1455,7 +1622,7 @@ struct Placeholder : public sem::Leaf {
                         (sem::SemId<Placeholder>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Placeholder> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1474,7 +1641,7 @@ struct BigIdent : public sem::Leaf {
                         (sem::SemId<BigIdent>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<BigIdent> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1499,7 +1666,7 @@ struct Bold : public sem::Markup {
                         (sem::SemId<Bold>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Bold> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1518,7 +1685,7 @@ struct Underline : public sem::Markup {
                         (sem::SemId<Underline>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Underline> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1537,7 +1704,7 @@ struct Monospace : public sem::Markup {
                         (sem::SemId<Monospace>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Monospace> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1556,7 +1723,7 @@ struct MarkQuote : public sem::Markup {
                         (sem::SemId<MarkQuote>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<MarkQuote> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1575,7 +1742,7 @@ struct Verbatim : public sem::Markup {
                         (sem::SemId<Verbatim>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Verbatim> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1594,7 +1761,7 @@ struct Italic : public sem::Markup {
                         (sem::SemId<Italic>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Italic> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1613,7 +1780,7 @@ struct Strike : public sem::Markup {
                         (sem::SemId<Strike>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Strike> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1632,7 +1799,7 @@ struct Par : public sem::Markup {
                         (sem::SemId<Par>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Par> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1652,7 +1819,7 @@ struct List : public sem::Org {
                         (OrgSemKind() const) getKind,
                         (bool() const) isDescriptionList))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<List> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1663,8 +1830,8 @@ struct List : public sem::Org {
 struct ListItem : public sem::Org {
   using Org::Org;
   virtual ~ListItem() = default;
-  enum class Checkbox : short int { None, Done, Empty, };
-  BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty)
+  enum class Checkbox : short int { None, Done, Empty, Partial, };
+  BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty, Partial)
   BOOST_DESCRIBE_CLASS(ListItem,
                        (Org),
                        (),
@@ -1677,10 +1844,10 @@ struct ListItem : public sem::Org {
                         (OrgSemKind() const) getKind,
                         (bool() const) isDescriptionItem))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
-  sem::ListItem::Checkbox checkbox = Checkbox::None;
+  sem::ListItem::Checkbox checkbox = sem::ListItem::Checkbox::None;
   Opt<sem::SemId<sem::Paragraph>> header = std::nullopt;
   static sem::SemId<ListItem> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
@@ -1705,6 +1872,17 @@ struct Link : public sem::Org {
     Str name;
   };
 
+  struct UserProtocol {
+    BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target))
+    Str protocol;
+    Str target;
+  };
+
+  struct Internal {
+    BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target))
+    Str target;
+  };
+
   struct Footnote {
     BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target))
     Str target;
@@ -1715,9 +1893,9 @@ struct Link : public sem::Org {
     Str file;
   };
 
-  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::Footnote, sem::Link::File>;
-  enum class Kind : short int { Raw, Id, Person, Footnote, File, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, Footnote, File)
+  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::UserProtocol, sem::Link::Internal, sem::Link::Footnote, sem::Link::File>;
+  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File)
   using variant_enum_type = sem::Link::Kind;
   using variant_data_type = sem::Link::Data;
   BOOST_DESCRIBE_CLASS(Link,
@@ -1736,6 +1914,10 @@ struct Link : public sem::Org {
                         (sem::Link::Id&()) getId,
                         (sem::Link::Person const&() const) getPerson,
                         (sem::Link::Person&()) getPerson,
+                        (sem::Link::UserProtocol const&() const) getUserProtocol,
+                        (sem::Link::UserProtocol&()) getUserProtocol,
+                        (sem::Link::Internal const&() const) getInternal,
+                        (sem::Link::Internal&()) getInternal,
                         (sem::Link::Footnote const&() const) getFootnote,
                         (sem::Link::Footnote&()) getFootnote,
                         (sem::Link::File const&() const) getFile,
@@ -1743,7 +1925,7 @@ struct Link : public sem::Org {
                         (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
                         (sem::Link::Kind() const) getLinkKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
@@ -1756,10 +1938,14 @@ struct Link : public sem::Org {
   sem::Link::Id& getId() { return std::get<1>(data); }
   sem::Link::Person const& getPerson() const { return std::get<2>(data); }
   sem::Link::Person& getPerson() { return std::get<2>(data); }
-  sem::Link::Footnote const& getFootnote() const { return std::get<3>(data); }
-  sem::Link::Footnote& getFootnote() { return std::get<3>(data); }
-  sem::Link::File const& getFile() const { return std::get<4>(data); }
-  sem::Link::File& getFile() { return std::get<4>(data); }
+  sem::Link::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
+  sem::Link::UserProtocol& getUserProtocol() { return std::get<3>(data); }
+  sem::Link::Internal const& getInternal() const { return std::get<4>(data); }
+  sem::Link::Internal& getInternal() { return std::get<4>(data); }
+  sem::Link::Footnote const& getFootnote() const { return std::get<5>(data); }
+  sem::Link::Footnote& getFootnote() { return std::get<5>(data); }
+  sem::Link::File const& getFile() const { return std::get<6>(data); }
+  sem::Link::File& getFile() { return std::get<6>(data); }
   static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
   sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
 };
@@ -1811,8 +1997,8 @@ struct DocumentOptions : public sem::Org {
                         data,
                         (sem::SemId<DocumentOptions>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
+                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty,
                         (sem::DocumentOptions::DoExport const&() const) getDoExport,
                         (sem::DocumentOptions::DoExport&()) getDoExport,
                         (sem::DocumentOptions::ExportFixed const&() const) getExportFixed,
@@ -1820,12 +2006,12 @@ struct DocumentOptions : public sem::Org {
                         (sem::DocumentOptions::TocExportKind(sem::DocumentOptions::TocExport const&)) getTocExportKind,
                         (sem::DocumentOptions::TocExportKind() const) getTocExportKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
-  sem::DocumentOptions::BrokenLinks brokenLinks = BrokenLinks::Mark;
-  sem::DocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
-  sem::DocumentOptions::TocExport tocExport = DoExport{false};
+  sem::DocumentOptions::BrokenLinks brokenLinks = sem::DocumentOptions::BrokenLinks::Mark;
+  sem::DocumentOptions::Visibility initialVisibility = sem::DocumentOptions::Visibility::ShowEverything;
+  sem::DocumentOptions::TocExport tocExport = sem::DocumentOptions::DoExport{false};
   Vec<sem::Subtree::Property> properties;
   bool smartQuotes = false;
   bool emphasizedText = false;
@@ -1842,8 +2028,8 @@ struct DocumentOptions : public sem::Org {
   sem::DocumentOptions::TocExport data;
   static sem::SemId<DocumentOptions> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
+  Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
   sem::DocumentOptions::DoExport const& getDoExport() const { return std::get<0>(data); }
   sem::DocumentOptions::DoExport& getDoExport() { return std::get<0>(data); }
   sem::DocumentOptions::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
@@ -1864,29 +2050,31 @@ struct Document : public sem::Org {
                         title,
                         author,
                         creator,
+                        filetags,
                         email,
                         language,
                         options,
                         exportFileName,
                         (sem::SemId<Document>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
+                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   Opt<sem::SemId<sem::Paragraph>> title = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> author = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> creator = std::nullopt;
+  Vec<sem::SemId<sem::HashTag>> filetags = {};
   Opt<sem::SemId<sem::RawText>> email = std::nullopt;
   Vec<Str> language;
-  sem::SemId<sem::DocumentOptions> options = SemId<DocumentOptions>::Nil();
+  sem::SemId<sem::DocumentOptions> options = sem::SemId<sem::DocumentOptions>::Nil();
   Opt<Str> exportFileName = std::nullopt;
   static sem::SemId<Document> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
+  Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
 };
 
 struct ParseError : public sem::Org {
@@ -1901,7 +2089,7 @@ struct ParseError : public sem::Org {
                         (sem::SemId<ParseError>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<ParseError> create(Opt<OrgAdapter> original = std::nullopt);
@@ -1926,7 +2114,7 @@ struct FileTarget : public sem::Org {
                         (sem::SemId<FileTarget>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   Str path;
@@ -1951,7 +2139,7 @@ struct TextSeparator : public sem::Org {
                         (sem::SemId<TextSeparator>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<TextSeparator> create(Opt<OrgAdapter> original = std::nullopt);
@@ -2002,7 +2190,7 @@ struct Include : public sem::Org {
                         (sem::Include::Kind(sem::Include::Data const&)) getIncludeKind,
                         (sem::Include::Kind() const) getIncludeKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   sem::Include::Data data;
@@ -2032,7 +2220,7 @@ struct DocumentGroup : public sem::Org {
                         (sem::SemId<DocumentGroup>(Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
   /// \brief Document
-  Opt<LineCol> loc;
+  Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<DocumentGroup> create(Opt<OrgAdapter> original = std::nullopt);

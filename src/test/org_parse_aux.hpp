@@ -18,6 +18,7 @@ struct MockFull {
     UPtr<OrgSpec>                spec;
     OrgTokenGroup                baseTokens;
     Opt<int>                     maxUnknownBaseTokens;
+    sem::SemId<sem::Org>         node;
 
     MockFull(bool tracedParser, bool tracedLexer)
         : tokenizer(), nodes(nullptr), lex(&tokens) {

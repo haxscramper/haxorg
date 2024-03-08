@@ -73,10 +73,6 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         if (!skipEmptyLists || !field.empty()) { j[name] = eval(field); }
     }
 
-    void visitDocument(json& j, In<sem::Document> doc) {
-        visitField(j, "subnodes", doc->subnodes);
-    }
-
     template <typename T>
     void visit(json& res, sem::SemId<T> const& arg) {
         visitDispatch(res, arg.asOrg());

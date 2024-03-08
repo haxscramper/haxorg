@@ -28,21 +28,30 @@ struct ParseSpec {
             ((MatchMode), nodeMatch, MatchMode::Full));
     };
 
-
+    /// `debug:` field in the yaml specification. All the fields in the
+    /// YAML are directly mapped to the parse spec debug configuration.
+    ///
+    /// ```yaml
+    /// - name: "Call named command"
+    ///   debug:
+    ///   doLex: false
+    /// ```
     struct Dbg {
         DECL_FIELDS(
             Dbg,
             (),
+            /// Enable file-based tracing for all steps of the spec
+            /// checking
             ((bool), traceAll, false),
-            /// Do trace for lex/parse/sem
+            /// Trace execution of the re/flex lexer
             ((bool), traceLex, false),
+            /// Trace conversion from base token list to the regrouped
+            /// tokens
             ((bool), traceLexBase, false),
+            /// Tracing of converted token stream to DOD org-mode tree
             ((bool), traceParse, false),
+            /// Conversion of the tree to the
             ((bool), traceSem, false),
-            /// Output trace to the file
-            ((bool), lexToFile, false),
-            ((bool), parseToFile, false),
-            ((bool), semToFile, false),
             /// Print lex/parse/sem/source values for processing
             ((bool), printLexed, false),
             ((bool), printBaseLexed, false),
@@ -54,6 +63,10 @@ struct ParseSpec {
             ((bool), doLex, true),
             ((bool), doLexBase, true),
             ((bool), doSem, true),
+            /// If the initial sem stage completed without issues, format
+            /// the document to string and then parse it again, comparing
+            /// parsed tree V1 vs parsed tree V2
+            ((bool), doFormatReparse, true),
             /// Print sem/lex/parse output debug information to the file
             ((bool), printLexedToFile, false),
             ((bool), printBaseLexedToFile, false),
@@ -62,21 +75,6 @@ struct ParseSpec {
             ((int), maxBaseLexUnknownCount, 100),
             /// directory to write debug files to
             ((std::string), debugOutDir, ""));
-    };
-
-    struct ExporterExpect {
-        DECL_FIELDS(
-            ExporterExpect,
-            (),
-            ((std::string), name, ""),
-            /// Optional parameters to pass to the exporter run.
-            ((Opt<yaml>), parmeters, std::nullopt),
-            ((yaml), expected, yaml()),
-            ((bool), print, false),
-            ((bool), printToFile, false),
-            /// Print additional trace logs for exporter in the debug
-            /// directory for parent test?
-            ((bool), doTrace, false));
     };
 
     fs::path debugFile(std::string relativePath, bool create = true) const;
@@ -128,11 +126,6 @@ struct ParseSpec {
         ParseSpec,
         (),
         ((ExpectedMode), expectedMode, ExpectedMode::Nested),
-        /// List of exporter executions along with the additional
-        /// parameters to supply to the exporter. Specific handling of
-        /// different exporter variations is implemented in the corpus
-        /// file.
-        ((Vec<ExporterExpect>), exporters, {}),
         /// Name of the method to call for lexing or parsing. Pointer to
         /// implementation is resolved externally, spec file just contains
         /// the required name.

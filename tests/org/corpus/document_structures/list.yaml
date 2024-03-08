@@ -265,9 +265,9 @@ items:
       - {kind: Whitespace, str: " "}
       - {kind: CmdRawArg, str: nim}
       - {kind: CmdContentBegin}
-      - {kind: SrcContent, str: "  indented"}
+      - {kind: SrcContent, str: "indented"}
       - {kind: Newline, str: "\n"}
-      - {kind: SrcContent, str: "  two_lines"}
+      - {kind: SrcContent, str: "two_lines"}
       - {kind: Newline, str: "\n"}
       - {kind: CmdPrefix}
       - {kind: CmdSrcEnd, str: "  #+end_src"}
@@ -277,8 +277,6 @@ items:
       - {kind: ListEnd}
 
   - name: "Indent and dedent long list"
-    debug:
-      traceAll: true
     source: |
         - item1
         - item2
@@ -427,7 +425,7 @@ items:
 
   - name: "Source code block as list item"
     source: |
-      - 
+      - T
         #+begin_src xml
         <Thing>
         #+end_src
@@ -437,6 +435,7 @@ items:
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
       - {kind: StmtListBegin}
+      - {kind: BigIdent, str: "T"}
       - {kind: Newline, str: "\n"}
       - {kind: LeadingSpace, str: "  "}
       - {kind: CmdPrefix, str: "#+"}
@@ -444,7 +443,7 @@ items:
       - {kind: Whitespace, str: " "}
       - {kind: CmdRawArg, str: xml}
       - {kind: CmdContentBegin}
-      - {kind: SrcContent, str: "  <Thing>"}
+      - {kind: SrcContent, str: "<Thing>"}
       - {kind: Newline, str: "\n"}
       - {kind: CmdPrefix}
       - {kind: CmdSrcEnd, str: "  #+end_src"}

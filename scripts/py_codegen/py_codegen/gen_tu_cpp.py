@@ -21,7 +21,7 @@ class GenTuParam:
 class GenTuIdent:
     type: QualType
     name: str
-    value: Optional[str] = None
+    value: Optional[Union[BlockId, str]] = None
 
 
 @beartype
@@ -591,12 +591,12 @@ def get_base_map(expanded: List[GenTuUnion]) -> Mapping[str, GenTuStruct]:
             base_map[obj.name.name] = obj
 
     context = []
-    iterate_object_tree(expanded, callback, context)
+    iterate_object_tree(expanded, context, pre_visit=callback)
     base_map["Org"] = GenTuStruct(
         QualType.ForName("Org"),
         GenTuDoc(""),
         [
-            GenTuField(t_vec(t_id()), "subnodes", GenTuDoc("")),
+            GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
         ],
     )
 

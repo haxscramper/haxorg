@@ -124,6 +124,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     "Statement list of the nested nodes"),
             })},
         SpecPair{
+            org::Filetags,
+            OrgPattern({
+                field1(slice(0, 1_B), N::Tags, org::HashTag, "File tags"),
+            })},
+        SpecPair{
             org::HashTag,
             OrgPattern({
                 fieldN(
@@ -205,7 +210,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         // Inline node kinds
         SpecPair{
-            org::CallCode,
+            org::InlineCallCode,
             OrgPattern({
                 Field(Range(0, N::Name), OrgPattern(org::Ident)),
                 Field(
@@ -217,7 +222,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     Range(4, N::Result),
                     OrgPattern({org::RawText, org::Empty})),
             })},
-
         SpecPair{
             org::SrcInlineCode,
             OrgPattern({
@@ -361,7 +365,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::TableCell,
             OrgPattern({
                 fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
-                fieldN(1, N::Text, {org::Empty, org::StmtList}),
+                fieldN(1, N::Body, {org::Empty, org::StmtList}),
             })},
         SpecPair{org::CommandTitle, parTextCmdPattern},
         SpecPair{org::CommandCaption, parTextCmdPattern},
@@ -437,7 +441,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                      org::RawText,
                      org::Empty}),
             })},
-
         SpecPair{
             org::Footnote,
             OrgPattern(
@@ -446,6 +449,16 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::InlineFootnote,
             OrgPattern({Field(Range(0, N::Definition))})},
+        SpecPair{
+            org::CommandAttr,
+            OrgPattern({
+                Field(
+                    Range(0, N::Name),
+                    OrgPattern({org::Empty, org::Ident})),
+                Field(
+                    Range(1, N::Args),
+                    OrgPattern({org::Empty, org::CmdArguments})),
+            })},
         SpecPair{
             org::CommandHeader,
             OrgPattern({

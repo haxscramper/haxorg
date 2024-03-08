@@ -5,52 +5,58 @@
 
 #include <string>
 
-#include <lexbase/NodeTest.hpp>
+#include <test/NodeTest.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 
-inline bool useQFormat() {
-    return getenv("IN_QT_RUN")
-        && getenv("IN_QT_RUN") == std::string("true");
-}
+/// Whole result of the specification test run
+struct TestResult {
+    struct File {
+        Str  path;
+        bool rerun = false;
+        BOOST_DESCRIBE_CLASS(File, (), (path, rerun), (), ());
+    };
+
+    struct Skip {
+        Str msg;
+        BOOST_DESCRIBE_CLASS(Skip, (), (msg), (), ());
+    };
+
+    struct Fail {
+        Str msg;
+        BOOST_DESCRIBE_CLASS(Fail, (), (msg), (), ());
+    };
+
+    struct Success {
+        Str msg;
+        BOOST_DESCRIBE_CLASS(Success, (), (msg), (), ());
+    };
+
+    Vec<File> debugFiles;
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Skip, Fail, Success);
+    Data data;
+
+    BOOST_DESCRIBE_CLASS(TestResult, (), (debugFiles, data), (), ());
+};
+
+struct RunContext {};
+
 
 class CorpusRunner {
   public:
     // Define environment variable in the QT app run environment to get
     // better-formatted test diff output.
 
+    Vec<TestResult::File> files;
+    bool                  inRerun = false;
 
-    void writeFileOrStdout(
-        const fs::path&    target,
-        std::string const& content,
-        bool               useFile);
-
-    struct ExportResult {
-        struct Plaintext {
-            std::string text;
-        };
-
-        struct Text {
-            json textLyt;
-        };
-
-        struct Structured {
-            json data;
-        };
-
-        SUB_VARIANTS(
-            Kind,
-            Data,
-            data,
-            getKind,
-            Plaintext,
-            Text,
-            Structured);
-
-        ExportResult() {}
-        ExportResult(CR<Data> data) : data(data) {}
-        Data                      data;
-        ParseSpec::ExporterExpect expected;
-    };
+    void writeFile(CR<ParseSpec> spec, CR<Str> name, CR<Str> content) {
+        files.push_back(TestResult::File{
+            .path  = name,
+            .rerun = inRerun,
+        });
+        ::writeFile(spec.debugFile(name), content);
+    }
 
     json toTextLyt(
         layout::BlockStore&       b,
@@ -66,25 +72,8 @@ class CorpusRunner {
 
         struct NodeCompare : CompareBase {};
         struct LexCompare : CompareBase {};
-        struct BaseLexCompare : CompareBase {};
         struct SemCompare : CompareBase {};
-
-        struct ExportCompare {
-            struct Run {
-                ColText failDescribe;
-                bool    isOk;
-            };
-
-            Vec<Run> run;
-
-            bool isOk() const {
-                return run.empty()
-                    || std::all_of(run.begin(), run.end(), [](CR<Run> r) {
-                           return r.isOk;
-                       });
-            }
-        };
-
+        struct Skip {};
         struct None {};
 
         SUB_VARIANTS(
@@ -93,21 +82,22 @@ class CorpusRunner {
             data,
             getKind,
             None,
+            Skip,
             NodeCompare,
             LexCompare,
-            SemCompare,
-            BaseLexCompare,
-            ExportCompare);
+            SemCompare);
 
         RunResult() {}
         RunResult(CR<Data> data) : data(data) {}
         Data data;
 
+        bool isSkip() const { return std::holds_alternative<Skip>(data); }
+
         bool isOk() const {
             return std::visit(
                 overloaded{
                     [](CR<CompareBase> n) { return n.isOk; },
-                    [](CR<ExportCompare> e) { return e.isOk(); },
+                    [](CR<Skip> n) { return true; },
                     [](CR<None> n) { return true; },
                 },
                 data);
@@ -126,15 +116,10 @@ class CorpusRunner {
         json                 expected);
 
     RunResult runSpec(CR<ParseSpec> spec, CR<std::string> from);
-
-    ExportResult runExporter(
-        ParseSpec const&                 spec,
-        sem::SemId<sem::Org>             top,
-        ParseSpec::ExporterExpect const& exp);
-
-    RunResult::ExportCompare::Run compareExport(
-        ParseSpec::ExporterExpect const& exp,
-        ExportResult const&              result);
+    RunResult::LexCompare  runSpecBaseLex(MockFull& p, CR<ParseSpec> spec);
+    RunResult::LexCompare  runSpecLex(MockFull& p, CR<ParseSpec> spec);
+    RunResult::NodeCompare runSpecParse(MockFull& p, CR<ParseSpec> spec);
+    RunResult::SemCompare  runSpecSem(MockFull& p, CR<ParseSpec> spec);
 };
 
 struct TestParams {
@@ -181,4 +166,5 @@ struct TestParams {
     }
 };
 
-void gtest_run_spec(CR<TestParams> params);
+
+TestResult gtest_run_spec(CR<TestParams> params);

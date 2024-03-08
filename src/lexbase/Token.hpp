@@ -438,7 +438,10 @@ struct LexerCommon {
             return false;
         } else {
             for (const auto& [idx, kind] : enumerate(kind)) {
-                if (tok(idx + offset).kind != kind) { return false; }
+                if (!hasNext(idx + offset)
+                    || tok(idx + offset).kind != kind) {
+                    return false;
+                }
             }
             return true;
         }
@@ -537,8 +540,8 @@ struct LexerCommon {
         int                count = 0;
         while (start.contains(kind())) { next(); }
         count++;
-        while (0 < count) {
-            if (start.contains(kind())) {
+        while (0 < count && !finished()) {
+            if (!finished() && start.contains(kind())) {
                 while (start.contains(kind())) {
                     // TODO identical to the inner loop -- implement unit
                     // test to get coverage for this case to make sure this
@@ -614,7 +617,10 @@ struct SubLexer : public LexerCommon<K, V> {
     SubLexer(LexerCommon<K, V> const& in) : LexerCommon<K, V>(in.in) {}
 
     SubLexer(TokenGroup<K, V>* in, Vec<TokenId<K, V>> _tokens)
-        : LexerCommon<K, V>(in, _tokens.at(0)), tokens(_tokens) {}
+        : LexerCommon<K, V>(
+            in,
+            _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
+        , tokens(_tokens) {}
 };
 
 

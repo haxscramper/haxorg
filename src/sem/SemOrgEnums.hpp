@@ -6,6 +6,7 @@
 #define EACH_SEM_ORG_KIND(__IMPL) \
     __IMPL(StmtList) \
     __IMPL(Empty) \
+    __IMPL(Cell) \
     __IMPL(Row) \
     __IMPL(Table) \
     __IMPL(HashTag) \
@@ -14,15 +15,19 @@
     __IMPL(Paragraph) \
     __IMPL(Center) \
     __IMPL(Caption) \
+    __IMPL(CmdName) \
+    __IMPL(CmdResults) \
     __IMPL(CommandGroup) \
     __IMPL(Tblfm) \
     __IMPL(Quote) \
     __IMPL(Verse) \
     __IMPL(Example) \
     __IMPL(CmdArguments) \
+    __IMPL(CmdAttr) \
     __IMPL(CmdArgument) \
     __IMPL(Export) \
     __IMPL(AdmonitionBlock) \
+    __IMPL(Call) \
     __IMPL(Code) \
     __IMPL(Time) \
     __IMPL(TimeRange) \
@@ -147,10 +152,14 @@ enum class OrgNodeKind : short int {
   CommandInclude,
   /// \brief `#+language:`
   CommandLanguage,
-  /// \brief `#+attr_html:`
-  CommandAttrHtml,
+  /// \brief `#+attr_html:`, `#+attr_image` etc.
+  CommandAttr,
+  /// \brief `#+startup:`
+  CommandStartup,
   /// \brief `#+name:` - name of the associated entry
   CommandName,
+  /// \brief `#+results:` - source code block evaluation results
+  CommandResults,
   /// \brief `#+header:` - extended list of parameters passed to associated block
   CommandHeader,
   /// \brief `#+options:` - document-wide formatting options
@@ -198,8 +207,10 @@ enum class OrgNodeKind : short int {
   SrcCode,
   /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
   SrcInlineCode,
-  /// \brief Call to named source code block. Inline, multiline, or single-line.
-  CallCode,
+  /// \brief Call to named source code block.
+  InlineCallCode,
+  /// \brief Call to named source code block.
+  CmdCallCode,
   /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
   PassCode,
   /// \brief Command arguments
@@ -366,112 +377,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgBigIdentKind : short int {
-  None,
-  /// \brief MUST This word, or the terms "REQUIRED" or "SHALL", mean that the definition is an absolute requirement of the specification.
-  Must,
-  /// \brief MUST NOT This phrase, or the phrase "SHALL NOT", mean that the definition is an absolute prohibition of the specification.
-  MustNot,
-  /// \brief SHOULD This word, or the adjective "RECOMMENDED", mean that there
-  ///    may exist valid reasons in particular circumstances to ignore a
-  ///    particular item, but the full implications must be understood and
-  ///    carefully weighed before choosing a different course.
-  Should,
-  /// \brief SHOULD NOT This phrase, or the phrase "NOT RECOMMENDED" mean that
-  ///    there may exist valid reasons in particular circumstances when the
-  ///    particular behavior is acceptable or even useful, but the full
-  ///    implications should be understood and the case carefully weighed
-  ///    before implementing any behavior described with this label.
-  ShouldNot,
-  Required,
-  /// \brief MAY This word, or the adjective "OPTIONAL", mean that an item is
-  ///    truly optional. One vendor may choose to include the item because a
-  ///    particular marketplace requires it or because the vendor feels that
-  ///    it enhances the product while another vendor may omit the same
-  ///    item. An implementation which does not include a particular option
-  ///    MUST be prepared to interoperate with another implementation which
-  ///    does include the option, though perhaps with reduced functionality.
-  ///    In the same vein an implementation which does include a particular
-  ///    option MUST be prepared to interoperate with another implementation
-  ///    which does not include the option (except, of course, for the
-  ///    feature the option provides.)
-  Optional,
-  ReallyShouldNot,
-  OughtTo,
-  WouldProbably,
-  MayWishTo,
-  Could,
-  Might,
-  Possible,
-  Todo,
-  Idea,
-  Error,
-  Fixme,
-  Doc,
-  Refactor,
-  Review,
-  Hack,
-  Implement,
-  Example,
-  Question,
-  Assume,
-  Internal,
-  Design,
-  Why,
-  Wip,
-  Fix,
-  Clean,
-  Feature,
-  Style,
-  Repo,
-  Skip,
-  Break,
-  Poc,
-  Next,
-  Later,
-  Postponed,
-  Stalled,
-  Done,
-  Partially,
-  Cancelled,
-  Failed,
-  Note,
-  Tip,
-  Important,
-  Caution,
-  Warning,
-  /// \brief User-defined comment message
-  UserCodeComment,
-  /// \brief User-defined commit message ident
-  UserCommitMsg,
-  /// \brief User-defined task state
-  UserTaskState,
-  /// \brief User-defined admonition label
-  UserAdmonition,
-  /// \brief User-defined big-idents, not included in default set.
-  Other,
-  StructIf,
-  StructAnd,
-  StructOr,
-  StructNot,
-  StructGet,
-  StructSet,
-  StructThen,
-  StructElse,
-  StructWhile,
-};
-template <>
-struct enum_serde<OrgBigIdentKind> {
-  static Opt<OrgBigIdentKind> from_string(std::string value);
-  static std::string to_string(OrgBigIdentKind value);
-};
-
-template <>
-struct value_domain<OrgBigIdentKind> : public value_domain_ungapped<OrgBigIdentKind,
-                                                                    OrgBigIdentKind::None,
-                                                                    OrgBigIdentKind::StructWhile> {};
-
-enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdAttr, CmdArgument, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

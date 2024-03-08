@@ -2,6 +2,7 @@
 
 
 void sem::SubtreeLog::setDescription(sem::SemId<sem::StmtList> desc) {
+    CHECK(!desc.isNil());
     std::visit(
         overloaded{
             [](Clock&) {},
@@ -9,4 +10,3 @@ void sem::SubtreeLog::setDescription(sem::SemId<sem::StmtList> desc) {
         },
         log);
 }
-

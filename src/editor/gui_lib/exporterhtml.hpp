@@ -23,6 +23,15 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     Res newRes(CR<sem::SemId<sem::Org>> id) { return Res::Nil(); }
     Res string(Str const& str) { return b.text(store.str(str)); }
 
+    template <sem::IsOrg T>
+    void visit(Res& res, sem::SemId<T> org) {
+        visitDispatch(res, org);
+        if (res.isNil()) {
+            res = string(
+                "TODO in convert visit [" + fmt1(org->getKind()) + "]");
+        }
+    }
+
     void visit(Res& res, sem::SemId<sem::Org> org) {
         visitDispatch(res, org);
 

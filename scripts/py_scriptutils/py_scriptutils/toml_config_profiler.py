@@ -41,8 +41,12 @@ class DefaultWrapperValue:
         return f"DefaultWrapperValue({self.value}, {self.is_provided})"
 
 
-def merge_cli_model(ctx: click.Context, file_config: Dict, on_cli_args: Dict,
-                    ModelT: type) -> Any:
+def merge_cli_model(
+    ctx: click.Context,
+    file_config: Dict,
+    on_cli_args: Dict,
+    ModelT: type,
+) -> Any:
     on_cli = {}
     on_default = {}
     ctx.ensure_object(dict)
@@ -87,9 +91,10 @@ def options_from_model(model: BaseModel) -> List[click.option]:
     for name, field in model.model_fields.items():
         has_default = field.default is not None and field.default != PydanticUndefined
         is_multiple = get_origin(field.annotation) is list
+        opt_name = field.alias if field.alias else name
         result.append(
             click.option(
-                "--" + (field.alias if field.alias else name),
+                "--" + opt_name,
                 type=DefaultWrapper(py_type_to_click(field.annotation)),
                 help=field.description,
                 expose_value=True,
@@ -97,14 +102,14 @@ def options_from_model(model: BaseModel) -> List[click.option]:
                     "default": [DefaultWrapperValue(it, False) for it in field.default] if
                                is_multiple else DefaultWrapperValue(field.default, False)
                 } if has_default else {}),
-                multiple=is_multiple))
+                multiple=is_multiple,
+            ))
 
     return result
 
 
 @beartype
 def merge_dicts(dicts: List[Dict]) -> Dict:
-
     def recursive_merge(base: Dict, new: Dict) -> None:
         for key, value in new.items():
             if (isinstance(value, dict) and key in base and isinstance(base[key], dict)):
@@ -166,7 +171,8 @@ def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]
             result.append(path)
 
         elif with_trace:
-            log("org.cli").debug(f"Trying {path} for config -- file does not exist, skipping")
+            log("org.cli").debug(
+                f"Trying {path} for config -- file does not exist, skipping")
 
     return result
 
@@ -217,9 +223,15 @@ def run_config_provider(
     with_trace: bool,
     content_value_substitution: Dict[str, str] = {},
 ) -> dict:
+    """
+    Search for the existing paths in the `search_paths`, pase the toml files and
+    return merged dictionary.
+    """
     try:
-        file_paths = find_config_files(with_trace=with_trace,
-                                       potential_paths=search_paths)
+        file_paths = find_config_files(
+            with_trace=with_trace,
+            potential_paths=search_paths,
+        )
 
         if (not file_paths):
             return {}
@@ -245,10 +257,10 @@ def run_config_provider(
 
 
 @beartype
-def make_config_provider(config_file_name: str):
+def make_config_provider(config_file_name: str, with_trace: bool = False):
 
     def implementation(file_path: str, cmd_name: str):
-        D = run_config_provider(file_path, cmd_name, False, config_file_name)
+        D = run_config_provider([file_path], with_trace=with_trace)
         return D
 
     return implementation

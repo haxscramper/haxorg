@@ -9,6 +9,7 @@ glob_add_sources2(haxorg "${BASE}/src/sem/.*")
 glob_add_sources2(haxorg "${BASE}/src/tools/.*")
 glob_add_sources2(haxorg "${BASE}/src/types/.*")
 glob_add_sources2(haxorg "${BASE}/src/base_lexer/.*")
+glob_add_sources2(haxorg "${BASE}/src/test/.*")
 
 set_target_output(haxorg)
 set_target_flags(haxorg)
@@ -55,6 +56,7 @@ target_link_libraries(haxorg PUBLIC
     protobuf::libprotoc
     absl::base
     absl::log
+    perfetto
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
@@ -77,3 +79,11 @@ target_include_directories(tests_org PUBLIC
     "${BASE}/thirdparty/lager"
 )
 
+
+
+add_executable(specrunner_org)
+set_common_files(specrunner_org)
+set_target_output(specrunner_org)
+set_target_flags(specrunner_org)
+glob_add_sources2(specrunner_org "${BASE}/tests/specrunner/.*")
+target_link_libraries(specrunner_org PUBLIC haxorg)

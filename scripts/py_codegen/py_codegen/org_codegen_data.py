@@ -69,7 +69,7 @@ def t_map(key: QualType, val: QualType) -> QualType:
 
 @beartype
 def id_field(id: str, name: str, doc: GenTuDoc) -> GenTuField:
-    return GenTuField(t_id(id), name, doc, value=f"SemId<{id}>::Nil()")
+    return GenTuField(t_id(id), name, doc, value=f"sem::SemId<sem::{id}>::Nil()")
 
 
 def vec_field(typ, name, doc):
@@ -92,14 +92,23 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
     if res.concreteKind:
         res.fields.insert(
             0,
-            GenTuField(t_osk(),
-                       "staticKind",
-                       GenTuDoc("Document"),
-                       isConst=True,
-                       isStatic=True),
+            GenTuField(
+                t_osk(),
+                "staticKind",
+                GenTuDoc("Document"),
+                isConst=True,
+                isStatic=True,
+            ),
         )
 
-        res.fields.insert(0, GenTuField(t_opt(t("LineCol")), "loc", GenTuDoc("Document")))
+        res.fields.insert(
+            0,
+            GenTuField(
+                t_opt(t("LineCol")),
+                "loc",
+                GenTuDoc("Document"),
+                value="std::nullopt",
+            ))
 
         res.methods.insert(
             0,
@@ -179,10 +188,16 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
         d_org(
-            "Row",
-            GenTuDoc("Table row"),
+            "Cell",
+            GenTuDoc("Table cell"),
             bases=[t_org("Org")],
         ),
+        d_org("Row",
+              GenTuDoc("Table row"),
+              bases=[t_org("Org")],
+              fields=[
+                  vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
+              ]),
         d_org(
             "Table",
             GenTuDoc("Table"),
@@ -317,6 +332,16 @@ def get_types() -> Sequence[GenTuStruct]:
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
         ),
         d_org(
+            "CmdName",
+            GenTuDoc(""),
+            bases=[t_org("Attached")],
+        ),
+        d_org(
+            "CmdResults",
+            GenTuDoc(""),
+            bases=[t_org("Attached")],
+        ),
+        d_org(
             "CommandGroup",
             GenTuDoc(
                 "Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command"
@@ -328,6 +353,23 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc("Block command type"),
             bases=[t_org("Command")],
             concreteKind=False,
+            fields=[
+                opt_field(
+                    t_id("CmdArguments"),
+                    "parameters",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+            ],
+            methods=[
+                GenTuFunction(
+                    t_opt(t_id("CmdArgument")),
+                    "getParameter",
+                    GenTuDoc(""),
+                    arguments=[GenTuIdent(t_cr(t_str()), "key")],
+                    isConst=True,
+                    isVirtual=True,
+                )
+            ],
         ),
         d_org(
             "Tblfm",
@@ -352,18 +394,15 @@ def get_types() -> Sequence[GenTuStruct]:
             methods=[
                 GenTuFunction(
                     t_opt(t_id("CmdArgument")),
-                    "popArg",
-                    GenTuDoc(
-                        "Remove argument value from the map and return it if present",
-                        full=
-                        "Some argument values can be processed directly during convert, others will be mapped in respective exporter backends. This is a convenience method to remove things during convert stage",
-                    ),
-                    arguments=[GenTuIdent(t_str(), "key")],
+                    "getParameter",
+                    GenTuDoc(""),
+                    arguments=[GenTuIdent(t_cr(t_str()), "key")],
+                    isConst=True,
                 )
             ],
             fields=[
-                GenTuField(
-                    t_vec(t_id("CmdArgument")),
+                vec_field(
+                    t_id("CmdArgument"),
                     "positional",
                     GenTuDoc("Positional arguments that had no keys"),
                 ),
@@ -372,6 +411,15 @@ def get_types() -> Sequence[GenTuStruct]:
                     "named",
                     GenTuDoc("Stored key-value mapping"),
                 ),
+            ],
+        ),
+        d_org(
+            "CmdAttr",
+            GenTuDoc("Caption annotation for any subsequent node"),
+            bases=[t_org("Attached")],
+            fields=[
+                GenTuField(t_str(), "target", GenTuDoc("")),
+                id_field("CmdArguments", "parameters", GenTuDoc("HTML attributes"))
             ],
         ),
         d_org(
@@ -420,14 +468,9 @@ def get_types() -> Sequence[GenTuStruct]:
                     t_nest("Format", ["Export"]),
                     "format",
                     GenTuDoc("Export block type"),
-                    value="Format::Inline",
+                    value="sem::Export::Format::Inline",
                 ),
                 GenTuField(t_str(), "exporter", GenTuDoc("Exporter backend name")),
-                opt_field(
-                    t_id("CmdArguments"),
-                    "parameters",
-                    GenTuDoc("Additional parameters aside from 'exporter',"),
-                ),
                 opt_field(
                     t_str(),
                     "placement",
@@ -444,10 +487,47 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Block")],
         ),
         d_org(
+            "Call",
+            GenTuDoc("Inline, statement or block call"),
+            bases=[t_org("Org")],
+            fields=[
+                opt_field(
+                    t_str(),
+                    "name",
+                    GenTuDoc("Call target name"),
+                ),
+            ],
+        ),
+        d_org(
             "Code",
             GenTuDoc("Base class for all code blocks"),
             bases=[t_org("Block")],
             nested=[
+                GenTuStruct(
+                    t("Line"),
+                    nested=[
+                        GenTuStruct(
+                            t("Part"),
+                            nested=[
+                                GenTuTypeGroup([
+                                    GenTuStruct(t("Raw"),
+                                                fields=[GenTuField(t_str(), "code")]),
+                                    GenTuStruct(t("Callout"),
+                                                fields=[GenTuField(t_str(), "name")]),
+                                    GenTuStruct(t("Tangle"),
+                                                fields=[GenTuField(t_str(), "target")]),
+                                ],),
+                            ],
+                        )
+                    ],
+                    fields=[
+                        vec_field(
+                            t_nest("Part", ["Code", "Line"]),
+                            "parts",
+                            GenTuDoc("parts of the single line"),
+                        )
+                    ],
+                ),
                 GenTuStruct(
                     t("Switch"),
                     GenTuDoc(
@@ -473,25 +553,30 @@ def get_types() -> Sequence[GenTuStruct]:
                                         value="false",
                                     ),
                                 ],
-                                nested=[GenTuPass("LineStart() {}")]),
-                            GenTuStruct(t("CalloutFormat"),
-                                        GenTuDoc(""),
-                                        fields=[
-                                            GenTuField(t_str(),
-                                                       "format",
-                                                       GenTuDoc(""),
-                                                       value='""')
-                                        ],
-                                        nested=[GenTuPass("CalloutFormat() {}")]),
-                            GenTuStruct(t("RemoveCallout"),
-                                        GenTuDoc(""),
-                                        fields=[
-                                            GenTuField(t_bool(),
-                                                       "remove",
-                                                       GenTuDoc(""),
-                                                       value="true")
-                                        ],
-                                        nested=[GenTuPass("RemoveCallout() {}")]),
+                                nested=[GenTuPass("LineStart() {}")],
+                            ),
+                            GenTuStruct(
+                                t("CalloutFormat"),
+                                GenTuDoc(""),
+                                fields=[
+                                    GenTuField(t_str(),
+                                               "format",
+                                               GenTuDoc(""),
+                                               value='""')
+                                ],
+                                nested=[GenTuPass("CalloutFormat() {}")],
+                            ),
+                            GenTuStruct(
+                                t("RemoveCallout"),
+                                GenTuDoc(""),
+                                fields=[
+                                    GenTuField(t_bool(),
+                                               "remove",
+                                               GenTuDoc(""),
+                                               value="true")
+                                ],
+                                nested=[GenTuPass("RemoveCallout() {}")],
+                            ),
                             GenTuStruct(
                                 t("EmphasizeLine"),
                                 GenTuDoc(
@@ -503,16 +588,16 @@ def get_types() -> Sequence[GenTuStruct]:
                                                GenTuDoc(""),
                                                value="{}")
                                 ],
-                                nested=[GenTuPass("EmphasizeLine() {}")]),
-                            GenTuStruct(t("Dedent"),
-                                        GenTuDoc(""),
-                                        fields=[
-                                            GenTuField(t_int(),
-                                                       "value",
-                                                       GenTuDoc(""),
-                                                       value="0")
-                                        ],
-                                        nested=[GenTuPass("Dedent() {}")]),
+                                nested=[GenTuPass("EmphasizeLine() {}")],
+                            ),
+                            GenTuStruct(
+                                t("Dedent"),
+                                GenTuDoc(""),
+                                fields=[
+                                    GenTuField(t_int(), "value", GenTuDoc(""), value="0")
+                                ],
+                                nested=[GenTuPass("Dedent() {}")],
+                            ),
                         ])
                     ],
                 ),
@@ -554,12 +639,9 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("Exports", ["Code"]),
                            "exports",
                            GenTuDoc("What to export"),
-                           value="Exports::Both"),
-                opt_field(
-                    t_id("CmdArguments"),
-                    "parameters",
-                    GenTuDoc("Additional parameters that are language-specific"),
-                ),
+                           value="sem::Code::Exports::Both"),
+                vec_field(t_nest("Line", ["Code"]), "lines",
+                          GenTuDoc("Collected code lines")),
                 GenTuField(t_bool(), "cache", GenTuDoc("Do cache values?"),
                            value="false"),
                 GenTuField(t_bool(), "eval", GenTuDoc("Eval on export?"), value="false"),
@@ -724,11 +806,10 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuStruct(t("DescribedLog"),
                             GenTuDoc("Base value for the log variant"),
                             fields=[
-                                GenTuField(
-                                    t_opt(t_id("StmtList")),
+                                opt_field(
+                                    t_id("StmtList"),
                                     "desc",
                                     GenTuDoc("Optional description of the log entry"),
-                                    value="SemId<StmtList>::Nil()",
                                 )
                             ],
                             nested=[GenTuPass("DescribedLog() {}")]),
@@ -795,7 +876,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                     t_var(t_id("Time"), t_id("TimeRange")),
                                     "range",
                                     GenTuDoc("Start-end or only start period"),
-                                    value="SemId<Time>::Nil()",
+                                    value="sem::SemId<sem::Time>::Nil()",
                                 ),
                                        ignore=True)
                             ],
@@ -808,8 +889,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             ),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
-                                GenTuField(t("OrgBigIdentKind"), "from", GenTuDoc("")),
-                                GenTuField(t("OrgBigIdentKind"), "to", GenTuDoc("")),
+                                GenTuField(t_str(), "from", GenTuDoc("")),
+                                GenTuField(t_str(), "to", GenTuDoc("")),
                                 id_field("Time", "on", GenTuDoc("")),
                             ],
                             nested=[GenTuPass("State() {}")],
@@ -834,7 +915,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                     kindGetter="getLogKind",
                     variantField="log",
-                    variantValue="Note{}",
+                    variantValue="sem::SubtreeLog::Note{}",
                     variantName="LogEntry",
                 ),
             ],
@@ -882,8 +963,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
                     ],
                 ),
                 GenTuFunction(
@@ -892,28 +973,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
-                    ],
-                ),
-                GenTuFunction(
-                    t_vec(t_nest(t("Property"), ["Subtree"])),
-                    "getContextualProperties",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
-                    ],
-                ),
-                GenTuFunction(
-                    t_opt(t_nest("Property", ["Subtree"])),
-                    "getContextualProperty",
-                    GenTuDoc(""),
-                    isConst=True,
-                    arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subkind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
                     ],
                 ),
             ],
@@ -992,22 +1053,53 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuStruct(
                     t("Property"),
                     GenTuDoc("Single subtree property"),
+                    methods=[
+                        GenTuFunction(
+                            t_bool(),
+                            "isMatching",
+                            GenTuDoc(
+                                "Check if property matches specified kind and optional subkind. "
+                                "Built-in property checking is also done with this function -- 'created' etc."
+                            ),
+                            isConst=True,
+                            arguments=[
+                                GenTuIdent(t_cr(t_str()), "kind"),
+                                GenTuIdent(t_cr(t_opt(t_str())),
+                                           "subKind",
+                                           value="std::nullopt"),
+                            ],
+                        ),
+                        GenTuFunction(
+                            t_str(),
+                            "getName",
+                            GenTuDoc(
+                                "Get non-normalized name of the property (for built-in and user)"
+                            ),
+                            isConst=True,
+                        ),
+                        GenTuFunction(
+                            t_opt(t_str()),
+                            "getSubKind",
+                            GenTuDoc("Get non-normalized sub-kind for the property."),
+                            isConst=True,
+                        ),
+                    ],
                     fields=[
                         GenTuField(
                             t_nest("SetMode", ["Subtree", "Property"]),
                             "mainSetRule",
                             GenTuDoc(""),
-                            value="SetMode::Override",
+                            value="sem::Subtree::Property::SetMode::Override",
                         ),
                         GenTuField(t_nest("SetMode", ["Subtree", "Property"]),
                                    "subSetRule",
                                    GenTuDoc(""),
-                                   value="SetMode::Override"),
+                                   value="sem::Subtree::Property::SetMode::Override"),
                         GenTuField(
                             t_nest("InheritanceMode", ["Subtree", "Property"]),
                             "inheritanceMode",
                             GenTuDoc(""),
-                            value="InheritanceMode::ThisAndSub",
+                            value="sem::Subtree::Property::InheritanceMode::ThisAndSub",
                         ),
                     ],
                     nested=[
@@ -1127,14 +1219,15 @@ def get_types() -> Sequence[GenTuStruct]:
                                         t_id(),
                                         "value",
                                         GenTuDoc("Converted value of the property"),
-                                        value=f"SemId<Org>::Nil()")
+                                        value=f"sem::SemId<sem::Org>::Nil()"),
+                                    GenTuField(t_str(),
+                                               "name",
+                                               GenTuDoc("Original name of the property"),
+                                               value='""')
                                 ],
                             )
                         ]),
                         GenTuPass("Property(CR<Data> data) : data(data) {}"),
-                        GenTuPass(
-                            'bool matches(Kind kind, CR<std::string> subkind = "") const;'
-                        ),
                     ],
                 ),
             ],
@@ -1192,13 +1285,13 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("Checkbox", ["ListItem"]),
                            "checkbox",
                            GenTuDoc(""),
-                           value="Checkbox::None"),
+                           value="sem::ListItem::Checkbox::None"),
                 GenTuField(t_opt(t_id("Paragraph")),
                            "header",
                            GenTuDoc(""),
                            value="std::nullopt"),
             ],
-            nested=[d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty")],
+            nested=[d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty", "Partial")],
             methods=[
                 GenTuFunction(
                     t_bool(),
@@ -1238,6 +1331,21 @@ def get_types() -> Sequence[GenTuStruct]:
                             fields=[(GenTuField(t_str(), "name", GenTuDoc("")))],
                         ),
                         GenTuStruct(
+                            t("UserProtocol"),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "protocol", GenTuDoc("")),
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                        ),
+                        GenTuStruct(
+                            t("Internal"),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                        ),
+                        GenTuStruct(
                             t("Footnote"),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "target", GenTuDoc("")))],
@@ -1263,8 +1371,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
                 GenTuFunction(
@@ -1273,8 +1381,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
             ],
@@ -1312,17 +1420,17 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("BrokenLinks", ["DocumentOptions"]),
                            "brokenLinks",
                            GenTuDoc(""),
-                           value="BrokenLinks::Mark"),
+                           value="sem::DocumentOptions::BrokenLinks::Mark"),
                 GenTuField(
                     t_nest("Visibility", ["DocumentOptions"]),
                     "initialVisibility",
                     GenTuDoc(""),
-                    value="Visibility::ShowEverything",
+                    value="sem::DocumentOptions::Visibility::ShowEverything",
                 ),
                 GenTuField(t_nest("TocExport", ["DocumentOptions"]),
                            "tocExport",
                            GenTuDoc(""),
-                           value="DoExport{false}"),
+                           value="sem::DocumentOptions::DoExport{false}"),
                 GenTuField(t_vec(t_nest("Property", ["Subtree"])), "properties",
                            GenTuDoc("")),
                 GenTuField(t_bool(), "smartQuotes", GenTuDoc(""), value="false"),
@@ -1350,8 +1458,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
                 GenTuFunction(
@@ -1360,8 +1468,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(t_nest("Kind", ["Subtree", "Property"]), "kind"),
-                        GenTuIdent(t_cr(t_str()), "subKind", value='""'),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subKind", value="std::nullopt"),
                     ],
                 ),
             ],
@@ -1369,6 +1477,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 opt_field(t_id("Paragraph"), "title", GenTuDoc("")),
                 opt_field(t_id("Paragraph"), "author", GenTuDoc("")),
                 opt_field(t_id("Paragraph"), "creator", GenTuDoc("")),
+                vec_field(t_id("HashTag"), "filetags", GenTuDoc("")),
                 opt_field(t_id("RawText"), "email", GenTuDoc("")),
                 GenTuField(t_vec(t_str()), "language", GenTuDoc("")),
                 id_field("DocumentOptions", "options", GenTuDoc("")),
@@ -1614,9 +1723,14 @@ def get_enums():
                     ),
                 ),
                 GenTuEnumField("CommandLanguage", GenTuDoc("`#+language:`")),
-                GenTuEnumField("CommandAttrHtml", GenTuDoc("`#+attr_html:`")),
+                GenTuEnumField("CommandAttr",
+                               GenTuDoc("`#+attr_html:`, `#+attr_image` etc.")),
+                GenTuEnumField("CommandStartup", GenTuDoc("`#+startup:`")),
                 GenTuEnumField("CommandName",
                                GenTuDoc("`#+name:` - name of the associated entry")),
+                GenTuEnumField(
+                    "CommandResults",
+                    GenTuDoc("`#+results:` - source code block evaluation results")),
                 GenTuEnumField(
                     "CommandHeader",
                     GenTuDoc(
@@ -1689,10 +1803,12 @@ def get_enums():
                     ),
                 ),
                 GenTuEnumField(
-                    "CallCode",
-                    GenTuDoc(
-                        "Call to named source code block. Inline, multiline, or single-line."
-                    ),
+                    "InlineCallCode",
+                    GenTuDoc("Call to named source code block."),
+                ),
+                GenTuEnumField(
+                    "CmdCallCode",
+                    GenTuDoc("Call to named source code block."),
                 ),
                 GenTuEnumField(
                     "PassCode",
@@ -1936,127 +2052,5 @@ def get_enums():
                 GenTuEnumField("Target", GenTuDoc("`<<TARGET>>`")),
             ],
             #endregion
-        ),
-        GenTuEnum(
-            t("OrgBigIdentKind"),
-            GenTuDoc(""),
-            [
-                GenTuEnumField("None", GenTuDoc("")),
-                GenTuEnumField(
-                    "Must",
-                    GenTuDoc(
-                        'MUST This word, or the terms "REQUIRED" or "SHALL", mean that the definition is an absolute requirement of the specification.'
-                    ),
-                ),
-                GenTuEnumField(
-                    "MustNot",
-                    GenTuDoc(
-                        'MUST NOT This phrase, or the phrase "SHALL NOT", mean that the definition is an absolute prohibition of the specification.'
-                    ),
-                ),
-                GenTuEnumField(
-                    "Should",
-                    GenTuDoc(
-                        """SHOULD This word, or the adjective \"RECOMMENDED\", mean that there
-   may exist valid reasons in particular circumstances to ignore a
-   particular item, but the full implications must be understood and
-   carefully weighed before choosing a different course."""),
-                ),
-                GenTuEnumField(
-                    "ShouldNot",
-                    GenTuDoc(
-                        """SHOULD NOT This phrase, or the phrase \"NOT RECOMMENDED\" mean that
-   there may exist valid reasons in particular circumstances when the
-   particular behavior is acceptable or even useful, but the full
-   implications should be understood and the case carefully weighed
-   before implementing any behavior described with this label."""),
-                ),
-                GenTuEnumField("Required", GenTuDoc("")),
-                GenTuEnumField(
-                    "Optional",
-                    GenTuDoc(
-                        """MAY This word, or the adjective \"OPTIONAL\", mean that an item is
-   truly optional. One vendor may choose to include the item because a
-   particular marketplace requires it or because the vendor feels that
-   it enhances the product while another vendor may omit the same
-   item. An implementation which does not include a particular option
-   MUST be prepared to interoperate with another implementation which
-   does include the option, though perhaps with reduced functionality.
-   In the same vein an implementation which does include a particular
-   option MUST be prepared to interoperate with another implementation
-   which does not include the option (except, of course, for the
-   feature the option provides.)"""),
-                ),
-                GenTuEnumField("ReallyShouldNot", GenTuDoc("")),
-                GenTuEnumField("OughtTo", GenTuDoc("")),
-                GenTuEnumField("WouldProbably", GenTuDoc("")),
-                GenTuEnumField("MayWishTo", GenTuDoc("")),
-                GenTuEnumField("Could", GenTuDoc("")),
-                GenTuEnumField("Might", GenTuDoc("")),
-                GenTuEnumField("Possible", GenTuDoc("")),
-                GenTuEnumField("Todo", GenTuDoc("")),
-                GenTuEnumField("Idea", GenTuDoc("")),
-                GenTuEnumField("Error", GenTuDoc("")),
-                GenTuEnumField("Fixme", GenTuDoc("")),
-                GenTuEnumField("Doc", GenTuDoc("")),
-                GenTuEnumField("Refactor", GenTuDoc("")),
-                GenTuEnumField("Review", GenTuDoc("")),
-                GenTuEnumField("Hack", GenTuDoc("")),
-                GenTuEnumField("Implement", GenTuDoc("")),
-                GenTuEnumField("Example", GenTuDoc("")),
-                GenTuEnumField("Question", GenTuDoc("")),
-                GenTuEnumField("Assume", GenTuDoc("")),
-                GenTuEnumField("Internal", GenTuDoc("")),
-                GenTuEnumField("Design", GenTuDoc("")),
-                GenTuEnumField("Why", GenTuDoc("")),
-                GenTuEnumField("Wip", GenTuDoc("")),
-                GenTuEnumField("Fix", GenTuDoc("")),
-                GenTuEnumField("Clean", GenTuDoc("")),
-                GenTuEnumField("Feature", GenTuDoc("")),
-                GenTuEnumField("Style", GenTuDoc("")),
-                GenTuEnumField("Repo", GenTuDoc("")),
-                GenTuEnumField("Skip", GenTuDoc("")),
-                GenTuEnumField("Break", GenTuDoc("")),
-                GenTuEnumField("Poc", GenTuDoc("")),
-                GenTuEnumField("Next", GenTuDoc("")),
-                GenTuEnumField("Later", GenTuDoc("")),
-                GenTuEnumField("Postponed", GenTuDoc("")),
-                GenTuEnumField("Stalled", GenTuDoc("")),
-                GenTuEnumField("Done", GenTuDoc("")),
-                GenTuEnumField("Partially", GenTuDoc("")),
-                GenTuEnumField("Cancelled", GenTuDoc("")),
-                GenTuEnumField("Failed", GenTuDoc("")),
-                GenTuEnumField("Note", GenTuDoc("")),
-                GenTuEnumField("Tip", GenTuDoc("")),
-                GenTuEnumField("Important", GenTuDoc("")),
-                GenTuEnumField("Caution", GenTuDoc("")),
-                GenTuEnumField("Warning", GenTuDoc("")),
-                GenTuEnumField("UserCodeComment",
-                               GenTuDoc("User-defined comment message")),
-                GenTuEnumField("UserCommitMsg",
-                               GenTuDoc("User-defined commit message ident")),
-                GenTuEnumField("UserTaskState", GenTuDoc("User-defined task state")),
-                GenTuEnumField("UserAdmonition",
-                               GenTuDoc("User-defined admonition label")),
-                GenTuEnumField(
-                    "Other",
-                    GenTuDoc("User-defined big-idents, not included in default set.")),
-                # ;; It is not hard to support
-                # ;; https://en.wikipedia.org/wiki/Structured_English keywords. Maybe I
-                # ;; will merge it with haxdoc somehow, maybe not, for not I just placed
-                # ;; them here as a reminder to myself. My current idea is to overlay
-                # ;; semi-structured explanation in the documenation with actual code.
-                # ;; Structured keywords can be used as an anchor points (e.g. `IF` maps
-                # ;; to real condition, `THEN` to the body and so on).
-                GenTuEnumField("StructIf", GenTuDoc("")),
-                GenTuEnumField("StructAnd", GenTuDoc("")),
-                GenTuEnumField("StructOr", GenTuDoc("")),
-                GenTuEnumField("StructNot", GenTuDoc("")),
-                GenTuEnumField("StructGet", GenTuDoc("")),
-                GenTuEnumField("StructSet", GenTuDoc("")),
-                GenTuEnumField("StructThen", GenTuDoc("")),
-                GenTuEnumField("StructElse", GenTuDoc("")),
-                GenTuEnumField("StructWhile", GenTuDoc("")),
-            ],
         ),
     ]

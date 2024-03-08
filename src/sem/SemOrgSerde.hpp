@@ -440,6 +440,14 @@ struct proto_serde<Proto, sem::Leaf> {
     }
 };
 
+template <typename Proto>
+struct proto_serde<Proto, sem::Block> {
+    static void write(Proto* out, sem::Block const& in);
+    static void read(
+        Proto const&                     out,
+        proto_write_accessor<sem::Block> in);
+};
+
 template <>
 struct proto_serde<orgproto::LineCol, LineCol> {
     static void write(orgproto::LineCol* out, LineCol const& in) {

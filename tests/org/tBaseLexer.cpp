@@ -6,7 +6,7 @@
 #include <parse/OrgParser.hpp>
 #include <sem/SemConvert.hpp>
 #include <exporters/exporteryaml.hpp>
-#include "corpusrunner.hpp"
+#include <test/corpusrunner.hpp>
 
 TEST(ManualFileRun, TestDoc1) {
     {

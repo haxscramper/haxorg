@@ -75,7 +75,7 @@ struct SemId {
         return std::make_shared<O>(std::forward<Args>(args)...);
     }
 
-    static SemId Nil() { return SemId(nullptr); }
+    static SemId Nil() { return SemId(SPtr<O>{}); }
 
     SemId() { value = nullptr; }
     SemId(SPtr<O> const& value) : value(value) {}
@@ -181,7 +181,9 @@ struct [[refl]] Org {
     [[refl]] void push_back(SemId<Org> sub);
 
     /// \brief Get subnode at specified index
-    [[refl]] inline SemId<Org> at(int idx) const { return subnodes[idx]; }
+    [[refl]] inline SemId<Org> at(int idx) const {
+        return subnodes.at(idx);
+    }
 
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
     bool          is(CR<IntSet<OrgSemKind>> kinds) const {

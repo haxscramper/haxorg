@@ -2,476 +2,14 @@
 from typing import *
 from enum import Enum
 from datetime import datetime, date, time
-class ExportFormat(Enum):
-    Inline = 1
-    Line = 2
-    Block = 3
-
-class CodeSwitchKind(Enum):
-    LineStart = 1
-    CalloutFormat = 2
-    RemoveCallout = 3
-    EmphasizeLine = 4
-    Dedent = 5
-
-class CodeResults(Enum):
-    Replace = 1
-
-class CodeExports(Enum):
-    _None = 1
-    Both = 2
-    Code = 3
-    Results = 4
-
-class TimeRepeatMode(Enum):
-    _None = 1
-    Exact = 2
-    FirstMatch = 3
-    SameDay = 4
-
-class TimeRepeatPeriod(Enum):
-    Year = 1
-    Month = 2
-    Week = 3
-    Day = 4
-    Hour = 5
-    Minute = 6
-
-class TimeTimeKind(Enum):
-    Static = 1
-    Dynamic = 2
-
-class SubtreeLogPriorityAction(Enum):
-    Added = 1
-    Removed = 2
-    Changed = 3
-
-class SubtreeLogKind(Enum):
-    Priority = 1
-    Note = 2
-    Refile = 3
-    Clock = 4
-    State = 5
-    Tag = 6
-
-class SubtreePeriodKind(Enum):
-    Clocked = 1
-    Scheduled = 2
-    Titled = 3
-    Deadline = 4
-    Created = 5
-    Repeated = 6
-
-class SubtreePropertySetMode(Enum):
-    Override = 1
-    Add = 2
-    Subtract = 3
-
-class SubtreePropertyInheritanceMode(Enum):
-    ThisAndSub = 1
-    OnlyThis = 2
-    OnlySub = 3
-
-class SubtreePropertyVisibilityLevel(Enum):
-    Folded = 1
-    Children = 2
-    Content = 3
-    All = 4
-
-class SubtreePropertyKind(Enum):
-    Nonblocking = 1
-    Trigger = 2
-    Origin = 3
-    ExportLatexClass = 4
-    ExportLatexClassOptions = 5
-    ExportLatexHeader = 6
-    ExportLatexCompiler = 7
-    Ordered = 8
-    Effort = 9
-    Visibility = 10
-    ExportOptions = 11
-    Blocker = 12
-    Unnumbered = 13
-    Created = 14
-    Unknown = 15
-
-class ListItemCheckbox(Enum):
-    _None = 1
-    Done = 2
-    Empty = 3
-
-class LinkKind(Enum):
-    Raw = 1
-    Id = 2
-    Person = 3
-    Footnote = 4
-    File = 5
-
-class DocumentOptionsTocExportKind(Enum):
-    DoExport = 1
-    ExportFixed = 2
-
-class DocumentOptionsBrokenLinks(Enum):
-    Raise = 1
-    Ignore = 2
-    Mark = 3
-
-class DocumentOptionsVisibility(Enum):
-    Overview = 1
-    Content = 2
-    ShowAll = 3
-    Show2Levels = 4
-    Show3Levels = 5
-    Show4Levels = 6
-    Show5Levels = 7
-    ShowEverything = 8
-
-class IncludeKind(Enum):
-    Example = 1
-    Export = 2
-    Src = 3
-    OrgDocument = 4
-
-class OrgSpecName(Enum):
-    Unnamed_ = 1
-    Result_ = 2
-    Year_ = 3
-    Day_ = 4
-    Clock_ = 5
-    Repeater_ = 6
-    Zone_ = 7
-    Link_ = 8
-    Tags_ = 9
-    Tag_ = 10
-    State_ = 11
-    Protocol_ = 12
-    Desc_ = 13
-    Times_ = 14
-    Drawer_ = 15
-    Args_ = 16
-    Name_ = 17
-    Definition_ = 18
-    Body_ = 19
-    HeaderArgs_ = 20
-    File_ = 21
-    Kind_ = 22
-    Lang_ = 23
-    Prefix_ = 24
-    Text_ = 25
-    Todo_ = 26
-    Urgency_ = 27
-    Title_ = 28
-    Completion_ = 29
-    Head_ = 30
-    Subnodes_ = 31
-    Properties_ = 32
-    Logbook_ = 33
-    Description_ = 34
-    Logs_ = 35
-    Newstate_ = 36
-    Oldstate_ = 37
-    Time_ = 38
-    From_ = 39
-    EndArgs_ = 40
-    Flags_ = 41
-    Value_ = 42
-    Assoc_ = 43
-    Main_ = 44
-    Hash_ = 45
-    Bullet_ = 46
-    Counter_ = 47
-    Checkbox_ = 48
-    Header_ = 49
-    To_ = 50
-    Diff_ = 51
-    Property_ = 52
-    Subname_ = 53
-    Values_ = 54
-    Cells_ = 55
-    Rows_ = 56
-    Lines_ = 57
-    Chunks_ = 58
-    InheritanceMode_ = 59
-    MainSetRule_ = 60
-    SubSetRule_ = 61
-
-class OrgNodeKind(Enum):
-    None_ = 1
-    Document_ = 2
-    UserNode_ = 3
-    Empty_ = 4
-    Error_ = 5
-    ErrorTerminator_ = 6
-    ErrorToken_ = 7
-    InlineStmtList_ = 8
-    StmtList_ = 9
-    AssocStmtList_ = 10
-    Subtree_ = 11
-    SubtreeTimes_ = 12
-    SubtreeStars_ = 13
-    Completion_ = 14
-    Checkbox_ = 15
-    List_ = 16
-    Bullet_ = 17
-    ListItem_ = 18
-    ListTag_ = 19
-    Counter_ = 20
-    Comment_ = 21
-    RawText_ = 22
-    Unparsed_ = 23
-    Command_ = 24
-    CommandArguments_ = 25
-    CommandTitle_ = 26
-    CommandAuthor_ = 27
-    CommandCreator_ = 28
-    CommandInclude_ = 29
-    CommandLanguage_ = 30
-    CommandAttrHtml_ = 31
-    CommandName_ = 32
-    CommandHeader_ = 33
-    CommandOptions_ = 34
-    CommandTblfm_ = 35
-    CommandBackendOptions_ = 36
-    AttrImg_ = 37
-    CommandCaption_ = 38
-    File_ = 39
-    BlockExport_ = 40
-    InlineExport_ = 41
-    MultilineCommand_ = 42
-    Result_ = 43
-    Ident_ = 44
-    BareIdent_ = 45
-    AdmonitionTag_ = 46
-    BigIdent_ = 47
-    VerbatimMultilineBlock_ = 48
-    CodeLine_ = 49
-    CodeText_ = 50
-    CodeTangle_ = 51
-    CodeCallout_ = 52
-    QuoteBlock_ = 53
-    AdmonitionBlock_ = 54
-    CenterBlock_ = 55
-    VerseBlock_ = 56
-    Example_ = 57
-    SrcCode_ = 58
-    SrcInlineCode_ = 59
-    CallCode_ = 60
-    PassCode_ = 61
-    CmdArguments_ = 62
-    CmdFlag_ = 63
-    CmdKey_ = 64
-    CmdValue_ = 65
-    CmdNamedValue_ = 66
-    UrgencyStatus_ = 67
-    TextSeparator_ = 68
-    Paragraph_ = 69
-    AnnotatedParagraph_ = 70
-    Bold_ = 71
-    Italic_ = 72
-    Verbatim_ = 73
-    Backtick_ = 74
-    Underline_ = 75
-    Strike_ = 76
-    Quote_ = 77
-    Angle_ = 78
-    Monospace_ = 79
-    Par_ = 80
-    InlineMath_ = 81
-    DisplayMath_ = 82
-    Space_ = 83
-    Punctuation_ = 84
-    Colon_ = 85
-    Word_ = 86
-    Escaped_ = 87
-    Newline_ = 88
-    RawLink_ = 89
-    Link_ = 90
-    Macro_ = 91
-    BackendRaw_ = 92
-    Symbol_ = 93
-    TimeAssoc_ = 94
-    StaticActiveTime_ = 95
-    StaticInactiveTime_ = 96
-    DynamicActiveTime_ = 97
-    DynamicInactiveTime_ = 98
-    TimeRange_ = 99
-    SimpleTime_ = 100
-    Details_ = 101
-    Summary_ = 102
-    Table_ = 103
-    TableRow_ = 104
-    TableCell_ = 105
-    InlineFootnote_ = 106
-    Footnote_ = 107
-    Horizontal_ = 108
-    Filetags_ = 109
-    OrgTag_ = 110
-    HashTag_ = 111
-    MetaSymbol_ = 112
-    AtMention_ = 113
-    BracTag_ = 114
-    Drawer_ = 115
-    LatexClass_ = 116
-    LatexHeader_ = 117
-    LatexCompiler_ = 118
-    LatexClassOptions_ = 119
-    HtmlHead_ = 120
-    Columns_ = 121
-    CmdPropertyArgs_ = 122
-    CmdPropertyText_ = 123
-    CmdPropertyRaw_ = 124
-    PropertyList_ = 125
-    Property_ = 126
-    Placeholder_ = 127
-    SubtreeDescription_ = 128
-    SubtreeUrgency_ = 129
-    Logbook_ = 130
-    LogbookStateChange_ = 131
-    RadioTarget_ = 132
-    Target_ = 133
-
-class OrgBigIdentKind(Enum):
-    None_ = 1
-    Must_ = 2
-    MustNot_ = 3
-    Should_ = 4
-    ShouldNot_ = 5
-    Required_ = 6
-    Optional_ = 7
-    ReallyShouldNot_ = 8
-    OughtTo_ = 9
-    WouldProbably_ = 10
-    MayWishTo_ = 11
-    Could_ = 12
-    Might_ = 13
-    Possible_ = 14
-    Todo_ = 15
-    Idea_ = 16
-    Error_ = 17
-    Fixme_ = 18
-    Doc_ = 19
-    Refactor_ = 20
-    Review_ = 21
-    Hack_ = 22
-    Implement_ = 23
-    Example_ = 24
-    Question_ = 25
-    Assume_ = 26
-    Internal_ = 27
-    Design_ = 28
-    Why_ = 29
-    Wip_ = 30
-    Fix_ = 31
-    Clean_ = 32
-    Feature_ = 33
-    Style_ = 34
-    Repo_ = 35
-    Skip_ = 36
-    Break_ = 37
-    Poc_ = 38
-    Next_ = 39
-    Later_ = 40
-    Postponed_ = 41
-    Stalled_ = 42
-    Done_ = 43
-    Partially_ = 44
-    Cancelled_ = 45
-    Failed_ = 46
-    Note_ = 47
-    Tip_ = 48
-    Important_ = 49
-    Caution_ = 50
-    Warning_ = 51
-    UserCodeComment_ = 52
-    UserCommitMsg_ = 53
-    UserTaskState_ = 54
-    UserAdmonition_ = 55
-    Other_ = 56
-    StructIf_ = 57
-    StructAnd_ = 58
-    StructOr_ = 59
-    StructNot_ = 60
-    StructGet_ = 61
-    StructSet_ = 62
-    StructThen_ = 63
-    StructElse_ = 64
-    StructWhile_ = 65
-
-class OrgSemKind(Enum):
-    StmtList_ = 1
-    Empty_ = 2
-    Row_ = 3
-    Table_ = 4
-    HashTag_ = 5
-    Footnote_ = 6
-    Completion_ = 7
-    Paragraph_ = 8
-    Center_ = 9
-    Caption_ = 10
-    CommandGroup_ = 11
-    Tblfm_ = 12
-    Quote_ = 13
-    Verse_ = 14
-    Example_ = 15
-    CmdArguments_ = 16
-    CmdArgument_ = 17
-    Export_ = 18
-    AdmonitionBlock_ = 19
-    Code_ = 20
-    Time_ = 21
-    TimeRange_ = 22
-    Macro_ = 23
-    Symbol_ = 24
-    SubtreeLog_ = 25
-    Subtree_ = 26
-    InlineMath_ = 27
-    Escaped_ = 28
-    Newline_ = 29
-    Space_ = 30
-    Word_ = 31
-    AtMention_ = 32
-    RawText_ = 33
-    Punctuation_ = 34
-    Placeholder_ = 35
-    BigIdent_ = 36
-    Bold_ = 37
-    Underline_ = 38
-    Monospace_ = 39
-    MarkQuote_ = 40
-    Verbatim_ = 41
-    Italic_ = 42
-    Strike_ = 43
-    Par_ = 44
-    List_ = 45
-    ListItem_ = 46
-    Link_ = 47
-    DocumentOptions_ = 48
-    Document_ = 49
-    ParseError_ = 50
-    FileTarget_ = 51
-    TextSeparator_ = 52
-    Include_ = 53
-    DocumentGroup_ = 54
-
-class LeafFieldType(Enum):
-    Int = 1
-    UserTimeKind = 2
-    QDate = 3
-    Bool = 4
-    FixedIdVec = 5
-    TopIdVec = 6
-    QDateTime = 7
-    Str = 8
-    Any = 9
-
 class Org:
-    def getKind() -> OrgSemKind: ...
-    def isGenerated() -> bool: ...
-    def push_back(sub: Org) -> None: ...
-    def at(idx: int) -> Org: ...
-    def is_(kind: OrgSemKind) -> bool: ...
-    def __getitem__(idx: int) -> Org: ...
-    def __iter__(node: Org) -> auto: ...
+    def getKind(self) -> OrgSemKind: ...
+    def isGenerated(self) -> bool: ...
+    def push_back(self, sub: Org) -> None: ...
+    def at(self, idx: int) -> Org: ...
+    def is_(self, kind: OrgSemKind) -> bool: ...
+    def __getitem__(self, idx: int) -> Org: ...
+    def __iter__(self, node: Org) -> auto: ...
     loc: Optional[LineCol]
     subnodes: List[Org]
 
@@ -481,7 +19,7 @@ class LineCol:
     pos: int
 
 class Stmt(Org):
-    def getAttached(kind: OrgSemKind) -> Optional[Org]: ...
+    def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     attached: List[Org]
 
 class Inline(Org):
@@ -493,17 +31,21 @@ class StmtList(Org):
 class Empty(Org):
     loc: Optional[LineCol]
 
-class Row(Org):
+class Cell(Org):
     loc: Optional[LineCol]
 
+class Row(Org):
+    loc: Optional[LineCol]
+    cells: List[Cell]
+
 class Table(Stmt):
-    def getAttached(kind: OrgSemKind) -> Optional[Org]: ...
+    def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     loc: Optional[LineCol]
     rows: List[Row]
     attached: List[Org]
 
 class HashTag(Inline):
-    def prefixMatch(prefix: List[str]) -> bool: ...
+    def prefixMatch(self, prefix: List[str]) -> bool: ...
     loc: Optional[LineCol]
     head: str
     subtags: List[HashTag]
@@ -520,8 +62,8 @@ class Completion(Inline):
     isPercent: bool
 
 class Paragraph(Stmt):
-    def isFootnoteDefinition() -> bool: ...
-    def getAttached(kind: OrgSemKind) -> Optional[Org]: ...
+    def isFootnoteDefinition(self) -> bool: ...
+    def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     loc: Optional[LineCol]
     attached: List[Org]
 
@@ -547,13 +89,20 @@ class Caption(Attached):
     loc: Optional[LineCol]
     text: Paragraph
 
+class CmdName(Attached):
+    loc: Optional[LineCol]
+
+class CmdResults(Attached):
+    loc: Optional[LineCol]
+
 class CommandGroup(Stmt):
-    def getAttached(kind: OrgSemKind) -> Optional[Org]: ...
+    def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     loc: Optional[LineCol]
     attached: List[Org]
 
 class Block(Command):
-    pass
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
+    parameters: Optional[CmdArguments]
 
 class Tblfm(Command):
     loc: Optional[LineCol]
@@ -562,56 +111,81 @@ class Quote(Org):
     loc: Optional[LineCol]
 
 class Verse(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
+    parameters: Optional[CmdArguments]
 
 class Example(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
+    parameters: Optional[CmdArguments]
 
 class CmdArguments(Org):
-    def popArg(key: str) -> Optional[CmdArgument]: ...
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
     positional: List[CmdArgument]
     named: Dict[str, CmdArgument]
 
+class CmdAttr(Attached):
+    loc: Optional[LineCol]
+    target: str
+    parameters: CmdArguments
+
 class CmdArgument(Org):
-    def getInt() -> Optional[int]: ...
-    def getBool() -> Optional[bool]: ...
-    def getString() -> str: ...
+    def getInt(self) -> Optional[int]: ...
+    def getBool(self) -> Optional[bool]: ...
+    def getString(self) -> str: ...
     loc: Optional[LineCol]
     key: Optional[str]
     value: str
 
+class ExportFormat(Enum):
+    Inline = 1
+    Line = 2
+    Block = 3
+
 class Export(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
     format: ExportFormat
     exporter: str
-    parameters: Optional[CmdArguments]
     placement: Optional[str]
     content: str
+    parameters: Optional[CmdArguments]
 
 class AdmonitionBlock(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
-
-class Code(Block):
-    loc: Optional[LineCol]
-    lang: Optional[str]
-    switches: List[CodeSwitch]
-    exports: CodeExports
     parameters: Optional[CmdArguments]
-    cache: bool
-    eval: bool
-    noweb: bool
-    hlines: bool
-    tangle: bool
 
-class CodeSwitch:
-    def getLineStart() -> CodeSwitchLineStart: ...
-    def getCalloutFormat() -> CodeSwitchCalloutFormat: ...
-    def getRemoveCallout() -> CodeSwitchRemoveCallout: ...
-    def getEmphasizeLine() -> CodeSwitchEmphasizeLine: ...
-    def getDedent() -> CodeSwitchDedent: ...
-    def getKind() -> CodeSwitchKind: ...
-    data: CodeSwitchData
+class Call(Org):
+    loc: Optional[LineCol]
+    name: Optional[str]
+
+class CodeLinePartRaw:
+    code: str
+
+class CodeLinePartCallout:
+    name: str
+
+class CodeLinePartTangle:
+    target: str
+
+CodeLinePartData = Union[CodeLinePartRaw, CodeLinePartCallout, CodeLinePartTangle]
+class CodeLinePartKind(Enum):
+    Raw = 1
+    Callout = 2
+    Tangle = 3
+
+class CodeLinePart:
+    def getRaw(self) -> CodeLinePartRaw: ...
+    def getCallout(self) -> CodeLinePartCallout: ...
+    def getTangle(self) -> CodeLinePartTangle: ...
+    def getKind(self) -> CodeLinePartKind: ...
+    data: CodeLinePartData
+
+class CodeLine:
+    parts: List[CodeLinePart]
 
 class CodeSwitchLineStart:
     start: int
@@ -629,13 +203,59 @@ class CodeSwitchEmphasizeLine:
 class CodeSwitchDedent:
     value: int
 
-class Time(Org):
-    def getStatic() -> TimeStatic: ...
-    def getDynamic() -> TimeDynamic: ...
-    def getTimeKind() -> TimeTimeKind: ...
+CodeSwitchData = Union[CodeSwitchLineStart, CodeSwitchCalloutFormat, CodeSwitchRemoveCallout, CodeSwitchEmphasizeLine, CodeSwitchDedent]
+class CodeSwitchKind(Enum):
+    LineStart = 1
+    CalloutFormat = 2
+    RemoveCallout = 3
+    EmphasizeLine = 4
+    Dedent = 5
+
+class CodeSwitch:
+    def getLineStart(self) -> CodeSwitchLineStart: ...
+    def getCalloutFormat(self) -> CodeSwitchCalloutFormat: ...
+    def getRemoveCallout(self) -> CodeSwitchRemoveCallout: ...
+    def getEmphasizeLine(self) -> CodeSwitchEmphasizeLine: ...
+    def getDedent(self) -> CodeSwitchDedent: ...
+    def getKind(self) -> CodeSwitchKind: ...
+    data: CodeSwitchData
+
+class CodeResults(Enum):
+    Replace = 1
+
+class CodeExports(Enum):
+    _None = 1
+    Both = 2
+    Code = 3
+    Results = 4
+
+class Code(Block):
+    def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     loc: Optional[LineCol]
-    isActive: bool
-    time: TimeTimeVariant
+    lang: Optional[str]
+    switches: List[CodeSwitch]
+    exports: CodeExports
+    lines: List[CodeLine]
+    cache: bool
+    eval: bool
+    noweb: bool
+    hlines: bool
+    tangle: bool
+    parameters: Optional[CmdArguments]
+
+class TimeRepeatMode(Enum):
+    _None = 1
+    Exact = 2
+    FirstMatch = 3
+    SameDay = 4
+
+class TimeRepeatPeriod(Enum):
+    Year = 1
+    Month = 2
+    Week = 3
+    Day = 4
+    Hour = 5
+    Minute = 6
 
 class TimeRepeat:
     mode: TimeRepeatMode
@@ -644,10 +264,23 @@ class TimeRepeat:
 
 class TimeStatic:
     repeat: Optional[TimeRepeat]
-    time: datetime
+    time: UserTime
 
 class TimeDynamic:
     expr: str
+
+TimeTimeVariant = Union[TimeStatic, TimeDynamic]
+class TimeTimeKind(Enum):
+    Static = 1
+    Dynamic = 2
+
+class Time(Org):
+    def getStatic(self) -> TimeStatic: ...
+    def getDynamic(self) -> TimeDynamic: ...
+    def getTimeKind(self) -> TimeTimeKind: ...
+    loc: Optional[LineCol]
+    isActive: bool
+    time: TimeTimeVariant
 
 class TimeRange(Org):
     loc: Optional[LineCol]
@@ -659,30 +292,23 @@ class Macro(Org):
     name: str
     arguments: List[str]
 
+class SymbolParam:
+    key: Optional[str]
+    value: str
+
 class Symbol(Org):
     loc: Optional[LineCol]
     name: str
     parameters: List[SymbolParam]
     positional: List[Org]
 
-class SymbolParam:
-    key: Optional[str]
-    value: str
-
-class SubtreeLog(Org):
-    def setDescription(desc: StmtList) -> None: ...
-    def getPriority() -> SubtreeLogPriority: ...
-    def getNote() -> SubtreeLogNote: ...
-    def getRefile() -> SubtreeLogRefile: ...
-    def getClock() -> SubtreeLogClock: ...
-    def getState() -> SubtreeLogState: ...
-    def getTag() -> SubtreeLogTag: ...
-    def getLogKind() -> SubtreeLogKind: ...
-    loc: Optional[LineCol]
-    log: SubtreeLogLogEntry
-
 class SubtreeLogDescribedLog:
     desc: Optional[StmtList]
+
+class SubtreeLogPriorityAction(Enum):
+    Added = 1
+    Removed = 2
+    Changed = 3
 
 class SubtreeLogPriority:
     oldPriority: Optional[str]
@@ -700,8 +326,8 @@ class SubtreeLogClock:
     pass
 
 class SubtreeLogState:
-    from_: OrgBigIdentKind
-    to: OrgBigIdentKind
+    from_: str
+    to: str
     on: Time
 
 class SubtreeLogTag:
@@ -709,52 +335,49 @@ class SubtreeLogTag:
     tag: HashTag
     added: bool
 
-class Subtree(Org):
-    def getTimePeriods(kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
-    def getProperties(kind: SubtreePropertyKind, subkind: str) -> List[SubtreeProperty]: ...
-    def getProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
-    def getContextualProperties(kind: SubtreePropertyKind, subkind: str) -> List[SubtreeProperty]: ...
-    def getContextualProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
+SubtreeLogLogEntry = Union[SubtreeLogPriority, SubtreeLogNote, SubtreeLogRefile, SubtreeLogClock, SubtreeLogState, SubtreeLogTag]
+class SubtreeLogKind(Enum):
+    Priority = 1
+    Note = 2
+    Refile = 3
+    Clock = 4
+    State = 5
+    Tag = 6
+
+class SubtreeLog(Org):
+    def setDescription(self, desc: StmtList) -> None: ...
+    def getPriority(self) -> SubtreeLogPriority: ...
+    def getNote(self) -> SubtreeLogNote: ...
+    def getRefile(self) -> SubtreeLogRefile: ...
+    def getClock(self) -> SubtreeLogClock: ...
+    def getState(self) -> SubtreeLogState: ...
+    def getTag(self) -> SubtreeLogTag: ...
+    def getLogKind(self) -> SubtreeLogKind: ...
     loc: Optional[LineCol]
-    level: int
-    treeId: Optional[str]
-    todo: Optional[str]
-    completion: Optional[Completion]
-    description: Optional[Paragraph]
-    tags: List[HashTag]
-    title: Paragraph
-    logbook: List[SubtreeLog]
-    properties: List[SubtreeProperty]
-    closed: Optional[Time]
-    deadline: Optional[Time]
-    scheduled: Optional[Time]
+    log: SubtreeLogLogEntry
+
+class SubtreePeriodKind(Enum):
+    Clocked = 1
+    Scheduled = 2
+    Titled = 3
+    Deadline = 4
+    Created = 5
+    Repeated = 6
 
 class SubtreePeriod:
-    def getTime() -> Time: ...
-    def getTimeRange() -> TimeRange: ...
+    def getTime(self) -> Time: ...
+    def getTimeRange(self) -> TimeRange: ...
     kind: SubtreePeriodKind
 
-class SubtreeProperty:
-    def getNonblocking() -> SubtreePropertyNonblocking: ...
-    def getTrigger() -> SubtreePropertyTrigger: ...
-    def getOrigin() -> SubtreePropertyOrigin: ...
-    def getExportLatexClass() -> SubtreePropertyExportLatexClass: ...
-    def getExportLatexClassOptions() -> SubtreePropertyExportLatexClassOptions: ...
-    def getExportLatexHeader() -> SubtreePropertyExportLatexHeader: ...
-    def getExportLatexCompiler() -> SubtreePropertyExportLatexCompiler: ...
-    def getOrdered() -> SubtreePropertyOrdered: ...
-    def getEffort() -> SubtreePropertyEffort: ...
-    def getVisibility() -> SubtreePropertyVisibility: ...
-    def getExportOptions() -> SubtreePropertyExportOptions: ...
-    def getBlocker() -> SubtreePropertyBlocker: ...
-    def getUnnumbered() -> SubtreePropertyUnnumbered: ...
-    def getCreated() -> SubtreePropertyCreated: ...
-    def getUnknown() -> SubtreePropertyUnknown: ...
-    def getKind() -> SubtreePropertyKind: ...
-    mainSetRule: SubtreePropertySetMode
-    subSetRule: SubtreePropertySetMode
-    inheritanceMode: SubtreePropertyInheritanceMode
-    data: SubtreePropertyData
+class SubtreePropertySetMode(Enum):
+    Override = 1
+    Add = 2
+    Subtract = 3
+
+class SubtreePropertyInheritanceMode(Enum):
+    ThisAndSub = 1
+    OnlyThis = 2
+    OnlySub = 3
 
 class SubtreePropertyNonblocking:
     isBlocking: bool
@@ -784,6 +407,12 @@ class SubtreePropertyEffort:
     hours: int
     minutes: int
 
+class SubtreePropertyVisibilityLevel(Enum):
+    Folded = 1
+    Children = 2
+    Content = 3
+    All = 4
+
 class SubtreePropertyVisibility:
     level: SubtreePropertyVisibilityLevel
 
@@ -802,6 +431,68 @@ class SubtreePropertyCreated:
 
 class SubtreePropertyUnknown:
     value: Org
+    name: str
+
+SubtreePropertyData = Union[SubtreePropertyNonblocking, SubtreePropertyTrigger, SubtreePropertyOrigin, SubtreePropertyExportLatexClass, SubtreePropertyExportLatexClassOptions, SubtreePropertyExportLatexHeader, SubtreePropertyExportLatexCompiler, SubtreePropertyOrdered, SubtreePropertyEffort, SubtreePropertyVisibility, SubtreePropertyExportOptions, SubtreePropertyBlocker, SubtreePropertyUnnumbered, SubtreePropertyCreated, SubtreePropertyUnknown]
+class SubtreePropertyKind(Enum):
+    Nonblocking = 1
+    Trigger = 2
+    Origin = 3
+    ExportLatexClass = 4
+    ExportLatexClassOptions = 5
+    ExportLatexHeader = 6
+    ExportLatexCompiler = 7
+    Ordered = 8
+    Effort = 9
+    Visibility = 10
+    ExportOptions = 11
+    Blocker = 12
+    Unnumbered = 13
+    Created = 14
+    Unknown = 15
+
+class SubtreeProperty:
+    def isMatching(self, kind: str, subKind: Optional[str]) -> bool: ...
+    def getName(self) -> str: ...
+    def getSubKind(self) -> Optional[str]: ...
+    def getNonblocking(self) -> SubtreePropertyNonblocking: ...
+    def getTrigger(self) -> SubtreePropertyTrigger: ...
+    def getOrigin(self) -> SubtreePropertyOrigin: ...
+    def getExportLatexClass(self) -> SubtreePropertyExportLatexClass: ...
+    def getExportLatexClassOptions(self) -> SubtreePropertyExportLatexClassOptions: ...
+    def getExportLatexHeader(self) -> SubtreePropertyExportLatexHeader: ...
+    def getExportLatexCompiler(self) -> SubtreePropertyExportLatexCompiler: ...
+    def getOrdered(self) -> SubtreePropertyOrdered: ...
+    def getEffort(self) -> SubtreePropertyEffort: ...
+    def getVisibility(self) -> SubtreePropertyVisibility: ...
+    def getExportOptions(self) -> SubtreePropertyExportOptions: ...
+    def getBlocker(self) -> SubtreePropertyBlocker: ...
+    def getUnnumbered(self) -> SubtreePropertyUnnumbered: ...
+    def getCreated(self) -> SubtreePropertyCreated: ...
+    def getUnknown(self) -> SubtreePropertyUnknown: ...
+    def getKind(self) -> SubtreePropertyKind: ...
+    mainSetRule: SubtreePropertySetMode
+    subSetRule: SubtreePropertySetMode
+    inheritanceMode: SubtreePropertyInheritanceMode
+    data: SubtreePropertyData
+
+class Subtree(Org):
+    def getTimePeriods(self, kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
+    def getProperties(self, kind: str, subkind: Optional[str]) -> List[SubtreeProperty]: ...
+    def getProperty(self, kind: str, subkind: Optional[str]) -> Optional[SubtreeProperty]: ...
+    loc: Optional[LineCol]
+    level: int
+    treeId: Optional[str]
+    todo: Optional[str]
+    completion: Optional[Completion]
+    description: Optional[Paragraph]
+    tags: List[HashTag]
+    title: Paragraph
+    logbook: List[SubtreeLog]
+    properties: List[SubtreeProperty]
+    closed: Optional[Time]
+    deadline: Optional[Time]
+    scheduled: Optional[Time]
 
 class LatexBody(Org):
     pass
@@ -876,25 +567,20 @@ class Par(Markup):
     loc: Optional[LineCol]
 
 class List(Org):
-    def isDescriptionList() -> bool: ...
+    def isDescriptionList(self) -> bool: ...
     loc: Optional[LineCol]
 
+class ListItemCheckbox(Enum):
+    _None = 1
+    Done = 2
+    Empty = 3
+    Partial = 4
+
 class ListItem(Org):
-    def isDescriptionItem() -> bool: ...
+    def isDescriptionItem(self) -> bool: ...
     loc: Optional[LineCol]
     checkbox: ListItemCheckbox
     header: Optional[Paragraph]
-
-class Link(Org):
-    def getRaw() -> LinkRaw: ...
-    def getId() -> LinkId: ...
-    def getPerson() -> LinkPerson: ...
-    def getFootnote() -> LinkFootnote: ...
-    def getFile() -> LinkFile: ...
-    def getLinkKind() -> LinkKind: ...
-    loc: Optional[LineCol]
-    description: Optional[Paragraph]
-    data: LinkData
 
 class LinkRaw:
     text: str
@@ -905,18 +591,74 @@ class LinkId:
 class LinkPerson:
     name: str
 
+class LinkUserProtocol:
+    protocol: str
+    target: str
+
+class LinkInternal:
+    target: str
+
 class LinkFootnote:
     target: str
 
 class LinkFile:
     file: str
 
+LinkData = Union[LinkRaw, LinkId, LinkPerson, LinkUserProtocol, LinkInternal, LinkFootnote, LinkFile]
+class LinkKind(Enum):
+    Raw = 1
+    Id = 2
+    Person = 3
+    UserProtocol = 4
+    Internal = 5
+    Footnote = 6
+    File = 7
+
+class Link(Org):
+    def getRaw(self) -> LinkRaw: ...
+    def getId(self) -> LinkId: ...
+    def getPerson(self) -> LinkPerson: ...
+    def getUserProtocol(self) -> LinkUserProtocol: ...
+    def getInternal(self) -> LinkInternal: ...
+    def getFootnote(self) -> LinkFootnote: ...
+    def getFile(self) -> LinkFile: ...
+    def getLinkKind(self) -> LinkKind: ...
+    loc: Optional[LineCol]
+    description: Optional[Paragraph]
+    data: LinkData
+
+class DocumentOptionsDoExport:
+    exportToc: bool
+
+class DocumentOptionsExportFixed:
+    exportLevels: int
+
+DocumentOptionsTocExport = Union[DocumentOptionsDoExport, DocumentOptionsExportFixed]
+class DocumentOptionsTocExportKind(Enum):
+    DoExport = 1
+    ExportFixed = 2
+
+class DocumentOptionsBrokenLinks(Enum):
+    Raise = 1
+    Ignore = 2
+    Mark = 3
+
+class DocumentOptionsVisibility(Enum):
+    Overview = 1
+    Content = 2
+    ShowAll = 3
+    Show2Levels = 4
+    Show3Levels = 5
+    Show4Levels = 6
+    Show5Levels = 7
+    ShowEverything = 8
+
 class DocumentOptions(Org):
-    def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
-    def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
-    def getDoExport() -> DocumentOptionsDoExport: ...
-    def getExportFixed() -> DocumentOptionsExportFixed: ...
-    def getTocExportKind() -> DocumentOptionsTocExportKind: ...
+    def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
+    def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
+    def getDoExport(self) -> DocumentOptionsDoExport: ...
+    def getExportFixed(self) -> DocumentOptionsExportFixed: ...
+    def getTocExportKind(self) -> DocumentOptionsTocExportKind: ...
     loc: Optional[LineCol]
     brokenLinks: DocumentOptionsBrokenLinks
     initialVisibility: DocumentOptionsVisibility
@@ -936,19 +678,14 @@ class DocumentOptions(Org):
     exportWithCreator: bool
     data: DocumentOptionsTocExport
 
-class DocumentOptionsDoExport:
-    exportToc: bool
-
-class DocumentOptionsExportFixed:
-    exportLevels: int
-
 class Document(Org):
-    def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
-    def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
+    def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
+    def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
     loc: Optional[LineCol]
     title: Optional[Paragraph]
     author: Optional[Paragraph]
     creator: Optional[Paragraph]
+    filetags: List[HashTag]
     email: Optional[RawText]
     language: List[str]
     options: DocumentOptions
@@ -969,15 +706,6 @@ class FileTarget(Org):
 class TextSeparator(Org):
     loc: Optional[LineCol]
 
-class Include(Org):
-    def getExample() -> IncludeExample: ...
-    def getExport() -> IncludeExport: ...
-    def getSrc() -> IncludeSrc: ...
-    def getOrgDocument() -> IncludeOrgDocument: ...
-    def getIncludeKind() -> IncludeKind: ...
-    loc: Optional[LineCol]
-    data: IncludeData
-
 class IncludeExample:
     pass
 
@@ -990,13 +718,304 @@ class IncludeSrc:
 class IncludeOrgDocument:
     pass
 
+IncludeData = Union[IncludeExample, IncludeExport, IncludeSrc, IncludeOrgDocument]
+class IncludeKind(Enum):
+    Example = 1
+    Export = 2
+    Src = 3
+    OrgDocument = 4
+
+class Include(Org):
+    def getExample(self) -> IncludeExample: ...
+    def getExport(self) -> IncludeExport: ...
+    def getSrc(self) -> IncludeSrc: ...
+    def getOrgDocument(self) -> IncludeOrgDocument: ...
+    def getIncludeKind(self) -> IncludeKind: ...
+    loc: Optional[LineCol]
+    data: IncludeData
+
 class DocumentGroup(Org):
     loc: Optional[LineCol]
 
+class OrgSpecName(Enum):
+    Unnamed = 1
+    Result = 2
+    Year = 3
+    Day = 4
+    Clock = 5
+    Repeater = 6
+    Zone = 7
+    Link = 8
+    Tags = 9
+    Tag = 10
+    State = 11
+    Protocol = 12
+    Desc = 13
+    Times = 14
+    Drawer = 15
+    Args = 16
+    Name = 17
+    Definition = 18
+    Body = 19
+    HeaderArgs = 20
+    File = 21
+    Kind = 22
+    Lang = 23
+    Prefix = 24
+    Text = 25
+    Todo = 26
+    Urgency = 27
+    Title = 28
+    Completion = 29
+    Head = 30
+    Subnodes = 31
+    Properties = 32
+    Logbook = 33
+    Description = 34
+    Logs = 35
+    Newstate = 36
+    Oldstate = 37
+    Time = 38
+    From = 39
+    EndArgs = 40
+    Flags = 41
+    Value = 42
+    Assoc = 43
+    Main = 44
+    Hash = 45
+    Bullet = 46
+    Counter = 47
+    Checkbox = 48
+    Header = 49
+    To = 50
+    Diff = 51
+    Property = 52
+    Subname = 53
+    Values = 54
+    Cells = 55
+    Rows = 56
+    Lines = 57
+    Chunks = 58
+    InheritanceMode = 59
+    MainSetRule = 60
+    SubSetRule = 61
+
+class OrgNodeKind(Enum):
+    _None = 1
+    Document = 2
+    UserNode = 3
+    Empty = 4
+    Error = 5
+    ErrorTerminator = 6
+    ErrorToken = 7
+    InlineStmtList = 8
+    StmtList = 9
+    AssocStmtList = 10
+    Subtree = 11
+    SubtreeTimes = 12
+    SubtreeStars = 13
+    Completion = 14
+    Checkbox = 15
+    List = 16
+    Bullet = 17
+    ListItem = 18
+    ListTag = 19
+    Counter = 20
+    Comment = 21
+    RawText = 22
+    Unparsed = 23
+    Command = 24
+    CommandArguments = 25
+    CommandTitle = 26
+    CommandAuthor = 27
+    CommandCreator = 28
+    CommandInclude = 29
+    CommandLanguage = 30
+    CommandAttr = 31
+    CommandStartup = 32
+    CommandName = 33
+    CommandResults = 34
+    CommandHeader = 35
+    CommandOptions = 36
+    CommandTblfm = 37
+    CommandBackendOptions = 38
+    AttrImg = 39
+    CommandCaption = 40
+    File = 41
+    BlockExport = 42
+    InlineExport = 43
+    MultilineCommand = 44
+    Result = 45
+    Ident = 46
+    BareIdent = 47
+    AdmonitionTag = 48
+    BigIdent = 49
+    VerbatimMultilineBlock = 50
+    CodeLine = 51
+    CodeText = 52
+    CodeTangle = 53
+    CodeCallout = 54
+    QuoteBlock = 55
+    AdmonitionBlock = 56
+    CenterBlock = 57
+    VerseBlock = 58
+    Example = 59
+    SrcCode = 60
+    SrcInlineCode = 61
+    InlineCallCode = 62
+    CmdCallCode = 63
+    PassCode = 64
+    CmdArguments = 65
+    CmdFlag = 66
+    CmdKey = 67
+    CmdValue = 68
+    CmdNamedValue = 69
+    UrgencyStatus = 70
+    TextSeparator = 71
+    Paragraph = 72
+    AnnotatedParagraph = 73
+    Bold = 74
+    Italic = 75
+    Verbatim = 76
+    Backtick = 77
+    Underline = 78
+    Strike = 79
+    Quote = 80
+    Angle = 81
+    Monospace = 82
+    Par = 83
+    InlineMath = 84
+    DisplayMath = 85
+    Space = 86
+    Punctuation = 87
+    Colon = 88
+    Word = 89
+    Escaped = 90
+    Newline = 91
+    RawLink = 92
+    Link = 93
+    Macro = 94
+    BackendRaw = 95
+    Symbol = 96
+    TimeAssoc = 97
+    StaticActiveTime = 98
+    StaticInactiveTime = 99
+    DynamicActiveTime = 100
+    DynamicInactiveTime = 101
+    TimeRange = 102
+    SimpleTime = 103
+    Details = 104
+    Summary = 105
+    Table = 106
+    TableRow = 107
+    TableCell = 108
+    InlineFootnote = 109
+    Footnote = 110
+    Horizontal = 111
+    Filetags = 112
+    OrgTag = 113
+    HashTag = 114
+    MetaSymbol = 115
+    AtMention = 116
+    BracTag = 117
+    Drawer = 118
+    LatexClass = 119
+    LatexHeader = 120
+    LatexCompiler = 121
+    LatexClassOptions = 122
+    HtmlHead = 123
+    Columns = 124
+    CmdPropertyArgs = 125
+    CmdPropertyText = 126
+    CmdPropertyRaw = 127
+    PropertyList = 128
+    Property = 129
+    Placeholder = 130
+    SubtreeDescription = 131
+    SubtreeUrgency = 132
+    Logbook = 133
+    LogbookStateChange = 134
+    RadioTarget = 135
+    Target = 136
+
+class OrgSemKind(Enum):
+    StmtList = 1
+    Empty = 2
+    Cell = 3
+    Row = 4
+    Table = 5
+    HashTag = 6
+    Footnote = 7
+    Completion = 8
+    Paragraph = 9
+    Center = 10
+    Caption = 11
+    CmdName = 12
+    CmdResults = 13
+    CommandGroup = 14
+    Tblfm = 15
+    Quote = 16
+    Verse = 17
+    Example = 18
+    CmdArguments = 19
+    CmdAttr = 20
+    CmdArgument = 21
+    Export = 22
+    AdmonitionBlock = 23
+    Call = 24
+    Code = 25
+    Time = 26
+    TimeRange = 27
+    Macro = 28
+    Symbol = 29
+    SubtreeLog = 30
+    Subtree = 31
+    InlineMath = 32
+    Escaped = 33
+    Newline = 34
+    Space = 35
+    Word = 36
+    AtMention = 37
+    RawText = 38
+    Punctuation = 39
+    Placeholder = 40
+    BigIdent = 41
+    Bold = 42
+    Underline = 43
+    Monospace = 44
+    MarkQuote = 45
+    Verbatim = 46
+    Italic = 47
+    Strike = 48
+    Par = 49
+    List = 50
+    ListItem = 51
+    Link = 52
+    DocumentOptions = 53
+    Document = 54
+    ParseError = 55
+    FileTarget = 56
+    TextSeparator = 57
+    Include = 58
+    DocumentGroup = 59
+
+class UserTimeBreakdown:
+    year: Optional[int]
+    month: Optional[int]
+    day: Optional[int]
+    hour: Optional[int]
+    minute: Optional[int]
+    second: Optional[int]
+    zone: Optional[str]
+
+class UserTime:
+    def getBreakdown(self) -> UserTimeBreakdown: ...
+    def format(self) -> str: ...
+
 class OrgExporterJson:
-    def visitNode(node: Org) -> None: ...
-    def exportToString() -> str: ...
-    def exportToFile(path: str) -> None: ...
+    def visitNode(self, node: Org) -> None: ...
+    def exportToString(self) -> str: ...
+    def exportToFile(self, path: str) -> None: ...
 
 class ExporterTreeOpts:
     withLineCol: bool
@@ -1007,47 +1026,65 @@ class ExporterTreeOpts:
     withColor: bool
 
 class OrgExporterTree:
-    def toString(node: Org, opts: ExporterTreeOpts) -> str: ...
-    def toFile(node: Org, path: str, opts: ExporterTreeOpts) -> None: ...
+    def toString(self, node: Org, opts: ExporterTreeOpts) -> str: ...
+    def toFile(self, node: Org, path: str, opts: ExporterTreeOpts) -> None: ...
 
 class OrgExporterYaml:
-    def visitNode(node: Org) -> None: ...
-    def exportToString() -> str: ...
-    def exportToFile(path: str) -> None: ...
+    def visitNode(self, node: Org) -> None: ...
+    def exportToString(self) -> str: ...
+    def exportToFile(self, path: str) -> None: ...
 
 class OrgContext:
-    def parseFile(file: str) -> Document: ...
-    def parseString(text: str) -> Document: ...
+    def parseFile(self, file: str) -> Document: ...
+    def parseString(self, text: str) -> Document: ...
+    def parseProtobuf(self, file: str) -> Document: ...
+    def saveProtobuf(self, doc: Document, file: str) -> None: ...
+    def formatToString(self, arg: Org) -> str: ...
+    baseTokenTracePath: Optional[str]
+    tokenTracePath: Optional[str]
+    parseTracePath: Optional[str]
+    semTracePath: Optional[str]
 
 class ExporterPython:
-    def enablePyStreamTrace(stream: object) -> None: ...
-    def enableBufferTrace() -> None: ...
-    def getTraceBuffer() -> str: ...
-    def enableFileTrace(path: str) -> None: ...
-    def setVisitAnyIdAround(cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitAnyIdIn(cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitAnyField(cb: ExporterPythonPyFunc) -> None: ...
-    def setEvalTopCb(cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitIdAround(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setEvalIdAround(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitIdInCb(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setEvalIdIn(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitLeafField(kind: LeafFieldType, cb: ExporterPythonPyFunc) -> None: ...
-    def setEvalLeafField(kind: LeafFieldType, cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitOrgField(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setEvalOrgField(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setSelf(val: object) -> None: ...
-    def setNewOrgRes(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setNewAnyOrgRes(cb: ExporterPythonPyFunc) -> None: ...
-    def setNewLeafRes(kind: LeafFieldType, cb: ExporterPythonPyFunc) -> None: ...
-    def setNewAnyLeafRes(cb: ExporterPythonPyFunc) -> None: ...
-    def setPushVisitAnyId(cb: ExporterPythonPyFunc) -> None: ...
-    def setPopVisitAnyId(cb: ExporterPythonPyFunc) -> None: ...
-    def setPushVisitId(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setPopVisitIdCb(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitAnyHookCb(cb: ExporterPythonPyFunc) -> None: ...
-    def setVisitIdHook(kind: OrgSemKind, cb: ExporterPythonPyFunc) -> None: ...
-    def evalTop(org: Org) -> ExporterPythonRes: ...
-    def eval(org: Org) -> ExporterPythonRes: ...
+    def enablePyStreamTrace(self, stream: object) -> None: ...
+    def enableBufferTrace(self) -> None: ...
+    def getTraceBuffer(self) -> str: ...
+    def enableFileTrace(self, path: str, colored: bool) -> None: ...
+    def setVisitAnyIdAround(self, cb: function) -> None: ...
+    def setVisitAnyIdIn(self, cb: function) -> None: ...
+    def setVisitAnyField(self, cb: function) -> None: ...
+    def setEvalTopCb(self, cb: function) -> None: ...
+    def setVisitIdAround(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setEvalIdAround(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setVisitIdInCb(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setEvalIdIn(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setVisitLeafField(self, kind: LeafFieldType, cb: function) -> None: ...
+    def setEvalLeafField(self, kind: LeafFieldType, cb: function) -> None: ...
+    def setVisitOrgField(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setEvalOrgField(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setSelf(self, val: object) -> None: ...
+    def setNewOrgRes(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setNewAnyOrgRes(self, cb: function) -> None: ...
+    def setNewLeafRes(self, kind: LeafFieldType, cb: function) -> None: ...
+    def setNewAnyLeafRes(self, cb: function) -> None: ...
+    def setPushVisitAnyId(self, cb: function) -> None: ...
+    def setPopVisitAnyId(self, cb: function) -> None: ...
+    def setPushVisitId(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setPopVisitIdCb(self, kind: OrgSemKind, cb: function) -> None: ...
+    def setVisitAnyHookCb(self, cb: function) -> None: ...
+    def setVisitIdHook(self, kind: OrgSemKind, cb: function) -> None: ...
+    def evalTop(self, org: Org) -> ExporterPythonRes: ...
+    def eval(self, org: Org) -> ExporterPythonRes: ...
+
+class LeafFieldType(Enum):
+    Int = 1
+    UserTimeKind = 2
+    QDate = 3
+    Bool = 4
+    FixedIdVec = 5
+    TopIdVec = 6
+    QDateTime = 7
+    Str = 8
+    Any = 9
 
 /* clang-format on */

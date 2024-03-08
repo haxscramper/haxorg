@@ -1,4 +1,5 @@
 #include "perfetto_aux.hpp"
+#include <fstream>
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 

@@ -31,6 +31,7 @@ template <typename T>
 class Vec : public std::vector<T> {
   public:
     using Base = std::vector<T>;
+    using Base::Base;
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
     Vec(Vec<T> const& init) : std::vector<T>(init) {}
 
@@ -267,13 +268,20 @@ class Vec : public std::vector<T> {
             std::back_inserter(result));
     }
 
+    static void Splice_Impl1(Vec<T>& result, T const& arg) {
+        result.push_back(arg);
+    }
 
     static void Splice_Impl1(Vec<T>& result, T&& arg) {
         result.push_back(std::forward<T>(arg));
     }
 
-    static void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) {
+    static void Splice_Impl1(Vec<T>& result, Vec<T> const& arg) {
         result.append(std::forward<Vec<T>>(arg));
+    }
+
+    static void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) {
+        result.append(arg);
     }
 
     static void Splice_Impl(Vec<T>& result) {}
@@ -299,7 +307,7 @@ class Vec : public std::vector<T> {
     template <typename... Args>
     static Vec<T> Splice(Args&&... args) {
         Vec<T> result;
-        Splice_Impl<T>(result, std::forward<Args>(args)...);
+        Splice_Impl(result, std::forward<Args>(args)...);
         return result;
     }
 };

@@ -42,12 +42,12 @@ sub_lexers:
     - re: ":\\/\\/.*?$"
       token: LinkTarget
 
-  link_protocol_split: 
+  link_protocol_split:
     - re: "^\\[\\["
       token: LinkBegin
 
     - re: "id"
-      token: LinkProtocolId 
+      token: LinkProtocolId
 
     - re: "file"
       token: LinkProtocolFile
@@ -60,8 +60,7 @@ sub_lexers:
 
   raw_dsl_link:
     - re: "^\\[\\[\\w+"
-      sub: 
-        link_protocol_split
+      sub: link_protocol_split
 
     - re: ":.*?$"
       token: LinkTarget
@@ -85,6 +84,13 @@ sub_lexers:
 
     - re: "\\w+"
       token: LinkProtocolInternal
+
+  timestamp_repeater:
+    - re: "(\\.|\\+)?\\+"
+      token: "TimeRepeaterSpec"
+
+    - re: "\\d+[a-zA-Z]"
+      token: TimeRepeaterDuration
 
 tokens:
   - name: Indent
@@ -119,7 +125,6 @@ tokens:
   - name: LatexInlineRaw
   - name: UnderlineBegin
   - name: UnderlineEnd
-  - name: TimeRepeater
   - name: CmdAdmonitionBegin
   - name: CmdFlag
   - name: CmdContentEnd
@@ -130,6 +135,13 @@ tokens:
   - name: BigIdent
   - name: MonospaceBegin
   - name: MonospaceEnd
+
+  - name: ItalicUnknown
+  - name: BoldUnknown
+  - name: StrikeUnknown
+  - name: UnderlineUnknown
+  - name: VerbatimUnknown
+  - name: MonospaceUnknown
 
 rules:
   #region Blocks
@@ -270,7 +282,6 @@ rules:
     actions:
       - { do: push, to: COMMAND, from: INITIAL }
 
-
   - lit: "#+"
     states: [LEAD]
     token: LineCommand
@@ -279,6 +290,13 @@ rules:
       - { do: pop, to: INITIAL, from: LEAD }
       - { do: push, to: COMMAND, from: INITIAL }
 
+  - re: ":{space}.*"
+    states: [LEAD]
+    token: ColonExampleLine
+  - re: "^:{space}.*"
+    states: [INITIAL]
+    token: ColonExampleLine
+
   #region DSL-commands
   - re: "columns{prop_colon}"
     token: CmdColumns
@@ -286,35 +304,15 @@ rules:
     actions:
       - { do: push, from: COMMAND, to: COMMAND_RAW }
 
-  - re: "latex_class{prop_colon}"
+  - re: "startup{prop_colon}"
     states: [COMMAND]
-    token: CmdLatexClass
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_class_options{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexClassOptions
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_compiler{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexCompiler
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-  - re: "latex_header{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexHeader
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+    token: CmdStartup
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: "options{prop_colon}"
     states: [COMMAND]
     token: CmdOptions
     # Full options parsing is deferred to the sem stage
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  - re: "filetags{prop_colon}"
-    states: [COMMAND]
-    token: CmdFiletags
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: "tblfm{prop_colon}"
@@ -359,6 +357,11 @@ rules:
     token: CmdPropertyText
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
+  - re: "call{prop_colon}"
+    states: [COMMAND]
+    token: CmdCall
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
   - re: "title{prop_colon}"
     states: [COMMAND]
     token: CmdTitle
@@ -378,12 +381,54 @@ rules:
     states: [COMMAND]
     token: CmdLanguage
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "filetags{prop_colon}"
+    states: [COMMAND]
+    token: CmdFiletags
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
   #endregion
 
   #region Argument-commands
   - re: "property{prop_colon}({argument_properties})"
     states: [COMMAND]
     token: CmdPropertyArgs
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "header{prop_colon}"
+    states: [COMMAND]
+    token: CmdHeader
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "results{prop_colon}"
+    states: [COMMAND]
+    token: CmdResults
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "name{prop_colon}"
+    states: [COMMAND]
+    token: CmdName
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "attr_\\w+{prop_colon}"
+    states: [COMMAND]
+    token: CmdAttr
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_class{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexClass
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_class_options{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexClassOptions
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_compiler{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexCompiler
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "latex_header{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
 
@@ -478,6 +523,12 @@ rules:
   - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
   - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}{maybe_12h_time}", token: Time }
   - { re: "\\d{{1,}}:\\d{{2}}{maybe_12h_time}", token: Time }
+  - re: "(\\.|\\+)?\\+(\\d+[a-zA-Z])+"
+    sub: timestamp_repeater
+
+  - re: "-\\d+\\w"
+    token: TimeWarnPeriod
+
   - re: "(sun|mon|tue|wed|thu|fri|sat|sunday|monday|tuesday|wednesday|thursday|friday|saturday)"
     token: WeekdayName
   - { re: "=>", token: TimeArrow }
@@ -532,8 +583,12 @@ rules:
   - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "\\w+", token: Word }
+  - { re: "(\\w+-)+\\w+", token: Word }
   - { re: "\\$", token: Dollar }
-  - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
+  - {
+      re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆",
+      token: MiscUnicode,
+    }
   - { lit: "<%%", token: DynamicTimeContent }
   #endregion
   #endregion

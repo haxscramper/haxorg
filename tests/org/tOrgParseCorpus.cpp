@@ -1,9 +1,9 @@
-#include "corpusrunner.hpp"
+#include <test/corpusrunner.hpp>
 
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <lexbase/NodeIO.hpp>
-#include <lexbase/NodeTest.hpp>
+#include <test/NodeTest.hpp>
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
 
@@ -18,6 +18,10 @@
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
+
+bool enableFullTraceOnCli = false;
+void enable_full_trace_on_cli() { enableFullTraceOnCli = true; }
+
 
 Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
@@ -204,7 +208,24 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 
 TEST_P(ParseFile, CorpusAll) {
     TestParams params = GetParam();
-    gtest_run_spec(params);
+    if (enableFullTraceOnCli) { params.spec.debug.traceAll = true; }
+    TestResult result = gtest_run_spec(params);
+    switch (result.getKind()) {
+        case TestResult::Kind::Fail: {
+            FAIL() << result.getFail().msg;
+            break;
+        }
+
+        case TestResult::Kind::Success: {
+            GTEST_SUCCEED() << result.getSuccess().msg;
+            break;
+        }
+
+        case TestResult::Kind::Skip: {
+            GTEST_SKIP() << result.getSkip().msg;
+            break;
+        }
+    }
 }
 
 INSTANTIATE_TEST_SUITE_P(

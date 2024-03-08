@@ -1,4 +1,4 @@
-import py_haxorg.pyhaxorg as org
+import py_haxorg.pyhaxorg_wrap as org
 from py_textlayout.py_textlayout_wrap import TextLayout
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 
@@ -10,6 +10,8 @@ from datetime import datetime
 
 from py_exporters.export_base import ExporterBase
 from py_exporters.export_ultraplain import ExporterUltraplain
+from py_scriptutils.script_logging import to_debug_json
+from py_haxorg.pyhaxorg_utils import formatDateTime
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId
@@ -25,6 +27,7 @@ class TexCommand(Enum):
     subsubsection = 5
     paragraph = 6
     subparagraph = 7
+    textbf = 8
 
 
 @beartype
@@ -48,10 +51,12 @@ class ExporterLatex(ExporterBase):
     def wrap(self, node: str | BlockId, opens: str, closes: str) -> BlockId:
         return self.t.line([self.string(opens), self.string(node), self.string(closes)])
 
-    def command(self,
-                name: str,
-                args: List[str | BlockId] = [],
-                opts: List[str | BlockId] = []) -> BlockId:
+    def command(
+        self,
+        name: str,
+        args: List[str | BlockId] = [],
+        opts: List[str | BlockId] = [],
+    ) -> BlockId:
         return self.t.line([
             self.t.text("\\" + name), *[self.wrap(it, "[", "]") for it in opts],
             *[self.wrap(it, "{", "}") for it in args]
@@ -106,23 +111,24 @@ class ExporterLatex(ExporterBase):
 
     def evalLink(self, node: org.Link) -> BlockId:
         match node.getLinkKind():
-            case org.LinkKind.Id:
-                target = node.resolve()
-                if target:
-                    res = self.t.line([
-                        self.command("ref", [
-                            self.string((self.getRefKind(target) or "") +
-                                        target.getReadableId())
-                        ])
-                    ])
-
-                    if node.description:
-                        self.t.add_at(res, self.exp.eval(node.description))
-
-                    return res
-
-                else:
-                    return self.string("")
+        # case org.LinkKind.Id:
+        #     return
+        # target = node.resolve()
+        # if target:
+        #     res = self.t.line([
+        #         self.command("ref", [
+        #             self.string((self.getRefKind(target) or "") +
+        #                         target.getReadableId())
+        #         ])
+        #     ])
+        #
+        #     if node.description:
+        #         self.t.add_at(res, self.exp.eval(node.description))
+        #
+        #     return res
+        #
+        # else:
+        #     return self.string("")2
 
             case org.LinkKind.Raw:
                 return self.string(self.escape(node.getRaw().text))
@@ -132,16 +138,14 @@ class ExporterLatex(ExporterBase):
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         res = self.t.line([])
-        if node.isDescriptionItem():
-            self.t.add_at(
-                res,
-                self.command("item", [self.exp.eval(node.header)] if node.header else []))
+        self.t.add_at(res, self.command("item"))
 
-        else:
-            self.t.add_at(res, self.command("item"))
+        if node.isDescriptionItem():
+            self.t.add_at(res, self.string(" "))
+            self.t.add_at(res, self.command("textbf", [self.exp.eval(node.header)]))
 
         self.t.add_at(res, self.string(" "))
-        self.t.add_at(res, self.evalStack(node))
+        self.t.add_at(res, self.stackSubnodes(node))
 
         return res
 
@@ -158,13 +162,13 @@ class ExporterLatex(ExporterBase):
         return self.string(node.text)
 
     def evalUnderline(self, node: org.Underline) -> BlockId:
-        return self.command("underline", [self.evalLine(node)])
+        return self.command("underline", [self.lineSubnodes(node)])
 
     def evalBold(self, node: org.Bold) -> BlockId:
-        return self.command("bold", [self.evalLine(node)])
+        return self.command("textbf", [self.lineSubnodes(node)])
 
     def evalVerbatim(self, node: org.Verbatim) -> BlockId:
-        return self.command("textsc", [self.evalLine(node)])
+        return self.command("textsc", [self.lineSubnodes(node)])
 
     def evalRawText(self, node: org.RawText) -> BlockId:
         return self.string(self.escape(node.text))
@@ -173,16 +177,16 @@ class ExporterLatex(ExporterBase):
         return self.string(self.escape(node.text))
 
     def evalItalic(self, node: org.Italic) -> BlockId:
-        return self.command("textit", [self.evalLine(node)])
+        return self.command("textit", [self.lineSubnodes(node)])
 
-    def evalLine(self, node: org.Org) -> BlockId:
+    def lineSubnodes(self, node: org.Org) -> BlockId:
         return self.t.line([self.exp.eval(it) for it in node])
 
-    def evalStack(self, node: org.Org) -> BlockId:
+    def stackSubnodes(self, node: org.Org) -> BlockId:
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        return self.evalLine(node)
+        return self.lineSubnodes(node)
 
     def evalExport(self, node: org.Export) -> BlockId:
         if node.exporter != "latex" or node.placement:
@@ -194,14 +198,29 @@ class ExporterLatex(ExporterBase):
     def evalList(self, node: org.List) -> BlockId:
         return self.t.stack([
             self.command("begin", ["itemize"]),
-            self.evalStack(node),
+            self.stackSubnodes(node),
             self.command("end", ["itemize"])
         ])
 
     def getLatexClassOptions(self, node: org.Document) -> List[BlockId]:
-        return []
+        property: org.SubtreeProperty = node.getProperty("ExportLatexClassOptions")
+        if property:
+            values: str = property.getExportLatexClassOptions().options[0]
+            return [self.string(values.strip("[]"))]
+
+        else:
+            return []
+
+    def getLatexClass(self, node: org.Document) -> str:
+        property: org.SubtreeProperty = node.getProperty("ExportLatexClass")
+        if property:
+            return property.getExportLatexClass().latexClass
+
+        else:
+            return "book"
 
     def evalDocument(self, node: org.Document) -> BlockId:
+        self.document = node
         res = self.t.stack([])
 
         self.t.add_at(
@@ -211,7 +230,8 @@ class ExporterLatex(ExporterBase):
                          args=[self.getLatexClass(node)]))
 
         self.t.add_at(res, self.command("usepackage", ["csquotes"]))
-        self.t.add_at(res, self.command("usepackage", ["bookmarks"], ["hyperref"]))
+        self.t.add_at(res,
+                      self.command("usepackage", opts=["bookmarks"], args=["hyperref"]))
         self.t.add_at(res, self.command("usepackage", ["xcolor"]))
 
         for value in TexCommand:
@@ -231,8 +251,6 @@ class ExporterLatex(ExporterBase):
                 if exp.placement == "header":
                     headerExports.append(exp)
 
-        node.eachSubnodeRec(visit)
-
         for exp in headerExports:
             self.t.add_at(res, self.string(exp.content))
 
@@ -248,26 +266,62 @@ class ExporterLatex(ExporterBase):
         """))
 
         for it in node:
+            if isinstance(it, org.Export) and it.placement == "header":
+                self.t.add_at(res, self.string(it.content))
+
+        self.t.add_at(res, self.command("begin", [self.string("document")]))
+
+        for it in node:
+            if isinstance(it, org.Export) and it.placement == "header":
+                continue
+
             self.t.add_at(res, self.exp.eval(it))
 
         self.t.add_at(res, self.command("end", [self.string("document")]))
 
         return res
 
-    def getLatexClass(self, node: org.Document) -> str:
-        return "book"
-
     def getOrgCommand(self, cmd: TexCommand) -> str:
         return "orgCmd" + str(cmd.name).capitalize()
 
     def getSubtreeCommand(self, node: org.Subtree) -> Optional[TexCommand]:
-        return TexCommand.part
-        lclass = self.getLatexClass(node.getDocument())
+        lclass = self.getLatexClass(self.document)
+        if lclass == "book":
+            match node.level:
+                case 1:
+                    return TexCommand.chapter
+                case 2:
+                    return TexCommand.section
+                case 3:
+                    return TexCommand.subsection
+                case 4:
+                    return TexCommand.subsubsection
+                case 5:
+                    return TexCommand.paragraph
+                case 6:
+                    return TexCommand.subparagraph
+                case _:
+                    return TexCommand.textbf
+
+        else:
+            match node.level:
+                case 1:
+                    return TexCommand.section
+                case 2:
+                    return TexCommand.subsection
+                case 3:
+                    return TexCommand.subsubsection
+                case 4:
+                    return TexCommand.paragraph
+                case 5:
+                    return TexCommand.subparagraph
+                case _:
+                    return TexCommand.textbf
 
     def getRefKind(self, node: org.Org) -> Optional[str]:
         match node.getKind():
             case osk.Subtree:
-                cmd = self.getSubtreeCommand(node._as(osk.Subtree))
+                cmd = self.getSubtreeCommand(node)
                 match cmd:
                     case TexCommand.chapter:
                         return "chap:"
@@ -295,7 +349,7 @@ class ExporterLatex(ExporterBase):
         self.t.add_at(
             res, self.command(self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
 
-        if cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
+        if False and cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
             self.t.add_at(
                 res,
                 self.command(
@@ -308,8 +362,7 @@ class ExporterLatex(ExporterBase):
         return res
 
     def evalTime(self, node: org.Time) -> BlockId:
-        time_val: datetime = datetime.fromtimestamp(node.getStatic().time)
-        return self.string(time_val.strftime("%Y-%m-%d %H:%M:%S"))
+        return self.string(formatDateTime(node.getStatic().time))
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line(

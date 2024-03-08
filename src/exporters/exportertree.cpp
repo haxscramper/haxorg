@@ -36,9 +36,12 @@ void ExporterTree::visitField(
     }
 }
 
-void ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
-    ColStream os{std::cout};
-    ExporterTree(os).evalTop(org);
+ColText ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
+    ColStream    os{};
+    ExporterTree exp{os};
+    exp.conf.skipLocation = true;
+    exp.evalTop(org);
+    return os.getBuffer();
 }
 
 void ExporterTree::treeRepr(
@@ -55,13 +58,14 @@ void ExporterTree::treeRepr(
     }
 }
 
-void ExporterTree::treeRepr(
+ColText ExporterTree::treeRepr(
     sem::SemId<sem::Org> org,
     CR<TreeReprConf>     conf) {
-    ColStream    os{std::cout};
+    ColStream    os{};
     ExporterTree exporter{os};
     exporter.conf = conf;
     exporter.evalTop(org);
+    return os.getBuffer();
 }
 
 void ExporterTree::init(sem::SemId<sem::Org> org) {
@@ -88,6 +92,7 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
 template <typename T>
 void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
     if (skipAsEmpty(value)) { return; }
+    if (conf.skipLocation && std::is_same_v<T, Opt<LineCol>>) { return; }
 
     __scope();
     indent();
@@ -155,7 +160,7 @@ void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
         int idx = 0;
         for (const auto& it : value) {
             indent();
-            os << "@[" << idx << "]:\n";
+            os << "@[" << fmt1(idx) << "]:\n";
             visit(arg, it);
             ++idx;
         }

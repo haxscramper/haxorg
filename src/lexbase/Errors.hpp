@@ -14,6 +14,8 @@ struct [[refl]] LineCol {
         return line == other.line && column == other.column
             && pos == other.pos;
     }
+
+    BOOST_DESCRIBE_CLASS(LineCol, (), (line, column, pos), (), ());
 };
 
 template <>

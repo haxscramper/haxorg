@@ -16,9 +16,11 @@ struct OrgBackend : public QObject {
 
     void parseString(CR<std::string> text) {
         document = org::parseString(text);
-        model    = std::make_shared<OrgDocumentModel>(document);
-        filter   = std::make_shared<OrgDocumentSearchFilter>(model.get());
-        outline  = std::make_shared<OrgSubtreeSearchModel>(model.get());
+        model    = std::make_shared<OrgDocumentModel>(document, this);
+        filter   = std::make_shared<OrgDocumentSearchFilter>(
+            model.get(), this);
+        outline = std::make_shared<OrgSubtreeSearchModel>(
+            model.get(), this);
 
         filter->acceptNode = [](CR<sem::SemId<sem::Org>> id) -> bool {
             return id->getKind() != OrgSemKind::Newline;
@@ -41,10 +43,12 @@ struct OrgBackend : public QObject {
     bool getHasDocument() const { return !document.isNil(); }
 
     Q_INVOKABLE OrgDocumentSearchFilter* getOutlineModel() {
-        return &outline.get()->filter;
+        CHECK(outline.get()->filter.get() != nullptr);
+        return outline.get()->filter.get();
     }
 
     Q_INVOKABLE OrgDocumentSearchFilter* getDocumentModel() {
+        CHECK(filter.get() != nullptr);
         return filter.get();
     }
 
