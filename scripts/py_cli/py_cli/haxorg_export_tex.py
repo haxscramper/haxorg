@@ -5,6 +5,11 @@ import re
 class TexExportOptions(BaseModel, extra="forbid"):
     infile: Path
     outfile: Path
+    do_compile: bool = Field(
+        description="Compile the tex document if the export was successful",
+        default=True
+    )
+
     backend: str = Field(
         description="TeX backend to use",
         default="pdflatex",
@@ -53,11 +58,6 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     from py_exporters.export_tex import ExporterLatex
     from py_textlayout.py_textlayout_wrap import TextOptions
 
-    tree = org.OrgExporterTree()
-    tree_opts = org.ExporterTreeOpts()
-    tree_opts.withColor = False
-    tree.toFile(node, "/tmp/tex_tree.txt", tree_opts)
-
     log(CAT).info("Exporting to latex")
     tex = ExporterLatex()
     if opts.exportTraceFile:
@@ -69,4 +69,5 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
         out.write(tex.t.toString(res, TextOptions()))
 
     log(CAT).info(f"Wrote latex export to {opts.outfile}")
-    run_lualatex(opts.outfile)
+    if opts.do_compile:
+        run_lualatex(opts.outfile)

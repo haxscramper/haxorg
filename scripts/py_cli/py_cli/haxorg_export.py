@@ -1,4 +1,4 @@
-from haxorg_cli import *
+from py_cli.haxorg_cli import *
 
 class CliExportOptions(BaseModel, extra="forbid"):
     pass
@@ -16,11 +16,11 @@ def export(ctx: click.Context, config: Optional[str] = None, **kwargs):
     pack_context(ctx, "export", CliExportOptions, config=config, kwargs=kwargs)
     pass
 
-from haxorg_export_tex import export_tex
+from py_cli.haxorg_export_tex import export_tex
 export.add_command(export_tex)
 
-from haxorg_export_ultraplain import export_ultraplain
+from py_cli.haxorg_export_ultraplain import export_ultraplain
 export.add_command(export_ultraplain)
 
-from haxorg_export_sqlite import export_sqlite
+from py_cli.haxorg_export_sqlite import export_sqlite
 export.add_command(export_sqlite)

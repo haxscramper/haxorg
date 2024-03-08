@@ -24,7 +24,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     ctx.obj["run"] = CliRunContext(opts)
     pass
 
-from haxorg_export import export
+from py_cli.haxorg_export import export
 cli.add_command(export)
 
 if __name__ == "__main__":
