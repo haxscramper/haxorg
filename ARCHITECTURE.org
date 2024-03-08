@@ -6,6 +6,10 @@ Project's main build system is written in python and uses the =invoke= library t
 
 ** Lexer configuration
 
+To read the base text file into stream of tokens haxorg uses [[https://github.com/Genivia/RE-flex][re/flex lexer]] which handles all the low-level details of the string buffering and regex rule recognition for the maximum efficiency.
+
+The lexer grammar is described in ~src/base_lexer/base_lexer.yaml~ -- it is designed to be as light on imperative logic as
+
 ** Code generation
 
 ** Reflection data collection
@@ -23,3 +27,11 @@ Collection of yaml files with a smaller pieces of code and expected tokens, pars
 ** Code forensics
 
 This is a script largely unrelated to the org-mode processing itself, an implementation of [[https://www.amazon.com/Your-Code-Crime-Scene-Bottlenecks/dp/1680500384][Code Forensics]] book. A smaller side project I put here because it uses the stdlib helpers and pretty much all of the other infrastructure I set up. Would be too much work to maintain it independently.
+
+* Code novelties
+
+** How reflection is used in this project
+
+** Extended stdlib
+
+* Testing infrastructure

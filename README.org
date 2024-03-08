@@ -12,37 +12,37 @@ Implementation of the org-mode parser and exporter in C++ with python API.
 
 Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second phase]] of the Python API, improving the ergonomics and adding more tests. Next step is to implement the CI for testing, documentation and artifact builds.
 
-| Phase       | Status | Notes                                                     |
-|-------------+--------+-----------------------------------------------------------|
-| QML wrapper | POC    | Enable Qt/QML application to work with org-mode documents |
-| C++ core    | Alpha  | Whole pipeline is complete, working on testing            |
-| Python API  | WIP    | Whole DOM model is exposed, working on API improvements   |
-| C API       | Todo   | Make the library usable from virtually any PL             |
-| CI          | Todo   | Documentation, testing, artifact builds                   |
+| Phase       | Status   | Notes                                                     |
+|-------------+----------+-----------------------------------------------------------|
+| QML wrapper | 🔬 POC   | Enable Qt/QML application to work with org-mode documents |
+| C++ core    | 🚧 Alpha | Whole pipeline is complete, working on testing            |
+| Python API  | 🚧 Alpha | Whole DOM model is exposed, working on API improvements   |
+| C API       | ⬜ Todo  | Make the library usable from virtually any PL             |
+| CI          | ⬜ Todo  | Documentation, testing, artifact builds                   |
 
-** COMPLETED C++ Core
+** COMPLETED 🚧 C++ Core
 
-- [X] Machine-readable data model -- describe the data model in machine-readable format and generate C++ code for it
-- [X] Data transform pipeline -- lexer, parser, sem convert
-- [X] Document test corpus -- yaml specification for the given/expected files
-- [ ] WIP Org-mode AST back to string -- for document formatting and round-trip PBT testing (string1 -> AST1 -> string2 -> AST2, check AST1 == AST2)
+- ✅ Machine-readable data model -- describe the data model in machine-readable format and generate C++ code for it
+- ✅ Data transform pipeline -- lexer, parser, sem convert
+- ✅ Document test corpus -- yaml specification for the given/expected files
+- ✅ WIP Org-mode AST back to string -- for document formatting and round-trip PBT testing (make random document, render, parse back, compare with original)
 
-** WIP Python API
+** WIP 🚧 Python API
 
-- [X] Automatically wrap C++ data model for python -- done, tested, working on ergonomics improvements
-- [ ] WIP Implement common data format exporters -- (latex, HTML, XML, Pandoc)
-- [ ] WIP Use hypothesis for fuzz testing -- porting earlier C++ =google/fuzztest= implementation
+- ✅ Automatically wrap C++ data model for python -- done, tested, working on ergonomics improvements
+- 🚧 Implement common data format exporters -- (latex, HTML, XML, Pandoc)
+- 🚧 Use hypothesis for fuzz testing -- porting earlier C++ =google/fuzztest= implementation
 
-** TODO CI
+** TODO ⬜ CI
 
-- Execute tests -- full C++ and python corpus, including support projects
-- Build and deploy documentation -- integrate Doxygen, Sphynx and ~*.org~ files for the documentation in a single unified static site deployment.
-- Create new release on each merge to master
+- ⬜ Execute tests -- full C++ and python corpus, including support projects
+- ⬜ Build and deploy documentation -- integrate Doxygen, Sphynx and ~*.org~ files for the documentation in a single unified static site deployment.
+- ⬜ Create new release on each merge to master
 
-** TODO C API
+** TODO ⬜ C API
 
-- Automatic wrapper of the C++ API to C
-- Machine-readable description of the C API
+- ⬜ Automatic wrapper of the C++ API to C
+- ⬜ Machine-readable description of the C API
 
 * Tools
 
@@ -67,13 +67,11 @@ Not a fan of sprawling python dependencies when you only need to parse the file?
 
 ** Why?
 
-The most logical question about any project is of course, "why?", what sort of purpose it serves and where it might be useful. In this case the answer is rather straightforward, at least it seems this way to me -- there is no working and usable org-mode parser that can be decoupled from emacs /and even emacs one is absolute garbage/. Let's start with the 'canonical' implementation: aside from the fact it seems more like a huge collection of random regex rules, it barely has an AST, certainly not in a way that is ready for export into other consumers. Exporter customization system still mainly revolves around string manipulation. Very few parts are implemented as a data processing pipelines where you take in an AST and return some other content -- this is not limited to the exporters, org agenda customization is also a string processing. ~subtree.isRecurring()~ is easy to implement in the C++, but for emacs it is a ~re-search-forward~ with some ~rx~ hacks on top. And so on.
+There is no working and usable org-mode parser that can be decoupled from emacs /and even emacs one is absolute garbage/. Let's start with the 'canonical' implementation: aside from the fact it seems more like a huge collection of random regex rules, it barely has an AST, certainly not in a way that is ready for export into other consumers. Exporter customization system still mainly revolves around string manipulation. Very few parts are implemented as a data processing pipelines where you take in an AST and return some other content -- this is not limited to the exporters, org agenda customization is also a string processing. ~subtree.isRecurring()~ is easy to implement in the C++, but for emacs it is a ~re-search-forward~ with some ~rx~ hacks on top. And so on.
 
-So while the emacs is certainly a good org-mode editor, it does a terrible job at being org-mode processor (all default exports block the UI, batch exporting in CLI is something you need to hack around) unless you are planning to dive knee-deep into the lisp programming and figure out all the details of how things need to fit together. Adding support for new source block languages is also tricky. And be a lisp programmer, again. Most people aren't lisp programmers -- I don't consider myself one for example, even after using emacs for half a decade at this point. There are far more python and c++ programmers out there than lisp ones. Although you can certainly get a lot more done with ChatGPT nowadays, which I really suggest you to use if you still want to stick around with emacs.
+So while the emacs is certainly a good org-mode editor, it does a terrible job at being org-mode processor (all default exports block the UI, batch exporting in CLI is something you need to hack around) unless you are planning to dive knee-deep into the lisp programming and figure out all the details of how things need to fit together. Adding support for new source block languages is also tricky. And be a lisp programmer, again. Most people aren't lisp programmers -- I'm not one, even after using emacs for 5+ years at this point. There are far more python and c++ programmers out there than lisp ones.
 
 This pretty much sums up the problem statement -- *implement an org-mode parser in some programming language that /I/ know and expose the interface in python for quicker scripting*. C++ fits the bill, so that's what I went with. Might've been a good opportunity to use Rust or Zig or some other PL, but as it turned out the C++ can be moved into a very ergonomic direction even without full syntax revamps like Carbon or =cppfront= (aka C++ Syntax 2).
-
-Additionally, this is partially a research and learning project for me -- using the latest C++ standard I can get my hands on, modules, fuzzy testing, sanitizers, static code analysis and other useful tools. Then, the whole project data model will be based around data-oriented design, similar to the approach by Carbon, Zig, Nimskull compilers. Flat list of tokens, range-based node storage instead of pointer tree. I want this project to
 
 ** How?
 
@@ -83,7 +81,11 @@ After I stated what in the world I'm doing here in this project, lets take a clo
 
 *** Feature parity
 
+Emacs is still the reference implementation, but sensible extensions taken either from the common packages or ones that I use personally (nested tags ~#parent##sub##[subsub1,subsub2]~, ~@mention~, admonition blocks and ~NOTE:~ prefixes) will be implemented and tested as well. AST structure will conform to whatever data model makes the most sense, not necessarily following the S-Expr blurbs at the [[https://orgmode.org/worg/org-syntax.html][org-syntax]].
+
 *** Testing
+
+Unit testing for the regular cxx code if possible, plus collection of test documents in the ~.yaml~ spec corpus ([[file:tests/org/corpus]]), followed by the hypothesis-based random document generation. Each test document goes through the whole lex-parse-sem process, then to ~AST->string~ formatter and parsed again. This ensures every test validates the whole processing pipeline, even if no intermediate assertions are provided. For more on testing, read the [[file:ARCHITECTURE.org]] section "Testing infrastructure".
 
 ** Where?
    :PROPERTIES:
