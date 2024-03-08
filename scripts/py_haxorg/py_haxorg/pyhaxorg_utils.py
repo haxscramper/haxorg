@@ -8,8 +8,8 @@ def evalDateTime(time: UserTime) -> datetime:
     brk: org.UserTimeBreakdown = time.getBreakdown()
     kwargs = dict(
         year=brk.year,
-        month=brk.month,
-        day=brk.day,
+        month=brk.month  or 1,
+        day=brk.day or 1,
     )
 
     if brk.hour:

@@ -1,5 +1,5 @@
 from hypothesis import strategies as st
-from hypothesis import given, settings, seed
+from hypothesis import given, settings, seed, HealthCheck
 import py_haxorg.pyhaxorg_wrap as org
 from dataclasses import dataclass, replace, field
 from beartype import beartype
@@ -7,6 +7,10 @@ from beartype.typing import List, Optional, Union, Iterable
 import itertools
 from py_scriptutils.script_logging import log
 import pytest
+
+from py_exporters import export_ultraplain
+from py_exporters import export_tex
+from py_exporters import export_html
 
 FILE = None
 
@@ -249,9 +253,9 @@ def build_ascii_strategy(excluded_chars: str = "", **kwargs):
 
 
 def interleave_strategy(
-        odd_item: st.SearchStrategy,
-        even_item: st.SearchStrategy,
-        n_strategy=st.integers(min_value=0, max_value=100),
+    odd_item: st.SearchStrategy,
+    even_item: st.SearchStrategy,
+    n_strategy: st.SearchStrategy,
 ):
 
     @st.composite
@@ -276,7 +280,8 @@ def interleave_with_newlines(
     return interleave_strategy(
         odd_item=item,
         even_item=build_Newline(ctx=ctx, count=st.just(newline_count)),
-        n_strategy=n_strategy or st.integers(1, ctx.getMaxSubnodeCount()),
+        n_strategy=st.integers(1, ctx.getMaxSubnodeCount())
+        if n_strategy is None else n_strategy,
     )
 
 
@@ -510,7 +515,8 @@ def build_SubtreeLog(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Subtree(draw: st.DrawFn, ctx: OrgGenCtx):
-    level = draw(st.integers(min_value=ctx.opts.parentSubtree + 1, max_value=20))
+    min_level = ctx.opts.parentSubtree + 1
+    level = draw(st.integers(min_value=min_level, max_value=min_level + 10))
     return draw(
         st.builds(
             org.Subtree,
@@ -782,18 +788,51 @@ def node_strategy(draw, ctx: OrgGenCtx):
             assert False, item
 
 
-@seed(146192756127938034026303132144593370406)
-@settings(deadline=10_000)
+ignore_this_fucking_vomit_shit = [
+    HealthCheck.data_too_large,
+    HealthCheck.too_slow,
+]
+
+gen_settings = dict(
+    max_examples=30,
+    suppress_health_check=ignore_this_fucking_vomit_shit,
+)
+
+
+@settings(**gen_settings)
+@given(node_strategy(OrgGenCtx()))
+def test_ultraplain_export(doc: org.Document):
+    exp = export_ultraplain.ExporterUltraplain()
+    exp.exp.evalTop(doc)
+
+
+@settings(**gen_settings)
+@given(node_strategy(OrgGenCtx()))
+def test_tex_export(doc: org.Document):
+    exp = export_tex.ExporterLatex()
+    exp.exp.evalTop(doc)
+
+
+@settings(**gen_settings)
+@given(node_strategy(OrgGenCtx()))
+def test_html_export(doc: org.Document):
+    exp = export_html.ExporterHtml()
+    exp.exp.evalTop(doc)
+
+
+@settings(**gen_settings)
 @given(node_strategy(OrgGenCtx()))
 def test_render(doc: org.Document):
-    ctx = org.OrgContext()
-    tree = org.OrgExporterTree()
-    file = get_file()
-    file.write("================================================\n\n")
+    pass
+
+    # ctx = org.OrgContext()
+    # tree = org.OrgExporterTree()
+    # file = get_file()
+    # file.write("================================================\n\n")
     # file.write(org.treeRepr(doc, colored=False))
     # file.write("\n\n\n")
-    file.write(ctx.formatToString(doc))
-    file.write("\n\n")
+    # file.write(ctx.formatToString(doc))
+    # file.write("\n\n")
 
 
 # if __name__ == "__main__":

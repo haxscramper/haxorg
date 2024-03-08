@@ -111,7 +111,7 @@ class ExporterHtml(ExporterBase):
             case 4: tree = tags.h4()
             case 5: tree = tags.h5()
             case 6: tree = tags.h6()
-            case 7: assert False, "TODO"
+            case _: tree = tags.b()
 
         tree.add(self.eval(node.title))
 
