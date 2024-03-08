@@ -162,9 +162,12 @@ TASK_DEPS: Dict[Callable, List[Callable]] = {}
 
 
 @beartype
-def org_task(task_name: Optional[str] = None,
-             pre: List[Callable] = [],
-             force_notify: bool = False) -> Callable:
+def org_task(
+    task_name: Optional[str] = None,
+    pre: List[Callable] = [],
+    force_notify: bool = False,
+    **kwargs,
+) -> Callable:
 
     def org_inner(func: Callable) -> Callable:
         TASK_DEPS[func] = pre
@@ -195,7 +198,7 @@ def org_task(task_name: Optional[str] = None,
 
             return result
 
-        return task(wrapper, pre=pre)
+        return task(wrapper, pre=pre, **kwargs)
 
     return org_inner
 
@@ -799,8 +802,8 @@ def py_test_debug(ctx: Context, test: str):
         exit(1)
 
 
-@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
-def py_tests(ctx: Context, pytest_pass: List[str] = []):
+@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files], iterable=["arg"])
+def py_tests(ctx: Context, arg: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues. 
@@ -812,7 +815,7 @@ def py_tests(ctx: Context, pytest_pass: List[str] = []):
         ctx,
         "poetry",
         [
-            "run", "pytest", "-v", "-ra", "-s", "--tb=short", *pytest_pass
+            "run", "pytest", "-v", "-ra", "-s", "--tb=short", *arg
             # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
             # "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
             # "--hypothesis-show-statistics",

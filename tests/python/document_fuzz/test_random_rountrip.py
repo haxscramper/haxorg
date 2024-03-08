@@ -1,14 +1,15 @@
 from hypothesis import strategies as st
-from hypothesis import given
+from hypothesis import given, settings, seed
 import py_haxorg.pyhaxorg_wrap as org
 from dataclasses import dataclass, replace, field
 from beartype import beartype
-from beartype.typing import List, Optional, Union
+from beartype.typing import List, Optional, Union, Iterable
 import itertools
 from py_scriptutils.script_logging import log
 import pytest
 
 FILE = None
+
 
 def get_file():
     global FILE
@@ -22,11 +23,12 @@ def get_file():
 @dataclass
 class OrgGenOptions():
     minSubnodeCount: int = 1
-    maxSubnodeCount: Optional[int] = None
+    maxSubnodeCount: int = 16
     minAttachedCount: int = 0
     maxAttachedCount: int = 0
     maxRecursionDepth: Optional[int] = 16
     enableTrace: bool = False
+    parentSubtree: int = 0
 
 
 @beartype
@@ -37,6 +39,46 @@ class OrgGenPath:
 
 osk = org.OrgSemKind
 
+SET_MARKUP_KINDS = org.SemSet([
+    osk.Bold,
+    osk.Italic,
+    osk.Verbatim,
+    osk.Monospace,
+    osk.Underline,
+    osk.Strike,
+])
+
+SET_PARAGRAPH_KINDS = org.SemSet([
+    osk.AtMention,
+    osk.HashTag,
+    osk.BigIdent,
+    osk.Word,
+    osk.Time,
+    osk.TimeRange,
+    osk.Link,
+    osk.Macro,
+    osk.Symbol,
+    osk.InlineMath,
+    osk.Escaped,
+    osk.Placeholder,
+    osk.Punctuation,
+])
+
+SET_COMMAND_KINDS = org.SemSet([
+    osk.Code,
+    osk.Export,
+    osk.Center,
+    osk.Example,
+    osk.Quote,
+    osk.Caption,
+    osk.Verse,
+])
+
+SET_STMT_TOPLEVEL = org.SemSet([
+    osk.Subtree,
+    osk.Paragraph,
+]).union(SET_COMMAND_KINDS)
+
 
 @beartype
 @dataclass
@@ -46,6 +88,9 @@ class OrgGenCtx():
 
     def depth(self) -> int:
         return len(self.steps)
+
+    def back(self) -> OrgGenPath:
+        return self.steps[-1]
 
     def count(self, kind: org.OrgSemKind) -> int:
         return len(list(filter(lambda it: it.kind == kind, self.steps)))
@@ -70,6 +115,9 @@ class OrgGenCtx():
             case OrgGenOptions():
                 return replace(self, opts=arg)
 
+    def rec_update(self, **kwargs) -> 'OrgGenCtx':
+        return replace(self, opts=replace(self.opts, **kwargs))
+
     def withRelativeRecursionLimit(self, max: int) -> 'OrgGenCtx':
         limit = self.depth() + max
         if self.opts.maxRecursionDepth and self.opts.maxRecursionDepth < limit:
@@ -92,50 +140,36 @@ class OrgGenCtx():
         ))
 
     def getSubnodeSet(self) -> list[org.OrgSemKind]:
+
+        def order(it: Iterable[org.OrgSemKind]):
+            return sorted(it, key=lambda it: it.value)
+
         if self.depth() == 0:
             return [osk.Document]
-        
-        elif self.depth() == 1:
-            return [osk.Paragraph]
+
+        elif self.back().kind == osk.Paragraph:
+            return order(SET_PARAGRAPH_KINDS)
+
+        elif self.back().kind == osk.Document:
+            return order(SET_STMT_TOPLEVEL)
+
+        elif 0 < self.count(osk.Paragraph):
+            result = SET_PARAGRAPH_KINDS
+
+            markupLayerCount = 0
+            for step in self.steps:
+                if step.kind in SET_MARKUP_KINDS:
+                    markupLayerCount += 1
+
+            if markupLayerCount <= 2:
+                result += SET_MARKUP_KINDS
+
+            return order(result)
+
+        elif self.back().kind in [osk.Document, osk.ListItem, osk.Subtree]:
+            return order(SET_STMT_TOPLEVEL)
 
         result = set(it for it in org.OrgSemKind.Document.__iter__())
-        markupLayerCount = 0
-        markupKinds = org.SemSet([
-            osk.Bold,
-            osk.Italic,
-            osk.Verbatim,
-            osk.Monospace,
-            osk.Underline,
-            osk.Strike,
-        ])
-
-        inParagraphKinds = org.SemSet([
-            osk.AtMention,
-            osk.HashTag,
-            osk.BigIdent,
-            osk.Word,
-            osk.Time,
-            osk.TimeRange,
-            osk.Link,
-            osk.Macro, 
-            osk.Symbol,
-            osk.InlineMath,
-            osk.Escaped,
-            osk.Placeholder,
-            osk.Punctuation,
-        ])
-
-        commandKinds = org.SemSet([
-            osk.Code,
-            osk.Export,
-            osk.Center,
-            osk.Example,
-            osk.Quote,
-            osk.Caption,
-            osk.Verse,
-            osk.CmdAttr,
-            osk.CmdName,
-        ])
 
         result = result - set([
             osk.FileTarget,
@@ -160,17 +194,7 @@ class OrgGenCtx():
             osk.Table,
             osk.StmtList,
             osk.Completion,
-        ]) - commandKinds
-
-        for step in self.steps:
-            if step.kind in markupKinds:
-                markupLayerCount += 1
-
-        if 2 <= markupLayerCount or self.count(osk.Paragraph) == 0:
-            result = result
-
-        if self.count(osk.Paragraph) == 0:
-            result = result - inParagraphKinds - markupKinds
+        ]) - SET_COMMAND_KINDS
 
         if 3 <= self.count(osk.List):
             result.remove(osk.List)
@@ -190,9 +214,9 @@ class OrgGenCtx():
 
             match step.kind:
                 case osk.Paragraph:
-                    result = inParagraphKinds
+                    result = SET_PARAGRAPH_KINDS
 
-        return sorted(result, key=lambda it: it.value)
+        return order(result)
 
     def getSubnodeStrategy(self) -> st.SearchStrategy:
         kinds = self.getSubnodeSet()
@@ -209,14 +233,17 @@ def build_subnodes(draw: st.DrawFn, ctx: OrgGenCtx):
         ))
 
 
-def build_alnum_ident() -> st.SearchStrategy:
-    return st.text(alphabet=st.one_of(st.characters(min_codepoint=65, max_codepoint=90),
-                                      st.characters(min_codepoint=97, max_codepoint=122)),
-                   min_size=1)
+def build_alnum_ident(**kwargs) -> st.SearchStrategy:
+    return st.text(
+        alphabet=st.one_of(st.characters(min_codepoint=65, max_codepoint=90),
+                           st.characters(min_codepoint=97, max_codepoint=122)),
+        min_size=1,
+        **kwargs,
+    )
 
 
 def build_ascii_strategy(excluded_chars: str = "", **kwargs):
-    allowed_chars = [chr(i) for i in range(20, 128) if chr(i) not in excluded_chars]
+    allowed_chars = [chr(i) for i in range(32, 128) if chr(i) not in excluded_chars]
     text_strategy = st.text(alphabet=allowed_chars, **kwargs)
     return text_strategy
 
@@ -230,7 +257,6 @@ def interleave_strategy(
     @st.composite
     def interleave(draw):
         n = draw(n_strategy)
-        print(f"N={n}", file=get_file())
         odd_items = draw(st.lists(odd_item, min_size=n + 1, max_size=n + 1))
         even_items = draw(st.lists(even_item, min_size=n, max_size=n))
         result = [None] * (2 * n + 1)
@@ -241,6 +267,19 @@ def interleave_strategy(
     return interleave()
 
 
+def interleave_with_newlines(
+    ctx,
+    item: st.SearchStrategy,
+    n_strategy: Optional[st.SearchStrategy] = None,
+    newline_count: int = 2,
+):
+    return interleave_strategy(
+        odd_item=item,
+        even_item=build_Newline(ctx=ctx, count=st.just(newline_count)),
+        n_strategy=n_strategy or st.integers(1, ctx.getMaxSubnodeCount()),
+    )
+
+
 @st.composite
 def build_Document(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
@@ -248,7 +287,7 @@ def build_Document(draw: st.DrawFn, ctx: OrgGenCtx):
             org.Document,
             subnodes=interleave_strategy(
                 odd_item=node_strategy(ctx=ctx.rec(osk.Document)),
-                even_item=st.builds(org.Newline, text=st.just("\n\n\n")),
+                even_item=st.builds(org.Newline, text=st.just("\n\n")),
                 n_strategy=st.integers(min_value=2, max_value=5),
             ),
         ))
@@ -332,11 +371,6 @@ def build_Table(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_HashTag(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.HashTag))
-
-
-@st.composite
 def build_Footnote(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.Footnote))
 
@@ -347,18 +381,13 @@ def build_Completion(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Paragraph(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Paragraph))
-
-
-@st.composite
 def build_Center(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.Center))
 
 
 @st.composite
 def build_Caption(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Caption))
+    return draw(st.builds(org.Caption, text=build_Paragraph(ctx.rec(osk.Caption))))
 
 
 @st.composite
@@ -383,28 +412,20 @@ def build_Tblfm(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Quote(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Quote, subnodes=build_subnodes(ctx.rec(osk.Quote))))
+    return draw(
+        st.builds(
+            org.Quote,
+            subnodes=interleave_with_newlines(ctx, build_Paragraph(ctx)),
+        ))
 
 
 @st.composite
 def build_Verse(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Verse,))
-
-
-@st.composite
-def build_Example(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
-        st.builds(org.Example,
-                  subnodes=interleave_strategy(
-                      odd_item=st.builds(org.RawText,
-                                         text=build_ascii_strategy(
-                                             "\n",
-                                             min_size=1,
-                                             max_size=20,
-                                         )),
-                      even_item=st.builds(org.Newline, text=st.just("\n")),
-                      n_strategy=st.integers(1, 4),
-                  )))
+        st.builds(
+            org.Verse,
+            subnodes=interleave_with_newlines(ctx, build_Paragraph(ctx)),
+        ))
 
 
 @st.composite
@@ -422,9 +443,30 @@ def build_CmdArgument(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.CmdArgument))
 
 
+def build_raw_text_block(ctx: OrgGenCtx):
+    return interleave_with_newlines(
+        ctx,
+        st.builds(org.RawText,
+                  text=build_ascii_strategy(excluded_chars="\n", min_size=1,
+                                            max_size=20)),
+        newline_count=1,
+        n_strategy=st.integers(min_value=0, max_value=2),
+    )
+
+
 @st.composite
 def build_Export(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Export))
+    return draw(st.builds(org.Export, subnodes=build_raw_text_block(ctx)))
+
+
+@st.composite
+def build_Example(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.Example, subnodes=build_raw_text_block(ctx)))
+
+
+@st.composite
+def build_Code(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.Code, subnodes=build_raw_text_block(ctx)))
 
 
 @st.composite
@@ -438,17 +480,6 @@ def build_Call(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Code(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(
-        st.builds(org.Code,
-                  subnodes=interleave_strategy(
-                      odd_item=st.builds(org.RawText, text=st.text(min_size=4)),
-                      even_item=st.builds(org.Newline, text=st.just("\n")),
-                      n_strategy=st.integers(1, 4),
-                  )))
-
-
-@st.composite
 def build_Time(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.Time))
 
@@ -456,11 +487,10 @@ def build_Time(draw: st.DrawFn, ctx: OrgGenCtx):
 @st.composite
 def build_TimeRange(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
-        st.builds(
-            org.TimeRange,
-            _from=build_Time(ctx=ctx),
-            to=build_Time(ctx=ctx),
-        ))
+        st.builds(org.TimeRange, **{
+            "from": build_Time(ctx=ctx),
+            "to": build_Time(ctx=ctx)
+        }))
 
 
 @st.composite
@@ -475,12 +505,19 @@ def build_Symbol(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_SubtreeLog(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.SubtreeLog))
+    return draw(st.builds(org.SubtreeLog,))
 
 
 @st.composite
 def build_Subtree(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Subtree))
+    level = draw(st.integers(min_value=ctx.opts.parentSubtree + 1, max_value=20))
+    return draw(
+        st.builds(
+            org.Subtree,
+            level=st.just(level),
+            title=build_Paragraph(ctx.rec(osk.Subtree)),
+            subnodes=build_subnodes(ctx.rec(osk.Subtree).rec_update(parentSubtree=level)),
+        ))
 
 
 @st.composite
@@ -490,22 +527,23 @@ def build_InlineMath(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Escaped(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Escaped))
+    return draw(st.builds(org.Escaped, text=build_alnum_ident(max_size=1)))
 
 
 @st.composite
-def build_Newline(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Newline))
+def build_Newline(draw: st.DrawFn, ctx: OrgGenCtx, count: st.SearchStrategy = st.just(1)):
+    size = draw(count)
+    return draw(st.builds(org.Newline, text=st.text("\n", min_size=size, max_size=size)))
 
 
 @st.composite
 def build_Space(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Space))
+    return draw(st.builds(org.Space, text=st.just(" ")))
 
 
 @st.composite
 def build_Word(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Word))
+    return draw(st.builds(org.Word, text=build_alnum_ident()))
 
 
 @st.composite
@@ -525,7 +563,7 @@ def build_Punctuation(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_Placeholder(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Placeholder))
+    return draw(st.builds(org.Placeholder, text=build_alnum_ident()))
 
 
 @st.composite
@@ -744,16 +782,16 @@ def node_strategy(draw, ctx: OrgGenCtx):
             assert False, item
 
 
-
-
+@seed(146192756127938034026303132144593370406)
+@settings(deadline=10_000)
 @given(node_strategy(OrgGenCtx()))
 def test_render(doc: org.Document):
     ctx = org.OrgContext()
     tree = org.OrgExporterTree()
     file = get_file()
     file.write("================================================\n\n")
-    file.write(org.treeRepr(doc, colored=False))
-    file.write("\n\n\n")
+    # file.write(org.treeRepr(doc, colored=False))
+    # file.write("\n\n\n")
     file.write(ctx.formatToString(doc))
     file.write("\n\n")
 
