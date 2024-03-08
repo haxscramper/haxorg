@@ -1083,6 +1083,7 @@ message ListItem {
     Checkbox_None_f                                                                 = 0;
     Checkbox_Done_f                                                                 = 1;
     Checkbox_Empty_f                                                                = 2;
+    Checkbox_Partial_f                                                              = 3;
   }
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;

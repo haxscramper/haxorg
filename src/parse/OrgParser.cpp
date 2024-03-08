@@ -218,10 +218,11 @@ void OrgParser::textFold(OrgLexer& lex) {
     auto __trace = trace(lex);
 
     Func<void()> aux;
-
-    auto aux_autofold = [&]() {
-        OrgTokenId startToken = lex.get();
+    auto         _begin = [&](org Kind) {
+        print(fmt("begin {}", Kind));
         int        startDepth = treeDepth();
+        OrgTokenId startToken = pop(lex);
+        start(Kind);
         aux();
         print(
             fmt("Started on {} exited on {} tok {}",
@@ -237,19 +238,13 @@ void OrgParser::textFold(OrgLexer& lex) {
         // returning, the `aux(*)` will convert `Bold` into
         // `Punctuation(*)`
         if (startDepth < treeDepth()) {
-            print("Folding unclosed");
-            auto unclosed                   = group->pendingTrees.back();
+            print(fmt(
+                "Folding unclosed with token {}", lex.in->at(startToken)));
+            auto unclosed = group->pendingTrees.back();
             group->nodes.at(unclosed).kind  = org::Punctuation;
             group->nodes.at(unclosed).value = startToken;
             group->pendingTrees.pop_back();
         }
-    };
-
-    auto _begin = [&](org Kind) {
-        print(fmt("begin {}", Kind));
-        start(Kind);
-        skip(lex);
-        aux_autofold();
     };
 
     auto _end = [&](org Kind) {
@@ -452,7 +447,7 @@ void OrgParser::textFold(OrgLexer& lex) {
 #undef CASE_INLINE
     };
 
-    aux_autofold();
+    aux();
 }
 
 
@@ -1209,6 +1204,7 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     {
         if (lex.at(otk::Checkbox)) {
             token(org::Checkbox, pop(lex, otk::Checkbox));
+            space(lex);
         } else {
             empty();
         }
@@ -1223,11 +1219,16 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
             tmp.next();
         }
 
-        print(
-            fmt("Searched for double colon to {} tmp-pos {} lex-pos {}",
+        if (tmp.finished()) {
+            print("Sub-lexer reached end without header");
+        } else {
+            print(fmt(
+                "Searched for double colon to {} tmp-pos {} lex-pos {}",
                 tmp.tok(),
                 tmp.pos,
                 lex.pos));
+        }
+
         if (tmp.at(otk::DoubleColon)) {
             SubLexer sub{lex};
 

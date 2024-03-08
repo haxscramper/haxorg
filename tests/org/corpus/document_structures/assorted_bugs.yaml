@@ -220,8 +220,8 @@ items:
 
   - name: "Link 1"
     source: |
-      - [[https://www.law.cornell.edu/uscode/text/22/6001][22 U.S. Code &sect; 6001 - Findings | U.S. Code | US Law | LII / Legal
-        Information Institute]]
+      - [[https://www.law.cornell.edu/uscode/text/22/6001][LII / Legal
+        Information]]
 
   - name: "Footnotes"
     source: |

@@ -698,6 +698,25 @@ SemId<ListItem> OrgConverter::convertListItem(__args) {
         item->header = convertParagraph(one(a, N::Header));
     }
 
+    if (one(a, N::Checkbox).kind() != org::Empty) {
+        Str text = strip(
+            get_text(one(a, N::Checkbox)),
+            CharSet{'[', ' '},
+            CharSet{' ', ']'});
+
+        print(fmt("Normalized checkbox: {}", escape_literal(text)));
+
+        if (text == "x" || text == "X") {
+            item->checkbox = ListItem::Checkbox::Done;
+        } else if (text == "") {
+            item->checkbox = ListItem::Checkbox::Empty;
+        } else if (text == "-") {
+            item->checkbox = ListItem::Checkbox::Partial;
+        } else {
+            LOG(FATAL) << text;
+        }
+    }
+
     {
         for (const auto& sub : one(a, N::Body)) {
             item->push_back(convert(sub));
@@ -846,8 +865,14 @@ SemId<Export> OrgConverter::convertExport(__args) {
 
     eexport->exporter   = get_text(one(a, N::Name));
     eexport->parameters = values;
-    for (auto const& item : one(a, N::Body)) {
-        eexport->content += get_text(item);
+    {
+        auto lines = one(a, N::Body);
+        int  idx   = 0;
+        int  size  = lines.size();
+        for (auto const& item : lines) {
+            ++idx;
+            if (idx < size) { eexport->content += get_text(item); }
+        }
     }
 
     return eexport;

@@ -482,7 +482,16 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
         }
     }
 
-    return b.line({str("- "), body});
+    Str checkbox;
+    switch (id->checkbox) {
+        case ListItem::Checkbox::Empty: checkbox = "[ ] "; break;
+        case ListItem::Checkbox::Done: checkbox = "[x] "; break;
+        case ListItem::Checkbox::Partial: checkbox = "[-] "; break;
+        case ListItem::Checkbox::None: checkbox = ""; break;
+    }
+
+
+    return b.line({str("- " + checkbox), body});
 }
 
 auto Formatter::toString(SemId<AtMention> id, CR<Context> ctx) -> Res {
@@ -814,7 +823,7 @@ auto Formatter::toString(SemId<Export> id, CR<Context> ctx) -> Res {
     }
 
     return b.stack(
-        Vec<Res>::Splice(head, toSubnodes(id, ctx), str("#+end_export")));
+        Vec<Res>::Splice(head, str(id->content), str("#+end_export")));
 }
 
 auto Formatter::toString(SemId<Example> id, CR<Context> ctx) -> Res {

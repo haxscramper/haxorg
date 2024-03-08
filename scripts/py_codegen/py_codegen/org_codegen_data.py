@@ -1291,7 +1291,7 @@ def get_types() -> Sequence[GenTuStruct]:
                            GenTuDoc(""),
                            value="std::nullopt"),
             ],
-            nested=[d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty")],
+            nested=[d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty", "Partial")],
             methods=[
                 GenTuFunction(
                     t_bool(),

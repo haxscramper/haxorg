@@ -51,8 +51,9 @@ def test_method_const_ref():
     assert t.isConst
     assert t.RefKind == ReferenceKind.LValue
 
-    wrap: py11.Py11Class = py11.Py11Class.FromGenTu(struct)
-    wrap.InitDefault(wrap.Fields)
+    ast = cpp.ASTBuilder(in_b=TextLayout())
+    wrap: py11.Py11Class = py11.Py11Class.FromGenTu(ast, struct)
+    wrap.InitDefault(ast, wrap.Fields)
     lyt = TextLayout()
     builder = cpp.ASTBuilder(lyt)
     bind = wrap.Methods[0].build_bind(struct.name, builder)

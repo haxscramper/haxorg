@@ -1830,8 +1830,8 @@ struct List : public sem::Org {
 struct ListItem : public sem::Org {
   using Org::Org;
   virtual ~ListItem() = default;
-  enum class Checkbox : short int { None, Done, Empty, };
-  BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty)
+  enum class Checkbox : short int { None, Done, Empty, Partial, };
+  BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty, Partial)
   BOOST_DESCRIBE_CLASS(ListItem,
                        (Org),
                        (),

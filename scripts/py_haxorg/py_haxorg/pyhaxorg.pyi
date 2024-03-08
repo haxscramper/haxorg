@@ -574,6 +574,7 @@ class ListItemCheckbox(Enum):
     _None = 1
     Done = 2
     Empty = 3
+    Partial = 4
 
 class ListItem(Org):
     def isDescriptionItem(self) -> bool: ...

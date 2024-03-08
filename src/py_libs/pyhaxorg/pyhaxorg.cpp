@@ -1207,6 +1207,7 @@ node can have subnodes.)RAW")
     .value("None", sem::ListItem::Checkbox::None)
     .value("Done", sem::ListItem::Checkbox::Done)
     .value("Empty", sem::ListItem::Checkbox::Empty)
+    .value("Partial", sem::ListItem::Checkbox::Partial)
     .def("__iter__", [](sem::ListItem::Checkbox _self) -> PyEnumIterator<sem::ListItem::Checkbox> {
                      return
                      PyEnumIterator<sem::ListItem::Checkbox>
