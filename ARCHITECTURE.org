@@ -30,8 +30,75 @@ This is a script largely unrelated to the org-mode processing itself, an impleme
 
 * Code novelties
 
-** How reflection is used in this project
+** TODO How reflection is used in this project
 
-** Extended stdlib
+** TODO Extended stdlib
 
 * Testing infrastructure
+
+The test suite for the project is split into four parts: support 'std'lib components, org-mode document corpus, python logic tests and extra side projects.
+
+** Document corpus
+
+The most important part of the testing suite -- collection of ~.yaml~ files that contains a series of example documents to be verified.
+
+#+begin_src yaml
+items:
+  - name: "Source block without language name"
+    source: |
+      #+begin_src
+      cd 1
+      #+end_src
+#+end_src
+
+Each test has ~source:~ field with the content of the standalone document. Verification logic compares intermediate results of the test with given expectations -- base tokens, converted tokens, parsed tree or sem tree. Unless disabled, each document is processed twice.
+
+- Process document into base lexer tokens
+- Recombine the base tokens into groups -- adding indentation, wrapping paragraphs and statement lists, dropping or adding the tokens to normalize stream of data
+- Parse the recombined token stream into the parsed tree
+- Convert parsed tree into sem tree
+- If all parts are ok -- format the sem tree back to source and re-run the whole sequence on the new document and then compare sem tree 1 vs sem tree 2
+
+Each part of the document spec can have expected constraints:
+
+#+caption: Expected base and converted tokens
+#+begin_src yaml
+    base_tokens:
+      - {kind: SubtreeStars, str: "*"}
+      - {kind: Whitespace, str: " "}
+      - {kind: Word, str: Subtree}
+      - {kind: EndOfFile, str: ""}
+
+    tokens:
+      - {kind: SubtreeStars, str: "*"}
+      - {kind: Whitespace, str: " "}
+      - {kind: Word, str: "Subtree"}
+#+end_src
+
+Parsed tree structure,
+
+#+caption: Flat representation of the parsed tree
+#+begin_src yaml
+    subnodes:
+      - {kind: StmtList, extent: 3}
+      - {kind: Paragraph, extent: 2}
+      - {kind: Bold, extent: 1}
+      - {kind: Word, tok_idx: 1, str: "bold"}
+#+end_src
+
+Or expected sem tree
+
+#+caption: Full document for parsed symbol
+#+begin_src yaml
+    sem:
+      kind: Document
+      subnodes:
+        - kind: Paragraph
+          subnodes:
+            - kind: Symbol
+              name: "symbol"
+              parameters: []
+              positional: [{kind: Empty}]
+#+end_src
+
+** TODO Debugging tests

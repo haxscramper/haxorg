@@ -1,6 +1,6 @@
 #+title: haxorg
 
-Implementation of the org-mode parser and exporter in C++ with python API.
+Org-mode parser with focus on scripting, structured data processing and ease of embedding in software.
 
 - Built for fast processing -- core is implemented in C++
 - With scripting in mind -- Python API, export to structured data (JSON, Yaml, S-expressions, protobuf)
