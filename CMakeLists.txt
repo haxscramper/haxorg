@@ -104,7 +104,10 @@ add_subdirectory("${DEPS_DIR}/protobuf")
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
+
 add_subdirectory(thirdparty/json)
+add_subdirectory(thirdparty/mp11)
+add_subdirectory(thirdparty/describe)
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)

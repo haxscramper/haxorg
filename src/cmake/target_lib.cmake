@@ -57,6 +57,7 @@ target_link_libraries(haxorg PUBLIC
     absl::base
     absl::log
     perfetto
+    nlohmann_json
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
