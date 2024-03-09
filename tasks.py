@@ -1,4 +1,4 @@
-from plumbum import local, ProcessExecutionError, FG
+from plumbum import local, ProcessExecutionError, FG, CommandNotFound
 from py_scriptutils.script_logging import log
 from pathlib import Path
 import os
@@ -154,8 +154,17 @@ def run_command(
 
 @beartype
 def ui_notify(message: str, is_ok: bool = True):
-    local["notify-send"].run(
-        [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
+    cmd = local["notify-send"]
+    try:
+        cmd.run(
+            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
+        
+    except CommandNotFound:
+        if is_ok:
+            log("tasks").info(message)
+
+        else:
+            log("tasks").info(message)
 
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
@@ -297,16 +306,14 @@ def docker_run(ctx: Context):
 
     run_command(ctx, "docker", [
         "run",
-        *mnt("toolchain"),
-        *mnt("src"),
-        *mnt("tests"),
-        *mnt("thirdparty"),
-        *mnt("scripts"),
+        *mnt("", ""),
+        "-v",
+        f"{get_script_root('build_docker')}:{docker_path('build')}",
         "--rm",
         HAXORG_DOCKER_IMAGE,
         "./scripts/py_repository/poetry_with_deps.sh",
-        "run",
-        "ls",
+        "invoke",
+        "py-tests",
     ])
 
 
