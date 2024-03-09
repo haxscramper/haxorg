@@ -1,5 +1,5 @@
-[submodule "toolchain/RE-flex"]
-	path = toolchain/RE-flex
+[submodule "thirdparty/RE-flex"]
+	path = thirdparty/RE-flex
 	url = https://github.com/Genivia/RE-flex.git
 [submodule "thirdparty/immer"]
 	path = thirdparty/immer

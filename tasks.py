@@ -302,7 +302,6 @@ def docker_run(ctx: Context):
         *mnt("tests"),
         *mnt("thirdparty"),
         *mnt("scripts"),
-        *mnt("build"),
         "--rm",
         HAXORG_DOCKER_IMAGE,
         "./scripts/py_repository/poetry_with_deps.sh",
@@ -370,7 +369,7 @@ def cmake_utils(ctx: Context):
     log("tasks").info("CMake utils build ok")
 
 
-REFLEX_PATH = "toolchain/RE-flex/build/reflex"
+REFLEX_PATH = "thirdparty/RE-flex/build/reflex"
 
 
 @org_task(pre=[base_environment])
@@ -382,7 +381,7 @@ def reflex_lexer_generator(ctx: Context):
             "-B",
             expected.parent,
             "-S",
-            get_script_root("toolchain/RE-flex"),
+            get_script_root("thirdparty/RE-flex"),
             "-DCMAKE_BUILD_TYPE=Release",
         ])
 
@@ -417,7 +416,7 @@ def haxorg_base_lexer(ctx: Context):
                 ctx,
                 get_script_root(REFLEX_PATH),
                 reflex_run_params,
-                env={"LD_LIBRARY_PATH": str(get_script_root("toolchain/RE-flex/lib"))},
+                env={"LD_LIBRARY_PATH": str(get_script_root("thirdparty/RE-flex/lib"))},
             )
 
         else:
