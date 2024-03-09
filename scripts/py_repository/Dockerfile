@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 RUN apt-get update
-RUN apt-get install -y python3.11 python3.11-dev python3.11-venv python3-pip curl
+RUN apt-get install -y python3.11 python3.11-dev python3.11-venv python3-pip curl wget git
 RUN curl -sSL https://install.python-poetry.org | python3.11 -
 ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /haxorg
@@ -10,7 +10,16 @@ COPY poetry.lock .
 RUN poetry env use python3.11
 RUN poetry install --no-root --without local --no-interaction --no-ansi
 
-# RUN mkdir toolchain
-# ADD "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz" /haxorg/llvm.tar.xz
-# RUN tar -xf llvm.tar.xz -C toolchain
-# RUN mv toolchain/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04 toolchain/llvm
+WORKDIR /docker_toolchain
+
+RUN wget -q "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz"
+RUN tar -xf "cmake-3.28.3-linux-x86_64.tar.gz" 
+RUN mv "cmake-3.28.3-linux-x86_64" "cmake"
+RUN rm "cmake-3.28.3-linux-x86_64.tar.gz" 
+
+RUN wget -q "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz" 
+RUN tar -xf "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
+RUN mv "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04" "llvm"
+RUN rm "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
+
+WORKDIR /haxorg

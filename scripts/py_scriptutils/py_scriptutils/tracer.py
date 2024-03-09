@@ -92,7 +92,7 @@ class TraceCollector:
             "traceEvents": [event.__dict__ for event in self.traceEvents],
             "otherData": self.metadata
         }
-        with open(str(filename), 'w') as f:
+        with open(str(filename), 'w+') as f:
             json.dump(data, f, indent=4)
 
 

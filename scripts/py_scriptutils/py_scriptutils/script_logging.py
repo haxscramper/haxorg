@@ -5,6 +5,7 @@ import traceback
 from rich.pretty import pprint
 import sys
 from types import MethodType
+from rich.text import Text
 
 
 def to_debug_json(
@@ -37,6 +38,7 @@ def to_debug_json(
             return f"{obj}"
 
         else:
+
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
@@ -76,19 +78,27 @@ def pprint_to_file(value, path: str):
         pprint(value, console=Console(file=file, force_terminal=True, color_system=None))
 
 
-logging.basicConfig(
-    level="NOTSET",
-    format="%(name)s - %(message)s",
-    datefmt="[%X]",
-    handlers=[
-        RichHandler(
-            rich_tracebacks=True,
-            markup=True,
-            enable_link_path=False,
-            show_time=False,
-        )
-    ],
-)
+if sys.stdout.isatty():
+    logging.basicConfig(
+        level="NOTSET",
+        format="%(name)s - %(message)s",
+        datefmt="[%X]",
+        handlers=[
+            RichHandler(
+                rich_tracebacks=True,
+                markup=True,
+                enable_link_path=False,
+                show_time=False,
+            )
+        ],
+    )
+
+else:
+    logging.basicConfig(
+        level="NOTSET",
+        format="[%(name)s %(pathname)s:%(lineno)s] %(message)s",
+        datefmt="[%X]",
+    )
 
 for name in logging.root.manager.loggerDict:
     logger = logging.getLogger(name)
