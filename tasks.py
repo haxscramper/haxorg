@@ -320,32 +320,42 @@ def docker_run(ctx: Context, interactive: bool = False):
 
     def mnt(local: str, container: Optional[str] = None) -> List[str]:
         container = container or local
+        local = Path(local) if Path(local).is_absolute() else get_script_root(local)
         return [
             "--mount",
-            f"type=bind,src={get_script_root(local)},dst={docker_path(container)}"
+            f"type=bind,src={local},dst={docker_path(container)}"
         ]
+    
+    HAXORG_BUILD_TMP = Path("/tmp/haxorg_build_dir")
+    if not HAXORG_BUILD_TMP.exists():
+        HAXORG_BUILD_TMP.mkdir(parents=True)
 
-    run_command(ctx, "docker", [
-        "run",
-        *itertools.chain(
-            mnt(it) for it in [
-                "src",
-                "scripts",
-                "tests",
-                "tasks.py",
-                "invoke.yaml",
-                "pyproject.toml",
-                "ignorelist.txt",
-                ".git",
-                "thirdparty",
-                "CMakeLists.txt",
-            ]),
-        *(["-it"] if interactive else []),
-        "--rm",
-        HAXORG_DOCKER_IMAGE,
-        "./scripts/py_repository/poetry_with_deps.sh",
-        *(["bash"] if interactive else ["invoke", "py-tests"]),
-    ])
+    run_command(
+        ctx,
+        "docker",
+        [
+            "run",
+            *itertools.chain(
+                mnt(it) for it in [
+                    "src",
+                    "scripts",
+                    "tests",
+                    "tasks.py",
+                    "invoke.yaml",
+                    "pyproject.toml",
+                    "ignorelist.txt",
+                    ".git",
+                    "thirdparty",
+                    "CMakeLists.txt",
+                ]),
+            # Scratch directory for simplified local debugging and rebuilds if needed.
+            *mnt(HAXORG_BUILD_TMP, "build"),
+            *(["-it"] if interactive else []),
+            "--rm",
+            HAXORG_DOCKER_IMAGE,
+            "./scripts/py_repository/poetry_with_deps.sh",
+            *(["bash"] if interactive else ["invoke", "py-tests"]),
+        ])
 
 
 @org_task()

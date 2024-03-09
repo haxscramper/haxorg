@@ -29,3 +29,5 @@ RUN apt-get install -y qt6-base-dev qt6-declarative-dev qt6-quick3d-dev
 RUN apt-get install -y ninja-build pkg-config libkrb5-dev libssl-dev
 RUN apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
 RUN apt-get install -y libxkbcommon-dev libpcre2-dev libgraphviz-dev libboost-all-dev
+RUN apt-get install -y mold
+RUN apt-get install -y elfutils libdw-dev

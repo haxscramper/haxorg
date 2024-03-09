@@ -22,6 +22,7 @@ target_link_libraries(code_forensics PUBLIC
     perfetto
     range-v3
     libgit2package
+    libgit2
     SQLiteCpp
     sqlite3
     pthread
