@@ -23,3 +23,7 @@ RUN mv "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04" "llvm"
 RUN rm "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
 
 WORKDIR /haxorg
+
+RUN apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-declarative-dev qt6-quick3d-dev qt6-quick3d-dev-tools 
+RUN apt-get install -y ninja-build pkg-config libkrb5-dev libssl-dev
+RUN apt-get install -y libgl1-mesa-dev libglu1-mesa-dev qt6-core-tools-dev

@@ -78,6 +78,17 @@ def pprint_to_file(value, path: str):
         pprint(value, console=Console(file=file, force_terminal=True, color_system=None))
 
 
+class NoTTYFormatter(logging.Formatter):
+
+    def __init__(self, fmt, datefmt=None):
+        super().__init__(fmt, datefmt)
+        self.console = Console()
+
+    def format(self, record):
+        record.msg = self.console.render_str(record.getMessage(), highlight=False)
+        return super().format(record)
+
+
 if sys.stdout.isatty():
     logging.basicConfig(
         level="NOTSET",
@@ -94,11 +105,9 @@ if sys.stdout.isatty():
     )
 
 else:
-    logging.basicConfig(
-        level="NOTSET",
-        format="[%(name)s %(pathname)s:%(lineno)s] %(message)s",
-        datefmt="[%X]",
-    )
+    handler = logging.StreamHandler()
+    handler.setFormatter(NoTTYFormatter("[%(name)s %(pathname)s:%(lineno)s] %(message)s"))
+    logging.basicConfig(level="NOTSET", handlers=[handler])
 
 for name in logging.root.manager.loggerDict:
     logger = logging.getLogger(name)

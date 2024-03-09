@@ -38,10 +38,12 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
     """
     print("tasks traceback ----------------------")
     for frame in traceback.extract_tb(exc_traceback):
-        if 'haxorg/tasks.py' in frame.filename:
-            # Print the formatted representation of the stack frame
-            print("File \"{}\", line {}, in {}  {}".format(frame.filename, frame.lineno,
-                                                           frame.name, frame.line))
+        log(CAT).error("File \"{}\", line {}, in {}  {}".format(
+            frame.filename,
+            frame.lineno,
+            frame.name,
+            frame.line,
+        ))
 
     print(exc_type, exc_value)
 
@@ -332,6 +334,9 @@ def docker_run(ctx: Context, interactive: bool = False):
                 "tasks.py",
                 "invoke.yaml",
                 "pyproject.toml",
+                ".git",
+                "thirdparty",
+                "CMakeLists.txt",
             ]),
         *(["-it"] if interactive else []),
         "--rm",

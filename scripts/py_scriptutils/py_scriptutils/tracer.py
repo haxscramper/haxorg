@@ -92,6 +92,10 @@ class TraceCollector:
             "traceEvents": [event.__dict__ for event in self.traceEvents],
             "otherData": self.metadata
         }
+        
+        if not filename.parent.exists():
+            filename.parent.mkdir(parents=True)
+
         with open(str(filename), 'w+') as f:
             json.dump(data, f, indent=4)
 
