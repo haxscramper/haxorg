@@ -265,6 +265,52 @@ def git_init_submodules(ctx: Context):
                     ["submodule", "update", "--init", "--recursive", "--progress"])
 
 
+HAXORG_DOCKER_IMAGE = "docker-haxorg"
+
+
+@org_task()
+def docker_image(ctx: Context):
+    run_command(ctx, "docker", ["rm", HAXORG_DOCKER_IMAGE], allow_fail=True)
+    run_command(ctx, "docker", [
+        "build",
+        "-t",
+        HAXORG_DOCKER_IMAGE,
+        "-f",
+        get_script_root("scripts/py_repository/Dockerfile"),
+        ".",
+    ])
+
+
+@org_task(pre=[docker_image])
+def docker_run(ctx: Context):
+    """Run docker"""
+
+    def docker_path(path: str) -> Path:
+        return Path("/haxorg").joinpath(path)
+
+    def mnt(local: str, container: Optional[str] = None) -> List[str]:
+        container = container or local
+        return [
+            "--mount",
+            f"type=bind,src={get_script_root(local)},dst={docker_path(container)}"
+        ]
+
+    run_command(ctx, "docker", [
+        "run",
+        *mnt("toolchain"),
+        *mnt("src"),
+        *mnt("tests"),
+        *mnt("thirdparty"),
+        *mnt("scripts"),
+        *mnt("build"),
+        "--rm",
+        HAXORG_DOCKER_IMAGE,
+        "./scripts/py_repository/poetry_with_deps.sh",
+        "run",
+        "ls",
+    ])
+
+
 @org_task()
 def download_llvm(ctx: Context):
     """Download LLVM toolchain if missing"""
