@@ -43,7 +43,7 @@ endif()
 # Use re-flex static library as a direct dependency here so it would be compiled
 # and linked with right sanitizer options (otherwise it triggers lots of false 
 # positives)
-add_subdirectory("${BASE}/toolchain/RE-flex")
+add_subdirectory("${BASE}/thirdparty/RE-flex")
 
 target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}

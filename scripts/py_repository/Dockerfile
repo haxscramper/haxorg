@@ -1,4 +1,5 @@
-FROM ubuntu:latest
+FROM debian:latest
+
 RUN apt-get update
 RUN apt-get install -y python3.11 python3.11-dev python3.11-venv python3-pip curl wget git
 RUN curl -sSL https://install.python-poetry.org | python3.11 -
@@ -24,6 +25,7 @@ RUN rm "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
 
 WORKDIR /haxorg
 
-RUN apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-declarative-dev qt6-quick3d-dev qt6-quick3d-dev-tools 
+RUN apt-get install -y qt6-base-dev qt6-declarative-dev qt6-quick3d-dev
 RUN apt-get install -y ninja-build pkg-config libkrb5-dev libssl-dev
-RUN apt-get install -y libgl1-mesa-dev libglu1-mesa-dev qt6-core-tools-dev
+RUN apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
+RUN apt-get install -y libxkbcommon-dev libpcre2-dev libgraphviz-dev libboost-all-dev

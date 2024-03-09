@@ -331,9 +331,11 @@ def docker_run(ctx: Context, interactive: bool = False):
             mnt(it) for it in [
                 "src",
                 "scripts",
+                "tests",
                 "tasks.py",
                 "invoke.yaml",
                 "pyproject.toml",
+                "ignorelist.txt",
                 ".git",
                 "thirdparty",
                 "CMakeLists.txt",
