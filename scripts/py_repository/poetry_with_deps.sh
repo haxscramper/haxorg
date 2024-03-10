@@ -10,6 +10,9 @@ ls -al $TOOL
 export PATH="/haxorg/build/utils:$TOOL/cmake/bin:$TOOL/llvm/bin:$PATH"
 
 git config --global --add safe.directory /haxorg
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
 poetry install --no-root
 poetry run $@
  

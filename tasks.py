@@ -19,6 +19,7 @@ import json
 import sys
 import traceback
 import itertools
+from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -80,12 +81,11 @@ def get_llvm_root(relative: Optional[str] = None) -> Path:
     return value
 
 
-def is_quiet(ctx: Context) -> bool:
-    return ctx.config.get('quiet', False)
+conf = get_haxorg_repo_root_config()
 
 
-def is_debug(ctx: Context) -> bool:
-    return ctx.config.get('debug', False)
+def get_config(ctx: Context) -> HaxorgConfig:
+    return conf
 
 
 def is_instrumented_coverage(ctx: Context) -> bool:
@@ -96,14 +96,28 @@ def is_xray_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["xray"]
 
 
+@beartype
+def cmake_opt(name: str, value: Union[str, bool]) -> str:
+    result = "-D" + name + "="
+    if isinstance(value, str):
+        result += value
+
+    elif isinstance(value, bool):
+        result += ("ON" if value else "OFF")
+
+    return result
+
+
 def get_py_env(ctx: Context) -> Dict[str, str]:
-    if ctx.config.get("instrument")["asan"]:
+    if get_config(ctx).instrument.asan:
+        asan_lib = get_llvm_root(
+            f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so")
+        
+        assert asan_lib.exists(), asan_lib
+
         return {
-            "LD_PRELOAD":
-                str(
-                    get_llvm_root(
-                        f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
-                    ))
+            "LD_PRELOAD": str(asan_lib),
+            "ASAN_OPTIONS": "detect_leaks=0",
         }
 
     else:
@@ -154,7 +168,7 @@ def run_command(
         run = run.with_cwd(cwd)
 
     try:
-        if capture or is_quiet(ctx):
+        if capture or get_config(ctx).quiet:
             retcode, stdout, stderr = run.run(
                 tuple(args),
                 retcode=None if allow_fail else 0,
@@ -235,17 +249,13 @@ def org_task(
 
 def get_cmake_defines(ctx: Context) -> List[str]:
     result: List[str] = []
-    if is_instrumented_coverage(ctx):
-        result.append("-DORG_USE_COVERAGE=ON")
+    conf = get_config(ctx)
 
-    if is_xray_coverage(ctx):
-        result.append("-DORG_USE_XRAY=ON")
-
-    if is_debug(ctx):
-        result.append("-DCMAKE_BUILD_TYPE=Debug")
-
-    else:
-        result.append("-DCMAKE_BUILD_TYPE=RelWithDebInfo")
+    result.append(cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage))
+    result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
+    result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
+    result.append(
+        cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 
     return result
 
@@ -321,11 +331,8 @@ def docker_run(ctx: Context, interactive: bool = False):
     def mnt(local: str, container: Optional[str] = None) -> List[str]:
         container = container or local
         local = Path(local) if Path(local).is_absolute() else get_script_root(local)
-        return [
-            "--mount",
-            f"type=bind,src={local},dst={docker_path(container)}"
-        ]
-    
+        return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
+
     HAXORG_BUILD_TMP = Path("/tmp/haxorg_build_dir")
     if not HAXORG_BUILD_TMP.exists():
         HAXORG_BUILD_TMP.mkdir(parents=True)
@@ -391,7 +398,7 @@ def base_environment(ctx: Context):
 def cmake_configure_utils(ctx: Context):
     """Execute configuration for utility binary compilation"""
     log(CAT).info("Configuring cmake utils build")
-    build_dir = "build/utils_debug" if is_debug(ctx) else "build/utils_release"
+    build_dir = "build/utils_debug" if get_config(ctx).debug else "build/utils_release"
     run_command(
         ctx,
         "cmake",
@@ -402,7 +409,7 @@ def cmake_configure_utils(ctx: Context):
             str(get_script_root().joinpath("scripts/cxx_codegen")),
             "-G",
             "Ninja",
-            f"-DCMAKE_BUILD_TYPE={'Debug' if is_debug(ctx) else 'RelWithDebInfo'}",
+            f"-DCMAKE_BUILD_TYPE={'Debug' if get_config(ctx).debug else 'RelWithDebInfo'}",
             f"-DCMAKE_CXX_COMPILER={get_script_root('toolchain/llvm/bin/clang++')}",
         ],
     )
@@ -412,7 +419,7 @@ def cmake_configure_utils(ctx: Context):
 def cmake_utils(ctx: Context):
     """Compile libraries and binaries for utils"""
     log(CAT).info("Building build utils")
-    build_dir = "build/utils_debug" if is_debug(ctx) else "build/utils_release"
+    build_dir = "build/utils_debug" if get_config(ctx).debug else "build/utils_release"
     run_command(ctx, "cmake", ["--build", get_script_root(build_dir)])
     log(CAT).info("CMake utils build ok")
 
@@ -528,7 +535,8 @@ def cmake_configure_haxorg(ctx: Context):
         log(CAT).info(op.explain("cmake configuration"))
         if op.should_run():
             log(CAT).info("running haxorg cmake configuration")
-            build_dir = "build/haxorg_debug" if is_debug(ctx) else "build/haxorg_release"
+            build_dir = "build/haxorg_debug" if get_config(
+                ctx).debug else "build/haxorg_release"
             pass_flags = [
                 "-B",
                 get_script_root(build_dir), "-S",
@@ -543,7 +551,7 @@ def cmake_configure_haxorg(ctx: Context):
 @org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx: Context):
     """Compile main set of libraries and binaries for org-mode parser"""
-    build_dir = f'build/haxorg_{"debug" if is_debug(ctx) else "release"}'
+    build_dir = f'build/haxorg_{"debug" if get_config(ctx).debug else "release"}'
     with FileOperation.InTmp(
         [
             Path(path).rglob(glob)
@@ -733,7 +741,7 @@ def binary_coverage(ctx: Context, test: Path):
 
     else:
         raise Failure(
-            f"{profraw} does not exist after running tests. Instrumentation was set to {is_instrumented_coverage(ctx)}"
+            f"{profraw} does not exist after running tests. Instrumentation was set to {get_config(ctx).instrument}"
         )
 
 

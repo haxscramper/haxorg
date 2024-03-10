@@ -94,7 +94,7 @@ def parse_google_tests(binary_path: str) -> list[GTestParams]:
 
 
 binary_path: str = str(
-    get_haxorg_repo_root_path().joinpath("build/haxorg_debug/tests_org"))
+    get_haxorg_repo_root_path().joinpath("build/haxorg/tests_org"))
 
 
 class GTestClass(pytest.Class):

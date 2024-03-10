@@ -64,7 +64,7 @@ def parse_qt_tests(binary_path: str) -> list[QTestParams]:
 
 
 binary_path: str = str(
-    get_haxorg_repo_root_path().joinpath("build/haxorg_debug/src/editor/gui_tests"))
+    get_haxorg_repo_root_path().joinpath("build/haxorg/src/editor/gui_tests"))
 
 
 class QTestClass(pytest.Class):
