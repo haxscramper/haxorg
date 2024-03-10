@@ -7,7 +7,7 @@ TOOL="/haxorg/toolchain"
 ln -sf /docker_toolchain $TOOL
 ls -al $TOOL
 
-export PATH="$TOOL/cmake/bin:$TOOL/llvm/bin:$PATH"
+export PATH="/haxorg/build/utils:$TOOL/cmake/bin:$TOOL/llvm/bin:$PATH"
 
 git config --global --add safe.directory /haxorg
 poetry install --no-root
