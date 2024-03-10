@@ -27,7 +27,7 @@ import py_codegen.refl_extract as ex
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from pathlib import Path
 import json
-from plumbum import local
+from plumbum import local, CommandNotFound
 
 from py_codegen.refl_wrapper_graph import TuWrap
 from py_scriptutils.script_logging import log
@@ -238,7 +238,7 @@ def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
 def format_nim_code(refl: ReflProviderRunResult,
                     is_cpp_wrap: bool = True,
                     with_header_imports: bool = True) -> Dict[str, gen_nim.GenNimResult]:
-    graph: gen_nim.GenGraph() = gen_nim.GenGraph()
+    graph: gen_nim.GenGraph = gen_nim.GenGraph()
     for wrap in refl.wraps:
         graph.add_unit(wrap)
 
@@ -266,6 +266,14 @@ def format_nim_code(refl: ReflProviderRunResult,
 
     return mapped
 
+@beartype
+def has_nim_installed() -> bool:
+    try:
+        local["nim"]
+        return True
+
+    except CommandNotFound:
+        return False
 
 @beartype
 def compile_nim_path(file: Path, binary: Path):
