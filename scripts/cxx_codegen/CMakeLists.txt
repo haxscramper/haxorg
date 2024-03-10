@@ -69,7 +69,10 @@ set_target_properties(reflection_tool PROPERTIES CXX_STANDARD 20)
 # as absl::lts_20230125 (yes, this is a common issue, but no working solution).
 # ATTW the 'solved' responses indicate that it has something to do with new
 # dependency on abseil library in the protobuf, but it did not work here.
-target_link_options(reflection_tool PRIVATE "-Wl,--copy-dt-needed-entries")
+
+# https://github.com/rui314/mold/issues/530#issuecomment-1870903572 -- mold ignores this option
+# target_link_options(reflection_tool PRIVATE "-Wl,--copy-dt-needed-entries") 
+
 target_link_libraries(reflection_tool PRIVATE
     reflection_lib
     ${llvm_libs}
