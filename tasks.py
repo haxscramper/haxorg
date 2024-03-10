@@ -112,7 +112,7 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
     if get_config(ctx).instrument.asan:
         asan_lib = get_llvm_root(
             f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so")
-        
+
         assert asan_lib.exists(), asan_lib
 
         return {
@@ -890,6 +890,17 @@ def py_test_debug(ctx: Context, test: str):
         exit(1)
 
 
+def get_poetry_import_paths(ctx: Context) -> List[Path]:
+    return [
+        Path(it) for it in run_command(
+            ctx,
+            "poetry",
+            ['run', 'python', '-c', 'import sys; print("\\n".join(sys.path))'],
+            capture=True,
+        )[1].split("\n") if 0 < len(it.strip())
+    ]
+
+
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files], iterable=["arg"])
 def py_tests(ctx: Context, arg: List[str] = []):
     """
@@ -898,6 +909,14 @@ def py_tests(ctx: Context, arg: List[str] = []):
     """
 
     log(CAT).info(get_py_env(ctx))
+
+    log(CAT).debug("Import paths")
+    for path in get_poetry_import_paths(ctx):
+        log(CAT).debug("> {} [{}] {}".format(
+            path,
+            "ok" if path.exists() else "err does not exist",
+            [str(it.relative_to(path)) for it in path.glob("*")],
+        ))
 
     retcode, _, _ = run_command(
         ctx,
@@ -927,6 +946,7 @@ def py_tests_ci(ctx: Context):
     CI task that builds base lexer codegen before running the build 
     """
     pass
+
 
 @org_task()
 def build_cxx_docs(ctx: Context):

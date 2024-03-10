@@ -20,13 +20,8 @@ if(NOT WIN32)
 endif()
 
 function(set_target_output TARGET)
-    # Set target output suffix and location relative to the cmake sorce
-    # directory
-    get_target_property(target_type ${TARGET} TYPE)
-    add_custom_command(TARGET ${TARGET} POST_BUILD
-                       COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                               "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/haxorg")
-
+  # Set target output suffix and location relative to the cmake sorce directory
+  get_target_property(target_type ${TARGET} TYPE)
 endfunction()
 
 function(pad_string output str padchar length operation)
@@ -51,8 +46,8 @@ function(pad_string output str padchar length operation)
 endfunction()
 
 function(trace ARGS)
-  # TODO print current line location, {CMAKE_CURRENT_LIST_LINE} prints the
-  # same value
+  # TODO print current line location, {CMAKE_CURRENT_LIST_LINE} prints the same
+  # value
   message(DEBUG "${ARGV}${cColorReset}")
 endfunction()
 
@@ -86,7 +81,6 @@ function(add_target_property TARGET PROPERTY VALUE)
     PROPERTY "${PROPERTY}" "${VALUE}")
 endfunction()
 
-
 function(list_filter_files OUT GLOB REGEX)
   file(GLOB_RECURSE TMP ${GLOB})
   list(FILTER TMP INCLUDE REGEX "${REGEX}")
@@ -96,11 +90,11 @@ function(list_filter_files OUT GLOB REGEX)
 endfunction()
 
 function(glob_add_sources TARGET EXT_GLOB LS_REGEX)
-    list_filter_files(SRC_FILES ${EXT_GLOB} "${LS_REGEX}")
-    add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
+  list_filter_files(SRC_FILES ${EXT_GLOB} "${LS_REGEX}")
+  add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
 endfunction()
 
 function(glob_add_sources2 TARGET LS_REGEX)
-    glob_add_sources("${TARGET}" *.cpp "${LS_REGEX}")
-    glob_add_sources("${TARGET}" *.hpp "${LS_REGEX}")
+  glob_add_sources("${TARGET}" *.cpp "${LS_REGEX}")
+  glob_add_sources("${TARGET}" *.hpp "${LS_REGEX}")
 endfunction()
