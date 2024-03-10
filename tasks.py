@@ -5,7 +5,7 @@ from pathlib import Path
 import os
 from invoke import task, Failure
 from invoke.context import Context
-from beartype.typing import Optional, List, Union
+from beartype.typing import Optional, List, Union, Literal
 from shutil import which, rmtree
 from py_scriptutils.files import FileOperation
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTraceCollector
@@ -61,6 +61,15 @@ def get_script_root(relative: Optional[str] = None) -> Path:
     return value
 
 
+@beartype
+def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"]) -> str:
+    """
+    Get basename of the binary output directory for component
+    """
+    return component + "_" + ("debug" if get_config(ctx).debug else "release")
+
+
+@beartype
 def get_build_root(relative: Optional[str] = None) -> Path:
     value = get_script_root().joinpath("build")
     if relative:
@@ -538,7 +547,7 @@ def cmake_configure_haxorg(ctx: Context):
 @org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx: Context):
     """Compile main set of libraries and binaries for org-mode parser"""
-    build_dir = f'build/haxorg_{"debug" if get_config(ctx).debug else "release"}'
+    build_dir = "build/" + get_real_build_basename(ctx, "haxorg")
     with FileOperation.InTmp(
         [
             Path(path).rglob(glob)
@@ -901,7 +910,44 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
     ]
 
 
-@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files], iterable=["arg"])
+@org_task()
+def symlink_build(ctx: Context):
+    """
+    Create proxy symbolic links around the build directory
+    """
+
+    haxorg_dir = get_build_root("haxorg")
+    haxorg_real = get_build_root(get_real_build_basename(ctx, "haxorg"))
+    if haxorg_dir.exists():
+        haxorg_dir.unlink()
+
+    log(CAT).debug(f"'{haxorg_dir}'.symlink_to('{haxorg_real}')")
+    haxorg_dir.symlink_to(target=haxorg_real, target_is_directory=True)
+
+    utils_dir = get_build_root("utils")
+    utils_real = get_build_root(get_real_build_basename(ctx, "utils"))
+
+    if utils_dir.exists():
+        utils_dir.unlink()
+
+    log(CAT).debug(f"'{utils_dir}'.symlink_to('{utils_real}')")
+    utils_dir.symlink_to(target=utils_real, target_is_directory=True)
+
+    py_textlayout_so = get_script_root("scripts/py_textlayout/py_textlayout/py_textlayout.so")
+    if py_textlayout_so.exists():
+        py_textlayout_so.unlink()
+
+    py_textlayout_so.resolve().symlink_to(target=get_build_root("haxorg/py_textlayout.so"))
+
+    pyhaxorg_so = get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so")
+    if pyhaxorg_so.exists():
+        pyhaxorg_so.unlink()
+
+    pyhaxorg_so.resolve().symlink_to(target=get_build_root("haxorg/pyhaxorg.so"))
+
+
+@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files, symlink_build],
+          iterable=["arg"])
 def py_tests(ctx: Context, arg: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
@@ -910,13 +956,13 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     log(CAT).info(get_py_env(ctx))
 
-    log(CAT).debug("Import paths")
-    for path in get_poetry_import_paths(ctx):
-        log(CAT).debug("> {} [{}] {}".format(
-            path,
-            "ok" if path.exists() else "err does not exist",
-            [str(it.relative_to(path)) for it in path.glob("*")],
-        ))
+    # log(CAT).debug("Import paths")
+    # for path in get_poetry_import_paths(ctx):
+    #     log(CAT).debug("> {} [{}] {}".format(
+    #         path,
+    #         "ok" if path.exists() else "err does not exist",
+    #         [str(it.relative_to(path)) for it in path.glob("*")],
+    #     ))
 
     retcode, _, _ = run_command(
         ctx,
