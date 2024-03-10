@@ -361,7 +361,7 @@ def docker_run(ctx: Context, interactive: bool = False):
             "--rm",
             HAXORG_DOCKER_IMAGE,
             "./scripts/py_repository/poetry_with_deps.sh",
-            *(["bash"] if interactive else ["invoke", "py-tests"]),
+            *(["bash"] if interactive else ["invoke", "py-tests-ci"]),
         ])
 
 
@@ -371,19 +371,6 @@ def download_llvm(ctx: Context):
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
         log(CAT).info("LLVM not found. Downloading...")
-        # curl = local["curl"]
-        # version = "17.0.6"
-        # wget = local["wget"]
-        # if not os.path.isdir("toolchain"):
-        #     os.makedirs("toolchain")
-
-        # wget.run((
-        #     "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/clang+llvm-{version}-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
-        # ))
-
-        # ctx.run(f"tar -xf llvm.tar.xz -C toolchain && mv toolchain/clang+llvm-{version}-x86_64-linux-gnu-ubuntu-22.04 toolchain/llvm")
-        # os.remove("llvm.tar.xz")
-        # log(CAT).info("LLVM downloaded and unpacked successfully!")
     else:
         log(CAT).info("LLVM already exists. Skipping download.")
 
@@ -424,7 +411,7 @@ def cmake_utils(ctx: Context):
     log(CAT).info("CMake utils build ok")
 
 
-REFLEX_PATH = "thirdparty/RE-flex/build/reflex"
+REFLEX_PATH = "build/reflex"
 
 
 @org_task(pre=[base_environment])
@@ -933,6 +920,13 @@ def py_tests(ctx: Context, arg: List[str] = []):
     if retcode != 0:
         exit(1)
 
+
+@org_task(pre=[haxorg_base_lexer, py_tests])
+def py_tests_ci(ctx: Context):
+    """
+    CI task that builds base lexer codegen before running the build 
+    """
+    pass
 
 @org_task()
 def build_cxx_docs(ctx: Context):
