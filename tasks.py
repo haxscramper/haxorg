@@ -564,16 +564,6 @@ def cmake_haxorg(ctx: Context):
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
 
-    text_layout_link = get_script_root(
-        "scripts/py_textlayout/py_textlayout/py_textlayout.so")
-    if not text_layout_link.exists():
-        text_layout_link.symlink_to("haxorg/py_textlayout.so")
-
-    haxorg_link = get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so")
-    if not haxorg_link.exists():
-        haxorg_link.symlink_to("haxorg/pyhaxorg.so")
-
-
 LLDB_AUTO_BACKTRACE: List[str] = [
     "--one-line-on-crash", "bt", "--one-line-on-crash", "exit"
 ]
@@ -940,18 +930,6 @@ def symlink_build(ctx: Context):
         real_path=get_build_root(get_real_build_basename(ctx, "utils")),
         link_path=get_build_root("utils"),
         is_dir=True,
-    )
-
-    link(
-        real_path=get_build_root("haxorg/py_textlayout.so"),
-        link_path=get_script_root("scripts/py_textlayout/py_textlayout/py_textlayout.so"),
-        is_dir=False,
-    )
-
-    link(
-        real_path=get_build_root("haxorg/pyhaxorg.so"),
-        link_path=get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so"),
-        is_dir=False,
     )
 
 

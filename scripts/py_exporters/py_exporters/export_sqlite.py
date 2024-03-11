@@ -1,4 +1,4 @@
-import py_haxorg.pyhaxorg as org
+import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, DateTimeColumn
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import DateTime, Column, Enum, Engine

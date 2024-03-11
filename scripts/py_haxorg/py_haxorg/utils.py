@@ -1,4 +1,4 @@
-import py_haxorg.pyhaxorg as org
+import py_haxorg.pyhaxorg_wrap as org
 
 
 def toTree(path: str, node: org.Org):
