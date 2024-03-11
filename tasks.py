@@ -916,34 +916,39 @@ def symlink_build(ctx: Context):
     Create proxy symbolic links around the build directory
     """
 
-    haxorg_dir = get_build_root("haxorg")
-    haxorg_real = get_build_root(get_real_build_basename(ctx, "haxorg"))
-    if haxorg_dir.exists():
-        haxorg_dir.unlink()
+    def link(link_path: Path, real_path: Path, is_dir: bool):
+        assert real_path.exists(), real_path
+        if link_path.exists():
+            assert link_path.is_symlink(), link_path
+            link_path.unlink()
+            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
 
-    log(CAT).debug(f"'{haxorg_dir}'.symlink_to('{haxorg_real}')")
-    haxorg_dir.symlink_to(target=haxorg_real, target_is_directory=True)
+        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
-    utils_dir = get_build_root("utils")
-    utils_real = get_build_root(get_real_build_basename(ctx, "utils"))
+    link(
+        real_path=get_build_root(get_real_build_basename(ctx, "haxorg")),
+        link_path=get_build_root("haxorg"),
+        is_dir=True,
+    )
 
-    if utils_dir.exists():
-        utils_dir.unlink()
+    link(
+        real_path=get_build_root(get_real_build_basename(ctx, "utils")),
+        link_path=get_build_root("utils"),
+        is_dir=True,
+    )
 
-    log(CAT).debug(f"'{utils_dir}'.symlink_to('{utils_real}')")
-    utils_dir.symlink_to(target=utils_real, target_is_directory=True)
+    link(
+        real_path=get_build_root("haxorg/py_textlayout.so"),
+        link_path=get_script_root("scripts/py_textlayout/py_textlayout/py_textlayout.so"),
+        is_dir=False,
+    )
 
-    py_textlayout_so = get_script_root("scripts/py_textlayout/py_textlayout/py_textlayout.so")
-    if py_textlayout_so.exists():
-        py_textlayout_so.unlink()
-
-    py_textlayout_so.resolve().symlink_to(target=get_build_root("haxorg/py_textlayout.so"))
-
-    pyhaxorg_so = get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so")
-    if pyhaxorg_so.exists():
-        pyhaxorg_so.unlink()
-
-    pyhaxorg_so.resolve().symlink_to(target=get_build_root("haxorg/pyhaxorg.so"))
+    link(
+        real_path=get_build_root("haxorg/pyhaxorg.so"),
+        link_path=get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so"),
+        is_dir=False,
+    )
 
 
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files, symlink_build],
