@@ -1,4 +1,5 @@
 add_library(hstd)
+add_dependencies(hstd external_google)
 set_common_files(hstd)
 glob_add_sources2(hstd "${BASE}/src/system/.*")
 glob_add_sources2(hstd "${BASE}/src/hstd/.*")
@@ -25,6 +26,7 @@ target_link_libraries(
 )
 
 add_executable(tests_hstd)
+add_dependencies(tests_hstd external_google)
 set_common_files(tests_hstd)
 set_target_output(tests_hstd)
 set_target_flags(tests_hstd)
