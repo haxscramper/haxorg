@@ -917,13 +917,17 @@ def symlink_build(ctx: Context):
     """
 
     def link(link_path: Path, real_path: Path, is_dir: bool):
-        assert real_path.exists(), real_path
         if link_path.exists():
             assert link_path.is_symlink(), link_path
             link_path.unlink()
             log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+            assert not link_path.exists(), link_path
 
         log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
+        assert not link_path.exists(), link_path
+        assert real_path.exists(), real_path
+        
         link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
     link(
