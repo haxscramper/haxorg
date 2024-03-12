@@ -98,7 +98,7 @@ target_link_libraries(
           clangBasic
           clangASTMatchers
           clangTooling
-          absl::base
+          absl_all
           protobuf::libprotobuf
           protobuf::libprotoc)
 
