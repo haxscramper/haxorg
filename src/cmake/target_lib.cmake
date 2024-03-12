@@ -1,5 +1,4 @@
 add_library(haxorg)
-add_dependencies(haxorg external_google)
 set_common_files(haxorg)
 
 glob_add_sources2(haxorg "${BASE}/src/exporters/.*")
@@ -55,7 +54,8 @@ target_link_libraries(haxorg PUBLIC
     # protobuf::protobuf-lite
     protobuf::libprotobuf
     protobuf::libprotoc
-    absl_all
+    absl::log
+    absl::base
     perfetto
     nlohmann_json
 )
@@ -65,7 +65,6 @@ target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include" "${
 # target_link_options(haxorg PRIVATE "-Wl,--copy-dt-needed-entries")
 
 add_executable(tests_org)
-add_dependencies(tests_org external_google)
 target_link_libraries(tests_org PUBLIC haxorg)
 set_common_files(tests_org)
 set_target_output(tests_org)
