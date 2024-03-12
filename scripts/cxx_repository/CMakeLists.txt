@@ -27,7 +27,7 @@ ExternalProject_Add(libgit2
     -DBUILD_SHARED_LIBS=OFF
     -DBUILD_CLAR=OFF
     -DBUILD_EXAMPLES=OFF
-    -DCMAKE_INSTALL_PREFIX=${LIBGIT2_PREFIX}
+    -DCMAKE_INSTALL_PREFIX="${LIBGIT2_PREFIX}"
 )
 
 add_dependencies(code_forensics libgit2)

@@ -91,6 +91,16 @@ add_library(lager_lib INTERFACE)
 target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 
 add_subdirectory("${DEPS_DIR}/pybind11")
+
+add_subdirectory("${DEPS_DIR}/abseil-cpp")
+add_subdirectory("${DEPS_DIR}/googletest")
+
+
+set(protobuf_INSTALL OFF)
+set(protobuf_BUILD_TESTS OFF)
+set(utf8_range_ENABLE_TESTS OFF)
+set(utf8_range_ENABLE_INSTALL OFF)
+add_subdirectory("${DEPS_DIR}/protobuf")
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
@@ -109,6 +119,6 @@ add_subdirectory(scripts/cxx_repository)
 
 add_subdirectory(src/editor)
 
-include(ExternalProject)
-include("${BASE}/src/hstd/wrappers/google_deps/google_deps.cmake")
-add_google_deps("${BASE}")
+
+
+

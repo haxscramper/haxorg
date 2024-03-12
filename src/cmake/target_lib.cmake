@@ -54,8 +54,8 @@ target_link_libraries(haxorg PUBLIC
     # protobuf::protobuf-lite
     protobuf::libprotobuf
     protobuf::libprotoc
-    absl::log
     absl::base
+    absl::log
     perfetto
     nlohmann_json
 )
