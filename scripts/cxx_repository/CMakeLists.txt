@@ -4,6 +4,7 @@ set(CXX_STANDARD 23)
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+# find_package(PCRE REQUIRED)
 
 add_executable(code_forensics)
 
@@ -27,7 +28,7 @@ ExternalProject_Add(libgit2
     -DBUILD_SHARED_LIBS=OFF
     -DBUILD_CLAR=OFF
     -DBUILD_EXAMPLES=OFF
-    -DCMAKE_INSTALL_PREFIX="${LIBGIT2_PREFIX}"
+    -DCMAKE_INSTALL_PREFIX=${LIBGIT2_PREFIX}
 )
 
 add_dependencies(code_forensics libgit2)
@@ -44,6 +45,7 @@ target_link_libraries(code_forensics PUBLIC
     OpenSSL::SSL
     OpenSSL::Crypto
     ${ZLIB_LIBRARIES}
+    ${PCRE_LIBRARIES}
 )
 
 target_link_directories(code_forensics PUBLIC "${LIBGIT2_PREFIX}")

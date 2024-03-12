@@ -13,7 +13,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 project(haxorg LANGUAGES CXX)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
-message(INFO "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
+message(STATUS "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 set(LLVM_DIR "${BASE}/toolchain/llvm")
 
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
@@ -75,7 +75,7 @@ endif()
 
 set(DEPS_DIR "${BASE}/thirdparty")
 set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
-message(INFO "Binary directory for dependencies ${DEPS_BINARY}")
+message(STATUS "Binary directory for dependencies ${DEPS_BINARY}")
 
 add_subdirectory("${DEPS_DIR}/yaml-cpp")
 

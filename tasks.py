@@ -331,7 +331,13 @@ def docker_image(ctx: Context):
 
 
 @org_task(pre=[docker_image])
-def docker_run(ctx: Context, interactive: bool = False):
+def docker_run(
+    ctx: Context,
+    interactive: bool = False,
+    build: bool = True,
+    test: bool = True,
+    docs: bool = True,
+):
     """Run docker"""
 
     def docker_path(path: str) -> Path:
@@ -357,6 +363,7 @@ def docker_run(ctx: Context, interactive: bool = False):
                     "scripts",
                     "tests",
                     "tasks.py",
+                    "docs",
                     "invoke.yaml",
                     "pyproject.toml",
                     "ignorelist.txt",
@@ -370,7 +377,17 @@ def docker_run(ctx: Context, interactive: bool = False):
             "--rm",
             HAXORG_DOCKER_IMAGE,
             "./scripts/py_repository/poetry_with_deps.sh",
-            *(["bash"] if interactive else ["invoke", "py-tests-ci"]),
+            *(["bash"] if interactive else [
+                "invoke",
+                "ci",
+                # Because invoke has
+                # - `No idea what 'False' is!`,
+                # - `No idea what 'off' is!` and
+                # - `No idea what 'false' is!`
+                "--build" if build else "--no-build",
+                "--test" if test else "--no-test",
+                "--docs" if docs else "--no-docs",
+            ]),
         ])
 
 
@@ -563,6 +580,7 @@ def cmake_haxorg(ctx: Context):
             run_command(ctx,
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
+
 
 LLDB_AUTO_BACKTRACE: List[str] = [
     "--one-line-on-crash", "bt", "--one-line-on-crash", "exit"
@@ -917,7 +935,7 @@ def symlink_build(ctx: Context):
 
         assert not link_path.exists(), link_path
         assert real_path.exists(), real_path
-        
+
         link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
     link(
@@ -933,8 +951,13 @@ def symlink_build(ctx: Context):
     )
 
 
-@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files, symlink_build],
-          iterable=["arg"])
+@org_task(pre=[haxorg_base_lexer, cmake_haxorg, cmake_utils])
+def cmake_all(ctx: Context):
+    """Build all binary artifacts"""
+    pass
+
+
+@org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
 def py_tests(ctx: Context, arg: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
@@ -973,7 +996,7 @@ def py_tests(ctx: Context, arg: List[str] = []):
         exit(1)
 
 
-@org_task(pre=[haxorg_base_lexer, py_tests])
+@org_task(pre=[py_tests])
 def py_tests_ci(ctx: Context):
     """
     CI task that builds base lexer codegen before running the build 
@@ -982,53 +1005,24 @@ def py_tests_ci(ctx: Context):
 
 
 @org_task()
-def build_cxx_docs(ctx: Context):
-    "Build Doxygen docunentation for the project"
-    run_command(ctx, "doxygen", [str(get_script_root("Doxyfile"))])
+def docs(ctx: Context):
+    "Build docunentation for the project"
+    out_dir = get_script_root("docs/docs_out")
+    if not out_dir.exists():
+        out_dir.mkdir(parents=True)
+
+    run_command(ctx, "doxygen", [str(get_script_root("docs/Doxyfile"))])
     log(CAT).info("Completed CXX docs build")
 
 
 @org_task()
-def build_py_docs(ctx: Context):
-    "Build python documentation for the project"
-    autogen_dir = get_script_root(f"docs/sphinx_config/api_source")
-    if autogen_dir.exists():
-        rmtree(autogen_dir)
+def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
+    "Execute all CI tasks"
+    if build:
+        run_command(ctx, "invoke", ["cmake-all"])
 
-    auto_config_content = "import sys\n"
+    if test:
+        run_command(ctx, "invoke", ["py-tests"])
 
-    for source_dir, doc_dir in [
-        (get_script_root(), "main"),
-            *[(d, d.name) for d in [
-                Path(get_script_root(f"scripts/{d}"))
-                for d in os.listdir(get_script_root("scripts"))
-            ] if d.is_dir() and d.name.startswith("py_")],
-    ]:
-        run_command(ctx, "poetry", [
-            "run",
-            "sphinx-apidoc",
-            "-o",
-            autogen_dir / doc_dir,
-            source_dir,
-        ])
-
-        auto_config_content += f"sys.path.append('{source_dir.resolve()}')\n"
-
-    with open(autogen_dir / "sphinx_autoconf.py", "w") as file:
-        file.write(auto_config_content)
-
-    for format in ["html", "json"]:
-        run_command(ctx, "poetry", [
-            "run",
-            "sphinx-build",
-            "-M",
-            format,
-            get_script_root("docs/sphinx_config/source"),
-            get_script_root("docs/sphinx_config/build"),
-        ])
-
-
-@org_task(pre=[build_py_docs, build_cxx_docs])
-def build_all_docs(ctx: Context):
-    "Build all documentation for the project"
-    pass
+    if docs:
+        run_command(ctx, "invoke", ["docs"])

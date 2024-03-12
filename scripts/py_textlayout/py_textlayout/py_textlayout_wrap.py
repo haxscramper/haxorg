@@ -13,7 +13,5 @@ if TYPE_CHECKING:
 
 else:
     import py_textlayout_cpp as lyt
-    print(lyt.__file__)
-    print(dir(lyt))
     from py_textlayout_cpp import TextLayout, TextOptions
     BlockId = NewType('BlockId', int)

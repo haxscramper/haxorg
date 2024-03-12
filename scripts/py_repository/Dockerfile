@@ -31,4 +31,5 @@ RUN apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
 RUN apt-get install -y libxkbcommon-dev libpcre2-dev libgraphviz-dev libboost-all-dev
 RUN apt-get install -y mold
 RUN apt-get install -y elfutils libdw-dev
-RUN apt-get install -y libncurses5-dev
+RUN apt-get install -y libncurses5-dev doxygen graphviz
+# RUN apt-get install -y libpcre3 libpcre3-dev
