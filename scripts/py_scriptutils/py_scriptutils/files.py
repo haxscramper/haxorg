@@ -8,6 +8,7 @@ from beartype.typing import (
     TypeAlias,
     Optional,
     Type,
+    Iterable,
 )
 import pickle
 from pathlib import Path
@@ -17,14 +18,12 @@ import traceback
 from types import GeneratorType
 from dataclasses import dataclass, field
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from datetime import datetime
 
 T = TypeVar('T')
 
 SomePath: TypeAlias = Union[str, Path, GeneratorType]
 SomePaths: TypeAlias = Union[SomePath, List[SomePath]]
-
-
-
 
 
 @beartype
@@ -111,15 +110,19 @@ class FileOperation:
         )
 
     @classmethod
-    def InTmp(self,
-              input: SomePaths,
-              stamp_path: Path,
-              stamp_content: Optional[str] = None,
-              output: List[Path] = []) -> 'FileOperation':
-        return FileOperation(normalize_paths(input),
-                             stamp_path=stamp_path,
-                             output=output,
-                             stamp_content=stamp_content)
+    def InTmp(
+        self,
+        input: SomePaths,
+        stamp_path: Path,
+        stamp_content: Optional[str] = None,
+        output: List[Path] = [],
+    ) -> 'FileOperation':
+        return FileOperation(
+            normalize_paths(input),
+            stamp_path=stamp_path,
+            output=output,
+            stamp_content=stamp_content,
+        )
 
     def stamp_content_is_new(self) -> bool:
         return bool(self.stamp_path.exists() and self.stamp_content and
@@ -134,6 +137,10 @@ class FileOperation:
 
     def explain(self, name: str) -> str:
         if self.should_run():
+
+            def mtime_str(time: float) -> str:
+                return datetime.fromtimestamp(time).strftime("%Y-%m-%d %H:%M:%S")
+
             why = f"[red]{name}[/red] needs rebuild,"
             if self.stamp_path and not self.stamp_path.exists():
                 why += " output stamp file is missing "
@@ -145,9 +152,17 @@ class FileOperation:
 
             min_time = min_mtime(self.get_output_files())
             newer = [p for p in self.input if p.exists() and min_time < p.stat().st_mtime]
+
+            def format_files(files: Iterable[Path]) -> str:
+                return ", ".join(
+                    (f"{it.name} ({mtime_str(it.stat().st_mtime)})" for it in files))
+
             if newer:
-                why += f" {len(newer)} files were changed since last creation: " + ", ".join(
-                    (it.name for it in newer))
+                why += " {} files were changed since last creation of {}: {}".format(
+                    len(newer),
+                    format_files(self.get_output_files()),
+                    format_files(newer),
+                )
 
             return why
 

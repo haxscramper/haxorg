@@ -473,12 +473,15 @@ def haxorg_base_lexer(ctx: Context):
         "--namespace=base_lexer",
         gen_lexer,
     ]
-    with FileOperation.InTmp(input=[py_file, py_file.with_suffix(".yaml")],
-                             output=[gen_lexer],
-                             stamp_path=get_task_stamp("haxorg_base_lexer"),
-                             stamp_content=str(reflex_run_params)) as op:
+    with FileOperation.InTmp(
+            input=[py_file, py_file.with_suffix(".yaml")],
+            output=[gen_lexer],
+            stamp_path=get_task_stamp("haxorg_base_lexer"),
+            stamp_content=str(reflex_run_params),
+    ) as op:
         if op.should_run():
-            log(CAT).info("Generating base lexer for haxorg")
+            log(CAT).info(f"Generating base lexer for haxorg " +
+                          op.explain("haxorg_base_lexer"))
             run_command(ctx, "poetry", ["run", py_file])
             run_command(
                 ctx,
@@ -486,6 +489,8 @@ def haxorg_base_lexer(ctx: Context):
                 reflex_run_params,
                 env={"LD_LIBRARY_PATH": str(get_script_root("thirdparty/RE-flex/lib"))},
             )
+
+            gen_lexer.touch()
 
         else:
             log(CAT).info("No changes in base lexer config")
@@ -574,9 +579,8 @@ def cmake_haxorg(ctx: Context):
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
-        log(CAT).info(op.explain("Main C++"))
         if op.should_run():
-            log(CAT).info('Running cmake haxorg build')
+            log(CAT).info(op.explain("Main C++"))
             run_command(ctx,
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
