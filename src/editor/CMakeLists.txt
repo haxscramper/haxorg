@@ -4,7 +4,7 @@ project(editor VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Core Test QuickTest)
+find_package(Qt6 6.2 REQUIRED COMPONENTS Quick Core Test QuickTest)
 add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
 
 qt_standard_project_setup()

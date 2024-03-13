@@ -171,7 +171,7 @@ BOOST_DESCRIBE_STRUCT(
      cpack));
 
 
-PYBIND11_MODULE(py_textlayout, m) {
+PYBIND11_MODULE(py_textlayout_cpp, m) {
     using namespace pybind11;
     TextLayout::py_define(m);
 

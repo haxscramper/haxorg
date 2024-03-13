@@ -20,6 +20,8 @@ target_link_libraries(
     absl::flags
     perfetto
     range-v3
+    nlohmann_json
+    boost_describe
 )
 
 add_executable(tests_hstd)

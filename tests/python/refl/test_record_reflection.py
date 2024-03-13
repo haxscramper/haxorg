@@ -4,10 +4,20 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from pprint import pprint
 from more_itertools import first_true
+import pytest
 # import py_scriptutils.script_logging
 
-from refl_test_driver import (run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code, format_nim_code, \
-    compile_nim_code, verify_nim_code, )
+from refl_test_driver import (
+    run_provider,
+    STABLE_FILE_NAME,
+    GenTuStruct,
+    get_struct,
+    get_nim_code,
+    format_nim_code,
+    compile_nim_code,
+    verify_nim_code,
+    has_nim_installed,
+)
 
 import py_codegen.wrapper_gen_nim as gen_nim
 
@@ -123,7 +133,6 @@ def test_nim_record_conversion():
     assert record.Exported
     assert any(p.Name == "bycopy" for p in record.Pragmas)
 
-
 def test_nim_record_field_conversion():
     conv = get_nim_code(get_struct("struct Main { int field; };"))
     assert len(conv.procs) == 0
@@ -134,7 +143,6 @@ def test_nim_record_field_conversion():
     field = record.Fields[0]
     assert field.Name == "field"
     assert field.Type.Name == "cint"
-
 
 def test_nim_record_with_compile():
     with TemporaryDirectory() as dir:
@@ -166,7 +174,8 @@ def test_nim_record_with_compile():
         assert s.methods[0].result.name == "int"
 
         formatted = format_nim_code(value)
-        _, stdout, _ = verify_nim_code(
+        if has_nim_installed():
+            _, stdout, _ = verify_nim_code(
             code_dir, formatted, """
 import file
 let value = Test()
@@ -174,7 +183,7 @@ echo "value field ", value.field
 echo "method field", value.run_method()
 """)
 
-        assert stdout.split("\n")[0:3] == [
+            assert stdout.split("\n")[0:3] == [
             'value field 0', '-- default constructor', 'method field24'
         ]
 
@@ -194,7 +203,7 @@ def test_type_cross_dependency():
         a = first_true(value.wraps, pred=lambda it: it.name == "a")
         b = first_true(value.wraps, pred=lambda it: it.name == "b")
         assert a
-        assert b    
+        assert b
         assert a.name == "a"
         assert b.name == "b"
 
@@ -230,4 +239,5 @@ def test_type_cross_dependency():
         assert a_wrap.Fields[0].Type.Parameters[0].Name == "B"
         assert b_wrap.Fields[0].Type.Parameters[0].Name == "A"
 
-        verify_nim_code(code_dir, formatted, "import a; echo A(), B()")
+        if has_nim_installed():
+            verify_nim_code(code_dir, formatted, "import a; echo A(), B()")

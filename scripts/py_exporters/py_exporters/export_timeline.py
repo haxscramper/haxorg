@@ -1,6 +1,6 @@
-import py_haxorg.pyhaxorg as org
+import py_haxorg.pyhaxorg_wrap as org
 from py_textlayout.py_textlayout_wrap import *
-from py_haxorg.pyhaxorg import OrgSemKind as osk
+from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 
 from beartype.typing import *
 from enum import Enum

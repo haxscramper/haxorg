@@ -43,7 +43,7 @@ endif()
 # Use re-flex static library as a direct dependency here so it would be compiled
 # and linked with right sanitizer options (otherwise it triggers lots of false 
 # positives)
-add_subdirectory("${BASE}/toolchain/RE-flex")
+add_subdirectory("${BASE}/thirdparty/RE-flex")
 
 target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
@@ -57,11 +57,12 @@ target_link_libraries(haxorg PUBLIC
     absl::base
     absl::log
     perfetto
+    nlohmann_json
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
 target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include" "${CMAKE_CURRENT_BINARY_DIR}")
-target_link_options(haxorg PRIVATE "-Wl,--copy-dt-needed-entries")
+# target_link_options(haxorg PRIVATE "-Wl,--copy-dt-needed-entries")
 
 add_executable(tests_org)
 target_link_libraries(tests_org PUBLIC haxorg)
@@ -70,6 +71,11 @@ set_target_output(tests_org)
 set_target_flags(tests_org)
 glob_add_sources2(tests_org "${BASE}/tests/org/.*")
 
+add_custom_command(
+    TARGET tests_org
+    POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E create_symlink "${CMAKE_BINARY_DIR}"
+            "${CMAKE_SOURCE_DIR}/build/haxorg")
 
 target_sources(tests_org PRIVATE "${BASE}/tests/testprofiler.cpp")
 target_link_libraries(tests_org PUBLIC haxorg gtest)

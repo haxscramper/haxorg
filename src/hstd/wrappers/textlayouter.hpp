@@ -15,6 +15,8 @@
 #include <format>
 #include <absl/log/check.h>
 
+
+/// \brief Text block layouts used in exporters and code generation
 namespace layout {
 
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
@@ -23,11 +25,12 @@ DECL_ID_TYPE_MASKED(Block, BlockId, u64, 8);
 inline const auto LytSpacesId = LytStrId::FromValue(
     value_domain<int>::high() - 120);
 
+/// Single layout string object. It contains all the information
+/// required to perform the layout and refer back to the original
+/// string piece if needed.
 struct LytStr {
     using id_type = LytStrId;
-    /// Single layout string object. It contains all the information
-    /// required to perform the layout and refer back to the original
-    /// string piece if needed.
+
     LytStrId id = LytStrId::Nil(); /// Id of the original piece of text
     int len     = 0; /// It's length in units (units are specified - can be
                      /// ASCII or unicode or anything else)

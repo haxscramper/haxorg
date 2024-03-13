@@ -5,6 +5,7 @@ import traceback
 from rich.pretty import pprint
 import sys
 from types import MethodType
+from rich.text import Text
 
 
 def to_debug_json(
@@ -37,6 +38,7 @@ def to_debug_json(
             return f"{obj}"
 
         else:
+
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
@@ -76,19 +78,36 @@ def pprint_to_file(value, path: str):
         pprint(value, console=Console(file=file, force_terminal=True, color_system=None))
 
 
-logging.basicConfig(
-    level="NOTSET",
-    format="%(name)s - %(message)s",
-    datefmt="[%X]",
-    handlers=[
-        RichHandler(
-            rich_tracebacks=True,
-            markup=True,
-            enable_link_path=False,
-            show_time=False,
-        )
-    ],
-)
+class NoTTYFormatter(logging.Formatter):
+
+    def __init__(self, fmt, datefmt=None):
+        super().__init__(fmt, datefmt)
+        self.console = Console()
+
+    def format(self, record):
+        record.msg = self.console.render_str(record.getMessage(), highlight=False)
+        return super().format(record)
+
+
+if sys.stdout.isatty():
+    logging.basicConfig(
+        level="NOTSET",
+        format="%(name)s - %(message)s",
+        datefmt="[%X]",
+        handlers=[
+            RichHandler(
+                rich_tracebacks=True,
+                markup=True,
+                enable_link_path=False,
+                show_time=False,
+            )
+        ],
+    )
+
+else:
+    handler = logging.StreamHandler()
+    handler.setFormatter(NoTTYFormatter("[%(name)s %(pathname)s:%(lineno)s] %(message)s"))
+    logging.basicConfig(level="NOTSET", handlers=[handler])
 
 for name in logging.root.manager.loggerDict:
     logger = logging.getLogger(name)

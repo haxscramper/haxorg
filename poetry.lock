@@ -1653,6 +1653,19 @@ type = "directory"
 url = "scripts/py_haxorg"
 
 [[package]]
+name = "py-repository"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = "^3.9.0 <3.13"
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "scripts/py_repository"
+
+[[package]]
 name = "py-scriptutils"
 version = "0.1.0"
 description = ""
@@ -2478,4 +2491,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.0 <3.13"
-content-hash = "34a871d80a744b3399143786d77ccd7b1a7a38fb56595147db416624cec0e81b"
+content-hash = "50f94bbf1e403046b1f49aebe41695ee1ef0bb7b315e916d1828dfc919b31637"

@@ -1,0 +1,32 @@
+name: "CI run"
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Install dependencies"
+        run: sudo apt-get update
+
+      - name: "Install dependencies"
+        run: sudo apt-get install -y curl
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: "Install poetry"
+        run: curl -sSL https://install.python-poetry.org | python3.11 -
+
+      - name: "Install python dependencies"
+        run: poetry install --no-root
+
+      - name: "Build docker image"
+        run: poetry run invoke docker-image
+
+      - name: "Execute docker CI"
+        run: poetry run invoke docker-run

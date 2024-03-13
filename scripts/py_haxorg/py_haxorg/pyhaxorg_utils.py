@@ -1,5 +1,5 @@
 from datetime import datetime
-from py_haxorg.pyhaxorg import UserTime, UserTimeBreakdown
+from py_haxorg.pyhaxorg_wrap import UserTime, UserTimeBreakdown
 import py_haxorg.pyhaxorg_wrap as org
 from beartype import beartype
 
