@@ -938,6 +938,13 @@ def get_types() -> Sequence[GenTuStruct]:
                             ],
                             nested=[GenTuPass("Tag() {}")],
                         ),
+                        GenTuStruct(
+                            t("Unknown"),
+                            GenTuDoc("Unknown subtree log entry kind"),
+                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
+                            fields=[],
+                            nested=[GenTuPass("Unknown() {}")],
+                        ),
                     ],
                     kindGetter="getLogKind",
                     variantField="log",

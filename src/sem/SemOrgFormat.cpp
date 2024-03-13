@@ -636,6 +636,17 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                              toString(prop.getUnknown().value, ctx)}));
                     break;
                 }
+                case P::Kind::Effort: {
+                    b.add_at(
+                        head,
+                        b.line(
+                            {str(":CREATED: "),
+                             str(
+                                 fmt("{}:{}",
+                                     prop.getEffort().hours,
+                                     prop.getEffort().minutes))}));
+                    break;
+                }
                 default: {
                     LOG(FATAL) << fmt1(prop.getKind());
                 }

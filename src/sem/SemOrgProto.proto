@@ -778,6 +778,10 @@ message SubtreeLog {
     bool                                           added                            = 4;
     string                                         debug                            = 1000;
   }
+  message Unknown {
+    optional StmtList                              desc                             = 1;
+    string                                         debug                            = 1000;
+  }
   message LogEntry {
     oneof kind {
       SubtreeLog.Priority                          priority                         = 1;
@@ -786,6 +790,7 @@ message SubtreeLog {
       SubtreeLog.Clock                             clock                            = 4;
       SubtreeLog.State                             state                            = 5;
       SubtreeLog.Tag                               tag                              = 6;
+      SubtreeLog.Unknown                           unknown                          = 7;
     }
   }
   enum Kind {
@@ -795,6 +800,7 @@ message SubtreeLog {
     Kind_Clock_f                                                                    = 3;
     Kind_State_f                                                                    = 4;
     Kind_Tag_f                                                                      = 5;
+    Kind_Unknown_f                                                                  = 6;
   }
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;

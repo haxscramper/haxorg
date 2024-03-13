@@ -495,7 +495,7 @@ struct RecombineState {
 
             case otk::Word: {
                 if (rs::all_of(lex.tok().value.text, [](char c) {
-                        return isupper(c);
+                        return isupper(c) || c == '_';
                     })) {
                     pop_as(otk::BigIdent);
                 } else {

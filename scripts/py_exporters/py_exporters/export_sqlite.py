@@ -330,8 +330,6 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
             case osk.Table:
                 pass
 
-            case _:
-                log(CAT).warning(f"Unhandled sql export {node.getKind()} {node.loc.line}")
 
     aux(node)
     session.commit()

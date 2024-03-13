@@ -4,7 +4,10 @@ from beartype.typing import List, Tuple
 from beartype import beartype
 from py_scriptutils.files import IsNewInput
 from sqlalchemy import create_engine, Engine
+from py_scriptutils.script_logging import log
 
+
+CAT = "example.activity_analysis"
 
 class ActivityAnalysisOptions(BaseModel):
     infile: List[Path]
@@ -35,6 +38,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     if opts.force_db or IsNewInput(input_path=opts.infile, output_path=[sql_db]):
         nodes: List[Tuple[org.Org, str]] = []
         for file in opts.infile:
+            log(CAT).info(file)
             nodes.append((parseCachedFile(file, opts.cachedir), file.name))
 
         if sql_db.exists():

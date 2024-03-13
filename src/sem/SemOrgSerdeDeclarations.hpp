@@ -456,6 +456,13 @@ struct proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag> {
 
 
 template <>
+struct proto_serde<::orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown> {
+  static void write(::orgproto::SubtreeLog::Unknown* out, sem::SubtreeLog::Unknown const& in);
+  static void read(::orgproto::SubtreeLog::Unknown const& out, proto_write_accessor<sem::SubtreeLog::Unknown> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog> {
   static void write(::orgproto::SubtreeLog* out, sem::SubtreeLog const& in);
   static void read(::orgproto::SubtreeLog const& out, proto_write_accessor<sem::SubtreeLog> in);

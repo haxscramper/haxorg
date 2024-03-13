@@ -486,6 +486,7 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
     } else {
         start(org::Link);
         skip(lex, otk::LinkBegin);
+        // LOG(INFO) << fmt1(lex.tok()->line);
         switch (lex.kind()) {
             case otk::LinkProtocolHttp: {
                 token(org::Ident, pop(lex, otk::LinkProtocolHttp));
@@ -1178,7 +1179,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
             start(org::StmtList);
             while (lex.at(otk::ColonExampleLine)) {
                 token(org::RawText, lex.pop(otk::ColonExampleLine));
-                token(org::Newline, lex.pop(otk::Newline));
+                token(org::Newline, lex.pop(Newline));
             }
             end();
         }

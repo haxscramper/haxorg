@@ -150,6 +150,8 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             | rs::to<Vec>();
 
         auto clock = Log::Clock{};
+        CHECK(!times.empty())
+            << a.treeRepr() << ExporterTree::treeRepr(item).toString();
         if (times.at(0)->is(osk::Time)) {
             clock.from = times.at(0).as<Time>();
         } else {
@@ -166,7 +168,7 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             auto                tag  = Log::Tag{};
             Vec<SemId<HashTag>> tags = filter_subnodes<HashTag>(
                 par0, limit);
-
+            CHECK(!tags.empty() && !times.empty()) << a.treeRepr();
             tag.tag = tags.at(0);
             tag.on  = times.at(0);
             if (words.at(1) == "added") {
@@ -185,6 +187,7 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
                 | rs::to<Vec>();
 
             auto states = Log::State{};
+            CHECK(!big_idents.empty()) << a.treeRepr();
             states.from = big_idents.at(0);
             if (1 < big_idents.size()) { states.to = big_idents.at(1); }
             states.on = times.at(0);
@@ -194,9 +197,12 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             Vec<SemId<Time>> times  = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link   = filter_subnodes<Link>(par0, limit);
             auto             refile = Log::Refile{};
-            refile.on               = times.at(0);
-            refile.from             = link.at(0);
-            log->log                = refile;
+            CHECK(!times.empty())
+                << a.treeRepr() << ExporterTree::treeRepr(item).toString();
+
+            refile.on = times.at(0);
+            if (!link.empty()) { refile.from = link.at(0); }
+            log->log = refile;
 
         } else if (words.at(0) == "priority") {
             Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
@@ -228,40 +234,47 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             log->log  = note;
 
         } else {
-            LOG(FATAL) << fmt1(words)
-                       << ExporterTree::treeRepr(item).toString();
+            auto unknown = Log::Unknown{};
+            auto stmt    = SemId<StmtList>::New();
+            for (auto const& sub : item->subnodes) {
+                stmt->subnodes.push_back(sub);
+            }
+            unknown.desc = stmt;
+            log->log     = unknown;
         }
     }
 
-    auto description = //
-        par0->subnodes //
-        | rv::drop_while([](sem::OrgArg arg) {
-              return !(
-                  arg->is(osk::Punctuation)
-                  && arg.as<Punctuation>()->text == "\\\\");
-          })
-        | rv::drop(1) //
-        | rv::drop_while([](sem::OrgArg arg) {
-              return arg->is(osk::Newline) || arg->is(osk::Space);
-          })
-        | rs::to<Vec>();
+    if (log->getLogKind() != Log::Kind::Unknown) {
+        auto description = //
+            par0->subnodes //
+            | rv::drop_while([](sem::OrgArg arg) {
+                  return !(
+                      arg->is(osk::Punctuation)
+                      && arg.as<Punctuation>()->text == "\\\\");
+              })
+            | rv::drop(1) //
+            | rv::drop_while([](sem::OrgArg arg) {
+                  return arg->is(osk::Newline) || arg->is(osk::Space);
+              })
+            | rs::to<Vec>();
 
-    if (!description.empty() || 1 < item->subnodes.size()) {
-        SemId<StmtList> desc = SemId<StmtList>::New();
-        if (!description.empty()) {
-            SemId<Paragraph> para = SemId<Paragraph>::New();
-            for (auto const& it : description) { para->push_back(it); }
-            desc->push_back(para);
-        }
-
-        if (1 < item->subnodes.size()) {
-            for (int i = 1; i < item->subnodes.size(); ++i) {
-                desc->push_back(item->subnodes.at(i));
+        if (!description.empty() || 1 < item->subnodes.size()) {
+            SemId<StmtList> desc = SemId<StmtList>::New();
+            if (!description.empty()) {
+                SemId<Paragraph> para = SemId<Paragraph>::New();
+                for (auto const& it : description) { para->push_back(it); }
+                desc->push_back(para);
             }
-        }
 
-        CHECK(!desc.isNil());
-        log->setDescription(desc);
+            if (1 < item->subnodes.size()) {
+                for (int i = 1; i < item->subnodes.size(); ++i) {
+                    desc->push_back(item->subnodes.at(i));
+                }
+            }
+
+            CHECK(!desc.isNil());
+            log->setDescription(desc);
+        }
     }
 
 
@@ -746,8 +759,6 @@ SemId<Link> OrgConverter::convertLink(__args) {
 
         } else {
             link->data = Link::UserProtocol{.protocol = protocol};
-            LOG(ERROR) << "Unhandled protocol kind '" << protocol << "'\n"
-                       << a.treeRepr();
         }
     }
 
@@ -1177,7 +1188,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::CommandTblfm: return convertTblfm(a);
         case org::CommandAttr: return convertCmdAttr(a);
         case org::Paragraph: {
-            if (!a.empty()
+            if (2 < a.size()
                 && AnnotatedParagraphStarts.contains(a.at(0).kind())) {
                 if (a.at(0).kind() == org::BigIdent) {
                     // NOTE: ....

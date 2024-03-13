@@ -69,6 +69,7 @@ void visit(R& res, sem::SubtreeLog::Refile const& object);
 void visit(R& res, sem::SubtreeLog::Clock const& object);
 void visit(R& res, sem::SubtreeLog::State const& object);
 void visit(R& res, sem::SubtreeLog::Tag const& object);
+void visit(R& res, sem::SubtreeLog::Unknown const& object);
 void visitSubtree(R& res, In<sem::Subtree> object);
 void visit(R& res, sem::Subtree::Period const& object);
 void visit(R& res, sem::Subtree::Property::Data const& object);

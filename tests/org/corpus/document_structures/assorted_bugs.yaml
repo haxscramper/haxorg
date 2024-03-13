@@ -603,3 +603,44 @@ items:
   - name: "Multiple markup words with unbalanced markup"
     source: |
       */w1* *_w2/* *_w3* *w4+* *_w5_*
+
+  - name: "Standalone colon block"
+    source: |
+
+      ~#+end-table~. Secondly, to delimit rows you need to use ~#+row~ command -
+
+      : #+begin-table
+      :
+      : #+row
+      :
+      : #+end-table
+
+  - name: "Double colon out of place"
+    source: |
+      - [2023-05-09  Tue  14:32:07]   Using  [[https://doc.qt.io/qt-6/qtextdocumentfragment.html#toHtml][QTextDocumentFragment  Class::toHtml]]
+        paired
+
+  - name: "Double colon out of place 2"
+    source: |
+      - [2023-05-09  Tue  14:32:07]   Using  [[https://doc.qt.io/qt-6/qtextdocumentfragment.html#toHtml][QTextDocumentFragment  Class :: toHtml]]
+        paired
+
+  - name: "Another list abomination"
+    source: |
+      - e
+        - Pa
+
+        #+begin_example
+        ,#+begin_quote
+        #+end_example
+
+  - name: "Unfinished clock item"
+    source: |
+      *** WIP Personal notes analytics script
+          :LOGBOOK:
+          CLOCK: [2024-03-13 Wed 12:54:20 +04]--[2024-03-13 Wed 18:00:23 +04] =>  5:06
+          CLOCK: [2024-03-13 Wed 21:09:13 +04]
+          :END:
+
+
+

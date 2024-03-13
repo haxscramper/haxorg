@@ -366,7 +366,10 @@ class SubtreeLogTag(SubtreeLogDescribedLog):
     tag: HashTag
     added: bool
 
-SubtreeLogLogEntry = Union[SubtreeLogPriority, SubtreeLogNote, SubtreeLogRefile, SubtreeLogClock, SubtreeLogState, SubtreeLogTag]
+class SubtreeLogUnknown(SubtreeLogDescribedLog):
+    pass
+
+SubtreeLogLogEntry = Union[SubtreeLogPriority, SubtreeLogNote, SubtreeLogRefile, SubtreeLogClock, SubtreeLogState, SubtreeLogTag, SubtreeLogUnknown]
 class SubtreeLogKind(Enum):
     Priority = 1
     Note = 2
@@ -374,6 +377,7 @@ class SubtreeLogKind(Enum):
     Clock = 4
     State = 5
     Tag = 6
+    Unknown = 7
 
 class SubtreeLog(Org):
     def setDescription(self, desc: StmtList) -> None: ...
@@ -383,6 +387,7 @@ class SubtreeLog(Org):
     def getClock(self) -> SubtreeLogClock: ...
     def getState(self) -> SubtreeLogState: ...
     def getTag(self) -> SubtreeLogTag: ...
+    def getUnknown(self) -> SubtreeLogUnknown: ...
     def getLogKind(self) -> SubtreeLogKind: ...
     loc: Optional[LineCol]
     log: SubtreeLogLogEntry

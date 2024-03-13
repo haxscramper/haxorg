@@ -798,6 +798,13 @@ node can have subnodes.)RAW")
     .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, R"RAW(Tag in question)RAW")
     .def_readwrite("added", &sem::SubtreeLog::Tag::added, R"RAW(Added/removed?)RAW")
     ;
+  pybind11::class_<sem::SubtreeLog::Unknown, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogUnknown")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Unknown {
+                        sem::SubtreeLog::Unknown result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    ;
   bind_enum_iterator<sem::SubtreeLog::Kind>(m, "SubtreeLogKind");
   pybind11::enum_<sem::SubtreeLog::Kind>(m, "SubtreeLogKind")
     .value("Priority", sem::SubtreeLog::Kind::Priority)
@@ -806,6 +813,7 @@ node can have subnodes.)RAW")
     .value("Clock", sem::SubtreeLog::Kind::Clock)
     .value("State", sem::SubtreeLog::Kind::State)
     .value("Tag", sem::SubtreeLog::Kind::Tag)
+    .value("Unknown", sem::SubtreeLog::Kind::Unknown)
     .def("__iter__", [](sem::SubtreeLog::Kind _self) -> PyEnumIterator<sem::SubtreeLog::Kind> {
                      return
                      PyEnumIterator<sem::SubtreeLog::Kind>
@@ -829,6 +837,7 @@ node can have subnodes.)RAW")
     .def("getClock", static_cast<sem::SubtreeLog::Clock&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getClock))
     .def("getState", static_cast<sem::SubtreeLog::State&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getState))
     .def("getTag", static_cast<sem::SubtreeLog::Tag&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getTag))
+    .def("getUnknown", static_cast<sem::SubtreeLog::Unknown&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getUnknown))
     .def("getLogKind", static_cast<sem::SubtreeLog::Kind(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::getLogKind))
     ;
   bind_enum_iterator<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");

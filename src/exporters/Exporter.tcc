@@ -450,6 +450,9 @@ void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Tag const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Unknown const& object) { __obj_field(res, object, desc); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, loc);

@@ -86,7 +86,7 @@ def test_base_activity_analysis():
         assert result.exit_code == 0, result.output
         assert db_file.exists()
         engine = open_sqlite(db_file)
-        print(format_db_all(engine))
+        # print(format_db_all(engine))
 
         dbg = format_db_all(engine, style=False)
 
@@ -127,3 +127,18 @@ def test_base_activity_analysis():
             ),
             dbg,
         )
+
+
+def test_activity_notes_collection():
+    dir = Path("~/defaultdirs/notes/personal/indexed").expanduser()
+    if not dir.exists():
+        return
+
+    runner = CliRunner()
+    result = runner.invoke(activity_analysis.cli, [
+        *[f"--infile={it}" for it in dir.glob("*.org")],
+        "--db_path=/tmp/db.sqlite",
+        "--outdir=/tmp/activity_analysis",
+    ])
+
+    assert result.exit_code == 0, result.output
