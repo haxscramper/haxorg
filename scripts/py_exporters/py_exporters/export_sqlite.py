@@ -251,14 +251,23 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
     def aux(node: org.Org, parent: Optional[int] = None):
         match node:
             case org.Subtree():
-                created: Optional[datetime] = None
-                # for time in 
-                
+
+                def getTime(kind: org.SubtreePeriodKind) -> Optional[datetime]:
+                    result: Optional[datetime] = None
+                    time: org.SubtreePeriod
+                    for time in node.getTimePeriods(
+                            org.IntSetOfSubtreePeriodKindIntVec([kind])):
+
+                        result = evalDateTime(time.getTime().getStatic().time)
+
+                    return result
 
                 session.add(
                     Subtree(
                         id=id(node),
                         parent=parent,
+                        created=getTime(org.SubtreePeriodKind.Created),
+                        scheduled=getTime(org.SubtreePeriodKind.Scheduled),
                         level=node.level,
                         plaintext_title=ExporterUltraplain.getStr(node.title),
                         location=get_location(node),

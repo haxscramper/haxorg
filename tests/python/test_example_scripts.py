@@ -91,18 +91,39 @@ def test_base_activity_analysis():
         dbg = format_db_all(engine, style=False)
 
         session = sessionmaker(bind=engine)()
-        blocks = [it for it in session.query(export_sqlite.Block).all()]
+
+        def get_t(T):
+            return [it for it in session.query(T).all()]
+
+        blocks = get_t(export_sqlite.Block)
         for expected_text in [
                 "Nested logging", "Message 3", "Some more nested logging",
                 "More logging in the text", "Test list item with message"
         ]:
             assert (
-                first_true(blocks, lambda it: it.plaintext == expected_text),
+                first_true(
+                    iterable=blocks,
+                    pred=lambda it: it.plaintext == expected_text,
+                    default=None,
+                ),
                 "{} {}".format(expected_text, dbg),
             )
 
         def get_subtree(title: str) -> export_sqlite.Subtree:
-            return first_true(session.query(export_sqlite.Subtree).all(), lambda it: it.plaintext_title == title)
-        
+            return first_true(
+                iterable=get_t(export_sqlite.Subtree),
+                pred=lambda it: it.plaintext_title == title,
+                default=None,
+            )
+
         subtree1 = get_subtree("Report aggregated cxx code coverage")
         assert subtree1, dbg
+
+        assert (
+            first_true(
+                iterable=get_t(export_sqlite.NoteModified),
+                pred=lambda it: it.plaintext == "Back to todo",
+                default=None,
+            ),
+            dbg,
+        )
