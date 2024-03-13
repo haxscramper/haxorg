@@ -18,7 +18,7 @@ Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second 
 | C++ core    | 🚧 Alpha | Whole pipeline is complete, working on testing            |
 | Python API  | 🚧 Alpha | Whole DOM model is exposed, working on API improvements   |
 | C API       | ⬜ Todo  | Make the library usable from virtually any PL             |
-| CI          | ⬜ Todo  | Documentation, testing, artifact builds                   |
+| CI          | 🚧 Todo  | Documentation, testing, artifact builds                   |
 
 ** COMPLETED 🚧 C++ Core
 
@@ -33,9 +33,9 @@ Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second 
 - 🚧 Implement common data format exporters -- (latex, HTML, XML, Pandoc)
 - 🚧 Use hypothesis for fuzz testing -- porting earlier C++ =google/fuzztest= implementation
 
-** TODO ⬜ CI
+** TODO 🚧 CI
 
-- ⬜ Execute tests -- full C++ and python corpus, including support projects
+- ✅ Execute tests -- full C++ and python corpus, including support projects
 - ⬜ Build and deploy documentation -- integrate Doxygen, Sphynx and ~*.org~ files for the documentation in a single unified static site deployment.
 - ⬜ Create new release on each merge to master
 
