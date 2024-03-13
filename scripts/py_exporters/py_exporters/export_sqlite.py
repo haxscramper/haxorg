@@ -77,6 +77,7 @@ class PriorityModified(Base):
     old_priority = StrColumn(nullable=True)
     new_priority = StrColumn(nullable=True)
     timestamp = DateTimeColumn(nullable=True)
+    description = StrColumn(nullable=True)
 
 
 class StateModified(Base):
@@ -87,6 +88,7 @@ class StateModified(Base):
     new_state = StrColumn(nullable=True)
     kind = Column(Enum(ValueEditOperation))
     timestamp = DateTimeColumn(nullable=True)
+    description = StrColumn(nullable=True)
 
 
 class TagModified(Base):
@@ -96,6 +98,7 @@ class TagModified(Base):
     tag = StrColumn()
     timestamp = DateTimeColumn(nullable=True)
     added = Column(Boolean)
+    description = StrColumn(nullable=True)
 
 
 class ClockModified(Base):
@@ -163,6 +166,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                                 new_priority=priority.newPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
+                                description=priority.desc and
+                                ExporterUltraplain.getStr(priority.desc),
                             ))
 
                     case org.SubtreeLogPriorityAction.Removed:
@@ -172,6 +177,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                                 new_priority=priority.oldPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
+                                description=priority.desc and
+                                ExporterUltraplain.getStr(priority.desc),
                             ))
 
                     case org.SubtreeLogPriorityAction.Changed:
@@ -182,6 +189,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                                 old_priority=priority.oldPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
+                                description=priority.desc and
+                                ExporterUltraplain.getStr(priority.desc),
                             ))
 
             case org.SubtreeLogKind.State:
@@ -198,11 +207,14 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         change = ValueEditOperation.Removed
 
                 session.add(
-                    StateModified(subtree=subtree_id,
-                                  old_state=state.from_,
-                                  new_state=state.to,
-                                  kind=change,
-                                  timestamp=evalDateTime(state.on.getStatic().time)))
+                    StateModified(
+                        subtree=subtree_id,
+                        old_state=state.from_,
+                        new_state=state.to,
+                        kind=change,
+                        timestamp=evalDateTime(state.on.getStatic().time),
+                        description=state.desc and ExporterUltraplain.getStr(state.desc),
+                    ))
 
             case org.SubtreeLogKind.Tag:
                 tag: org.SubtreeLogTag = node.getTag()
@@ -212,6 +224,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         added=tag.added,
                         timestamp=evalDateTime(tag.on.getStatic().time),
                         tag=ExporterUltraplain.getStr(tag.tag),
+                        description=tag.desc and ExporterUltraplain.getStr(tag.desc),
                     ))
 
             case org.SubtreeLogKind.Clock:
@@ -222,25 +235,30 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         from_=evalDateTime(clock.from_.getStatic().time),
                         to=evalDateTime(clock.to.getStatic().time) if clock.to else None,
                     ))
-                
-            # case org.SubtreeLogKind.Note:
-            #     note: org.SubtreeLogNote = node.getNote()
-            #     session.add(
-            #         NoteModified(
-            #             subtree=subtree_id,
-            #         )
-            #     )
+
+            case org.SubtreeLogKind.Note:
+                note: org.SubtreeLogNote = node.getNote()
+                session.add(
+                    NoteModified(
+                        subtree=subtree_id,
+                        plaintext=ExporterUltraplain.getStr(note.desc),
+                    ))
 
             case _:
                 log(CAT).error(node.getLogKind())
 
     @beartype
-    def aux(node: org.Org):
+    def aux(node: org.Org, parent: Optional[int] = None):
         match node:
             case org.Subtree():
+                created: Optional[datetime] = None
+                # for time in 
+                
+
                 session.add(
                     Subtree(
                         id=id(node),
+                        parent=parent,
                         level=node.level,
                         plaintext_title=ExporterUltraplain.getStr(node.title),
                         location=get_location(node),
@@ -250,9 +268,14 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                     aux_subtree_log(item, id(node))
 
                 for sub in node:
-                    aux(sub)
+                    aux(sub, parent=id(node))
 
-            case org.Document() | org.List() | org.ListItem():
+            case org.Document():
+                session.add(Document(id=id(node)))
+                for sub in node:
+                    aux(sub, parent=id(node))
+
+            case org.List() | org.ListItem():
                 for sub in node:
                     aux(sub)
 

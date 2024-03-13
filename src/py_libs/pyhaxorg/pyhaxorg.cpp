@@ -36,6 +36,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
+PYBIND11_MAKE_OPAQUE(IntSet<sem::Subtree::Period::Kind>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
@@ -44,15 +45,16 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<Str>(m, "VecOfStr");
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument");
   bind_unordered_map<Str, sem::SemId<sem::CmdArgument>>(m, "UnorderedMapOfStrSemIdOfCmdArgument");
-  bind_vector<sem::Code::Line::Part>(m, "VecOfPart");
+  bind_vector<sem::Code::Line::Part>(m, "VecOfCodeLinePart");
   bind_vector<int>(m, "VecOfint");
-  bind_vector<sem::Code::Switch>(m, "VecOfSwitch");
-  bind_vector<sem::Code::Line>(m, "VecOfLine");
-  bind_vector<sem::Symbol::Param>(m, "VecOfParam");
+  bind_vector<sem::Code::Switch>(m, "VecOfCodeSwitch");
+  bind_vector<sem::Code::Line>(m, "VecOfCodeLine");
+  bind_vector<sem::Symbol::Param>(m, "VecOfSymbolParam");
   bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr");
   bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog");
-  bind_vector<sem::Subtree::Property>(m, "VecOfProperty");
-  bind_vector<sem::Subtree::Period>(m, "VecOfPeriod");
+  bind_vector<sem::Subtree::Property>(m, "VecOfSubtreeProperty");
+  bind_vector<sem::Subtree::Period>(m, "VecOfSubtreePeriod");
+  bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("subnodes", &sem::Org::subnodes, R"RAW(\brief List of subnodes.
@@ -739,7 +741,7 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<sem::SubtreeLog::Priority>(m, "SubtreeLogPriority")
+  pybind11::class_<sem::SubtreeLog::Priority, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogPriority")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Priority {
                         sem::SubtreeLog::Priority result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -750,7 +752,7 @@ node can have subnodes.)RAW")
     .def_readwrite("on", &sem::SubtreeLog::Priority::on, R"RAW(When priority was changed)RAW")
     .def_readwrite("action", &sem::SubtreeLog::Priority::action, R"RAW(Which action taken)RAW")
     ;
-  pybind11::class_<sem::SubtreeLog::Note>(m, "SubtreeLogNote")
+  pybind11::class_<sem::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogNote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Note {
                         sem::SubtreeLog::Note result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -758,7 +760,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("on", &sem::SubtreeLog::Note::on, R"RAW(Where log was taken)RAW")
     ;
-  pybind11::class_<sem::SubtreeLog::Refile>(m, "SubtreeLogRefile")
+  pybind11::class_<sem::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogRefile")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Refile {
                         sem::SubtreeLog::Refile result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -767,7 +769,7 @@ node can have subnodes.)RAW")
     .def_readwrite("on", &sem::SubtreeLog::Refile::on, R"RAW(When the refiling happened)RAW")
     .def_readwrite("from_", &sem::SubtreeLog::Refile::from, R"RAW(Link to the original subtree)RAW")
     ;
-  pybind11::class_<sem::SubtreeLog::Clock>(m, "SubtreeLogClock")
+  pybind11::class_<sem::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogClock")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Clock {
                         sem::SubtreeLog::Clock result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -776,7 +778,7 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &sem::SubtreeLog::Clock::from, R"RAW(Clock start time)RAW")
     .def_readwrite("to", &sem::SubtreeLog::Clock::to, R"RAW(Optional end of the clock)RAW")
     ;
-  pybind11::class_<sem::SubtreeLog::State>(m, "SubtreeLogState")
+  pybind11::class_<sem::SubtreeLog::State, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogState")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::State {
                         sem::SubtreeLog::State result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -786,7 +788,7 @@ node can have subnodes.)RAW")
     .def_readwrite("to", &sem::SubtreeLog::State::to)
     .def_readwrite("on", &sem::SubtreeLog::State::on)
     ;
-  pybind11::class_<sem::SubtreeLog::Tag>(m, "SubtreeLogTag")
+  pybind11::class_<sem::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogTag")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Tag {
                         sem::SubtreeLog::Tag result{};
                         init_fields_from_kwargs(result, kwargs);

@@ -31,8 +31,10 @@ else:
 
 @beartype
 def py_type_bind(Typ: QualType) -> pya.PyType:
-    return pya.PyType(Typ.name + ("Of" if Typ.Parameters else "") +
-                      "".join([py_type_bind(T).Name for T in Typ.Parameters]))
+    return pya.PyType(
+        "".join([py_type_bind(T).Name for T in Typ.withoutSpace("sem").Spaces]) +
+        Typ.name + ("Of" if Typ.Parameters else "") +
+        "".join([py_type_bind(T).Name for T in Typ.Parameters]))
 
 
 @beartype
@@ -196,7 +198,7 @@ class Py11Method:
                 1:] if self.ExplicitClassParam and not self.IsInit else self.Args:
             if Arg.type.name == "kwargs":
                 continue
-            
+
             elif Arg.value is None:
                 argument_binder.append(ast.XCall("pybind11::arg",
                                                  [ast.Literal(Arg.name)]))
@@ -384,7 +386,6 @@ class Py11Class:
     Fields: List[Py11Field] = field(default_factory=list)
     Methods: List[Py11Method] = field(default_factory=list)
     InitImpls: List[Py11Method] = field(default_factory=list)
-    PyBases: List[QualType] = field(default_factory=list)
 
     @staticmethod
     def FromGenTu(ast: ASTBuilder,

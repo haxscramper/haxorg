@@ -163,7 +163,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     res = Py11Class(
         PyName=typ.name.name,
         Class=base_type,
-        PyBases=typ.bases,
         PyHolderType=id_type,
     )
 
@@ -218,7 +217,12 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
 @beartype
 def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
-    res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
+    res = Py11Class(
+        PyName=py_type(value.name).Name,
+        Class=value.name,
+        Bases=value.bases,
+    )
+
     for meth in value.methods:
         if meth.isStatic or meth.isPureVirtual:
             continue
@@ -571,18 +575,22 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                 else:
                     seen_types.add(hash(T))
 
-                if T.name in ["Vec", "UnorderedMap"]:
+                if T.name in ["Vec", "UnorderedMap", "IntSet"]:
                     std_type: str = {
                         "Vec": "vector",
-                        "UnorderedMap": "unordered_map"
-                    }[T.name]
+                        "UnorderedMap": "unordered_map",
+                        "IntSet": "int_set",
+                    }.get(T.name, None)
 
-                    stdvec_t = QualType.ForName(std_type,
+                    if T.name not in ["IntSet"]:
+                        stdvec_t = QualType.ForName(std_type,
                                                 Spaces=[QualType.ForName("std")],
                                                 Parameters=T.Parameters)
 
-                    opaque_declarations.append(
-                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+                        opaque_declarations.append(
+                            ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+                        
+                        
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
 

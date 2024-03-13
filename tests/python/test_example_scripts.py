@@ -52,15 +52,15 @@ def test_base_activity_analysis():
   - Tag "#project##haxorg" Added on [2024-03-13 Wed 18:01:34 +04]
   CLOCK: [2024-03-13 Wed 18:00:25 +04]--[2024-03-13 Wed 18:01:13 +04] =>  0:01
   - State "WIP"        from "TODO"       [2024-03-13 Wed 18:00:25 +04]
-  - Note taken on [2024-03-13 Wed 18:01:02 +04] \\
+  - Note taken on [2024-03-13 Wed 18:01:02 +04] \\\\
     Add logbook note
   - State "WIP"        from "WIP"        [2024-03-13 Wed 18:01:09 +04]
-  - State "PAUSED"     from "WIP"        [2024-03-13 Wed 18:01:13 +04] \\
+  - State "PAUSED"     from "WIP"        [2024-03-13 Wed 18:01:13 +04] \\\\
     Paused work, adding test logging
-  - State "FAILED"     from "PAUSED"     [2024-03-13 Wed 18:01:21 +04] \\
+  - State "FAILED"     from "PAUSED"     [2024-03-13 Wed 18:01:21 +04] \\\\
     Test failure
   - State "TODO"       from "FAILED"     [2024-03-13 Wed 18:01:27 +04]
-  - Note taken on [2024-03-13 Wed 18:01:30 +04] \\
+  - Note taken on [2024-03-13 Wed 18:01:30 +04] \\\\
     Back to todo
   - Priority "B" Added at [2024-03-13 Wed 18:01:40 +04]
   - Priority "C" Changed From "B" at [2024-03-13 Wed 18:01:41 +04]
@@ -86,7 +86,7 @@ def test_base_activity_analysis():
         assert result.exit_code == 0, result.output
         assert db_file.exists()
         engine = open_sqlite(db_file)
-        # print(format_db_all(engine))
+        print(format_db_all(engine))
 
         dbg = format_db_all(engine, style=False)
 
@@ -100,3 +100,9 @@ def test_base_activity_analysis():
                 first_true(blocks, lambda it: it.plaintext == expected_text),
                 "{} {}".format(expected_text, dbg),
             )
+
+        def get_subtree(title: str) -> export_sqlite.Subtree:
+            return first_true(session.query(export_sqlite.Subtree).all(), lambda it: it.plaintext_title == title)
+        
+        subtree1 = get_subtree("Report aggregated cxx code coverage")
+        assert subtree1, dbg

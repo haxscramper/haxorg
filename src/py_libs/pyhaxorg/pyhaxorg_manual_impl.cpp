@@ -187,7 +187,6 @@ sem::OrgVariant castAs(sem::SemId<sem::Org> id) {
 void init_py_manual_api(pybind11::module& m) {
     PyDateTime_IMPORT;
     assert(PyDateTimeAPI);
-    bind_int_set<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
 }
 
 void ExporterPython::enablePyStreamTrace(pybind11::object stream) {

@@ -339,29 +339,29 @@ class SubtreeLogPriorityAction(Enum):
     Removed = 2
     Changed = 3
 
-class SubtreeLogPriority:
+class SubtreeLogPriority(SubtreeLogDescribedLog):
     oldPriority: Optional[str]
     newPriority: Optional[str]
     on: Time
     action: SubtreeLogPriorityAction
 
-class SubtreeLogNote:
+class SubtreeLogNote(SubtreeLogDescribedLog):
     on: Time
 
-class SubtreeLogRefile:
+class SubtreeLogRefile(SubtreeLogDescribedLog):
     on: Time
     from_: Link
 
-class SubtreeLogClock:
+class SubtreeLogClock(SubtreeLogDescribedLog):
     from_: Time
     to: Optional[Time]
 
-class SubtreeLogState:
+class SubtreeLogState(SubtreeLogDescribedLog):
     from_: str
     to: str
     on: Time
 
-class SubtreeLogTag:
+class SubtreeLogTag(SubtreeLogDescribedLog):
     on: Time
     tag: HashTag
     added: bool
