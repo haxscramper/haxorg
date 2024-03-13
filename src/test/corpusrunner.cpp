@@ -882,7 +882,9 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     __perf_trace("lex");
 
     p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
-    p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
+    if (p.tokenizer->TraceState) {
+        p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
+    }
 
     __perf_trace("tokenize convert");
     p.tokenizeConvert();
@@ -975,7 +977,9 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
 
     p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
-    p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
+    if (p.parser->TraceState) {
+        p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
+    }
 
     p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
         if (rep.kind == OrgParser::ReportKind::AddToken
@@ -1050,7 +1054,9 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     sem::OrgConverter converter{};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
-    converter.setTraceFile(spec.debugFile("trace_sem.log"));
+    if (converter.TraceState) {
+        converter.setTraceFile(spec.debugFile("trace_sem.log"));
+    }
 
     auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
     p.node        = document.asOrg();

@@ -380,11 +380,12 @@ struct NodeAdapter {
     NodeGroup<N, K, V> const* group;
     NodeId<N, K, V>           id;
 
-    N   getKind() const { return group->at(id).kind; }
-    int size() const { return group->size(id); }
+    N    getKind() const { return group->at(id).kind; }
+    bool empty() const { return size() == 0; }
+    int  size() const { return group->size(id); }
     /// \brief Check if node adapter is default-constructed and does not
     /// contain pointers to the underlying content.
-    bool empty() const {
+    bool isNil() const {
         return group == nullptr && id == NodeId<N, K, V>::Nil();
     }
 
@@ -469,8 +470,7 @@ struct NodeAdapter {
         iterator(typename NodeGroup<N, K, V>::iterator iter)
             : iter(iter) {}
 
-        NodeAdapter<N, K, V> operator*() {
-            // get current value
+        NodeAdapter<N, K, V> operator*() const {
             return NodeAdapter<N, K, V>(iter.group, iter.id);
         }
 

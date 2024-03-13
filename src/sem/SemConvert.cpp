@@ -585,14 +585,67 @@ SemId<Paragraph> OrgConverter::convertParagraph(__args) {
     __perf_trace("convert", "convertParagraph");
     auto __trace = trace(a);
     auto par     = Sem<Paragraph>(a);
-    bool first   = true;
-    for (const auto& item : a) {
-        if (first && item.kind() == org::Footnote) {
-            par->push_back(convertFootnote(item));
-        } else {
-            par->push_back(convert(item));
+    for (const auto& item : a) { par->push_back(convert(item)); }
+
+    while (!par->subnodes.empty()
+           && SemSet{osk::Newline, osk::Space}.contains(
+               par->subnodes.back()->getKind())) {
+        par->subnodes.pop_back();
+    }
+
+    return par;
+}
+
+namespace {
+OrgSet AnnotatedParagraphStarts{
+    org::BigIdent,
+    org::Footnote,
+    org::StaticActiveTime,
+    org::StaticInactiveTime};
+}
+
+SemId<AnnotatedParagraph> OrgConverter::convertAnnotatedParagraph(__args) {
+    auto __trace = trace(a);
+    auto par     = Sem<AnnotatedParagraph>(a);
+    auto it      = a.begin();
+    switch ((*it).getKind()) {
+        case org::Footnote: {
+            auto footnote = convertFootnote(*it);
+            ++it;
+            par->data = AnnotatedParagraph::Footnote{
+                .name = footnote->tag};
+            break;
         }
-        first = false;
+
+        case org::BigIdent: {
+            auto ident = convertBigIdent(*it);
+            ++it;
+            if ((*it).getKind() == org::Colon) { ++it; }
+            par->data = AnnotatedParagraph::Admonition{.name = ident};
+            break;
+        }
+
+        case org::StaticActiveTime:
+        case org::StaticInactiveTime: {
+            auto time = convertTime(*it);
+            ++it;
+            par->data = AnnotatedParagraph::Timestamp{.time = time};
+            break;
+        }
+
+        default: {
+            LOG(FATAL) << fmt1(a.at(0).getKind());
+        }
+    }
+
+
+    auto end = a.end();
+
+    while (it != end && (*it).getKind() == org::Space) { ++it; }
+
+    while (it != end) {
+        par->push_back(convert(*it));
+        ++it;
     }
 
     while (!par->subnodes.empty()
@@ -1049,7 +1102,6 @@ SemId<Org> OrgConverter::convert(__args) {
         CASE(StmtList);
         CASE(Subtree);
         CASE(TimeRange);
-        CASE(Paragraph);
         CASE(Space);
         CASE(Word);
         CASE(Bold);
@@ -1098,6 +1150,23 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::Footnote: return convertFootnote(a);
         case org::CommandTblfm: return convertTblfm(a);
         case org::CommandAttr: return convertCmdAttr(a);
+        case org::Paragraph: {
+            if (!a.empty()
+                && AnnotatedParagraphStarts.contains(a.at(0).kind())) {
+                if (a.at(0).kind() == org::BigIdent) {
+                    // NOTE: ....
+                    if (2 < a.size() && a.at(1).kind() == org::Colon) {
+                        return convertAnnotatedParagraph(a);
+                    } else {
+                        return convertParagraph(a);
+                    }
+                } else {
+                    return convertAnnotatedParagraph(a);
+                }
+            } else {
+                return convertParagraph(a);
+            }
+        }
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
             Vec<SemId<Org>> nested = flatConvertAttached(a);

@@ -87,6 +87,30 @@ void Exporter<V, R>::visitParagraph(R& res, In<sem::Paragraph> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AnnotatedParagraph::Data const& object) { visitVariants(res, sem::AnnotatedParagraph::getAnnotationKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visitAnnotatedParagraph(R& res, In<sem::AnnotatedParagraph> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, loc);
+  __org_field(res, object, data);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AnnotatedParagraph::None const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AnnotatedParagraph::Footnote const& object) { __obj_field(res, object, name); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AnnotatedParagraph::Admonition const& object) { __obj_field(res, object, name); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AnnotatedParagraph::Timestamp const& object) { __obj_field(res, object, time); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visitFormat(R& res, In<sem::Format> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, subnodes);

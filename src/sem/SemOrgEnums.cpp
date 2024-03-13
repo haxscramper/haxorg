@@ -423,6 +423,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Footnote") { return OrgSemKind::Footnote; } else
   if (value == "Completion") { return OrgSemKind::Completion; } else
   if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
+  if (value == "AnnotatedParagraph") { return OrgSemKind::AnnotatedParagraph; } else
   if (value == "Center") { return OrgSemKind::Center; } else
   if (value == "Caption") { return OrgSemKind::Caption; } else
   if (value == "CmdName") { return OrgSemKind::CmdName; } else
@@ -486,6 +487,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Footnote: return "Footnote";
     case OrgSemKind::Completion: return "Completion";
     case OrgSemKind::Paragraph: return "Paragraph";
+    case OrgSemKind::AnnotatedParagraph: return "AnnotatedParagraph";
     case OrgSemKind::Center: return "Center";
     case OrgSemKind::Caption: return "Caption";
     case OrgSemKind::CmdName: return "CmdName";

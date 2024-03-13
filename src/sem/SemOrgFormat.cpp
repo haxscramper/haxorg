@@ -852,6 +852,58 @@ auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
     return result;
 }
 
+auto Formatter::toString(SemId<AnnotatedParagraph> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    Res     result = b.stack();
+    bool    first  = true;
+    Context ctx2   = ctx;
+    ctx2.isInline  = true;
+    for (auto const& line :
+         id->subnodes | rv::split_when([](sem::SemId<sem::Org> id) {
+             return id->getKind() == OrgSemKind::Newline;
+         })) {
+        Res line_out = b.line();
+        if (first) {
+            switch (id->getAnnotationKind()) {
+                case sem::AnnotatedParagraph::AnnotationKind::Admonition: {
+                    b.add_at(
+                        line_out, toString(id->getAdmonition().name, ctx));
+                    break;
+                }
+                case sem::AnnotatedParagraph::AnnotationKind::Timestamp: {
+                    b.add_at(
+                        line_out, toString(id->getTimestamp().time, ctx));
+                    break;
+                }
+                case sem::AnnotatedParagraph::AnnotationKind::Footnote: {
+                    b.add_at(
+                        line_out,
+                        str(fmt("[fn:{}]", id->getFootnote().name)));
+                    break;
+                }
+                case sem::AnnotatedParagraph::AnnotationKind::None: {
+                }
+            }
+
+            if (id->getAnnotationKind()
+                != sem::AnnotatedParagraph::AnnotationKind::None) {
+                b.add_at(line_out, str(" "));
+            }
+            first = false;
+        }
+
+
+        for (auto const& item : line) {
+            b.add_at(line_out, toString(item, ctx2));
+        }
+        b.add_at(result, line_out);
+    }
+
+
+    return result;
+}
+
 auto Formatter::toString(SemId<Underline> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(

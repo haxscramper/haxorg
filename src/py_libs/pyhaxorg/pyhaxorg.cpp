@@ -189,9 +189,69 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("loc", &sem::Paragraph::loc, R"RAW(Document)RAW")
     .def_readwrite("attached", &sem::Paragraph::attached)
-    .def("isFootnoteDefinition", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::isFootnoteDefinition), R"RAW(Check if paragraph defines footnote)RAW")
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::Paragraph::*)(OrgSemKind)>(&sem::Paragraph::getAttached),
+         pybind11::arg("kind"))
+    ;
+  pybind11::class_<sem::AnnotatedParagraph::None>(m, "AnnotatedParagraphNone")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::None {
+                        sem::AnnotatedParagraph::None result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    ;
+  pybind11::class_<sem::AnnotatedParagraph::Footnote>(m, "AnnotatedParagraphFootnote")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Footnote {
+                        sem::AnnotatedParagraph::Footnote result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::AnnotatedParagraph::Footnote::name)
+    ;
+  pybind11::class_<sem::AnnotatedParagraph::Admonition>(m, "AnnotatedParagraphAdmonition")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Admonition {
+                        sem::AnnotatedParagraph::Admonition result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::AnnotatedParagraph::Admonition::name, R"RAW(Prefix admonition for the paragraph)RAW")
+    ;
+  pybind11::class_<sem::AnnotatedParagraph::Timestamp>(m, "AnnotatedParagraphTimestamp")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Timestamp {
+                        sem::AnnotatedParagraph::Timestamp result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("time", &sem::AnnotatedParagraph::Timestamp::time, R"RAW(Leading timestamp for the paragraph)RAW")
+    ;
+  bind_enum_iterator<sem::AnnotatedParagraph::AnnotationKind>(m, "AnnotatedParagraphAnnotationKind");
+  pybind11::enum_<sem::AnnotatedParagraph::AnnotationKind>(m, "AnnotatedParagraphAnnotationKind")
+    .value("None", sem::AnnotatedParagraph::AnnotationKind::None)
+    .value("Footnote", sem::AnnotatedParagraph::AnnotationKind::Footnote)
+    .value("Admonition", sem::AnnotatedParagraph::AnnotationKind::Admonition)
+    .value("Timestamp", sem::AnnotatedParagraph::AnnotationKind::Timestamp)
+    .def("__iter__", [](sem::AnnotatedParagraph::AnnotationKind _self) -> PyEnumIterator<sem::AnnotatedParagraph::AnnotationKind> {
+                     return
+                     PyEnumIterator<sem::AnnotatedParagraph::AnnotationKind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::AnnotatedParagraph, sem::SemId<sem::AnnotatedParagraph>, sem::Stmt>(m, "AnnotatedParagraph")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph {
+                        sem::AnnotatedParagraph result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("loc", &sem::AnnotatedParagraph::loc, R"RAW(Document)RAW")
+    .def_readwrite("data", &sem::AnnotatedParagraph::data)
+    .def_readwrite("attached", &sem::AnnotatedParagraph::attached)
+    .def("getNone", static_cast<sem::AnnotatedParagraph::None&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getNone))
+    .def("getFootnote", static_cast<sem::AnnotatedParagraph::Footnote&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getFootnote))
+    .def("getAdmonition", static_cast<sem::AnnotatedParagraph::Admonition&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getAdmonition))
+    .def("getTimestamp", static_cast<sem::AnnotatedParagraph::Timestamp&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getTimestamp))
+    .def("getAnnotationKind", static_cast<sem::AnnotatedParagraph::AnnotationKind(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::getAnnotationKind))
+    .def("getAttached",
+         static_cast<Opt<sem::SemId<sem::Org>>(sem::AnnotatedParagraph::*)(OrgSemKind)>(&sem::AnnotatedParagraph::getAttached),
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::Format, sem::SemId<sem::Format>, sem::Org>(m, "Format")
@@ -1798,6 +1858,7 @@ node can have subnodes.)RAW")
     .value("Footnote", OrgSemKind::Footnote)
     .value("Completion", OrgSemKind::Completion)
     .value("Paragraph", OrgSemKind::Paragraph)
+    .value("AnnotatedParagraph", OrgSemKind::AnnotatedParagraph)
     .value("Center", OrgSemKind::Center)
     .value("Caption", OrgSemKind::Caption)
     .value("CmdName", OrgSemKind::CmdName)

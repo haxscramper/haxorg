@@ -62,9 +62,38 @@ class Completion(Inline):
     isPercent: bool
 
 class Paragraph(Stmt):
-    def isFootnoteDefinition(self) -> bool: ...
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     loc: Optional[LineCol]
+    attached: List[Org]
+
+class AnnotatedParagraphNone:
+    pass
+
+class AnnotatedParagraphFootnote:
+    name: str
+
+class AnnotatedParagraphAdmonition:
+    name: BigIdent
+
+class AnnotatedParagraphTimestamp:
+    time: Time
+
+AnnotatedParagraphData = Union[AnnotatedParagraphNone, AnnotatedParagraphFootnote, AnnotatedParagraphAdmonition, AnnotatedParagraphTimestamp]
+class AnnotatedParagraphAnnotationKind(Enum):
+    _None = 1
+    Footnote = 2
+    Admonition = 3
+    Timestamp = 4
+
+class AnnotatedParagraph(Stmt):
+    def getNone(self) -> AnnotatedParagraphNone: ...
+    def getFootnote(self) -> AnnotatedParagraphFootnote: ...
+    def getAdmonition(self) -> AnnotatedParagraphAdmonition: ...
+    def getTimestamp(self) -> AnnotatedParagraphTimestamp: ...
+    def getAnnotationKind(self) -> AnnotatedParagraphAnnotationKind: ...
+    def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
+    loc: Optional[LineCol]
+    data: AnnotatedParagraphData
     attached: List[Org]
 
 class Format(Org):
@@ -948,56 +977,57 @@ class OrgSemKind(Enum):
     Footnote = 7
     Completion = 8
     Paragraph = 9
-    Center = 10
-    Caption = 11
-    CmdName = 12
-    CmdResults = 13
-    CommandGroup = 14
-    Tblfm = 15
-    Quote = 16
-    Verse = 17
-    Example = 18
-    CmdArguments = 19
-    CmdAttr = 20
-    CmdArgument = 21
-    Export = 22
-    AdmonitionBlock = 23
-    Call = 24
-    Code = 25
-    Time = 26
-    TimeRange = 27
-    Macro = 28
-    Symbol = 29
-    SubtreeLog = 30
-    Subtree = 31
-    InlineMath = 32
-    Escaped = 33
-    Newline = 34
-    Space = 35
-    Word = 36
-    AtMention = 37
-    RawText = 38
-    Punctuation = 39
-    Placeholder = 40
-    BigIdent = 41
-    Bold = 42
-    Underline = 43
-    Monospace = 44
-    MarkQuote = 45
-    Verbatim = 46
-    Italic = 47
-    Strike = 48
-    Par = 49
-    List = 50
-    ListItem = 51
-    Link = 52
-    DocumentOptions = 53
-    Document = 54
-    ParseError = 55
-    FileTarget = 56
-    TextSeparator = 57
-    Include = 58
-    DocumentGroup = 59
+    AnnotatedParagraph = 10
+    Center = 11
+    Caption = 12
+    CmdName = 13
+    CmdResults = 14
+    CommandGroup = 15
+    Tblfm = 16
+    Quote = 17
+    Verse = 18
+    Example = 19
+    CmdArguments = 20
+    CmdAttr = 21
+    CmdArgument = 22
+    Export = 23
+    AdmonitionBlock = 24
+    Call = 25
+    Code = 26
+    Time = 27
+    TimeRange = 28
+    Macro = 29
+    Symbol = 30
+    SubtreeLog = 31
+    Subtree = 32
+    InlineMath = 33
+    Escaped = 34
+    Newline = 35
+    Space = 36
+    Word = 37
+    AtMention = 38
+    RawText = 39
+    Punctuation = 40
+    Placeholder = 41
+    BigIdent = 42
+    Bold = 43
+    Underline = 44
+    Monospace = 45
+    MarkQuote = 46
+    Verbatim = 47
+    Italic = 48
+    Strike = 49
+    Par = 50
+    List = 51
+    ListItem = 52
+    Link = 53
+    DocumentOptions = 54
+    Document = 55
+    ParseError = 56
+    FileTarget = 57
+    TextSeparator = 58
+    Include = 59
+    DocumentGroup = 60
 
 class UserTimeBreakdown:
     year: Optional[int]

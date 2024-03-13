@@ -238,16 +238,81 @@ struct Paragraph : public sem::Stmt {
                        (loc,
                         staticKind,
                         (sem::SemId<Paragraph>(Opt<OrgAdapter>)) create,
-                        (OrgSemKind() const) getKind,
-                        (bool() const) isFootnoteDefinition))
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   Opt<LineCol> loc = std::nullopt;
   /// \brief Document
   static OrgSemKind const staticKind;
   static sem::SemId<Paragraph> create(Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Paragraph; }
-  /// \brief Check if paragraph defines footnote
-  bool isFootnoteDefinition() const { return !subnodes.empty() && at(0)->is(OrgSemKind::Footnote); }
+};
+
+/// \brief Top-level or inline paragraph with prefix annotation
+struct AnnotatedParagraph : public sem::Stmt {
+  using Stmt::Stmt;
+  virtual ~AnnotatedParagraph() = default;
+  struct None {
+    BOOST_DESCRIBE_CLASS(None, (), (), (), ())
+  };
+
+  struct Footnote {
+    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (name))
+    Str name;
+  };
+
+  struct Admonition {
+    BOOST_DESCRIBE_CLASS(Admonition, (), (), (), (name))
+    /// \brief Prefix admonition for the paragraph
+    sem::SemId<sem::BigIdent> name = sem::SemId<sem::BigIdent>::Nil();
+  };
+
+  struct Timestamp {
+    BOOST_DESCRIBE_CLASS(Timestamp, (), (), (), (time))
+    /// \brief Leading timestamp for the paragraph
+    sem::SemId<sem::Time> time = sem::SemId<sem::Time>::Nil();
+  };
+
+  using Data = std::variant<sem::AnnotatedParagraph::None, sem::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Timestamp>;
+  enum class AnnotationKind : short int { None, Footnote, Admonition, Timestamp, };
+  BOOST_DESCRIBE_NESTED_ENUM(AnnotationKind, None, Footnote, Admonition, Timestamp)
+  using variant_enum_type = sem::AnnotatedParagraph::AnnotationKind;
+  using variant_data_type = sem::AnnotatedParagraph::Data;
+  BOOST_DESCRIBE_CLASS(AnnotatedParagraph,
+                       (Stmt),
+                       (),
+                       (),
+                       (loc,
+                        staticKind,
+                        data,
+                        (sem::SemId<AnnotatedParagraph>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind,
+                        (sem::AnnotatedParagraph::None const&() const) getNone,
+                        (sem::AnnotatedParagraph::None&()) getNone,
+                        (sem::AnnotatedParagraph::Footnote const&() const) getFootnote,
+                        (sem::AnnotatedParagraph::Footnote&()) getFootnote,
+                        (sem::AnnotatedParagraph::Admonition const&() const) getAdmonition,
+                        (sem::AnnotatedParagraph::Admonition&()) getAdmonition,
+                        (sem::AnnotatedParagraph::Timestamp const&() const) getTimestamp,
+                        (sem::AnnotatedParagraph::Timestamp&()) getTimestamp,
+                        (sem::AnnotatedParagraph::AnnotationKind(sem::AnnotatedParagraph::Data const&)) getAnnotationKind,
+                        (sem::AnnotatedParagraph::AnnotationKind() const) getAnnotationKind))
+  /// \brief Document
+  Opt<LineCol> loc = std::nullopt;
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  sem::AnnotatedParagraph::Data data;
+  static sem::SemId<AnnotatedParagraph> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
+  sem::AnnotatedParagraph::None const& getNone() const { return std::get<0>(data); }
+  sem::AnnotatedParagraph::None& getNone() { return std::get<0>(data); }
+  sem::AnnotatedParagraph::Footnote const& getFootnote() const { return std::get<1>(data); }
+  sem::AnnotatedParagraph::Footnote& getFootnote() { return std::get<1>(data); }
+  sem::AnnotatedParagraph::Admonition const& getAdmonition() const { return std::get<2>(data); }
+  sem::AnnotatedParagraph::Admonition& getAdmonition() { return std::get<2>(data); }
+  sem::AnnotatedParagraph::Timestamp const& getTimestamp() const { return std::get<3>(data); }
+  sem::AnnotatedParagraph::Timestamp& getTimestamp() { return std::get<3>(data); }
+  static sem::AnnotatedParagraph::AnnotationKind getAnnotationKind(sem::AnnotatedParagraph::Data const& __input) { return static_cast<sem::AnnotatedParagraph::AnnotationKind>(__input.index()); }
+  sem::AnnotatedParagraph::AnnotationKind getAnnotationKind() const { return getAnnotationKind(data); }
 };
 
 /// \brief Base class for branch of formatting node classes

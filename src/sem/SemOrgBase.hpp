@@ -167,7 +167,7 @@ struct [[refl]] Org {
     /// \brief Get kind of this sem node
     [[refl]] virtual OrgSemKind getKind() const = 0;
     /// \brief Whether original node adapter is missing
-    [[refl]] bool isGenerated() const { return original.empty(); }
+    [[refl]] bool isGenerated() const { return original.isNil(); }
     /// \brief Location of the node in the original source file
     [[refl]] Opt<LineCol> loc = std::nullopt;
     /// \brief List of subnodes.

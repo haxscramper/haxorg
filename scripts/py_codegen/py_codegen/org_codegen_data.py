@@ -279,16 +279,33 @@ def get_types() -> Sequence[GenTuStruct]:
             "Paragraph",
             GenTuDoc("Top-level or inline paragraph"),
             bases=[t_org("Stmt")],
-            methods=[
-                GenTuFunction(
-                    t_bool(),
-                    "isFootnoteDefinition",
-                    GenTuDoc("Check if paragraph defines footnote"),
-                    isConst=True,
-                    impl="return !subnodes.empty() && at(0)->is(OrgSemKind::Footnote);",
-                )
-            ],
         ),
+        d_org(
+            "AnnotatedParagraph",
+            GenTuDoc("Top-level or inline paragraph with prefix annotation"),
+            bases=[t_org("Stmt")],
+            nested=[
+                GenTuTypeGroup(
+                    [
+                        GenTuStruct(t("None")),
+                        GenTuStruct(t("Footnote"), fields=[GenTuField(t_str(), "name")]),
+                        GenTuStruct(
+                            t("Admonition"),
+                            fields=[
+                                id_field("BigIdent", "name",
+                                         GenTuDoc("Prefix admonition for the paragraph"))
+                            ]),
+                        GenTuStruct(
+                            t("Timestamp"),
+                            fields=[
+                                id_field("Time", "time",
+                                         GenTuDoc("Leading timestamp for the paragraph"))
+                            ]),
+                    ],
+                    kindGetter="getAnnotationKind",
+                    enumName="AnnotationKind",
+                )
+            ]),
         d_org(
             "Format",
             GenTuDoc("Base class for branch of formatting node classes"),
@@ -1291,7 +1308,10 @@ def get_types() -> Sequence[GenTuStruct]:
                            GenTuDoc(""),
                            value="std::nullopt"),
             ],
-            nested=[d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty", "Partial")],
+            nested=[
+                d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty",
+                              "Partial")
+            ],
             methods=[
                 GenTuFunction(
                     t_bool(),
