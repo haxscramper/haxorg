@@ -1,11 +1,12 @@
 from py_cli.scratch_scripts import story_grid
 from py_cli.scratch_scripts import activity_analysis
-from py_exporters import export_sqlite 
+from py_exporters import export_sqlite
 from click.testing import CliRunner
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from py_scriptutils.sqlalchemy_utils import Engine, format_db_all, open_sqlite
 from sqlalchemy.orm import sessionmaker
+from more_itertools import first_true
 
 
 def test_story_grid():
@@ -42,7 +43,38 @@ def test_base_activity_analysis():
         db_file = dir.joinpath("db.sqlite")
 
         org_file.write_text("""
-[2013-01-02 12:30:40] Timestamped paragraph
+*** TODO Report aggregated cxx code coverage
+  :PROPERTIES:
+  :CREATED:  [2024-03-13 Wed 12:25:29 +04]
+  :END:
+  :LOGBOOK:
+  - Tag "#project##haxorg" Removed on [2024-03-13 Wed 18:01:35 +04]
+  - Tag "#project##haxorg" Added on [2024-03-13 Wed 18:01:34 +04]
+  CLOCK: [2024-03-13 Wed 18:00:25 +04]--[2024-03-13 Wed 18:01:13 +04] =>  0:01
+  - State "WIP"        from "TODO"       [2024-03-13 Wed 18:00:25 +04]
+  - Note taken on [2024-03-13 Wed 18:01:02 +04] \\
+    Add logbook note
+  - State "WIP"        from "WIP"        [2024-03-13 Wed 18:01:09 +04]
+  - State "PAUSED"     from "WIP"        [2024-03-13 Wed 18:01:13 +04] \\
+    Paused work, adding test logging
+  - State "FAILED"     from "PAUSED"     [2024-03-13 Wed 18:01:21 +04] \\
+    Test failure
+  - State "TODO"       from "FAILED"     [2024-03-13 Wed 18:01:27 +04]
+  - Note taken on [2024-03-13 Wed 18:01:30 +04] \\
+    Back to todo
+  - Priority "B" Added at [2024-03-13 Wed 18:01:40 +04]
+  - Priority "C" Changed From "B" at [2024-03-13 Wed 18:01:41 +04]
+  - Refiled on [2024-03-13 Wed 18:01:56 +04] from [[id:75397715-6471-4a1a-be00-ca4bb656d810][projects:Haxorg/Documentation]]
+  - Refiled on [2024-03-13 Wed 18:02:09 +04] from [[file:staging.org][staging:staging.org]]
+  :END:
+
+- [2024-03-13 Wed 18:00:27 +04] Test list item with message
+- [2024-03-13 Wed 18:00:53 +04] More logging in the text
+- [2024-03-13 Wed 18:02:21 +04] Extra logging extra logging
+- [2024-03-13 Wed 18:02:26 +04] Message 3
+  - [2024-03-13 Wed 18:02:30 +04] Nested logging
+  - [2024-03-13 Wed 18:02:33 +04] Some more nested logging
+
 """)
 
         result = runner.invoke(activity_analysis.cli, [
@@ -54,10 +86,17 @@ def test_base_activity_analysis():
         assert result.exit_code == 0, result.output
         assert db_file.exists()
         engine = open_sqlite(db_file)
+        # print(format_db_all(engine))
+
+        dbg = format_db_all(engine, style=False)
 
         session = sessionmaker(bind=engine)()
         blocks = [it for it in session.query(export_sqlite.Block).all()]
-        assert len(blocks) == 1, format_db_all(engine, style=False)
-
-
-        
+        for expected_text in [
+                "Nested logging", "Message 3", "Some more nested logging",
+                "More logging in the text", "Test list item with message"
+        ]:
+            assert (
+                first_true(blocks, lambda it: it.plaintext == expected_text),
+                "{} {}".format(expected_text, dbg),
+            )

@@ -1,7 +1,7 @@
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, DateTimeColumn
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import DateTime, Column, Enum, Engine
+from sqlalchemy import DateTime, Column, Enum, Engine, Boolean
 import enum
 from py_scriptutils.script_logging import log
 from beartype.typing import List, Optional
@@ -63,6 +63,62 @@ class Block(Base):
     location = ForeignId(name="Location.id")
 
 
+class ValueEditOperation(enum.Enum):
+    Added = 1
+    Removed = 2
+    Changed = 3
+
+
+class PriorityModified(Base):
+    __tablename__ = "PriorityModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id", nullable=False)
+    kind = Column(Enum(ValueEditOperation))
+    old_priority = StrColumn(nullable=True)
+    new_priority = StrColumn(nullable=True)
+    timestamp = DateTimeColumn(nullable=True)
+
+
+class StateModified(Base):
+    __tablename__ = "StateModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id", nullable=False)
+    old_state = StrColumn(nullable=True)
+    new_state = StrColumn(nullable=True)
+    kind = Column(Enum(ValueEditOperation))
+    timestamp = DateTimeColumn(nullable=True)
+
+
+class TagModified(Base):
+    __tablename__ = "TagModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id", nullable=False)
+    tag = StrColumn()
+    timestamp = DateTimeColumn(nullable=True)
+    added = Column(Boolean)
+
+
+class ClockModified(Base):
+    __tablename__ = "ClockModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id")
+    from_ = DateTimeColumn()
+    to = DateTimeColumn(nullable=True)
+
+
+class NoteModified(Base):
+    __tablename__ = "NoteModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id")
+    plaintext = StrColumn()
+    timestamp = DateTimeColumn()
+
+
+class RefileModified(Base):
+    __tablename__ = "RefileModified"
+    id = IdColumn()
+
+
 CAT = "haxorg.export.sqlite"
 
 
@@ -90,27 +146,117 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                 file=file_record.id,
                 id=result,
             ))
+
         return result
 
     @beartype
+    def aux_subtree_log(node: org.SubtreeLog, subtree_id: int):
+        match node.getLogKind():
+            case org.SubtreeLogKind.Priority:
+                priority: org.SubtreeLogPriority = node.getPriority()
+                time = evalDateTime(priority.on.getStatic().time)
+                match priority.action:
+                    case org.SubtreeLogPriorityAction.Added:
+                        session.add(
+                            PriorityModified(
+                                kind=ValueEditOperation.Added,
+                                new_priority=priority.newPriority,
+                                timestamp=time,
+                                subtree=subtree_id,
+                            ))
+
+                    case org.SubtreeLogPriorityAction.Removed:
+                        session.add(
+                            PriorityModified(
+                                kind=ValueEditOperation.Removed,
+                                new_priority=priority.oldPriority,
+                                timestamp=time,
+                                subtree=subtree_id,
+                            ))
+
+                    case org.SubtreeLogPriorityAction.Changed:
+                        session.add(
+                            PriorityModified(
+                                kind=ValueEditOperation.Changed,
+                                new_priority=priority.newPriority,
+                                old_priority=priority.oldPriority,
+                                timestamp=time,
+                                subtree=subtree_id,
+                            ))
+
+            case org.SubtreeLogKind.State:
+                state = node.getState()
+                change = None
+                match (bool(state.from_), bool(state.to)):
+                    case (True, True):
+                        change = ValueEditOperation.Changed
+
+                    case (False, True):
+                        change = ValueEditOperation.Added
+
+                    case (True, False):
+                        change = ValueEditOperation.Removed
+
+                session.add(
+                    StateModified(subtree=subtree_id,
+                                  old_state=state.from_,
+                                  new_state=state.to,
+                                  kind=change,
+                                  timestamp=evalDateTime(state.on.getStatic().time)))
+
+            case org.SubtreeLogKind.Tag:
+                tag: org.SubtreeLogTag = node.getTag()
+                session.add(
+                    TagModified(
+                        subtree=subtree_id,
+                        added=tag.added,
+                        timestamp=evalDateTime(tag.on.getStatic().time),
+                        tag=ExporterUltraplain.getStr(tag.tag),
+                    ))
+
+            case org.SubtreeLogKind.Clock:
+                clock: org.SubtreeLogClock = node.getClock()
+                session.add(
+                    ClockModified(
+                        subtree=subtree_id,
+                        from_=evalDateTime(clock.from_.getStatic().time),
+                        to=evalDateTime(clock.to.getStatic().time) if clock.to else None,
+                    ))
+                
+            # case org.SubtreeLogKind.Note:
+            #     note: org.SubtreeLogNote = node.getNote()
+            #     session.add(
+            #         NoteModified(
+            #             subtree=subtree_id,
+            #         )
+            #     )
+
+            case _:
+                log(CAT).error(node.getLogKind())
+
+    @beartype
     def aux(node: org.Org):
-        match node.getKind():
-            case osk.Subtree:
+        match node:
+            case org.Subtree():
                 session.add(
                     Subtree(
+                        id=id(node),
                         level=node.level,
                         plaintext_title=ExporterUltraplain.getStr(node.title),
                         location=get_location(node),
                     ))
 
+                for item in node.logbook:
+                    aux_subtree_log(item, id(node))
+
                 for sub in node:
                     aux(sub)
 
-            case osk.Document | osk.List | osk.ListItem:
+            case org.Document() | org.List() | org.ListItem():
                 for sub in node:
                     aux(sub)
 
-            case osk.Paragraph | osk.AnnotatedParagraph:
+            case org.Paragraph() | org.AnnotatedParagraph():
                 subnodes: List[org.Org] = [n for n in node]
                 wordcount = 0
                 if 0 < len(subnodes):
