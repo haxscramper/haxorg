@@ -1140,9 +1140,11 @@ struct SubtreeLog : public sem::Org {
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
   struct Clock : public sem::SubtreeLog::DescribedLog {
     Clock() {}
-    BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (range))
-    /// \brief Start-end or only start period
-    Variant<sem::SemId<sem::Time>, sem::SemId<sem::TimeRange>> range = sem::SemId<sem::Time>::Nil();
+    BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (from, to))
+    /// \brief Clock start time
+    sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
+    /// \brief Optional end of the clock
+    Opt<sem::SemId<sem::Time>> to = std::nullopt;
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`

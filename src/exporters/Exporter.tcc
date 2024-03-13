@@ -428,7 +428,8 @@ void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Refile const& object) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Clock const& object) {
-  __obj_field(res, object, range);
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
   __obj_field(res, object, desc);
 }
 

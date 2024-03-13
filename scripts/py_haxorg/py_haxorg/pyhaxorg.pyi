@@ -353,7 +353,8 @@ class SubtreeLogRefile:
     from_: Link
 
 class SubtreeLogClock:
-    pass
+    from_: Time
+    to: Optional[Time]
 
 class SubtreeLogState:
     from_: str

@@ -718,12 +718,20 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 case Log::Kind::Clock: {
                     auto const& clock = log->getClock();
 
-                    log_head = b.line({
-                        str("CLOCK: "),
-                        clock.range.index() == 0
-                            ? toString(std::get<0>(clock.range), ctx)
-                            : toString(std::get<1>(clock.range), ctx),
-                    });
+                    if (clock.to) {
+                        log_head = b.line({
+                            str("CLOCK: "),
+                            toString(clock.from, ctx),
+                            str("--"),
+                            toString(clock.to.value(), ctx),
+                        });
+                    } else {
+                        log_head = b.line({
+                            str("CLOCK: "),
+                            toString(clock.from, ctx),
+                        });
+                    }
+
 
                     break;
                 }

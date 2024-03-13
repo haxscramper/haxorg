@@ -881,29 +881,19 @@ void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::read(
 
 void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::write(::orgproto::SubtreeLog::Clock* out, sem::SubtreeLog::Clock const& in) {
   proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>::write(out, in);
-  switch (in.range.index()) {
-    case 0:
-      if (!std::get<0>(in.range).isNil()) {
-        proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_time(), std::get<0>(in.range));
-      }
-      break;
-    case 1:
-      if (!std::get<1>(in.range).isNil()) {
-        proto_serde<orgproto::TimeRange, sem::SemId<sem::TimeRange>>::write(out->mutable_timerange(), std::get<1>(in.range));
-      }
-      break;
+  if (!in.from.isNil()) {
+    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_from(), in.from);
+  }
+  if (in.to) {
+    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_to(), *in.to);
   }
 }
 
 void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(::orgproto::SubtreeLog::Clock const& out, proto_write_accessor<sem::SubtreeLog::Clock> in) {
   proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  switch (out.range_kind_case()) {
-    case ::orgproto::SubtreeLog::Clock::kTime:
-      proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.time(), in.for_field_variant<0>(&sem::SubtreeLog::Clock::range));
-      break;
-    case ::orgproto::SubtreeLog::Clock::kTimerange:
-      proto_serde<orgproto::TimeRange, sem::SemId<sem::TimeRange>>::read(out.timerange(), in.for_field_variant<1>(&sem::SubtreeLog::Clock::range));
-      break;
+  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.from(), in.for_field(&sem::SubtreeLog::Clock::from));
+  if (out.has_to()) {
+    proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.to(), in.for_field(&sem::SubtreeLog::Clock::to));
   }
 }
 

@@ -902,13 +902,9 @@ def get_types() -> Sequence[GenTuStruct]:
                             ),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
-                                k_args(GenTuField(
-                                    t_var(t_id("Time"), t_id("TimeRange")),
-                                    "range",
-                                    GenTuDoc("Start-end or only start period"),
-                                    value="sem::SemId<sem::Time>::Nil()",
-                                ),
-                                       ignore=True)
+                                id_field("Time", "from", GenTuDoc("Clock start time")),
+                                opt_field(t_id("Time"), "to",
+                                          GenTuDoc("Optional end of the clock")),
                             ],
                             nested=[GenTuPass("Clock() {}")],
                         ),

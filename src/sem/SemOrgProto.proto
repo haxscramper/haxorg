@@ -760,10 +760,8 @@ message SubtreeLog {
   }
   message Clock {
     optional StmtList                              desc                             = 1;
-    oneof range_kind {
-      Time                                         time                             = 2;
-      TimeRange                                    timerange                        = 3;
-    }
+    Time                                           from                             = 2;
+    optional Time                                  to                               = 3;
     string                                         debug                            = 1000;
   }
   message State {

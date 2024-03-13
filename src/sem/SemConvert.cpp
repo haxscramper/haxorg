@@ -151,9 +151,11 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
 
         auto clock = Log::Clock{};
         if (times.at(0)->is(osk::Time)) {
-            clock.range = times.at(0).as<Time>();
+            clock.from = times.at(0).as<Time>();
         } else {
-            clock.range = times.at(0).as<TimeRange>();
+            auto range = times.at(0).as<TimeRange>();
+            clock.from = range->from;
+            clock.to   = range->to;
         }
 
         log->log = clock;

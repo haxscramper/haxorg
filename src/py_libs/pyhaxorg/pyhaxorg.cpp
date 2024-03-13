@@ -773,6 +773,8 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("from_", &sem::SubtreeLog::Clock::from, R"RAW(Clock start time)RAW")
+    .def_readwrite("to", &sem::SubtreeLog::Clock::to, R"RAW(Optional end of the clock)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::State>(m, "SubtreeLogState")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::State {
