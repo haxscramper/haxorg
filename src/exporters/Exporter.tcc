@@ -409,6 +409,7 @@ void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Priority const& object) {
   __obj_field(res, object, oldPriority);
   __obj_field(res, object, newPriority);
   __obj_field(res, object, on);
+  __obj_field(res, object, action);
   __obj_field(res, object, desc);
 }
 

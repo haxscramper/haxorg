@@ -196,6 +196,30 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             refile.from             = link.at(0);
             log->log                = refile;
 
+        } else if (words.at(0) == "priority") {
+            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
+            Vec<SemId<BigIdent>> priorities = filter_subnodes<BigIdent>(
+                par0, limit);
+            auto priority = Log::Priority{};
+
+            if (words.contains("added")) {
+                priority.newPriority = priorities.at(0)->text;
+                priority.action      = Log::Priority::Action::Added;
+            } else if (words.contains("changed")) {
+                priority.newPriority = priorities.at(0)->text;
+                priority.oldPriority = priorities.at(0)->text;
+                priority.action      = Log::Priority::Action::Changed;
+            } else if (words.contains("removed")) {
+                priority.oldPriority = priorities.at(0)->text;
+                priority.action      = Log::Priority::Action::Removed;
+            } else {
+                LOG(FATAL) << fmt1(words)
+                           << " Unexpected priority log message structure";
+            }
+
+            priority.on = times.at(0);
+            log->log    = priority;
+
         } else if (words.at(0) == "note") {
             auto note = Log::Note{};
             note.on   = times.at(0);

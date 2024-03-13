@@ -744,6 +744,7 @@ message SubtreeLog {
     optional string                                oldPriority                      = 2;
     optional string                                newPriority                      = 3;
     Time                                           on                               = 4;
+    SubtreeLog.Priority.Action                     action                           = 5;
     string                                         debug                            = 1000;
   }
   message Note {

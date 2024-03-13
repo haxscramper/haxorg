@@ -343,6 +343,7 @@ class SubtreeLogPriority:
     oldPriority: Optional[str]
     newPriority: Optional[str]
     on: Time
+    action: SubtreeLogPriorityAction
 
 class SubtreeLogNote:
     on: Time

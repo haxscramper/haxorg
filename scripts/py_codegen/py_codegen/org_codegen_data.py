@@ -837,13 +837,24 @@ def get_types() -> Sequence[GenTuStruct]:
                             GenTuDoc("Priority added"),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             nested=[
-                                d_simple_enum(
-                                    "Action",
+                                GenTuEnum(
+                                    t("Action"),
                                     GenTuDoc("Priority change action"),
-                                    "Added",
-                                    "Removed",
-                                    "Changed",
-                                ),
+                                    fields=[
+                                        GenTuEnumField(
+                                            "Added",
+                                            GenTuDoc(
+                                                "`Priority B added on [timestamp]`")),
+                                        GenTuEnumField(
+                                            "Removed",
+                                            GenTuDoc(
+                                                "`Priority C removed on [timestamp]`")),
+                                        GenTuEnumField(
+                                            "Changed",
+                                            GenTuDoc(
+                                                "`Priority B changed from C on [timestamp]`"
+                                            )),
+                                    ]),
                                 GenTuPass("Priority() {}")
                             ],
                             fields=[
@@ -859,6 +870,8 @@ def get_types() -> Sequence[GenTuStruct]:
                                 ),
                                 id_field("Time", "on",
                                          GenTuDoc("When priority was changed")),
+                                GenTuField(t_nest("Action", ["SubtreeLog", "Priority"]),
+                                           "action", GenTuDoc("Which action taken")),
                             ],
                         ),
                         GenTuStruct(

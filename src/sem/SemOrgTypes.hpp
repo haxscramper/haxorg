@@ -1094,16 +1094,29 @@ struct SubtreeLog : public sem::Org {
   /// \brief Priority added
   struct Priority : public sem::SubtreeLog::DescribedLog {
     /// \brief Priority change action
-    enum class Action : short int { Added, Removed, Changed, };
+    enum class Action : short int {
+      /// \brief `Priority B added on [timestamp]`
+      Added,
+      /// \brief `Priority C removed on [timestamp]`
+      Removed,
+      /// \brief `Priority B changed from C on [timestamp]`
+      Changed,
+    };
     BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
     Priority() {}
-    BOOST_DESCRIBE_CLASS(Priority, (DescribedLog), (), (), (oldPriority, newPriority, on))
+    BOOST_DESCRIBE_CLASS(Priority,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (oldPriority, newPriority, on, action))
     /// \brief Previous priority for change and removal
     Opt<std::string> oldPriority = std::nullopt;
     /// \brief New priority for change and addition
     Opt<std::string> newPriority = std::nullopt;
     /// \brief When priority was changed
     sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    /// \brief Which action taken
+    sem::SubtreeLog::Priority::Action action;
   };
 
   /// \brief Timestamped note

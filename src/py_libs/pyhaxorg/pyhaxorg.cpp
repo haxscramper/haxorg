@@ -730,9 +730,9 @@ node can have subnodes.)RAW")
     ;
   bind_enum_iterator<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction");
   pybind11::enum_<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction")
-    .value("Added", sem::SubtreeLog::Priority::Action::Added)
-    .value("Removed", sem::SubtreeLog::Priority::Action::Removed)
-    .value("Changed", sem::SubtreeLog::Priority::Action::Changed)
+    .value("Added", sem::SubtreeLog::Priority::Action::Added, R"RAW(`Priority B added on [timestamp]`)RAW")
+    .value("Removed", sem::SubtreeLog::Priority::Action::Removed, R"RAW(`Priority C removed on [timestamp]`)RAW")
+    .value("Changed", sem::SubtreeLog::Priority::Action::Changed, R"RAW(`Priority B changed from C on [timestamp]`)RAW")
     .def("__iter__", [](sem::SubtreeLog::Priority::Action _self) -> PyEnumIterator<sem::SubtreeLog::Priority::Action> {
                      return
                      PyEnumIterator<sem::SubtreeLog::Priority::Action>
@@ -748,6 +748,7 @@ node can have subnodes.)RAW")
     .def_readwrite("oldPriority", &sem::SubtreeLog::Priority::oldPriority, R"RAW(Previous priority for change and removal)RAW")
     .def_readwrite("newPriority", &sem::SubtreeLog::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
     .def_readwrite("on", &sem::SubtreeLog::Priority::on, R"RAW(When priority was changed)RAW")
+    .def_readwrite("action", &sem::SubtreeLog::Priority::action, R"RAW(Which action taken)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Note>(m, "SubtreeLogNote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Note {

@@ -727,6 +727,44 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
 
                     break;
                 }
+
+                case Log::Kind::Priority: {
+                    auto const& priority = log->getPriority();
+                    switch (priority.action) {
+                        case Log::Priority::Action::Added: {
+                            log_head = b.line({
+                                str("- Priority "),
+                                str(priority.newPriority.value()),
+                                str(" added on "),
+                                toString(priority.on, ctx),
+                            });
+                            break;
+                        }
+                        case Log::Priority::Action::Changed: {
+                            log_head = b.line({
+                                str("- Priority "),
+                                str(priority.newPriority.value()),
+                                str(" changed from "),
+                                str(priority.oldPriority.value()),
+                                str(" on "),
+                                toString(priority.on, ctx),
+                            });
+                            break;
+                        }
+                        case Log::Priority::Action::Removed: {
+                            log_head = b.line({
+                                str("- Priority "),
+                                str(priority.oldPriority.value()),
+                                str(" removed on "),
+                                toString(priority.on, ctx),
+                            });
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+
                 default: {
                     LOG(FATAL) << fmt1(log->getLogKind());
                 }
