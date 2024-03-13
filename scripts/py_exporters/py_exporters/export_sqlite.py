@@ -4,10 +4,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import DateTime, Column, Enum, Engine
 import enum
 from py_scriptutils.script_logging import log
-from beartype.typing import List
+from beartype.typing import List, Optional
 from beartype import beartype
 from py_haxorg.pyhaxorg_utils import evalDateTime
 from py_exporters.export_ultraplain import ExporterUltraplain
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -109,35 +110,29 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                 for sub in node:
                     aux(sub)
 
-            case osk.Paragraph:
+            case osk.Paragraph | osk.AnnotatedParagraph:
                 subnodes: List[org.Org] = [n for n in node]
                 wordcount = 0
                 if 0 < len(subnodes):
-                    start = 2 if 2 < len(
-                        subnodes) and subnodes[0].getKind() == osk.Time else 0
-
-                    for sub in subnodes[start:]:
+                    for sub in subnodes:
                         if sub.getKind() == osk.Word:
                             wordcount += 1
 
-                    if subnodes[0].getKind() == osk.Time:
-                        session.add(
-                            Block(
-                                kind=BlockKind.Paragraph,
-                                timestamp=evalDateTime(subnodes[0].getStatic().time),
-                                wordcount=wordcount,
-                                plaintext=ExporterUltraplain.getStr(node),
-                                location=get_location(node),
-                            ))
+                    timestamp: Optional[datetime] = None
+                    if isinstance(node, org.AnnotatedParagraph):
+                        if node.getAnnotationKind(
+                        ) == org.AnnotatedParagraphAnnotationKind.Timestamp:
+                            timestamp = evalDateTime(
+                                node.getTimestamp().time.getStatic().time)
 
-                    else:
-                        session.add(
-                            Block(
-                                kind=BlockKind.Paragraph,
-                                wordcount=wordcount,
-                                plaintext=ExporterUltraplain.getStr(node),
-                                location=get_location(node),
-                            ))
+                    session.add(
+                        Block(
+                            kind=BlockKind.Paragraph,
+                            wordcount=wordcount,
+                            timestamp=timestamp,
+                            plaintext=ExporterUltraplain.getStr(node),
+                            location=get_location(node),
+                        ))
 
             case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.Caption | osk.Tblfm | osk.Include:
                 pass

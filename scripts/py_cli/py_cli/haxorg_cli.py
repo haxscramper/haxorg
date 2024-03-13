@@ -70,8 +70,8 @@ def get_run(ctx: click.Context) -> CliRunContext:
     return ctx.obj["run"]
 
 @beartype
-def parseFile(root: CliRootOptions, file: Path) -> org.Org:
-    cache_file = None if not root.cache else Path(root.cache).joinpath(file.name)
+def parseCachedFile(file: Path, cache: Optional[Path]) -> org.Org:
+    cache_file = None if not cache else Path(cache).joinpath(file.name)
     ctx = org.OrgContext()
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
@@ -91,6 +91,11 @@ def parseFile(root: CliRootOptions, file: Path) -> org.Org:
 
     else:
         return ctx.parseFile(str(file.resolve()))
+
+@beartype
+def parseFile(root: CliRootOptions, file: Path) -> org.Org:
+    return parseCachedFile(file, root.cache)
+
 
 
 def base_cli_options(f):
