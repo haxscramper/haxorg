@@ -43,6 +43,7 @@ class Subtree(Base):
     deadline = DateTimeColumn(nullable=True)
     closed = DateTimeColumn(nullable=True)
     location = ForeignId(name="Location.id", nullable=True)
+    wordcount = IntColumn(nullable=True)
 
 
 class BlockKind(enum.Enum):
@@ -124,8 +125,8 @@ class RefileModified(Base):
 
 CAT = "haxorg.export.sqlite"
 
-
 subtree_count = 0
+
 
 @beartype
 def registerDocument(node: org.Org, engine: Engine, file: str):
@@ -143,7 +144,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
     def get_location(node: org.Org) -> Optional[int]:
         if not node.loc:
             return None
-        
+
         nonlocal counter
         result = file_record.id * 1E6 + counter
         counter += 1
@@ -246,37 +247,81 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                 session.add(
                     NoteModified(
                         subtree=subtree_id,
-                        plaintext=ExporterUltraplain.getStr(note.desc) if note.desc else "",
+                        plaintext=ExporterUltraplain.getStr(note.desc)
+                        if note.desc else "",
                     ))
+
+    @beartype
+    def getSubtreeTime(node: org.Subtree,
+                       kind: org.SubtreePeriodKind) -> Optional[datetime]:
+        result: Optional[datetime] = None
+        time: org.SubtreePeriod
+        for time in node.getTimePeriods(org.IntSetOfSubtreePeriodKindIntVec([kind])):
+
+            if time.from_.getTimeKind() == org.TimeTimeKind.Static:
+                result = evalDateTime(time.from_.getStatic().time)
+
+        return result
+
+    @beartype
+    def getCreationTime(node: org.Org) -> Optional[datetime]:
+        match node:
+            case org.Subtree():
+                return getSubtreeTime(node,
+                                      org.SubtreePeriodKind.Created) or getSubtreeTime(
+                                          node, org.SubtreePeriodKind.Titled)
+
+            case org.AnnotatedParagraph():
+                if node.getAnnotationKind(
+                ) == org.AnnotatedParagraphAnnotationKind.Timestamp:
+                    return evalDateTime(node.getTimestamp().time.getStatic().time)
 
     @beartype
     def aux(node: org.Org, parent: Optional[int] = None):
         global subtree_count
         match node:
             case org.Subtree():
-                def getTime(kind: org.SubtreePeriodKind) -> Optional[datetime]:
-                    result: Optional[datetime] = None
-                    time: org.SubtreePeriod
-                    for time in node.getTimePeriods(
-                            org.IntSetOfSubtreePeriodKindIntVec([kind])):
 
-                        if time.from_.getTimeKind() == org.TimeTimeKind.Static:
-                            result = evalDateTime(time.from_.getStatic().time)
+                def getNestedWordcount(node: org.Org) -> int:
+                    if not node or getCreationTime(node) is not None:
+                        return 0
 
+                    else:
+                        result = 0
+                        match node:
+                            case org.Word() | org.BigIdent() | org.RawText(
+                            ) | org.HashTag() | org.AtMention():
+                                result += 1
 
-                    return result
-                
+                            case _:
+                                for sub in node:
+                                    result += getNestedWordcount(sub)
+
+                        return result
+
+                count = 0
+                for sub in node:
+                    count += getNestedWordcount(sub)
+
+                # log(CAT).info("{} {} {}:{}".format(
+                #     ExporterUltraplain.getStr(node.title),
+                #     count,
+                #     node.loc.line if node.loc else -1,
+                #     node.loc.column if node.loc else -1,
+                # ))
+
                 session.add(
                     Subtree(
                         id=subtree_count,
                         parent=parent,
-                        created=getTime(org.SubtreePeriodKind.Created),
-                        scheduled=getTime(org.SubtreePeriodKind.Scheduled),
+                        created=getCreationTime(node),
+                        scheduled=getSubtreeTime(node, org.SubtreePeriodKind.Scheduled),
                         level=node.level,
                         plaintext_title=ExporterUltraplain.getStr(node.title),
                         location=get_location(node),
+                        wordcount=count,
                     ))
-                
+
                 subtree_count += 1
 
                 for item in node.logbook:
@@ -302,18 +347,11 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         if sub.getKind() == osk.Word:
                             wordcount += 1
 
-                    timestamp: Optional[datetime] = None
-                    if isinstance(node, org.AnnotatedParagraph):
-                        if node.getAnnotationKind(
-                        ) == org.AnnotatedParagraphAnnotationKind.Timestamp:
-                            timestamp = evalDateTime(
-                                node.getTimestamp().time.getStatic().time)
-
                     session.add(
                         Block(
                             kind=BlockKind.Paragraph,
                             wordcount=wordcount,
-                            timestamp=timestamp,
+                            timestamp=getCreationTime(node),
                             plaintext=ExporterUltraplain.getStr(node),
                             location=get_location(node),
                         ))
@@ -335,7 +373,6 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
 
             case osk.Table:
                 pass
-
 
     aux(node)
     session.commit()
