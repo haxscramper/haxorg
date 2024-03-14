@@ -42,7 +42,7 @@ class Subtree(Base):
     scheduled = DateTimeColumn(nullable=True)
     deadline = DateTimeColumn(nullable=True)
     closed = DateTimeColumn(nullable=True)
-    location = ForeignId(name="Location.id")
+    location = ForeignId(name="Location.id", nullable=True)
 
 
 class BlockKind(enum.Enum):
@@ -60,7 +60,7 @@ class Block(Base):
     timestamp = DateTimeColumn(nullable=True)
     parent = ForeignId(name="Block.id", nullable=True)
     wordcount = IntColumn(nullable=True)
-    location = ForeignId(name="Location.id")
+    location = ForeignId(name="Location.id", nullable=True)
 
 
 class ValueEditOperation(enum.Enum):
@@ -140,7 +140,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
 
     counter = 0
 
-    def get_location(node: org.Org) -> int:
+    def get_location(node: org.Org) -> Optional[int]:
+        if not node.loc:
+            return None
+        
         nonlocal counter
         result = file_record.id * 1E6 + counter
         counter += 1
@@ -257,11 +260,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                     for time in node.getTimePeriods(
                             org.IntSetOfSubtreePeriodKindIntVec([kind])):
 
-
-                        # if time.kind == org.SubtreePeriodKind.
-                        # log(CAT).info(org.treeRepr(node.title))
-                        if time.getTime().getTimeKind() == org.TimeTimeKind.Static:
-                            result = evalDateTime(time.getTime().getStatic().time)
+                        if time.from_.getTimeKind() == org.TimeTimeKind.Static:
+                            result = evalDateTime(time.from_.getStatic().time)
 
 
                     return result

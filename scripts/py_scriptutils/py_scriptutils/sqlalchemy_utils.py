@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy import create_engine, MetaData, Table as SATable, Engine, inspect
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, Executable
 from rich.table import Table
 from rich.console import Console
 from beartype.typing import Optional, List
@@ -57,6 +57,25 @@ def format_rich_table(engine: Engine,
     for row in result:
         rich_table.add_row(*[str(it) for it in row])
 
+    return rich_table
+
+
+@beartype
+def format_rich_query(
+    engine: Engine,
+    query: Executable,
+    column_labels: List[str] = [],
+) -> Table:
+    
+    rich_table = Table(show_header=True, header_style="bold blue")
+    with engine.connect() as connection:
+        result = connection.execute(query)
+        if not column_labels:
+            column_labels = result.keys()
+        for label in column_labels:
+            rich_table.add_column(label)
+        for row in result:
+            rich_table.add_row(*[str(item) for item in row])
     return rich_table
 
 

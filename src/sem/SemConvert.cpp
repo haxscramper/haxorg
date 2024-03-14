@@ -1000,8 +1000,6 @@ SemId<LatexBody> OrgConverter::convertMath(__args) {
 
 SemId<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
-    LOG(WARNING) << "TODO implement include";
-
     return include;
 }
 
@@ -1295,7 +1293,6 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
             auto __trace = trace(adapter, fmt1(sub.getKind()));
             switch (sub.kind()) {
                 case org::Columns: {
-                    LOG(WARNING) << "TODO: Skipping 'columns' node";
                     break;
                 }
                 case org::CommandTitle: {

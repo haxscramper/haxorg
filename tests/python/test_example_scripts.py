@@ -86,6 +86,9 @@ def test_base_activity_analysis():
             f"--outdir={dir}",
         ])
 
+        if result.exception:
+            raise result.exception
+
         assert result.exit_code == 0, result.output
         assert db_file.exists()
         engine = open_sqlite(db_file)
@@ -141,11 +144,11 @@ def test_activity_notes_collection():
 
     runner = CliRunner()
     opts = [
-        *[f"--infile={it}" for it in dir.glob("*.org")][:3],
+        *[f"--infile={it}" for it in dir.glob("*.org")],
         f"--db_path={db_file}",
         # "--cachedir=/tmp/activity_cache",
         "--outdir=/tmp/activity_analysis",
-        "--force_db=True",
+        # "--force_db=True",
     ]
 
     result = runner.invoke(activity_analysis.cli, opts)
