@@ -95,20 +95,11 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
             GenTuField(
                 t_osk(),
                 "staticKind",
-                GenTuDoc("Document"),
+                GenTuDoc(""),
                 isConst=True,
                 isStatic=True,
             ),
         )
-
-        res.fields.insert(
-            0,
-            GenTuField(
-                t_opt(t("LineCol")),
-                "loc",
-                GenTuDoc("Document"),
-                value="std::nullopt",
-            ))
 
         res.methods.insert(
             0,

@@ -23,27 +23,20 @@ OrgConverter::ConvertError OrgConverter::wrapError(
 }
 
 Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
-    int   offset  = 0;
-    auto& g       = *adapter.group;
-    bool  inRange = true;
-    while (inRange) {
-        bool leftOk  = false;
-        bool rightOk = false;
-        for (int i : Vec{-1, 1}) {
-            int idx = adapter.id.getIndex() + offset * i;
-            if (0 <= idx && idx < g.size()) {
-                if (i == -1) { leftOk = true; }
-                if (i == 1) { rightOk = true; }
-                if (g.at(OrgId(idx)).isTerminal()) {
-                    auto tok = g.tokens->at(g.at(OrgId(idx)).getToken());
-                    if (!tok->isFake()) {
-                        return LineCol{tok->line, tok->col};
-                    }
-                }
+    if (adapter.isTerminal()) {
+        if (adapter.val().isFake()) {
+            return std::nullopt;
+        } else {
+            return LineCol{adapter.val().line, adapter.val().col};
+        }
+    } else if (auto nested = adapter.get().nestedNodes(adapter.id);
+               nested) {
+        for (OrgId const& id : nested.value()) {
+            OrgAdapter sub{adapter.group, id};
+            if (sub.isTerminal() && !sub.val().isFake()) {
+                return LineCol{sub.val().line, sub.val().col};
             }
         }
-        if (!(leftOk || rightOk)) { inRange = false; }
-        ++offset;
     }
 
     return std::nullopt;

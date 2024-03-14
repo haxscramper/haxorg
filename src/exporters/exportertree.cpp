@@ -39,7 +39,6 @@ void ExporterTree::visitField(
 ColText ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
     ColStream    os{};
     ExporterTree exp{os};
-    exp.conf.skipLocation = true;
     exp.evalTop(org);
     return os.getBuffer();
 }
@@ -81,10 +80,14 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
         os << " OID:" << fmt1(org->original.id.getUnmasked());
     }
 
-    if (conf.withLineCol && org->loc.has_value()) {
-        auto& [line, col, pos] = org->loc.value();
-        os << " " << os.cyan() << line << ":" << fmt1(col) << "("
-           << fmt1(pos) << ")" << os.end();
+    if (conf.withLineCol) {
+        if (org->loc.has_value()) {
+            auto& [line, col, pos] = org->loc.value();
+            os << " " << os.cyan() << fmt1(line) << ":" << fmt1(col) << "("
+               << fmt1(pos) << ")" << os.end();
+        } else {
+            os << " loc=none";
+        }
     }
     os << "\n";
 }
@@ -92,7 +95,8 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
 template <typename T>
 void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
     if (skipAsEmpty(value)) { return; }
-    if (conf.skipLocation && std::is_same_v<T, Opt<LineCol>>) { return; }
+    // Location is printed as a part of 'init'
+    if (std::is_same_v<T, Opt<LineCol>>) { return; }
 
     __scope();
     indent();
@@ -128,20 +132,21 @@ void ExporterTree::visit(int& arg, sem::SemId<T> org) {
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<T> opt) {
+    __scope();
+    indent();
     if constexpr (std::is_enum<T>::value) {
-        __scope();
-        indent();
         os << os.red() << std::format("{}", opt) << os.end() << "\n";
+    } else if constexpr (std::is_same_v<T, Str>) {
+        os << TypeName<T>::get() << os.yellow() << " "
+           << escape_literal(opt) << os.end() << "\n";
     } else {
-        __scope();
-        indent();
         os << os.red() << TypeName<T>::get() << os.end() << "\n";
     }
 }
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<Opt<T>> opt) {
-    __scope();
+    // __scope();
     if (opt) {
         visit(arg, *opt);
     } else {

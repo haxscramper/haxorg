@@ -108,7 +108,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::StmtList::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Empty, sem::SemId<sem::Empty>, sem::Org>(m, "Empty")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Empty {
@@ -116,7 +115,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Empty::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Cell, sem::SemId<sem::Cell>, sem::Org>(m, "Cell")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Cell {
@@ -124,7 +122,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Cell::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Row, sem::SemId<sem::Row>, sem::Org>(m, "Row")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Row {
@@ -132,7 +129,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Row::loc, R"RAW(Document)RAW")
     .def_readwrite("cells", &sem::Row::cells, R"RAW(List of cells on the row)RAW")
     ;
   pybind11::class_<sem::Table, sem::SemId<sem::Table>, sem::Stmt>(m, "Table")
@@ -141,7 +137,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Table::loc, R"RAW(Document)RAW")
     .def_readwrite("rows", &sem::Table::rows, R"RAW(List of rows for the table)RAW")
     .def_readwrite("attached", &sem::Table::attached)
     .def("getAttached",
@@ -154,7 +149,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::HashTag::loc, R"RAW(Document)RAW")
     .def_readwrite("head", &sem::HashTag::head, R"RAW(Main part of the tag)RAW")
     .def_readwrite("subtags", &sem::HashTag::subtags, R"RAW(List of nested tags)RAW")
     .def("prefixMatch",
@@ -168,7 +162,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Footnote::loc, R"RAW(Document)RAW")
     .def_readwrite("tag", &sem::Footnote::tag, R"RAW(Footnote text target name)RAW")
     .def_readwrite("definition", &sem::Footnote::definition, R"RAW(Link to possibly resolved definition)RAW")
     ;
@@ -178,7 +171,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Completion::loc, R"RAW(Document)RAW")
     .def_readwrite("done", &sem::Completion::done, R"RAW(Number of completed tasks)RAW")
     .def_readwrite("full", &sem::Completion::full, R"RAW(Full number of tasks)RAW")
     .def_readwrite("isPercent", &sem::Completion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
@@ -189,7 +181,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Paragraph::loc, R"RAW(Document)RAW")
     .def_readwrite("attached", &sem::Paragraph::attached)
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::Paragraph::*)(OrgSemKind)>(&sem::Paragraph::getAttached),
@@ -244,7 +235,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::AnnotatedParagraph::loc, R"RAW(Document)RAW")
     .def_readwrite("data", &sem::AnnotatedParagraph::data)
     .def_readwrite("attached", &sem::AnnotatedParagraph::attached)
     .def("getNone", static_cast<sem::AnnotatedParagraph::None&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getNone))
@@ -264,7 +254,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Center::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Command, sem::SemId<sem::Command>, sem::Org>(m, "Command")
     ;
@@ -280,7 +269,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Caption::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Caption::text, R"RAW(Content description)RAW")
     ;
   pybind11::class_<sem::CmdName, sem::SemId<sem::CmdName>, sem::Attached>(m, "CmdName")
@@ -289,7 +277,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::CmdName::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::CmdResults, sem::SemId<sem::CmdResults>, sem::Attached>(m, "CmdResults")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdResults {
@@ -297,7 +284,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::CmdResults::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::CommandGroup, sem::SemId<sem::CommandGroup>, sem::Stmt>(m, "CommandGroup")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CommandGroup {
@@ -305,7 +291,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::CommandGroup::loc, R"RAW(Document)RAW")
     .def_readwrite("attached", &sem::CommandGroup::attached)
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::CommandGroup::*)(OrgSemKind)>(&sem::CommandGroup::getAttached),
@@ -323,7 +308,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Tblfm::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Quote, sem::SemId<sem::Quote>, sem::Org>(m, "Quote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Quote {
@@ -331,7 +315,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Quote::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Verse, sem::SemId<sem::Verse>, sem::Block>(m, "Verse")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Verse {
@@ -339,7 +322,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Verse::loc, R"RAW(Document)RAW")
     .def_readwrite("parameters", &sem::Verse::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Verse::*)(Str const&) const>(&sem::Verse::getParameter),
@@ -351,7 +333,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Example::loc, R"RAW(Document)RAW")
     .def_readwrite("parameters", &sem::Example::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Example::*)(Str const&) const>(&sem::Example::getParameter),
@@ -363,7 +344,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::CmdArguments::loc, R"RAW(Document)RAW")
     .def_readwrite("positional", &sem::CmdArguments::positional, R"RAW(Positional arguments that had no keys)RAW")
     .def_readwrite("named", &sem::CmdArguments::named, R"RAW(Stored key-value mapping)RAW")
     .def("getParameter",
@@ -376,7 +356,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::CmdAttr::loc, R"RAW(Document)RAW")
     .def_readwrite("target", &sem::CmdAttr::target)
     .def_readwrite("parameters", &sem::CmdAttr::parameters, R"RAW(HTML attributes)RAW")
     ;
@@ -386,7 +365,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::CmdArgument::loc, R"RAW(Document)RAW")
     .def_readwrite("key", &sem::CmdArgument::key, R"RAW(Key)RAW")
     .def_readwrite("value", &sem::CmdArgument::value, R"RAW(Value)RAW")
     .def("getInt", static_cast<Opt<int>(sem::CmdArgument::*)() const>(&sem::CmdArgument::getInt), R"RAW(Parse argument as integer value)RAW")
@@ -410,7 +388,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Export::loc, R"RAW(Document)RAW")
     .def_readwrite("format", &sem::Export::format, R"RAW(Export block type)RAW")
     .def_readwrite("exporter", &sem::Export::exporter, R"RAW(Exporter backend name)RAW")
     .def_readwrite("placement", &sem::Export::placement, R"RAW(Customized position of the text in the final exporting document.)RAW")
@@ -426,7 +403,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::AdmonitionBlock::loc, R"RAW(Document)RAW")
     .def_readwrite("parameters", &sem::AdmonitionBlock::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::AdmonitionBlock::*)(Str const&) const>(&sem::AdmonitionBlock::getParameter),
@@ -438,7 +414,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Call::loc, R"RAW(Document)RAW")
     .def_readwrite("name", &sem::Call::name, R"RAW(Call target name)RAW")
     ;
   pybind11::class_<sem::Code::Line::Part::Raw>(m, "CodeLinePartRaw")
@@ -591,7 +566,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Code::loc, R"RAW(Document)RAW")
     .def_readwrite("lang", &sem::Code::lang, R"RAW(Code block language name)RAW")
     .def_readwrite("switches", &sem::Code::switches, R"RAW(Switch options for block)RAW")
     .def_readwrite("exports", &sem::Code::exports, R"RAW(What to export)RAW")
@@ -675,7 +649,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Time::loc, R"RAW(Document)RAW")
     .def_readwrite("isActive", &sem::Time::isActive, R"RAW(<active> vs [inactive])RAW")
     .def_readwrite("time", &sem::Time::time)
     .def("getStatic", static_cast<sem::Time::Static&(sem::Time::*)()>(&sem::Time::getStatic))
@@ -688,7 +661,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::TimeRange::loc, R"RAW(Document)RAW")
     .def_readwrite("from_", &sem::TimeRange::from, R"RAW(Starting time)RAW")
     .def_readwrite("to", &sem::TimeRange::to, R"RAW(Finishing time)RAW")
     ;
@@ -698,7 +670,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Macro::loc, R"RAW(Document)RAW")
     .def_readwrite("name", &sem::Macro::name, R"RAW(Macro name)RAW")
     .def_readwrite("arguments", &sem::Macro::arguments, R"RAW(Raw uninterpreted macro arguments)RAW")
     ;
@@ -717,7 +688,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Symbol::loc, R"RAW(Document)RAW")
     .def_readwrite("name", &sem::Symbol::name, R"RAW(Name of the symbol)RAW")
     .def_readwrite("parameters", &sem::Symbol::parameters, R"RAW(Optional list of parameters)RAW")
     .def_readwrite("positional", &sem::Symbol::positional, R"RAW(Positional parameters)RAW")
@@ -826,7 +796,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::SubtreeLog::loc, R"RAW(Document)RAW")
     .def_readwrite("log", &sem::SubtreeLog::log)
     .def("setDescription",
          static_cast<void(sem::SubtreeLog::*)(sem::SemId<sem::StmtList>)>(&sem::SubtreeLog::setDescription),
@@ -1082,7 +1051,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Subtree::loc, R"RAW(Document)RAW")
     .def_readwrite("level", &sem::Subtree::level, R"RAW(Subtree level)RAW")
     .def_readwrite("treeId", &sem::Subtree::treeId, R"RAW(:ID: property)RAW")
     .def_readwrite("todo", &sem::Subtree::todo, R"RAW(Todo state of the tree)RAW")
@@ -1115,7 +1083,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::InlineMath::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Leaf, sem::SemId<sem::Leaf>, sem::Org>(m, "Leaf")
     .def_readwrite("text", &sem::Leaf::text, R"RAW(Final leaf value)RAW")
@@ -1126,7 +1093,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Escaped::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Escaped::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Newline, sem::SemId<sem::Newline>, sem::Leaf>(m, "Newline")
@@ -1135,7 +1101,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Newline::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Newline::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Space, sem::SemId<sem::Space>, sem::Leaf>(m, "Space")
@@ -1144,7 +1109,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Space::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Space::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Word, sem::SemId<sem::Word>, sem::Leaf>(m, "Word")
@@ -1153,7 +1117,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Word::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Word::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::AtMention, sem::SemId<sem::AtMention>, sem::Leaf>(m, "AtMention")
@@ -1162,7 +1125,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::AtMention::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::AtMention::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::RawText, sem::SemId<sem::RawText>, sem::Leaf>(m, "RawText")
@@ -1171,7 +1133,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::RawText::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::RawText::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Punctuation, sem::SemId<sem::Punctuation>, sem::Leaf>(m, "Punctuation")
@@ -1180,7 +1141,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Punctuation::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Punctuation::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Placeholder, sem::SemId<sem::Placeholder>, sem::Leaf>(m, "Placeholder")
@@ -1189,7 +1149,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Placeholder::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::Placeholder::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::BigIdent, sem::SemId<sem::BigIdent>, sem::Leaf>(m, "BigIdent")
@@ -1198,7 +1157,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::BigIdent::loc, R"RAW(Document)RAW")
     .def_readwrite("text", &sem::BigIdent::text, R"RAW(Final leaf value)RAW")
     ;
   pybind11::class_<sem::Markup, sem::SemId<sem::Markup>, sem::Org>(m, "Markup")
@@ -1209,7 +1167,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Bold::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Underline, sem::SemId<sem::Underline>, sem::Markup>(m, "Underline")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Underline {
@@ -1217,7 +1174,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Underline::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Monospace, sem::SemId<sem::Monospace>, sem::Markup>(m, "Monospace")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Monospace {
@@ -1225,7 +1181,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Monospace::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::MarkQuote, sem::SemId<sem::MarkQuote>, sem::Markup>(m, "MarkQuote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::MarkQuote {
@@ -1233,7 +1188,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::MarkQuote::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Verbatim, sem::SemId<sem::Verbatim>, sem::Markup>(m, "Verbatim")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Verbatim {
@@ -1241,7 +1195,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Verbatim::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Italic, sem::SemId<sem::Italic>, sem::Markup>(m, "Italic")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Italic {
@@ -1249,7 +1202,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Italic::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Strike, sem::SemId<sem::Strike>, sem::Markup>(m, "Strike")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Strike {
@@ -1257,7 +1209,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Strike::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Par, sem::SemId<sem::Par>, sem::Markup>(m, "Par")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Par {
@@ -1265,7 +1216,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Par::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::List, sem::SemId<sem::List>, sem::Org>(m, "List")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::List {
@@ -1273,7 +1223,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::List::loc, R"RAW(Document)RAW")
     .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList))
     ;
   bind_enum_iterator<sem::ListItem::Checkbox>(m, "ListItemCheckbox");
@@ -1294,7 +1243,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::ListItem::loc, R"RAW(Document)RAW")
     .def_readwrite("checkbox", &sem::ListItem::checkbox)
     .def_readwrite("header", &sem::ListItem::header)
     .def("isDescriptionItem", static_cast<bool(sem::ListItem::*)() const>(&sem::ListItem::isDescriptionItem))
@@ -1377,7 +1325,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Link::loc, R"RAW(Document)RAW")
     .def_readwrite("description", &sem::Link::description)
     .def_readwrite("data", &sem::Link::data)
     .def("getRaw", static_cast<sem::Link::Raw&(sem::Link::*)()>(&sem::Link::getRaw))
@@ -1448,7 +1395,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::DocumentOptions::loc, R"RAW(Document)RAW")
     .def_readwrite("brokenLinks", &sem::DocumentOptions::brokenLinks)
     .def_readwrite("initialVisibility", &sem::DocumentOptions::initialVisibility)
     .def_readwrite("tocExport", &sem::DocumentOptions::tocExport)
@@ -1484,7 +1430,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Document::loc, R"RAW(Document)RAW")
     .def_readwrite("title", &sem::Document::title)
     .def_readwrite("author", &sem::Document::author)
     .def_readwrite("creator", &sem::Document::creator)
@@ -1508,7 +1453,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::ParseError::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::FileTarget, sem::SemId<sem::FileTarget>, sem::Org>(m, "FileTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::FileTarget {
@@ -1516,7 +1460,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::FileTarget::loc, R"RAW(Document)RAW")
     .def_readwrite("path", &sem::FileTarget::path)
     .def_readwrite("line", &sem::FileTarget::line)
     .def_readwrite("searchTarget", &sem::FileTarget::searchTarget)
@@ -1530,7 +1473,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::TextSeparator::loc, R"RAW(Document)RAW")
     ;
   pybind11::class_<sem::Include::Example>(m, "IncludeExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::Example {
@@ -1578,7 +1520,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::Include::loc, R"RAW(Document)RAW")
     .def_readwrite("data", &sem::Include::data)
     .def("getExample", static_cast<sem::Include::Example&(sem::Include::*)()>(&sem::Include::getExample))
     .def("getExport", static_cast<sem::Include::Export&(sem::Include::*)()>(&sem::Include::getExport))
@@ -1592,7 +1533,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("loc", &sem::DocumentGroup::loc, R"RAW(Document)RAW")
     ;
   bind_enum_iterator<OrgSpecName>(m, "OrgSpecName");
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")

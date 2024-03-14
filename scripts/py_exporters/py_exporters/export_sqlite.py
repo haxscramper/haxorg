@@ -241,7 +241,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                 session.add(
                     NoteModified(
                         subtree=subtree_id,
-                        plaintext=ExporterUltraplain.getStr(note.desc),
+                        plaintext=ExporterUltraplain.getStr(note.desc) if note.desc else "",
                     ))
 
             case _:
@@ -251,7 +251,6 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
     def aux(node: org.Org, parent: Optional[int] = None):
         match node:
             case org.Subtree():
-
                 def getTime(kind: org.SubtreePeriodKind) -> Optional[datetime]:
                     result: Optional[datetime] = None
                     time: org.SubtreePeriod
@@ -261,7 +260,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         result = evalDateTime(time.getTime().getStatic().time)
 
                     return result
-
+                
                 session.add(
                     Subtree(
                         id=id(node),

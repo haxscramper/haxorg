@@ -192,7 +192,6 @@ struct OrgConverter : public OperationsTracer {
     SemId<T> SemLeaf(In adapter) {
         auto res  = Sem<T>(adapter);
         res->text = adapter.val().text;
-        res->loc  = getLoc(adapter);
         return res;
     }
 

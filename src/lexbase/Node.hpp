@@ -126,6 +126,7 @@ struct Node {
         }
     }
 
+    /// \brief Return number of subnodes. Terminal/mono nodes return 0.
     int getExtent() const {
         if (isTerminal() || isMono()) {
             return 0;
@@ -134,13 +135,25 @@ struct Node {
         }
     }
 
+    /// \brief Return token value for the terminal node
     TokenId<K, V> getToken() const {
         return std::get<TokenId<K, V>>(value);
     }
 
-    Slice<NodeId<N, K, V>> nestedNodes(NodeId<N, K, V> selfId) const {
-        assert(isNonTerminal());
-        return slice(selfId + 1, selfId + getExtent());
+    /// \brief Check if the *non-terminal* node has zero extent.
+    /// Terminal/Mono nodes return 'true'.
+    bool isEmpty() const { return isNonTerminal() && getExtent() == 0; }
+
+    /// \brief Return inclusive slice of all subnodes. NOTE: Because the
+    /// `slice<T>()` is always inclusive, this function does not support
+    /// returning empty list directly and instead outputs a nullopt value.
+    Opt<Slice<NodeId<N, K, V>>> nestedNodes(NodeId<N, K, V> selfId) const {
+        CHECK(isNonTerminal());
+        if (isEmpty()) {
+            return std::nullopt;
+        } else {
+            return slice(selfId + 1, selfId + getExtent());
+        }
     }
 
     bool operator==(CR<Node<N, K, V>> other) const {

@@ -8,6 +8,9 @@ from py_scriptutils.sqlalchemy_utils import Engine, format_db_all, open_sqlite
 from sqlalchemy.orm import sessionmaker
 from more_itertools import first_true
 
+CAT = __name__
+from py_scriptutils.script_logging import log
+
 
 def test_story_grid():
     runner = CliRunner()
@@ -134,11 +137,22 @@ def test_activity_notes_collection():
     if not dir.exists():
         return
 
-    runner = CliRunner()
-    result = runner.invoke(activity_analysis.cli, [
-        *[f"--infile={it}" for it in dir.glob("*.org")],
-        "--db_path=/tmp/db.sqlite",
-        "--outdir=/tmp/activity_analysis",
-    ])
+    db_file = Path("/tmp/db.sqlite")
 
+    runner = CliRunner()
+    opts = [
+        *[f"--infile={it}" for it in dir.glob("*.org")][:3],
+        f"--db_path={db_file}",
+        # "--cachedir=/tmp/activity_cache",
+        "--outdir=/tmp/activity_analysis",
+        "--force_db=True",
+    ]
+
+    result = runner.invoke(activity_analysis.cli, opts)
+
+    if result.exception:
+        raise result.exception
+    
     assert result.exit_code == 0, result.output
+
+    engine = open_sqlite(db_file)

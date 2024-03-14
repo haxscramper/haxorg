@@ -26,44 +26,38 @@ class Inline(Org):
     pass
 
 class StmtList(Org):
-    loc: Optional[LineCol]
+    pass
 
 class Empty(Org):
-    loc: Optional[LineCol]
+    pass
 
 class Cell(Org):
-    loc: Optional[LineCol]
+    pass
 
 class Row(Org):
-    loc: Optional[LineCol]
     cells: List[Cell]
 
 class Table(Stmt):
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
-    loc: Optional[LineCol]
     rows: List[Row]
     attached: List[Org]
 
 class HashTag(Inline):
     def prefixMatch(self, prefix: List[str]) -> bool: ...
-    loc: Optional[LineCol]
     head: str
     subtags: List[HashTag]
 
 class Footnote(Inline):
-    loc: Optional[LineCol]
     tag: str
     definition: Optional[Org]
 
 class Completion(Inline):
-    loc: Optional[LineCol]
     done: int
     full: int
     isPercent: bool
 
 class Paragraph(Stmt):
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
-    loc: Optional[LineCol]
     attached: List[Org]
 
 class AnnotatedParagraphNone:
@@ -92,7 +86,6 @@ class AnnotatedParagraph(Stmt):
     def getTimestamp(self) -> AnnotatedParagraphTimestamp: ...
     def getAnnotationKind(self) -> AnnotatedParagraphAnnotationKind: ...
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
-    loc: Optional[LineCol]
     data: AnnotatedParagraphData
     attached: List[Org]
 
@@ -100,7 +93,7 @@ class Format(Org):
     pass
 
 class Center(Format):
-    loc: Optional[LineCol]
+    pass
 
 class Command(Org):
     pass
@@ -115,18 +108,16 @@ class Attached(LineCommand):
     pass
 
 class Caption(Attached):
-    loc: Optional[LineCol]
     text: Paragraph
 
 class CmdName(Attached):
-    loc: Optional[LineCol]
+    pass
 
 class CmdResults(Attached):
-    loc: Optional[LineCol]
+    pass
 
 class CommandGroup(Stmt):
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
-    loc: Optional[LineCol]
     attached: List[Org]
 
 class Block(Command):
@@ -134,29 +125,25 @@ class Block(Command):
     parameters: Optional[CmdArguments]
 
 class Tblfm(Command):
-    loc: Optional[LineCol]
+    pass
 
 class Quote(Org):
-    loc: Optional[LineCol]
+    pass
 
 class Verse(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     parameters: Optional[CmdArguments]
 
 class Example(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     parameters: Optional[CmdArguments]
 
 class CmdArguments(Org):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     positional: List[CmdArgument]
     named: Dict[str, CmdArgument]
 
 class CmdAttr(Attached):
-    loc: Optional[LineCol]
     target: str
     parameters: CmdArguments
 
@@ -164,7 +151,6 @@ class CmdArgument(Org):
     def getInt(self) -> Optional[int]: ...
     def getBool(self) -> Optional[bool]: ...
     def getString(self) -> str: ...
-    loc: Optional[LineCol]
     key: Optional[str]
     value: str
 
@@ -175,7 +161,6 @@ class ExportFormat(Enum):
 
 class Export(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     format: ExportFormat
     exporter: str
     placement: Optional[str]
@@ -184,11 +169,9 @@ class Export(Block):
 
 class AdmonitionBlock(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     parameters: Optional[CmdArguments]
 
 class Call(Org):
-    loc: Optional[LineCol]
     name: Optional[str]
 
 class CodeLinePartRaw:
@@ -260,7 +243,6 @@ class CodeExports(Enum):
 
 class Code(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     lang: Optional[str]
     switches: List[CodeSwitch]
     exports: CodeExports
@@ -307,17 +289,14 @@ class Time(Org):
     def getStatic(self) -> TimeStatic: ...
     def getDynamic(self) -> TimeDynamic: ...
     def getTimeKind(self) -> TimeTimeKind: ...
-    loc: Optional[LineCol]
     isActive: bool
     time: TimeTimeVariant
 
 class TimeRange(Org):
-    loc: Optional[LineCol]
     from_: Time
     to: Time
 
 class Macro(Org):
-    loc: Optional[LineCol]
     name: str
     arguments: List[str]
 
@@ -326,7 +305,6 @@ class SymbolParam:
     value: str
 
 class Symbol(Org):
-    loc: Optional[LineCol]
     name: str
     parameters: List[SymbolParam]
     positional: List[Org]
@@ -389,7 +367,6 @@ class SubtreeLog(Org):
     def getTag(self) -> SubtreeLogTag: ...
     def getUnknown(self) -> SubtreeLogUnknown: ...
     def getLogKind(self) -> SubtreeLogKind: ...
-    loc: Optional[LineCol]
     log: SubtreeLogLogEntry
 
 class SubtreePeriodKind(Enum):
@@ -516,7 +493,6 @@ class Subtree(Org):
     def getTimePeriods(self, kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(self, kind: str, subkind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subkind: Optional[str]) -> Optional[SubtreeProperty]: ...
-    loc: Optional[LineCol]
     level: int
     treeId: Optional[str]
     todo: Optional[str]
@@ -534,77 +510,67 @@ class LatexBody(Org):
     pass
 
 class InlineMath(LatexBody):
-    loc: Optional[LineCol]
+    pass
 
 class Leaf(Org):
     text: str
 
 class Escaped(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Newline(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Space(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Word(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class AtMention(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class RawText(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Punctuation(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Placeholder(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class BigIdent(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Markup(Org):
     pass
 
 class Bold(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Underline(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Monospace(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class MarkQuote(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Verbatim(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Italic(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Strike(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Par(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class List(Org):
     def isDescriptionList(self) -> bool: ...
-    loc: Optional[LineCol]
 
 class ListItemCheckbox(Enum):
     _None = 1
@@ -614,7 +580,6 @@ class ListItemCheckbox(Enum):
 
 class ListItem(Org):
     def isDescriptionItem(self) -> bool: ...
-    loc: Optional[LineCol]
     checkbox: ListItemCheckbox
     header: Optional[Paragraph]
 
@@ -659,7 +624,6 @@ class Link(Org):
     def getFootnote(self) -> LinkFootnote: ...
     def getFile(self) -> LinkFile: ...
     def getLinkKind(self) -> LinkKind: ...
-    loc: Optional[LineCol]
     description: Optional[Paragraph]
     data: LinkData
 
@@ -695,7 +659,6 @@ class DocumentOptions(Org):
     def getDoExport(self) -> DocumentOptionsDoExport: ...
     def getExportFixed(self) -> DocumentOptionsExportFixed: ...
     def getTocExportKind(self) -> DocumentOptionsTocExportKind: ...
-    loc: Optional[LineCol]
     brokenLinks: DocumentOptionsBrokenLinks
     initialVisibility: DocumentOptionsVisibility
     tocExport: DocumentOptionsTocExport
@@ -717,7 +680,6 @@ class DocumentOptions(Org):
 class Document(Org):
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
-    loc: Optional[LineCol]
     title: Optional[Paragraph]
     author: Optional[Paragraph]
     creator: Optional[Paragraph]
@@ -728,10 +690,9 @@ class Document(Org):
     exportFileName: Optional[str]
 
 class ParseError(Org):
-    loc: Optional[LineCol]
+    pass
 
 class FileTarget(Org):
-    loc: Optional[LineCol]
     path: str
     line: Optional[int]
     searchTarget: Optional[str]
@@ -740,7 +701,7 @@ class FileTarget(Org):
     regexp: Optional[str]
 
 class TextSeparator(Org):
-    loc: Optional[LineCol]
+    pass
 
 class IncludeExample:
     pass
@@ -767,11 +728,10 @@ class Include(Org):
     def getSrc(self) -> IncludeSrc: ...
     def getOrgDocument(self) -> IncludeOrgDocument: ...
     def getIncludeKind(self) -> IncludeKind: ...
-    loc: Optional[LineCol]
     data: IncludeData
 
 class DocumentGroup(Org):
-    loc: Optional[LineCol]
+    pass
 
 class OrgSpecName(Enum):
     Unnamed = 1

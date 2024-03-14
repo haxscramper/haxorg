@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import py_exporters.export_sqlite as sql
 from py_cli.haxorg_cli import *
 from beartype.typing import List, Tuple
@@ -51,3 +53,4 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     else:
         engine: Engine = create_engine("sqlite:///" + str(sql_db))
+        log(CAT).info("No DB update needed")
