@@ -782,17 +782,16 @@ message Subtree {
   message Period {
     enum Kind {
       Kind_Clocked_f                                                                = 0;
-      Kind_Scheduled_f                                                              = 1;
-      Kind_Titled_f                                                                 = 2;
-      Kind_Deadline_f                                                               = 3;
-      Kind_Created_f                                                                = 4;
-      Kind_Repeated_f                                                               = 5;
+      Kind_Closed_f                                                                 = 1;
+      Kind_Scheduled_f                                                              = 2;
+      Kind_Titled_f                                                                 = 3;
+      Kind_Deadline_f                                                               = 4;
+      Kind_Created_f                                                                = 5;
+      Kind_Repeated_f                                                               = 6;
     }
     Subtree.Period.Kind                            kind                             = 1;
-    oneof period_kind {
-      Time                                         time                             = 2;
-      TimeRange                                    timerange                        = 3;
-    }
+    Time                                           from                             = 2;
+    optional Time                                  to                               = 3;
     string                                         debug                            = 1000;
   }
   message Property {

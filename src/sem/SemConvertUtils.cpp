@@ -29,6 +29,9 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
         } else {
             return LineCol{adapter.val().line, adapter.val().col};
         }
+    } else if (adapter.isMono()) {
+        return std::nullopt;
+
     } else if (auto nested = adapter.get().nestedNodes(adapter.id);
                nested) {
         for (OrgId const& id : nested.value()) {

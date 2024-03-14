@@ -121,10 +121,49 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
     Vec<Period> res;
     for (const auto& it : title->subnodes) {
         if (it->getKind() == osk::Time) {
-            res.push_back(Period(it.as<Time>(), Period::Kind::Titled));
+            Period period{};
+            period.from = it.as<Time>();
+            period.kind = Period::Kind::Titled;
+            res.push_back(period);
         } else if (it->getKind() == osk::TimeRange) {
-            res.push_back(
-                Period(it.as<TimeRange>(), Period::Kind::Titled));
+            Period period{};
+            period.from = it.as<TimeRange>()->from;
+            period.to   = it.as<TimeRange>()->to;
+            period.kind = Period::Kind::Titled;
+            res.push_back(period);
+        }
+    }
+
+    if (kinds.contains(Period::Kind::Deadline) && this->deadline) {
+        Period period{};
+        period.from = this->deadline.value();
+        period.kind = Period::Kind::Deadline;
+        res.push_back(period);
+    }
+
+    if (kinds.contains(Period::Kind::Scheduled) && this->scheduled) {
+        Period period{};
+        period.from = this->scheduled.value();
+        period.kind = Period::Kind::Scheduled;
+        res.push_back(period);
+    }
+
+    if (kinds.contains(Period::Kind::Closed) && this->closed) {
+        Period period{};
+        period.from = this->closed.value();
+        period.kind = Period::Kind::Closed;
+        res.push_back(period);
+    }
+
+    if (kinds.contains(Period::Kind::Clocked)) {
+        for (auto const& log : this->logbook) {
+            if (log->getLogKind() == SubtreeLog::Kind::Clock) {
+                Period period{};
+                period.from = log->getClock().from;
+                period.to   = log->getClock().to;
+                period.kind = Period::Kind::Clocked;
+                res.push_back(period);
+            }
         }
     }
 
@@ -132,7 +171,10 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
         std::visit(
             overloaded{
                 [&](Property::Created const& cr) {
-                    res.push_back(Period(cr.time, Period::Kind::Created));
+                    Period period{};
+                    period.from = cr.time;
+                    period.kind = Period::Kind::Created;
+                    res.push_back(period);
                 },
                 [](auto const&) {}},
             prop.data);

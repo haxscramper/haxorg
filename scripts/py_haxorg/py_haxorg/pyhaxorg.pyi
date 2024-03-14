@@ -371,16 +371,17 @@ class SubtreeLog(Org):
 
 class SubtreePeriodKind(Enum):
     Clocked = 1
-    Scheduled = 2
-    Titled = 3
-    Deadline = 4
-    Created = 5
-    Repeated = 6
+    Closed = 2
+    Scheduled = 3
+    Titled = 4
+    Deadline = 5
+    Created = 6
+    Repeated = 7
 
 class SubtreePeriod:
-    def getTime(self) -> Time: ...
-    def getTimeRange(self) -> TimeRange: ...
     kind: SubtreePeriodKind
+    from_: Time
+    to: Optional[Time]
 
 class SubtreePropertySetMode(Enum):
     Override = 1

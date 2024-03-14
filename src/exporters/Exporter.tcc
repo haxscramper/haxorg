@@ -442,7 +442,8 @@ void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Subtree::Period const& object) {
   __obj_field(res, object, kind);
-  __obj_field(res, object, period);
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
 }
 
 template <typename V, typename R>

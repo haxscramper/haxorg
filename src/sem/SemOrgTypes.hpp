@@ -1118,6 +1118,8 @@ struct Subtree : public sem::Org {
     enum class Kind : short int {
       /// \brief Time period of the task execution.
       Clocked,
+      /// \brief Task marked as closed
+      Closed,
       /// \brief Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned
       Scheduled,
       /// \brief Single point or time range used in title. Single point can also be a simple time, such as `12:20`
@@ -1129,24 +1131,14 @@ struct Subtree : public sem::Org {
       /// \brief Last repeat time of the recurring tasks
       Repeated,
     };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Scheduled, Titled, Deadline, Created, Repeated)
-    Period(CR<Variant<SemId<Time>, SemId<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}
-    BOOST_DESCRIBE_CLASS(Period,
-                         (),
-                         (),
-                         (),
-                         (kind,
-                          period,
-                          (sem::SemId<sem::Time>()) getTime,
-                          (sem::SemId<sem::TimeRange>()) getTimeRange))
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Closed, Scheduled, Titled, Deadline, Created, Repeated)
+    BOOST_DESCRIBE_CLASS(Period, (), (), (), (kind, from, to))
     /// \brief Time period kind -- not associated with point/range distinction
     sem::Subtree::Period::Kind kind;
-    /// \brief Stored time point/range
-    Variant<sem::SemId<sem::Time>, sem::SemId<sem::TimeRange>> period = sem::SemId<sem::Time>::Nil();
-    /// \brief Get associated time point
-    sem::SemId<sem::Time> getTime() { return std::get<SemId<Time>>(period); }
-    /// \brief Get associated time period
-    sem::SemId<sem::TimeRange> getTimeRange() { return std::get<SemId<TimeRange>>(period); }
+    /// \brief Clock start time
+    sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
+    /// \brief Optional end of the clock
+    Opt<sem::SemId<sem::Time>> to = std::nullopt;
   };
 
   /// \brief Single subtree property

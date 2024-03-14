@@ -125,6 +125,8 @@ class RefileModified(Base):
 CAT = "haxorg.export.sqlite"
 
 
+subtree_count = 0
+
 @beartype
 def registerDocument(node: org.Org, engine: Engine, file: str):
     Base.metadata.bind = engine
@@ -244,11 +246,9 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         plaintext=ExporterUltraplain.getStr(note.desc) if note.desc else "",
                     ))
 
-            case _:
-                log(CAT).error(node.getLogKind())
-
     @beartype
     def aux(node: org.Org, parent: Optional[int] = None):
+        global subtree_count
         match node:
             case org.Subtree():
                 def getTime(kind: org.SubtreePeriodKind) -> Optional[datetime]:
@@ -257,13 +257,18 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                     for time in node.getTimePeriods(
                             org.IntSetOfSubtreePeriodKindIntVec([kind])):
 
-                        result = evalDateTime(time.getTime().getStatic().time)
+
+                        # if time.kind == org.SubtreePeriodKind.
+                        # log(CAT).info(org.treeRepr(node.title))
+                        if time.getTime().getTimeKind() == org.TimeTimeKind.Static:
+                            result = evalDateTime(time.getTime().getStatic().time)
+
 
                     return result
                 
                 session.add(
                     Subtree(
-                        id=id(node),
+                        id=subtree_count,
                         parent=parent,
                         created=getTime(org.SubtreePeriodKind.Created),
                         scheduled=getTime(org.SubtreePeriodKind.Scheduled),
@@ -271,6 +276,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         plaintext_title=ExporterUltraplain.getStr(node.title),
                         location=get_location(node),
                     ))
+                
+                subtree_count += 1
 
                 for item in node.logbook:
                     aux_subtree_log(item, id(node))

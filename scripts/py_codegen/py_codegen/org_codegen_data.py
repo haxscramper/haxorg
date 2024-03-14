@@ -1014,27 +1014,10 @@ def get_types() -> Sequence[GenTuStruct]:
                                 "Time period kind -- not associated with point/range distinction"
                             ),
                         ),
-                        k_args(GenTuField(t_var(t_id("Time"), t_id("TimeRange")),
-                                          "period",
-                                          GenTuDoc("Stored time point/range"),
-                                          value="sem::SemId<sem::Time>::Nil()"),
-                               ignore=True),
+                        id_field("Time", "from", GenTuDoc("Clock start time")),
+                        opt_field(t_id("Time"), "to",
+                                  GenTuDoc("Optional end of the clock")),
                     ],
-                    methods=[
-                        GenTuFunction(
-                            t_id("Time"),
-                            "getTime",
-                            GenTuDoc("Get associated time point"),
-                            impl="return std::get<SemId<Time>>(period);",
-                        ),
-                        GenTuFunction(
-                            t_id("TimeRange"),
-                            "getTimeRange",
-                            GenTuDoc("Get associated time period"),
-                            impl="return std::get<SemId<TimeRange>>(period);",
-                        ),
-                    ],
-                    #  ;; TODO constructors
                     nested=[
                         GenTuPass("Period() {}"),
                         GenTuEnum(
@@ -1044,6 +1027,8 @@ def get_types() -> Sequence[GenTuStruct]:
                                 GenTuEnumField(
                                     "Clocked",
                                     GenTuDoc("Time period of the task execution.")),
+                                GenTuEnumField("Closed",
+                                               GenTuDoc("Task marked as closed")),
                                 GenTuEnumField(
                                     "Scheduled",
                                     GenTuDoc(
@@ -1068,9 +1053,6 @@ def get_types() -> Sequence[GenTuStruct]:
                                     "Repeated",
                                     GenTuDoc("Last repeat time of the recurring tasks")),
                             ],
-                        ),
-                        GenTuPass(
-                            "Period(CR<Variant<SemId<Time>, SemId<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}"
                         ),
                     ],
                 ),

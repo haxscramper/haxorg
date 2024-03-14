@@ -815,29 +815,19 @@ void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::read(::orgproto::Subt
 
 void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::write(::orgproto::Subtree::Period* out, sem::Subtree::Period const& in) {
   out->set_kind(static_cast<orgproto::Subtree_Period_Kind>(in.kind));
-  switch (in.period.index()) {
-    case 0:
-      if (!std::get<0>(in.period).isNil()) {
-        proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_time(), std::get<0>(in.period));
-      }
-      break;
-    case 1:
-      if (!std::get<1>(in.period).isNil()) {
-        proto_serde<orgproto::TimeRange, sem::SemId<sem::TimeRange>>::write(out->mutable_timerange(), std::get<1>(in.period));
-      }
-      break;
+  if (!in.from.isNil()) {
+    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_from(), in.from);
+  }
+  if (in.to) {
+    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_to(), *in.to);
   }
 }
 
 void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::read(::orgproto::Subtree::Period const& out, proto_write_accessor<sem::Subtree::Period> in) {
   in.for_field(&sem::Subtree::Period::kind).get() = static_cast<sem::Subtree::Period::Kind>(out.kind());
-  switch (out.period_kind_case()) {
-    case ::orgproto::Subtree::Period::kTime:
-      proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.time(), in.for_field_variant<0>(&sem::Subtree::Period::period));
-      break;
-    case ::orgproto::Subtree::Period::kTimerange:
-      proto_serde<orgproto::TimeRange, sem::SemId<sem::TimeRange>>::read(out.timerange(), in.for_field_variant<1>(&sem::Subtree::Period::period));
-      break;
+  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.from(), in.for_field(&sem::Subtree::Period::from));
+  if (out.has_to()) {
+    proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.to(), in.for_field(&sem::Subtree::Period::to));
   }
 }
 
