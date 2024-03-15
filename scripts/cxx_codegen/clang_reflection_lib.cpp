@@ -479,8 +479,15 @@ void ReflASTVisitor::fillType(
                 add_debug(param, "Type parameter");
                 fillType(param, Arg, Loc);
             }
+        } else if (
+            const auto* STTP = dyn_cast<clang::SubstTemplateTypeParmType>(
+                In.getTypePtr())) {
+            auto param = Out->add_parameters();
+            add_debug(param, "SubstTemplateTypeParmType");
+            fillType(param, STTP->getReplacementType(), Loc);
         } else {
-            add_debug(Out, "not tst");
+            add_debug(
+                Out, std::format("typeclass={}", In->getTypeClassName()));
         }
     }
 }

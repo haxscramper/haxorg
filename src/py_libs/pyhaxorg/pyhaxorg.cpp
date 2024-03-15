@@ -37,6 +37,8 @@ PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(IntSet<sem::Subtree::Period::Kind>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Subtree>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
@@ -55,8 +57,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Subtree::Property>(m, "VecOfSubtreeProperty");
   bind_vector<sem::Subtree::Period>(m, "VecOfSubtreePeriod");
   bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind");
+  bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
+    .def_readwrite("documentId", &sem::Org::documentId, R"RAW(\brief Application specific ID of the original document)RAW")
     .def_readwrite("subnodes", &sem::Org::subnodes, R"RAW(\brief List of subnodes.
 
 Some of the derived nodes don't make the use of subnode list
@@ -1892,6 +1896,26 @@ node can have subnodes.)RAW")
                         }))
     .def("getBreakdown", static_cast<UserTimeBreakdown(UserTime::*)() const>(&UserTime::getBreakdown))
     .def("format", static_cast<std::string(UserTime::*)() const>(&UserTime::format))
+    ;
+  pybind11::class_<sem::OrgDocumentContext>(m, "OrgDocumentContext")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentContext {
+                        sem::OrgDocumentContext result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("getSubtreeById",
+         static_cast<Vec<sem::SemId<sem::Subtree>>(sem::OrgDocumentContext::*)(Str<Str> const&) const>(&sem::OrgDocumentContext::getSubtreeById),
+         pybind11::arg("id"))
+    .def("getLinkTarget",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(sem::SemId<sem::SemId> const&) const>(&sem::OrgDocumentContext::getLinkTarget),
+         pybind11::arg("link"))
+    .def("getRadioTarget",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(Str<Str> const&) const>(&sem::OrgDocumentContext::getRadioTarget),
+         pybind11::arg("name"))
+    .def("addNodes",
+         static_cast<void(sem::OrgDocumentContext::*)(sem::SemId<sem::SemId> const&)>(&sem::OrgDocumentContext::addNodes),
+         pybind11::arg("node"),
+         R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
     ;
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgExporterJson {

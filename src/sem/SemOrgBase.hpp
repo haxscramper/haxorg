@@ -125,10 +125,6 @@ struct SemId {
         return SemId<T>{std::dynamic_pointer_cast<T>(value)};
     }
 
-    /// \brief Get parent node ID for the node pointed to by this ID
-    SemId      getParent() const;
-    Vec<SemId> getParentChain(bool withSelf = false) const;
-
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
 };
