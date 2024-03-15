@@ -642,5 +642,14 @@ items:
           CLOCK: [2024-03-13 Wed 21:09:13 +04]
           :END:
 
+  - name: "Completion percent"
+    source: |
+      *** COMPLETED XAL WSDF Transition fixes [79/90]
+          CLOSED: [2023-05-08 Mon 15:14:06]
+
+
+
+
+
 
 

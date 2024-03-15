@@ -208,15 +208,15 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         engine: Engine = create_engine("sqlite:///" + str(sql_db))
         log(CAT).info("No DB update needed")
 
-    log(CAT).info("Plotting data")
-    plot = plot_timestamped_events_with_pandas(
-        engine,
-        bin_size=30,
-        # min_time=datetime(year=2017, month=1, day=1),
-        figsize=(20, 12),
-        time_tick_skip=5,
-    )
+    # log(CAT).info("Plotting data")
+    # plot = plot_timestamped_events_with_pandas(
+    #     engine,
+    #     bin_size=30,
+    #     # min_time=datetime(year=2017, month=1, day=1),
+    #     figsize=(20, 12),
+    #     time_tick_skip=5,
+    # )
 
-    if plot:
-        fig, ax = plot
-        fig.savefig(opts.outdir.joinpath("event_distribution.png"))
+    # if plot:
+    #     fig, ax = plot
+    #     fig.savefig(opts.outdir.joinpath("event_distribution.png"))

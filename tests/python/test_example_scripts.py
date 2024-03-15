@@ -1,15 +1,26 @@
 from py_cli.scratch_scripts import story_grid
 from py_cli.scratch_scripts import activity_analysis
+from py_cli.scratch_scripts import subtree_clocking
 from py_exporters import export_sqlite
-from click.testing import CliRunner
+from click.testing import CliRunner, Result
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from py_scriptutils.sqlalchemy_utils import Engine, format_db_all, open_sqlite
 from sqlalchemy.orm import sessionmaker
 from more_itertools import first_true
+import pandas as pd
+from py_scriptutils.pandas_utils import dataframe_to_rich_table
+from py_scriptutils.rich_utils import render_rich
 
 CAT = __name__
 from py_scriptutils.script_logging import log
+
+
+def check_cli(result: Result):
+    if result.exception:
+        raise result.exception
+
+    assert result.exit_code == 0, result.output
 
 
 def test_story_grid():
@@ -35,7 +46,51 @@ def test_story_grid():
             f"--outfile={res_file}",
         ])
 
-        assert result.exit_code == 0, result.output
+        check_cli(result)
+
+
+def test_subtree_clocking():
+    runner = CliRunner()
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        org_file = dir.joinpath("org_file.org")
+        csv_file = dir.joinpath("result.csv")
+
+        org_file.write_text("""
+*** Subtree :tag##sub1:tag2:
+  :LOGBOOK:
+  CLOCK: [2023-09-25 Mon 19:01:09 +04]--[2023-09-25 Mon 19:27:45 +04] =>  0:26
+  CLOCK: [2023-10-02 Mon 18:58:12 +04]--[2023-10-02 Mon 19:28:52 +04] =>  0:30
+  CLOCK: [2023-10-09 Mon 19:09:35 +04]--[2023-10-09 Mon 19:30:32 +04] =>  0:21
+  CLOCK: [2023-10-16 Mon 19:00:04 +04]--[2023-10-16 Mon 19:21:25 +04] =>  0:21
+  CLOCK: [2023-10-23 Mon 19:00:29 +04]--[2023-10-23 Mon 19:23:47 +04] =>  0:23
+  CLOCK: [2023-10-30 Mon 19:03:32 +04]--[2023-10-30 Mon 19:36:02 +04] =>  0:33
+  CLOCK: [2023-11-06 Mon 19:59:26 +04]--[2023-11-06 Mon 20:25:54 +04] =>  0:26
+  CLOCK: [2023-11-13 Mon 19:59:48 +04]--[2023-11-13 Mon 21:04:17 +04] =>  1:05
+  CLOCK: [2023-11-20 Mon 20:00:53 +04]--[2023-11-20 Mon 20:30:57 +04] =>  0:30
+  CLOCK: [2023-11-27 Mon 20:00:16 +04]--[2023-11-27 Mon 20:51:48 +04] =>  0:51
+  CLOCK: [2023-12-04 Mon 19:59:13 +04]--[2023-12-04 Mon 20:57:38 +04] =>  0:58
+  CLOCK: [2023-12-11 Mon 19:59:44 +04]--[2023-12-11 Mon 20:57:20 +04] =>  0:58
+  CLOCK: [2023-12-18 Mon 19:59:52 +04]--[2023-12-18 Mon 20:50:35 +04] =>  0:51
+  CLOCK: [2024-01-08 Mon 20:00:21 +04]--[2024-01-08 Mon 20:58:04 +04] =>  0:58
+  CLOCK: [2024-01-22 Mon 19:59:18 +04]--[2024-01-22 Mon 20:37:35 +04] =>  0:38
+  CLOCK: [2024-01-29 Mon 20:00:41 +04]--[2024-01-29 Mon 20:23:59 +04] =>  0:23
+  CLOCK: [2024-02-05 Mon 20:00:34 +04]--[2024-02-05 Mon 20:35:41 +04] =>  0:35
+  CLOCK: [2024-02-12 Mon 20:00:14 +04]--[2024-02-12 Mon 20:39:16 +04] =>  0:39
+  :END:
+""")
+
+        result = runner.invoke(subtree_clocking.cli, [
+            f"--infile={org_file}",
+            f"--outfile={csv_file}",
+        ])
+
+        check_cli(result)
+
+        df = pd.read_csv(csv_file)
+        print("\n" + render_rich(dataframe_to_rich_table(df)))
+
+        assert df["tags"][0] == "tag##sub1,tag2"
 
 
 def test_base_activity_analysis():
@@ -86,10 +141,8 @@ def test_base_activity_analysis():
             f"--outdir={dir}",
         ])
 
-        if result.exception:
-            raise result.exception
+        check_cli(result)
 
-        assert result.exit_code == 0, result.output
         assert db_file.exists()
         engine = open_sqlite(db_file)
         # print(format_db_all(engine))
