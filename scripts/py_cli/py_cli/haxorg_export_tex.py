@@ -1,14 +1,16 @@
+from beartype.typing import List
 from py_cli.haxorg_cli import *
 from plumbum import local, FG, ProcessExecutionError, colors
 import re
+import py_haxorg.pyhaxorg_wrap as org
+from py_exporters.export_utils.texoutparse import LatexLogParser
+
 
 class TexExportOptions(BaseModel, extra="forbid"):
     infile: Path
     outfile: Path
     do_compile: bool = Field(
-        description="Compile the tex document if the export was successful",
-        default=True
-    )
+        description="Compile the tex document if the export was successful", default=True)
 
     backend: str = Field(
         description="TeX backend to use",
@@ -20,7 +22,9 @@ class TexExportOptions(BaseModel, extra="forbid"):
         default=None,
         alias="export_trace_file")
 
+
 CAT = "haxorg.export.tex"
+
 
 def export_tex_options(f):
     return apply_options(f, options_from_model(TexExportOptions))
@@ -28,24 +32,56 @@ def export_tex_options(f):
 
 def run_lualatex(filename: Path):
     lualatex = local["lualatex"].with_cwd(str(filename.parent))
-    code, stdout, stderr = lualatex.run(("-interaction=nonstopmode", filename), retcode=None)
+    code, stdout, stderr = lualatex.run(("-interaction=nonstopmode", filename),
+                                        retcode=None)
 
     log_file = filename.with_suffix(".log")
 
+    parser = LatexLogParser()
     with log_file.open('r', encoding='utf-8') as f:
-        log_content = f.read()
+        parser.process(f)
 
-    error_patterns = [
-        r"^!(.*?)\nerror\)",  # TeX errors
-        r"^Emergency stop",    # Emergency stop
-        r"^No pages?.*?output",  # No output produced
-    ]
-    has_errors = any(re.search(pattern, log_content, re.MULTILINE | re.DOTALL) for pattern in error_patterns)
+    if parser.errors:
+        log(CAT).error(f"Error during compilation of {filename}")
+        for err in parser.errors:
+            log(CAT).error(str(err))
 
-    if has_errors:
-        log(CAT).error(f"Error during compilation of {filename}:\n{log_content}")
     else:
         log(CAT).info(f"Compilation of {filename} successful!")
+
+
+from py_exporters.export_tex import ExporterLatex
+from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
+
+
+class DerivedLatexExporter(ExporterLatex):
+
+    def __init__(self):
+        super().__init__(self)
+        self.paragraphCount = 0
+
+    def evalParagraph(self, node: org.Paragraph) -> BlockId:
+        self.paragraphCount += 1
+        return self.t.line([
+            self.string("\\orgLocation{{p{}:{}}} ".format(
+                self.paragraphCount,
+                node.loc.line if node.loc else -1,
+            )),
+            super().evalParagraph(node),
+        ])
+
+    def getDocumentStart(self, node: org.Document) -> List[BlockId]:
+        return [
+            *super().getDocumentStart(node),
+            self.string(r"""
+\newcommand*\sepline{%
+  \begin{center}
+    \rule[1ex]{\textwidth}{1pt}
+  \end{center}}
+
+\newcommand{\quot}[1]{\textcolor{brown}{#1}}                       
+        """)
+        ]
 
 
 @click.command("tex")
@@ -54,12 +90,11 @@ def run_lualatex(filename: Path):
 def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     pack_context(ctx, "tex", TexExportOptions, config=config, kwargs=kwargs)
     opts: TexExportOptions = ctx.obj["tex"]
-    node = parseFile(ctx.obj["root"], opts.infile)
-    from py_exporters.export_tex import ExporterLatex
-    from py_textlayout.py_textlayout_wrap import TextOptions
+    node = parseFile(ctx.obj["root"], Path(opts.infile))
 
     log(CAT).info("Exporting to latex")
-    tex = ExporterLatex()
+    tex = DerivedLatexExporter()
+    # tex.exp.enableFileTrace("/tmp/trace.txt", False)
     if opts.exportTraceFile:
         log(CAT).debug(f"Enabled export file trace to {opts.exportTraceFile}")
         tex.exp.enableFileTrace(opts.exportTraceFile, True)

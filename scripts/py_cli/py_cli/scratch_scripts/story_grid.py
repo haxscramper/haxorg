@@ -52,6 +52,7 @@ class Header():
     location: Optional[List[org.Org]] = None
     note: Optional[List[org.Org]] = None
     event: Optional[List[org.Org]] = None
+    turning_point: Optional[List[org.Org]] = None
     shift: Optional[Tuple[str, str]] = None
     tags: List[org.HashTag] = field(default_factory=list)
     time: Optional[Union[datetime, Tuple[datetime, datetime]]] = None
@@ -149,6 +150,9 @@ def rec_node(node: org.Org) -> List[Header]:
                                 match tag[0]:
                                     case "story_event":
                                         header.event = list(item.subnodes)
+
+                                    case "story_turning_point":
+                                        header.turning_point = list(item.subnodes)
 
                                     case "story_location":
                                         header.location = list(item.subnodes)

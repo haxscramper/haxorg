@@ -13,6 +13,7 @@ from py_exporters.export_ultraplain import ExporterUltraplain
 from py_scriptutils.script_logging import to_debug_json
 from py_haxorg.pyhaxorg_utils import formatDateTime
 
+
 class TexCommand(Enum):
     part = 1
     chapter = 2
@@ -28,8 +29,8 @@ class TexCommand(Enum):
 class ExporterLatex(ExporterBase):
     t: TextLayout
 
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, CRTP_derived=None):
+        super().__init__(CRTP_derived or self)
         self.t = TextLayout()
 
     def newOrg(self, node: org.Org):
@@ -213,20 +214,17 @@ class ExporterLatex(ExporterBase):
         else:
             return "book"
 
-    def evalDocument(self, node: org.Document) -> BlockId:
-        self.document = node
-        res = self.t.stack([])
+    def getDocumentStart(self, node: org.Document) -> List[BlockId]:
+        res: List[BlockId] = []
 
-        self.t.add_at(
-            res,
+        res.append(
             self.command("documentclass",
                          opts=self.getLatexClassOptions(node),
                          args=[self.getLatexClass(node)]))
 
-        self.t.add_at(res, self.command("usepackage", ["csquotes"]))
-        self.t.add_at(res,
-                      self.command("usepackage", opts=["bookmarks"], args=["hyperref"]))
-        self.t.add_at(res, self.command("usepackage", ["xcolor"]))
+        res.append(self.command("usepackage", ["csquotes"]))
+        res.append(self.command("usepackage", opts=["bookmarks"], args=["hyperref"]))
+        res.append(self.command("usepackage", ["xcolor"]))
 
         for value in TexCommand:
             cmd = self.t.line([self.string("\\newcommand")])
@@ -234,34 +232,20 @@ class ExporterLatex(ExporterBase):
             self.t.add_at(cmd, self.wrap("\\" + self.getOrgCommand(value), "{", "}"))
             self.t.add_at(cmd, self.wrap(self.string(str(arg_count)), "[", "]"))
             self.t.add_at(cmd, self.wrap(self.command(value.name, ["#1"]), "{", "}"))
-            self.t.add_at(res, cmd)
-
-        headerExports: List[org.Export] = []
-
-        def visit(_id: org.Org):
-            nonlocal headerExports
-            if _id._is(osk.Export):
-                exp: org.Export = _id._as(osk.Export)
-                if exp.placement == "header":
-                    headerExports.append(exp)
-
-        for exp in headerExports:
-            self.t.add_at(res, self.string(exp.content))
-
-        self.t.add_at(
-            res,
-            self.string("""
-\\newcommand*\\sepline{%
-  \\begin{center}
-    \\rule[1ex]{\\textwidth}{1pt}
-  \\end{center}}
-
-  \\newcommand{\\quot}[1]{\\textcolor{brown}{#1}}
-        """))
+            res.append(cmd)
 
         for it in node:
             if isinstance(it, org.Export) and it.placement == "header":
-                self.t.add_at(res, self.string(it.content))
+                res.append(self.string(it.content))
+
+        return res
+
+    def evalDocument(self, node: org.Document) -> BlockId:
+        self.document = node
+
+        res = self.t.stack([])
+        for item in self.getDocumentStart(node):
+            self.t.add_at(res, item)
 
         self.t.add_at(res, self.command("begin", [self.string("document")]))
 

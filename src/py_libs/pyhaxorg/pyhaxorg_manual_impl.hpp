@@ -736,7 +736,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::PopVisit,
                 .visitedValue = &res,
                 .visitedNode  = id,
-                .msg = ("no callback for " + fmt1(T::staticKind)));
+                .msg = ("no 'pop visit' callback for " + fmt1(T::staticKind)));
         }
     }
 

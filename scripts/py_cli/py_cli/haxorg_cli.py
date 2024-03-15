@@ -41,7 +41,7 @@ class CliRootOptions(BaseModel, extra="forbid"):
     sem_traceDir: Optional[str] = None
     sem_trace: bool = False
     config: Optional[str] = None
-    cache: Optional[str] = Field(
+    cache: Optional[Path] = Field(
         description=
         "Optional directory to cache file parsing to speed up large corpus processing",
         default=None,
