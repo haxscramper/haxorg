@@ -1904,16 +1904,16 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def("getSubtreeById",
-         static_cast<Vec<sem::SemId<sem::Subtree>>(sem::OrgDocumentContext::*)(Str<Str> const&) const>(&sem::OrgDocumentContext::getSubtreeById),
+         static_cast<Vec<sem::SemId<sem::Subtree>>(sem::OrgDocumentContext::*)(Str const&) const>(&sem::OrgDocumentContext::getSubtreeById),
          pybind11::arg("id"))
     .def("getLinkTarget",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(sem::SemId<sem::SemId> const&) const>(&sem::OrgDocumentContext::getLinkTarget),
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(sem::SemId<sem::Link> const&) const>(&sem::OrgDocumentContext::getLinkTarget),
          pybind11::arg("link"))
     .def("getRadioTarget",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(Str<Str> const&) const>(&sem::OrgDocumentContext::getRadioTarget),
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(Str const&) const>(&sem::OrgDocumentContext::getRadioTarget),
          pybind11::arg("name"))
     .def("addNodes",
-         static_cast<void(sem::OrgDocumentContext::*)(sem::SemId<sem::SemId> const&)>(&sem::OrgDocumentContext::addNodes),
+         static_cast<void(sem::OrgDocumentContext::*)(sem::SemId<sem::Org> const&)>(&sem::OrgDocumentContext::addNodes),
          pybind11::arg("node"),
          R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
     ;

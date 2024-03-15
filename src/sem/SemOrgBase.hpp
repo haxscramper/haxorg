@@ -224,12 +224,14 @@ struct [[refl]] OrgDocumentContext {
     UnorderedMap<Str, Vec<SemId<AnnotatedParagraph>>> footnoteTargets;
 
 
-    [[refl]] Vec<SemId<Subtree>> getSubtreeById(CR<Str> id) const;
-    [[refl]] Vec<SemId<Org>>     getLinkTarget(CR<SemId<Link>> link) const;
-    [[refl]] Vec<SemId<Org>>     getRadioTarget(CR<Str> name) const;
+    [[refl]] Vec<SemId<Subtree>> getSubtreeById(Str const& id) const;
+    [[refl]] Vec<SemId<Org>> getLinkTarget(SemId<Link> const& link) const;
+    [[refl]] Vec<SemId<Org>> getRadioTarget(Str const& name) const;
 
     /// \brief Recursively register all availble targets from the nodes.
-    [[refl]] void addNodes(CR<SemId<Org>> node);
+    [[refl]] void addNodes(SemId<Org> const& node);
+
+    BOOST_DESCRIBE_CLASS(OrgDocumentContext, (), (), (), ());
 };
 
 }; // namespace sem

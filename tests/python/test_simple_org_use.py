@@ -18,3 +18,17 @@ def test_word() -> None:
     # assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
     # assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
     # assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
+
+
+def test_link_resolution():
+    ctx = org.OrgContext()
+    resolve = org.OrgDocumentContext()
+    node = ctx.parseString("""
+* Subtree
+  :properties:
+  :id: id-name
+  :end:
+""")
+    
+    resolve.addNodes(node)
+    assert len(resolve.getSubtreeById("id-name")) == 1, org.treeRepr(node)

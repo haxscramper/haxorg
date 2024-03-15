@@ -108,7 +108,7 @@ void eachSubnodeRecImpl(
 } // namespace
 
 
-void OrgDocumentContext::addNodes(CR<SemId<Org>> node) {
+void OrgDocumentContext::addNodes(const sem::SemId<sem::Org>& node) {
     if (node.isNil()) { return; }
     eachSubnodeRec(node, [&](OrgArg arg) {
         if (arg->is(osk::Subtree)) {
@@ -127,7 +127,8 @@ void OrgDocumentContext::addNodes(CR<SemId<Org>> node) {
     });
 }
 
-Vec<SemId<Subtree>> OrgDocumentContext::getSubtreeById(CR<Str> id) const {
+Vec<SemId<Subtree>> OrgDocumentContext::getSubtreeById(
+    const Str& id) const {
     if (subtreeIds.contains(id)) {
         return subtreeIds.at(id);
     } else {
@@ -135,8 +136,12 @@ Vec<SemId<Subtree>> OrgDocumentContext::getSubtreeById(CR<Str> id) const {
     }
 }
 
+Vec<SemId<Org>> OrgDocumentContext::getRadioTarget(Str const& name) const {
+    return {};
+}
+
 Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
-    CR<SemId<Link>> link) const {
+    const sem::SemId<sem::Link>& link) const {
     Vec<SemId<Org>> result;
     switch (link->getLinkKind()) {
         case Link::Kind::Footnote: {
