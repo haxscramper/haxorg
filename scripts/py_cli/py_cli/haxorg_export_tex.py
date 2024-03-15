@@ -4,6 +4,7 @@ from plumbum import local, FG, ProcessExecutionError, colors
 import re
 import py_haxorg.pyhaxorg_wrap as org
 from py_exporters.export_utils.texoutparse import LatexLogParser
+import itertools
 
 
 class TexExportOptions(BaseModel, extra="forbid"):
@@ -43,8 +44,13 @@ def run_lualatex(filename: Path):
 
     if parser.errors:
         log(CAT).error(f"Error during compilation of {filename}")
-        for err in parser.errors:
-            log(CAT).error(str(err))
+        sorted_errors = itertools.groupby(
+            iterable=sorted(parser.errors, key=lambda it: it.type_),
+            key=lambda it: it.type_,
+        )
+
+        for key, group in sorted_errors:
+            log(CAT).error(repr([it for it in group][0]))
 
     else:
         log(CAT).info(f"Compilation of {filename} successful!")

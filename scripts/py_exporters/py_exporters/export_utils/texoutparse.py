@@ -1,12 +1,19 @@
 # fork of https://github.com/inakleinbottle/texoutparse/tree/master
-
 """
 Parser for LaTeX log files.
 """
 import re
 from collections import deque
+from beartype.typing import List, Literal, Optional, Tuple
+from beartype import beartype
+from dataclasses import dataclass, field
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
+@beartype
+@dataclass
 class LogFileMessage:
     """
     Helper class for storing log file messages.
@@ -15,21 +22,17 @@ class LogFileMessage:
     the item notation.
     """
 
-    def __init__(self):
-        self.info = {}
-        self.context_lines = []
-
-    def __str__(self):
-        return '\n'.join(self.context_lines)
-
-    def __getitem__(self, item):
-        try:
-            return self.info[item]
-        except KeyError:
-            raise KeyError(f'Item {item} was not found.')
-
-    def __setitem__(self, key, value):
-        self.info[key] = value
+    message: str = ""
+    type_: str = ""
+    direction: Optional[str] = None
+    direction_by: Optional[str] = None
+    lines: Optional[Tuple[str, str]] = None
+    package: Optional[str] = None
+    class_: Optional[str] = None
+    component: Optional[str] = None
+    extra: Optional[str] = None
+    context_lines: List[str] = field(default_factory=list)
+    location: Optional[int] = None
 
 
 class _LineIterWrapper:
@@ -66,6 +69,8 @@ class _LineIterWrapper:
         return rv
 
 
+@beartype
+@dataclass
 class LatexLogParser:
     """
     Parser for LaTeX Log files.
@@ -79,8 +84,11 @@ class LatexLogParser:
     error = re.compile(
         r"^(?:! ((?:La|pdf)TeX|Package|Class)(?: (\w+))? [eE]rror(?: \(([\\]?\w+)\))?: (.*)|! (.*))"
     )
+
     warning = re.compile(
-        r"^((?:La|pdf)TeX|Package|Class)(?: (\w+))? [wW]arning(?: \(([\\]?\w+)\))?: (.*)")
+        r"^((?:La|pdf)TeX|Package|Class)(?: (\w+))? [wW]arning(?: \(([\\]?\w+)\))?: (.*)",
+    )
+
     badbox = re.compile(r"^(Over|Under)full "
                         r"\\([hv])box "
                         r"\((?:badness (\d+)|(\d+(?:\.\d+)?pt) too \w+)\) (?:"
@@ -88,16 +96,18 @@ class LatexLogParser:
                         r"(?:at lines (\d+)--(\d+)|at line (\d+)))"
                         r"|(?:has occurred while [\\]output is active [\[][\]]))")
 
-    def __init__(self, context_lines=2):
-        self.warnings = []
-        self.errors = []
-        self.badboxes = []
-        self.context_lines = context_lines
+    warnings: List[LogFileMessage] = field(default_factory=list)
+    errors: List[LogFileMessage] = field(default_factory=list)
+    badboxes: List[LogFileMessage] = field(default_factory=list)
+    context_lines: int = 2
 
     def __str__(self):
         return (f"Errors: {len(self.errors)}, "
                 f"Warnings: {len(self.warnings)}, "
                 f"Badboxes: {len(self.badboxes)}")
+
+    def get_context_lines(self) -> List[str]:
+        return self.lines_iterable.get_context()
 
     def process(self, lines):
         """
@@ -108,17 +118,15 @@ class LatexLogParser:
 
         :param lines: Iterable over lines of log.
         """
-        lines_iterable = _LineIterWrapper(lines, self.context_lines)
+        self.lines_iterable = _LineIterWrapper(lines, self.context_lines)
 
         # cache the line processor for speed
         process_line = self.process_line
 
-        for i, line in enumerate(lines_iterable):
+        for i, line in enumerate(self.lines_iterable):
             if not line:
                 continue
             err = process_line(line)
-            if err is not None:
-                err.context_lines = lines_iterable.get_context()
 
     def process_line(self, line):
         """
@@ -167,18 +175,18 @@ class LatexLogParser:
         # 6 - Multi-line end line (--(d+))
         # 7 - Single line (at line (\d+))
 
-        message = LogFileMessage()
-        message['type'] = match.group(1)
-        message['direction'] = match.group(2)
-
-        # direction is either h or v
-        message['by'] = match.group(3) or match.group(4)
+        message = LogFileMessage(
+            type_=match.group(1),
+            direction=match.group(2),
+            direction_by=match.group(3) or match.group(4),
+            context_lines=self.get_context_lines(),
+        )
 
         # single or multi-line
         if match.group(7) is not None:
-            message['lines'] = (match.group(7), match.group(7))
+            message.lines = (match.group(7), match.group(7))
         else:
-            message['lines'] = (match.group(5), match.group(6))
+            message.lines = (match.group(5), match.group(6))
 
         self.badboxes.append(message)
         return message
@@ -198,24 +206,26 @@ class LatexLogParser:
         # 3 - extra
         # 4 - Warning message (.*)
 
-        message = LogFileMessage()
-        message['type'] = type_ = match.group(1)
+        message = LogFileMessage(
+            type_=match.group(1),
+            context_lines=self.get_context_lines(),
+        )
 
-        if type_ == 'Package':
+        if message.type_ == 'Package':
             # package name should be group 2
-            message['package'] = match.group(2)
-        elif type_ == 'Class':
+            message.package = match.group(2)
+        elif message.type_ == 'Class':
             # class should be group 2
-            message['class'] = match.group(2)
+            message.class_ = match.group(2)
         elif match.group(2) is not None:
             # In any other case we want to record the component responsible for
             # the warning, if one is present.
-            message['component'] = match.group(2)
+            message.component = match.group(2)
 
         if match.group(3) is not None:
-            message['extra'] = match.group(3)
+            message.extra = match.group(3)
 
-        message['message'] = match.group(4)
+        message.message = match.group(4)
         self.warnings.append(message)
         return message
 
@@ -235,25 +245,38 @@ class LatexLogParser:
         # 4 - Error message for typed error (.*)
         # 5 - TeX error message (.*)
 
-        message = LogFileMessage()
+        message = LogFileMessage(context_lines=self.get_context_lines())
         if match.group(1) is not None:
-            message['type'] = type_ = match.group(1)
+            message.type_ = match.group(1)
 
-            if type_ == 'Package':
+            if message.type_ == 'Package':
                 # Package name should be group 2
-                message['package'] = match.group(2)
-            elif type_ == 'Class':
+                message.package = match.group(2)
+            elif message.type_ == 'Class':
                 # Class name should be group 2
-                message['class'] = match.group(2)
+                message.class_ = match.group(2)
             elif match.group(2) is not None:
-                message['component'] = match.group(2)
+                message.component = match.group(2)
 
             if match.group(3) is not None:
-                message['extra'] = match.group(3)
+                message.extra = match.group(3)
 
-            message['message'] = match.group(4)
+            message.message = match.group(4)
         else:
-            message['message'] = match.group(5)
+            message.message = match.group(5)
+
+        if "Undefined control sequence" in message.message:
+            new_context = []
+            for line in message.context_lines:
+                undefined_control_line = re.match(r"l.(\d+).*?(\\\w+)", line)
+                if undefined_control_line:
+                    message.lines = int(undefined_control_line.group(1))
+                    message.type_ = f"Undefined {undefined_control_line.group(2)}"
+
+                else:
+                    new_context.append(line)
+
+            message.context_lines = new_context
 
         self.errors.append(message)
         return message
