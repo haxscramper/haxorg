@@ -1001,6 +1001,10 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             start(org::AdmonitionBlock);
             endTok = otk::CmdAdmonitionEnd;
             break;
+        case otk::CmdCommentBegin:
+            start(org::CommentBlock);
+            endTok = otk::CmdCommentEnd;
+            break;
         default: fatalError(lex, "unhandled token");
     }
 
@@ -1801,6 +1805,7 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
                 case otk::CmdExportBegin: return parseBlockExport(lex);
                 case otk::CmdVerseBegin:
                 case otk::CmdCenterBegin:
+                case otk::CmdCommentBegin:
                 case otk::CmdQuoteBegin: return parseTextWrapCommand(lex);
                 default: return parseLineCommand(lex);
             }

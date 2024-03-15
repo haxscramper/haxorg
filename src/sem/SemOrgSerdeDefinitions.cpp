@@ -235,6 +235,14 @@ void proto_serde<::orgproto::Quote, sem::Quote>::read(::orgproto::Quote const& o
   proto_serde<::orgproto::Quote, sem::Org>::read(out, in.as<sem::Org>());
 }
 
+void proto_serde<::orgproto::CommentBlock, sem::CommentBlock>::write(::orgproto::CommentBlock* out, sem::CommentBlock const& in) {
+  proto_serde<::orgproto::CommentBlock, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::CommentBlock, sem::CommentBlock>::read(::orgproto::CommentBlock const& out, proto_write_accessor<sem::CommentBlock> in) {
+  proto_serde<::orgproto::CommentBlock, sem::Org>::read(out, in.as<sem::Org>());
+}
+
 void proto_serde<::orgproto::Verse, sem::Verse>::write(::orgproto::Verse* out, sem::Verse const& in) {
   proto_serde<::orgproto::Verse, sem::Block>::write(out, in);
   proto_serde<::orgproto::Verse, sem::Org>::write(out, in);

@@ -835,6 +835,14 @@ auto Formatter::toString(SemId<Quote> id, CR<Context> ctx) -> Res {
         str("#+begin_quote"), toSubnodes(id, ctx), str("#+end_quote")));
 }
 
+auto Formatter::toString(SemId<CommentBlock> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.stack(Vec<Res>::Splice(
+        str("#+begin_comment"),
+        toSubnodes(id, ctx),
+        str("#+end_comment")));
+}
+
 auto Formatter::toString(SemId<Verse> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(

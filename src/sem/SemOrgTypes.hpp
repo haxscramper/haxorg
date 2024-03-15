@@ -437,6 +437,22 @@ struct Quote : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Quote; }
 };
 
+/// \brief Comment block
+struct CommentBlock : public sem::Org {
+  using Org::Org;
+  virtual ~CommentBlock() = default;
+  BOOST_DESCRIBE_CLASS(CommentBlock,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind,
+                        (sem::SemId<CommentBlock>(Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  static sem::SemId<CommentBlock> create(Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CommentBlock; }
+};
+
 /// \brief Verse quotation block
 struct Verse : public sem::Block {
   using Block::Block;

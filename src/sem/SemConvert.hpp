@@ -149,6 +149,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<Tblfm>              convertTblfm(In);
     SemId<Caption>            convertCaption(In);
     SemId<Quote>              convertQuote(In);
+    SemId<CommentBlock>       convertCommentBlock(In);
     SemId<Placeholder>        convertPlaceholder(In);
     SemId<LatexBody>          convertMath(In);
     SemId<Footnote>           convertFootnote(In);

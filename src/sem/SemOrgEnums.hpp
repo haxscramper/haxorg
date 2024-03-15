@@ -21,6 +21,7 @@
     __IMPL(CommandGroup) \
     __IMPL(Tblfm) \
     __IMPL(Quote) \
+    __IMPL(CommentBlock) \
     __IMPL(Verse) \
     __IMPL(Example) \
     __IMPL(CmdArguments) \
@@ -196,8 +197,10 @@ enum class OrgNodeKind : short int {
   CodeTangle,
   /// \brief `(refs:` callout in the source code
   CodeCallout,
-  /// \brief `#+quote:` block in code
+  /// \brief `#+begin_quote:` block in code
   QuoteBlock,
+  /// \brief `#+begin_comment:` block in code
+  CommentBlock,
   AdmonitionBlock,
   /// \brief '
   CenterBlock,
@@ -378,7 +381,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgSemKind : short int { StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, Verse, Example, CmdArguments, CmdAttr, CmdArgument, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, CommentBlock, Verse, Example, CmdArguments, CmdAttr, CmdArgument, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

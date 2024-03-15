@@ -53,6 +53,8 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdCenterEnd: return "CmdCenterEnd";
         case OrgTokenKind::CmdColonIdent: return "CmdColonIdent";
         case OrgTokenKind::CmdColumns: return "CmdColumns";
+        case OrgTokenKind::CmdCommentBegin: return "CmdCommentBegin";
+        case OrgTokenKind::CmdCommentEnd: return "CmdCommentEnd";
         case OrgTokenKind::CmdContentBegin: return "CmdContentBegin";
         case OrgTokenKind::CmdContentEnd: return "CmdContentEnd";
         case OrgTokenKind::CmdCreator: return "CmdCreator";
@@ -235,6 +237,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdCenterEnd") { return OrgTokenKind::CmdCenterEnd; } else
   if (value == "CmdColonIdent") { return OrgTokenKind::CmdColonIdent; } else
   if (value == "CmdColumns") { return OrgTokenKind::CmdColumns; } else
+  if (value == "CmdCommentBegin") { return OrgTokenKind::CmdCommentBegin; } else
+  if (value == "CmdCommentEnd") { return OrgTokenKind::CmdCommentEnd; } else
   if (value == "CmdContentBegin") { return OrgTokenKind::CmdContentBegin; } else
   if (value == "CmdContentEnd") { return OrgTokenKind::CmdContentEnd; } else
   if (value == "CmdCreator") { return OrgTokenKind::CmdCreator; } else

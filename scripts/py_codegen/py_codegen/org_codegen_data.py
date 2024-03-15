@@ -390,6 +390,11 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
         d_org(
+            "CommentBlock",
+            GenTuDoc("Comment block"),
+            bases=[t_org("Org")],
+        ),
+        d_org(
             "Verse",
             GenTuDoc("Verse quotation block"),
             bases=[t_org("Block")],
@@ -1797,7 +1802,8 @@ def get_enums():
                                GenTuDoc("Single tangle target in the code block")),
                 GenTuEnumField("CodeCallout",
                                GenTuDoc("`(refs:` callout in the source code")),
-                GenTuEnumField("QuoteBlock", GenTuDoc("`#+quote:` block in code")),
+                GenTuEnumField("QuoteBlock", GenTuDoc("`#+begin_quote:` block in code")),
+                GenTuEnumField("CommentBlock", GenTuDoc("`#+begin_comment:` block in code")),
                 GenTuEnumField("AdmonitionBlock", GenTuDoc("")),
                 GenTuEnumField("CenterBlock", GenTuDoc("'")),
                 GenTuEnumField("VerseBlock", GenTuDoc("")),

@@ -188,6 +188,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CodeTangle") { return OrgNodeKind::CodeTangle; } else
   if (value == "CodeCallout") { return OrgNodeKind::CodeCallout; } else
   if (value == "QuoteBlock") { return OrgNodeKind::QuoteBlock; } else
+  if (value == "CommentBlock") { return OrgNodeKind::CommentBlock; } else
   if (value == "AdmonitionBlock") { return OrgNodeKind::AdmonitionBlock; } else
   if (value == "CenterBlock") { return OrgNodeKind::CenterBlock; } else
   if (value == "VerseBlock") { return OrgNodeKind::VerseBlock; } else
@@ -328,6 +329,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CodeTangle: return "CodeTangle";
     case OrgNodeKind::CodeCallout: return "CodeCallout";
     case OrgNodeKind::QuoteBlock: return "QuoteBlock";
+    case OrgNodeKind::CommentBlock: return "CommentBlock";
     case OrgNodeKind::AdmonitionBlock: return "AdmonitionBlock";
     case OrgNodeKind::CenterBlock: return "CenterBlock";
     case OrgNodeKind::VerseBlock: return "VerseBlock";
@@ -431,6 +433,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CommandGroup") { return OrgSemKind::CommandGroup; } else
   if (value == "Tblfm") { return OrgSemKind::Tblfm; } else
   if (value == "Quote") { return OrgSemKind::Quote; } else
+  if (value == "CommentBlock") { return OrgSemKind::CommentBlock; } else
   if (value == "Verse") { return OrgSemKind::Verse; } else
   if (value == "Example") { return OrgSemKind::Example; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
@@ -495,6 +498,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CommandGroup: return "CommandGroup";
     case OrgSemKind::Tblfm: return "Tblfm";
     case OrgSemKind::Quote: return "Quote";
+    case OrgSemKind::CommentBlock: return "CommentBlock";
     case OrgSemKind::Verse: return "Verse";
     case OrgSemKind::Example: return "Example";
     case OrgSemKind::CmdArguments: return "CmdArguments";

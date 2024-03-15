@@ -320,6 +320,13 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     ;
+  pybind11::class_<sem::CommentBlock, sem::SemId<sem::CommentBlock>, sem::Org>(m, "CommentBlock")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CommentBlock {
+                        sem::CommentBlock result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    ;
   pybind11::class_<sem::Verse, sem::SemId<sem::Verse>, sem::Block>(m, "Verse")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Verse {
                         sem::Verse result{};
@@ -1685,7 +1692,8 @@ node can have subnodes.)RAW")
     .value("CodeText", OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")
     .value("CodeTangle", OrgNodeKind::CodeTangle, R"RAW(Single tangle target in the code block)RAW")
     .value("CodeCallout", OrgNodeKind::CodeCallout, R"RAW(`(refs:` callout in the source code)RAW")
-    .value("QuoteBlock", OrgNodeKind::QuoteBlock, R"RAW(`#+quote:` block in code)RAW")
+    .value("QuoteBlock", OrgNodeKind::QuoteBlock, R"RAW(`#+begin_quote:` block in code)RAW")
+    .value("CommentBlock", OrgNodeKind::CommentBlock, R"RAW(`#+begin_comment:` block in code)RAW")
     .value("AdmonitionBlock", OrgNodeKind::AdmonitionBlock)
     .value("CenterBlock", OrgNodeKind::CenterBlock, R"RAW(')RAW")
     .value("VerseBlock", OrgNodeKind::VerseBlock)
@@ -1825,6 +1833,7 @@ node can have subnodes.)RAW")
     .value("CommandGroup", OrgSemKind::CommandGroup)
     .value("Tblfm", OrgSemKind::Tblfm)
     .value("Quote", OrgSemKind::Quote)
+    .value("CommentBlock", OrgSemKind::CommentBlock)
     .value("Verse", OrgSemKind::Verse)
     .value("Example", OrgSemKind::Example)
     .value("CmdArguments", OrgSemKind::CmdArguments)

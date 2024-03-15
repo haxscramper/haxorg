@@ -990,6 +990,15 @@ SemId<Quote> OrgConverter::convertQuote(__args) {
     return quote;
 }
 
+SemId<CommentBlock> OrgConverter::convertCommentBlock(__args) {
+    SemId<CommentBlock> result = Sem<CommentBlock>(a);
+    for (const auto& sub : many(a, N::Body)) {
+        auto aux = convert(sub);
+        result->push_back(aux);
+    }
+    return result;
+}
+
 SemId<LatexBody> OrgConverter::convertMath(__args) {
     if (a.kind() == org::InlineMath) {
         return Sem<InlineMath>(a).as<LatexBody>();
@@ -1175,6 +1184,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::DynamicActiveTime:
         case org::DynamicInactiveTime: return convertTime(a);
         case org::Quote: return convertMarkQuote(a);
+        case org::CommentBlock: return convertCommentBlock(a);
         case org::QuoteBlock: return convertQuote(a);
         case org::Colon: return convertPunctuation(a);
         case org::CommandInclude: return convertInclude(a);

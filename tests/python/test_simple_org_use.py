@@ -12,12 +12,12 @@ from py_scriptutils.script_logging import log
 def test_word() -> None:
     ctx = org.OrgContext()
     assert org.Document
-    ctx.parseString("*Text*")
+    node = ctx.parseString("*Text*")
 
-    # assert ctx.getNode().getKind() == org.OrgSemKind.Document
-    # assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
-    # assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
-    # assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
+    assert node.getKind() == org.OrgSemKind.Document
+    assert node[0].getKind() == org.OrgSemKind.Paragraph
+    assert node[0][0].getKind() == org.OrgSemKind.Bold
+    assert node[0][0][0].getKind() == org.OrgSemKind.Word
 
 
 def test_link_resolution():
@@ -32,3 +32,4 @@ def test_link_resolution():
     
     resolve.addNodes(node)
     assert len(resolve.getSubtreeById("id-name")) == 1, org.treeRepr(node)
+ 

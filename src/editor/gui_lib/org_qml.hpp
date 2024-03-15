@@ -213,6 +213,13 @@ struct Quote : public Org {
   Quote(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
+struct CommentBlock : public Org {
+  Q_GADGET
+  public:
+  CommentBlock() = default;
+  CommentBlock(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
 struct Verse : public Block {
   Q_GADGET
   public:
@@ -694,6 +701,7 @@ Q_DECLARE_METATYPE(org_qml::CommandGroup)
 Q_DECLARE_METATYPE(org_qml::Block)
 Q_DECLARE_METATYPE(org_qml::Tblfm)
 Q_DECLARE_METATYPE(org_qml::Quote)
+Q_DECLARE_METATYPE(org_qml::CommentBlock)
 Q_DECLARE_METATYPE(org_qml::Verse)
 Q_DECLARE_METATYPE(org_qml::Example)
 Q_DECLARE_METATYPE(org_qml::CmdArguments)
