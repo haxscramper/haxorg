@@ -9,6 +9,8 @@ from py_textlayout.py_textlayout_wrap import TextOptions, BlockId
 from py_haxorg.utils import toTree
 from py_scriptutils.script_logging import log
 
+osk = org.OrgSemKind
+
 def test_word() -> None:
     ctx = org.OrgContext()
     assert org.Document
@@ -33,3 +35,10 @@ def test_link_resolution():
     resolve.addNodes(node)
     assert len(resolve.getSubtreeById("id-name")) == 1, org.treeRepr(node)
  
+
+def test_subnode_visitor():
+    ctx = org.OrgContext()
+    node = ctx.parseString("Word")
+    kinds = []
+    ctx.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
+    assert kinds == [osk.Document, osk.Paragraph, osk.Word], kinds
