@@ -69,9 +69,9 @@ class DerivedLatexExporter(ExporterLatex):
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
         self.paragraphCount += 1
         return self.t.line([
-            self.string("\\orgLocation{{p{}:{}}} ".format(
+            self.string("\\orgLocation{{p{}{}}} ".format(
                 self.paragraphCount,
-                node.loc.line if node.loc else -1,
+                ":" + str(node.loc.line) if node.loc else "",
             )),
             super().evalParagraph(node),
         ])
@@ -85,7 +85,8 @@ class DerivedLatexExporter(ExporterLatex):
     \rule[1ex]{\textwidth}{1pt}
   \end{center}}
 
-\newcommand{\quot}[1]{\textcolor{brown}{#1}}                       
+\newcommand{\quot}[1]{\textcolor{brown}{#1}}
+\newcommand{\orgLocation}[1]{\fbox{\textbf{#1}}}                        
         """)
         ]
 
