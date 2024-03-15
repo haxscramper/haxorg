@@ -1,6 +1,7 @@
 from py_cli.scratch_scripts import story_grid
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
+from py_cli.scratch_scripts import node_clouds
 from py_exporters import export_sqlite
 from click.testing import CliRunner, Result
 from tempfile import TemporaryDirectory
@@ -49,6 +50,38 @@ def test_story_grid():
         check_cli(result)
 
 
+def test_node_clouds():
+    runner = CliRunner()
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        org_file = dir.joinpath("org_file.org")
+        csv_file = dir.joinpath("result.csv")
+
+        org_file.write_text("""
+Word1 Word1 Word1
+#tag1 #tag1 #tag1##sub1 #tag1##sub2 #tag1##[sub1,sub2]                            
+
+""")
+        result = runner.invoke(node_clouds.cli, [
+            f"--infile={org_file}",
+            f"--outfile={csv_file}",
+        ])
+
+        check_cli(result)
+
+        df = pd.read_csv(csv_file)
+        mapping = {key: group for key, group in df.groupby("kind")}
+        words = mapping["word"]
+        assert len(words) == 1
+        assert list(words["text"]) == ["Word1"]
+        assert list(words["count"]) == [3]
+
+        tags = mapping["tag"].sort_values(by="text")
+        assert len(tags) == 3
+        assert list(tags["text"]) == ["tag1", "tag1##sub1", "tag1##sub2"]
+        assert list(tags["count"]) == [2, 2, 2]
+
+
 def test_subtree_clocking():
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
@@ -88,8 +121,6 @@ def test_subtree_clocking():
         check_cli(result)
 
         df = pd.read_csv(csv_file)
-        print("\n" + render_rich(dataframe_to_rich_table(df)))
-
         assert df["tags"][0] == "tag##sub1,tag2"
 
 
