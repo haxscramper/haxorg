@@ -106,27 +106,16 @@ class ExporterLatex(ExporterBase):
 
     def evalLink(self, node: org.Link) -> BlockId:
         match node.getLinkKind():
-        # case org.LinkKind.Id:
-        #     return
-        # target = node.resolve()
-        # if target:
-        #     res = self.t.line([
-        #         self.command("ref", [
-        #             self.string((self.getRefKind(target) or "") +
-        #                         target.getReadableId())
-        #         ])
-        #     ])
-        #
-        #     if node.description:
-        #         self.t.add_at(res, self.exp.eval(node.description))
-        #
-        #     return res
-        #
-        # else:
-        #     return self.string("")2
-
             case org.LinkKind.Raw:
                 return self.string(self.escape(node.getRaw().text))
+
+            case org.LinkKind.Person:
+                return self.eval(node.description) if node.description else self.string(
+                    node.getPerson().name)
+
+            case org.LinkKind.Id:
+                return self.eval(node.description) if node.description else self.string(
+                    node.getId().text)
 
             case _:
                 return self.string(f"TODO LINK KIND {node.getLinkKind()}")
