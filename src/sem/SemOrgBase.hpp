@@ -48,8 +48,13 @@ struct SemId;
 
 #define __id(I) , SemId<I>
 /// \brief Global variant of all sem node derivations
-using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+using OrgIdVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
+
+#define __ptr(I) , I*
+/// \brief Global variant of all sem node derivations
+using OrgPtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__ptr)>;
+#undef __ptr
 
 struct SemValue {
     int         getInt() const;
@@ -126,12 +131,6 @@ struct SemId {
 
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
-
-
-    using SubnodeVisitor = Func<void(SemId)>;
-    /// \brief Recursively visit each subnode in the tree and apply the
-    /// provided callback
-    void eachSubnodeRec(SubnodeVisitor cb);
 };
 
 using OrgArg = sem::SemId<sem::Org> const&;
@@ -146,7 +145,8 @@ struct remove_sem_org<SemId<T>> {
     using type = remove_smart_pointer<T>::type;
 };
 
-sem::OrgVariant asVariant(SemId<Org> in);
+sem::OrgIdVariant  asVariant(SemId<Org> in);
+sem::OrgPtrVariant asVariant(Org* in);
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
@@ -170,6 +170,8 @@ struct [[refl]] Org {
     [[refl]] bool isGenerated() const { return original.isNil(); }
     /// \brief Location of the node in the original source file
     [[refl]] Opt<LineCol> loc = std::nullopt;
+    /// \brief Application specific ID of the original document
+    [[refl]] Opt<int> documentId = std::nullopt;
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list
@@ -179,6 +181,16 @@ struct [[refl]] Org {
     [[refl]] Vec<SemId<Org>> subnodes;
 
     [[refl]] void push_back(SemId<Org> sub);
+
+    template <typename T>
+    T* dyn_cast() {
+        return dynamic_cast<T*>(this);
+    }
+
+    template <typename T>
+    T const* dyn_cast() const {
+        return dynamic_cast<T*>(this);
+    }
 
     /// \brief Get subnode at specified index
     [[refl]] inline SemId<Org> at(int idx) const {
@@ -193,6 +205,36 @@ struct [[refl]] Org {
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
 
+
+using SubnodeVisitor = Func<void(SemId<Org>)>;
+/// \brief Recursively visit each subnode in the tree and apply the
+/// provided callback
+void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
+
+struct Subtree;
+struct Link;
+
+/// \brief Statically computed context for the link, footnote and subtree
+/// ID resolution.
+///
+/// \note All possible link targets are stored and returned as sequences,
+/// so the decision about reaction to the duplicate links can be done by
+/// the callsite. Order of elements in the returned links depends on the
+/// order of node registration.
+struct [[refl]] OrgDocumentContext {
+    UnorderedMap<Str, Vec<SemId<Subtree>>>            subtreeIds;
+    UnorderedMap<Str, Vec<SemId<Subtree>>>            subtreeCustomIds;
+    UnorderedMap<Str, Vec<SemId<Org>>>                radioTargets;
+    UnorderedMap<Str, Vec<SemId<AnnotatedParagraph>>> footnoteTargets;
+
+
+    [[refl]] Vec<SemId<Subtree>> getSubtreeById(CR<Str> id) const;
+    [[refl]] Vec<SemId<Org>>     getLinkTarget(CR<SemId<Link>> link) const;
+    [[refl]] Vec<SemId<Org>>     getRadioTarget(CR<Str> name) const;
+
+    /// \brief Recursively register all availble targets from the nodes.
+    [[refl]] void addNodes(CR<SemId<Org>> node);
+};
 
 }; // namespace sem
 

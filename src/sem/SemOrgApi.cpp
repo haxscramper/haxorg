@@ -2,6 +2,7 @@
 #include <boost/mp11.hpp>
 #include <concepts>
 #include <format>
+#include <exporters/exportertree.hpp>
 
 #define _define_static(__Kind)                                            \
     const OrgSemKind sem::__Kind::staticKind = OrgSemKind::__Kind;
@@ -26,7 +27,7 @@ struct value_domain<sem::Subtree::Period::Kind>
           sem::Subtree::Period::Kind::Repeated> {};
 
 namespace sem {
-sem::OrgVariant asVariant(SemId<Org> in) {
+sem::OrgIdVariant asVariant(SemId<Org> in) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: return in.as<__Kind>();
 
@@ -34,44 +35,51 @@ sem::OrgVariant asVariant(SemId<Org> in) {
 
 #undef __case
 }
+
+sem::OrgPtrVariant asVariant(Org* in) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: return dynamic_cast<__Kind*>(in);
+    switch (in->getKind()) { EACH_SEM_ORG_KIND(__case) }
+#undef __case
+}
+
 } // namespace sem
 
 Org::Org() : subnodes({}) {}
-
 Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
-
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 namespace {
 void eachSubnodeRecImpl(
-    CR<SemId<Org>::SubnodeVisitor> visitor,
-    SemId<Org>                     org,
-    bool                           originalBase);
+    CR<sem::SubnodeVisitor> visitor,
+    SemId<Org>              org,
+    bool                    originalBase);
 
 template <sem::NotOrg T>
-void visitField(CR<SemId<Org>::SubnodeVisitor>, CR<T>) {}
+void visitField(CR<sem::SubnodeVisitor>, CR<T>) {}
 
 
-void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, SemId<Org> node) {
+void visitField(CR<sem::SubnodeVisitor> visitor, SemId<Org> node) {
     if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
 }
 
 template <typename T>
-void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, CVec<T> value) {
+void visitField(CR<sem::SubnodeVisitor> visitor, CVec<T> value) {
     for (const auto& it : value) { visitField(visitor, it); }
 }
 
 
 template <typename T>
-void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, CR<Opt<T>> value) {
+void visitField(CR<sem::SubnodeVisitor> visitor, CR<Opt<T>> value) {
     if (value) { visitField(visitor, *value); }
 }
 
 template <typename T>
 void recVisitOrgNodesImpl(
-    CR<SemId<Org>::SubnodeVisitor> visitor,
-    sem::SemId<T>                  tree,
-    bool                           originalBase) {
+    CR<sem::SubnodeVisitor> visitor,
+    SemId<T>                tree,
+    bool                    originalBase) {
+    if (tree.isNil()) { return; }
     if (originalBase) { visitor(tree); }
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
@@ -82,15 +90,15 @@ void recVisitOrgNodesImpl(
     });
 
     mp_for_each<Md>([&](auto const& field) {
-        visitField(
-            visitor, (*static_cast<T const*>(tree.get())).*field.pointer);
+        visitField(visitor, tree.get()->*field.pointer);
     });
 }
 
+
 void eachSubnodeRecImpl(
-    CR<SemId<Org>::SubnodeVisitor> visitor,
-    SemId<Org>                     org,
-    bool                           originalBase) {
+    CR<sem::SubnodeVisitor> visitor,
+    SemId<Org>              org,
+    bool                    originalBase) {
     std::visit(
         [&](const auto& node) {
             recVisitOrgNodesImpl(visitor, node, originalBase);
@@ -99,9 +107,65 @@ void eachSubnodeRecImpl(
 }
 } // namespace
 
-template <>
-void SemId<Org>::eachSubnodeRec(SubnodeVisitor cb) {
-    eachSubnodeRecImpl(cb, *this, true);
+
+void OrgDocumentContext::addNodes(CR<SemId<Org>> node) {
+    if (node.isNil()) { return; }
+    eachSubnodeRec(node, [&](OrgArg arg) {
+        if (arg->is(osk::Subtree)) {
+            SemId<Subtree> tree = arg.as<Subtree>();
+            if (tree->treeId) {
+                this->subtreeIds[tree->treeId.value()].push_back(tree);
+            }
+        } else if (arg->is(osk::AnnotatedParagraph)) {
+            SemId<AnnotatedParagraph> par = arg.as<AnnotatedParagraph>();
+            if (par->getAnnotationKind()
+                == AnnotatedParagraph::AnnotationKind::Footnote) {
+                this->footnoteTargets[par->getFootnote().name].push_back(
+                    par);
+            }
+        }
+    });
+}
+
+Vec<SemId<Subtree>> OrgDocumentContext::getSubtreeById(CR<Str> id) const {
+    if (subtreeIds.contains(id)) {
+        return subtreeIds.at(id);
+    } else {
+        return {};
+    }
+}
+
+Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
+    CR<SemId<Link>> link) const {
+    Vec<SemId<Org>> result;
+    switch (link->getLinkKind()) {
+        case Link::Kind::Footnote: {
+            CR<Str> target = link->getFootnote().target;
+            if (footnoteTargets.contains(target)) {
+                for (auto const& it : footnoteTargets.at(target)) {
+                    result.push_back(it.asOrg());
+                }
+            }
+        }
+
+        case Link::Kind::Id: {
+            CR<Str> target = link->getId().text;
+            if (subtreeIds.contains(target)) {
+                for (auto const& it : subtreeIds.at(target)) {
+                    result.push_back(it.asOrg());
+                }
+            }
+        }
+
+        default: {
+        }
+    }
+
+    return result;
+}
+
+void sem::eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb) {
+    eachSubnodeRecImpl(cb, id, true);
 }
 
 Opt<SemId<CmdArgument>> CmdArguments::getParameter(CR<Str> param) const {

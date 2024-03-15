@@ -172,18 +172,6 @@ sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index) {
     return id->at(index);
 }
 
-sem::OrgVariant castAs(sem::SemId<sem::Org> id) {
-    switch (id->getKind()) {
-
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        return id.as<sem::__Kind>();                                      \
-    }
-        EACH_SEM_ORG_KIND(_case)
-#undef _case
-    }
-}
-
 void init_py_manual_api(pybind11::module& m) {
     PyDateTime_IMPORT;
     assert(PyDateTimeAPI);

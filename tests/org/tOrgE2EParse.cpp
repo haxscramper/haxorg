@@ -370,6 +370,24 @@ TEST(TestFiles, AllNodeCoverage) {
     }
 }
 
+TEST(OrgApi, LinkResolution) {
+    MockFull    p{false, false};
+    std::string source = R"(
+* Subtree
+  :properties:
+  :id: id-name
+  :end:
+)";
+
+    p.run(source);
+    sem::OrgDocumentContext ctx;
+    auto                    node = p.toNode();
+    ctx.addNodes(node);
+
+    auto subtree_result = ctx.getSubtreeById("id-name");
+    EXPECT_EQ(subtree_result.size(), 1);
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

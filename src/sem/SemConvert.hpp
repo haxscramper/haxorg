@@ -104,8 +104,12 @@ struct OrgConverter : public OperationsTracer {
 
   public:
     UPtr<OrgSpec> spec;
+    Opt<int>      documentId = std::nullopt;
 
-    OrgConverter() { spec = getOrgSpec(); }
+    OrgConverter(Opt<int> documentId = std::nullopt)
+        : documentId(documentId) {
+        spec = getOrgSpec();
+    }
 
     OrgAdapter one(OrgAdapter node, OrgSpecName name) {
         return spec->getSingleSubnode(node, name);
@@ -183,8 +187,9 @@ struct OrgConverter : public OperationsTracer {
 
     template <typename T>
     SemId<T> Sem(In adapter) {
-        SemId<T> res = SemId<T>::New(adapter);
-        res->loc     = getLoc(adapter);
+        SemId<T> res    = SemId<T>::New(adapter);
+        res->loc        = getLoc(adapter);
+        res->documentId = documentId;
         return res;
     }
 

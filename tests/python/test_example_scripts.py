@@ -133,29 +133,3 @@ def test_base_activity_analysis():
             ),
             dbg,
         )
-
-
-def test_activity_notes_collection():
-    dir = Path("~/defaultdirs/notes/personal/indexed").expanduser()
-    if not dir.exists():
-        return
-
-    db_file = Path("/tmp/db.sqlite")
-
-    runner = CliRunner()
-    opts = [
-        *[f"--infile={it}" for it in dir.glob("*.org")],
-        f"--db_path={db_file}",
-        # "--cachedir=/tmp/activity_cache",
-        "--outdir=/tmp/activity_analysis",
-        # "--force_db=True",
-    ]
-
-    result = runner.invoke(activity_analysis.cli, opts)
-
-    if result.exception:
-        raise result.exception
-    
-    assert result.exit_code == 0, result.output
-
-    engine = open_sqlite(db_file)

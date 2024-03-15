@@ -24,6 +24,7 @@ void ExporterTree::visitField(
     const char*                name,
     CVec<sem::SemId<sem::Org>> org) {
     if (skipAsEmpty(org)) { return; }
+    if (skipAsTooNested()) { return; }
 
     __scope();
     indent();
@@ -127,11 +128,13 @@ void ExporterTree::visitField(
 
 template <typename T>
 void ExporterTree::visit(int& arg, sem::SemId<T> org) {
+    if (skipAsTooNested()) { return; }
     visit(arg, org.asOrg());
 }
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<T> opt) {
+    if (skipAsTooNested()) { return; }
     __scope();
     indent();
     if constexpr (std::is_enum<T>::value) {
@@ -146,7 +149,6 @@ void ExporterTree::visit(int& arg, CR<T> opt) {
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<Opt<T>> opt) {
-    // __scope();
     if (opt) {
         visit(arg, *opt);
     } else {
@@ -157,6 +159,7 @@ void ExporterTree::visit(int& arg, CR<Opt<T>> opt) {
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
+    if (skipAsTooNested()) { return; }
     __scope();
     if (value.empty()) {
         indent();
