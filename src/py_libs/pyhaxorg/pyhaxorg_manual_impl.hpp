@@ -239,12 +239,13 @@ struct [[refl]] OrgContext {
 
     [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
 
-    [[refl]] void eachSubnodeRec(
-        sem::SemId<sem::Org> node,
-        py::function         callback);
 
     BOOST_DESCRIBE_CLASS(OrgContext, (), (), (), ());
 };
+
+[[refl]] void eachSubnodeRec(
+    sem::SemId<sem::Org> node,
+    py::function         callback);
 
 
 enum class [[refl]] LeafFieldType

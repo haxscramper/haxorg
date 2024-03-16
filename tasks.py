@@ -633,12 +633,16 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 
 
 @org_task(pre=[cmake_utils, python_protobuf_files])
-def update_py_haxorg_reflection(ctx: Context, force: bool = False):
+def update_py_haxorg_reflection(
+    ctx: Context,
+    force: bool = False,
+    verbose: bool = False,
+):
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = get_script_root("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
+    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
 
     with FileOperation.InTmp(
             input=[
@@ -650,24 +654,30 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
         if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
-            try:
-                run_command(
-                    ctx,
-                    "build/utils/reflection_tool",
-                    [
-                        "-p",
-                        compile_commands,
-                        "--compilation-database",
-                        compile_commands,
-                        "--toolchain-include",
-                        include_dir,
-                        "--out",
-                        out_file,
-                        src_file,
-                    ],
-                )
-            except ProcessExecutionError as e:
-                log(CAT).error("Reflection tool failed: %s", e)
+            exitcode, stdout, stderr = run_command(
+                ctx,
+                "build/utils/reflection_tool",
+                [
+                    "-p",
+                    compile_commands,
+                    "--compilation-database",
+                    compile_commands,
+                    "--toolchain-include",
+                    include_dir,
+                    *(["--verbose"] if verbose else []),
+                    "--out",
+                    out_file,
+                    src_file,
+                ],
+                capture=True,
+                allow_fail=True,
+            )
+
+            Path("/tmp/debug_reflection_stdout.txt").write_text(stdout)
+            Path("/tmp/debug_reflection_stderr.txt").write_text(stderr)
+
+            if exitcode != 0:
+                log(CAT).error("Reflection tool failed: %s")
                 raise
 
             log(CAT).info("Updated reflection")

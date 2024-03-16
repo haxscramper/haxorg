@@ -879,6 +879,8 @@ bool ReflASTVisitor::VisitFunctionDecl(c::FunctionDecl* Decl) {
             fillParmVarDecl(func->add_arguments(), Parm);
         }
 
+        add_debug(func, "visit function");
+
         fillType(
             func->mutable_resultty(),
             Decl->getReturnType(),

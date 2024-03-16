@@ -7,6 +7,7 @@ pybind11_add_module(
     "${BASE}/src/py_libs/py_type_casters.hpp"
     "${BASE}/src/py_libs/py_type_casters.cpp"
     "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
+    "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
     "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_impl.hpp"
 )
 

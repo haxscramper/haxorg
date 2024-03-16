@@ -314,9 +314,7 @@ std::string OrgContext::formatToString(sem::SemId<sem::Org> arg) {
     return sem::Formatter::format(arg);
 }
 
-void OrgContext::eachSubnodeRec(
-    sem::SemId<sem::Org> node,
-    py::function         callback) {
+void eachSubnodeRec(sem::SemId<sem::Org> node, py::function callback) {
     sem::eachSubnodeRec(
         node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
 }
