@@ -40,7 +40,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
             for tag in getFlatTags(node):
                 count[("tag", "##".join(tag))] += 1
 
-    org_ctx = org.OrgContext()
     for file in opts.infile:
         node = parseCachedFile(file, opts.cachedir)
         org.eachSubnodeRec(node, visit)

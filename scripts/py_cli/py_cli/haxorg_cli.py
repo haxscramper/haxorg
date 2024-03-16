@@ -72,25 +72,24 @@ def get_run(ctx: click.Context) -> CliRunContext:
 @beartype
 def parseCachedFile(file: Path, cache: Optional[Path]) -> org.Org:
     cache_file = None if not cache else Path(cache).joinpath(file.name)
-    ctx = org.OrgContext()
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
             if op.should_run():
                 log("haxorg.cache").info(f"{file} parsing")
-                node = ctx.parseFile(str(file.resolve()))
+                node = org.parseFile(str(file.resolve()))
                 if not cache_file.parent.exists():
                     cache_file.parent.mkdir()
 
-                ctx.saveProtobuf(node, str(cache_file))
+                org.exportToProtobufFile(node, str(cache_file))
 
             else:
                 log("haxorg.cache").info(f"{file} read from cache {cache_file}")
-                node = ctx.parseProtobuf(str(cache_file))
+                node = org.readProtobufFile(str(cache_file))
 
             return node
 
     else:
-        return ctx.parseFile(str(file.resolve()))
+        return org.parseFile(str(file.resolve()), org.OrgParseParameters())
 
 @beartype
 def parseFile(root: CliRootOptions, file: Path) -> org.Org:

@@ -18,41 +18,28 @@
 
 template class Exporter<ExporterPython, py::object>;
 
-OrgExporterJson::OrgExporterJson() {
-    impl = std::make_shared<ExporterJson>();
+std::string exportToJsonString(sem::SemId<sem::Org> const& node) {
+    return to_string(ExporterJson{}.evalTop(node));
 }
 
-std::string OrgExporterJson::exportToString() { return to_string(result); }
-
-void OrgExporterJson::exportToFile(std::string path) {
-    writeFile(fs::path{path}, exportToString());
+void exportToJsonFile(sem::SemId<sem::Org> const& node, std::string path) {
+    writeFile(fs::path{path}, exportToJsonString(node));
 }
 
-void OrgExporterJson::visitNode(sem::SemId<sem::Org> node) {
-    result = impl->evalTop(node);
-}
-
-OrgExporterYaml::OrgExporterYaml() {
-    impl = std::make_shared<ExporterYaml>();
-}
-
-std::string OrgExporterYaml::exportToString() {
+std::string exportToYamlString(sem::SemId<sem::Org> const& node) {
     std::stringstream os;
-    os << result;
+    os << ExporterYaml{}.evalTop(node);
     return os.str();
 }
 
-void OrgExporterYaml::exportToFile(std::string path) {
-    writeFile(fs::path{path}, exportToString());
+void exportToYamlFile(sem::SemId<sem::Org> const& node, std::string path) {
+    writeFile(fs::path{path}, exportToYamlString(node));
 }
 
-void OrgExporterYaml::visitNode(sem::SemId<sem::Org> node) {
-    result = impl->evalTop(node);
-}
 
-std::string OrgExporterTree::toString(
-    sem::SemId<sem::Org> node,
-    ExporterTreeOpts     opts) {
+std::string exportToTreeString(
+    sem::SemId<sem::Org> const& node,
+    OrgTreeExportOpts const&    opts) {
     ColStream    os{};
     ExporterTree tree{os};
 
@@ -66,18 +53,11 @@ std::string OrgExporterTree::toString(
     return result;
 }
 
-void OrgExporterTree::toFile(
-    sem::SemId<sem::Org> node,
-    std::string          path,
-    ExporterTreeOpts     opts) {
-    std::ofstream file{path};
-    stream(file, node, opts);
-}
+void exportToTreeFile(
+    sem::SemId<sem::Org> const& node,
+    std::string                 path,
+    OrgTreeExportOpts const&    opts) {
 
-void OrgExporterTree::stream(
-    std::ostream&        stream,
-    sem::SemId<sem::Org> node,
-    ExporterTreeOpts     opts) {
     ColStream    os{};
     ExporterTree tree{os};
 
@@ -87,43 +67,54 @@ void OrgExporterTree::stream(
     tree.conf.startLevel      = opts.startLevel;
     tree.evalTop(node);
 
-    stream << os.toString(opts.withColor);
+    std::ofstream file{path};
+    file << os.toString(opts.withColor);
 }
 
-sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {
-    return parseString(readFile(fs::path{file}));
+sem::SemId<sem::Document> parseFile(
+    std::string               file,
+    const OrgParseParameters& opts) {
+    return parseStringOpts(readFile(fs::path{file}), opts);
 }
 
-sem::SemId<sem::Document> OrgContext::parseString(const std::string text) {
+sem::SemId<sem::Document> parseString(std::string file) {
+    return parseStringOpts(readFile(fs::path{file}), OrgParseParameters{});
+}
+
+sem::SemId<sem::Document> parseStringOpts(
+    const std::string         text,
+    OrgParseParameters const& opts) {
     LexerParams         p;
     SPtr<std::ofstream> fileTrace;
-    if (baseTokenTracePath) {
-        fileTrace = std::make_shared<std::ofstream>(*baseTokenTracePath);
+    if (opts.baseTokenTracePath) {
+        fileTrace = std::make_shared<std::ofstream>(
+            *opts.baseTokenTracePath);
     }
     p.traceStream            = fileTrace.get();
     OrgTokenGroup baseTokens = ::tokenize(text.data(), text.size(), p);
     OrgTokenGroup tokens;
     OrgTokenizer  tokenizer{&tokens};
 
-    if (tokenTracePath) { tokenizer.setTraceFile(*tokenTracePath); }
+    if (opts.tokenTracePath) {
+        tokenizer.setTraceFile(*opts.tokenTracePath);
+    }
 
     tokenizer.convert(baseTokens);
     Lexer<OrgTokenKind, OrgFill> lex{&tokens};
 
     OrgNodeGroup nodes{&tokens};
     OrgParser    parser{&nodes};
-    if (parseTracePath) { parser.setTraceFile(*parseTracePath); }
+    if (opts.parseTracePath) { parser.setTraceFile(*opts.parseTracePath); }
 
     (void)parser.parseFull(lex);
 
     sem::OrgConverter converter{};
-    if (semTracePath) { converter.setTraceFile(*semTracePath); }
+    if (opts.semTracePath) { converter.setTraceFile(*opts.semTracePath); }
 
     return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
-sem::SemId<sem::Document> OrgContext::parseProtobuf(
-    const std::string& file) {
+sem::SemId<sem::Document> readProtobufFile(const std::string& file) {
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
     orgproto::AnyNode result;
@@ -134,7 +125,7 @@ sem::SemId<sem::Document> OrgContext::parseProtobuf(
     return read_node.as<sem::Document>();
 }
 
-void OrgContext::saveProtobuf(
+void exportToProtobufFile(
     sem::SemId<sem::Document> doc,
     const std::string&        file) {
     std::ofstream     stream{file};
@@ -310,7 +301,7 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
         return tmp;
     }
 }
-std::string OrgContext::formatToString(sem::SemId<sem::Org> arg) {
+std::string formatToString(sem::SemId<sem::Org> arg) {
     return sem::Formatter::format(arg);
 }
 

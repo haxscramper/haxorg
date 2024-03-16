@@ -1,8 +1,6 @@
 #include "pyhaxorg_manual_impl.hpp"
 
 int main() {
-    auto            ctx  = OrgContext();
-    auto            node = ctx.parseFile("/home/haxscramper/tmp/doc1.org");
-    OrgExporterTree exp;
-    LOG(INFO) << exp.toString(node, ExporterTreeOpts{});
+    auto node = parseFile("/home/haxscramper/tmp/doc1.org", {});
+    LOG(INFO) << exportToTreeString(node, OrgTreeExportOpts{});
 }

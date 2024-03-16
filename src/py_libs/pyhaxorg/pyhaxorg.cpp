@@ -72,6 +72,10 @@ node can have subnodes.)RAW")
     .def("push_back",
          static_cast<void(sem::Org::*)(sem::SemId<sem::Org>)>(&sem::Org::push_back),
          pybind11::arg("sub"))
+    .def("insert",
+         static_cast<void(sem::Org::*)(int, sem::SemId<sem::Org>)>(&sem::Org::insert),
+         pybind11::arg("pos"),
+         pybind11::arg("node"))
     .def("at",
          static_cast<sem::SemId<sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
          pybind11::arg("idx"),
@@ -1906,6 +1910,26 @@ node can have subnodes.)RAW")
     .def("getBreakdown", static_cast<UserTimeBreakdown(UserTime::*)() const>(&UserTime::getBreakdown))
     .def("format", static_cast<std::string(UserTime::*)() const>(&UserTime::format))
     ;
+  pybind11::class_<sem::SubnodeVisitorCtxPart>(m, "SubnodeVisitorCtxPart")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorCtxPart {
+                        sem::SubnodeVisitorCtxPart result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("node", &sem::SubnodeVisitorCtxPart::node, R"RAW(\brief Parent node for the currently visited one. Each node is
+encountered exactly once in the visitor context path, but when
+visiting multi-layered fields (vector field) the node is not,
+present.
+
+For vector fields the path will have two parts:
+`[node+field-name]+[index]` -- the first element from the actual
+field visit and the second is from accessing each particular index.)RAW")
+    .def_readwrite("index", &sem::SubnodeVisitorCtxPart::index, R"RAW(\brief If the current visit is in vector field -- index of
+the node in parent list.)RAW")
+    .def_readwrite("field", &sem::SubnodeVisitorCtxPart::field, R"RAW(\brief If the current visit is in the dedicated field (`.title` for
+example),)RAW")
+    .def_readwrite("kind", &sem::SubnodeVisitorCtxPart::kind)
+    ;
   pybind11::class_<sem::OrgDocumentContext>(m, "OrgDocumentContext")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentContext {
                         sem::OrgDocumentContext result{};
@@ -1926,93 +1950,29 @@ node can have subnodes.)RAW")
          pybind11::arg("node"),
          R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
     ;
-  pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgExporterJson {
-                        OrgExporterJson result{};
+  pybind11::class_<OrgParseParameters>(m, "OrgParseParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgParseParameters {
+                        OrgParseParameters result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("visitNode",
-         static_cast<void(OrgExporterJson::*)(sem::SemId<sem::Org>)>(&OrgExporterJson::visitNode),
-         pybind11::arg("node"),
-         R"RAW(Visit top-level node of the exporter, filling in the internal
-return state.)RAW")
-    .def("exportToString", static_cast<std::string(OrgExporterJson::*)()>(&OrgExporterJson::exportToString))
-    .def("exportToFile",
-         static_cast<void(OrgExporterJson::*)(std::string)>(&OrgExporterJson::exportToFile),
-         pybind11::arg("path"))
+    .def_readwrite("baseTokenTracePath", &OrgParseParameters::baseTokenTracePath)
+    .def_readwrite("tokenTracePath", &OrgParseParameters::tokenTracePath)
+    .def_readwrite("parseTracePath", &OrgParseParameters::parseTracePath)
+    .def_readwrite("semTracePath", &OrgParseParameters::semTracePath)
     ;
-  pybind11::class_<ExporterTreeOpts>(m, "ExporterTreeOpts")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterTreeOpts {
-                        ExporterTreeOpts result{};
+  pybind11::class_<OrgTreeExportOpts>(m, "OrgTreeExportOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgTreeExportOpts {
+                        OrgTreeExportOpts result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("withLineCol", &ExporterTreeOpts::withLineCol)
-    .def_readwrite("withOriginalId", &ExporterTreeOpts::withOriginalId)
-    .def_readwrite("withSubnodeIdx", &ExporterTreeOpts::withSubnodeIdx)
-    .def_readwrite("skipEmptyFields", &ExporterTreeOpts::skipEmptyFields)
-    .def_readwrite("startLevel", &ExporterTreeOpts::startLevel)
-    .def_readwrite("withColor", &ExporterTreeOpts::withColor)
-    ;
-  pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgExporterTree {
-                        OrgExporterTree result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("toString",
-         static_cast<std::string(OrgExporterTree::*)(sem::SemId<sem::Org>, ExporterTreeOpts)>(&OrgExporterTree::toString),
-         pybind11::arg("node"),
-         pybind11::arg("opts"))
-    .def("toFile",
-         static_cast<void(OrgExporterTree::*)(sem::SemId<sem::Org>, std::string, ExporterTreeOpts)>(&OrgExporterTree::toFile),
-         pybind11::arg("node"),
-         pybind11::arg("path"),
-         pybind11::arg("opts"))
-    ;
-  pybind11::class_<OrgExporterYaml>(m, "OrgExporterYaml")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgExporterYaml {
-                        OrgExporterYaml result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("visitNode",
-         static_cast<void(OrgExporterYaml::*)(sem::SemId<sem::Org>)>(&OrgExporterYaml::visitNode),
-         pybind11::arg("node"),
-         R"RAW(Visit top-level node of the exporter, filling in the internal
-return state.)RAW")
-    .def("exportToString", static_cast<std::string(OrgExporterYaml::*)()>(&OrgExporterYaml::exportToString))
-    .def("exportToFile",
-         static_cast<void(OrgExporterYaml::*)(std::string)>(&OrgExporterYaml::exportToFile),
-         pybind11::arg("path"))
-    ;
-  pybind11::class_<OrgContext>(m, "OrgContext")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgContext {
-                        OrgContext result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("baseTokenTracePath", &OrgContext::baseTokenTracePath)
-    .def_readwrite("tokenTracePath", &OrgContext::tokenTracePath)
-    .def_readwrite("parseTracePath", &OrgContext::parseTracePath)
-    .def_readwrite("semTracePath", &OrgContext::semTracePath)
-    .def("parseFile",
-         static_cast<sem::SemId<sem::Document>(OrgContext::*)(std::string)>(&OrgContext::parseFile),
-         pybind11::arg("file"))
-    .def("parseString",
-         static_cast<sem::SemId<sem::Document>(OrgContext::*)(std::string const)>(&OrgContext::parseString),
-         pybind11::arg("text"))
-    .def("parseProtobuf",
-         static_cast<sem::SemId<sem::Document>(OrgContext::*)(std::string const&)>(&OrgContext::parseProtobuf),
-         pybind11::arg("file"))
-    .def("saveProtobuf",
-         static_cast<void(OrgContext::*)(sem::SemId<sem::Document>, std::string const&)>(&OrgContext::saveProtobuf),
-         pybind11::arg("doc"),
-         pybind11::arg("file"))
-    .def("formatToString",
-         static_cast<std::string(OrgContext::*)(sem::SemId<sem::Org>)>(&OrgContext::formatToString),
-         pybind11::arg("arg"))
+    .def_readwrite("withLineCol", &OrgTreeExportOpts::withLineCol)
+    .def_readwrite("withOriginalId", &OrgTreeExportOpts::withOriginalId)
+    .def_readwrite("withSubnodeIdx", &OrgTreeExportOpts::withSubnodeIdx)
+    .def_readwrite("skipEmptyFields", &OrgTreeExportOpts::skipEmptyFields)
+    .def_readwrite("startLevel", &OrgTreeExportOpts::startLevel)
+    .def_readwrite("withColor", &OrgTreeExportOpts::withColor)
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
@@ -2118,6 +2078,17 @@ return state.)RAW")
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::eval),
          pybind11::arg("org"))
     ;
+  bind_enum_iterator<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind");
+  pybind11::enum_<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind")
+    .value("Field", sem::SubnodeVisitorCtxPart::Kind::Field)
+    .value("Index", sem::SubnodeVisitorCtxPart::Kind::Index)
+    .value("Key", sem::SubnodeVisitorCtxPart::Kind::Key)
+    .def("__iter__", [](sem::SubnodeVisitorCtxPart::Kind _self) -> PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind> {
+                     return
+                     PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind>
+                     ();
+                     })
+    ;
   bind_enum_iterator<LeafFieldType>(m, "LeafFieldType");
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
     .value("Int", LeafFieldType::Int)
@@ -2135,9 +2106,53 @@ return state.)RAW")
                      ();
                      })
     ;
+  m.def("parseFile",
+        static_cast<sem::SemId<sem::Document>(*)(std::string, OrgParseParameters const&)>(&parseFile),
+        pybind11::arg("file"),
+        pybind11::arg("opts"));
+  m.def("parseString",
+        static_cast<sem::SemId<sem::Document>(*)(std::string const)>(&parseString),
+        pybind11::arg("text"));
+  m.def("parseStringOpts",
+        static_cast<sem::SemId<sem::Document>(*)(std::string const, OrgParseParameters const&)>(&parseStringOpts),
+        pybind11::arg("text"),
+        pybind11::arg("opts"));
+  m.def("formatToString",
+        static_cast<std::string(*)(sem::SemId<sem::Org>)>(&formatToString),
+        pybind11::arg("arg"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
         pybind11::arg("node"),
         pybind11::arg("callback"));
+  m.def("exportToYamlString",
+        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&exportToYamlString),
+        pybind11::arg("node"));
+  m.def("exportToYamlFile",
+        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&exportToYamlFile),
+        pybind11::arg("node"),
+        pybind11::arg("path"));
+  m.def("exportToJsonString",
+        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&exportToJsonString),
+        pybind11::arg("node"));
+  m.def("exportToJsonFile",
+        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&exportToJsonFile),
+        pybind11::arg("node"),
+        pybind11::arg("path"));
+  m.def("readProtobufFile",
+        static_cast<sem::SemId<sem::Document>(*)(std::string const&)>(&readProtobufFile),
+        pybind11::arg("file"));
+  m.def("exportToProtobufFile",
+        static_cast<void(*)(sem::SemId<sem::Document>, std::string const&)>(&exportToProtobufFile),
+        pybind11::arg("doc"),
+        pybind11::arg("file"));
+  m.def("exportToTreeString",
+        static_cast<std::string(*)(sem::SemId<sem::Org> const&, OrgTreeExportOpts const&)>(&exportToTreeString),
+        pybind11::arg("node"),
+        pybind11::arg("opts"));
+  m.def("exportToTreeFile",
+        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string, OrgTreeExportOpts const&)>(&exportToTreeFile),
+        pybind11::arg("node"),
+        pybind11::arg("path"),
+        pybind11::arg("opts"));
 }
 /* clang-format on */

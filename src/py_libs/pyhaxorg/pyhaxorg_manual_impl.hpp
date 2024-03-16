@@ -142,30 +142,58 @@ void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
 }
 
 
-struct ExporterJson;
-struct ExporterYaml;
-struct ExporterTree;
-
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
     sem::SemId<sem::Org> id,
     pybind11::slice      slice);
 sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index);
 
-struct [[refl]] OrgExporterJson {
-    SPtr<ExporterJson> impl;
-    json               result;
+struct [[refl]] OrgParseParameters {
+    [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
+    [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;
+    [[refl]] Opt<std::string> parseTracePath     = std::nullopt;
+    [[refl]] Opt<std::string> semTracePath       = std::nullopt;
 
-    OrgExporterJson();
-    /// Visit top-level node of the exporter, filling in the internal
-    /// return state.
-    [[refl]] void visitNode(sem::SemId<sem::Org> node /*! Input node */);
-    [[refl]] std::string exportToString();
-    [[refl]] void        exportToFile(std::string path);
-
-    BOOST_DESCRIBE_CLASS(OrgExporterJson, (), (), (), ());
+    BOOST_DESCRIBE_CLASS(
+        OrgParseParameters,
+        (),
+        (baseTokenTracePath, tokenTracePath, parseTracePath, semTracePath),
+        (),
+        ());
 };
 
-struct [[refl]] ExporterTreeOpts {
+[[refl]] sem::SemId<sem::Document> parseFile(
+    std::string               file,
+    OrgParseParameters const& opts);
+[[refl]] sem::SemId<sem::Document> parseString(std::string const text);
+[[refl]] sem::SemId<sem::Document> parseStringOpts(
+    std::string const         text,
+    OrgParseParameters const& opts);
+
+
+[[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
+
+[[refl]] void eachSubnodeRec(
+    sem::SemId<sem::Org> node,
+    py::function         callback);
+
+[[refl]] std::string exportToYamlString(sem::SemId<sem::Org> const& node);
+[[refl]] void        exportToYamlFile(
+           sem::SemId<sem::Org> const& node,
+           std::string                 path);
+
+[[refl]] std::string exportToJsonString(sem::SemId<sem::Org> const& node);
+[[refl]] void        exportToJsonFile(
+           sem::SemId<sem::Org> const& node,
+           std::string                 path);
+
+[[refl]] sem::SemId<sem::Document> readProtobufFile(
+    std::string const& file);
+
+[[refl]] void exportToProtobufFile(
+    sem::SemId<sem::Document> doc,
+    std::string const&        file);
+
+struct [[refl]] OrgTreeExportOpts {
     [[refl]] bool withLineCol     = true;
     [[refl]] bool withOriginalId  = true;
     [[refl]] bool withSubnodeIdx  = true;
@@ -174,7 +202,7 @@ struct [[refl]] ExporterTreeOpts {
     [[refl]] bool withColor       = true;
 
     BOOST_DESCRIBE_CLASS(
-        ExporterTreeOpts,
+        OrgTreeExportOpts,
         (),
         (withLineCol,
          withOriginalId,
@@ -186,66 +214,14 @@ struct [[refl]] ExporterTreeOpts {
         ());
 };
 
+[[refl]] std::string exportToTreeString(
+    sem::SemId<sem::Org> const& node,
+    OrgTreeExportOpts const&    opts);
 
-struct [[refl]] OrgExporterTree {
-    [[refl]] std::string toString(
-        sem::SemId<sem::Org> node,
-        ExporterTreeOpts     opts);
-    [[refl]] void toFile(
-        sem::SemId<sem::Org> node,
-        std::string          path,
-        ExporterTreeOpts     opts);
-
-    void stream(
-        std::ostream&        stream,
-        sem::SemId<sem::Org> node,
-        ExporterTreeOpts     opts);
-
-    BOOST_DESCRIBE_CLASS(OrgExporterTree, (), (), (), ());
-};
-
-
-struct [[refl]] OrgExporterYaml {
-    SPtr<ExporterYaml> impl;
-    yaml               result;
-
-    OrgExporterYaml();
-    /// Visit top-level node of the exporter, filling in the internal
-    /// return state.
-    [[refl]] void        visitNode(sem::SemId<sem::Org> node);
-    [[refl]] std::string exportToString();
-    [[refl]] void        exportToFile(std::string path);
-
-    BOOST_DESCRIBE_CLASS(OrgExporterYaml, (), (), (), ());
-};
-
-struct [[refl]] OrgContext {
-    sem::SemId<sem::Document> node = sem::SemId<sem::Document>::Nil();
-
-    OrgContext() {}
-
-    [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
-    [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> parseTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> semTracePath       = std::nullopt;
-
-    [[refl]] sem::SemId<sem::Document> parseFile(std::string file);
-    [[refl]] sem::SemId<sem::Document> parseString(std::string const text);
-    [[refl]] sem::SemId<sem::Document> parseProtobuf(
-        std::string const& file);
-    [[refl]] void saveProtobuf(
-        sem::SemId<sem::Document> doc,
-        std::string const&        file);
-
-    [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
-
-
-    BOOST_DESCRIBE_CLASS(OrgContext, (), (), (), ());
-};
-
-[[refl]] void eachSubnodeRec(
-    sem::SemId<sem::Org> node,
-    py::function         callback);
+[[refl]] void exportToTreeFile(
+    sem::SemId<sem::Org> const& node,
+    std::string                 path,
+    OrgTreeExportOpts const&    opts);
 
 
 enum class [[refl]] LeafFieldType
