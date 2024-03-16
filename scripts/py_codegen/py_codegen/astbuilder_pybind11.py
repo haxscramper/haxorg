@@ -128,6 +128,7 @@ class Py11Function:
     Body: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     DefParams: Optional[List[BlockId]] = None
+    Spaces: List[QualType] = field(default_factory=list)
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
@@ -151,6 +152,7 @@ class Py11Function:
             CxxName=meth.name,
             Doc=meth.doc,
             Args=meth.arguments,
+            Spaces=meth.spaces,
         )
 
     def build_argument_binder(self, Args: List[GenTuIdent],
@@ -217,6 +219,14 @@ class Py11Function:
             return []
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
+        if self.Spaces:
+            full_name = ast.Scoped(
+                QualType(name=self.Spaces[0].name, Spaces=self.Spaces[1:]),
+                ast.string(self.CxxName))
+
+        else:
+            full_name = ast.string(self.CxxName)
+
         return ast.XCall(
             "m.def",
             [
@@ -224,7 +234,7 @@ class Py11Function:
                 self.build_call_pass(
                     ast,
                     self.Args,
-                    FunctionQualName=ast.string(self.CxxName),
+                    FunctionQualName=full_name,
                 ),
                 *self.build_argument_binder(self.Args, ast),
                 *self.build_doc_comment(ast),

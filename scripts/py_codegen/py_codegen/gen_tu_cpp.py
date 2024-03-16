@@ -77,6 +77,7 @@ class GenTuFunction:
     isPureVirtual: bool = False
     parentClass: Optional['GenTuStruct'] = None
     original: Optional[Path] = None
+    spaces: List[QualType] = field(default_factory=list)
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(

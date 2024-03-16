@@ -885,6 +885,12 @@ bool ReflASTVisitor::VisitFunctionDecl(c::FunctionDecl* Decl) {
             func->mutable_resultty(),
             Decl->getReturnType(),
             Decl->getLocation());
+
+        for (auto const& space :
+             getNamespaces(Decl, Decl->getLocation())) {
+            auto added = func->add_spaces();
+            *added     = space;
+        }
     }
     return true;
 }

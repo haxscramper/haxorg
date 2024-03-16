@@ -119,6 +119,7 @@ message Function {
     repeated Arg Arguments = 3;
     repeated TemplateSpec Templates = 4;
     string DbgOrigin = 5;
+    repeated QualType Spaces = 6;
 }
 
 message Typedef {

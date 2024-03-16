@@ -18,123 +18,6 @@
 
 template class Exporter<ExporterPython, py::object>;
 
-std::string exportToJsonString(sem::SemId<sem::Org> const& node) {
-    return to_string(ExporterJson{}.evalTop(node));
-}
-
-void exportToJsonFile(sem::SemId<sem::Org> const& node, std::string path) {
-    writeFile(fs::path{path}, exportToJsonString(node));
-}
-
-std::string exportToYamlString(sem::SemId<sem::Org> const& node) {
-    std::stringstream os;
-    os << ExporterYaml{}.evalTop(node);
-    return os.str();
-}
-
-void exportToYamlFile(sem::SemId<sem::Org> const& node, std::string path) {
-    writeFile(fs::path{path}, exportToYamlString(node));
-}
-
-
-std::string exportToTreeString(
-    sem::SemId<sem::Org> const& node,
-    OrgTreeExportOpts const&    opts) {
-    ColStream    os{};
-    ExporterTree tree{os};
-
-    tree.conf.withLineCol     = opts.withLineCol;
-    tree.conf.withOriginalId  = opts.withOriginalId;
-    tree.conf.skipEmptyFields = opts.skipEmptyFields;
-    tree.conf.startLevel      = opts.startLevel;
-    tree.evalTop(node);
-
-    std::string result = os.toString(opts.withColor);
-    return result;
-}
-
-void exportToTreeFile(
-    sem::SemId<sem::Org> const& node,
-    std::string                 path,
-    OrgTreeExportOpts const&    opts) {
-
-    ColStream    os{};
-    ExporterTree tree{os};
-
-    tree.conf.withLineCol     = opts.withLineCol;
-    tree.conf.withOriginalId  = opts.withOriginalId;
-    tree.conf.skipEmptyFields = opts.skipEmptyFields;
-    tree.conf.startLevel      = opts.startLevel;
-    tree.evalTop(node);
-
-    std::ofstream file{path};
-    file << os.toString(opts.withColor);
-}
-
-sem::SemId<sem::Document> parseFile(
-    std::string               file,
-    const OrgParseParameters& opts) {
-    return parseStringOpts(readFile(fs::path{file}), opts);
-}
-
-sem::SemId<sem::Document> parseString(std::string text) {
-    return parseStringOpts(text, OrgParseParameters{});
-}
-
-sem::SemId<sem::Document> parseStringOpts(
-    const std::string         text,
-    OrgParseParameters const& opts) {
-    LexerParams         p;
-    SPtr<std::ofstream> fileTrace;
-    if (opts.baseTokenTracePath) {
-        fileTrace = std::make_shared<std::ofstream>(
-            *opts.baseTokenTracePath);
-    }
-    p.traceStream            = fileTrace.get();
-    OrgTokenGroup baseTokens = ::tokenize(text.data(), text.size(), p);
-    OrgTokenGroup tokens;
-    OrgTokenizer  tokenizer{&tokens};
-
-    if (opts.tokenTracePath) {
-        tokenizer.setTraceFile(*opts.tokenTracePath);
-    }
-
-    tokenizer.convert(baseTokens);
-    Lexer<OrgTokenKind, OrgFill> lex{&tokens};
-
-    OrgNodeGroup nodes{&tokens};
-    OrgParser    parser{&nodes};
-    if (opts.parseTracePath) { parser.setTraceFile(*opts.parseTracePath); }
-
-    (void)parser.parseFull(lex);
-
-    sem::OrgConverter converter{};
-    if (opts.semTracePath) { converter.setTraceFile(*opts.semTracePath); }
-
-    return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
-}
-
-sem::SemId<sem::Document> readProtobufFile(const std::string& file) {
-    sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
-    std::ifstream     stream{file};
-    orgproto::AnyNode result;
-    result.ParseFromIstream(&stream);
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
-        result,
-        proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
-    return read_node.as<sem::Document>();
-}
-
-void exportToProtobufFile(
-    sem::SemId<sem::Document> doc,
-    const std::string&        file) {
-    std::ofstream     stream{file};
-    orgproto::AnyNode result;
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
-        &result, doc.asOrg());
-    result.SerializeToOstream(&stream);
-}
-
 
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
     sem::SemId<sem::Org> id,
@@ -301,9 +184,7 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
         return tmp;
     }
 }
-std::string formatToString(sem::SemId<sem::Org> arg) {
-    return sem::Formatter::format(arg);
-}
+
 
 void eachSubnodeRec(sem::SemId<sem::Org> node, py::function callback) {
     sem::eachSubnodeRec(

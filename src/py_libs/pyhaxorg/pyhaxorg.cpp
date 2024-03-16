@@ -1950,29 +1950,29 @@ example),)RAW")
          pybind11::arg("node"),
          R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
     ;
-  pybind11::class_<OrgParseParameters>(m, "OrgParseParameters")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgParseParameters {
-                        OrgParseParameters result{};
+  pybind11::class_<sem::OrgParseParameters>(m, "OrgParseParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgParseParameters {
+                        sem::OrgParseParameters result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("baseTokenTracePath", &OrgParseParameters::baseTokenTracePath)
-    .def_readwrite("tokenTracePath", &OrgParseParameters::tokenTracePath)
-    .def_readwrite("parseTracePath", &OrgParseParameters::parseTracePath)
-    .def_readwrite("semTracePath", &OrgParseParameters::semTracePath)
+    .def_readwrite("baseTokenTracePath", &sem::OrgParseParameters::baseTokenTracePath)
+    .def_readwrite("tokenTracePath", &sem::OrgParseParameters::tokenTracePath)
+    .def_readwrite("parseTracePath", &sem::OrgParseParameters::parseTracePath)
+    .def_readwrite("semTracePath", &sem::OrgParseParameters::semTracePath)
     ;
-  pybind11::class_<OrgTreeExportOpts>(m, "OrgTreeExportOpts")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> OrgTreeExportOpts {
-                        OrgTreeExportOpts result{};
+  pybind11::class_<sem::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgTreeExportOpts {
+                        sem::OrgTreeExportOpts result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("withLineCol", &OrgTreeExportOpts::withLineCol)
-    .def_readwrite("withOriginalId", &OrgTreeExportOpts::withOriginalId)
-    .def_readwrite("withSubnodeIdx", &OrgTreeExportOpts::withSubnodeIdx)
-    .def_readwrite("skipEmptyFields", &OrgTreeExportOpts::skipEmptyFields)
-    .def_readwrite("startLevel", &OrgTreeExportOpts::startLevel)
-    .def_readwrite("withColor", &OrgTreeExportOpts::withColor)
+    .def_readwrite("withLineCol", &sem::OrgTreeExportOpts::withLineCol)
+    .def_readwrite("withOriginalId", &sem::OrgTreeExportOpts::withOriginalId)
+    .def_readwrite("withSubnodeIdx", &sem::OrgTreeExportOpts::withSubnodeIdx)
+    .def_readwrite("skipEmptyFields", &sem::OrgTreeExportOpts::skipEmptyFields)
+    .def_readwrite("startLevel", &sem::OrgTreeExportOpts::startLevel)
+    .def_readwrite("withColor", &sem::OrgTreeExportOpts::withColor)
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
@@ -2107,52 +2107,52 @@ example),)RAW")
                      })
     ;
   m.def("parseFile",
-        static_cast<sem::SemId<sem::Document>(*)(std::string, OrgParseParameters const&)>(&parseFile),
+        static_cast<sem::SemId<sem::Document>(*)(std::string, sem::OrgParseParameters const&)>(&sem::parseFile),
         pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("parseString",
-        static_cast<sem::SemId<sem::Document>(*)(std::string const)>(&parseString),
+        static_cast<sem::SemId<sem::Document>(*)(std::string const)>(&sem::parseString),
         pybind11::arg("text"));
   m.def("parseStringOpts",
-        static_cast<sem::SemId<sem::Document>(*)(std::string const, OrgParseParameters const&)>(&parseStringOpts),
+        static_cast<sem::SemId<sem::Document>(*)(std::string const, sem::OrgParseParameters const&)>(&sem::parseStringOpts),
         pybind11::arg("text"),
         pybind11::arg("opts"));
   m.def("formatToString",
-        static_cast<std::string(*)(sem::SemId<sem::Org>)>(&formatToString),
+        static_cast<std::string(*)(sem::SemId<sem::Org>)>(&sem::formatToString),
         pybind11::arg("arg"));
+  m.def("exportToYamlString",
+        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&sem::exportToYamlString),
+        pybind11::arg("node"));
+  m.def("exportToYamlFile",
+        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&sem::exportToYamlFile),
+        pybind11::arg("node"),
+        pybind11::arg("path"));
+  m.def("exportToJsonString",
+        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&sem::exportToJsonString),
+        pybind11::arg("node"));
+  m.def("exportToJsonFile",
+        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&sem::exportToJsonFile),
+        pybind11::arg("node"),
+        pybind11::arg("path"));
+  m.def("readProtobufFile",
+        static_cast<sem::SemId<sem::Document>(*)(std::string const&)>(&sem::readProtobufFile),
+        pybind11::arg("file"));
+  m.def("exportToProtobufFile",
+        static_cast<void(*)(sem::SemId<sem::Document>, std::string const&)>(&sem::exportToProtobufFile),
+        pybind11::arg("doc"),
+        pybind11::arg("file"));
+  m.def("exportToTreeString",
+        static_cast<std::string(*)(sem::SemId<sem::Org> const&, sem::OrgTreeExportOpts const&)>(&sem::exportToTreeString),
+        pybind11::arg("node"),
+        pybind11::arg("opts"));
+  m.def("exportToTreeFile",
+        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string, sem::OrgTreeExportOpts const&)>(&sem::exportToTreeFile),
+        pybind11::arg("node"),
+        pybind11::arg("path"),
+        pybind11::arg("opts"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
         pybind11::arg("node"),
         pybind11::arg("callback"));
-  m.def("exportToYamlString",
-        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&exportToYamlString),
-        pybind11::arg("node"));
-  m.def("exportToYamlFile",
-        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&exportToYamlFile),
-        pybind11::arg("node"),
-        pybind11::arg("path"));
-  m.def("exportToJsonString",
-        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&exportToJsonString),
-        pybind11::arg("node"));
-  m.def("exportToJsonFile",
-        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&exportToJsonFile),
-        pybind11::arg("node"),
-        pybind11::arg("path"));
-  m.def("readProtobufFile",
-        static_cast<sem::SemId<sem::Document>(*)(std::string const&)>(&readProtobufFile),
-        pybind11::arg("file"));
-  m.def("exportToProtobufFile",
-        static_cast<void(*)(sem::SemId<sem::Document>, std::string const&)>(&exportToProtobufFile),
-        pybind11::arg("doc"),
-        pybind11::arg("file"));
-  m.def("exportToTreeString",
-        static_cast<std::string(*)(sem::SemId<sem::Org> const&, OrgTreeExportOpts const&)>(&exportToTreeString),
-        pybind11::arg("node"),
-        pybind11::arg("opts"));
-  m.def("exportToTreeFile",
-        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string, OrgTreeExportOpts const&)>(&exportToTreeFile),
-        pybind11::arg("node"),
-        pybind11::arg("path"),
-        pybind11::arg("opts"));
 }
 /* clang-format on */

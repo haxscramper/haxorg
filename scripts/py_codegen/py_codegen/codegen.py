@@ -817,6 +817,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         yaml.safe_dump(to_base_types(tu), stream=file)
 
     with open("/tmp/reflection_data.json", "w") as file:
+        log(CAT).debug(f"Debug reflection data to {file.name}")
         file.write(open_proto_file(reflection_path).to_json(2))
 
     global org_type_names
