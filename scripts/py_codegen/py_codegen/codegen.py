@@ -18,12 +18,14 @@ from py_codegen.astbuilder_pybind11 import (
     Py11BindPass,
     Py11TypedefPass,
     Py11Enum,
+    Py11Function,
     flat_scope,
     id_self,
     py_type_bind,
     py_type,
 )
 
+CAT = "codegen"
 
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
@@ -544,6 +546,9 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
     for _enum in tu.enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
 
+    for _func in tu.functions:
+        autogen_structs.Decls.append(Py11Function.FromGenTu(_func))
+
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = []
 
@@ -977,7 +982,7 @@ if __name__ == "__main__":
             directory = os.path.dirname(path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-                log().info(f"Created dir for {path}")
+                log(CAT).info(f"Created dir for {path}")
 
             opts = TextOptions()
             opts.rightMargin = 160
@@ -992,10 +997,10 @@ if __name__ == "__main__":
                 if oldCode != newCode:
                     with open(path, "w") as out:
                         out.write(newCode)
-                    log().info(f"[red]Updated code[/red] in {define.path}")
+                    log(CAT).info(f"[red]Updated code[/red] in {define.path}")
                 else:
-                    log().info(f"[green]No changes[/green] on {define.path}")
+                    log(CAT).info(f"[green]No changes[/green] on {define.path}")
             else:
                 with open(path, "w") as out:
                     out.write(newCode)
-                log().info(f"[red]Wrote[/red] to {define.path}")
+                log(CAT).info(f"[red]Wrote[/red] to {define.path}")

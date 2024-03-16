@@ -2013,10 +2013,6 @@ return state.)RAW")
     .def("formatToString",
          static_cast<std::string(OrgContext::*)(sem::SemId<sem::Org>)>(&OrgContext::formatToString),
          pybind11::arg("arg"))
-    .def("eachSubnodeRec",
-         static_cast<void(OrgContext::*)(sem::SemId<sem::Org>, pybind11::function)>(&OrgContext::eachSubnodeRec),
-         pybind11::arg("node"),
-         pybind11::arg("callback"))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
@@ -2139,5 +2135,9 @@ return state.)RAW")
                      ();
                      })
     ;
+  m.def("eachSubnodeRec",
+        static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
+        pybind11::arg("node"),
+        pybind11::arg("callback"));
 }
 /* clang-format on */

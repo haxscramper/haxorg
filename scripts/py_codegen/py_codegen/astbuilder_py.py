@@ -120,6 +120,18 @@ class ASTBuilder(base.AstbuilderBase):
             b.text(":")
         ]
 
+    def Function(self, p: FunctionDefParams) -> BlockId:
+        b = self.b
+
+        def_head = self.FuncHead(p, withSelf=False)
+
+        if p.IsStub:
+            def_head.append(b.text(" ..."))
+            return b.line(def_head)
+
+        else:
+            return b.stack([b.line(def_head), b.indent(4, b.stack(p.Body))])
+
     def Method(self, p: MethodParams) -> BlockId:
         b = self.b
 

@@ -43,7 +43,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     org_ctx = org.OrgContext()
     for file in opts.infile:
         node = parseCachedFile(file, opts.cachedir)
-        org_ctx.eachSubnodeRec(node, visit)
+        org.eachSubnodeRec(node, visit)
 
     df = pd.DataFrame(
         [(key[0], key[1], val) for key, val in count.items()],
