@@ -370,6 +370,12 @@ TEST(TestFiles, AllNodeCoverage) {
     }
 }
 
+sem::SemId<sem::Org> parseNode(CR<Str> source) {
+    MockFull p{false, false};
+    p.run(source);
+    return p.toNode();
+}
+
 TEST(OrgApi, LinkResolution) {
     MockFull    p{false, false};
     std::string source = R"(
@@ -386,6 +392,31 @@ TEST(OrgApi, LinkResolution) {
 
     auto subtree_result = ctx.getSubtreeById("id-name");
     EXPECT_EQ(subtree_result.size(), 1);
+}
+
+TEST(OrgApi, EachSubnodeWithContext) {
+    auto node = parseNode(R"(*bold*)");
+    Vec<Pair<sem::SemId<sem::Org>, Vec<sem::SubnodeVisitorCtxPart>>> ctx;
+
+    sem::eachSubnodeRecWithContext(
+        node,
+        [&](sem::SemId<sem::Org>             id,
+            CVec<sem::SubnodeVisitorCtxPart> part) {
+            ctx.push_back({id, part});
+        });
+
+
+    // for (auto const& it : ctx) { LOG(INFO) << fmt1(it); }
+
+    EXPECT_EQ(ctx.at(0).first->getKind(), OrgSemKind::Document);
+    EXPECT_EQ(ctx.at(1).first->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(ctx.at(2).first->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ(ctx.at(3).first->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(ctx.at(0).second.size(), 0);
+    EXPECT_EQ(ctx.at(1).second.size(), 2);
+    EXPECT_EQ(ctx.at(1).second.at(0).field.value(), "subnodes");
+    EXPECT_EQ(ctx.at(1).second.at(1).index.value(), 0);
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {

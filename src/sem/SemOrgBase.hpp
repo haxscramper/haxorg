@@ -178,6 +178,17 @@ struct [[refl]] Org {
 
     [[refl]] void push_back(SemId<Org> sub);
 
+    using SubnodeVec = Vec<SemId<Org>>;
+
+    SubnodeVec::iterator       begin() { return subnodes.begin(); }
+    SubnodeVec::iterator       end() { return subnodes.end(); }
+    SubnodeVec::const_iterator begin() const { return subnodes.begin(); }
+    SubnodeVec::const_iterator end() const { return subnodes.end(); }
+
+    [[refl]] void insert(int pos, SemId<Org> node) {
+        subnodes.insert(begin() + pos, node);
+    }
+
     template <typename T>
     T* dyn_cast() {
         return dynamic_cast<T*>(this);
@@ -206,6 +217,54 @@ using SubnodeVisitor = Func<void(SemId<Org>)>;
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback
 void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
+
+
+/// \brief Part of the parent node context path. When visiting a node this
+/// path will contain an ordered list of all *parent* elements.
+struct [[refl]] SubnodeVisitorCtxPart {
+    enum class [[refl]] Kind
+    {
+        Field, ///< \brief Visiting named field
+        Index, ///< \brief Visiting indexed subnode.
+        Key,   ///< \brief Visiting Str->Node table
+    };
+
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, Field, Index, Key);
+
+    /// \brief Parent node for the currently visited one. Each node is
+    /// encountered exactly once in the visitor context path, but when
+    /// visiting multi-layered fields (vector field) the node is not,
+    /// present.
+    ///
+    /// For vector fields the path will have two parts:
+    /// `[node+field-name]+[index]` -- the first element from the actual
+    /// field visit and the second is from accessing each particular index.
+    [[refl]] Opt<SemId<Org>> node;
+    /// \brief If the current visit is in vector field -- index of
+    /// the node in parent list.
+    [[refl]] Opt<int> index;
+    /// \brief If the current visit is in the dedicated field (`.title` for
+    /// example),
+    [[refl]] Opt<Str> field;
+    [[refl]] Kind     kind;
+
+    BOOST_DESCRIBE_CLASS(
+        SubnodeVisitorCtxPart,
+        (),
+        (node, index, field, kind),
+        (),
+        ());
+};
+
+
+using SubnodeVisitorWithCtx = Func<
+    void(SemId<Org>, Vec<SubnodeVisitorCtxPart> const&)>;
+
+/// \brief Recursively visit each subnode in the tree and apply the
+/// provided callback to all non-nil subnodes. Pass the current node index
+/// in the parent tree, stack of the parent nodes and the node itself. If
+/// visit is done to a node placed in a
+void eachSubnodeRecWithContext(SemId<Org> id, SubnodeVisitorWithCtx);
 
 struct Subtree;
 struct Link;
