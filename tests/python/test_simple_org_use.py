@@ -12,9 +12,8 @@ from py_scriptutils.script_logging import log
 osk = org.OrgSemKind
 
 def test_word() -> None:
-    ctx = org.OrgContext()
     assert org.Document
-    node = ctx.parseString("*Text*")
+    node = org.parseString("*Text*")
 
     assert node.getKind() == org.OrgSemKind.Document
     assert node[0].getKind() == org.OrgSemKind.Paragraph
@@ -23,9 +22,8 @@ def test_word() -> None:
 
 
 def test_link_resolution():
-    ctx = org.OrgContext()
     resolve = org.OrgDocumentContext()
-    node = ctx.parseString("""
+    node = org.parseString("""
 * Subtree
   :properties:
   :id: id-name
@@ -37,8 +35,7 @@ def test_link_resolution():
  
 
 def test_subnode_visitor():
-    ctx = org.OrgContext()
-    node = ctx.parseString("Word")
+    node = org.parseString("Word")
     kinds = []
-    ctx.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
+    org.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
     assert kinds == [osk.Document, osk.Paragraph, osk.Word], kinds

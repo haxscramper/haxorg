@@ -77,8 +77,8 @@ sem::SemId<sem::Document> parseFile(
     return parseStringOpts(readFile(fs::path{file}), opts);
 }
 
-sem::SemId<sem::Document> parseString(std::string file) {
-    return parseStringOpts(readFile(fs::path{file}), OrgParseParameters{});
+sem::SemId<sem::Document> parseString(std::string text) {
+    return parseStringOpts(text, OrgParseParameters{});
 }
 
 sem::SemId<sem::Document> parseStringOpts(
