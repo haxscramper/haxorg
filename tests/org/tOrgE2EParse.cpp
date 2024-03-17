@@ -395,17 +395,92 @@ TEST(OrgApi, LinkResolution) {
     EXPECT_EQ(subtree_result.size(), 1);
 }
 
-TEST(OrgDocumentSelector, GetMatchingNodes) {
+TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
     auto                     node = parseNode("bold");
     sem::OrgDocumentSelector selector{
-        .path  = {sem::OrgSelectorCondition::HasKind({OrgSemKind::Word})},
-        .debug = true,
+        .path = {sem::OrgSelectorCondition::HasKind({OrgSemKind::Word})},
     };
 
     auto words = selector.getMatches(node);
 
     EXPECT_EQ(words.size(), 1);
     EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+}
+
+TEST(OrgDocumentSelector, GetMultipleMatchingNodesByKind) {
+    auto                     node = parseNode("word *bold*");
+    sem::OrgDocumentSelector selector{
+        .path = {sem::OrgSelectorCondition::HasKind({OrgSemKind::Word})},
+    };
+
+    auto words = selector.getMatches(node);
+
+    EXPECT_EQ(words.size(), 2);
+    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "word");
+    EXPECT_EQ(words.at(1).as<sem::Word>()->text, "bold");
+}
+
+TEST(OrgDocumentSelector, GetDirectlyNestedNode) {
+    auto                     node = parseNode("word *bold*");
+    sem::OrgDocumentSelector selector{
+        .path
+        = {sem::OrgSelectorCondition::HasKind(
+               {OrgSemKind::Word},
+               sem::OrgSelectorLink{
+                   .kind = sem::OrgSelectorLink::Kind::DirectSubnode,
+               }),
+           sem::OrgSelectorCondition::HasKind({OrgSemKind::Bold})},
+    };
+
+    auto words = selector.getMatches(node);
+
+    EXPECT_EQ(words.size(), 1);
+    EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+}
+
+TEST(OrgDocumentSelector, GetSubtreeByTitle) {
+    auto doc = parseNode(R"(
+* Title1
+** Subtitle1
+** Subtitle2
+
+Paragraph under subtitle 2
+
+* Multi-part title
+)");
+
+    {
+        sem::OrgDocumentSelector selector{
+            .path = {
+                sem::OrgSelectorCondition::HasSubtreePlaintextTitle(
+                    "Title1"),
+            }};
+
+        auto title1 = selector.getMatches(doc);
+        EXPECT_EQ(title1.size(), 1);
+        EXPECT_EQ(title1.at(0)->getKind(), OrgSemKind::Subtree);
+    }
+
+    {
+        sem::OrgDocumentSelector selector{
+            .path
+            = {sem::OrgSelectorCondition::HasKind(
+                   {OrgSemKind::Word},
+                   sem::OrgSelectorLink{
+                       .kind = sem::OrgSelectorLink::Kind::IndirectSubnode,
+                   }),
+               sem::OrgSelectorCondition::HasSubtreePlaintextTitle(
+                   "Subtitle2")},
+        };
+
+        auto words = selector.getMatches(doc);
+        EXPECT_EQ(words.size(), 4);
+        EXPECT_EQ(words.at(0).as<sem::Word>()->text, "Paragraph");
+        EXPECT_EQ(words.at(1).as<sem::Word>()->text, "under");
+        EXPECT_EQ(words.at(2).as<sem::Word>()->text, "subtitle");
+        EXPECT_EQ(words.at(3).as<sem::Word>()->text, "2");
+    }
 }
 
 TEST(OrgApi, EachSubnodeWithContext) {

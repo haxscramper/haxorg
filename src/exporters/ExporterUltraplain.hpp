@@ -44,12 +44,13 @@ struct ExporterUltraplain
     }
 
     __visit(Word);
-    __visit(Space);
     __visit(Punctuation);
     __visit(BigIdent);
     __visit(Placeholder);
     __visit(RawText);
     __visit(Newline);
+
+    void visitSpace(std::string& res, In<sem::Space> leaf) { res += " "; }
 
 
 #undef __visit

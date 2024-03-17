@@ -173,16 +173,17 @@ struct [[refl]] OrgSelectorLink {
 };
 
 struct [[refl]] OrgSelectorCondition {
-    [[refl]] static OrgSelectorCondition HasKind(SemSet const& kinds) {
-        return {
-            .check = [kinds](
-                         SemId<Org> const& node,
-                         Span<SubnodeVisitorCtxPart> const&) -> bool {
-                return kinds.contains(node->getKind());
-            },
-            .debug = fmt("HasKind:{}", kinds),
-        };
-    }
+    [[refl]] static OrgSelectorCondition HasKind(
+        SemSet const&        kinds,
+        Opt<OrgSelectorLink> link = std::nullopt);
+
+    [[refl]] static OrgSelectorCondition HasSubtreeId(
+        Str const&           id,
+        Opt<OrgSelectorLink> link = std::nullopt);
+
+    [[refl]] static OrgSelectorCondition HasSubtreePlaintextTitle(
+        Str const&           title,
+        Opt<OrgSelectorLink> link = std::nullopt);
 
     Func<bool(SemId<Org> const&, Span<SubnodeVisitorCtxPart> const&)>
                                   check;

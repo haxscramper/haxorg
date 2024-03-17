@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exportertree.hpp>
+#include <exporters/ExporterUltraplain.hpp>
 #include <sem/SemOrgSerdeDeclarations.hpp>
 #include <SemOrgProto.pb.h>
 
@@ -465,10 +466,7 @@ bool OrgDocumentSelector::isMatching(
               SemId<Org>                  node,
               Span<SubnodeVisitorCtxPart> ctx,
               int                         depth) {
-        dbg(fmt("condition={} node={} ctx={}",
-                condition->debug,
-                node->getKind(),
-                ctx),
+        dbg(fmt("condition={} node={}", condition->debug, node->getKind()),
             depth);
 
         if (condition->check(node, ctx)) {
@@ -500,6 +498,7 @@ bool OrgDocumentSelector::isMatching(
                                     depth + 1)) {
                                 return true;
                             }
+                            ++offset;
                         }
 
                         return false;
@@ -528,4 +527,48 @@ Vec<SemId<Org>> OrgDocumentSelector::getMatches(
         });
 
     return result;
+}
+
+OrgSelectorCondition OrgSelectorCondition::HasKind(
+    const SemSet&        kinds,
+    Opt<OrgSelectorLink> link) {
+    return {
+        .check = [kinds](
+                     SemId<Org> const& node,
+                     Span<SubnodeVisitorCtxPart> const&) -> bool {
+            return kinds.contains(node->getKind());
+        },
+        .debug = fmt("HasKind:{}", kinds),
+        .link  = link,
+    };
+}
+sem::OrgSelectorCondition sem::OrgSelectorCondition::HasSubtreeId(
+    Str const&           id,
+    Opt<OrgSelectorLink> link) {
+    return {
+        .check = [id](
+                     SemId<Org> const& node,
+                     Span<SubnodeVisitorCtxPart> const&) -> bool {
+            return node->is(osk::Subtree)
+                && node.as<Subtree>()->treeId == id;
+        },
+        .debug = fmt("HasSubtreeId:{}", id),
+        .link  = link,
+    };
+}
+
+OrgSelectorCondition OrgSelectorCondition::HasSubtreePlaintextTitle(
+    const Str&           title,
+    Opt<OrgSelectorLink> link) {
+    return {
+        .check = [title](
+                     SemId<Org> const& node,
+                     Span<SubnodeVisitorCtxPart> const&) -> bool {
+            return node->is(osk::Subtree)
+                && ExporterUltraplain::toStr(node.as<Subtree>()->title)
+                       == title;
+        },
+        .debug = fmt("HasSubtreePlaintextTitle:{}", title),
+        .link  = link,
+    };
 }
