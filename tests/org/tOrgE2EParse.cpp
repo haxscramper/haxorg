@@ -467,6 +467,24 @@ Paragraph under subtitle 2
     }
 }
 
+TEST(OrgDocumentSelector, GetSubtreeAtPath) {
+    auto node = parseNode(R"(
+* Title1
+** Subtitle1
+Content1
+** Subtitle2
+Content2
+* Title2
+)");
+
+    sem::OrgDocumentSelector selector;
+    selector.searchSubtreePlaintextTitle(
+        "Subtitle1", selector.linkIndirectSubnode());
+    selector.searchSubtreePlaintextTitle("Title1");
+    auto matches = selector.getMatches(node);
+    EXPECT_EQ(matches.size(), 1);
+}
+
 TEST(OrgApi, EachSubnodeWithContext) {
     auto node = parseNode(R"(*bold*)");
     Vec<Pair<sem::SemId<sem::Org>, Vec<sem::SubnodeVisitorCtxPart>>> ctx;
@@ -491,6 +509,7 @@ TEST(OrgApi, EachSubnodeWithContext) {
     EXPECT_EQ(ctx.at(1).second.at(0).field.value(), "subnodes");
     EXPECT_EQ(ctx.at(1).second.at(1).index.value(), 0);
 }
+
 
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};

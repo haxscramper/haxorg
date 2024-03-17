@@ -414,6 +414,15 @@ bool OrgDocumentSelector::isMatching(
     const SemId<Org>&                 node,
     const Vec<SubnodeVisitorCtxPart>& ctx) const {
 
+    for (int i = 0; i < path.size(); ++i) {
+        if (i < path.high() && !path.at(i).link.has_value()) {
+            throw std::logic_error(
+                fmt("Element at index {} is not a final element in the "
+                    "selector path, but it is missing a link.",
+                    i));
+        }
+    }
+
     using PathIter = Vec<OrgSelectorCondition>::const_iterator;
 
     auto dbg =
@@ -426,17 +435,18 @@ bool OrgDocumentSelector::isMatching(
 
     auto getParentSpan = [](int levels, Span<SubnodeVisitorCtxPart> span)
         -> Opt<Span<SubnodeVisitorCtxPart>> {
-        auto it            = span.rbegin();
+        auto end           = span.rbegin();
+        auto begin         = span.rend();
         int  skippedLevels = 0;
-        while (it != span.rend() && skippedLevels != levels) {
-            if (it->node) { ++skippedLevels; }
-            ++it;
+        while (skippedLevels < levels && end != begin) {
+            if (end->node) { ++skippedLevels; }
+            ++end;
         }
 
-        if (it == span.rend()) {
-            return std::nullopt;
+        if (skippedLevels == levels) {
+            return IteratorSpan(begin.base(), end.base());
         } else {
-            return IteratorSpan(span.begin(), it.base());
+            return std::nullopt;
         }
     };
 
@@ -466,22 +476,41 @@ bool OrgDocumentSelector::isMatching(
               SemId<Org>                  node,
               Span<SubnodeVisitorCtxPart> ctx,
               int                         depth) {
-        dbg(fmt("condition={} node={}", condition->debug, node->getKind()),
-            depth);
+        if (debug) {
+            Vec<Str> context;
+            for (auto const& it : ctx) {
+                if (it.node) {
+                    context.push_back(
+                        fmt("{}", it.node.value()->getKind()));
+                } else {
+                    context.push_back(fmt("idx={}", it.index));
+                }
+            }
+
+            dbg(fmt("condition={} (@{}/{}) node={} ctx={}",
+                    condition->debug,
+                    std::distance(path.begin(), condition),
+                    path.high(),
+                    node->getKind(),
+                    context),
+                depth);
+        }
 
         if (condition->check(node, ctx)) {
-            dbg("passed check", depth);
+            dbg(fmt("passed check {}", condition->debug), depth);
             if (condition->link) {
                 auto const& link = condition->link.value();
+                dbg(fmt("link={}", link.kind), depth);
                 switch (link.kind) {
                     case OrgSelectorLink::Kind::DirectSubnode: {
                         auto node = getParentNode(1, ctx);
                         if (node) {
-                            return aux(
+                            bool result = aux(
                                 condition + 1,
                                 node.value(),
                                 getParentSpan(1, ctx).value(),
                                 depth + 1);
+                            return result;
                         } else {
                             return false;
                         }
@@ -492,7 +521,9 @@ bool OrgDocumentSelector::isMatching(
                         while (
                             auto parentSpan = getParentSpan(offset, ctx)) {
                             auto parent = getParentNode(offset, ctx);
-                            if (aux(condition + 1,
+                            if (parent
+                                && aux(
+                                    condition + 1,
                                     parent.value(),
                                     parentSpan.value(),
                                     depth + 1)) {
@@ -505,6 +536,7 @@ bool OrgDocumentSelector::isMatching(
                     }
                 }
             } else {
+                dbg(fmt("no link"), depth);
                 return true;
             }
         } else {
@@ -545,6 +577,7 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
     const Str&           title,
     Opt<OrgSelectorLink> link) {
     assertLinkPresence();
+    if (debug) { LOG(INFO) << title; }
     path.push_back({
         .check = [title](
                      SemId<Org> const& node,
