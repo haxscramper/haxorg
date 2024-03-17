@@ -98,6 +98,7 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
                 GenTuDoc(""),
                 isConst=True,
                 isStatic=True,
+                isExposedForWrap=False,
             ),
         )
 
@@ -111,19 +112,7 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
                 isVirtual=True,
                 isPureVirtual=False,
                 impl=f"return {t_osk().name}::{kind};",
-            ),
-        )
-
-        res.methods.insert(
-            0,
-            GenTuFunction(
-                t_id(QualType(name=name)),
-                "create",
-                GenTuDoc(""),
-                isStatic=True,
-                arguments=[
-                    GenTuIdent(t_opt(t("OrgAdapter")), "original", value="std::nullopt"),
-                ],
+                isExposedForWrap=False,
             ),
         )
 

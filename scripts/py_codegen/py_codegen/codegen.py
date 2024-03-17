@@ -56,7 +56,7 @@ def get_exporter_methods(forward: bool,
             full_scoped_name: List[str] = scope_names + [name]
             fields: List[GenTuField] = [
                 field for field in (value.fields + get_type_base_fields(value, base_map))
-                if not (field.isStatic)
+                if field.isExposedForWrap
             ]
 
             scoped_target = t_cr(
@@ -175,18 +175,13 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
     def map_obj_fields(Record: GenTuStruct):
         for _field in Record.fields:
-            if _field.isStatic or hasattr(_field, "ignore"):
-                continue
-
-            res.Fields.append(Py11Field.FromGenTu(_field))
+            if _field.isExposedForWrap:
+                res.Fields.append(Py11Field.FromGenTu(_field))
 
     def map_obj_methods(Record: GenTuStruct):
         for meth in Record.methods:
-            if meth.isStatic or meth.isPureVirtual or (meth.name == "getKind" and
-                                                       Record.name.name != "Org"):
-                continue
-
-            res.Methods.append(Py11Method.FromGenTu(meth))
+            if not meth.isPureVirtual and meth.isExposedForWrap:
+                res.Methods.append(Py11Method.FromGenTu(meth))
 
     def map_bases(Record: GenTuStruct):
         for base in Record.bases:
@@ -204,7 +199,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
         def cb(it: GenTuStruct):
             for field in it.fields:
-                if not field.isStatic:
+                if field.isExposedForWrap:
                     rec_fields.append(Py11Field.FromGenTu(field))
 
             for base in it.bases:
@@ -226,16 +221,12 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
     )
 
     for meth in value.methods:
-        if meth.isStatic or meth.isPureVirtual:
-            continue
-
-        res.Methods.append(Py11Method.FromGenTu(meth))
+        if meth.isExposedForWrap:
+            res.Methods.append(Py11Method.FromGenTu(meth))
 
     for _field in value.fields:
-        if _field.isStatic or hasattr(_field, "ignore"):
-            continue
-
-        res.Fields.append(Py11Field.FromGenTu(_field))
+        if _field.isExposedForWrap:
+            res.Fields.append(Py11Field.FromGenTu(_field))
 
     if not value.IsAbstract:
         res.InitDefault(ast, filter_init_fields(res.Fields))
@@ -518,6 +509,7 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                     t_id(),
                     [GenTuIdent(QualType.ForName("int"), "idx")],
                     IsConst=True,
+                    IsStatic=False,
                 ))
 
             org_decl.Methods.append(
@@ -697,7 +689,7 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> Qm
                         ))))
 
         for field in struct.fields:
-            if field.isStatic:
+            if not field.isExposedForWrap:
                 continue
 
             elif field.type.name in [

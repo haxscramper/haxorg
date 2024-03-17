@@ -250,6 +250,7 @@ class Py11Function:
 class Py11Method(Py11Function):
     IsConst: bool = False
     IsInit: bool = False
+    IsStatic: bool = False
     ExplicitClassParam: bool = False
 
     @staticmethod
@@ -260,13 +261,15 @@ class Py11Method(Py11Function):
     ) -> 'Py11Method':
 
         return Py11Method(
-            PyName=py_ident(meth.name) if pySideOverride is None else pySideOverride,
+            PyName=pySideOverride if pySideOverride else
+            py_ident(meth.name + ("Static" if meth.isStatic else "")),
             Body=Body,
             ResultTy=meth.result,
             CxxName=meth.name,
             Doc=meth.doc,
             IsConst=meth.isConst,
             Args=meth.arguments,
+            IsStatic=meth.isStatic,
         )
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
@@ -275,7 +278,7 @@ class Py11Method(Py11Function):
             ResultTy=py_type(self.ResultTy),
             Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
             IsStub=True,
-        ))
+            Decorators=[pya.DecoratorParams("staticmethod")] if self.IsStatic else []))
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -292,7 +295,7 @@ class Py11Method(Py11Function):
         call_pass = self.build_call_pass(
             ast,
             FunctionQualName=ast.Scoped(Class, ast.string(self.CxxName)),
-            Class=Class,
+            Class=None if self.IsStatic else Class,
             IsConst=self.IsConst,
             Args=Args,
         )
@@ -306,7 +309,7 @@ class Py11Method(Py11Function):
             argument_binder = self.build_argument_binder(self.Args, ast=ast)
 
         return ast.XCall(
-            ".def",
+            (".def_static" if (self.IsStatic and not self.IsInit) else ".def"),
             [
                 *([] if self.IsInit else [ast.Literal(self.PyName)]),
                 call_pass,

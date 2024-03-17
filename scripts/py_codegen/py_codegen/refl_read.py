@@ -143,6 +143,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
                 name=meth.name,
                 doc=conv_doc_comment(meth.doc),
                 isConst=meth.is_const,
+                isStatic=meth.is_static,
                 original=original,
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args

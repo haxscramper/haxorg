@@ -31,7 +31,7 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
 
     context.append(tree)
 
-    if isinstance(tree, list):
+    if isinstance(tree, (list, tuple)):
         for it in tree:
             iterate_object_tree(
                 it,
@@ -56,13 +56,17 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
 
     elif isinstance(tree, object):
         # If any object -- walk all slots (attributes)
-        for slot, value in vars(tree).items():
-            iterate_object_tree(
-                value,
-                context,
-                pre_visit=pre_visit,
-                post_visit=post_visit,
-            )
+        if hasattr(tree, "__dict__"):
+            for slot, value in vars(tree).items():
+                iterate_object_tree(
+                    value,
+                    context,
+                    pre_visit=pre_visit,
+                    post_visit=post_visit,
+                )
+
+        else:
+            print(f"??? {type(tree)}")
 
     # Walk over every item in list
     # Otherwise, print the value -- if something is missing it will be added later

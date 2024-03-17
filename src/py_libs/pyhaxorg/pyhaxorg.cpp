@@ -39,6 +39,8 @@ PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(IntSet<sem::Subtree::Period::Kind>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgSelectorCondition>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::OrgSelectorCondition>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
@@ -58,6 +60,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Subtree::Period>(m, "VecOfSubtreePeriod");
   bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind");
   bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree");
+  bind_vector<sem::OrgSelectorCondition>(m, "VecOfOrgSelectorCondition");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("documentId", &sem::Org::documentId, R"RAW(\brief Application specific ID of the original document)RAW")
@@ -249,6 +252,9 @@ node can have subnodes.)RAW")
     .def("getFootnote", static_cast<sem::AnnotatedParagraph::Footnote&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getFootnote))
     .def("getAdmonition", static_cast<sem::AnnotatedParagraph::Admonition&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getAdmonition))
     .def("getTimestamp", static_cast<sem::AnnotatedParagraph::Timestamp&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getTimestamp))
+    .def_static("getAnnotationKindStatic",
+                static_cast<sem::AnnotatedParagraph::AnnotationKind(*)(sem::AnnotatedParagraph::Data const&)>(&sem::AnnotatedParagraph::getAnnotationKind),
+                pybind11::arg("__input"))
     .def("getAnnotationKind", static_cast<sem::AnnotatedParagraph::AnnotationKind(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::getAnnotationKind))
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::AnnotatedParagraph::*)(OrgSemKind)>(&sem::AnnotatedParagraph::getAttached),
@@ -476,6 +482,9 @@ node can have subnodes.)RAW")
     .def("getRaw", static_cast<sem::Code::Line::Part::Raw&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getRaw))
     .def("getCallout", static_cast<sem::Code::Line::Part::Callout&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getCallout))
     .def("getTangle", static_cast<sem::Code::Line::Part::Tangle&(sem::Code::Line::Part::*)()>(&sem::Code::Line::Part::getTangle))
+    .def_static("getKindStatic",
+                static_cast<sem::Code::Line::Part::Kind(*)(sem::Code::Line::Part::Data const&)>(&sem::Code::Line::Part::getKind),
+                pybind11::arg("__input"))
     .def("getKind", static_cast<sem::Code::Line::Part::Kind(sem::Code::Line::Part::*)() const>(&sem::Code::Line::Part::getKind))
     ;
   pybind11::class_<sem::Code::Line>(m, "CodeLine")
@@ -552,6 +561,9 @@ node can have subnodes.)RAW")
     .def("getRemoveCallout", static_cast<sem::Code::Switch::RemoveCallout&(sem::Code::Switch::*)()>(&sem::Code::Switch::getRemoveCallout))
     .def("getEmphasizeLine", static_cast<sem::Code::Switch::EmphasizeLine&(sem::Code::Switch::*)()>(&sem::Code::Switch::getEmphasizeLine))
     .def("getDedent", static_cast<sem::Code::Switch::Dedent&(sem::Code::Switch::*)()>(&sem::Code::Switch::getDedent))
+    .def_static("getKindStatic",
+                static_cast<sem::Code::Switch::Kind(*)(sem::Code::Switch::Data const&)>(&sem::Code::Switch::getKind),
+                pybind11::arg("__input"))
     .def("getKind", static_cast<sem::Code::Switch::Kind(sem::Code::Switch::*)() const>(&sem::Code::Switch::getKind))
     ;
   bind_enum_iterator<sem::Code::Results>(m, "CodeResults");
@@ -668,6 +680,9 @@ node can have subnodes.)RAW")
     .def_readwrite("time", &sem::Time::time)
     .def("getStatic", static_cast<sem::Time::Static&(sem::Time::*)()>(&sem::Time::getStatic))
     .def("getDynamic", static_cast<sem::Time::Dynamic&(sem::Time::*)()>(&sem::Time::getDynamic))
+    .def_static("getTimeKindStatic",
+                static_cast<sem::Time::TimeKind(*)(sem::Time::TimeVariant const&)>(&sem::Time::getTimeKind),
+                pybind11::arg("__input"))
     .def("getTimeKind", static_cast<sem::Time::TimeKind(sem::Time::*)() const>(&sem::Time::getTimeKind))
     ;
   pybind11::class_<sem::TimeRange, sem::SemId<sem::TimeRange>, sem::Org>(m, "TimeRange")
@@ -822,6 +837,9 @@ node can have subnodes.)RAW")
     .def("getState", static_cast<sem::SubtreeLog::State&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getState))
     .def("getTag", static_cast<sem::SubtreeLog::Tag&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getTag))
     .def("getUnknown", static_cast<sem::SubtreeLog::Unknown&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getUnknown))
+    .def_static("getLogKindStatic",
+                static_cast<sem::SubtreeLog::Kind(*)(sem::SubtreeLog::LogEntry const&)>(&sem::SubtreeLog::getLogKind),
+                pybind11::arg("__input"))
     .def("getLogKind", static_cast<sem::SubtreeLog::Kind(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::getLogKind))
     ;
   bind_enum_iterator<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
@@ -1059,6 +1077,9 @@ node can have subnodes.)RAW")
     .def("getUnnumbered", static_cast<sem::Subtree::Property::Unnumbered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnnumbered))
     .def("getCreated", static_cast<sem::Subtree::Property::Created&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCreated))
     .def("getUnknown", static_cast<sem::Subtree::Property::Unknown&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnknown))
+    .def_static("getKindStatic",
+                static_cast<sem::Subtree::Property::Kind(*)(sem::Subtree::Property::Data const&)>(&sem::Subtree::Property::getKind),
+                pybind11::arg("__input"))
     .def("getKind", static_cast<sem::Subtree::Property::Kind(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getKind))
     ;
   pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>, sem::Org>(m, "Subtree")
@@ -1350,6 +1371,9 @@ node can have subnodes.)RAW")
     .def("getInternal", static_cast<sem::Link::Internal&(sem::Link::*)()>(&sem::Link::getInternal))
     .def("getFootnote", static_cast<sem::Link::Footnote&(sem::Link::*)()>(&sem::Link::getFootnote))
     .def("getFile", static_cast<sem::Link::File&(sem::Link::*)()>(&sem::Link::getFile))
+    .def_static("getLinkKindStatic",
+                static_cast<sem::Link::Kind(*)(sem::Link::Data const&)>(&sem::Link::getLinkKind),
+                pybind11::arg("__input"))
     .def("getLinkKind", static_cast<sem::Link::Kind(sem::Link::*)() const>(&sem::Link::getLinkKind))
     ;
   pybind11::class_<sem::DocumentOptions::DoExport>(m, "DocumentOptionsDoExport")
@@ -1438,6 +1462,9 @@ node can have subnodes.)RAW")
          pybind11::arg_v("subKind", std::nullopt))
     .def("getDoExport", static_cast<sem::DocumentOptions::DoExport&(sem::DocumentOptions::*)()>(&sem::DocumentOptions::getDoExport))
     .def("getExportFixed", static_cast<sem::DocumentOptions::ExportFixed&(sem::DocumentOptions::*)()>(&sem::DocumentOptions::getExportFixed))
+    .def_static("getTocExportKindStatic",
+                static_cast<sem::DocumentOptions::TocExportKind(*)(sem::DocumentOptions::TocExport const&)>(&sem::DocumentOptions::getTocExportKind),
+                pybind11::arg("__input"))
     .def("getTocExportKind", static_cast<sem::DocumentOptions::TocExportKind(sem::DocumentOptions::*)() const>(&sem::DocumentOptions::getTocExportKind))
     ;
   pybind11::class_<sem::Document, sem::SemId<sem::Document>, sem::Org>(m, "Document")
@@ -1541,6 +1568,9 @@ node can have subnodes.)RAW")
     .def("getExport", static_cast<sem::Include::Export&(sem::Include::*)()>(&sem::Include::getExport))
     .def("getSrc", static_cast<sem::Include::Src&(sem::Include::*)()>(&sem::Include::getSrc))
     .def("getOrgDocument", static_cast<sem::Include::OrgDocument&(sem::Include::*)()>(&sem::Include::getOrgDocument))
+    .def_static("getIncludeKindStatic",
+                static_cast<sem::Include::Kind(*)(sem::Include::Data const&)>(&sem::Include::getIncludeKind),
+                pybind11::arg("__input"))
     .def("getIncludeKind", static_cast<sem::Include::Kind(sem::Include::*)() const>(&sem::Include::getIncludeKind))
     ;
   pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>, sem::Org>(m, "DocumentGroup")
@@ -1974,6 +2004,43 @@ example),)RAW")
          pybind11::arg("node"),
          R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
     ;
+  pybind11::class_<sem::OrgSelectorLink>(m, "OrgSelectorLink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorLink {
+                        sem::OrgSelectorLink result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &sem::OrgSelectorLink::kind)
+    ;
+  pybind11::class_<sem::OrgSelectorCondition>(m, "OrgSelectorCondition")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorCondition {
+                        sem::OrgSelectorCondition result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("debug", &sem::OrgSelectorCondition::debug)
+    .def_readwrite("link", &sem::OrgSelectorCondition::link)
+    .def_static("HasKindStatic",
+                static_cast<sem::OrgSelectorCondition(*)(SemSet const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasKind),
+                pybind11::arg("kinds"),
+                pybind11::arg("link"))
+    .def_static("HasSubtreeIdStatic",
+                static_cast<sem::OrgSelectorCondition(*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasSubtreeId),
+                pybind11::arg("id"),
+                pybind11::arg("link"))
+    .def_static("HasSubtreePlaintextTitleStatic",
+                static_cast<sem::OrgSelectorCondition(*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasSubtreePlaintextTitle),
+                pybind11::arg("title"),
+                pybind11::arg("link"))
+    ;
+  pybind11::class_<sem::OrgDocumentSelector>(m, "OrgDocumentSelector")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentSelector {
+                        sem::OrgDocumentSelector result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("path", &sem::OrgDocumentSelector::path)
+    ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
                         ExporterPython result{};
@@ -2086,6 +2153,16 @@ example),)RAW")
     .def("__iter__", [](sem::SubnodeVisitorCtxPart::Kind _self) -> PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind> {
                      return
                      PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<sem::OrgSelectorLink::Kind>(m, "OrgSelectorLinkKind");
+  pybind11::enum_<sem::OrgSelectorLink::Kind>(m, "OrgSelectorLinkKind")
+    .value("DirectSubnode", sem::OrgSelectorLink::Kind::DirectSubnode)
+    .value("IndirectSubnode", sem::OrgSelectorLink::Kind::IndirectSubnode)
+    .def("__iter__", [](sem::OrgSelectorLink::Kind _self) -> PyEnumIterator<sem::OrgSelectorLink::Kind> {
+                     return
+                     PyEnumIterator<sem::OrgSelectorLink::Kind>
                      ();
                      })
     ;

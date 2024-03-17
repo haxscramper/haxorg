@@ -168,6 +168,8 @@ struct [[refl]] OrgSelectorLink {
         IndirectSubnode,
     };
 
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, DirectSubnode, IndirectSubnode);
+
     [[refl]] Kind kind;
     BOOST_DESCRIBE_CLASS(OrgSelectorLink, (), (kind), (), ());
 };
