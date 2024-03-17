@@ -16,6 +16,7 @@
 #include <sem/SemOrgSerde.hpp>
 #include <google/protobuf/util/json_util.h>
 #include <exporters/ExporterJson.hpp>
+#include <sem/SemBaseApi.hpp>
 
 template <
     /// Node kind

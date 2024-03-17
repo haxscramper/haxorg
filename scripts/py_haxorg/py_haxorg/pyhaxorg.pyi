@@ -1017,18 +1017,6 @@ class UserTime:
     def getBreakdown(self) -> UserTimeBreakdown: ...
     def format(self) -> str: ...
 
-class SubnodeVisitorCtxPart:
-    node: Optional[Org]
-    index: Optional[int]
-    field: Optional[str]
-    kind: Kind
-
-class OrgDocumentContext:
-    def getSubtreeById(self, id: str) -> List[Subtree]: ...
-    def getLinkTarget(self, link: Link) -> List[Org]: ...
-    def getRadioTarget(self, name: str) -> List[Org]: ...
-    def addNodes(self, node: Org) -> None: ...
-
 class OrgParseParameters:
     baseTokenTracePath: Optional[str]
     tokenTracePath: Optional[str]
@@ -1042,6 +1030,18 @@ class OrgTreeExportOpts:
     skipEmptyFields: bool
     startLevel: int
     withColor: bool
+
+class SubnodeVisitorCtxPart:
+    node: Optional[Org]
+    index: Optional[int]
+    field: Optional[str]
+    kind: Kind
+
+class OrgDocumentContext:
+    def getSubtreeById(self, id: str) -> List[Subtree]: ...
+    def getLinkTarget(self, link: Link) -> List[Org]: ...
+    def getRadioTarget(self, name: str) -> List[Org]: ...
+    def addNodes(self, node: Org) -> None: ...
 
 class ExporterPython:
     def enablePyStreamTrace(self, stream: object) -> None: ...

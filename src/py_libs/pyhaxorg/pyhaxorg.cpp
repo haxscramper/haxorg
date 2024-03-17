@@ -1910,6 +1910,30 @@ node can have subnodes.)RAW")
     .def("getBreakdown", static_cast<UserTimeBreakdown(UserTime::*)() const>(&UserTime::getBreakdown))
     .def("format", static_cast<std::string(UserTime::*)() const>(&UserTime::format))
     ;
+  pybind11::class_<sem::OrgParseParameters>(m, "OrgParseParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgParseParameters {
+                        sem::OrgParseParameters result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("baseTokenTracePath", &sem::OrgParseParameters::baseTokenTracePath)
+    .def_readwrite("tokenTracePath", &sem::OrgParseParameters::tokenTracePath)
+    .def_readwrite("parseTracePath", &sem::OrgParseParameters::parseTracePath)
+    .def_readwrite("semTracePath", &sem::OrgParseParameters::semTracePath)
+    ;
+  pybind11::class_<sem::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgTreeExportOpts {
+                        sem::OrgTreeExportOpts result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("withLineCol", &sem::OrgTreeExportOpts::withLineCol)
+    .def_readwrite("withOriginalId", &sem::OrgTreeExportOpts::withOriginalId)
+    .def_readwrite("withSubnodeIdx", &sem::OrgTreeExportOpts::withSubnodeIdx)
+    .def_readwrite("skipEmptyFields", &sem::OrgTreeExportOpts::skipEmptyFields)
+    .def_readwrite("startLevel", &sem::OrgTreeExportOpts::startLevel)
+    .def_readwrite("withColor", &sem::OrgTreeExportOpts::withColor)
+    ;
   pybind11::class_<sem::SubnodeVisitorCtxPart>(m, "SubnodeVisitorCtxPart")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorCtxPart {
                         sem::SubnodeVisitorCtxPart result{};
@@ -1949,30 +1973,6 @@ example),)RAW")
          static_cast<void(sem::OrgDocumentContext::*)(sem::SemId<sem::Org> const&)>(&sem::OrgDocumentContext::addNodes),
          pybind11::arg("node"),
          R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
-    ;
-  pybind11::class_<sem::OrgParseParameters>(m, "OrgParseParameters")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgParseParameters {
-                        sem::OrgParseParameters result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("baseTokenTracePath", &sem::OrgParseParameters::baseTokenTracePath)
-    .def_readwrite("tokenTracePath", &sem::OrgParseParameters::tokenTracePath)
-    .def_readwrite("parseTracePath", &sem::OrgParseParameters::parseTracePath)
-    .def_readwrite("semTracePath", &sem::OrgParseParameters::semTracePath)
-    ;
-  pybind11::class_<sem::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgTreeExportOpts {
-                        sem::OrgTreeExportOpts result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("withLineCol", &sem::OrgTreeExportOpts::withLineCol)
-    .def_readwrite("withOriginalId", &sem::OrgTreeExportOpts::withOriginalId)
-    .def_readwrite("withSubnodeIdx", &sem::OrgTreeExportOpts::withSubnodeIdx)
-    .def_readwrite("skipEmptyFields", &sem::OrgTreeExportOpts::skipEmptyFields)
-    .def_readwrite("startLevel", &sem::OrgTreeExportOpts::startLevel)
-    .def_readwrite("withColor", &sem::OrgTreeExportOpts::withColor)
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
