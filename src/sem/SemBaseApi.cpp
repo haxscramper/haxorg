@@ -384,3 +384,148 @@ Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
 
     return result;
 }
+
+Opt<UserTime> getCreationTime(const SemId<Org>& node) {
+    if (node->is(osk::AnnotatedParagraph)) {
+        auto const& par = node.as<AnnotatedParagraph>();
+        if (par->getAnnotationKind()
+            == AnnotatedParagraph::AnnotationKind::Timestamp) {
+            return par->getTimestamp().time->getStatic().time;
+        }
+    } else if (node->is(osk::Subtree)) {
+        auto const& tree = node.as<Subtree>();
+        for (auto const& period :
+             tree->getTimePeriods({Subtree::Period::Kind::Created})) {
+            return period.from->getStatic().time;
+        }
+
+        for (auto const& period :
+             tree->getTimePeriods({Subtree::Period::Kind::Titled})) {
+            return period.from->getStatic().time;
+        }
+    }
+
+    return std::nullopt;
+}
+
+
+bool OrgDocumentSelector::isMatching(
+    const SemId<Org>&                 node,
+    const Vec<SubnodeVisitorCtxPart>& ctx) const {
+
+    using PathIter = Vec<OrgSelectorCondition>::const_iterator;
+
+    auto dbg =
+        [&](Str const& msg, int depth, int line = __builtin_LINE()) {
+            if (debug) {
+                LOG(INFO) << fmt(
+                    "{}[{}] {}", Str("  ").repeated(depth), line, msg);
+            }
+        };
+
+    auto getParentSpan = [](int levels, Span<SubnodeVisitorCtxPart> span)
+        -> Opt<Span<SubnodeVisitorCtxPart>> {
+        auto it            = span.rbegin();
+        int  skippedLevels = 0;
+        while (it != span.rend() && skippedLevels != levels) {
+            if (it->node) { ++skippedLevels; }
+            ++it;
+        }
+
+        if (it == span.rend()) {
+            return std::nullopt;
+        } else {
+            return IteratorSpan(span.begin(), it.base());
+        }
+    };
+
+    auto getParentNode =
+        [](int                         levels,
+           Span<SubnodeVisitorCtxPart> span) -> Opt<SemId<Org>> {
+        int skippedLevels = 0;
+        for (auto it = span.rbegin(); it != span.rend(); ++it) {
+            if (it->node) {
+                ++skippedLevels;
+                if (skippedLevels == levels) { return it->node.value(); }
+            }
+        }
+
+        return std::nullopt;
+    };
+
+
+    Func<bool(
+        PathIter                    condition,
+        SemId<Org>                  node,
+        Span<SubnodeVisitorCtxPart> ctx,
+        int                         depth)>
+        aux;
+
+    aux = [&](PathIter                    condition,
+              SemId<Org>                  node,
+              Span<SubnodeVisitorCtxPart> ctx,
+              int                         depth) {
+        dbg(fmt("condition={} node={} ctx={}",
+                condition->debug,
+                node->getKind(),
+                ctx),
+            depth);
+
+        if (condition->check(node, ctx)) {
+            dbg("passed check", depth);
+            if (condition->link) {
+                auto const& link = condition->link.value();
+                switch (link.kind) {
+                    case OrgSelectorLink::Kind::DirectSubnode: {
+                        auto node = getParentNode(1, ctx);
+                        if (node) {
+                            return aux(
+                                condition + 1,
+                                node.value(),
+                                getParentSpan(1, ctx).value(),
+                                depth + 1);
+                        } else {
+                            return false;
+                        }
+                    }
+
+                    case OrgSelectorLink::Kind::IndirectSubnode: {
+                        int offset = 1;
+                        while (
+                            auto parentSpan = getParentSpan(offset, ctx)) {
+                            auto parent = getParentNode(offset, ctx);
+                            if (aux(condition + 1,
+                                    parent.value(),
+                                    parentSpan.value(),
+                                    depth + 1)) {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+                }
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    };
+
+    return aux(
+        path.begin(), node, IteratorSpan(ctx.begin(), ctx.end()), 0);
+}
+
+Vec<SemId<Org>> OrgDocumentSelector::getMatches(
+    const SemId<Org>& node) const {
+    Vec<SemId<Org>> result;
+    eachSubnodeRecWithContext(
+        node,
+        [&](SemId<Org> const&                 node,
+            Vec<SubnodeVisitorCtxPart> const& path) {
+            if (isMatching(node, path)) { result.push_back(node); }
+        });
+
+    return result;
+}

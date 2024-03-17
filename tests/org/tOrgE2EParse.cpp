@@ -395,6 +395,19 @@ TEST(OrgApi, LinkResolution) {
     EXPECT_EQ(subtree_result.size(), 1);
 }
 
+TEST(OrgDocumentSelector, GetMatchingNodes) {
+    auto                     node = parseNode("bold");
+    sem::OrgDocumentSelector selector{
+        .path  = {sem::OrgSelectorCondition::HasKind({OrgSemKind::Word})},
+        .debug = true,
+    };
+
+    auto words = selector.getMatches(node);
+
+    EXPECT_EQ(words.size(), 1);
+    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+}
+
 TEST(OrgApi, EachSubnodeWithContext) {
     auto node = parseNode(R"(*bold*)");
     Vec<Pair<sem::SemId<sem::Org>, Vec<sem::SubnodeVisitorCtxPart>>> ctx;

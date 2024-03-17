@@ -158,4 +158,55 @@ struct [[refl]] OrgDocumentContext {
     BOOST_DESCRIBE_CLASS(OrgDocumentContext, (), (), (), ());
 };
 
+Opt<UserTime> getCreationTime(SemId<Org> const& node);
+
+
+struct [[refl]] OrgSelectorLink {
+    enum class [[refl]] Kind
+    {
+        DirectSubnode,
+        IndirectSubnode,
+    };
+
+    [[refl]] Kind kind;
+    BOOST_DESCRIBE_CLASS(OrgSelectorLink, (), (kind), (), ());
+};
+
+struct [[refl]] OrgSelectorCondition {
+    [[refl]] static OrgSelectorCondition HasKind(SemSet const& kinds) {
+        return {
+            .check = [kinds](
+                         SemId<Org> const& node,
+                         Span<SubnodeVisitorCtxPart> const&) -> bool {
+                return kinds.contains(node->getKind());
+            },
+            .debug = fmt("HasKind:{}", kinds),
+        };
+    }
+
+    Func<bool(SemId<Org> const&, Span<SubnodeVisitorCtxPart> const&)>
+                                  check;
+    [[refl]] Opt<Str>             debug;
+    [[refl]] Opt<OrgSelectorLink> link;
+    BOOST_DESCRIBE_CLASS(OrgSelectorCondition, (), (), (), ());
+};
+
+struct [[refl]] OrgDocumentSelector {
+    [[refl]] Vec<OrgSelectorCondition> path;
+
+    bool debug = false;
+
+    bool isMatching(
+        SemId<Org> const&                 node,
+        Vec<SubnodeVisitorCtxPart> const& ctx) const;
+
+    Vec<SemId<Org>> getMatches(SemId<Org> const& node) const;
+
+    BOOST_DESCRIBE_CLASS(OrgDocumentSelector, (), (path), (), ());
+};
+
+Vec<SemId<Org>> getAllMatching(
+    SemId<Org> const&          node,
+    OrgDocumentSelector const& selector);
+
 } // namespace sem

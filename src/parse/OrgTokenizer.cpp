@@ -815,11 +815,6 @@ struct GroupToken {
 using LK = LineToken::Kind;
 using GK = GroupToken::Kind;
 
-template <std::random_access_iterator Iter>
-auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
-    return Span<typename Iter::value_type>{
-        &*begin, static_cast<int>(std::distance(begin, end))};
-}
 
 struct TokenVisitor {
     OrgTokenizer*  d;
@@ -832,7 +827,7 @@ struct TokenVisitor {
 
         for (auto it = tokens->begin(); it != tokens->end(); ++it) {
             if (line_end.contains(it->kind)) {
-                auto span = make_span(start, std::next(it));
+                auto span = IteratorSpan(start, std::next(it));
                 auto line = LineToken{span};
                 if (TraceState) {
                     d->print(lex, fmt("{} {}", line.kind, line.tokens));
@@ -843,7 +838,7 @@ struct TokenVisitor {
         }
 
         if (start != tokens->end()) {
-            auto span = make_span(start, tokens->end());
+            auto span = IteratorSpan(start, tokens->end());
             if (TraceState) { d->print(lex, fmt("{}", span)); }
             lines.push_back(LineToken{span});
         }
@@ -873,7 +868,7 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::Line};
                 }
 
@@ -885,7 +880,7 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::ListItem};
                 }
 
@@ -911,14 +906,14 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::Properties};
                 }
 
                 case LK::BlockClose: {
                     nextline();
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::Line};
                 }
 
