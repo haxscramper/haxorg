@@ -39,3 +39,12 @@ def test_subnode_visitor():
     kinds = []
     org.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
     assert kinds == [osk.Document, osk.Paragraph, osk.Word], kinds
+
+def test_subnode_selector():
+    node = org.parseString("Word")
+    selector = org.OrgDocumentSelector()
+    selector.path.append(org.OrgSelectorCondition.HasKindStatic(org.IntSetOfOrgSemKind([osk.Word]), None))
+    matches = selector.getMatches(node)
+    assert len(matches) == 1
+    assert matches[0].getKind() == osk.Word
+    assert matches[0].text == "Word"

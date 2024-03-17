@@ -39,6 +39,7 @@ PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(IntSet<sem::Subtree::Period::Kind>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
+PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgSelectorCondition>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::OrgSelectorCondition>)
 PYBIND11_MODULE(pyhaxorg, m) {
@@ -60,6 +61,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Subtree::Period>(m, "VecOfSubtreePeriod");
   bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind");
   bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree");
+  bind_int_set<OrgSemKind>(m, "IntSetOfOrgSemKind");
   bind_vector<sem::OrgSelectorCondition>(m, "VecOfOrgSelectorCondition");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
@@ -2021,7 +2023,7 @@ example),)RAW")
     .def_readwrite("debug", &sem::OrgSelectorCondition::debug)
     .def_readwrite("link", &sem::OrgSelectorCondition::link)
     .def_static("HasKindStatic",
-                static_cast<sem::OrgSelectorCondition(*)(SemSet const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasKind),
+                static_cast<sem::OrgSelectorCondition(*)(IntSet<OrgSemKind> const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasKind),
                 pybind11::arg("kinds"),
                 pybind11::arg("link"))
     .def_static("HasSubtreeIdStatic",
@@ -2040,6 +2042,10 @@ example),)RAW")
                         return result;
                         }))
     .def_readwrite("path", &sem::OrgDocumentSelector::path)
+    .def_readwrite("debug", &sem::OrgDocumentSelector::debug)
+    .def("getMatches",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentSelector::*)(sem::SemId<sem::Org> const&) const>(&sem::OrgDocumentSelector::getMatches),
+         pybind11::arg("node"))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {

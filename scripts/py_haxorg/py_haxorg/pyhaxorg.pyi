@@ -1066,7 +1066,7 @@ class OrgSelectorLink:
 
 class OrgSelectorCondition:
     @staticmethod
-    def HasKindStatic(self, kinds: SemSet, link: Optional[OrgSelectorLink]) -> OrgSelectorCondition: ...
+    def HasKindStatic(self, kinds: IntSet[OrgSemKind], link: Optional[OrgSelectorLink]) -> OrgSelectorCondition: ...
     @staticmethod
     def HasSubtreeIdStatic(self, id: str, link: Optional[OrgSelectorLink]) -> OrgSelectorCondition: ...
     @staticmethod
@@ -1075,7 +1075,9 @@ class OrgSelectorCondition:
     link: Optional[OrgSelectorLink]
 
 class OrgDocumentSelector:
+    def getMatches(self, node: Org) -> List[Org]: ...
     path: List[OrgSelectorCondition]
+    debug: bool
 
 class ExporterPython:
     def enablePyStreamTrace(self, stream: object) -> None: ...

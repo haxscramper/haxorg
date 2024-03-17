@@ -530,8 +530,8 @@ Vec<SemId<Org>> OrgDocumentSelector::getMatches(
 }
 
 OrgSelectorCondition OrgSelectorCondition::HasKind(
-    const SemSet&        kinds,
-    Opt<OrgSelectorLink> link) {
+    const IntSet<OrgSemKind>& kinds,
+    Opt<OrgSelectorLink>      link) {
     return {
         .check = [kinds](
                      SemId<Org> const& node,

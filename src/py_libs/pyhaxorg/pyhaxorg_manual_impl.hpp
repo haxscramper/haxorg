@@ -66,7 +66,7 @@ void bind_enum_iterator(py::module& m, const char* PyTypeName) {
 
 template <typename T>
 void bind_int_set(py::module& m, const char* PyNameType) {
-    py::class_<IntSet<T>>(m, (std::string(PyNameType) + "IntVec").c_str())
+    py::class_<IntSet<T>>(m, PyNameType)
         .def(py::init([](py::list list) -> IntSet<T> {
             IntSet<T> result;
             for (auto const& it : list) { result.incl(it.cast<T>()); }
@@ -86,7 +86,9 @@ void bind_vector(py::module& m, const char* PyNameType) {
         .def(pybind11::init<std::initializer_list<T>>())
         .def(pybind11::init<const Vec<T>&>())
         .def("FromValue", &Vec<T>::FromValue)
-        .def("append", (void(Vec<T>::*)(const Vec<T>&)) & Vec<T>::append);
+        // .def("append", (void(Vec<T>::*)(const Vec<T>&)) &
+        // Vec<T>::append)
+        ;
 }
 
 template <typename K, typename V>

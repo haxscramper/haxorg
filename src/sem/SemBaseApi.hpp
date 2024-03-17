@@ -176,8 +176,8 @@ struct [[refl]] OrgSelectorLink {
 
 struct [[refl]] OrgSelectorCondition {
     [[refl]] static OrgSelectorCondition HasKind(
-        SemSet const&        kinds,
-        Opt<OrgSelectorLink> link = std::nullopt);
+        IntSet<OrgSemKind> const& kinds,
+        Opt<OrgSelectorLink>      link = std::nullopt);
 
     [[refl]] static OrgSelectorCondition HasSubtreeId(
         Str const&           id,
@@ -196,14 +196,13 @@ struct [[refl]] OrgSelectorCondition {
 
 struct [[refl]] OrgDocumentSelector {
     [[refl]] Vec<OrgSelectorCondition> path;
-
-    bool debug = false;
+    [[refl]] bool                      debug = false;
 
     bool isMatching(
         SemId<Org> const&                 node,
         Vec<SubnodeVisitorCtxPart> const& ctx) const;
 
-    Vec<SemId<Org>> getMatches(SemId<Org> const& node) const;
+    [[refl]] Vec<SemId<Org>> getMatches(SemId<Org> const& node) const;
 
     BOOST_DESCRIBE_CLASS(OrgDocumentSelector, (), (path), (), ());
 };
