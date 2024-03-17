@@ -39,9 +39,9 @@ PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(IntSet<sem::Subtree::Period::Kind>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
-PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgSelectorCondition>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::OrgSelectorCondition>)
+PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
@@ -61,8 +61,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Subtree::Period>(m, "VecOfSubtreePeriod");
   bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind");
   bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree");
-  bind_int_set<OrgSemKind>(m, "IntSetOfOrgSemKind");
   bind_vector<sem::OrgSelectorCondition>(m, "VecOfOrgSelectorCondition");
+  bind_int_set<OrgSemKind>(m, "IntSetOfOrgSemKind");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("documentId", &sem::Org::documentId, R"RAW(\brief Application specific ID of the original document)RAW")
@@ -2022,18 +2022,6 @@ example),)RAW")
                         }))
     .def_readwrite("debug", &sem::OrgSelectorCondition::debug)
     .def_readwrite("link", &sem::OrgSelectorCondition::link)
-    .def_static("HasKindStatic",
-                static_cast<sem::OrgSelectorCondition(*)(IntSet<OrgSemKind> const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasKind),
-                pybind11::arg("kinds"),
-                pybind11::arg("link"))
-    .def_static("HasSubtreeIdStatic",
-                static_cast<sem::OrgSelectorCondition(*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasSubtreeId),
-                pybind11::arg("id"),
-                pybind11::arg("link"))
-    .def_static("HasSubtreePlaintextTitleStatic",
-                static_cast<sem::OrgSelectorCondition(*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgSelectorCondition::HasSubtreePlaintextTitle),
-                pybind11::arg("title"),
-                pybind11::arg("link"))
     ;
   pybind11::class_<sem::OrgDocumentSelector>(m, "OrgDocumentSelector")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentSelector {
@@ -2046,6 +2034,20 @@ example),)RAW")
     .def("getMatches",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentSelector::*)(sem::SemId<sem::Org> const&) const>(&sem::OrgDocumentSelector::getMatches),
          pybind11::arg("node"))
+    .def("linkDirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkDirectSubnode))
+    .def("linkIndirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkIndirectSubnode))
+    .def("searchSubtreePlaintextTitle",
+         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreePlaintextTitle),
+         pybind11::arg("title"),
+         pybind11::arg_v("link", std::nullopt))
+    .def("searchSubtreeId",
+         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreeId),
+         pybind11::arg("id"),
+         pybind11::arg_v("link", std::nullopt))
+    .def("searchAnyKind",
+         static_cast<void(sem::OrgDocumentSelector::*)(IntSet<OrgSemKind> const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchAnyKind),
+         pybind11::arg("kinds"),
+         pybind11::arg_v("link", std::nullopt))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {

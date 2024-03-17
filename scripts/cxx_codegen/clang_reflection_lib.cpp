@@ -521,6 +521,30 @@ void ReflASTVisitor::fillType(
 }
 
 
+std::optional<std::string> getExprAsString(
+    clang::Expr const*          expr,
+    clang::SourceManager const& srcMgr,
+    clang::LangOptions const&   langOpts) {
+    clang::SourceRange range = expr->getSourceRange();
+    // range.setEnd(clang::Lexer::getLocForEndOfToken(
+    //     range.getEnd(), 0, srcMgr, langOpts));
+
+    bool invalid = false;
+
+    std::string text = clang::Lexer::getSourceText(
+                           clang::CharSourceRange::getTokenRange(range),
+                           srcMgr,
+                           langOpts,
+                           &invalid)
+                           .str();
+
+    if (invalid) {
+        return std::nullopt;
+    } else {
+        return text;
+    }
+}
+
 void ReflASTVisitor::fillExpr(
     Expr*                                   Out,
     const c::Expr*                          In,
@@ -531,7 +555,18 @@ void ReflASTVisitor::fillExpr(
         val->toString(Str);
         Out->set_value(Str.str().str());
     } else {
-        Diag(DiagKind::Warning, "Unhandled expression filled.", Loc);
+        auto value = getExprAsString(
+            In, Ctx->getSourceManager(), Ctx->getLangOpts());
+        if (value) {
+            Out->set_kind(ExprKind::Lit);
+            Out->set_value(*value);
+        } else {
+            Diag(
+                DiagKind::Warning,
+                "Unhandled expression with failed 'get expr as string' "
+                "serialization",
+                Loc);
+        }
     }
 }
 

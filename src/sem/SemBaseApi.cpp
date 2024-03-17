@@ -516,6 +516,18 @@ bool OrgDocumentSelector::isMatching(
         path.begin(), node, IteratorSpan(ctx.begin(), ctx.end()), 0);
 }
 
+void OrgDocumentSelector::assertLinkPresence() const {
+    if (!path.empty()) {
+        if (!path.back().link) {
+            throw std::logic_error(
+                "Adding extra search path with previous path element "
+                "missing link value. Previous searchXXX should have been "
+                "called with link= set to a non-null value. This is a "
+                "logic error in the search query construction code.");
+        }
+    }
+}
+
 Vec<SemId<Org>> OrgDocumentSelector::getMatches(
     const SemId<Org>& node) const {
     Vec<SemId<Org>> result;
@@ -529,38 +541,11 @@ Vec<SemId<Org>> OrgDocumentSelector::getMatches(
     return result;
 }
 
-OrgSelectorCondition OrgSelectorCondition::HasKind(
-    const IntSet<OrgSemKind>& kinds,
-    Opt<OrgSelectorLink>      link) {
-    return {
-        .check = [kinds](
-                     SemId<Org> const& node,
-                     Span<SubnodeVisitorCtxPart> const&) -> bool {
-            return kinds.contains(node->getKind());
-        },
-        .debug = fmt("HasKind:{}", kinds),
-        .link  = link,
-    };
-}
-sem::OrgSelectorCondition sem::OrgSelectorCondition::HasSubtreeId(
-    Str const&           id,
-    Opt<OrgSelectorLink> link) {
-    return {
-        .check = [id](
-                     SemId<Org> const& node,
-                     Span<SubnodeVisitorCtxPart> const&) -> bool {
-            return node->is(osk::Subtree)
-                && node.as<Subtree>()->treeId == id;
-        },
-        .debug = fmt("HasSubtreeId:{}", id),
-        .link  = link,
-    };
-}
-
-OrgSelectorCondition OrgSelectorCondition::HasSubtreePlaintextTitle(
+void OrgDocumentSelector::searchSubtreePlaintextTitle(
     const Str&           title,
     Opt<OrgSelectorLink> link) {
-    return {
+    assertLinkPresence();
+    path.push_back({
         .check = [title](
                      SemId<Org> const& node,
                      Span<SubnodeVisitorCtxPart> const&) -> bool {
@@ -570,5 +555,36 @@ OrgSelectorCondition OrgSelectorCondition::HasSubtreePlaintextTitle(
         },
         .debug = fmt("HasSubtreePlaintextTitle:{}", title),
         .link  = link,
-    };
+    });
+}
+
+void OrgDocumentSelector::searchSubtreeId(
+    const Str&           id,
+    Opt<OrgSelectorLink> link) {
+    assertLinkPresence();
+    path.push_back({
+        .check = [id](
+                     SemId<Org> const& node,
+                     Span<SubnodeVisitorCtxPart> const&) -> bool {
+            return node->is(osk::Subtree)
+                && node.as<Subtree>()->treeId == id;
+        },
+        .debug = fmt("HasSubtreeId:{}", id),
+        .link  = link,
+    });
+}
+
+void OrgDocumentSelector::searchAnyKind(
+    IntSet<OrgSemKind> const& kinds,
+    Opt<OrgSelectorLink>      link) {
+    assertLinkPresence();
+    path.push_back({
+        .check = [kinds](
+                     SemId<Org> const& node,
+                     Span<SubnodeVisitorCtxPart> const&) -> bool {
+            return kinds.contains(node->getKind());
+        },
+        .debug = fmt("HasKind:{}", kinds),
+        .link  = link,
+    });
 }

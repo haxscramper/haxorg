@@ -397,9 +397,8 @@ TEST(OrgApi, LinkResolution) {
 
 TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
     auto                     node = parseNode("bold");
-    sem::OrgDocumentSelector selector{
-        .path = {sem::OrgSelectorCondition::HasKind({OrgSemKind::Word})},
-    };
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind({OrgSemKind::Word});
 
     auto words = selector.getMatches(node);
 
@@ -409,9 +408,8 @@ TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
 
 TEST(OrgDocumentSelector, GetMultipleMatchingNodesByKind) {
     auto                     node = parseNode("word *bold*");
-    sem::OrgDocumentSelector selector{
-        .path = {sem::OrgSelectorCondition::HasKind({OrgSemKind::Word})},
-    };
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind({OrgSemKind::Word});
 
     auto words = selector.getMatches(node);
 
@@ -422,15 +420,10 @@ TEST(OrgDocumentSelector, GetMultipleMatchingNodesByKind) {
 
 TEST(OrgDocumentSelector, GetDirectlyNestedNode) {
     auto                     node = parseNode("word *bold*");
-    sem::OrgDocumentSelector selector{
-        .path
-        = {sem::OrgSelectorCondition::HasKind(
-               {OrgSemKind::Word},
-               sem::OrgSelectorLink{
-                   .kind = sem::OrgSelectorLink::Kind::DirectSubnode,
-               }),
-           sem::OrgSelectorCondition::HasKind({OrgSemKind::Bold})},
-    };
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind(
+        {OrgSemKind::Word}, selector.linkDirectSubnode());
+    selector.searchAnyKind({OrgSemKind::Bold});
 
     auto words = selector.getMatches(node);
 
@@ -451,11 +444,8 @@ Paragraph under subtitle 2
 )");
 
     {
-        sem::OrgDocumentSelector selector{
-            .path = {
-                sem::OrgSelectorCondition::HasSubtreePlaintextTitle(
-                    "Title1"),
-            }};
+        sem::OrgDocumentSelector selector;
+        selector.searchSubtreePlaintextTitle("Title1");
 
         auto title1 = selector.getMatches(doc);
         EXPECT_EQ(title1.size(), 1);
@@ -463,16 +453,10 @@ Paragraph under subtitle 2
     }
 
     {
-        sem::OrgDocumentSelector selector{
-            .path
-            = {sem::OrgSelectorCondition::HasKind(
-                   {OrgSemKind::Word},
-                   sem::OrgSelectorLink{
-                       .kind = sem::OrgSelectorLink::Kind::IndirectSubnode,
-                   }),
-               sem::OrgSelectorCondition::HasSubtreePlaintextTitle(
-                   "Subtitle2")},
-        };
+        sem::OrgDocumentSelector selector;
+        selector.searchAnyKind(
+            {OrgSemKind::Word}, selector.linkIndirectSubnode());
+        selector.searchSubtreePlaintextTitle("Subtitle2");
 
         auto words = selector.getMatches(doc);
         EXPECT_EQ(words.size(), 4);

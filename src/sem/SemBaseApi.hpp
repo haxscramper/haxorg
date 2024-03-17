@@ -175,20 +175,9 @@ struct [[refl]] OrgSelectorLink {
 };
 
 struct [[refl]] OrgSelectorCondition {
-    [[refl]] static OrgSelectorCondition HasKind(
-        IntSet<OrgSemKind> const& kinds,
-        Opt<OrgSelectorLink>      link = std::nullopt);
-
-    [[refl]] static OrgSelectorCondition HasSubtreeId(
-        Str const&           id,
-        Opt<OrgSelectorLink> link = std::nullopt);
-
-    [[refl]] static OrgSelectorCondition HasSubtreePlaintextTitle(
-        Str const&           title,
-        Opt<OrgSelectorLink> link = std::nullopt);
-
     Func<bool(SemId<Org> const&, Span<SubnodeVisitorCtxPart> const&)>
-                                  check;
+        check;
+
     [[refl]] Opt<Str>             debug;
     [[refl]] Opt<OrgSelectorLink> link;
     BOOST_DESCRIBE_CLASS(OrgSelectorCondition, (), (), (), ());
@@ -202,7 +191,33 @@ struct [[refl]] OrgDocumentSelector {
         SemId<Org> const&                 node,
         Vec<SubnodeVisitorCtxPart> const& ctx) const;
 
+    void assertLinkPresence() const;
+
+
     [[refl]] Vec<SemId<Org>> getMatches(SemId<Org> const& node) const;
+
+    [[refl]] OrgSelectorLink linkDirectSubnode() const {
+        return OrgSelectorLink{
+            .kind = OrgSelectorLink::Kind::DirectSubnode};
+    }
+
+    [[refl]] OrgSelectorLink linkIndirectSubnode() const {
+        return OrgSelectorLink{
+            .kind = OrgSelectorLink::Kind::IndirectSubnode};
+    }
+
+    [[refl]] void searchSubtreePlaintextTitle(
+        Str const&           title,
+        Opt<OrgSelectorLink> link = std::nullopt);
+
+    [[refl]] void searchSubtreeId(
+        Str const&           id,
+        Opt<OrgSelectorLink> link = std::nullopt);
+
+    [[refl]] void searchAnyKind(
+        const IntSet<OrgSemKind>& kinds,
+        Opt<OrgSelectorLink>      link = std::nullopt);
+
 
     BOOST_DESCRIBE_CLASS(OrgDocumentSelector, (), (path), (), ());
 };

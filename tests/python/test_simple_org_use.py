@@ -43,7 +43,7 @@ def test_subnode_visitor():
 def test_subnode_selector():
     node = org.parseString("Word")
     selector = org.OrgDocumentSelector()
-    selector.path.append(org.OrgSelectorCondition.HasKindStatic(org.IntSetOfOrgSemKind([osk.Word]), None))
+    selector.searchAnyKind(org.IntSetOfOrgSemKind([osk.Word]))
     matches = selector.getMatches(node)
     assert len(matches) == 1
     assert matches[0].getKind() == osk.Word
