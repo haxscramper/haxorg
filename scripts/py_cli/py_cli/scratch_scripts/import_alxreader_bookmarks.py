@@ -17,6 +17,7 @@ from py_scriptutils.sqlalchemy_utils import (
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy import Column, select
 from datetime import datetime
+from py_scriptutils.rich_utils import render_rich_pprint
 
 CAT = Path(__file__).name
 
@@ -37,9 +38,11 @@ class BookmarkRecord(BaseModel, extra="forbid"):
     book: str
     text: str
     dateadd: datetime
-    datelast: datetime
+    dateedit: datetime
+
 
 Base = declarative_base()
+
 
 class Bookmarks(Base):
     __tablename__ = "bookmarks"
@@ -89,8 +92,9 @@ def get_bookmarks(session: Session) -> List[BookmarkRecord]:
     )
 
     for item in session.execute(expr).mappings():
-        log(CAT).info(item)
-        result.append(BookmarkRecord(**item))
+        result.append(
+            BookmarkRecord.model_validate(
+                {k: item[k] for k in BookmarkRecord.model_fields}))
 
     return result
 
@@ -109,7 +113,13 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     # node = parseCachedFile(opts., opts.cachedir)
     engine = open_sqlite(opts.infile)
     session = sessionmaker()(bind=engine)
-    get_bookmarks(session)
+    bookmarks = get_bookmarks(session)
+
+    for it in bookmarks[:5]:
+        log(CAT).info("\n" + render_rich_pprint(
+            it,
+            max_string=80,
+        ))
 
 
 if __name__ == "__main__":
