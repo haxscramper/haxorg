@@ -54,7 +54,7 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
         clocks: List[Tuple[datetime, datetime]] = []
         time: org.SubtreePeriod
         for time in node.getTimePeriods(
-                org.IntSetOfSubtreePeriodKindIntVec([org.SubtreePeriodKind.Clocked])):
+                org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Clocked])):
             if time.to and time.from_:
                 clocks.append((
                     evalDateTime(time.from_.getStatic().time),

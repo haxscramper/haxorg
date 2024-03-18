@@ -62,7 +62,7 @@ Content1
 Content2
 * Title2
 """)
-
+    
     def ensure_content(subtree_path: List[str], content: str):
         def get_selector_at_path(path: List[str]):
             selector = org.OrgDocumentSelector()

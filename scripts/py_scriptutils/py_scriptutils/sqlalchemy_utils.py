@@ -1,11 +1,13 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy import create_engine, MetaData, Table as SATable, Engine, inspect
 from sqlalchemy.sql import select, Executable
+from sqlalchemy.types import TypeDecorator
 from rich.table import Table
 from rich.console import Console
 from beartype.typing import Optional, List
 from beartype import beartype
 from pathlib import Path
+from datetime import datetime
 
 
 def IdColumn():
@@ -26,6 +28,22 @@ def StrColumn(nullable: bool = False):
 
 def DateTimeColumn(**kwargs):
     return Column(DateTime, **kwargs)
+
+class MillisecondsUnixTimestamp(TypeDecorator):
+    """Converts between Unix timestamp in milliseconds and Python datetime objects."""
+    impl = Integer
+
+    def process_bind_param(self, value, dialect):
+        """Convert Python datetime to Unix timestamp in milliseconds."""
+        if value is not None:
+            return int(value.timestamp() * 1000)
+        return value
+
+    def process_result_value(self, value, dialect):
+        """Convert Unix timestamp in milliseconds to Python datetime."""
+        if value is not None:
+            return datetime.fromtimestamp(value / 1000.0)
+        return value
 
 
 @beartype

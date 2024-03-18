@@ -2,6 +2,7 @@ from py_cli.scratch_scripts import story_grid
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
 from py_cli.scratch_scripts import node_clouds
+from py_cli.scratch_scripts import import_alxreader_bookmarks
 from py_exporters import export_sqlite
 from click.testing import CliRunner, Result
 from tempfile import TemporaryDirectory
@@ -217,3 +218,38 @@ def test_base_activity_analysis():
             ),
             dbg,
         )
+
+def test_bookmark_import():
+    db = Path("~/tmp/alxreader.db").expanduser()
+    if not db.exists():
+        log(CAT).info("DB does not exist")
+        return 
+    
+
+    log(CAT).info("Running CLI")
+    runner = CliRunner()
+    from shutil import copyfile
+
+    test_file = Path("/tmp/test.org")
+
+    result = runner.invoke(import_alxreader_bookmarks.cli, [
+        f"--infile={db}",
+        f"--target={test_file}"
+    ])
+
+    check_cli(result)
+    # assert test_file.exists()
+
+    # copyfile(src=test_file, dst=test_file.with_name("test_1"))
+
+    # result = runner.invoke(import_alxreader_bookmarks.cli, [
+    #     f"--infile={db}",
+    #     f"--target={test_file}"
+    # ])
+
+    # check_cli(result)
+    # copyfile(src=test_file, dst=test_file.with_name("test_2"))
+
+    # assert test_file.with_name("test_1").read_text() == test_file.with_name("test_2").read_text()
+
+
