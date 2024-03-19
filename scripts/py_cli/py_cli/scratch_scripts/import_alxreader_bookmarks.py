@@ -37,8 +37,12 @@ def analysis_options(f):
 class BookmarkRecord(BaseModel, extra="forbid"):
     book: str
     text: str
+    author: str
     dateadd: datetime
     dateedit: datetime
+    start: int
+    stop: int
+    booksize: int
 
 
 Base = declarative_base()
@@ -77,15 +81,45 @@ class Recent(Base):
 
 
 @beartype
+def get_subtree_at_path(node: org.Org, path: List[str]) -> Optional[org.Org]:
+    match_order = path[::-1]
+    selector = org.OrgDocumentSelector()
+    for idx, title in enumerate(match_order):
+        selector.searchSubtreePlaintextTitle(
+            title=title,
+            link=None if idx == len(match_order) - 1 else selector.linkIndirectSubnode(),
+        )
+
+    matches = selector.getMatches(node)
+    if matches:
+        return matches[0]
+
+    else:
+        return None
+
+
+@beartype
+def new_subtree(title: str, level: int) -> org.Subtree:
+    return org.Subtree(
+        title=org.Paragraph(subnodes=[org.RawText(text=title)]),
+        level=level,
+    )
+
+
+@beartype
 def get_bookmarks(session: Session) -> List[BookmarkRecord]:
     result: List[BookmarkRecord] = []
 
     expr = select(
         Bookmarks.filename,
         Recent.title.label("book"),
+        Recent.author,
         Bookmarks.dateadd,
         Bookmarks.dateedit,
         Bookmarks.text,
+        Bookmarks.start,
+        Bookmarks.stop,
+        Recent.booksize,
     ).join(
         Recent,
         Recent.filename == Bookmarks.filename,
@@ -99,6 +133,66 @@ def get_bookmarks(session: Session) -> List[BookmarkRecord]:
     return result
 
 
+@beartype
+def format_time(time: datetime) -> str:
+    return time.strftime('%Y-%m-%d %H:%M:%SZ')
+
+@beartype
+def get_book_tree_name(rec: BookmarkRecord) -> str:
+    return f"{rec.book} by {rec.author}"
+
+
+@beartype
+def get_bookmark_tree_name(rec: BookmarkRecord) -> str:
+    return "[{}] {:06.3f}/{:06.3f}".format(
+        format_time(rec.dateadd),
+        rec.start * 1.0 / rec.booksize * 100,
+        rec.stop * 1.0 / rec.booksize * 100,
+    )
+
+
+@beartype
+def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
+
+    def get_bookmark_entry():
+        return get_subtree_at_path(tree, [
+            get_book_tree_name(mark),
+            get_bookmark_tree_name(mark),
+        ])
+
+    if get_bookmark_entry():
+        return
+
+    book_entry = get_subtree_at_path(tree, [
+        get_book_tree_name(mark),
+    ])
+
+    if not book_entry:
+        tree.subnodes.append(new_subtree(
+            title=get_book_tree_name(mark),
+            level=1,
+        ))
+
+    book_entry = get_subtree_at_path(tree, [
+        get_book_tree_name(mark),
+    ])
+
+    assert book_entry
+
+    book_entry.subnodes.append(new_subtree(
+        title=get_bookmark_tree_name(mark),
+        level=2,
+    ))
+
+    bookmark_entry = get_bookmark_entry()
+
+    book_entry.subnodes.append(org.Newline(text="\n\n"))
+    book_entry.subnodes.append(org.Quote(subnodes=[org.RawText(text=mark.text)]))
+    book_entry.subnodes.append(org.Newline(text="\n\n"))
+
+    assert book_entry
+
+
 @click.command()
 @click.option("--config",
               type=click.Path(exists=True),
@@ -110,16 +204,18 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     pack_context(ctx, "root", AlXreaderImportOptions, config=config, kwargs=kwargs)
     opts: AlXreaderImportOptions = ctx.obj["root"]
 
-    # node = parseCachedFile(opts., opts.cachedir)
+    if not opts.target.exists():
+        opts.target.write_text("")
+
+    node = parseCachedFile(opts.target, opts.cachedir)
     engine = open_sqlite(opts.infile)
     session = sessionmaker()(bind=engine)
     bookmarks = get_bookmarks(session)
 
-    for it in bookmarks[:5]:
-        log(CAT).info("\n" + render_rich_pprint(
-            it,
-            max_string=80,
-        ))
+    for it in bookmarks:
+        insert_new_bookmark(node, it)
+
+    opts.target.write_text(org.formatToString(node))
 
 
 if __name__ == "__main__":

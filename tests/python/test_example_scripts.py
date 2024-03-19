@@ -226,11 +226,12 @@ def test_bookmark_import():
         return 
     
 
-    log(CAT).info("Running CLI")
     runner = CliRunner()
     from shutil import copyfile
 
     test_file = Path("/tmp/test.org")
+
+    test_file.write_text("")
 
     result = runner.invoke(import_alxreader_bookmarks.cli, [
         f"--infile={db}",
