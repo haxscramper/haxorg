@@ -1262,7 +1262,10 @@ struct Subtree : public sem::Org {
                         (OrgSemKind() const) getKind,
                         (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
                         (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty,
+                        (void(Str const&, Opt<Str> const&)) removeProperty,
+                        (void(sem::Subtree::Property const&)) setProperty,
+                        (void(Str const&, Str const&, Opt<Str> const&)) setPropertyStrValue))
   static OrgSemKind const staticKind;
   /// \brief Subtree level
   int level = 0;
@@ -1291,6 +1294,14 @@ struct Subtree : public sem::Org {
   Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
   Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
   Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
+  /// \brief Remove all instances of the property with matching kind/subkind from the property list
+  void removeProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt);
+  /// \brief Create or override existing property value in the subtree property list
+  void setProperty(sem::Subtree::Property const& value);
+  /// \brief Assign a raw string literal to a property.
+  ///
+  /// This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch.
+  void setPropertyStrValue(Str const& value, Str const& kind, Opt<Str> const& subkind = std::nullopt);
 };
 
 /// \brief Latex code body

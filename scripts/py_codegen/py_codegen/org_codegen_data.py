@@ -995,6 +995,40 @@ def get_types() -> Sequence[GenTuStruct]:
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
                     ],
                 ),
+                GenTuFunction(
+                    t("void"),
+                    "removeProperty",
+                    GenTuDoc(
+                        "Remove all instances of the property with matching kind/subkind from the property list"
+                    ),
+                    arguments=[
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
+                    ],
+                ),
+                GenTuFunction(
+                    t("void"),
+                    "setProperty",
+                    GenTuDoc(
+                        "Create or override existing property value in the subtree property list"
+                    ),
+                    arguments=[
+                        GenTuIdent(t_cr(t_nest(t("Property"), ["Subtree"])), "value"),
+                    ],
+                ),
+                GenTuFunction(
+                    t("void"),
+                    "setPropertyStrValue",
+                    GenTuDoc(
+                        "Assign a raw string literal to a property.",
+                        "This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch."
+                    ),
+                    arguments=[
+                        GenTuIdent(t_cr(t_str()), "value"),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
+                    ],
+                ),
             ],
             nested=[
                 GenTuStruct(
@@ -1792,7 +1826,8 @@ def get_enums():
                 GenTuEnumField("CodeCallout",
                                GenTuDoc("`(refs:` callout in the source code")),
                 GenTuEnumField("QuoteBlock", GenTuDoc("`#+begin_quote:` block in code")),
-                GenTuEnumField("CommentBlock", GenTuDoc("`#+begin_comment:` block in code")),
+                GenTuEnumField("CommentBlock",
+                               GenTuDoc("`#+begin_comment:` block in code")),
                 GenTuEnumField("AdmonitionBlock", GenTuDoc("")),
                 GenTuEnumField("CenterBlock", GenTuDoc("'")),
                 GenTuEnumField("VerseBlock", GenTuDoc("")),

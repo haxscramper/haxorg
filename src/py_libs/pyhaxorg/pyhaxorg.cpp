@@ -1113,6 +1113,21 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::Subtree::Property>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt))
+    .def("removeProperty",
+         static_cast<void(sem::Subtree::*)(Str const&, Opt<Str> const&)>(&sem::Subtree::removeProperty),
+         pybind11::arg("kind"),
+         pybind11::arg_v("subkind", std::nullopt),
+         R"RAW(Remove all instances of the property with matching kind/subkind from the property list)RAW")
+    .def("setProperty",
+         static_cast<void(sem::Subtree::*)(sem::Subtree::Property const&)>(&sem::Subtree::setProperty),
+         pybind11::arg("value"),
+         R"RAW(Create or override existing property value in the subtree property list)RAW")
+    .def("setPropertyStrValue",
+         static_cast<void(sem::Subtree::*)(Str const&, Str const&, Opt<Str> const&)>(&sem::Subtree::setPropertyStrValue),
+         pybind11::arg("value"),
+         pybind11::arg("kind"),
+         pybind11::arg_v("subkind", std::nullopt),
+         R"RAW(Assign a raw string literal to a property.)RAW")
     ;
   pybind11::class_<sem::LatexBody, sem::SemId<sem::LatexBody>, sem::Org>(m, "LatexBody")
     ;

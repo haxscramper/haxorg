@@ -50,8 +50,6 @@ Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 
-
-
 Opt<SemId<CmdArgument>> CmdArguments::getParameter(CR<Str> param) const {
     return named.get(normalize(param));
 }
@@ -158,6 +156,24 @@ bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     }
 }
 
+void Subtree::setPropertyStrValue(
+    Str const&   value,
+    Str const&   kind,
+    CR<Opt<Str>> subkind) {
+    removeProperty(kind, subkind);
+    Property::Unknown prop;
+    prop.name  = kind;
+    auto text  = SemId<RawText>::New();
+    text->text = value;
+    prop.value = text;
+    properties.push_back(Property{prop});
+}
+
+void Subtree::setProperty(Property const& value) {
+    removeProperty(value.getName(), value.getSubKind());
+    properties.push_back(value);
+}
+
 Opt<Property> Subtree::getProperty(Str const& kind, CR<Opt<Str>> subkind)
     const {
     auto props = getProperties(kind, subkind);
@@ -165,6 +181,15 @@ Opt<Property> Subtree::getProperty(Str const& kind, CR<Opt<Str>> subkind)
         return std::nullopt;
     } else {
         return props[0];
+    }
+}
+
+void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
+    for (int i = properties.high(); 0 <= i; --i) {
+        if (properties.at(i).getName() == kind
+            && properties.at(i).getSubKind() == subkind) {
+            properties.erase(properties.begin() + i);
+        }
     }
 }
 
