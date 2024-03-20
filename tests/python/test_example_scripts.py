@@ -219,6 +219,47 @@ def test_base_activity_analysis():
             dbg,
         )
 
+from py_cli.scratch_scripts.import_alxreader_bookmarks import BookmarkRecord
+
+def test_bookmark_import_1():
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path("/tmp")
+        org_file = dir.joinpath("file.org")
+        org_file.write_text("")
+
+        bookmarks = [
+            BookmarkRecord(
+                book="book1",
+                author="author1",
+                dateadd=0,
+                dateedit=0,
+                start=0,
+                stop=1,
+                booksize=2,
+                text="text"
+            )
+        ]
+
+        opts = import_alxreader_bookmarks.AlXreaderImportOptions(
+            infile=Path(""),
+            target=org_file,
+        )
+
+        log(CAT).info("first run")
+        assert len(bookmarks) == 1
+        import_alxreader_bookmarks.impl(opts, bookmarks)
+        assert len(bookmarks) == 1
+        assert org_file.exists()
+        pre_content = org_file.read_text()
+        log(CAT).info("second run")
+        assert len(bookmarks) == 1
+        import_alxreader_bookmarks.impl(opts, bookmarks)
+        lhs = [it for it in pre_content.split("\n") if it]
+        rhs = [it for it in org_file.read_text().split("\n") if it]
+        assert lhs == rhs
+
+
+
 def test_bookmark_import():
     db = Path("~/tmp/alxreader.db").expanduser()
     if not db.exists():

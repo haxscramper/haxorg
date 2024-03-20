@@ -19,9 +19,7 @@ struct ExporterUltraplain
         visit(res, range->to);
     }
 
-    void visitTime(std::string& res, In<sem::Time> time) {
-        if (time->isStatic()) { res += time->getStatic().time.format(); }
-    }
+    void visitTime(std::string& res, In<sem::Time> time);
 
     template <typename T>
     void visit(std::string& res, CVec<T> values) {

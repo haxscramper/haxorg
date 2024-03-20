@@ -168,7 +168,7 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
     if get_bookmark_entry():
         return
-
+    
     book_entry = get_subtree_at_path(tree, [
         get_book_tree_name(mark),
     ])

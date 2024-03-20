@@ -425,13 +425,6 @@ bool OrgDocumentSelector::isMatching(
 
     using PathIter = Vec<OrgSelectorCondition>::const_iterator;
 
-    auto dbg =
-        [&](Str const& msg, int depth, int line = __builtin_LINE()) {
-            if (debug) {
-                LOG(INFO) << fmt(
-                    "{}[{}] {}", Str("  ").repeated(depth), line, msg);
-            }
-        };
 
     auto getParentSpan = [](int levels, Span<SubnodeVisitorCtxPart> span)
         -> Opt<Span<SubnodeVisitorCtxPart>> {
@@ -536,7 +529,7 @@ bool OrgDocumentSelector::isMatching(
                     }
                 }
             } else {
-                dbg(fmt("no link"), depth);
+                dbg(fmt("no predecing link, check matched OK"), depth);
                 return true;
             }
         } else {
@@ -577,14 +570,25 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
     const Str&           title,
     Opt<OrgSelectorLink> link) {
     assertLinkPresence();
-    if (debug) { LOG(INFO) << title; }
     path.push_back({
-        .check = [title](
+        .check = [title, this](
                      SemId<Org> const& node,
                      Span<SubnodeVisitorCtxPart> const&) -> bool {
-            return node->is(osk::Subtree)
-                && ExporterUltraplain::toStr(node.as<Subtree>()->title)
-                       == title;
+            if (node->is(osk::Subtree)) {
+                Str plaintext = ExporterUltraplain::toStr(
+                    node.as<Subtree>()->title);
+                this->dbg(
+                    fmt("{} == {} -> {}",
+                        escape_literal(plaintext),
+                        escape_literal(title),
+                        plaintext == title),
+                    0);
+
+                return title == plaintext;
+
+            } else {
+                return false;
+            }
         },
         .debug = fmt("HasSubtreePlaintextTitle:{}", title),
         .link  = link,
@@ -620,4 +624,11 @@ void OrgDocumentSelector::searchAnyKind(
         .debug = fmt("HasKind:{}", kinds),
         .link  = link,
     });
+}
+
+void OrgDocumentSelector::dbg(const Str& msg, int depth, int line) const {
+    if (debug) {
+        LOG(INFO) << fmt(
+            "{}[{}] {}", Str("  ").repeated(depth), line, msg);
+    }
 }
