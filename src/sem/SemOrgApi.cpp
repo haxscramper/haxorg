@@ -160,13 +160,17 @@ void Subtree::setPropertyStrValue(
     Str const&   value,
     Str const&   kind,
     CR<Opt<Str>> subkind) {
-    removeProperty(kind, subkind);
-    Property::Unknown prop;
-    prop.name  = kind;
-    auto text  = SemId<RawText>::New();
-    text->text = value;
-    prop.value = text;
-    properties.push_back(Property{prop});
+    if (normalize(kind) == "id") {
+        this->treeId = value;
+    } else {
+        removeProperty(kind, subkind);
+        Property::Unknown prop;
+        prop.name  = kind;
+        auto text  = SemId<RawText>::New();
+        text->text = value;
+        prop.value = text;
+        properties.push_back(Property{prop});
+    }
 }
 
 void Subtree::setProperty(Property const& value) {

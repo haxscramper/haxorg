@@ -16,7 +16,7 @@ from py_scriptutils.sqlalchemy_utils import (
 
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy import Column, select
-from datetime import datetime
+from datetime import datetime, timedelta
 from py_scriptutils.rich_utils import render_rich_pprint
 
 CAT = Path(__file__).name
@@ -24,10 +24,12 @@ CAT = Path(__file__).name
 
 class AlXreaderImportOptions(BaseModel):
     infile: Path = Field(description="Alxreader backup DB")
-
     target: Path = Field(description="File with bookmark collection")
-
     cachedir: Optional[Path] = None
+    import_offset: Optional[timedelta] = Field(
+        default=None,
+        description=
+        "Apply this time offset on all timestamps imported from the sqlite database")
 
 
 def analysis_options(f):
@@ -81,7 +83,7 @@ class Recent(Base):
 
 
 @beartype
-def get_subtree_at_path(node: org.Org, path: List[str]) -> Optional[org.Org]:
+def get_subtree_at_path(node: org.Org, path: List[str]) -> Optional[org.Subtree]:
     match_order = path[::-1]
     selector = org.OrgDocumentSelector()
     for idx, title in enumerate(match_order):
@@ -135,11 +137,15 @@ def get_bookmarks(session: Session) -> List[BookmarkRecord]:
 
 @beartype
 def format_time(time: datetime) -> str:
-    return time.strftime('%Y-%m-%d %H:%M:%SZ')
+    return time.strftime('%Y-%m-%d %H:%M:%S')
+
 
 @beartype
 def get_book_tree_name(rec: BookmarkRecord) -> str:
-    return f"{rec.book} by {rec.author}"
+    return "\"{}\" by \"{}\"".format(
+        rec.book.replace("\"", ""),
+        rec.author,
+    )
 
 
 @beartype
@@ -154,7 +160,7 @@ def get_bookmark_tree_name(rec: BookmarkRecord) -> str:
 @beartype
 def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
-    def get_bookmark_entry():
+    def get_bookmark_entry() -> Optional[org.Subtree]:
         return get_subtree_at_path(tree, [
             get_book_tree_name(mark),
             get_bookmark_tree_name(mark),
@@ -185,6 +191,18 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
     ))
 
     bookmark_entry = get_bookmark_entry()
+    bookmark_entry.setPropertyStrValue(
+        kind="bookmark_pos",
+        value="{}/{}-{}/{}".format(
+            mark.start,
+            mark.booksize,
+            mark.stop,
+            mark.booksize,
+        ),
+    )
+
+    bookmark_entry.setPropertyStrValue(kind="bookmark_date",
+                                       value=f"[{format_time(mark.dateadd)}]")
 
     book_entry.subnodes.append(org.Newline(text="\n\n"))
     book_entry.subnodes.append(org.Quote(subnodes=[org.RawText(text=mark.text)]))
@@ -192,6 +210,17 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
     assert book_entry
 
+
+def impl(opts: AlXreaderImportOptions, bookmarks: List[BookmarkRecord]): 
+    if not opts.target.exists():
+        opts.target.write_text("")
+
+    node = parseCachedFile(opts.target, opts.cachedir)
+
+    for it in bookmarks:
+        insert_new_bookmark(node, it)
+
+    opts.target.write_text(org.formatToString(node))
 
 @click.command()
 @click.option("--config",
@@ -204,18 +233,23 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     pack_context(ctx, "root", AlXreaderImportOptions, config=config, kwargs=kwargs)
     opts: AlXreaderImportOptions = ctx.obj["root"]
 
-    if not opts.target.exists():
-        opts.target.write_text("")
 
-    node = parseCachedFile(opts.target, opts.cachedir)
     engine = open_sqlite(opts.infile)
     session = sessionmaker()(bind=engine)
-    bookmarks = get_bookmarks(session)
+    if opts.import_offset:
+        bookmarks = [
+            it.model_copy(update=dict(
+                dateadd=it.dateadd + opts.import_offset,
+                dateedit=opts.import_offset,
+            )) for it in get_bookmarks(session)
+        ]
 
-    for it in bookmarks:
-        insert_new_bookmark(node, it)
+    else:
+        bookmarks = get_bookmarks(session)
 
-    opts.target.write_text(org.formatToString(node))
+    impl(opts, bookmarks)
+
+
 
 
 if __name__ == "__main__":

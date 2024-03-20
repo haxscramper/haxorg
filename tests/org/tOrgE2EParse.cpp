@@ -1,4 +1,3 @@
-#include "../common.hpp"
 #include <test/org_parse_aux.hpp>
 #include <gtest/gtest.h>
 
@@ -510,6 +509,29 @@ TEST(OrgApi, EachSubnodeWithContext) {
     EXPECT_EQ(ctx.at(1).second.at(1).index.value(), 0);
 }
 
+
+template <typename T>
+sem::SemId<T> getFirstNode(sem::SemId<sem::Org> node) {
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind({T::staticKind});
+    return selector.getMatches(node).at(0).as<T>();
+}
+
+TEST(OrgApi, SubtreePropertyModification) {
+    auto doc = parseNode(R"(
+* Subtree
+)");
+
+    auto tree = getFirstNode<sem::Subtree>(doc);
+    tree->setPropertyStrValue("123", "bookmark_pos");
+
+    Str formatted = sem::formatToString(doc);
+    EXPECT_NE(formatted.find(":bookmark_pos: 123"), -1) << formatted;
+
+    tree->removeProperty("bookmark_pos");
+    formatted = sem::formatToString(doc);
+    EXPECT_EQ(formatted.find(":bookmark_pos: 123"), -1) << formatted;
+}
 
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
