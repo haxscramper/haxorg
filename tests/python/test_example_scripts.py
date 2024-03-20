@@ -224,7 +224,7 @@ from py_cli.scratch_scripts.import_alxreader_bookmarks import BookmarkRecord
 
 def test_bookmark_import_1():
     with TemporaryDirectory() as tmp_dir:
-        dir = Path("/tmp")
+        dir = Path(tmp_dir)
         org_file = dir.joinpath("file.org")
         org_file.write_text("")
 
@@ -298,7 +298,8 @@ def test_bookmark_import():
 
     result = runner.invoke(import_alxreader_bookmarks.cli, [
         f"--infile={db}",
-        f"--target={test_file}"
+        f"--target={test_file}",
+        "--import_offset=144d",
     ])
 
     check_cli(result)

@@ -18,6 +18,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy import Column, select
 from datetime import datetime, timedelta
 from py_scriptutils.rich_utils import render_rich_pprint
+from pydantic import validator
+import re
 
 CAT = Path(__file__).name
 
@@ -30,6 +32,26 @@ class AlXreaderImportOptions(BaseModel):
         default=None,
         description=
         "Apply this time offset on all timestamps imported from the sqlite database")
+
+
+    @validator('import_offset', pre=True)
+    def parse_timedelta(cls, v):
+        log(CAT).info("Importing the time delta")
+        if isinstance(v, timedelta):
+            return v
+        if isinstance(v, str):
+            # Example of a simple parser for strings like "1d 2h 3m 4s"
+            # You can adjust the regex and conversion logic as needed
+            match = re.match(r'((?P<days>\d+)d)?\s*((?P<hours>\d+)h)?\s*((?P<minutes>\d+)m)?\s*((?P<seconds>\d+)s)?', v)
+            if match:
+                parts = {key: int(value) for key, value in match.groupdict(default=0).items()}
+                return timedelta(**parts)
+            # Raise an error if the string format is unrecognized
+            raise ValueError("Invalid timedelta string format")
+        # Optionally handle other input formats here
+        raise TypeError("Invalid type for timedelta")
+
+        return v
 
 
 def analysis_options(f):
@@ -232,6 +254,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     engine = open_sqlite(opts.infile)
     session = sessionmaker()(bind=engine)
     if opts.import_offset:
+        log(CAT).info(f"Import time offset {opts.import_offset}")
         bookmarks = [
             it.model_copy(update=dict(
                 dateadd=it.dateadd + opts.import_offset,
