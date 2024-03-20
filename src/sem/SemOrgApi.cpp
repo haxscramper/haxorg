@@ -215,7 +215,9 @@ Opt<Str> Subtree::Property::getSubKind() const {
 
 bool Subtree::Property::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     const {
-    if (normalize(fmt1(getKind())) == normalize(kind)) {
+    if (getKind() == Property::Kind::Unknown) {
+        return normalize(getUnknown().name) == normalize(kind);
+    } else if (normalize(fmt1(getKind())) == normalize(kind)) {
         return true;
     } else if (
         getKind() == Property::Kind::ExportOptions && subkind

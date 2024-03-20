@@ -168,7 +168,7 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
     if get_bookmark_entry():
         return
-    
+
     book_entry = get_subtree_at_path(tree, [
         get_book_tree_name(mark),
     ])
@@ -191,15 +191,10 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
     ))
 
     bookmark_entry = get_bookmark_entry()
-    bookmark_entry.setPropertyStrValue(
-        kind="bookmark_pos",
-        value="{}/{}-{}/{}".format(
-            mark.start,
-            mark.booksize,
-            mark.stop,
-            mark.booksize,
-        ),
-    )
+    bookmark_entry.setPropertyStrValue(kind="bookmark_start", value=str(mark.start))
+    bookmark_entry.setPropertyStrValue(kind="bookmark_stop", value=str(mark.stop))
+    bookmark_entry.setPropertyStrValue(kind="bookmark_booksize", value=str(mark.booksize))
+
 
     bookmark_entry.setPropertyStrValue(kind="bookmark_date",
                                        value=f"[{format_time(mark.dateadd)}]")
@@ -211,7 +206,7 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
     assert book_entry
 
 
-def impl(opts: AlXreaderImportOptions, bookmarks: List[BookmarkRecord]): 
+def impl(opts: AlXreaderImportOptions, bookmarks: List[BookmarkRecord]):
     if not opts.target.exists():
         opts.target.write_text("")
 
@@ -221,6 +216,7 @@ def impl(opts: AlXreaderImportOptions, bookmarks: List[BookmarkRecord]):
         insert_new_bookmark(node, it)
 
     opts.target.write_text(org.formatToString(node))
+
 
 @click.command()
 @click.option("--config",
@@ -232,7 +228,6 @@ def impl(opts: AlXreaderImportOptions, bookmarks: List[BookmarkRecord]):
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
     pack_context(ctx, "root", AlXreaderImportOptions, config=config, kwargs=kwargs)
     opts: AlXreaderImportOptions = ctx.obj["root"]
-
 
     engine = open_sqlite(opts.infile)
     session = sessionmaker()(bind=engine)
@@ -248,8 +243,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         bookmarks = get_bookmarks(session)
 
     impl(opts, bookmarks)
-
-
 
 
 if __name__ == "__main__":

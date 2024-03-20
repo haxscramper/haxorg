@@ -13,6 +13,7 @@ from more_itertools import first_true
 import pandas as pd
 from py_scriptutils.pandas_utils import dataframe_to_rich_table
 from py_scriptutils.rich_utils import render_rich
+import py_haxorg.pyhaxorg_wrap as org
 
 CAT = __name__
 from py_scriptutils.script_logging import log
@@ -245,18 +246,39 @@ def test_bookmark_import_1():
             target=org_file,
         )
 
-        log(CAT).info("first run")
         assert len(bookmarks) == 1
         import_alxreader_bookmarks.impl(opts, bookmarks)
         assert len(bookmarks) == 1
         assert org_file.exists()
         pre_content = org_file.read_text()
-        log(CAT).info("second run")
         assert len(bookmarks) == 1
         import_alxreader_bookmarks.impl(opts, bookmarks)
         lhs = [it for it in pre_content.split("\n") if it]
         rhs = [it for it in org_file.read_text().split("\n") if it]
         assert lhs == rhs
+
+        node = org.parseString(org_file.read_text())
+
+        book = import_alxreader_bookmarks.get_subtree_at_path(node, ["\"book1\" by \"author1\""])
+        assert book
+        
+        bookmark = import_alxreader_bookmarks.get_subtree_at_path(node, [
+            "\"book1\" by \"author1\"",
+            "[1970-01-01 00:00:00] 00.000/50.000",
+        ])
+
+        assert bookmark
+
+        # log(CAT).info(org.exportToTreeString(bookmark, org.OrgTreeExportOpts()))
+
+        def get_property_str(name: str) -> str:
+            prop: org.SubtreeProperty = bookmark.getProperty(name)
+            assert prop
+            return org.formatToString(prop.getUnknown().value)
+        
+        assert get_property_str("bookmark_start") == "0"
+        assert get_property_str("bookmark_stop") == "1"
+        assert get_property_str("bookmark_booksize") == "2"
 
 
 
