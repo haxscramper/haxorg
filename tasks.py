@@ -980,14 +980,6 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     log(CAT).info(get_py_env(ctx))
 
-    # log(CAT).debug("Import paths")
-    # for path in get_poetry_import_paths(ctx):
-    #     log(CAT).debug("> {} [{}] {}".format(
-    #         path,
-    #         "ok" if path.exists() else "err does not exist",
-    #         [str(it.relative_to(path)) for it in path.glob("*")],
-    #     ))
-
     retcode, _, _ = run_command(
         ctx,
         "poetry",
@@ -1008,6 +1000,15 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     if retcode != 0:
         exit(1)
+
+
+@org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
+def py_script(ctx: Context, script: str, arg: List[str] = []):
+    run_command(ctx, "poetry", [
+        "run",
+        script,
+        *arg,
+    ])
 
 
 @org_task(pre=[py_tests])

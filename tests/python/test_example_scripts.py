@@ -269,52 +269,11 @@ def test_bookmark_import_1():
 
         assert bookmark
 
-        # log(CAT).info(org.exportToTreeString(bookmark, org.OrgTreeExportOpts()))
-
         def get_property_str(name: str) -> str:
             prop: org.SubtreeProperty = bookmark.getProperty(name)
             assert prop
             return org.formatToString(prop.getUnknown().value)
         
-        assert get_property_str("bookmark_start") == "0"
+        assert get_property_str("bookmark_start") == "0"    
         assert get_property_str("bookmark_stop") == "1"
         assert get_property_str("bookmark_booksize") == "2"
-
-
-
-def test_bookmark_import():
-    db = Path("~/tmp/alxreader.db").expanduser()
-    if not db.exists():
-        log(CAT).info("DB does not exist")
-        return 
-    
-
-    runner = CliRunner()
-    from shutil import copyfile
-
-    test_file = Path("/tmp/test.org")
-
-    test_file.write_text("")
-
-    result = runner.invoke(import_alxreader_bookmarks.cli, [
-        f"--infile={db}",
-        f"--target={test_file}",
-        "--import_offset=144d",
-    ])
-
-    check_cli(result)
-    # assert test_file.exists()
-
-    # copyfile(src=test_file, dst=test_file.with_name("test_1"))
-
-    # result = runner.invoke(import_alxreader_bookmarks.cli, [
-    #     f"--infile={db}",
-    #     f"--target={test_file}"
-    # ])
-
-    # check_cli(result)
-    # copyfile(src=test_file, dst=test_file.with_name("test_2"))
-
-    # assert test_file.with_name("test_1").read_text() == test_file.with_name("test_2").read_text()
-
-

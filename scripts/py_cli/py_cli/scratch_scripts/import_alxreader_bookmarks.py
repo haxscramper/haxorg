@@ -18,7 +18,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy import Column, select
 from datetime import datetime, timedelta
 from py_scriptutils.rich_utils import render_rich_pprint
-from pydantic import validator
+from pydantic import validator, field_validator
 import re
 
 CAT = Path(__file__).name
@@ -34,7 +34,7 @@ class AlXreaderImportOptions(BaseModel):
         "Apply this time offset on all timestamps imported from the sqlite database")
 
 
-    @validator('import_offset', pre=True)
+    @field_validator('import_offset', mode="before")
     def parse_timedelta(cls, v):
         log(CAT).info("Importing the time delta")
         if isinstance(v, timedelta):
@@ -67,10 +67,11 @@ class BookmarkRecord(BaseModel, extra="forbid"):
     start: int
     stop: int
     booksize: int
-
+    bookpos: int
+    datelast: datetime
+    datefirst: datetime
 
 Base = declarative_base()
-
 
 class Bookmarks(Base):
     __tablename__ = "bookmarks"
@@ -144,6 +145,9 @@ def get_bookmarks(session: Session) -> List[BookmarkRecord]:
         Bookmarks.start,
         Bookmarks.stop,
         Recent.booksize,
+        Recent.datefirst,
+        Recent.datelast,
+        Recent.bookpos,
     ).join(
         Recent,
         Recent.filename == Bookmarks.filename,
@@ -159,7 +163,7 @@ def get_bookmarks(session: Session) -> List[BookmarkRecord]:
 
 @beartype
 def format_time(time: datetime) -> str:
-    return time.strftime('%Y-%m-%d %H:%M:%S')
+    return "[" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
 
 
 @beartype
@@ -172,7 +176,7 @@ def get_book_tree_name(rec: BookmarkRecord) -> str:
 
 @beartype
 def get_bookmark_tree_name(rec: BookmarkRecord) -> str:
-    return "[{}] {:06.3f}/{:06.3f}".format(
+    return "{} {:06.3f}/{:06.3f}".format(
         format_time(rec.dateadd),
         rec.start * 1.0 / rec.booksize * 100,
         rec.stop * 1.0 / rec.booksize * 100,
@@ -187,45 +191,54 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
             get_book_tree_name(mark),
             get_bookmark_tree_name(mark),
         ])
+    
+    def get_book_entry() -> Optional[org.Subtree]:
+        return get_subtree_at_path(tree, [
+            get_book_tree_name(mark),
+        ])
+    
+    book = get_book_entry()
 
-    if get_bookmark_entry():
-        return
-
-    book_entry = get_subtree_at_path(tree, [
-        get_book_tree_name(mark),
-    ])
-
-    if not book_entry:
+    if not book:
         tree.subnodes.append(new_subtree(
             title=get_book_tree_name(mark),
             level=1,
         ))
 
-    book_entry = get_subtree_at_path(tree, [
-        get_book_tree_name(mark),
-    ])
+    book = get_book_entry()
+    assert book
 
-    assert book_entry
+    book.setPropertyStrValue(kind="book_last_read", value=format_time(mark.datelast))
+    book.setPropertyStrValue(kind="book_first_read", value=format_time(mark.datefirst))
 
-    book_entry.subnodes.append(new_subtree(
-        title=get_bookmark_tree_name(mark),
-        level=2,
-    ))
+    for item in book.logbook:
+        print(item)
 
-    bookmark_entry = get_bookmark_entry()
-    bookmark_entry.setPropertyStrValue(kind="bookmark_start", value=str(mark.start))
-    bookmark_entry.setPropertyStrValue(kind="bookmark_stop", value=str(mark.stop))
-    bookmark_entry.setPropertyStrValue(kind="bookmark_booksize", value=str(mark.booksize))
+    bookmark = get_bookmark_entry()
+    
+    if not bookmark:
+        book.subnodes.append(new_subtree(
+            title=get_bookmark_tree_name(mark),
+            level=2,
+        ))
+
+        bookmark = get_bookmark_entry()
+        assert bookmark
+
+        bookmark_entry = get_bookmark_entry()
+        bookmark_entry.setPropertyStrValue(kind="bookmark_start", value=str(mark.start))
+        bookmark_entry.setPropertyStrValue(kind="bookmark_stop", value=str(mark.stop))
+        bookmark_entry.setPropertyStrValue(kind="bookmark_booksize", value=str(mark.booksize))
 
 
-    bookmark_entry.setPropertyStrValue(kind="bookmark_date",
-                                       value=f"[{format_time(mark.dateadd)}]")
+        bookmark_entry.setPropertyStrValue(kind="bookmark_date",
+                                        value=format_time(mark.dateadd))
 
-    book_entry.subnodes.append(org.Newline(text="\n\n"))
-    book_entry.subnodes.append(org.Quote(subnodes=[org.RawText(text=mark.text)]))
-    book_entry.subnodes.append(org.Newline(text="\n\n"))
+        bookmark.subnodes.append(org.Newline(text="\n\n"))
+        bookmark.subnodes.append(org.Quote(subnodes=[org.RawText(text=mark.text.replace("\x0D", " "))]))
+        bookmark.subnodes.append(org.Newline(text="\n\n"))
 
-    assert book_entry
+
 
 
 def impl(opts: AlXreaderImportOptions, bookmarks: List[BookmarkRecord]):
@@ -266,6 +279,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         bookmarks = get_bookmarks(session)
 
     impl(opts, bookmarks)
+    log(CAT).info("Import done")
 
 
 if __name__ == "__main__":
