@@ -2206,6 +2206,10 @@ example),)RAW")
                      ();
                      })
     ;
+  m.def("newSemTimeStatic",
+        static_cast<sem::SemId<sem::Time>(*)(UserTimeBreakdown const&, bool)>(&sem::newSemTimeStatic),
+        pybind11::arg("breakdown"),
+        pybind11::arg_v("isActive", 0));
   m.def("parseFile",
         static_cast<sem::SemId<sem::Document>(*)(std::string, sem::OrgParseParameters const&)>(&sem::parseFile),
         pybind11::arg("file"),

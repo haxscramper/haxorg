@@ -19,6 +19,7 @@ from sqlalchemy import Column, select
 from datetime import datetime, timedelta
 from py_scriptutils.rich_utils import render_rich_pprint
 from pydantic import validator, field_validator
+from py_haxorg.pyhaxorg_utils import evalDateTime
 import re
 
 CAT = Path(__file__).name
@@ -33,7 +34,6 @@ class AlXreaderImportOptions(BaseModel):
         description=
         "Apply this time offset on all timestamps imported from the sqlite database")
 
-
     @field_validator('import_offset', mode="before")
     def parse_timedelta(cls, v):
         log(CAT).info("Importing the time delta")
@@ -42,9 +42,13 @@ class AlXreaderImportOptions(BaseModel):
         if isinstance(v, str):
             # Example of a simple parser for strings like "1d 2h 3m 4s"
             # You can adjust the regex and conversion logic as needed
-            match = re.match(r'((?P<days>\d+)d)?\s*((?P<hours>\d+)h)?\s*((?P<minutes>\d+)m)?\s*((?P<seconds>\d+)s)?', v)
+            match = re.match(
+                r'((?P<days>\d+)d)?\s*((?P<hours>\d+)h)?\s*((?P<minutes>\d+)m)?\s*((?P<seconds>\d+)s)?',
+                v)
             if match:
-                parts = {key: int(value) for key, value in match.groupdict(default=0).items()}
+                parts = {
+                    key: int(value) for key, value in match.groupdict(default=0).items()
+                }
                 return timedelta(**parts)
             # Raise an error if the string format is unrecognized
             raise ValueError("Invalid timedelta string format")
@@ -71,7 +75,9 @@ class BookmarkRecord(BaseModel, extra="forbid"):
     datelast: datetime
     datefirst: datetime
 
+
 Base = declarative_base()
+
 
 class Bookmarks(Base):
     __tablename__ = "bookmarks"
@@ -191,12 +197,12 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
             get_book_tree_name(mark),
             get_bookmark_tree_name(mark),
         ])
-    
+
     def get_book_entry() -> Optional[org.Subtree]:
         return get_subtree_at_path(tree, [
             get_book_tree_name(mark),
         ])
-    
+
     book = get_book_entry()
 
     if not book:
@@ -211,11 +217,29 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
     book.setPropertyStrValue(kind="book_last_read", value=format_time(mark.datelast))
     book.setPropertyStrValue(kind="book_first_read", value=format_time(mark.datefirst))
 
+    item: org.SubtreeLog
+    found_last_log = False
     for item in book.logbook:
-        print(item)
+        if item.getLogKind() == org.SubtreeLogKind.Note and item.getNote().on:
+            if evalDateTime(item.getNote().on.getStatic().time) == mark.datelast:
+                found_last_log = True
+
+    if not found_last_log:
+        book.logbook.append(
+            org.SubtreeLog(log=org.SubtreeLogNote(on=org.newSemTimeStatic(
+                org.UserTimeBreakdown(
+                    year=mark.datelast.year,
+                    month=mark.datelast.month,
+                    day=mark.datelast.day,
+                    hour=mark.datelast.hour,
+                    minute=mark.datelast.minute,
+                    second=mark.datelast.second,
+                ),
+                isActive=False,
+            ))))
 
     bookmark = get_bookmark_entry()
-    
+
     if not bookmark:
         book.subnodes.append(new_subtree(
             title=get_bookmark_tree_name(mark),
@@ -228,17 +252,16 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
         bookmark_entry = get_bookmark_entry()
         bookmark_entry.setPropertyStrValue(kind="bookmark_start", value=str(mark.start))
         bookmark_entry.setPropertyStrValue(kind="bookmark_stop", value=str(mark.stop))
-        bookmark_entry.setPropertyStrValue(kind="bookmark_booksize", value=str(mark.booksize))
-
+        bookmark_entry.setPropertyStrValue(kind="bookmark_booksize",
+                                           value=str(mark.booksize))
 
         bookmark_entry.setPropertyStrValue(kind="bookmark_date",
-                                        value=format_time(mark.dateadd))
+                                           value=format_time(mark.dateadd))
 
         bookmark.subnodes.append(org.Newline(text="\n\n"))
-        bookmark.subnodes.append(org.Quote(subnodes=[org.RawText(text=mark.text.replace("\x0D", " "))]))
+        bookmark.subnodes.append(
+            org.Quote(subnodes=[org.RawText(text=mark.text.replace("\x0D", " "))]))
         bookmark.subnodes.append(org.Newline(text="\n\n"))
-
-
 
 
 def impl(opts: AlXreaderImportOptions, bookmarks: List[BookmarkRecord]):

@@ -632,3 +632,54 @@ void OrgDocumentSelector::dbg(const Str& msg, int depth, int line) const {
             "{}[{}] {}", Str("  ").repeated(depth), line, msg);
     }
 }
+
+absl::TimeZone LoadTimeZone(CR<Str> name) {
+    absl::TimeZone result;
+    if (absl::LoadTimeZone(name, &result)) {
+        return result;
+    } else {
+        throw std::logic_error("Unknown time zone " + name);
+    }
+}
+
+sem::SemId<Time> sem::newSemTimeStatic(
+    const UserTimeBreakdown& breakdown,
+    bool                     isActive) {
+
+    sem::SemId<Time> result = sem::SemId<Time>::New();
+    result->isActive        = isActive;
+
+
+    UserTime userTime{
+        .time = absl::FromCivil(
+            absl::CivilSecond{
+                breakdown.year.value_or(0),
+                breakdown.month.value_or(0),
+                breakdown.day.value_or(0),
+                breakdown.hour.value_or(0),
+                breakdown.minute.value_or(0),
+                breakdown.second.value_or(0),
+            },
+            absl::UTCTimeZone()),
+        .zone = breakdown.zone ? LoadTimeZone(breakdown.zone.value())
+                               : Opt<absl::TimeZone>{std::nullopt},
+    };
+
+    if (breakdown.second) {
+        userTime.align = UserTime::Alignment::Second;
+    } else if (breakdown.minute) {
+        userTime.align = UserTime::Alignment::Minute;
+    } else if (breakdown.hour) {
+        userTime.align = UserTime::Alignment::Hour;
+    } else if (breakdown.day) {
+        userTime.align = UserTime::Alignment::Day;
+    } else if (breakdown.month) {
+        userTime.align = UserTime::Alignment::Month;
+    } else if (breakdown.year) {
+        userTime.align = UserTime::Alignment::Year;
+    }
+
+    result->time = Time::Static{.time = userTime};
+
+    return result;
+}

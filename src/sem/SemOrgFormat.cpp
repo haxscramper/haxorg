@@ -785,7 +785,10 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
 
                 default: {
-                    LOG(FATAL) << fmt1(log->getLogKind());
+                    log_head = b.line({
+                        str(" -"),
+                        toString(log->getUnknown().desc.value(), ctx),
+                    });
                 }
             }
 

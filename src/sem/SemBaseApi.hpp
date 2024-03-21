@@ -4,6 +4,11 @@
 #include <hstd/stdlib/Json.hpp>
 
 namespace sem {
+
+[[refl]] sem::SemId<sem::Time> newSemTimeStatic(
+    UserTimeBreakdown const& breakdown,
+    bool                     isActive = false);
+
 struct [[refl]] OrgParseParameters {
     [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
     [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;

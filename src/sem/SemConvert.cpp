@@ -228,7 +228,7 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             priority.on = times.at(0);
             log->log    = priority;
 
-        } else if (words.at(0) == "note") {
+        } else if (words.at(0) == "note" && !times.empty()) {
             auto note = Log::Note{};
             note.on   = times.at(0);
             log->log  = note;
