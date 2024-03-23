@@ -46,7 +46,10 @@ def test_subnode_visitor():
 def test_subnode_selector():
     node = org.parseString("Word")
     selector = org.OrgDocumentSelector()
-    selector.searchAnyKind(org.IntSetOfOrgSemKind([osk.Word]))
+    selector.searchAnyKind(
+        org.IntSetOfOrgSemKind([osk.Word]),
+        isTarget=True,
+    )
     matches = selector.getMatches(node)
     assert len(matches) == 1
     assert matches[0].getKind() == osk.Word
@@ -62,20 +65,23 @@ Content1
 Content2
 * Title2
 """)
-    
+
     def ensure_content(subtree_path: List[str], content: str):
+
         def get_selector_at_path(path: List[str]):
             selector = org.OrgDocumentSelector()
             for idx, title in enumerate(path):
                 selector.searchSubtreePlaintextTitle(
                     title=title,
-                    link=None if idx == len(path) - 1 else selector.linkIndirectSubnode())
+                    isTarget=idx == len(path) - 1,
+                    link=selector.linkIndirectSubnode() if idx < len(path) else None,
+                )
 
             return selector
 
-        matches = get_selector_at_path(subtree_path[::-1]).getMatches(node)
+        matches = get_selector_at_path(subtree_path).getMatches(node)
         if not matches:
-            parent = get_selector_at_path(subtree_path[:1][::-1]).getMatches(node)
+            parent = get_selector_at_path(subtree_path[:1]).getMatches(node)
             assert len(parent) == 1
             parent[0].push_back(
                 org.Subtree(

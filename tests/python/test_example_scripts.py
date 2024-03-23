@@ -220,7 +220,10 @@ def test_base_activity_analysis():
             dbg,
         )
 
+
 from py_cli.scratch_scripts.import_alxreader_bookmarks import BookmarkRecord
+from datetime import datetime
+
 
 def test_bookmark_import_1():
     with TemporaryDirectory() as tmp_dir:
@@ -237,7 +240,17 @@ def test_bookmark_import_1():
                 start=0,
                 stop=1,
                 booksize=2,
-                text="text"
+                text="text",
+                bookpos=0,
+                datelast=datetime(
+                    year=2024,
+                    month=2,
+                    day=10,
+                    hour=13,
+                    minute=30,
+                    second=40,
+                ),
+                datefirst=0,
             )
         ]
 
@@ -259,13 +272,15 @@ def test_bookmark_import_1():
 
         node = org.parseString(org_file.read_text())
 
-        book = import_alxreader_bookmarks.get_subtree_at_path(node, ["\"book1\" by \"author1\""])
+        book = import_alxreader_bookmarks.get_subtree_at_path(
+            node, ["\"book1\" by \"author1\""])
         assert book
-        
-        bookmark = import_alxreader_bookmarks.get_subtree_at_path(node, [
-            "\"book1\" by \"author1\"",
-            "[1970-01-01 00:00:00] 00.000/50.000",
-        ])
+
+        bookmark = import_alxreader_bookmarks.get_subtree_at_path(
+            node, [
+                "\"book1\" by \"author1\"",
+                "[1970-01-01 00:00:00] 00.000/50.000",
+            ])
 
         assert bookmark
 
@@ -273,7 +288,7 @@ def test_bookmark_import_1():
             prop: org.SubtreeProperty = bookmark.getProperty(name)
             assert prop
             return org.formatToString(prop.getUnknown().value)
-        
-        assert get_property_str("bookmark_start") == "0"    
+
+        assert get_property_str("bookmark_start") == "0"
         assert get_property_str("bookmark_stop") == "1"
         assert get_property_str("bookmark_booksize") == "2"

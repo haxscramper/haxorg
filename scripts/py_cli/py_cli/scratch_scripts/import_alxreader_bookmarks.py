@@ -113,12 +113,12 @@ class Recent(Base):
 
 @beartype
 def get_subtree_at_path(node: org.Org, path: List[str]) -> Optional[org.Subtree]:
-    match_order = path[::-1]
     selector = org.OrgDocumentSelector()
-    for idx, title in enumerate(match_order):
+    for idx, title in enumerate(path):
         selector.searchSubtreePlaintextTitle(
             title=title,
-            link=None if idx == len(match_order) - 1 else selector.linkIndirectSubnode(),
+            isTarget=idx == len(path) - 1,
+            link=selector.linkIndirectSubnode() if idx < len(path) else None,
         )
 
     matches = selector.getMatches(node)
@@ -244,7 +244,9 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
                     ),
                     isActive=False,
                 ),
-                desc=org.StmtList(subnodes=[org.RawText(text=f"Reading progress {mark.bookpos}/{mark.booksize}")]),
+                desc=org.StmtList(subnodes=[
+                    org.RawText(text=f"Reading progress {mark.bookpos}/{mark.booksize}")
+                ]),
             )))
 
     bookmark = get_bookmark_entry()
