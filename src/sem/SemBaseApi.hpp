@@ -188,14 +188,29 @@ Opt<UserTime> getCreationTime(SemId<Org> const& node);
 struct [[refl]] OrgSelectorLink {
     enum class [[refl]] Kind
     {
-        DirectSubnode,
-        IndirectSubnode,
+        DirectSubnode   = 0,
+        IndirectSubnode = 1,
+        FieldName       = 2,
     };
 
     BOOST_DESCRIBE_NESTED_ENUM(Kind, DirectSubnode, IndirectSubnode);
 
-    [[refl]] Kind kind;
-    BOOST_DESCRIBE_CLASS(OrgSelectorLink, (), (kind), (), ());
+
+    // 0
+    struct DirectSubnode {};
+    // 1
+    struct IndirectSubnode {};
+    // 2
+    struct FieldName {
+        Str name;
+    };
+
+    using Data = Variant<DirectSubnode, IndirectSubnode, FieldName>;
+    Data data;
+
+    Kind getKind() const { return static_cast<Kind>(data.index()); }
+
+    BOOST_DESCRIBE_CLASS(OrgSelectorLink, (), (), (), ());
 };
 
 struct [[refl]] OrgSelectorResult {
@@ -224,19 +239,19 @@ struct [[refl]] OrgDocumentSelector {
     [[refl]] Vec<OrgSelectorCondition> path;
     [[refl]] bool                      debug = false;
 
-    void assertLinkPresence() const;
-
-
     [[refl]] Vec<SemId<Org>> getMatches(SemId<Org> const& node) const;
 
     [[refl]] OrgSelectorLink linkDirectSubnode() const {
-        return OrgSelectorLink{
-            .kind = OrgSelectorLink::Kind::DirectSubnode};
+        return OrgSelectorLink{.data = OrgSelectorLink::DirectSubnode{}};
     }
 
     [[refl]] OrgSelectorLink linkIndirectSubnode() const {
+        return OrgSelectorLink{.data = OrgSelectorLink::IndirectSubnode{}};
+    }
+
+    [[refl]] OrgSelectorLink linkField(Str const& name) const {
         return OrgSelectorLink{
-            .kind = OrgSelectorLink::Kind::IndirectSubnode};
+            .data = OrgSelectorLink::FieldName{.name = name}};
     }
 
     [[refl]] void searchSubtreePlaintextTitle(
@@ -247,7 +262,8 @@ struct [[refl]] OrgDocumentSelector {
     [[refl]] void searchSubtreeId(
         Str const&           id,
         bool                 isTarget,
-        Opt<OrgSelectorLink> link = std::nullopt);
+        Opt<int>             maxLevel = std::nullopt,
+        Opt<OrgSelectorLink> link     = std::nullopt);
 
     [[refl]] void searchAnyKind(
         const IntSet<OrgSemKind>& kinds,

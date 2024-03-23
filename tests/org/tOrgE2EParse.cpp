@@ -402,6 +402,7 @@ TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
     auto words = selector.getMatches(node);
 
     EXPECT_EQ(words.size(), 1);
+    EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
     EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
 }
 
@@ -421,8 +422,8 @@ TEST(OrgDocumentSelector, GetDirectlyNestedNode) {
     auto                     node = parseNode("word *bold*");
     sem::OrgDocumentSelector selector;
     selector.searchAnyKind(
-        {OrgSemKind::Bold}, true, selector.linkDirectSubnode());
-    selector.searchAnyKind({OrgSemKind::Word}, false);
+        {OrgSemKind::Bold}, false, selector.linkDirectSubnode());
+    selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node);
 
@@ -453,9 +454,9 @@ Paragraph under subtitle 2
 
     {
         sem::OrgDocumentSelector selector;
-        selector.searchSubtreePlaintextTitle("Subtitle2", false);
-        selector.searchAnyKind(
-            {OrgSemKind::Word}, true, selector.linkIndirectSubnode());
+        selector.searchSubtreePlaintextTitle(
+            "Subtitle2", false, selector.linkIndirectSubnode());
+        selector.searchAnyKind({OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc);
         EXPECT_EQ(words.size(), 4);

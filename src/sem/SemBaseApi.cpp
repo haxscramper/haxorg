@@ -418,19 +418,6 @@ Opt<UserTime> getCreationTime(const SemId<Org>& node) {
     return std::nullopt;
 }
 
-void OrgDocumentSelector::assertLinkPresence() const {
-    if (!path.empty()) {
-        if (!path.back().link) {
-            throw std::logic_error(
-                "Adding extra search path with previous path element "
-                "missing link value. Previous searchXXX should have been "
-                "called with link= set to a non-null value. This is a "
-                "logic error in the search query construction code.");
-        }
-    }
-}
-
-
 namespace {
 
 template <sem::NotOrg T>
@@ -457,14 +444,19 @@ void addSubnodes(
 
 
 template <typename T>
-Vec<SemId<Org>> getDirectSubnodes(sem::SemId<T> node) {
+Vec<SemId<Org>> getDirectSubnodes(
+    sem::SemId<T> node,
+    CR<Opt<Str>>  targetField = std::nullopt) {
     Vec<SemId<Org>> result;
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
 
     T const& object = *node.value;
     for_each_field_with_bases<T>([&](auto const& field) {
-        addSubnodes(result, field.name, object.*field.pointer);
+        if (!targetField.has_value()
+            || targetField.value() == field.name) {
+            addSubnodes(result, field.name, object.*field.pointer);
+        }
     });
 
     return result;
@@ -476,39 +468,114 @@ Vec<SemId<Org>> OrgDocumentSelector::getMatches(
     Vec<SemId<Org>> result;
 
     using PathIter = Vec<OrgSelectorCondition>::const_iterator;
-    Func<void(PathIter condition, SemId<Org> node, int depth)> aux;
+    struct Ctx {
+        Opt<int> maxDepth = std::nullopt;
+    };
 
-    aux = [&](PathIter condition, SemId<Org> node, int depth) {
+    Func<bool(
+        PathIter condition, SemId<Org> node, int depth, Ctx const& ctx)>
+        aux;
+
+    aux = [&](PathIter   condition,
+              SemId<Org> node,
+              int        depth,
+              Ctx const& ctx) -> bool {
         if (debug) {
-            Vec<Str> context;
-            dbg(fmt("condition={} (@{}/{}) node={} ctx={}",
+            dbg(fmt("condition={} (@{}/{}) node={}",
                     condition->debug,
                     std::distance(path.begin(), condition),
                     path.high(),
-                    node->getKind(),
-                    context),
+                    node->getKind()),
                 depth);
+        }
+
+        if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
+            dbg(fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
+                depth);
+
+            return false;
         }
 
         OrgSelectorResult matchResult = condition->check(node);
         if (matchResult.isMatching) {
-            if (condition->isTarget) { result.push_back(node); }
+            bool isMatch = false;
 
-            if (condition != this->path.end()) {
-                for (auto const& sub : getDirectSubnodes(node)) {
-                    aux(condition + 1, sub, depth + 1);
+            if (condition == this->path.end() - 1) {
+                dbg("last condition in path, match ok", depth);
+                isMatch = true;
+            } else {
+                CHECK(condition->link)
+                    << "Selector path element is not the last in the "
+                       "list, but does not have the subnode search link "
+                       "condition";
+
+                dbg(fmt("subnode selector condition: {}",
+                        condition->link->getKind()),
+                    depth);
+
+                switch (condition->link->getKind()) {
+                    case OrgSelectorLink::Kind::DirectSubnode: {
+                        for (auto const& sub : getDirectSubnodes(node)) {
+                            if (aux(condition + 1,
+                                    sub,
+                                    depth + 1,
+                                    Ctx{.maxDepth = depth + 1})) {
+                                dbg("got match on the direct subnode",
+                                    depth);
+                                isMatch = true;
+                            }
+                        }
+                        break;
+                    }
+
+                    case OrgSelectorLink::Kind::IndirectSubnode: {
+                        for (auto const& sub : getDirectSubnodes(node)) {
+                            if (aux(condition + 1, sub, depth + 1, ctx)) {
+                                dbg("got match on indirect subnode",
+                                    depth);
+                                isMatch = true;
+                            }
+                        }
+                        break;
+                    }
+
+                    case OrgSelectorLink::Kind::FieldName: {
+                        for (auto const& sub : getDirectSubnodes(
+                                 node,
+                                 std::get<OrgSelectorLink::FieldName>(
+                                     condition->link->data)
+                                     .name)) {
+                            if (aux(condition + 1, sub, depth + 1, ctx)) {
+                                dbg("got match on field subnode", depth);
+                                isMatch = true;
+                            }
+                        }
+                        break;
+                    }
                 }
             }
+
+            if (isMatch && condition->isTarget) {
+                dbg("node is matched and marked as target", depth);
+                result.push_back(node);
+            }
+
+            return isMatch;
         } else {
+            bool isMatch = false;
             if (matchResult.tryNestedNodes) {
                 for (auto const& sub : getDirectSubnodes(node)) {
-                    aux(condition, sub, depth + 1);
+                    if (aux(condition, sub, depth + 1, ctx)) {
+                        isMatch = true;
+                    }
                 }
             }
+
+            return isMatch;
         }
     };
 
-    aux(path.begin(), node, 0);
+    aux(path.begin(), node, 0, Ctx{});
 
     return result;
 }
@@ -517,7 +584,6 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
     const Str&           title,
     bool                 isTarget,
     Opt<OrgSelectorLink> link) {
-    assertLinkPresence();
     path.push_back(OrgSelectorCondition{
         .check = [title,
                   this](SemId<Org> const& node) -> OrgSelectorResult {
@@ -550,14 +616,29 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
 void OrgDocumentSelector::searchSubtreeId(
     const Str&           id,
     bool                 isTarget,
+    Opt<int>             maxLevel,
     Opt<OrgSelectorLink> link) {
-    assertLinkPresence();
     path.push_back(OrgSelectorCondition{
-        .check = [id](SemId<Org> const& node) -> OrgSelectorResult {
-            return OrgSelectorResult{
-                .isMatching = node->is(osk::Subtree)
-                           && node.as<Subtree>()->treeId == id,
-            };
+        .check = [id,
+                  maxLevel](SemId<Org> const& node) -> OrgSelectorResult {
+            if (node->is(osk::Subtree)) {
+                auto const& tree = node.as<Subtree>();
+                if (maxLevel) {
+                    return OrgSelectorResult{
+                        .isMatching = tree->treeId == id,
+                    };
+                } else {
+                    return OrgSelectorResult{
+                        .isMatching = tree->treeId == id
+                                   && (tree->level <= maxLevel.value()),
+                        .tryNestedNodes = tree->level < maxLevel.value(),
+                    };
+                }
+
+
+            } else {
+                return OrgSelectorResult{.isMatching = false};
+            }
         },
         .debug    = fmt("HasSubtreeId:{}", id),
         .link     = link,
@@ -569,7 +650,6 @@ void OrgDocumentSelector::searchAnyKind(
     IntSet<OrgSemKind> const& kinds,
     bool                      isTarget,
     Opt<OrgSelectorLink>      link) {
-    assertLinkPresence();
     path.push_back(OrgSelectorCondition{
         .check = [kinds](SemId<Org> const& node) -> OrgSelectorResult {
             return OrgSelectorResult{

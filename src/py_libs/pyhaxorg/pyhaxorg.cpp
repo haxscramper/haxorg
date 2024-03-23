@@ -2045,7 +2045,6 @@ fields)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("kind", &sem::OrgSelectorLink::kind)
     ;
   pybind11::class_<sem::OrgSelectorResult>(m, "OrgSelectorResult")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorResult {
@@ -2077,15 +2076,19 @@ fields)RAW")
          pybind11::arg("node"))
     .def("linkDirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkDirectSubnode))
     .def("linkIndirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkIndirectSubnode))
+    .def("linkField",
+         static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)(Str const&) const>(&sem::OrgDocumentSelector::linkField),
+         pybind11::arg("name"))
     .def("searchSubtreePlaintextTitle",
          static_cast<void(sem::OrgDocumentSelector::*)(Str const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreePlaintextTitle),
          pybind11::arg("title"),
          pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     .def("searchSubtreeId",
-         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreeId),
+         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, bool, std::optional<int>, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreeId),
          pybind11::arg("id"),
          pybind11::arg("isTarget"),
+         pybind11::arg_v("maxLevel", std::nullopt),
          pybind11::arg_v("link", std::nullopt))
     .def("searchAnyKind",
          static_cast<void(sem::OrgDocumentSelector::*)(IntSet<OrgSemKind> const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchAnyKind),
@@ -2212,6 +2215,7 @@ fields)RAW")
   pybind11::enum_<sem::OrgSelectorLink::Kind>(m, "OrgSelectorLinkKind")
     .value("DirectSubnode", sem::OrgSelectorLink::Kind::DirectSubnode)
     .value("IndirectSubnode", sem::OrgSelectorLink::Kind::IndirectSubnode)
+    .value("FieldName", sem::OrgSelectorLink::Kind::FieldName)
     .def("__iter__", [](sem::OrgSelectorLink::Kind _self) -> PyEnumIterator<sem::OrgSelectorLink::Kind> {
                      return
                      PyEnumIterator<sem::OrgSelectorLink::Kind>
