@@ -54,3 +54,18 @@ def getFlatTags(tag: org.HashTag) -> List[List[str]]:
         return result
     
     return aux([], tag)
+
+@beartype
+def formatHashTag(node: org.HashTag) -> str:
+    def aux(sub: org.HashTag) -> str:
+        if len(sub.subtags) == 0:
+            return sub.head
+
+        elif len(sub.subtags) == 1:
+            return sub.head + "##" + aux(sub.subtags[0])
+        
+        else: 
+            return sub.head + "##" + "[" + ",".join([aux(it) for it in sub.subtags]) + "]"
+
+
+    return "#" + aux(node)

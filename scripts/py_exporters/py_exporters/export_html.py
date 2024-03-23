@@ -5,7 +5,7 @@ import dominate.tags as tags
 from py_exporters.export_base import ExporterBase
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
-from py_haxorg.pyhaxorg_utils import formatDateTime
+from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 
 CAT = "haxorg.export.html"
 
@@ -46,20 +46,7 @@ class ExporterHtml(ExporterBase):
         return text(node.text)
     
     def evalHashTag(self, node: org.HashTag) -> text:
-        def aux(sub: org.HashTag) -> str:
-            if len(sub.subtags) == 0:
-                return sub.head
-
-            elif len(sub.subtags) == 1:
-                return sub.head + "##" + aux(sub.subtags[0])
-            
-            else: 
-                return sub.head + "##" + "[" + ",".join([aux(it) for it in sub.subtags]) + "]"
-
-
-        return "#" + aux(node)
-
-
+        return text(formatHashTag(node))
     
     def evalWord(self, node: org.Word) -> text:
         return text(node.text)

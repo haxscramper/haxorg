@@ -99,7 +99,6 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     opts: TexExportOptions = ctx.obj["tex"]
     node = parseFile(ctx.obj["root"], Path(opts.infile))
 
-    log(CAT).info("Exporting to latex")
     tex = DerivedLatexExporter()
     # tex.exp.enableFileTrace("/tmp/trace.txt", False)
     if opts.exportTraceFile:

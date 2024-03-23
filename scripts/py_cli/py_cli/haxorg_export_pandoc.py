@@ -26,8 +26,11 @@ def export_pandoc(ctx: click.Context, config: Optional[str] = None, **kwargs):
     with run.event("Run pandoc export", CAT):
         opts: ExportPandocOptions = ctx.obj["pandoc"]
         node = parseCachedFile(opts.infile, opts.cachedir)
+
+        org.exportToTreeFile(node, "/tmp/tree.txt", org.OrgTreeExportOpts(withColor=False))
+        
         exp = ExporterPandoc()
-        document = exp.evalTop(node).toJson()
+        document = exp.evalTop(node).toJson()[0]
         opts.outfile.write_text(json.dumps(document, indent=2))
 
     run.finalize()
