@@ -27,3 +27,6 @@ export.add_command(export_sqlite)
 
 from py_cli.haxorg_export_html import export_html
 export.add_command(export_html)
+
+from py_cli.haxorg_export_pandoc import export_pandoc
+export.add_command(export_pandoc)

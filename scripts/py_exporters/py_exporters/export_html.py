@@ -36,8 +36,8 @@ class ExporterHtml(ExporterBase):
     def newOrg(self, node: org.Org) -> text:
         return text("TODO" + str(node.getKind()))
     
-    def evalNewline(self, node: org.Newline) -> text:
-        return text("\n")
+    def evalNewline(self, node: org.Newline) -> tags.br:
+        return tags.br()
     
     def evalBigIdent(self, node: org.BigIdent) -> text:
         return text(node.text)

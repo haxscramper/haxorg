@@ -29,6 +29,4 @@ def export_html(ctx: click.Context, config: Optional[str] = None, **kwargs):
         document = exp.evalDocument(node)
         opts.outfile.write_text(str(document))
 
-        log(CAT).info(f"Finished DB write to {opts.outfile}")
-
     run.finalize()

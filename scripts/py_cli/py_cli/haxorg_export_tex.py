@@ -110,6 +110,5 @@ def export_tex(ctx: click.Context, config: Optional[str] = None, **kwargs):
     with open(opts.outfile, "w") as out:
         out.write(tex.t.toString(res, TextOptions()))
 
-    log(CAT).info(f"Wrote latex export to {opts.outfile}")
     if opts.do_compile:
         run_lualatex(opts.outfile)

@@ -33,7 +33,6 @@ def test_html_export():
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
-        dir = Path("/tmp")
         out_file = dir.joinpath("html_file.html")
         click_run_test(cli, [
             "export",
@@ -50,6 +49,18 @@ def test_sqlite_export():
         click_run_test(cli, [
             "export",
             "sqlite",
+            f"--infile={all_org_file}",
+            f"--outfile={out_file}",
+        ])
+
+def test_pandoc_export():
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        dir = Path("/tmp")
+        out_file = dir.joinpath("out_file.json")
+        click_run_test(cli, [
+            "export",
+            "pandoc",
             f"--infile={all_org_file}",
             f"--outfile={out_file}",
         ])
