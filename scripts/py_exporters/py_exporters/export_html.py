@@ -70,8 +70,23 @@ class ExporterHtml(ExporterBase):
     def evalSpace(self, node: org.Space) -> text:
         return text(node.text)
     
+    def evalMacro(self, node: org.Macro) -> text:
+        return text("{{{" + node.name + "}}}")
+    
     def evalTime(self, node: org.Time) -> text:
         return formatDateTime(node.getStatic().time)
+    
+    def evalEscaped(self, node: org.Escaped) -> text:
+        return text(node.text)
+    
+    def evalSymbol(self, node: org.Symbol) -> text:
+        return text("\\" + node.name)
+    
+    def evalAtMention(self, node: org.AtMention) -> text:
+        return text("@" + node.text)
+    
+    def evalFootnote(self, node: org.Footnote) -> text:
+        return text("Footnote")
     
     def evalBold(self, node: org.Bold) -> tags.b:
         res = tags.b()

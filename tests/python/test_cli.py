@@ -3,16 +3,15 @@ from click.testing import CliRunner
 from tempfile import TemporaryFile, TemporaryDirectory
 from pathlib import Path
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.click_utils import click_run_test
 
 
 def test_help():
     runner = CliRunner()
-    result = runner.invoke(cli, ["--help"])
-    assert result.exit_code == 0
+    click_run_test(cli, ["--help"])
 
-
-all_org = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org/all.org").read_text()
-
+all_org_file = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org/all.org")
+all_org = all_org_file.read_text()
 
 def test_tex_export():
     runner = CliRunner()
@@ -22,27 +21,35 @@ def test_tex_export():
         org_file = dir.joinpath("org_file.org")
         org_file.write_text(all_org)
 
-        result = runner.invoke(cli, [
+        click_run_test(cli, [
             "export",
             "tex",
             f"--infile={org_file}",
             f"--outfile={tex_file}",
             "--do_compile=false",
         ])
-
-        assert result.exit_code == 0, result.output
-
-
+        
 def test_html_export():
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
-        html_file = dir.joinpath("html_file.html")
-        org_file = dir.joinpath("org_file.org")
-        org_file.write_text(all_org)
-        result = runner.invoke(cli, [
+        dir = Path("/tmp")
+        out_file = dir.joinpath("html_file.html")
+        click_run_test(cli, [
             "export",
             "html",
-            f"--infile={org_file}",
-            f"--outfile={html_file}",
+            f"--infile={all_org_file}",
+            f"--outfile={out_file}",
+        ])
+
+
+def test_sqlite_export():
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        out_file = dir.joinpath("out_file.sqlite")
+        click_run_test(cli, [
+            "export",
+            "sqlite",
+            f"--infile={all_org_file}",
+            f"--outfile={out_file}",
         ])

@@ -24,3 +24,6 @@ export.add_command(export_ultraplain)
 
 from py_cli.haxorg_export_sqlite import export_sqlite
 export.add_command(export_sqlite)
+
+from py_cli.haxorg_export_html import export_html
+export.add_command(export_html)
