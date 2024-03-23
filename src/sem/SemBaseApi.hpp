@@ -193,7 +193,11 @@ struct [[refl]] OrgSelectorLink {
         FieldName       = 2,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, DirectSubnode, IndirectSubnode);
+    BOOST_DESCRIBE_NESTED_ENUM(
+        Kind,
+        DirectSubnode,
+        IndirectSubnode,
+        FieldName);
 
 
     // 0
@@ -225,7 +229,8 @@ struct [[refl]] OrgSelectorResult {
 };
 
 struct [[refl]] OrgSelectorCondition {
-    Func<OrgSelectorResult(SemId<Org> const&)> check;
+    using Predicate = Func<OrgSelectorResult(SemId<Org> const&)>;
+    Predicate check;
 
     /// \brief Matched node should be added to the full match set
     [[refl]] bool                 isTarget = false;
@@ -269,6 +274,11 @@ struct [[refl]] OrgDocumentSelector {
         const IntSet<OrgSemKind>& kinds,
         bool                      isTarget,
         Opt<OrgSelectorLink>      link = std::nullopt);
+
+    [[refl]] void searchPredicate(
+        sem::OrgSelectorCondition::Predicate const& predicate,
+        bool                                        isTarget,
+        Opt<OrgSelectorLink>                        link = std::nullopt);
 
     void dbg(Str const& msg, int depth, int line = __builtin_LINE()) const;
 

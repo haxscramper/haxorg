@@ -426,12 +426,27 @@ void addSubnodes(
     char const*      field,
     T const&         value) {}
 
+
+void addSubnodes(
+    Vec<SemId<Org>>&       result,
+    char const*            field,
+    sem::SemId<Org> const& value) {
+    result.push_back(value);
+}
+
 template <sem::IsOrg T>
 void addSubnodes(
     Vec<SemId<Org>>&     result,
     char const*          field,
     sem::SemId<T> const& value) {
-    result.push_back(value);
+    result.push_back(value.asOrg());
+}
+
+void addSubnodes(
+    Vec<SemId<Org>>&            result,
+    char const*                 field,
+    Vec<sem::SemId<Org>> const& value) {
+    result.append(value);
 }
 
 template <sem::IsOrg T>
@@ -439,7 +454,11 @@ void addSubnodes(
     Vec<SemId<Org>>&          result,
     char const*               field,
     Vec<sem::SemId<T>> const& value) {
-    result.append(value);
+    rs::copy(
+        value | rv::transform([](sem::SemId<T> const& id) {
+            return id.asOrg();
+        }),
+        std::back_inserter(result));
 }
 
 
@@ -461,6 +480,24 @@ Vec<SemId<Org>> getDirectSubnodes(
 
     return result;
 }
+
+Vec<SemId<Org>> getDirectSubnodes(
+    sem::SemId<Org> node,
+    CR<Opt<Str>>    targetField = std::nullopt) {
+    switch (node->getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        return getDirectSubnodes<sem::__Kind>(                            \
+            node.as<sem::__Kind>(), targetField);                         \
+    }
+
+
+        EACH_SEM_ORG_KIND(_case);
+#undef _case
+    }
+};
+
+
 } // namespace
 
 Vec<SemId<Org>> OrgDocumentSelector::getMatches(
@@ -509,12 +546,9 @@ Vec<SemId<Org>> OrgDocumentSelector::getMatches(
                        "list, but does not have the subnode search link "
                        "condition";
 
-                dbg(fmt("subnode selector condition: {}",
-                        condition->link->getKind()),
-                    depth);
-
                 switch (condition->link->getKind()) {
                     case OrgSelectorLink::Kind::DirectSubnode: {
+                        dbg("link direct subnode", depth);
                         for (auto const& sub : getDirectSubnodes(node)) {
                             if (aux(condition + 1,
                                     sub,
@@ -529,6 +563,7 @@ Vec<SemId<Org>> OrgDocumentSelector::getMatches(
                     }
 
                     case OrgSelectorLink::Kind::IndirectSubnode: {
+                        dbg("link indirect subnode", depth);
                         for (auto const& sub : getDirectSubnodes(node)) {
                             if (aux(condition + 1, sub, depth + 1, ctx)) {
                                 dbg("got match on indirect subnode",
@@ -540,11 +575,13 @@ Vec<SemId<Org>> OrgDocumentSelector::getMatches(
                     }
 
                     case OrgSelectorLink::Kind::FieldName: {
-                        for (auto const& sub : getDirectSubnodes(
-                                 node,
-                                 std::get<OrgSelectorLink::FieldName>(
-                                     condition->link->data)
-                                     .name)) {
+                        auto const& name = std::get<
+                            OrgSelectorLink::FieldName>(
+                            condition->link->data);
+                        dbg(fmt("link field name '{}'", name.name), depth);
+
+                        for (auto const& sub :
+                             getDirectSubnodes(node, name.name)) {
                             if (aux(condition + 1, sub, depth + 1, ctx)) {
                                 dbg("got match on field subnode", depth);
                                 isMatch = true;
@@ -657,6 +694,18 @@ void OrgDocumentSelector::searchAnyKind(
             };
         },
         .debug    = fmt("HasKind:{}", kinds),
+        .link     = link,
+        .isTarget = isTarget,
+    });
+}
+
+void OrgDocumentSelector::searchPredicate(
+    const OrgSelectorCondition::Predicate& predicate,
+    bool                                   isTarget,
+    Opt<OrgSelectorLink>                   link) {
+    path.push_back(OrgSelectorCondition{
+        .check    = predicate,
+        .debug    = "Predicate",
         .link     = link,
         .isTarget = isTarget,
     });
