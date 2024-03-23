@@ -286,6 +286,6 @@ function update(timeline) {
   }
 }
 
-d3.json("/tmp/gantt.json")
+d3.json("http://localhost:9555/gantt.json")
     .then(function(data) { update(convertTimeline(data)); },
           function(err) { throw err; })

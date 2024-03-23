@@ -130,7 +130,14 @@ def getGantt(doc: org.Document) -> Gantt:
                     stack.append(
                         Ctx(
                             event=Event(
-                                name=org.formatToString(node.title),
+                                name=("".join([
+                                    org.formatToString(it)
+                                    for it in node.title
+                                    if it.getKind() not in [
+                                        org.OrgSemKind.Time,
+                                        org.OrgSemKind.TimeRange,
+                                    ]
+                                ])).strip(),
                                 start=start,
                                 end=end,
                             ),
