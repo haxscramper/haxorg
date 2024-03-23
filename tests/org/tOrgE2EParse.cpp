@@ -397,7 +397,7 @@ TEST(OrgApi, LinkResolution) {
 TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
     auto                     node = parseNode("bold");
     sem::OrgDocumentSelector selector;
-    selector.searchAnyKind({OrgSemKind::Word});
+    selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node);
 
@@ -408,7 +408,7 @@ TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
 TEST(OrgDocumentSelector, GetMultipleMatchingNodesByKind) {
     auto                     node = parseNode("word *bold*");
     sem::OrgDocumentSelector selector;
-    selector.searchAnyKind({OrgSemKind::Word});
+    selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node);
 
@@ -421,8 +421,8 @@ TEST(OrgDocumentSelector, GetDirectlyNestedNode) {
     auto                     node = parseNode("word *bold*");
     sem::OrgDocumentSelector selector;
     selector.searchAnyKind(
-        {OrgSemKind::Word}, selector.linkDirectSubnode());
-    selector.searchAnyKind({OrgSemKind::Bold});
+        {OrgSemKind::Bold}, true, selector.linkDirectSubnode());
+    selector.searchAnyKind({OrgSemKind::Word}, false);
 
     auto words = selector.getMatches(node);
 
@@ -444,7 +444,7 @@ Paragraph under subtitle 2
 
     {
         sem::OrgDocumentSelector selector;
-        selector.searchSubtreePlaintextTitle("Title1");
+        selector.searchSubtreePlaintextTitle("Title1", true);
 
         auto title1 = selector.getMatches(doc);
         EXPECT_EQ(title1.size(), 1);
@@ -453,9 +453,9 @@ Paragraph under subtitle 2
 
     {
         sem::OrgDocumentSelector selector;
+        selector.searchSubtreePlaintextTitle("Subtitle2", false);
         selector.searchAnyKind(
-            {OrgSemKind::Word}, selector.linkIndirectSubnode());
-        selector.searchSubtreePlaintextTitle("Subtitle2");
+            {OrgSemKind::Word}, true, selector.linkIndirectSubnode());
 
         auto words = selector.getMatches(doc);
         EXPECT_EQ(words.size(), 4);
@@ -478,8 +478,8 @@ Content2
 
     sem::OrgDocumentSelector selector;
     selector.searchSubtreePlaintextTitle(
-        "Subtitle1", selector.linkIndirectSubnode());
-    selector.searchSubtreePlaintextTitle("Title1");
+        "Title1", false, selector.linkIndirectSubnode());
+    selector.searchSubtreePlaintextTitle("Subtitle1", true);
     auto matches = selector.getMatches(node);
     EXPECT_EQ(matches.size(), 1);
 }
@@ -490,9 +490,10 @@ TEST(OrgApi, EachSubnodeWithContext) {
 
     sem::eachSubnodeRecWithContext(
         node,
-        [&](sem::SemId<sem::Org>             id,
-            CVec<sem::SubnodeVisitorCtxPart> part) {
+        [&](sem::SemId<sem::Org> id, CVec<sem::SubnodeVisitorCtxPart> part)
+            -> sem::SubnodeVisitorResult {
             ctx.push_back({id, part});
+            return sem::SubnodeVisitorResult{};
         });
 
 
@@ -513,7 +514,7 @@ TEST(OrgApi, EachSubnodeWithContext) {
 template <typename T>
 sem::SemId<T> getFirstNode(sem::SemId<sem::Org> node) {
     sem::OrgDocumentSelector selector;
-    selector.searchAnyKind({T::staticKind});
+    selector.searchAnyKind({T::staticKind}, true);
     return selector.getMatches(node).at(0).as<T>();
 }
 

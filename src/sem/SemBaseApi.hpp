@@ -125,9 +125,28 @@ struct [[refl]] SubnodeVisitorCtxPart {
         ());
 };
 
+struct [[refl]] SubnodeVisitorOpts {
+
+    BOOST_DESCRIBE_CLASS(SubnodeVisitorOpts, (), (), (), ());
+};
+
+struct [[refl]] SubnodeVisitorResult {
+    /// \brief After visting the current node, descend into it's node
+    /// fields
+    [[refl]] bool visitNextFields = true;
+    /// \brief
+    [[refl]] bool visitNextSubnodes = true;
+    [[refl]] bool visitNextBases    = true;
+    BOOST_DESCRIBE_CLASS(
+        SubnodeVisitorResult,
+        (),
+        (visitNextFields, visitNextSubnodes, visitNextBases),
+        (),
+        ());
+};
 
 using SubnodeVisitorWithCtx = Func<
-    void(SemId<Org>, Vec<SubnodeVisitorCtxPart> const&)>;
+    SubnodeVisitorResult(SemId<Org>, Vec<SubnodeVisitorCtxPart> const&)>;
 
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback to all non-nil subnodes. Pass the current node index
@@ -179,22 +198,31 @@ struct [[refl]] OrgSelectorLink {
     BOOST_DESCRIBE_CLASS(OrgSelectorLink, (), (kind), (), ());
 };
 
-struct [[refl]] OrgSelectorCondition {
-    Func<bool(SemId<Org> const&, Span<SubnodeVisitorCtxPart> const&)>
-        check;
+struct [[refl]] OrgSelectorResult {
+    bool isMatching     = false;
+    bool tryNestedNodes = true;
+    BOOST_DESCRIBE_CLASS(
+        OrgSelectorResult,
+        (),
+        (isMatching, tryNestedNodes),
+        (),
+        ());
+};
 
+struct [[refl]] OrgSelectorCondition {
+    Func<OrgSelectorResult(SemId<Org> const&)> check;
+
+    /// \brief Matched node should be added to the full match set
+    [[refl]] bool                 isTarget = false;
     [[refl]] Opt<Str>             debug;
     [[refl]] Opt<OrgSelectorLink> link;
+
     BOOST_DESCRIBE_CLASS(OrgSelectorCondition, (), (), (), ());
 };
 
 struct [[refl]] OrgDocumentSelector {
     [[refl]] Vec<OrgSelectorCondition> path;
     [[refl]] bool                      debug = false;
-
-    bool isMatching(
-        SemId<Org> const&                 node,
-        Vec<SubnodeVisitorCtxPart> const& ctx) const;
 
     void assertLinkPresence() const;
 
@@ -213,14 +241,17 @@ struct [[refl]] OrgDocumentSelector {
 
     [[refl]] void searchSubtreePlaintextTitle(
         Str const&           title,
+        bool                 isTarget,
         Opt<OrgSelectorLink> link = std::nullopt);
 
     [[refl]] void searchSubtreeId(
         Str const&           id,
+        bool                 isTarget,
         Opt<OrgSelectorLink> link = std::nullopt);
 
     [[refl]] void searchAnyKind(
         const IntSet<OrgSemKind>& kinds,
+        bool                      isTarget,
         Opt<OrgSelectorLink>      link = std::nullopt);
 
     void dbg(Str const& msg, int depth, int line = __builtin_LINE()) const;

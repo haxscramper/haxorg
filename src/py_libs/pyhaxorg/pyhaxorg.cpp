@@ -2001,6 +2001,24 @@ the node in parent list.)RAW")
 example),)RAW")
     .def_readwrite("kind", &sem::SubnodeVisitorCtxPart::kind)
     ;
+  pybind11::class_<sem::SubnodeVisitorOpts>(m, "SubnodeVisitorOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorOpts {
+                        sem::SubnodeVisitorOpts result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    ;
+  pybind11::class_<sem::SubnodeVisitorResult>(m, "SubnodeVisitorResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorResult {
+                        sem::SubnodeVisitorResult result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("visitNextFields", &sem::SubnodeVisitorResult::visitNextFields, R"RAW(\brief After visting the current node, descend into it's node
+fields)RAW")
+    .def_readwrite("visitNextSubnodes", &sem::SubnodeVisitorResult::visitNextSubnodes, R"RAW(\brief)RAW")
+    .def_readwrite("visitNextBases", &sem::SubnodeVisitorResult::visitNextBases)
+    ;
   pybind11::class_<sem::OrgDocumentContext>(m, "OrgDocumentContext")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentContext {
                         sem::OrgDocumentContext result{};
@@ -2029,12 +2047,20 @@ example),)RAW")
                         }))
     .def_readwrite("kind", &sem::OrgSelectorLink::kind)
     ;
+  pybind11::class_<sem::OrgSelectorResult>(m, "OrgSelectorResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorResult {
+                        sem::OrgSelectorResult result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    ;
   pybind11::class_<sem::OrgSelectorCondition>(m, "OrgSelectorCondition")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorCondition {
                         sem::OrgSelectorCondition result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("isTarget", &sem::OrgSelectorCondition::isTarget, R"RAW(\brief Matched node should be added to the full match set)RAW")
     .def_readwrite("debug", &sem::OrgSelectorCondition::debug)
     .def_readwrite("link", &sem::OrgSelectorCondition::link)
     ;
@@ -2052,16 +2078,19 @@ example),)RAW")
     .def("linkDirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkDirectSubnode))
     .def("linkIndirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkIndirectSubnode))
     .def("searchSubtreePlaintextTitle",
-         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreePlaintextTitle),
+         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreePlaintextTitle),
          pybind11::arg("title"),
+         pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     .def("searchSubtreeId",
-         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreeId),
+         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreeId),
          pybind11::arg("id"),
+         pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     .def("searchAnyKind",
-         static_cast<void(sem::OrgDocumentSelector::*)(IntSet<OrgSemKind> const&, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchAnyKind),
+         static_cast<void(sem::OrgDocumentSelector::*)(IntSet<OrgSemKind> const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchAnyKind),
          pybind11::arg("kinds"),
+         pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")

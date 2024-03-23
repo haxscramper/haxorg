@@ -281,25 +281,34 @@ void recVisitOrgNodesWithCtxImpl(
     bool                              originalBase,
     Vec<SubnodeVisitorCtxPart> const& ctx) {
     if (tree.isNil()) { return; }
-    if (originalBase) { visitor(tree, ctx); }
+    Opt<SubnodeVisitorResult> visitResult;
+    if (originalBase) { visitResult = visitor(tree, ctx); }
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
-    mp_for_each<Bd>([&](auto Base) {
-        using BaseType = typename decltype(Base)::type;
-        recVisitOrgNodesWithCtxImpl<BaseType>(
-            visitor, tree.template as<BaseType>(), false, ctx);
-    });
+
+    if (!visitResult || visitResult->visitNextBases) {
+        mp_for_each<Bd>([&](auto Base) {
+            using BaseType = typename decltype(Base)::type;
+            recVisitOrgNodesWithCtxImpl<BaseType>(
+                visitor, tree.template as<BaseType>(), false, ctx);
+        });
+    }
 
     mp_for_each<Md>([&](auto const& field) {
-        visitFieldWithCtx(
-            visitor,
-            tree.get()->*field.pointer,
-            ctx
-                + SubnodeVisitorCtxPart{
-                    .node  = tree.asOrg(),
-                    .field = field.name,
-                    .kind  = SubnodeVisitorCtxPart::Kind::Field,
-                });
+        if (!visitResult
+            || (field.name == "subnodes" && visitResult->visitNextSubnodes)
+            || (field.name != "subnodes"
+                && visitResult->visitNextFields)) {
+            visitFieldWithCtx(
+                visitor,
+                tree.get()->*field.pointer,
+                ctx
+                    + SubnodeVisitorCtxPart{
+                        .node  = tree.asOrg(),
+                        .field = field.name,
+                        .kind  = SubnodeVisitorCtxPart::Kind::Field,
+                    });
+        }
     });
 }
 
@@ -409,138 +418,6 @@ Opt<UserTime> getCreationTime(const SemId<Org>& node) {
     return std::nullopt;
 }
 
-
-bool OrgDocumentSelector::isMatching(
-    const SemId<Org>&                 node,
-    const Vec<SubnodeVisitorCtxPart>& ctx) const {
-
-    for (int i = 0; i < path.size(); ++i) {
-        if (i < path.high() && !path.at(i).link.has_value()) {
-            throw std::logic_error(
-                fmt("Element at index {} is not a final element in the "
-                    "selector path, but it is missing a link.",
-                    i));
-        }
-    }
-
-    using PathIter = Vec<OrgSelectorCondition>::const_iterator;
-
-
-    auto getParentSpan = [](int levels, Span<SubnodeVisitorCtxPart> span)
-        -> Opt<Span<SubnodeVisitorCtxPart>> {
-        auto end           = span.rbegin();
-        auto begin         = span.rend();
-        int  skippedLevels = 0;
-        while (skippedLevels < levels && end != begin) {
-            if (end->node) { ++skippedLevels; }
-            ++end;
-        }
-
-        if (skippedLevels == levels) {
-            return IteratorSpan(begin.base(), end.base());
-        } else {
-            return std::nullopt;
-        }
-    };
-
-    auto getParentNode =
-        [](int                         levels,
-           Span<SubnodeVisitorCtxPart> span) -> Opt<SemId<Org>> {
-        int skippedLevels = 0;
-        for (auto it = span.rbegin(); it != span.rend(); ++it) {
-            if (it->node) {
-                ++skippedLevels;
-                if (skippedLevels == levels) { return it->node.value(); }
-            }
-        }
-
-        return std::nullopt;
-    };
-
-
-    Func<bool(
-        PathIter                    condition,
-        SemId<Org>                  node,
-        Span<SubnodeVisitorCtxPart> ctx,
-        int                         depth)>
-        aux;
-
-    aux = [&](PathIter                    condition,
-              SemId<Org>                  node,
-              Span<SubnodeVisitorCtxPart> ctx,
-              int                         depth) {
-        if (debug) {
-            Vec<Str> context;
-            for (auto const& it : ctx) {
-                if (it.node) {
-                    context.push_back(
-                        fmt("{}", it.node.value()->getKind()));
-                } else {
-                    context.push_back(fmt("idx={}", it.index));
-                }
-            }
-
-            dbg(fmt("condition={} (@{}/{}) node={} ctx={}",
-                    condition->debug,
-                    std::distance(path.begin(), condition),
-                    path.high(),
-                    node->getKind(),
-                    context),
-                depth);
-        }
-
-        if (condition->check(node, ctx)) {
-            dbg(fmt("passed check {}", condition->debug), depth);
-            if (condition->link) {
-                auto const& link = condition->link.value();
-                dbg(fmt("link={}", link.kind), depth);
-                switch (link.kind) {
-                    case OrgSelectorLink::Kind::DirectSubnode: {
-                        auto node = getParentNode(1, ctx);
-                        if (node) {
-                            bool result = aux(
-                                condition + 1,
-                                node.value(),
-                                getParentSpan(1, ctx).value(),
-                                depth + 1);
-                            return result;
-                        } else {
-                            return false;
-                        }
-                    }
-
-                    case OrgSelectorLink::Kind::IndirectSubnode: {
-                        int offset = 1;
-                        while (
-                            auto parentSpan = getParentSpan(offset, ctx)) {
-                            auto parent = getParentNode(offset, ctx);
-                            if (parent
-                                && aux(
-                                    condition + 1,
-                                    parent.value(),
-                                    parentSpan.value(),
-                                    depth + 1)) {
-                                return true;
-                            }
-                            ++offset;
-                        }
-
-                        return false;
-                    }
-                }
-            } else {
-                dbg(fmt("no predecing link, check matched OK"), depth);
-                return true;
-            }
-        } else {
-            return false;
-        }
-    };
-
-    return aux(
-        path.begin(), node, IteratorSpan(ctx.begin(), ctx.end()), 0);
-}
-
 void OrgDocumentSelector::assertLinkPresence() const {
     if (!path.empty()) {
         if (!path.back().link) {
@@ -553,27 +430,97 @@ void OrgDocumentSelector::assertLinkPresence() const {
     }
 }
 
+
+namespace {
+
+template <sem::NotOrg T>
+void addSubnodes(
+    Vec<SemId<Org>>& result,
+    char const*      field,
+    T const&         value) {}
+
+template <sem::IsOrg T>
+void addSubnodes(
+    Vec<SemId<Org>>&     result,
+    char const*          field,
+    sem::SemId<T> const& value) {
+    result.push_back(value);
+}
+
+template <sem::IsOrg T>
+void addSubnodes(
+    Vec<SemId<Org>>&          result,
+    char const*               field,
+    Vec<sem::SemId<T>> const& value) {
+    result.append(value);
+}
+
+
+template <typename T>
+Vec<SemId<Org>> getDirectSubnodes(sem::SemId<T> node) {
+    Vec<SemId<Org>> result;
+    using Bd = describe_bases<T, mod_any_access>;
+    using Md = describe_members<T, mod_any_access>;
+
+    T const& object = *node.value;
+    for_each_field_with_bases<T>([&](auto const& field) {
+        addSubnodes(result, field.name, object.*field.pointer);
+    });
+
+    return result;
+}
+} // namespace
+
 Vec<SemId<Org>> OrgDocumentSelector::getMatches(
     const SemId<Org>& node) const {
     Vec<SemId<Org>> result;
-    eachSubnodeRecWithContext(
-        node,
-        [&](SemId<Org> const&                 node,
-            Vec<SubnodeVisitorCtxPart> const& path) {
-            if (isMatching(node, path)) { result.push_back(node); }
-        });
+
+    using PathIter = Vec<OrgSelectorCondition>::const_iterator;
+    Func<void(PathIter condition, SemId<Org> node, int depth)> aux;
+
+    aux = [&](PathIter condition, SemId<Org> node, int depth) {
+        if (debug) {
+            Vec<Str> context;
+            dbg(fmt("condition={} (@{}/{}) node={} ctx={}",
+                    condition->debug,
+                    std::distance(path.begin(), condition),
+                    path.high(),
+                    node->getKind(),
+                    context),
+                depth);
+        }
+
+        OrgSelectorResult matchResult = condition->check(node);
+        if (matchResult.isMatching) {
+            if (condition->isTarget) { result.push_back(node); }
+
+            if (condition != this->path.end()) {
+                for (auto const& sub : getDirectSubnodes(node)) {
+                    aux(condition + 1, sub, depth + 1);
+                }
+            }
+        } else {
+            if (matchResult.tryNestedNodes) {
+                for (auto const& sub : getDirectSubnodes(node)) {
+                    aux(condition, sub, depth + 1);
+                }
+            }
+        }
+    };
+
+    aux(path.begin(), node, 0);
 
     return result;
 }
 
 void OrgDocumentSelector::searchSubtreePlaintextTitle(
     const Str&           title,
+    bool                 isTarget,
     Opt<OrgSelectorLink> link) {
     assertLinkPresence();
-    path.push_back({
-        .check = [title, this](
-                     SemId<Org> const& node,
-                     Span<SubnodeVisitorCtxPart> const&) -> bool {
+    path.push_back(OrgSelectorCondition{
+        .check = [title,
+                  this](SemId<Org> const& node) -> OrgSelectorResult {
             if (node->is(osk::Subtree)) {
                 Str plaintext = ExporterUltraplain::toStr(
                     node.as<Subtree>()->title);
@@ -584,45 +531,54 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
                         plaintext == title),
                     0);
 
-                return title == plaintext;
+                return OrgSelectorResult{
+                    .isMatching = title == plaintext,
+                };
 
             } else {
-                return false;
+                return OrgSelectorResult{
+                    .isMatching = false,
+                };
             }
         },
-        .debug = fmt("HasSubtreePlaintextTitle:{}", title),
-        .link  = link,
+        .debug    = fmt("HasSubtreePlaintextTitle:{}", title),
+        .link     = link,
+        .isTarget = isTarget,
     });
 }
 
 void OrgDocumentSelector::searchSubtreeId(
     const Str&           id,
+    bool                 isTarget,
     Opt<OrgSelectorLink> link) {
     assertLinkPresence();
-    path.push_back({
-        .check = [id](
-                     SemId<Org> const& node,
-                     Span<SubnodeVisitorCtxPart> const&) -> bool {
-            return node->is(osk::Subtree)
-                && node.as<Subtree>()->treeId == id;
+    path.push_back(OrgSelectorCondition{
+        .check = [id](SemId<Org> const& node) -> OrgSelectorResult {
+            return OrgSelectorResult{
+                .isMatching = node->is(osk::Subtree)
+                           && node.as<Subtree>()->treeId == id,
+            };
         },
-        .debug = fmt("HasSubtreeId:{}", id),
-        .link  = link,
+        .debug    = fmt("HasSubtreeId:{}", id),
+        .link     = link,
+        .isTarget = isTarget,
     });
 }
 
 void OrgDocumentSelector::searchAnyKind(
     IntSet<OrgSemKind> const& kinds,
+    bool                      isTarget,
     Opt<OrgSelectorLink>      link) {
     assertLinkPresence();
-    path.push_back({
-        .check = [kinds](
-                     SemId<Org> const& node,
-                     Span<SubnodeVisitorCtxPart> const&) -> bool {
-            return kinds.contains(node->getKind());
+    path.push_back(OrgSelectorCondition{
+        .check = [kinds](SemId<Org> const& node) -> OrgSelectorResult {
+            return OrgSelectorResult{
+                .isMatching = kinds.contains(node->getKind()),
+            };
         },
-        .debug = fmt("HasKind:{}", kinds),
-        .link  = link,
+        .debug    = fmt("HasKind:{}", kinds),
+        .link     = link,
+        .isTarget = isTarget,
     });
 }
 

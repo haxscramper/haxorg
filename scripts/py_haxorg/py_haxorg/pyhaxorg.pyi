@@ -1058,6 +1058,14 @@ class SubnodeVisitorCtxPart:
     field: Optional[str]
     kind: Kind
 
+class SubnodeVisitorOpts:
+    pass
+
+class SubnodeVisitorResult:
+    visitNextFields: bool
+    visitNextSubnodes: bool
+    visitNextBases: bool
+
 class OrgDocumentContext:
     def getSubtreeById(self, id: str) -> List[Subtree]: ...
     def getLinkTarget(self, link: Link) -> List[Org]: ...
@@ -1067,7 +1075,11 @@ class OrgDocumentContext:
 class OrgSelectorLink:
     kind: Kind
 
+class OrgSelectorResult:
+    pass
+
 class OrgSelectorCondition:
+    isTarget: bool
     debug: Optional[str]
     link: Optional[OrgSelectorLink]
 
@@ -1075,9 +1087,9 @@ class OrgDocumentSelector:
     def getMatches(self, node: Org) -> List[Org]: ...
     def linkDirectSubnode(self) -> OrgSelectorLink: ...
     def linkIndirectSubnode(self) -> OrgSelectorLink: ...
-    def searchSubtreePlaintextTitle(self, title: str, link: Optional[OrgSelectorLink]) -> None: ...
-    def searchSubtreeId(self, id: str, link: Optional[OrgSelectorLink]) -> None: ...
-    def searchAnyKind(self, kinds: IntSet[OrgSemKind], link: Optional[OrgSelectorLink]) -> None: ...
+    def searchSubtreePlaintextTitle(self, title: str, isTarget: bool, link: Optional[OrgSelectorLink]) -> None: ...
+    def searchSubtreeId(self, id: str, isTarget: bool, link: Optional[OrgSelectorLink]) -> None: ...
+    def searchAnyKind(self, kinds: IntSet[OrgSemKind], isTarget: bool, link: Optional[OrgSelectorLink]) -> None: ...
     path: List[OrgSelectorCondition]
     debug: bool
 

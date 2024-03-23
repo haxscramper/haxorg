@@ -205,7 +205,10 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
     book = get_book_entry()
 
+    name = f"[red]\"{mark.book}\"[/red] by [yellow]\"{mark.author}\"[/yellow]"
+
     if not book:
+        log(CAT).info(f"Add book for {name}")
         tree.subnodes.append(new_subtree(
             title=get_book_tree_name(mark),
             level=1,
@@ -221,22 +224,28 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
     found_last_log = False
     for item in book.logbook:
         if item.getLogKind() == org.SubtreeLogKind.Note and item.getNote().on:
-            if evalDateTime(item.getNote().on.getStatic().time) == mark.datelast:
+            note_date = evalDateTime(item.getNote().on.getStatic().time)
+            second_precision = mark.datelast.replace(microsecond=0)
+            if note_date == second_precision:
                 found_last_log = True
 
     if not found_last_log:
+        log(CAT).info(f"New read timestamp {name}")
         book.logbook.append(
-            org.SubtreeLog(log=org.SubtreeLogNote(on=org.newSemTimeStatic(
-                org.UserTimeBreakdown(
-                    year=mark.datelast.year,
-                    month=mark.datelast.month,
-                    day=mark.datelast.day,
-                    hour=mark.datelast.hour,
-                    minute=mark.datelast.minute,
-                    second=mark.datelast.second,
+            org.SubtreeLog(log=org.SubtreeLogNote(
+                on=org.newSemTimeStatic(
+                    org.UserTimeBreakdown(
+                        year=mark.datelast.year,
+                        month=mark.datelast.month,
+                        day=mark.datelast.day,
+                        hour=mark.datelast.hour,
+                        minute=mark.datelast.minute,
+                        second=mark.datelast.second,
+                    ),
+                    isActive=False,
                 ),
-                isActive=False,
-            ))))
+                desc=org.StmtList(subnodes=[org.RawText(text=f"Reading progress {mark.bookpos}/{mark.booksize}")]),
+            )))
 
     bookmark = get_bookmark_entry()
 
@@ -248,6 +257,8 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
         bookmark = get_bookmark_entry()
         assert bookmark
+
+        log(CAT).info(f"Add bookmark for {name}")
 
         bookmark_entry = get_bookmark_entry()
         bookmark_entry.setPropertyStrValue(kind="bookmark_start", value=str(mark.start))
