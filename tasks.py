@@ -243,9 +243,11 @@ def org_task(
 
                 color = "green"
                 name_format = f"<span color='#{color}'>{name:^40}</span>"
-                if 1000 < last.dur or force_notify:
-                    ui_notify(f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
-                              is_ok=run_ok)
+                if 100000 < last.dur or force_notify:
+                    ui_notify(
+                        f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
+                        is_ok=run_ok,
+                    )
 
                 GlobExportJson(get_build_root("task_build_time.json"))
 

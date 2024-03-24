@@ -18,6 +18,7 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_cli.scratch_scripts.serve_org_content import create_app
 import pytest
 from flask import Flask
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import json
 
 CAT = __name__
@@ -338,17 +339,11 @@ def test_tree_structure_endpoint():
         assert value["subtrees"][0]["subtrees"][0]["name"] == "Nested"
         assert value["subtrees"][0]["subtrees"][0]["subtrees"][0]["name"] == "Nested3"
 
+all_org_file = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org/all.org")
+
 def test_mind_map_collection():
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
-        node = org.parseString("""
-* Whatever
-
-Nested one[fn:test]
-
-[fn:test] Definition
-""")
-        
+        node = org.parseString(all_org_file.read_text())
         graph = mind_map.getGraph([node])
-
         Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))

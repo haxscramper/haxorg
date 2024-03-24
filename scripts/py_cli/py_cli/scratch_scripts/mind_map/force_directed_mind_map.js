@@ -1,4 +1,4 @@
-import {convertMindMapGraph} from "./utils.js";
+import {convertMindMapGraph} from "http://localhost:9555/js_source/utils.js";
 
 // Define color scale
 const colorScale =
@@ -13,7 +13,7 @@ const radiusScale =
         .domain([ 0, 10 ]) // input domain: levels range from 0 to 10
         .range([ 20, 2 ]); // output range: radius size from 20 to 2
 
-d3.json("/tmp/mindmap_graph.json")
+d3.json("http://localhost:9555/mind_map/mind_map.org", {mode : "no-cors"})
     .then(
         function(data) {
           // Specify the dimensions of the chart.
