@@ -350,3 +350,5 @@ Nested one[fn:test]
 """)
         
         graph = mind_map.getGraph([node])
+
+        Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))
