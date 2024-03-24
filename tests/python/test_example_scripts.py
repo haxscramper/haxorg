@@ -3,6 +3,7 @@ from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
 from py_cli.scratch_scripts import node_clouds
 from py_cli.scratch_scripts import import_alxreader_bookmarks
+from py_cli.scratch_scripts.mind_map import mind_map
 from py_exporters import export_sqlite
 from click.testing import CliRunner, Result
 from tempfile import TemporaryDirectory
@@ -330,9 +331,22 @@ def test_tree_structure_endpoint():
         response = client.get("/tree_structure/file.org")
         assert response.status_code == 200
         value = json.loads(response.text)
-        
+
         assert value["name"] == "<document>"
         assert value["subtrees"][0]["name"] == "Main"
         assert value["subtrees"][1]["name"] == "Main2"
         assert value["subtrees"][0]["subtrees"][0]["name"] == "Nested"
         assert value["subtrees"][0]["subtrees"][0]["subtrees"][0]["name"] == "Nested3"
+
+def test_mind_map_collection():
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        node = org.parseString("""
+* Whatever
+
+Nested one[fn:test]
+
+[fn:test] Definition
+""")
+        
+        graph = mind_map.getGraph([node])
