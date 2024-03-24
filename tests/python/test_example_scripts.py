@@ -339,11 +339,11 @@ def test_tree_structure_endpoint():
         assert value["subtrees"][0]["subtrees"][0]["name"] == "Nested"
         assert value["subtrees"][0]["subtrees"][0]["subtrees"][0]["name"] == "Nested3"
 
-all_org_file = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org/all.org")
+mind_map_org = get_haxorg_repo_root_path().joinpath("tests/assets/mind_map.org")
 
 def test_mind_map_collection():
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
-        node = org.parseString(all_org_file.read_text())
+        node = org.parseString(mind_map_org.read_text())
         graph = mind_map.getGraph([node])
         Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))
