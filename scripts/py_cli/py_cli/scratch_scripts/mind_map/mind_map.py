@@ -246,8 +246,13 @@ class JsonGraphNode(BaseModel, extra="forbid"):
     id: str
 
 
+class JsonGraphEdgeMeta(BaseModel, extra="forbid"):
+    kind: str
+    out_index: Optional[int] = None
+
+
 class JsonGraphEdge(BaseModel, extra="forbid"):
-    metadata: Dict = Field(default_factory=dict)
+    metadata: JsonGraphEdgeMeta
     source: str
     target: str
 
@@ -399,7 +404,9 @@ class MindMapGraph():
         return res
 
     def toJsonGraphEdge(self, idx: int) -> JsonGraphEdge:
+        edge = self.getEdgeObj(idx)
         res = JsonGraphEdge(
+            metadata=JsonGraphEdgeMeta(kind=type(edge.data).__name__),
             source=self.getStrId(self.getNodeObj(self.getSource(idx))),
             target=self.getStrId(self.getNodeObj(self.getTarget(idx))),
         )
