@@ -1,6 +1,6 @@
 // Set the dimensions and margins of the diagram
 const margin = {
-  top : 30,
+  top : 1200,
   right : 90,
   bottom : 30,
   left : 90
@@ -10,8 +10,8 @@ const width = 1400 - margin.left - margin.right;
 const height = 1600 - margin.top - margin.bottom;
 const circle_radius = 5;
 const circle_label_spacing = 13;
-const layer_horizontal_spacing = 240;
-const circle_vertical_spacing = 10;
+const layer_horizontal_spacing = 250;
+const circle_vertical_spacing = 12;
 
 var i = 0;
 var duration = 750;
@@ -176,13 +176,8 @@ function update(source) {
   // Add labels for the nodes
   nodeEnter.append("text")
       .attr("dy", ".35em")
-      .attr("x",
-            function(d) {
-              return d.children || d._children ? -circle_label_spacing
-                                               : circle_label_spacing;
-            })
-      .attr("text-anchor",
-            function(d) { return d.children || d._children ? "end" : "start"; })
+      .attr("x", function(d) { return circle_label_spacing; })
+      .attr("text-anchor", function(d) { return "start"; })
       .text(function(d) { return d.data.name; });
 
   // UPDATE
@@ -269,9 +264,15 @@ var svg =
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // declares a tree layout and assigns the size
-var treemap = d3.tree().size([ height, width ]).nodeSize([
-  circle_vertical_spacing, layer_horizontal_spacing
-]);
+var treemap = d3.tree()
+                  .size([
+                    height,
+                    width,
+                  ])
+                  .nodeSize([
+                    circle_vertical_spacing,
+                    layer_horizontal_spacing,
+                  ]);
 
 d3.json("http://localhost:9555/tree_structure/ordered.org")
     .then(
