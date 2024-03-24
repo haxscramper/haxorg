@@ -25,42 +25,17 @@ CAT = "mind_map"
 
 @beartype
 @dataclass
-class NodeEntry():
-    entry: "DocEntry"
-
-
-@beartype
-@dataclass
-class NodeSubtree():
-    subtree: "DocSubtree"
-
-
-@beartype
-@dataclass
-class Node():
-
-    data: Union[NodeEntry, NodeSubtree]
-
-    def isEntry(self) -> bool:
-        return isinstance(self.data, NodeEntry)
-
-    def isSubtree(self) -> bool:
-        return isinstance(self.data, NodeSubtree)
-
-
-@beartype
-@dataclass
 class DocLink():
-    resolved: Optional[Node] = None
+    resolved: Optional[Union["DocSubtree", "DocEntry"]] = None
     description: Optional[org.Org] = None
     location: Optional[org.Org] = None
     parent: Optional["DocSubtree"] = None
 
     def isEntry(self) -> bool:
-        return self.resolved.isEntry()
+        return isinstance(self.resolved, DocEntry)
 
     def isSubtree(self) -> bool:
-        return self.resolved.isSubtree()
+        return isinstance(self.resolved, DocSubtree)
 
 
 @beartype
@@ -196,18 +171,10 @@ class MindMapCollector():
             subtree: Optional[DocSubtree] = self.subtreesOut.get(first, None)
 
             if entry:
-                return DocLink(
-                    parent=parent,
-                    resolved=Node(data=NodeEntry(entry=entry)),
-                    location=node,
-                )
+                return DocLink(parent=parent, resolved=entry, location=node)
 
             elif subtree:
-                return DocLink(
-                    parent=parent,
-                    resolved=Node(data=NodeSubtree(subtree=subtree)),
-                    location=node,
-                )
+                return DocLink(parent=parent, resolved=subtree, location=node)
 
     def visitFiles(self, nodes: List[org.Org]):
         self.resolveContext = org.OrgDocumentContext()
@@ -246,8 +213,6 @@ class MindMapCollector():
             org.eachSubnodeRec(entry.content, aux)
 
         self.eachRootEntry(register_outgoing_entry_links)
-
-        # def register_outgoging_subtree_links(tree: DocSubtree):
 
 
 class JsonGraphNodeSubtreeMeta(BaseModel, extra="forbid"):
@@ -505,11 +470,11 @@ def getGraph(nodes: List[org.Org]) -> MindMapGraph:
                 return None
 
         elif isinstance(link, DocLink):
-            if link.isEntry():
-                return entryNodes[link.resolved.data.entry.content]
+            if isinstance(link.resolved, DocEntry):
+                return entryNodes[link.resolved.content]
 
             else:
-                return subtreeNodes[link.resolved.data.subtree.original]
+                return subtreeNodes[link.resolved.original]
 
         else:
             assert False
