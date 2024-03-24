@@ -300,37 +300,10 @@ class MindMapEdge():
 
 
 @beartype
-def getStrId(value: Union[
-    org.Org,
-    DocSubtree,
-    DocEntry,
-    DocLink,
-    MindMapNode,
-]) -> str:
-    match value:
-        case org.Org():
-            return str(id(value))
-
-        case DocSubtree():
-            return getStrId(value.original)
-
-        case DocEntry():
-            return getStrId(value.content)
-
-        case DocLink():
-            return getStrId(value.resolved.data)
-
-        case MindMapNode(data=MindMapNodeSubtree()):
-            return getStrId(value.data.subtree)
-
-        case MindMapNode(data=MindMapNodeEntry()):
-            return getStrId(value.data.entry)
-
-
-@beartype
 @dataclass
 class MindMapGraph():
     graph: ig.Graph = field(default_factory=lambda: ig.Graph(directed=True))
+    nodeIdCounter: Dict[org.Org, int] = field(default_factory=dict)
 
     def addVertex(self, value: MindMapNode) -> int:
         idx = len(self.graph.vs)
@@ -362,17 +335,51 @@ class MindMapGraph():
     def getEdges(self) -> Iterable[int]:
         return range(0, len(self.graph.es))
 
+    @beartype
+    def getStrId(
+            self, value: Union[
+                org.Org,
+                DocSubtree,
+                DocEntry,
+                DocLink,
+                MindMapNode,
+            ]) -> str:
+        match value:
+            case org.Subtree() if value.treeId:
+                return value.treeId
+
+            case org.Org():
+                if value not in self.nodeIdCounter:
+                    self.nodeIdCounter[value] = len(self.nodeIdCounter)
+
+                return str(self.nodeIdCounter[value])
+
+            case DocSubtree():
+                return self.getStrId(value.original)
+
+            case DocEntry():
+                return self.getStrId(value.content)
+
+            case DocLink():
+                return self.getStrId(value.resolved)
+
+            case MindMapNode(data=MindMapNodeSubtree()):
+                return self.getStrId(value.data.subtree)
+
+            case MindMapNode(data=MindMapNodeEntry()):
+                return self.getStrId(value.data.entry)
+
     def getIdxId(self, idx: int) -> str:
-        return getStrId(self.getNodeObj(idx))
+        return self.getStrId(self.getNodeObj(idx))
 
     def toJsonGraphNode(self, idx: int) -> JsonGraphNode:
-        res = JsonGraphNode(id=getStrId(self.getNodeObj(idx)))
+        res = JsonGraphNode(id=self.getStrId(self.getNodeObj(idx)))
         node = self.getNodeObj(idx)
         if isinstance(node.data, MindMapNodeEntry):
             entry: MindMapNodeEntry = node.data
             res.metadata = JsonGraphNodeEntryMeta()
 
-            res.metadata.parent = getStrId(entry.entry.parent)
+            res.metadata.parent = self.getStrId(entry.entry.parent)
 
         else:
             tree: MindMapNodeSubtree = node.data
@@ -383,18 +390,18 @@ class MindMapGraph():
                 res.metadata.level = tree.subtree.original.level
 
             if tree.subtree.parent:
-                res.metadata.parent = getStrId(tree.subtree.parent)
+                res.metadata.parent = self.getStrId(tree.subtree.parent)
 
-            res.metadata.ordered = [getStrId(it) for it in tree.subtree.ordered]
-            res.metadata.unordered = [getStrId(it) for it in tree.subtree.unordered]
-            res.metadata.subtrees = [getStrId(it) for it in tree.subtree.subtrees]
+            res.metadata.ordered = [self.getStrId(it) for it in tree.subtree.ordered]
+            res.metadata.unordered = [self.getStrId(it) for it in tree.subtree.unordered]
+            res.metadata.subtrees = [self.getStrId(it) for it in tree.subtree.subtrees]
 
         return res
 
     def toJsonGraphEdge(self, idx: int) -> JsonGraphEdge:
         res = JsonGraphEdge(
-            source=getStrId(self.getNodeObj(self.getSource(idx))),
-            target=getStrId(self.getNodeObj(self.getTarget(idx))),
+            source=self.getStrId(self.getNodeObj(self.getSource(idx))),
+            target=self.getStrId(self.getNodeObj(self.getTarget(idx))),
         )
 
         return res
@@ -403,7 +410,7 @@ class MindMapGraph():
         result = JsonGraph()
 
         for idx in self.getVertices():
-            result.nodes[getStrId(self.getNodeObj(idx))] = self.toJsonGraphNode(idx)
+            result.nodes[self.getStrId(self.getNodeObj(idx))] = self.toJsonGraphNode(idx)
 
         for idx in self.getEdges():
             result.edges.append(self.toJsonGraphEdge(idx))
