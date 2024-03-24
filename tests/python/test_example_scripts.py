@@ -14,6 +14,10 @@ import pandas as pd
 from py_scriptutils.pandas_utils import dataframe_to_rich_table
 from py_scriptutils.rich_utils import render_rich
 import py_haxorg.pyhaxorg_wrap as org
+from py_cli.scratch_scripts.serve_org_content import create_app
+import pytest
+from flask import Flask
+import json
 
 CAT = __name__
 from py_scriptutils.script_logging import log
@@ -292,3 +296,21 @@ def test_bookmark_import_1():
         assert get_property_str("bookmark_start") == "0"
         assert get_property_str("bookmark_stop") == "1"
         assert get_property_str("bookmark_booksize") == "2"
+
+
+def test_gantt_endpoint():
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        app = create_app(dir)
+        client = app.test_client()
+
+        dir.joinpath("file.org").write_text("""
+* [2024-02-12] Something
+""")
+        
+        response = client.get("/gantt_chart/file.org")
+        assert response.status_code == 200
+        value = json.loads(response.text)
+        assert "events" in value
+        assert len(value["events"]) == 1
+        assert value["events"][0]["start"] == "2024-02-12T00:00:00"

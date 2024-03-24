@@ -1,25 +1,50 @@
 #!/usr/bin/env python
 
+from flask import Flask, send_from_directory
+from flask_cors import CORS
+import os
 import rich_click as click
-from http.server import HTTPServer, SimpleHTTPRequestHandler
 from py_scriptutils.script_logging import log
-from functools import partial
+import logging
+from py_scriptutils.files import cache_file_processing_result
+from beartype import beartype
+from pathlib import Path
+import py_haxorg.pyhaxorg_wrap as org
+import json
 
-class CORSHTTPRequestHandler(SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET")
-        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
-        return super().end_headers()
+from py_cli.scratch_scripts.gantt_timeline import getGantt
+
+@cache_file_processing_result(input_arg_names=["file"])
+def getNode(file: Path) -> org.Org:
+    return org.parseFile(str(file), org.OrgParseParameters())
+
+CAT = "serve_org"
+
+@beartype
+def create_app(directory: Path) -> Flask:
+    app = Flask(__name__)
+    CORS(app)
+
+    app.config["DIRECTORY"] = directory
+
+    def getDir() -> Path:
+        return app.config["DIRECTORY"]
+
+    @app.route("/gantt_chart/<path:filename>")
+    def gantt_chart(filename: str):
+        return json.dumps(getGantt(getNode(getDir().joinpath(filename))).toJson())
+   
+    return app
+
+
 
 @click.command()
 @click.option("--directory", default=".", help="Directory to serve files from", type=str)
 @click.option("--port", default=9555, help="Port to serve on", type=int)
 def serve(directory: str, port: int):
-    handler_class = partial(CORSHTTPRequestHandler, directory=directory)
-    httpd = HTTPServer(("localhost", port), handler_class)
-    log("http").info(f"Serving HTTP on port {port} from directory {directory}...")
-    httpd.serve_forever()
+    app = create_app(Path(directory))
+    log(CAT).info(f"Serving HTTP on port {port} from directory {directory}...")
+    app.run(host="localhost", port=port)
 
 if __name__ == "__main__":
     serve()

@@ -286,6 +286,6 @@ function update(timeline) {
   }
 }
 
-d3.json("http://localhost:9555/gantt.json")
+d3.json("http://localhost:9555/gantt_chart/ordered.org")
     .then(function(data) { update(convertTimeline(data)); },
           function(err) { throw err; })

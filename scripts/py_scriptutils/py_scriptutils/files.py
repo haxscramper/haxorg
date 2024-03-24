@@ -9,7 +9,10 @@ from beartype.typing import (
     Optional,
     Type,
     Iterable,
+    Dict,
 )
+
+from functools import wraps
 import pickle
 from pathlib import Path
 from beartype import beartype
@@ -184,6 +187,35 @@ class FileOperation:
 
                 else:
                     file.write("xx")
+
+def cache_file_processing_result(input_arg_names: List[str]):
+    cache: Dict[str, Dict[str, any]] = {}
+
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            cache_key = func.__name__
+            mod_times = []
+            for arg_name in input_arg_names:
+                if arg_name in kwargs:
+                    file_path = Path(kwargs[arg_name])
+                    mod_times.append((file_path, file_path.stat().st_mtime))
+                else:
+                    arg_index = func.__code__.co_varnames.index(arg_name)
+                    file_path = Path(args[arg_index])
+                    mod_times.append((file_path, file_path.stat().st_mtime))
+            
+            if cache_key in cache:
+                cached_mod_times, cached_result = cache[cache_key]["mod_times"], cache[cache_key]["result"]
+                if all(mod_time == cached_mod_times[i][1] for i, (file_path, mod_time) in enumerate(mod_times)):
+                    return cached_result
+            
+            result = func(*args, **kwargs)
+            cache[cache_key] = {"mod_times": mod_times, "result": result}
+            return result
+        return wrapper
+    return decorator
+
 
 
 def pickle_or_new(input_path: str, output_path: str, builder_cb: Callable[[str], T]) -> T:
