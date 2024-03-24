@@ -1,13 +1,17 @@
 // Set the dimensions and margins of the diagram
 const margin = {
-  top : 20,
+  top : 30,
   right : 90,
   bottom : 30,
   left : 90
 };
+
 const width = 1400 - margin.left - margin.right;
-const height = 1200 - margin.top - margin.bottom;
+const height = 1600 - margin.top - margin.bottom;
 const circle_radius = 5;
+const circle_label_spacing = 13;
+const layer_horizontal_spacing = 240;
+const circle_vertical_spacing = 10;
 
 var i = 0;
 var duration = 750;
@@ -143,36 +147,40 @@ function update(source) {
   var links = treeData.descendants().slice(1);
 
   // Normalize for fixed-depth.
-  nodes.forEach(function(d) { d.y = d.depth * 180 });
+  nodes.forEach(function(d) { d.y = d.depth * layer_horizontal_spacing });
 
   // ****************** Nodes section ***************************
 
   // Update the nodes...
-  var node = svg.selectAll('g.node').data(
+  var node = svg.selectAll("g.node").data(
       nodes, function(d) { return d.id || (d.id = ++i); });
 
   // Enter any new modes at the parent's previous position.
   var nodeEnter =
       node.enter()
-          .append('g')
-          .attr('class', 'node')
+          .append("g")
+          .attr("class", "node")
           .attr("transform",
                 function(d) {
                   return "translate(" + source.y0 + "," + source.x0 + ")";
                 })
-          .on('click', click);
+          .on("click", click);
 
   // Add Circle for the nodes
-  nodeEnter.append('circle')
-      .attr('class', 'node')
-      .attr('r', 1e-6)
+  nodeEnter.append("circle")
+      .attr("class", "node")
+      .attr("r", 1e-6)
       .style("fill",
              function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
   // Add labels for the nodes
-  nodeEnter.append('text')
+  nodeEnter.append("text")
       .attr("dy", ".35em")
-      .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+      .attr("x",
+            function(d) {
+              return d.children || d._children ? -circle_label_spacing
+                                               : circle_label_spacing;
+            })
       .attr("text-anchor",
             function(d) { return d.children || d._children ? "end" : "start"; })
       .text(function(d) { return d.data.name; });
@@ -186,11 +194,11 @@ function update(source) {
       function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
   // Update the node attributes and style
-  nodeUpdate.select('circle.node')
-      .attr('r', circle_radius)
+  nodeUpdate.select("circle.node")
+      .attr("r", circle_radius)
       .style("fill",
              function(d) { return d._children ? "lightsteelblue" : "#fff"; })
-      .attr('cursor', 'pointer');
+      .attr("cursor", "pointer");
 
   // Remove any exiting nodes
   var nodeExit =
@@ -204,43 +212,43 @@ function update(source) {
           .remove();
 
   // On exit reduce the node circles size to 0
-  nodeExit.select('circle').attr('r', 1e-6);
+  nodeExit.select("circle").attr("r", 1e-6);
 
   // On exit reduce the opacity of text labels
-  nodeExit.select('text').style('fill-opacity', 1e-6);
+  nodeExit.select("text").style("fill-opacity", 1e-6);
 
   // ****************** links section ***************************
 
   // Update the links...
   var link =
-      svg.selectAll('path.link').data(links, function(d) { return d.id; });
+      svg.selectAll("path.link").data(links, function(d) { return d.id; });
 
   // Enter any new links at the parent's previous position.
-  var linkEnter =
-      link.enter()
-          .insert('path', "g")
-          .attr("class", "link")
-          .attr('d', function(d) {
-            var o = { x : source.x0, y : source.y0 } return diagonal(o, o)
-          });
+  var linkEnter = link.enter()
+                      .insert("path", "g")
+                      .attr("class", "link")
+                      .attr("d", function(d) {
+                        var o = {x : source.x0, y : source.y0};
+                        return diagonal(o, o);
+                      });
 
   // UPDATE
   var linkUpdate = linkEnter.merge(link);
 
   // Transition back to the parent element position
   linkUpdate.transition().duration(duration).attr(
-      'd', function(d) { return diagonal(d, d.parent) });
+      "d", function(d) { return diagonal(d, d.parent) });
 
   // Remove any exiting links
-  var linkExit =
-      link.exit()
-          .transition()
-          .duration(duration)
-          .attr('d',
-                function(d) {
-                  var o = { x : source.x, y : source.y } return diagonal(o, o)
-                })
-          .remove();
+  var linkExit = link.exit()
+                     .transition()
+                     .duration(duration)
+                     .attr("d",
+                           function(d) {
+                             var o = {x : source.x, y : source.y};
+                             return diagonal(o, o);
+                           })
+                     .remove();
 
   // Store the old positions for transition.
   nodes.forEach(function(d) {
@@ -261,9 +269,11 @@ var svg =
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // declares a tree layout and assigns the size
-var treemap = d3.tree().size([ height, width ]);
+var treemap = d3.tree().size([ height, width ]).nodeSize([
+  circle_vertical_spacing, layer_horizontal_spacing
+]);
 
-d3.json("/tmp/subtree-hierarhcy.json")
+d3.json("http://localhost:9555/tree_structure/ordered.org")
     .then(
         function(treeData) {
           // Assigns parent, children, height, depth

@@ -17,7 +17,7 @@ from pathlib import Path
 import rich_click as click
 
 import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.pyhaxorg_utils import evalDateTime
+from py_haxorg.pyhaxorg_utils import evalDateTime, formatOrgWithoutTime
 from py_scriptutils.script_logging import log
 from beartype import beartype
 from beartype.typing import List, Optional, Literal, Tuple, Dict
@@ -130,14 +130,7 @@ def getGantt(doc: org.Document) -> Gantt:
                     stack.append(
                         Ctx(
                             event=Event(
-                                name=("".join([
-                                    org.formatToString(it)
-                                    for it in node.title
-                                    if it.getKind() not in [
-                                        org.OrgSemKind.Time,
-                                        org.OrgSemKind.TimeRange,
-                                    ]
-                                ])).strip(),
+                                name=formatOrgWithoutTime(node.title),
                                 start=start,
                                 end=end,
                             ),

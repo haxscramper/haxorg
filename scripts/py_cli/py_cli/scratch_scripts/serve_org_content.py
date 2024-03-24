@@ -12,7 +12,6 @@ from pathlib import Path
 import py_haxorg.pyhaxorg_wrap as org
 import json
 
-from py_cli.scratch_scripts.gantt_timeline import getGantt
 
 @cache_file_processing_result(input_arg_names=["file"])
 def getNode(file: Path) -> org.Org:
@@ -32,7 +31,13 @@ def create_app(directory: Path) -> Flask:
 
     @app.route("/gantt_chart/<path:filename>")
     def gantt_chart(filename: str):
+        from py_cli.scratch_scripts.js_timeline_with_zoom.gantt_timeline import getGantt
         return json.dumps(getGantt(getNode(getDir().joinpath(filename))).toJson())
+    
+    @app.route("/tree_structure/<path:filename>")
+    def tree_structure(filename: str):
+        from py_cli.scratch_scripts.collapsible_subtrees.subtree_structure import getStructure
+        return json.dumps(getStructure(getNode(getDir().joinpath(filename))).model_dump())
    
     return app
 
