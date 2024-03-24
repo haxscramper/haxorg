@@ -26,9 +26,18 @@ def to_debug_json(
 
         # Handle different data types
         if isinstance(obj, dict):
-            result = {}
+            safe_keys: dict[int | float | str | bool | None, any] = {}
             for key, value in obj.items():
+                if isinstance(key, (int, float, str, bool, type(None))):
+                    safe_keys[key] = value
+
+                else:
+                    safe_keys[str(key)] = value
+
+            result = {}
+            for key, value in safe_keys.items():
                 result[key] = aux(value)
+
             return result
 
         elif isinstance(obj, (list, tuple, set, frozenset)):
@@ -38,7 +47,6 @@ def to_debug_json(
             return f"{obj}"
 
         else:
-
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")

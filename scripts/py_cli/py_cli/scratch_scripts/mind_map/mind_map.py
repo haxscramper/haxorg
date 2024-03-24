@@ -1,5 +1,6 @@
 from pathlib import Path
 import rich_click as click
+import json
 
 from py_cli.haxorg_cli import (
     apply_options,
@@ -15,7 +16,8 @@ from dataclasses import dataclass, field
 import igraph as ig
 
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, to_debug_json
+from py_haxorg.pyhaxorg_utils import formatOrgWithoutTime
 
 CAT = "mind_map"
 
@@ -93,10 +95,10 @@ def eachEntry(root: DocSubtree, cb: Callable[[DocEntry, DocSubtree], None]):
 
     def aux(tree: DocSubtree):
         for it in tree.ordered:
-            cb(it)
+            cb(it, tree)
 
         for it in tree.unordered:
-            cb(it)
+            cb(it, tree)
 
     eachSubtree(root, aux)
 
@@ -117,6 +119,14 @@ class MindMapCollector():
     def eachRootSubtree(self, cb: Callable[[DocSubtree], None]):
         for item in self.root:
             eachSubtree(item, cb)
+
+    def popStack(self):
+        top = self.stack.pop()
+        if self.stack:
+            self.stack[-1].subtrees.append(top)
+
+        else:
+            self.root.append(top)
 
     def visitSubtree(self, tree: org.Subtree):
         top: Optional[DocSubtree] = None
@@ -157,6 +167,8 @@ class MindMapCollector():
                     else:
                         res.ordered.append(entry)
 
+        self.popStack()
+
     def visitDocument(self, doc: org.Document):
         self.stack.append(DocSubtree(original=doc))
 
@@ -164,12 +176,7 @@ class MindMapCollector():
             if isinstance(item, org.Subtree):
                 self.visitSubtree(item)
 
-        top = self.stack.pop()
-        if self.stack:
-            self.stack[-1].subtrees.append(top)
-
-        else:
-            self.root.append(top)
+        self.popStack()
 
     def getResolved(self, node: org.Org, parent: DocSubtree) -> Optional[DocLink]:
         if isinstance(node, org.Link):
@@ -230,18 +237,44 @@ class MindMapCollector():
         # def register_outgoging_subtree_links(tree: DocSubtree):
 
 
-class JsonGraphNode(BaseModel):
-    meta: Dict = Field(default_factory=dict)
+class JsonGraphNodeSubtreeMeta(BaseModel, extra="forbid"):
+    kind: str = "Subtree"
+    title: Optional[str] = None
+    level: Optional[int] = None
+    parent: Optional[str] = None
+    ordered: List[str] = Field(default_factory=list)
+    unordered: List[str] = Field(default_factory=list)
+    subtrees: List[str] = Field(default_factory=list)
+
+
+class JsonGraphNodeOutgoingMeta(BaseModel, extra="forbid"):
+    out_index: int
+    target: str
+    source: str
+
+
+class JsonGraphNodeEntryMeta(BaseModel, extra="forbid"):
+    kind: str = "Entry"
+    parent: Optional[str] = None
+    content: Any = Field(default_factory=dict)
+    order: Optional[int] = None
+    outgoing: List[JsonGraphNodeOutgoingMeta] = Field(default_factory=list)
+
+
+class JsonGraphNode(BaseModel, extra="forbid"):
+    metadata: Union[JsonGraphNodeSubtreeMeta, JsonGraphNodeEntryMeta] = Field(
+        default_factory=lambda: JsonGraphNodeEntryMeta())
+
     id: str
 
 
-class JsonGraphEdge(BaseModel):
-    meta: Dict = Field(default_factory=dict)
+class JsonGraphEdge(BaseModel, extra="forbid"):
+    metadata: Dict = Field(default_factory=dict)
     source: str
     target: str
 
 
-class JsonGraph(BaseModel):
+class JsonGraph(BaseModel, extra="forbid"):
     type: str = "Haxorg MindMap export"
     metadata: Dict = Field(default_factory=dict)
     edges: List[JsonGraphEdge] = Field(default_factory=list)
@@ -346,15 +379,32 @@ class MindMapGraph():
     def toJsonGraphNode(self, idx: int) -> JsonGraphNode:
         res = JsonGraphNode(id=getStrId(self.getNode(idx)))
         node = self.getNode(idx)
-        if isinstance(node, MindMapNode.Entry):
-            res.meta["kind"] = "Entry"
+        if isinstance(node.data, MindMapNode.Entry):
+            entry: MindMapNode.Entry = node.data
+            res.metadata = JsonGraphNodeEntryMeta()
+
+            res.metadata.parent = getStrId(entry.entry.parent)
+            # if entry.entry.orde
+
+            # for idx, item in enumerate(entry.entry.outgoing):
+            #     res.metadata.outgoing.append(JsonGraphNodeOutgoingMeta(
+            #         target=getStrId(self.getTarget())
+            #     ))
 
         else:
-            res.meta["kind"] = "Subtree"
-            tree: MindMapNode.Subtree = node
+            tree: MindMapNode.Subtree = node.data
+            res.metadata = JsonGraphNodeSubtreeMeta()
+
+            if isinstance(tree.subtree.original, org.Subtree):
+                res.metadata.title = formatOrgWithoutTime(tree.subtree.original.title)
+                res.metadata.level = tree.subtree.original.level
 
             if tree.subtree.parent:
-                res.meta["parent"] = getStrId(tree.subtree.parent)
+                res.metadata.parent = getStrId(tree.subtree.parent)
+
+            res.metadata.ordered = [getStrId(it) for it in tree.subtree.ordered]
+            res.metadata.unordered = [getStrId(it) for it in tree.subtree.unordered]
+            res.metadata.subtrees = [getStrId(it) for it in tree.subtree.subtrees]
 
         return res
 
@@ -387,6 +437,8 @@ class MindMapOpts(BaseModel, extra="forbid"):
 def getGraph(nodes: List[org.Org]) -> MindMapGraph:
     collector = MindMapCollector()
     collector.visitFiles(nodes)
+
+    Path("/tmp/debug.json").write_text(json.dumps(to_debug_json(collector), indent=2))
 
     result = MindMapGraph()
 
@@ -447,6 +499,14 @@ def getGraph(nodes: List[org.Org]) -> MindMapGraph:
 
     for item in collector.root:
         auxSubtree(item)
+
+    for idx in range(0, len(result.graph.vs)):
+        prop = result.getNode(idx)
+        if isinstance(prop.data, MindMapNode.Entry):
+            entryNodes[prop.data.entry.content] = idx
+
+        else:
+            subtreeNodes[prop.data.subtree.original] = idx
 
     def addLink(desc: int, link: DocLink):
         result.addEdge(
