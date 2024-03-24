@@ -47,8 +47,8 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
     def mind_map(filename: str):
         from py_cli.scratch_scripts.mind_map.mind_map import getGraph
         graph = getGraph([getNode(getDir().joinpath(filename))])
-
-        return graph.toJsonGraph().model_dump_json()
+        result = graph.toJsonGraph().model_dump_json()
+        return result
 
     @app.route("/js_source/<path:filename>")
     def js_source(filename):

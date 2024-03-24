@@ -347,3 +347,5 @@ def test_mind_map_collection():
         node = org.parseString(mind_map_org.read_text())
         graph = mind_map.getGraph([node])
         Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))
+
+        graph.toGraphvizGraph().render("/tmp/result.dot")

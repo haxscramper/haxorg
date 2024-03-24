@@ -10,7 +10,7 @@ from py_cli.haxorg_cli import (
     Field,
 )
 
-from beartype.typing import List, Union, Optional, Dict, Callable, Any
+from beartype.typing import List, Union, Optional, Dict, Callable, Any, Iterable
 from beartype import beartype
 from dataclasses import dataclass, field
 import igraph as ig
@@ -18,6 +18,7 @@ import igraph as ig
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log, to_debug_json
 from py_haxorg.pyhaxorg_utils import formatOrgWithoutTime
+import graphviz as gv
 
 CAT = "mind_map"
 
@@ -27,18 +28,18 @@ CAT = "mind_map"
 class NodeEntry():
     entry: "DocEntry"
 
+
 @beartype
 @dataclass
 class NodeSubtree():
     subtree: "DocSubtree"
 
+
 @beartype
 @dataclass
 class Node():
 
-
     data: Union[NodeEntry, NodeSubtree]
-
 
     def isEntry(self) -> bool:
         return isinstance(self.data, NodeEntry)
@@ -299,10 +300,12 @@ class MindMapNodeEntry():
     entry: DocEntry
     idx: Optional[int] = None
 
+
 @beartype
 @dataclass
 class MindMapNodeSubtree():
     subtree: DocSubtree
+
 
 @beartype
 @dataclass
@@ -376,10 +379,10 @@ class MindMapGraph():
         self.graph.es[idx]["edge"] = value
         return idx
 
-    def getNode(self, node: int) -> MindMapNode:
+    def getNodeObj(self, node: int) -> MindMapNode:
         return self.graph.vs[node]["node"]
 
-    def getEdge(self, edge: int) -> MindMapEdge:
+    def getEdgeObj(self, edge: int) -> MindMapEdge:
         return self.graph.es[edge]["edge"]
 
     def getSource(self, idx: int) -> int:
@@ -388,20 +391,23 @@ class MindMapGraph():
     def getTarget(self, idx: int) -> int:
         return self.graph.es[idx].target
 
+    def getVertices(self) -> Iterable[int]:
+        return range(0, len(self.graph.vs))
+
+    def getEdges(self) -> Iterable[int]:
+        return range(0, len(self.graph.es))
+
+    def getIdxId(self, idx: int) -> str:
+        return getStrId(self.getNodeObj(idx))
+
     def toJsonGraphNode(self, idx: int) -> JsonGraphNode:
-        res = JsonGraphNode(id=getStrId(self.getNode(idx)))
-        node = self.getNode(idx)
+        res = JsonGraphNode(id=getStrId(self.getNodeObj(idx)))
+        node = self.getNodeObj(idx)
         if isinstance(node.data, MindMapNodeEntry):
             entry: MindMapNodeEntry = node.data
             res.metadata = JsonGraphNodeEntryMeta()
 
             res.metadata.parent = getStrId(entry.entry.parent)
-            # if entry.entry.orde
-
-            # for idx, item in enumerate(entry.entry.outgoing):
-            #     res.metadata.outgoing.append(JsonGraphNodeOutgoingMeta(
-            #         target=getStrId(self.getTarget())
-            #     ))
 
         else:
             tree: MindMapNodeSubtree = node.data
@@ -422,8 +428,8 @@ class MindMapGraph():
 
     def toJsonGraphEdge(self, idx: int) -> JsonGraphEdge:
         res = JsonGraphEdge(
-            source=getStrId(self.getNode(self.getSource(idx))),
-            target=getStrId(self.getNode(self.getTarget(idx))),
+            source=getStrId(self.getNodeObj(self.getSource(idx))),
+            target=getStrId(self.getNodeObj(self.getTarget(idx))),
         )
 
         return res
@@ -431,13 +437,38 @@ class MindMapGraph():
     def toJsonGraph(self) -> JsonGraph:
         result = JsonGraph()
 
-        for idx in range(0, len(self.graph.vs)):
-            result.nodes[getStrId(self.getNode(idx))] = self.toJsonGraphNode(idx)
+        for idx in self.getVertices():
+            result.nodes[getStrId(self.getNodeObj(idx))] = self.toJsonGraphNode(idx)
 
-        for idx in range(0, len(self.graph.es)):
+        for idx in self.getEdges():
             result.edges.append(self.toJsonGraphEdge(idx))
 
         return result
+
+    def toGraphvizGraph(self) -> gv.Digraph:
+        dot: gv.Digraph = gv.Digraph("map")
+        dot.attr("graph", rankdir="LR", overlap="false", concentrate="true")
+        dot.attr("node", shape="rect", font="Iosevka")
+        dot.format = "png"
+        dot.engine = "neato"
+
+        for idx in self.getVertices():
+            node_attrs = {}
+            obj = self.getNodeObj(idx)
+            if isinstance(obj.data, MindMapNodeSubtree) and isinstance(
+                    obj.data.subtree.original, org.Subtree):
+                node_attrs["title"] = formatOrgWithoutTime(
+                    obj.data.subtree.original.title)
+
+            dot.node(self.getIdxId(idx), **node_attrs)
+
+        for idx in self.getEdges():
+            dot.edge(
+                self.getIdxId(self.getSource(idx)),
+                self.getIdxId(self.getTarget(idx)),
+            )
+
+        return dot
 
 
 class MindMapOpts(BaseModel, extra="forbid"):
@@ -513,7 +544,7 @@ def getGraph(nodes: List[org.Org]) -> MindMapGraph:
         auxSubtree(item)
 
     for idx in range(0, len(result.graph.vs)):
-        prop = result.getNode(idx)
+        prop = result.getNodeObj(idx)
         if isinstance(prop.data, MindMapNodeEntry):
             entryNodes[prop.data.entry.content] = idx
 
@@ -524,7 +555,8 @@ def getGraph(nodes: List[org.Org]) -> MindMapGraph:
         if link.resolved:
             result.addEdge(
                 desc, getVertex(link),
-                MindMapEdge(location=link.location, data=MindMapEdge.RefersTo(target=link)))
+                MindMapEdge(location=link.location,
+                            data=MindMapEdge.RefersTo(target=link)))
 
     def register_outgoing_links(entry: DocEntry, parent: DocSubtree):
         for item in entry.outgoing:
