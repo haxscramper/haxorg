@@ -53,6 +53,11 @@ struct MockFull {
         parse();
     }
 
+    sem::SemId<sem::Org> toNode() {
+        sem::OrgConverter converter{};
+        return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+    }
+
 
     void treeRepr() {
         ColStream os{std::cout};

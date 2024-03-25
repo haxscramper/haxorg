@@ -15,7 +15,7 @@ struct OrgBackend : public QObject {
     OrgBackend() {}
 
     void parseString(CR<std::string> text) {
-        document = org::parseString(text);
+        document = sem::parseString(text);
         model    = std::make_shared<OrgDocumentModel>(document, this);
         filter   = std::make_shared<OrgDocumentSearchFilter>(
             model.get(), this);
@@ -59,7 +59,7 @@ struct OrgBackend : public QObject {
     }
 
     Q_INVOKABLE void saveDocumentToJson(CR<QString> path) {
-        writeFile(to_std(path), org::toJson(document.asOrg()).dump(2));
+        writeFile(to_std(path), sem::exportToJsonString(document.asOrg()));
     }
   signals:
     void hasDocumentChanged(bool status);

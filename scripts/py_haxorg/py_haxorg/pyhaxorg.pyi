@@ -6,11 +6,13 @@ class Org:
     def getKind(self) -> OrgSemKind: ...
     def isGenerated(self) -> bool: ...
     def push_back(self, sub: Org) -> None: ...
+    def insert(self, pos: int, node: Org) -> None: ...
     def at(self, idx: int) -> Org: ...
     def is_(self, kind: OrgSemKind) -> bool: ...
     def __getitem__(self, idx: int) -> Org: ...
     def __iter__(self, node: Org) -> auto: ...
     loc: Optional[LineCol]
+    documentId: Optional[int]
     subnodes: List[Org]
 
 class LineCol:
@@ -26,52 +28,76 @@ class Inline(Org):
     pass
 
 class StmtList(Org):
-    loc: Optional[LineCol]
+    pass
 
 class Empty(Org):
-    loc: Optional[LineCol]
+    pass
 
 class Cell(Org):
-    loc: Optional[LineCol]
+    pass
 
 class Row(Org):
-    loc: Optional[LineCol]
     cells: List[Cell]
 
 class Table(Stmt):
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
-    loc: Optional[LineCol]
     rows: List[Row]
     attached: List[Org]
 
 class HashTag(Inline):
     def prefixMatch(self, prefix: List[str]) -> bool: ...
-    loc: Optional[LineCol]
     head: str
     subtags: List[HashTag]
 
 class Footnote(Inline):
-    loc: Optional[LineCol]
     tag: str
     definition: Optional[Org]
 
 class Completion(Inline):
-    loc: Optional[LineCol]
     done: int
     full: int
     isPercent: bool
 
 class Paragraph(Stmt):
-    def isFootnoteDefinition(self) -> bool: ...
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
-    loc: Optional[LineCol]
+    attached: List[Org]
+
+class AnnotatedParagraphNone:
+    pass
+
+class AnnotatedParagraphFootnote:
+    name: str
+
+class AnnotatedParagraphAdmonition:
+    name: BigIdent
+
+class AnnotatedParagraphTimestamp:
+    time: Time
+
+AnnotatedParagraphData = Union[AnnotatedParagraphNone, AnnotatedParagraphFootnote, AnnotatedParagraphAdmonition, AnnotatedParagraphTimestamp]
+class AnnotatedParagraphAnnotationKind(Enum):
+    _None = 1
+    Footnote = 2
+    Admonition = 3
+    Timestamp = 4
+
+class AnnotatedParagraph(Stmt):
+    def getNone(self) -> AnnotatedParagraphNone: ...
+    def getFootnote(self) -> AnnotatedParagraphFootnote: ...
+    def getAdmonition(self) -> AnnotatedParagraphAdmonition: ...
+    def getTimestamp(self) -> AnnotatedParagraphTimestamp: ...
+    @staticmethod
+    def getAnnotationKindStatic(self, __input: AnnotatedParagraphData) -> AnnotatedParagraphAnnotationKind: ...
+    def getAnnotationKind(self) -> AnnotatedParagraphAnnotationKind: ...
+    def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
+    data: AnnotatedParagraphData
     attached: List[Org]
 
 class Format(Org):
     pass
 
 class Center(Format):
-    loc: Optional[LineCol]
+    pass
 
 class Command(Org):
     pass
@@ -86,18 +112,16 @@ class Attached(LineCommand):
     pass
 
 class Caption(Attached):
-    loc: Optional[LineCol]
     text: Paragraph
 
 class CmdName(Attached):
-    loc: Optional[LineCol]
+    pass
 
 class CmdResults(Attached):
-    loc: Optional[LineCol]
+    pass
 
 class CommandGroup(Stmt):
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
-    loc: Optional[LineCol]
     attached: List[Org]
 
 class Block(Command):
@@ -105,29 +129,28 @@ class Block(Command):
     parameters: Optional[CmdArguments]
 
 class Tblfm(Command):
-    loc: Optional[LineCol]
+    pass
 
 class Quote(Org):
-    loc: Optional[LineCol]
+    pass
+
+class CommentBlock(Org):
+    pass
 
 class Verse(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     parameters: Optional[CmdArguments]
 
 class Example(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     parameters: Optional[CmdArguments]
 
 class CmdArguments(Org):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     positional: List[CmdArgument]
     named: Dict[str, CmdArgument]
 
 class CmdAttr(Attached):
-    loc: Optional[LineCol]
     target: str
     parameters: CmdArguments
 
@@ -135,7 +158,6 @@ class CmdArgument(Org):
     def getInt(self) -> Optional[int]: ...
     def getBool(self) -> Optional[bool]: ...
     def getString(self) -> str: ...
-    loc: Optional[LineCol]
     key: Optional[str]
     value: str
 
@@ -146,7 +168,6 @@ class ExportFormat(Enum):
 
 class Export(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     format: ExportFormat
     exporter: str
     placement: Optional[str]
@@ -155,11 +176,9 @@ class Export(Block):
 
 class AdmonitionBlock(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     parameters: Optional[CmdArguments]
 
 class Call(Org):
-    loc: Optional[LineCol]
     name: Optional[str]
 
 class CodeLinePartRaw:
@@ -181,6 +200,8 @@ class CodeLinePart:
     def getRaw(self) -> CodeLinePartRaw: ...
     def getCallout(self) -> CodeLinePartCallout: ...
     def getTangle(self) -> CodeLinePartTangle: ...
+    @staticmethod
+    def getKindStatic(self, __input: CodeLinePartData) -> CodeLinePartKind: ...
     def getKind(self) -> CodeLinePartKind: ...
     data: CodeLinePartData
 
@@ -217,6 +238,8 @@ class CodeSwitch:
     def getRemoveCallout(self) -> CodeSwitchRemoveCallout: ...
     def getEmphasizeLine(self) -> CodeSwitchEmphasizeLine: ...
     def getDedent(self) -> CodeSwitchDedent: ...
+    @staticmethod
+    def getKindStatic(self, __input: CodeSwitchData) -> CodeSwitchKind: ...
     def getKind(self) -> CodeSwitchKind: ...
     data: CodeSwitchData
 
@@ -231,7 +254,6 @@ class CodeExports(Enum):
 
 class Code(Block):
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
-    loc: Optional[LineCol]
     lang: Optional[str]
     switches: List[CodeSwitch]
     exports: CodeExports
@@ -277,18 +299,17 @@ class TimeTimeKind(Enum):
 class Time(Org):
     def getStatic(self) -> TimeStatic: ...
     def getDynamic(self) -> TimeDynamic: ...
+    @staticmethod
+    def getTimeKindStatic(self, __input: TimeTimeVariant) -> TimeTimeKind: ...
     def getTimeKind(self) -> TimeTimeKind: ...
-    loc: Optional[LineCol]
     isActive: bool
     time: TimeTimeVariant
 
 class TimeRange(Org):
-    loc: Optional[LineCol]
     from_: Time
     to: Time
 
 class Macro(Org):
-    loc: Optional[LineCol]
     name: str
     arguments: List[str]
 
@@ -297,7 +318,6 @@ class SymbolParam:
     value: str
 
 class Symbol(Org):
-    loc: Optional[LineCol]
     name: str
     parameters: List[SymbolParam]
     positional: List[Org]
@@ -310,32 +330,37 @@ class SubtreeLogPriorityAction(Enum):
     Removed = 2
     Changed = 3
 
-class SubtreeLogPriority:
+class SubtreeLogPriority(SubtreeLogDescribedLog):
     oldPriority: Optional[str]
     newPriority: Optional[str]
     on: Time
+    action: SubtreeLogPriorityAction
 
-class SubtreeLogNote:
+class SubtreeLogNote(SubtreeLogDescribedLog):
     on: Time
 
-class SubtreeLogRefile:
+class SubtreeLogRefile(SubtreeLogDescribedLog):
     on: Time
     from_: Link
 
-class SubtreeLogClock:
-    pass
+class SubtreeLogClock(SubtreeLogDescribedLog):
+    from_: Time
+    to: Optional[Time]
 
-class SubtreeLogState:
+class SubtreeLogState(SubtreeLogDescribedLog):
     from_: str
     to: str
     on: Time
 
-class SubtreeLogTag:
+class SubtreeLogTag(SubtreeLogDescribedLog):
     on: Time
     tag: HashTag
     added: bool
 
-SubtreeLogLogEntry = Union[SubtreeLogPriority, SubtreeLogNote, SubtreeLogRefile, SubtreeLogClock, SubtreeLogState, SubtreeLogTag]
+class SubtreeLogUnknown(SubtreeLogDescribedLog):
+    pass
+
+SubtreeLogLogEntry = Union[SubtreeLogPriority, SubtreeLogNote, SubtreeLogRefile, SubtreeLogClock, SubtreeLogState, SubtreeLogTag, SubtreeLogUnknown]
 class SubtreeLogKind(Enum):
     Priority = 1
     Note = 2
@@ -343,6 +368,7 @@ class SubtreeLogKind(Enum):
     Clock = 4
     State = 5
     Tag = 6
+    Unknown = 7
 
 class SubtreeLog(Org):
     def setDescription(self, desc: StmtList) -> None: ...
@@ -352,22 +378,25 @@ class SubtreeLog(Org):
     def getClock(self) -> SubtreeLogClock: ...
     def getState(self) -> SubtreeLogState: ...
     def getTag(self) -> SubtreeLogTag: ...
+    def getUnknown(self) -> SubtreeLogUnknown: ...
+    @staticmethod
+    def getLogKindStatic(self, __input: SubtreeLogLogEntry) -> SubtreeLogKind: ...
     def getLogKind(self) -> SubtreeLogKind: ...
-    loc: Optional[LineCol]
     log: SubtreeLogLogEntry
 
 class SubtreePeriodKind(Enum):
     Clocked = 1
-    Scheduled = 2
-    Titled = 3
-    Deadline = 4
-    Created = 5
-    Repeated = 6
+    Closed = 2
+    Scheduled = 3
+    Titled = 4
+    Deadline = 5
+    Created = 6
+    Repeated = 7
 
 class SubtreePeriod:
-    def getTime(self) -> Time: ...
-    def getTimeRange(self) -> TimeRange: ...
     kind: SubtreePeriodKind
+    from_: Time
+    to: Optional[Time]
 
 class SubtreePropertySetMode(Enum):
     Override = 1
@@ -470,6 +499,8 @@ class SubtreeProperty:
     def getUnnumbered(self) -> SubtreePropertyUnnumbered: ...
     def getCreated(self) -> SubtreePropertyCreated: ...
     def getUnknown(self) -> SubtreePropertyUnknown: ...
+    @staticmethod
+    def getKindStatic(self, __input: SubtreePropertyData) -> SubtreePropertyKind: ...
     def getKind(self) -> SubtreePropertyKind: ...
     mainSetRule: SubtreePropertySetMode
     subSetRule: SubtreePropertySetMode
@@ -480,7 +511,9 @@ class Subtree(Org):
     def getTimePeriods(self, kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(self, kind: str, subkind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subkind: Optional[str]) -> Optional[SubtreeProperty]: ...
-    loc: Optional[LineCol]
+    def removeProperty(self, kind: str, subkind: Optional[str]) -> None: ...
+    def setProperty(self, value: SubtreeProperty) -> None: ...
+    def setPropertyStrValue(self, value: str, kind: str, subkind: Optional[str]) -> None: ...
     level: int
     treeId: Optional[str]
     todo: Optional[str]
@@ -498,77 +531,67 @@ class LatexBody(Org):
     pass
 
 class InlineMath(LatexBody):
-    loc: Optional[LineCol]
+    pass
 
 class Leaf(Org):
     text: str
 
 class Escaped(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Newline(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Space(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Word(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class AtMention(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class RawText(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Punctuation(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Placeholder(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class BigIdent(Leaf):
-    loc: Optional[LineCol]
     text: str
 
 class Markup(Org):
     pass
 
 class Bold(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Underline(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Monospace(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class MarkQuote(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Verbatim(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Italic(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Strike(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class Par(Markup):
-    loc: Optional[LineCol]
+    pass
 
 class List(Org):
     def isDescriptionList(self) -> bool: ...
-    loc: Optional[LineCol]
 
 class ListItemCheckbox(Enum):
     _None = 1
@@ -578,7 +601,6 @@ class ListItemCheckbox(Enum):
 
 class ListItem(Org):
     def isDescriptionItem(self) -> bool: ...
-    loc: Optional[LineCol]
     checkbox: ListItemCheckbox
     header: Optional[Paragraph]
 
@@ -622,8 +644,9 @@ class Link(Org):
     def getInternal(self) -> LinkInternal: ...
     def getFootnote(self) -> LinkFootnote: ...
     def getFile(self) -> LinkFile: ...
+    @staticmethod
+    def getLinkKindStatic(self, __input: LinkData) -> LinkKind: ...
     def getLinkKind(self) -> LinkKind: ...
-    loc: Optional[LineCol]
     description: Optional[Paragraph]
     data: LinkData
 
@@ -658,8 +681,9 @@ class DocumentOptions(Org):
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
     def getDoExport(self) -> DocumentOptionsDoExport: ...
     def getExportFixed(self) -> DocumentOptionsExportFixed: ...
+    @staticmethod
+    def getTocExportKindStatic(self, __input: DocumentOptionsTocExport) -> DocumentOptionsTocExportKind: ...
     def getTocExportKind(self) -> DocumentOptionsTocExportKind: ...
-    loc: Optional[LineCol]
     brokenLinks: DocumentOptionsBrokenLinks
     initialVisibility: DocumentOptionsVisibility
     tocExport: DocumentOptionsTocExport
@@ -681,7 +705,6 @@ class DocumentOptions(Org):
 class Document(Org):
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
-    loc: Optional[LineCol]
     title: Optional[Paragraph]
     author: Optional[Paragraph]
     creator: Optional[Paragraph]
@@ -692,10 +715,9 @@ class Document(Org):
     exportFileName: Optional[str]
 
 class ParseError(Org):
-    loc: Optional[LineCol]
+    pass
 
 class FileTarget(Org):
-    loc: Optional[LineCol]
     path: str
     line: Optional[int]
     searchTarget: Optional[str]
@@ -704,7 +726,7 @@ class FileTarget(Org):
     regexp: Optional[str]
 
 class TextSeparator(Org):
-    loc: Optional[LineCol]
+    pass
 
 class IncludeExample:
     pass
@@ -730,12 +752,13 @@ class Include(Org):
     def getExport(self) -> IncludeExport: ...
     def getSrc(self) -> IncludeSrc: ...
     def getOrgDocument(self) -> IncludeOrgDocument: ...
+    @staticmethod
+    def getIncludeKindStatic(self, __input: IncludeData) -> IncludeKind: ...
     def getIncludeKind(self) -> IncludeKind: ...
-    loc: Optional[LineCol]
     data: IncludeData
 
 class DocumentGroup(Org):
-    loc: Optional[LineCol]
+    pass
 
 class OrgSpecName(Enum):
     Unnamed = 1
@@ -856,87 +879,88 @@ class OrgNodeKind(Enum):
     CodeTangle = 53
     CodeCallout = 54
     QuoteBlock = 55
-    AdmonitionBlock = 56
-    CenterBlock = 57
-    VerseBlock = 58
-    Example = 59
-    SrcCode = 60
-    SrcInlineCode = 61
-    InlineCallCode = 62
-    CmdCallCode = 63
-    PassCode = 64
-    CmdArguments = 65
-    CmdFlag = 66
-    CmdKey = 67
-    CmdValue = 68
-    CmdNamedValue = 69
-    UrgencyStatus = 70
-    TextSeparator = 71
-    Paragraph = 72
-    AnnotatedParagraph = 73
-    Bold = 74
-    Italic = 75
-    Verbatim = 76
-    Backtick = 77
-    Underline = 78
-    Strike = 79
-    Quote = 80
-    Angle = 81
-    Monospace = 82
-    Par = 83
-    InlineMath = 84
-    DisplayMath = 85
-    Space = 86
-    Punctuation = 87
-    Colon = 88
-    Word = 89
-    Escaped = 90
-    Newline = 91
-    RawLink = 92
-    Link = 93
-    Macro = 94
-    BackendRaw = 95
-    Symbol = 96
-    TimeAssoc = 97
-    StaticActiveTime = 98
-    StaticInactiveTime = 99
-    DynamicActiveTime = 100
-    DynamicInactiveTime = 101
-    TimeRange = 102
-    SimpleTime = 103
-    Details = 104
-    Summary = 105
-    Table = 106
-    TableRow = 107
-    TableCell = 108
-    InlineFootnote = 109
-    Footnote = 110
-    Horizontal = 111
-    Filetags = 112
-    OrgTag = 113
-    HashTag = 114
-    MetaSymbol = 115
-    AtMention = 116
-    BracTag = 117
-    Drawer = 118
-    LatexClass = 119
-    LatexHeader = 120
-    LatexCompiler = 121
-    LatexClassOptions = 122
-    HtmlHead = 123
-    Columns = 124
-    CmdPropertyArgs = 125
-    CmdPropertyText = 126
-    CmdPropertyRaw = 127
-    PropertyList = 128
-    Property = 129
-    Placeholder = 130
-    SubtreeDescription = 131
-    SubtreeUrgency = 132
-    Logbook = 133
-    LogbookStateChange = 134
-    RadioTarget = 135
-    Target = 136
+    CommentBlock = 56
+    AdmonitionBlock = 57
+    CenterBlock = 58
+    VerseBlock = 59
+    Example = 60
+    SrcCode = 61
+    SrcInlineCode = 62
+    InlineCallCode = 63
+    CmdCallCode = 64
+    PassCode = 65
+    CmdArguments = 66
+    CmdFlag = 67
+    CmdKey = 68
+    CmdValue = 69
+    CmdNamedValue = 70
+    UrgencyStatus = 71
+    TextSeparator = 72
+    Paragraph = 73
+    AnnotatedParagraph = 74
+    Bold = 75
+    Italic = 76
+    Verbatim = 77
+    Backtick = 78
+    Underline = 79
+    Strike = 80
+    Quote = 81
+    Angle = 82
+    Monospace = 83
+    Par = 84
+    InlineMath = 85
+    DisplayMath = 86
+    Space = 87
+    Punctuation = 88
+    Colon = 89
+    Word = 90
+    Escaped = 91
+    Newline = 92
+    RawLink = 93
+    Link = 94
+    Macro = 95
+    BackendRaw = 96
+    Symbol = 97
+    TimeAssoc = 98
+    StaticActiveTime = 99
+    StaticInactiveTime = 100
+    DynamicActiveTime = 101
+    DynamicInactiveTime = 102
+    TimeRange = 103
+    SimpleTime = 104
+    Details = 105
+    Summary = 106
+    Table = 107
+    TableRow = 108
+    TableCell = 109
+    InlineFootnote = 110
+    Footnote = 111
+    Horizontal = 112
+    Filetags = 113
+    OrgTag = 114
+    HashTag = 115
+    MetaSymbol = 116
+    AtMention = 117
+    BracTag = 118
+    Drawer = 119
+    LatexClass = 120
+    LatexHeader = 121
+    LatexCompiler = 122
+    LatexClassOptions = 123
+    HtmlHead = 124
+    Columns = 125
+    CmdPropertyArgs = 126
+    CmdPropertyText = 127
+    CmdPropertyRaw = 128
+    PropertyList = 129
+    Property = 130
+    Placeholder = 131
+    SubtreeDescription = 132
+    SubtreeUrgency = 133
+    Logbook = 134
+    LogbookStateChange = 135
+    RadioTarget = 136
+    Target = 137
 
 class OrgSemKind(Enum):
     StmtList = 1
@@ -948,56 +972,58 @@ class OrgSemKind(Enum):
     Footnote = 7
     Completion = 8
     Paragraph = 9
-    Center = 10
-    Caption = 11
-    CmdName = 12
-    CmdResults = 13
-    CommandGroup = 14
-    Tblfm = 15
-    Quote = 16
-    Verse = 17
-    Example = 18
-    CmdArguments = 19
-    CmdAttr = 20
-    CmdArgument = 21
-    Export = 22
-    AdmonitionBlock = 23
-    Call = 24
-    Code = 25
-    Time = 26
-    TimeRange = 27
-    Macro = 28
-    Symbol = 29
-    SubtreeLog = 30
-    Subtree = 31
-    InlineMath = 32
-    Escaped = 33
-    Newline = 34
-    Space = 35
-    Word = 36
-    AtMention = 37
-    RawText = 38
-    Punctuation = 39
-    Placeholder = 40
-    BigIdent = 41
-    Bold = 42
-    Underline = 43
-    Monospace = 44
-    MarkQuote = 45
-    Verbatim = 46
-    Italic = 47
-    Strike = 48
-    Par = 49
-    List = 50
-    ListItem = 51
-    Link = 52
-    DocumentOptions = 53
-    Document = 54
-    ParseError = 55
-    FileTarget = 56
-    TextSeparator = 57
-    Include = 58
-    DocumentGroup = 59
+    AnnotatedParagraph = 10
+    Center = 11
+    Caption = 12
+    CmdName = 13
+    CmdResults = 14
+    CommandGroup = 15
+    Tblfm = 16
+    Quote = 17
+    CommentBlock = 18
+    Verse = 19
+    Example = 20
+    CmdArguments = 21
+    CmdAttr = 22
+    CmdArgument = 23
+    Export = 24
+    AdmonitionBlock = 25
+    Call = 26
+    Code = 27
+    Time = 28
+    TimeRange = 29
+    Macro = 30
+    Symbol = 31
+    SubtreeLog = 32
+    Subtree = 33
+    InlineMath = 34
+    Escaped = 35
+    Newline = 36
+    Space = 37
+    Word = 38
+    AtMention = 39
+    RawText = 40
+    Punctuation = 41
+    Placeholder = 42
+    BigIdent = 43
+    Bold = 44
+    Underline = 45
+    Monospace = 46
+    MarkQuote = 47
+    Verbatim = 48
+    Italic = 49
+    Strike = 50
+    Par = 51
+    List = 52
+    ListItem = 53
+    Link = 54
+    DocumentOptions = 55
+    Document = 56
+    ParseError = 57
+    FileTarget = 58
+    TextSeparator = 59
+    Include = 60
+    DocumentGroup = 61
 
 class UserTimeBreakdown:
     year: Optional[int]
@@ -1012,12 +1038,13 @@ class UserTime:
     def getBreakdown(self) -> UserTimeBreakdown: ...
     def format(self) -> str: ...
 
-class OrgExporterJson:
-    def visitNode(self, node: Org) -> None: ...
-    def exportToString(self) -> str: ...
-    def exportToFile(self, path: str) -> None: ...
+class OrgParseParameters:
+    baseTokenTracePath: Optional[str]
+    tokenTracePath: Optional[str]
+    parseTracePath: Optional[str]
+    semTracePath: Optional[str]
 
-class ExporterTreeOpts:
+class OrgTreeExportOpts:
     withLineCol: bool
     withOriginalId: bool
     withSubnodeIdx: bool
@@ -1025,25 +1052,47 @@ class ExporterTreeOpts:
     startLevel: int
     withColor: bool
 
-class OrgExporterTree:
-    def toString(self, node: Org, opts: ExporterTreeOpts) -> str: ...
-    def toFile(self, node: Org, path: str, opts: ExporterTreeOpts) -> None: ...
+class SubnodeVisitorCtxPart:
+    node: Optional[Org]
+    index: Optional[int]
+    field: Optional[str]
+    kind: Kind
 
-class OrgExporterYaml:
-    def visitNode(self, node: Org) -> None: ...
-    def exportToString(self) -> str: ...
-    def exportToFile(self, path: str) -> None: ...
+class SubnodeVisitorOpts:
+    pass
 
-class OrgContext:
-    def parseFile(self, file: str) -> Document: ...
-    def parseString(self, text: str) -> Document: ...
-    def parseProtobuf(self, file: str) -> Document: ...
-    def saveProtobuf(self, doc: Document, file: str) -> None: ...
-    def formatToString(self, arg: Org) -> str: ...
-    baseTokenTracePath: Optional[str]
-    tokenTracePath: Optional[str]
-    parseTracePath: Optional[str]
-    semTracePath: Optional[str]
+class SubnodeVisitorResult:
+    visitNextFields: bool
+    visitNextSubnodes: bool
+    visitNextBases: bool
+
+class OrgDocumentContext:
+    def getSubtreeById(self, id: str) -> List[Subtree]: ...
+    def getLinkTarget(self, link: Link) -> List[Org]: ...
+    def getRadioTarget(self, name: str) -> List[Org]: ...
+    def addNodes(self, node: Org) -> None: ...
+
+class OrgSelectorLink:
+    pass
+
+class OrgSelectorResult:
+    pass
+
+class OrgSelectorCondition:
+    isTarget: bool
+    debug: Optional[str]
+    link: Optional[OrgSelectorLink]
+
+class OrgDocumentSelector:
+    def getMatches(self, node: Org) -> List[Org]: ...
+    def linkDirectSubnode(self) -> OrgSelectorLink: ...
+    def linkIndirectSubnode(self) -> OrgSelectorLink: ...
+    def linkField(self, name: str) -> OrgSelectorLink: ...
+    def searchSubtreePlaintextTitle(self, title: str, isTarget: bool, link: Optional[OrgSelectorLink]) -> None: ...
+    def searchSubtreeId(self, id: str, isTarget: bool, maxLevel: Optional[int], link: Optional[OrgSelectorLink]) -> None: ...
+    def searchAnyKind(self, kinds: IntSet[OrgSemKind], isTarget: bool, link: Optional[OrgSelectorLink]) -> None: ...
+    path: List[OrgSelectorCondition]
+    debug: bool
 
 class ExporterPython:
     def enablePyStreamTrace(self, stream: object) -> None: ...
@@ -1076,6 +1125,16 @@ class ExporterPython:
     def evalTop(self, org: Org) -> ExporterPythonRes: ...
     def eval(self, org: Org) -> ExporterPythonRes: ...
 
+class SubnodeVisitorCtxPartKind(Enum):
+    Field = 1
+    Index = 2
+    Key = 3
+
+class OrgSelectorLinkKind(Enum):
+    DirectSubnode = 1
+    IndirectSubnode = 2
+    FieldName = 3
+
 class LeafFieldType(Enum):
     Int = 1
     UserTimeKind = 2
@@ -1086,5 +1145,33 @@ class LeafFieldType(Enum):
     QDateTime = 7
     Str = 8
     Any = 9
+
+def newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: bool) -> Time: ...
+
+def parseFile(file: str, opts: OrgParseParameters) -> Document: ...
+
+def parseString(text: str) -> Document: ...
+
+def parseStringOpts(text: str, opts: OrgParseParameters) -> Document: ...
+
+def formatToString(arg: Org) -> str: ...
+
+def exportToYamlString(node: Org) -> str: ...
+
+def exportToYamlFile(node: Org, path: str) -> None: ...
+
+def exportToJsonString(node: Org) -> str: ...
+
+def exportToJsonFile(node: Org, path: str) -> None: ...
+
+def readProtobufFile(file: str) -> Document: ...
+
+def exportToProtobufFile(doc: Document, file: str) -> None: ...
+
+def exportToTreeString(node: Org, opts: OrgTreeExportOpts) -> str: ...
+
+def exportToTreeFile(node: Org, path: str, opts: OrgTreeExportOpts) -> None: ...
+
+def eachSubnodeRec(node: Org, callback: function) -> None: ...
 
 /* clang-format on */

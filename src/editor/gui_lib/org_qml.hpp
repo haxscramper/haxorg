@@ -109,6 +109,16 @@ struct Paragraph : public Stmt {
   Paragraph(sem::SemId<sem::Org> const& id) : Stmt(id) {}
 };
 
+struct AnnotatedParagraph : public Stmt {
+  Q_GADGET
+  public:
+  AnnotatedParagraph() = default;
+  AnnotatedParagraph(sem::SemId<sem::Org> const& id) : Stmt(id) {}
+  Q_PROPERTY( sem::AnnotatedParagraph::Data data READ getData WRITE setData )
+  sem::AnnotatedParagraph::Data getData();
+  void setData(sem::AnnotatedParagraph::Data data);
+};
+
 struct Format : public Org {
   Q_GADGET
   public:
@@ -201,6 +211,13 @@ struct Quote : public Org {
   public:
   Quote() = default;
   Quote(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
+struct CommentBlock : public Org {
+  Q_GADGET
+  public:
+  CommentBlock() = default;
+  CommentBlock(sem::SemId<sem::Org> const& id) : Org(id) {}
 };
 
 struct Verse : public Block {
@@ -670,6 +687,7 @@ Q_DECLARE_METATYPE(org_qml::HashTag)
 Q_DECLARE_METATYPE(org_qml::Footnote)
 Q_DECLARE_METATYPE(org_qml::Completion)
 Q_DECLARE_METATYPE(org_qml::Paragraph)
+Q_DECLARE_METATYPE(org_qml::AnnotatedParagraph)
 Q_DECLARE_METATYPE(org_qml::Format)
 Q_DECLARE_METATYPE(org_qml::Center)
 Q_DECLARE_METATYPE(org_qml::Command)
@@ -683,6 +701,7 @@ Q_DECLARE_METATYPE(org_qml::CommandGroup)
 Q_DECLARE_METATYPE(org_qml::Block)
 Q_DECLARE_METATYPE(org_qml::Tblfm)
 Q_DECLARE_METATYPE(org_qml::Quote)
+Q_DECLARE_METATYPE(org_qml::CommentBlock)
 Q_DECLARE_METATYPE(org_qml::Verse)
 Q_DECLARE_METATYPE(org_qml::Example)
 Q_DECLARE_METATYPE(org_qml::CmdArguments)

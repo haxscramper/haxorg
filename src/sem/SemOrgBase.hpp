@@ -48,8 +48,13 @@ struct SemId;
 
 #define __id(I) , SemId<I>
 /// \brief Global variant of all sem node derivations
-using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+using OrgIdVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
+
+#define __ptr(I) , I*
+/// \brief Global variant of all sem node derivations
+using OrgPtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__ptr)>;
+#undef __ptr
 
 struct SemValue {
     int         getInt() const;
@@ -120,18 +125,8 @@ struct SemId {
         return SemId<T>{std::dynamic_pointer_cast<T>(value)};
     }
 
-    /// \brief Get parent node ID for the node pointed to by this ID
-    SemId      getParent() const;
-    Vec<SemId> getParentChain(bool withSelf = false) const;
-
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
-
-
-    using SubnodeVisitor = Func<void(SemId)>;
-    /// \brief Recursively visit each subnode in the tree and apply the
-    /// provided callback
-    void eachSubnodeRec(SubnodeVisitor cb);
 };
 
 using OrgArg = sem::SemId<sem::Org> const&;
@@ -146,7 +141,8 @@ struct remove_sem_org<SemId<T>> {
     using type = remove_smart_pointer<T>::type;
 };
 
-sem::OrgVariant asVariant(SemId<Org> in);
+sem::OrgIdVariant  asVariant(SemId<Org> in);
+sem::OrgPtrVariant asVariant(Org* in);
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
@@ -167,9 +163,11 @@ struct [[refl]] Org {
     /// \brief Get kind of this sem node
     [[refl]] virtual OrgSemKind getKind() const = 0;
     /// \brief Whether original node adapter is missing
-    [[refl]] bool isGenerated() const { return original.empty(); }
+    [[refl]] bool isGenerated() const { return original.isNil(); }
     /// \brief Location of the node in the original source file
     [[refl]] Opt<LineCol> loc = std::nullopt;
+    /// \brief Application specific ID of the original document
+    [[refl]] Opt<int> documentId = std::nullopt;
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list
@@ -179,6 +177,27 @@ struct [[refl]] Org {
     [[refl]] Vec<SemId<Org>> subnodes;
 
     [[refl]] void push_back(SemId<Org> sub);
+
+    using SubnodeVec = Vec<SemId<Org>>;
+
+    SubnodeVec::iterator       begin() { return subnodes.begin(); }
+    SubnodeVec::iterator       end() { return subnodes.end(); }
+    SubnodeVec::const_iterator begin() const { return subnodes.begin(); }
+    SubnodeVec::const_iterator end() const { return subnodes.end(); }
+
+    [[refl]] void insert(int pos, SemId<Org> node) {
+        subnodes.insert(begin() + pos, node);
+    }
+
+    template <typename T>
+    T* dyn_cast() {
+        return dynamic_cast<T*>(this);
+    }
+
+    template <typename T>
+    T const* dyn_cast() const {
+        return dynamic_cast<T*>(this);
+    }
 
     /// \brief Get subnode at specified index
     [[refl]] inline SemId<Org> at(int idx) const {
@@ -192,6 +211,7 @@ struct [[refl]] Org {
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
+
 
 
 }; // namespace sem

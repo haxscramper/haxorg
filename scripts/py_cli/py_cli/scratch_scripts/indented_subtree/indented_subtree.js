@@ -1,4 +1,4 @@
-import {convertMindMapGraph} from "./utils.js";
+import {convertMindMapGraph} from "../utils.js";
 
 const nodeSize = 10;
 const format = d3.format(",");

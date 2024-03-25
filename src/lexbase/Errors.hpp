@@ -21,13 +21,13 @@ struct [[refl]] LineCol {
 template <>
 struct std::formatter<LineCol> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const LineCol& p, FormatContext& ctx) {
-        std::formatter<std::string> fmt;
-        fmt.format(p.line, ctx);
-        fmt.format(":", ctx);
-        fmt.format(p.column, ctx);
-        fmt.format(":", ctx);
-        return fmt.format(p.pos, ctx);
+    FormatContext::iterator format(const LineCol& p, FormatContext& ctx)
+        const {
+        fmt_ctx(p.line, ctx);
+        fmt_ctx(":", ctx);
+        fmt_ctx(p.column, ctx);
+        fmt_ctx(":", ctx);
+        return fmt_ctx(p.pos, ctx);
     }
 };
 

@@ -48,6 +48,12 @@ bool org_qml::Completion::getIsPercent() {
 void org_qml::Completion::setIsPercent(bool isPercent) {
   __data.getAs<sem::Completion>()->isPercent = org_qml::serde<bool, bool>::qml_to_cxx(isPercent);
 }
+sem::AnnotatedParagraph::Data org_qml::AnnotatedParagraph::getData() {
+  return org_qml::serde<sem::AnnotatedParagraph::Data, sem::AnnotatedParagraph::Data>::cxx_to_qml(__data.getAs<sem::AnnotatedParagraph>()->data);
+}
+void org_qml::AnnotatedParagraph::setData(sem::AnnotatedParagraph::Data data) {
+  __data.getAs<sem::AnnotatedParagraph>()->data = org_qml::serde<sem::AnnotatedParagraph::Data, sem::AnnotatedParagraph::Data>::qml_to_cxx(data);
+}
 org_qml::Paragraph org_qml::Caption::getText() {
   return org_qml::serde<org_qml::Paragraph, sem::SemId<sem::Paragraph>>::cxx_to_qml(__data.getAs<sem::Caption>()->text);
 }

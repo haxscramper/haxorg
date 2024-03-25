@@ -27,7 +27,16 @@ void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {
             case sem::Link::Kind::Raw: {
                 res += link->getRaw().text;
             }
-            default: {}
+            default: {
+            }
         }
+    }
+}
+
+void ExporterUltraplain::visitTime(std::string& res, In<sem::Time> time) {
+    if (time->isStatic()) {
+        res += (time->getTimeKind() == sem::Time::TimeKind::Dynamic ? "<" : "[");
+        res += time->getStatic().time.format();
+        res += (time->getTimeKind() == sem::Time::TimeKind::Dynamic ? ">" : "]");
     }
 }

@@ -19,8 +19,8 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         bool withOriginalId  = true;
         bool withSubnodeIdx  = true;
         bool skipEmptyFields = true;
-        bool skipLocation    = false;
         int  startLevel      = 0;
+        int  maxTreeDepth    = 40;
 
         SemSet skipNodes;
         SemSet skipSubnodesOf;
@@ -86,6 +86,10 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
 
     void init(sem::SemId<sem::Org> org);
+
+    bool skipAsTooNested() const {
+        return conf.maxTreeDepth < stack.size();
+    }
 
     template <typename T>
     bool skipAsEmpty(CR<Opt<T>> opt) {

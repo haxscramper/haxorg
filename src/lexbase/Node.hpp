@@ -126,6 +126,7 @@ struct Node {
         }
     }
 
+    /// \brief Return number of subnodes. Terminal/mono nodes return 0.
     int getExtent() const {
         if (isTerminal() || isMono()) {
             return 0;
@@ -134,13 +135,25 @@ struct Node {
         }
     }
 
+    /// \brief Return token value for the terminal node
     TokenId<K, V> getToken() const {
         return std::get<TokenId<K, V>>(value);
     }
 
-    Slice<NodeId<N, K, V>> nestedNodes(NodeId<N, K, V> selfId) const {
-        assert(isNonTerminal());
-        return slice(selfId + 1, selfId + getExtent());
+    /// \brief Check if the *non-terminal* node has zero extent.
+    /// Terminal/Mono nodes return 'true'.
+    bool isEmpty() const { return isNonTerminal() && getExtent() == 0; }
+
+    /// \brief Return inclusive slice of all subnodes. NOTE: Because the
+    /// `slice<T>()` is always inclusive, this function does not support
+    /// returning empty list directly and instead outputs a nullopt value.
+    Opt<Slice<NodeId<N, K, V>>> nestedNodes(NodeId<N, K, V> selfId) const {
+        CHECK(isNonTerminal());
+        if (isEmpty()) {
+            return std::nullopt;
+        } else {
+            return slice(selfId + 1, selfId + getExtent());
+        }
     }
 
     bool operator==(CR<Node<N, K, V>> other) const {
@@ -380,11 +393,12 @@ struct NodeAdapter {
     NodeGroup<N, K, V> const* group;
     NodeId<N, K, V>           id;
 
-    N   getKind() const { return group->at(id).kind; }
-    int size() const { return group->size(id); }
+    N    getKind() const { return group->at(id).kind; }
+    bool empty() const { return size() == 0; }
+    int  size() const { return group->size(id); }
     /// \brief Check if node adapter is default-constructed and does not
     /// contain pointers to the underlying content.
-    bool empty() const {
+    bool isNil() const {
         return group == nullptr && id == NodeId<N, K, V>::Nil();
     }
 
@@ -469,8 +483,7 @@ struct NodeAdapter {
         iterator(typename NodeGroup<N, K, V>::iterator iter)
             : iter(iter) {}
 
-        NodeAdapter<N, K, V> operator*() {
-            // get current value
+        NodeAdapter<N, K, V> operator*() const {
             return NodeAdapter<N, K, V>(iter.group, iter.id);
         }
 

@@ -1,4 +1,3 @@
-#include "../common.hpp"
 #include <test/org_parse_aux.hpp>
 #include <gtest/gtest.h>
 
@@ -16,6 +15,7 @@
 #include <sem/SemOrgSerde.hpp>
 #include <google/protobuf/util/json_util.h>
 #include <exporters/ExporterJson.hpp>
+#include <sem/SemBaseApi.hpp>
 
 template <
     /// Node kind
@@ -368,6 +368,279 @@ TEST(TestFiles, AllNodeCoverage) {
         FAIL() << "'all.org' test file missing node coverage for "
                << diff.size() << " nodes: '" << missing << "'";
     }
+}
+
+sem::SemId<sem::Org> parseNode(CR<Str> source) {
+    MockFull p{false, false};
+    p.run(source);
+    return p.toNode();
+}
+
+TEST(OrgApi, LinkResolution) {
+    MockFull    p{false, false};
+    std::string source = R"(
+* Subtree
+  :properties:
+  :id: id-name
+  :end:
+)";
+
+    p.run(source);
+    sem::OrgDocumentContext ctx;
+    auto                    node = p.toNode();
+    ctx.addNodes(node);
+
+    auto subtree_result = ctx.getSubtreeById("id-name");
+    EXPECT_EQ(subtree_result.size(), 1);
+}
+
+TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
+    auto                     node = parseNode("bold");
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind({OrgSemKind::Word}, true);
+
+    auto words = selector.getMatches(node);
+
+    EXPECT_EQ(words.size(), 1);
+    EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+}
+
+TEST(OrgDocumentSelector, GetMultipleMatchingNodesByKind) {
+    auto                     node = parseNode("word *bold*");
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind({OrgSemKind::Word}, true);
+
+    auto words = selector.getMatches(node);
+
+    EXPECT_EQ(words.size(), 2);
+    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "word");
+    EXPECT_EQ(words.at(1).as<sem::Word>()->text, "bold");
+}
+
+TEST(OrgDocumentSelector, GetDirectlyNestedNode) {
+    auto                     node = parseNode("word *bold*");
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind(
+        {OrgSemKind::Bold}, false, selector.linkDirectSubnode());
+    selector.searchAnyKind({OrgSemKind::Word}, true);
+
+    auto words = selector.getMatches(node);
+
+    EXPECT_EQ(words.size(), 1);
+    EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+}
+
+TEST(OrgDocumentSelector, GetSubtreeByTitle) {
+    auto doc = parseNode(R"(
+* Title1
+** Subtitle1
+** Subtitle2
+
+Paragraph under subtitle 2
+
+* Multi-part title
+)");
+
+    {
+        sem::OrgDocumentSelector selector;
+        selector.searchSubtreePlaintextTitle("Title1", true);
+
+        auto title1 = selector.getMatches(doc);
+        EXPECT_EQ(title1.size(), 1);
+        EXPECT_EQ(title1.at(0)->getKind(), OrgSemKind::Subtree);
+    }
+
+    {
+        sem::OrgDocumentSelector selector;
+        selector.searchSubtreePlaintextTitle(
+            "Subtitle2", false, selector.linkIndirectSubnode());
+        selector.searchAnyKind({OrgSemKind::Word}, true);
+
+        auto words = selector.getMatches(doc);
+        EXPECT_EQ(words.size(), 5);
+        // Subtree nodes are added as targets in the post-order DFS
+        // traversal over all 'nested' elements. First the words in subtree
+        // are collected.
+        EXPECT_EQ(words.at(0).as<sem::Word>()->text, "Paragraph");
+        EXPECT_EQ(words.at(1).as<sem::Word>()->text, "under");
+        EXPECT_EQ(words.at(2).as<sem::Word>()->text, "subtitle");
+        EXPECT_EQ(words.at(3).as<sem::Word>()->text, "2");
+        // Then visitation gets to the subtree title itself. Nested fields
+        // for each node are iterated starting from the base's fields and
+        // then to the concrete type -- also in the DFS order.
+        EXPECT_EQ(words.at(4).as<sem::Word>()->text, "Subtitle2");
+    }
+
+    {
+        sem::OrgDocumentSelector selector;
+        selector.searchSubtreePlaintextTitle(
+            "Subtitle2", false, selector.linkField("subnodes"));
+        selector.searchAnyKind({OrgSemKind::Word}, true);
+
+        auto words = selector.getMatches(doc);
+        EXPECT_EQ(words.size(), 4);
+        // Subtree nodes are added as targets in the post-order DFS
+        // traversal over all 'nested' elements. First the words in subtree
+        // are collected.
+        EXPECT_EQ(words.at(0).as<sem::Word>()->text, "Paragraph");
+        EXPECT_EQ(words.at(1).as<sem::Word>()->text, "under");
+        EXPECT_EQ(words.at(2).as<sem::Word>()->text, "subtitle");
+        EXPECT_EQ(words.at(3).as<sem::Word>()->text, "2");
+    }
+}
+
+TEST(OrgDocumentSelector, GetSubtreeAtPath) {
+    auto node = parseNode(R"(
+* Title1
+** Subtitle1
+Content1
+** Subtitle2
+Content2
+* Title2
+)");
+
+    sem::OrgDocumentSelector selector;
+    selector.searchSubtreePlaintextTitle(
+        "Title1", false, selector.linkIndirectSubnode());
+    selector.searchSubtreePlaintextTitle("Subtitle1", true);
+    auto matches = selector.getMatches(node);
+    EXPECT_EQ(matches.size(), 1);
+}
+
+TEST(OrgDocumentSelector, EarlyVisitExit) {
+    auto node = parseNode(R"(
+*** Content
+Subnode
+** Other content
+First
+*** Nested subtree
+)");
+
+    sem::OrgDocumentSelector      selector;
+    UnorderedMap<OrgSemKind, int> counts;
+
+    selector.searchPredicate(
+        [&](sem::SemId<sem::Org> const& node) -> sem::OrgSelectorResult {
+            ++counts[node->getKind()];
+            return sem::OrgSelectorResult{
+                .isMatching     = node->is(OrgSemKind::Subtree),
+                .tryNestedNodes = !node->is(OrgSemKind::Subtree),
+            };
+        },
+        false);
+
+    selector.getMatches(node);
+
+    EXPECT_EQ(counts.at(OrgSemKind::Subtree), 2);
+    EXPECT_EQ(counts.at(OrgSemKind::Document), 1);
+    EXPECT_EQ(counts.get(OrgSemKind::Word), std::nullopt);
+}
+
+TEST(OrgDocumentSelector, NonLeafSubtrees) {
+    auto doc = parseNode(R"(
+* s1
+** s2
+* s3
+*** s4
+* s5
+* s6
+** s7
+)");
+
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind(
+        {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
+
+    selector.searchAnyKind({OrgSemKind::Subtree}, false);
+
+    Vec<sem::SemId<sem::Org>> subtrees = selector.getMatches(doc);
+
+    EXPECT_EQ(subtrees.size(), 3);
+    auto titles = subtrees
+                | rv::transform([](sem::SemId<sem::Org> const& id) -> Str {
+                      return sem::formatToString(
+                          id.as<sem::Subtree>()->title);
+                  })
+                | rs::to<Vec>();
+
+    rs::sort(titles);
+    EXPECT_EQ(titles.at(0), "s1");
+    EXPECT_EQ(titles.at(1), "s3");
+    EXPECT_EQ(titles.at(2), "s6");
+}
+
+TEST(OrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
+    auto doc = parseNode(R"(
+* [2024-02-12] In title
+* In description
+[2024-02-12]
+)");
+
+    {
+        sem::OrgDocumentSelector selector;
+        selector.searchAnyKind(
+            {OrgSemKind::Subtree}, true, selector.linkField("title"));
+        selector.searchAnyKind({OrgSemKind::Time}, false);
+        auto subtrees = selector.getMatches(doc);
+        EXPECT_EQ(subtrees.size(), 1);
+    }
+
+    {
+        sem::OrgDocumentSelector selector;
+        selector.searchAnyKind(
+            {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
+        selector.searchAnyKind({OrgSemKind::Time}, false);
+        auto subtrees = selector.getMatches(doc);
+        EXPECT_EQ(subtrees.size(), 2);
+    }
+}
+
+TEST(OrgApi, EachSubnodeWithContext) {
+    auto node = parseNode(R"(*bold*)");
+    Vec<Pair<sem::SemId<sem::Org>, Vec<sem::SubnodeVisitorCtxPart>>> ctx;
+
+    sem::eachSubnodeRecWithContext(
+        node,
+        [&](sem::SemId<sem::Org> id, CVec<sem::SubnodeVisitorCtxPart> part)
+            -> sem::SubnodeVisitorResult {
+            ctx.push_back({id, part});
+            return sem::SubnodeVisitorResult{};
+        });
+
+    EXPECT_EQ(ctx.at(0).first->getKind(), OrgSemKind::Document);
+    EXPECT_EQ(ctx.at(1).first->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(ctx.at(2).first->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ(ctx.at(3).first->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(ctx.at(0).second.size(), 0);
+    EXPECT_EQ(ctx.at(1).second.size(), 2);
+    EXPECT_EQ(ctx.at(1).second.at(0).field.value(), "subnodes");
+    EXPECT_EQ(ctx.at(1).second.at(1).index.value(), 0);
+}
+
+template <typename T>
+sem::SemId<T> getFirstNode(sem::SemId<sem::Org> node) {
+    sem::OrgDocumentSelector selector;
+    selector.searchAnyKind({T::staticKind}, true);
+    return selector.getMatches(node).at(0).as<T>();
+}
+
+TEST(OrgApi, SubtreePropertyModification) {
+    auto doc = parseNode(R"(
+* Subtree
+)");
+
+    auto tree = getFirstNode<sem::Subtree>(doc);
+    tree->setPropertyStrValue("123", "bookmark_pos");
+
+    Str formatted = sem::formatToString(doc);
+    EXPECT_NE(formatted.find(":bookmark_pos: 123"), -1) << formatted;
+
+    tree->removeProperty("bookmark_pos");
+    formatted = sem::formatToString(doc);
+    EXPECT_EQ(formatted.find(":bookmark_pos: 123"), -1) << formatted;
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {

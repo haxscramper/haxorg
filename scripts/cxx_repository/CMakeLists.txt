@@ -42,6 +42,7 @@ target_link_libraries(code_forensics PUBLIC
     pthread
     dl
     git2
+    pcre
     OpenSSL::SSL
     OpenSSL::Crypto
     ${ZLIB_LIBRARIES}

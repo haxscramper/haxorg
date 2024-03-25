@@ -18,132 +18,6 @@
 
 template class Exporter<ExporterPython, py::object>;
 
-OrgExporterJson::OrgExporterJson() {
-    impl = std::make_shared<ExporterJson>();
-}
-
-std::string OrgExporterJson::exportToString() { return to_string(result); }
-
-void OrgExporterJson::exportToFile(std::string path) {
-    writeFile(fs::path{path}, exportToString());
-}
-
-void OrgExporterJson::visitNode(sem::SemId<sem::Org> node) {
-    result = impl->evalTop(node);
-}
-
-OrgExporterYaml::OrgExporterYaml() {
-    impl = std::make_shared<ExporterYaml>();
-}
-
-std::string OrgExporterYaml::exportToString() {
-    std::stringstream os;
-    os << result;
-    return os.str();
-}
-
-void OrgExporterYaml::exportToFile(std::string path) {
-    writeFile(fs::path{path}, exportToString());
-}
-
-void OrgExporterYaml::visitNode(sem::SemId<sem::Org> node) {
-    result = impl->evalTop(node);
-}
-
-std::string OrgExporterTree::toString(
-    sem::SemId<sem::Org> node,
-    ExporterTreeOpts     opts) {
-    ColStream    os{};
-    ExporterTree tree{os};
-
-    tree.conf.withLineCol     = opts.withLineCol;
-    tree.conf.withOriginalId  = opts.withOriginalId;
-    tree.conf.skipEmptyFields = opts.skipEmptyFields;
-    tree.conf.startLevel      = opts.startLevel;
-    tree.evalTop(node);
-
-    std::string result = os.toString(opts.withColor);
-    return result;
-}
-
-void OrgExporterTree::toFile(
-    sem::SemId<sem::Org> node,
-    std::string          path,
-    ExporterTreeOpts     opts) {
-    std::ofstream file{path};
-    stream(file, node, opts);
-}
-
-void OrgExporterTree::stream(
-    std::ostream&        stream,
-    sem::SemId<sem::Org> node,
-    ExporterTreeOpts     opts) {
-    ColStream    os{};
-    ExporterTree tree{os};
-
-    tree.conf.withLineCol     = opts.withLineCol;
-    tree.conf.withOriginalId  = opts.withOriginalId;
-    tree.conf.skipEmptyFields = opts.skipEmptyFields;
-    tree.conf.startLevel      = opts.startLevel;
-    tree.evalTop(node);
-
-    stream << os.toString(opts.withColor);
-}
-
-sem::SemId<sem::Document> OrgContext::parseFile(std::string file) {
-    return parseString(readFile(fs::path{file}));
-}
-
-sem::SemId<sem::Document> OrgContext::parseString(const std::string text) {
-    LexerParams         p;
-    SPtr<std::ofstream> fileTrace;
-    if (baseTokenTracePath) {
-        fileTrace = std::make_shared<std::ofstream>(*baseTokenTracePath);
-    }
-    p.traceStream            = fileTrace.get();
-    OrgTokenGroup baseTokens = ::tokenize(text.data(), text.size(), p);
-    OrgTokenGroup tokens;
-    OrgTokenizer  tokenizer{&tokens};
-
-    if (tokenTracePath) { tokenizer.setTraceFile(*tokenTracePath); }
-
-    tokenizer.convert(baseTokens);
-    Lexer<OrgTokenKind, OrgFill> lex{&tokens};
-
-    OrgNodeGroup nodes{&tokens};
-    OrgParser    parser{&nodes};
-    if (parseTracePath) { parser.setTraceFile(*parseTracePath); }
-
-    (void)parser.parseFull(lex);
-
-    sem::OrgConverter converter{};
-    if (semTracePath) { converter.setTraceFile(*semTracePath); }
-
-    return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
-}
-
-sem::SemId<sem::Document> OrgContext::parseProtobuf(
-    const std::string& file) {
-    sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
-    std::ifstream     stream{file};
-    orgproto::AnyNode result;
-    result.ParseFromIstream(&stream);
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
-        result,
-        proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
-    return read_node.as<sem::Document>();
-}
-
-void OrgContext::saveProtobuf(
-    sem::SemId<sem::Document> doc,
-    const std::string&        file) {
-    std::ofstream     stream{file};
-    orgproto::AnyNode result;
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
-        &result, doc.asOrg());
-    result.SerializeToOstream(&stream);
-}
-
 
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
     sem::SemId<sem::Org> id,
@@ -172,22 +46,9 @@ sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index) {
     return id->at(index);
 }
 
-sem::OrgVariant castAs(sem::SemId<sem::Org> id) {
-    switch (id->getKind()) {
-
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        return id.as<sem::__Kind>();                                      \
-    }
-        EACH_SEM_ORG_KIND(_case)
-#undef _case
-    }
-}
-
 void init_py_manual_api(pybind11::module& m) {
     PyDateTime_IMPORT;
     assert(PyDateTimeAPI);
-    bind_int_set<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
 }
 
 void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
@@ -323,6 +184,9 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
         return tmp;
     }
 }
-std::string OrgContext::formatToString(sem::SemId<sem::Org> arg) {
-    return sem::Formatter::format(arg);
+
+
+void eachSubnodeRec(sem::SemId<sem::Org> node, py::function callback) {
+    sem::eachSubnodeRec(
+        node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
 }

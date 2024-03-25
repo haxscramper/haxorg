@@ -156,6 +156,17 @@ rules:
     token: CmdQuoteEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
+  #tag begin_comment
+  - re: "begin_comment"
+    states: [COMMAND]
+    token: CmdCommentBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_comment"
+    states: [COMMAND]
+    token: CmdCommentEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
   #tag begin_verse
   - re: "begin_verse"
     states: [COMMAND]

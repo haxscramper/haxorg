@@ -18,12 +18,14 @@ from py_codegen.astbuilder_pybind11 import (
     Py11BindPass,
     Py11TypedefPass,
     Py11Enum,
+    Py11Function,
     flat_scope,
     id_self,
     py_type_bind,
     py_type,
 )
 
+CAT = "codegen"
 
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
@@ -54,7 +56,7 @@ def get_exporter_methods(forward: bool,
             full_scoped_name: List[str] = scope_names + [name]
             fields: List[GenTuField] = [
                 field for field in (value.fields + get_type_base_fields(value, base_map))
-                if not (field.isStatic)
+                if field.isExposedForWrap
             ]
 
             scoped_target = t_cr(
@@ -163,7 +165,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     res = Py11Class(
         PyName=typ.name.name,
         Class=base_type,
-        PyBases=typ.bases,
         PyHolderType=id_type,
     )
 
@@ -174,18 +175,13 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
     def map_obj_fields(Record: GenTuStruct):
         for _field in Record.fields:
-            if _field.isStatic or hasattr(_field, "ignore"):
-                continue
-
-            res.Fields.append(Py11Field.FromGenTu(_field))
+            if _field.isExposedForWrap:
+                res.Fields.append(Py11Field.FromGenTu(_field))
 
     def map_obj_methods(Record: GenTuStruct):
         for meth in Record.methods:
-            if meth.isStatic or meth.isPureVirtual or (meth.name == "getKind" and
-                                                       Record.name.name != "Org"):
-                continue
-
-            res.Methods.append(Py11Method.FromGenTu(meth))
+            if not meth.isPureVirtual and meth.isExposedForWrap:
+                res.Methods.append(Py11Method.FromGenTu(meth))
 
     def map_bases(Record: GenTuStruct):
         for base in Record.bases:
@@ -203,7 +199,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
         def cb(it: GenTuStruct):
             for field in it.fields:
-                if not field.isStatic:
+                if field.isExposedForWrap:
                     rec_fields.append(Py11Field.FromGenTu(field))
 
             for base in it.bases:
@@ -218,18 +214,19 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
 @beartype
 def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
-    res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
-    for meth in value.methods:
-        if meth.isStatic or meth.isPureVirtual:
-            continue
+    res = Py11Class(
+        PyName=py_type(value.name).Name,
+        Class=value.name,
+        Bases=value.bases,
+    )
 
-        res.Methods.append(Py11Method.FromGenTu(meth))
+    for meth in value.methods:
+        if meth.isExposedForWrap:
+            res.Methods.append(Py11Method.FromGenTu(meth))
 
     for _field in value.fields:
-        if _field.isStatic or hasattr(_field, "ignore"):
-            continue
-
-        res.Fields.append(Py11Field.FromGenTu(_field))
+        if _field.isExposedForWrap:
+            res.Fields.append(Py11Field.FromGenTu(_field))
 
     if not value.IsAbstract:
         res.InitDefault(ast, filter_init_fields(res.Fields))
@@ -512,6 +509,7 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                     t_id(),
                     [GenTuIdent(QualType.ForName("int"), "idx")],
                     IsConst=True,
+                    IsStatic=False,
                 ))
 
             org_decl.Methods.append(
@@ -539,6 +537,9 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
     for _enum in tu.enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
+
+    for _func in tu.functions:
+        autogen_structs.Decls.append(Py11Function.FromGenTu(_func))
 
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = []
@@ -571,18 +572,22 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                 else:
                     seen_types.add(hash(T))
 
-                if T.name in ["Vec", "UnorderedMap"]:
+                if T.name in ["Vec", "UnorderedMap", "IntSet"]:
                     std_type: str = {
                         "Vec": "vector",
-                        "UnorderedMap": "unordered_map"
-                    }[T.name]
+                        "UnorderedMap": "unordered_map",
+                        "IntSet": "int_set",
+                    }.get(T.name, None)
 
-                    stdvec_t = QualType.ForName(std_type,
+                    if T.name not in ["IntSet"]:
+                        stdvec_t = QualType.ForName(std_type,
                                                 Spaces=[QualType.ForName("std")],
                                                 Parameters=T.Parameters)
 
-                    opaque_declarations.append(
-                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+                        opaque_declarations.append(
+                            ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+                        
+                        
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
 
@@ -684,7 +689,7 @@ def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> Qm
                         ))))
 
         for field in struct.fields:
-            if field.isStatic:
+            if not field.isExposedForWrap:
                 continue
 
             elif field.type.name in [
@@ -804,6 +809,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         yaml.safe_dump(to_base_types(tu), stream=file)
 
     with open("/tmp/reflection_data.json", "w") as file:
+        log(CAT).debug(f"Debug reflection data to {file.name}")
         file.write(open_proto_file(reflection_path).to_json(2))
 
     global org_type_names
@@ -969,7 +975,7 @@ if __name__ == "__main__":
             directory = os.path.dirname(path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-                log().info(f"Created dir for {path}")
+                log(CAT).info(f"Created dir for {path}")
 
             opts = TextOptions()
             opts.rightMargin = 160
@@ -984,10 +990,10 @@ if __name__ == "__main__":
                 if oldCode != newCode:
                     with open(path, "w") as out:
                         out.write(newCode)
-                    log().info(f"[red]Updated code[/red] in {define.path}")
+                    log(CAT).info(f"[red]Updated code[/red] in {define.path}")
                 else:
-                    log().info(f"[green]No changes[/green] on {define.path}")
+                    log(CAT).info(f"[green]No changes[/green] on {define.path}")
             else:
                 with open(path, "w") as out:
                     out.write(newCode)
-                log().info(f"[red]Wrote[/red] to {define.path}")
+                log(CAT).info(f"[red]Wrote[/red] to {define.path}")

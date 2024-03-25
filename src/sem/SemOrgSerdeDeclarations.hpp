@@ -11,6 +11,7 @@
         __MAP(kFootnote, footnote, Footnote)  \
         __MAP(kCompletion, completion, Completion)  \
         __MAP(kParagraph, paragraph, Paragraph)  \
+        __MAP(kAnnotatedparagraph, annotatedparagraph, AnnotatedParagraph)  \
         __MAP(kCenter, center, Center)  \
         __MAP(kCaption, caption, Caption)  \
         __MAP(kCmdname, cmdname, CmdName)  \
@@ -18,6 +19,7 @@
         __MAP(kCommandgroup, commandgroup, CommandGroup)  \
         __MAP(kTblfm, tblfm, Tblfm)  \
         __MAP(kQuote, quote, Quote)  \
+        __MAP(kCommentblock, commentblock, CommentBlock)  \
         __MAP(kVerse, verse, Verse)  \
         __MAP(kExample, example, Example)  \
         __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
@@ -126,6 +128,41 @@ struct proto_serde<::orgproto::Paragraph, sem::Paragraph> {
 
 
 template <>
+struct proto_serde<::orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None> {
+  static void write(::orgproto::AnnotatedParagraph::None* out, sem::AnnotatedParagraph::None const& in);
+  static void read(::orgproto::AnnotatedParagraph::None const& out, proto_write_accessor<sem::AnnotatedParagraph::None> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote> {
+  static void write(::orgproto::AnnotatedParagraph::Footnote* out, sem::AnnotatedParagraph::Footnote const& in);
+  static void read(::orgproto::AnnotatedParagraph::Footnote const& out, proto_write_accessor<sem::AnnotatedParagraph::Footnote> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition> {
+  static void write(::orgproto::AnnotatedParagraph::Admonition* out, sem::AnnotatedParagraph::Admonition const& in);
+  static void read(::orgproto::AnnotatedParagraph::Admonition const& out, proto_write_accessor<sem::AnnotatedParagraph::Admonition> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp> {
+  static void write(::orgproto::AnnotatedParagraph::Timestamp* out, sem::AnnotatedParagraph::Timestamp const& in);
+  static void read(::orgproto::AnnotatedParagraph::Timestamp const& out, proto_write_accessor<sem::AnnotatedParagraph::Timestamp> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph> {
+  static void write(::orgproto::AnnotatedParagraph* out, sem::AnnotatedParagraph const& in);
+  static void read(::orgproto::AnnotatedParagraph const& out, proto_write_accessor<sem::AnnotatedParagraph> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Center, sem::Center> {
   static void write(::orgproto::Center* out, sem::Center const& in);
   static void read(::orgproto::Center const& out, proto_write_accessor<sem::Center> in);
@@ -171,6 +208,13 @@ template <>
 struct proto_serde<::orgproto::Quote, sem::Quote> {
   static void write(::orgproto::Quote* out, sem::Quote const& in);
   static void read(::orgproto::Quote const& out, proto_write_accessor<sem::Quote> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CommentBlock, sem::CommentBlock> {
+  static void write(::orgproto::CommentBlock* out, sem::CommentBlock const& in);
+  static void read(::orgproto::CommentBlock const& out, proto_write_accessor<sem::CommentBlock> in);
 };
 
 
@@ -416,6 +460,13 @@ template <>
 struct proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag> {
   static void write(::orgproto::SubtreeLog::Tag* out, sem::SubtreeLog::Tag const& in);
   static void read(::orgproto::SubtreeLog::Tag const& out, proto_write_accessor<sem::SubtreeLog::Tag> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown> {
+  static void write(::orgproto::SubtreeLog::Unknown* out, sem::SubtreeLog::Unknown const& in);
+  static void read(::orgproto::SubtreeLog::Unknown const& out, proto_write_accessor<sem::SubtreeLog::Unknown> in);
 };
 
 

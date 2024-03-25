@@ -9,6 +9,15 @@ from pathlib import Path
 
 
 @beartype
+def conv_proto_default(value: pb.Expr) -> Optional[str]:
+    if value.kind == pb.ExprKind.Lit and 0 < len(value.value):
+        return value.value
+    
+    else:
+        return None
+
+
+@beartype
 def conv_doc_comment(comment: str) -> GenTuDoc:
     if not comment:
         return GenTuDoc("")
@@ -107,8 +116,10 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
 
 @beartype
 def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruct:
-    result = GenTuStruct(conv_proto_type(record.name, is_anon_name=not record.has_name),
-                         GenTuDoc(""),)
+    result = GenTuStruct(
+        conv_proto_type(record.name, is_anon_name=not record.has_name),
+        GenTuDoc(""),
+    )
 
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
@@ -136,16 +147,14 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
             continue
 
         result.methods.append(
-            GenTuFunction(
-                result=conv_proto_type(meth.return_ty),
-                name=meth.name,
-                doc=conv_doc_comment(meth.doc),
-                isConst=meth.is_const,
-                original=original,
-                arguments=[
-                    GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
-                ],
-                parentClass=result))
+            GenTuFunction(result=conv_proto_type(meth.return_ty),
+                          name=meth.name,
+                          doc=conv_doc_comment(meth.doc),
+                          isConst=meth.is_const,
+                          isStatic=meth.is_static,
+                          original=original,
+                          arguments=[conv_proto_arg(arg) for arg in meth.args],
+                          parentClass=result))
 
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record, original))
@@ -170,7 +179,9 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
 
 @beartype
 def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
-    return GenTuIdent(name=arg.name, type=conv_proto_type(arg.type))
+    return GenTuIdent(name=arg.name,
+                      type=conv_proto_type(arg.type),
+                      value=conv_proto_default(arg.default))
 
 
 @beartype
@@ -181,6 +192,7 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
         arguments=[conv_proto_arg(arg) for arg in rec.arguments],
         doc=GenTuDoc(""),
         original=copy(original),
+        spaces=[conv_proto_type(T) for T in rec.spaces],
     )
 
 

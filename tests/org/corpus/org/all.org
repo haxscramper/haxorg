@@ -39,6 +39,7 @@ Par [fn:target]
 
 #+begin_src xml
  xxx
+ Line2
 #+end_src
 
 #+caption: Caption

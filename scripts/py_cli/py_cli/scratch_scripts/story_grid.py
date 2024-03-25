@@ -52,6 +52,7 @@ class Header():
     location: Optional[List[org.Org]] = None
     note: Optional[List[org.Org]] = None
     event: Optional[List[org.Org]] = None
+    turning_point: Optional[List[org.Org]] = None
     shift: Optional[Tuple[str, str]] = None
     tags: List[org.HashTag] = field(default_factory=list)
     time: Optional[Union[datetime, Tuple[datetime, datetime]]] = None
@@ -150,6 +151,9 @@ def rec_node(node: org.Org) -> List[Header]:
                                     case "story_event":
                                         header.event = list(item.subnodes)
 
+                                    case "story_turning_point":
+                                        header.turning_point = list(item.subnodes)
+
                                     case "story_location":
                                         header.location = list(item.subnodes)
 
@@ -238,10 +242,7 @@ def format_time_difference(delta: timedelta) -> List[str]:
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
     pack_context(ctx, "root", StoryGridOpts, config=config, kwargs=kwargs)
     opts: StoryGridOpts = ctx.obj["root"]
-    ctx: org.OrgContext = org.OrgContext()
-    # ctx.parseTracePath = "/tmp/parse.log"
-    # ctx.tokenTracePath = "/tmp/token.log"
-    node = ctx.parseFile(str(opts.infile.resolve()))
+    node = org.parseFile(str(opts.infile.resolve()), org.OrgParseParameters())
     headers = rec_node(node)
 
     with open("/tmp/res.txt", "w") as file:

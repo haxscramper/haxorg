@@ -243,9 +243,11 @@ def org_task(
 
                 color = "green"
                 name_format = f"<span color='#{color}'>{name:^40}</span>"
-                if 1000 < last.dur or force_notify:
-                    ui_notify(f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
-                              is_ok=run_ok)
+                if 100000 < last.dur or force_notify:
+                    ui_notify(
+                        f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
+                        is_ok=run_ok,
+                    )
 
                 GlobExportJson(get_build_root("task_build_time.json"))
 
@@ -473,12 +475,15 @@ def haxorg_base_lexer(ctx: Context):
         "--namespace=base_lexer",
         gen_lexer,
     ]
-    with FileOperation.InTmp(input=[py_file, py_file.with_suffix(".yaml")],
-                             output=[gen_lexer],
-                             stamp_path=get_task_stamp("haxorg_base_lexer"),
-                             stamp_content=str(reflex_run_params)) as op:
+    with FileOperation.InTmp(
+            input=[py_file, py_file.with_suffix(".yaml")],
+            output=[gen_lexer],
+            stamp_path=get_task_stamp("haxorg_base_lexer"),
+            stamp_content=str(reflex_run_params),
+    ) as op:
         if op.should_run():
-            log(CAT).info("Generating base lexer for haxorg")
+            log(CAT).info(f"Generating base lexer for haxorg " +
+                          op.explain("haxorg_base_lexer"))
             run_command(ctx, "poetry", ["run", py_file])
             run_command(
                 ctx,
@@ -486,6 +491,8 @@ def haxorg_base_lexer(ctx: Context):
                 reflex_run_params,
                 env={"LD_LIBRARY_PATH": str(get_script_root("thirdparty/RE-flex/lib"))},
             )
+
+            gen_lexer.touch()
 
         else:
             log(CAT).info("No changes in base lexer config")
@@ -574,9 +581,8 @@ def cmake_haxorg(ctx: Context):
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
-        log(CAT).info(op.explain("Main C++"))
         if op.should_run():
-            log(CAT).info('Running cmake haxorg build')
+            log(CAT).info(op.explain("Main C++"))
             run_command(ctx,
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
@@ -629,12 +635,16 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 
 
 @org_task(pre=[cmake_utils, python_protobuf_files])
-def update_py_haxorg_reflection(ctx: Context, force: bool = False):
+def update_py_haxorg_reflection(
+    ctx: Context,
+    force: bool = False,
+    verbose: bool = False,
+):
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = get_script_root("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
+    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
 
     with FileOperation.InTmp(
             input=[
@@ -646,24 +656,30 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
         if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
-            try:
-                run_command(
-                    ctx,
-                    "build/utils/reflection_tool",
-                    [
-                        "-p",
-                        compile_commands,
-                        "--compilation-database",
-                        compile_commands,
-                        "--toolchain-include",
-                        include_dir,
-                        "--out",
-                        out_file,
-                        src_file,
-                    ],
-                )
-            except ProcessExecutionError as e:
-                log(CAT).error("Reflection tool failed: %s", e)
+            exitcode, stdout, stderr = run_command(
+                ctx,
+                "build/utils/reflection_tool",
+                [
+                    "-p",
+                    compile_commands,
+                    "--compilation-database",
+                    compile_commands,
+                    "--toolchain-include",
+                    include_dir,
+                    *(["--verbose"] if verbose else []),
+                    "--out",
+                    out_file,
+                    src_file,
+                ],
+                capture=True,
+                allow_fail=True,
+            )
+
+            Path("/tmp/debug_reflection_stdout.txt").write_text(stdout)
+            Path("/tmp/debug_reflection_stderr.txt").write_text(stderr)
+
+            if exitcode != 0:
+                log(CAT).error("Reflection tool failed: %s")
                 raise
 
             log(CAT).info("Updated reflection")
@@ -966,14 +982,6 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     log(CAT).info(get_py_env(ctx))
 
-    # log(CAT).debug("Import paths")
-    # for path in get_poetry_import_paths(ctx):
-    #     log(CAT).debug("> {} [{}] {}".format(
-    #         path,
-    #         "ok" if path.exists() else "err does not exist",
-    #         [str(it.relative_to(path)) for it in path.glob("*")],
-    #     ))
-
     retcode, _, _ = run_command(
         ctx,
         "poetry",
@@ -994,6 +1002,15 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     if retcode != 0:
         exit(1)
+
+
+@org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
+def py_script(ctx: Context, script: str, arg: List[str] = []):
+    run_command(ctx, "poetry", [
+        "run",
+        script,
+        *arg,
+    ])
 
 
 @org_task(pre=[py_tests])
