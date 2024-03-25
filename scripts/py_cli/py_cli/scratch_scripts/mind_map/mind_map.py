@@ -304,6 +304,48 @@ class JsonGraph(BaseModel, extra="forbid"):
     nodes: Dict[str, JsonGraphNode] = Field(default_factory=dict)
 
 
+class GvGraphNode(BaseModel):
+    id: str
+    attrs: dict = {}
+
+
+class GvGraphEdge(BaseModel):
+    source: str
+    target: str
+    attrs: dict = {}
+
+
+class GvGraph(BaseModel):
+    id: Optional[str] = None
+    directed: bool = True
+    nodes: List[GvGraphNode] = []
+    edges: List[GvGraphEdge] = []
+    engine: str = "dot"
+    format: str = "png"
+    graph_attrs: dict = Field(default_factory=dict)
+    node_attrs: dict = Field(default_factory=dict)
+    edge_attrs: dict = Field(default_factory=dict)
+    subgraphs: List["GvGraph"] = Field(default_factory=list)
+
+    def to_graphviz(self) -> Union[gv.Digraph, gv.Graph]:
+        graph_class = gv.Digraph if self.directed else gv.Graph
+        graph = graph_class(name=self.id)
+        graph.attr(**self.graph_attrs)
+        graph.node_attr.update(self.node_attrs)
+        graph.edge_attr.update(self.edge_attrs)
+
+        graph.engine = self.engine
+        graph.format = self.format
+
+        for node in self.nodes:
+            graph.node(node.id, **node.attrs)
+
+        for edge in self.edges:
+            graph.edge(edge.source, edge.target, **edge.attrs)
+
+        return graph
+
+
 @beartype
 @dataclass
 class MindMapNodeEntry():
@@ -469,28 +511,37 @@ class MindMapGraph():
 
         return result
 
-    def toGraphvizGraph(self) -> gv.Digraph:
-        dot: gv.Digraph = gv.Digraph("map")
-        dot.attr("graph", rankdir="LR", overlap="false", concentrate="true")
-        dot.attr("node", shape="rect", font="Iosevka")
-        dot.format = "png"
+    def toGraphvizGraph(self) -> GvGraph:
+        dot = GvGraph()
+        dot.graph_attrs = dict(rankdir="LR", overlap="false", concentrate="true")
+        dot.graph_attrs = dict(shape="rect", font="Iosevka")
+
         dot.engine = "neato"
 
         for idx in self.getVertices():
             node_attrs = {}
             obj = self.getNodeObj(idx)
-            if isinstance(obj.data, MindMapNodeSubtree) and isinstance(
-                    obj.data.subtree.original, org.Subtree):
-                node_attrs["title"] = formatOrgWithoutTime(
-                    obj.data.subtree.original.title)
+            match obj.data:
+                case MindMapNodeSubtree():
+                    if isinstance(obj.data.subtree.original, org.Subtree):
+                        node_attrs["label"] = formatOrgWithoutTime(
+                            obj.data.subtree.original.title)
+                        node_attrs["kind"] = "Subtree"
 
-            dot.node(self.getIdxId(idx), **node_attrs)
+                    else:
+                        node_attrs["kind"] = "Document"
+
+                case MindMapNodeEntry():
+                    node_attrs["kind"] = "Entry"
+
+            dot.nodes.append(GvGraphNode(id=self.getIdxId(idx), attrs=node_attrs))
 
         for idx in self.getEdges():
-            dot.edge(
-                self.getIdxId(self.getSource(idx)),
-                self.getIdxId(self.getTarget(idx)),
-            )
+            dot.edges.append(
+                GvGraphEdge(
+                    source=self.getIdxId(self.getSource(idx)),
+                    target=self.getIdxId(self.getTarget(idx)),
+                ))
 
         return dot
 
