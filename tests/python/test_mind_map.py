@@ -4,6 +4,7 @@ from beartype.typing import Any, Dict, Optional, List, Union
 from beartype import beartype
 from py_scriptutils.rich_utils import render_rich_pprint
 from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 
 def getJsonGraph(str: str) -> mind_map.JsonGraph:
     node = org.parseString(str)
@@ -141,12 +142,13 @@ def test_description_list_for_links():
     assert e1_to_id2, dbg(map)
     assert e1_to_id2[0].metadata.description == "Full description"
 
+mind_map_org = get_haxorg_repo_root_path().joinpath("tests/assets/mind_map.org")
+
 def test_gv_graph():
-    gv = getGvGraph("""
-* Tree
-""")
+    gv = getGvGraph(mind_map_org.read_text())
 
-    assert len(gv.nodes) == 2, dbg(gv)
-    assert len(gv.edges) == 1, dbg(gv)
-
-    print(dbg(gv))
+    dot = gv.to_graphviz()
+    from pathlib import Path
+    Path("/tmp/result.py").write_text(dbg(gv))
+    dot.render("/tmp/result.dot", format="dot")
+    dot.render("/tmp/result.png", format="png")

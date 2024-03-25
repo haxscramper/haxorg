@@ -1,6 +1,7 @@
 from pathlib import Path
 import rich_click as click
 import json
+from copy import copy
 
 from py_cli.haxorg_cli import (
     apply_options,
@@ -19,6 +20,7 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log, to_debug_json
 from py_haxorg.pyhaxorg_utils import formatOrgWithoutTime
 import graphviz as gv
+from py_exporters.export_html import ExporterHtml
 
 CAT = "mind_map"
 
@@ -171,7 +173,7 @@ class MindMapCollector():
         def getTargets(node: org.Org):
             target: List[org.Org] = self.resolveContext.getLinkTarget(node)
             if not target:
-                return None
+                return None, None
 
             first = target[0]
 
@@ -304,9 +306,52 @@ class JsonGraph(BaseModel, extra="forbid"):
     nodes: Dict[str, JsonGraphNode] = Field(default_factory=dict)
 
 
+class GvRecordLabel(BaseModel):
+    kind: str = "record"
+    port: Optional[str] = None
+    content: Union[str, List["GvRecordLabel"]] = ""
+    changeDirection: bool = Field(
+        default=True,
+        description="Change the record content layout direction with {} wrapping")
+
+    def toString(self) -> str:
+        if isinstance(self.content, str):
+            if self.port:
+                return f"<{self.port}> {self.content}"
+
+            else:
+                return self.content
+
+        else:
+            return "{" + "|".join([it.toString() for it in self.content]) + "}"
+
+
+class GvHtmlLabel(BaseModel, extra="forbid"):
+    kind: str = "html"
+    text: str
+
+
 class GvGraphNode(BaseModel):
     id: str
+    label: Optional[Union[str, GvRecordLabel, GvHtmlLabel]] = None
     attrs: dict = {}
+
+    def getAttrs(self) -> dict:
+        result = copy(self.attrs)
+
+        match self.label:
+            case str():
+                result["label"] = self.label
+
+            case GvRecordLabel():
+                result["label"] = self.label.toString()
+                result["shape"] = "record"
+
+            case GvHtmlLabel():
+                result["label"] = "<" + self.label.text + ">"
+                # result["shape"] = "plaintext"
+
+        return result
 
 
 class GvGraphEdge(BaseModel):
@@ -315,7 +360,7 @@ class GvGraphEdge(BaseModel):
     attrs: dict = {}
 
 
-class GvGraph(BaseModel):
+class GvGraph(BaseModel, extra="forbid"):
     id: Optional[str] = None
     directed: bool = True
     nodes: List[GvGraphNode] = []
@@ -331,14 +376,17 @@ class GvGraph(BaseModel):
         graph_class = gv.Digraph if self.directed else gv.Graph
         graph = graph_class(name=self.id)
         graph.attr(**self.graph_attrs)
-        graph.node_attr.update(self.node_attrs)
-        graph.edge_attr.update(self.edge_attrs)
+        if self.node_attrs:
+            graph.attr("node", **self.node_attrs)
+
+        if self.edge_attrs:
+            graph.attr("edge", **self.edge_attrs)
 
         graph.engine = self.engine
         graph.format = self.format
 
         for node in self.nodes:
-            graph.node(node.id, **node.attrs)
+            graph.node(node.id, **node.getAttrs())
 
         for edge in self.edges:
             graph.edge(edge.source, edge.target, **edge.attrs)
@@ -514,27 +562,33 @@ class MindMapGraph():
     def toGraphvizGraph(self) -> GvGraph:
         dot = GvGraph()
         dot.graph_attrs = dict(rankdir="LR", overlap="false", concentrate="true")
-        dot.graph_attrs = dict(shape="rect", font="Iosevka")
-
-        dot.engine = "neato"
+        dot.node_attrs = dict(shape="rect", font="Iosevka")
 
         for idx in self.getVertices():
-            node_attrs = {}
             obj = self.getNodeObj(idx)
+            node = GvGraphNode(id=self.getIdxId(idx))
+
+            def formatOrg(node: org.Org) -> str:
+                exp = ExporterHtml(graphviz_break="left")
+                return exp.getHtmlString(node) + "<br align=\"left\"/>"
+
             match obj.data:
                 case MindMapNodeSubtree():
                     if isinstance(obj.data.subtree.original, org.Subtree):
-                        node_attrs["label"] = formatOrgWithoutTime(
-                            obj.data.subtree.original.title)
-                        node_attrs["kind"] = "Subtree"
+                        node.label = GvHtmlLabel(
+                            text=formatOrg(obj.data.subtree.original.title))
+
+                        node.attrs["kind"] = "Subtree"
 
                     else:
-                        node_attrs["kind"] = "Document"
+                        node.attrs["kind"] = "Document"
 
                 case MindMapNodeEntry():
-                    node_attrs["kind"] = "Entry"
+                    node.attrs["kind"] = "Entry"
+                    exp = ExporterHtml(graphviz_break="left")
+                    node.label = GvHtmlLabel(text=formatOrg(obj.data.entry.content))
 
-            dot.nodes.append(GvGraphNode(id=self.getIdxId(idx), attrs=node_attrs))
+            dot.nodes.append(node)
 
         for idx in self.getEdges():
             dot.edges.append(
