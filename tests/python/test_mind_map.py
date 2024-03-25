@@ -130,4 +130,8 @@ def test_description_list_for_links():
   :end:
 """)
     
-    print(dbg(map))
+    assert len(map.edges) == 3, dbg(map)
+    assert len(map.nodes) == 3, dbg(map)
+    e1_to_id2 = get_edge(map, "1", "tree-id-2")
+    assert e1_to_id2, dbg(map)
+    assert e1_to_id2[0].metadata.description == "Full description"

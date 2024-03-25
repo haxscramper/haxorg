@@ -12,7 +12,7 @@ from py_cli.haxorg_cli import (
 
 from beartype.typing import List, Union, Optional, Dict, Callable, Any, Iterable
 from beartype import beartype
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import igraph as ig
 
 import py_haxorg.pyhaxorg_wrap as org
@@ -124,16 +124,19 @@ class MindMapCollector():
                     pass
 
                 case org.List() if sub.at(0).isDescriptionItem():
+                    it: org.ListItem
                     for it in sub:
-                        # Push temporary outgoing doc link -- all links
-                        # will be resolved in the `visitEnd` once the
-                        # whole document is mapped out.
-                        res.outgoing.append(
-                            DocLink(
-                                description=it,
-                                parent=top,
-                                location=it,
-                            ))
+                        if isinstance(it.header[0], org.Link):
+                            # Push temporary outgoing doc link -- all links
+                            # will be resolved in the `visitEnd` once the
+                            # whole document is mapped out.
+                            description = org.StmtList(subnodes=[n for n in it])
+                            res.outgoing.append(
+                                DocLink(
+                                    description=description,
+                                    parent=top,
+                                    location=it.header[0],
+                                ))
 
                 case _:
                     entry = DocEntry(
@@ -159,8 +162,13 @@ class MindMapCollector():
 
         self.popStack()
 
-    def getResolved(self, node: org.Org, parent: DocSubtree) -> Optional[DocLink]:
-        if isinstance(node, org.Link):
+    def getResolved(
+        self,
+        node: Union[org.Org, DocLink],
+        parent: Optional[DocSubtree] = None,
+    ) -> Optional[DocLink]:
+
+        def getTargets(node: org.Org):
             target: List[org.Org] = self.resolveContext.getLinkTarget(node)
             if not target:
                 return None
@@ -170,11 +178,42 @@ class MindMapCollector():
             entry: Optional[DocEntry] = self.entriesOut.get(first, None)
             subtree: Optional[DocSubtree] = self.subtreesOut.get(first, None)
 
+            return entry, subtree
+
+        if isinstance(node, org.Link):
+            entry, subtree = getTargets(node)
+
             if entry:
-                return DocLink(parent=parent, resolved=entry, location=node)
+                return DocLink(
+                    parent=parent,
+                    resolved=entry,
+                    location=node,
+                    description=node.description,
+                )
 
             elif subtree:
-                return DocLink(parent=parent, resolved=subtree, location=node)
+                return DocLink(
+                    parent=parent,
+                    resolved=subtree,
+                    location=node,
+                    description=node.description,
+                )
+
+        elif isinstance(node, DocLink):
+            if node.resolved:
+                return node
+
+            else:
+                entry, subtree = getTargets(node.location)
+                if entry:
+                    return replace(node, resolved=entry)
+
+                elif subtree:
+                    return replace(node, resolved=subtree)
+
+                else:
+                    log(CAT).warning("Could not get resolution for the link " +
+                                     org.formatToString(node.location))
 
     def visitFiles(self, nodes: List[org.Org]):
         self.resolveContext = org.OrgDocumentContext()
@@ -249,6 +288,7 @@ class JsonGraphNode(BaseModel, extra="forbid"):
 class JsonGraphEdgeMeta(BaseModel, extra="forbid"):
     kind: str
     out_index: Optional[int] = None
+    description: Optional[str] = None
 
 
 class JsonGraphEdge(BaseModel, extra="forbid"):
@@ -405,8 +445,13 @@ class MindMapGraph():
 
     def toJsonGraphEdge(self, idx: int) -> JsonGraphEdge:
         edge = self.getEdgeObj(idx)
+        description: Optional[str] = None
+        if isinstance(edge.data, MindMapEdge.RefersTo):
+            description = org.formatToString(edge.data.target.description)
+
         res = JsonGraphEdge(
-            metadata=JsonGraphEdgeMeta(kind=type(edge.data).__name__),
+            metadata=JsonGraphEdgeMeta(kind=type(edge.data).__name__,
+                                       description=description),
             source=self.getStrId(self.getNodeObj(self.getSource(idx))),
             target=self.getStrId(self.getNodeObj(self.getTarget(idx))),
         )
@@ -531,11 +576,12 @@ def getGraph(nodes: List[org.Org]) -> MindMapGraph:
             subtreeNodes[prop.data.subtree.original] = idx
 
     def addLink(desc: int, link: DocLink):
-        if link.resolved:
+        upd_link = collector.getResolved(link)
+        if upd_link.resolved:
             result.addEdge(
-                desc, getVertex(link),
-                MindMapEdge(location=link.location,
-                            data=MindMapEdge.RefersTo(target=link)))
+                desc, getVertex(upd_link),
+                MindMapEdge(location=upd_link.location,
+                            data=MindMapEdge.RefersTo(target=upd_link)))
 
     def register_outgoing_links(entry: DocEntry, parent: DocSubtree):
         for item in entry.outgoing:
