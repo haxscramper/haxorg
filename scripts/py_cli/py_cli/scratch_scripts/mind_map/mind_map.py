@@ -137,7 +137,7 @@ class MindMapCollector():
 
                 case _:
                     entry = DocEntry(
-                        parent=top,
+                        parent=res,
                         content=sub,
                     )
 

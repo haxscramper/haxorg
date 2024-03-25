@@ -1,6 +1,6 @@
 from py_cli.scratch_scripts.mind_map import mind_map
 import py_haxorg.pyhaxorg_wrap as org
-from beartype.typing import Any, Dict, Optional
+from beartype.typing import Any, Dict, Optional, List
 from beartype import beartype
 from py_scriptutils.rich_utils import render_rich_pprint
 
@@ -16,10 +16,13 @@ def test_empty_file():
 def dbg(map: mind_map.JsonGraph) -> str:
     return render_rich_pprint(map.model_dump(), width=200, color=False)
 
-def get_edge(map: mind_map.JsonGraph, source: str, target: str) -> Optional[mind_map.JsonGraphEdge]:
+def get_edge(map: mind_map.JsonGraph, source: str, target: str) -> List[mind_map.JsonGraphEdge]:
+    result = []
     for edge in map.edges:
         if edge.source == source and edge.target == target:
-            return edge
+            result.append(edge)
+
+    return result
 
 def test_single_subtree():
     map = getJsonGraph("* Subtree")
@@ -60,8 +63,71 @@ def test_link_to_subtree():
 
     entry_to_tree = get_edge(map, "1", "tree-id")
     assert entry_to_tree, dbg(map)
-    assert entry_to_tree.metadata.kind == "RefersTo", dbg(map)
+    assert entry_to_tree[0].metadata.kind == "RefersTo", dbg(map)
     
     self_link = get_edge(map, "tree-id", "tree-id")
     assert self_link, dbg(map)
-    assert self_link.metadata.kind == "InternallyRefers", dbg(map)
+    assert self_link[0].metadata.kind == "InternallyRefers", dbg(map)
+
+def test_cross_tree_links():
+    map = getJsonGraph("""
+* Tree1
+  :properties:
+  :id: tree-id-1
+  :end:
+
+[[id:tree-id-2][description-1]]
+
+* Tree2
+  :properties:
+  :id: tree-id-2
+  :end:
+
+[[id:tree-id-1][description-2]]
+
+""")
+    
+
+    assert len(map.nodes) == 5, dbg(map)
+    # Document node
+    assert map.nodes["0"].metadata.kind == "Subtree", dbg(map)
+    assert map.nodes["0"].metadata.title == None, dbg(map)
+    assert map.nodes["0"].metadata.subtrees == ["tree-id-1", "tree-id-2"], dbg(map)
+
+    id1 = map.nodes["tree-id-1"]
+    id2 = map.nodes["tree-id-2"]
+
+    assert id1.metadata.title == "Tree1", dbg(map)
+    assert id2.metadata.title == "Tree2", dbg(map)
+    assert id1.metadata.ordered == ["1"], dbg(map)
+    assert id2.metadata.ordered == ["2"], dbg(map)
+
+    e1 = map.nodes["1"]
+    e2 = map.nodes["2"]
+
+    assert e1.metadata.parent == "tree-id-1", dbg(map)
+    assert e2.metadata.parent == "tree-id-2", dbg(map)
+
+    e1_to_id2 = get_edge(map, "1", "tree-id-2")
+    assert e1_to_id2, dbg(map)
+    assert e1_to_id2[0].metadata.kind == "RefersTo"
+
+    e2_to_id1 = get_edge(map, "2", "tree-id-1")
+    assert e2_to_id1, dbg(map)
+    assert e2_to_id1[0].metadata.kind == "RefersTo"
+
+
+
+def test_description_list_for_links():
+    map = getJsonGraph("""
+* Tree1
+
+- [[id:tree-id-2][description-1]] :: Full description
+
+* Tree2
+  :properties:
+  :id: tree-id-2
+  :end:
+""")
+    
+    print(dbg(map))
