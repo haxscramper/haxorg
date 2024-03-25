@@ -406,11 +406,17 @@ class MindMapNodeEntry():
 class MindMapNodeSubtree():
     subtree: DocSubtree
 
+    def isDocument(self) -> bool:
+        return isinstance(self.subtree.original, org.Document)
+
 
 @beartype
 @dataclass
 class MindMapNode():
     data: Union[MindMapNodeEntry, MindMapNodeSubtree]
+
+    def isDocument(self) -> bool:
+        return isinstance(self.data, MindMapNodeSubtree) and self.data.isDocument()
 
 
 @beartype
@@ -559,13 +565,20 @@ class MindMapGraph():
 
         return result
 
-    def toGraphvizGraph(self) -> GvGraph:
+    def toGraphvizGraph(
+        self,
+        withDocument: bool = False,
+        withNesting: bool = False,
+    ) -> GvGraph:
         dot = GvGraph()
         dot.graph_attrs = dict(rankdir="LR", overlap="false", concentrate="true")
         dot.node_attrs = dict(shape="rect", font="Iosevka")
 
         for idx in self.getVertices():
             obj = self.getNodeObj(idx)
+            if obj.isDocument() and not withDocument:
+                continue
+
             node = GvGraphNode(id=self.getIdxId(idx))
 
             def formatOrg(node: org.Org) -> str:
@@ -591,11 +604,22 @@ class MindMapGraph():
             dot.nodes.append(node)
 
         for idx in self.getEdges():
-            dot.edges.append(
-                GvGraphEdge(
-                    source=self.getIdxId(self.getSource(idx)),
-                    target=self.getIdxId(self.getTarget(idx)),
-                ))
+            source = self.getSource(idx)
+            target = self.getTarget(idx)
+            edge = self.getEdgeObj(idx)
+            if not withDocument and (self.getNodeObj(source).isDocument() or
+                                     self.getNodeObj(target).isDocument()):
+                continue
+
+            elif not withNesting and isinstance(edge.data, MindMapEdge.NestedIn):
+                continue
+
+            else:
+                dot.edges.append(
+                    GvGraphEdge(
+                        source=self.getIdxId(source),
+                        target=self.getIdxId(target),
+                    ))
 
         return dot
 
