@@ -33,11 +33,10 @@ def get_edge(map: mind_map.JsonGraph, source: str, target: str) -> List[mind_map
 def test_single_subtree():
     map = getJsonGraph("* Subtree")
 
-    assert len(map.edges) == 1, dbg(map)
+    assert len(map.edges) == 0, dbg(map)
     assert len(map.nodes) == 2, dbg(map)
     assert map.nodes["0"].metadata.title == None
     assert map.nodes["1"].metadata.title == "Subtree"
-    assert map.edges[0].metadata.kind == "NestedIn"
 
 def test_nested_subtree():
     map = getJsonGraph("""
@@ -45,12 +44,10 @@ def test_nested_subtree():
 ** Nest
 """)
     
-    assert len(map.edges) == 2, dbg(map)
+    assert len(map.edges) == 0, dbg(map)
     assert len(map.nodes) == 3, dbg(map)
     assert map.nodes["1"].metadata.title == "Top"
     assert map.nodes["2"].metadata.title == "Nest"
-    assert map.edges[0].metadata.kind == "NestedIn"
-    assert map.edges[1].metadata.kind == "NestedIn"
 
 def test_link_to_subtree():
     map = getJsonGraph("""
@@ -62,7 +59,7 @@ def test_link_to_subtree():
 [[id:tree-id][description]]
 """)
     
-    assert len(map.edges) == 4, dbg(map)
+    assert len(map.edges) == 2, dbg(map)
     assert len(map.nodes) == 3, dbg(map)
 
     assert map.nodes["tree-id"].metadata.title == "Node"
@@ -136,7 +133,7 @@ def test_description_list_for_links():
   :end:
 """)
     
-    assert len(map.edges) == 3, dbg(map)
+    assert len(map.edges) == 1, dbg(map)
     assert len(map.nodes) == 3, dbg(map)
     e1_to_id2 = get_edge(map, "1", "tree-id-2")
     assert e1_to_id2, dbg(map)

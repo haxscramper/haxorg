@@ -11,7 +11,7 @@ from py_cli.haxorg_cli import (
     Field,
 )
 
-from beartype.typing import List, Union, Optional, Dict, Callable, Any, Iterable
+from beartype.typing import List, Union, Optional, Dict, Callable, Any, Iterable, Set
 from beartype import beartype
 from dataclasses import dataclass, field, replace
 import igraph as ig
@@ -299,9 +299,13 @@ class JsonGraphEdge(BaseModel, extra="forbid"):
     target: str
 
 
+class JsonGraphMeta(BaseModel, extra="forbid"):
+    nested: Dict[str, Set[str]] = Field(default_factory=dict)
+
+
 class JsonGraph(BaseModel, extra="forbid"):
     type: str = "Haxorg MindMap export"
-    metadata: Dict = Field(default_factory=dict)
+    metadata: JsonGraphMeta = Field(default_factory=lambda: JsonGraphMeta())
     edges: List[JsonGraphEdge] = Field(default_factory=list)
     nodes: Dict[str, JsonGraphNode] = Field(default_factory=dict)
 
@@ -476,10 +480,17 @@ class MindMapGraph():
     def getEdges(self) -> Iterable[int]:
         return range(0, len(self.graph.es))
 
+    def getNodeIdIndex(self, value: org.Org) -> int:
+        if value not in self.nodeIdCounter:
+            self.nodeIdCounter[value] = len(self.nodeIdCounter)
+
+        return self.nodeIdCounter[value]
+
     @beartype
     def getStrId(
             self, value: Union[
                 org.Org,
+                int,
                 DocSubtree,
                 DocEntry,
                 DocLink,
@@ -489,11 +500,11 @@ class MindMapGraph():
             case org.Subtree() if value.treeId:
                 return value.treeId
 
-            case org.Org():
-                if value not in self.nodeIdCounter:
-                    self.nodeIdCounter[value] = len(self.nodeIdCounter)
+            case int():
+                return str(value)
 
-                return str(self.nodeIdCounter[value])
+            case org.Org():
+                return str(self.getNodeIdIndex(value))
 
             case DocSubtree():
                 return self.getStrId(value.original)
@@ -623,6 +634,116 @@ class MindMapGraph():
 
         return dot
 
+    @staticmethod
+    def FromCollector(collector: MindMapCollector) -> "MindMapGraph":
+        result = MindMapGraph()
+
+        entryNodes: Dict[org.Org, int] = {}
+        subtreeNodes: Dict[org.Org, int] = {}
+
+        @beartype
+        def auxEntry(entry: DocEntry, idx: Optional[int]) -> int:
+            return result.addVertex(
+                MindMapNode(data=MindMapNodeEntry(entry=entry, idx=idx)))
+
+        @beartype
+        def getVertex(link: Union[DocLink, org.Org]) -> Optional[int]:
+            if isinstance(link, org.Org):
+                if link in entryNodes:
+                    return entryNodes[link]
+
+                elif link in subtreeNodes:
+                    return subtreeNodes[link]
+
+                else:
+                    return None
+
+            elif isinstance(link, DocLink):
+                if isinstance(link.resolved, DocEntry):
+                    return entryNodes[link.resolved.content]
+
+                else:
+                    return subtreeNodes[link.resolved.original]
+
+            else:
+                assert False
+
+        @beartype
+        def auxNested(parent: int, nested: int):
+            pass # TODO implement subtree nested store structure
+
+        @beartype
+        def auxSubtree(tree: DocSubtree) -> int:
+            desc = result.addVertex(MindMapNode(data=MindMapNodeSubtree(subtree=tree)))
+
+            for sub in tree.subtrees:
+                sub_desc = auxSubtree(sub)
+                auxNested(parent=desc, nested=sub_desc)
+
+            for idx, sub in enumerate(tree.ordered):
+                entry = auxEntry(sub, idx)
+                auxNested(parent=desc, nested=entry)
+
+            for sub in tree.unordered:
+                entry = auxEntry(sub, None)
+                auxNested(parent=desc, nested=entry)
+
+            return desc
+
+        for item in collector.root:
+            auxSubtree(item)
+
+        for idx in range(0, len(result.graph.vs)):
+            prop = result.getNodeObj(idx)
+            if isinstance(prop.data, MindMapNodeEntry):
+                entryNodes[prop.data.entry.content] = idx
+
+            else:
+                subtreeNodes[prop.data.subtree.original] = idx
+
+        def addLink(desc: int, link: DocLink):
+            upd_link = collector.getResolved(link)
+            if upd_link.resolved:
+                result.addEdge(
+                    desc, getVertex(upd_link),
+                    MindMapEdge(location=upd_link.location,
+                                data=MindMapEdge.RefersTo(target=upd_link)))
+
+        def register_outgoing_links(entry: DocEntry, parent: DocSubtree):
+            for item in entry.outgoing:
+                addLink(entryNodes[entry.content], item)
+
+        collector.eachRootEntry(register_outgoing_links)
+
+        def register_subtree_links(subtree: DocSubtree):
+            idx = subtreeNodes[subtree.original]
+            for out in subtree.outgoing:
+                addLink(idx, out)
+
+            for ord in subtree.ordered:
+                for link in ord.outgoing:
+                    if link.isSubtree():
+                        result.addEdge(
+                            idx, getVertex(link),
+                            MindMapEdge(
+                                data=MindMapEdge.InternallyRefers(),
+                                location=link.location,
+                            ))
+
+            for unord in subtree.unordered:
+                for link in unord.outgoing:
+                    if link.isSubtree():
+                        result.addEdge(
+                            idx, getVertex(link),
+                            MindMapEdge(
+                                data=MindMapEdge.InternallyRefers(),
+                                location=link.location,
+                            ))
+
+        collector.eachRootSubtree(register_subtree_links)
+
+        return result
+
 
 class MindMapOpts(BaseModel, extra="forbid"):
     infile: List[Path]
@@ -636,116 +757,7 @@ def getGraph(nodes: List[org.Org]) -> MindMapGraph:
 
     Path("/tmp/debug.json").write_text(json.dumps(to_debug_json(collector), indent=2))
 
-    result = MindMapGraph()
-
-    entryNodes: Dict[org.Org, int] = {}
-    subtreeNodes: Dict[org.Org, int] = {}
-
-    @beartype
-    def auxEntry(entry: DocEntry, idx: Optional[int]) -> int:
-        return result.addVertex(MindMapNode(data=MindMapNodeEntry(entry=entry, idx=idx)))
-
-    @beartype
-    def getVertex(link: Union[DocLink, org.Org]) -> Optional[int]:
-        if isinstance(link, org.Org):
-            if link in entryNodes:
-                return entryNodes[link]
-
-            elif link in subtreeNodes:
-                return subtreeNodes[link]
-
-            else:
-                return None
-
-        elif isinstance(link, DocLink):
-            if isinstance(link.resolved, DocEntry):
-                return entryNodes[link.resolved.content]
-
-            else:
-                return subtreeNodes[link.resolved.original]
-
-        else:
-            assert False
-
-    @beartype
-    def auxSubtree(tree: DocSubtree) -> int:
-        desc = result.addVertex(MindMapNode(data=MindMapNodeSubtree(subtree=tree)))
-
-        for sub in tree.subtrees:
-            sub_desc = auxSubtree(sub)
-            result.addEdge(
-                from_=desc,
-                to=sub_desc,
-                value=MindMapEdge(data=MindMapEdge.NestedIn()),
-            )
-
-        for idx, sub in enumerate(tree.ordered):
-            entry = auxEntry(sub, idx)
-            result.addEdge(from_=desc,
-                           to=entry,
-                           value=MindMapEdge(data=MindMapEdge.PlacedIn()))
-
-        for sub in tree.unordered:
-            entry = auxEntry(sub, None)
-            result.addEdge(from_=desc,
-                           to=entry,
-                           value=MindMapEdge(data=MindMapEdge.PlacedIn()))
-
-        return desc
-
-    for item in collector.root:
-        auxSubtree(item)
-
-    for idx in range(0, len(result.graph.vs)):
-        prop = result.getNodeObj(idx)
-        if isinstance(prop.data, MindMapNodeEntry):
-            entryNodes[prop.data.entry.content] = idx
-
-        else:
-            subtreeNodes[prop.data.subtree.original] = idx
-
-    def addLink(desc: int, link: DocLink):
-        upd_link = collector.getResolved(link)
-        if upd_link.resolved:
-            result.addEdge(
-                desc, getVertex(upd_link),
-                MindMapEdge(location=upd_link.location,
-                            data=MindMapEdge.RefersTo(target=upd_link)))
-
-    def register_outgoing_links(entry: DocEntry, parent: DocSubtree):
-        for item in entry.outgoing:
-            addLink(entryNodes[entry.content], item)
-
-    collector.eachRootEntry(register_outgoing_links)
-
-    def register_subtree_links(subtree: DocSubtree):
-        idx = subtreeNodes[subtree.original]
-        for out in subtree.outgoing:
-            addLink(idx, out)
-
-        for ord in subtree.ordered:
-            for link in ord.outgoing:
-                if link.isSubtree():
-                    result.addEdge(
-                        idx, getVertex(link),
-                        MindMapEdge(
-                            data=MindMapEdge.InternallyRefers(),
-                            location=link.location,
-                        ))
-
-        for unord in subtree.unordered:
-            for link in unord.outgoing:
-                if link.isSubtree():
-                    result.addEdge(
-                        idx, getVertex(link),
-                        MindMapEdge(
-                            data=MindMapEdge.InternallyRefers(),
-                            location=link.location,
-                        ))
-
-    collector.eachRootSubtree(register_subtree_links)
-
-    return result
+    return MindMapGraph.FromCollector(collector)
 
 
 def cli_options(f):
