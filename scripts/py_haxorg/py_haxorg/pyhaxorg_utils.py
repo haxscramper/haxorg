@@ -4,6 +4,8 @@ import py_haxorg.pyhaxorg_wrap as org
 from beartype import beartype
 from beartype.typing import List
 from py_exporters.export_ultraplain import ExporterUltraplain
+from beartype.typing import Dict
+from dataclasses import dataclass, field
 
 
 @beartype
@@ -85,3 +87,19 @@ def formatOrgWithoutTime(node: org.Org) -> str:
             org.OrgSemKind.TimeRange,
         ]
     ])).strip()
+
+
+@beartype
+@dataclass
+class NodeIdProvider():
+    nodeIdCounter: Dict[org.Org, int] = field(default_factory=dict)
+
+    def getNodeId(self, value: org.Org) -> str:
+        if isinstance(value, org.Subtree) and value.treeId:
+            return value.treeId
+        
+        else:
+            if value not in self.nodeIdCounter:
+                self.nodeIdCounter[value] = len(self.nodeIdCounter)
+
+            return str(self.nodeIdCounter[value])

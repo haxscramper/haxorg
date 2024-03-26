@@ -18,7 +18,7 @@ import igraph as ig
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log, to_debug_json
-from py_haxorg.pyhaxorg_utils import formatOrgWithoutTime
+from py_haxorg.pyhaxorg_utils import formatOrgWithoutTime, NodeIdProvider
 import graphviz as gv
 from py_exporters.export_html import ExporterHtml
 
@@ -447,8 +447,8 @@ class MindMapEdge():
 @beartype
 @dataclass
 class MindMapGraph():
+    idProvider: NodeIdProvider
     graph: ig.Graph = field(default_factory=lambda: ig.Graph(directed=True))
-    nodeIdCounter: Dict[org.Org, int] = field(default_factory=dict)
 
     def addVertex(self, value: MindMapNode) -> int:
         idx = len(self.graph.vs)
@@ -480,11 +480,8 @@ class MindMapGraph():
     def getEdges(self) -> Iterable[int]:
         return range(0, len(self.graph.es))
 
-    def getNodeIdIndex(self, value: org.Org) -> int:
-        if value not in self.nodeIdCounter:
-            self.nodeIdCounter[value] = len(self.nodeIdCounter)
-
-        return self.nodeIdCounter[value]
+    def getNodeIdIndex(self, value: org.Org) -> str:
+        return self.idProvider.getNodeId(value)
 
     @beartype
     def getStrId(
@@ -497,9 +494,6 @@ class MindMapGraph():
                 MindMapNode,
             ]) -> str:
         match value:
-            case org.Subtree() if value.treeId:
-                return value.treeId
-
             case int():
                 return str(value)
 
@@ -637,8 +631,9 @@ class MindMapGraph():
         return dot
 
     @staticmethod
-    def FromCollector(collector: MindMapCollector) -> "MindMapGraph":
-        result = MindMapGraph()
+    def FromCollector(idProvider: NodeIdProvider,
+                      collector: MindMapCollector) -> "MindMapGraph":
+        result = MindMapGraph(idProvider=idProvider)
 
         entryNodes: Dict[org.Org, int] = {}
         subtreeNodes: Dict[org.Org, int] = {}
@@ -753,13 +748,16 @@ class MindMapOpts(BaseModel, extra="forbid"):
 
 
 @beartype
-def getGraph(nodes: List[org.Org]) -> MindMapGraph:
+def getGraph(idProvider: NodeIdProvider, nodes: List[org.Org]) -> MindMapGraph:
     collector = MindMapCollector()
     collector.visitFiles(nodes)
 
     Path("/tmp/debug.json").write_text(json.dumps(to_debug_json(collector), indent=2))
 
-    return MindMapGraph.FromCollector(collector)
+    return MindMapGraph.FromCollector(
+        idProvider=idProvider,
+        collector=collector,
+    )
 
 
 def cli_options(f):

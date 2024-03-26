@@ -12,6 +12,7 @@ from beartype import beartype
 from pathlib import Path
 import py_haxorg.pyhaxorg_wrap as org
 import json
+from py_haxorg.pyhaxorg_utils import NodeIdProvider
 
 
 @cache_file_processing_result(input_arg_names=["file"])
@@ -29,6 +30,7 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
 
     app.config["DIRECTORY"] = directory
     app.config["SCRIPT_DIR"] = script_dir
+    idProvider = NodeIdProvider()
 
     def getDir() -> Path:
         return app.config["DIRECTORY"]
@@ -41,12 +43,13 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
     @app.route("/tree_structure/<path:filename>")
     def tree_structure(filename: str):
         from py_cli.scratch_scripts.collapsible_subtrees.subtree_structure import getStructure
-        return json.dumps(getStructure(getNode(getDir().joinpath(filename))).model_dump())
+        return json.dumps(
+            getStructure(idProvider, getNode(getDir().joinpath(filename))).model_dump())
 
     @app.route("/mind_map/<path:filename>")
     def mind_map(filename: str):
         from py_cli.scratch_scripts.mind_map.mind_map import getGraph
-        graph = getGraph([getNode(getDir().joinpath(filename))])
+        graph = getGraph(idProvider, [getNode(getDir().joinpath(filename))])
         result = graph.toJsonGraph().model_dump_json()
         Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))
         return result

@@ -87,7 +87,7 @@ h${nodeSize}
   var nodeEnter =
       node.enter()
           .append("g")
-          .on('click', click)
+          .on("click", click)
           .attr("transform",
                 d => `translate(${margin.left},${d.index * nodeSize})`);
 
@@ -187,6 +187,7 @@ function getInitialVisibility(d) {
 function onLoadAll(graphData, treeData) {
   var counter = 0;
   var idx = 0;
+console.log(treeData);
   root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(function(d) {
     d.visible = getInitialVisibility(d);
     d.id = String(d.data.id);
@@ -198,28 +199,26 @@ function onLoadAll(graphData, treeData) {
 
   const treeIdToNode = new Map(root.descendants().map(d => [d.id, d]));
 
-  console.log(treeIdToNode);
-  const links = base_links.map(({source, target, value}) => ({
-                                 source : treeIdToNode.get(String(source)),
-                                 target : treeIdToNode.get(String(target)),
-                                 value
+  console.log(base_links);
+
+  const links = base_links.map(link => ({
+                                 source : treeIdToNode.get(String(link.source)),
+                                 target : treeIdToNode.get(String(link.target)),
+                                 value : link.metadata,
                                }));
 
-  console.log(links);
-
-  for (const link of links) {
-    const {source, target, value} = link;
-    source.sourceLinks.push(link);
-    target.targetLinks.push(link);
+  for (const l of links) {
+    l.source.sourceLinks.push(l);
+    l.target.targetLinks.push(l);
   }
 
   update();
 }
 
-d3.json("/tmp/mindmap_graph.json")
+d3.json("http://localhost:9555/mind_map/mind_map.org")
     .then(
         function(graphData) {
-          d3.json("/tmp/subtree-hierarhcy.json")
+          d3.json("http://localhost:9555/tree_structure/mind_map.org")
               .then(function(treeData) { onLoadAll(graphData, treeData); },
                     function(err) { throw err; });
         },

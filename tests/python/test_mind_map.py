@@ -5,30 +5,40 @@ from beartype import beartype
 from py_scriptutils.rich_utils import render_rich_pprint
 from py_scriptutils.script_logging import to_debug_json
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_haxorg.pyhaxorg_utils import NodeIdProvider
+
 
 def getJsonGraph(str: str) -> mind_map.JsonGraph:
     node = org.parseString(str)
-    graph = mind_map.getGraph([node])
+    idProvider = NodeIdProvider()
+    graph = mind_map.getGraph(idProvider, [node])
     return graph.toJsonGraph()
+
 
 def getGvGraph(str: str) -> mind_map.GvGraph:
     node = org.parseString(str)
-    graph = mind_map.getGraph([node])
+    idProvider = NodeIdProvider()
+    graph = mind_map.getGraph(idProvider, [node])
     return graph.toGraphvizGraph()
+
 
 def test_empty_file():
     getJsonGraph("")
 
+
 def dbg(map: Union[mind_map.JsonGraph, mind_map.GvGraph]) -> str:
     return render_rich_pprint(map.model_dump(), width=200, color=False)
 
-def get_edge(map: mind_map.JsonGraph, source: str, target: str) -> List[mind_map.JsonGraphEdge]:
+
+def get_edge(map: mind_map.JsonGraph, source: str,
+             target: str) -> List[mind_map.JsonGraphEdge]:
     result = []
     for edge in map.edges:
         if edge.source == source and edge.target == target:
             result.append(edge)
 
     return result
+
 
 def test_single_subtree():
     map = getJsonGraph("* Subtree")
@@ -38,16 +48,18 @@ def test_single_subtree():
     assert map.nodes["0"].metadata.title == None
     assert map.nodes["1"].metadata.title == "Subtree"
 
+
 def test_nested_subtree():
     map = getJsonGraph("""
 * Top
 ** Nest
 """)
-    
+
     assert len(map.edges) == 0, dbg(map)
     assert len(map.nodes) == 3, dbg(map)
     assert map.nodes["1"].metadata.title == "Top"
     assert map.nodes["2"].metadata.title == "Nest"
+
 
 def test_link_to_subtree():
     map = getJsonGraph("""
@@ -58,7 +70,7 @@ def test_link_to_subtree():
 
 [[id:tree-id][description]]
 """)
-    
+
     assert len(map.edges) == 2, dbg(map)
     assert len(map.nodes) == 3, dbg(map)
 
@@ -67,10 +79,11 @@ def test_link_to_subtree():
     entry_to_tree = get_edge(map, "1", "tree-id")
     assert entry_to_tree, dbg(map)
     assert entry_to_tree[0].metadata.kind == "RefersTo", dbg(map)
-    
+
     self_link = get_edge(map, "tree-id", "tree-id")
     assert self_link, dbg(map)
     assert self_link[0].metadata.kind == "InternallyRefers", dbg(map)
+
 
 def test_cross_tree_links():
     map = getJsonGraph("""
@@ -89,7 +102,6 @@ def test_cross_tree_links():
 [[id:tree-id-1][description-2]]
 
 """)
-    
 
     assert len(map.nodes) == 5, dbg(map)
     # Document node
@@ -120,7 +132,6 @@ def test_cross_tree_links():
     assert e2_to_id1[0].metadata.kind == "RefersTo"
 
 
-
 def test_description_list_for_links():
     map = getJsonGraph("""
 * Tree1
@@ -132,14 +143,16 @@ def test_description_list_for_links():
   :id: tree-id-2
   :end:
 """)
-    
+
     assert len(map.edges) == 1, dbg(map)
     assert len(map.nodes) == 3, dbg(map)
     e1_to_id2 = get_edge(map, "1", "tree-id-2")
     assert e1_to_id2, dbg(map)
     assert e1_to_id2[0].metadata.description == "Full description"
 
+
 mind_map_org = get_haxorg_repo_root_path().joinpath("tests/assets/mind_map.org")
+
 
 def test_gv_graph():
     gv = getGvGraph(mind_map_org.read_text())

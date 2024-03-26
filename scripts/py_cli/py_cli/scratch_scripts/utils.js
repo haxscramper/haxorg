@@ -18,7 +18,6 @@ export function convertMindMapGraph(data) {
                         source : idMap.get(d.source),
                         target : idMap.get(d.target)
                       });
-                      console.log(result);
                       return result;
                     });
 
