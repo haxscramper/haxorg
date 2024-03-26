@@ -264,6 +264,7 @@ class JsonGraphNodeSubtreeMeta(BaseModel, extra="forbid"):
     ordered: List[str] = Field(default_factory=list)
     unordered: List[str] = Field(default_factory=list)
     subtrees: List[str] = Field(default_factory=list)
+    id: Optional[str] = None
 
 
 class JsonGraphNodeOutgoingMeta(BaseModel, extra="forbid"):
@@ -278,13 +279,12 @@ class JsonGraphNodeEntryMeta(BaseModel, extra="forbid"):
     content: Any = Field(default_factory=dict)
     order: Optional[int] = None
     outgoing: List[JsonGraphNodeOutgoingMeta] = Field(default_factory=list)
+    id: Optional[str] = None
 
 
 class JsonGraphNode(BaseModel, extra="forbid"):
     metadata: Union[JsonGraphNodeSubtreeMeta, JsonGraphNodeEntryMeta] = Field(
         default_factory=lambda: JsonGraphNodeEntryMeta())
-
-    id: str
 
 
 class JsonGraphEdgeMeta(BaseModel, extra="forbid"):
@@ -525,12 +525,13 @@ class MindMapGraph():
         return self.getStrId(self.getNodeObj(idx))
 
     def toJsonGraphNode(self, idx: int) -> JsonGraphNode:
-        res = JsonGraphNode(id=self.getStrId(self.getNodeObj(idx)))
+        res = JsonGraphNode()
         node = self.getNodeObj(idx)
         if isinstance(node.data, MindMapNodeEntry):
             entry: MindMapNodeEntry = node.data
             res.metadata = JsonGraphNodeEntryMeta()
 
+            res.metadata.id = self.getStrId(self.getNodeObj(idx))
             res.metadata.parent = self.getStrId(entry.entry.parent)
 
         else:
@@ -544,6 +545,7 @@ class MindMapGraph():
             if tree.subtree.parent:
                 res.metadata.parent = self.getStrId(tree.subtree.parent)
 
+            res.metadata.id = self.getStrId(self.getNodeObj(idx))
             res.metadata.ordered = [self.getStrId(it) for it in tree.subtree.ordered]
             res.metadata.unordered = [self.getStrId(it) for it in tree.subtree.unordered]
             res.metadata.subtrees = [self.getStrId(it) for it in tree.subtree.subtrees]
@@ -670,7 +672,7 @@ class MindMapGraph():
 
         @beartype
         def auxNested(parent: int, nested: int):
-            pass # TODO implement subtree nested store structure
+            pass  # TODO implement subtree nested store structure
 
         @beartype
         def auxSubtree(tree: DocSubtree) -> int:

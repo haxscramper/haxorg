@@ -48,6 +48,7 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
         from py_cli.scratch_scripts.mind_map.mind_map import getGraph
         graph = getGraph([getNode(getDir().joinpath(filename))])
         result = graph.toJsonGraph().model_dump_json()
+        Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))
         return result
 
     @app.route("/js_source/<path:filename>")

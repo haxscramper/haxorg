@@ -11,16 +11,16 @@ export function convertMindMapGraph(data) {
 
   // The force simulation mutates links and nodes, so create a copy
   // so that re-evaluating this cell produces the same result.
-  const links = data.edges
-    .filter(d => d.metadata.kind == "InternallyRefers")
-    .map(function (d) {
-      return ({
-        ...d,
-        source: idMap.get(d.source),
-        target: idMap.get(d.target)
-      })
-    });
+  const links = data.edges.filter(d => d.metadata.kind == "InternallyRefers")
+                    .map(function(d) {
+                      var result = ({
+                        ...d,
+                        source : idMap.get(d.source),
+                        target : idMap.get(d.target)
+                      });
+                      console.log(result);
+                      return result;
+                    });
 
-  return [nodes, links];
+  return [ nodes, links ];
 }
-
