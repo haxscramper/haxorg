@@ -1,4 +1,4 @@
-import {convertMindMapGraph} from "../utils.js";
+import {convertMindMapGraph} from "../utils.mjs";
 
 const nodeSize = 10;
 const format = d3.format(",");
@@ -187,7 +187,7 @@ function getInitialVisibility(d) {
 function onLoadAll(graphData, treeData) {
   var counter = 0;
   var idx = 0;
-console.log(treeData);
+
   root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(function(d) {
     d.visible = getInitialVisibility(d);
     d.id = String(d.data.id);
@@ -215,11 +215,19 @@ console.log(treeData);
   update();
 }
 
-d3.json("http://localhost:9555/mind_map/mind_map.org")
-    .then(
-        function(graphData) {
-          d3.json("http://localhost:9555/tree_structure/mind_map.org")
-              .then(function(treeData) { onLoadAll(graphData, treeData); },
-                    function(err) { throw err; });
-        },
-        function(err) { throw err; });
+export function evalTest(data) {
+  console.log(data);
+  onLoadAll(data.graphData, data.treeData);
+}
+
+export function onLoadFromLocalhost() {
+  d3.json("http://localhost:9555/mind_map/mind_map.org")
+  .then(
+      function(graphData) {
+        d3.json("http://localhost:9555/tree_structure/mind_map.org")
+            .then(function(treeData) { onLoadAll(graphData, treeData); },
+                  function(err) { throw err; });
+      },
+      function(err) { throw err; });
+}
+
