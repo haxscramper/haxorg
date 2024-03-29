@@ -7,7 +7,7 @@ from beartype import beartype
 from tempfile import TemporaryDirectory
 import json
 import xml.dom.minidom as minidom
-from beartype.typing import List
+from beartype.typing import List, Dict, Optional
 from xml.dom.minidom import Node
 
 
@@ -33,42 +33,76 @@ def eval_js_visual(module_path: Path, json_path: Path, output_path: Path) -> Non
 def read_svg(path: Path) -> Node:
     return minidom.parse(str(path))
 
-def test_indented_subtree():
+
+@beartype
+def dom_to_json(node: Node) -> Dict:
+    if node.nodeType == node.TEXT_NODE:
+        return {"kind": "Text", "data": node.data}
+
+    node_dict = {"kind": "Node", "tag": node.tagName, "attrs": [], "subnodes": []}
+
+    if node.hasAttributes():
+        for attr_name in node.attributes.keys():
+            node_dict["attrs"].append({
+                "name": attr_name,
+                "value": node.getAttribute(attr_name)
+            })
+
+    for child in node.childNodes:
+        child_dict = dom_to_json(child)
+        if child_dict:
+            node_dict["subnodes"].append(child_dict)
+
+    return node_dict
+
+
+@beartype
+def eval_visual_for(content: str,
+                    endpoints: Dict[str, str],
+                    js_module: str,
+                    test_tmp_dir: Optional[Path] = None) -> Node:
     with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
+        dir = Path(test_tmp_dir) if test_tmp_dir else Path(tmp_dir)
         app = create_app(directory=dir, script_dir=get_js_root())
         client = app.test_client()
 
-        dir.joinpath("file.org").write_text("""
-* [2024-02-12] Something
-""")
+        dir.joinpath("file.org").write_text(content)
 
-        mind_map_response = client.get("/mind_map/file.org")
-        print(mind_map_response)
-        assert mind_map_response.status_code == 200
-        tree_structure_response = client.get("/tree_structure/file.org")
-        assert tree_structure_response.status_code == 200
+        json_data = {}
 
+        for key, endpoint in endpoints.items():
+            response = client.get(f"/{endpoint}/file.org")
+            assert response.status_code == 200
 
-        json_data = {
-            "graphData": json.loads(mind_map_response.text),
-            "treeData": json.loads(tree_structure_response.text),
-        }
+            json_data[key] = json.loads(response.text)
 
         json_file = dir.joinpath("data.json")
         json_file.write_text(json.dumps(json_data, indent=2))
         svg_file = dir.joinpath("result.svg")
         eval_js_visual(
-            module_path=get_js_root().joinpath("indented_subtree/indented_subtree.mjs"),
+            module_path=get_js_root().joinpath(js_module),
             json_path=json_file,
             output_path=svg_file,
         )
 
-        svg_content = read_svg(svg_file)
-
-        titles: List[Node] = [it.firstChild.data for it in svg_content.getElementsByTagName("title")]
-        assert titles[0] == "<document>", svg_content.toprettyxml()
-        assert titles[1] == "<document>/Something", svg_content.toprettyxml()
+        return read_svg(svg_file)
 
 
+def test_indented_subtree():
+    svg_content = eval_visual_for(
+        content="""
+* [2024-02-12] Something
+""",
+        endpoints={
+            "graphData": "mind_map",
+            "treeData": "tree_structure",
+        },
+        js_module="indented_subtree/indented_subtree.mjs",
+    )
 
+    titles: List[Dict] = [
+        dom_to_json(it) for it in svg_content.getElementsByTagName("title")
+    ]
+
+    assert titles[0]["subnodes"][0]["data"] == "<document>", titles
+    assert titles[1]["subnodes"][0]["data"] == "<document>/Something", titles
