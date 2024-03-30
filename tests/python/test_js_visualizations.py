@@ -14,8 +14,44 @@ from py_scriptutils.script_logging import log
 from threading import Thread
 from werkzeug.serving import make_server
 from flask import Flask
+import rich.logging
+import _pytest.logging
+import pytest
 
 CAT = "test-js"
+
+import logging
+
+def print_effective_handlers(logger):
+    current_logger = logger
+    while current_logger:
+        for handler in current_logger.handlers:
+            print(f"Handler found on '{current_logger.name}': {handler} {type(handler)}")
+        if not current_logger.propagate or current_logger.parent is None:
+            break
+        current_logger = current_logger.parent
+
+
+# Remove log handler noise with duplicate logging entries
+def adjust_werkzeug_logger():
+    werkzeug_logger = logging.getLogger("werkzeug")
+    root_logger = logging.getLogger()
+
+    for handler in werkzeug_logger.handlers[:]:
+        werkzeug_logger.removeHandler(handler)
+
+    for handler in root_logger.handlers:
+        if isinstance(handler, rich.logging.RichHandler) or isinstance(handler, _pytest.logging.LogCaptureHandler):
+            werkzeug_logger.addHandler(handler)
+        elif isinstance(handler, _pytest.logging._LiveLoggingStreamHandler):
+            pass
+
+        else:
+            pass
+        
+    werkzeug_logger.propagate = False
+    werkzeug_logger.setLevel(logging.INFO)
+
 
 @beartype
 class ServerThread(Thread):
@@ -28,6 +64,7 @@ class ServerThread(Thread):
         self.ctx.push()
 
     def run(self):
+        adjust_werkzeug_logger()
         self.srv.serve_forever()
 
     def shutdown(self):
