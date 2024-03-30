@@ -292,8 +292,8 @@ export function evalTest(data) {
   flushAllD3Transitions();
 }
 
-export function onLoadFromLocalhost() {
-  d3.json("http://localhost:9555/tree_structure/ordered.org")
+export function onLoadFromLocalhost(filename, port) {
+  d3.json(`http://localhost:${port}/tree_structure/${filename}`)
       .then(function(treeData) { onLoadAll(treeData); },
             function(err) { throw err; });
 }

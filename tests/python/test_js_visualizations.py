@@ -72,10 +72,6 @@ def eval_visual_for(content: str,
         dir = Path(test_tmp_dir) if test_tmp_dir else Path(tmp_dir)
         app = create_app(directory=dir, script_dir=get_js_root())
         dir.joinpath("file.org").write_text(content)
-
-        import logging
-        log(CAT).info(app.logger.handlers)
-
         client = run_flask_app_in_background(app, 9876)
         svg_file = dir.joinpath("result.svg")
 
@@ -83,6 +79,8 @@ def eval_visual_for(content: str,
             module_path=js_module,
             output_path=svg_file,
         )
+
+
 
         client.shutdown()
 
@@ -140,5 +138,7 @@ def test_collapsible_subtree():
 ** Nested2
 * Top2
 """,
-        js_module="collapsible_subtrees/collapsible_subtrees.mjs",
+        js_module="collapsible_subtrees/collapsible_subtrees_test.html",
     )
+
+    Path("/tmp/test.svg").write_text(svg_content.toprettyxml())
