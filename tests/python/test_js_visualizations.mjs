@@ -14,16 +14,6 @@ const outputFile =
   page.on("console",
           msg => { console.log(`PAGE LOG [${msg.type()}]: ${msg.text()}`); });
 
-  await page.setRequestInterception(true);
-  
-//   page.on("request", request => {
-//     if (request.url().endsWith("/favicon.ico")) {
-//       request.abort();
-//     } else {
-//       request.continue();
-//     }
-//   });
-
   page.on("requestfailed", request => {
     console.error(`[Request failed]: ${request.url()} - Reason: ${
         request.failure().errorText}`);
@@ -31,8 +21,6 @@ const outputFile =
 
   await page.goto(`http://localhost:9876/${modulePath}`,
                   {waitUntil : "networkidle0"});
-
-  await page.evaluate(() => { return window.evalTest(); });
 
   const svgContent = await page.$eval("svg", e => e.outerHTML);
   fs.writeFileSync(outputFile, svgContent);

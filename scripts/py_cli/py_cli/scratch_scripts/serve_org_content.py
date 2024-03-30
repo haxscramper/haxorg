@@ -13,6 +13,7 @@ from pathlib import Path
 import py_haxorg.pyhaxorg_wrap as org
 import json
 from py_haxorg.pyhaxorg_utils import NodeIdProvider
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 
 
 @cache_file_processing_result(input_arg_names=["file"])
@@ -57,6 +58,10 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
     @app.route("/<path:filename>")
     def js_source(filename):
         return send_from_directory(app.config["SCRIPT_DIR"], filename)
+
+    @app.route('/node_modules/<path:filename>')
+    def serve_node_modules(filename):
+        return send_from_directory(get_haxorg_repo_root_path().joinpath("node_modules"), filename)
 
     return app
 

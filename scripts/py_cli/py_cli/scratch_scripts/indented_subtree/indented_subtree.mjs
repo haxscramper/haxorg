@@ -1,5 +1,3 @@
-console.log("Started indented subtree");
-
 import {convertMindMapGraph} from "/utils.mjs";
 
 const nodeSize = 10;
@@ -198,11 +196,7 @@ function onLoadAll(graphData, treeData) {
   });
 
   const [base_nodes, base_links] = convertMindMapGraph(graphData);
-
   const treeIdToNode = new Map(root.descendants().map(d => [d.id, d]));
-
-  console.log(base_links);
-
   const links = base_links.map(link => ({
                                  source : treeIdToNode.get(String(link.source)),
                                  target : treeIdToNode.get(String(link.target)),
@@ -217,20 +211,13 @@ function onLoadAll(graphData, treeData) {
   update();
 }
 
-export function evalTest(data) {
-  onLoadAll(data.graphData, data.treeData);
+export function onLoadFromLocalhost(filename, port) {
+  d3.json(`http://localhost:${port}/mind_map/${filename}`)
+      .then(
+          function(graphData) {
+            d3.json(`http://localhost:${port}/tree_structure/${filename}`)
+                .then(function(treeData) { onLoadAll(graphData, treeData); },
+                      function(err) { throw err; });
+          },
+          function(err) { throw err; });
 }
-
-console.log("Loaded whatever");
-
-export function onLoadFromLocalhost() {
-  d3.json("http://localhost:9555/mind_map/mind_map.org")
-  .then(
-      function(graphData) {
-        d3.json("http://localhost:9555/tree_structure/mind_map.org")
-            .then(function(treeData) { onLoadAll(graphData, treeData); },
-                  function(err) { throw err; });
-      },
-      function(err) { throw err; });
-}
-

@@ -9,17 +9,20 @@ import json
 import xml.dom.minidom as minidom
 from beartype.typing import List, Dict, Optional
 from xml.dom.minidom import Node
+from py_scriptutils.script_logging import log
 
 from threading import Thread
 from werkzeug.serving import make_server
 from flask import Flask
 
+CAT = "test-js"
 
 @beartype
 class ServerThread(Thread):
 
     def __init__(self, app: Flask, port: int):
         Thread.__init__(self)
+        app.debug = True
         self.srv = make_server('127.0.0.1', port, app)
         self.ctx = app.app_context()
         self.ctx.push()
@@ -48,11 +51,17 @@ def eval_js_visual(module_path: str, output_path: Path) -> None:
     runner_path = get_haxorg_repo_root_path().joinpath(
         "tests/python/test_js_visualizations.mjs")
 
-    cmd.run([
+    code, stdout, stderr = cmd.run([
         runner_path,
         f"--module-path={module_path}",
         f"--output-file={output_path}",
     ])
+
+    if stdout:
+        log(CAT).info(stdout)
+
+    if stderr:
+        log(CAT).warning(stderr)
 
 
 @beartype
@@ -63,6 +72,9 @@ def eval_visual_for(content: str,
         dir = Path(test_tmp_dir) if test_tmp_dir else Path(tmp_dir)
         app = create_app(directory=dir, script_dir=get_js_root())
         dir.joinpath("file.org").write_text(content)
+
+        import logging
+        log(CAT).info(app.logger.handlers)
 
         client = run_flask_app_in_background(app, 9876)
         svg_file = dir.joinpath("result.svg")
