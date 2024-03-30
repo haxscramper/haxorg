@@ -216,3 +216,26 @@ def test_timeline_with_zoom():
 
     assert events[0]["subnodes"] == [{"kind": "Text", "data": "Event1"}], dbg(events)
     assert events[1]["subnodes"] == [{"kind": "Text", "data": "Event2"}], dbg(events)
+
+
+def test_standalone_tree_arcs():
+    svg_content = eval_visual_for(
+        content="""
+* Top11
+** Top21
+** Top22
+** Top23
+* Top12
+""",
+        js_module="mind_map/standalone_mind_map_arcs_test.html",
+    )
+
+    events = [dom_to_json(it)["subnodes"] for it in svg_content.getElementsByTagName("text")][1:]
+
+    assert events[0] == [{"kind": "Text", "data": "Top11"}], dbg(events)
+    assert events[1] == [{"kind": "Text", "data": "Top12"}], dbg(events)
+    assert events[2] == [{"kind": "Text", "data": "Top21"}], dbg(events)
+    assert events[3] == [{"kind": "Text", "data": "Top22"}], dbg(events)
+    assert events[4] == [{"kind": "Text", "data": "Top23"}], dbg(events)
+
+

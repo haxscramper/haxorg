@@ -13,7 +13,7 @@ const radiusScale =
         .domain([ 0, 10 ]) // input domain: levels range from 0 to 10
         .range([ 20, 2 ]); // output range: radius size from 20 to 2
 
-d3.json("http://localhost:9555/mind_map/mind_map.org")
+d3.json("http://localhost:9555/get_mind_map/mind_map.org")
     .then(
         function(data) {
           // Specify the dimensions of the chart.

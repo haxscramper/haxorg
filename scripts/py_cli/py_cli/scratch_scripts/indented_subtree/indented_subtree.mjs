@@ -212,7 +212,7 @@ function onLoadAll(graphData, treeData) {
 }
 
 export function onLoadFromLocalhost(filename, port) {
-  d3.json(`http://localhost:${port}/mind_map/${filename}`)
+  d3.json(`http://localhost:${port}/get_mind_map/${filename}`)
       .then(
           function(graphData) {
             d3.json(`http://localhost:${port}/tree_structure/${filename}`)

@@ -47,7 +47,7 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
         return json.dumps(
             getStructure(idProvider, getNode(getDir().joinpath(filename))).model_dump())
 
-    @app.route("/mind_map/<path:filename>")
+    @app.route("/get_mind_map/<path:filename>")
     def mind_map(filename: str):
         from py_cli.scratch_scripts.mind_map.mind_map import getGraph
         graph = getGraph(idProvider, [getNode(getDir().joinpath(filename))])
