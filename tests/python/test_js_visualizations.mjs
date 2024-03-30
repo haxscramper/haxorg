@@ -19,6 +19,12 @@ const outputFile =
         request.failure().errorText}`);
   });
 
+  page.on("pageerror", error => {
+    console.error(`[Page error]: ${error.message}`);
+    console.error(`[Stack trace]: ${error.stack}`);
+    process.exit(1);
+  });
+
   await page.goto(`http://localhost:9876/${modulePath}`,
                   {waitUntil : "networkidle0"});
 

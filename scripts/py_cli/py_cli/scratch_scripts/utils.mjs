@@ -30,3 +30,10 @@ export function flushAllD3Transitions() {
   d3.timerFlush();
   performance.now = now;
 }
+
+export function console_log_stack(message, traceLines = 1) {
+  const error = new Error();
+  const stackLines = error.stack.split("\n").slice(2, 2 + traceLines);
+  const formattedStack = stackLines.map(line => `  ${line.trim()}`).join("\n");
+  console.log(`${message}\n${formattedStack}`);
+}

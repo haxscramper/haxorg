@@ -1,3 +1,4 @@
+
 function convertTimeline(data) {
   function flatten(data) {
     return [ data ].concat(data.nested.map(d => flatten(d)).flat(1));
@@ -19,7 +20,6 @@ function convertTimeline(data) {
     return result;
   });
 
-  console.log(timeline);
   var idx = 0;
   return timeline.sort((lhs, rhs) => lhs.startdate > rhs.startdate)
       .map(d => ({...d, index : idx++}));
@@ -69,7 +69,7 @@ function update(timeline) {
 
   var y = d3.scaleBand()
               .domain(timeline.map(function(entry) { return entry.type; }))
-              .rangeRound([ height, 0 ])
+              .rangeRound([ height, 0 ]);
 
   let programmaticZoom = false;
   let programmaticBrush = false;
@@ -105,6 +105,7 @@ function update(timeline) {
   }
 
   function brushed(event, d) {
+
     if (programmaticBrush) {
       programmaticBrush = false;
       return;
@@ -127,7 +128,7 @@ function update(timeline) {
 
   // colors for each type
   var types = [...new Set(timeline.map(item => item.type)) ];
-  var colors = chroma.scale("Spectral").colors(types.length)
+  var colors = d3.quantize(d3.interpolateSpectral, types.length);
   var type2color = {};
   types.forEach(function(element,
                          index) { type2color[element] = colors[index] });
@@ -137,11 +138,9 @@ function update(timeline) {
 
   var xAxis = d3.axisBottom(x), xAxis2 = d3.axisBottom(x2),
       yAxis = d3.axisLeft(y).tickSize(0);
-
   var brush = d3.brushX()
                   .extent([ [ 0, 0 ], [ width, height2 ] ])
                   .on("brush end", brushed);
-
   var zoom = d3.zoom()
                  .scaleExtent([ 1, Infinity ])
                  .translateExtent([ [ 0, 0 ], [ width, height ] ])
@@ -154,7 +153,6 @@ function update(timeline) {
       .attr("height", height)
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
       .call(zoom);
-
   svg.append("defs")
       .append("clipPath")
       .attr("id", "clip")
@@ -168,12 +166,10 @@ function update(timeline) {
                  .attr("height", height)
                  .attr("transform",
                        "translate(" + margin.left + "," + margin.top + ")");
-
   var focus = svg.append("g")
                   .attr("class", "focus")
                   .attr("transform",
                         "translate(" + margin.left + "," + margin.top + ")");
-
   var event_rectangles = area.selectAll(".event_rectangle")
                              .data(timeline, keyFunction)
                              .enter()
@@ -286,6 +282,9 @@ function update(timeline) {
   }
 }
 
-d3.json("http://localhost:9555/gantt_chart/ordered.org")
-    .then(function(data) { update(convertTimeline(data)); },
-          function(err) { throw err; })
+export function onLoadFromLocalhost(filename, port) {
+  console.log("Convert timeline evaluated");
+  d3.json(`http://localhost:${port}/gantt_chart/${filename}`)
+      .then(function(data) { update(convertTimeline(data)); },
+            function(err) { throw err; })
+}

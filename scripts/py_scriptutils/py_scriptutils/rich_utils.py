@@ -27,3 +27,6 @@ def render_rich_pprint(
             indent_guides=False,
         )
     return capture.get()
+
+def render_debug(value, color: bool = False, width: int = 200) -> str:
+    return render_rich_pprint(value, width=width, color=color)

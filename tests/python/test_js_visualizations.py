@@ -17,10 +17,20 @@ from flask import Flask
 import rich.logging
 import _pytest.logging
 import pytest
+from py_scriptutils.rich_utils import render_debug
 
 CAT = "test-js"
 
 import logging
+
+
+def dbg(value) -> str:
+    if isinstance(value, Node):
+        return value.toprettyxml()
+
+    else:
+        return render_debug(value)
+
 
 def print_effective_handlers(logger):
     current_logger = logger
@@ -41,14 +51,15 @@ def adjust_werkzeug_logger():
         werkzeug_logger.removeHandler(handler)
 
     for handler in root_logger.handlers:
-        if isinstance(handler, rich.logging.RichHandler) or isinstance(handler, _pytest.logging.LogCaptureHandler):
+        if isinstance(handler, rich.logging.RichHandler) or isinstance(
+                handler, _pytest.logging.LogCaptureHandler):
             werkzeug_logger.addHandler(handler)
         elif isinstance(handler, _pytest.logging._LiveLoggingStreamHandler):
             pass
 
         else:
             pass
-        
+
     werkzeug_logger.propagate = False
     werkzeug_logger.setLevel(logging.INFO)
 
@@ -117,8 +128,6 @@ def eval_visual_for(content: str,
             output_path=svg_file,
         )
 
-
-
         client.shutdown()
 
         return read_svg(svg_file)
@@ -134,14 +143,11 @@ def dom_to_json(node: Node) -> Dict:
     if node.nodeType == node.TEXT_NODE:
         return {"kind": "Text", "data": node.data}
 
-    node_dict = {"kind": "Node", "tag": node.tagName, "attrs": [], "subnodes": []}
+    node_dict = {"kind": "Node", "tag": node.tagName, "attrs": {}, "subnodes": []}
 
     if node.hasAttributes():
         for attr_name in node.attributes.keys():
-            node_dict["attrs"].append({
-                "name": attr_name,
-                "value": node.getAttribute(attr_name)
-            })
+            node_dict["attrs"][attr_name] = node.getAttribute(attr_name)
 
     for child in node.childNodes:
         child_dict = dom_to_json(child)
@@ -178,4 +184,35 @@ def test_collapsible_subtree():
         js_module="collapsible_subtrees/collapsible_subtrees_test.html",
     )
 
-    Path("/tmp/test.svg").write_text(svg_content.toprettyxml())
+    texts: List[Dict] = [
+        dom_to_json(it)["subnodes"][0]["data"]
+        for it in svg_content.getElementsByTagName("text")
+    ]
+
+    # Content is arranged in the BFS order, layer by layer
+    assert texts == [
+        "<document>",
+        "Top1",
+        "Top2",
+        "Nested1",
+        "Nested2",
+    ]
+
+
+def test_timeline_with_zoom():
+    svg_content = eval_visual_for(
+        content="""
+* [2024-12-02 10:00:00]--[2024-12-02 10:30:00] Event1
+* [2024-12-02 11:00:00]--[2024-12-02 11:30:00] Event2
+""",
+        js_module="js_timeline_with_zoom/timeline_with_zoom_test.html")
+
+    it: Node
+    events = [
+        event
+        for event in (dom_to_json(it) for it in svg_content.getElementsByTagName("text"))
+        if event["attrs"].get("class", None) == "data_overlay"
+    ]
+
+    assert events[0]["subnodes"] == [{"kind": "Text", "data": "Event1"}], dbg(events)
+    assert events[1]["subnodes"] == [{"kind": "Text", "data": "Event2"}], dbg(events)
