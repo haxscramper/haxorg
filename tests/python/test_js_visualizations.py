@@ -10,13 +10,40 @@ import xml.dom.minidom as minidom
 from beartype.typing import List, Dict, Optional
 from xml.dom.minidom import Node
 
+from threading import Thread
+from werkzeug.serving import make_server
+from flask import Flask
+
+
+@beartype
+class ServerThread(Thread):
+
+    def __init__(self, app: Flask, port: int):
+        Thread.__init__(self)
+        self.srv = make_server('127.0.0.1', port, app)
+        self.ctx = app.app_context()
+        self.ctx.push()
+
+    def run(self):
+        self.srv.serve_forever()
+
+    def shutdown(self):
+        self.srv.shutdown()
+
+
+@beartype
+def run_flask_app_in_background(app: Flask, port: int) -> ServerThread:
+    server_thread = ServerThread(app, port=port)
+    server_thread.start()
+    return server_thread
+
 
 def get_js_root() -> Path:
     return get_haxorg_repo_root_path().joinpath("scripts/py_cli/py_cli/scratch_scripts")
 
 
 @beartype
-def eval_js_visual(module_path: Path, json_path: Path, output_path: Path) -> None:
+def eval_js_visual(module_path: str, output_path: Path) -> None:
     cmd = local["node"]
     runner_path = get_haxorg_repo_root_path().joinpath(
         "tests/python/test_js_visualizations.mjs")
@@ -24,9 +51,30 @@ def eval_js_visual(module_path: Path, json_path: Path, output_path: Path) -> Non
     cmd.run([
         runner_path,
         f"--module-path={module_path}",
-        f"--input-file={json_path}",
         f"--output-file={output_path}",
     ])
+
+
+@beartype
+def eval_visual_for(content: str,
+                    js_module: str,
+                    test_tmp_dir: Optional[Path] = None) -> Node:
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(test_tmp_dir) if test_tmp_dir else Path(tmp_dir)
+        app = create_app(directory=dir, script_dir=get_js_root())
+        dir.joinpath("file.org").write_text(content)
+
+        client = run_flask_app_in_background(app, 9876)
+        svg_file = dir.joinpath("result.svg")
+
+        eval_js_visual(
+            module_path=js_module,
+            output_path=svg_file,
+        )
+
+        client.shutdown()
+
+        return read_svg(svg_file)
 
 
 @beartype
@@ -56,48 +104,12 @@ def dom_to_json(node: Node) -> Dict:
     return node_dict
 
 
-@beartype
-def eval_visual_for(content: str,
-                    endpoints: Dict[str, str],
-                    js_module: str,
-                    test_tmp_dir: Optional[Path] = None) -> Node:
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(test_tmp_dir) if test_tmp_dir else Path(tmp_dir)
-        app = create_app(directory=dir, script_dir=get_js_root())
-        client = app.test_client()
-
-        dir.joinpath("file.org").write_text(content)
-
-        json_data = {}
-
-        for key, endpoint in endpoints.items():
-            response = client.get(f"/{endpoint}/file.org")
-            assert response.status_code == 200
-
-            json_data[key] = json.loads(response.text)
-
-        json_file = dir.joinpath("data.json")
-        json_file.write_text(json.dumps(json_data, indent=2))
-        svg_file = dir.joinpath("result.svg")
-        eval_js_visual(
-            module_path=get_js_root().joinpath(js_module),
-            json_path=json_file,
-            output_path=svg_file,
-        )
-
-        return read_svg(svg_file)
-
-
 def test_indented_subtree():
     svg_content = eval_visual_for(
         content="""
 * [2024-02-12] Something
 """,
-        endpoints={
-            "graphData": "mind_map",
-            "treeData": "tree_structure",
-        },
-        js_module="indented_subtree/indented_subtree.mjs",
+        js_module="indented_subtree/indented_subtree_test.html",
     )
 
     titles: List[Dict] = [
@@ -106,3 +118,15 @@ def test_indented_subtree():
 
     assert titles[0]["subnodes"][0]["data"] == "<document>", titles
     assert titles[1]["subnodes"][0]["data"] == "<document>/Something", titles
+
+
+def test_collapsible_subtree():
+    svg_content = eval_visual_for(
+        content="""
+* Top1
+** Nested1
+** Nested2
+* Top2
+""",
+        js_module="collapsible_subtrees/collapsible_subtrees.mjs",
+    )

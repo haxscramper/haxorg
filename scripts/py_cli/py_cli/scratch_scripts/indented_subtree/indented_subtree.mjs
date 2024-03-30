@@ -1,4 +1,6 @@
-import {convertMindMapGraph} from "../utils.mjs";
+console.log("Started indented subtree");
+
+import {convertMindMapGraph} from "/utils.mjs";
 
 const nodeSize = 10;
 const format = d3.format(",");
@@ -216,9 +218,10 @@ function onLoadAll(graphData, treeData) {
 }
 
 export function evalTest(data) {
-  console.log(data);
   onLoadAll(data.graphData, data.treeData);
 }
+
+console.log("Loaded whatever");
 
 export function onLoadFromLocalhost() {
   d3.json("http://localhost:9555/mind_map/mind_map.org")

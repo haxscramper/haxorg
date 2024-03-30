@@ -1,26 +1,41 @@
 import fs from "fs";
-import { JSDOM } from "jsdom";
-import * as d3 from "d3";
+import puppeteer from "puppeteer";
 
-// Process command-line arguments
 const args = process.argv.slice(2);
-const modulePath = args.find(arg => arg.startsWith("--module-path=")).split("=")[1];
-const inputFile = args.find(arg => arg.startsWith("--input-file=")).split("=")[1];
-const outputFile = args.find(arg => arg.startsWith("--output-file=")).split("=")[1];
+const modulePath =
+    args.find(arg => arg.startsWith("--module-path=")).split("=")[1];
+const outputFile =
+    args.find(arg => arg.startsWith("--output-file=")).split("=")[1];
 
-// Setup jsdom environment
-const { window } = new JSDOM();
-global.window = window;
-global.document = window.document;
-global.d3 = d3;
+(async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
 
-// Dynamically import the module under test
-import(modulePath).then(module => {
-    const data = JSON.parse(fs.readFileSync(inputFile, "utf-8"));
-    
-    // Assuming the module exposes an onLoadAll function
-    module.evalTest(data);
+  page.on("console",
+          msg => { console.log(`PAGE LOG [${msg.type()}]: ${msg.text()}`); });
 
-    // Save the SVG to a file
-    fs.writeFileSync(outputFile, window.document.body.innerHTML);
-});
+  await page.setRequestInterception(true);
+  
+//   page.on("request", request => {
+//     if (request.url().endsWith("/favicon.ico")) {
+//       request.abort();
+//     } else {
+//       request.continue();
+//     }
+//   });
+
+  page.on("requestfailed", request => {
+    console.error(`[Request failed]: ${request.url()} - Reason: ${
+        request.failure().errorText}`);
+  });
+
+  await page.goto(`http://localhost:9876/${modulePath}`,
+                  {waitUntil : "networkidle0"});
+
+  await page.evaluate(() => { return window.evalTest(); });
+
+  const svgContent = await page.$eval("svg", e => e.outerHTML);
+  fs.writeFileSync(outputFile, svgContent);
+
+  await browser.close();
+})();

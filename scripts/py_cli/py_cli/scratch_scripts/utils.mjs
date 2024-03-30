@@ -23,3 +23,10 @@ export function convertMindMapGraph(data) {
 
   return [ nodes, links ];
 }
+
+export function flushAllD3Transitions() {
+  const now = performance.now;
+  performance.now = function() { return Infinity; };
+  d3.timerFlush();
+  performance.now = now;
+}

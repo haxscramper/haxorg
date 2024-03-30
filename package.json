@@ -15,6 +15,6 @@
   "license": "ISC",
   "dependencies": {
     "d3": "^7.9.0",
-    "jsdom": "^24.0.0"
+    "puppeteer": "^22.6.1"
   }
 }

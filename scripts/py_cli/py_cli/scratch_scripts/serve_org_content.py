@@ -54,7 +54,7 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
         Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))
         return result
 
-    @app.route("/js_source/<path:filename>")
+    @app.route("/<path:filename>")
     def js_source(filename):
         return send_from_directory(app.config["SCRIPT_DIR"], filename)
 

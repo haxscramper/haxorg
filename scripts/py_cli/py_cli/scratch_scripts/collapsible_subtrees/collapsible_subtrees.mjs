@@ -13,6 +13,8 @@ const circle_label_spacing = 13;
 const layer_horizontal_spacing = 250;
 const circle_vertical_spacing = 12;
 
+import {flushAllD3Transitions} from "../utils.mjs";
+
 var i = 0;
 var duration = 750;
 var root;
@@ -93,12 +95,8 @@ function collapse(d) {
 
 // Creates a curved (diagonal) path from parent to the child nodes
 function diagonal(s, d) {
-
-  path = `M ${s.y} ${s.x}
-            C ${(s.y + d.y) / 2} ${s.x},
-              ${(s.y + d.y) / 2} ${d.x},
-              ${d.y} ${d.x}`
-
+  var path = `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${
+      d.x}, ${d.y} ${d.x}`;
   return path
 }
 
@@ -184,9 +182,11 @@ function update(source) {
   var nodeUpdate = nodeEnter.merge(node);
 
   // Transition to the proper position for the node
-  nodeUpdate.transition().duration(duration).attr(
-      "transform",
-      function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+  nodeUpdate
+      .transition()
+      // .duration(duration)
+      .attr("transform",
+            function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
   // Update the node attributes and style
   nodeUpdate.select("circle.node")
@@ -199,7 +199,7 @@ function update(source) {
   var nodeExit =
       node.exit()
           .transition()
-          .duration(duration)
+          // .duration(duration)
           .attr(
               "transform",
               function(
@@ -231,13 +231,15 @@ function update(source) {
   var linkUpdate = linkEnter.merge(link);
 
   // Transition back to the parent element position
-  linkUpdate.transition().duration(duration).attr(
-      "d", function(d) { return diagonal(d, d.parent) });
+  linkUpdate
+      .transition()
+      // .duration(duration)
+      .attr("d", function(d) { return diagonal(d, d.parent) });
 
   // Remove any exiting links
   var linkExit = link.exit()
                      .transition()
-                     .duration(duration)
+                     //  .duration(duration)
                      .attr("d",
                            function(d) {
                              var o = {x : source.x, y : source.y};
@@ -274,16 +276,24 @@ var treemap = d3.tree()
                     layer_horizontal_spacing,
                   ]);
 
-d3.json("http://localhost:9555/tree_structure/ordered.org")
-    .then(
-        function(treeData) {
-          // Assigns parent, children, height, depth
-          root = d3.hierarchy(treeData, function(d) { return d.subtrees; });
-          root.x0 = height / 2;
-          root.y0 = 0;
+function onLoadAll(treeData) {
+  // Assigns parent, children, height, depth
+  root = d3.hierarchy(treeData, function(d) { return d.subtrees; });
+  root.x0 = height / 2;
+  root.y0 = 0;
 
-          root.each(initialDocumentVisibility);
-          root.each(initialNodeVisibility);
-          update(root);
-        },
-        function(err) { throw err; });
+  root.each(initialDocumentVisibility);
+  root.each(initialNodeVisibility);
+  update(root);
+}
+
+export function evalTest(data) {
+  onLoadAll(data.treeData);
+  flushAllD3Transitions();
+}
+
+export function onLoadFromLocalhost() {
+  d3.json("http://localhost:9555/tree_structure/ordered.org")
+      .then(function(treeData) { onLoadAll(treeData); },
+            function(err) { throw err; });
+}
