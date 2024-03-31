@@ -390,6 +390,7 @@ class GvGraph(BaseModel, extra="forbid"):
     edges: List[GvGraphEdge] = []
     engine: str = "dot"
     format: str = "png"
+    name: Optional[str] = None
     graph_attrs: dict = Field(default_factory=dict)
     node_attrs: dict = Field(default_factory=dict)
     edge_attrs: dict = Field(default_factory=dict)
@@ -406,6 +407,10 @@ class GvGraph(BaseModel, extra="forbid"):
         graph_class = gv.Digraph if self.directed else gv.Graph
         graph = graph_class(name=self.id)
         graph.attr(**self.graph_attrs)
+
+        if self.name:
+            graph.name = self.name
+
         if self.node_attrs:
             graph.attr("node", **self.node_attrs)
 
@@ -414,6 +419,9 @@ class GvGraph(BaseModel, extra="forbid"):
 
         graph.engine = self.engine
         graph.format = self.format
+
+        for sub in self.subgraphs:
+            graph.subgraph(sub.to_graphviz())
 
         for node in self.nodes:
             graph.node(node.id, **node.getAttrs())
@@ -712,9 +720,16 @@ class MindMapGraph():
         def auxNesting(nesting: MindMapNodeNesting) -> Union[GvGraph, GvGraphNode]:
             if nesting.kind in ["block", "unordered"]:
                 return getGvNode(nesting.nodeId)
+            
+            elif len(nesting.nested) == 0:
+                return getGvNode(nesting.nodeId)
 
             else:
                 result = GvGraph()
+                result.name = "cluster_" + self.getStrId(self.getNodeObj(nesting.nodeId))
+                node = getGvNode(nesting.nodeId)
+                node.attrs["style"] = "filled,dashed,rounded"
+                result.addElement(node)
 
                 for node in nesting.nested:
                     result.addElement(auxNesting(node))
@@ -722,7 +737,6 @@ class MindMapGraph():
                 return result
 
         for nest in self.nesting:
-            log(CAT).info(nest)
             dot.addElement(auxNesting(nest))
 
         for idx in self.getEdges():
@@ -781,10 +795,6 @@ class MindMapGraph():
                 assert False
 
         @beartype
-        def auxNested(parent: int, nested: int):
-            pass  # TODO implement subtree nested store structure
-
-        @beartype
         def auxSubtree(tree: DocSubtree) -> MindMapNodeNesting:
             desc = result.addVertex(MindMapNode(data=MindMapNodeSubtree(subtree=tree)))
             nesting = MindMapNodeNesting(nodeId=desc, kind="subtree")
@@ -797,7 +807,6 @@ class MindMapGraph():
                 entry = auxEntry(sub, idx)
                 nesting.nested.append(
                     MindMapNodeNesting(nodeId=entry, kind="block", index=idx))
-                auxNested(parent=desc, nested=entry)
 
             for sub in tree.unordered:
                 entry = auxEntry(sub, None)

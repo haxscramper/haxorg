@@ -161,7 +161,7 @@ def test_gv_graph():
     from pathlib import Path
     Path("/tmp/result.py").write_text(dbg(gv))
     dot.render("/tmp/result.dot", format="dot")
-    dot.render("/tmp/result.png", format="png")
+    # dot.render("/tmp/result.png", format="png")
 
     map = getJsonGraph(mind_map_org.read_text())
 
