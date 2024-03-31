@@ -67,6 +67,12 @@ struct ParseSpec {
             /// the document to string and then parse it again, comparing
             /// parsed tree V1 vs parsed tree V2
             ((bool), doFormatReparse, true),
+            /// Compare flat DOD nodes generated in the first and the
+            /// second run of the parsed content. Comparison is done using
+            /// simplified versions of the flat trees -- remove
+            /// `org::Empty` nodes, newlines and whitespaces, to avoid too
+            /// making the test corpus too brittle.
+            ((bool), doFlatReparseCompare, true),
             /// Print sem/lex/parse output debug information to the file
             ((bool), printLexedToFile, false),
             ((bool), printBaseLexedToFile, false),

@@ -726,7 +726,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     auto sem_result = runSpecSem(p, spec);
     if (!parse_result.isOk) { return RunResult{sem_result}; }
 
-    if (!spec.debug.doFormatReparse) { return skip; }
+    if (!(spec.debug.doFormatReparse || spec.debug.doFlatReparseCompare)) {
+        return skip;
+    }
 
     inRerun              = true;
     ParseSpec      rerun = spec;
@@ -753,6 +755,31 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecBaseLex(p2, rerun);
     runSpecLex(p2, rerun);
     runSpecParse(p2, rerun);
+
+    if (!spec.debug.doFormatReparse) { return skip; }
+
+    auto filterBrittleNodes =
+        [](OrgNodeGroup const& nodes) -> Vec<OrgNode> {
+        return nodes.nodes.content
+             | rv::filter([](OrgNode const& it) -> bool {
+                   return !OrgSet{org::Newline, org::Empty, org::Space}
+                               .contains(it.kind);
+               })
+             | rs::to<Vec>();
+    };
+
+    OrgNodeGroup originalNodes;
+    OrgNodeGroup reparsedNodes;
+    originalNodes.tokens        = &p.tokens;
+    originalNodes.nodes.content = filterBrittleNodes(p.nodes);
+    reparsedNodes.tokens        = &p2.tokens;
+    reparsedNodes.nodes.content = filterBrittleNodes(p2.nodes);
+
+    auto flat_reparse_compare = compareNodes(reparsedNodes, originalNodes);
+    if (!flat_reparse_compare.isOk) {
+        return RunResult{flat_reparse_compare};
+    }
+
     auto reformat_result = runSpecSem(p2, rerun);
     if (!reformat_result.isOk || spec.debug.traceAll
         || spec.debug.printSem) {

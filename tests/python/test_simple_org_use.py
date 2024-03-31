@@ -151,8 +151,17 @@ def test_sem_parser_expected():
 
     with dominate.document() as doc:
         with tags.table(**borders) as table:
+            with tags.tr():
+                tags.th("Source", style="width:400px;")
+                tags.th("Sem tree")
+
             for file in corpus_data:
                 for entry in file.items:
+                    with tags.tr():
+                        with tags.td(style="text-align:center;"):
+                            with tags.b():
+                                util.text(entry.name)
+
                     with tags.tr():
                         if entry.source:
                             text = entry.source
