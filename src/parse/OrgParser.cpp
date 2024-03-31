@@ -1061,6 +1061,27 @@ OrgId OrgParser::parseBlockExport(OrgLexer& lex) {
 }
 
 
+OrgId OrgParser::parseColonExample(OrgLexer& lex) {
+    __perf_trace("parseColonExample");
+
+    auto __trace = trace(lex);
+
+
+    start(org::ColonExample);
+    while (lex.at(OrgTokSet{otk::ColonExampleLine, otk::Colon})) {
+        if (lex.at(otk::ColonExampleLine)) {
+            token(org::RawText, pop(lex, lex.kind()));
+        } else {
+            empty();
+            skip(lex, otk::Colon);
+        }
+
+        if (lex.at(otk::Newline)) { skip(lex, otk::Newline); }
+    }
+
+    return end();
+}
+
 OrgId OrgParser::parseExample(OrgLexer& lex) {
     __perf_trace("parseExample");
     auto __trace = trace(lex);
@@ -1628,7 +1649,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdFiletags);
             start(org::Filetags);
-            while (lex.at(otk::Colon) && lex.at(otk::Word, +1)) {
+            while (lex.at(otk::Colon)
+                   && lex.at(OrgTokSet{otk::Word, otk::BigIdent}, +1)) {
                 skip(lex, otk::Colon);
                 parseHashTag(lex);
             }
@@ -1797,6 +1819,8 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
 
         case otk::TableSeparator:
         case otk::LeadingPipe: return parseTable(lex);
+        case otk::ColonExampleLine: return parseColonExample(lex);
+
 
         case otk::CmdPrefix: {
             switch (lex.kind(+1)) {

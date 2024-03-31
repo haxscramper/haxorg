@@ -193,6 +193,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CenterBlock") { return OrgNodeKind::CenterBlock; } else
   if (value == "VerseBlock") { return OrgNodeKind::VerseBlock; } else
   if (value == "Example") { return OrgNodeKind::Example; } else
+  if (value == "ColonExample") { return OrgNodeKind::ColonExample; } else
   if (value == "SrcCode") { return OrgNodeKind::SrcCode; } else
   if (value == "SrcInlineCode") { return OrgNodeKind::SrcInlineCode; } else
   if (value == "InlineCallCode") { return OrgNodeKind::InlineCallCode; } else
@@ -334,6 +335,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CenterBlock: return "CenterBlock";
     case OrgNodeKind::VerseBlock: return "VerseBlock";
     case OrgNodeKind::Example: return "Example";
+    case OrgNodeKind::ColonExample: return "ColonExample";
     case OrgNodeKind::SrcCode: return "SrcCode";
     case OrgNodeKind::SrcInlineCode: return "SrcInlineCode";
     case OrgNodeKind::InlineCallCode: return "InlineCallCode";
@@ -436,6 +438,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CommentBlock") { return OrgSemKind::CommentBlock; } else
   if (value == "Verse") { return OrgSemKind::Verse; } else
   if (value == "Example") { return OrgSemKind::Example; } else
+  if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
   if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
@@ -501,6 +504,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CommentBlock: return "CommentBlock";
     case OrgSemKind::Verse: return "Verse";
     case OrgSemKind::Example: return "Example";
+    case OrgSemKind::ColonExample: return "ColonExample";
     case OrgSemKind::CmdArguments: return "CmdArguments";
     case OrgSemKind::CmdAttr: return "CmdAttr";
     case OrgSemKind::CmdArgument: return "CmdArgument";

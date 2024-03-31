@@ -940,6 +940,18 @@ SemId<Example> OrgConverter::convertExample(__args) {
     return result;
 }
 
+SemId<ColonExample> OrgConverter::convertColonExample(__args) {
+    SemId<ColonExample> result = Sem<ColonExample>(a);
+    for (auto const& it : many(a, N::Body)) {
+        if (it.isMono()) {
+            result->subnodes.push_back(Sem<RawText>(it));
+        } else {
+            result->subnodes.push_back(SemLeaf<RawText>(it));
+        }
+    }
+    return result;
+}
+
 SemId<Export> OrgConverter::convertExport(__args) {
     auto eexport = Sem<Export>(a);
     switch (a.kind()) {
@@ -1199,6 +1211,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::Footnote: return convertFootnote(a);
         case org::CommandTblfm: return convertTblfm(a);
         case org::CommandAttr: return convertCmdAttr(a);
+        case org::ColonExample: return convertColonExample(a);
         case org::Paragraph: {
             if (2 < a.size()
                 && AnnotatedParagraphStarts.contains(a.at(0).kind())) {

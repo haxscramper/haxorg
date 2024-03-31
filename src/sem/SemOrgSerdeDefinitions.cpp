@@ -263,6 +263,14 @@ void proto_serde<::orgproto::Example, sem::Example>::read(::orgproto::Example co
   proto_serde<::orgproto::Example, sem::Org>::read(out, in.as<sem::Org>());
 }
 
+void proto_serde<::orgproto::ColonExample, sem::ColonExample>::write(::orgproto::ColonExample* out, sem::ColonExample const& in) {
+  proto_serde<::orgproto::ColonExample, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::ColonExample, sem::ColonExample>::read(::orgproto::ColonExample const& out, proto_write_accessor<sem::ColonExample> in) {
+  proto_serde<::orgproto::ColonExample, sem::Org>::read(out, in.as<sem::Org>());
+}
+
 void proto_serde<::orgproto::CmdArguments, sem::CmdArguments>::write(::orgproto::CmdArguments* out, sem::CmdArguments const& in) {
   proto_serde<::orgproto::CmdArguments, sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::CmdArgument>, Vec<sem::SemId<sem::CmdArgument>>>::write(out->mutable_positional(), in.positional);

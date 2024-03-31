@@ -606,7 +606,6 @@ items:
 
   - name: "Standalone colon block"
     source: |
-
       ~#+end-table~. Secondly, to delimit rows you need to use ~#+row~ command -
 
       : #+begin-table

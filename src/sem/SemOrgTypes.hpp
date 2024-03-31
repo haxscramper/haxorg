@@ -419,6 +419,19 @@ struct Example : public sem::Block {
   virtual OrgSemKind getKind() const { return OrgSemKind::Example; }
 };
 
+/// \brief Shortened colon example block
+struct ColonExample : public sem::Org {
+  using Org::Org;
+  virtual ~ColonExample() = default;
+  BOOST_DESCRIBE_CLASS(ColonExample,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::ColonExample; }
+};
+
 /// \brief Additional arguments for command blocks
 struct CmdArguments : public sem::Org {
   using Org::Org;

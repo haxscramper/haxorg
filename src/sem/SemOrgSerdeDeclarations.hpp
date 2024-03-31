@@ -22,6 +22,7 @@
         __MAP(kCommentblock, commentblock, CommentBlock)  \
         __MAP(kVerse, verse, Verse)  \
         __MAP(kExample, example, Example)  \
+        __MAP(kColonexample, colonexample, ColonExample)  \
         __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
         __MAP(kCmdattr, cmdattr, CmdAttr)  \
         __MAP(kCmdargument, cmdargument, CmdArgument)  \
@@ -229,6 +230,13 @@ template <>
 struct proto_serde<::orgproto::Example, sem::Example> {
   static void write(::orgproto::Example* out, sem::Example const& in);
   static void read(::orgproto::Example const& out, proto_write_accessor<sem::Example> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColonExample, sem::ColonExample> {
+  static void write(::orgproto::ColonExample* out, sem::ColonExample const& in);
+  static void read(::orgproto::ColonExample const& out, proto_write_accessor<sem::ColonExample> in);
 };
 
 

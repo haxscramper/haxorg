@@ -15,6 +15,7 @@ import pandas as pd
 from py_scriptutils.pandas_utils import dataframe_to_rich_table
 from py_scriptutils.rich_utils import render_rich
 import py_haxorg.pyhaxorg_wrap as org
+from py_haxorg.pyhaxorg_utils import NodeIdProvider
 from py_cli.scratch_scripts.serve_org_content import create_app
 import pytest
 from flask import Flask
@@ -345,7 +346,7 @@ def test_mind_map_collection():
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
         node = org.parseString(mind_map_org.read_text())
-        graph = mind_map.getGraph([node])
-        Path("/tmp/result.json").write_text(graph.toJsonGraph().model_dump_json(indent=2))
-
-        graph.toGraphvizGraph().render("/tmp/result.dot")
+        idProvider = NodeIdProvider()
+        graph = mind_map.getGraph(idProvider, [node])
+        graph.toJsonGraph().model_dump_json(indent=2)
+        graph.toGraphvizGraph()

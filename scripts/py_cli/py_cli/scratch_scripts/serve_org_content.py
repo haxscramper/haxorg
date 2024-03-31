@@ -25,7 +25,11 @@ CAT = "serve_org"
 
 
 @beartype
-def create_app(directory: Path, script_dir: Path) -> Flask:
+def create_app(
+    directory: Path,
+    script_dir: Path = get_haxorg_repo_root_path().joinpath(
+        "scripts/py_cli/py_cli/scratch_scripts"),
+) -> Flask:
     app = Flask(__name__)
     CORS(app)
 
@@ -61,7 +65,8 @@ def create_app(directory: Path, script_dir: Path) -> Flask:
 
     @app.route('/node_modules/<path:filename>')
     def serve_node_modules(filename):
-        return send_from_directory(get_haxorg_repo_root_path().joinpath("node_modules"), filename)
+        return send_from_directory(get_haxorg_repo_root_path().joinpath("node_modules"),
+                                   filename)
 
     return app
 

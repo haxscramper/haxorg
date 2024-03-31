@@ -902,6 +902,15 @@ auto Formatter::toString(SemId<Example> id, CR<Context> ctx) -> Res {
         str("#+end_example")));
 }
 
+auto Formatter::toString(SemId<ColonExample> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.stack(Vec<Res>::Splice(
+        id->subnodes | rv::transform([&](OrgArg sub) {
+            return b.line({str(": "), toString(sub, ctx)});
+        })));
+}
+
+
 auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res     result = b.stack();

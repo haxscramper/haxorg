@@ -234,6 +234,13 @@ struct Example : public Block {
   Example(sem::SemId<sem::Org> const& id) : Block(id) {}
 };
 
+struct ColonExample : public Org {
+  Q_GADGET
+  public:
+  ColonExample() = default;
+  ColonExample(sem::SemId<sem::Org> const& id) : Org(id) {}
+};
+
 struct CmdArguments : public Org {
   Q_GADGET
   public:
@@ -704,6 +711,7 @@ Q_DECLARE_METATYPE(org_qml::Quote)
 Q_DECLARE_METATYPE(org_qml::CommentBlock)
 Q_DECLARE_METATYPE(org_qml::Verse)
 Q_DECLARE_METATYPE(org_qml::Example)
+Q_DECLARE_METATYPE(org_qml::ColonExample)
 Q_DECLARE_METATYPE(org_qml::CmdArguments)
 Q_DECLARE_METATYPE(org_qml::CmdAttr)
 Q_DECLARE_METATYPE(org_qml::CmdArgument)

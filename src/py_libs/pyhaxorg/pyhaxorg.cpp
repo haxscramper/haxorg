@@ -361,6 +361,13 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Example::*)(Str const&) const>(&sem::Example::getParameter),
          pybind11::arg("key"))
     ;
+  pybind11::class_<sem::ColonExample, sem::SemId<sem::ColonExample>, sem::Org>(m, "ColonExample")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColonExample {
+                        sem::ColonExample result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    ;
   pybind11::class_<sem::CmdArguments, sem::SemId<sem::CmdArguments>, sem::Org>(m, "CmdArguments")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdArguments {
                         sem::CmdArguments result{};
@@ -1749,6 +1756,7 @@ node can have subnodes.)RAW")
     .value("CenterBlock", OrgNodeKind::CenterBlock, R"RAW(')RAW")
     .value("VerseBlock", OrgNodeKind::VerseBlock)
     .value("Example", OrgNodeKind::Example, R"RAW(Verbatim example text block)RAW")
+    .value("ColonExample", OrgNodeKind::ColonExample, R"RAW(Colon example block)RAW")
     .value("SrcCode", OrgNodeKind::SrcCode, R"RAW(Block of source code - can be multiline, single-line and)RAW")
     .value("SrcInlineCode", OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
     .value("InlineCallCode", OrgNodeKind::InlineCallCode, R"RAW(Call to named source code block.)RAW")
@@ -1887,6 +1895,7 @@ node can have subnodes.)RAW")
     .value("CommentBlock", OrgSemKind::CommentBlock)
     .value("Verse", OrgSemKind::Verse)
     .value("Example", OrgSemKind::Example)
+    .value("ColonExample", OrgSemKind::ColonExample)
     .value("CmdArguments", OrgSemKind::CmdArguments)
     .value("CmdAttr", OrgSemKind::CmdAttr)
     .value("CmdArgument", OrgSemKind::CmdArgument)
@@ -2093,6 +2102,11 @@ fields)RAW")
     .def("searchAnyKind",
          static_cast<void(sem::OrgDocumentSelector::*)(IntSet<OrgSemKind> const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchAnyKind),
          pybind11::arg("kinds"),
+         pybind11::arg("isTarget"),
+         pybind11::arg_v("link", std::nullopt))
+    .def("searchPredicate",
+         static_cast<void(sem::OrgDocumentSelector::*)(sem::OrgSelectorCondition::Predicate const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchPredicate),
+         pybind11::arg("predicate"),
          pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     ;

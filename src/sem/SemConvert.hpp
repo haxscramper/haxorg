@@ -161,6 +161,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<Underline>          convertUnderline(In);
     SemId<AdmonitionBlock>    convertAdmonitionBlock(In);
     SemId<Example>            convertExample(In);
+    SemId<ColonExample>       convertColonExample(In);
     SemId<Center>             convertCenter(In);
     SemId<Monospace>          convertMonospace(In);
     SemId<Symbol>             convertSymbol(In);

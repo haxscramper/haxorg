@@ -179,6 +179,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
             })},
         SpecPair{
+            org::ColonExample,
+            OrgPattern({
+                fieldN(slice(0, 1_B), N::Body, {org::RawText, org::Empty}),
+            })},
+        SpecPair{
             org::AnnotatedParagraph,
             OrgPattern({
                 fieldN(

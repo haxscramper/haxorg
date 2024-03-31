@@ -389,6 +389,9 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Block")],
         ),
         d_org("Example", GenTuDoc("Example block"), bases=[t_org("Block")]),
+        d_org("ColonExample",
+              GenTuDoc("Shortened colon example block"),
+              bases=[t_org("Org")]),
         d_org(
             "CmdArguments",
             GenTuDoc("Additional arguments for command blocks"),
@@ -1832,6 +1835,7 @@ def get_enums():
                 GenTuEnumField("CenterBlock", GenTuDoc("'")),
                 GenTuEnumField("VerseBlock", GenTuDoc("")),
                 GenTuEnumField("Example", GenTuDoc("Verbatim example text block")),
+                GenTuEnumField("ColonExample", GenTuDoc("Colon example block")),
                 GenTuEnumField(
                     "SrcCode",
                     GenTuDoc("Block of source code - can be multiline, single-line and")),

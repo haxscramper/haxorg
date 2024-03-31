@@ -32,6 +32,7 @@ void visitQuote(R& res, In<sem::Quote> object);
 void visitCommentBlock(R& res, In<sem::CommentBlock> object);
 void visitVerse(R& res, In<sem::Verse> object);
 void visitExample(R& res, In<sem::Example> object);
+void visitColonExample(R& res, In<sem::ColonExample> object);
 void visitCmdArguments(R& res, In<sem::CmdArguments> object);
 void visitCmdAttr(R& res, In<sem::CmdAttr> object);
 void visitCmdArgument(R& res, In<sem::CmdArgument> object);
