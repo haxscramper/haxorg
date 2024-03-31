@@ -116,6 +116,10 @@ def eval_js_visual(module_path: str, output_path: Path) -> None:
 def eval_visual_for(content: str,
                     js_module: str,
                     test_tmp_dir: Optional[Path] = None) -> Node:
+    
+    if test_tmp_dir and not test_tmp_dir.exists():
+        test_tmp_dir.mkdir(parents=True)
+
     with TemporaryDirectory() as tmp_dir:
         dir = Path(test_tmp_dir) if test_tmp_dir else Path(tmp_dir)
         app = create_app(directory=dir, script_dir=get_js_root())
@@ -163,6 +167,7 @@ def test_indented_subtree():
 * [2024-02-12] Something
 """,
         js_module="indented_subtree/indented_subtree_test.html",
+        test_tmp_dir=Path("/tmp/test_indented_subtree"),
     )
 
     titles: List[Dict] = [

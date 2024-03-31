@@ -376,8 +376,8 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         if (duration.size() == 1) {
             prop.minutes = duration[0].toInt();
         } else if (duration.size() == 2) {
-            prop.minutes = duration[0].toInt();
-            prop.hours   = duration[1].toInt();
+            prop.minutes = duration[1].toInt();
+            prop.hours   = duration[0].toInt();
         }
 
         result = Property(prop);
@@ -386,7 +386,11 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         Property::Unknown prop;
         prop.name  = basename;
         prop.value = convert(one(a, N::Values));
-        result     = Property(prop);
+        if (prop.value->is(osk::StmtList)
+            && prop.value->subnodes.size() == 1) {
+            prop.value = prop.value->at(0);
+        }
+        result = Property(prop);
     }
 
     if (false && result) {

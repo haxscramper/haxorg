@@ -162,3 +162,26 @@ def test_gv_graph():
     Path("/tmp/result.py").write_text(dbg(gv))
     dot.render("/tmp/result.dot", format="dot")
     dot.render("/tmp/result.png", format="png")
+
+
+def test_node_properties():
+    map = getJsonGraph("""
+* Tree
+  :properties:
+  :id: some-id
+  :other_prop: value
+  :effort: 12:0
+  :created: [2024-12-02]
+  :visibility: all
+  :ordered: t
+  :end:
+""")
+    
+    meta = map.nodes["some-id"].metadata
+
+    assert meta.level == 1
+    assert meta.properties["id"]["id"] == "some-id"
+    assert meta.properties["other_prop"]["node"]["text"] == "value"
+    assert meta.properties["Effort"]["hours"] == 12
+    assert meta.properties["Effort"]["minutes"] == 0
+

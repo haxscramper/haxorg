@@ -157,5 +157,6 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
 
 sys.excepthook = custom_traceback_handler
 
-log("graphviz._tools").setLevel(logging.ERROR)
+log("graphviz").setLevel(logging.ERROR)
+log("asyncio").setLevel(logging.ERROR)
 log("matplotlib").setLevel(logging.WARNING)

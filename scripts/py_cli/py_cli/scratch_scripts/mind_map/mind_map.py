@@ -18,7 +18,7 @@ import igraph as ig
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log, to_debug_json
-from py_haxorg.pyhaxorg_utils import formatOrgWithoutTime, NodeIdProvider
+from py_haxorg.pyhaxorg_utils import formatOrgWithoutTime, NodeIdProvider, evalDateTime
 import graphviz as gv
 from py_exporters.export_html import ExporterHtml
 
@@ -265,6 +265,7 @@ class JsonGraphNodeSubtreeMeta(BaseModel, extra="forbid"):
     unordered: List[str] = Field(default_factory=list)
     subtrees: List[str] = Field(default_factory=list)
     id: Optional[str] = None
+    properties: Dict[str, Dict] = Field(default_factory=dict)
 
 
 class JsonGraphNodeOutgoingMeta(BaseModel, extra="forbid"):
@@ -530,19 +531,71 @@ class MindMapGraph():
 
         else:
             tree: MindMapNodeSubtree = node.data
-            res.metadata = JsonGraphNodeSubtreeMeta()
+            node: Union[org.Subtree, org.Document] = tree.subtree.original
+            meta = JsonGraphNodeSubtreeMeta()
 
-            if isinstance(tree.subtree.original, org.Subtree):
-                res.metadata.title = formatOrgWithoutTime(tree.subtree.original.title)
-                res.metadata.level = tree.subtree.original.level
+            if isinstance(node, org.Subtree):
+                meta.title = formatOrgWithoutTime(node.title)
+                meta.level = node.level
+
+                prop: org.SubtreeProperty
+                export_options: Dict[str, Dict[str, str]] = {}
+                for prop in node.properties:
+                    value = {}
+                    match prop.getKind():
+                        case org.SubtreePropertyKind.Effort:
+                            value["hours"] = prop.getEffort().hours
+                            value["minutes"] = prop.getEffort().minutes
+
+                        case org.SubtreePropertyKind.Unknown:
+                            value["node"] = json.loads(
+                                org.exportToJsonString(prop.getUnknown().value))
+
+                        case org.SubtreePropertyKind.Ordered:
+                            value["isOrdered"] = prop.getOrdered().isOrdered
+
+                        case org.SubtreePropertyKind.Created:
+                            value["created"] = evalDateTime(prop.getCreated().time.getStatic().time)
+
+                        case org.SubtreePropertyKind.Visibility:
+                            value["level"] = str(prop.getVisibility().level)
+
+                        case org.SubtreePropertyKind.ExportOptions:
+                            export_options[prop.getExportOptions().backend] = prop.getExportOptions().values
+                            value = export_options
+
+                        case org.SubtreePropertyKind.ExportLatexCompiler:
+                            value["compiler"] = prop.getExportLatexCompiler().compiler
+
+                        case org.SubtreePropertyKind.ExportLatexHeader:
+                            value["header"] = prop.getExportLatexHeader().header
+
+                        case org.SubtreePropertyKind.ExportLatexClassOptions:
+                            value["header"] = prop.getExportLatexClassOptions().options
+
+                        case org.SubtreePropertyKind.Trigger:
+                            pass # TODO implement trigger property
+
+                        case org.SubtreePropertyKind.Unnumbered:
+                            pass
+
+                        case _:
+                            log(CAT).error("Unknown property" + str(prop.getKind()))
+
+                    meta.properties[prop.getName()] = value
+
+                if node.treeId:
+                    meta.properties["id"] = {"id": node.treeId}
 
             if tree.subtree.parent:
-                res.metadata.parent = self.getStrId(tree.subtree.parent)
+                meta.parent = self.getStrId(tree.subtree.parent)
 
-            res.metadata.id = self.getStrId(self.getNodeObj(idx))
-            res.metadata.ordered = [self.getStrId(it) for it in tree.subtree.ordered]
-            res.metadata.unordered = [self.getStrId(it) for it in tree.subtree.unordered]
-            res.metadata.subtrees = [self.getStrId(it) for it in tree.subtree.subtrees]
+            meta.id = self.getStrId(self.getNodeObj(idx))
+            meta.ordered = [self.getStrId(it) for it in tree.subtree.ordered]
+            meta.unordered = [self.getStrId(it) for it in tree.subtree.unordered]
+            meta.subtrees = [self.getStrId(it) for it in tree.subtree.subtrees]
+
+            res.metadata = meta
 
         return res
 
