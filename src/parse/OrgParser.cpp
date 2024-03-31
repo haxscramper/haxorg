@@ -37,6 +37,10 @@ const OrgTokSet ParagraphTerminator{
     otk::CmdPrefix,
     otk::StmtListEnd,
     otk::LeadingPipe,
+    otk::ListItemEnd,
+    otk::Indent,
+    otk::Dedent,
+    otk::SameIndent,
 };
 
 OrgTokSet ListStarts{
@@ -1221,7 +1225,6 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     // prefix, 0
     { token(org::RawText, pop(lex, ListStarts)); }
     space(lex);
-    skip(lex, otk::StmtListBegin);
     // counter, 1
     {
         empty(); // TODO parse counter
@@ -1279,13 +1282,14 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     // body, 5
     start(org::StmtList);
     {
-        while (lex.can_search(otk::StmtListEnd)) {
+        while (lex.can_search(
+            OrgTokSet{otk::Dedent, otk::SameIndent, otk::ListItemEnd})) {
             parseStmtListItem(lex);
         }
-        skip(lex, otk::StmtListEnd);
-        skip(lex, otk::ListItemEnd);
-        if (lex.at(otk::Indent)) { parseStmtListItem(lex); }
     }
+
+    if (lex.at(otk::ListItemEnd)) { skip(lex); }
+
     end();
     return end();
 }
@@ -1317,13 +1321,13 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
 
     space(lex);
 
-    skip(lex, otk::ListBegin);
+    skip(lex, otk::Indent);
     auto result = parseList(lex);
     if (lex.at(otk::StmtListEnd)) {
         skip(lex, otk::StmtListEnd);
         skip(lex, otk::ListItemEnd);
     }
-    skip(lex, otk::ListEnd);
+    skip(lex, otk::Dedent);
 
     space(lex);
     skip(lex, otk::ColonEnd);
@@ -1781,28 +1785,9 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
     auto __trace = trace(lex);
     switch (lex.kind()) {
         case otk::SubtreeStars: return parseSubtree(lex);
-        case otk::ListBegin: {
-            skip(lex, otk::ListBegin);
-            auto result = parseList(lex);
-            if (lex.at(otk::StmtListEnd)) {
-                skip(lex, otk::StmtListEnd);
-                skip(lex, otk::ListItemEnd);
-            }
-            if (lex.at(otk::ListEnd)) {
-                skip(lex, otk::ListEnd);
-            } else {
-                skip(lex, otk::Dedent);
-            }
-            return result;
-        }
-
         case otk::Indent: {
-            lex.next();
+            skip(lex, otk::Indent);
             auto result = parseList(lex);
-            if (lex.at(otk::StmtListEnd)) {
-                skip(lex, otk::StmtListEnd);
-                skip(lex, otk::ListItemEnd);
-            }
             skip(lex, otk::Dedent);
             return result;
         }

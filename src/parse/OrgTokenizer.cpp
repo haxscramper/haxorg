@@ -705,7 +705,7 @@ struct LineToken {
             case otk::LeadingNumber:
             case otk::TreeClock:
             case otk::LeadingMinus: {
-                indent = rs::count(first->text, ' ');
+                indent = rs::count(first->text, ' ') + 2;
                 break;
             }
             default:
@@ -1000,7 +1000,9 @@ struct GroupVisitorState {
         if (TraceState) {
             d->print(
                 lex,
-                fmt("  LINE: indent={} kind={}", line.indent, line.kind),
+                fmt("  ADD LINE: indent={} kind={}",
+                    line.indent,
+                    line.kind),
                 code_line,
                 function);
         }
@@ -1028,7 +1030,6 @@ struct GroupVisitorState {
                             ++tok_idx;
                         }
 
-                        add_fake(otk::StmtListBegin, ind);
                     } else {
                         add_base(tok, ind);
                     }
@@ -1045,9 +1046,6 @@ struct GroupVisitorState {
                         ++tok_idx;
                     }
 
-                    if (gr.kind == GK::ListItem) {
-                        add_fake(otk::StmtListBegin, ind);
-                    }
                     break;
                 }
                 default: {
@@ -1065,9 +1063,10 @@ struct GroupVisitorState {
                            char const* function = __builtin_FUNCTION()) {
                 if (TraceState) {
                     print1(
-                        fmt("indent: {}, gr.indent(): {}",
+                        fmt("indent: {}, gr.indent(): {} index {}",
                             ind,
-                            gr.indent()),
+                            gr.indent(),
+                            gr_index),
                         2,
                         line,
                         function);
@@ -1076,23 +1075,35 @@ struct GroupVisitorState {
             if (gr.kind == GK::ListItem) {
                 dbg();
                 if (ind.empty()) {
-                    add_fake(otk::ListBegin, ind);
+                    add_fake(otk::Indent, ind);
                     ind.push_back(gr.indent());
                 } else if (ind.back() < gr.indent()) {
-                    add_fake(otk::StmtListEnd, ind);
-                    add_fake(otk::ListItemEnd, ind);
                     add_fake(otk::Indent, ind);
                     ind.push_back(gr.indent());
                 } else if (gr.indent() < ind.back()) {
                     while (!ind.empty() && gr.indent() < ind.back()) {
-                        add_fake(otk::StmtListEnd, ind);
-                        add_fake(otk::ListItemEnd, ind);
                         add_fake(otk::Dedent, ind);
                         ind.pop_back();
                     }
+
+                    /*
+                     * ```
+                     * - top1
+                     *   - nested 1
+                     * - top2
+                     * ```
+                     *
+                     * This nested list arrangement causes ambiguity --
+                     * there is a 'dedent' for a nested list 1, but the
+                     * parser does not have enough information to figure
+                     * out that the whole top1 item is done and top2 must
+                     * be parsed as a part of different item.
+                     *
+                     */
+                    if (!ind.empty() && ind.back() == gr.indent()) {
+                        add_fake(otk::ListItemEnd, ind);
+                    }
                 } else if (ind.back() == gr.indent()) {
-                    add_fake(otk::StmtListEnd, ind);
-                    add_fake(otk::ListItemEnd, ind);
                     add_fake(otk::SameIndent, ind);
                 }
                 dbg();
@@ -1108,17 +1119,11 @@ struct GroupVisitorState {
                  * ```
                  */
 
-                dbg();
-                while (!ind.empty() && gr.indent() <= ind.back()) {
-                    add_fake(otk::StmtListEnd, ind);
-                    add_fake(otk::ListItemEnd, ind);
+                while (!ind.empty() && gr.indent() < ind.back()) {
+                    dbg();
                     ind.pop_back();
 
-                    if (ind.empty()) {
-                        add_fake(otk::ListEnd, ind);
-                    } else {
-                        add_fake(otk::Dedent, ind);
-                    }
+                    add_fake(otk::Dedent, ind);
                 }
                 dbg();
             }
@@ -1183,12 +1188,10 @@ struct GroupVisitorState {
 
         if (!ind.empty()) {
             for (auto const& _ : ind) {
-                add_fake(otk::StmtListEnd, ind);
-                add_fake(otk::ListItemEnd, ind);
                 ind.pop_back();
                 if (!ind.empty()) { add_fake(otk::Dedent, ind); }
             }
-            add_fake(otk::ListEnd, ind);
+            add_fake(otk::Dedent, ind);
         }
     }
 
@@ -1203,7 +1206,7 @@ struct GroupVisitorState {
                      + Str(" ").repeated(std::clamp<int>(
                          width - (text.runeLen() + level * 2), 0, width));
 
-        d->print(lex, aligned, __LINE__, "group", level);
+        d->print(lex, aligned, line, "group", level);
     };
 
     void print_line(CR<LineToken> line, Str prefix, int level) {

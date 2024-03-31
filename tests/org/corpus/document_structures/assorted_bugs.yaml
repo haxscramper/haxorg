@@ -615,17 +615,46 @@ items:
       : #+end-table
 
   - name: "Double colon out of place"
+    debug:
+      doParse: false
     source: |
       - [2023-05-09  Tue  14:32:07]   Using  [[https://doc.qt.io/qt-6/qtextdocumentfragment.html#toHtml][QTextDocumentFragment  Class::toHtml]]
         paired
 
   - name: "Double colon out of place 2"
+    debug:
+      doParse: false
     source: |
       - [2023-05-09  Tue  14:32:07]   Using  [[https://doc.qt.io/qt-6/qtextdocumentfragment.html#toHtml][QTextDocumentFragment  Class :: toHtml]]
         paired
 
   - name: "Another list abomination"
     source: |
+      - e
+        - Sub list
+
+        Content
+
+        - Sub List
+
+        Content
+
+        - Item
+        - Item2 
+
+      - e2
+      - e3
+
+      Content
+
+  - name: "Another list abomination 2"
+    source: |
+      - e
+        - Pa
+
+          #+begin_example
+          ,#+begin_quote
+          #+end_example
       - e
         - Pa
 
