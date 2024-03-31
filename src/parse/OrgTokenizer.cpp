@@ -685,6 +685,7 @@ struct LineToken {
     void setIndent() {
         CR<OrgToken> first = tokens.at(0);
         switch (first.kind) {
+            case otk::CmdExampleLine:
             case otk::SrcContent: {
                 for (auto const& ch : first->text) {
                     if (ch == ' ') {
@@ -788,7 +789,8 @@ struct GroupToken {
         if (first) {
             auto const& token = first->get().tokens.get(0);
             if (token) {
-                return token->get().kind == otk::SrcContent;
+                return OrgTokSet{otk::SrcContent, otk::CmdExampleLine}
+                    .contains(token->get().kind);
             } else {
                 return false;
             }
@@ -1131,8 +1133,8 @@ struct GroupVisitorState {
             // Org-mode allows effectively any form of the source code
             // indentation and because of the base lexer does not have
             // enough context to figure out where indentation ends and
-            // source code begins token regrouping must do the transform
-            // here.
+            // source code begins, so token regrouping must do the
+            // transform here.
             if (gr.isSrc()) {
                 auto const& nest = gr.getNested();
                 rec_add_line(gr, nest.begin, ind);
