@@ -163,6 +163,10 @@ def test_gv_graph():
     dot.render("/tmp/result.dot", format="dot")
     dot.render("/tmp/result.png", format="png")
 
+    map = getJsonGraph(mind_map_org.read_text())
+
+    Path("/tmp/result.json").write_text(map.model_dump_json(indent=2))
+
 
 def test_node_properties():
     map = getJsonGraph("""

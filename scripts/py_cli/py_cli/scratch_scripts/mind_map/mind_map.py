@@ -11,7 +11,18 @@ from py_cli.haxorg_cli import (
     Field,
 )
 
-from beartype.typing import List, Union, Optional, Dict, Callable, Any, Iterable, Set
+from beartype.typing import (
+    List,
+    Union,
+    Optional,
+    Dict,
+    Callable,
+    Any,
+    Iterable,
+    Set,
+    Literal,
+)
+
 from beartype import beartype
 from dataclasses import dataclass, field, replace
 import igraph as ig
@@ -300,8 +311,15 @@ class JsonGraphEdge(BaseModel, extra="forbid"):
     target: str
 
 
+class JsonGraphNodeNesting(BaseModel, extra="forbid"):
+    nodeId: str
+    nested: List["JsonGraphNodeNesting"] = Field(default_factory=list)
+    index: Optional[int] = None
+    kind: Literal["subtree", "document", "block", "unordered"]
+
+
 class JsonGraphMeta(BaseModel, extra="forbid"):
-    nested: Dict[str, Set[str]] = Field(default_factory=dict)
+    nested: List[JsonGraphNodeNesting] = Field(default_factory=list)
 
 
 class JsonGraph(BaseModel, extra="forbid"):
@@ -377,6 +395,13 @@ class GvGraph(BaseModel, extra="forbid"):
     edge_attrs: dict = Field(default_factory=dict)
     subgraphs: List["GvGraph"] = Field(default_factory=list)
 
+    def addElement(self, item: Union["GvGraph", GvGraphNode]):
+        if isinstance(item, GvGraph):
+            self.subgraphs.append(item)
+
+        else:
+            self.nodes.append(item)
+
     def to_graphviz(self) -> Union[gv.Digraph, gv.Graph]:
         graph_class = gv.Digraph if self.directed else gv.Graph
         graph = graph_class(name=self.id)
@@ -447,9 +472,19 @@ class MindMapEdge():
 
 @beartype
 @dataclass
+class MindMapNodeNesting():
+    nodeId: int
+    kind: Literal["subtree", "document", "block", "unordered"]
+    nested: List["MindMapNodeNesting"] = field(default_factory=list)
+    index: Optional[int] = None
+
+
+@beartype
+@dataclass
 class MindMapGraph():
     idProvider: NodeIdProvider
     graph: ig.Graph = field(default_factory=lambda: ig.Graph(directed=True))
+    nesting: List[MindMapNodeNesting] = field(default_factory=list)
 
     def addVertex(self, value: MindMapNode) -> int:
         idx = len(self.graph.vs)
@@ -555,13 +590,15 @@ class MindMapGraph():
                             value["isOrdered"] = prop.getOrdered().isOrdered
 
                         case org.SubtreePropertyKind.Created:
-                            value["created"] = evalDateTime(prop.getCreated().time.getStatic().time)
+                            value["created"] = evalDateTime(
+                                prop.getCreated().time.getStatic().time)
 
                         case org.SubtreePropertyKind.Visibility:
                             value["level"] = str(prop.getVisibility().level)
 
                         case org.SubtreePropertyKind.ExportOptions:
-                            export_options[prop.getExportOptions().backend] = prop.getExportOptions().values
+                            export_options[prop.getExportOptions().
+                                           backend] = prop.getExportOptions().values
                             value = export_options
 
                         case org.SubtreePropertyKind.ExportLatexCompiler:
@@ -574,7 +611,7 @@ class MindMapGraph():
                             value["header"] = prop.getExportLatexClassOptions().options
 
                         case org.SubtreePropertyKind.Trigger:
-                            pass # TODO implement trigger property
+                            pass  # TODO implement trigger property
 
                         case org.SubtreePropertyKind.Unnumbered:
                             pass
@@ -617,6 +654,17 @@ class MindMapGraph():
     def toJsonGraph(self) -> JsonGraph:
         result = JsonGraph()
 
+        def auxNested(nested: MindMapNodeNesting) -> JsonGraphNodeNesting:
+            return JsonGraphNodeNesting(
+                nodeId=self.getStrId(nested.nodeId),
+                kind=nested.kind,
+                nested=[auxNested(it) for it in nested.nested],
+                index=nested.index,
+            )
+
+        for item in self.nesting:
+            result.metadata.nested.append(auxNested(item))
+
         for idx in self.getVertices():
             result.nodes[self.getStrId(self.getNodeObj(idx))] = self.toJsonGraphNode(idx)
 
@@ -634,12 +682,9 @@ class MindMapGraph():
         dot.graph_attrs = dict(rankdir="LR", overlap="false", concentrate="true")
         dot.node_attrs = dict(shape="rect", font="Iosevka")
 
-        for idx in self.getVertices():
-            obj = self.getNodeObj(idx)
-            if obj.isDocument() and not withDocument:
-                continue
-
-            node = GvGraphNode(id=self.getIdxId(idx))
+        def getGvNode(vertexIdx: int) -> GvGraphNode:
+            obj = self.getNodeObj(vertexIdx)
+            node = GvGraphNode(id=self.getIdxId(vertexIdx))
 
             def formatOrg(node: org.Org) -> str:
                 exp = ExporterHtml(graphviz_break="left")
@@ -661,7 +706,24 @@ class MindMapGraph():
                     exp = ExporterHtml(graphviz_break="left")
                     node.label = GvHtmlLabel(text=formatOrg(obj.data.entry.content))
 
-            dot.nodes.append(node)
+            return node
+
+        @beartype
+        def auxNesting(nesting: MindMapNodeNesting) -> Union[GvGraph, GvGraphNode]:
+            if nesting.kind in ["block", "unordered"]:
+                return getGvNode(nesting.nodeId)
+
+            else:
+                result = GvGraph()
+
+                for node in nesting.nested:
+                    result.addElement(auxNesting(node))
+
+                return result
+
+        for nest in self.nesting:
+            log(CAT).info(nest)
+            dot.addElement(auxNesting(nest))
 
         for idx in self.getEdges():
             source = self.getSource(idx)
@@ -723,25 +785,28 @@ class MindMapGraph():
             pass  # TODO implement subtree nested store structure
 
         @beartype
-        def auxSubtree(tree: DocSubtree) -> int:
+        def auxSubtree(tree: DocSubtree) -> MindMapNodeNesting:
             desc = result.addVertex(MindMapNode(data=MindMapNodeSubtree(subtree=tree)))
+            nesting = MindMapNodeNesting(nodeId=desc, kind="subtree")
 
             for sub in tree.subtrees:
                 sub_desc = auxSubtree(sub)
-                auxNested(parent=desc, nested=sub_desc)
+                nesting.nested.append(sub_desc)
 
             for idx, sub in enumerate(tree.ordered):
                 entry = auxEntry(sub, idx)
+                nesting.nested.append(
+                    MindMapNodeNesting(nodeId=entry, kind="block", index=idx))
                 auxNested(parent=desc, nested=entry)
 
             for sub in tree.unordered:
                 entry = auxEntry(sub, None)
-                auxNested(parent=desc, nested=entry)
+                nesting.nested.append(MindMapNodeNesting(nodeId=entry, kind="unordered"))
 
-            return desc
+            return nesting
 
         for item in collector.root:
-            auxSubtree(item)
+            result.nesting.append(auxSubtree(item))
 
         for idx in range(0, len(result.graph.vs)):
             prop = result.getNodeObj(idx)
