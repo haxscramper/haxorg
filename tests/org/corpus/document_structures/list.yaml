@@ -5,14 +5,11 @@ items:
   - source: "- item"
     name: "Single item"
     tokens:
-      - {kind: ListBegin}
+      - {kind: Indent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: item}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: ListEnd}
+      - {kind: Dedent}
 
   - name: "List with two items"
     source: |
@@ -20,30 +17,17 @@ items:
       - Item2
 
     tokens:
-      - {kind: ListBegin}
-
-      # First list item
+      - {kind: Indent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-
-      # Intermediate indentation
       - {kind: SameIndent}
-
-      # Second list item
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Item2}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-
-      - {kind: ListEnd}
+      - {kind: Dedent}
 
     sem:
       kind: Document
@@ -69,31 +53,20 @@ items:
       - Item2
 
     tokens:
-      - {kind: ListBegin}
+      - {kind: Indent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-
-      # First content block in the input
-      - {kind: Word, str: "Item1"}
+      - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
       - {kind: LeadingSpace, str: "  "}
-      - {kind: Word, str: "Line1"}
+      - {kind: Word, str: Line1}
       - {kind: Newline, str: "\n"}
-
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
       - {kind: SameIndent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      # Second item
-      - {kind: Word, str: "Item2"}
-
+      - {kind: Word, str: Item2}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: ListEnd}
+      - {kind: Dedent}
 
     sem:
       kind: Document
@@ -144,40 +117,28 @@ items:
 
 
     tokens:
-      - {kind: ListBegin}
+      - {kind: Indent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
       - {kind: Indent}
       - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Nested1}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
       - {kind: SameIndent}
       - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Nested2}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
       - {kind: Dedent}
+      - {kind: ListItemEnd}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Item2}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: ListEnd}
-
+      - {kind: Dedent}
 
     sem:
       kind: Document
@@ -219,30 +180,21 @@ items:
           Nested2
 
     tokens:
-      - {kind: ListBegin}
+      - {kind: Indent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
       - {kind: Indent}
       - {kind: LeadingMinus, str: "  -"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Nested1}
       - {kind: MediumNewline, str: "\n\n"}
       - {kind: LeadingSpace, str: "    "}
       - {kind: Word, str: Nested2}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
       - {kind: Dedent}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: ListEnd}
-
+      - {kind: Dedent}
       
   - name: "List with unindented source code block"
     source: |
@@ -253,10 +205,9 @@ items:
         #+end_src
 
     tokens:
-      - {kind: ListBegin}
+      - {kind: Indent}
       - {kind: LeadingMinus, str: "-"}
       - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
       - {kind: LeadingSpace, str: "  "}
@@ -265,16 +216,15 @@ items:
       - {kind: Whitespace, str: " "}
       - {kind: CmdRawArg, str: nim}
       - {kind: CmdContentBegin}
-      - {kind: SrcContent, str: "indented"}
+      - {kind: SrcContent, str: indented}
       - {kind: Newline, str: "\n"}
-      - {kind: SrcContent, str: "two_lines"}
+      - {kind: SrcContent, str: two_lines}
       - {kind: Newline, str: "\n"}
       - {kind: CmdPrefix}
       - {kind: CmdSrcEnd, str: "  #+end_src"}
       - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: ListEnd}
+      - {kind: Dedent}
+
 
   - name: "Indent and dedent long list"
     source: |
@@ -292,136 +242,6 @@ items:
               - item1411
                 - item14111
         - item3
-    tokens:
-      - {kind: ListBegin}
-      - {kind: LeadingMinus, str: "-"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item1}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: SameIndent}
-      - {kind: LeadingMinus, str: "-"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item2}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Indent}
-      - {kind: LeadingMinus, str: "  -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item11}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Indent}
-      - {kind: LeadingMinus, str: "    -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item111}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: SameIndent}
-      - {kind: LeadingMinus, str: "    -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item112}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Dedent}
-      - {kind: LeadingMinus, str: "  -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item12}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: SameIndent}
-      - {kind: LeadingMinus, str: "  -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item13}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Indent}
-      - {kind: LeadingMinus, str: "    -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item131}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Indent}
-      - {kind: LeadingMinus, str: "      -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item1311}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Dedent}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Dedent}
-      - {kind: LeadingMinus, str: "  -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item14}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Indent}
-      - {kind: LeadingMinus, str: "    -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item141}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Indent}
-      - {kind: LeadingMinus, str: "      -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item1411}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Indent}
-      - {kind: LeadingMinus, str: "        -"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item14111}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Dedent}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Dedent}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Dedent}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: Dedent}
-      - {kind: LeadingMinus, str: "-"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: Word, str: item3}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: ListEnd}
-
-
-
-
 
   - name: "Source code block as list item"
     source: |
@@ -429,29 +249,6 @@ items:
         #+begin_src xml
         <Thing>
         #+end_src
-
-    tokens:
-      - {kind: ListBegin}
-      - {kind: LeadingMinus, str: "-"}
-      - {kind: Whitespace, str: " "}
-      - {kind: StmtListBegin}
-      - {kind: BigIdent, str: "T"}
-      - {kind: Newline, str: "\n"}
-      - {kind: LeadingSpace, str: "  "}
-      - {kind: CmdPrefix, str: "#+"}
-      - {kind: CmdSrcBegin, str: begin_src}
-      - {kind: Whitespace, str: " "}
-      - {kind: CmdRawArg, str: xml}
-      - {kind: CmdContentBegin}
-      - {kind: SrcContent, str: "<Thing>"}
-      - {kind: Newline, str: "\n"}
-      - {kind: CmdPrefix}
-      - {kind: CmdSrcEnd, str: "  #+end_src"}
-      - {kind: Newline, str: "\n"}
-      - {kind: StmtListEnd}
-      - {kind: ListItemEnd}
-      - {kind: ListEnd}
-
 
   - name: "Indent and dedent long list, subset"
     conf:
