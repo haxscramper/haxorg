@@ -1977,6 +1977,18 @@ node can have subnodes.)RAW")
     .def_readwrite("parseTracePath", &sem::OrgParseParameters::parseTracePath)
     .def_readwrite("semTracePath", &sem::OrgParseParameters::semTracePath)
     ;
+  pybind11::class_<sem::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgYamlExportOpts {
+                        sem::OrgYamlExportOpts result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("skipNullFields", &sem::OrgYamlExportOpts::skipNullFields)
+    .def_readwrite("skipFalseFields", &sem::OrgYamlExportOpts::skipFalseFields)
+    .def_readwrite("skipZeroFields", &sem::OrgYamlExportOpts::skipZeroFields)
+    .def_readwrite("skipLocation", &sem::OrgYamlExportOpts::skipLocation)
+    .def_readwrite("skipId", &sem::OrgYamlExportOpts::skipId)
+    ;
   pybind11::class_<sem::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgTreeExportOpts {
                         sem::OrgTreeExportOpts result{};
@@ -2272,12 +2284,14 @@ fields)RAW")
         static_cast<std::string(*)(sem::SemId<sem::Org>)>(&sem::formatToString),
         pybind11::arg("arg"));
   m.def("exportToYamlString",
-        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&sem::exportToYamlString),
-        pybind11::arg("node"));
-  m.def("exportToYamlFile",
-        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&sem::exportToYamlFile),
+        static_cast<std::string(*)(sem::SemId<sem::Org> const&, sem::OrgYamlExportOpts const&)>(&sem::exportToYamlString),
         pybind11::arg("node"),
-        pybind11::arg("path"));
+        pybind11::arg("opts"));
+  m.def("exportToYamlFile",
+        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string, sem::OrgYamlExportOpts const&)>(&sem::exportToYamlFile),
+        pybind11::arg("node"),
+        pybind11::arg("path"),
+        pybind11::arg("opts"));
   m.def("exportToJsonString",
         static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&sem::exportToJsonString),
         pybind11::arg("node"));

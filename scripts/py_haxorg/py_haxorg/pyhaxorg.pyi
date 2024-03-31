@@ -1049,6 +1049,13 @@ class OrgParseParameters:
     parseTracePath: Optional[str]
     semTracePath: Optional[str]
 
+class OrgYamlExportOpts:
+    skipNullFields: bool
+    skipFalseFields: bool
+    skipZeroFields: bool
+    skipLocation: bool
+    skipId: bool
+
 class OrgTreeExportOpts:
     withLineCol: bool
     withOriginalId: bool
@@ -1162,9 +1169,9 @@ def parseStringOpts(text: str, opts: OrgParseParameters) -> Document: ...
 
 def formatToString(arg: Org) -> str: ...
 
-def exportToYamlString(node: Org) -> str: ...
+def exportToYamlString(node: Org, opts: OrgYamlExportOpts) -> str: ...
 
-def exportToYamlFile(node: Org, path: str) -> None: ...
+def exportToYamlFile(node: Org, path: str, opts: OrgYamlExportOpts) -> None: ...
 
 def exportToJsonString(node: Org) -> str: ...
 

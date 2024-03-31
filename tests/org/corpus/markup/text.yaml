@@ -1,6 +1,3 @@
-lex: "Structure"
-parse: "InlineParagraph"
-expected: "Flat"
 items:
   - name: "Bold text"
     source: "*bold*"
@@ -24,13 +21,11 @@ items:
                   text: "bold"
 
   - source: "/italic/"
+    name: "Italic 1"
     tokens:
       - {kind: ItalicBegin, str: "/"}
       - {kind: Word, str: "italic"}
       - {kind: ItalicEnd, str: "/"}
-
-  # - name: "Link with description"
-  #   source: "[[link:http][description]]"
 
   - name: "Symbol"
     source: "\\symbol{}"

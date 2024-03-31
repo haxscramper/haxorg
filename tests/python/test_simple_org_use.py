@@ -6,8 +6,16 @@ from py_exporters.export_tex import ExporterLatex
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 from py_textlayout.py_textlayout_wrap import TextOptions, BlockId
-from py_haxorg.utils import toTree
 from py_scriptutils.script_logging import log
+from py_scriptutils.files import get_haxorg_repo_root_path
+import yaml
+from pathlib import Path
+from pydantic import BaseModel, Field
+from dominate import tags, util
+import dominate
+from beartype import beartype
+from beartype.typing import Any, List
+from py_scriptutils.rich_utils import render_debug
 
 osk = org.OrgSemKind
 CAT = "test_simple_org_use.py"
@@ -96,3 +104,82 @@ Content2
     text = org.formatToString(node)
     assert "wont_be_added" not in text
     assert "new_content" in text
+
+
+class CorpusDebug(BaseModel):
+    doParse: bool = True
+    doLex: bool = True
+
+
+class CorpusEntry(BaseModel, extra="forbid"):
+    name: str
+    source: Optional[str] = None
+    file: Optional[str] = None
+    debug: CorpusDebug = Field(default_factory=lambda: CorpusDebug())
+    base_tokens: Optional[List[Any]] = None
+    tokens: Optional[List[Any]] = None
+    sem: Optional[Dict] = None
+    conf: Optional[Dict] = None
+    subnodes: Optional[List[Any]] = None
+
+
+class CorpusFile(BaseModel, extra="forbid"):
+    items: List[CorpusEntry]
+
+
+@beartype
+def load_yaml(path: Path) -> Any:
+    with open(path, "r") as file:
+        return yaml.load(file, Loader=yaml.SafeLoader)
+
+
+def as_multiline(txt: str):
+    for idx, part in enumerate(txt.split("\n")):
+        if idx != 0:
+            tags.br()
+
+        util.text(part)
+
+
+borders = dict(border=1, style='border-collapse: collapse; width: 100%;')
+
+
+def test_sem_parser_expected():
+    corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
+    corpus_files = corpus_root.rglob("*.yaml")
+    corpus_data = [CorpusFile.model_validate(load_yaml(file)) for file in corpus_files]
+
+    with dominate.document() as doc:
+        with tags.table(**borders) as table:
+            for file in corpus_data:
+                for entry in file.items:
+                    with tags.tr():
+                        if entry.source:
+                            text = entry.source
+
+                        else:
+                            text = corpus_root.joinpath(entry.file).read_text()
+
+                        with tags.td():
+                            with tags.pre():
+                                as_multiline(text)
+
+                        with tags.td():
+                            if entry.debug.doLex and entry.debug.doParse:
+                                node = org.parseString(text)
+                                with tags.pre():
+                                    as_multiline(
+                                        org.exportToYamlString(
+                                            node,
+                                            org.OrgYamlExportOpts(
+                                                skipNullFields=True,
+                                                skipFalseFields=True,
+                                                skipZeroFields=True,
+                                                skipLocation=True,
+                                                skipId=True,
+                                            )))
+
+                            else:
+                                util.text("Parse disabled")
+
+    Path("/tmp/result.html").write_text(str(doc))

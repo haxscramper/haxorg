@@ -34,10 +34,32 @@ struct [[refl]] OrgParseParameters {
 
 [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
 
-[[refl]] std::string exportToYamlString(sem::SemId<sem::Org> const& node);
-[[refl]] void        exportToYamlFile(
-           sem::SemId<sem::Org> const& node,
-           std::string                 path);
+struct [[refl]] OrgYamlExportOpts {
+    [[refl]] bool skipNullFields  = false;
+    [[refl]] bool skipFalseFields = false;
+    [[refl]] bool skipZeroFields  = false;
+    [[refl]] bool skipLocation    = false;
+    [[refl]] bool skipId          = false;
+
+    BOOST_DESCRIBE_CLASS(
+        OrgYamlExportOpts,
+        (),
+        (skipNullFields,
+         skipFalseFields,
+         skipZeroFields,
+         skipLocation,
+         skipId),
+        (),
+        ());
+};
+
+[[refl]] std::string exportToYamlString(
+    sem::SemId<sem::Org> const& node,
+    OrgYamlExportOpts const&    opts);
+[[refl]] void exportToYamlFile(
+    sem::SemId<sem::Org> const& node,
+    std::string                 path,
+    OrgYamlExportOpts const&    opts);
 
 [[refl]] std::string exportToJsonString(sem::SemId<sem::Org> const& node);
 [[refl]] void        exportToJsonFile(

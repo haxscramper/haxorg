@@ -28,16 +28,29 @@ void sem::exportToJsonFile(
     writeFile(fs::path{path}, exportToJsonString(node));
 }
 
-std::string sem::exportToYamlString(sem::SemId<sem::Org> const& node) {
+std::string sem::exportToYamlString(
+    sem::SemId<sem::Org> const& node,
+    const OrgYamlExportOpts&    opts) {
     std::stringstream os;
-    os << ExporterYaml{}.evalTop(node);
+
+    ExporterYaml exp{
+        .skipNullFields  = opts.skipNullFields,
+        .skipFalseFields = opts.skipFalseFields,
+        .skipZeroFields  = opts.skipZeroFields,
+        .skipLocation    = opts.skipLocation,
+        .skipId          = opts.skipId,
+    };
+
+    os << exp.evalTop(node);
+
     return os.str();
 }
 
 void sem::exportToYamlFile(
     sem::SemId<sem::Org> const& node,
-    std::string                 path) {
-    writeFile(fs::path{path}, exportToYamlString(node));
+    std::string                 path,
+    const OrgYamlExportOpts&    opts) {
+    writeFile(fs::path{path}, exportToYamlString(node, opts));
 }
 
 
