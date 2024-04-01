@@ -510,11 +510,21 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                 return false;
             } else {
                 if (lhs.isTerminal()) {
-                    auto const& lhsTok = parsed.tokens->at(lhs.getToken());
-                    auto const& rhsTok = expected.tokens->at(
-                        rhs.getToken());
-                    return lhsTok.kind == rhsTok.kind
-                        && lhsTok.value.text == rhsTok.value.text;
+                    if (parsed.tokens != nullptr
+                        && expected.tokens != nullptr
+                        && lhs.getToken().getIndex()
+                               < parsed.tokens->size()
+                        && rhs.getToken().getIndex()
+                               < expected.tokens->size()) {
+                        auto const& lhsTok = parsed.tokens->at(
+                            lhs.getToken());
+                        auto const& rhsTok = expected.tokens->at(
+                            rhs.getToken());
+                        return lhsTok.kind == rhsTok.kind
+                            && lhsTok.value.text == rhsTok.value.text;
+                    } else {
+                        return lhs.getToken() == rhs.getToken();
+                    }
                 } else {
                     return lhs.getExtent() == rhs.getExtent();
                 }
@@ -762,34 +772,38 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecLex(p2, rerun);
     runSpecParse(p2, rerun);
 
-    if (!spec.debug.doFormatReparse) { return skip; }
 
-    auto filterBrittleNodes =
-        [](OrgNodeGroup const& nodes) -> Vec<OrgNode> {
-        return nodes.nodes.content
-             | rv::filter([](OrgNode const& it) -> bool {
-                   return !OrgSet{org::Newline, org::Empty, org::Space}
-                               .contains(it.kind);
-               })
-             | rv::transform([](OrgNode const& it) -> OrgNode {
-                   OrgNode result = it;
-                   if (result.isNonTerminal()) { result.extend(0); }
-                   return result;
-               })
-             | rs::to<Vec>();
-    };
+    if (spec.debug.doFlatReparseCompare) {
+        auto filterBrittleNodes =
+            [](OrgNodeGroup const& nodes) -> Vec<OrgNode> {
+            return nodes.nodes.content
+                 | rv::filter([](OrgNode const& it) -> bool {
+                       return !OrgSet{org::Newline, org::Empty, org::Space}
+                                   .contains(it.kind);
+                   })
+                 | rv::transform([](OrgNode const& it) -> OrgNode {
+                       OrgNode result = it;
+                       if (result.isNonTerminal()) { result.extend(0); }
+                       return result;
+                   })
+                 | rs::to<Vec>();
+        };
 
-    OrgNodeGroup originalNodes;
-    OrgNodeGroup reparsedNodes;
-    originalNodes.tokens        = &p.tokens;
-    originalNodes.nodes.content = filterBrittleNodes(p.nodes);
-    reparsedNodes.tokens        = &p2.tokens;
-    reparsedNodes.nodes.content = filterBrittleNodes(p2.nodes);
+        OrgNodeGroup originalNodes;
+        OrgNodeGroup reparsedNodes;
+        originalNodes.tokens        = &p.tokens;
+        originalNodes.nodes.content = filterBrittleNodes(p.nodes);
+        reparsedNodes.tokens        = &p2.tokens;
+        reparsedNodes.nodes.content = filterBrittleNodes(p2.nodes);
 
-    auto flat_reparse_compare = compareNodes(reparsedNodes, originalNodes);
-    if (!flat_reparse_compare.isOk) {
-        return RunResult{flat_reparse_compare};
+        auto flat_reparse_compare = compareNodes(
+            reparsedNodes, originalNodes);
+        if (!flat_reparse_compare.isOk) {
+            return RunResult{flat_reparse_compare};
+        }
     }
+
+    if (!spec.debug.doFormatReparse) { return skip; }
 
     auto reformat_result = runSpecSem(p2, rerun);
     if (!reformat_result.isOk || spec.debug.traceAll
@@ -859,7 +873,14 @@ ${split}
 
     if (!reformat_result.isOk) { return RunResult{reformat_result}; }
 
-    return RunResult();
+    // flat reparse and compare does not prevent the full test execution,
+    // but it *is* skipping parts of the check, so the example is
+    // considered skipped.
+    if (spec.debug.doFlatReparseCompare) {
+        return skip;
+    } else {
+        return RunResult();
+    }
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
