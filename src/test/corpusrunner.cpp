@@ -505,12 +505,16 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
     auto         paths = longestCommonSubsequence<OrgNode>(
         parsed.nodes.content,
         expected.nodes.content,
-        [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
+        [&](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
             if (lhs.kind != rhs.kind) {
                 return false;
             } else {
                 if (lhs.isTerminal()) {
-                    return lhs.getToken() == rhs.getToken();
+                    auto const& lhsTok = parsed.tokens->at(lhs.getToken());
+                    auto const& rhsTok = expected.tokens->at(
+                        rhs.getToken());
+                    return lhsTok.kind == rhsTok.kind
+                        && lhsTok.value.text == rhsTok.value.text;
                 } else {
                     return lhs.getExtent() == rhs.getExtent();
                 }
@@ -544,25 +548,24 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
 
                 auto group = isLhs ? &parsed : &expected;
 
-                return "$# $# $#($# $#)"
-                     % to_string_vec(
-                           id,
-                           node.kind,
-                           node.isTerminal() ? escape_literal(
-                               hshow(
-                                   group->tokens->tokens.content
-                                       .get_copy(
-                                           node.getToken().getIndex())
-                                       .value_or(OrgToken{})
-                                       ->text,
-                                   HDisplayOpts().excl(
-                                       HDisplayFlag::UseQuotes))
-                                   .toString(false))
-                                             : std::string(""),
-                           node.kind,
-                           node.isTerminal()
-                               ? "tok=" + fmt1(node.getToken().getIndex())
-                               : "ext=" + fmt1(node.getExtent()));
+                return fmt(
+                    "{} {} {}({})",
+                    id,
+                    node.kind,
+                    node.isTerminal() ? escape_literal(
+                        hshow(
+                            group->tokens->tokens.content
+                                .get_copy(node.getToken().getIndex())
+                                .value_or(OrgToken{})
+                                ->text,
+                            HDisplayOpts().excl(HDisplayFlag::UseQuotes))
+                            .toString(false))
+                                      : std::string(""),
+                    node.isTerminal() ? fmt(
+                        "id={} kind={}",
+                        node.getToken().getIndex(),
+                        group->tokens->at(node.getToken()).kind)
+                                      : fmt("ext={}", node.getExtent()));
             },
             48,
             16,
@@ -767,6 +770,11 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
              | rv::filter([](OrgNode const& it) -> bool {
                    return !OrgSet{org::Newline, org::Empty, org::Space}
                                .contains(it.kind);
+               })
+             | rv::transform([](OrgNode const& it) -> OrgNode {
+                   OrgNode result = it;
+                   if (result.isNonTerminal()) { result.extend(0); }
+                   return result;
                })
              | rs::to<Vec>();
     };
