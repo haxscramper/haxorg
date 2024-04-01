@@ -164,7 +164,10 @@ void format(
             lines.push_back(pair);
         }
 
-        if (lines.empty()) { return; }
+        if (lines.empty()) {
+            os << "No diff content to compare\n";
+            return;
+        }
 
         Slice<int> range = slice(0, lines.size() - 1);
         if (dropLeadingKeep) {

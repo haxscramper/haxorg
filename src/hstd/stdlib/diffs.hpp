@@ -388,53 +388,56 @@ struct ShiftedDiff {
     struct Item {
         SeqEditKind kind;
         int         item;
+        BOOST_DESCRIBE_CLASS(Item, (), (kind, item), (), ());
     };
 
     Vec<Item> oldShifted;
     Vec<Item> newShifted;
 
+    BOOST_DESCRIBE_CLASS(
+        ShiftedDiff,
+        (),
+        (oldShifted, newShifted),
+        (),
+        ());
+
     /// \brief Construct shifted diff pairing from LCS trace information
     inline ShiftedDiff(CR<BacktrackRes> track, int lhsMax, int rhsMax) {
-        using sek = SeqEditKind;
-        if (!track.lhsIndex.empty()) {
-            int fullSize = std::max(lhsMax, rhsMax);
-            int prevLhs  = 0;
-            int prevRhs  = 0;
-            for (int pos = 0; pos < track.lhsIndex.size(); ++pos) {
-                int lhsPos = track.lhsIndex.at(pos);
-                int rhsPos = track.rhsIndex.at(pos);
-                for (int i = prevLhs; i < lhsPos; ++i) {
-                    newShifted.push_back(Item{sek::None, 0});
-                    oldShifted.push_back(Item{sek::Delete, i});
-                }
-
-                for (int i = prevRhs; i < rhsPos; ++i) {
-                    newShifted.push_back(Item{sek::Insert, i});
-                    oldShifted.push_back(Item{sek::None, 0});
-                }
-
-                newShifted.push_back(Item{sek::Keep, rhsPos});
-                oldShifted.push_back(Item{sek::Keep, lhsPos});
-                prevLhs = lhsPos + 1;
-                prevRhs = rhsPos + 1;
+        using sek    = SeqEditKind;
+        int prevLhs  = 0;
+        int prevRhs  = 0;
+        int fullSize = std::max(lhsMax, rhsMax);
+        for (int pos = 0; pos < track.lhsIndex.size(); ++pos) {
+            int lhsPos = track.lhsIndex.at(pos);
+            int rhsPos = track.rhsIndex.at(pos);
+            for (int i = prevLhs; i < lhsPos; ++i) {
+                newShifted.push_back(Item{sek::None, 0});
+                oldShifted.push_back(Item{sek::Delete, i});
             }
 
-
-            if (prevLhs < lhsMax) {
-                for (int lhsPos = prevLhs; lhsPos < lhsMax; ++lhsPos) {
-                    oldShifted.push_back(Item{sek::Delete, lhsPos});
-                    newShifted.push_back(Item{sek::None, 0});
-                }
+            for (int i = prevRhs; i < rhsPos; ++i) {
+                newShifted.push_back(Item{sek::Insert, i});
+                oldShifted.push_back(Item{sek::None, 0});
             }
 
-            if (prevRhs < rhsMax) {
-                for (int rhsPos = prevRhs; rhsPos < rhsMax; ++rhsPos) {
-                    oldShifted.push_back(Item{sek::None, 0});
-                    newShifted.push_back(Item{sek::Insert, rhsPos});
-                }
+            newShifted.push_back(Item{sek::Keep, rhsPos});
+            oldShifted.push_back(Item{sek::Keep, lhsPos});
+            prevLhs = lhsPos + 1;
+            prevRhs = rhsPos + 1;
+        }
+
+        if (prevLhs < lhsMax) {
+            for (int lhsPos = prevLhs; lhsPos < lhsMax; ++lhsPos) {
+                oldShifted.push_back(Item{sek::Delete, lhsPos});
+                newShifted.push_back(Item{sek::None, 0});
             }
-        } else {
-            // IMPLEMENT for case with zero common elements between diffs
+        }
+
+        if (prevRhs < rhsMax) {
+            for (int rhsPos = prevRhs; rhsPos < rhsMax; ++rhsPos) {
+                oldShifted.push_back(Item{sek::None, 0});
+                newShifted.push_back(Item{sek::Insert, rhsPos});
+            }
         }
     }
 
