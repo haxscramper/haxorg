@@ -67,7 +67,7 @@ void OrgParser::newline(OrgLexer& lex, int line, char const* function) {
 
 SubLexer<OrgTokenKind, OrgFill> subToEol(OrgLexer& lex) {
     SubLexer sub{lex};
-    while (lex.can_search(Newline)) { sub.add(lex.pop()); }
+    while (lex.can_search(ParagraphTerminator)) { sub.add(lex.pop()); }
     if (!sub.tokens.empty()) { sub.start(); }
     return sub;
 }

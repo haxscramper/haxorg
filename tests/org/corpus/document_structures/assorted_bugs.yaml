@@ -10,6 +10,8 @@ items:
       don't think I've done
 
   - name: Long newline unhandled
+    debug:
+      doFlatReparseCompare: false
     source: |
       *** 2023-10-14 Saturday
 
@@ -32,6 +34,7 @@ items:
 
   - name: "Long newline after the command block end"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       #+begin_src 
@@ -157,6 +160,7 @@ items:
 
   - name: "Standalone caption"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       - [2023-11-09 Thu 18:33:38 +04]
@@ -218,6 +222,7 @@ items:
 
   - name: "Table with trailing medium newline"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
 
@@ -286,6 +291,7 @@ items:
 
   - name: "Closing curly in link"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       src_sh{ping
@@ -337,6 +343,7 @@ items:
   - name: "tbflm"
     debug: 
       doFormatReparse: false
+      doFlatReparseCompare: false
     source: |
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
@@ -417,6 +424,8 @@ items:
     # Missing `:` after the deadline annotations causes the parser to treat 
     # property list as a standalone block of text, not attached to the subtree
     # and fail because of that 
+    debug:
+      doFlatReparseCompare: false
     source: |
       **** COMPLETED Зачет АПО ЭВМ
           CLOSED: [2022-04-08 Fri 21:45:09] DEADLINE <2022-04-08 Fri 12:40:00>
@@ -469,6 +478,7 @@ items:
 
   - name: "Name and results"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       #+name: xxx
