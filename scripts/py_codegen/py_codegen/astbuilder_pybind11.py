@@ -502,18 +502,6 @@ class Py11Class:
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
 
-        def to_arg(f: Py11Field) -> GenTuIdent:
-            value = f.Default
-            if f.Type.name == "Vec" and f.Default == "{}":
-                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
-
-            elif f.Type.name == "UnorderedMap" and not f.Default:
-                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
-
-            elif f.Type.name in ["Str", "string"] and not f.Default:
-                value = ast.Literal("")
-
-            return GenTuIdent(type=f.Type, name=f.PyName, value=value)
 
         self.InitImpls.append(
             Py11Method(
@@ -543,10 +531,7 @@ class Py11Class:
                 IsInit=True,
                 ExplicitClassParam=True,
             ))
-
-    def AddInit(self, Args: List[ParmVarParams], Impl: List[BlockId]):
-        self.InitImpls.append(Py11Method("", "", QualType.ForName(""), Args, Body=Impl))
-
+        
     def dedup_methods(self) -> List[Py11Method]:
         res: List[Py11Method] = []
         for key, _group in itertools.groupby(self.Methods, lambda M: (M.CxxName, M.Args)):

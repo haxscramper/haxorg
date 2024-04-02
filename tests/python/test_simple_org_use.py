@@ -144,6 +144,14 @@ def as_multiline(txt: str):
 borders = dict(border=1, style='border-collapse: collapse; width: 100%;')
 
 
+def test_unexpected_field_passed():
+    try:
+        tree = org.Subtree(askldfjaslkdfjaksdjfaksdjfaksdjf="12222")
+        assert False, "No error triggered with unknown field"
+
+    except RuntimeError as err:
+        pass
+
 def test_sem_parser_expected():
     corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
     corpus_files = corpus_root.rglob("*.yaml")
