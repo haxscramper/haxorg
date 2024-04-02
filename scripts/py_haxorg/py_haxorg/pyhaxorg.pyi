@@ -3,6 +3,7 @@ from typing import *
 from enum import Enum
 from datetime import datetime, date, time
 class Org:
+    def __init__(self, loc: Optional[LineCol], documentId: Optional[int], subnodes: List[Org]) -> None: ...
     def getKind(self) -> OrgSemKind: ...
     def isGenerated(self) -> bool: ...
     def push_back(self, sub: Org) -> None: ...
@@ -16,62 +17,73 @@ class Org:
     subnodes: List[Org]
 
 class LineCol:
+    def __init__(self, line: int, column: int, pos: int) -> None: ...
     line: int
     column: int
     pos: int
 
 class Stmt(Org):
+    def __init__(self, attached: List[Org]) -> None: ...
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     attached: List[Org]
 
 class Inline(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class StmtList(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class Empty(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class Cell(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class Row(Org):
+    def __init__(self, cells: List[Cell]) -> None: ...
     cells: List[Cell]
 
 class Table(Stmt):
+    def __init__(self, rows: List[Row], attached: List[Org]) -> None: ...
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     rows: List[Row]
     attached: List[Org]
 
 class HashTag(Inline):
+    def __init__(self, head: str, subtags: List[HashTag]) -> None: ...
     def prefixMatch(self, prefix: List[str]) -> bool: ...
     head: str
     subtags: List[HashTag]
 
 class Footnote(Inline):
+    def __init__(self, tag: str, definition: Optional[Org]) -> None: ...
     tag: str
     definition: Optional[Org]
 
 class Completion(Inline):
+    def __init__(self, done: int, full: int, isPercent: bool) -> None: ...
     done: int
     full: int
     isPercent: bool
 
 class Paragraph(Stmt):
+    def __init__(self, attached: List[Org]) -> None: ...
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     attached: List[Org]
 
 class AnnotatedParagraphNone:
-    pass
+    def __init__(self) -> None: ...
 
 class AnnotatedParagraphFootnote:
+    def __init__(self, name: str) -> None: ...
     name: str
 
 class AnnotatedParagraphAdmonition:
+    def __init__(self, name: BigIdent) -> None: ...
     name: BigIdent
 
 class AnnotatedParagraphTimestamp:
+    def __init__(self, time: Time) -> None: ...
     time: Time
 
 AnnotatedParagraphData = Union[AnnotatedParagraphNone, AnnotatedParagraphFootnote, AnnotatedParagraphAdmonition, AnnotatedParagraphTimestamp]
@@ -82,6 +94,7 @@ class AnnotatedParagraphAnnotationKind(Enum):
     Timestamp = 4
 
 class AnnotatedParagraph(Stmt):
+    def __init__(self, data: AnnotatedParagraphData, attached: List[Org]) -> None: ...
     def getNone(self) -> AnnotatedParagraphNone: ...
     def getFootnote(self) -> AnnotatedParagraphFootnote: ...
     def getAdmonition(self) -> AnnotatedParagraphAdmonition: ...
@@ -94,70 +107,78 @@ class AnnotatedParagraph(Stmt):
     attached: List[Org]
 
 class Format(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class Center(Format):
-    pass
+    def __init__(self) -> None: ...
 
 class Command(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class LineCommand(Command):
-    pass
+    def __init__(self) -> None: ...
 
 class Standalone(LineCommand):
-    pass
+    def __init__(self) -> None: ...
 
 class Attached(LineCommand):
-    pass
+    def __init__(self) -> None: ...
 
 class Caption(Attached):
+    def __init__(self, text: Paragraph) -> None: ...
     text: Paragraph
 
 class CmdName(Attached):
-    pass
+    def __init__(self) -> None: ...
 
 class CmdResults(Attached):
-    pass
+    def __init__(self) -> None: ...
 
 class CommandGroup(Stmt):
+    def __init__(self, attached: List[Org]) -> None: ...
     def getAttached(self, kind: OrgSemKind) -> Optional[Org]: ...
     attached: List[Org]
 
 class Block(Command):
+    def __init__(self, parameters: Optional[CmdArguments]) -> None: ...
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     parameters: Optional[CmdArguments]
 
 class Tblfm(Command):
-    pass
+    def __init__(self) -> None: ...
 
 class Quote(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class CommentBlock(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class Verse(Block):
+    def __init__(self, parameters: Optional[CmdArguments]) -> None: ...
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     parameters: Optional[CmdArguments]
 
 class Example(Block):
+    def __init__(self, parameters: Optional[CmdArguments]) -> None: ...
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     parameters: Optional[CmdArguments]
 
 class ColonExample(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class CmdArguments(Org):
+    def __init__(self, positional: List[CmdArgument], named: Dict[str, CmdArgument]) -> None: ...
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     positional: List[CmdArgument]
     named: Dict[str, CmdArgument]
 
 class CmdAttr(Attached):
+    def __init__(self, target: str, parameters: CmdArguments) -> None: ...
     target: str
     parameters: CmdArguments
 
 class CmdArgument(Org):
+    def __init__(self, key: Optional[str], value: str) -> None: ...
     def getInt(self) -> Optional[int]: ...
     def getBool(self) -> Optional[bool]: ...
     def getString(self) -> str: ...
@@ -170,6 +191,7 @@ class ExportFormat(Enum):
     Block = 3
 
 class Export(Block):
+    def __init__(self, format: ExportFormat, exporter: str, placement: Optional[str], content: str, parameters: Optional[CmdArguments]) -> None: ...
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     format: ExportFormat
     exporter: str
@@ -178,19 +200,24 @@ class Export(Block):
     parameters: Optional[CmdArguments]
 
 class AdmonitionBlock(Block):
+    def __init__(self, parameters: Optional[CmdArguments]) -> None: ...
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     parameters: Optional[CmdArguments]
 
 class Call(Org):
+    def __init__(self, name: Optional[str]) -> None: ...
     name: Optional[str]
 
 class CodeLinePartRaw:
+    def __init__(self, code: str) -> None: ...
     code: str
 
 class CodeLinePartCallout:
+    def __init__(self, name: str) -> None: ...
     name: str
 
 class CodeLinePartTangle:
+    def __init__(self, target: str) -> None: ...
     target: str
 
 CodeLinePartData = Union[CodeLinePartRaw, CodeLinePartCallout, CodeLinePartTangle]
@@ -200,6 +227,7 @@ class CodeLinePartKind(Enum):
     Tangle = 3
 
 class CodeLinePart:
+    def __init__(self, data: CodeLinePartData) -> None: ...
     def getRaw(self) -> CodeLinePartRaw: ...
     def getCallout(self) -> CodeLinePartCallout: ...
     def getTangle(self) -> CodeLinePartTangle: ...
@@ -209,22 +237,28 @@ class CodeLinePart:
     data: CodeLinePartData
 
 class CodeLine:
+    def __init__(self, parts: List[CodeLinePart]) -> None: ...
     parts: List[CodeLinePart]
 
 class CodeSwitchLineStart:
+    def __init__(self, start: int, extendLast: bool) -> None: ...
     start: int
     extendLast: bool
 
 class CodeSwitchCalloutFormat:
+    def __init__(self, format: str) -> None: ...
     format: str
 
 class CodeSwitchRemoveCallout:
+    def __init__(self, remove: bool) -> None: ...
     remove: bool
 
 class CodeSwitchEmphasizeLine:
+    def __init__(self, line: List[int]) -> None: ...
     line: List[int]
 
 class CodeSwitchDedent:
+    def __init__(self, value: int) -> None: ...
     value: int
 
 CodeSwitchData = Union[CodeSwitchLineStart, CodeSwitchCalloutFormat, CodeSwitchRemoveCallout, CodeSwitchEmphasizeLine, CodeSwitchDedent]
@@ -236,6 +270,7 @@ class CodeSwitchKind(Enum):
     Dedent = 5
 
 class CodeSwitch:
+    def __init__(self, data: CodeSwitchData) -> None: ...
     def getLineStart(self) -> CodeSwitchLineStart: ...
     def getCalloutFormat(self) -> CodeSwitchCalloutFormat: ...
     def getRemoveCallout(self) -> CodeSwitchRemoveCallout: ...
@@ -256,6 +291,7 @@ class CodeExports(Enum):
     Results = 4
 
 class Code(Block):
+    def __init__(self, lang: Optional[str], switches: List[CodeSwitch], exports: CodeExports, lines: List[CodeLine], cache: bool, eval: bool, noweb: bool, hlines: bool, tangle: bool, parameters: Optional[CmdArguments]) -> None: ...
     def getParameter(self, key: str) -> Optional[CmdArgument]: ...
     lang: Optional[str]
     switches: List[CodeSwitch]
@@ -283,15 +319,18 @@ class TimeRepeatPeriod(Enum):
     Minute = 6
 
 class TimeRepeat:
+    def __init__(self, mode: TimeRepeatMode, period: TimeRepeatPeriod, count: int) -> None: ...
     mode: TimeRepeatMode
     period: TimeRepeatPeriod
     count: int
 
 class TimeStatic:
+    def __init__(self, repeat: Optional[TimeRepeat], time: UserTime) -> None: ...
     repeat: Optional[TimeRepeat]
     time: UserTime
 
 class TimeDynamic:
+    def __init__(self, expr: str) -> None: ...
     expr: str
 
 TimeTimeVariant = Union[TimeStatic, TimeDynamic]
@@ -300,6 +339,7 @@ class TimeTimeKind(Enum):
     Dynamic = 2
 
 class Time(Org):
+    def __init__(self, isActive: bool, time: TimeTimeVariant) -> None: ...
     def getStatic(self) -> TimeStatic: ...
     def getDynamic(self) -> TimeDynamic: ...
     @staticmethod
@@ -309,23 +349,28 @@ class Time(Org):
     time: TimeTimeVariant
 
 class TimeRange(Org):
+    def __init__(self, from_: Time, to: Time) -> None: ...
     from_: Time
     to: Time
 
 class Macro(Org):
+    def __init__(self, name: str, arguments: List[str]) -> None: ...
     name: str
     arguments: List[str]
 
 class SymbolParam:
+    def __init__(self, key: Optional[str], value: str) -> None: ...
     key: Optional[str]
     value: str
 
 class Symbol(Org):
+    def __init__(self, name: str, parameters: List[SymbolParam], positional: List[Org]) -> None: ...
     name: str
     parameters: List[SymbolParam]
     positional: List[Org]
 
 class SubtreeLogDescribedLog:
+    def __init__(self, desc: Optional[StmtList]) -> None: ...
     desc: Optional[StmtList]
 
 class SubtreeLogPriorityAction(Enum):
@@ -334,34 +379,40 @@ class SubtreeLogPriorityAction(Enum):
     Changed = 3
 
 class SubtreeLogPriority(SubtreeLogDescribedLog):
+    def __init__(self, oldPriority: Optional[str], newPriority: Optional[str], on: Time, action: SubtreeLogPriorityAction) -> None: ...
     oldPriority: Optional[str]
     newPriority: Optional[str]
     on: Time
     action: SubtreeLogPriorityAction
 
 class SubtreeLogNote(SubtreeLogDescribedLog):
+    def __init__(self, on: Time) -> None: ...
     on: Time
 
 class SubtreeLogRefile(SubtreeLogDescribedLog):
+    def __init__(self, on: Time, from_: Link) -> None: ...
     on: Time
     from_: Link
 
 class SubtreeLogClock(SubtreeLogDescribedLog):
+    def __init__(self, from_: Time, to: Optional[Time]) -> None: ...
     from_: Time
     to: Optional[Time]
 
 class SubtreeLogState(SubtreeLogDescribedLog):
+    def __init__(self, from_: str, to: str, on: Time) -> None: ...
     from_: str
     to: str
     on: Time
 
 class SubtreeLogTag(SubtreeLogDescribedLog):
+    def __init__(self, on: Time, tag: HashTag, added: bool) -> None: ...
     on: Time
     tag: HashTag
     added: bool
 
 class SubtreeLogUnknown(SubtreeLogDescribedLog):
-    pass
+    def __init__(self) -> None: ...
 
 SubtreeLogLogEntry = Union[SubtreeLogPriority, SubtreeLogNote, SubtreeLogRefile, SubtreeLogClock, SubtreeLogState, SubtreeLogTag, SubtreeLogUnknown]
 class SubtreeLogKind(Enum):
@@ -374,6 +425,7 @@ class SubtreeLogKind(Enum):
     Unknown = 7
 
 class SubtreeLog(Org):
+    def __init__(self, log: SubtreeLogLogEntry) -> None: ...
     def setDescription(self, desc: StmtList) -> None: ...
     def getPriority(self) -> SubtreeLogPriority: ...
     def getNote(self) -> SubtreeLogNote: ...
@@ -397,6 +449,7 @@ class SubtreePeriodKind(Enum):
     Repeated = 7
 
 class SubtreePeriod:
+    def __init__(self, kind: SubtreePeriodKind, from_: Time, to: Optional[Time]) -> None: ...
     kind: SubtreePeriodKind
     from_: Time
     to: Optional[Time]
@@ -412,30 +465,38 @@ class SubtreePropertyInheritanceMode(Enum):
     OnlySub = 3
 
 class SubtreePropertyNonblocking:
+    def __init__(self, isBlocking: bool) -> None: ...
     isBlocking: bool
 
 class SubtreePropertyTrigger:
-    pass
+    def __init__(self) -> None: ...
 
 class SubtreePropertyOrigin:
+    def __init__(self, text: Paragraph) -> None: ...
     text: Paragraph
 
 class SubtreePropertyExportLatexClass:
+    def __init__(self, latexClass: str) -> None: ...
     latexClass: str
 
 class SubtreePropertyExportLatexClassOptions:
+    def __init__(self, options: List[str]) -> None: ...
     options: List[str]
 
 class SubtreePropertyExportLatexHeader:
+    def __init__(self, header: str) -> None: ...
     header: str
 
 class SubtreePropertyExportLatexCompiler:
+    def __init__(self, compiler: str) -> None: ...
     compiler: str
 
 class SubtreePropertyOrdered:
+    def __init__(self, isOrdered: bool) -> None: ...
     isOrdered: bool
 
 class SubtreePropertyEffort:
+    def __init__(self, hours: int, minutes: int) -> None: ...
     hours: int
     minutes: int
 
@@ -446,22 +507,27 @@ class SubtreePropertyVisibilityLevel(Enum):
     All = 4
 
 class SubtreePropertyVisibility:
+    def __init__(self, level: SubtreePropertyVisibilityLevel) -> None: ...
     level: SubtreePropertyVisibilityLevel
 
 class SubtreePropertyExportOptions:
+    def __init__(self, backend: str, values: Dict[str, str]) -> None: ...
     backend: str
     values: Dict[str, str]
 
 class SubtreePropertyBlocker:
+    def __init__(self, blockers: List[str]) -> None: ...
     blockers: List[str]
 
 class SubtreePropertyUnnumbered:
-    pass
+    def __init__(self) -> None: ...
 
 class SubtreePropertyCreated:
+    def __init__(self, time: Time) -> None: ...
     time: Time
 
 class SubtreePropertyUnknown:
+    def __init__(self, value: Org, name: str) -> None: ...
     value: Org
     name: str
 
@@ -484,6 +550,7 @@ class SubtreePropertyKind(Enum):
     Unknown = 15
 
 class SubtreeProperty:
+    def __init__(self, mainSetRule: SubtreePropertySetMode, subSetRule: SubtreePropertySetMode, inheritanceMode: SubtreePropertyInheritanceMode, data: SubtreePropertyData) -> None: ...
     def isMatching(self, kind: str, subKind: Optional[str]) -> bool: ...
     def getName(self) -> str: ...
     def getSubKind(self) -> Optional[str]: ...
@@ -511,6 +578,7 @@ class SubtreeProperty:
     data: SubtreePropertyData
 
 class Subtree(Org):
+    def __init__(self, level: int, treeId: Optional[str], todo: Optional[str], completion: Optional[Completion], description: Optional[Paragraph], tags: List[HashTag], title: Paragraph, logbook: List[SubtreeLog], properties: List[SubtreeProperty], closed: Optional[Time], deadline: Optional[Time], scheduled: Optional[Time]) -> None: ...
     def getTimePeriods(self, kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(self, kind: str, subkind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subkind: Optional[str]) -> Optional[SubtreeProperty]: ...
@@ -531,69 +599,80 @@ class Subtree(Org):
     scheduled: Optional[Time]
 
 class LatexBody(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class InlineMath(LatexBody):
-    pass
+    def __init__(self) -> None: ...
 
 class Leaf(Org):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class Escaped(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class Newline(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class Space(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class Word(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class AtMention(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class RawText(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class Punctuation(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class Placeholder(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class BigIdent(Leaf):
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class Markup(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class Bold(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class Underline(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class Monospace(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class MarkQuote(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class Verbatim(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class Italic(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class Strike(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class Par(Markup):
-    pass
+    def __init__(self) -> None: ...
 
 class List(Org):
+    def __init__(self) -> None: ...
     def isDescriptionList(self) -> bool: ...
 
 class ListItemCheckbox(Enum):
@@ -603,30 +682,38 @@ class ListItemCheckbox(Enum):
     Partial = 4
 
 class ListItem(Org):
+    def __init__(self, checkbox: ListItemCheckbox, header: Optional[Paragraph]) -> None: ...
     def isDescriptionItem(self) -> bool: ...
     checkbox: ListItemCheckbox
     header: Optional[Paragraph]
 
 class LinkRaw:
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class LinkId:
+    def __init__(self, text: str) -> None: ...
     text: str
 
 class LinkPerson:
+    def __init__(self, name: str) -> None: ...
     name: str
 
 class LinkUserProtocol:
+    def __init__(self, protocol: str, target: str) -> None: ...
     protocol: str
     target: str
 
 class LinkInternal:
+    def __init__(self, target: str) -> None: ...
     target: str
 
 class LinkFootnote:
+    def __init__(self, target: str) -> None: ...
     target: str
 
 class LinkFile:
+    def __init__(self, file: str) -> None: ...
     file: str
 
 LinkData = Union[LinkRaw, LinkId, LinkPerson, LinkUserProtocol, LinkInternal, LinkFootnote, LinkFile]
@@ -640,6 +727,7 @@ class LinkKind(Enum):
     File = 7
 
 class Link(Org):
+    def __init__(self, description: Optional[Paragraph], data: LinkData) -> None: ...
     def getRaw(self) -> LinkRaw: ...
     def getId(self) -> LinkId: ...
     def getPerson(self) -> LinkPerson: ...
@@ -654,9 +742,11 @@ class Link(Org):
     data: LinkData
 
 class DocumentOptionsDoExport:
+    def __init__(self, exportToc: bool) -> None: ...
     exportToc: bool
 
 class DocumentOptionsExportFixed:
+    def __init__(self, exportLevels: int) -> None: ...
     exportLevels: int
 
 DocumentOptionsTocExport = Union[DocumentOptionsDoExport, DocumentOptionsExportFixed]
@@ -680,6 +770,7 @@ class DocumentOptionsVisibility(Enum):
     ShowEverything = 8
 
 class DocumentOptions(Org):
+    def __init__(self, brokenLinks: DocumentOptionsBrokenLinks, initialVisibility: DocumentOptionsVisibility, tocExport: DocumentOptionsTocExport, properties: List[SubtreeProperty], smartQuotes: bool, emphasizedText: bool, specialStrings: bool, fixedWidthSections: bool, includeTimestamps: bool, preserveLineBreaks: bool, plaintextSubscripts: bool, exportArchived: bool, exportWithAuthor: bool, exportBrokenLinks: bool, exportWithClock: bool, exportWithCreator: bool, data: DocumentOptionsTocExport) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
     def getDoExport(self) -> DocumentOptionsDoExport: ...
@@ -706,6 +797,7 @@ class DocumentOptions(Org):
     data: DocumentOptionsTocExport
 
 class Document(Org):
+    def __init__(self, title: Optional[Paragraph], author: Optional[Paragraph], creator: Optional[Paragraph], filetags: List[HashTag], email: Optional[RawText], language: List[str], options: DocumentOptions, exportFileName: Optional[str]) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
     title: Optional[Paragraph]
@@ -718,9 +810,10 @@ class Document(Org):
     exportFileName: Optional[str]
 
 class ParseError(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class FileTarget(Org):
+    def __init__(self, path: str, line: Optional[int], searchTarget: Optional[str], restrictToHeadlines: bool, targetId: Optional[str], regexp: Optional[str]) -> None: ...
     path: str
     line: Optional[int]
     searchTarget: Optional[str]
@@ -729,19 +822,19 @@ class FileTarget(Org):
     regexp: Optional[str]
 
 class TextSeparator(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class IncludeExample:
-    pass
+    def __init__(self) -> None: ...
 
 class IncludeExport:
-    pass
+    def __init__(self) -> None: ...
 
 class IncludeSrc:
-    pass
+    def __init__(self) -> None: ...
 
 class IncludeOrgDocument:
-    pass
+    def __init__(self) -> None: ...
 
 IncludeData = Union[IncludeExample, IncludeExport, IncludeSrc, IncludeOrgDocument]
 class IncludeKind(Enum):
@@ -751,6 +844,7 @@ class IncludeKind(Enum):
     OrgDocument = 4
 
 class Include(Org):
+    def __init__(self, data: IncludeData) -> None: ...
     def getExample(self) -> IncludeExample: ...
     def getExport(self) -> IncludeExport: ...
     def getSrc(self) -> IncludeSrc: ...
@@ -761,7 +855,7 @@ class Include(Org):
     data: IncludeData
 
 class DocumentGroup(Org):
-    pass
+    def __init__(self) -> None: ...
 
 class OrgSpecName(Enum):
     Unnamed = 1
@@ -1031,6 +1125,7 @@ class OrgSemKind(Enum):
     DocumentGroup = 62
 
 class UserTimeBreakdown:
+    def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...
     year: Optional[int]
     month: Optional[int]
     day: Optional[int]
@@ -1040,16 +1135,19 @@ class UserTimeBreakdown:
     zone: Optional[str]
 
 class UserTime:
+    def __init__(self) -> None: ...
     def getBreakdown(self) -> UserTimeBreakdown: ...
     def format(self) -> str: ...
 
 class OrgParseParameters:
+    def __init__(self, baseTokenTracePath: Optional[str], tokenTracePath: Optional[str], parseTracePath: Optional[str], semTracePath: Optional[str]) -> None: ...
     baseTokenTracePath: Optional[str]
     tokenTracePath: Optional[str]
     parseTracePath: Optional[str]
     semTracePath: Optional[str]
 
 class OrgYamlExportOpts:
+    def __init__(self, skipNullFields: bool, skipFalseFields: bool, skipZeroFields: bool, skipLocation: bool, skipId: bool) -> None: ...
     skipNullFields: bool
     skipFalseFields: bool
     skipZeroFields: bool
@@ -1057,6 +1155,7 @@ class OrgYamlExportOpts:
     skipId: bool
 
 class OrgTreeExportOpts:
+    def __init__(self, withLineCol: bool, withOriginalId: bool, withSubnodeIdx: bool, skipEmptyFields: bool, startLevel: int, withColor: bool) -> None: ...
     withLineCol: bool
     withOriginalId: bool
     withSubnodeIdx: bool
@@ -1065,37 +1164,42 @@ class OrgTreeExportOpts:
     withColor: bool
 
 class SubnodeVisitorCtxPart:
+    def __init__(self, node: Optional[Org], index: Optional[int], field: Optional[str], kind: Kind) -> None: ...
     node: Optional[Org]
     index: Optional[int]
     field: Optional[str]
     kind: Kind
 
 class SubnodeVisitorOpts:
-    pass
+    def __init__(self) -> None: ...
 
 class SubnodeVisitorResult:
+    def __init__(self, visitNextFields: bool, visitNextSubnodes: bool, visitNextBases: bool) -> None: ...
     visitNextFields: bool
     visitNextSubnodes: bool
     visitNextBases: bool
 
 class OrgDocumentContext:
+    def __init__(self) -> None: ...
     def getSubtreeById(self, id: str) -> List[Subtree]: ...
     def getLinkTarget(self, link: Link) -> List[Org]: ...
     def getRadioTarget(self, name: str) -> List[Org]: ...
     def addNodes(self, node: Org) -> None: ...
 
 class OrgSelectorLink:
-    pass
+    def __init__(self) -> None: ...
 
 class OrgSelectorResult:
-    pass
+    def __init__(self) -> None: ...
 
 class OrgSelectorCondition:
+    def __init__(self, isTarget: bool, debug: Optional[str], link: Optional[OrgSelectorLink]) -> None: ...
     isTarget: bool
     debug: Optional[str]
     link: Optional[OrgSelectorLink]
 
 class OrgDocumentSelector:
+    def __init__(self, path: List[OrgSelectorCondition], debug: bool) -> None: ...
     def getMatches(self, node: Org) -> List[Org]: ...
     def linkDirectSubnode(self) -> OrgSelectorLink: ...
     def linkIndirectSubnode(self) -> OrgSelectorLink: ...
@@ -1108,6 +1212,7 @@ class OrgDocumentSelector:
     debug: bool
 
 class ExporterPython:
+    def __init__(self) -> None: ...
     def enablePyStreamTrace(self, stream: object) -> None: ...
     def enableBufferTrace(self) -> None: ...
     def getTraceBuffer(self) -> str: ...

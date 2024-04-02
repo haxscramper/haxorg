@@ -248,7 +248,7 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
                     org.RawText(text=f"Reading progress {mark.bookpos}/{mark.booksize}")
                 ]),
             )))
-
+        
     bookmark = get_bookmark_entry()
 
     if not bookmark:

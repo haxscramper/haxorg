@@ -123,7 +123,7 @@ def id_self(Typ: QualType) -> ParmVarParams:
 class Py11Function:
     PyName: str
     CxxName: str
-    ResultTy: QualType
+    ResultTy: Optional[QualType]
     Args: List[GenTuIdent] = field(default_factory=list)
     Body: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
@@ -133,7 +133,7 @@ class Py11Function:
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.FunctionDefParams:
         return pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=py_type(self.ResultTy),
+            ResultTy=self.ResultTy and py_type(self.ResultTy),
             Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
             IsStub=True,
         )
@@ -275,7 +275,7 @@ class Py11Method(Py11Function):
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
             Name=py_ident(self.PyName),
-            ResultTy=py_type(self.ResultTy),
+            ResultTy=self.ResultTy and py_type(self.ResultTy),
             Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
             IsStub=True,
             Decorators=[pya.DecoratorParams("staticmethod")] if self.IsStatic else []))
@@ -565,6 +565,19 @@ class Py11Class:
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
         res = pya.ClassParams(Name=self.PyName, Bases=[py_type(T) for T in self.Bases])
+
+        Init = Py11Method(
+            PyName="__init__",
+            CxxName="",
+            ResultTy=QualType.ForName("None"),
+            Args=[
+                GenTuIdent(name=it.PyName, type=it.Type, value=ast.b.text("None"))
+                for it in self.Fields
+            ],
+        )
+
+        res.Methods.append(Init.build_typedef(ast))
+
         for Meth in self.dedup_methods():
             res.Methods.append(Meth.build_typedef(ast))
 

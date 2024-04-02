@@ -1,7 +1,7 @@
 from py_textlayout.py_textlayout_wrap import TextLayout
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
-from beartype.typing import List
+from beartype.typing import List, Optional
 from beartype import beartype
 import py_codegen.astbuilder_base as base
 
@@ -35,7 +35,7 @@ class DecoratorParams:
 @dataclass
 class FunctionDefParams:
     Name: str
-    ResultTy: PyType
+    ResultTy: Optional[PyType]
     Args: List[IdentParams] = field(default_factory=list)
     Decorators: List[DecoratorParams] = field(default_factory=list)
     Doc: str = ""
@@ -115,9 +115,11 @@ class ASTBuilder(base.AstbuilderBase):
             self.pars(
                 self.csv(([b.text("self")] if withSelf else []) +
                          [self.Arg(A) for A in p.Args])),
-            b.text(" -> "),
-            self.Type(p.ResultTy),
-            b.text(":")
+            *([
+                b.text(" -> "),
+                self.Type(p.ResultTy),
+                b.text(":"),
+            ] if p.ResultTy else []),
         ]
 
     def Function(self, p: FunctionDefParams) -> BlockId:
