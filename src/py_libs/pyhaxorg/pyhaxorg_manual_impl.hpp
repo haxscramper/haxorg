@@ -135,13 +135,25 @@ struct py_arg_convertor<Vec<T>> {
 
 template <DescribedRecord R>
 void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
+    UnorderedSet<Str> used_kwargs;
     for_each_field_with_bases<R>([&](auto const& field) {
         if (kwargs.contains(field.name)) {
+            used_kwargs.incl(field.name);
             auto& ref = value.*field.pointer;
             py_arg_convertor<std::remove_cvref_t<decltype(ref)>>::write(
                 ref, kwargs[field.name]);
         }
     });
+
+    if (used_kwargs.size() != kwargs.size()) {
+        UnorderedSet<Str> passed_kwargs;
+        for (auto const& it : kwargs) {
+            passed_kwargs.incl(Str(pybind11::str(it.first)));
+        }
+        throw std::logic_error(
+            fmt("Passed unknown field name {}",
+                (passed_kwargs - used_kwargs)));
+    }
 }
 
 
