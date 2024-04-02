@@ -49,6 +49,9 @@ cxx_repository = {path = "./scripts/cxx_repository", develop=true}
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
 sphinx = "^7.2.6"
+tree-sitter = "0.21.3" # v0.22.0 promises to disable compiling languages from source with zero explanation 
+# on what to do instead, and I don't have time to deal with this bullshit, so fixing to whatever version 
+# I have installed at the moment. 
 
 [build-system]
 requires = ["poetry-core"]
