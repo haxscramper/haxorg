@@ -4,6 +4,32 @@ from tree_sitter import Language, Parser
 import tree_sitter
 from py_scriptutils.files import get_haxorg_repo_root_path
 from pathlib import Path
+from beartype import beartype
+from beartype.typing import List, Dict, Optional, Any, Union, Iterator, Iterable, TypeVar
+from py_scriptutils.script_logging import log
+from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
+
+T = TypeVar("T")
+
+
+def dropnan(values: Iterable[Optional[T]]) -> Iterable[T]:
+    return (it for it in values if it)
+
+
+CAT = "docgen"
+
+from py_codegen.gen_tu_cpp import (
+    GenTuDoc,
+    GenTuTypedef,
+    GenTuTypeGroup,
+    GenTuNamespace,
+    GenTuStruct,
+    GenTuEntry,
+    GenTuEnum,
+    GenTuIdent,
+    QualType,
+)
 
 thirdparty = get_haxorg_repo_root_path().joinpath("thirdparty")
 build_dir = get_haxorg_repo_root_path().joinpath("build_treesitter")
@@ -17,23 +43,29 @@ Language.build_library(
 CPP_LANG = Language(build_so, "cpp")
 
 
+@beartype
 def parse_cxx(file: Path) -> tree_sitter.Tree:
     parser = Parser()
     parser.set_language(CPP_LANG)
     return parser.parse(file.read_bytes())
 
 
-def tree_repr(node: tree_sitter.Tree) -> str:
+@beartype
+def tree_repr(node: Union[tree_sitter.Tree, tree_sitter.Node]) -> str:
 
-    def aux(node: tree_sitter.Node, indent: int) -> str:
+    def aux(node: tree_sitter.Node, indent: int, name: Optional[str] = None) -> str:
         result = "  " * indent
+        if name:
+            result += name
+            result += ": "
+
         if node.is_named:
             result += node.type
             if 0 < len(node.children):
-                for subnode in node.children:
+                for idx, subnode in enumerate(node.children):
                     if subnode.is_named:
                         result += "\n"
-                        result += aux(subnode, indent + 1)
+                        result += aux(subnode, indent + 1, node.field_name_for_child(idx))
 
             else:
                 result += " \"" + node.text.decode() + "\""
@@ -43,12 +75,152 @@ def tree_repr(node: tree_sitter.Tree) -> str:
 
         return result
 
-    return aux(node.root_node, 0)
+    if isinstance(node, tree_sitter.Node):
+        return aux(node, 0)
+
+    else:
+        return aux(node.root_node, 0)
 
 
-for glob in {"*.cpp", "*.hpp"}:
-    for file in get_haxorg_repo_root_path().joinpath("src").rglob(glob):
-        tree = parse_cxx(file)
-        Path(f"/tmp/{file.name}.txt").write_text(tree_repr(tree))
+@beartype
+@dataclass
+class DocNodeGroup():
+    comments: List[tree_sitter.Node] = field(default_factory=list)
+    node: Optional[tree_sitter.Node] = None
+    nested: List["DocNodeGroup"] = field(default_factory=list)
+
+
+class DocCxxInclude(BaseModel, extra="forbid"):
+    target: str
+
+
+class DocCxxFunction(BaseModel, extra="forbid"):
+    name: str
+
+class DocCxxRecord(BaseModel, extra="forbid"):
+    name: QualType
+
+
+DocCxxEntry = Union[DocCxxRecord, DocCxxInclude, DocCxxFunction, "DocCxxNamespace"]
+
+
+class DocCxxNamespace(BaseModel, extra="forbid"):
+    name: QualType
+    nested: List[DocCxxEntry] = Field(default_factory=list)
+
+
+class DocCxxFile(BaseModel, extra="forbid"):
+    content: List[DocCxxEntry] = Field(default_factory=list)
+
+
+@beartype
+def convert_cxx_type(node: tree_sitter.Node) -> QualType:
+    match node.type:
+        case "namespace_identifier":
+            return QualType.ForName(name=node.text.decode())
+
+        case _:
+            print(tree_repr(node))
+
+
+@beartype
+def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
+    idx = 0
+    nodes = node.children
+    converted: List[DocNodeGroup] = []
+
+    def aux() -> Optional[DocNodeGroup]:
+        nonlocal idx
+        value = nodes[idx]
+        result = DocNodeGroup()
+        while idx < len(nodes) and nodes[idx].type == "comment":
+            result.comments.append(nodes[idx])
+            idx += 1
+
+        if idx < len(nodes):
+            result.node = nodes[idx]
+            idx += 1
+
+        if result.node or result.comments:
+            return result
+
+    while idx < len(nodes):
+        group = aux()
+        if group:
+            converted.append(group)
+
+    return converted
+
+
+@beartype
+def convert_cxx_entry(doc: DocNodeGroup) -> Optional[DocCxxEntry]:
+    node = doc.node
+    result = None
+
+    if not node:
+        return None
+
+    match node.type:
+        case "function_definition":
+            decl = node.child_by_field_name("declarator")
+
+            if decl.child_by_field_name("declarator"):
+                func = DocCxxFunction(name=decl.child_by_field_name("declarator").text,)
+                result = func
+
+        case "class_specifier":
+            body = node.child_by_field_name("body") 
+            if not body:
+                return None
+            
+
+        case "template_declaration":
+            content = node.named_child(1)
+            match content.type:
+                case "class_specifier" | "struct_specifier":
+                    impl: DocCxxRecord = convert_cxx_entry(DocNodeGroup(node=content))
+                    result = impl
+
+                case _:
+                    log(CAT).error(content.type)
+
+        case "namespace_definition":
+            result = DocCxxNamespace(
+                name=convert_cxx_type(node.child_by_field_name("name")),
+                nested=([
+                    *dropnan(
+                        convert_cxx_entry(it)
+                        for it in convert_cxx_groups(node.child_by_field_name("body")))
+                ]),
+            )
+
+        case "preproc_include" | "preproc_call" | "template_instantiation" | "preproc_def" | "{" | ";" | "}" | "ERROR":
+            return None
+
+    if not result:
+        Path("/tmp/debug.txt").write_text(node.text.decode() + "\n\n\n" + tree_repr(node))
+        raise RuntimeError()
+
+    return result
+
+
+@beartype
+def convert_cxx_tree(tree: tree_sitter.Tree) -> List[DocCxxEntry]:
+    result: List[DocCxxEntry] = []
+    for toplevel in convert_cxx_groups(tree.root_node):
+        entry = convert_cxx_entry(toplevel)
+        if entry:
+            result.append(entry)
+
+    return result
+
+
+for glob in {"*.hpp"}:
+    for file in sorted(get_haxorg_repo_root_path().joinpath("src").rglob(glob)):
+        if file.name == "base_lexer_gen.cpp":
+            continue
+
+        log(CAT).info(file)
+        converted = convert_cxx_tree(parse_cxx(file))
 
 print("done")
