@@ -91,17 +91,34 @@ class DocNodeGroup():
 
 
 class DocCxxInclude(BaseModel, extra="forbid"):
-    target: str
+    Target: str
 
 
 class DocCxxFunction(BaseModel, extra="forbid"):
-    name: str
+    Name: str 
+
+
+class DocCxx(BaseModel, extra="forbid"):
+    Text: str = ""
+
+
+class DocCxxField(BaseModel, extra="forbid"):
+    Name: str
+    Type: QualType
+    Doc: DocCxx = Field(default_factory=lambda: DocCxx())
+
+
+class DocCxxMethod(BaseModel, extra="forbid"):
+    Name: str
+
 
 class DocCxxRecord(BaseModel, extra="forbid"):
-    name: QualType
+    Name: QualType
+    Fields: List[DocCxxField] = Field(default_factory=list)
+    Methods: List[DocCxxMethod] = Field(default_factory=list)
 
 
-DocCxxEntry = Union[DocCxxRecord, DocCxxInclude, DocCxxFunction, "DocCxxNamespace"]
+DocCxxEntry = Union[DocCxxRecord, DocCxxInclude, DocCxxFunction, DocCxxField, "DocCxxNamespace"]
 
 
 class DocCxxNamespace(BaseModel, extra="forbid"):
@@ -119,8 +136,27 @@ def convert_cxx_type(node: tree_sitter.Node) -> QualType:
         case "namespace_identifier":
             return QualType.ForName(name=node.text.decode())
 
+        case "template_type":
+            return QualType(
+                name=node.child_by_field_name("name").text.decode(),
+                Parameters=[
+                    convert_cxx_type(it)
+                    for it in node.child_by_field_name("arguments").children
+                    if it.is_named
+                ],
+            )
+        
+        case "type_descriptor" | "type_identifier":
+            return QualType(name=node.text.decode())
+        
+        case "qualified_identifier":
+            return QualType(
+                name=get_subnode(node, "name").text.decode(),
+                Spaces=[convert_cxx_type(get_subnode(node, "scope"))],
+            )
+
         case _:
-            print(tree_repr(node))
+            raise fail_node(node, "convert_cxx_type")
 
 
 @beartype
@@ -153,6 +189,23 @@ def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
 
 
 @beartype
+def get_subnode(node: tree_sitter.Node, name: Union[str, List[str]]) -> tree_sitter.Node:
+    match name:
+        case str():
+            return node.child_by_field_name(name)
+        
+        case list():
+            for part in name:
+                node = get_subnode(node, part)
+
+            return node
+        
+
+@beartype
+def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
+    return ValueError(f"Unhandled type tree structure in {name}\n\n{tree_repr(node)}")
+
+@beartype
 def convert_cxx_entry(doc: DocNodeGroup) -> Optional[DocCxxEntry]:
     node = doc.node
     result = None
@@ -161,6 +214,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> Optional[DocCxxEntry]:
         return None
 
     match node.type:
+        case "field_declaration":
+            result = DocCxxField(
+                Name=get_subnode(doc.node, ["declarator", "declarator"]).text.decode(),
+                Type=convert_cxx_type(get_subnode(doc.node, "type"))
+            )
+
         case "function_definition":
             decl = node.child_by_field_name("declarator")
 
@@ -168,21 +227,39 @@ def convert_cxx_entry(doc: DocNodeGroup) -> Optional[DocCxxEntry]:
                 func = DocCxxFunction(name=decl.child_by_field_name("declarator").text,)
                 result = func
 
-        case "class_specifier":
-            body = node.child_by_field_name("body") 
-            if not body:
+        case "class_specifier" | "struct_specifier":
+            body = node.child_by_field_name("body")
+            if body:
+                result = DocCxxRecord(
+                    Name=convert_cxx_type(node.child_by_field_name("name")))
+
+                for group in convert_cxx_groups(body):
+                    conv = convert_cxx_entry(group)
+                    match conv:
+                        case DocCxxField():
+                            result.Fields.append(conv)
+
+                        case None:
+                            pass
+
+                        case _:
+                            raise fail_node(body, "record declaration body element")
+
+            else:
                 return None
-            
 
         case "template_declaration":
             content = node.named_child(1)
             match content.type:
                 case "class_specifier" | "struct_specifier":
                     impl: DocCxxRecord = convert_cxx_entry(DocNodeGroup(node=content))
+                    if not impl:
+                        return None
+
                     result = impl
 
                 case _:
-                    log(CAT).error(content.type)
+                    raise fail_node(content, "template_declaration content")
 
         case "namespace_definition":
             result = DocCxxNamespace(
