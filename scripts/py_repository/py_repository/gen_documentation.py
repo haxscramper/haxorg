@@ -113,11 +113,23 @@ class DocCxxTypedef(BaseModel, extra="forbid"):
     New: QualType
 
 
+class DocCxxEnumField(BaseModel, extra="forbid"):
+    Name: str
+    Value: Optional[str] = None
+
+
+class DocCxxEnum(BaseModel, extra="forbid"):
+    Name: QualType
+    Fields: List[DocCxxEnumField] = Field(default_factory=list)
+
+
 class DocCxxRecord(BaseModel, extra="forbid"):
     Name: QualType
-    Fields: List[DocCxxField] = Field(default_factory=list)
-    Methods: List[DocCxxFunction] = Field(default_factory=list)
-    Nested: List["DocCxxRecord"] = Field(default_factory=list)
+    Nested: List["DocCxxEntry"] = Field(default_factory=list)
+
+
+class DocCxxConcept(BaseModel, extra="forbid"):
+    Name: QualType
 
 
 DocCxxEntry = Union[
@@ -126,6 +138,8 @@ DocCxxEntry = Union[
     DocCxxFunction,
     DocCxxField,
     DocCxxTypedef,
+    DocCxxEnum,
+    DocCxxEnumField,
     "DocCxxNamespace",
 ]
 
@@ -182,6 +196,9 @@ def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
             result.comments.append(nodes[idx])
             idx += 1
 
+        while idx < len(nodes) and not nodes[idx].is_named:
+            idx += 1
+
         if idx < len(nodes):
             result.node = nodes[idx]
             idx += 1
@@ -222,14 +239,39 @@ def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
 
 
 @beartype
-def convert_cxx_entry(doc: DocNodeGroup) -> Optional[DocCxxEntry]:
+def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
     node = doc.node
-    result = None
+    result = []
 
     if not node:
-        return None
+        return []
 
     match node.type:
+        case "declaration":
+            return []
+
+        case "preproc_ifdef":
+            result = []
+            for item in convert_cxx_groups(doc.node):
+                conv = convert_cxx_entry(item)
+                if conv:
+                    result += conv
+
+            return result
+
+        case "enumerator":
+            result = [DocCxxEnumField(Name=get_subnode(doc.node, "name").text.decode())]
+
+        case "concept_definition":
+            result = [DocCxxConcept(Name=convert_cxx_type(get_subnode(doc.node, "name")))]
+
+        case "enum_specifier":
+            Enum = DocCxxEnum(Name=convert_cxx_type(get_subnode(doc.node, "name")))
+            for field in convert_cxx_groups(get_subnode(doc.node, "body")):
+                Enum.Fields.append(convert_cxx_entry(field)[0])
+
+            result = [Enum]
+
         case "field_declaration":
             record = get_subnode(doc.node, "type")
             if record and record.type in ["struct_specifier"]:
@@ -240,92 +282,101 @@ def convert_cxx_entry(doc: DocNodeGroup) -> Optional[DocCxxEntry]:
                 field_decl = get_subnode(doc.node, "declarator")
 
             if field_decl:
-                result = DocCxxField(Name=field_decl.text.decode(),
-                                     Type=convert_cxx_type(get_subnode(doc.node, "type")))
+                result = [
+                    DocCxxField(Name=field_decl.text.decode(),
+                                Type=convert_cxx_type(get_subnode(doc.node, "type")))
+                ]
 
             else:
                 raise fail_node(doc.node, "field declaration")
 
         case "alias_declaration":
-            result = DocCxxTypedef(
-                Old=convert_cxx_type(get_subnode(doc.node, "name")),
-                New=convert_cxx_type(get_subnode(doc.node, "type")),
-            )
+            result = [
+                DocCxxTypedef(
+                    Old=convert_cxx_type(get_subnode(doc.node, "name")),
+                    New=convert_cxx_type(get_subnode(doc.node, "type")),
+                )
+            ]
 
         case "function_definition":
             decl = get_subnode(node, "declarator")
 
             if get_subnode(decl, "declarator"):
                 func = DocCxxFunction(Name=get_subnode(decl, "declarator").text)
-                result = func
+                result = [func]
 
         case "class_specifier" | "struct_specifier":
             body = get_subnode(node, "body")
             if body:
-                result = DocCxxRecord(Name=convert_cxx_type(get_subnode(node, "name")))
+                record = DocCxxRecord(Name=convert_cxx_type(get_subnode(node, "name")))
 
                 for group in convert_cxx_groups(body):
                     conv = convert_cxx_entry(group)
-                    match conv:
-                        case DocCxxField():
-                            result.Fields.append(conv)
+                    if conv:
+                        record.Nested.append(conv)
 
-                        case DocCxxFunction():
-                            result.Methods.append(conv)
-
-                        case DocCxxRecord():
-                            result.Nested.append(conv)
-
-                        case None:
-                            pass
-
-                        case _:
-                            raise fail_node(
-                                group.node,
-                                f"record declaration body element {type(conv)}")
-
-            else:
-                return None
+                result = [record]
 
         case "template_declaration":
             content = node.named_child(1)
+            declared = None
             match content.type:
                 case "class_specifier" | "struct_specifier":
                     impl: DocCxxRecord = convert_cxx_entry(DocNodeGroup(node=content))
-                    if not impl:
-                        return None
-
-                    result = impl
+                    if impl:
+                        declared = impl[0]
 
                 case "function_definition":
                     impl: DocCxxFunction = convert_cxx_entry(DocNodeGroup(node=content))
-                    if not impl:
-                        return None
+                    if impl:
+                        declared = impl[0]
 
-                    result = impl
+                case "alias_declaration" | "declaration":
+                    impl = convert_cxx_entry(replace(doc, node=content))
+
+                    if impl:
+                        declared = impl[0]
 
                 case _:
                     raise fail_node(content, "template_declaration content")
 
-        case "namespace_definition":
-            result = DocCxxNamespace(
-                name=convert_cxx_type(get_subnode(node, "name")),
-                nested=([
-                    *dropnan(
-                        convert_cxx_entry(it)
-                        for it in convert_cxx_groups(get_subnode(node, "body")))
-                ]),
-            )
+            if declared:
+                result = [declared]
 
-        case "preproc_include" | "preproc_call" | "template_instantiation" | "preproc_def" | "{" | ";" | "}" | "ERROR":
-            return None
+        case "namespace_definition":
+            result = [
+                DocCxxNamespace(
+                    name=convert_cxx_type(get_subnode(node, "name")),
+                    nested=([
+                        *dropnan(
+                            convert_cxx_entry(it)
+                            for it in convert_cxx_groups(get_subnode(node, "body")))
+                    ]),
+                )
+            ]
+
+        case "preproc_function_def":
+            return []
 
         case _:
-            raise fail_node(node, "convert cxx entry")
-
-    if not result:
-        Path("/tmp/debug.txt").write_text(node.text.decode() + "\n\n\n" + tree_repr(node))
-        raise RuntimeError()
+            if node.type not in [
+                    "preproc_include",
+                    "preproc_call",
+                    "template_instantiation",
+                    "preproc_def",
+                    "{",
+                    ";",
+                    "}",
+                    "ERROR",
+                    "using_declaration",
+                    "#ifndef",
+                    "identifier",
+                    "expression_statement",
+                    "#endif",
+                    "access_specifier",
+                    ":",
+            ]:
+                raise fail_node(node, "convert cxx entry")
 
     return result
 
@@ -336,7 +387,7 @@ def convert_cxx_tree(tree: tree_sitter.Tree) -> List[DocCxxEntry]:
     for toplevel in convert_cxx_groups(tree.root_node):
         entry = convert_cxx_entry(toplevel)
         if entry:
-            result.append(entry)
+            result += entry
 
     return result
 
