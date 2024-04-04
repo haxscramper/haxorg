@@ -6,6 +6,7 @@ from rich.pretty import pprint
 import sys
 from types import MethodType
 from rich.text import Text
+from rich.console import Console
 
 
 def to_debug_json(
@@ -152,7 +153,9 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
         print("{:<{}}{}{}".format(frame[0], max_formatted_width,
                                   " : " if one_line_format else "\n  ", frame[1]))
 
-    print(exc_type.__name__, ":", exc_value)
+    print(f"{exc_type.__name__} : {exc_value}")
+    if hasattr(exc_value, "__rich_msg__"):
+        console.print(getattr(exc_value, "__rich_msg__"))
 
 
 sys.excepthook = custom_traceback_handler
