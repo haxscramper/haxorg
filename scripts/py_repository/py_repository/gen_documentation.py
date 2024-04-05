@@ -45,10 +45,14 @@ CPP_LANG = Language(build_so, "cpp")
 
 
 @beartype
-def parse_cxx(file: Path) -> tree_sitter.Tree:
+def parse_cxx(file: Union[Path, str]) -> tree_sitter.Tree:
     parser = Parser()
     parser.set_language(CPP_LANG)
-    return parser.parse(file.read_bytes())
+    if isinstance(file, Path):
+        return parser.parse(file.read_bytes())
+    
+    else:
+        return parser.parse(file.encode())
 
 
 @beartype
@@ -150,7 +154,7 @@ class DocCxxNamespace(BaseModel, extra="forbid"):
 
 
 class DocCxxFile(BaseModel, extra="forbid"):
-    content: List[DocCxxEntry] = Field(default_factory=list)
+    Content: List[DocCxxEntry] = Field(default_factory=list)
 
 
 @beartype
@@ -382,22 +386,22 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
 
 @beartype
-def convert_cxx_tree(tree: tree_sitter.Tree) -> List[DocCxxEntry]:
+def convert_cxx_tree(tree: tree_sitter.Tree) -> DocCxxFile:
     result: List[DocCxxEntry] = []
     for toplevel in convert_cxx_groups(tree.root_node):
         entry = convert_cxx_entry(toplevel)
         if entry:
             result += entry
 
-    return result
+    return DocCxxFile(Content=result)
 
+if __name__ == "__main__":
+    for glob in {"*.hpp"}:
+        for file in sorted(get_haxorg_repo_root_path().joinpath("src").rglob(glob)):
+            if file.name == "base_lexer_gen.cpp":
+                continue
 
-for glob in {"*.hpp"}:
-    for file in sorted(get_haxorg_repo_root_path().joinpath("src").rglob(glob)):
-        if file.name == "base_lexer_gen.cpp":
-            continue
+            log(CAT).info(file)
+            converted = convert_cxx_tree(parse_cxx(file))
 
-        log(CAT).info(file)
-        converted = convert_cxx_tree(parse_cxx(file))
-
-print("done")
+    print("done")
