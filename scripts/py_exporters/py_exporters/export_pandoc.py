@@ -6,10 +6,10 @@ from dataclasses import dataclass, field
 from beartype.typing import Union, List, Dict, Set, Tuple
 from py_scriptutils.script_logging import log
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
+from py_scriptutils.json_utils import Json
 
 CAT = "export.pandoc"
 
-Json = Union[str, int, float, None, Dict, List]
 AttrKv = List[Tuple[str, Json]]
 
 
