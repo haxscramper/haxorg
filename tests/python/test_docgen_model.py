@@ -31,25 +31,34 @@ def assert_submodel(model: BaseModel,
 
 
 def test_structure_extraction_name():
-    file, tree = parse("struct A {}; ")
+    file, tree = parse("/*!STRUCT-COMMENT*/\nstruct A {}; ")
     record = file.Content[0]
     assert isinstance(record, gen.DocCxxRecord)
     assert_submodel(record.Name, dict(name="A", Spaces=[], Parameters=[]), tree)
+    assert record.Doc, dbg_parse(file, tree)
+    assert record.Doc.Text == "STRUCT-COMMENT", dbg_parse(file, tree)
 
 
 def test_structure_extraction_fields():
-    file, tree = parse("struct A { int field; };")
+    file, tree = parse("/*!STRUCT-COMMENT*/\nstruct A { /*!FIELD-COMMENT*/\nint field; };")
     record = file.Content[0]
     assert isinstance(record, gen.DocCxxRecord)
     assert len(record.Nested) == 1, dbg(record)
-    assert_submodel(record.Nested[0], dict(Name="field", Type=dict(name="int")), tree)
+    field = record.Nested[0]
+    assert_submodel(field, dict(Name="field", Type=dict(name="int")), tree)
+
+    assert field.Doc, dbg_parse(file, tree)
+    assert field.Doc.Text == "FIELD-COMMENT", dbg_parse(file, tree)
 
 
 def test_qualified_identifier_function_parse():
-    file, tree = parse("B::A get(int arg = 12) {}")
+    file, tree = parse("/*!FUNCTION-COMMENT*/\nB::A get(int arg = 12) {}")
     func = file.Content[0]
     assert isinstance(func, gen.DocCxxFunction)
     assert_submodel(func.ReturnTy, dict(name="A", Spaces=[dict(name="B")]), tree)
     assert len(func.Arguments) == 1, dbg_parse(func, tree)
     assert_submodel(func.Arguments[0], dict(Name="arg", Value="12", Type=dict(name="int")),
                     tree )
+    
+    assert func.Doc, dbg_parse(file, tree)
+    assert func.Doc.Text == "FUNCTION-COMMENT", dbg_parse(file, tree)

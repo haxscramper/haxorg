@@ -16,6 +16,35 @@ def conv_proto_default(value: pb.Expr) -> Optional[str]:
     else:
         return None
 
+@beartype
+def strip_comment_prefixes(comment: str) -> List[str]:
+    def drop_leading(prefix: re.Pattern, text: str) -> List[str]:
+        result: List[str] = []
+        for line in text.strip().splitlines():
+            result.append(re.sub(prefix, "", line))
+
+        return result
+
+    # Identify and strip comment markers, then delegate to process_content
+    if comment.startswith("///") or comment.startswith("//!"):
+        return drop_leading("///", comment)
+    elif comment.startswith("/**") or comment.startswith("/*!"):
+        # Removing the leading /** or /*! and trailing */
+        content = comment[3:-2].strip()
+        # Remove any '*' prefixes that might exist on each line
+        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
+        return content.splitlines()
+    elif comment.startswith("//"):
+        return comment[2:].splitlines()
+    elif comment.startswith("/*"):
+        # Removing the leading /* and potential trailing */
+        content = comment[2:]
+        if content.endswith("*/"):
+            content = content[:-2]
+        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
+        return content.splitlines()
+    else:
+        raise ValueError(f"Unrecognized comment style: {comment}")
 
 @beartype
 def conv_doc_comment(comment: str) -> GenTuDoc:
@@ -39,34 +68,10 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
                 full.append(line)
 
         return GenTuDoc('\n'.join(brief), '\n'.join(full))
+    
+    return process_content(strip_comment_prefixes(comment))
 
-    def drop_leading(prefix: re.Pattern, text: str) -> List[str]:
-        result: List[str] = []
-        for line in text.strip().splitlines():
-            result.append(re.sub(prefix, "", line))
 
-        return result
-
-    # Identify and strip comment markers, then delegate to process_content
-    if comment.startswith("///") or comment.startswith("//!"):
-        return process_content(drop_leading("///", comment))
-    elif comment.startswith("/**") or comment.startswith("/*!"):
-        # Removing the leading /** or /*! and trailing */
-        content = comment[3:-2].strip()
-        # Remove any '*' prefixes that might exist on each line
-        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
-        return process_content(content.splitlines())
-    elif comment.startswith("//"):
-        return process_content(comment[2:].splitlines())
-    elif comment.startswith("/*"):
-        # Removing the leading /* and potential trailing */
-        content = comment[2:]
-        if content.endswith("*/"):
-            content = content[:-2]
-        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
-        return process_content(content.splitlines())
-    else:
-        raise ValueError(f"Unrecognized comment style: {comment}")
 
 
 @beartype

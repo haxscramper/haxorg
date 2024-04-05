@@ -11,6 +11,7 @@ from dataclasses import dataclass, field, replace
 from pydantic import BaseModel, Field
 from rich.console import Console
 from py_scriptutils.rich_utils import render_rich
+from py_codegen.refl_read import strip_comment_prefixes
 
 T = TypeVar("T")
 
@@ -95,12 +96,13 @@ class DocNodeGroup():
     nested: List["DocNodeGroup"] = field(default_factory=list)
 
 
-class DocCxxInclude(BaseModel, extra="forbid"):
-    Target: str
-
-
 class DocCxx(BaseModel, extra="forbid"):
     Text: str = ""
+
+
+class DocCxxInclude(BaseModel, extra="forbid"):
+    Target: str
+    Doc: Optional[DocCxx] = None
 
 
 class DocCxxIdent(BaseModel, extra="forbid"):
@@ -117,30 +119,36 @@ class DocCxxFunction(BaseModel, extra="forbid"):
     IsConst: bool = False
     IsStatic: bool = False
     IsVirtual: bool = False
+    Doc: Optional[DocCxx] = None
 
 
 class DocCxxTypedef(BaseModel, extra="forbid"):
     Old: QualType
     New: QualType
+    Doc: Optional[DocCxx] = None
 
 
 class DocCxxEnumField(BaseModel, extra="forbid"):
     Name: str
     Value: Optional[str] = None
+    Doc: Optional[DocCxx] = None
 
 
 class DocCxxEnum(BaseModel, extra="forbid"):
     Name: QualType
     Fields: List[DocCxxEnumField] = Field(default_factory=list)
+    Doc: Optional[DocCxx] = None
 
 
 class DocCxxRecord(BaseModel, extra="forbid"):
     Name: QualType
     Nested: List["DocCxxEntry"] = Field(default_factory=list)
+    Doc: Optional[DocCxx] = None
 
 
 class DocCxxConcept(BaseModel, extra="forbid"):
     Name: QualType
+    Doc: Optional[DocCxx] = None
 
 
 DocCxxEntry = Union[
@@ -201,17 +209,27 @@ def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
 
     def aux() -> Optional[DocNodeGroup]:
         nonlocal idx
-        value = nodes[idx]
         result = DocNodeGroup()
-        while idx < len(nodes) and nodes[idx].type == "comment":
-            result.comments.append(nodes[idx])
+
+        def get():
+            return nodes[idx]
+
+        while idx < len(nodes) and not get().is_named and get().type != "comment":
+            # log(CAT).info(f"{idx}, {get()}")
             idx += 1
 
-        while idx < len(nodes) and not nodes[idx].is_named:
+        while idx < len(nodes) and get().type == "comment":
+            # log(CAT).info(f"{idx}, {get()}")
+            result.comments.append(get())
+            idx += 1
+
+        while idx < len(nodes) and not get().is_named:
+            # log(CAT).info(f"{idx}, {get()}")
             idx += 1
 
         if idx < len(nodes):
-            result.node = nodes[idx]
+            # log(CAT).info(f"{idx}, {get()}")
+            result.node = get()
             idx += 1
 
         if result.node or result.comments:
@@ -252,6 +270,13 @@ def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
 
 
 @beartype
+def convert_cxx_doc(doc: DocNodeGroup) -> Optional[DocCxx]:
+    if doc.comments:
+        return DocCxx(Text="\n".join(
+            ["\n".join(strip_comment_prefixes(it.text.decode())) for it in doc.comments]))
+
+
+@beartype
 def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
     node = doc.node
     result = []
@@ -273,13 +298,26 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             return result
 
         case "enumerator":
-            result = [DocCxxEnumField(Name=get_subnode(doc.node, "name").text.decode())]
+            result = [
+                DocCxxEnumField(
+                    Name=get_subnode(doc.node, "name").text.decode(),
+                    Doc=convert_cxx_doc(doc),
+                )
+            ]
 
         case "concept_definition":
-            result = [DocCxxConcept(Name=convert_cxx_type(get_subnode(doc.node, "name")))]
+            result = [
+                DocCxxConcept(
+                    Name=convert_cxx_type(get_subnode(doc.node, "name")),
+                    Doc=convert_cxx_doc(doc),
+                )
+            ]
 
         case "enum_specifier":
-            Enum = DocCxxEnum(Name=convert_cxx_type(get_subnode(doc.node, "name")))
+            Enum = DocCxxEnum(
+                Name=convert_cxx_type(get_subnode(doc.node, "name")),
+                Doc=convert_cxx_doc(doc),
+            )
             for field in convert_cxx_groups(get_subnode(doc.node, "body")):
                 Enum.Fields.append(convert_cxx_entry(field)[0])
 
@@ -296,8 +334,11 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
             if field_decl:
                 result = [
-                    DocCxxIdent(Name=field_decl.text.decode(),
-                                Type=convert_cxx_type(get_subnode(doc.node, "type")))
+                    DocCxxIdent(
+                        Name=field_decl.text.decode(),
+                        Type=convert_cxx_type(get_subnode(doc.node, "type")),
+                        Doc=convert_cxx_doc(doc),
+                    )
                 ]
 
             else:
@@ -309,6 +350,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Type=convert_cxx_type(get_subnode(doc.node, "type")),
                     Name=get_subnode(doc.node, "declarator").text.decode(),
                     Value=get_subnode(doc.node, "default_value").text.decode(),
+                    Doc=convert_cxx_doc(doc),
                 )
             ]
 
@@ -317,6 +359,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 DocCxxTypedef(
                     Old=convert_cxx_type(get_subnode(doc.node, "name")),
                     New=convert_cxx_type(get_subnode(doc.node, "type")),
+                    Doc=convert_cxx_doc(doc),
                 )
             ]
 
@@ -327,6 +370,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 func = DocCxxFunction(
                     Name=get_subnode(decl, "declarator").text,
                     ReturnTy=convert_cxx_type(get_subnode(node, "type")),
+                    Doc=convert_cxx_doc(doc),
                 )
 
                 for param in get_subnode(decl, "parameters").children:
@@ -338,7 +382,10 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
         case "class_specifier" | "struct_specifier":
             body = get_subnode(node, "body")
             if body:
-                record = DocCxxRecord(Name=convert_cxx_type(get_subnode(node, "name")))
+                record = DocCxxRecord(
+                    Name=convert_cxx_type(get_subnode(node, "name")),
+                    Doc=convert_cxx_doc(doc),
+                )
 
                 for group in convert_cxx_groups(body):
                     conv = convert_cxx_entry(group)
@@ -353,12 +400,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             declared = None
             match content.type:
                 case "class_specifier" | "struct_specifier":
-                    impl: DocCxxRecord = convert_cxx_entry(DocNodeGroup(node=content))
+                    impl: DocCxxRecord = convert_cxx_entry(replace(doc, node=content))
                     if impl:
                         declared = impl[0]
 
                 case "function_definition":
-                    impl: DocCxxFunction = convert_cxx_entry(DocNodeGroup(node=content))
+                    impl: DocCxxFunction = convert_cxx_entry(replace(doc, node=content))
                     if impl:
                         declared = impl[0]
 
