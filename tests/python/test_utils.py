@@ -6,7 +6,7 @@ def get_diff(source: Any, target: Any) -> List[ju.DiffItem]:
     res = ju.json_diff(source=source, target=target)
 
     for it in res:
-        ju.describe_diff(it, expected=target, converted=source)
+        ju.describe_diff(it, target=target, source=source)
 
     return res
 
@@ -75,3 +75,8 @@ def test_expected_subset_missing_item():
     res = ju.get_subset_diff([1, 2], [1, 2, 3])
     assert len(res) == 1, res
     assert res[0].op == ju.Op.Remove
+
+def test_subset_assert():
+    ju.assert_subset([1], [])
+    ju.assert_subset([3], [3])
+    ju.assert_subset([{"a": "b", "c": "d"}], [{"a": "b"}])

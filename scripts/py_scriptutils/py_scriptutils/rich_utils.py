@@ -2,8 +2,8 @@ from rich.console import Console
 from rich.pretty import pprint
 
 
-def render_rich(it) -> str:
-    console = Console()
+def render_rich(it, color: bool = True) -> str:
+    console = Console(force_terminal=color)
     with console.capture() as capture:
         console.print(it)
 

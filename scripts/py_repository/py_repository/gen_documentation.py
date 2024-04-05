@@ -10,6 +10,7 @@ from py_scriptutils.script_logging import log
 from dataclasses import dataclass, field, replace
 from pydantic import BaseModel, Field
 from rich.console import Console
+from py_scriptutils.rich_utils import render_rich
 
 T = TypeVar("T")
 
@@ -50,7 +51,7 @@ def parse_cxx(file: Union[Path, str]) -> tree_sitter.Tree:
     parser.set_language(CPP_LANG)
     if isinstance(file, Path):
         return parser.parse(file.read_bytes())
-    
+
     else:
         return parser.parse(file.encode())
 
@@ -98,18 +99,24 @@ class DocCxxInclude(BaseModel, extra="forbid"):
     Target: str
 
 
-class DocCxxFunction(BaseModel, extra="forbid"):
-    Name: str
-
-
 class DocCxx(BaseModel, extra="forbid"):
     Text: str = ""
 
 
-class DocCxxField(BaseModel, extra="forbid"):
+class DocCxxIdent(BaseModel, extra="forbid"):
     Name: str
     Type: QualType
-    Doc: DocCxx = Field(default_factory=lambda: DocCxx())
+    Value: Optional[str] = None
+    Doc: Optional[DocCxx] = None
+
+
+class DocCxxFunction(BaseModel, extra="forbid"):
+    Name: str
+    ReturnTy: QualType
+    Arguments: List[DocCxx] = Field(default_factory=list)
+    IsConst: bool = False
+    IsStatic: bool = False
+    IsVirtual: bool = False
 
 
 class DocCxxTypedef(BaseModel, extra="forbid"):
@@ -140,7 +147,7 @@ DocCxxEntry = Union[
     DocCxxRecord,
     DocCxxInclude,
     DocCxxFunction,
-    DocCxxField,
+    DocCxxIdent,
     DocCxxTypedef,
     DocCxxEnum,
     DocCxxEnumField,
@@ -235,7 +242,9 @@ def get_subnode(node: tree_sitter.Node,
 
 @beartype
 def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
-    result = ValueError(f"Unhandled type tree structure in {name}")
+    result = ValueError(
+        f"Unhandled type tree structure in {name}\n\n{render_rich(tree_repr(node), color=False)}"
+    )
 
     setattr(result, "__rich_msg__", tree_repr(node))
 
@@ -287,12 +296,21 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
             if field_decl:
                 result = [
-                    DocCxxField(Name=field_decl.text.decode(),
+                    DocCxxIdent(Name=field_decl.text.decode(),
                                 Type=convert_cxx_type(get_subnode(doc.node, "type")))
                 ]
 
             else:
                 raise fail_node(doc.node, "field declaration")
+
+        case "optional_parameter_declaration":
+            return [
+                DocCxxIdent(
+                    Type=convert_cxx_type(get_subnode(doc.node, "type")),
+                    Name=get_subnode(doc.node, "declarator").text.decode(),
+                    Value=get_subnode(doc.node, "default_value").text.decode(),
+                )
+            ]
 
         case "alias_declaration":
             result = [
@@ -306,7 +324,15 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             decl = get_subnode(node, "declarator")
 
             if get_subnode(decl, "declarator"):
-                func = DocCxxFunction(Name=get_subnode(decl, "declarator").text)
+                func = DocCxxFunction(
+                    Name=get_subnode(decl, "declarator").text,
+                    ReturnTy=convert_cxx_type(get_subnode(node, "type")),
+                )
+
+                for param in get_subnode(decl, "parameters").children:
+                    if param.is_named:
+                        func.Arguments += convert_cxx_entry(DocNodeGroup(node=param))
+
                 result = [func]
 
         case "class_specifier" | "struct_specifier":
@@ -316,8 +342,9 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
                 for group in convert_cxx_groups(body):
                     conv = convert_cxx_entry(group)
-                    if conv:
-                        record.Nested.append(conv)
+                    for it in conv:
+                        if it:
+                            record.Nested.append(it)
 
                 result = [record]
 
@@ -394,6 +421,7 @@ def convert_cxx_tree(tree: tree_sitter.Tree) -> DocCxxFile:
             result += entry
 
     return DocCxxFile(Content=result)
+
 
 if __name__ == "__main__":
     for glob in {"*.hpp"}:

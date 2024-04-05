@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from beartype.typing import Callable, List, Any, Dict, Union
+from beartype.typing import Callable, List, Any, Dict, Union, Optional
 from enum import Enum, auto
 import json
 from jsonpath_ng import jsonpath, DatumInContext, Index, Fields
@@ -7,6 +7,7 @@ import copy
 from beartype import beartype
 
 Json = Union[str, int, float, None, Dict, List]
+
 
 class Op(Enum):
     Replace = auto()
@@ -19,14 +20,14 @@ class Op(Enum):
 class DiffItem:
     op: Op
     path: jsonpath.JSONPath
-    value: Any = field(default=None)
+    value: Json = field(default=None)
 
 
 @beartype
-def json_diff(source: Any,
-              target: Any,
+def json_diff(source: Json,
+              target: Json,
               path: jsonpath.JSONPath = jsonpath.Root(),
-              ignore: Callable[[Any], bool] = lambda x: False) -> List[DiffItem]:
+              ignore: Callable[[Json], bool] = lambda x: False) -> List[DiffItem]:
     result = []
 
     if ignore(target):
@@ -75,43 +76,51 @@ def json_diff(source: Any,
 
 
 @beartype
-def get_subset_diff(main_set: Any, expected_subset: Any) -> List[DiffItem]:
+def get_subset_diff(main_set: Json, expected_subset: Json) -> List[DiffItem]:
     """
     Get list of elements removed from expected subset of changed in expected subset. 
     """
 
     # If some element from expect *sub*set was added, it is an expected behavior. All other operations
-    # are returned. 
-    return [it for it in json_diff(source=expected_subset, target=main_set) if it.op != Op.Add]
+    # are returned.
+    return [
+        it for it in json_diff(source=expected_subset, target=main_set) if it.op != Op.Add
+    ]
 
 
 @beartype
-def describe_diff(it: DiffItem, expected: Any, converted: Any) -> str:
+def describe_diff(
+    it: DiffItem,
+    source: Json,
+    target: Json,
+    source_name: str = "source",
+    target_name: str = "target",
+) -> str:
     description = "  "
     path = it.path
 
     if it.op == Op.Remove:
-        description += "[red]converted has extra entry[/red]"
+        description += f"{source_name} has extra entry"
     elif it.op == Op.Add:
-        description += "[green]export missing entry[/green]"
+        description += f"{target_name} missing entry"
     elif it.op == Op.Replace:
-        description += "[magenta]changed entry[/magenta]"
+        description += "changed entry"
 
-    description += f" on path '[yellow]{path}[/yellow]' "
+    description += f" on path '{path}' "
 
-    def get_path(value: Any) -> Any:
+    def get_path(value: Json) -> Json:
         value: DatumInContext = [item for item in path.find(value)][0]
         return value.value
 
     if it.op == Op.Remove:
-        description += f"    [red]{json.dumps(get_path(converted), indent=2)}[/red]"
+        description += f"    {json.dumps(get_path(source), indent=2)}"
 
     elif it.op == Op.Add:
         description += f"    {json.dumps(it.value, indent=2)}"
 
     elif it.op == Op.Replace:
-        exp = get_path(expected)
-        conv = get_path(converted)
+        exp = get_path(target)
+        conv = get_path(source)
         from_val = json.dumps(exp, indent=2)
         to_val = json.dumps(conv, indent=2)
 
@@ -119,9 +128,35 @@ def describe_diff(it: DiffItem, expected: Any, converted: Any) -> str:
             description += f"type mismatch: {type(exp).__name__} != {type(conv).__name__} "
 
         if len(from_val) > 40 or len(to_val) > 40:
-            description += "\n    from [red]" + from_val + "[/red]\n"
-            description += "    to   [green]" + to_val + "[/green]"
+            description += "\n    from " + from_val + "\n"
+            description += "    to   " + to_val + ""
         else:
-            description += f"    from [red]{from_val}[/red] to [green]{to_val}[/green]"
+            description += f"    from {from_val} to {to_val}"
 
     return description
+
+
+@beartype
+def assert_subset(main: Json, subset: Json, message: Optional[str] = None):
+    diff = get_subset_diff(main_set=main, expected_subset=subset)
+
+    compare = "\n".join([
+        "[{}]{}".format(
+            idx,
+            describe_diff(
+                value,
+                source=subset,
+                target=main,
+                source_name="subset",
+                target_name="main",
+            )) for idx, value in enumerate(diff)
+    ])
+
+    if message:
+        if "\n" not in compare and "\n" not in message:
+            compare += " " + message
+
+        else:
+            compare += "\n" + message
+
+    assert len(diff) == 0, compare
