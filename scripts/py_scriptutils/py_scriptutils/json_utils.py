@@ -121,8 +121,13 @@ def describe_diff(
     elif it.op == Op.Replace:
         target_object = get_path(target)
         source_object = get_path(source)
-        target_val = json.dumps(target_object, indent=2)
-        source_val = json.dumps(source_object, indent=2)
+        target_val = json.dumps(target_object)
+        if 40 < len(target_val):
+            target_val = json.dumps(target_object, indent=2)
+
+        source_val = json.dumps(source_object)
+        if 40 < len(source_val):
+            source_val = json.dumps(source_object, indent=2)
 
         if type(target_object) != type(source_object):
             description += f"type mismatch: {type(target_object).__name__} != {type(source_object).__name__} "

@@ -187,15 +187,28 @@ def convert_cxx_type(node: tree_sitter.Node) -> QualType:
                     if it.is_named
                 ],
             )
+        
+        case "type_descriptor":
+            return convert_cxx_type(get_subnode(node, "type"))
 
-        case "type_descriptor" | "type_identifier" | "primitive_type":
+        case "type_identifier" | "primitive_type":
             return QualType(name=node.text.decode())
 
         case "qualified_identifier":
-            return QualType(
-                name=get_subnode(node, "name").text.decode(),
-                Spaces=[convert_cxx_type(get_subnode(node, "scope"))],
-            )
+            scopes: List[QualType] = []
+            scoped = node
+            while scoped:
+                if scoped.type == "qualified_identifier":
+                    scopes.append(convert_cxx_type(get_subnode(scoped, "scope")))
+                    scoped = get_subnode(scoped, "name")
+
+                else:
+                    scopes.append(convert_cxx_type(scoped))
+                    scoped = None
+
+            scopes = scopes[::-1]
+
+            return scopes[0].model_copy(update=dict(Spaces=scopes[1:]))
 
         case _:
             raise fail_node(node, "convert_cxx_type")
@@ -370,6 +383,15 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Type=convert_cxx_type(get_subnode(doc.node, "type")),
                     Name=get_subnode(doc.node, "declarator").text.decode(),
                     Value=get_subnode(doc.node, "default_value").text.decode(),
+                    Doc=convert_cxx_doc(doc),
+                )
+            ]
+
+        case "parameter_declaration":
+            return [
+                DocCxxIdent(
+                    Type=convert_cxx_type(get_subnode(doc.node, "type")),
+                    Name=get_subnode(doc.node, "declarator").text.decode(),
                     Doc=convert_cxx_doc(doc),
                 )
             ]

@@ -112,3 +112,33 @@ B::A get(
 
     assert func.Doc, dbg_parse(file, tree)
     assert func.Doc.Text == "FUNCTION-COMMENT", dbg_parse(file, tree)
+
+
+def test_template_type():
+    code = """
+std::vector<int> get_value(std::unordered_map<A<B<C>>, Q::C::D::E::Z> arg) {}
+"""
+    file, tree = parse(code)
+    func = file.Content[0]
+    assert isinstance(func, gen.DocCxxFunction)
+    assert_submodel(
+        func.ReturnTy,
+        dict(name="vector", Spaces=[dict(name="std")], Parameters=[dict(name="int")]),
+        tree)
+
+    assert_submodel(
+        func.Arguments[0].Type,
+        dict(name="unordered_map",
+             Spaces=[dict(name="std")],
+             Parameters=[
+                 dict(name="A", Parameters=[dict(name="B", Parameters=[dict(name="C")])]),
+                 dict(name="Z",
+                      Spaces=[
+                          dict(name="E"),
+                          dict(name="D"),
+                          dict(name="C"),
+                          dict(name="Q"),
+                      ]),
+             ]),
+        tree,
+    )
