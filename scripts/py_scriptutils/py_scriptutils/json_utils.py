@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
-from beartype.typing import Callable, List, Any, Dict, Union, Optional
+from beartype.typing import Callable, List, Any, Dict, Union, Optional, Tuple
 from enum import Enum, auto
 import json
 from jsonpath_ng import jsonpath, DatumInContext, Index, Fields
 import copy
 from beartype import beartype
 
-Json = Union[str, int, float, None, Dict, List]
+Json = Union[str, int, float, None, Dict, List, Tuple]
 
 
 class Op(Enum):

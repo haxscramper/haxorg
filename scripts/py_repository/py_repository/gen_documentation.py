@@ -5,7 +5,7 @@ import tree_sitter
 from py_scriptutils.files import get_haxorg_repo_root_path
 from pathlib import Path
 from beartype import beartype
-from beartype.typing import List, Dict, Optional, Any, Union, Iterator, Iterable, TypeVar
+from beartype.typing import List, Dict, Optional, Any, Union, Iterator, Iterable, TypeVar, Tuple
 from py_scriptutils.script_logging import log
 from dataclasses import dataclass, field, replace
 from pydantic import BaseModel, Field
@@ -96,12 +96,23 @@ class DocCxx(BaseModel, extra="forbid"):
     Text: str = ""
 
 
-class DocCxxInclude(BaseModel, extra="forbid"):
+@beartype
+def getNodePoints(node: tree_sitter.Node) -> Dict[str, Tuple[int, int]]:
+    return dict(StartPoint=node.start_point, EndPoint=node.end_point)
+
+
+class DocCxxBase(BaseModel, extra="forbid"):
+    StartPoint: Tuple[int, int]
+    EndPoint: Tuple[int, int]
+    Doc: DocCxx = Field(default_factory=lambda: DocCxx())
+
+
+class DocCxxInclude(DocCxxBase, extra="forbid"):
     Target: str
     Doc: Optional[DocCxx] = None
 
 
-class DocCxxIdent(BaseModel, extra="forbid"):
+class DocCxxIdent(DocCxxBase, extra="forbid"):
     # Unnamed fields and function arguments are allowed in C++
     Name: Optional[str]
     Type: QualType
@@ -117,7 +128,7 @@ class DocCxxFunctionKind(str, Enum):
     ClassMethod = "ClassMethod"
 
 
-class DocCxxFunction(BaseModel, extra="forbid"):
+class DocCxxFunction(DocCxxBase, extra="forbid"):
     # Implicit conversion operator does not have a dedicated name
     Name: Optional[str]
     ReturnTy: Optional[QualType]
@@ -129,31 +140,31 @@ class DocCxxFunction(BaseModel, extra="forbid"):
     Doc: Optional[DocCxx] = None
 
 
-class DocCxxTypedef(BaseModel, extra="forbid"):
+class DocCxxTypedef(DocCxxBase, extra="forbid"):
     Old: QualType
     New: QualType
     Doc: Optional[DocCxx] = None
 
 
-class DocCxxEnumField(BaseModel, extra="forbid"):
+class DocCxxEnumField(DocCxxBase, extra="forbid"):
     Name: str
     Value: Optional[str] = None
     Doc: Optional[DocCxx] = None
 
 
-class DocCxxEnum(BaseModel, extra="forbid"):
+class DocCxxEnum(DocCxxBase, extra="forbid"):
     Name: Optional[QualType]
     Fields: List[DocCxxEnumField] = Field(default_factory=list)
     Doc: Optional[DocCxx] = None
 
 
-class DocCxxRecord(BaseModel, extra="forbid"):
+class DocCxxRecord(DocCxxBase, extra="forbid"):
     Name: QualType
     Nested: List["DocCxxEntry"] = Field(default_factory=list)
     Doc: Optional[DocCxx] = None
 
 
-class DocCxxConcept(BaseModel, extra="forbid"):
+class DocCxxConcept(DocCxxBase, extra="forbid"):
     Name: QualType
     Doc: Optional[DocCxx] = None
 
@@ -374,6 +385,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 DocCxxEnumField(
                     Name=get_subnode(doc.node, "name").text.decode(),
                     Doc=convert_cxx_doc(doc),
+                    **getNodePoints(doc.node),
                 )
             ]
 
@@ -382,6 +394,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 DocCxxConcept(
                     Name=convert_cxx_type(get_subnode(doc.node, "name")),
                     Doc=convert_cxx_doc(doc),
+                    **getNodePoints(doc.node),
                 )
             ]
 
@@ -390,6 +403,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 Name=get_subnode(doc.node, "name") and
                 convert_cxx_type(get_subnode(doc.node, "name")),
                 Doc=convert_cxx_doc(doc),
+                **getNodePoints(doc.node),
             )
 
             if not get_subnode(doc.node, "body"):
@@ -428,6 +442,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                         Doc=convert_cxx_doc(doc),
                         Value=get_subnode(doc.node, "default_value").text.decode()
                         if get_subnode(doc.node, "default_value") else None,
+                        **getNodePoints(doc.node),
                     )
                 ]
 
@@ -441,6 +456,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Name=get_subnode(doc.node, "declarator").text.decode(),
                     Value=get_subnode(doc.node, "default_value").text.decode(),
                     Doc=convert_cxx_doc(doc),
+                    **getNodePoints(doc.node),
                 )
             ]
 
@@ -451,6 +467,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Name=get_subnode(doc.node, "declarator") and
                     get_subnode(doc.node, "declarator").text.decode(),
                     Doc=convert_cxx_doc(doc),
+                    **getNodePoints(doc.node),
                 )
             ]
 
@@ -462,6 +479,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     get_subnode(doc.node, "declarator").text.decode(),
                     Doc=convert_cxx_doc(doc),
                     IsTemplateVariadic=True,
+                    **getNodePoints(doc.node),
                 )
             ]
 
@@ -471,6 +489,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Old=convert_cxx_type(get_subnode(doc.node, "name")),
                     New=convert_cxx_type(get_subnode(doc.node, "type")),
                     Doc=convert_cxx_doc(doc),
+                    **getNodePoints(doc.node),
                 )
             ]
 
@@ -480,6 +499,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Old=convert_cxx_type(get_subnode(doc.node, "type")),
                     New=convert_cxx_type(get_subnode(doc.node, "declarator")),
                     Doc=convert_cxx_doc(doc),
+                    **getNodePoints(doc.node),
                 )
             ]
 
@@ -488,10 +508,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
             if get_subnode(decl, "declarator"):
                 if decl.type == "operator_cast":
-                    func = DocCxxFunction(Name=None,
-                                          Kind=DocCxxFunctionKind.ImplicitConvertOperator,
-                                          ReturnTy=convert_cxx_type(
-                                              get_subnode(decl, "type")))
+                    func = DocCxxFunction(
+                        Name=None,
+                        Kind=DocCxxFunctionKind.ImplicitConvertOperator,
+                        ReturnTy=convert_cxx_type(get_subnode(decl, "type")),
+                        **getNodePoints(doc.node),
+                    )
 
                     decl = get_subnode(decl, "declarator")
 
@@ -502,6 +524,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                             Name=get_subnode(decl, "declarator").text,
                             ReturnTy=convert_cxx_type(get_subnode(node, "type")),
                             Doc=convert_cxx_doc(doc),
+                            **getNodePoints(doc.node),
                         )
 
                         while decl.type == "pointer_declarator":
@@ -514,6 +537,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                             ReturnTy=None,
                             Kind=DocCxxFunctionKind.Constructor,
                             Doc=convert_cxx_doc(doc),
+                            **getNodePoints(doc.node),
                         )
 
                 for param in convert_cxx_groups(get_subnode(decl, "parameters")):
@@ -527,6 +551,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 record = DocCxxRecord(
                     Name=convert_cxx_type(get_subnode(node, "name")),
                     Doc=convert_cxx_doc(doc),
+                    **getNodePoints(doc.node),
                 )
 
                 for group in convert_cxx_groups(body):
