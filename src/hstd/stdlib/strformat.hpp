@@ -9,13 +9,13 @@
 
 enum class AddfFragmentKind
 {
-    Text,        /// Regular text fragment
-    Positional,  /// Positional fragment `$#`
-    Indexed,     /// Indexed fragment `$1`
-    Dollar,      /// Dollar literal `$$`
-    BackIndexed, /// Negative indexed fragment `$-1`
-    Var,         /// Interpolated variable `$name`
-    Expr,        /// Expression in braces `${some expr}`
+    Text,        ///< Regular text fragment
+    Positional,  ///< Positional fragment `$#`
+    Indexed,     ///< Indexed fragment `$1`
+    Dollar,      ///< Dollar literal `$$`
+    BackIndexed, ///< Negative indexed fragment `$-1`
+    Var,         ///< Interpolated variable `$name`
+    Expr,        ///< Expression in braces `${some expr}`
 };
 
 struct AddfFragment {

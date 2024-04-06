@@ -172,3 +172,23 @@ def test_code_2():
     func = file.Content[0]
     assert isinstance(func, gen.DocCxxFunction)
     assert_submodel(func.ReturnTy, dict(name="V", ptrCount=4), tree)
+
+
+def test_implicit_conversion_operator():
+    code = """
+    operator int() {}
+    """
+
+    print_parse(code)
+    file, tree = parse(code)
+    func = file.Content[0]
+    assert isinstance(func, gen.DocCxxFunction)
+
+    assert_submodel(
+        func,
+        dict(
+            ReturnTy=dict(name="int"),
+            Kind="ImplicitConvertOperator",
+        ),
+        tree,
+    )

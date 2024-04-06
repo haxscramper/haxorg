@@ -12,6 +12,8 @@ from pydantic import BaseModel, Field
 from rich.console import Console
 from py_scriptutils.rich_utils import render_rich
 from py_codegen.refl_read import strip_comment_prefixes
+from enum import Enum
+import itertools
 
 T = TypeVar("T")
 
@@ -22,17 +24,9 @@ def dropnan(values: Iterable[Optional[T]]) -> Iterable[T]:
 
 CAT = "docgen"
 
-from py_codegen.gen_tu_cpp import (
-    GenTuDoc,
-    GenTuTypedef,
-    GenTuTypeGroup,
-    GenTuNamespace,
-    GenTuStruct,
-    GenTuEntry,
-    GenTuEnum,
-    GenTuIdent,
-    QualType,
-)
+from py_codegen.gen_tu_cpp import (GenTuDoc, GenTuTypedef, GenTuTypeGroup, GenTuNamespace,
+                                   GenTuStruct, GenTuEntry, GenTuEnum, GenTuIdent,
+                                   QualType, QualTypeKind)
 
 thirdparty = get_haxorg_repo_root_path().joinpath("thirdparty")
 build_dir = get_haxorg_repo_root_path().joinpath("build_treesitter")
@@ -113,11 +107,21 @@ class DocCxxIdent(BaseModel, extra="forbid"):
     Type: QualType
     Value: Optional[str] = None
     Doc: Optional[DocCxx] = None
+    IsTemplateVariadic: bool = False
+
+
+class DocCxxFunctionKind(str, Enum):
+    StandaloneFunction = "StandaloneFunction"
+    ImplicitConvertOperator = "ImplicitConvertOperator"
+    Constructor = "Constructor"
+    ClassMethod = "ClassMethod"
 
 
 class DocCxxFunction(BaseModel, extra="forbid"):
-    Name: str
+    # Implicit conversion operator does not have a dedicated name
+    Name: Optional[str]
     ReturnTy: Optional[QualType]
+    Kind: DocCxxFunctionKind
     Arguments: List[DocCxx] = Field(default_factory=list)
     IsConst: bool = False
     IsStatic: bool = False
@@ -138,7 +142,7 @@ class DocCxxEnumField(BaseModel, extra="forbid"):
 
 
 class DocCxxEnum(BaseModel, extra="forbid"):
-    Name: QualType
+    Name: Optional[QualType]
     Fields: List[DocCxxEnumField] = Field(default_factory=list)
     Doc: Optional[DocCxx] = None
 
@@ -159,6 +163,7 @@ DocCxxEntry = Union[
     DocCxxInclude,
     DocCxxFunction,
     DocCxxIdent,
+    DocCxxConcept,
     DocCxxTypedef,
     DocCxxEnum,
     DocCxxEnumField,
@@ -167,8 +172,8 @@ DocCxxEntry = Union[
 
 
 class DocCxxNamespace(BaseModel, extra="forbid"):
-    name: QualType
-    nested: List[DocCxxEntry] = Field(default_factory=list)
+    Name: QualType
+    Nested: List[DocCxxEntry] = Field(default_factory=list)
 
 
 class DocCxxFile(BaseModel, extra="forbid"):
@@ -178,8 +183,21 @@ class DocCxxFile(BaseModel, extra="forbid"):
 @beartype
 def convert_cxx_type(node: tree_sitter.Node) -> QualType:
     match node.type:
-        case "namespace_identifier":
+        case "namespace_identifier" | \
+            "type_identifier" | \
+            "primitive_type" | \
+            "sized_type_specifier" | \
+            "placeholder_type_specifier" | \
+            "identifier":
             return QualType.ForName(name=node.text.decode())
+
+        case "pointer_declarator":
+            result = convert_cxx_type(get_subnode(node, "declarator"))
+            return result.model_copy(update=dict(ptrCount=result.ptrCount + 1))
+
+        case "parameter_pack_expansion":
+            return convert_cxx_type(
+                node.named_child(0)).model_copy(update=dict(IsPackExpansion=True))
 
         case "template_type":
             return QualType(
@@ -194,9 +212,19 @@ def convert_cxx_type(node: tree_sitter.Node) -> QualType:
         case "type_descriptor":
             return convert_cxx_type(get_subnode(node, "type"))
 
-        case "type_identifier" | "primitive_type":
-            return QualType(name=node.text.decode())
+        case "dependent_type":
+            return convert_cxx_type(node.named_child(0))
 
+        case "number_literal" | "binary_expression" | "decltype" | "sizeof_expression":
+            return QualType(Kind=QualTypeKind.TypeExpr, expr=node.text.decode())
+        
+        case "nested_namespace_specifier":
+            result = convert_cxx_type(node.named_children[-1])
+            for item in node.named_children[:1]:
+                result.Spaces.append(convert_cxx_type(item))
+
+            return result
+        
         case "qualified_identifier":
             scopes: List[QualType] = []
             scoped = node
@@ -349,9 +377,11 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
         case "enum_specifier":
             Enum = DocCxxEnum(
-                Name=convert_cxx_type(get_subnode(doc.node, "name")),
+                Name=get_subnode(doc.node, "name") and
+                convert_cxx_type(get_subnode(doc.node, "name")),
                 Doc=convert_cxx_doc(doc),
             )
+
             for field in convert_cxx_groups(get_subnode(doc.node, "body")):
                 Enum.Fields.append(convert_cxx_entry(field)[0])
 
@@ -359,7 +389,11 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
         case "field_declaration":
             record = get_subnode(doc.node, "type")
-            if record and record.type in ["struct_specifier"]:
+            if record and record.type in [
+                    "struct_specifier",
+                    "class_specifier",
+                    "enum_specifier",
+            ]:
                 return convert_cxx_entry(replace(doc, node=record))
 
             field_decl = get_subnode(doc.node, ["declarator", "declarator"])
@@ -400,6 +434,17 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 )
             ]
 
+        case "variadic_parameter_declaration":
+            return [
+                DocCxxIdent(
+                    Type=convert_cxx_type(get_subnode(doc.node, "type")),
+                    Name=get_subnode(doc.node, "declarator") and
+                    get_subnode(doc.node, "declarator").text.decode(),
+                    Doc=convert_cxx_doc(doc),
+                    IsTemplateVariadic=True,
+                )
+            ]
+
         case "alias_declaration":
             result = [
                 DocCxxTypedef(
@@ -409,27 +454,47 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 )
             ]
 
+        case "type_definition":
+            result = [
+                DocCxxTypedef(
+                    Old=convert_cxx_type(get_subnode(doc.node, "type")),
+                    New=convert_cxx_type(get_subnode(doc.node, "declarator")),
+                    Doc=convert_cxx_doc(doc),
+                )
+            ]
+
         case "function_definition":
             decl = get_subnode(node, "declarator")
 
             if get_subnode(decl, "declarator"):
-                if get_subnode(node, "type"):
-                    func = DocCxxFunction(
-                        Name=get_subnode(decl, "declarator").text,
-                        ReturnTy=convert_cxx_type(get_subnode(node, "type")),
-                        Doc=convert_cxx_doc(doc),
-                    )
+                if decl.type == "operator_cast":
+                    func = DocCxxFunction(Name=None,
+                                          Kind=DocCxxFunctionKind.ImplicitConvertOperator,
+                                          ReturnTy=convert_cxx_type(
+                                              get_subnode(decl, "type")))
 
-                    while decl.type == "pointer_declarator":
-                        func.ReturnTy.ptrCount += 1
-                        decl = get_subnode(decl, "declarator")
+                    decl = get_subnode(decl, "declarator")
 
                 else:
-                    func = DocCxxFunction(
-                        Name=get_subnode(decl, "declarator").text,
-                        ReturnTy=None,
-                        Doc=convert_cxx_doc(doc),
-                    )
+                    if get_subnode(node, "type"):
+                        func = DocCxxFunction(
+                            Kind=DocCxxFunctionKind.StandaloneFunction,
+                            Name=get_subnode(decl, "declarator").text,
+                            ReturnTy=convert_cxx_type(get_subnode(node, "type")),
+                            Doc=convert_cxx_doc(doc),
+                        )
+
+                        while decl.type == "pointer_declarator":
+                            func.ReturnTy.ptrCount += 1
+                            decl = get_subnode(decl, "declarator")
+
+                    else:
+                        func = DocCxxFunction(
+                            Name=get_subnode(decl, "declarator").text,
+                            ReturnTy=None,
+                            Kind=DocCxxFunctionKind.Constructor,
+                            Doc=convert_cxx_doc(doc),
+                        )
 
                 for param in convert_cxx_groups(get_subnode(decl, "parameters")):
                     func.Arguments += convert_cxx_entry(param)
@@ -453,7 +518,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 result = [record]
 
         case "template_declaration":
-            content = node.named_child(1)
+            idx = 1
+            while node.named_child(idx).type in ["requires_clause", "comment"]:
+                idx += 1
+
+            content = node.named_child(idx)
+
             declared = None
             match content.type:
                 case "class_specifier" | "struct_specifier":
@@ -472,6 +542,11 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     if impl:
                         declared = impl[0]
 
+                case "concept_definition":
+                    impl: DocCxxConcept = convert_cxx_entry(replace(doc, node=content))
+                    if impl:
+                        declared = impl[0]
+
                 case _:
                     raise fail_node(content, "template_declaration content")
 
@@ -479,16 +554,14 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 result = [declared]
 
         case "namespace_definition":
-            result = [
-                DocCxxNamespace(
-                    name=convert_cxx_type(get_subnode(node, "name")),
-                    nested=([
-                        *dropnan(
-                            convert_cxx_entry(it)
-                            for it in convert_cxx_groups(get_subnode(node, "body")))
-                    ]),
-                )
-            ]
+            space = DocCxxNamespace(Name=convert_cxx_type(get_subnode(node, "name")))
+
+            for it in convert_cxx_groups(get_subnode(node, "body")):
+                for entry in convert_cxx_entry(it):
+                    if entry:
+                        space.Nested.append(entry)
+
+            result = [space]
 
         case "preproc_function_def":
             return []
@@ -510,6 +583,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     "#endif",
                     "access_specifier",
                     ":",
+                    "namespace_alias_definition",
+                    "friend_declaration",
+                    ")",
+                    "static_assert_declaration",
+                    "preproc_else",
+                    "preproc_if",
             ]:
                 raise fail_node(node, "convert cxx entry")
 

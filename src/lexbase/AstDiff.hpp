@@ -97,11 +97,11 @@ class Mapping {
 enum class ChangeKind
 {
     None,
-    Delete, //! (Src): delete node Src.
-    Update, //! (Src, Dst): update the value of node Src to match Dst.
-    Insert, //! (Src, Dst, Pos): insert Src as child of Dst at offset Pos.
-    Move, //! (Src, Dst, Pos): move Src to be a child of Dst at offset Pos.
-    UpdateMove //! Same as Move plus Update.
+    Delete, ///< (Src): delete node Src.
+    Update, ///< (Src, Dst): update the value of node Src to match Dst.
+    Insert, ///< (Src, Dst, Pos): insert Src as child of Dst at offset Pos.
+    Move, ///< (Src, Dst, Pos): move Src to be a child of Dst at offset Pos.
+    UpdateMove ///< Same as Move plus Update.
 };
 
 BOOST_DESCRIBE_ENUM(

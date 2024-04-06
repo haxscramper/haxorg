@@ -20,17 +20,17 @@ struct TermColorFgFull {
 
 enum class TermColorBg8Bit : u8
 {
-    Black = 1, /// black
-    Red,       /// red
-    Green,     /// green
-    Yellow,    /// yellow
-    Blue,      /// blue
-    Magenta,   /// magenta
-    Cyan,      /// cyan
-    White,     /// white
-    EightBit,  /// 256-color (not supported, see `enableTrueColors`
-               /// instead.)
-    Default    /// default terminal foreground color
+    Black = 1, ///< black
+    Red,       ///< red
+    Green,     ///< green
+    Yellow,    ///< yellow
+    Blue,      ///< blue
+    Magenta,   ///< magenta
+    Cyan,      ///< cyan
+    White,     ///< white
+    EightBit,  ///< 256-color (not supported, see `enableTrueColors`
+               ///< instead.)
+    Default    ///< default terminal foreground color
 };
 
 template <>
@@ -43,17 +43,17 @@ struct value_domain<TermColorBg8Bit>
 
 enum class TermColorFg8Bit : u8
 {
-    Black = 1, /// black
-    Red,       /// red
-    Green,     /// green
-    Yellow,    /// yellow
-    Blue,      /// blue
-    Magenta,   /// magenta
-    Cyan,      /// cyan
-    White,     /// white
-    EightBit,  /// 256-color (not supported, see `enableTrueColors`
-               /// instead.)
-    Default    /// default terminal foreground color
+    Black = 1, ///< black
+    Red,       ///< red
+    Green,     ///< green
+    Yellow,    ///< yellow
+    Blue,      ///< blue
+    Magenta,   ///< magenta
+    Cyan,      ///< cyan
+    White,     ///< white
+    EightBit,  ///< 256-color (not supported, see `enableTrueColors`
+               ///< instead.)
+    Default    ///< default terminal foreground color
 };
 
 template <>
@@ -65,15 +65,15 @@ struct value_domain<TermColorFg8Bit>
 
 enum class Style : u8
 {
-    Bright = 1,   //! bright text
-    Dim,          //! dim text
-    Italic,       //! italic (or reverse on terminals not supporting)
-    Underscore,   //! underscored text
-    Blink,        //! blinking/bold text
-    BlinkRapid,   //! rapid blinking/bold text (not widely supported)
-    Reverse,      //! reverse
-    Hidden,       //! hidden text
-    Strikethrough //! strikethrough
+    Bright = 1,   ///< bright text
+    Dim,          ///< dim text
+    Italic,       ///< italic (or reverse on terminals not supporting)
+    Underscore,   ///< underscored text
+    Blink,        ///< blinking/bold text
+    BlinkRapid,   ///< rapid blinking/bold text (not widely supported)
+    Reverse,      ///< reverse
+    Hidden,       ///< hidden text
+    Strikethrough ///< strikethrough
 };
 
 template <>

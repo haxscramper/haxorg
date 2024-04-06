@@ -23,12 +23,12 @@ REFL_DEFINE_DESCRIBED_FORMATTER(BacktrackRes);
 
 enum class SeqEditKind : u8
 {
-    None,     /// Empty edit operation
-    Keep,     /// Keep original element unchanged
-    Insert,   /// Insert new element into target sequence
-    Replace,  /// Replace source element with the target
-    Delete,   /// Delete element from the source sequence
-    Transpose /// Transpose two elements
+    None,     ///< Empty edit operation
+    Keep,     ///< Keep original element unchanged
+    Insert,   ///< Insert new element into target sequence
+    Replace,  ///< Replace source element with the target
+    Delete,   ///< Delete element from the source sequence
+    Transpose ///< Transpose two elements
 };
 
 template <>

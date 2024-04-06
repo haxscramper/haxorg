@@ -15,7 +15,7 @@
 #include <type_traits>
 
 template <typename T>
-concept IsEnum = std::is_enum<T>::value;
+concept IsEnum = std::is_enum<T>::value;    
 
 template <typename T>
 concept IsRecord = std::is_class<T>::value;
