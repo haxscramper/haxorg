@@ -207,6 +207,14 @@ def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
     nodes = node.children
     converted: List[DocNodeGroup] = []
 
+    def next():
+        nonlocal idx
+        # log(CAT).info(f"{idx}, {nodes[idx]}")
+        idx += 1
+
+    def has_next():
+        return idx < len(nodes)
+
     def aux() -> Optional[DocNodeGroup]:
         nonlocal idx
         result = DocNodeGroup()
@@ -214,28 +222,38 @@ def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
         def get():
             return nodes[idx]
 
-        while idx < len(nodes) and not get().is_named and get().type != "comment":
-            # log(CAT).info(f"{idx}, {get()}")
-            idx += 1
+        def at_skip() -> bool:
+            return not get().is_named and get().type != "comment"
 
-        while idx < len(nodes) and get().type == "comment":
-            # log(CAT).info(f"{idx}, {get()}")
+        def at_comment() -> bool:
+            return get().type == "comment"
+
+        while has_next() and at_skip():
+            next()
+
+        while has_next() and at_comment():
             result.comments.append(get())
-            idx += 1
+            next()
 
-        while idx < len(nodes) and not get().is_named:
-            # log(CAT).info(f"{idx}, {get()}")
-            idx += 1
-
-        if idx < len(nodes):
-            # log(CAT).info(f"{idx}, {get()}")
+        if has_next():
             result.node = get()
-            idx += 1
+            next()
+
+        while has_next() and at_skip():
+            next()
+
+        while has_next() and at_comment():
+            if get().text.decode().startswith("///<"):
+                result.comments.append(get())
+                next()
+
+            else:
+                break
 
         if result.node or result.comments:
             return result
 
-    while idx < len(nodes):
+    while has_next():
         group = aux()
         if group:
             converted.append(group)
@@ -338,6 +356,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                         Name=field_decl.text.decode(),
                         Type=convert_cxx_type(get_subnode(doc.node, "type")),
                         Doc=convert_cxx_doc(doc),
+                        Value=get_subnode(doc.node, "default_value").text.decode()
+                        if get_subnode(doc.node, "default_value") else None,
                     )
                 ]
 
@@ -373,9 +393,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Doc=convert_cxx_doc(doc),
                 )
 
-                for param in get_subnode(decl, "parameters").children:
-                    if param.is_named:
-                        func.Arguments += convert_cxx_entry(DocNodeGroup(node=param))
+                for param in convert_cxx_groups(get_subnode(decl, "parameters")):
+                    func.Arguments += convert_cxx_entry(param)
 
                 result = [func]
 

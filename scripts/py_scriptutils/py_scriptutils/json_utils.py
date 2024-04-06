@@ -119,19 +119,21 @@ def describe_diff(
         description += f"    {json.dumps(it.value, indent=2)}"
 
     elif it.op == Op.Replace:
-        exp = get_path(target)
-        conv = get_path(source)
-        from_val = json.dumps(exp, indent=2)
-        to_val = json.dumps(conv, indent=2)
+        target_object = get_path(target)
+        source_object = get_path(source)
+        target_val = json.dumps(target_object, indent=2)
+        source_val = json.dumps(source_object, indent=2)
 
-        if type(exp) != type(conv):
-            description += f"type mismatch: {type(exp).__name__} != {type(conv).__name__} "
+        if type(target_object) != type(source_object):
+            description += f"type mismatch: {type(target_object).__name__} != {type(source_object).__name__} "
 
-        if len(from_val) > 40 or len(to_val) > 40:
-            description += "\n    from " + from_val + "\n"
-            description += "    to   " + to_val + ""
+        if 40 < len(target_val) or 40 < len(source_val):
+            description += "\n"
+            description += "    from " + target_val + "\n"
+            description += "    to   " + source_val
+
         else:
-            description += f"    from {from_val} to {to_val}"
+            description += f"    from {target_val} ({target_name}) to {source_val} ({source_name})"
 
     return description
 
@@ -147,8 +149,8 @@ def assert_subset(main: Json, subset: Json, message: Optional[str] = None):
                 value,
                 source=subset,
                 target=main,
-                source_name="subset",
-                target_name="main",
+                source_name="expected subset",
+                target_name="given main",
             )) for idx, value in enumerate(diff)
     ])
 

@@ -31,7 +31,12 @@ def assert_submodel(model: BaseModel,
 
 
 def test_structure_extraction_name():
-    file, tree = parse("/*!STRUCT-COMMENT*/\nstruct A {}; ")
+    code = """
+    /*!STRUCT-COMMENT*/
+    struct A {}; 
+    """
+
+    file, tree = parse(code)
     record = file.Content[0]
     assert isinstance(record, gen.DocCxxRecord)
     assert_submodel(record.Name, dict(name="A", Spaces=[], Parameters=[]), tree)
@@ -40,25 +45,70 @@ def test_structure_extraction_name():
 
 
 def test_structure_extraction_fields():
-    file, tree = parse("/*!STRUCT-COMMENT*/\nstruct A { /*!FIELD-COMMENT*/\nint field; };")
+    code = """
+    /*!STRUCT-COMMENT*/
+    struct A { 
+        /*!FIELD-COMMENT-1*/
+        int field; 
+
+        /// FIELD-COMMENT-2.1
+        int field1 = value; ///< FIELD-COMMENT-2.2
+    };"""
+
+    file, tree = parse(code)
     record = file.Content[0]
     assert isinstance(record, gen.DocCxxRecord)
-    assert len(record.Nested) == 1, dbg(record)
-    field = record.Nested[0]
-    assert_submodel(field, dict(Name="field", Type=dict(name="int")), tree)
+    assert len(record.Nested) == 2, dbg(record)
+    field1 = record.Nested[0]
+    assert_submodel(field1, dict(Name="field", Type=dict(name="int")), tree)
 
-    assert field.Doc, dbg_parse(file, tree)
-    assert field.Doc.Text == "FIELD-COMMENT", dbg_parse(file, tree)
+    assert field1.Doc, dbg_parse(file, tree)
+    assert field1.Doc.Text == "FIELD-COMMENT-1", dbg_parse(file, tree)
+
+    field2 = record.Nested[1]
+    assert_submodel(field2, dict(Name="field1", Type=dict(name="int"), Value="value"),
+                    tree)
+
+    assert field2.Doc, dbg_parse(file, tree)
+    assert field2.Doc.Text == "FIELD-COMMENT-2.1\nFIELD-COMMENT-2.2", dbg_parse(
+        file, tree)
 
 
 def test_qualified_identifier_function_parse():
-    file, tree = parse("/*!FUNCTION-COMMENT*/\nB::A get(int arg = 12) {}")
+    code = """
+/*!FUNCTION-COMMENT*/
+B::A get(
+    int arg = 12, ///< ARG-1-COMMENT
+    /// ARG-2-COMMENT
+    int arg1 = 22
+    ) {}
+"""
+
+    file, tree = parse(code)
+
     func = file.Content[0]
     assert isinstance(func, gen.DocCxxFunction)
     assert_submodel(func.ReturnTy, dict(name="A", Spaces=[dict(name="B")]), tree)
-    assert len(func.Arguments) == 1, dbg_parse(func, tree)
-    assert_submodel(func.Arguments[0], dict(Name="arg", Value="12", Type=dict(name="int")),
-                    tree )
-    
+    assert len(func.Arguments) == 2, dbg_parse(func, tree)
+    arg1 = func.Arguments[0]
+    arg2 = func.Arguments[1]
+    assert_submodel(
+        arg1,
+        dict(Name="arg",
+             Value="12",
+             Type=dict(name="int"),
+             Doc=dict(Text="ARG-1-COMMENT")),
+        tree,
+    )
+
+    assert_submodel(
+        arg2,
+        dict(Name="arg1",
+             Value="22",
+             Type=dict(name="int"),
+             Doc=dict(Text="ARG-2-COMMENT")),
+        tree,
+    )
+
     assert func.Doc, dbg_parse(file, tree)
     assert func.Doc.Text == "FUNCTION-COMMENT", dbg_parse(file, tree)
