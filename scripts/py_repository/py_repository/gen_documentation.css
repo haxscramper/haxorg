@@ -1,0 +1,24 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  width: 20%; 
+  height: 100%;
+  overflow-y: auto;
+  background-color: #f0f0f0; 
+}
+
+.main {
+  flex-grow: 1;
+  height: 100%;
+  overflow-y: auto;
+  background-color: #fff; 
+}

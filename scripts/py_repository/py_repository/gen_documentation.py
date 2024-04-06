@@ -14,6 +14,9 @@ from py_scriptutils.rich_utils import render_rich
 from py_codegen.refl_read import strip_comment_prefixes
 from enum import Enum
 import itertools
+import dominate.tags as tags
+from dominate import document
+import dominate.util as util
 
 T = TypeVar("T")
 
@@ -187,26 +190,33 @@ class DocCxxNamespace(BaseModel, extra="forbid"):
     Nested: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
 
 
+class DocCodeCxxLine(BaseModel, extra="forbid"):
+    Text: str
+    LineAnnotation: Optional[str] = None
+
 
 class DocCodeCxxFile(BaseModel, extra="forbid"):
     Content: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
-    Lines: List[str] = Field(default_factory=list)
+    Lines: List[DocCodeCxxLine] = Field(default_factory=list)
     RelPath: Path
+
+
+class DocTextFile(BaseModel, extra="forbid"):
+    RelPath: Path
+    Text: str = ""
+
+
+class DocDirectory(BaseModel, extra="forbid"):
+    RelPath: Path
+    CodeFiles: List[DocCodeCxxFile] = Field(default_factory=list)
+    TextFiles: List[DocTextFile] = Field(default_factory=list)
+    Subdirs: List["DocDirectory"] = Field(default_factory=list)
 
 
 DocCxxRecord.model_rebuild()
 DocCxxFunction.model_rebuild()
 DocCxxNamespace.model_rebuild()
 DocCodeCxxFile.model_rebuild()
-
-class DocTextFile(BaseModel, extra="forbid"):
-    Text: str = ""
-
-
-class DocDirectory(BaseModel, extra="forbid"):
-    CodeFiles: List[DocCodeCxxFile] = Field(default_factory=list)
-    TextFiles: List[DocTextFile] = Field(default_factory=list)
-    Subdirs: List["DocDirectory"] = Field(default_factory=list)
 
 
 @beartype
@@ -688,8 +698,90 @@ def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
     return DocCodeCxxFile(
         Content=result,
         RelPath=AbsPath.relative_to(RootPath),
-        Lines=AbsPath.read_text().splitlines(),
+        Lines=[DocCodeCxxLine(Text=line) for line in AbsPath.read_text().splitlines()],
     )
+
+
+@beartype
+def get_html_path(entry: Union[DocDirectory, DocCodeCxxFile, DocTextFile],
+                  html_out_path: Path) -> Path:
+    match entry:
+        case DocDirectory():
+            return html_out_path.joinpath(entry.RelPath)
+
+        case DocCodeCxxFile() | DocTextFile():
+            return html_out_path.joinpath(entry.RelPath).with_suffix(".html")
+
+
+@beartype
+def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.ul:
+    directory_list = tags.ul(cls="directory-tree")
+    for subdir in directory.Subdirs:
+        subdir_list = generate_tree_sidebar(subdir, html_out_path)
+        directory_list.add(
+            tags.li(
+                tags.a(subdir.RelPath.name,
+                       href=get_html_path(subdir, html_out_path=html_out_path)),
+                subdir_list))
+
+    for code_file in directory.CodeFiles:
+        directory_list.add(
+            tags.li(
+                tags.a(code_file.RelPath.name,
+                       href=get_html_path(code_file, html_out_path=html_out_path))))
+
+    for text_file in directory.TextFiles:
+        directory_list.add(
+            tags.li(
+                tags.a("Text File",
+                       href=get_html_path(text_file, html_out_path=html_out_path))))
+
+    return directory_list
+
+
+@beartype
+def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) -> None:
+    sidebar = generate_tree_sidebar(directory, html_out_path=html_out_path)
+    css_path = get_haxorg_repo_root_path().joinpath(
+        "scripts/py_repository/py_repository/gen_documentation.css")
+
+    def aux(directory: DocDirectory, html_out_path: Path) -> None:
+        for subdir in directory.Subdirs:
+            aux(subdir, html_out_path)
+
+        for code_file in directory.CodeFiles:
+            path = get_html_path(code_file, html_out_path=html_out_path)
+            with document(title=str(code_file.RelPath)) as doc:
+                with doc.head:
+                    tags.link(rel="stylesheet", href=css_path)
+
+                with tags.div(_class="container"):
+                    tags.div(sidebar, _class="sidebar")
+                    with tags.div(_class="main"):
+                        for line in code_file.Lines:
+                            with tags.div(_class="line"):
+                                tags.span(line.Text)
+                                if line.LineAnnotation:
+                                    tags.span(line.LineAnnotation, _class="annotation")
+
+
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(doc.render())
+
+        for text_file in directory.TextFiles:
+            path = get_html_path(text_file, html_out_path=html_out_path)
+            with document(title=str(text_file.RelPath)) as doc:
+                with doc.head:
+                    tags.link(rel="stylesheet", href=css_path)
+
+                tags.div(sidebar, _class="sidebar")
+                with tags.div(_class="main"):
+                    tags.pre(text_file.Text)
+
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(doc.render())
+
+    aux(directory, html_out_path)
 
 
 if __name__ == "__main__":
@@ -697,7 +789,7 @@ if __name__ == "__main__":
 
     @beartype
     def aux_dir(dir: Path) -> DocDirectory:
-        result = DocDirectory()
+        result = DocDirectory(RelPath=dir.relative_to(root))
         for file in sorted(dir.glob("*")):
             log(CAT).info(file)
             if file.name == "base_lexer_gen.cpp":
@@ -722,5 +814,7 @@ if __name__ == "__main__":
 
     result = aux_dir(root)
     Path("/tmp/result.json").write_text(result.model_dump_json(indent=2))
+
+    generate_html_for_directory(result, html_out_path=Path("/tmp/result"))
 
     print("done")
