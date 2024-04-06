@@ -65,6 +65,8 @@ def tree_repr(node: Union[tree_sitter.Tree, tree_sitter.Node]) -> str:
         if name:
             result += f"[green]{name}[/green]: "
 
+        result += f"{node.start_point[0]}:{node.start_point[1]} "
+
         if node.is_named:
             result += f"[cyan]{node.type}[/cyan]"
             if 0 < len(node.children):
@@ -106,7 +108,8 @@ class DocCxxInclude(BaseModel, extra="forbid"):
 
 
 class DocCxxIdent(BaseModel, extra="forbid"):
-    Name: str
+    # Unnamed fields and function arguments are allowed in C++
+    Name: Optional[str]
     Type: QualType
     Value: Optional[str] = None
     Doc: Optional[DocCxx] = None
@@ -114,7 +117,7 @@ class DocCxxIdent(BaseModel, extra="forbid"):
 
 class DocCxxFunction(BaseModel, extra="forbid"):
     Name: str
-    ReturnTy: QualType
+    ReturnTy: Optional[QualType]
     Arguments: List[DocCxx] = Field(default_factory=list)
     IsConst: bool = False
     IsStatic: bool = False
@@ -187,7 +190,7 @@ def convert_cxx_type(node: tree_sitter.Node) -> QualType:
                     if it.is_named
                 ],
             )
-        
+
         case "type_descriptor":
             return convert_cxx_type(get_subnode(node, "type"))
 
@@ -391,7 +394,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             return [
                 DocCxxIdent(
                     Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                    Name=get_subnode(doc.node, "declarator").text.decode(),
+                    Name=get_subnode(doc.node, "declarator") and
+                    get_subnode(doc.node, "declarator").text.decode(),
                     Doc=convert_cxx_doc(doc),
                 )
             ]
@@ -409,11 +413,23 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             decl = get_subnode(node, "declarator")
 
             if get_subnode(decl, "declarator"):
-                func = DocCxxFunction(
-                    Name=get_subnode(decl, "declarator").text,
-                    ReturnTy=convert_cxx_type(get_subnode(node, "type")),
-                    Doc=convert_cxx_doc(doc),
-                )
+                if get_subnode(node, "type"):
+                    func = DocCxxFunction(
+                        Name=get_subnode(decl, "declarator").text,
+                        ReturnTy=convert_cxx_type(get_subnode(node, "type")),
+                        Doc=convert_cxx_doc(doc),
+                    )
+
+                    while decl.type == "pointer_declarator":
+                        func.ReturnTy.ptrCount += 1
+                        decl = get_subnode(decl, "declarator")
+
+                else:
+                    func = DocCxxFunction(
+                        Name=get_subnode(decl, "declarator").text,
+                        ReturnTy=None,
+                        Doc=convert_cxx_doc(doc),
+                    )
 
                 for param in convert_cxx_groups(get_subnode(decl, "parameters")):
                     func.Arguments += convert_cxx_entry(param)

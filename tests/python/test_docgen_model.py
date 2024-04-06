@@ -21,7 +21,11 @@ def print_parse(value: str) -> str:
 
 def parse(code: str) -> Tuple[gen.DocCxxFile, gen.tree_sitter.Tree]:
     tree = gen.parse_cxx(code)
-    return (gen.convert_cxx_tree(tree), tree)
+    try:
+        return (gen.convert_cxx_tree(tree), tree)
+    except Exception as e:
+        print_parse(code)
+        raise e from None
 
 
 def assert_submodel(model: BaseModel,
@@ -142,3 +146,29 @@ std::vector<int> get_value(std::unordered_map<A<B<C>>, Q::C::D::E::Z> arg) {}
              ]),
         tree,
     )
+
+
+def test_code_1():
+    code = """
+        VisitScope(Exporter<V, R>* exporter, VisitEvent event)
+            : exp(exporter), event(event) {
+            event.level   = exp->visitDepth;
+            event.isStart = true;
+            exp->visitEvent(event);
+            ++exp->visitDepth;
+        }
+    """
+
+    file, tree = parse(code)
+
+
+def test_code_2():
+    code = """
+    V**** _this() { return static_cast<V*>(this); }
+    """
+
+    file, tree = parse(code)
+
+    func = file.Content[0]
+    assert isinstance(func, gen.DocCxxFunction)
+    assert_submodel(func.ReturnTy, dict(name="V", ptrCount=4), tree)
