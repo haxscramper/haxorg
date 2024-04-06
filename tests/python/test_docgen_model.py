@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from py_scriptutils.rich_utils import render_rich_pprint, render_rich
 import py_scriptutils.json_utils as ju
 from beartype.typing import Tuple, Optional
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 def dbg(map: BaseModel) -> str:
@@ -19,10 +21,14 @@ def print_parse(value: str) -> str:
     return print(render_rich(gen.tree_repr(gen.parse_cxx(value))))
 
 
-def parse(code: str) -> Tuple[gen.DocCxxFile, gen.tree_sitter.Tree]:
+def parse(code: str) -> Tuple[gen.DocCodeCxxFile, gen.tree_sitter.Tree]:
     tree = gen.parse_cxx(code)
     try:
-        return (gen.convert_cxx_tree(tree), tree)
+        with TemporaryDirectory() as tmp_dir:
+            dir = Path(tmp_dir)
+            dir.joinpath("file.hpp").write_text(code)
+            return (gen.convert_cxx_tree(tree, dir, dir.joinpath("file.hpp")), tree)
+        
     except Exception as e:
         print_parse(code)
         raise e from None
@@ -191,6 +197,7 @@ def test_implicit_conversion_operator():
         ),
         tree,
     )
+
 
 def test_refl_annotation():
     code = """

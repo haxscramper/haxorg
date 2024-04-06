@@ -8,7 +8,7 @@ from beartype import beartype
 from beartype.typing import List, Dict, Optional, Any, Union, Iterator, Iterable, TypeVar, Tuple
 from py_scriptutils.script_logging import log
 from dataclasses import dataclass, field, replace
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SerializeAsAny
 from rich.console import Console
 from py_scriptutils.rich_utils import render_rich
 from py_codegen.refl_read import strip_comment_prefixes
@@ -160,7 +160,7 @@ class DocCxxEnum(DocCxxBase, extra="forbid"):
 
 class DocCxxRecord(DocCxxBase, extra="forbid"):
     Name: QualType
-    Nested: List["DocCxxEntry"] = Field(default_factory=list)
+    Nested: SerializeAsAny[List["DocCxxEntry"]] = Field(default_factory=list)
     Doc: Optional[DocCxx] = None
 
 
@@ -184,11 +184,29 @@ DocCxxEntry = Union[
 
 class DocCxxNamespace(BaseModel, extra="forbid"):
     Name: QualType
-    Nested: List[DocCxxEntry] = Field(default_factory=list)
+    Nested: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
 
 
-class DocCxxFile(BaseModel, extra="forbid"):
-    Content: List[DocCxxEntry] = Field(default_factory=list)
+
+class DocCodeCxxFile(BaseModel, extra="forbid"):
+    Content: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
+    Lines: List[str] = Field(default_factory=list)
+    RelPath: Path
+
+
+DocCxxRecord.model_rebuild()
+DocCxxFunction.model_rebuild()
+DocCxxNamespace.model_rebuild()
+DocCodeCxxFile.model_rebuild()
+
+class DocTextFile(BaseModel, extra="forbid"):
+    Text: str = ""
+
+
+class DocDirectory(BaseModel, extra="forbid"):
+    CodeFiles: List[DocCodeCxxFile] = Field(default_factory=list)
+    TextFiles: List[DocTextFile] = Field(default_factory=list)
+    Subdirs: List["DocDirectory"] = Field(default_factory=list)
 
 
 @beartype
@@ -659,23 +677,50 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
 
 @beartype
-def convert_cxx_tree(tree: tree_sitter.Tree) -> DocCxxFile:
+def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
+                     AbsPath: Path) -> DocCodeCxxFile:
     result: List[DocCxxEntry] = []
     for toplevel in convert_cxx_groups(tree.root_node):
         entry = convert_cxx_entry(toplevel)
         if entry:
             result += entry
 
-    return DocCxxFile(Content=result)
+    return DocCodeCxxFile(
+        Content=result,
+        RelPath=AbsPath.relative_to(RootPath),
+        Lines=AbsPath.read_text().splitlines(),
+    )
 
 
 if __name__ == "__main__":
-    for glob in {"*.hpp"}:
-        for file in sorted(get_haxorg_repo_root_path().joinpath("src").rglob(glob)):
+    root = get_haxorg_repo_root_path().joinpath("src")
+
+    @beartype
+    def aux_dir(dir: Path) -> DocDirectory:
+        result = DocDirectory()
+        for file in sorted(dir.glob("*")):
+            log(CAT).info(file)
             if file.name == "base_lexer_gen.cpp":
                 continue
 
-            log(CAT).info(file)
-            converted = convert_cxx_tree(parse_cxx(file))
+            match file.suffix:
+                case ".hpp":
+                    result.CodeFiles.append(
+                        convert_cxx_tree(
+                            parse_cxx(file),
+                            RootPath=root,
+                            AbsPath=file.absolute(),
+                        ))
+
+                case "*.org":
+                    result.TextFiles.append(DocTextFile(Text=file.read_text()))
+
+                case _ if file.is_dir():
+                    result.Subdirs.append(aux_dir(file))
+
+        return result
+
+    result = aux_dir(root)
+    Path("/tmp/result.json").write_text(result.model_dump_json(indent=2))
 
     print("done")
