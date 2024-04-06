@@ -28,11 +28,11 @@ struct FieldAccessError : public GetterError {
 
 enum class AstRangeKind : u8
 {
-    Point,        /*!`idx` */
-    InversePoint, /*!`^idx` */
-    DirectSlice,  /*!`idx1 .. idx2` */
-    InverseSlice, /*!`^idx1 .. ^idx2` */
-    MixedSlice,   /*!`idx1 .. ^idx2` */
+    Point,        ///< `idx`
+    InversePoint, ///< `^idx`
+    DirectSlice,  ///< `idx1 .. idx2`
+    InverseSlice, ///< `^idx1 .. ^idx2`
+    MixedSlice,   ///< `idx1 .. ^idx2`
 };
 
 BOOST_DESCRIBE_ENUM(

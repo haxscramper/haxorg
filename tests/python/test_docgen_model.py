@@ -179,7 +179,6 @@ def test_implicit_conversion_operator():
     operator int() {}
     """
 
-    print_parse(code)
     file, tree = parse(code)
     func = file.Content[0]
     assert isinstance(func, gen.DocCxxFunction)
@@ -192,3 +191,15 @@ def test_implicit_conversion_operator():
         ),
         tree,
     )
+
+def test_refl_annotation():
+    code = """
+    enum class [[refl]] Kind
+    {
+        Field, ///< \\brief Visiting named field
+        Index, ///< \\brief Visiting indexed subnode.
+        Key,   ///< \\brief Visiting Str->Node table
+    };
+    """
+
+    file, tree = parse(code)

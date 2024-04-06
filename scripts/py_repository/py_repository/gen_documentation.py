@@ -212,25 +212,32 @@ def convert_cxx_type(node: tree_sitter.Node) -> QualType:
         case "type_descriptor":
             return convert_cxx_type(get_subnode(node, "type"))
 
-        case "dependent_type":
+        case "dependent_type" | "dependent_name":
             return convert_cxx_type(node.named_child(0))
 
         case "number_literal" | "binary_expression" | "decltype" | "sizeof_expression":
             return QualType(Kind=QualTypeKind.TypeExpr, expr=node.text.decode())
-        
+
         case "nested_namespace_specifier":
             result = convert_cxx_type(node.named_children[-1])
             for item in node.named_children[:1]:
                 result.Spaces.append(convert_cxx_type(item))
 
             return result
-        
+
         case "qualified_identifier":
             scopes: List[QualType] = []
             scoped = node
+            IsGlobalSpace = False
             while scoped:
                 if scoped.type == "qualified_identifier":
-                    scopes.append(convert_cxx_type(get_subnode(scoped, "scope")))
+                    if get_subnode(scoped, "scope"):
+                        # `::Token<K, V>` is a namespaced identifier but it does not have a scope
+                        scopes.append(convert_cxx_type(get_subnode(scoped, "scope")))
+
+                    else:
+                        IsGlobalSpace = True
+
                     scoped = get_subnode(scoped, "name")
 
                 else:
@@ -239,7 +246,10 @@ def convert_cxx_type(node: tree_sitter.Node) -> QualType:
 
             scopes = scopes[::-1]
 
-            return scopes[0].model_copy(update=dict(Spaces=scopes[1:]))
+            return scopes[0].model_copy(update=dict(
+                Spaces=scopes[1:],
+                isGlobalNamespace=IsGlobalSpace,
+            ))
 
         case _:
             raise fail_node(node, "convert_cxx_type")
@@ -382,8 +392,17 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 Doc=convert_cxx_doc(doc),
             )
 
+            if not get_subnode(doc.node, "body"):
+                # Tree-sitter grammar does not handle `enum class [[refl]] Kind {}` property at the moment
+                return []
+
             for field in convert_cxx_groups(get_subnode(doc.node, "body")):
-                Enum.Fields.append(convert_cxx_entry(field)[0])
+                conv = convert_cxx_entry(field)
+                if len(conv) == 1:
+                    Enum.Fields.append(conv[0])
+
+                else:
+                    raise fail_node(field.node, "enum field")
 
             result = [Enum]
 
@@ -393,6 +412,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     "struct_specifier",
                     "class_specifier",
                     "enum_specifier",
+                    "type_identifier",
             ]:
                 return convert_cxx_entry(replace(doc, node=record))
 
@@ -518,11 +538,22 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 result = [record]
 
         case "template_declaration":
+            template_stack: List[tree_sitter.Node] = []
+            template = node
+            while True:
+                template_stack.append(get_subnode(template, "parameters"))
+                if template.named_child(1).type == "template_declaration":
+                    template = template.named_child(1)
+
+                else:
+                    break
+
             idx = 1
-            while node.named_child(idx).type in ["requires_clause", "comment"]:
+
+            while template.named_child(idx).type in ["requires_clause", "comment"]:
                 idx += 1
 
-            content = node.named_child(idx)
+            content = template.named_child(idx)
 
             declared = None
             match content.type:
@@ -547,8 +578,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     if impl:
                         declared = impl[0]
 
+                case "friend_declaration":
+                    return []
+
                 case _:
-                    raise fail_node(content, "template_declaration content")
+                    raise fail_node(content,
+                                    f"template_declaration content {content.type}")
 
             if declared:
                 result = [declared]
@@ -589,8 +624,11 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     "static_assert_declaration",
                     "preproc_else",
                     "preproc_if",
+                    "type_identifier",
+                    "struct",
+                    "base_class_clause",
             ]:
-                raise fail_node(node, "convert cxx entry")
+                raise fail_node(node, f"convert cxx entry '{node.type}'")
 
     return result
 
