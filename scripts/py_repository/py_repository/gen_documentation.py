@@ -819,7 +819,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     def aux_dir(dir: Path) -> DocDirectory:
         result = DocDirectory(RelPath=dir.relative_to(conf.src_path))
         for file in sorted(dir.glob("*")):
-            log(CAT).info(file)
             if file.name == "base_lexer_gen.cpp":
                 continue
 

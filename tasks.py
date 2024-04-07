@@ -115,8 +115,10 @@ def is_instrumented_coverage(ctx: Context) -> bool:
 def is_xray_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["xray"]
 
+
 def is_forced(ctx: Context, name: str) -> bool:
     return name in get_config(ctx).force_task
+
 
 @beartype
 def cmake_opt(name: str, value: Union[str, bool]) -> str:
@@ -586,14 +588,18 @@ def cmake_haxorg(ctx: Context):
     build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
         [
-            Path(path).rglob(glob)
-            for path in ["src", "scripts", "tests"]
-            for glob in ["*.cpp", "*.hpp", "*.cppm"]
+            Path(path).rglob(glob) for path in ["src", "scripts", "tests"] for glob in [
+                "*.cpp",
+                "*.hpp",
+                "*.cppm",
+                "*.cmake",
+                "CMakeLists.txt",
+            ]
         ],
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
-        if op.should_run():
+        if is_forced(ctx, "cmake_haxorg") or op.should_run():
             log(CAT).info(op.explain("Main C++"))
             run_command(ctx,
                         "cmake", ["--build", build_dir],
@@ -747,8 +753,6 @@ def binary_coverage(ctx: Context, test: Path):
 
     assert dir.exists()
     run_command(ctx, test, [], allow_fail=True, cwd=str(dir))
-
-
 
 
 @beartype

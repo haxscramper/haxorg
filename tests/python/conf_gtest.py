@@ -7,7 +7,7 @@ from beartype.typing import Optional, Tuple, List
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
-import py_repository.gen_coverage_info as coverage
+import py_repository.cxx_coverage_line as coverage
 
 
 @beartype
@@ -164,7 +164,7 @@ class GTestItem(pytest.Function):
         if self.coverage_out_dir:
             coverage.prepare_directory_for_run(test.parent)
 
-            run({"LLVM_PROFILE_FILE": str(coverage.get_profile_file(test))})
+            run({"LLVM_PROFILE_FILE": str(coverage.get_profraw_path(test))})
 
             coverage.convert_profile_information(
                 test,
