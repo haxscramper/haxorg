@@ -1,6 +1,7 @@
 from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field
+from beartype.typing import List
 
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
@@ -12,12 +13,17 @@ class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
 class HaxorgTasksConfig(BaseModel, extra="forbid"):
     skip_python_refl: bool = Field(default=False)
 
+
 class HaxorgConfig(BaseModel, extra="forbid"):
     quiet: bool = Field(default=False)
     debug: bool = Field(default=False)
     instrument: HaxorgInstrumentConfig = Field(
         default_factory=lambda: HaxorgInstrumentConfig())
     tasks: HaxorgTasksConfig = Field(default_factory=lambda: HaxorgTasksConfig())
+    force_task: List[str] = Field(
+        default_factory=list,
+        description="Always execute task",
+    )
 
 
 def get_haxorg_repo_root_path() -> Path:

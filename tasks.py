@@ -66,7 +66,18 @@ def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"])
     """
     Get basename of the binary output directory for component
     """
-    return component + "_" + ("debug" if get_config(ctx).debug else "release")
+    result = component + "_" + ("debug" if get_config(ctx).debug else "release")
+    if get_config(ctx).instrument.coverage:
+        result += "_instrumented"
+
+    return result
+
+
+@beartype
+def get_component_build_dir(ctx: Context, component: Literal["haxorg", "utils"]) -> Path:
+    result = get_build_root(get_real_build_basename(ctx, component))
+    result.mkdir(parents=True, exist_ok=True)
+    return result
 
 
 @beartype
@@ -104,6 +115,8 @@ def is_instrumented_coverage(ctx: Context) -> bool:
 def is_xray_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["xray"]
 
+def is_forced(ctx: Context, name: str) -> bool:
+    return name in get_config(ctx).force_task
 
 @beartype
 def cmake_opt(name: str, value: Union[str, bool]) -> str:
@@ -413,13 +426,12 @@ def base_environment(ctx: Context):
 def cmake_configure_utils(ctx: Context):
     """Execute configuration for utility binary compilation"""
     log(CAT).info("Configuring cmake utils build")
-    build_dir = "build/utils_debug" if get_config(ctx).debug else "build/utils_release"
     run_command(
         ctx,
         "cmake",
         [
             "-B",
-            get_script_root(build_dir),
+            get_component_build_dir(ctx, "utils"),
             "-S",
             str(get_script_root().joinpath("scripts/cxx_codegen")),
             "-G",
@@ -434,8 +446,7 @@ def cmake_configure_utils(ctx: Context):
 def cmake_utils(ctx: Context):
     """Compile libraries and binaries for utils"""
     log(CAT).info("Building build utils")
-    build_dir = "build/utils_debug" if get_config(ctx).debug else "build/utils_release"
-    run_command(ctx, "cmake", ["--build", get_script_root(build_dir)])
+    run_command(ctx, "cmake", ["--build", get_component_build_dir(ctx, "utils")])
     log(CAT).info("CMake utils build ok")
 
 
@@ -553,16 +564,17 @@ def cmake_configure_haxorg(ctx: Context):
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
         log(CAT).info(op.explain("cmake configuration"))
-        if op.should_run():
+        if is_forced(ctx, "cmake_configure_haxorg") or op.should_run():
             log(CAT).info("running haxorg cmake configuration")
-            build_dir = "build/haxorg_debug" if get_config(
-                ctx).debug else "build/haxorg_release"
             pass_flags = [
                 "-B",
-                get_script_root(build_dir), "-S",
-                get_script_root(), "-G", "Ninja",
+                get_component_build_dir(ctx, "haxorg"),
+                "-S",
+                get_script_root(),
+                "-G",
+                "Ninja",
                 f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
-                *get_cmake_defines(ctx)
+                *get_cmake_defines(ctx),
             ]
 
             run_command(ctx, "cmake", tuple(pass_flags))
@@ -571,7 +583,7 @@ def cmake_configure_haxorg(ctx: Context):
 @org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx: Context):
     """Compile main set of libraries and binaries for org-mode parser"""
-    build_dir = "build/" + get_real_build_basename(ctx, "haxorg")
+    build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
         [
             Path(path).rglob(glob)
@@ -736,33 +748,7 @@ def binary_coverage(ctx: Context, test: Path):
     assert dir.exists()
     run_command(ctx, test, [], allow_fail=True, cwd=str(dir))
 
-    profraw = dir / "default.profraw"
-    coverage_dir = dir / "coverage_report"
-    if profraw.exists():
-        # Merging profdata
-        run_command(ctx, tools / "llvm-profdata", [
-            "merge",
-            "-output=" + str(dir / "test.profdata"),
-            str(profraw),
-        ])
 
-        # Generating coverage report
-        run_command(ctx, tools / "llvm-cov", [
-            "show",
-            str(test),
-            "-ignore-filename-regex",
-            ".*/(_?deps|thirdparty)/.*",
-            "-instr-profile=" + str(dir / "test.profdata"),
-            "-format=html",
-            "-output-dir=" + str(coverage_dir),
-        ])
-
-        log(CAT).info(f"Generated coverage to {coverage_dir}")
-
-    else:
-        raise Failure(
-            f"{profraw} does not exist after running tests. Instrumentation was set to {get_config(ctx).instrument}"
-        )
 
 
 @beartype
@@ -955,13 +941,13 @@ def symlink_build(ctx: Context):
         link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
     link(
-        real_path=get_build_root(get_real_build_basename(ctx, "haxorg")),
+        real_path=get_component_build_dir(ctx, "haxorg"),
         link_path=get_build_root("haxorg"),
         is_dir=True,
     )
 
     link(
-        real_path=get_build_root(get_real_build_basename(ctx, "utils")),
+        real_path=get_component_build_dir(ctx, "utils"),
         link_path=get_build_root("utils"),
         is_dir=True,
     )
@@ -980,7 +966,10 @@ def py_tests(ctx: Context, arg: List[str] = []):
     LLDB debugger to work on compiled component issues. 
     """
 
-    log(CAT).info(get_py_env(ctx))
+    args = arg
+
+    if is_instrumented_coverage(ctx):
+        args.append(f"--coverage-out-dir={get_build_root('coverage_artifacts')}")
 
     retcode, _, _ = run_command(
         ctx,
@@ -994,7 +983,7 @@ def py_tests(ctx: Context, arg: List[str] = []):
             "--tb=short",
             "--cov=scripts",
             "--cov-report=html",
-            *arg,
+            *args,
         ],
         allow_fail=True,
         env=get_py_env(ctx),

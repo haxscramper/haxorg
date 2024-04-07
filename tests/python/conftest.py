@@ -6,7 +6,13 @@ from conf_qtest import QTestFile
 from beartype import beartype
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
+from _pytest.config import Config
+from _pytest.config.argparsing import Parser
+from _pytest.nodes import Item
+from _pytest.python import Module
+
 trace_collector: TraceCollector = None
+
 
 def get_trace_collector():
     global trace_collector
@@ -14,6 +20,15 @@ def get_trace_collector():
         trace_collector = TraceCollector()
 
     return trace_collector
+
+
+def pytest_addoption(parser: Parser) -> None:
+    parser.addoption(
+        "--coverage-out-dir",
+        action="store",
+        default=None,
+        help="CXX code coverage output location",
+    )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -40,17 +55,23 @@ def trace_test(request):
     get_trace_collector().pop_complete_event()
 
 
-def pytest_collect_file(parent, path):
-    path = Path(path)
+def pytest_collect_file(parent: Module, path: str):
+    test = Path(path)
+
     def debug(it, file):
         pprint_to_file(to_debug_json(it), file + ".json")
 
-    if path.name == "test_integrate_cxx_org.py":
-        result = GTestFile.from_parent(parent, path=path)
+    if test.name == "test_integrate_cxx_org.py":
+        result = GTestFile.from_parent(
+            parent,
+            path=test,
+            coverage_out_dir=Path(parent.config.getoption("--coverage-out-dir")),
+        )
+
         debug(result, "/tmp/google_tests")
         return result
-            
-    elif path.name == "test_integrate_qt.py":
+
+    elif test.name == "test_integrate_qt.py":
         pass
         # result = QTestFile.from_parent(parent, path=path)
         # debug(result, "/tmp/qt_tests")
