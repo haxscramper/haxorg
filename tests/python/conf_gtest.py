@@ -7,7 +7,7 @@ from beartype.typing import Optional, Tuple, List
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
-import py_repository.cxx_coverage_line as coverage
+import py_repository.run_coverage as coverage
 
 
 @beartype

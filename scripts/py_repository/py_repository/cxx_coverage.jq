@@ -15,7 +15,7 @@ def filter_raw_json:
             . as $file 
             | select(
                 (
-                  ($file.filename | test("Map.(cc|h|cpp|hpp)$")) or
+                  ($file.filename | test("pb.(cc|h|cpp|hpp)$")) or
                   ($file.filename | contains("thirdparty"))
                 )
                 | not)) 

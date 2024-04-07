@@ -19,6 +19,8 @@ from dominate import document
 import dominate.util as util
 from py_scriptutils.toml_config_profiler import options_from_model, BaseModel, apply_options, get_cli_model
 import rich_click as click
+import py_repository.run_coverage as coverage
+import more_itertools
 
 T = TypeVar("T")
 
@@ -192,9 +194,18 @@ class DocCxxNamespace(BaseModel, extra="forbid"):
     Nested: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
 
 
+class DocCodeRunCall(BaseModel, extra="forbid"):
+    Count: int
+    CalledBy: str
+
+
+class DocCodeCxxCoverage(BaseModel, extra="forbid"):
+    Call: List[DocCodeRunCall] = Field(default_factory=list)
+
+
 class DocCodeCxxLine(BaseModel, extra="forbid"):
     Text: str
-    LineAnnotation: Optional[str] = None
+    Coverage: Optional[DocCodeCxxCoverage] = None
 
 
 class DocCodeCxxFile(BaseModel, extra="forbid"):
@@ -727,10 +738,17 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
                 subdir_list))
 
     for code_file in directory.CodeFiles:
-        directory_list.add(
-            tags.li(
-                tags.a(code_file.RelPath.name,
-                       href=get_html_path(code_file, html_out_path=html_out_path))))
+        covered_lines = more_itertools.quantify(code_file.Lines, lambda it: bool(it.Coverage))
+        
+        with tags.li() as item:
+            with tags.a(href=get_html_path(code_file, html_out_path=html_out_path)):
+                util.text(code_file.RelPath.name)
+                util.text(" ")
+                with tags.b():
+                    util.text(f"{covered_lines}/{len(code_file.Lines)}")
+
+        directory_list.add(item)
+
 
     for text_file in directory.TextFiles:
         directory_list.add(
@@ -768,6 +786,11 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
                                 tags.span(line.Text,
                                           _class="code-line-text",
                                           style="width:600px;")
+                                
+                                if line.Coverage:
+                                    with tags.span(_class="code-line-coverage", style="width:50px;"):
+                                        for cover in line.Coverage.Call:
+                                            util.text(f"{cover.Count}")
 
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(doc.render())
@@ -815,6 +838,8 @@ def cli_options(f):
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
     conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)
 
+    rel_path_to_code_file: Dict[Path, DocCodeCxxFile] = {}
+
     @beartype
     def aux_dir(dir: Path) -> DocDirectory:
         result = DocDirectory(RelPath=dir.relative_to(conf.src_path))
@@ -824,12 +849,14 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
             match file.suffix:
                 case ".hpp":
-                    result.CodeFiles.append(
-                        convert_cxx_tree(
-                            parse_cxx(file),
-                            RootPath=conf.src_path,
-                            AbsPath=file.absolute(),
-                        ))
+                    code_file = convert_cxx_tree(
+                        parse_cxx(file),
+                        RootPath=conf.src_path,
+                        AbsPath=file.absolute(),
+                    )
+
+                    rel_path_to_code_file[code_file.RelPath] = code_file
+                    result.CodeFiles.append(code_file)
 
                 case "*.org":
                     result.TextFiles.append(DocTextFile(Text=file.read_text()))
@@ -840,12 +867,37 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         return result
 
     result = aux_dir(conf.src_path)
+
+    for file in coverage.get_profile_root().glob("*" + coverage.COOKIE_SUFFIX):
+        cookie = coverage.ProfdataCookie.model_validate_json(file.read_text())
+        model = coverage.get_profile_model(cookie)
+
+        for entry in model.coverage.data:
+            for file in entry.files:
+                try:
+                    rel_covered = Path(file.filename).relative_to(conf.src_path)
+                except ValueError:
+                    continue
+
+                doc_file = rel_path_to_code_file.get(rel_covered, None)
+                if doc_file:
+                    for segment in file.segments:
+                        segment_line_idx = segment.line - 1
+
+                        if not doc_file.Lines[segment_line_idx].Coverage:
+                            doc_file.Lines[segment_line_idx].Coverage = DocCodeCxxCoverage()
+
+
+                        doc_file.Lines[segment_line_idx].Coverage.Call.append(
+                            DocCodeRunCall(
+                                Count=segment.count,
+                                CalledBy=cookie.test_name,
+                            ))
+
     if conf.json_out_path:
         conf.json_out_path.write_text(result.model_dump_json(indent=2))
 
     generate_html_for_directory(result, html_out_path=conf.html_out_path)
-
-    print("done")
 
 
 if __name__ == "__main__":
