@@ -17,6 +17,8 @@ import itertools
 import dominate.tags as tags
 from dominate import document
 import dominate.util as util
+from py_scriptutils.toml_config_profiler import options_from_model, BaseModel, apply_options, get_cli_model
+import rich_click as click
 
 T = TypeVar("T")
 
@@ -758,12 +760,14 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
                 with tags.div(_class="container"):
                     tags.div(sidebar, _class="sidebar")
                     with tags.div(_class="main"):
-                        for line in code_file.Lines:
-                            with tags.div(_class="line"):
-                                tags.span(line.Text)
-                                if line.LineAnnotation:
-                                    tags.span(line.LineAnnotation, _class="annotation")
-
+                        for idx, line in enumerate(code_file.Lines):
+                            with tags.p(_class="code-line"):
+                                tags.span(str(idx),
+                                          _class="code-line-number",
+                                          id=f"code-line-idx-{idx}")
+                                tags.span(line.Text,
+                                          _class="code-line-text",
+                                          style="width:600px;")
 
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(doc.render())
@@ -784,12 +788,36 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
     aux(directory, html_out_path)
 
 
-if __name__ == "__main__":
-    root = get_haxorg_repo_root_path().joinpath("src")
+class DocGenerationOptions(BaseModel, extra="forbid"):
+    html_out_path: Path = Field(description="Root directory to output generated HTML to")
+    json_out_path: Optional[Path] = Field(
+        description="Path to write JSON data for the documentation model",
+        default=None,
+    )
+    src_path: Path = Field(description="Root directory for input source code")
+    tests_path: Optional[Path] = Field(
+        description="Root directory for the tests",
+        default=None,
+    )
+
+
+def cli_options(f):
+    return apply_options(f, options_from_model(DocGenerationOptions))
+
+
+@click.command()
+@click.option("--config",
+              type=click.Path(exists=True),
+              default=None,
+              help="Path to config file.")
+@cli_options
+@click.pass_context
+def cli(ctx: click.Context, config: str, **kwargs) -> None:
+    conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)
 
     @beartype
     def aux_dir(dir: Path) -> DocDirectory:
-        result = DocDirectory(RelPath=dir.relative_to(root))
+        result = DocDirectory(RelPath=dir.relative_to(conf.src_path))
         for file in sorted(dir.glob("*")):
             log(CAT).info(file)
             if file.name == "base_lexer_gen.cpp":
@@ -800,7 +828,7 @@ if __name__ == "__main__":
                     result.CodeFiles.append(
                         convert_cxx_tree(
                             parse_cxx(file),
-                            RootPath=root,
+                            RootPath=conf.src_path,
                             AbsPath=file.absolute(),
                         ))
 
@@ -812,9 +840,14 @@ if __name__ == "__main__":
 
         return result
 
-    result = aux_dir(root)
-    Path("/tmp/result.json").write_text(result.model_dump_json(indent=2))
+    result = aux_dir(conf.src_path)
+    if conf.json_out_path:
+        conf.json_out_path.write_text(result.model_dump_json(indent=2))
 
-    generate_html_for_directory(result, html_out_path=Path("/tmp/result"))
+    generate_html_for_directory(result, html_out_path=conf.html_out_path)
 
     print("done")
+
+
+if __name__ == "__main__":
+    cli()

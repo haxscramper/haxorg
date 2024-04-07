@@ -519,6 +519,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+docs/custom_html
 
 ### Node Patch ###
 # Serverless Webpack directories

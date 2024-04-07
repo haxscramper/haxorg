@@ -4,6 +4,7 @@ from py_scriptutils.toml_config_profiler import (
     apply_options,
     options_from_model,
     merge_cli_model,
+    get_cli_model
 )
 
 from beartype.typing import Optional
@@ -15,18 +16,12 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
 from py_scriptutils.tracer import TraceCollector
+from beartype.typing import TypeVar
 
 @beartype
 def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict, config: Optional[str]):
-    """
-    Convert the provided CLI parameters into the object of type `T` for
-    more typesafe usage
-    """
-    config_base = run_config_provider(
-        ([str(Path(config).resolve())] if config else []), True) if config else {}
-    conf = merge_cli_model(ctx, config_base, kwargs, T)
     ctx.ensure_object(dict)
-    ctx.obj[name] = conf
+    ctx.obj[name] = get_cli_model(ctx, T, kwargs, config)
 
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"

@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -10,15 +11,28 @@ body, html {
 }
 
 .sidebar {
-  width: 20%; 
+  width: 20%;
   height: 100%;
   overflow-y: auto;
-  background-color: #f0f0f0; 
+  background-color: #f0f0f0;
 }
 
 .main {
   flex-grow: 1;
   height: 100%;
   overflow-y: auto;
-  background-color: #fff; 
+  background-color: #fff;
+  margin-left: 10px;
+}
+
+.code-line {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.code-line .code-line-text {
+  white-space: pre;
+  display: inline-block;
+  width: 100%;
 }

@@ -1,6 +1,6 @@
 from beartype import beartype
 import os
-from beartype.typing import List, Dict, Any, get_origin, get_args
+from beartype.typing import List, Dict, Any, get_origin, get_args, Optional, TypeVar, Type
 import toml
 import traceback
 from dataclasses import dataclass
@@ -73,6 +73,19 @@ def merge_cli_model(
     final_data = merge_dicts([on_default, file_config, on_cli])
     # trunk-ignore(mypy/attr-defined)
     return ModelT.model_validate(final_data)
+
+T = TypeVar("T")
+
+@beartype
+def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict, config: Optional[str]) -> T:
+    """
+    Convert the provided CLI parameters into the object of type `T` for
+    more typesafe usage
+    """
+    config_base = run_config_provider(
+        ([str(Path(config).resolve())] if config else []), True) if config else {}
+    conf = merge_cli_model(ctx, config_base, kwargs, ModelType)
+    return conf
 
 
 def py_type_to_click(T):

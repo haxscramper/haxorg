@@ -1022,14 +1022,30 @@ def py_tests_ci(ctx: Context):
 
 
 @org_task()
-def docs(ctx: Context):
-    "Build docunentation for the project"
-    out_dir = get_script_root("docs/docs_out")
+def docs_doxygen(ctx: Context):
+    "Build docunentation for the project using doxygen"
+    out_dir = get_script_root("docs/docs_out/doxygen")
     if not out_dir.exists():
         out_dir.mkdir(parents=True)
 
     run_command(ctx, "doxygen", [str(get_script_root("docs/Doxyfile"))])
     log(CAT).info("Completed CXX docs build")
+
+
+@org_task(iterable=["pytest_arg"])
+def docs_custom(ctx: Context, pytest_arg: List[str] = []):
+    """Build documentation for the project using custom script"""
+    out_dir = get_script_root("docs/custom_html")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    run_command(ctx, "invoke", ["py-tests", *[f"--arg={it}" for it in pytest_arg]])
+
+    run_command(ctx, "poetry", [
+        "run",
+        get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
+        f"--html_out_path={out_dir}",
+        f"--src_path={get_script_root('src')}",
+    ])
 
 
 @org_task()
