@@ -1,5 +1,5 @@
 from beartype.typing import List, Optional, Union, Dict
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator, ValidationError
 from beartype import beartype
 from plumbum import local
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
@@ -12,30 +12,49 @@ CAT = "cxx-coverager"
 
 
 @beartype
-def get_profraw_path(test_binary: Path) -> Path:
-    return Path(f"{test_binary.parent}/default.profraw")
+def get_profdata_root() -> Path:
+    path = get_haxorg_repo_root_path().joinpath("build/profdata")
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 @beartype
-def get_profdata_path(test_binary: Path) -> Path:
-    return get_profraw_path(test_binary).with_suffix(".profdata")
+def get_profdata_base(test_name: str) -> Path:
+    return get_profdata_root().joinpath(test_name.replace("/", "_"))
 
 
 @beartype
-def get_prof_export_path(test_binary: Path) -> Path:
-    return get_profraw_path(test_binary).with_suffix(".json")
+def get_profraw_path(test_name: str) -> Path:
+    return get_profdata_base(test_name).with_suffix(".profraw")
 
 
 @beartype
-def get_prof_html_path(test_binary: Path) -> Path:
-    return get_profraw_path(test_binary).with_suffix("").joinpath(
-        test_binary.name).with_suffix(".d")
+def get_profdata_path(test_name: str) -> Path:
+    return get_profdata_base(test_name).with_suffix(".profdata")
 
 
 @beartype
-def prepare_directory_for_run(test_binary: Path):
-    for file in test_binary.parent.glob("*.profdata"):
-        file.unlink()
+def get_prof_export_path(test_name: str) -> Path:
+    return get_profdata_base(test_name).with_suffix(".json")
+
+
+@beartype
+def get_prof_html_path(test_name: str) -> Path:
+    return get_profdata_base(test_name).with_suffix(".html.d")
+
+
+class ProfdataCookie(BaseModel, extra="forbid"):
+    test_binary: str
+    test_name: str
+
+
+@beartype
+def write_profdata_cookie(test_binary: Path, test_name: str):
+    get_profdata_base(test_name).with_suffix(".profdata-cookie").write_text(
+        ProfdataCookie(
+            test_binary=str(test_binary),
+            test_name=test_name,
+        ).model_dump_json())
 
 
 class LLVMSegment(BaseModel):
@@ -46,8 +65,8 @@ class LLVMSegment(BaseModel):
     in_region_entry: bool
     is_gap_region: bool
 
-    @root_validator(pre=True)
-    def parse_list_to_fields(cls, values):
+    @model_validator(mode="before")
+    def parse_list_to_fields(self, values):
         if isinstance(values, list):
             return {
                 'line': values[0],
@@ -57,7 +76,9 @@ class LLVMSegment(BaseModel):
                 'in_region_entry': values[4],
                 'is_gap_region': values[5]
             }
-        return values
+
+        else:
+            return values
 
 
 class LLVMBranch(BaseModel):
@@ -70,8 +91,8 @@ class LLVMBranch(BaseModel):
     expanded_file_id: int
     kind: int
 
-    @root_validator(pre=True)
-    def parse_list_to_fields(cls, values):
+    @model_validator(mode="before")
+    def parse_list_to_fields(self, values):
         if isinstance(values, list):
             return {
                 'line_start': values[0],
@@ -83,7 +104,9 @@ class LLVMBranch(BaseModel):
                 'expanded_file_id': values[6],
                 'kind': values[7],
             }
-        return values
+
+        else:
+            return values
 
 
 class LLVMCoverSummary(BaseModel):
@@ -130,42 +153,36 @@ class LLVMCovData(BaseModel):
 
 class TestRunCoverage(BaseModel, extra="forbid"):
     coverage: LLVMCovData
-    # Profiling information conversion is expensive
-    # and unless there is a change in the profraw *content* new file writes are cached.
-    profraw_digest: str
-
-
-@beartype
-def get_file_digest(file: Path) -> str:
-    hash_md5 = hashlib.md5()
-
-    with open(file, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-
-    return hash_md5.hexdigest()
 
 
 @beartype
 def convert_profile_information(
-        test_binary: Path,
-        coverage_out_dir: Path,
+        cookie: ProfdataCookie,
         tools_dir: Path = get_haxorg_repo_root_path().joinpath("toolchain/llvm/bin"),
 ):
-    profraw = get_profraw_path(test_binary)
+    profraw = get_profraw_path(cookie.test_name)
     if profraw.exists():
-        profdata = get_profdata_path(test_binary)
-        json_path = get_prof_export_path(test_binary)
+        profdata = get_profdata_path(cookie.test_name)
+        json_path = get_prof_export_path(cookie.test_name)
         json_clean = json_path.with_name(json_path.name + "clean")
         json_model = json_path.with_name(json_path.name + "model")
 
         should_rebuild_model = False
-        profraw_digest = get_file_digest(profraw)
+
+        llvm_profdata = local[tools_dir.joinpath("llvm-profdata")]
+        llvm_profdata.run([
+            "merge",
+            "-output=" + str(profdata),
+            str(profraw),
+        ])
 
         if json_model.exists():
-            model = TestRunCoverage.model_validate_json(json_model.read_text())
-            if model.profraw_digest != profraw_digest:
-                log(CAT).info(f"Profdata digest changed {model.profraw_digest} != {profraw_digest}")
+            try:
+                log(CAT).info(f"JSON model dump exists {json_model}")
+                model = TestRunCoverage.model_validate_json(json_model.read_text())
+
+            except ValidationError as err:
+                log(CAT).info(f"Model format changed {err}")
                 should_rebuild_model = True
 
         else:
@@ -173,16 +190,9 @@ def convert_profile_information(
             should_rebuild_model = True
 
         if should_rebuild_model:
-            llvm_profdata = local[tools_dir.joinpath("llvm-profdata")]
-            llvm_profdata.run([
-                "merge",
-                "-output=" + str(profdata),
-                str(profraw),
-            ])
-
             cmd = local[tools_dir.joinpath("llvm-cov")][
                 "export",
-                str(test_binary),
+                str(cookie.test_binary),
                 "--ignore-filename-regex=.*?thirdparty.*?",
                 "-format=text",
                 "--line-coverage-gt=0",
@@ -194,12 +204,12 @@ def convert_profile_information(
 
             html = local[tools_dir.joinpath("llvm-cov")][
                 "show",
-                str(test_binary),
+                str(cookie.test_binary),
                 f"-instr-profile={profdata}",
                 "-ignore-filename-regex",
                 ".*/(_?deps|thirdparty)/.*",
                 "-format=html",
-                f"-output-dir={get_prof_html_path(test_binary)}",
+                f"-output-dir={get_prof_html_path(cookie.test_binary)}",
             ]
 
             html.run()
@@ -213,13 +223,11 @@ def convert_profile_information(
 
             jq_run.run()
 
-            model = TestRunCoverage(
-                profraw_digest=profraw_digest,
-                coverage=LLVMCovData.model_validate_json(json_clean.read_text()),
-            )
+            model = TestRunCoverage(coverage=LLVMCovData.model_validate_json(
+                json_clean.read_text()),)
 
-            json_model.write_text(model.model_dump_json(indent=2))
+            json_model.write_text(model.model_dump_json())
 
     else:
         raise RuntimeError(
-            f"{profraw} does not exist after running test binary {test_binary}")
+            f"{profraw} does not exist after running test binary {cookie.test_binary}")

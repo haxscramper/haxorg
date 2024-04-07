@@ -162,13 +162,12 @@ class GTestItem(pytest.Function):
                 raise GTestRunError(e, self) from None
 
         if self.coverage_out_dir:
-            coverage.prepare_directory_for_run(test.parent)
-
-            run({"LLVM_PROFILE_FILE": str(coverage.get_profraw_path(test))})
-
-            coverage.convert_profile_information(
-                test,
-                coverage_out_dir=self.coverage_out_dir,
+            run({
+                "LLVM_PROFILE_FILE": str(coverage.get_profraw_path(self.gtest.fullname()))
+            })
+            coverage.write_profdata_cookie(
+                test_binary=test,
+                test_name=self.gtest.fullname(),
             )
 
         else:
