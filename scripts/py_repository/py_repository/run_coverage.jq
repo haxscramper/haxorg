@@ -32,7 +32,7 @@ def filter_raw_json:
             # Second element in segment list stores number of calls.
             segments: .segments | map(select(0 < .[2])), 
             # Branch call count is stored in 5th element
-            branches: .branches | map(select(0 < .[4])),
+            branches: .branches | map(select(0 < .[4] or 0 < .[5])),
             # expansions,
           }),
       totals,

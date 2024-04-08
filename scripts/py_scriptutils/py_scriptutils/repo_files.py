@@ -40,3 +40,11 @@ def get_haxorg_repo_root_config() -> HaxorgConfig:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
     return HaxorgConfig(**data)
+
+
+def get_maybe_repo_rel_path(path: Path) -> Path:
+    if path.is_relative_to(path):
+        return path.relative_to(get_haxorg_repo_root_path())
+    
+    else:
+        return path

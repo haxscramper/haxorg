@@ -1,8 +1,8 @@
 from beartype.typing import List, Optional, Union, Dict
 from pydantic import BaseModel, root_validator, ValidationError, Field
 from beartype import beartype
-from plumbum import local
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from plumbum import local, ProcessExecutionError
+from py_scriptutils.repo_files import get_haxorg_repo_root_path, get_maybe_repo_rel_path
 from pathlib import Path
 import hashlib
 from py_scriptutils.files import IsNewInput
@@ -25,7 +25,7 @@ def get_profile_root() -> Path:
 
 @beartype
 def get_profile_base(test_name: str) -> Path:
-    return get_profile_root().joinpath(test_name.replace("/", "_"))
+    return get_profile_root().joinpath(test_name.replace("/", "_").replace(".", "_"))
 
 
 @beartype
@@ -112,6 +112,7 @@ class LLVMRegion(BaseModel):
 
         else:
             return values
+
 
 class LLVMBranch(BaseModel):
     line_start: int
@@ -213,7 +214,7 @@ def get_profile_model(
 
         if json_model.exists():
             try:
-                log(CAT).info(f"JSON model dump exists {json_model}")
+                log(CAT).info(f"JSON model dump exists {get_maybe_repo_rel_path(json_model)}")
                 model = TestRunCoverage.model_validate_json(json_model.read_text())
                 # return model
 
@@ -222,14 +223,14 @@ def get_profile_model(
                 should_rebuild_model = True
 
         else:
-            log(CAT).info(f"JSON model file is missing {json_model}")
+            log(CAT).info(f"JSON model file is missing {get_maybe_repo_rel_path(json_model)}")
             should_rebuild_model = True
 
         should_rebuild_model = True
 
         if should_rebuild_model:
             if not json_path.exists():
-                log(CAT).info(f"Exporting to {json_path}")
+                log(CAT).info(f"Exporting to {get_maybe_repo_rel_path(json_path)}")
                 cmd = local[tools_dir.joinpath("llvm-cov")][
                     "export",
                     str(cookie.test_binary),
@@ -255,8 +256,8 @@ def get_profile_model(
 
                 html.run()
 
-            if True or not json_clean.exists():
-                log(CAT).info(f"'{json_path} -> {json_clean}")
+            if not json_clean.exists():
+                log(CAT).info(f"'{get_maybe_repo_rel_path(json_path)} -> {get_maybe_repo_rel_path(json_clean)}")
                 jq_run = (local["jq"][
                     f"include \"run_coverage\"; . | filter_raw_json",
                     "-L",
@@ -264,11 +265,30 @@ def get_profile_model(
                     joinpath("scripts/py_repository/py_repository"),
                 ] < str(json_path)) > str(json_clean)
 
-                jq_run.run()
+                try:
+                    jq_run.run()
 
-            log(CAT).info(f"Loading base JSON coverage data from {json_clean}")
-            model = TestRunCoverage(
-                coverage=LLVMCovData.model_validate_json(json_clean.read_text()))
+                except ProcessExecutionError as err:
+                    if "Unfinished" in err.stderr or "Unfinished" in err.stdout:
+                        log(CAT).error(f"{get_maybe_repo_rel_path(json_path)} contained unfinished JSON write")
+                        json_path.unlink()
+                        json_clean.unlink()
+
+                    raise err from None
+                
+
+
+            log(CAT).info(f"Loading base JSON coverage data from {get_maybe_repo_rel_path(json_clean)}")
+            try:
+                model = TestRunCoverage(
+                    coverage=LLVMCovData.model_validate_json(json_clean.read_text()))
+                
+            except ValidationError as err:
+                log(CAT).error(f"{get_maybe_repo_rel_path(json_clean)} contained invalid JSON")
+                json_clean.unlink()
+                json_path.unlink()
+
+                raise err from None
 
             json_model.write_text(model.model_dump_json(indent=2))
 

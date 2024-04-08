@@ -21,6 +21,7 @@ from py_scriptutils.toml_config_profiler import options_from_model, BaseModel, a
 import rich_click as click
 import py_repository.run_coverage as coverage
 import more_itertools
+import concurrent.futures
 
 T = TypeVar("T")
 
@@ -738,8 +739,9 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
                 subdir_list))
 
     for code_file in directory.CodeFiles:
-        covered_lines = more_itertools.quantify(code_file.Lines, lambda it: bool(it.Coverage))
-        
+        covered_lines = more_itertools.quantify(code_file.Lines,
+                                                lambda it: bool(it.Coverage))
+
         with tags.li() as item:
             with tags.a(href=get_html_path(code_file, html_out_path=html_out_path)):
                 util.text(code_file.RelPath.name)
@@ -748,7 +750,6 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
                     util.text(f"{covered_lines}/{len(code_file.Lines)}")
 
         directory_list.add(item)
-
 
     for text_file in directory.TextFiles:
         directory_list.add(
@@ -786,9 +787,10 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
                                 tags.span(line.Text,
                                           _class="code-line-text",
                                           style="width:600px;")
-                                
+
                                 if line.Coverage:
-                                    with tags.span(_class="code-line-coverage", style="width:50px;"):
+                                    with tags.span(_class="code-line-coverage",
+                                                   style="width:50px;"):
                                         for cover in line.Coverage.Call:
                                             util.text(f"{cover.Count}")
 
@@ -826,6 +828,35 @@ class DocGenerationOptions(BaseModel, extra="forbid"):
 
 def cli_options(f):
     return apply_options(f, options_from_model(DocGenerationOptions))
+
+
+@beartype
+def get_coverage_data_single(
+        file) -> Tuple[coverage.ProfdataCookie, coverage.TestRunCoverage]:
+    cookie = coverage.ProfdataCookie.model_validate_json(file.read_text())
+    model = coverage.get_profile_model(cookie)
+    return (cookie, model)
+
+
+@beartype
+def get_full_coverage_data_all(
+        files: Iterable[Path],
+        max_workers=5) -> List[Tuple[
+            coverage.ProfdataCookie,
+            coverage.TestRunCoverage,
+        ]]:
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_file = {
+            executor.submit(get_coverage_data_single, file): file for file in files
+        }
+
+        for future in concurrent.futures.as_completed(future_to_file):
+            result = future.result()
+            results.append(result)
+
+    return results
 
 
 @click.command()
@@ -868,10 +899,10 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     result = aux_dir(conf.src_path)
 
-    for file in coverage.get_profile_root().glob("*" + coverage.COOKIE_SUFFIX):
-        cookie = coverage.ProfdataCookie.model_validate_json(file.read_text())
-        model = coverage.get_profile_model(cookie)
+    coverage_meta = get_full_coverage_data_all(
+        coverage.get_profile_root().glob("*" + coverage.COOKIE_SUFFIX),)
 
+    for cookie, model in coverage_meta:
         for entry in model.coverage.data:
             for file in entry.files:
                 try:
@@ -885,8 +916,8 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                         segment_line_idx = segment.line - 1
 
                         if not doc_file.Lines[segment_line_idx].Coverage:
-                            doc_file.Lines[segment_line_idx].Coverage = DocCodeCxxCoverage()
-
+                            doc_file.Lines[
+                                segment_line_idx].Coverage = DocCodeCxxCoverage()
 
                         doc_file.Lines[segment_line_idx].Coverage.Call.append(
                             DocCodeRunCall(
