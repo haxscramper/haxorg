@@ -716,6 +716,19 @@ def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
     )
 
 
+def lerp_html_color(
+    value: float,
+    start: Tuple[float, float, float],
+    end: Tuple[float, float, float],
+) -> str:
+
+    interpolated = tuple(
+        int(255 * (r * (1 - value) + g * value))
+        for r, g in zip([float(n) for n in start], [float(n) for n in end]))
+
+    return f"#{interpolated[0]:02x}{interpolated[1]:02x}{interpolated[2]:02x}"
+
+
 @beartype
 def get_html_path(entry: Union[DocDirectory, DocCodeCxxFile, DocTextFile],
                   html_out_path: Path) -> Path:
@@ -745,9 +758,15 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
         with tags.li() as item:
             with tags.a(href=get_html_path(code_file, html_out_path=html_out_path)):
                 util.text(code_file.RelPath.name)
-                util.text(" ")
-                with tags.b():
-                    util.text(f"{covered_lines}/{len(code_file.Lines)}")
+                if False:
+                    util.text(" ")
+                    with tags.b(style="background-color:{}".format(
+                            lerp_html_color(
+                                float(covered_lines) / float(len(code_file.Lines)),
+                                (1, 0, 0),
+                                (0, 1, 0),
+                            ) if code_file.Lines else "yellow")):
+                        util.text(f"{covered_lines}/{len(code_file.Lines)}")
 
         directory_list.add(item)
 
@@ -791,8 +810,12 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
                                 if line.Coverage:
                                     with tags.span(_class="code-line-coverage",
                                                    style="width:50px;"):
-                                        for cover in line.Coverage.Call:
-                                            util.text(f"{cover.Count}")
+                                        util.text(
+                                            str(
+                                                sum([
+                                                    cover.Count
+                                                    for cover in line.Coverage.Call
+                                                ])))
 
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(doc.render())
@@ -899,31 +922,34 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     result = aux_dir(conf.src_path)
 
-    coverage_meta = get_full_coverage_data_all(
-        coverage.get_profile_root().glob("*" + coverage.COOKIE_SUFFIX),)
+    if False:
+        coverage_meta = get_full_coverage_data_all([
+            file for file in coverage.get_profile_root().glob("*" + coverage.COOKIE_SUFFIX)
+            if "AllNodeCoverage" not in str(file)
+        ])
 
-    for cookie, model in coverage_meta:
-        for entry in model.coverage.data:
-            for file in entry.files:
-                try:
-                    rel_covered = Path(file.filename).relative_to(conf.src_path)
-                except ValueError:
-                    continue
+        for cookie, model in coverage_meta:
+            for entry in model.coverage.data:
+                for file in entry.files:
+                    try:
+                        rel_covered = Path(file.filename).relative_to(conf.src_path)
+                    except ValueError:
+                        continue
 
-                doc_file = rel_path_to_code_file.get(rel_covered, None)
-                if doc_file:
-                    for segment in file.segments:
-                        segment_line_idx = segment.line - 1
+                    doc_file = rel_path_to_code_file.get(rel_covered, None)
+                    if doc_file:
+                        for segment in file.segments:
+                            segment_line_idx = segment.line - 1
 
-                        if not doc_file.Lines[segment_line_idx].Coverage:
-                            doc_file.Lines[
-                                segment_line_idx].Coverage = DocCodeCxxCoverage()
+                            if not doc_file.Lines[segment_line_idx].Coverage:
+                                doc_file.Lines[
+                                    segment_line_idx].Coverage = DocCodeCxxCoverage()
 
-                        doc_file.Lines[segment_line_idx].Coverage.Call.append(
-                            DocCodeRunCall(
-                                Count=segment.count,
-                                CalledBy=cookie.test_name,
-                            ))
+                            doc_file.Lines[segment_line_idx].Coverage.Call.append(
+                                DocCodeRunCall(
+                                    Count=segment.count,
+                                    CalledBy=cookie.test_name,
+                                ))
 
     if conf.json_out_path:
         conf.json_out_path.write_text(result.model_dump_json(indent=2))
