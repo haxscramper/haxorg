@@ -1,5 +1,5 @@
 from beartype.typing import List, Optional, Union, Dict
-from pydantic import BaseModel, root_validator, ValidationError
+from pydantic import BaseModel, root_validator, ValidationError, Field
 from beartype import beartype
 from plumbum import local
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
@@ -86,7 +86,7 @@ class LLVMSegment(BaseModel):
             return values
 
 
-class LLVMBranch(BaseModel):
+class LLVMRegion(BaseModel):
     line_start: int
     column_start: int
     line_end: int
@@ -113,6 +113,35 @@ class LLVMBranch(BaseModel):
         else:
             return values
 
+class LLVMBranch(BaseModel):
+    line_start: int
+    column_start: int
+    line_end: int
+    column_end: int
+    count: int
+    false_count: int
+    file_id: int
+    expanded_file_id: int
+    kind: int
+
+    @root_validator(pre=True)
+    def parse_list_to_fields(cls, values):
+        if isinstance(values, list):
+            return {
+                'line_start': values[0],
+                'column_start': values[1],
+                'line_end': values[2],
+                'column_end': values[3],
+                'count': values[4],
+                'false_count': values[5],
+                'file_id': values[6],
+                'expanded_file_id': values[7],
+                'kind': values[8],
+            }
+
+        else:
+            return values
+
 
 class LLVMCoverSummary(BaseModel):
     count: int
@@ -130,19 +159,19 @@ class LLVMFileCoverageSummary(BaseModel):
 
 
 class LLVMFileCov(BaseModel):
-    branches: List[LLVMBranch]
-    expansions: List
+    branches: List[LLVMBranch] = Field(default_factory=list)
+    expansions: List = Field(default_factory=list)
     filename: str
-    segments: List[LLVMSegment]
+    segments: List[LLVMSegment] = Field(default_factory=list)
     summary: LLVMFileCoverageSummary
 
 
 class LLVMFunctionCov(BaseModel):
-    branches: List[List[int]]
+    branches: List[LLVMBranch]
     count: int
     filenames: List[str]
     name: str
-    regions: List[List[int]]
+    regions: List[LLVMRegion]
 
 
 class LLVMCovInner(BaseModel):
@@ -169,8 +198,8 @@ def get_profile_model(
     if profraw.exists():
         profdata = get_profdata_path(cookie.test_name)
         json_path = get_prof_export_path(cookie.test_name)
-        json_clean = json_path.with_stem(json_path.name + "clean")
-        json_model = json_path.with_stem(json_path.name + "model")
+        json_clean = json_path.with_stem(json_path.stem + "clean")
+        json_model = json_path.with_stem(json_path.stem + "model")
 
         should_rebuild_model = False
 
@@ -186,7 +215,7 @@ def get_profile_model(
             try:
                 log(CAT).info(f"JSON model dump exists {json_model}")
                 model = TestRunCoverage.model_validate_json(json_model.read_text())
-                return model
+                # return model
 
             except ValidationError as err:
                 log(CAT).info(f"Model format changed {err}")
@@ -196,8 +225,11 @@ def get_profile_model(
             log(CAT).info(f"JSON model file is missing {json_model}")
             should_rebuild_model = True
 
+        should_rebuild_model = True
+
         if should_rebuild_model:
             if not json_path.exists():
+                log(CAT).info(f"Exporting to {json_path}")
                 cmd = local[tools_dir.joinpath("llvm-cov")][
                     "export",
                     str(cookie.test_binary),
@@ -223,16 +255,10 @@ def get_profile_model(
 
                 html.run()
 
-            if IsNewInput(
-                    input_path=[
-                        json_path,
-                        get_haxorg_repo_root_path().joinpath(
-                            "scripts/py_repository/py_repository/cxx_coverage.jq"),
-                    ],
-                    output_path=[json_clean],
-            ):
+            if True or not json_clean.exists():
+                log(CAT).info(f"'{json_path} -> {json_clean}")
                 jq_run = (local["jq"][
-                    f"include \"cxx_coverage\"; . | filter_raw_json",
+                    f"include \"run_coverage\"; . | filter_raw_json",
                     "-L",
                     get_haxorg_repo_root_path().
                     joinpath("scripts/py_repository/py_repository"),
@@ -244,7 +270,7 @@ def get_profile_model(
             model = TestRunCoverage(
                 coverage=LLVMCovData.model_validate_json(json_clean.read_text()))
 
-            json_model.write_text(model.model_dump_json())
+            json_model.write_text(model.model_dump_json(indent=2))
 
             return model
 

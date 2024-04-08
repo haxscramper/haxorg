@@ -8,7 +8,14 @@ def filter_raw_json:
     data: .data | map({
       functions: 
         .functions 
-        | map(select(is_targeted_function(.))),
+        | map(select(is_targeted_function(.)))
+        | map({
+            count,
+            name,
+            branches: .branches | map(select(0 < .[4])),
+            filenames,
+            regions: .regions | map(select(0 < .[2])),
+          }),
       files: 
         .files 
         | map(
@@ -20,11 +27,13 @@ def filter_raw_json:
                 )
                 | not)) 
         | map({
-            filename, 
-            segments, 
-            summary, 
-            branches, 
-            expansions,
+            filename,
+            summary,
+            # Second element in segment list stores number of calls.
+            segments: .segments | map(select(0 < .[2])), 
+            # Branch call count is stored in 5th element
+            branches: .branches | map(select(0 < .[4])),
+            # expansions,
           }),
       totals,
     }),
