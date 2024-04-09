@@ -37,9 +37,19 @@ def dropnan(values: Iterable[Optional[T]]) -> Iterable[T]:
 
 CAT = "docgen"
 
-from py_codegen.gen_tu_cpp import (GenTuDoc, GenTuTypedef, GenTuTypeGroup, GenTuNamespace,
-                                   GenTuStruct, GenTuEntry, GenTuEnum, GenTuIdent,
-                                   QualType, QualTypeKind)
+from py_codegen.gen_tu_cpp import (
+    GenTuDoc,
+    GenTuTypedef,
+    GenTuTypeGroup,
+    GenTuNamespace,
+    GenTuStruct,
+    GenTuEntry,
+    GenTuEnum,
+    GenTuIdent,
+    QualType,
+    QualTypeKind,
+    ReferenceKind,
+)
 
 thirdparty = get_haxorg_repo_root_path().joinpath("thirdparty")
 build_dir = get_haxorg_repo_root_path().joinpath("build_treesitter")
@@ -760,22 +770,47 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
                 subdir_list))
 
     for code_file in directory.CodeFiles:
-        covered_lines = more_itertools.quantify(code_file.Lines,
-                                                lambda it: bool(it.Coverage))
+        total_entries: int = 0
+        documented_entries: int = 0
+        def aux_docs(entry: DocCxxEntry):
+            nonlocal total_entries
+            nonlocal documented_entries
 
-        with tags.li() as item:
-            with tags.a(href=get_html_path(code_file, html_out_path=html_out_path)):
-                util.text(code_file.RelPath.name)
-                if False:
-                    util.text(" ")
-                    with tags.b(style="background-color:{}".format(
-                            lerp_html_color(
-                                float(covered_lines) / float(len(code_file.Lines)),
-                                (1, 0, 0),
-                                (0, 1, 0),
-                            ) if code_file.Lines else "yellow")):
-                        util.text(f"{covered_lines}/{len(code_file.Lines)}")
+            total_entries += 1
+            if entry.Doc and entry.Doc.Text:
+                documented_entries += 1
 
+            match entry:
+                case DocCxxRecord():
+                    for sub in entry.Nested:
+                        aux_docs(sub)
+
+                case DocCxxFunction():
+                    for arg in entry.Arguments:
+                        aux_docs(arg)
+
+                case DocCxxEnum():
+                    for field in entry.Fields:
+                        aux_docs(field)
+
+        for entry in code_file.Content:
+            aux_docs(entry)
+       
+        item = tags.li()
+        link = tags.a(href=get_html_path(code_file, html_out_path=html_out_path))
+        link.add(util.text(code_file.RelPath.name))
+        link.add(util.text(" "))
+        doc_coverage = tags.b(style="background-color:{}".format(
+            lerp_html_color(
+                float(documented_entries) / float(total_entries),
+                (1, 0, 0),
+                (0, 1, 0),
+            ) if total_entries != 0 else "yellow"))
+
+        doc_coverage.add(util.text(f"{documented_entries}/{total_entries}"))
+        link.add(doc_coverage)
+
+        item.add(link)
         directory_list.add(item)
 
     for text_file in directory.TextFiles:
@@ -828,7 +863,7 @@ def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
 def get_entry_docs(entry: DocCxxEntry) -> List[Union[tags.html_tag, util.text]]:
     if entry.Doc and entry.Doc.Text:
         parsed = org.parseString(entry.Doc.Text)
-        exp = ExporterHtml()
+        exp = ExporterHtml(get_break_tag=lambda _: util.text(" "))
         return list(itertools.chain(*[exp.exp.evalTop(it) for it in parsed]))
 
     else:
@@ -839,6 +874,45 @@ def get_entry_docs(entry: DocCxxEntry) -> List[Union[tags.html_tag, util.text]]:
 def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-docs")
 
+    @beartype
+    @dataclass
+    class IdentRender():
+        Type: tags.span
+        Name: tags.span
+        Default: Optional[tags.span]
+
+    @beartype
+    def aux_qualifiers(t: QualType) -> Optional[tags.span]:
+        text = ""
+
+        if t.isConst:
+            text += "const"
+
+        text += "*" * t.ptrCount
+
+        match t.RefKind:
+            case ReferenceKind.RValue:
+                text += "&&"
+
+            case ReferenceKind.LValue:
+                text += "&"
+
+        if text:
+            return tags.span(util.text(text))
+
+    @beartype
+    def aux_type(t: QualType) -> tags.span:
+        return tags.span(util.text(t.name))
+
+    @beartype
+    def aux_ident(ident: DocCxxIdent) -> Tuple[tags.span, util.text, tags.span]:
+        return (
+            aux_type(ident.Type),
+            util.text(ident.Name if ident.Name else ""),
+            tags.span(util.text(ident.Value)) if ident.Value else tags.span(),
+        )
+
+    @beartype
     def aux_entry(
             entry: DocCxxEntry, context: List[Union[
                 DocCxxNamespace,
@@ -868,6 +942,72 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                     ident.add(util.text(entry.Name))
                     ident.add(util.text(entry.Type.format()))
                     res.add(ident)
+
+                else:
+                    res.add(util.text("non-record ident"))
+
+            case DocCxxFunction():
+                if context and isinstance(context[-1], DocCxxFunction):
+                    meth = tags.div()
+
+                    res.add(meth)
+
+                else:
+                    func = tags.div()
+                    sign = tags.table()
+                    ret = aux_type(entry.ReturnTy) if entry.ReturnTy else util.text("")
+
+                    def ident_row(ident: DocCxxIdent) -> List[tags.td]:
+                        return [tags.td(arg) for arg in aux_ident(ident)]
+
+                    match entry.Arguments:
+                        case []:
+                            sign.add(
+                                tags.tr(
+                                    tags.td(ret),
+                                    tags.td(
+                                        util.text(
+                                            entry.Name if entry.Name else "<no-name>")),
+                                    tags.td(util.text("()")),
+                                ))
+
+                        case [one_arg]:
+                            sign.add(
+                                tags.tr(*[
+                                    tags.td(ret),
+                                    tags.td(util.text(entry.Name)),
+                                    tags.td(util.text("(")),
+                                    *ident_row(one_arg),
+                                    tags.td(util.text(")")),
+                                ]))
+
+                        case [first_arg, *middle_args, last_arg]:
+                            sign.add(
+                                tags.tr(
+                                    tags.td(ret),
+                                    tags.td(util.text(entry.Name)),
+                                    tags.td(util.text("(")),
+                                    *ident_row(first_arg),
+                                ),
+                                *[
+                                    tags.tr(
+                                        tags.td(),
+                                        tags.td(),
+                                        tags.td(),
+                                        *ident_row(it),
+                                    ) for it in middle_args
+                                ],
+                                tags.tr(
+                                    tags.td(),
+                                    tags.td(),
+                                    tags.td(),
+                                    *ident_row(last_arg),
+                                    tags.td(")"),
+                                ),
+                            )
+
+                    func.add(sign)
+                    res.add(func)
 
             case _:
                 res.add(util.text(str(type(entry))))

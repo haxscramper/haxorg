@@ -7,7 +7,7 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 from dataclasses import dataclass
-from beartype.typing import Literal, Optional
+from beartype.typing import Literal, Optional, Callable, Any
 
 CAT = "haxorg.export.html"
 
@@ -38,24 +38,20 @@ class ExporterHtml(ExporterBase):
 
     def __init__(
         self,
-        graphviz_break: Optional[Literal["", "left", "right", "center"]] = None,
+        get_break_tag: Optional[Callable[[org.Newline], Any]] = None
     ):
         super().__init__(self)
-        self.graphviz_break = graphviz_break
+        self.get_break_tag = get_break_tag
 
     def newOrg(self, node: org.Org) -> text:
         return text("TODO" + str(node.getKind()))
 
-    def evalNewline(self, node: org.Newline) -> tags.br:
-        if self.graphviz_break is None:
+    def evalNewline(self, node: org.Newline) -> Any:
+        if self.get_break_tag is None:
             return tags.br()
 
         else:
-            if self.graphviz_break == "":
-                return "<br />"
-            
-            else:
-                return f"<br align=\"{self.graphviz_break}\"/>"
+            return self.get_break_tag(node)
             
 
     def evalBigIdent(self, node: org.BigIdent) -> text:
@@ -80,7 +76,7 @@ class ExporterHtml(ExporterBase):
         return text("{{{" + node.name + "}}}")
 
     def evalTime(self, node: org.Time) -> text:
-        return formatDateTime(node.getStatic().time)
+        return text(formatDateTime(node.getStatic().time))
 
     def evalEscaped(self, node: org.Escaped) -> text:
         return text(node.text)
