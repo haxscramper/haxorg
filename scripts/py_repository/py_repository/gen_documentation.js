@@ -1,4 +1,4 @@
-function openPage(pageName, elmnt) {
+function openPage(pageName) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("page-tab-content");
   for (i = 0; i < tabcontent.length; i++) {
@@ -11,8 +11,7 @@ function openPage(pageName, elmnt) {
   document.getElementById(pageName).style.display = "block";
 }
 
-
 window.onload = function() {
   var init_tab = document.getElementById("page-tab-link-default");
-  init_tab.click();  
-}
+  init_tab.click();
+};

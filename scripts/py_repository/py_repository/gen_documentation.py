@@ -760,7 +760,7 @@ def get_html_path(entry: Union[DocDirectory, DocCodeCxxFile, DocTextFile],
 
 @beartype
 def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.ul:
-    directory_list = tags.ul(cls="directory-tree")
+    directory_list = tags.ul(cls="sidebar-directory")
     for subdir in directory.Subdirs:
         subdir_list = generate_tree_sidebar(subdir, html_out_path)
         directory_list.add(
@@ -772,6 +772,7 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
     for code_file in directory.CodeFiles:
         total_entries: int = 0
         documented_entries: int = 0
+
         def aux_docs(entry: DocCxxEntry):
             nonlocal total_entries
             nonlocal documented_entries
@@ -795,12 +796,12 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
 
         for entry in code_file.Content:
             aux_docs(entry)
-       
-        item = tags.li()
+
+        item = tags.li(_class="sidebar-code")
         link = tags.a(href=get_html_path(code_file, html_out_path=html_out_path))
         link.add(util.text(code_file.RelPath.name))
         link.add(util.text(" "))
-        doc_coverage = tags.b(style="background-color:{}".format(
+        doc_coverage = tags.b(style="color:{}".format(
             lerp_html_color(
                 float(documented_entries) / float(total_entries),
                 (1, 0, 0),
@@ -817,7 +818,9 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
         directory_list.add(
             tags.li(
                 tags.a("Text File",
-                       href=get_html_path(text_file, html_out_path=html_out_path))))
+                       href=get_html_path(text_file, html_out_path=html_out_path)),
+                _class="sidebar-text",
+            ))
 
     return directory_list
 
@@ -839,8 +842,7 @@ def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-code")
     for idx, line in enumerate(code_file.Lines):
         hline = tags.p(_class="code-line")
-        hline.add(
-            tags.span(str(idx), _class="code-line-number", id=f"code-line-idx-{idx}"))
+        hline.add(tags.span(str(idx), _class="code-line-number", id=f"line-{idx}"))
 
         tokens = tags.span(_class="code-line-text", style="width:600px;")
         for token_type, token_text in lex(line.Text, highilght_lexer):
@@ -921,9 +923,27 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
             ]]) -> tags.div:
         res = tags.div()
 
+        @beartype
+        def get_name_link(entry: DocCxxEntry) -> tags.html_tag:
+            match entry:
+                case DocCxxRecord():
+                    name = entry.Name.name
+
+                case _:
+                    name = entry.Name
+
+            if not name:
+                name = "<no-name>"
+
+            link = tags.a(onclick=f"openPage('page-code')",
+                          href=f"#line-{entry.StartPoint[0]}")
+
+            link.add(util.text(name))
+            return link
+
         match entry:
             case DocCxxRecord():
-                decl = tags.b(util.text(str(entry.Name.name)))
+                decl = tags.b(get_name_link(entry))
                 res.add(decl)
 
                 for NestedType in [
@@ -965,9 +985,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                             sign.add(
                                 tags.tr(
                                     tags.td(ret),
-                                    tags.td(
-                                        util.text(
-                                            entry.Name if entry.Name else "<no-name>")),
+                                    tags.td(get_name_link(entry)),
                                     tags.td(util.text("()")),
                                 ))
 
@@ -975,7 +993,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                             sign.add(
                                 tags.tr(*[
                                     tags.td(ret),
-                                    tags.td(util.text(entry.Name)),
+                                    tags.td(get_name_link(entry)),
                                     tags.td(util.text("(")),
                                     *ident_row(one_arg),
                                     tags.td(util.text(")")),
@@ -985,7 +1003,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                             sign.add(
                                 tags.tr(
                                     tags.td(ret),
-                                    tags.td(util.text(entry.Name)),
+                                    tags.td(get_name_link(entry)),
                                     tags.td(util.text("(")),
                                     *ident_row(first_arg),
                                 ),
@@ -1032,7 +1050,7 @@ def get_html_page_tabs() -> tags.div:
     for idx, name in enumerate(["docs", "code"]):
         button_opts = dict(
             _class="page-tab-link",
-            onclick=f"openPage('page-{name}', this)",
+            onclick=f"openPage('page-{name}')",
         )
 
         if idx == 0:
@@ -1050,6 +1068,7 @@ def get_html_page_tabs() -> tags.div:
 @beartype
 def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) -> None:
     sidebar = generate_tree_sidebar(directory, html_out_path=html_out_path)
+    sidebar = tags.div(sidebar, _class="sidebar-directory-root")
     css_path = get_haxorg_repo_root_path().joinpath(
         "scripts/py_repository/py_repository/gen_documentation.css")
 

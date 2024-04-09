@@ -41,6 +41,7 @@ html {
 
 .code-line-number {
   margin-right: 12px;
+  user-select: none;
 }
 
 .code-line-text {
@@ -55,6 +56,13 @@ html {
   line-height: normal;
 }
 
+.sidebar-directory {
+  padding-left: 10px;
+}
+
+.sidebar-directory-root {
+  margin-left: 15px;
+}
 
 /* 
 Generate using default pygmentize command and then remove unnecessary highlighting for code-line-text etc. manually
