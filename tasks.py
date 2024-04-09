@@ -1024,19 +1024,11 @@ def docs_doxygen(ctx: Context):
     run_command(ctx, "doxygen", [str(get_script_root("docs/Doxyfile"))])
     log(CAT).info("Completed CXX docs build")
 
-
-@org_task(iterable=["pytest_arg"])
-def docs_custom(
-    ctx: Context,
-    pytest_arg: List[str] = [],
-    autorun_tests: bool = True,
-):
+@org_task()
+def docs_custom(ctx: Context):
     """Build documentation for the project using custom script"""
     out_dir = get_script_root("docs/custom_html")
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    if autorun_tests:
-        run_command(ctx, "invoke", ["py-tests", *[f"--arg={it}" for it in pytest_arg]])
 
     run_command(ctx, "poetry", [
         "run",

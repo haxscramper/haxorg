@@ -22,6 +22,9 @@ import rich_click as click
 import py_repository.run_coverage as coverage
 import more_itertools
 import concurrent.futures
+from pygments import lex
+from pygments.lexers import CppLexer
+from pygments.token import Token, _TokenType
 
 T = TypeVar("T")
 
@@ -780,6 +783,17 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
 
 
 @beartype
+def abbreviate_token_name(token: _TokenType) -> str:
+    # Remove the base "Token" from the token type
+    token_path = str(token).split('.')[1:]
+
+    # Take the first letter of each part of the token type
+    abbreviation = ''.join(part[0] for part in token_path).lower()
+
+    return abbreviation
+
+
+@beartype
 def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) -> None:
     sidebar = generate_tree_sidebar(directory, html_out_path=html_out_path)
     css_path = get_haxorg_repo_root_path().joinpath(
@@ -789,6 +803,7 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
         for subdir in directory.Subdirs:
             aux(subdir, html_out_path)
 
+        highilght_lexer = CppLexer()
         for code_file in directory.CodeFiles:
             path = get_html_path(code_file, html_out_path=html_out_path)
             with document(title=str(code_file.RelPath)) as doc:
@@ -803,9 +818,14 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
                                 tags.span(str(idx),
                                           _class="code-line-number",
                                           id=f"code-line-idx-{idx}")
-                                tags.span(line.Text,
-                                          _class="code-line-text",
-                                          style="width:600px;")
+
+                                with tags.span(_class="code-line-text",
+                                               style="width:600px;"):
+                                    for token_type, token_text in lex(
+                                            line.Text, highilght_lexer):
+                                        tags.span(
+                                            token_text.strip("\n"),
+                                            _class=abbreviate_token_name(token_type))
 
                                 if line.Coverage:
                                     with tags.span(_class="code-line-coverage",
@@ -924,7 +944,8 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     if False:
         coverage_meta = get_full_coverage_data_all([
-            file for file in coverage.get_profile_root().glob("*" + coverage.COOKIE_SUFFIX)
+            file for file in coverage.get_profile_root().glob("*" +
+                                                              coverage.COOKIE_SUFFIX)
             if "AllNodeCoverage" not in str(file)
         ])
 
