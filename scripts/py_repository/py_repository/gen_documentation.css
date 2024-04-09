@@ -69,6 +69,14 @@ html {
   margin-left: 15px;
 }
 
+[class^="docs-entry-"] {
+  margin-left: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-right: 5px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
 /* 
 Generate using default pygmentize command and then remove unnecessary highlighting for code-line-text etc. manually
 

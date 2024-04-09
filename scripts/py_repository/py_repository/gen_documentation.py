@@ -5,7 +5,7 @@ import tree_sitter
 from py_scriptutils.files import get_haxorg_repo_root_path
 from pathlib import Path
 from beartype import beartype
-from beartype.typing import List, Dict, Optional, Any, Union, Iterator, Iterable, TypeVar, Tuple
+from beartype.typing import List, Dict, Optional, Any, Union, Iterator, Iterable, TypeVar, Tuple, Type
 from py_scriptutils.script_logging import log
 from dataclasses import dataclass, field, replace
 from pydantic import BaseModel, Field, SerializeAsAny
@@ -186,6 +186,10 @@ class DocCxxRecord(DocCxxBase, extra="forbid"):
     Name: QualType
     Nested: SerializeAsAny[List["DocCxxEntry"]] = Field(default_factory=list)
     Doc: Optional[DocCxx] = None
+
+    @beartype
+    def getNested(self, Target: Type[T]) -> List[T]:
+        return list(filter(lambda it: isinstance(it, Target), self.Nested))
 
 
 class DocCxxConcept(DocCxxBase, extra="forbid"):
@@ -1001,8 +1005,38 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
             return tags.span(util.text(text))
 
     @beartype
-    def aux_type(t: QualType) -> tags.span:
-        return tags.span(util.text(t.name))
+    def aux_type(Type: QualType) -> tags.span:
+
+        def csv_list(items: Iterable[tags.html_tag],
+                     split: tags.html_tag) -> List[tags.html_tag]:
+            result = []
+            first = False
+            for Parameter in items:
+                if not first:
+                    result.append(split)
+
+                first = False
+                result.append(Parameter)
+
+            return result
+
+        match Type:
+            case QualType(Kind=QualTypeKind.RegularType):
+                head = tags.span(util.text(Type.name), _class="docs-type-head")
+                if Type.Parameters:
+                    head.add(
+                        util.text("<"),
+                        csv_list((aux_type(P) for P in Type.Parameters), util.text(", ")),
+                        util.text(">"),
+                    )
+
+                return head
+
+            case QualType(Kind=QualTypeKind.TypeExpr):
+                return tags.span(util.text(Type.expr))
+
+            case _:
+                raise ValueError(str(Type.Kind))
 
     @beartype
     def aux_ident(ident: DocCxxIdent) -> Tuple[tags.span, util.text, tags.span]:
@@ -1013,28 +1047,76 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
         )
 
     @beartype
+    def get_doc_block(entry: DocCxxEntry) -> Optional[tags.div]:
+        docs = get_entry_docs(entry)
+        if docs:
+            it = tags.div(_style="docs-entry-text")
+            for item in docs:
+                it.add(item)
+
+            return it
+
+    @beartype
     def aux_entry(
             entry: DocCxxEntry, context: List[Union[
                 DocCxxNamespace,
                 DocCxxEnum,
                 DocCxxRecord,
             ]]) -> tags.div:
-        res = tags.div()
+        res = tags.div(_class=f"docs-entry-{type(entry).__name__}")
 
         match entry:
             case DocCxxRecord():
                 decl = tags.b(get_name_link(entry))
                 res.add(decl)
 
-                for NestedType in [
-                        DocCxxRecord,
-                        DocCxxEnum,
-                        DocCxxIdent,
-                        DocCxxFunction,
-                ]:
-                    for item in filter(lambda it: isinstance(it, NestedType),
-                                       entry.Nested):
-                        res.add(aux_entry(item, context + [entry]))
+                if entry.getNested(DocCxxIdent):
+                    nested = tags.div(_class="docs-nested-record")
+                    nested.add(tags.p(util.text(f"Fields")))
+                    field_table = tags.table(_class="docs-record-fields")
+                    for item in entry.getNested(DocCxxIdent):
+                        row = tags.tr()
+                        Type, Name, Default = aux_ident(item)
+                        row.add(tags.td(Type))
+                        row.add(tags.td(Name))
+                        row.add(tags.td(Default))
+
+                        docs = get_entry_docs(item)
+                        if docs:
+                            row.add(tags.td(docs))
+
+                        else:
+                            row.add(tags.td())
+
+                        field_table.add(row)
+
+                    nested.add(field_table)
+
+                    res.add(nested)
+
+                if entry.getNested(DocCxxEnum):
+                    nested = tags.div(_class="docs-nested-record")
+                    nested.add(tags.p(util.text(f"Nested enums")))
+                    for item in entry.getNested(DocCxxEnum):
+                        nested.add(aux_entry(item, context + [entry]))
+
+                    res.add(nested)
+
+                if entry.getNested(DocCxxFunction):
+                    nested = tags.div(_class="docs-nested-record")
+                    nested.add(tags.p(util.text(f"Methods")))
+                    for item in entry.getNested(DocCxxFunction):
+                        nested.add(aux_entry(item, context + [entry]))
+
+                    res.add(nested)
+
+                if entry.getNested(DocCxxRecord):
+                    nested = tags.div(_class="docs-nested-record")
+                    nested.add(tags.p(util.text(f"Nested records")))
+                    for item in entry.getNested(DocCxxRecord):
+                        nested.add(aux_entry(item, context + [entry]))
+
+                    res.add(nested)
 
             case DocCxxIdent():
                 if context and isinstance(context[-1], DocCxxRecord):
@@ -1054,7 +1136,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
 
                 else:
                     func = tags.div()
-                    sign = tags.table()
+                    sign = tags.table(_class="docs-func-signature")
                     ret = aux_type(entry.ReturnTy) if entry.ReturnTy else util.text("")
 
                     def ident_row(ident: DocCxxIdent) -> List[tags.td]:
@@ -1110,11 +1192,9 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
             case _:
                 res.add(util.text(str(type(entry))))
 
-        it = tags.div(style="width:70%")
-        for item in get_entry_docs(entry):
-            it.add(item)
-
-        res.add(it)
+        docs = get_doc_block(entry)
+        if docs:
+            res.add(docs)
 
         return res
 
@@ -1128,8 +1208,8 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
 def get_html_page_tabs() -> tags.div:
     div = tags.div(_class="page-tab-row")
     for idx, name in enumerate([
-            "code",
             "docs",
+            "code",
     ]):
         button_opts = dict(
             _class="page-tab-link",
