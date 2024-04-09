@@ -799,6 +799,9 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
     css_path = get_haxorg_repo_root_path().joinpath(
         "scripts/py_repository/py_repository/gen_documentation.css")
 
+    js_path = get_haxorg_repo_root_path().joinpath(
+        "scripts/py_repository/py_repository/gen_documentation.js")
+
     def aux(directory: DocDirectory, html_out_path: Path) -> None:
         for subdir in directory.Subdirs:
             aux(subdir, html_out_path)
@@ -809,33 +812,57 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
             with document(title=str(code_file.RelPath)) as doc:
                 with doc.head:
                     tags.link(rel="stylesheet", href=css_path)
+                    tags.script(src=str(js_path))
 
                 with tags.div(_class="container"):
                     tags.div(sidebar, _class="sidebar")
                     with tags.div(_class="main"):
-                        for idx, line in enumerate(code_file.Lines):
-                            with tags.p(_class="code-line"):
-                                tags.span(str(idx),
-                                          _class="code-line-number",
-                                          id=f"code-line-idx-{idx}")
+                        with tags.div(_class="page-tab-row"):
+                            for idx, name in enumerate([
+                                    "docs",
+                                    "code",
+                            ]):
+                                button_opts = dict(
+                                    _class="page-tab-link",
+                                    onclick=f"openPage('page-{name}', this)",
+                                )
 
-                                with tags.span(_class="code-line-text",
-                                               style="width:600px;"):
-                                    for token_type, token_text in lex(
-                                            line.Text, highilght_lexer):
-                                        tags.span(
-                                            token_text.strip("\n"),
-                                            _class=abbreviate_token_name(token_type))
+                                if idx == 0:
+                                    with tags.button(**button_opts,
+                                                     id="page-tab-link-default"):
+                                        util.text(name)
 
-                                if line.Coverage:
-                                    with tags.span(_class="code-line-coverage",
-                                                   style="width:50px;"):
-                                        util.text(
-                                            str(
-                                                sum([
-                                                    cover.Count
-                                                    for cover in line.Coverage.Call
-                                                ])))
+                                else:
+                                    with tags.button(**button_opts):
+                                        util.text(name)
+
+                        with tags.div(_class="page-tab-content", id="page-code"):
+                            for idx, line in enumerate(code_file.Lines):
+                                with tags.p(_class="code-line"):
+                                    tags.span(str(idx),
+                                              _class="code-line-number",
+                                              id=f"code-line-idx-{idx}")
+
+                                    with tags.span(_class="code-line-text",
+                                                   style="width:600px;"):
+                                        for token_type, token_text in lex(
+                                                line.Text, highilght_lexer):
+                                            tags.span(
+                                                token_text.strip("\n"),
+                                                _class=abbreviate_token_name(token_type))
+
+                                    if line.Coverage:
+                                        with tags.span(_class="code-line-coverage",
+                                                       style="width:50px;"):
+                                            util.text(
+                                                str(
+                                                    sum([
+                                                        cover.Count
+                                                        for cover in line.Coverage.Call
+                                                    ])))
+                                            
+                        with tags.div(_class="page-tab-content", id="page-docs"):
+                            util.text("docs")
 
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(doc.render())
