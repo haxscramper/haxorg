@@ -787,15 +787,46 @@ def get_html_path(entry: Union[DocDirectory, DocCodeCxxFile, DocTextFile],
 
 
 @beartype
-def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.ul:
+@dataclass
+class SidebarRes():
+    tag: tags.ul
+    total_entries: int
+    documented_entries: int
+
+
+@beartype
+def get_doc_ratio(total: int, documented: int) -> tags.b:
+    doc_coverage = tags.b(style="color:{}".format(
+        lerp_html_color(
+            float(documented) / float(total),
+            (1, 0, 0),
+            (0, 1, 0),
+        ) if total != 0 else "yellow"))
+
+    doc_coverage.add(util.text(f"{documented}/{total}"))
+
+    return doc_coverage
+
+
+@beartype
+def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> SidebarRes:
     directory_list = tags.ul(cls="sidebar-directory")
+    directory_total_entries: int = 0
+    directory_documented_entries: int = 0
+
     for subdir in directory.Subdirs:
-        subdir_list = generate_tree_sidebar(subdir, html_out_path)
-        directory_list.add(
-            tags.li(
-                tags.a(subdir.RelPath.name,
-                       href=get_html_path(subdir, html_out_path=html_out_path)),
-                subdir_list))
+        subdir_res = generate_tree_sidebar(subdir, html_out_path)
+        link = tags.a(href=get_html_path(subdir, html_out_path=html_out_path))
+        link.add(subdir.RelPath.name)
+        link.add(" ")
+        link.add(get_doc_ratio(
+            subdir_res.total_entries,
+            subdir_res.documented_entries,
+        ))
+        directory_list.add(tags.li(link, subdir_res.tag))
+
+        directory_total_entries += subdir_res.total_entries
+        directory_documented_entries += subdir_res.documented_entries
 
     for code_file in directory.CodeFiles:
         total_entries: int = 0
@@ -829,18 +860,12 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
         link = tags.a(href=get_html_path(code_file, html_out_path=html_out_path))
         link.add(util.text(code_file.RelPath.name))
         link.add(util.text(" "))
-        doc_coverage = tags.b(style="color:{}".format(
-            lerp_html_color(
-                float(documented_entries) / float(total_entries),
-                (1, 0, 0),
-                (0, 1, 0),
-            ) if total_entries != 0 else "yellow"))
-
-        doc_coverage.add(util.text(f"{documented_entries}/{total_entries}"))
-        link.add(doc_coverage)
-
+        link.add(get_doc_ratio(total_entries, documented_entries))
         item.add(link)
         directory_list.add(item)
+
+        directory_total_entries += total_entries
+        directory_documented_entries += documented_entries
 
     for text_file in directory.TextFiles:
         directory_list.add(
@@ -850,7 +875,11 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> tags.
                 _class="sidebar-text",
             ))
 
-    return directory_list
+    return SidebarRes(
+        tag=directory_list,
+        documented_entries=directory_documented_entries,
+        total_entries=directory_total_entries,
+    )
 
 
 @beartype
@@ -1065,7 +1094,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
             ]]) -> tags.div:
         res = tags.div(_class=f"docs-entry-{type(entry).__name__}")
         docs = get_doc_block(entry)
-        if docs: 
+        if docs:
             res.attributes["class"] += " entry-documented"
 
         else:
@@ -1078,7 +1107,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                 res.add(link)
 
                 if docs:
-                    res.add(docs)   
+                    res.add(docs)
 
                 if entry.getNested(DocCxxIdent):
                     nested = tags.div(_class="nested-record")
@@ -1136,7 +1165,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                     meth = tags.div()
 
                     if docs:
-                        meth.add(docs)   
+                        meth.add(docs)
 
                     res.add(meth)
 
@@ -1195,7 +1224,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                     func.add(sign)
 
                     if docs:
-                        func.add(docs)   
+                        func.add(docs)
 
                     res.add(func)
 
@@ -1236,8 +1265,8 @@ def get_html_page_tabs() -> tags.div:
 
 @beartype
 def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) -> None:
-    sidebar = generate_tree_sidebar(directory, html_out_path=html_out_path)
-    sidebar = tags.div(sidebar, _class="sidebar-directory-root")
+    sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
+    sidebar = tags.div(sidebar_res.tag, _class="sidebar-directory-root")
     css_path = get_haxorg_repo_root_path().joinpath(
         "scripts/py_repository/py_repository/gen_documentation.css")
 
@@ -1255,7 +1284,11 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
             doc.head.add(tags.script(src=str(js_path)))
 
             container = tags.div(_class="container")
-            container.add(tags.div(sidebar, _class="sidebar"))
+            sidebar_div = tags.div()
+            sidebar_div.add(
+                get_doc_ratio(sidebar_res.total_entries, sidebar_res.documented_entries))
+            sidebar_div.add(tags.div(sidebar, _class="sidebar"))
+            container.add(sidebar_div)
             main = tags.div(_class="main")
             main.add(get_html_page_tabs())
             main.add(get_html_code_div(code_file))
