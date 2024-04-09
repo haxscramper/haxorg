@@ -25,6 +25,8 @@ import concurrent.futures
 from pygments import lex
 from pygments.lexers import CppLexer
 from pygments.token import Token, _TokenType
+import py_haxorg.pyhaxorg_wrap as org
+from py_exporters.export_html import ExporterHtml
 
 T = TypeVar("T")
 
@@ -193,7 +195,7 @@ DocCxxEntry = Union[
 ]
 
 
-class DocCxxNamespace(BaseModel, extra="forbid"):
+class DocCxxNamespace(DocCxxBase, extra="forbid"):
     Name: QualType
     Nested: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
 
@@ -659,7 +661,10 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 result = [declared]
 
         case "namespace_definition":
-            space = DocCxxNamespace(Name=convert_cxx_type(get_subnode(node, "name")))
+            space = DocCxxNamespace(
+                Name=convert_cxx_type(get_subnode(node, "name")),
+                **getNodePoints(node),
+            )
 
             for it in convert_cxx_groups(get_subnode(node, "body")):
                 for entry in convert_cxx_entry(it):
@@ -794,6 +799,115 @@ def abbreviate_token_name(token: _TokenType) -> str:
 
 
 @beartype
+def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
+    highilght_lexer = CppLexer()
+    div = tags.div(_class="page-tab-content", id="page-code")
+    for idx, line in enumerate(code_file.Lines):
+        hline = tags.p(_class="code-line")
+        hline.add(
+            tags.span(str(idx), _class="code-line-number", id=f"code-line-idx-{idx}"))
+
+        tokens = tags.span(_class="code-line-text", style="width:600px;")
+        for token_type, token_text in lex(line.Text, highilght_lexer):
+            tokens.add(
+                tags.span(token_text.strip("\n"),
+                          _class=abbreviate_token_name(token_type)))
+        hline.add(tokens)
+
+        if line.Coverage:
+            cov = tags.span(_class="code-line-coverage", style="width:50px;")
+            cov.add(util.text(str(sum([cover.Count for cover in line.Coverage.Call]))))
+            hline.add(cov)
+
+        div.add(hline)
+
+    return div
+
+
+@beartype
+def get_entry_docs(entry: DocCxxEntry) -> List[Union[tags.html_tag, util.text]]:
+    if entry.Doc and entry.Doc.Text:
+        parsed = org.parseString(entry.Doc.Text)
+        exp = ExporterHtml()
+        return list(itertools.chain(*[exp.exp.evalTop(it) for it in parsed]))
+
+    else:
+        return []
+
+
+@beartype
+def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
+    div = tags.div(_class="page-tab-content", id="page-docs")
+
+    def aux_entry(
+            entry: DocCxxEntry, context: List[Union[
+                DocCxxNamespace,
+                DocCxxEnum,
+                DocCxxRecord,
+            ]]) -> tags.div:
+        res = tags.div()
+
+        match entry:
+            case DocCxxRecord():
+                decl = tags.b(util.text(str(entry.Name.name)))
+                res.add(decl)
+
+                for NestedType in [
+                        DocCxxRecord,
+                        DocCxxEnum,
+                        DocCxxIdent,
+                        DocCxxFunction,
+                ]:
+                    for item in filter(lambda it: isinstance(it, NestedType),
+                                       entry.Nested):
+                        res.add(aux_entry(item, context + [entry]))
+
+            case DocCxxIdent():
+                if context and isinstance(context[-1], DocCxxRecord):
+                    ident = tags.p()
+                    ident.add(util.text(entry.Name))
+                    ident.add(util.text(entry.Type.format()))
+                    res.add(ident)
+
+            case _:
+                res.add(util.text(str(type(entry))))
+
+        it = tags.div(style="width:70%")
+        for item in get_entry_docs(entry):
+            it.add(item)
+
+        res.add(it)
+
+        return res
+
+    for item in code_file.Content:
+        div.add(aux_entry(item, []))
+
+    return div
+
+
+@beartype
+def get_html_page_tabs() -> tags.div:
+    div = tags.div(_class="page-tab-row")
+    for idx, name in enumerate(["docs", "code"]):
+        button_opts = dict(
+            _class="page-tab-link",
+            onclick=f"openPage('page-{name}', this)",
+        )
+
+        if idx == 0:
+            button = tags.button(**button_opts, id="page-tab-link-default")
+
+        else:
+            button = tags.button(**button_opts)
+
+        button.add(util.text(name))
+        div.add(button)
+
+    return div
+
+
+@beartype
 def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) -> None:
     sidebar = generate_tree_sidebar(directory, html_out_path=html_out_path)
     css_path = get_haxorg_repo_root_path().joinpath(
@@ -806,76 +920,31 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
         for subdir in directory.Subdirs:
             aux(subdir, html_out_path)
 
-        highilght_lexer = CppLexer()
         for code_file in directory.CodeFiles:
             path = get_html_path(code_file, html_out_path=html_out_path)
-            with document(title=str(code_file.RelPath)) as doc:
-                with doc.head:
-                    tags.link(rel="stylesheet", href=css_path)
-                    tags.script(src=str(js_path))
+            doc = document(title=str(code_file.RelPath))
+            doc.head.add(tags.link(rel="stylesheet", href=css_path))
+            doc.head.add(tags.script(src=str(js_path)))
 
-                with tags.div(_class="container"):
-                    tags.div(sidebar, _class="sidebar")
-                    with tags.div(_class="main"):
-                        with tags.div(_class="page-tab-row"):
-                            for idx, name in enumerate([
-                                    "docs",
-                                    "code",
-                            ]):
-                                button_opts = dict(
-                                    _class="page-tab-link",
-                                    onclick=f"openPage('page-{name}', this)",
-                                )
-
-                                if idx == 0:
-                                    with tags.button(**button_opts,
-                                                     id="page-tab-link-default"):
-                                        util.text(name)
-
-                                else:
-                                    with tags.button(**button_opts):
-                                        util.text(name)
-
-                        with tags.div(_class="page-tab-content", id="page-code"):
-                            for idx, line in enumerate(code_file.Lines):
-                                with tags.p(_class="code-line"):
-                                    tags.span(str(idx),
-                                              _class="code-line-number",
-                                              id=f"code-line-idx-{idx}")
-
-                                    with tags.span(_class="code-line-text",
-                                                   style="width:600px;"):
-                                        for token_type, token_text in lex(
-                                                line.Text, highilght_lexer):
-                                            tags.span(
-                                                token_text.strip("\n"),
-                                                _class=abbreviate_token_name(token_type))
-
-                                    if line.Coverage:
-                                        with tags.span(_class="code-line-coverage",
-                                                       style="width:50px;"):
-                                            util.text(
-                                                str(
-                                                    sum([
-                                                        cover.Count
-                                                        for cover in line.Coverage.Call
-                                                    ])))
-                                            
-                        with tags.div(_class="page-tab-content", id="page-docs"):
-                            util.text("docs")
+            container = tags.div(_class="container")
+            container.add(tags.div(sidebar, _class="sidebar"))
+            main = tags.div(_class="main")
+            main.add(get_html_page_tabs())
+            main.add(get_html_code_div(code_file))
+            main.add(get_html_docs_div(code_file))
+            container.add(main)
+            doc.add(container)
 
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(doc.render())
 
         for text_file in directory.TextFiles:
             path = get_html_path(text_file, html_out_path=html_out_path)
-            with document(title=str(text_file.RelPath)) as doc:
-                with doc.head:
-                    tags.link(rel="stylesheet", href=css_path)
-
-                tags.div(sidebar, _class="sidebar")
-                with tags.div(_class="main"):
-                    tags.pre(text_file.Text)
+            doc = document(title=str(text_file.RelPath))
+            doc.head.add(tags.link(rel="stylesheet", href=css_path))
+            doc.add(tags.div(sidebar, _class="sidebar"))
+            main = tags.div(_class="main")
+            main.add(tags.pre(text_file.Text))
 
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(doc.render())
