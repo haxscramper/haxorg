@@ -127,6 +127,7 @@ def getNodePoints(node: tree_sitter.Node) -> Dict[str, Tuple[int, int]]:
 class DocCxxBase(BaseModel, extra="forbid"):
     StartPoint: Tuple[int, int]
     EndPoint: Tuple[int, int]
+    NamePoint: Optional[Tuple[int, int]]
     Doc: DocCxx = Field(default_factory=lambda: DocCxx())
 
 
@@ -438,27 +439,32 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             return result
 
         case "enumerator":
+            name_node = get_subnode(doc.node, "name")
             result = [
                 DocCxxEnumField(
-                    Name=get_subnode(doc.node, "name").text.decode(),
+                    Name=name_node.text.decode(),
+                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
                     **getNodePoints(doc.node),
                 )
             ]
 
         case "concept_definition":
+            name_node = get_subnode(doc.node, "name")
             result = [
                 DocCxxConcept(
-                    Name=convert_cxx_type(get_subnode(doc.node, "name")),
+                    Name=convert_cxx_type(name_node),
+                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
                     **getNodePoints(doc.node),
                 )
             ]
 
         case "enum_specifier":
+            name_node = get_subnode(doc.node, "name")
             Enum = DocCxxEnum(
-                Name=get_subnode(doc.node, "name") and
-                convert_cxx_type(get_subnode(doc.node, "name")),
+                Name=name_node and convert_cxx_type(name_node),
+                NamePoint=name_node and name_node.start_point,
                 Doc=convert_cxx_doc(doc),
                 **getNodePoints(doc.node),
             )
@@ -494,6 +500,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             if field_decl:
                 result = [
                     DocCxxIdent(
+                        NamePoint=field_decl.start_point,
                         Name=field_decl.text.decode(),
                         Type=convert_cxx_type(get_subnode(doc.node, "type")),
                         Doc=convert_cxx_doc(doc),
@@ -507,10 +514,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 raise fail_node(doc.node, "field declaration")
 
         case "optional_parameter_declaration":
+            name_node = get_subnode(doc.node, "declarator")
             return [
                 DocCxxIdent(
                     Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                    Name=get_subnode(doc.node, "declarator").text.decode(),
+                    Name=name_node.text.decode(),
+                    NamePoint=name_node.start_point,
                     Value=get_subnode(doc.node, "default_value").text.decode(),
                     Doc=convert_cxx_doc(doc),
                     **getNodePoints(doc.node),
@@ -518,22 +527,24 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             ]
 
         case "parameter_declaration":
+            name_node = get_subnode(doc.node, "declarator")
             return [
                 DocCxxIdent(
                     Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                    Name=get_subnode(doc.node, "declarator") and
-                    get_subnode(doc.node, "declarator").text.decode(),
+                    NamePoint=name_node and name_node.start_point,
+                    Name=name_node and name_node.text.decode(),
                     Doc=convert_cxx_doc(doc),
                     **getNodePoints(doc.node),
                 )
             ]
 
         case "variadic_parameter_declaration":
+            name_node = get_subnode(doc.node, "declarator")
             return [
                 DocCxxIdent(
                     Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                    Name=get_subnode(doc.node, "declarator") and
-                    get_subnode(doc.node, "declarator").text.decode(),
+                    Name=name_node and name_node.text.decode(),
+                    NamePoint=name_node and name_node.start_point,
                     Doc=convert_cxx_doc(doc),
                     IsTemplateVariadic=True,
                     **getNodePoints(doc.node),
@@ -541,20 +552,24 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             ]
 
         case "alias_declaration":
+            name_node = get_subnode(doc.node, "type")
             result = [
                 DocCxxTypedef(
                     Old=convert_cxx_type(get_subnode(doc.node, "name")),
-                    New=convert_cxx_type(get_subnode(doc.node, "type")),
+                    New=convert_cxx_type(name_node),
+                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
                     **getNodePoints(doc.node),
                 )
             ]
 
         case "type_definition":
+            name_node = get_subnode(doc.node, "declarator")
             result = [
                 DocCxxTypedef(
                     Old=convert_cxx_type(get_subnode(doc.node, "type")),
-                    New=convert_cxx_type(get_subnode(doc.node, "declarator")),
+                    New=convert_cxx_type(name_node),
+                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
                     **getNodePoints(doc.node),
                 )
@@ -568,6 +583,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     func = DocCxxFunction(
                         Name=None,
                         Kind=DocCxxFunctionKind.ImplicitConvertOperator,
+                        NamePoint=get_subnode(decl, "type").start_point,
                         ReturnTy=convert_cxx_type(get_subnode(decl, "type")),
                         **getNodePoints(doc.node),
                     )
@@ -576,9 +592,11 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
                 else:
                     if get_subnode(node, "type"):
+                        name_node = get_subnode(decl, "declarator")
                         func = DocCxxFunction(
                             Kind=DocCxxFunctionKind.StandaloneFunction,
-                            Name=get_subnode(decl, "declarator").text,
+                            NamePoint=name_node.start_point,
+                            Name=name_node.text,
                             ReturnTy=convert_cxx_type(get_subnode(node, "type")),
                             Doc=convert_cxx_doc(doc),
                             **getNodePoints(doc.node),
@@ -589,8 +607,10 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                             decl = get_subnode(decl, "declarator")
 
                     else:
+                        name_node = get_subnode(decl, "declarator")
                         func = DocCxxFunction(
-                            Name=get_subnode(decl, "declarator").text,
+                            Name=name_node.text,
+                            NamePoint=name_node.start_point,
                             ReturnTy=None,
                             Kind=DocCxxFunctionKind.Constructor,
                             Doc=convert_cxx_doc(doc),
@@ -605,8 +625,10 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
         case "class_specifier" | "struct_specifier":
             body = get_subnode(node, "body")
             if body:
+                name_node = get_subnode(node, "name")
                 record = DocCxxRecord(
-                    Name=convert_cxx_type(get_subnode(node, "name")),
+                    NamePoint=name_node.start_point,
+                    Name=convert_cxx_type(name_node),
                     Doc=convert_cxx_doc(doc),
                     **getNodePoints(doc.node),
                 )
@@ -671,8 +693,10 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 result = [declared]
 
         case "namespace_definition":
+            name_node = get_subnode(node, "name")
             space = DocCxxNamespace(
-                Name=convert_cxx_type(get_subnode(node, "name")),
+                NamePoint=name_node.start_point,
+                Name=convert_cxx_type(name_node),
                 **getNodePoints(node),
             )
 
@@ -840,15 +864,48 @@ def abbreviate_token_name(token: _TokenType) -> str:
 def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
     highilght_lexer = CppLexer()
     div = tags.div(_class="page-tab-content", id="page-code")
+
+    decl_locations: Dict[(int, int), DocCxxEntry] = {}
+
+    def aux_locations(entry: DocCxxEntry):
+        decl_locations[(entry.NamePoint)] = entry
+        match entry:
+            case DocCxxRecord():
+                for sub in entry.Nested:
+                    aux_locations(sub)
+
+    for entry in code_file.Content:
+        aux_locations(entry)
+
     for idx, line in enumerate(code_file.Lines):
         hline = tags.p(_class="code-line")
         hline.add(tags.span(str(idx), _class="code-line-number", id=f"line-{idx}"))
 
         tokens = tags.span(_class="code-line-text", style="width:600px;")
+        column = 0
+
         for token_type, token_text in lex(line.Text, highilght_lexer):
-            tokens.add(
-                tags.span(token_text.strip("\n"),
-                          _class=abbreviate_token_name(token_type)))
+            maybe_entry = decl_locations.get((idx, column), None)
+            if maybe_entry:
+                token_html = tags.a(
+                    href=f"#{get_docs_fragment(entry)}",
+                    onclick="openPage('page-docs')",
+                )
+
+                token_html.add(token_text.strip("\n"))
+
+                tokens.add(
+                    tags.span(token_html,
+                              _class=abbreviate_token_name(token_type) +
+                              " code-backlink"))
+
+            else:
+                tokens.add(
+                    tags.span(token_text.strip("\n"),
+                              _class=abbreviate_token_name(token_type)))
+
+            column += len(token_text)
+
         hline.add(tokens)
 
         if line.Coverage:
@@ -873,15 +930,56 @@ def get_entry_docs(entry: DocCxxEntry) -> List[Union[tags.html_tag, util.text]]:
 
 
 @beartype
+def get_docs_fragment(entry: Union[DocCxxEntry, QualType]) -> str:
+    match entry:
+        case QualType():
+            result = "_".join(["ns_" + get_docs_fragment(s) for s in entry.Spaces])
+            result += "t_" + entry.name
+            return result
+
+        case DocCxxRecord():
+            return get_docs_fragment(entry.Name)
+
+        case DocCxxEnum():
+            return get_docs_fragment(entry.Name)
+
+        case DocCxxFunction():
+            return entry.Name
+
+        case DocCxxTypedef():
+            return get_docs_fragment(entry.New)
+
+        case DocCxxConcept():
+            return get_docs_fragment(entry.Name)
+
+        case DocCxxNamespace():
+            return get_docs_fragment(entry.Name)
+
+        case _:
+            raise ValueError(f"TODO {type(entry)}")
+
+
+@beartype
+def get_name_link(entry: DocCxxEntry) -> tags.html_tag:
+    match entry:
+        case DocCxxRecord():
+            name = entry.Name.name
+
+        case _:
+            name = entry.Name
+
+    if not name:
+        name = "<no-name>"
+
+    link = tags.a(onclick=f"openPage('page-code')", href=f"#line-{entry.StartPoint[0]}")
+
+    link.add(util.text(name))
+    return link
+
+
+@beartype
 def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-docs")
-
-    @beartype
-    @dataclass
-    class IdentRender():
-        Type: tags.span
-        Name: tags.span
-        Default: Optional[tags.span]
 
     @beartype
     def aux_qualifiers(t: QualType) -> Optional[tags.span]:
@@ -922,24 +1020,6 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                 DocCxxRecord,
             ]]) -> tags.div:
         res = tags.div()
-
-        @beartype
-        def get_name_link(entry: DocCxxEntry) -> tags.html_tag:
-            match entry:
-                case DocCxxRecord():
-                    name = entry.Name.name
-
-                case _:
-                    name = entry.Name
-
-            if not name:
-                name = "<no-name>"
-
-            link = tags.a(onclick=f"openPage('page-code')",
-                          href=f"#line-{entry.StartPoint[0]}")
-
-            link.add(util.text(name))
-            return link
 
         match entry:
             case DocCxxRecord():
@@ -1047,7 +1127,10 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
 @beartype
 def get_html_page_tabs() -> tags.div:
     div = tags.div(_class="page-tab-row")
-    for idx, name in enumerate(["docs", "code"]):
+    for idx, name in enumerate([
+            "code",
+            "docs",
+    ]):
         button_opts = dict(
             _class="page-tab-link",
             onclick=f"openPage('page-{name}')",

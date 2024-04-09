@@ -39,6 +39,11 @@ html {
   border: 0;
 }
 
+.code-backlink {
+  align-items: center;
+  display: flex;
+}
+
 .code-line-number {
   margin-right: 12px;
   user-select: none;
