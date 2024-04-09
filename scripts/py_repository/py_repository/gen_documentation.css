@@ -12,6 +12,7 @@ html {
 
 .sidebar {
   width: 20%;
+  min-width: 240px;
   height: 100%;
   overflow-y: auto;
   background-color: #f0f0f0;
@@ -70,11 +71,33 @@ html {
 }
 
 [class^="docs-entry-"] {
-  margin-left: 5px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  margin-right: 5px;
+  padding: 5px;
+  margin: 5px;
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.doc-text {
+  margin-left: 10px;
+  border-left: 2px solid blueviolet;
+  padding-left: 5px;
+}
+
+.docs-entry-DocCxxRecord .class-name {
+  font-size: 16px; 
+  font-weight: bold;
+}
+
+.entry-documented {
+  border-left: 2px solid green;
+}
+
+.entry-undocumented {
+  border-left: 2px solid red;
+}
+
+.func-signature {
+  margin: 0px;
+  padding: 0px;
 }
 
 /* 

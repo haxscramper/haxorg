@@ -1050,7 +1050,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
     def get_doc_block(entry: DocCxxEntry) -> Optional[tags.div]:
         docs = get_entry_docs(entry)
         if docs:
-            it = tags.div(_style="docs-entry-text")
+            it = tags.div(_class="doc-text")
             for item in docs:
                 it.add(item)
 
@@ -1064,16 +1064,26 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                 DocCxxRecord,
             ]]) -> tags.div:
         res = tags.div(_class=f"docs-entry-{type(entry).__name__}")
+        docs = get_doc_block(entry)
+        if docs: 
+            res.attributes["class"] += " entry-documented"
+
+        else:
+            res.attributes["class"] += " entry-undocumented"
 
         match entry:
             case DocCxxRecord():
-                decl = tags.b(get_name_link(entry))
-                res.add(decl)
+                link = get_name_link(entry)
+                link = tags.span(util.text("Record "), link, _class="class-name")
+                res.add(link)
+
+                if docs:
+                    res.add(docs)   
 
                 if entry.getNested(DocCxxIdent):
-                    nested = tags.div(_class="docs-nested-record")
+                    nested = tags.div(_class="nested-record")
                     nested.add(tags.p(util.text(f"Fields")))
-                    field_table = tags.table(_class="docs-record-fields")
+                    field_table = tags.table(_class="record-fields")
                     for item in entry.getNested(DocCxxIdent):
                         row = tags.tr()
                         Type, Name, Default = aux_ident(item)
@@ -1083,10 +1093,10 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
 
                         docs = get_entry_docs(item)
                         if docs:
-                            row.add(tags.td(docs))
+                            row.add(tags.td(docs, _class="entry-documented"))
 
                         else:
-                            row.add(tags.td())
+                            row.add(tags.td(_class="entry-undocumented"))
 
                         field_table.add(row)
 
@@ -1095,7 +1105,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                     res.add(nested)
 
                 if entry.getNested(DocCxxEnum):
-                    nested = tags.div(_class="docs-nested-record")
+                    nested = tags.div(_class="nested-record")
                     nested.add(tags.p(util.text(f"Nested enums")))
                     for item in entry.getNested(DocCxxEnum):
                         nested.add(aux_entry(item, context + [entry]))
@@ -1103,7 +1113,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                     res.add(nested)
 
                 if entry.getNested(DocCxxFunction):
-                    nested = tags.div(_class="docs-nested-record")
+                    nested = tags.div(_class="nested-record")
                     nested.add(tags.p(util.text(f"Methods")))
                     for item in entry.getNested(DocCxxFunction):
                         nested.add(aux_entry(item, context + [entry]))
@@ -1111,7 +1121,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                     res.add(nested)
 
                 if entry.getNested(DocCxxRecord):
-                    nested = tags.div(_class="docs-nested-record")
+                    nested = tags.div(_class="nested-record")
                     nested.add(tags.p(util.text(f"Nested records")))
                     for item in entry.getNested(DocCxxRecord):
                         nested.add(aux_entry(item, context + [entry]))
@@ -1119,24 +1129,20 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                     res.add(nested)
 
             case DocCxxIdent():
-                if context and isinstance(context[-1], DocCxxRecord):
-                    ident = tags.p()
-                    ident.add(util.text(entry.Name))
-                    ident.add(util.text(entry.Type.format()))
-                    res.add(ident)
-
-                else:
-                    res.add(util.text("non-record ident"))
+                res.add(util.text("non-record ident"))
 
             case DocCxxFunction():
                 if context and isinstance(context[-1], DocCxxFunction):
                     meth = tags.div()
 
+                    if docs:
+                        meth.add(docs)   
+
                     res.add(meth)
 
                 else:
                     func = tags.div()
-                    sign = tags.table(_class="docs-func-signature")
+                    sign = tags.table(_class="func-signature")
                     ret = aux_type(entry.ReturnTy) if entry.ReturnTy else util.text("")
 
                     def ident_row(ident: DocCxxIdent) -> List[tags.td]:
@@ -1187,14 +1193,14 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                             )
 
                     func.add(sign)
+
+                    if docs:
+                        func.add(docs)   
+
                     res.add(func)
 
             case _:
                 res.add(util.text(str(type(entry))))
-
-        docs = get_doc_block(entry)
-        if docs:
-            res.add(docs)
 
         return res
 
