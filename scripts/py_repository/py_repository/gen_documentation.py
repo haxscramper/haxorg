@@ -15,6 +15,7 @@ import rich_click as click
 import py_repository.run_coverage as coverage
 import concurrent.futures
 import py_repository.gen_documentation_cxx as cxx
+import py_repository.gen_documentation_python as py
 from beartype.typing import Type
 
 T = TypeVar("T")
@@ -301,13 +302,21 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 continue
 
             match file.suffix:
-                case ".hpp":
+                case ".hpp" | ".py":
                     try:
-                        code_file = cxx.convert_cxx_tree(
-                            cxx.parse_cxx(file),
-                            RootPath=conf.src_path,
-                            AbsPath=file.absolute(),
-                        )
+                        if file.suffix == ".hpp":
+                            code_file = cxx.convert_cxx_tree(
+                                cxx.parse_cxx(file),
+                                RootPath=conf.src_path,
+                                AbsPath=file.absolute(),
+                            )
+
+                        else: 
+                            code_file = py.convert_py_tree(
+                                py.parse_py(file),
+                                RootPath=conf.src_path,
+                                AbsPath=file.absolute(),
+                            )
 
                     except Exception as e:
                         e.add_note(str(file))
