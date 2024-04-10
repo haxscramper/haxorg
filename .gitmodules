@@ -49,3 +49,6 @@
 [submodule "thirdparty/tree-sitter-cpp"]
 	path = thirdparty/tree-sitter-cpp
 	url = https://github.com/tree-sitter/tree-sitter-cpp
+[submodule "thirdparty/tree-sitter-python"]
+	path = thirdparty/tree-sitter-python
+	url = https://github.com/tree-sitter/tree-sitter-python.git

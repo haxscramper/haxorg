@@ -7,6 +7,7 @@ from beartype.typing import Union, Optional, List
 from dataclasses import dataclass, field
 from pygments.token import _TokenType
 
+
 @beartype
 def abbreviate_token_name(token: _TokenType) -> str:
     # Remove the base "Token" from the token type
@@ -24,10 +25,14 @@ build_so = build_dir.joinpath("lang.so")
 
 Language.build_library(
     build_so,
-    [thirdparty.joinpath("tree-sitter-cpp")],
+    [
+        thirdparty.joinpath("tree-sitter-cpp"),
+        thirdparty.joinpath("tree-sitter-python"),
+    ],
 )
 
 CPP_LANG = Language(build_so, "cpp")
+PY_LANG = Language(build_so, "python")
 
 
 @beartype
@@ -63,7 +68,6 @@ def tree_repr(node: Union[tree_sitter.Tree, tree_sitter.Node]) -> str:
         return aux(node.root_node, 0)
 
 
-
 @beartype
 def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
     result = ValueError("Unhandled type tree structure in {}\n\n{}\n\n{}".format(
@@ -83,6 +87,3 @@ class DocNodeGroup():
     comments: List[tree_sitter.Node] = field(default_factory=list)
     node: Optional[tree_sitter.Node] = None
     nested: List["DocNodeGroup"] = field(default_factory=list)
-
-
-
