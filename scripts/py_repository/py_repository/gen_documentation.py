@@ -350,21 +350,43 @@ def convert_pointer_wraps(node: tree_sitter.Node, mut_type: QualType):
             else:
                 convert_pointer_wraps(get_subnode(node, 0), mut_type)
 
-        case "parameter_declaration" | "optional_parameter_declaration":
-            convert_pointer_wraps(get_subnode(node, "declarator"), mut_type)
+        case "parameter_declaration" | \
+             "optional_parameter_declaration" | \
+             "pointer_type_declarator" | \
+             "variadic_parameter_declaration":
+            decl = get_subnode(node, "declarator")
+            if decl:
+                convert_pointer_wraps(decl, mut_type)
+
             for sub in node.named_children:
                 if sub.type == "type_qualifier":
                     convert_pointer_wraps(sub, mut_type)
+
+        case "qualified_identifier":
+            # ~T::*field~
+            convert_pointer_wraps(get_subnode(node, "name"), mut_type)
+
+        case "abstract_reference_declarator":
+            mut_type.RefKind = ReferenceKind.LValue
 
         case "type_qualifier":
             if "const" in node.text.decode():
                 mut_type.isConst = True
 
-        case "reference_declarator":
-            mut_type.RefKind = ReferenceKind.LValue
+        case "variadic_declarator":
+            mut_type.IsPackExpansion = True
             convert_pointer_wraps(get_subnode(node, 0), mut_type)
 
-        case "function_declarator" | "identifier":
+        case "reference_declarator":
+            if "&&" in node.text.decode():
+                mut_type.RefKind = ReferenceKind.RValue
+
+            elif "&" in node.text.decode():
+                mut_type.RefKind = ReferenceKind.LValue
+
+            convert_pointer_wraps(get_subnode(node, 0), mut_type)
+
+        case "function_declarator" | "identifier" | "type_identifier":
             pass
 
         case _:
@@ -372,7 +394,7 @@ def convert_pointer_wraps(node: tree_sitter.Node, mut_type: QualType):
 
 
 @beartype
-def get_name_node(node: tree_sitter.Node) -> tree_sitter.Node:
+def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
     match node.type:
         case "field_identifier" | \
             "type_identifier" | \
@@ -381,6 +403,7 @@ def get_name_node(node: tree_sitter.Node) -> tree_sitter.Node:
             "qualified_identifier" | \
             "namespace_identifier" | \
             "identifier" | \
+            "operator_name" | \
             "primitive_pype":
             return node
 
@@ -402,6 +425,9 @@ def get_name_node(node: tree_sitter.Node) -> tree_sitter.Node:
              "variadic_parameter_declaration":
             return get_name_node(get_subnode("declarator"))
         
+        case "abstract_reference_declarator":
+            return None
+
         case _:
             if 0 < node.named_child_count:
                 return get_name_node(node.named_child(node.named_child_count - 1))
@@ -492,9 +518,11 @@ def get_subnode(
 
 @beartype
 def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
-    result = ValueError(
-        f"Unhandled type tree structure in {name}\n\n{render_rich(tree_repr(node), color=False)}"
-    )
+    result = ValueError("Unhandled type tree structure in {}\n\n{}\n\n{}".format(
+        name,
+        render_rich(tree_repr(node), color=False),
+        node.text.decode(),
+    ))
 
     setattr(result, "__rich_msg__", tree_repr(node))
 
@@ -506,7 +534,6 @@ def convert_cxx_doc(doc: DocNodeGroup) -> Optional[DocCxx]:
     if doc.comments:
         return DocCxx(Text="\n".join(
             ["\n".join(strip_comment_prefixes(it.text.decode())) for it in doc.comments]))
-
 
 @beartype
 def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
@@ -608,7 +635,10 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
         case "parameter_declaration" | \
              "optional_parameter_declaration" | \
              "variadic_parameter_declaration":
-            name_node = get_name_node(get_subnode(doc.node, "declarator"))
+            name_node = get_subnode(doc.node, "declarator")
+            if name_node:
+                name_node = get_name_node(name_node)
+
             ident = DocCxxIdent(
                 Type=convert_cxx_type(get_subnode(doc.node, "type"), doc.node),
                 NamePoint=name_node and name_node.start_point,
@@ -1097,7 +1127,7 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
                 text += "&"
 
         if text:
-            return tags.span(util.text(text))
+            return tags.span(util.text(text), _class="type-qual")
 
     @beartype
     def aux_type(Type: QualType) -> tags.span:
@@ -1115,9 +1145,13 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
 
             return result
 
+        qual = aux_qualifiers(Type)
         match Type:
             case QualType(Kind=QualTypeKind.RegularType):
-                head = tags.span(util.text(Type.name), _class="docs-type-head")
+                head = tags.span(util.text(Type.name), _class="type-head")
+                if qual:
+                    head.add(qual)
+
                 if Type.Parameters:
                     head.add(
                         util.text("<"),
@@ -1446,11 +1480,16 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
             match file.suffix:
                 case ".hpp":
-                    code_file = convert_cxx_tree(
-                        parse_cxx(file),
-                        RootPath=conf.src_path,
-                        AbsPath=file.absolute(),
-                    )
+                    try:
+                        code_file = convert_cxx_tree(
+                            parse_cxx(file),
+                            RootPath=conf.src_path,
+                            AbsPath=file.absolute(),
+                        )
+
+                    except Exception as e:
+                        e.add_note(str(file))
+                        raise e from None
 
                     rel_path_to_code_file[code_file.RelPath] = code_file
                     result.CodeFiles.append(code_file)
