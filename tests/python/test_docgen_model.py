@@ -12,9 +12,12 @@ def dbg(map: BaseModel) -> str:
     return render_rich_pprint(map.model_dump(), width=200, color=False)
 
 
+def dbg_tree(tree: gen.tree_sitter.Tree) -> str:
+    return render_rich(gen.tree_repr(tree), color=False) if tree else ""
+
+
 def dbg_parse(map: BaseModel, tree: gen.tree_sitter.Tree) -> str:
-    return dbg(map) + ("\n\n" +
-                       render_rich(gen.tree_repr(tree), color=False) if tree else "")
+    return dbg(map) + "\n\n" + dbg_tree(tree)
 
 
 def print_parse(value: str) -> str:
@@ -28,7 +31,7 @@ def parse(code: str) -> Tuple[gen.DocCodeCxxFile, gen.tree_sitter.Tree]:
             dir = Path(tmp_dir)
             dir.joinpath("file.hpp").write_text(code)
             return (gen.convert_cxx_tree(tree, dir, dir.joinpath("file.hpp")), tree)
-        
+
     except Exception as e:
         print_parse(code)
         raise e from None
@@ -203,10 +206,48 @@ def test_refl_annotation():
     code = """
     enum class [[refl]] Kind
     {
-        Field, ///< \\brief Visiting named field
-        Index, ///< \\brief Visiting indexed subnode.
-        Key,   ///< \\brief Visiting Str->Node table
+        Field, ///< Visiting named field
+        Index, ///< Visiting indexed subnode.
+        Key,   ///< Visiting Str->Node table
     };
     """
 
     file, tree = parse(code)
+
+
+def test_pointer_functions():
+    code = """
+    int*** result(int const** value, char const& entry) {}
+    """
+
+    file, tree = parse(code)
+    func = file.Content[0]
+    assert isinstance(func, gen.DocCxxFunction)
+    assert func.Name == "result", dbg_tree(tree)
+    assert func.ReturnTy.ptrCount == 3
+    assert len(func.Arguments) == 2, dbg_tree(tree)
+    assert_submodel(
+        func.Arguments[0],
+        dict(
+            Name="value",
+            Type=dict(
+                ptrCount=2,
+                isConst=True,
+                name="int",
+            ),
+        ),
+        tree,
+    )
+
+    assert_submodel(
+        func.Arguments[1],
+        dict(
+            Name="entry",
+            Type=dict(
+                RefKind="LValue",
+                isConst=True,
+                name="char",
+            ),
+        ),
+        tree,
+    )

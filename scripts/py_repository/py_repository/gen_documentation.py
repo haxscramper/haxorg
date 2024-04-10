@@ -254,78 +254,160 @@ DocCodeCxxFile.model_rebuild()
 
 
 @beartype
-def convert_cxx_type(node: tree_sitter.Node) -> QualType:
-    match node.type:
-        case "namespace_identifier" | \
-            "type_identifier" | \
-            "primitive_type" | \
-            "sized_type_specifier" | \
-            "placeholder_type_specifier" | \
-            "identifier":
-            return QualType.ForName(name=node.text.decode())
+def convert_cxx_type(
+    node: tree_sitter.Node,
+    name_decl: Optional[tree_sitter.Node] = None,
+) -> QualType:
 
-        case "pointer_declarator":
-            result = convert_cxx_type(get_subnode(node, "declarator"))
-            return result.model_copy(update=dict(ptrCount=result.ptrCount + 1))
+    def aux(node: tree_sitter.Node) -> QualType:
+        match node.type:
+            case "namespace_identifier" | \
+                "type_identifier" | \
+                "primitive_type" | \
+                "sized_type_specifier" | \
+                "placeholder_type_specifier" | \
+                "identifier":
+                return QualType.ForName(name=node.text.decode())
 
-        case "parameter_pack_expansion":
-            return convert_cxx_type(
-                node.named_child(0)).model_copy(update=dict(IsPackExpansion=True))
+            case "pointer_declarator":
+                result = aux(get_subnode(node, "declarator"))
+                return result.model_copy(update=dict(ptrCount=result.ptrCount + 1))
 
-        case "template_type":
-            return QualType(
-                name=get_subnode(node, "name").text.decode(),
-                Parameters=[
-                    convert_cxx_type(it)
-                    for it in get_subnode(node, "arguments").children
-                    if it.is_named
-                ],
-            )
+            case "parameter_pack_expansion":
+                return aux(
+                    node.named_child(0)).model_copy(update=dict(IsPackExpansion=True))
 
-        case "type_descriptor":
-            return convert_cxx_type(get_subnode(node, "type"))
+            case "template_type":
+                return QualType(
+                    name=get_subnode(node, "name").text.decode(),
+                    Parameters=[
+                        aux(it)
+                        for it in get_subnode(node, "arguments").children
+                        if it.is_named
+                    ],
+                )
 
-        case "dependent_type" | "dependent_name":
-            return convert_cxx_type(node.named_child(0))
+            case "type_descriptor":
+                return aux(get_subnode(node, "type"))
 
-        case "number_literal" | "binary_expression" | "decltype" | "sizeof_expression":
-            return QualType(Kind=QualTypeKind.TypeExpr, expr=node.text.decode())
+            case "dependent_type" | "dependent_name":
+                return aux(node.named_child(0))
 
-        case "nested_namespace_specifier":
-            result = convert_cxx_type(node.named_children[-1])
-            for item in node.named_children[:1]:
-                result.Spaces.append(convert_cxx_type(item))
+            case "number_literal" | "binary_expression" | "decltype" | "sizeof_expression":
+                return QualType(Kind=QualTypeKind.TypeExpr, expr=node.text.decode())
 
-            return result
+            case "nested_namespace_specifier":
+                result = aux(node.named_children[-1])
+                for item in node.named_children[:1]:
+                    result.Spaces.append(aux(item))
 
-        case "qualified_identifier":
-            scopes: List[QualType] = []
-            scoped = node
-            IsGlobalSpace = False
-            while scoped:
-                if scoped.type == "qualified_identifier":
-                    if get_subnode(scoped, "scope"):
-                        # `::Token<K, V>` is a namespaced identifier but it does not have a scope
-                        scopes.append(convert_cxx_type(get_subnode(scoped, "scope")))
+                return result
+
+            case "qualified_identifier":
+                scopes: List[QualType] = []
+                scoped = node
+                IsGlobalSpace = False
+                while scoped:
+                    if scoped.type == "qualified_identifier":
+                        if get_subnode(scoped, "scope"):
+                            # `::Token<K, V>` is a namespaced identifier but it does not have a scope
+                            scopes.append(aux(get_subnode(scoped, "scope")))
+
+                        else:
+                            IsGlobalSpace = True
+
+                        scoped = get_subnode(scoped, "name")
 
                     else:
-                        IsGlobalSpace = True
+                        scopes.append(aux(scoped))
+                        scoped = None
 
-                    scoped = get_subnode(scoped, "name")
+                scopes = scopes[::-1]
 
-                else:
-                    scopes.append(convert_cxx_type(scoped))
-                    scoped = None
+                return scopes[0].model_copy(update=dict(
+                    Spaces=scopes[1:],
+                    isGlobalNamespace=IsGlobalSpace,
+                ))
 
-            scopes = scopes[::-1]
+            case _:
+                raise fail_node(node, "convert_cxx_type")
 
-            return scopes[0].model_copy(update=dict(
-                Spaces=scopes[1:],
-                isGlobalNamespace=IsGlobalSpace,
-            ))
+    result = aux(node)
+    if name_decl:
+        convert_pointer_wraps(node=name_decl, mut_type=result)
+
+    return result
+
+
+@beartype
+def convert_pointer_wraps(node: tree_sitter.Node, mut_type: QualType):
+    match node.type:
+        case "pointer_declarator":
+            mut_type.ptrCount += 1
+            if get_subnode(node, 0).type == "type_qualifier":
+                convert_pointer_wraps(get_subnode(node, 1), mut_type)
+
+            else:
+                convert_pointer_wraps(get_subnode(node, 0), mut_type)
+
+        case "parameter_declaration" | "optional_parameter_declaration":
+            convert_pointer_wraps(get_subnode(node, "declarator"), mut_type)
+            for sub in node.named_children:
+                if sub.type == "type_qualifier":
+                    convert_pointer_wraps(sub, mut_type)
+
+        case "type_qualifier":
+            if "const" in node.text.decode():
+                mut_type.isConst = True
+
+        case "reference_declarator":
+            mut_type.RefKind = ReferenceKind.LValue
+            convert_pointer_wraps(get_subnode(node, 0), mut_type)
+
+        case "function_declarator" | "identifier":
+            pass
 
         case _:
-            raise fail_node(node, "convert_cxx_type")
+            raise fail_node(node, "convert pointer wraps")
+
+
+@beartype
+def get_name_node(node: tree_sitter.Node) -> tree_sitter.Node:
+    match node.type:
+        case "field_identifier" | \
+            "type_identifier" | \
+            "null" | \
+            "identifier" | \
+            "qualified_identifier" | \
+            "namespace_identifier" | \
+            "identifier" | \
+            "primitive_pype":
+            return node
+
+        case "array_declarator" | \
+             "function_declarator" | \
+             "enumerator" | \
+             "template_type" | \
+             "preproc_def" | \
+             "enum_specifier" | \
+             "pointer_declarator" | \
+             "preproc_function_def" | \
+             "assignment_expression":
+            return get_name_node(node.named_child(0))
+
+        case "declaration" | \
+             "init_declarator" | \
+             "parameter_declaration" | \
+             "optional_parameter_declaration" | \
+             "variadic_parameter_declaration":
+            return get_name_node(get_subnode("declarator"))
+        
+        case _:
+            if 0 < node.named_child_count:
+                return get_name_node(node.named_child(node.named_child_count - 1))
+
+            else:
+                raise fail_node(node, "get_name_node")
 
 
 @beartype
@@ -389,9 +471,14 @@ def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
 
 
 @beartype
-def get_subnode(node: tree_sitter.Node,
-                name: Union[str, List[str]]) -> Optional[tree_sitter.Node]:
+def get_subnode(
+    node: tree_sitter.Node,
+    name: Union[str, List[str], int],
+) -> Optional[tree_sitter.Node]:
     match name:
+        case int():
+            return node.named_child(name)
+
         case str():
             return node.child_by_field_name(name)
 
@@ -517,43 +604,23 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             else:
                 raise fail_node(doc.node, "field declaration")
 
-        case "optional_parameter_declaration":
-            name_node = get_subnode(doc.node, "declarator")
-            return [
-                DocCxxIdent(
-                    Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                    Name=name_node.text.decode(),
-                    NamePoint=name_node.start_point,
-                    Value=get_subnode(doc.node, "default_value").text.decode(),
-                    Doc=convert_cxx_doc(doc),
-                    **getNodePoints(doc.node),
-                )
-            ]
 
-        case "parameter_declaration":
-            name_node = get_subnode(doc.node, "declarator")
-            return [
-                DocCxxIdent(
-                    Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                    NamePoint=name_node and name_node.start_point,
-                    Name=name_node and name_node.text.decode(),
-                    Doc=convert_cxx_doc(doc),
-                    **getNodePoints(doc.node),
-                )
-            ]
+        case "parameter_declaration" | \
+             "optional_parameter_declaration" | \
+             "variadic_parameter_declaration":
+            name_node = get_name_node(get_subnode(doc.node, "declarator"))
+            ident = DocCxxIdent(
+                Type=convert_cxx_type(get_subnode(doc.node, "type"), doc.node),
+                NamePoint=name_node and name_node.start_point,
+                Name=name_node and name_node.text.decode(),
+                Doc=convert_cxx_doc(doc),
+                **getNodePoints(doc.node),
+            )
 
-        case "variadic_parameter_declaration":
-            name_node = get_subnode(doc.node, "declarator")
-            return [
-                DocCxxIdent(
-                    Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                    Name=name_node and name_node.text.decode(),
-                    NamePoint=name_node and name_node.start_point,
-                    Doc=convert_cxx_doc(doc),
-                    IsTemplateVariadic=True,
-                    **getNodePoints(doc.node),
-                )
-            ]
+            if node.type == "optional_parameter_declaration":
+                ident.Value = get_subnode(doc.node, "default_value").text.decode()
+
+            return [ident]
 
         case "alias_declaration":
             name_node = get_subnode(doc.node, "type")
@@ -596,18 +663,17 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
                 else:
                     if get_subnode(node, "type"):
-                        name_node = get_subnode(decl, "declarator")
+                        name_node = get_name_node(get_subnode(decl, "declarator"))
                         func = DocCxxFunction(
                             Kind=DocCxxFunctionKind.StandaloneFunction,
                             NamePoint=name_node.start_point,
                             Name=name_node.text,
-                            ReturnTy=convert_cxx_type(get_subnode(node, "type")),
+                            ReturnTy=convert_cxx_type(get_subnode(node, "type"), decl),
                             Doc=convert_cxx_doc(doc),
                             **getNodePoints(doc.node),
                         )
 
                         while decl.type == "pointer_declarator":
-                            func.ReturnTy.ptrCount += 1
                             decl = get_subnode(decl, "declarator")
 
                     else:
