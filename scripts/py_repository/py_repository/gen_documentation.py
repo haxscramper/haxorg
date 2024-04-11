@@ -12,7 +12,6 @@ from dominate import document
 import dominate.util as util
 from py_scriptutils.toml_config_profiler import options_from_model, BaseModel, apply_options, get_cli_model
 import rich_click as click
-import py_repository.run_coverage as coverage
 import concurrent.futures
 import py_repository.gen_documentation_cxx as cxx
 import py_repository.gen_documentation_python as py
@@ -256,34 +255,6 @@ def cli_options(f):
     return apply_options(f, options_from_model(DocGenerationOptions))
 
 
-@beartype
-def get_coverage_data_single(
-        file) -> Tuple[coverage.ProfdataCookie, coverage.TestRunCoverage]:
-    cookie = coverage.ProfdataCookie.model_validate_json(file.read_text())
-    model = coverage.get_profile_model(cookie)
-    return (cookie, model)
-
-
-@beartype
-def get_full_coverage_data_all(
-        files: Iterable[Path],
-        max_workers=5) -> List[Tuple[
-            coverage.ProfdataCookie,
-            coverage.TestRunCoverage,
-        ]]:
-
-    results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_file = {
-            executor.submit(get_coverage_data_single, file): file for file in files
-        }
-
-        for future in concurrent.futures.as_completed(future_to_file):
-            result = future.result()
-            results.append(result)
-
-    return results
-
 
 @click.command()
 @click.option("--config",
@@ -308,7 +279,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 )
 
             else:
-                log(CAT).info(file)
                 code_file = py.convert_py_tree(
                     py.parse_py(file),
                     RootPath=conf.root_path,
@@ -352,36 +322,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
     for subdir in conf.src_path:
         full_root.Subdirs.append(aux_dir(subdir))
-
-    if False:
-        coverage_meta = get_full_coverage_data_all([
-            file for file in coverage.get_profile_root().glob("*" +
-                                                              coverage.COOKIE_SUFFIX)
-            if "AllNodeCoverage" not in str(file)
-        ])
-
-        for cookie, model in coverage_meta:
-            for entry in model.coverage.data:
-                for file in entry.files:
-                    try:
-                        rel_covered = Path(file.filename).relative_to(conf.src_path)
-                    except ValueError:
-                        continue
-
-                    doc_file = rel_path_to_code_file.get(rel_covered, None)
-                    if doc_file:
-                        for segment in file.segments:
-                            segment_line_idx = segment.line - 1
-
-                            if not doc_file.Lines[segment_line_idx].Coverage:
-                                doc_file.Lines[
-                                    segment_line_idx].Coverage = DocCodeCxxCoverage()
-
-                            doc_file.Lines[segment_line_idx].Coverage.Call.append(
-                                DocCodeRunCall(
-                                    Count=segment.count,
-                                    CalledBy=cookie.test_name,
-                                ))
 
     if conf.json_out_path:
         conf.json_out_path.write_text(full_root.model_dump_json(indent=2))
