@@ -78,23 +78,27 @@ struct cli_diff_config {
 };
 
 struct cli_config_config {
-    DECL_FIELDS(
+    /// Enable internal data consistency check and verbose logging of
+    /// the processes. NOTE: This is a debug option and it slows down
+    /// processing by a lot.
+    bool verbose_consistency_checks = false;
+    /// Trigger verbose consistency file checks for these commits --
+    /// can be used for debugging issues in a larger repository where
+    /// enabling the full check sequence will make it impossible to
+    /// process in a reasonable time.
+    Vec<std::string> debug_commits = {};
+    /// If verbose consistency checks are enabled (either explicitly or
+    /// via debug commits), narrow down comparison verification to
+    /// paths in this list.
+    Vec<std::string> debug_paths = {};
+    cli_diff_config  diffopts    = cli_diff_config{};
+
+    DESC_FIELDS(
         cli_config_config,
-        (),
-        /// Enable internal data consistency check and verbose logging of
-        /// the processes. NOTE: This is a debug option and it slows down
-        /// processing by a lot.
-        ((bool), verbose_consistency_checks, false),
-        /// Trigger verbose consistency file checks for these commits --
-        /// can be used for debugging issues in a larger repository where
-        /// enabling the full check sequence will make it impossible to
-        /// process in a reasonable time.
-        ((Vec<std::string>), debug_commits, {}),
-        /// If verbose consistency checks are enabled (either explicitly or
-        /// via debug commits), narrow down comparison verification to
-        /// paths in this list.
-        ((Vec<std::string>), debug_paths, {}),
-        ((cli_diff_config), diffopts, cli_diff_config{}));
+        verbose_consistency_checks,
+        debug_commits,
+        debug_paths,
+        diffopts);
 };
 
 struct cli_config {

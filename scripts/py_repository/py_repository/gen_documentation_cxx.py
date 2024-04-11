@@ -183,11 +183,14 @@ def convert_pointer_wraps(node: tree_sitter.Node, mut_type: QualType):
 
             convert_pointer_wraps(get_subnode(node, 0), mut_type)
 
+        case "array_declarator":
+            pass
+
         case "function_declarator" | "identifier" | "type_identifier":
             pass
 
         case _:
-            raise fail_node(node, "convert pointer wraps")
+            raise fail_node(node, f"convert pointer wraps {mut_type.format()}")
 
 
 @beartype
@@ -220,7 +223,7 @@ def convert_cxx_type(
                     Parameters=[
                         aux(it)
                         for it in get_subnode(node, "arguments").children
-                        if it.is_named
+                        if it.is_named and it.type != "comment"
                     ],
                 )
 

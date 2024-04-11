@@ -228,11 +228,24 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
 
 class DocGenerationOptions(BaseModel, extra="forbid"):
     html_out_path: Path = Field(description="Root directory to output generated HTML to")
+
     json_out_path: Optional[Path] = Field(
         description="Path to write JSON data for the documentation model",
         default=None,
     )
-    src_path: Path = Field(description="Root directory for input source code")
+
+    root_path: Path = Field(description="Root directory for the whole code")
+
+    src_file: List[Path] = Field(
+        description="List of standalone files to be added to the documentation",
+        default_factory=list,
+    )
+
+    src_path: List[Path] = Field(
+        description="List of directories for code processing",
+        default_factory=list,
+    )
+
     tests_path: Optional[Path] = Field(
         description="Root directory for the tests",
         default=None,
@@ -285,46 +298,60 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     rel_path_to_code_file: Dict[Path, cxx.DocCodeCxxFile] = {}
 
     @beartype
+    def aux_code_file(file: Path) -> docdata.DocCodeFile:
+        try:
+            if file.suffix == ".hpp":
+                code_file = cxx.convert_cxx_tree(
+                    cxx.parse_cxx(file),
+                    RootPath=conf.root_path,
+                    AbsPath=file.absolute(),
+                )
+
+            else:
+                log(CAT).info(file)
+                code_file = py.convert_py_tree(
+                    py.parse_py(file),
+                    RootPath=conf.root_path,
+                    AbsPath=file.absolute(),
+                )
+
+        except Exception as e:
+            e.add_note(str(file))
+            raise e from None
+
+        rel_path_to_code_file[code_file.RelPath] = code_file
+        return code_file
+
+    @beartype
+    def aux_text_file(file: Path) -> docdata.DocTextFile:
+        return docdata.DocTextFile(Text=file.read_text())
+
+    @beartype
     def aux_dir(dir: Path) -> docdata.DocDirectory:
-        result = docdata.DocDirectory(RelPath=dir.relative_to(conf.src_path))
+        result = docdata.DocDirectory(RelPath=dir.relative_to(conf.root_path))
         for file in sorted(dir.glob("*")):
-            if file.name == "base_lexer_gen.cpp":
+            if file.name in [
+                    "base_lexer_gen.cpp",
+                    "__init__.py",
+                    "__pycache__",
+            ]:
                 continue
 
             match file.suffix:
                 case ".hpp" | ".py":
-                    try:
-                        if file.suffix == ".hpp":
-                            code_file = cxx.convert_cxx_tree(
-                                cxx.parse_cxx(file),
-                                RootPath=conf.src_path,
-                                AbsPath=file.absolute(),
-                            )
-
-                        else:
-                            log(CAT).info(file)
-                            code_file = py.convert_py_tree(
-                                py.parse_py(file),
-                                RootPath=conf.src_path,
-                                AbsPath=file.absolute(),
-                            )
-
-                    except Exception as e:
-                        e.add_note(str(file))
-                        raise e from None
-
-                    rel_path_to_code_file[code_file.RelPath] = code_file
-                    result.CodeFiles.append(code_file)
+                    result.CodeFiles.append(aux_code_file(file))
 
                 case "*.org":
-                    result.TextFiles.append(docdata.DocTextFile(Text=file.read_text()))
+                    result.TextFiles.append(aux_text_file(file))
 
                 case _ if file.is_dir():
                     result.Subdirs.append(aux_dir(file))
 
         return result
 
-    result = aux_dir(conf.src_path)
+    full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
+    for subdir in conf.src_path:
+        full_root.Subdirs.append(aux_dir(subdir))
 
     if False:
         coverage_meta = get_full_coverage_data_all([
@@ -357,9 +384,9 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                                 ))
 
     if conf.json_out_path:
-        conf.json_out_path.write_text(result.model_dump_json(indent=2))
+        conf.json_out_path.write_text(full_root.model_dump_json(indent=2))
 
-    generate_html_for_directory(result, html_out_path=conf.html_out_path)
+    generate_html_for_directory(full_root, html_out_path=conf.html_out_path)
 
 
 if __name__ == "__main__":
