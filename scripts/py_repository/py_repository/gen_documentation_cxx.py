@@ -7,7 +7,7 @@ from pathlib import Path
 from tree_sitter import Parser
 import dominate.tags as tags
 import dominate.util as util
-from py_repository.gen_documentation_data import getNodePoints, DocBase, DocText
+import py_repository.gen_documentation_data as docdata
 from pydantic import BaseModel
 from enum import Enum
 from dataclasses import replace
@@ -17,18 +17,18 @@ from beartype.typing import Type, TypeVar, Dict
 from py_codegen.refl_read import strip_comment_prefixes
 from pygments import lex
 from pygments.lexers import CppLexer
-from py_repository.gen_documentation_utils import abbreviate_token_name
 import py_haxorg.pyhaxorg_wrap as org
 from py_exporters.export_html import ExporterHtml
 import itertools
 
 T = TypeVar("T")
 
-class DocCxxInclude(DocBase, extra="forbid"):
+
+class DocCxxInclude(docdata.DocBase, extra="forbid"):
     Target: str
 
 
-class DocCxxIdent(DocBase, extra="forbid"):
+class DocCxxIdent(docdata.DocBase, extra="forbid"):
     # Unnamed fields and function arguments are allowed in C++
     Name: Optional[str]
     Type: QualType
@@ -43,7 +43,7 @@ class DocCxxFunctionKind(str, Enum):
     ClassMethod = "ClassMethod"
 
 
-class DocCxxFunction(DocBase, extra="forbid"):
+class DocCxxFunction(docdata.DocBase, extra="forbid"):
     # Implicit conversion operator does not have a dedicated name
     Name: Optional[str]
     ReturnTy: Optional[QualType]
@@ -54,22 +54,22 @@ class DocCxxFunction(DocBase, extra="forbid"):
     IsVirtual: bool = False
 
 
-class DocCxxTypedef(DocBase, extra="forbid"):
+class DocCxxTypedef(docdata.DocBase, extra="forbid"):
     Old: QualType
     New: QualType
 
 
-class DocCxxEnumField(DocBase, extra="forbid"):
+class DocCxxEnumField(docdata.DocBase, extra="forbid"):
     Name: str
     Value: Optional[str] = None
 
 
-class DocCxxEnum(DocBase, extra="forbid"):
+class DocCxxEnum(docdata.DocBase, extra="forbid"):
     Name: Optional[QualType]
     Fields: List[DocCxxEnumField] = Field(default_factory=list)
 
 
-class DocCxxRecord(DocBase, extra="forbid"):
+class DocCxxRecord(docdata.DocBase, extra="forbid"):
     Name: QualType
     Nested: SerializeAsAny[List["DocCxxEntry"]] = Field(default_factory=list)
 
@@ -82,20 +82,22 @@ class DocCodeRunCall(BaseModel, extra="forbid"):
     Count: int
     CalledBy: str
 
+
 class DocCodeCxxCoverage(BaseModel, extra="forbid"):
     Call: List[DocCodeRunCall] = Field(default_factory=list)
 
-class DocCodeCxxLine(BaseModel, extra="forbid"):
+
+class DocCodeCxxLine(docdata.DocCodeLine, extra="forbid"):
     Text: str
     Coverage: Optional[DocCodeCxxCoverage] = None
 
 
-class DocCodeCxxFile(BaseModel, extra="forbid"):
+class DocCodeCxxFile(docdata.DocCodeFile, extra="forbid"):
     Content: SerializeAsAny[List["DocCxxEntry"]] = Field(default_factory=list)
     Lines: List[DocCodeCxxLine] = Field(default_factory=list)
-    RelPath: Path
 
-class DocCxxConcept(DocBase, extra="forbid"):
+
+class DocCxxConcept(docdata.DocBase, extra="forbid"):
     Name: QualType
 
 
@@ -111,7 +113,8 @@ DocCxxEntry = Union[
     "DocCxxNamespace",
 ]
 
-class DocCxxNamespace(DocBase, extra="forbid"):
+
+class DocCxxNamespace(docdata.DocBase, extra="forbid"):
     Name: QualType
     Nested: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
 
@@ -273,7 +276,6 @@ def convert_cxx_type(
     return result
 
 
-
 @beartype
 def get_subnode(
     node: tree_sitter.Node,
@@ -292,7 +294,8 @@ def get_subnode(
                     node = get_subnode(node, part)
 
             return node
-        
+
+
 @beartype
 def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
     idx = 0
@@ -352,7 +355,6 @@ def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
     return converted
 
 
-
 @beartype
 def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
     match node.type:
@@ -384,7 +386,7 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
              "optional_parameter_declaration" | \
              "variadic_parameter_declaration":
             return get_name_node(get_subnode("declarator"))
-        
+
         case "abstract_reference_declarator":
             return None
 
@@ -395,11 +397,13 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
             else:
                 raise fail_node(node, "get_name_node")
 
+
 @beartype
-def convert_cxx_doc(doc: DocNodeGroup) -> Optional[DocText]:
+def convert_cxx_doc(doc: DocNodeGroup) -> Optional[docdata.DocText]:
     if doc.comments:
-        return DocText(Text="\n".join(
+        return docdata.DocText(Text="\n".join(
             ["\n".join(strip_comment_prefixes(it.text.decode())) for it in doc.comments]))
+
 
 @beartype
 def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
@@ -429,7 +433,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Name=name_node.text.decode(),
                     NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node),
                 )
             ]
 
@@ -440,7 +444,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     Name=convert_cxx_type(name_node),
                     NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node),
                 )
             ]
 
@@ -450,7 +454,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 Name=name_node and convert_cxx_type(name_node),
                 NamePoint=name_node and name_node.start_point,
                 Doc=convert_cxx_doc(doc),
-                **getNodePoints(doc.node),
+                **docdata.getNodePoints(doc.node),
             )
 
             if not get_subnode(doc.node, "body"):
@@ -490,7 +494,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                         Doc=convert_cxx_doc(doc),
                         Value=get_subnode(doc.node, "default_value").text.decode()
                         if get_subnode(doc.node, "default_value") else None,
-                        **getNodePoints(doc.node),
+                        **docdata.getNodePoints(doc.node),
                     )
                 ]
 
@@ -510,7 +514,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 NamePoint=name_node and name_node.start_point,
                 Name=name_node and name_node.text.decode(),
                 Doc=convert_cxx_doc(doc),
-                **getNodePoints(doc.node),
+                **docdata.getNodePoints(doc.node),
             )
 
             if node.type == "optional_parameter_declaration":
@@ -526,7 +530,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     New=convert_cxx_type(name_node),
                     NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node),
                 )
             ]
 
@@ -538,7 +542,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     New=convert_cxx_type(name_node),
                     NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node),
                 )
             ]
 
@@ -552,7 +556,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                         Kind=DocCxxFunctionKind.ImplicitConvertOperator,
                         NamePoint=get_subnode(decl, "type").start_point,
                         ReturnTy=convert_cxx_type(get_subnode(decl, "type")),
-                        **getNodePoints(doc.node),
+                        **docdata.getNodePoints(doc.node),
                     )
 
                     decl = get_subnode(decl, "declarator")
@@ -566,7 +570,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                             Name=name_node.text,
                             ReturnTy=convert_cxx_type(get_subnode(node, "type"), decl),
                             Doc=convert_cxx_doc(doc),
-                            **getNodePoints(doc.node),
+                            **docdata.getNodePoints(doc.node),
                         )
 
                         while decl.type == "pointer_declarator":
@@ -580,7 +584,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                             ReturnTy=None,
                             Kind=DocCxxFunctionKind.Constructor,
                             Doc=convert_cxx_doc(doc),
-                            **getNodePoints(doc.node),
+                            **docdata.getNodePoints(doc.node),
                         )
 
                 for param in convert_cxx_groups(get_subnode(decl, "parameters")):
@@ -596,7 +600,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     NamePoint=name_node.start_point,
                     Name=convert_cxx_type(name_node),
                     Doc=convert_cxx_doc(doc),
-                    **getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node),
                 )
 
                 for group in convert_cxx_groups(body):
@@ -663,7 +667,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             space = DocCxxNamespace(
                 NamePoint=name_node.start_point,
                 Name=convert_cxx_type(name_node),
-                **getNodePoints(node),
+                **docdata.getNodePoints(node),
             )
 
             for it in convert_cxx_groups(get_subnode(node, "body")):
@@ -742,65 +746,6 @@ def get_name_link(entry: DocCxxEntry) -> tags.html_tag:
     return link
 
 
-
-@beartype
-def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
-    highilght_lexer = CppLexer()
-    div = tags.div(_class="page-tab-content", id="page-code")
-
-    decl_locations: Dict[(int, int), DocCxxEntry] = {}
-
-    def aux_locations(entry: DocCxxEntry):
-        decl_locations[(entry.NamePoint)] = entry
-        match entry:
-            case DocCxxRecord():
-                for sub in entry.Nested:
-                    aux_locations(sub)
-
-    for entry in code_file.Content:
-        aux_locations(entry)
-
-    for idx, line in enumerate(code_file.Lines):
-        hline = tags.p(_class="code-line")
-        hline.add(tags.span(str(idx), _class="code-line-number", id=f"line-{idx}"))
-
-        tokens = tags.span(_class="code-line-text", style="width:600px;")
-        column = 0
-
-        for token_type, token_text in lex(line.Text, highilght_lexer):
-            maybe_entry = decl_locations.get((idx, column), None)
-            if maybe_entry:
-                token_html = tags.a(
-                    href=f"#{get_docs_fragment(entry)}",
-                    onclick="openPage('page-docs')",
-                )
-
-                token_html.add(token_text.strip("\n"))
-
-                tokens.add(
-                    tags.span(token_html,
-                              _class=abbreviate_token_name(token_type) +
-                              " code-backlink"))
-
-            else:
-                tokens.add(
-                    tags.span(token_text.strip("\n"),
-                              _class=abbreviate_token_name(token_type)))
-
-            column += len(token_text)
-
-        hline.add(tokens)
-
-        if line.Coverage:
-            cov = tags.span(_class="code-line-coverage", style="width:50px;")
-            cov.add(util.text(str(sum([cover.Count for cover in line.Coverage.Call]))))
-            hline.add(cov)
-
-        div.add(hline)
-
-    return div
-
-
 @beartype
 def get_entry_docs(entry: DocCxxEntry) -> List[Union[tags.html_tag, util.text]]:
     if entry.Doc and entry.Doc.Text:
@@ -840,6 +785,7 @@ def get_docs_fragment(entry: Union[DocCxxEntry, QualType]) -> str:
 
         case _:
             raise ValueError(f"TODO {type(entry)}")
+
 
 @beartype
 def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
@@ -1073,3 +1019,28 @@ def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
 
     return div
 
+
+@beartype
+def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
+    decl_locations: Dict[(int, int), docdata.DocBase] = {}
+
+    def aux_locations(entry: DocCxxEntry):
+        decl_locations[(entry.NamePoint)] = entry
+        match entry:
+            case DocCxxRecord():
+                for sub in entry.Nested:
+                    aux_locations(sub)
+
+    for entry in code_file.Content:
+        aux_locations(entry)
+
+    def get_attr_spans(line: DocCodeCxxLine) -> List[tags.span]:
+        return []
+
+    return docdata.get_html_code_div_base(
+        Lines=code_file.Lines,
+        decl_locations=decl_locations,
+        highilght_lexer=CppLexer(),
+        get_attr_spans=get_attr_spans,
+        get_docs_fragment=get_docs_fragment,
+    )

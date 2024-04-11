@@ -16,6 +16,7 @@ import py_repository.run_coverage as coverage
 import concurrent.futures
 import py_repository.gen_documentation_cxx as cxx
 import py_repository.gen_documentation_python as py
+import py_repository.gen_documentation_data as docdata
 from beartype.typing import Type
 
 T = TypeVar("T")
@@ -26,20 +27,6 @@ def dropnan(values: Iterable[Optional[T]]) -> Iterable[T]:
 
 
 CAT = "docgen"
-
-
-class DocTextFile(BaseModel, extra="forbid"):
-    RelPath: Path
-    Text: str = ""
-
-
-class DocDirectory(BaseModel, extra="forbid"):
-    RelPath: Path
-    CodeFiles: List[Union[
-        cxx.DocCodeCxxFile,
-    ]] = Field(default_factory=list)
-    TextFiles: List[DocTextFile] = Field(default_factory=list)
-    Subdirs: List["DocDirectory"] = Field(default_factory=list)
 
 
 def lerp_html_color(
@@ -53,17 +40,6 @@ def lerp_html_color(
         for r, g in zip([float(n) for n in start], [float(n) for n in end]))
 
     return f"#{interpolated[0]:02x}{interpolated[1]:02x}{interpolated[2]:02x}"
-
-
-@beartype
-def get_html_path(entry: Union[DocDirectory, cxx.DocCodeCxxFile, DocTextFile],
-                  html_out_path: Path) -> Path:
-    match entry:
-        case DocDirectory():
-            return html_out_path.joinpath(entry.RelPath)
-
-        case cxx.DocCodeCxxFile() | DocTextFile():
-            return html_out_path.joinpath(entry.RelPath).with_suffix(".html")
 
 
 @beartype
@@ -89,14 +65,15 @@ def get_doc_ratio(total: int, documented: int) -> tags.b:
 
 
 @beartype
-def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> SidebarRes:
+def generate_tree_sidebar(directory: docdata.DocDirectory,
+                          html_out_path: Path) -> SidebarRes:
     directory_list = tags.ul(cls="sidebar-directory")
     directory_total_entries: int = 0
     directory_documented_entries: int = 0
 
     for subdir in directory.Subdirs:
         subdir_res = generate_tree_sidebar(subdir, html_out_path)
-        link = tags.a(href=get_html_path(subdir, html_out_path=html_out_path))
+        link = tags.a(href=docdata.get_html_path(subdir, html_out_path=html_out_path))
         link.add(subdir.RelPath.name)
         link.add(" ")
         link.add(get_doc_ratio(
@@ -137,7 +114,7 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> Sideb
             aux_docs(entry)
 
         item = tags.li(_class="sidebar-code")
-        link = tags.a(href=get_html_path(code_file, html_out_path=html_out_path))
+        link = tags.a(href=docdata.get_html_path(code_file, html_out_path=html_out_path))
         link.add(util.text(code_file.RelPath.name))
         link.add(util.text(" "))
         link.add(get_doc_ratio(total_entries, documented_entries))
@@ -151,7 +128,8 @@ def generate_tree_sidebar(directory: DocDirectory, html_out_path: Path) -> Sideb
         directory_list.add(
             tags.li(
                 tags.a("Text File",
-                       href=get_html_path(text_file, html_out_path=html_out_path)),
+                       href=docdata.get_html_path(text_file,
+                                                  html_out_path=html_out_path)),
                 _class="sidebar-text",
             ))
 
@@ -187,7 +165,8 @@ def get_html_page_tabs() -> tags.div:
 
 
 @beartype
-def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) -> None:
+def generate_html_for_directory(directory: docdata.DocDirectory,
+                                html_out_path: Path) -> None:
     sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
     sidebar = tags.div(sidebar_res.tag, _class="sidebar-directory-root")
     css_path = get_haxorg_repo_root_path().joinpath(
@@ -196,12 +175,12 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
     js_path = get_haxorg_repo_root_path().joinpath(
         "scripts/py_repository/py_repository/gen_documentation.js")
 
-    def aux(directory: DocDirectory, html_out_path: Path) -> None:
+    def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
         for subdir in directory.Subdirs:
             aux(subdir, html_out_path)
 
         for code_file in directory.CodeFiles:
-            path = get_html_path(code_file, html_out_path=html_out_path)
+            path = docdata.get_html_path(code_file, html_out_path=html_out_path)
             doc = document(title=str(code_file.RelPath))
             doc.head.add(tags.link(rel="stylesheet", href=css_path))
             doc.head.add(tags.script(src=str(js_path)))
@@ -214,8 +193,19 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
             container.add(sidebar_div)
             main = tags.div(_class="main")
             main.add(get_html_page_tabs())
-            main.add(cxx.get_html_code_div(code_file))
-            main.add(cxx.get_html_docs_div(code_file))
+
+            match code_file:
+                case cxx.DocCodeCxxFile():
+                    main.add(cxx.get_html_code_div(code_file))
+                    main.add(cxx.get_html_docs_div(code_file))
+
+                case py.DocCodePyFile():
+                    main.add(py.get_html_code_div(code_file))
+                    main.add(py.get_html_docs_div(code_file))
+
+                case _:
+                    raise TypeError(type(code_file))
+
             container.add(main)
             doc.add(container)
 
@@ -223,7 +213,7 @@ def generate_html_for_directory(directory: "DocDirectory", html_out_path: Path) 
             path.write_text(doc.render())
 
         for text_file in directory.TextFiles:
-            path = get_html_path(text_file, html_out_path=html_out_path)
+            path = docdata.get_html_path(text_file, html_out_path=html_out_path)
             doc = document(title=str(text_file.RelPath))
             doc.head.add(tags.link(rel="stylesheet", href=css_path))
             doc.add(tags.div(sidebar, _class="sidebar"))
@@ -295,8 +285,8 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     rel_path_to_code_file: Dict[Path, cxx.DocCodeCxxFile] = {}
 
     @beartype
-    def aux_dir(dir: Path) -> DocDirectory:
-        result = DocDirectory(RelPath=dir.relative_to(conf.src_path))
+    def aux_dir(dir: Path) -> docdata.DocDirectory:
+        result = docdata.DocDirectory(RelPath=dir.relative_to(conf.src_path))
         for file in sorted(dir.glob("*")):
             if file.name == "base_lexer_gen.cpp":
                 continue
@@ -311,7 +301,8 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                                 AbsPath=file.absolute(),
                             )
 
-                        else: 
+                        else:
+                            log(CAT).info(file)
                             code_file = py.convert_py_tree(
                                 py.parse_py(file),
                                 RootPath=conf.src_path,
@@ -326,7 +317,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                     result.CodeFiles.append(code_file)
 
                 case "*.org":
-                    result.TextFiles.append(DocTextFile(Text=file.read_text()))
+                    result.TextFiles.append(docdata.DocTextFile(Text=file.read_text()))
 
                 case _ if file.is_dir():
                     result.Subdirs.append(aux_dir(file))
