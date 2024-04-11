@@ -7,7 +7,6 @@ from beartype.typing import Union, Optional, List
 from dataclasses import dataclass, field
 from pygments.token import _TokenType
 
-
 @beartype
 def abbreviate_token_name(token: _TokenType) -> str:
     # Remove the base "Token" from the token type
@@ -82,8 +81,20 @@ def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
 
 
 @beartype
-@dataclass
-class DocNodeGroup():
-    comments: List[tree_sitter.Node] = field(default_factory=list)
-    node: Optional[tree_sitter.Node] = None
-    nested: List["DocNodeGroup"] = field(default_factory=list)
+def get_subnode(
+    node: tree_sitter.Node,
+    name: Union[str, List[str], int],
+) -> Optional[tree_sitter.Node]:
+    match name:
+        case int():
+            return node.named_child(name)
+
+        case str():
+            return node.child_by_field_name(name)
+
+        case list():
+            for part in name:
+                if node:
+                    node = get_subnode(node, part)
+
+            return node

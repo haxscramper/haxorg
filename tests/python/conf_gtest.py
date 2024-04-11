@@ -7,7 +7,6 @@ from beartype.typing import Optional, Tuple, List
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
-import py_repository.run_coverage as coverage
 
 
 @beartype
@@ -161,16 +160,7 @@ class GTestItem(pytest.Function):
             except ProcessExecutionError as e:
                 raise GTestRunError(e, self) from None
 
-        if self.coverage_out_dir:
-            coverage_file = str(coverage.get_profraw_path(self.gtest.fullname()))
-            run({"LLVM_PROFILE_FILE": coverage_file})
-            coverage.write_profdata_cookie(
-                test_binary=test,
-                test_name=self.gtest.fullname(),
-            )
-
-        else:
-            run()
+        run()
 
     @property
     def location(self) -> Tuple[str, Optional[int], str]:

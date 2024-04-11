@@ -255,7 +255,6 @@ def cli_options(f):
     return apply_options(f, options_from_model(DocGenerationOptions))
 
 
-
 @click.command()
 @click.option("--config",
               type=click.Path(exists=True),
@@ -304,7 +303,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                     "base_lexer_gen.cpp",
                     "__init__.py",
                     "__pycache__",
-            ]:
+            ] or file.name.startswith("."):
                 continue
 
             match file.suffix:

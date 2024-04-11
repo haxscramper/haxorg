@@ -95,10 +95,10 @@ struct cli_config_config {
 
     DESC_FIELDS(
         cli_config_config,
-        verbose_consistency_checks,
-        debug_commits,
-        debug_paths,
-        diffopts);
+        (verbose_consistency_checks,
+         debug_commits,
+         debug_paths,
+         diffopts));
 };
 
 struct cli_config {

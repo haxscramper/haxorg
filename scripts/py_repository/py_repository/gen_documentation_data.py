@@ -8,6 +8,8 @@ import dominate.util as util
 from pygments import lex
 from pygments.token import Token, _TokenType
 from py_repository.gen_documentation_utils import abbreviate_token_name
+import tree_sitter
+from dataclasses import dataclass, field
 
 
 class DocText(BaseModel, extra="forbid"):
@@ -53,8 +55,13 @@ def get_html_path(entry: Union[DocDirectory, DocCodeFile, DocTextFile],
 
 
 @beartype
-def getNodePoints(node: tree_sitter.Node) -> Dict[str, Tuple[int, int]]:
-    return dict(StartPoint=node.start_point, EndPoint=node.end_point)
+def getNodePoints(node: tree_sitter.Node,
+                  name_node: Optional[tree_sitter.Node]) -> Dict[str, Tuple[int, int]]:
+    return dict(
+        StartPoint=node.start_point,
+        EndPoint=node.end_point,
+        NamePoint=name_node and name_node.start_point,
+    )
 
 
 @beartype
@@ -106,3 +113,70 @@ def get_html_code_div_base(
         div.add(hline)
 
     return div
+
+
+@beartype
+@dataclass
+class DocNodeGroup():
+    comments: List[tree_sitter.Node] = field(default_factory=list)
+    node: Optional[tree_sitter.Node] = None
+    nested: List["DocNodeGroup"] = field(default_factory=list)
+
+
+@beartype
+def convert_comment_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
+    idx = 0
+    nodes = node.children
+    converted: List[DocNodeGroup] = []
+
+    def next():
+        nonlocal idx
+        idx += 1
+
+    def has_next():
+        return idx < len(nodes)
+
+    def aux() -> Optional[DocNodeGroup]:
+        nonlocal idx
+        result = DocNodeGroup()
+
+        def get():
+            return nodes[idx]
+
+        def at_skip() -> bool:
+            return not get().is_named and get().type != "comment"
+
+        def at_comment() -> bool:
+            return get().type == "comment"
+
+        while has_next() and at_skip():
+            next()
+
+        while has_next() and at_comment():
+            result.comments.append(get())
+            next()
+
+        if has_next():
+            result.node = get()
+            next()
+
+        while has_next() and at_skip():
+            next()
+
+        while has_next() and at_comment():
+            if get().text.decode().startswith("///<"):
+                result.comments.append(get())
+                next()
+
+            else:
+                break
+
+        if result.node or result.comments:
+            return result
+
+    while has_next():
+        group = aux()
+        if group:
+            converted.append(group)
+
+    return converted

@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from enum import Enum
 from dataclasses import replace
 from pydantic import Field, SerializeAsAny
-from py_repository.gen_documentation_utils import DocNodeGroup, fail_node
+from py_repository.gen_documentation_utils import fail_node, get_subnode
 from beartype.typing import Type, TypeVar, Dict
 from py_codegen.refl_read import strip_comment_prefixes
 from pygments import lex
@@ -280,85 +280,6 @@ def convert_cxx_type(
 
 
 @beartype
-def get_subnode(
-    node: tree_sitter.Node,
-    name: Union[str, List[str], int],
-) -> Optional[tree_sitter.Node]:
-    match name:
-        case int():
-            return node.named_child(name)
-
-        case str():
-            return node.child_by_field_name(name)
-
-        case list():
-            for part in name:
-                if node:
-                    node = get_subnode(node, part)
-
-            return node
-
-
-@beartype
-def convert_cxx_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
-    idx = 0
-    nodes = node.children
-    converted: List[DocNodeGroup] = []
-
-    def next():
-        nonlocal idx
-        idx += 1
-
-    def has_next():
-        return idx < len(nodes)
-
-    def aux() -> Optional[DocNodeGroup]:
-        nonlocal idx
-        result = DocNodeGroup()
-
-        def get():
-            return nodes[idx]
-
-        def at_skip() -> bool:
-            return not get().is_named and get().type != "comment"
-
-        def at_comment() -> bool:
-            return get().type == "comment"
-
-        while has_next() and at_skip():
-            next()
-
-        while has_next() and at_comment():
-            result.comments.append(get())
-            next()
-
-        if has_next():
-            result.node = get()
-            next()
-
-        while has_next() and at_skip():
-            next()
-
-        while has_next() and at_comment():
-            if get().text.decode().startswith("///<"):
-                result.comments.append(get())
-                next()
-
-            else:
-                break
-
-        if result.node or result.comments:
-            return result
-
-    while has_next():
-        group = aux()
-        if group:
-            converted.append(group)
-
-    return converted
-
-
-@beartype
 def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
     match node.type:
         case "field_identifier" | \
@@ -402,14 +323,14 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
 
 
 @beartype
-def convert_cxx_doc(doc: DocNodeGroup) -> Optional[docdata.DocText]:
+def convert_cxx_doc(doc: docdata.DocNodeGroup) -> Optional[docdata.DocText]:
     if doc.comments:
         return docdata.DocText(Text="\n".join(
             ["\n".join(strip_comment_prefixes(it.text.decode())) for it in doc.comments]))
 
 
 @beartype
-def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
+def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
     node = doc.node
     result = []
 
@@ -422,7 +343,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
         case "preproc_ifdef":
             result = []
-            for item in convert_cxx_groups(doc.node):
+            for item in docdata.convert_comment_groups(doc.node):
                 conv = convert_cxx_entry(item)
                 if conv:
                     result += conv
@@ -434,9 +355,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             result = [
                 DocCxxEnumField(
                     Name=name_node.text.decode(),
-                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **docdata.getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node, name_node),
                 )
             ]
 
@@ -445,9 +365,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             result = [
                 DocCxxConcept(
                     Name=convert_cxx_type(name_node),
-                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **docdata.getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node, name_node),
                 )
             ]
 
@@ -455,16 +374,15 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             name_node = get_subnode(doc.node, "name")
             Enum = DocCxxEnum(
                 Name=name_node and convert_cxx_type(name_node),
-                NamePoint=name_node and name_node.start_point,
                 Doc=convert_cxx_doc(doc),
-                **docdata.getNodePoints(doc.node),
+                **docdata.getNodePoints(doc.node, name_node),
             )
 
             if not get_subnode(doc.node, "body"):
                 # Tree-sitter grammar does not handle `enum class [[refl]] Kind {}` property at the moment
                 return []
 
-            for field in convert_cxx_groups(get_subnode(doc.node, "body")):
+            for field in docdata.convert_comment_groups(get_subnode(doc.node, "body")):
                 conv = convert_cxx_entry(field)
                 if len(conv) == 1:
                     Enum.Fields.append(conv[0])
@@ -491,13 +409,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             if field_decl:
                 result = [
                     DocCxxIdent(
-                        NamePoint=field_decl.start_point,
                         Name=field_decl.text.decode(),
                         Type=convert_cxx_type(get_subnode(doc.node, "type")),
                         Doc=convert_cxx_doc(doc),
                         Value=get_subnode(doc.node, "default_value").text.decode()
                         if get_subnode(doc.node, "default_value") else None,
-                        **docdata.getNodePoints(doc.node),
+                        **docdata.getNodePoints(doc.node, field_decl),
                     )
                 ]
 
@@ -514,10 +431,9 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 
             ident = DocCxxIdent(
                 Type=convert_cxx_type(get_subnode(doc.node, "type"), doc.node),
-                NamePoint=name_node and name_node.start_point,
                 Name=name_node and name_node.text.decode(),
                 Doc=convert_cxx_doc(doc),
-                **docdata.getNodePoints(doc.node),
+                **docdata.getNodePoints(doc.node, name_node),
             )
 
             if node.type == "optional_parameter_declaration":
@@ -531,9 +447,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 DocCxxTypedef(
                     Old=convert_cxx_type(get_subnode(doc.node, "name")),
                     New=convert_cxx_type(name_node),
-                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **docdata.getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node, name_node),
                 )
             ]
 
@@ -543,9 +458,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                 DocCxxTypedef(
                     Old=convert_cxx_type(get_subnode(doc.node, "type")),
                     New=convert_cxx_type(name_node),
-                    NamePoint=name_node.start_point,
                     Doc=convert_cxx_doc(doc),
-                    **docdata.getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node, name_node),
                 )
             ]
 
@@ -557,9 +471,8 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                     func = DocCxxFunction(
                         Name=None,
                         Kind=DocCxxFunctionKind.ImplicitConvertOperator,
-                        NamePoint=get_subnode(decl, "type").start_point,
                         ReturnTy=convert_cxx_type(get_subnode(decl, "type")),
-                        **docdata.getNodePoints(doc.node),
+                        **docdata.getNodePoints(doc.node, get_subnode(decl, "type")),
                     )
 
                     decl = get_subnode(decl, "declarator")
@@ -569,11 +482,10 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                         name_node = get_name_node(get_subnode(decl, "declarator"))
                         func = DocCxxFunction(
                             Kind=DocCxxFunctionKind.StandaloneFunction,
-                            NamePoint=name_node.start_point,
                             Name=name_node.text,
                             ReturnTy=convert_cxx_type(get_subnode(node, "type"), decl),
                             Doc=convert_cxx_doc(doc),
-                            **docdata.getNodePoints(doc.node),
+                            **docdata.getNodePoints(doc.node, name_node),
                         )
 
                         while decl.type == "pointer_declarator":
@@ -583,14 +495,14 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
                         name_node = get_subnode(decl, "declarator")
                         func = DocCxxFunction(
                             Name=name_node.text,
-                            NamePoint=name_node.start_point,
                             ReturnTy=None,
                             Kind=DocCxxFunctionKind.Constructor,
                             Doc=convert_cxx_doc(doc),
-                            **docdata.getNodePoints(doc.node),
+                            **docdata.getNodePoints(doc.node, name_node),
                         )
 
-                for param in convert_cxx_groups(get_subnode(decl, "parameters")):
+                for param in docdata.convert_comment_groups(
+                        get_subnode(decl, "parameters")):
                     func.Arguments += convert_cxx_entry(param)
 
                 result = [func]
@@ -600,13 +512,12 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
             if body:
                 name_node = get_subnode(node, "name")
                 record = DocCxxRecord(
-                    NamePoint=name_node.start_point,
                     Name=convert_cxx_type(name_node),
                     Doc=convert_cxx_doc(doc),
-                    **docdata.getNodePoints(doc.node),
+                    **docdata.getNodePoints(doc.node, name_node),
                 )
 
-                for group in convert_cxx_groups(body):
+                for group in docdata.convert_comment_groups(body):
                     conv = convert_cxx_entry(group)
                     for it in conv:
                         if it:
@@ -668,12 +579,11 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
         case "namespace_definition":
             name_node = get_subnode(node, "name")
             space = DocCxxNamespace(
-                NamePoint=name_node.start_point,
                 Name=convert_cxx_type(name_node),
-                **docdata.getNodePoints(node),
+                **docdata.getNodePoints(node, name_node),
             )
 
-            for it in convert_cxx_groups(get_subnode(node, "body")):
+            for it in docdata.convert_comment_groups(get_subnode(node, "body")):
                 for entry in convert_cxx_entry(it):
                     if entry:
                         space.Nested.append(entry)
@@ -719,7 +629,7 @@ def convert_cxx_entry(doc: DocNodeGroup) -> List[DocCxxEntry]:
 def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
                      AbsPath: Path) -> DocCodeCxxFile:
     result: List[DocCxxEntry] = []
-    for toplevel in convert_cxx_groups(tree.root_node):
+    for toplevel in docdata.convert_comment_groups(tree.root_node):
         entry = convert_cxx_entry(toplevel)
         if entry:
             result += entry

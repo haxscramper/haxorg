@@ -135,5 +135,5 @@ concept IsSubVariantType = requires() {
         ,                                                                 \
         ());
 
-#define DESC_FIELDS(classname, ...) \
-    BOOST_DESCRIBE_CLASS(classname (), (__VA_ARGS__), (), (), ())
+#define DESC_FIELDS(classname, arg)                                       \
+    BOOST_DESCRIBE_CLASS(classname, (), arg, (), ())

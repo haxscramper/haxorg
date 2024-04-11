@@ -1035,7 +1035,7 @@ def docs_custom(ctx: Context):
         get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
         f"--html_out_path={out_dir}",
         f"--root_path={get_script_root()}",
-        f"--src_path={get_script_root('src')}",
+        # f"--src_path={get_script_root('src')}",
         f"--src_path={get_script_root('scripts')}",
     ])
 

@@ -9,8 +9,9 @@ from tempfile import TemporaryDirectory
 import tree_sitter
 from py_repository.gen_documentation_utils import tree_repr
 
+
 def dbg(map: BaseModel) -> str:
-    return render_rich_pprint(map.model_dump(), width=200, color=False)
+    return render_rich_pprint(map and map.model_dump(), width=200, color=False)
 
 
 def dbg_tree(tree: tree_sitter.Tree) -> str:
@@ -25,7 +26,7 @@ def print_parse(value: str) -> str:
     return print(render_rich(tree_repr(gen.cxx.parse_cxx(value))))
 
 
-def parse(code: str) -> Tuple[gen.cxx.DocCodeCxxFile, tree_sitter.Tree]:
+def parse_cxx(code: str) -> Tuple[gen.cxx.DocCodeCxxFile, tree_sitter.Tree]:
     tree = gen.cxx.parse_cxx(code)
     try:
         with TemporaryDirectory() as tmp_dir:
@@ -38,10 +39,27 @@ def parse(code: str) -> Tuple[gen.cxx.DocCodeCxxFile, tree_sitter.Tree]:
         raise e from None
 
 
+def parse_py(code: str) -> Tuple[gen.py.DocCodePyFile, tree_sitter.Tree]:
+    tree = gen.py.parse_py(code)
+    try:
+        with TemporaryDirectory() as tmp_dir:
+            dir = Path(tmp_dir)
+            dir.joinpath("file.py").write_text(code)
+            return (gen.py.convert_py_tree(tree, dir, dir.joinpath("file.py")), tree)
+
+    except Exception as e:
+        print_parse(code)
+        raise e from None
+
+
 def assert_submodel(model: BaseModel,
                     subset: ju.Json,
                     tree: Optional[tree_sitter.Tree] = None):
-    ju.assert_subset(model.model_dump(), subset=subset, message=dbg_parse(model, tree))
+    ju.assert_subset(
+        model and model.model_dump(),
+        subset=subset,
+        message=dbg_parse(model, tree),
+    )
 
 
 def test_structure_extraction_name():
@@ -50,7 +68,7 @@ def test_structure_extraction_name():
     struct A {}; 
     """
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
     record = file.Content[0]
     assert isinstance(record, gen.cxx.DocCxxRecord)
     assert_submodel(record.Name, dict(name="A", Spaces=[], Parameters=[]), tree)
@@ -69,7 +87,7 @@ def test_structure_extraction_fields():
         int field1 = value; ///< FIELD-COMMENT-2.2
     };"""
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
     record = file.Content[0]
     assert isinstance(record, gen.cxx.DocCxxRecord)
     assert len(record.Nested) == 2, dbg(record)
@@ -98,7 +116,7 @@ B::A get(
     ) {}
 """
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
 
     func = file.Content[0]
     assert isinstance(func, gen.cxx.DocCxxFunction)
@@ -132,7 +150,7 @@ def test_template_type():
     code = """
 std::vector<int> get_value(std::unordered_map<A<B<C>>, Q::C::D::E::Z> arg) {}
 """
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
     func = file.Content[0]
     assert isinstance(func, gen.cxx.DocCxxFunction)
     assert_submodel(
@@ -169,7 +187,7 @@ def test_code_1():
         }
     """
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
 
 
 def test_code_2():
@@ -177,7 +195,7 @@ def test_code_2():
     V**** _this() { return static_cast<V*>(this); }
     """
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
 
     func = file.Content[0]
     assert isinstance(func, gen.cxx.DocCxxFunction)
@@ -189,7 +207,7 @@ def test_implicit_conversion_operator():
     operator int() {}
     """
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
     func = file.Content[0]
     assert isinstance(func, gen.cxx.DocCxxFunction)
 
@@ -213,7 +231,7 @@ def test_refl_annotation():
     };
     """
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
 
 
 def test_pointer_functions():
@@ -221,7 +239,7 @@ def test_pointer_functions():
     int*** result(int const** value, char const& entry) {}
     """
 
-    file, tree = parse(code)
+    file, tree = parse_cxx(code)
     func = file.Content[0]
     assert isinstance(func, gen.cxx.DocCxxFunction)
     assert func.Name == "result", dbg_tree(tree)
@@ -249,6 +267,41 @@ def test_pointer_functions():
                 isConst=True,
                 name="char",
             ),
+        ),
+        tree,
+    )
+
+
+def test_py_function():
+    code = """
+    def whatever(arg: List[int], arg2: List[Dict[int, float]] = []) -> int:
+        return 123123123123
+    """
+
+    file, tree = parse_py(code)
+    func = file.Content[0]
+    assert isinstance(func, gen.py.DocPyFunction)
+    assert func.Name == "whatever", dbg_tree(tree)
+    assert_submodel(func.ReturnTy, dict(Name="int"), tree)
+
+    assert len(func.Arguments) == 2, dbg_tree(tree)
+    assert_submodel(
+        func.Arguments[0],
+        dict(Name="arg", Type=dict(Name="List", Parameters=[dict(Name="int")])),
+        tree,
+    )
+
+    assert_submodel(
+        func.Arguments[1],
+        dict(
+            Name="arg2",
+            Type=dict(Name="List",
+                      Parameters=[
+                          dict(Name="Dict",
+                               Parameters=[dict(Name="int"),
+                                           dict(Name="float")])
+                      ]),
+            Default="[]",
         ),
         tree,
     )
