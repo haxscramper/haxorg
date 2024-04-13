@@ -827,8 +827,9 @@ def get_entry_div(
                 sign = tags.table(_class="func-signature")
                 ret = get_type_span(entry.ReturnTy) if entry.ReturnTy else util.text("")
 
-                def ident_row(ident: DocCxxIdent) -> List[tags.td]:
-                    return [tags.td(arg) for arg in gen_ident_spans(ident)]
+                @beartype
+                def ident_row(ident: DocCxxIdent) -> Tuple[tags.td, tags.td, tags.td]:
+                    return tuple(tags.td(arg) for arg in gen_ident_spans(ident))
 
                 for row in docdata.format_argument_rows(
                         ReturnType=ret,

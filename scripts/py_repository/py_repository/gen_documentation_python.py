@@ -408,38 +408,47 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
 
 
 @beartype
-def get_type_span(Type: DocPyType) -> tags.span:
+def get_type_span(Type: Optional[DocPyType]) -> tags.span:
 
-    def csv_list(items: Iterable[tags.html_tag],
-                 split: tags.html_tag) -> List[tags.html_tag]:
-        result = []
-        first = True
-        for Parameter in items:
-            if not first:
-                result.append(split)
+    def aux(Type: DocPyType, _class: str) -> tags.span:
 
-            first = False
-            result.append(Parameter)
+        def csv_list(items: Iterable[tags.html_tag],
+                     split: tags.html_tag) -> List[tags.html_tag]:
+            result = []
+            first = True
+            for Parameter in items:
+                if not first:
+                    result.append(split)
 
-        return result
+                first = False
+                result.append(Parameter)
 
-    head = tags.span(util.text(Type.Name or ""), _class="type-head")
-    if Type.Parameters:
-        head.add(
-            util.text("["),
-            csv_list((get_type_span(P) for P in Type.Parameters), util.text(", ")),
-            util.text("]"),
-        )
+            return result
 
-    return head
+        head = tags.span(util.text(Type.Name or ""), _class=_class)
+        if Type.Parameters:
+            head.add(
+                util.text("["),
+                csv_list((aux(P, "type-param") for P in Type.Parameters),
+                         util.text(", ")),
+                util.text("]"),
+            )
+
+        return head
+
+    if Type:
+        return aux(Type, "type-head")
+    
+    else:
+        return tags.span(util.text("None"), _class="type-head")
 
 
 @beartype
 def gen_ident_spans(ident: DocPyIdent) -> Tuple[util.text, tags.span, tags.span]:
     return (
-        util.text(ident.Name + ":" if ident.Name else ""),
+        util.text(ident.Name + (":" if ident.Type else "") if ident.Name else ""),
         get_type_span(ident.Type) if ident.Type else tags.span(util.text("")),
-        tags.span(util.text(ident.Default)) if ident.Default else tags.span(),
+        tags.span(util.text(" = " + ident.Default)) if ident.Default else tags.span(),
     )
 
 
@@ -497,15 +506,24 @@ def get_entry_div(entry: DocPyEntry, context: List[Union[DocPyClass]]) -> tags.d
         case DocPyFunction():
             func = tags.div()
             sign = tags.table(_class="func-signature")
-            ret = get_type_span(entry.ReturnTy) if entry.ReturnTy else util.text("")
+            ret = get_type_span(entry.ReturnTy) 
+            in_class = context and isinstance(context[-1], DocPyClass)
 
-            def ident_row(ident: DocPyIdent) -> List[tags.td]:
-                return [tags.td(arg) for arg in gen_ident_spans(ident)]
+            @beartype
+            def ident_row(ident: DocPyIdent) -> Tuple[tags.td, tags.td, tags.td]:
+                return tuple(tags.td(arg) for arg in gen_ident_spans(ident))
+
+            link = tags.span(util.text("def"), docdata.get_name_link(entry.Name, entry))
+            link.attributes["class"] = "func-backlink"
 
             for row in docdata.format_argument_rows(
                     ReturnType=ret,
-                    Arguments=[ident_row(arg) for arg in entry.Arguments],
-                    FuncName=docdata.get_name_link(entry.Name, entry),
+                    Arguments=[
+                        ident_row(arg)
+                        for arg in entry.Arguments
+                        if (not in_class or arg.Name != "self")
+                    ],
+                    FuncName=link,
             ):
                 sign.add(row)
 

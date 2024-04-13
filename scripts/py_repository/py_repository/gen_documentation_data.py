@@ -211,33 +211,32 @@ def get_doc_block(entry: DocBase) -> Optional[tags.div]:
 def format_argument_rows(
     FuncName: tags.html_tag,
     ReturnType: tags.html_tag | util.text,
-    Arguments: List[List[tags.td]],
+    Arguments: List[Tuple[tags.td, tags.td, tags.td]],
 ) -> List[tags.tr]:
     match Arguments:
         case []:
             return [
                 tags.tr(
-                    tags.td(ReturnType),
                     tags.td(FuncName),
-                    tags.td(util.text("()")),
+                    tags.td(util.text("() ->")),
+                    tags.td(ReturnType),
                 )
             ]
 
         case [one_arg]:
             return [
                 tags.tr(*[
-                    tags.td(ReturnType),
                     tags.td(FuncName),
                     tags.td(util.text("(")),
                     *one_arg,
-                    tags.td(util.text(")")),
+                    tags.td(util.text(") ->")),
+                    tags.td(ReturnType),
                 ])
             ]
 
         case [first_arg, *middle_args, last_arg]:
             return [
                 tags.tr(
-                    tags.td(ReturnType),
                     tags.td(FuncName),
                     tags.td(util.text("(")),
                     *first_arg,
@@ -245,15 +244,14 @@ def format_argument_rows(
                 *[tags.tr(
                     tags.td(),
                     tags.td(),
-                    tags.td(),
                     *it,
                 ) for it in middle_args],
                 tags.tr(
                     tags.td(),
                     tags.td(),
-                    tags.td(),
                     *last_arg,
-                    tags.td(")"),
+                    tags.td(") ->"),
+                    tags.td(ReturnType),
                 ),
             ]
 

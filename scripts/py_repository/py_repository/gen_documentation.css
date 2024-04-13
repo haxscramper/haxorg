@@ -40,6 +40,14 @@ html {
   border: 0;
 }
 
+.type-head, .type-head * {
+  align-items: center;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .code-backlink {
   align-items: center;
   display: flex;
@@ -98,6 +106,12 @@ html {
 .func-signature {
   margin: 0px;
   padding: 0px;
+  table-layout: fixed;
+}
+
+.func-backlink {
+  min-width: 120px;
+  display: inline-block;
 }
 
 /* 
