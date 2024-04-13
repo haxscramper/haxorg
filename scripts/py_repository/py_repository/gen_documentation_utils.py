@@ -6,6 +6,7 @@ from py_scriptutils.rich_utils import render_rich
 from beartype.typing import Union, Optional, List
 from dataclasses import dataclass, field
 from pygments.token import _TokenType
+from functools import wraps
 
 
 @beartype
@@ -67,6 +68,26 @@ def tree_repr(node: Union[tree_sitter.Tree, tree_sitter.Node]) -> str:
 
     else:
         return aux(node.root_node, 0)
+
+
+def note_used_node(func):
+
+    @wraps(func)
+    def impl(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+
+        except Exception as e:
+            for value in args:
+                if isinstance(value, tree_sitter.Node):
+                    if not hasattr(e, "__notes__") or not any(
+                        ["TS Tree:" in note for note in e.__notes__]):
+                        e.add_note(
+                            f"TS Tree: {render_rich(tree_repr(value), color=False)}")
+
+            raise e from None
+
+    return impl
 
 
 @beartype

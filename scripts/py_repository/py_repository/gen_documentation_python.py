@@ -2,14 +2,14 @@ from beartype.typing import List, Optional, Union, Dict, Tuple
 from pathlib import Path
 from beartype import beartype
 import tree_sitter
-from py_repository.gen_documentation_utils import fail_node, tree_repr, PY_LANG, get_subnode
+from py_repository.gen_documentation_utils import fail_node, tree_repr, PY_LANG, get_subnode, note_used_node
 import py_repository.gen_documentation_data as docdata
 from pydantic import SerializeAsAny, BaseModel, Field
 import dominate.tags as tags
 import dominate.util as util
 from pygments.lexers import PythonLexer
 from dataclasses import replace
-
+from enum import Enum
 
 CAT = "docgen"
 
@@ -33,17 +33,31 @@ class DocCodePyLine(docdata.DocCodeLine, extra="forbid"):
     pass
 
 
+class DocPyTypeKind(str, Enum):
+    Regular = "Regular"
+    TypeList = "TypeList"  ## ~Callable[[T1, T2, T3], Res]~
+    TypeUnion = "TypeUnion"  ## ~A | B~
+    TypeTuple = "TypeTuple"
+
+
 class DocPyType(BaseModel, extra="forbid"):
-    Name: str
+    Name: Optional[str] = None
     Spaces: List[str] = Field(default_factory=list)
     Parameters: List["DocPyType"] = Field(default_factory=list)
+    Kind: DocPyTypeKind = DocPyTypeKind.Regular
+
+
+class DocPyIdentKind(str, Enum):
+    Regular = "Regular"
+    DictSplice = "DictSplice"
+    ListSplice = "ListSplice"
 
 
 class DocPyIdent(docdata.DocBase, extra="forbid"):
     Name: str
     Type: Optional[DocPyType]
     Default: Optional[str] = None
-    IsKwargsSplice: bool = False
+    Kind: DocPyIdentKind = DocPyIdentKind.Regular
 
 
 class DocPyDecorator(docdata.DocBase, extra="forbid"):
@@ -83,11 +97,15 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
         case "identifier":
             return node
 
+        case "list_splat_pattern":
+            return get_subnode(node, 0)
+
         case _:
             raise fail_node(node, "get_name_node")
 
 
 @beartype
+@note_used_node
 def convert_py_type(node: Optional[tree_sitter.Node]) -> Optional[DocPyType]:
     if not node:
         return None
@@ -99,6 +117,38 @@ def convert_py_type(node: Optional[tree_sitter.Node]) -> Optional[DocPyType]:
         case "identifier":
             return DocPyType(Name=node.text.decode())
 
+        case "list":
+            head = DocPyType(Kind=DocPyTypeKind.TypeList)
+            for arg in node.named_children:
+                head.Parameters.append(convert_py_type(arg))
+            return head
+        
+        case "tuple":
+            result = DocPyType(Kind=DocPyTypeKind.TypeTuple)
+            for param in node.named_children:
+                result.Parameters.append(convert_py_type(param))
+
+            return result
+
+        case "binary_operator":
+            return DocPyType(
+                Kind=DocPyTypeKind.TypeUnion,
+                Parameters=[
+                    convert_py_type(get_subnode(node, "left")),
+                    convert_py_type(get_subnode(node, "right")),
+                ],
+            )
+
+        case "union_type":
+            result = DocPyType(Kind=DocPyTypeKind.TypeUnion)
+            for param in node.named_children:
+                result.Parameters.append(convert_py_type(param))
+
+            return result
+
+        case "string":
+            return DocPyType(Name=get_subnode(node, 1).text.decode())
+
         case "type":
             return convert_py_type(get_subnode(node, 0))
 
@@ -107,6 +157,13 @@ def convert_py_type(node: Optional[tree_sitter.Node]) -> Optional[DocPyType]:
             head = convert_py_type(Node)
             for space in Spaces:
                 head.Spaces.append(space.text.decode())
+
+            return head
+
+        case "subscript":
+            head = convert_py_type(get_subnode(node, "value"))
+            for param in get_subnode(node, "subscript").named_children:
+                head.Parameters.append(convert_py_type(param))
 
             return head
 
@@ -159,11 +216,14 @@ def convert_decorator(node: tree_sitter.Node) -> DocPyDecorator:
 
     return result
 
+
 @beartype
-def split_attribute(node: tree_sitter.Node) -> Tuple[List[tree_sitter.Node], tree_sitter.Node]:
+def split_attribute(
+        node: tree_sitter.Node) -> Tuple[List[tree_sitter.Node], tree_sitter.Node]:
     Spaces = []
     Spaces.append(get_subnode(node, "object"))
     return (Spaces, get_subnode(node, "attribute"))
+
 
 @beartype
 def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
@@ -214,12 +274,24 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
                 )
             ]
 
+        case "list_splat_pattern":
+            Name = get_subnode(node, 0)
+            return [
+                DocPyIdent(
+                    Name=Name.text.decode(),
+                    Type=None,
+                    Kind=DocPyIdentKind.ListSplice,
+                    **docdata.getNodePoints(node, Name),
+                )
+            ]
+
         case "dictionary_splat_pattern":
             Name = get_subnode(node, 0)
             return [
                 DocPyIdent(
                     Name=Name.text.decode(),
                     Type=None,
+                    Kind=DocPyIdentKind.DictSplice,
                     **docdata.getNodePoints(node, Name),
                 )
             ]
@@ -231,11 +303,17 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
                 **docdata.getNodePoints(node, Name),
             )
 
-            for base in get_subnode(node, "superclasses").named_children:
-                Class.Bases.append(convert_py_type(base))
+            if get_subnode(node, "superclasses"):
+                for base in get_subnode(node, "superclasses").named_children:
+                    if base.type in ["keyword_argument"]:
+                        pass
+
+                    else:
+                        Class.Bases.append(convert_py_type(base))
 
             for sub in docdata.convert_comment_groups(get_subnode(node, "body")):
-                Class.Nested += convert_py_entry(sub)
+                if sub.node and sub.node.type not in ["pass_statement"]:
+                    Class.Nested += convert_py_entry(sub)
 
             return [Class]
 
@@ -257,6 +335,8 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
                     "import_statement",
                     "expression_statement",
                     "if_statement",
+                    "for_statement",
+                    "with_statement",
             ]:
                 return []
 
