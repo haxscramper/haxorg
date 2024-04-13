@@ -7,6 +7,7 @@ from beartype.typing import Union, Optional, List
 from dataclasses import dataclass, field
 from pygments.token import _TokenType
 
+
 @beartype
 def abbreviate_token_name(token: _TokenType) -> str:
     # Remove the base "Token" from the token type
@@ -19,19 +20,15 @@ def abbreviate_token_name(token: _TokenType) -> str:
 
 
 thirdparty = get_haxorg_repo_root_path().joinpath("thirdparty")
-build_dir = get_haxorg_repo_root_path().joinpath("build_treesitter")
-build_so = build_dir.joinpath("lang.so")
+build_dir = get_haxorg_repo_root_path().joinpath("build").joinpath("build_treesitter")
+build_cpp_so = build_dir.joinpath("lang_cpp.so")
+build_py_so = build_dir.joinpath("lang_python.so")
 
-Language.build_library(
-    build_so,
-    [
-        thirdparty.joinpath("tree-sitter-cpp"),
-        thirdparty.joinpath("tree-sitter-python"),
-    ],
-)
+Language.build_library(build_cpp_so, [str(thirdparty.joinpath("tree-sitter-cpp"))])
+Language.build_library(build_py_so, [str(thirdparty.joinpath("tree-sitter-python"))])
 
-CPP_LANG = Language(build_so, "cpp")
-PY_LANG = Language(build_so, "python")
+PY_LANG = Language(build_py_so, "python")
+CPP_LANG = Language(build_cpp_so, "cpp")
 
 
 @beartype
@@ -45,7 +42,12 @@ def tree_repr(node: Union[tree_sitter.Tree, tree_sitter.Node]) -> str:
         result += f"{node.start_point[0]}:{node.start_point[1]} "
 
         if node.is_named:
-            result += f"[cyan]{node.type}[/cyan]"
+            if node.type == "ERROR":
+                result += f"[red]{node.type}[/red]"
+
+            else:
+                result += f"[cyan]{node.type}[/cyan]"
+                
             if 0 < len(node.children):
                 for idx, subnode in enumerate(node.children):
                     if subnode.is_named:

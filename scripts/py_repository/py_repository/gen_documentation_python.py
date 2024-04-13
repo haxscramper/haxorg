@@ -9,16 +9,22 @@ import dominate.tags as tags
 import dominate.util as util
 from pygments.lexers import PythonLexer
 
+CAT = "docgen"
+
+from py_scriptutils.script_logging import log
+
 
 @beartype
 def parse_py(file: Union[Path, str]) -> tree_sitter.Tree:
     parser = tree_sitter.Parser()
     parser.set_language(PY_LANG)
     if isinstance(file, Path):
-        return parser.parse(file.read_bytes())
+        tree = parser.parse(file.read_bytes())
 
     else:
-        return parser.parse(file.encode())
+        tree = parser.parse(file.encode())
+
+    return tree
 
 
 class DocCodePyLine(docdata.DocCodeLine, extra="forbid"):

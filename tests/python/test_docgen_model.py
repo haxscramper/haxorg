@@ -1,5 +1,6 @@
 import pydantic
-import py_repository.gen_documentation as gen
+import py_repository.gen_documentation_cxx as cxx
+import py_repository.gen_documentation_python as py
 from pydantic import BaseModel
 from py_scriptutils.rich_utils import render_rich_pprint, render_rich
 import py_scriptutils.json_utils as ju
@@ -8,7 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import tree_sitter
 from py_repository.gen_documentation_utils import tree_repr
-
+from beartype import beartype
 
 def dbg(map: BaseModel) -> str:
     return render_rich_pprint(map and map.model_dump(), width=200, color=False)
@@ -22,33 +23,34 @@ def dbg_parse(map: BaseModel, tree: tree_sitter.Tree) -> str:
     return dbg(map) + "\n\n" + dbg_tree(tree)
 
 
-def print_parse(value: str) -> str:
-    return print(render_rich(tree_repr(gen.cxx.parse_cxx(value))))
+@beartype
+def render_parse(tree: tree_sitter.Tree) -> str:
+    return render_rich(tree_repr(tree))
 
 
-def parse_cxx(code: str) -> Tuple[gen.cxx.DocCodeCxxFile, tree_sitter.Tree]:
-    tree = gen.cxx.parse_cxx(code)
+def parse_cxx(code: str) -> Tuple[cxx.DocCodeCxxFile, tree_sitter.Tree]:
+    tree = cxx.parse_cxx(code)
     try:
         with TemporaryDirectory() as tmp_dir:
             dir = Path(tmp_dir)
             dir.joinpath("file.hpp").write_text(code)
-            return (gen.cxx.convert_cxx_tree(tree, dir, dir.joinpath("file.hpp")), tree)
+            return (cxx.convert_cxx_tree(tree, dir, dir.joinpath("file.hpp")), tree)
 
     except Exception as e:
-        print_parse(code)
+        e.add_note(render_parse(tree))
         raise e from None
 
 
-def parse_py(code: str) -> Tuple[gen.py.DocCodePyFile, tree_sitter.Tree]:
-    tree = gen.py.parse_py(code)
+def parse_py(code: str) -> Tuple[py.DocCodePyFile, tree_sitter.Tree]:
+    tree = py.parse_py(code)
     try:
         with TemporaryDirectory() as tmp_dir:
             dir = Path(tmp_dir)
             dir.joinpath("file.py").write_text(code)
-            return (gen.py.convert_py_tree(tree, dir, dir.joinpath("file.py")), tree)
+            return (py.convert_py_tree(tree, dir, dir.joinpath("file.py")), tree)
 
     except Exception as e:
-        print_parse(code)
+        e.add_note(render_parse(tree))
         raise e from None
 
 
@@ -70,7 +72,7 @@ def test_structure_extraction_name():
 
     file, tree = parse_cxx(code)
     record = file.Content[0]
-    assert isinstance(record, gen.cxx.DocCxxRecord)
+    assert isinstance(record, cxx.DocCxxRecord)
     assert_submodel(record.Name, dict(name="A", Spaces=[], Parameters=[]), tree)
     assert record.Doc, dbg_parse(file, tree)
     assert record.Doc.Text == "STRUCT-COMMENT", dbg_parse(file, tree)
@@ -89,7 +91,7 @@ def test_structure_extraction_fields():
 
     file, tree = parse_cxx(code)
     record = file.Content[0]
-    assert isinstance(record, gen.cxx.DocCxxRecord)
+    assert isinstance(record, cxx.DocCxxRecord)
     assert len(record.Nested) == 2, dbg(record)
     field1 = record.Nested[0]
     assert_submodel(field1, dict(Name="field", Type=dict(name="int")), tree)
@@ -119,7 +121,7 @@ B::A get(
     file, tree = parse_cxx(code)
 
     func = file.Content[0]
-    assert isinstance(func, gen.cxx.DocCxxFunction)
+    assert isinstance(func, cxx.DocCxxFunction)
     assert_submodel(func.ReturnTy, dict(name="A", Spaces=[dict(name="B")]), tree)
     assert len(func.Arguments) == 2, dbg_parse(func, tree)
     arg1 = func.Arguments[0]
@@ -152,7 +154,7 @@ std::vector<int> get_value(std::unordered_map<A<B<C>>, Q::C::D::E::Z> arg) {}
 """
     file, tree = parse_cxx(code)
     func = file.Content[0]
-    assert isinstance(func, gen.cxx.DocCxxFunction)
+    assert isinstance(func, cxx.DocCxxFunction)
     assert_submodel(
         func.ReturnTy,
         dict(name="vector", Spaces=[dict(name="std")], Parameters=[dict(name="int")]),
@@ -198,7 +200,7 @@ def test_code_2():
     file, tree = parse_cxx(code)
 
     func = file.Content[0]
-    assert isinstance(func, gen.cxx.DocCxxFunction)
+    assert isinstance(func, cxx.DocCxxFunction)
     assert_submodel(func.ReturnTy, dict(name="V", ptrCount=4), tree)
 
 
@@ -209,7 +211,7 @@ def test_implicit_conversion_operator():
 
     file, tree = parse_cxx(code)
     func = file.Content[0]
-    assert isinstance(func, gen.cxx.DocCxxFunction)
+    assert isinstance(func, cxx.DocCxxFunction)
 
     assert_submodel(
         func,
@@ -241,7 +243,7 @@ def test_pointer_functions():
 
     file, tree = parse_cxx(code)
     func = file.Content[0]
-    assert isinstance(func, gen.cxx.DocCxxFunction)
+    assert isinstance(func, cxx.DocCxxFunction)
     assert func.Name == "result", dbg_tree(tree)
     assert func.ReturnTy.ptrCount == 3
     assert len(func.Arguments) == 2, dbg_tree(tree)
@@ -280,7 +282,7 @@ def test_py_function():
 
     file, tree = parse_py(code)
     func = file.Content[0]
-    assert isinstance(func, gen.py.DocPyFunction)
+    assert isinstance(func, py.DocPyFunction)
     assert func.Name == "whatever", dbg_tree(tree)
     assert_submodel(func.ReturnTy, dict(Name="int"), tree)
 

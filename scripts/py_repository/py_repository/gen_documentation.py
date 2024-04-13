@@ -16,6 +16,7 @@ import concurrent.futures
 import py_repository.gen_documentation_cxx as cxx
 import py_repository.gen_documentation_python as py
 import py_repository.gen_documentation_data as docdata
+import py_repository.gen_documentation_utils as docutils
 from beartype.typing import Type
 
 T = TypeVar("T")
@@ -278,8 +279,9 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 )
 
             else:
+                tree = py.parse_py(file)
                 code_file = py.convert_py_tree(
-                    py.parse_py(file),
+                    tree,
                     RootPath=conf.root_path,
                     AbsPath=file.absolute(),
                 )
