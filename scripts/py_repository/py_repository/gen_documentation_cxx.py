@@ -640,30 +640,40 @@ def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
 
 
 @beartype
-def get_docs_fragment(entry: Union[DocCxxEntry, QualType]) -> str:
+def get_docs_fragment(
+    entry: Union[DocCxxEntry, QualType],
+    Context: List[QualType] = [],
+) -> str:
+    ctx = "_".join(get_docs_fragment(C) for C in Context)
+    if ctx:
+        ctx += "_"
+
     match entry:
         case QualType():
             result = "_".join(["ns_" + get_docs_fragment(s) for s in entry.Spaces])
             result += "t_" + entry.name
-            return result
+            return ctx + result
 
         case DocCxxRecord():
-            return get_docs_fragment(entry.Name)
+            return ctx + get_docs_fragment(entry.Name)
 
         case DocCxxEnum():
-            return get_docs_fragment(entry.Name)
+            return ctx + get_docs_fragment(entry.Name)
 
         case DocCxxFunction():
-            return entry.Name
+            return ctx + entry.Name
 
         case DocCxxTypedef():
-            return get_docs_fragment(entry.New)
+            return ctx + get_docs_fragment(entry.New)
+
+        case DocCxxIdent():
+            return ctx + entry.Name
 
         case DocCxxConcept():
-            return get_docs_fragment(entry.Name)
+            return ctx + get_docs_fragment(entry.Name)
 
         case DocCxxNamespace():
-            return get_docs_fragment(entry.Name)
+            return ctx + get_docs_fragment(entry.Name)
 
         case _:
             raise ValueError(f"TODO {type(entry)}")

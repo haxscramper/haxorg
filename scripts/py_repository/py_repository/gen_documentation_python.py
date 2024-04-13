@@ -336,8 +336,25 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
                         Class.Bases.append(convert_py_type(base))
 
             for sub in docdata.convert_comment_groups(get_subnode(node, "body")):
-                if sub.node and sub.node.type not in ["pass_statement"]:
-                    Class.Nested += convert_py_entry(sub)
+                if sub.node:
+                    match sub.node.type:
+                        case "pass_statement":
+                            pass
+
+                        case "expression_statement":
+                            if get_subnode(sub.node, 0).type == "string":
+                                docstr = get_subnode(sub.node, [0, 1])
+                                if Class.Doc:
+                                    Class.Doc.Text += "\n\n" + docstr.text.decode()
+
+                                else:
+                                    Class.Doc = docdata.DocText(Text=docstr.text.decode())
+
+                            else:
+                                Class.Nested += convert_py_entry(sub)
+
+                        case _:
+                            Class.Nested += convert_py_entry(sub)
 
             return [Class]
 
@@ -387,13 +404,40 @@ def convert_py_tree(tree: tree_sitter.Tree, RootPath: Path,
 
 
 @beartype
-def get_docs_fragment(entry: DocPyEntry) -> str:
-    return "?"
+def get_docs_fragment(
+    entry: Union[DocPyEntry, DocPyType],
+    Context: List[DocPyType] = [],
+) -> str:
+    ctx = "_".join(get_docs_fragment(C) for C in Context)
+    if ctx:
+        ctx += "_"
+
+    match entry:
+        case DocPyType():
+            result = entry.Name
+
+            return ctx + result
+
+        case DocPyClass() | DocPyFunction() | DocPyIdent():
+            return ctx + entry.Name
+
+        case _:
+            raise ValueError(f"{type(entry)}")
 
 
 @beartype
 def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
     decl_locations: Dict[(int, int), docdata.DocBase] = {}
+
+    def aux_locations(entry: DocPyEntry):
+        decl_locations[(entry.NamePoint)] = entry
+        match entry:
+            case DocPyClass():
+                for sub in entry.Nested:
+                    aux_locations(sub)
+
+    for entry in code_file.Content:
+        aux_locations(entry)
 
     def get_attr_spans(line: DocCodePyLine) -> List[tags.span]:
         return []
@@ -438,7 +482,7 @@ def get_type_span(Type: Optional[DocPyType]) -> tags.span:
 
     if Type:
         return aux(Type, "type-head")
-    
+
     else:
         return tags.span(util.text("None"), _class="type-head")
 
@@ -506,7 +550,7 @@ def get_entry_div(entry: DocPyEntry, context: List[Union[DocPyClass]]) -> tags.d
         case DocPyFunction():
             func = tags.div()
             sign = tags.table(_class="func-signature")
-            ret = get_type_span(entry.ReturnTy) 
+            ret = get_type_span(entry.ReturnTy)
             in_class = context and isinstance(context[-1], DocPyClass)
 
             @beartype

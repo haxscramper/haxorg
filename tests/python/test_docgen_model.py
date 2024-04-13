@@ -315,6 +315,7 @@ def test_class_definition():
     @beartype
     @dataclass
     class AstbuilderBase:
+        "Docstring"
         b: TextLayout
         context_stack: List[Union[AstLineCtx, AstStackCtx,
                                 AstIndentCtx]] = field(default_factory=list)
@@ -337,6 +338,8 @@ def test_class_definition():
     assert isinstance(cls, py.DocPyClass)
     assert len(cls.getNested(py.DocPyFunction)) == 2, dbg_tree(tree)
     assert len(cls.getNested(py.DocPyIdent)) == 3, dbg_tree(tree)
+    assert cls.Doc, dbg_tree(tree)
+    assert cls.Doc.Text == "Docstring", dbg_tree(tree)
     b = cls.getNested(py.DocPyIdent)[0]
     context_stack = cls.getNested(py.DocPyIdent)[1]
     last_result = cls.getNested(py.DocPyIdent)[2]

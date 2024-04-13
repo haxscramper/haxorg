@@ -13,6 +13,9 @@ from dataclasses import dataclass, field
 import py_haxorg.pyhaxorg_wrap as org
 from py_exporters.export_html import ExporterHtml
 import itertools
+from py_scriptutils.script_logging import log
+
+CAT = "docgen"
 
 
 class DocText(BaseModel, extra="forbid"):
@@ -72,12 +75,10 @@ def get_html_code_div_base(
     Lines: List[DocCodeLine],
     highilght_lexer,
     decl_locations: Dict[(int, int), DocBase],
-    get_docs_fragment: Callable[[DocBase | Any], str],
+    get_docs_fragment: Callable[[DocBase | Any, List[Any]], str],
     get_attr_spans: Callable[[DocCodeLine], List[tags.span]],
 ) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-code")
-
-    decl_locations: Dict[(int, int), DocBase] = {}
 
     for idx, line in enumerate(Lines):
         hline = tags.p(_class="code-line")
