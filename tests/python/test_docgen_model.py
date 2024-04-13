@@ -11,6 +11,7 @@ import tree_sitter
 from py_repository.gen_documentation_utils import tree_repr
 from beartype import beartype
 
+
 def dbg(map: BaseModel) -> str:
     return render_rich_pprint(map and map.model_dump(), width=200, color=False)
 
@@ -307,3 +308,51 @@ def test_py_function():
         ),
         tree,
     )
+
+
+def test_class_definition():
+    code = """
+    @beartype
+    @dataclass
+    class AstbuilderBase:
+        b: TextLayout
+        context_stack: List[Union[AstLineCtx, AstStackCtx,
+                                AstIndentCtx]] = field(default_factory=list)
+        last_result: Optional[BlockId] = None
+
+        def __repr__(self):
+            # Beartype cannot run default repr because it fails with missing context state value.
+            return "astbuilder-base"
+
+        def Spatial(self, stack: bool) -> int:
+            if stack:
+                return self.Stack()
+
+            else:
+                return self.Line()
+    """
+
+    file, tree = parse_py(code)
+    cls = file.Content[0]
+    assert isinstance(cls, py.DocPyClass)
+    assert len(cls.getNested(py.DocPyFunction)) == 2, dbg_tree(tree)
+    assert len(cls.getNested(py.DocPyIdent)) == 3, dbg_tree(tree)
+    b = cls.getNested(py.DocPyIdent)[0]
+    context_stack = cls.getNested(py.DocPyIdent)[1]
+    last_result = cls.getNested(py.DocPyIdent)[2]
+
+    assert_submodel(b, dict(Name="b", Type=dict(Name="TextLayout")), tree)
+    assert_submodel(
+        context_stack,
+        dict(
+            Name="context_stack",
+            Type=dict(Name="List", Parameters=[dict(Name="Union")]),
+        ),
+        tree,
+    )
+
+    repr = cls.getNested(py.DocPyFunction)[0]
+    Spatial = cls.getNested(py.DocPyFunction)[1]
+
+    assert_submodel(repr, dict(Name="__repr__"), tree)
+    assert_submodel(Spatial, dict(Name="Spatial", ReturnTy=dict(Name="int")), tree)

@@ -1,8 +1,9 @@
-from beartype.typing import List, Optional, Union, Dict, Tuple
+from beartype.typing import List, Optional, Union, Dict, Tuple, Type, TypeVar, Iterable
 from pathlib import Path
 from beartype import beartype
 import tree_sitter
 from py_repository.gen_documentation_utils import fail_node, tree_repr, PY_LANG, get_subnode, note_used_node
+import py_repository.gen_documentation_utils as docutils
 import py_repository.gen_documentation_data as docdata
 from pydantic import SerializeAsAny, BaseModel, Field
 import dominate.tags as tags
@@ -10,6 +11,8 @@ import dominate.util as util
 from pygments.lexers import PythonLexer
 from dataclasses import replace
 from enum import Enum
+
+T = TypeVar("T")
 
 CAT = "docgen"
 
@@ -79,6 +82,10 @@ class DocPyClass(docdata.DocBase, extra="forbid"):
     Nested: List["DocPyEntry"] = Field(default_factory=list)
     Decorators: List[DocPyDecorator] = Field(default_factory=list)
 
+    @beartype
+    def getNested(self, Target: Type[T]) -> List[T]:
+        return list(filter(lambda it: isinstance(it, Target), self.Nested))
+
 
 DocPyEntry = Union[DocPyClass, DocPyFunction, DocPyIdent]
 
@@ -116,7 +123,7 @@ def convert_py_type(node: tree_sitter.Node) -> DocPyType:
             for arg in node.named_children:
                 head.Parameters.append(convert_py_type(arg))
             return head
-        
+
         case "tuple":
             result = DocPyType(Kind=DocPyTypeKind.TypeTuple)
             for param in node.named_children:
@@ -280,6 +287,28 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
                 )
             ]
 
+        case "expression_statement":
+            asgn = get_subnode(node, 0)
+            if asgn and asgn.type == "assignment":
+                left = get_subnode(asgn, "left")
+                t = get_subnode(asgn, "type")
+                right = get_subnode(asgn, "right")
+                if left and t:
+                    return [
+                        DocPyIdent(
+                            Name=left.text.decode(),
+                            Type=convert_py_type(t),
+                            Default=right and right.text.decode(),
+                            **docdata.getNodePoints(node, left),
+                        )
+                    ]
+
+                else:
+                    return []
+                
+            else:
+                return []
+
         case "dictionary_splat_pattern":
             Name = get_subnode(node, 0)
             return [
@@ -328,7 +357,6 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
             if node.type in [
                     "import_from_statement",
                     "import_statement",
-                    "expression_statement",
                     "if_statement",
                     "for_statement",
                     "with_statement",
@@ -380,7 +408,92 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
 
 
 @beartype
+def get_type_span(Type: DocPyType) -> tags.span:
+
+    def csv_list(items: Iterable[tags.html_tag],
+                 split: tags.html_tag) -> List[tags.html_tag]:
+        result = []
+        first = False
+        for Parameter in items:
+            if not first:
+                result.append(split)
+
+            first = False
+            result.append(Parameter)
+
+        return result
+
+    head = tags.span(util.text(Type.Name), _class="type-head")
+    if Type.Parameters:
+        head.add(
+            util.text("["),
+            csv_list((get_type_span(P) for P in Type.Parameters), util.text(", ")),
+            util.text("]"),
+        )
+
+    return head
+
+
+@beartype
+def gen_ident_spans(ident: DocPyIdent) -> Tuple[tags.span, util.text, tags.span]:
+    return (
+        get_type_span(ident.Type),
+        util.text(ident.Name if ident.Name else ""),
+        tags.span(util.text(ident.Default)) if ident.Default else tags.span(),
+    )
+
+
+@beartype
+def get_entry_div(entry: DocPyEntry, context: List[Union[DocPyClass]]) -> tags.div:
+    docs = docdata.get_doc_block(entry)
+    res = tags.div(_class=f"docs-entry-{type(entry).__name__}")
+    if docs:
+        res.attributes["class"] += " entry-documented"
+
+    else:
+        res.attributes["class"] += " entry-undocumented"
+
+    match entry:
+        case DocPyClass():
+            link = docdata.get_name_link(entry.Name, entry)
+            link = tags.span(util.text("Class "), link, _class="class-name")
+            res.add(link)
+
+            if docs:
+                res.add(docs)
+
+            if entry.getNested(DocPyIdent):
+                nested = tags.div(_class="nested-record")
+                nested.add(tags.p(util.text(f"Fields")))
+                field_table = tags.table(_class="record-fields")
+                for item in entry.getNested(DocPyIdent):
+                    row = tags.tr()
+                    Type, Name, Default = gen_ident_spans(item)
+                    row.add(tags.td(Type))
+                    row.add(tags.td(Name))
+                    row.add(tags.td(Default))
+
+                    docs = docdata.get_entry_docs(item)
+                    if docs:
+                        row.add(tags.td(docs, _class="entry-documented"))
+
+                    else:
+                        row.add(tags.td(_class="entry-undocumented"))
+
+                    field_table.add(row)
+
+                nested.add(field_table)
+
+                res.add(nested)
+
+    return res
+
+
+@beartype
 def get_html_docs_div(code_file: DocCodePyFile) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-docs")
+
+    for item in code_file.Content:
+        div.add(get_entry_div(item, []))
 
     return div

@@ -10,7 +10,9 @@ from pygments.token import Token, _TokenType
 from py_repository.gen_documentation_utils import abbreviate_token_name
 import tree_sitter
 from dataclasses import dataclass, field
-
+import py_haxorg.pyhaxorg_wrap as org
+from py_exporters.export_html import ExporterHtml
+import itertools
 
 class DocText(BaseModel, extra="forbid"):
     Text: str = ""
@@ -180,3 +182,39 @@ def convert_comment_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
             converted.append(group)
 
     return converted
+
+
+@beartype
+def get_entry_docs(entry: DocBase) -> List[Union[tags.html_tag, util.text]]:
+    if entry.Doc and entry.Doc.Text:
+        parsed = org.parseString(entry.Doc.Text)
+        exp = ExporterHtml(get_break_tag=lambda _: util.text(" "))
+        return list(itertools.chain(*[exp.exp.evalTop(it) for it in parsed]))
+
+    else:
+        return []
+
+
+@beartype
+def get_doc_block(entry: DocBase) -> Optional[tags.div]:
+    docs = get_entry_docs(entry)
+    if docs:
+        it = tags.div(_class="doc-text")
+        for item in docs:
+            it.add(item)
+
+        return it
+
+
+
+@beartype
+def get_name_link(name: Optional[str], entry: DocBase) -> tags.html_tag:
+    if not name:
+        name = "<no-name>"
+
+    link = tags.a(onclick=f"openPage('page-code')", href=f"#line-{entry.StartPoint[0]}")
+
+    link.add(util.text(name))
+    return link
+
+

@@ -1,6 +1,6 @@
 from beartype import beartype
 import tree_sitter
-from py_repository.gen_documentation_utils import CPP_LANG
+import py_repository.gen_documentation_utils as docutils
 from py_codegen.gen_tu_cpp import QualType, ReferenceKind, QualTypeKind
 from beartype.typing import Union, Tuple, Optional, List, Iterable
 from pathlib import Path
@@ -18,8 +18,7 @@ from py_codegen.refl_read import strip_comment_prefixes
 from pygments import lex
 from pygments.lexers import CppLexer
 import py_haxorg.pyhaxorg_wrap as org
-from py_exporters.export_html import ExporterHtml
-import itertools
+
 
 T = TypeVar("T")
 
@@ -128,7 +127,7 @@ DocCodeCxxFile.model_rebuild()
 @beartype
 def parse_cxx(file: Union[Path, str]) -> tree_sitter.Tree:
     parser = Parser()
-    parser.set_language(CPP_LANG)
+    parser.set_language(docutils.CPP_LANG)
     if isinstance(file, Path):
         return parser.parse(file.read_bytes())
 
@@ -641,33 +640,6 @@ def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
     )
 
 
-@beartype
-def get_name_link(entry: DocCxxEntry) -> tags.html_tag:
-    match entry:
-        case DocCxxRecord():
-            name = entry.Name.name
-
-        case _:
-            name = entry.Name
-
-    if not name:
-        name = "<no-name>"
-
-    link = tags.a(onclick=f"openPage('page-code')", href=f"#line-{entry.StartPoint[0]}")
-
-    link.add(util.text(name))
-    return link
-
-
-@beartype
-def get_entry_docs(entry: DocCxxEntry) -> List[Union[tags.html_tag, util.text]]:
-    if entry.Doc and entry.Doc.Text:
-        parsed = org.parseString(entry.Doc.Text)
-        exp = ExporterHtml(get_break_tag=lambda _: util.text(" "))
-        return list(itertools.chain(*[exp.exp.evalTop(it) for it in parsed]))
-
-    else:
-        return []
 
 
 @beartype
@@ -769,15 +741,6 @@ def gen_ident_spans(ident: DocCxxIdent) -> Tuple[tags.span, util.text, tags.span
     )
 
 
-@beartype
-def get_doc_block(entry: DocCxxEntry) -> Optional[tags.div]:
-    docs = get_entry_docs(entry)
-    if docs:
-        it = tags.div(_class="doc-text")
-        for item in docs:
-            it.add(item)
-
-        return it
 
 
 @beartype
@@ -788,7 +751,7 @@ def get_entry_div(
             DocCxxRecord,
         ]]) -> tags.div:
     res = tags.div(_class=f"docs-entry-{type(entry).__name__}")
-    docs = get_doc_block(entry)
+    docs = docdata.get_doc_block(entry)
     if docs:
         res.attributes["class"] += " entry-documented"
 
@@ -797,7 +760,7 @@ def get_entry_div(
 
     match entry:
         case DocCxxRecord():
-            link = get_name_link(entry)
+            link = docdata.get_name_link(entry.Name.name, entry)
             link = tags.span(util.text("Record "), link, _class="class-name")
             res.add(link)
 
@@ -815,7 +778,7 @@ def get_entry_div(
                     row.add(tags.td(Name))
                     row.add(tags.td(Default))
 
-                    docs = get_entry_docs(item)
+                    docs = docdata.get_entry_docs(item)
                     if docs:
                         row.add(tags.td(docs, _class="entry-documented"))
 
@@ -877,7 +840,7 @@ def get_entry_div(
                         sign.add(
                             tags.tr(
                                 tags.td(ret),
-                                tags.td(get_name_link(entry)),
+                                tags.td(docdata.get_name_link(entry.Name, entry)),
                                 tags.td(util.text("()")),
                             ))
 
@@ -885,7 +848,7 @@ def get_entry_div(
                         sign.add(
                             tags.tr(*[
                                 tags.td(ret),
-                                tags.td(get_name_link(entry)),
+                                tags.td(docdata.get_name_link(entry.Name, entry)),
                                 tags.td(util.text("(")),
                                 *ident_row(one_arg),
                                 tags.td(util.text(")")),
@@ -895,7 +858,7 @@ def get_entry_div(
                         sign.add(
                             tags.tr(
                                 tags.td(ret),
-                                tags.td(get_name_link(entry)),
+                                tags.td(docdata.get_name_link(entry.Name, entry)),
                                 tags.td(util.text("(")),
                                 *ident_row(first_arg),
                             ),

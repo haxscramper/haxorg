@@ -211,6 +211,7 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
 
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(doc.render())
+            path.with_suffix(".json").write_text(code_file.model_dump_json(indent=2))
 
         for text_file in directory.TextFiles:
             path = docdata.get_html_path(text_file, html_out_path=html_out_path)
