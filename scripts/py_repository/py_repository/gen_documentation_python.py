@@ -106,15 +106,9 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
 
 @beartype
 @note_used_node
-def convert_py_type(node: Optional[tree_sitter.Node]) -> Optional[DocPyType]:
-    if not node:
-        return None
-
+def convert_py_type(node: tree_sitter.Node) -> DocPyType:
     match node.type:
-        case "none":
-            return None
-
-        case "identifier":
+        case "identifier" | "none":
             return DocPyType(Name=node.text.decode())
 
         case "list":
@@ -226,6 +220,7 @@ def split_attribute(
 
 
 @beartype
+@note_used_node
 def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
     node = doc.node
 

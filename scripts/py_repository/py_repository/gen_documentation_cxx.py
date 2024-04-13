@@ -701,234 +701,240 @@ def get_docs_fragment(entry: Union[DocCxxEntry, QualType]) -> str:
 
 
 @beartype
+def aux_qualifiers(t: QualType) -> Optional[tags.span]:
+    text = ""
+
+    if t.isConst:
+        text += "const"
+
+    text += "*" * t.ptrCount
+
+    match t.RefKind:
+        case ReferenceKind.RValue:
+            text += "&&"
+
+        case ReferenceKind.LValue:
+            text += "&"
+
+    if text:
+        return tags.span(util.text(text), _class="type-qual")
+
+
+@beartype
+def get_type_span(Type: QualType) -> tags.span:
+
+    def csv_list(items: Iterable[tags.html_tag],
+                 split: tags.html_tag) -> List[tags.html_tag]:
+        result = []
+        first = False
+        for Parameter in items:
+            if not first:
+                result.append(split)
+
+            first = False
+            result.append(Parameter)
+
+        return result
+
+    qual = aux_qualifiers(Type)
+    match Type:
+        case QualType(Kind=QualTypeKind.RegularType):
+            head = tags.span(util.text(Type.name), _class="type-head")
+            if qual:
+                head.add(qual)
+
+            if Type.Parameters:
+                head.add(
+                    util.text("<"),
+                    csv_list((get_type_span(P) for P in Type.Parameters),
+                             util.text(", ")),
+                    util.text(">"),
+                )
+
+            return head
+
+        case QualType(Kind=QualTypeKind.TypeExpr):
+            return tags.span(util.text(Type.expr))
+
+        case _:
+            raise ValueError(str(Type.Kind))
+
+
+@beartype
+def gen_ident_spans(ident: DocCxxIdent) -> Tuple[tags.span, util.text, tags.span]:
+    return (
+        get_type_span(ident.Type),
+        util.text(ident.Name if ident.Name else ""),
+        tags.span(util.text(ident.Value)) if ident.Value else tags.span(),
+    )
+
+
+@beartype
+def get_doc_block(entry: DocCxxEntry) -> Optional[tags.div]:
+    docs = get_entry_docs(entry)
+    if docs:
+        it = tags.div(_class="doc-text")
+        for item in docs:
+            it.add(item)
+
+        return it
+
+
+@beartype
+def get_entry_div(
+        entry: DocCxxEntry, context: List[Union[
+            DocCxxNamespace,
+            DocCxxEnum,
+            DocCxxRecord,
+        ]]) -> tags.div:
+    res = tags.div(_class=f"docs-entry-{type(entry).__name__}")
+    docs = get_doc_block(entry)
+    if docs:
+        res.attributes["class"] += " entry-documented"
+
+    else:
+        res.attributes["class"] += " entry-undocumented"
+
+    match entry:
+        case DocCxxRecord():
+            link = get_name_link(entry)
+            link = tags.span(util.text("Record "), link, _class="class-name")
+            res.add(link)
+
+            if docs:
+                res.add(docs)
+
+            if entry.getNested(DocCxxIdent):
+                nested = tags.div(_class="nested-record")
+                nested.add(tags.p(util.text(f"Fields")))
+                field_table = tags.table(_class="record-fields")
+                for item in entry.getNested(DocCxxIdent):
+                    row = tags.tr()
+                    Type, Name, Default = gen_ident_spans(item)
+                    row.add(tags.td(Type))
+                    row.add(tags.td(Name))
+                    row.add(tags.td(Default))
+
+                    docs = get_entry_docs(item)
+                    if docs:
+                        row.add(tags.td(docs, _class="entry-documented"))
+
+                    else:
+                        row.add(tags.td(_class="entry-undocumented"))
+
+                    field_table.add(row)
+
+                nested.add(field_table)
+
+                res.add(nested)
+
+            if entry.getNested(DocCxxEnum):
+                nested = tags.div(_class="nested-record")
+                nested.add(tags.p(util.text(f"Nested enums")))
+                for item in entry.getNested(DocCxxEnum):
+                    nested.add(get_entry_div(item, context + [entry]))
+
+                res.add(nested)
+
+            if entry.getNested(DocCxxFunction):
+                nested = tags.div(_class="nested-record")
+                nested.add(tags.p(util.text(f"Methods")))
+                for item in entry.getNested(DocCxxFunction):
+                    nested.add(get_entry_div(item, context + [entry]))
+
+                res.add(nested)
+
+            if entry.getNested(DocCxxRecord):
+                nested = tags.div(_class="nested-record")
+                nested.add(tags.p(util.text(f"Nested records")))
+                for item in entry.getNested(DocCxxRecord):
+                    nested.add(get_entry_div(item, context + [entry]))
+
+                res.add(nested)
+
+        case DocCxxIdent():
+            res.add(util.text("non-record ident"))
+
+        case DocCxxFunction():
+            if context and isinstance(context[-1], DocCxxFunction):
+                meth = tags.div()
+
+                if docs:
+                    meth.add(docs)
+
+                res.add(meth)
+
+            else:
+                func = tags.div()
+                sign = tags.table(_class="func-signature")
+                ret = get_type_span(entry.ReturnTy) if entry.ReturnTy else util.text("")
+
+                def ident_row(ident: DocCxxIdent) -> List[tags.td]:
+                    return [tags.td(arg) for arg in gen_ident_spans(ident)]
+
+                match entry.Arguments:
+                    case []:
+                        sign.add(
+                            tags.tr(
+                                tags.td(ret),
+                                tags.td(get_name_link(entry)),
+                                tags.td(util.text("()")),
+                            ))
+
+                    case [one_arg]:
+                        sign.add(
+                            tags.tr(*[
+                                tags.td(ret),
+                                tags.td(get_name_link(entry)),
+                                tags.td(util.text("(")),
+                                *ident_row(one_arg),
+                                tags.td(util.text(")")),
+                            ]))
+
+                    case [first_arg, *middle_args, last_arg]:
+                        sign.add(
+                            tags.tr(
+                                tags.td(ret),
+                                tags.td(get_name_link(entry)),
+                                tags.td(util.text("(")),
+                                *ident_row(first_arg),
+                            ),
+                            *[
+                                tags.tr(
+                                    tags.td(),
+                                    tags.td(),
+                                    tags.td(),
+                                    *ident_row(it),
+                                ) for it in middle_args
+                            ],
+                            tags.tr(
+                                tags.td(),
+                                tags.td(),
+                                tags.td(),
+                                *ident_row(last_arg),
+                                tags.td(")"),
+                            ),
+                        )
+
+                func.add(sign)
+
+                if docs:
+                    func.add(docs)
+
+                res.add(func)
+
+        case _:
+            res.add(util.text(str(type(entry))))
+
+    return res
+
+
+@beartype
 def get_html_docs_div(code_file: DocCodeCxxFile) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-docs")
 
-    @beartype
-    def aux_qualifiers(t: QualType) -> Optional[tags.span]:
-        text = ""
-
-        if t.isConst:
-            text += "const"
-
-        text += "*" * t.ptrCount
-
-        match t.RefKind:
-            case ReferenceKind.RValue:
-                text += "&&"
-
-            case ReferenceKind.LValue:
-                text += "&"
-
-        if text:
-            return tags.span(util.text(text), _class="type-qual")
-
-    @beartype
-    def aux_type(Type: QualType) -> tags.span:
-
-        def csv_list(items: Iterable[tags.html_tag],
-                     split: tags.html_tag) -> List[tags.html_tag]:
-            result = []
-            first = False
-            for Parameter in items:
-                if not first:
-                    result.append(split)
-
-                first = False
-                result.append(Parameter)
-
-            return result
-
-        qual = aux_qualifiers(Type)
-        match Type:
-            case QualType(Kind=QualTypeKind.RegularType):
-                head = tags.span(util.text(Type.name), _class="type-head")
-                if qual:
-                    head.add(qual)
-
-                if Type.Parameters:
-                    head.add(
-                        util.text("<"),
-                        csv_list((aux_type(P) for P in Type.Parameters), util.text(", ")),
-                        util.text(">"),
-                    )
-
-                return head
-
-            case QualType(Kind=QualTypeKind.TypeExpr):
-                return tags.span(util.text(Type.expr))
-
-            case _:
-                raise ValueError(str(Type.Kind))
-
-    @beartype
-    def aux_ident(ident: DocCxxIdent) -> Tuple[tags.span, util.text, tags.span]:
-        return (
-            aux_type(ident.Type),
-            util.text(ident.Name if ident.Name else ""),
-            tags.span(util.text(ident.Value)) if ident.Value else tags.span(),
-        )
-
-    @beartype
-    def get_doc_block(entry: DocCxxEntry) -> Optional[tags.div]:
-        docs = get_entry_docs(entry)
-        if docs:
-            it = tags.div(_class="doc-text")
-            for item in docs:
-                it.add(item)
-
-            return it
-
-    @beartype
-    def aux_entry(
-            entry: DocCxxEntry, context: List[Union[
-                DocCxxNamespace,
-                DocCxxEnum,
-                DocCxxRecord,
-            ]]) -> tags.div:
-        res = tags.div(_class=f"docs-entry-{type(entry).__name__}")
-        docs = get_doc_block(entry)
-        if docs:
-            res.attributes["class"] += " entry-documented"
-
-        else:
-            res.attributes["class"] += " entry-undocumented"
-
-        match entry:
-            case DocCxxRecord():
-                link = get_name_link(entry)
-                link = tags.span(util.text("Record "), link, _class="class-name")
-                res.add(link)
-
-                if docs:
-                    res.add(docs)
-
-                if entry.getNested(DocCxxIdent):
-                    nested = tags.div(_class="nested-record")
-                    nested.add(tags.p(util.text(f"Fields")))
-                    field_table = tags.table(_class="record-fields")
-                    for item in entry.getNested(DocCxxIdent):
-                        row = tags.tr()
-                        Type, Name, Default = aux_ident(item)
-                        row.add(tags.td(Type))
-                        row.add(tags.td(Name))
-                        row.add(tags.td(Default))
-
-                        docs = get_entry_docs(item)
-                        if docs:
-                            row.add(tags.td(docs, _class="entry-documented"))
-
-                        else:
-                            row.add(tags.td(_class="entry-undocumented"))
-
-                        field_table.add(row)
-
-                    nested.add(field_table)
-
-                    res.add(nested)
-
-                if entry.getNested(DocCxxEnum):
-                    nested = tags.div(_class="nested-record")
-                    nested.add(tags.p(util.text(f"Nested enums")))
-                    for item in entry.getNested(DocCxxEnum):
-                        nested.add(aux_entry(item, context + [entry]))
-
-                    res.add(nested)
-
-                if entry.getNested(DocCxxFunction):
-                    nested = tags.div(_class="nested-record")
-                    nested.add(tags.p(util.text(f"Methods")))
-                    for item in entry.getNested(DocCxxFunction):
-                        nested.add(aux_entry(item, context + [entry]))
-
-                    res.add(nested)
-
-                if entry.getNested(DocCxxRecord):
-                    nested = tags.div(_class="nested-record")
-                    nested.add(tags.p(util.text(f"Nested records")))
-                    for item in entry.getNested(DocCxxRecord):
-                        nested.add(aux_entry(item, context + [entry]))
-
-                    res.add(nested)
-
-            case DocCxxIdent():
-                res.add(util.text("non-record ident"))
-
-            case DocCxxFunction():
-                if context and isinstance(context[-1], DocCxxFunction):
-                    meth = tags.div()
-
-                    if docs:
-                        meth.add(docs)
-
-                    res.add(meth)
-
-                else:
-                    func = tags.div()
-                    sign = tags.table(_class="func-signature")
-                    ret = aux_type(entry.ReturnTy) if entry.ReturnTy else util.text("")
-
-                    def ident_row(ident: DocCxxIdent) -> List[tags.td]:
-                        return [tags.td(arg) for arg in aux_ident(ident)]
-
-                    match entry.Arguments:
-                        case []:
-                            sign.add(
-                                tags.tr(
-                                    tags.td(ret),
-                                    tags.td(get_name_link(entry)),
-                                    tags.td(util.text("()")),
-                                ))
-
-                        case [one_arg]:
-                            sign.add(
-                                tags.tr(*[
-                                    tags.td(ret),
-                                    tags.td(get_name_link(entry)),
-                                    tags.td(util.text("(")),
-                                    *ident_row(one_arg),
-                                    tags.td(util.text(")")),
-                                ]))
-
-                        case [first_arg, *middle_args, last_arg]:
-                            sign.add(
-                                tags.tr(
-                                    tags.td(ret),
-                                    tags.td(get_name_link(entry)),
-                                    tags.td(util.text("(")),
-                                    *ident_row(first_arg),
-                                ),
-                                *[
-                                    tags.tr(
-                                        tags.td(),
-                                        tags.td(),
-                                        tags.td(),
-                                        *ident_row(it),
-                                    ) for it in middle_args
-                                ],
-                                tags.tr(
-                                    tags.td(),
-                                    tags.td(),
-                                    tags.td(),
-                                    *ident_row(last_arg),
-                                    tags.td(")"),
-                                ),
-                            )
-
-                    func.add(sign)
-
-                    if docs:
-                        func.add(docs)
-
-                    res.add(func)
-
-            case _:
-                res.add(util.text(str(type(entry))))
-
-        return res
-
     for item in code_file.Content:
-        div.add(aux_entry(item, []))
+        div.add(get_entry_div(item, []))
 
     return div
 

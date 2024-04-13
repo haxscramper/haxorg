@@ -75,7 +75,7 @@ def note_used_node(func):
     @wraps(func)
     def impl(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
 
         except Exception as e:
             for value in args:
