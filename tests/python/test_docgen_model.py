@@ -48,7 +48,12 @@ def parse_py(code: str) -> Tuple[py.DocCodePyFile, tree_sitter.Tree]:
         with TemporaryDirectory() as tmp_dir:
             dir = Path(tmp_dir)
             dir.joinpath("file.py").write_text(code)
-            return (py.convert_py_tree(tree, dir, dir.joinpath("file.py")), tree)
+            return (py.convert_py_tree(
+                tree,
+                dir,
+                dir.joinpath("file.py"),
+                py_coverage_session=None,
+            ), tree)
 
     except Exception as e:
         e.add_note(render_parse(tree))

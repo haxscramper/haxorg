@@ -154,8 +154,9 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
                                   " : " if one_line_format else "\n  ", frame[1]))
 
     print(f"{exc_type.__name__} : {exc_value}")
-    for note in exc_value.__notes__:
-        print(f"Note: {note}")
+    if hasattr(exc_value, "__note__"):
+        for note in exc_value.__notes__:
+            print(f"Note: {note}")
 
     if hasattr(exc_value, "__rich_msg__"):
         console.print(getattr(exc_value, "__rich_msg__"))

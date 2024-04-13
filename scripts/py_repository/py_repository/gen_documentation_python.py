@@ -1,16 +1,20 @@
-from beartype.typing import List, Optional, Union, Dict, Tuple, Type, TypeVar, Iterable
-from pathlib import Path
-from beartype import beartype
-import tree_sitter
-from py_repository.gen_documentation_utils import fail_node, tree_repr, PY_LANG, get_subnode, note_used_node
-import py_repository.gen_documentation_utils as docutils
-import py_repository.gen_documentation_data as docdata
-from pydantic import SerializeAsAny, BaseModel, Field
-import dominate.tags as tags
-import dominate.util as util
-from pygments.lexers import PythonLexer
 from dataclasses import replace
 from enum import Enum
+from pathlib import Path
+
+import dominate.tags as tags
+import dominate.util as util
+import py_repository.gen_coverage_python as cov_docpy
+import py_repository.gen_documentation_data as docdata
+import py_repository.gen_documentation_utils as docutils
+import tree_sitter
+from sqlalchemy.orm import Session
+from beartype import beartype
+from beartype.typing import (Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union)
+from py_repository.gen_documentation_utils import (PY_LANG, fail_node, get_subnode,
+                                                   note_used_node, tree_repr)
+from pydantic import BaseModel, Field, SerializeAsAny
+from pygments.lexers import PythonLexer
 
 T = TypeVar("T")
 
@@ -33,7 +37,7 @@ def parse_py(file: Union[Path, str]) -> tree_sitter.Tree:
 
 
 class DocCodePyLine(docdata.DocCodeLine, extra="forbid"):
-    pass
+    TestCoverage: Optional[cov_docpy.LineCoverage] = None
 
 
 class DocPyTypeKind(str, Enum):
@@ -387,9 +391,19 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
 
 
 @beartype
-def convert_py_tree(tree: tree_sitter.Tree, RootPath: Path,
-                    AbsPath: Path) -> DocCodePyFile:
+def convert_py_tree(
+    tree: tree_sitter.Tree,
+    RootPath: Path,
+    AbsPath: Path,
+    py_coverage_session: Optional[Session],
+) -> DocCodePyFile:
     result: List[DocPyEntry] = []
+
+    if py_coverage_session:
+        line_coverage = cov_docpy.get_coverage(py_coverage_session, AbsPath)
+
+    else:
+        line_coverage = {}
 
     for toplevel in docdata.convert_comment_groups(tree.root_node):
         entry = convert_py_entry(toplevel)
@@ -399,7 +413,12 @@ def convert_py_tree(tree: tree_sitter.Tree, RootPath: Path,
     return DocCodePyFile(
         Content=result,
         RelPath=AbsPath.relative_to(RootPath),
-        Lines=[DocCodePyLine(Text=line) for line in AbsPath.read_text().splitlines()],
+        Lines=[
+            DocCodePyLine(
+                Text=line,
+                TestCoverage=line_coverage.get(idx, None),
+            ) for idx, line in enumerate(AbsPath.read_text().splitlines())
+        ],
     )
 
 
@@ -440,7 +459,16 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
         aux_locations(entry)
 
     def get_attr_spans(line: DocCodePyLine) -> List[tags.span]:
-        return []
+        annotations: List[tags.span] = []
+
+        if line.TestCoverage:
+            span = tags.span(_class="coverage-span py-coverage")
+            for test in  line.TestCoverage.CoveredBy:
+                span.add(util.text(test.test_name))
+
+            annotations.append(span)
+
+        return annotations
 
     return docdata.get_html_code_div_base(
         Lines=code_file.Lines,

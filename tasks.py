@@ -987,6 +987,7 @@ def py_tests(ctx: Context, arg: List[str] = []):
             "--tb=short",
             "--cov=scripts",
             "--cov-report=html",
+            "--cov-context=test",
             *args,
         ],
         allow_fail=True,
@@ -1024,20 +1025,25 @@ def docs_doxygen(ctx: Context):
     run_command(ctx, "doxygen", [str(get_script_root("docs/Doxyfile"))])
     log(CAT).info("Completed CXX docs build")
 
+
 @org_task()
 def docs_custom(ctx: Context):
     """Build documentation for the project using custom script"""
     out_dir = get_script_root("docs/custom_html")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    run_command(ctx, "poetry", [
-        "run",
-        get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
-        f"--html_out_path={out_dir}",
-        f"--root_path={get_script_root()}",
-        # f"--src_path={get_script_root('src')}",
-        f"--src_path={get_script_root('scripts')}",
-    ])
+    run_command(
+        ctx,
+        "poetry",
+        [
+            "run",
+            get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
+            f"--html_out_path={out_dir}",
+            f"--root_path={get_script_root()}",
+            # f"--src_path={get_script_root('src')}",
+            f"--src_path={get_script_root('scripts')}",
+            f"--coverage_path={get_script_root('.coverage')}",
+        ])
 
 
 @org_task()

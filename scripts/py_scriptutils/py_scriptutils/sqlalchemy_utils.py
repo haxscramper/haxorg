@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy import create_engine, MetaData, Table as SATable, Engine, inspect
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.sql import select, Executable
 from sqlalchemy.types import TypeDecorator
 from rich.table import Table
@@ -20,6 +21,9 @@ def ForeignId(name: str, nullable: bool = False):
 
 def IntColumn(nullable: bool = False):
     return Column(Integer, nullable=nullable)
+
+def BoolColumn(nullable: bool = False):
+    return Column(Boolean, nullable=nullable)
 
 
 def StrColumn(nullable: bool = False):
@@ -146,5 +150,14 @@ def format_db_all(
 
 
 @beartype
-def open_sqlite(file: Path) -> Engine:
-    return create_engine("sqlite:///" + str(file))
+def open_sqlite(file: Path, base = None) -> Engine:
+    engine = create_engine("sqlite:///" + str(file))
+    if base:
+        base.metadata.create_all(engine)
+
+    return engine
+
+@beartype
+def open_sqlite_session(file: Path, base = None) -> Session:
+    engine = open_sqlite(file, base)
+    return sessionmaker()(bind=engine)

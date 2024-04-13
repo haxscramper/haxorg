@@ -114,6 +114,12 @@ html {
   display: inline-block;
 }
 
+.coverage-span {
+  max-width: 120px;
+  font-size: small;
+  display: inline-block;
+}
+
 /* 
 Generate using default pygmentize command and then remove unnecessary highlighting for code-line-text etc. manually
 

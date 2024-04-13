@@ -1,31 +1,31 @@
-from py_scriptutils.toml_config_profiler import (
-    make_config_provider,
-    run_config_provider,
-    apply_options,
-    options_from_model,
-    merge_cli_model,
-    get_cli_model
-)
-
-from beartype.typing import Optional
 from pathlib import Path
-import rich_click as click
-from pydantic import BaseModel, Field
-from beartype import beartype
+
 import py_haxorg.pyhaxorg_wrap as org
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Optional, TypeVar
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
+from py_scriptutils.toml_config_profiler import (
+    apply_options,
+    get_cli_model,
+    make_config_provider,
+    merge_cli_model,
+    options_from_model,
+    run_config_provider,
+)
 from py_scriptutils.tracer import TraceCollector
-from beartype.typing import TypeVar
+from pydantic import BaseModel, Field
+
 
 @beartype
-def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict, config: Optional[str]):
+def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict,
+                 config: Optional[str]):
     ctx.ensure_object(dict)
     ctx.obj[name] = get_cli_model(ctx, T, kwargs, config)
 
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
-
 
 
 class CliRootOptions(BaseModel, extra="forbid"):
@@ -44,25 +44,29 @@ class CliRootOptions(BaseModel, extra="forbid"):
 
     trace_path: Optional[str] = None
 
+
 @beartype
 class CliRunContext:
+
     def __init__(self, opts: CliRootOptions) -> None:
         self.tracer = TraceCollector()
         self.opts = opts
-    
+
     def event(self, name: str, category: str, args: dict[str, any] = {}):
         return self.tracer.complete_event(name=name, category=category, args=args)
-    
+
     def is_trace_enabled(self) -> bool:
         return bool(self.opts.trace_path)
-    
+
     def finalize(self):
         if self.is_trace_enabled():
             self.tracer.export_to_json(Path(self.opts.trace_path))
             log("haxorg.cli").info(f"Wrote execution trace to {self.opts.trace_path}")
 
+
 def get_run(ctx: click.Context) -> CliRunContext:
     return ctx.obj["run"]
+
 
 @beartype
 def parseCachedFile(file: Path, cache: Optional[Path]) -> org.Org:
@@ -86,10 +90,10 @@ def parseCachedFile(file: Path, cache: Optional[Path]) -> org.Org:
     else:
         return org.parseFile(str(file.resolve()), org.OrgParseParameters())
 
+
 @beartype
 def parseFile(root: CliRootOptions, file: Path) -> org.Org:
     return parseCachedFile(file, root.cache)
-
 
 
 def base_cli_options(f):
