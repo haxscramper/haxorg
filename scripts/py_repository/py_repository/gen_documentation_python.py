@@ -33,12 +33,13 @@ class DocCodePyLine(docdata.DocCodeLine, extra="forbid"):
 
 class DocPyType(BaseModel, extra="forbid"):
     Name: str
+    Spaces: List[str] = Field(default_factory=list)
     Parameters: List["DocPyType"] = Field(default_factory=list)
 
 
 class DocPyIdent(docdata.DocBase, extra="forbid"):
     Name: str
-    Type: DocPyType
+    Type: Optional[DocPyType]
     Default: Optional[str] = None
 
 
@@ -55,10 +56,11 @@ class DocPyFunction(docdata.DocBase, extra="forbid"):
 
 class DocPyClass(docdata.DocBase, extra="forbid"):
     Name: str
-    Nested: List["DocPyEntry"]
+    Bases: List[DocPyType] = Field(default_factory=list)
+    Nested: List["DocPyEntry"] = Field(default_factory=list)
 
 
-DocPyEntry = Union[DocPyClass, DocPyFunction]
+DocPyEntry = Union[DocPyClass, DocPyFunction, DocPyIdent]
 
 DocPyClass.model_rebuild()
 DocPyFunction.model_rebuild()
@@ -87,6 +89,18 @@ def convert_py_type(node: tree_sitter.Node) -> DocPyType:
 
         case "type":
             return convert_py_type(get_subnode(node, 0))
+        
+        case "attribute":
+            head = convert_py_type(get_subnode(node, "attribute"))
+            head.Spaces.append(get_subnode(node, "object").text.decode())
+            return head
+
+        case "generic_type":
+            head = convert_py_type(get_subnode(node, 0))
+            for param in get_subnode(node, 1).named_children:
+                head.Parameters.append(convert_py_type(param))
+
+            return head
 
         case _:
             raise fail_node(node, "convert_py_type")
@@ -102,19 +116,74 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
     match node.type:
         case "function_definition":
             name = get_name_node(get_subnode(node, "name"))
+            return_ty = get_subnode(node, "return_type")
             func = DocPyFunction(
-                ReturnTy=convert_py_type(get_subnode(node, "return_type")),
+                ReturnTy=return_ty and convert_py_type(return_ty),
                 Name=name.text.decode(),
                 **docdata.getNodePoints(node, name),
             )
 
-            for arg in get_subnode(node, "parameters").children:
-                func.Arguments.append(convert_py_entry(arg))
+            for arg in docdata.convert_comment_groups(get_subnode(node, "parameters")):
+                func.Arguments += convert_py_entry(arg)
 
             return [func]
 
+        case "typed_parameter":
+            name = get_name_node(get_subnode(node, 0))
+            arg = DocPyIdent(
+                Name=name.text.decode(),
+                Type=convert_py_type(get_subnode(node, "type")),
+                **docdata.getNodePoints(node, name),
+            )
+
+            return [arg]
+
+        case "identifier":
+            return [
+                DocPyIdent(
+                    Name=node.text.decode(),
+                    Type=None,
+                    **docdata.getNodePoints(node, node),
+                )
+            ]
+
+        case "class_definition":
+            Name = get_name_node(get_subnode(node, "name"))
+            Class = DocPyClass(
+                Name=Name.text.decode(),
+                **docdata.getNodePoints(node, Name),
+            )
+
+            for base in get_subnode(node, "superclasses").named_children:
+                Class.Bases.append(convert_py_type(base))
+
+            for sub in docdata.convert_comment_groups(get_subnode(node, "body")):
+                Class.Nested += convert_py_entry(sub)
+
+            return [Class]
+
+        case "typed_default_parameter" | "default_parameter":
+            name = get_name_node(get_subnode(node, "name"))
+            Type = get_subnode(node, "type")
+            arg = DocPyIdent(
+                Name=name.text.decode(),
+                Type=Type and convert_py_type(Type),
+                Default=get_subnode(node, "value").text.decode(),
+                **docdata.getNodePoints(node, name),
+            )
+
+            return [arg]
+
         case _:
-            raise fail_node(node, "convert_py_entry")
+            if node.type in [
+                    "import_from_statement",
+                    "import_statement",
+                    "expression_statement",
+            ]:
+                return []
+
+            else:
+                raise fail_node(node, "convert_py_entry")
 
     return []
 
