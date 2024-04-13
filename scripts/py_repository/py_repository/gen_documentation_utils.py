@@ -47,7 +47,7 @@ def tree_repr(node: Union[tree_sitter.Tree, tree_sitter.Node]) -> str:
 
             else:
                 result += f"[cyan]{node.type}[/cyan]"
-                
+
             if 0 < len(node.children):
                 for idx, subnode in enumerate(node.children):
                     if subnode.is_named:
@@ -85,7 +85,7 @@ def fail_node(node: tree_sitter.Node, name: str) -> ValueError:
 @beartype
 def get_subnode(
     node: tree_sitter.Node,
-    name: Union[str, List[str], int],
+    name: Union[str, List[Union[int, str]], int],
 ) -> Optional[tree_sitter.Node]:
     match name:
         case int():

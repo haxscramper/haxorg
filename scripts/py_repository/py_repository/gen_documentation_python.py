@@ -1,4 +1,4 @@
-from beartype.typing import List, Optional, Union, Dict
+from beartype.typing import List, Optional, Union, Dict, Tuple
 from pathlib import Path
 from beartype import beartype
 import tree_sitter
@@ -8,6 +8,8 @@ from pydantic import SerializeAsAny, BaseModel, Field
 import dominate.tags as tags
 import dominate.util as util
 from pygments.lexers import PythonLexer
+from dataclasses import replace
+
 
 CAT = "docgen"
 
@@ -41,10 +43,13 @@ class DocPyIdent(docdata.DocBase, extra="forbid"):
     Name: str
     Type: Optional[DocPyType]
     Default: Optional[str] = None
+    IsKwargsSplice: bool = False
 
 
 class DocPyDecorator(docdata.DocBase, extra="forbid"):
     Name: str
+    Spaces: List[str] = Field(default_factory=list)
+    Arguments: List[str] = Field(default_factory=list)
 
 
 class DocPyFunction(docdata.DocBase, extra="forbid"):
@@ -58,6 +63,7 @@ class DocPyClass(docdata.DocBase, extra="forbid"):
     Name: str
     Bases: List[DocPyType] = Field(default_factory=list)
     Nested: List["DocPyEntry"] = Field(default_factory=list)
+    Decorators: List[DocPyDecorator] = Field(default_factory=list)
 
 
 DocPyEntry = Union[DocPyClass, DocPyFunction, DocPyIdent]
@@ -82,17 +88,26 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
 
 
 @beartype
-def convert_py_type(node: tree_sitter.Node) -> DocPyType:
+def convert_py_type(node: Optional[tree_sitter.Node]) -> Optional[DocPyType]:
+    if not node:
+        return None
+
     match node.type:
+        case "none":
+            return None
+
         case "identifier":
             return DocPyType(Name=node.text.decode())
 
         case "type":
             return convert_py_type(get_subnode(node, 0))
-        
+
         case "attribute":
-            head = convert_py_type(get_subnode(node, "attribute"))
-            head.Spaces.append(get_subnode(node, "object").text.decode())
+            Spaces, Node = split_attribute(node)
+            head = convert_py_type(Node)
+            for space in Spaces:
+                head.Spaces.append(space.text.decode())
+
             return head
 
         case "generic_type":
@@ -105,6 +120,50 @@ def convert_py_type(node: tree_sitter.Node) -> DocPyType:
         case _:
             raise fail_node(node, "convert_py_type")
 
+
+@beartype
+def convert_decorator(node: tree_sitter.Node) -> DocPyDecorator:
+    Spaces: List[str] = []
+    Name: tree_sitter.Node = None
+    if get_subnode(node, 0).type == "identifier":
+        Name = get_subnode(node, 0)
+
+    elif get_subnode(node, 0).type == "call":
+        call = get_subnode(node, 0)
+        func = get_subnode(call, "function")
+        if func.type == "attribute":
+            node_spaces, node_name = split_attribute(func)
+            Spaces = [S.text.decode() for S in node_spaces]
+            Name = node_name
+
+        else:
+            Name = call
+
+    elif get_subnode(node, 0).type == "attribute":
+        node_spaces, node_name = split_attribute(get_subnode(node, 0))
+        Spaces = [S.text.decode() for S in node_spaces]
+        Name = node_name
+
+    else:
+        raise fail_node(node, "decorator")
+
+    result = DocPyDecorator(
+        Spaces=Spaces,
+        Name=Name.text.decode(),
+        **docdata.getNodePoints(node, Name),
+    )
+
+    if get_subnode(node, 0).type == "call":
+        for entry in get_subnode(node, [0, "arguments"]).named_children:
+            result.Arguments.append(entry.text.decode())
+
+    return result
+
+@beartype
+def split_attribute(node: tree_sitter.Node) -> Tuple[List[tree_sitter.Node], tree_sitter.Node]:
+    Spaces = []
+    Spaces.append(get_subnode(node, "object"))
+    return (Spaces, get_subnode(node, "attribute"))
 
 @beartype
 def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
@@ -128,6 +187,14 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
 
             return [func]
 
+        case "decorated_definition":
+            entry = convert_py_entry(replace(doc, node=get_subnode(node, "definition")))
+            for subnode in node.named_children:
+                if subnode.type == "decorator":
+                    entry[0].Decorators.append(convert_decorator(subnode))
+
+            return entry
+
         case "typed_parameter":
             name = get_name_node(get_subnode(node, 0))
             arg = DocPyIdent(
@@ -144,6 +211,16 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
                     Name=node.text.decode(),
                     Type=None,
                     **docdata.getNodePoints(node, node),
+                )
+            ]
+
+        case "dictionary_splat_pattern":
+            Name = get_subnode(node, 0)
+            return [
+                DocPyIdent(
+                    Name=Name.text.decode(),
+                    Type=None,
+                    **docdata.getNodePoints(node, Name),
                 )
             ]
 
@@ -179,6 +256,7 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
                     "import_from_statement",
                     "import_statement",
                     "expression_statement",
+                    "if_statement",
             ]:
                 return []
 
