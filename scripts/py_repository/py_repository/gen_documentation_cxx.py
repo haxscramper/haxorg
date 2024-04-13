@@ -19,7 +19,6 @@ from pygments import lex
 from pygments.lexers import CppLexer
 import py_haxorg.pyhaxorg_wrap as org
 
-
 T = TypeVar("T")
 
 
@@ -640,8 +639,6 @@ def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
     )
 
 
-
-
 @beartype
 def get_docs_fragment(entry: Union[DocCxxEntry, QualType]) -> str:
     match entry:
@@ -741,8 +738,6 @@ def gen_ident_spans(ident: DocCxxIdent) -> Tuple[tags.span, util.text, tags.span
     )
 
 
-
-
 @beartype
 def get_entry_div(
         entry: DocCxxEntry, context: List[Union[
@@ -835,49 +830,12 @@ def get_entry_div(
                 def ident_row(ident: DocCxxIdent) -> List[tags.td]:
                     return [tags.td(arg) for arg in gen_ident_spans(ident)]
 
-                match entry.Arguments:
-                    case []:
-                        sign.add(
-                            tags.tr(
-                                tags.td(ret),
-                                tags.td(docdata.get_name_link(entry.Name, entry)),
-                                tags.td(util.text("()")),
-                            ))
-
-                    case [one_arg]:
-                        sign.add(
-                            tags.tr(*[
-                                tags.td(ret),
-                                tags.td(docdata.get_name_link(entry.Name, entry)),
-                                tags.td(util.text("(")),
-                                *ident_row(one_arg),
-                                tags.td(util.text(")")),
-                            ]))
-
-                    case [first_arg, *middle_args, last_arg]:
-                        sign.add(
-                            tags.tr(
-                                tags.td(ret),
-                                tags.td(docdata.get_name_link(entry.Name, entry)),
-                                tags.td(util.text("(")),
-                                *ident_row(first_arg),
-                            ),
-                            *[
-                                tags.tr(
-                                    tags.td(),
-                                    tags.td(),
-                                    tags.td(),
-                                    *ident_row(it),
-                                ) for it in middle_args
-                            ],
-                            tags.tr(
-                                tags.td(),
-                                tags.td(),
-                                tags.td(),
-                                *ident_row(last_arg),
-                                tags.td(")"),
-                            ),
-                        )
+                for row in docdata.format_argument_rows(
+                        ReturnType=ret,
+                        Arguments=[ident_row(arg) for arg in entry.Arguments],
+                        FuncName=docdata.get_name_link(entry.Name, entry),
+                ):
+                    sign.add(row)
 
                 func.add(sign)
 

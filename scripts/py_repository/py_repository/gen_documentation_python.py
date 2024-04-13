@@ -305,7 +305,7 @@ def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
 
                 else:
                     return []
-                
+
             else:
                 return []
 
@@ -413,7 +413,7 @@ def get_type_span(Type: DocPyType) -> tags.span:
     def csv_list(items: Iterable[tags.html_tag],
                  split: tags.html_tag) -> List[tags.html_tag]:
         result = []
-        first = False
+        first = True
         for Parameter in items:
             if not first:
                 result.append(split)
@@ -423,7 +423,7 @@ def get_type_span(Type: DocPyType) -> tags.span:
 
         return result
 
-    head = tags.span(util.text(Type.Name), _class="type-head")
+    head = tags.span(util.text(Type.Name or ""), _class="type-head")
     if Type.Parameters:
         head.add(
             util.text("["),
@@ -435,10 +435,10 @@ def get_type_span(Type: DocPyType) -> tags.span:
 
 
 @beartype
-def gen_ident_spans(ident: DocPyIdent) -> Tuple[tags.span, util.text, tags.span]:
+def gen_ident_spans(ident: DocPyIdent) -> Tuple[util.text, tags.span, tags.span]:
     return (
-        get_type_span(ident.Type),
-        util.text(ident.Name if ident.Name else ""),
+        util.text(ident.Name + ":" if ident.Name else ""),
+        get_type_span(ident.Type) if ident.Type else tags.span(util.text("")),
         tags.span(util.text(ident.Default)) if ident.Default else tags.span(),
     )
 
@@ -485,6 +485,33 @@ def get_entry_div(entry: DocPyEntry, context: List[Union[DocPyClass]]) -> tags.d
                 nested.add(field_table)
 
                 res.add(nested)
+
+            if entry.getNested(DocPyFunction):
+                nested = tags.div(_class="nested-record")
+                nested.add(tags.p(util.text(f"Methods")))
+                for item in entry.getNested(DocPyFunction):
+                    nested.add(get_entry_div(item, context + [entry]))
+
+                res.add(nested)
+
+        case DocPyFunction():
+            func = tags.div()
+            sign = tags.table(_class="func-signature")
+            ret = get_type_span(entry.ReturnTy) if entry.ReturnTy else util.text("")
+
+            def ident_row(ident: DocPyIdent) -> List[tags.td]:
+                return [tags.td(arg) for arg in gen_ident_spans(ident)]
+
+            for row in docdata.format_argument_rows(
+                    ReturnType=ret,
+                    Arguments=[ident_row(arg) for arg in entry.Arguments],
+                    FuncName=docdata.get_name_link(entry.Name, entry),
+            ):
+                sign.add(row)
+
+            func.add(sign)
+
+            res.add(func)
 
     return res
 
