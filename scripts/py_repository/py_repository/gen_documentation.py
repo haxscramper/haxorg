@@ -166,16 +166,18 @@ def get_html_page_tabs(tab_order: List[str]) -> tags.div:
     return div
 
 
+css_path = get_haxorg_repo_root_path().joinpath(
+    "scripts/py_repository/py_repository/gen_documentation.css")
+
+js_path = get_haxorg_repo_root_path().joinpath(
+    "scripts/py_repository/py_repository/gen_documentation.js")
+
+
 @beartype
 def generate_html_for_directory(directory: docdata.DocDirectory,
                                 html_out_path: Path) -> None:
     sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
     sidebar = tags.div(sidebar_res.tag, _class="sidebar-directory-root")
-    css_path = get_haxorg_repo_root_path().joinpath(
-        "scripts/py_repository/py_repository/gen_documentation.css")
-
-    js_path = get_haxorg_repo_root_path().joinpath(
-        "scripts/py_repository/py_repository/gen_documentation.js")
 
     def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
         for subdir in directory.Subdirs:
@@ -245,31 +247,63 @@ def generate_html_for_tests(full_root: docdata.DocDirectory, html_out_path: Path
             if file.IsTest:
                 for entry in file.Content:
                     if isinstance(entry, (cxx.DocCxxFunction, py.DocPyFunction)):
-                        test_entries.append((entry,
-                                             cov_docpy.TestName(
-                                                 rel_path=file.RelPath,
-                                                 test_name=entry.Name,
-                                                 subname="run",
-                                             )))
-                        
+                        if entry.Name.startswith("test_"):
+                            test_name: str = entry.Name[5:]
+
+                            test_entries.append((
+                                entry,
+                                cov_docpy.TestName(
+                                    rel_path=str(file.RelPath),
+                                    test_name=test_name,
+                                    subname="run",
+                                ),
+                            ))
+
             else:
                 flat_files.append(file)
 
-                    
+        for subdir in dir.Subdirs:
+            find_test_entries(subdir)
+
+    find_test_entries(full_root)
+
     for test_entry, test_name in test_entries:
         out_dir = html_out_path.joinpath(test_name.rel_path).with_suffix(".d")
         out_dir.mkdir(parents=True, exist_ok=True)
         out_file = out_dir.joinpath(test_name.test_name).with_suffix(".html")
         doc = document()
+        covered_blocks: List[tags.div] = []
         for code_file in flat_files:
-            covered_lines: List[py.DocCodePyLine] = []
-            for line in code_file.Lines:
-                if line.TestCoverage and test_name in line.TestCoverage.CoveredBy:
-                    covered_lines.append(line)
+            if isinstance(code_file, py.DocCodePyFile):
+                covered_lines: List[py.DocCodePyLine] = []
+                for line in code_file.Lines:
+                    if line.TestCoverage and any(it.test_name == test_name.test_name and
+                                                 it.rel_path == test_name.rel_path
+                                                 for it in line.TestCoverage.CoveredBy):
+                        covered_lines.append(line)
 
-        # for line in covered_lines
+                if covered_lines:
+                    block = tags.div(_class="test-cover")
+                    block.add(tags.span(util.text(str(code_file.RelPath)), _class="title"))
+                    for line in covered_lines:
+                        line_span = docdata.get_code_line_span(
+                            line=line,
+                            highilght_lexer=py.PythonLexer(),
+                            decl_locations={},
+                            get_docs_fragment=lambda it: "",
+                        )
 
-        out_file.write_text(doc.render())
+                        block.add(line_span)
+
+                    covered_blocks.append(block)
+
+        if covered_blocks:
+            log(CAT).info(f"{out_file}")
+            doc.add(tags.h1(util.text(test_name.test_name)))
+            doc.add(covered_blocks)
+            doc.head.add(tags.link(rel="stylesheet", href=css_path))
+            doc.head.add(tags.script(src=str(js_path)))
+            out_file.write_text(doc.render())
 
 
 class DocGenerationOptions(BaseModel, extra="forbid"):
@@ -432,6 +466,10 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         conf.json_out_path.write_text(full_root.model_dump_json(indent=2))
 
     generate_html_for_directory(full_root, html_out_path=conf.html_out_path)
+    generate_html_for_tests(
+        full_root=full_root,
+        html_out_path=conf.html_out_path.joinpath("test_coverage"),
+    )
 
 
 if __name__ == "__main__":
