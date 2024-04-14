@@ -1,4 +1,4 @@
-from beartype.typing import List, Any, TypeVar, Iterable
+from beartype.typing import List, Any, TypeVar, Iterable, Callable, Optional
 import itertools
 from beartype import beartype
 
@@ -9,6 +9,19 @@ T = TypeVar('T')
 def drop_none(items: Iterable[T]) -> Iterable[T]:
     return itertools.filterfalse(lambda it: not it, items)
 
+@beartype
+def first_index_if(items: Iterable[T], pred: Callable[[T], bool]) -> int:
+    for idx, value in enumerate(items):
+        if pred(value):
+            return idx
+        
+    return -1
+
+@beartype
+def first_if(items: Iterable[T], pred: Callable[[T], bool]) -> Optional[T]:
+    for  value in items:
+        if pred(value):
+            return value
 
 def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=None):
     """

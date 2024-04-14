@@ -78,7 +78,7 @@ def get_code_line_span(
     decl_locations: Dict[(int, int), DocBase],
     get_docs_fragment: Callable[[DocBase | Any, List[Any]], str],
 ) -> tags.span:
-    tokens = tags.span(_class="code-line-text", style="width:600px;")
+    tokens = tags.span(_class="code-line-text")
     column = 0
 
     for token_type, token_text in lex(line.Text, highilght_lexer):
@@ -113,7 +113,7 @@ def get_html_code_div_base(
     div = tags.div(_class="page-tab-content", id="page-code")
 
     for idx, line in enumerate(Lines):
-        hline = tags.p(_class="code-line")
+        hline = tags.div(_class="code-line")
         hline.add(tags.span(str(idx), _class="code-line-number", id=f"line-{idx}"))
         for span in get_line_spans(idx, line):
             hline.add(span)

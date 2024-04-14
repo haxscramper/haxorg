@@ -988,6 +988,7 @@ def py_tests(ctx: Context, arg: List[str] = []):
             "--cov=scripts",
             "--cov-report=html",
             "--cov-context=test",
+            # "--cov-branch",
             *args,
         ],
         allow_fail=True,

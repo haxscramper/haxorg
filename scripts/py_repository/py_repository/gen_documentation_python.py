@@ -1,6 +1,8 @@
 from dataclasses import replace
 from enum import Enum
 from pathlib import Path
+import itertools
+import py_scriptutils.algorithm
 
 import dominate.tags as tags
 import dominate.util as util
@@ -445,6 +447,11 @@ def get_docs_fragment(
 
 
 @beartype
+def is_empty(line: DocCodePyLine) -> bool:
+    return not line.Text.strip()
+
+
+@beartype
 def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
     decl_locations: Dict[(int, int), docdata.DocBase] = {}
 
@@ -458,20 +465,48 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
     for entry in code_file.Content:
         aux_locations(entry)
 
-    def get_attr_spans(line: DocCodePyLine) -> List[tags.span]:
+    unique_coverage_context_spans: List[Tuple[range[int], cov_docpy.LineCoverage]] = []
+    for key, group in itertools.groupby(
+        (pair for pair in enumerate(code_file.Lines) if not is_empty(pair[1])),
+            lambda it: it[1].TestCoverage and it[1].TestCoverage.CoveredBy,
+    ):
+        Lines = [G[0] for G in group]
+        assert not Lines or (isinstance(Lines, list) and
+                             isinstance(Lines[0], int)), str(Lines)
+        if key:
+            unique_coverage_context_spans.append((range(min(Lines), max(Lines) + 1), key))
+
+    @beartype
+    def get_attr_spans(idx: int, line: DocCodePyLine) -> List[tags.span]:
         annotations: List[tags.span] = []
 
-        if line.TestCoverage:
-            span = tags.span(_class="coverage-span py-coverage")
-            for test in line.TestCoverage.CoveredBy:
-                span.add(util.text(test.test_name))
+        if line.Text.strip():
+            if line.TestCoverage:
+                coverage_group = py_scriptutils.algorithm.first_if(
+                    items=unique_coverage_context_spans,
+                    pred=lambda it: idx in it[0],
+                )
+                if coverage_group:
+                    span = tags.span(_class="coverage-span py-coverage")
+                    if coverage_group[0][0] == idx:
+                        span.attributes["class"] += " coverage-span-names"
+                        table = tags.table()
+                        for test in line.TestCoverage.CoveredBy:
+                            table.add(tags.tr(tags.td(util.text(test.test_name))))
 
-            annotations.append(span)
+                        span.add(table)
+
+                    else:
+                        span.add(util.text("…"))
+                        span.attributes["class"] += " coverage-span-continuation"
+
+                    annotations.append(span)
 
         return annotations
 
     highlight_lexer = PythonLexer()
 
+    @beartype
     def get_line_spans(idx: int, line: DocCodePyLine) -> List[tags.span]:
         line_span = docdata.get_code_line_span(
             idx=idx,
@@ -481,14 +516,14 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
             get_docs_fragment=get_docs_fragment,
         )
 
-        if line.Text.strip():
+        if not is_empty(line):
             if line.TestCoverage:
                 line_span.attributes["class"] += " cov-visited"
 
             else:
                 line_span.attributes["class"] += " cov-skipped"
 
-        return [line_span] + get_attr_spans(line)
+        return [line_span] + get_attr_spans(idx, line)
 
     return docdata.get_html_code_div_base(
         Lines=code_file.Lines,

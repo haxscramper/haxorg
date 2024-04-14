@@ -41,7 +41,13 @@ html {
 }
 
 .code-line-text.cov-visited {
-  background-color: rgba(0, 255, 0, 0.5); /* Green with 50% opacity */
+  border-left: 0.2em solid green;
+  background-color: rgba(0, 255, 0, 0.3); /* Green with 50% opacity */
+}
+
+.code-line-text.cov-skipped {
+  border-left: 0.2em solid red;
+  background: rgba(255, 0, 0, 0.2);
 }
 
 
@@ -66,7 +72,8 @@ html {
 .code-line-text {
   display: flex;
   white-space: pre;
-  width: 100%;
+  width: 600px;
+  height: 100%;
 }
 
 .code-line-text > span {
@@ -121,8 +128,20 @@ html {
 
 .coverage-span {
   max-width: 120px;
-  font-size: small;
+  font-size: 8pt;
+  display: block;
+}
+
+.coverage-span-names {
+  border-left: 2px solid purple;
+}
+
+.coverage-span-continuation {
   display: inline-block;
+  border-left: 2px solid purple;
+  min-width: 2px;
+  min-height: 100%;
+  padding-left: 2px;
 }
 
 /* 

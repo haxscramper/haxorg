@@ -118,7 +118,7 @@ def get_coverage(session: Session, path: Path) -> Dict[int, LineCoverage]:
             if test_name and test_name.subname == "run":
                 line_numbers = coverage.numbits.numbits_to_nums(row.numbits)
                 for line in line_numbers:
-                    result.setdefault(line, LineCoverage()).CoveredBy.append(test_name)
+                    result.setdefault(line - 1, LineCoverage()).CoveredBy.append(test_name)
 
         return result
 
