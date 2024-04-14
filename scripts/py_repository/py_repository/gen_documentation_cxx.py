@@ -68,7 +68,7 @@ class DocCxxEnum(docdata.DocBase, extra="forbid"):
 
 
 class DocCxxRecord(docdata.DocBase, extra="forbid"):
-    Name: QualType
+    Name: Optional[QualType]
     Nested: SerializeAsAny[List["DocCxxEntry"]] = Field(default_factory=list)
 
     @beartype
@@ -192,6 +192,7 @@ def convert_pointer_wraps(node: tree_sitter.Node, mut_type: QualType):
 
 
 @beartype
+@docutils.note_used_node
 def convert_cxx_type(
     node: tree_sitter.Node,
     name_decl: Optional[tree_sitter.Node] = None,
@@ -405,19 +406,29 @@ def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
                 field_decl = get_subnode(doc.node, "declarator")
 
             if field_decl:
-                result = [
-                    DocCxxIdent(
-                        Name=field_decl.text.decode(),
-                        Type=convert_cxx_type(get_subnode(doc.node, "type")),
-                        Doc=convert_cxx_doc(doc),
-                        Value=get_subnode(doc.node, "default_value").text.decode()
-                        if get_subnode(doc.node, "default_value") else None,
-                        **docdata.getNodePoints(doc.node, field_decl),
-                    )
-                ]
+                Type = get_subnode(doc.node, "type")
+                if Type.type in ["union_specifier", "struct_specifier"]:
+                    # TODO handle anon type declarations in fields `struct A { int b; } field;`
+                    return []
+                
+                else:
+                    result = [
+                        DocCxxIdent(
+                            Name=field_decl.text.decode(),
+                            Type=convert_cxx_type(Type),
+                            Doc=convert_cxx_doc(doc),
+                            Value=get_subnode(doc.node, "default_value").text.decode()
+                            if get_subnode(doc.node, "default_value") else None,
+                            **docdata.getNodePoints(doc.node, field_decl),
+                        )
+                    ]
 
             else:
-                raise fail_node(doc.node, "field declaration")
+                if get_subnode(doc.node, ["type"]).type in ["union_specifier", "struct_specifier"]:
+                    return [] # TODO anon types with no field declaration attached
+                
+                else:
+                    raise fail_node(doc.node, "field declaration")
 
 
         case "parameter_declaration" | \
@@ -505,12 +516,12 @@ def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
 
                 result = [func]
 
-        case "class_specifier" | "struct_specifier":
+        case "class_specifier" | "struct_specifier" | "union_specifier":
             body = get_subnode(node, "body")
             if body:
                 name_node = get_subnode(node, "name")
                 record = DocCxxRecord(
-                    Name=convert_cxx_type(name_node),
+                    Name=name_node and convert_cxx_type(name_node),
                     Doc=convert_cxx_doc(doc),
                     **docdata.getNodePoints(doc.node, name_node),
                 )
@@ -765,7 +776,11 @@ def get_entry_div(
 
     match entry:
         case DocCxxRecord():
-            link = docdata.get_name_link(entry.Name.name, entry)
+            if entry.Name:
+                link = docdata.get_name_link(entry.Name.name, entry)
+            else:
+                link = util.text("<anon>")
+                
             link = tags.span(util.text("Record "), link, _class="class-name")
             res.add(link)
 

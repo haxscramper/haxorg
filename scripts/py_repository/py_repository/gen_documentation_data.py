@@ -31,6 +31,7 @@ class DocBase(BaseModel, extra="forbid"):
 
 class DocCodeFile(BaseModel, extra="forbid"):
     RelPath: Path
+    IsTest: bool = False
 
 
 class DocTextFile(BaseModel, extra="forbid"):

@@ -144,12 +144,9 @@ def generate_tree_sidebar(directory: docdata.DocDirectory,
 
 
 @beartype
-def get_html_page_tabs() -> tags.div:
+def get_html_page_tabs(tab_order: List[str]) -> tags.div:
     div = tags.div(_class="page-tab-row")
-    for idx, name in enumerate([
-            "code",
-            "docs",
-    ]):
+    for idx, name in enumerate(tab_order):
         button_opts = dict(
             _class="page-tab-link",
             onclick=f"openPage('page-{name}')",
@@ -195,16 +192,22 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
             sidebar_div.add(tags.div(sidebar, _class="sidebar"))
             container.add(sidebar_div)
             main = tags.div(_class="main")
-            main.add(get_html_page_tabs())
+            
+            if code_file.IsTest:
+                main.add(get_html_page_tabs(["code"]))
+            else:
+                main.add(get_html_page_tabs(["docs", "code"]))
 
             match code_file:
                 case cxx.DocCodeCxxFile():
                     main.add(cxx.get_html_code_div(code_file))
-                    main.add(cxx.get_html_docs_div(code_file))
+                    if not code_file.IsTest:
+                        main.add(cxx.get_html_docs_div(code_file))
 
                 case py.DocCodePyFile():
                     main.add(py.get_html_code_div(code_file))
-                    main.add(py.get_html_docs_div(code_file))
+                    if not code_file.IsTest:
+                        main.add(py.get_html_docs_div(code_file))
 
                 case _:
                     raise TypeError(type(code_file))
@@ -250,9 +253,9 @@ class DocGenerationOptions(BaseModel, extra="forbid"):
         default_factory=list,
     )
 
-    tests_path: Optional[Path] = Field(
+    test_path: List[Path] = Field(
         description="Root directory for the tests",
-        default=None,
+        default_factory=list,
     )
 
     coverage_path: Optional[Path] = Field(
@@ -271,6 +274,7 @@ def parse_code_file(
     conf: DocGenerationOptions,
     rel_path_to_code_file: Dict[Path, cxx.DocCodeCxxFile],
     py_coverage_session: Optional[Session],
+    is_test: bool,
 ) -> docdata.DocCodeFile:
     try:
         if file.suffix == ".hpp":
@@ -294,6 +298,7 @@ def parse_code_file(
         raise e from None
 
     rel_path_to_code_file[code_file.RelPath] = code_file
+    code_file.IsTest = is_test
     return code_file
 
 
@@ -308,6 +313,7 @@ def parse_dir(
     conf: DocGenerationOptions,
     rel_path_to_code_file: Dict[Path, cxx.DocCodeCxxFile],
     py_coverage_session: Optional[Session],
+    is_test: bool,
 ) -> docdata.DocDirectory:
     result = docdata.DocDirectory(RelPath=dir.relative_to(conf.root_path))
     for file in sorted(dir.glob("*")):
@@ -326,19 +332,23 @@ def parse_dir(
                         conf,
                         rel_path_to_code_file=rel_path_to_code_file,
                         py_coverage_session=py_coverage_session,
+                        is_test=is_test,
                     ))
 
             case "*.org":
                 result.TextFiles.append(parse_text_file(file))
 
             case _ if file.is_dir():
-                result.Subdirs.append(
-                    parse_dir(
-                        file,
-                        conf,
-                        rel_path_to_code_file=rel_path_to_code_file,
-                        py_coverage_session=py_coverage_session,
-                    ))
+                subdir = parse_dir(
+                    file,
+                    conf,
+                    rel_path_to_code_file=rel_path_to_code_file,
+                    py_coverage_session=py_coverage_session,
+                    is_test=is_test,
+                )
+
+                if subdir.CodeFiles or subdir.TextFiles or subdir.Subdirs:
+                    result.Subdirs.append(subdir)
 
     return result
 
@@ -359,6 +369,16 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         py_coverage_session = cov_docpy.open_coverage(conf.coverage_path)
 
     full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
+    for subdir in conf.test_path:
+        full_root.Subdirs.append(
+            parse_dir(
+                subdir,
+                conf,
+                rel_path_to_code_file=rel_path_to_code_file,
+                py_coverage_session=None,
+                is_test=True,
+            ))
+
     for subdir in conf.src_path:
         full_root.Subdirs.append(
             parse_dir(
@@ -366,6 +386,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 conf,
                 rel_path_to_code_file=rel_path_to_code_file,
                 py_coverage_session=py_coverage_session,
+                is_test=False,
             ))
 
     if conf.json_out_path:

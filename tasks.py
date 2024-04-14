@@ -1044,6 +1044,7 @@ def docs_custom(ctx: Context):
             # f"--src_path={get_script_root('src')}",
             f"--src_path={get_script_root('scripts')}",
             f"--coverage_path={get_script_root('.coverage')}",
+            f"--test_path={get_script_root('tests')}",
         ])
 
 
