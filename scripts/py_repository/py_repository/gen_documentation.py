@@ -113,14 +113,16 @@ def generate_tree_sidebar(directory: docdata.DocDirectory,
                     for field in entry.Fields:
                         aux_docs(field)
 
-        for entry in code_file.Content:
-            aux_docs(entry)
+        if not code_file.IsTest:
+            for entry in code_file.Content:
+                aux_docs(entry)
 
         item = tags.li(_class="sidebar-code")
         link = tags.a(href=docdata.get_html_path(code_file, html_out_path=html_out_path))
         link.add(util.text(code_file.RelPath.name))
-        link.add(util.text(" "))
-        link.add(get_doc_ratio(total_entries, documented_entries))
+        if not code_file.IsTest:
+            link.add(util.text(" "))
+            link.add(get_doc_ratio(total_entries, documented_entries))
         item.add(link)
         directory_list.add(item)
 
@@ -192,7 +194,7 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
             sidebar_div.add(tags.div(sidebar, _class="sidebar"))
             container.add(sidebar_div)
             main = tags.div(_class="main")
-            
+
             if code_file.IsTest:
                 main.add(get_html_page_tabs(["code"]))
             else:
@@ -231,6 +233,43 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
             path.write_text(doc.render())
 
     aux(directory, html_out_path)
+
+
+@beartype
+def generate_html_for_tests(full_root: docdata.DocDirectory, html_out_path: Path):
+    test_entries: List[Tuple[py.DocPyFunction, cov_docpy.TestName]] = []
+    flat_files: List[py.DocCodePyFile] = []
+
+    def find_test_entries(dir: docdata.DocDirectory):
+        for file in dir.CodeFiles:
+            if file.IsTest:
+                for entry in file.Content:
+                    if isinstance(entry, (cxx.DocCxxFunction, py.DocPyFunction)):
+                        test_entries.append((entry,
+                                             cov_docpy.TestName(
+                                                 rel_path=file.RelPath,
+                                                 test_name=entry.Name,
+                                                 subname="run",
+                                             )))
+                        
+            else:
+                flat_files.append(file)
+
+                    
+    for test_entry, test_name in test_entries:
+        out_dir = html_out_path.joinpath(test_name.rel_path).with_suffix(".d")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_file = out_dir.joinpath(test_name.test_name).with_suffix(".html")
+        doc = document()
+        for code_file in flat_files:
+            covered_lines: List[py.DocCodePyLine] = []
+            for line in code_file.Lines:
+                if line.TestCoverage and test_name in line.TestCoverage.CoveredBy:
+                    covered_lines.append(line)
+
+        # for line in covered_lines
+
+        out_file.write_text(doc.render())
 
 
 class DocGenerationOptions(BaseModel, extra="forbid"):

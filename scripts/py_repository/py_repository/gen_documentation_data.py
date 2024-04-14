@@ -47,6 +47,7 @@ class DocDirectory(BaseModel, extra="forbid"):
 
 
 class DocCodeLine(BaseModel, extra="forbid"):
+    Index: int
     Text: str
 
 
@@ -73,17 +74,16 @@ def getNodePoints(node: tree_sitter.Node,
 
 @beartype
 def get_code_line_span(
-    idx: int,
     line: DocCodeLine,
     highilght_lexer,
     decl_locations: Dict[(int, int), DocBase],
-    get_docs_fragment: Callable[[DocBase | Any, List[Any]], str],
+    get_docs_fragment: Callable[[DocBase | Any, List[Any]], tags.a],
 ) -> tags.span:
     tokens = tags.span(_class="code-line-text")
     column = 0
 
     for token_type, token_text in lex(line.Text, highilght_lexer):
-        maybe_entry = decl_locations.get((idx, column), None)
+        maybe_entry = decl_locations.get((line.Index, column), None)
         if maybe_entry:
             token_html = tags.a(
                 href=f"#{get_docs_fragment(maybe_entry)}",
@@ -109,14 +109,14 @@ def get_code_line_span(
 @beartype
 def get_html_code_div_base(
     Lines: List[DocCodeLine],
-    get_line_spans: Callable[[int, DocCodeLine], List[tags.span]],
+    get_line_spans: Callable[[DocCodeLine], List[tags.span]],
 ) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-code")
 
-    for idx, line in enumerate(Lines):
+    for line in Lines:
         hline = tags.div(_class="code-line")
-        hline.add(tags.span(str(idx), _class="code-line-number", id=f"line-{idx}"))
-        for span in get_line_spans(idx, line):
+        hline.add(tags.span(str(line.Index), _class="code-line-number", id=f"line-{line.Index}"))
+        for span in get_line_spans(line):
             hline.add(span)
 
         div.add(hline)

@@ -418,6 +418,7 @@ def convert_py_tree(
         Lines=[
             DocCodePyLine(
                 Text=line,
+                Index=idx,
                 TestCoverage=line_coverage.get(idx, None),
             ) for idx, line in enumerate(AbsPath.read_text().splitlines())
         ],
@@ -477,18 +478,18 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
             unique_coverage_context_spans.append((range(min(Lines), max(Lines) + 1), key))
 
     @beartype
-    def get_attr_spans(idx: int, line: DocCodePyLine) -> List[tags.span]:
+    def get_attr_spans(line: DocCodePyLine) -> List[tags.span]:
         annotations: List[tags.span] = []
 
-        if line.Text.strip():
+        if not code_file.IsTest and not is_empty(line):
             if line.TestCoverage:
                 coverage_group = py_scriptutils.algorithm.first_if(
                     items=unique_coverage_context_spans,
-                    pred=lambda it: idx in it[0],
+                    pred=lambda it: line.Index in it[0],
                 )
                 if coverage_group:
                     span = tags.span(_class="coverage-span py-coverage")
-                    if coverage_group[0][0] == idx:
+                    if coverage_group[0][0] == line.Index:
                         span.attributes["class"] += " coverage-span-names"
                         table = tags.table()
                         for test in line.TestCoverage.CoveredBy:
@@ -507,23 +508,22 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
     highlight_lexer = PythonLexer()
 
     @beartype
-    def get_line_spans(idx: int, line: DocCodePyLine) -> List[tags.span]:
+    def get_line_spans(line: DocCodePyLine) -> List[tags.span]:
         line_span = docdata.get_code_line_span(
-            idx=idx,
             line=line,
             highilght_lexer=highlight_lexer,
             decl_locations=decl_locations,
             get_docs_fragment=get_docs_fragment,
         )
 
-        if not is_empty(line):
+        if not code_file.IsTest and not is_empty(line):
             if line.TestCoverage:
                 line_span.attributes["class"] += " cov-visited"
 
             else:
                 line_span.attributes["class"] += " cov-skipped"
 
-        return [line_span] + get_attr_spans(idx, line)
+        return [line_span] + get_attr_spans(line)
 
     return docdata.get_html_code_div_base(
         Lines=code_file.Lines,

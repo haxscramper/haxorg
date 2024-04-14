@@ -410,7 +410,7 @@ def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
                 if Type.type in ["union_specifier", "struct_specifier"]:
                     # TODO handle anon type declarations in fields `struct A { int b; } field;`
                     return []
-                
+
                 else:
                     result = [
                         DocCxxIdent(
@@ -424,9 +424,10 @@ def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
                     ]
 
             else:
-                if get_subnode(doc.node, ["type"]).type in ["union_specifier", "struct_specifier"]:
-                    return [] # TODO anon types with no field declaration attached
-                
+                if get_subnode(doc.node,
+                               ["type"]).type in ["union_specifier", "struct_specifier"]:
+                    return []  # TODO anon types with no field declaration attached
+
                 else:
                     raise fail_node(doc.node, "field declaration")
 
@@ -646,7 +647,10 @@ def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
     return DocCodeCxxFile(
         Content=result,
         RelPath=AbsPath.relative_to(RootPath),
-        Lines=[DocCodeCxxLine(Text=line) for line in AbsPath.read_text().splitlines()],
+        Lines=[
+            DocCodeCxxLine(Text=line, Index=idx)
+            for idx, line in enumerate(AbsPath.read_text().splitlines())
+        ],
     )
 
 
@@ -780,7 +784,7 @@ def get_entry_div(
                 link = docdata.get_name_link(entry.Name.name, entry)
             else:
                 link = util.text("<anon>")
-                
+
             link = tags.span(util.text("Record "), link, _class="class-name")
             res.add(link)
 
@@ -905,10 +909,9 @@ def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
 
     highlight_lexer = CppLexer()
 
-    def get_line_spans(idx: int, line: DocCodeCxxLine) -> List[tags.span]:
+    def get_line_spans(line: DocCodeCxxLine) -> List[tags.span]:
         return [
             docdata.get_code_line_span(
-                idx=idx,
                 line=line,
                 highilght_lexer=highlight_lexer,
                 decl_locations=decl_locations,
