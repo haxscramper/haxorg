@@ -694,9 +694,11 @@ class MindMapGraph():
             obj = self.getNodeObj(vertexIdx)
             node = GvGraphNode(id=self.getIdxId(vertexIdx))
 
+            br = "<br align=\"left\"/>"
+
             def formatOrg(node: org.Org) -> str:
-                exp = ExporterHtml(graphviz_break="left")
-                return exp.getHtmlString(node) + "<br align=\"left\"/>"
+                exp = ExporterHtml(get_break_tag=lambda _: br)
+                return exp.getHtmlString(node) + br
 
             match obj.data:
                 case MindMapNodeSubtree():
@@ -711,7 +713,7 @@ class MindMapGraph():
 
                 case MindMapNodeEntry():
                     node.attrs["kind"] = "Entry"
-                    exp = ExporterHtml(graphviz_break="left")
+                    exp = ExporterHtml(get_break_tag=lambda _: br)
                     node.label = GvHtmlLabel(text=formatOrg(obj.data.entry.content))
 
             return node
@@ -720,7 +722,7 @@ class MindMapGraph():
         def auxNesting(nesting: MindMapNodeNesting) -> Union[GvGraph, GvGraphNode]:
             if nesting.kind in ["block", "unordered"]:
                 return getGvNode(nesting.nodeId)
-            
+
             elif len(nesting.nested) == 0:
                 return getGvNode(nesting.nodeId)
 

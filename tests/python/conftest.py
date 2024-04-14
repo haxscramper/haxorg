@@ -62,10 +62,11 @@ def pytest_collect_file(parent: Module, path: str):
         pprint_to_file(to_debug_json(it), file + ".json")
 
     if test.name == "test_integrate_cxx_org.py":
+        coverage = parent.config.getoption("--coverage-out-dir")
         result = GTestFile.from_parent(
             parent,
             path=test,
-            coverage_out_dir=Path(parent.config.getoption("--coverage-out-dir")),
+            coverage_out_dir=coverage and Path(coverage),
         )
 
         debug(result, "/tmp/google_tests")

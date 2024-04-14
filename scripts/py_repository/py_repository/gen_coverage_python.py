@@ -78,17 +78,34 @@ class TestName(BaseModel, extra="forbid"):
     rel_path: str
     test_name: str
     subname: str
+    class_name: Optional[str] = None
 
 
 @beartype
 def parse_test_name(text: str) -> Optional[TestName]:
     if "::" in text and "|" in text:
-        path, subname = text.split("::")
-        func_name, step = subname.split("|")
-        if func_name.startswith("test_"):
-            func_name = func_name[5:]
+        match text.split("::"):
+            case [path, subname]:
+                func_name, step = subname.split("|")
+                if func_name.startswith("test_"):
+                    func_name = func_name[5:]
+
+                return TestName(rel_path=path, test_name=func_name, subname=step)
+
+            case [path, Class, subname]:
+                func_name, step = subname.split("|")
+                if func_name.startswith("test_"):
+                    func_name = func_name[5:]
+
+                return TestName(
+                    rel_path=path,
+                    test_name=func_name,
+                    subname=step,
+                    class_name=Class,
+                )
             
-        return TestName(rel_path=path, test_name=func_name, subname=step)
+            case _:
+                raise ValueError(text)
 
 
 class LineCoverage(BaseModel, extra="forbid"):
@@ -118,7 +135,8 @@ def get_coverage(session: Session, path: Path) -> Dict[int, LineCoverage]:
             if test_name and test_name.subname == "run":
                 line_numbers = coverage.numbits.numbits_to_nums(row.numbits)
                 for line in line_numbers:
-                    result.setdefault(line - 1, LineCoverage()).CoveredBy.append(test_name)
+                    result.setdefault(line - 1,
+                                      LineCoverage()).CoveredBy.append(test_name)
 
         return result
 
