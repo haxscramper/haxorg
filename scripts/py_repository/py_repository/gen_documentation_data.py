@@ -78,7 +78,7 @@ def get_code_line_span(
     highilght_lexer,
     decl_locations: Dict[(int, int), DocBase],
     get_docs_fragment: Callable[[DocBase | Any, List[Any]], tags.a],
-) -> tags.span:
+) -> Tuple[tags.span, tags.span]:
     tokens = tags.span(_class="code-line-text")
     column = 0
 
@@ -103,7 +103,10 @@ def get_code_line_span(
 
         column += len(token_text)
 
-    return tokens
+    return (
+        tags.span(str(line.Index), _class="code-line-number", id=f"line-{line.Index}"),
+        tokens,
+    )
 
 
 @beartype
@@ -115,7 +118,6 @@ def get_html_code_div_base(
 
     for line in Lines:
         hline = tags.div(_class="code-line")
-        hline.add(tags.span(str(line.Index), _class="code-line-number", id=f"line-{line.Index}"))
         for span in get_line_spans(line):
             hline.add(span)
 

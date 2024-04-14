@@ -910,14 +910,13 @@ def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
     highlight_lexer = CppLexer()
 
     def get_line_spans(line: DocCodeCxxLine) -> List[tags.span]:
-        return [
+        return list(
             docdata.get_code_line_span(
                 line=line,
                 highilght_lexer=highlight_lexer,
                 decl_locations=decl_locations,
                 get_docs_fragment=get_docs_fragment,
-            )
-        ]
+            ))
 
     return docdata.get_html_code_div_base(
         Lines=code_file.Lines,

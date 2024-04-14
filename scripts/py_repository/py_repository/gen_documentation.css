@@ -144,6 +144,28 @@ html {
   padding-left: 2px;
 }
 
+.test-cover > .title {
+  display: block;
+  margin: 10px;
+}
+
+.test-cover {
+  background-color: var(--bgColor-muted,var(--color-canvas-subtle,#f6f8fa));
+  padding-left: 8px;
+  padding-right: 16px;
+  border-radius: 6px 6px 6px 6px;
+  border-color: var(--borderColor-default,var(--color-border-default,#d0d7de));
+  border-width: 1px;
+  border-style: solid;
+  margin: 10px;
+  padding: 5px;
+}
+
+.test-cover > .adjacent-lines {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 /* 
 Generate using default pygmentize command and then remove unnecessary highlighting for code-line-text etc. manually
 

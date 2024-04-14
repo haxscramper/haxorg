@@ -509,7 +509,7 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
 
     @beartype
     def get_line_spans(line: DocCodePyLine) -> List[tags.span]:
-        line_span = docdata.get_code_line_span(
+        num_span, line_span = docdata.get_code_line_span(
             line=line,
             highilght_lexer=highlight_lexer,
             decl_locations=decl_locations,
@@ -523,7 +523,7 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
             else:
                 line_span.attributes["class"] += " cov-skipped"
 
-        return [line_span] + get_attr_spans(line)
+        return [num_span, line_span] + get_attr_spans(line)
 
     return docdata.get_html_code_div_base(
         Lines=code_file.Lines,

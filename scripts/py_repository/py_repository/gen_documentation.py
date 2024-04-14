@@ -21,6 +21,7 @@ from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_cli_model,
                                                  options_from_model)
 from pydantic import BaseModel, Field, SerializeAsAny
+import more_itertools
 
 T = TypeVar("T")
 
@@ -284,16 +285,27 @@ def generate_html_for_tests(full_root: docdata.DocDirectory, html_out_path: Path
 
                 if covered_lines:
                     block = tags.div(_class="test-cover")
-                    block.add(tags.span(util.text(str(code_file.RelPath)), _class="title"))
-                    for line in covered_lines:
-                        line_span = docdata.get_code_line_span(
-                            line=line,
-                            highilght_lexer=py.PythonLexer(),
-                            decl_locations={},
-                            get_docs_fragment=lambda it: "",
-                        )
+                    block.add(tags.span(util.text(str(code_file.RelPath)),
+                                        _class="title"))
 
-                        block.add(line_span)
+                    for adj_lines in more_itertools.split_when(
+                            iterable=covered_lines,
+                            pred=lambda lhs, rhs: lhs.Index + 1 != rhs.Index,
+                    ):
+                        adj_group = tags.div(_class="adjacent-lines")
+                        for line in adj_lines:
+                            full_span = tags.span(_class="code-line")
+                            num_span, line_span = docdata.get_code_line_span(
+                                line=line,
+                                highilght_lexer=py.PythonLexer(),
+                                decl_locations={},
+                                get_docs_fragment=lambda it: "",
+                            )
+                            full_span.add(num_span)
+                            full_span.add(line_span)
+                            adj_group.add(full_span)
+
+                        block.add(adj_group)
 
                     covered_blocks.append(block)
 
