@@ -888,10 +888,20 @@ def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
     def get_attr_spans(line: DocCodeCxxLine) -> List[tags.span]:
         return []
 
+    highlight_lexer = CppLexer()
+
+    def get_line_spans(idx: int, line: DocCodeCxxLine) -> List[tags.span]:
+        return [
+            docdata.get_code_line_span(
+                idx=idx,
+                line=line,
+                highilght_lexer=highlight_lexer,
+                decl_locations=decl_locations,
+                get_docs_fragment=get_docs_fragment,
+            )
+        ]
+
     return docdata.get_html_code_div_base(
         Lines=code_file.Lines,
-        decl_locations=decl_locations,
-        highilght_lexer=CppLexer(),
-        get_attr_spans=get_attr_spans,
-        get_docs_fragment=get_docs_fragment,
+        get_line_spans=get_line_spans,
     )

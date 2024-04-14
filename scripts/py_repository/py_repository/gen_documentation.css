@@ -40,6 +40,11 @@ html {
   border: 0;
 }
 
+.code-line-text.cov-visited {
+  background-color: rgba(0, 255, 0, 0.5); /* Green with 50% opacity */
+}
+
+
 .type-head, .type-head * {
   align-items: center;
   display: flex;

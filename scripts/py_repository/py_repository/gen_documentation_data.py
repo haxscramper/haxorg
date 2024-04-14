@@ -71,47 +71,51 @@ def getNodePoints(node: tree_sitter.Node,
 
 
 @beartype
-def get_html_code_div_base(
-    Lines: List[DocCodeLine],
+def get_code_line_span(
+    idx: int,
+    line: DocCodeLine,
     highilght_lexer,
     decl_locations: Dict[(int, int), DocBase],
     get_docs_fragment: Callable[[DocBase | Any, List[Any]], str],
-    get_attr_spans: Callable[[DocCodeLine], List[tags.span]],
+) -> tags.span:
+    tokens = tags.span(_class="code-line-text", style="width:600px;")
+    column = 0
+
+    for token_type, token_text in lex(line.Text, highilght_lexer):
+        maybe_entry = decl_locations.get((idx, column), None)
+        if maybe_entry:
+            token_html = tags.a(
+                href=f"#{get_docs_fragment(maybe_entry)}",
+                onclick="openPage('page-docs')",
+            )
+
+            token_html.add(token_text.strip("\n"))
+
+            tokens.add(
+                tags.span(token_html,
+                          _class=abbreviate_token_name(token_type) + " code-backlink"))
+
+        else:
+            tokens.add(
+                tags.span(token_text.strip("\n"),
+                          _class=abbreviate_token_name(token_type)))
+
+        column += len(token_text)
+
+    return tokens
+
+
+@beartype
+def get_html_code_div_base(
+    Lines: List[DocCodeLine],
+    get_line_spans: Callable[[int, DocCodeLine], List[tags.span]],
 ) -> tags.div:
     div = tags.div(_class="page-tab-content", id="page-code")
 
     for idx, line in enumerate(Lines):
         hline = tags.p(_class="code-line")
         hline.add(tags.span(str(idx), _class="code-line-number", id=f"line-{idx}"))
-
-        tokens = tags.span(_class="code-line-text", style="width:600px;")
-        column = 0
-
-        for token_type, token_text in lex(line.Text, highilght_lexer):
-            maybe_entry = decl_locations.get((idx, column), None)
-            if maybe_entry:
-                token_html = tags.a(
-                    href=f"#{get_docs_fragment(maybe_entry)}",
-                    onclick="openPage('page-docs')",
-                )
-
-                token_html.add(token_text.strip("\n"))
-
-                tokens.add(
-                    tags.span(token_html,
-                              _class=abbreviate_token_name(token_type) +
-                              " code-backlink"))
-
-            else:
-                tokens.add(
-                    tags.span(token_text.strip("\n"),
-                              _class=abbreviate_token_name(token_type)))
-
-            column += len(token_text)
-
-        hline.add(tokens)
-
-        for span in get_attr_spans(line):
+        for span in get_line_spans(idx, line):
             hline.add(span)
 
         div.add(hline)

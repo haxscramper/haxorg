@@ -463,19 +463,36 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
 
         if line.TestCoverage:
             span = tags.span(_class="coverage-span py-coverage")
-            for test in  line.TestCoverage.CoveredBy:
+            for test in line.TestCoverage.CoveredBy:
                 span.add(util.text(test.test_name))
 
             annotations.append(span)
 
         return annotations
 
+    highlight_lexer = PythonLexer()
+
+    def get_line_spans(idx: int, line: DocCodePyLine) -> List[tags.span]:
+        line_span = docdata.get_code_line_span(
+            idx=idx,
+            line=line,
+            highilght_lexer=highlight_lexer,
+            decl_locations=decl_locations,
+            get_docs_fragment=get_docs_fragment,
+        )
+
+        if line.Text.strip():
+            if line.TestCoverage:
+                line_span.attributes["class"] += " cov-visited"
+
+            else:
+                line_span.attributes["class"] += " cov-skipped"
+
+        return [line_span] + get_attr_spans(line)
+
     return docdata.get_html_code_div_base(
         Lines=code_file.Lines,
-        decl_locations=decl_locations,
-        highilght_lexer=PythonLexer(),
-        get_attr_spans=get_attr_spans,
-        get_docs_fragment=get_docs_fragment,
+        get_line_spans=get_line_spans,
     )
 
 
