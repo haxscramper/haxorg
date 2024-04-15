@@ -972,8 +972,10 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     args = arg
 
+    env = get_py_env(ctx)
+
     if is_instrumented_coverage(ctx):
-        args.append(f"--coverage-out-dir={get_build_root('coverage_artifacts')}")
+        env["HAX_COVERAGE_OUT_DIR"] = str(get_build_root("coverage_artifacts"))
 
     retcode, _, _ = run_command(
         ctx,
@@ -992,7 +994,7 @@ def py_tests(ctx: Context, arg: List[str] = []):
             *args,
         ],
         allow_fail=True,
-        env=get_py_env(ctx),
+        env=env,
     )
 
     if retcode != 0:

@@ -6,12 +6,14 @@ from py_scriptutils.tracer import TraceCollector
 from conf_gtest import GTestFile
 from conf_qtest import QTestFile
 from beartype import beartype
+import pytest
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 from _pytest.nodes import Item
 from _pytest.python import Module
+import os
 
 trace_collector: TraceCollector = None
 
@@ -22,15 +24,6 @@ def get_trace_collector():
         trace_collector = TraceCollector()
 
     return trace_collector
-
-
-def pytest_addoption(parser: Parser) -> None:
-    parser.addoption(
-        "--coverage-out-dir",
-        action="store",
-        default=None,
-        help="CXX code coverage output location",
-    )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -64,7 +57,7 @@ def pytest_collect_file(parent: Module, path: str):
         pprint_to_file(to_debug_json(it), file + ".json")
 
     if test.name == "test_integrate_cxx_org.py":
-        coverage = parent.config.getoption("--coverage-out-dir")
+        coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
         result = GTestFile.from_parent(
             parent,
             path=test,
