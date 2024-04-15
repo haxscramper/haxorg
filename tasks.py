@@ -981,7 +981,7 @@ def py_tests(ctx: Context, arg: List[str] = []):
         [
             "run",
             "pytest",
-            "-v",
+            "-vv",
             "-ra",
             "-s",
             "--tb=short",

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pytest
 from pathlib import Path
 from py_scriptutils.tracer import TraceCollector
