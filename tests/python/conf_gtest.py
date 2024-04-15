@@ -3,10 +3,44 @@ import json
 from plumbum import local, ProcessExecutionError
 from beartype import beartype
 from dataclasses import dataclass
-from beartype.typing import Optional, Tuple, List
+from beartype.typing import Optional, Tuple, List, Any
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
+from pydantic import BaseModel, Field
+import json
+
+COOKIE_SUFFIX = ".profdata-cookie"
+
+
+@beartype
+def get_profile_base(coverage: Path, test_name: str) -> Path:
+    return coverage.joinpath(test_name.replace("/", "_").replace(".", "_"))
+
+
+@beartype
+def get_profraw_path(coverage: Path, test_name: str) -> Path:
+    return get_profile_base(coverage, test_name).with_suffix(".profraw")
+
+
+class ProfdataCookie(BaseModel, extra="forbid"):
+    test_binary: str
+    test_name: str
+    test_class: Optional[str] = None
+    test_profile: str
+    test_params: Any = None
+
+
+class ProfdataFullProfile(BaseModel, extra="forbid"):
+    runs: List[ProfdataCookie] = Field(default_factory=list)
+
+
+def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
+    result = ProfdataFullProfile()
+    for path in coverage.glob("*" + COOKIE_SUFFIX):
+        result.runs.append(ProfdataCookie.model_validate(json.loads(path.read_text())))
+
+    return result
 
 
 @beartype
@@ -160,7 +194,27 @@ class GTestItem(pytest.Function):
             except ProcessExecutionError as e:
                 raise GTestRunError(e, self) from None
 
-        run()
+        if self.coverage_out_dir:
+            uniq_name = self.gtest.fullname()
+            profraw = get_profraw_path(self.coverage_out_dir, test_name=uniq_name)
+            cookie = ProfdataCookie(
+                test_binary=str(test),
+                test_class=self.gtest.class_name,
+                test_name=self.gtest.test_name,
+                test_profile=str(profraw),
+            )
+
+            run({"LLVM_PROFILE_FILE": str(profraw)})
+
+            cookie_path = get_profile_base(
+                self.coverage_out_dir,
+                uniq_name,
+            ).with_suffix(COOKIE_SUFFIX)
+
+            cookie_path.write_text(cookie.model_dump_json(indent=2))
+
+        else:
+            run()
 
     @property
     def location(self) -> Tuple[str, Optional[int], str]:

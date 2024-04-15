@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 from py_scriptutils.tracer import TraceCollector
-from conf_gtest import GTestFile
+from conf_gtest import GTestFile, summarize_cookies
 from conf_qtest import QTestFile
 from beartype import beartype
 import pytest
@@ -32,6 +32,12 @@ def trace_session():
     yield
     get_trace_collector().pop_complete_event()
     get_trace_collector().export_to_json(Path("/tmp/haxorg_py_tests.json"))
+    coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
+    if coverage:
+        coverage = Path(coverage)
+        summary = summarize_cookies(coverage)
+        coverage.joinpath("test-summary.json").write_text(
+            summary.model_dump_json(indent=2))
 
 
 @pytest.fixture(scope="module", autouse=True)
