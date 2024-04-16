@@ -30,16 +30,14 @@ class ProfdataCookie(BaseModel, extra="forbid"):
     test_profile: str
     test_params: Any = None
 
+cookie_list: List[ProfdataCookie] = []
 
 class ProfdataFullProfile(BaseModel, extra="forbid"):
     runs: List[ProfdataCookie] = Field(default_factory=list)
 
 
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    result = ProfdataFullProfile()
-    for path in coverage.glob("*" + COOKIE_SUFFIX):
-        result.runs.append(ProfdataCookie.model_validate(json.loads(path.read_text())))
-
+    result = ProfdataFullProfile(runs=cookie_list)
     return result
 
 
@@ -204,14 +202,11 @@ class GTestItem(pytest.Function):
                 test_profile=str(profraw),
             )
 
+            if profraw.exists():
+                profraw.unlink()
+
             run({"LLVM_PROFILE_FILE": str(profraw)})
-
-            cookie_path = get_profile_base(
-                self.coverage_out_dir,
-                uniq_name,
-            ).with_suffix(COOKIE_SUFFIX)
-
-            cookie_path.write_text(cookie.model_dump_json(indent=2))
+            cookie_list.append(cookie)
 
         else:
             run()

@@ -974,8 +974,22 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     env = get_py_env(ctx)
 
+    coverage_dir = get_build_root("coverage_artifacts")
+
     if is_instrumented_coverage(ctx):
-        env["HAX_COVERAGE_OUT_DIR"] = str(get_build_root("coverage_artifacts"))
+        env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
+
+        profile_path = coverage_dir.joinpath("profile-collect.json")
+        log(CAT).info(f"Profile collect options: {profile_path}")
+
+        profile_path.write_text(
+            json.dumps(
+                {
+                    "coverage": str(coverage_dir.joinpath("test-summary.json")),
+                    "coverage_db": str(coverage_dir.joinpath("coverage.sqlite")),
+                },
+                indent=2,
+            ))
 
     retcode, _, _ = run_command(
         ctx,

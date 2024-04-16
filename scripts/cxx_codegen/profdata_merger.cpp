@@ -6,22 +6,34 @@
 #include <llvm/Support/CommandLine.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
+std::string read_file(fs::path const& path) {
+    std::ifstream     file{path.native()};
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
+std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
+    return std::cerr << std::format("[profmerge] {} {}\n ", line, msg);
+}
+
+
 int main(int argc, char** argv) {
     if (argc != 2) {
-        std::cerr << "Expected single positional argument -- JSON literal "
-                     "with parameters or absolute path to the JSON "
-                     "configuration file.";
+        LOG("Expected single positional argument -- JSON literal "
+            "with parameters or absolute path to the JSON "
+            "configuration file.");
         return 1;
     }
 
     std::string json_parameters;
-    if (fs::is_fifo(argv[1])) {
-        std::ifstream file{argv[1]};
-        file >> json_parameters;
+    if (std::string{argv[1]}.starts_with("/")) {
+        json_parameters = read_file(argv[1]);
     } else {
         json_parameters = std::string{argv[1]};
     }
@@ -30,28 +42,31 @@ int main(int argc, char** argv) {
         json_parameters);
 
     if (!parsed) {
-        llvm::errs() << "Failed to parse JSON: " << parsed.takeError()
-                     << "\n";
+        LOG(std::format(
+            "Failed to parse JSON: {}\n{}",
+            toString(parsed.takeError()),
+            json_parameters));
         return 1;
     }
 
+    llvm::Expected<llvm::json::Value> summary = llvm::json::parse(
+        read_file(parsed->getAsObject()->getString("coverage")->str()));
+
     auto FS = llvm::vfs::getRealFileSystem();
-    for (auto const& ProfPath :
-         *parsed->getAsObject()->getArray("coverage")) {
-        std::ifstream file{ProfPath.getAsString()->str()};
-        std::string   content;
-        file >> content;
-        auto        cookie        = llvm::json::parse(content);
-        std::string coverage_path = cookie->getAsObject()
-                                        ->getString("path")
+    for (auto const& run : *summary->getAsObject()->getArray("runs")) {
+        std::string coverage_path = run.getAsObject()
+                                        ->getString("test_profile")
                                         ->str();
 
         auto ReaderOr = llvm::InstrProfReader::create(coverage_path, *FS);
         if (llvm::Error E = ReaderOr.takeError()) {
-            std::cerr << "Error reading profile data from "
-                      << coverage_path << ": " << toString(std::move(E))
-                      << "\n";
+            LOG(std::format(
+                "Error reading profile data from {}: {}",
+                coverage_path,
+                toString(std::move(E))));
             return 1;
+        } else {
+            LOG(std::format("Coverage path {} ok", coverage_path));
         }
     }
 }
