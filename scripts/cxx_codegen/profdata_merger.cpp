@@ -25,14 +25,61 @@
 namespace fs = std::filesystem;
 using namespace llvm;
 using namespace llvm::coverage;
-using itanium_demangle::Node;
+using namespace itanium_demangle;
 
-BOOST_DESCRIBE_ENUM_BEGIN(itanium_demangle::Node::Kind)
-#define NODE(NodeKind)                                                    \
-    BOOST_DESCRIBE_ENUM_ENTRY(itanium_demangle::Node::Kind, K##NodeKind)
+enum class KindProxy
+{
+#define NODE(NodeKind) NodeKind,
+#include <llvm/Demangle/ItaniumNodes.def>
+};
+
+BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
+#define NODE(NodeKind) BOOST_DESCRIBE_ENUM_ENTRY(KindProxy, NodeKind)
 #include <llvm/Demangle/ItaniumNodes.def>
 BOOST_DESCRIBE_ENUM_END()
 
+
+std::string treeRepr(Node const* node, int indent) {
+    std::string result = "";
+    if (node == nullptr) {
+        result += "<nil>";
+        return result;
+    }
+    result += std::string(indent * 2, ' ');
+    result += std::string{boost::describe::enum_to_string(
+        static_cast<KindProxy>(node->getKind()), "<none>")};
+
+
+    auto sub = [indent, &result](Node const* sub) {
+        result += "\n" + treeRepr(sub, indent + 1);
+    };
+
+    using K = itanium_demangle::Node::Kind;
+    switch (node->getKind()) {
+        case K::KFunctionEncoding: {
+            auto cast = static_cast<FunctionEncoding const*>(node);
+            sub(cast->getName());
+            break;
+        }
+        case K::KNestedName: {
+            auto cast = static_cast<NestedName const*>(node);
+            sub(cast->Qual);
+            sub(cast->Name);
+            break;
+        }
+        case K::KNameType: {
+            auto cast = static_cast<NameType const*>(node);
+            result += std::format(
+                " base:{} name:{}", cast->getBaseName(), cast->getName());
+            break;
+        }
+        default: {
+            result += " <unhandled>";
+        }
+    }
+
+    return result;
+}
 
 namespace {
 class BumpPointerAllocator {
@@ -263,6 +310,7 @@ int main(int argc, char** argv) {
                 f.Name.data(), f.Name.data() + f.Name.length());
 
             Node* AST = Parser.parse();
+            LOG(std::format("{}", treeRepr(AST, 0)));
         }
     }
 }
