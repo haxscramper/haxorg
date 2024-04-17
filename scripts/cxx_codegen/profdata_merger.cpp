@@ -8,8 +8,18 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/ProfileData/InstrProfReader.h>
+#include <llvm/ProfileData/InstrProfWriter.h>
+#include <llvm/ProfileData/Coverage/CoverageMappingReader.h>
+
 
 namespace fs = std::filesystem;
+using namespace llvm;
+using namespace llvm::coverage;
 
 std::string read_file(fs::path const& path) {
     std::ifstream     file{path.native()};
@@ -19,7 +29,56 @@ std::string read_file(fs::path const& path) {
 }
 
 std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
-    return std::cerr << std::format("[profmerge] {} {}\n ", line, msg);
+    return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
+}
+
+
+static void loadInput(
+    std::string const& Filename,
+    std::string const& ProfiledBinary,
+    InstrProfWriter*   Writer) {
+
+    auto FS          = vfs::getRealFileSystem();
+    auto ReaderOrErr = InstrProfReader::create(Filename, *FS);
+    if (Error E = ReaderOrErr.takeError()) {
+        auto [ErrCode, Msg] = InstrProfError::take(std::move(E));
+        if (ErrCode != instrprof_error::empty_raw_profile) {
+            assert(false);
+        }
+        return;
+    }
+
+    auto Reader = std::move(ReaderOrErr.get());
+    for (auto& I : *Reader) {
+        const StringRef FuncName = I.Name;
+        bool            Reported = false;
+        Writer->addRecord(std::move(I), 1, [&](Error E) {
+            LOG(std::format("{}", toString(std::move(E))));
+        });
+    }
+
+    if (Reader->hasTemporalProfile()) {
+        auto& Traces = Reader->getTemporalProfTraces();
+        if (!Traces.empty()) {
+            Writer->addTemporalProfileTraces(
+                Traces, Reader->getTemporalProfTraceStreamSize());
+        }
+    }
+
+    if (Reader->hasError()) {
+        if (Error E = Reader->getError()) {
+            LOG(std::format("{} {}", toString(std::move(E)), Filename));
+            return;
+        }
+    }
+
+    std::vector<object::BuildID> BinaryIds;
+    if (Error E = Reader->readBinaryIds(BinaryIds)) {
+        LOG(std::format("{} {}", toString(std::move(E)), Filename));
+        return;
+    }
+
+    Writer->addBinaryIds(BinaryIds);
 }
 
 
@@ -38,8 +97,7 @@ int main(int argc, char** argv) {
         json_parameters = std::string{argv[1]};
     }
 
-    llvm::Expected<llvm::json::Value> parsed = llvm::json::parse(
-        json_parameters);
+    Expected<json::Value> parsed = json::parse(json_parameters);
 
     if (!parsed) {
         LOG(std::format(
@@ -49,24 +107,63 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    llvm::Expected<llvm::json::Value> summary = llvm::json::parse(
+    Expected<json::Value> summary = json::parse(
         read_file(parsed->getAsObject()->getString("coverage")->str()));
 
-    auto FS = llvm::vfs::getRealFileSystem();
+    auto FS = vfs::getRealFileSystem();
     for (auto const& run : *summary->getAsObject()->getArray("runs")) {
         std::string coverage_path = run.getAsObject()
                                         ->getString("test_profile")
                                         ->str();
 
-        auto ReaderOr = llvm::InstrProfReader::create(coverage_path, *FS);
-        if (llvm::Error E = ReaderOr.takeError()) {
+        std::string binary_path = run.getAsObject()
+                                      ->getString("test_binary")
+                                      ->str();
+
+
+        InstrProfWriter Writer;
+        loadInput(coverage_path, binary_path, &Writer);
+        LOG(std::format(
+            "Loaded {} binary {}", coverage_path, binary_path));
+
+        std::vector<StringRef> ObjectFilenames;
+        ObjectFilenames.push_back(binary_path);
+
+        std::string tmp_path = "/tmp/tmp.profdata";
+
+        {
+            std::error_code EC;
+            raw_fd_ostream  Output(tmp_path, EC, sys::fs::OF_None);
+
+            if (EC) {
+                LOG(std::format(
+                    "Error while creating output stream {}",
+                    EC.message()));
+                return 1;
+            }
+
+            if (Error E = Writer.write(Output)) {
+                LOG(std::format(
+                    "Failed write: {}", toString(std::move(E))));
+                return 1;
+            }
+        }
+
+        auto FS = vfs::getRealFileSystem();
+        Expected<std::unique_ptr<CoverageMapping>>
+            mapping_or_err = CoverageMapping::load(
+                ObjectFilenames, tmp_path, *FS);
+
+        if (Error E = mapping_or_err.takeError()) {
             LOG(std::format(
-                "Error reading profile data from {}: {}",
-                coverage_path,
-                toString(std::move(E))));
+                "Failed to load profdata {}", toString(std::move(E))));
             return 1;
-        } else {
-            LOG(std::format("Coverage path {} ok", coverage_path));
+        }
+
+        auto const& mapping = mapping_or_err.get();
+
+        for (auto const& f : mapping->getCoveredFunctions()) {
+            LOG(std::format("{}", f.Name));
         }
     }
 }
