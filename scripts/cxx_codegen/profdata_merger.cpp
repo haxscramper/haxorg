@@ -77,7 +77,7 @@ json::Value treeRepr(Node const* node) {
     std::string Kind = std::string{boost::describe::enum_to_string(
         static_cast<KindProxy>(node->getKind()), "<none>")};
 
-    result["Kind"] = Kind;
+    result["NodeKind"] = Kind;
 
     auto sub = overloaded{
         [&result](std::string const& field, json::Value value) {
@@ -126,11 +126,17 @@ json::Value treeRepr(Node const* node) {
     }                                                                     \
     default:
 
+
+#define K_CASE_END()                                                      \
+    break;                                                                \
+    }
+
 #define K_SWITCH(Expr)                                                    \
     switch (Expr) {                                                       \
         {
 
 #define K_FIELD(Name, Idx, Type) sub(#Name, match<Idx, Type>(cast));
+
 
     using NPtr = Node const*;
 
@@ -139,6 +145,59 @@ json::Value treeRepr(Node const* node) {
         K_CAST(LiteralOperator) { K_FIELD(OpName, 0, NPtr); }
         K_CAST(TemplateArgs) { K_FIELD(Params, 0, NodeArray); }
         K_CAST(PointerType) { K_FIELD(Pointee, 0, NPtr); }
+        K_CAST(TemplateArgumentPack) { K_FIELD(Elements, 0, NodeArray); }
+        K_CAST(ParameterPackExpansion) { K_FIELD(Child, 0, NPtr); }
+        K_CAST(ParameterPack) { K_FIELD(Data, 0, NodeArray); }
+        K_CAST(ConversionOperatorType) { K_FIELD(Ty, 0, NPtr); }
+        K_CAST(EnableIfAttr) { K_FIELD(Conditions, 0, NodeArray); }
+
+        K_CAST(BitIntType) {
+            K_FIELD(Size, 0, NPtr);
+            K_FIELD(Signed, 1, bool);
+        }
+
+        K_CAST(EnumLiteral) {
+            K_FIELD(Ty, 0, NPtr);
+            K_FIELD(Integer, 1, std::string_view);
+        }
+
+        K_CAST(PostfixQualifiedType) {
+            K_FIELD(Ty, 0, NPtr);
+            K_FIELD(Postfix, 1, std::string_view);
+        }
+
+        K_CAST(EnclosingExpr) {
+            K_FIELD(Prefix, 0, std::string_view);
+            K_FIELD(Infix, 1, NPtr);
+        }
+
+        K_CAST(QualifiedName) {
+            K_FIELD(Qualifier, 0, NPtr);
+            K_FIELD(Name, 1, NPtr);
+        }
+
+        K_CAST(CastExpr) {
+            K_FIELD(CastKind, 0, std::string_view);
+            K_FIELD(To, 1, NPtr);
+            K_FIELD(From, 2, NPtr);
+        }
+
+        K_CAST(MemberExpr) {
+            K_FIELD(LHS, 0, NPtr);
+            K_FIELD(Kind, 1, std::string_view);
+            K_FIELD(RHS, 2, NPtr);
+        }
+
+        K_CAST(CallExpr) {
+            K_FIELD(Callee, 0, NPtr);
+            K_FIELD(Args, 1, NodeArray);
+        }
+
+
+        K_CAST(ElaboratedTypeSpefType) {
+            K_FIELD(Kind, 0, std::string_view);
+            K_FIELD(Child, 1, NPtr);
+        }
 
         K_CAST(FunctionEncoding) {
             K_FIELD(Ret, 0, NPtr);
@@ -181,7 +240,7 @@ json::Value treeRepr(Node const* node) {
             K_FIELD(Variant, 2, int);
         }
 
-
+        // K_CASE_END()
         K_DEFAULT() {
             LOG(std::format("ERR:'{}'", Kind));
             llvm::llvm_unreachable_internal();
