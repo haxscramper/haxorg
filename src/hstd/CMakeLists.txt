@@ -1,7 +1,7 @@
 add_library(hstd)
 set_common_files(hstd)
-glob_add_sources2(hstd "${BASE}/src/system/.*")
-glob_add_sources2(hstd "${BASE}/src/hstd/.*")
+glob_add_sources2(hstd "${BASE}/src/system/.*" "${BASE}")
+glob_add_sources2(hstd "${BASE}/src/hstd/.*" "${BASE}")
 set_target_output(hstd)
 set_target_flags(hstd)
 
@@ -24,11 +24,13 @@ target_link_libraries(
     boost_describe
 )
 
+message(STATUS "BASE = ${BASE}/tests/hstd/.*")
+
 add_executable(tests_hstd)
 set_common_files(tests_hstd)
 set_target_output(tests_hstd)
 set_target_flags(tests_hstd)
-glob_add_sources2(tests_hstd "${BASE}/tests/hstd/.*")
+glob_add_sources2(tests_hstd "${BASE}/tests/hstd/.*" "${BASE}")
 
 target_link_libraries(
     tests_hstd PUBLIC
