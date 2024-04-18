@@ -17,6 +17,7 @@
 #include <llvm/ProfileData/Coverage/CoverageMappingReader.h>
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/Demangle/ItaniumDemangle.h>
+#include <SQLiteCpp/SQLiteCpp.h>
 
 
 #include <boost/describe.hpp>
