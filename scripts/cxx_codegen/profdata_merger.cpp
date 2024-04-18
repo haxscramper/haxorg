@@ -98,16 +98,51 @@ json::Value treeRepr(Node const* node) {
             result[field] = std::move(array);
         },
         [&result](std::string const& field, Qualifiers const& value) {
+            json::Array array;
+            if (value & Qualifiers::QualConst) {
+                array.push_back("QualConst");
+            }
 
+            if (value & Qualifiers::QualVolatile) {
+                array.push_back("QualVolatile");
+            }
+
+            if (value & Qualifiers::QualRestrict) {
+                array.push_back("QualRestrict");
+            }
+
+            result[field] = std::move(array);
         },
         [&result](std::string const& field, FunctionRefQual const& value) {
 
         },
+        [&result](std::string const& field, ModuleName const& value) {
+
+        },
+        [&result](
+            std::string const& field, TemplateParamKind const& value) {
+            switch (value) {
+                case TemplateParamKind::Type:
+                    result[field] = "Type";
+                    break;
+                case TemplateParamKind::NonType:
+                    result[field] = "NonType";
+                    break;
+                case TemplateParamKind::Template:
+                    result[field] = "Template";
+                    break;
+                default: llvm_unreachable("unreacahable default");
+            }
+        },
         [&result](std::string const& field, ReferenceKind const& RK) {
-            if (RK == ReferenceKind::LValue) {
-                result[field] = "LValue";
-            } else {
-                result[field] = "RValue";
+            switch (RK) {
+                case ReferenceKind::LValue:
+                    result[field] = "LValue";
+                    break;
+                case ReferenceKind::RValue:
+                    result[field] = "RValue";
+                    break;
+                default: llvm_unreachable("unreacahable default");
             }
         },
     };
@@ -150,15 +185,99 @@ json::Value treeRepr(Node const* node) {
         K_CAST(ParameterPack) { K_FIELD(Data, 0, NodeArray); }
         K_CAST(ConversionOperatorType) { K_FIELD(Ty, 0, NPtr); }
         K_CAST(EnableIfAttr) { K_FIELD(Conditions, 0, NodeArray); }
+        K_CAST(BoolExpr) { K_FIELD(Value, 0, bool); }
+        K_CAST(FunctionParam) { K_FIELD(Number, 0, std::string_view); }
+        K_CAST(NodeArrayNode) { K_FIELD(Array, 0, NodeArray); }
+        K_CAST(NoexceptSpec) { K_FIELD(E, 0, NPtr); }
+        K_CAST(DynamicExceptionSpec) { K_FIELD(Types, 0, NodeArray); }
+        K_CAST(PixelVectorType) { K_FIELD(Dimension, 0, NPtr); }
+        K_CAST(BinaryFPType) { K_FIELD(Dimension, 0, NPtr); }
+
+        K_CAST(VectorType) {
+            K_FIELD(BaseType, 0, NPtr);
+            K_FIELD(Dimension, 1, NPtr);
+        }
+
+
+        K_CAST(SyntheticTemplateParamName) {
+            K_FIELD(Kind, 0, TemplateParamKind);
+            K_FIELD(Index, 1, unsigned);
+        }
+
+
+        K_CAST(SpecialName) {
+            K_FIELD(Special, 0, std::string_view);
+            K_FIELD(Child, 1, NPtr);
+        }
+
+        K_CAST(PrefixExpr) {
+            K_FIELD(Prefix, 0, std::string_view);
+            K_FIELD(Child, 1, NPtr);
+        }
+
+        K_CAST(ModuleName) {
+            sub("Parent", cast->Parent);
+            K_FIELD(Name, 1, NPtr);
+            K_FIELD(IsPartition, 2, bool);
+        }
+
+        K_CAST(ModuleEntity) {
+            sub("Module", cast->Module);
+            K_FIELD(Name, 1, NPtr);
+        }
+
+
+        K_CAST(CtorVtableSpecialName) {
+            K_FIELD(FirstType, 0, NPtr);
+            K_FIELD(SecondType, 1, NPtr);
+        }
+
+        K_CAST(ObjCProtoName) {
+            K_FIELD(Ty, 0, NPtr);
+            K_FIELD(Protocol, 1, std::string_view);
+        }
+
+
+        K_CAST(PointerToMemberType) {
+            K_FIELD(ClassType, 0, NPtr);
+            K_FIELD(MemberType, 1, NPtr);
+        }
+
+        K_CAST(DotSuffix) {
+            K_FIELD(Prefix, 0, NPtr);
+            K_FIELD(SUffix, 1, std::string_view);
+        }
+
+        K_CAST(VendorExtQualType) {
+            K_FIELD(Ty, 0, NPtr);
+            K_FIELD(Ext, 1, std::string_view);
+            K_FIELD(TA, 2, NPtr);
+        }
+
+        K_CAST(AbiTagAttr) {
+            K_FIELD(Base, 0, NPtr);
+            K_FIELD(Tag, 1, std::string_view);
+        }
 
         K_CAST(BitIntType) {
             K_FIELD(Size, 0, NPtr);
             K_FIELD(Signed, 1, bool);
         }
 
+        K_CAST(ConversionExpr) {
+            K_FIELD(Type, 0, NPtr);
+            K_FIELD(Expressions, 1, NodeArray);
+        }
+
         K_CAST(EnumLiteral) {
             K_FIELD(Ty, 0, NPtr);
             K_FIELD(Integer, 1, std::string_view);
+        }
+
+
+        K_CAST(LocalName) {
+            K_FIELD(Encoding, 0, NPtr);
+            K_FIELD(Entity, 1, NPtr);
         }
 
         K_CAST(PostfixQualifiedType) {
@@ -171,6 +290,13 @@ json::Value treeRepr(Node const* node) {
             K_FIELD(Infix, 1, NPtr);
         }
 
+        K_CAST(ClosureTypeName) {
+            K_FIELD(TemplateParams, 0, NodeArray);
+            K_FIELD(Params, 1, NodeArray);
+            K_FIELD(Count, 2, std::string_view);
+        }
+
+
         K_CAST(QualifiedName) {
             K_FIELD(Qualifier, 0, NPtr);
             K_FIELD(Name, 1, NPtr);
@@ -182,9 +308,20 @@ json::Value treeRepr(Node const* node) {
             K_FIELD(From, 2, NPtr);
         }
 
+        K_CAST(ArrayType) {
+            K_FIELD(Base, 0, NPtr);
+            K_FIELD(Dimension, 1, NPtr);
+        }
+
         K_CAST(MemberExpr) {
             K_FIELD(LHS, 0, NPtr);
             K_FIELD(Kind, 1, std::string_view);
+            K_FIELD(RHS, 2, NPtr);
+        }
+
+        K_CAST(BinaryExpr) {
+            K_FIELD(LHS, 0, NPtr);
+            K_FIELD(InfixOperator, 1, std::string_view);
             K_FIELD(RHS, 2, NPtr);
         }
 
@@ -206,6 +343,14 @@ json::Value treeRepr(Node const* node) {
             K_FIELD(Attrs, 3, NPtr);
             K_FIELD(CVQuals, 4, Qualifiers);
             K_FIELD(RefQual, 5, FunctionRefQual);
+        }
+
+        K_CAST(FunctionType) {
+            K_FIELD(Ret, 0, NPtr);
+            K_FIELD(Params, 1, NodeArray);
+            K_FIELD(CVQuals, 2, Qualifiers);
+            K_FIELD(RefQual, 3, FunctionRefQual);
+            K_FIELD(ExpcetionSpec, 4, NPtr);
         }
 
         K_CAST(NestedName) {
@@ -240,12 +385,17 @@ json::Value treeRepr(Node const* node) {
             K_FIELD(Variant, 2, int);
         }
 
-        // K_CASE_END()
-        K_DEFAULT() {
-            LOG(std::format("ERR:'{}'", Kind));
-            llvm::llvm_unreachable_internal();
-            break;
+        K_CAST(InitListExpr) {
+            K_FIELD(Ty, 0, NPtr);
+            K_FIELD(Inits, 1, NodeArray);
         }
+
+        K_CASE_END()
+        // K_DEFAULT() {
+        //     LOG(std::format("ERR:'{}'", Kind));
+        //     llvm::llvm_unreachable_internal();
+        //     break;
+        // }
     }
 }
 
