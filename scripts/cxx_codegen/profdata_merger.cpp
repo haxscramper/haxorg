@@ -39,46 +39,158 @@ BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 BOOST_DESCRIBE_ENUM_END()
 
 
-std::string treeRepr(Node const* node, int indent) {
-    std::string result = "";
-    if (node == nullptr) {
-        result += "<nil>";
-        return result;
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
+    return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
+}
+
+
+template <int N, typename T>
+struct ForwardNth {
+    T* target;
+    template <typename... Args>
+    decltype(auto) operator()(Args&&... args) const {
+        *target = std::get<N>(
+            std::forward_as_tuple(std::forward<Args>(args)...));
     }
-    result += std::string(indent * 2, ' ');
-    result += std::string{boost::describe::enum_to_string(
+};
+
+template <int N, typename T, typename TNode>
+T match(TNode const* node) {
+    T result;
+    node->match(ForwardNth<N, T>{&result});
+    return result;
+}
+
+
+json::Value treeRepr(Node const* node) {
+    json::Object result;
+    if (node == nullptr) { return result; }
+
+    std::string Kind = std::string{boost::describe::enum_to_string(
         static_cast<KindProxy>(node->getKind()), "<none>")};
 
+    result["Kind"] = Kind;
 
-    auto sub = [indent, &result](Node const* sub) {
-        result += "\n" + treeRepr(sub, indent + 1);
+    auto sub = overloaded{
+        [&result](std::string const& field, json::Value value) {
+            result[field] = value;
+        },
+        [&result](std::string const& field, std::string_view value) {
+            result[field] = std::string{value.begin(), value.end()};
+        },
+        [&result](std::string const& field, std::string value) {
+            result[field] = value;
+        },
+        [&result](std::string const& field, Node const* value) {
+            result[field] = treeRepr(value);
+        },
+        [&result](std::string const& field, NodeArray const& value) {
+            json::Array array;
+            for (auto const& it : value) { array.push_back(treeRepr(it)); }
+            result[field] = std::move(array);
+        },
+        [&result](std::string const& field, Qualifiers const& value) {
+
+        },
+        [&result](std::string const& field, FunctionRefQual const& value) {
+
+        },
+        [&result](std::string const& field, ReferenceKind const& RK) {
+            if (RK == ReferenceKind::LValue) {
+                result[field] = "LValue";
+            } else {
+                result[field] = "RValue";
+            }
+        },
     };
 
     using K = itanium_demangle::Node::Kind;
-    switch (node->getKind()) {
-        case K::KFunctionEncoding: {
-            auto cast = static_cast<FunctionEncoding const*>(node);
-            sub(cast->getName());
-            break;
+
+#define K_CAST(Name)                                                      \
+    break;                                                                \
+    }                                                                     \
+    case K::K##Name: {                                                    \
+        auto cast = const_cast<llvm::itanium_demangle::Name*>(            \
+            static_cast<llvm::itanium_demangle::Name const*>(node));
+
+#define K_DEFAULT()                                                       \
+    break;                                                                \
+    }                                                                     \
+    default:
+
+#define K_SWITCH(Expr)                                                    \
+    switch (Expr) {                                                       \
+        {
+
+#define K_FIELD(Name, Idx, Type) sub(#Name, match<Idx, Type>(cast));
+
+    using NPtr = Node const*;
+
+    K_SWITCH(node->getKind()) {
+        K_CAST(NameType) { K_FIELD(Name, 0, std::string_view); }
+        K_CAST(LiteralOperator) { K_FIELD(OpName, 0, NPtr); }
+        K_CAST(TemplateArgs) { K_FIELD(Params, 0, NodeArray); }
+        K_CAST(PointerType) { K_FIELD(Pointee, 0, NPtr); }
+
+        K_CAST(FunctionEncoding) {
+            K_FIELD(Ret, 0, NPtr);
+            K_FIELD(Name, 1, NPtr);
+            K_FIELD(Params, 2, NodeArray);
+            K_FIELD(Attrs, 3, NPtr);
+            K_FIELD(CVQuals, 4, Qualifiers);
+            K_FIELD(RefQual, 5, FunctionRefQual);
         }
-        case K::KNestedName: {
-            auto cast = static_cast<NestedName const*>(node);
-            sub(cast->Qual);
-            sub(cast->Name);
-            break;
+
+        K_CAST(NestedName) {
+            K_FIELD(Qual, 0, NPtr);
+            K_FIELD(Name, 1, NPtr);
         }
-        case K::KNameType: {
-            auto cast = static_cast<NameType const*>(node);
-            result += std::format(
-                " base:{} name:{}", cast->getBaseName(), cast->getName());
-            break;
+
+        K_CAST(QualType) {
+            K_FIELD(Child, 0, NPtr);
+            K_FIELD(Quals, 1, Qualifiers);
         }
-        default: {
-            result += " <unhandled>";
+
+        K_CAST(ReferenceType) {
+            K_FIELD(Pointee, 0, NPtr);
+            K_FIELD(RK, 1, ReferenceKind);
+        }
+
+
+        K_CAST(IntegerLiteral) {
+            K_FIELD(Type, 0, std::string_view);
+            K_FIELD(Value, 1, std::string_view);
+        }
+
+        K_CAST(NameWithTemplateArgs) {
+            K_FIELD(Name, 0, NPtr);
+            K_FIELD(TemplateArgs, 1, NPtr);
+        }
+
+        K_CAST(CtorDtorName) {
+            K_FIELD(Basename, 0, NPtr);
+            K_FIELD(IsDtor, 1, bool);
+            K_FIELD(Variant, 2, int);
+        }
+
+
+        K_DEFAULT() {
+            LOG(std::format("ERR:'{}'", Kind));
+            llvm::llvm_unreachable_internal();
+            break;
         }
     }
+}
 
-    return result;
+return result;
 }
 
 namespace {
@@ -165,10 +277,6 @@ std::string read_file(fs::path const& path) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
-}
-
-std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
-    return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
 }
 
 
@@ -309,8 +417,9 @@ int main(int argc, char** argv) {
             Demangler Parser(
                 f.Name.data(), f.Name.data() + f.Name.length());
 
-            Node* AST = Parser.parse();
-            LOG(std::format("{}", treeRepr(AST, 0)));
+            Node*       AST  = Parser.parse();
+            json::Value repr = treeRepr(AST);
+            // LOG(formatv("{0:2}", repr));
         }
     }
 }
