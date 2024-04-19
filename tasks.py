@@ -514,7 +514,7 @@ def haxorg_base_lexer(ctx: Context):
 @org_task()
 def python_protobuf_files(ctx: Context):
     """Generate new python code from the protobuf reflection files"""
-    proto_config = get_script_root("scripts/cxx_codegen/reflection_defs.proto")
+    proto_config = get_script_root("scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
     with FileOperation.InTmp(
         [proto_config],
             stamp_path=get_task_stamp("python-protobuf-files"),
@@ -676,7 +676,7 @@ def update_py_haxorg_reflection(
         if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
             exitcode, stdout, stderr = run_command(
                 ctx,
-                "build/utils/reflection_tool",
+                "build/utils/reflection_tool/reflection_tool",
                 [
                     "-p",
                     compile_commands,
@@ -981,6 +981,8 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
         profile_path = coverage_dir.joinpath("profile-collect.json")
         log(CAT).info(f"Profile collect options: {profile_path}")
+
+        profile_path.parent.mkdir(parents=True, exist_ok=True)
 
         profile_path.write_text(
             json.dumps(

@@ -157,8 +157,10 @@ class FileOperation:
             newer = [p for p in self.input if p.exists() and min_time < p.stat().st_mtime]
 
             def format_files(files: Iterable[Path]) -> str:
-                return ", ".join(
-                    (f"{it.name} ({mtime_str(it.stat().st_mtime)})" for it in files))
+                return ", ".join(("{} ({})".format(
+                    it.name,
+                    mtime_str(it.stat().st_mtime) if it.exists() else "<missing>",
+                ) for it in files))
 
             if newer:
                 why += " {} files were changed since last creation of {}: {}".format(
