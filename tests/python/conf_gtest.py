@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 from pydantic import BaseModel, Field
 import json
+from py_repository.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
 
 COOKIE_SUFFIX = ".profdata-cookie"
 
@@ -23,17 +24,7 @@ def get_profraw_path(coverage: Path, test_name: str) -> Path:
     return get_profile_base(coverage, test_name).with_suffix(".profraw")
 
 
-class ProfdataCookie(BaseModel, extra="forbid"):
-    test_binary: str
-    test_name: str
-    test_class: Optional[str] = None
-    test_profile: str
-    test_params: Any = None
-
 cookie_list: List[ProfdataCookie] = []
-
-class ProfdataFullProfile(BaseModel, extra="forbid"):
-    runs: List[ProfdataCookie] = Field(default_factory=list)
 
 
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
