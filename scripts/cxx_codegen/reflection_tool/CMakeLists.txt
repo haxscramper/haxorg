@@ -22,9 +22,12 @@ add_library(
   "${REFL_DIR}/clang_reflection_lib.cpp" "${REFL_DIR}/clang_reflection_lib.hpp"
   ${ORG_PROTO_GENERATED_FILES})
 
+target_compile_definitions(reflection_lib PUBLIC ${LLVM_DEFINITIONS})
+
 target_include_directories(
-  reflection_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src"
-                        "${DEPS_DIR}/abseil-cpp")
+  reflection_lib
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src"
+         "${DEPS_DIR}/abseil-cpp" ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
 target_compile_options(reflection_lib PRIVATE "-fPIC")
@@ -60,25 +63,21 @@ add_custom_command(
   TARGET reflection_tool
   POST_BUILD
   COMMAND "${CMAKE_COMMAND}" -E create_symlink "${CMAKE_BINARY_DIR}"
-          "${BASE}/build/utils")
+          "${BASE}/build/haxorg")
 
 # Shared library can be loaded as clang plugin
 
 # NOTE: Not linking any LVM libraries here as it will cause LLVM ERROR:
 # inconsistency in registered CommandLine options due to duplicate symbols that
-# are loaded in clang and then in shared library.
-add_library(reflection_plugin SHARED clang_reflection_plugin.cpp)
-set_target_properties(reflection_plugin PROPERTIES CXX_STANDARD 20)
-target_link_libraries(reflection_plugin PRIVATE reflection_lib)
+# are loaded in clang and then in shared library. add_library(reflection_plugin
+# SHARED clang_reflection_plugin.cpp) set_target_properties(reflection_plugin
+# PROPERTIES CXX_STANDARD 20) target_link_libraries(reflection_plugin PRIVATE
+# reflection_lib)
 
-add_custom_command(
-  TARGET reflection_plugin
-  POST_BUILD
-  COMMAND "${CMAKE_COMMAND}" -E create_symlink "${CMAKE_BINARY_DIR}"
-          "${BASE}/build/utils")
+# add_custom_command( TARGET reflection_plugin POST_BUILD COMMAND
+# "${CMAKE_COMMAND}" -E create_symlink "${CMAKE_BINARY_DIR}"
+# "${BASE}/build/haxorg")
 
-add_custom_command(
-  TARGET reflection_plugin
-  POST_BUILD
-  COMMAND "${CMAKE_COMMAND}" -E create_symlink "${PROTOBUF_BINARY}/protoc"
-          "${BASE}/build/utils/protoc")
+# add_custom_command( TARGET reflection_plugin POST_BUILD COMMAND
+# "${CMAKE_COMMAND}" -E create_symlink "${PROTOBUF_BINARY}/protoc"
+# "${BASE}/build/haxorg/protoc")
