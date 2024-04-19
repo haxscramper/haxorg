@@ -7,6 +7,7 @@ set(TOOLCHAIN "${BASE}/toolchain")
 # Set the LLVM_DIR to the location of LLVMConfig.cmake
 set(LLVM_DIR "${TOOLCHAIN}/llvm/lib/cmake/llvm")
 set(Clang_DIR "${TOOLCHAIN}/llvm/lib/cmake/clang")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 set(DEPS_DIR "${BASE}/thirdparty")
 set(LLVM_LIB_DIR "${TOOLCHAIN}/llvm/lib")
@@ -16,18 +17,18 @@ set(LLVM_LIB_DIR "${TOOLCHAIN}/llvm/lib")
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
 
-# LLVM libraries, quite surprisingly, cannot be linked with the LLVM standard library build, 
-# mainly due to the `std::string` ABI issues for functions that use this class. So I need to
-# revert to the baseline global state of the cmake flags here (which was necessary for abseil
-# library). Also drop RTTI as the LLVM libs were compiled without it. 
-set(CMAKE_EXE_LINKER_FLAGS_TMP "${CMAKE_EXE_LINKER_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS_BASE}")
-
-set(CMAKE_CXX_FLAGS_TMP "${CMAKE_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_EXE_LINKER_FLAGS_BASE} -fno-rtti")
+# Adding LLVM definitions and include directories
+add_definitions(${LLVM_DEFINITIONS})
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
 
 add_subdirectory(profdata_merger)
 add_subdirectory(reflection_tool)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_TMP}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS_TMP}")
+add_executable(convert_const_ref convert_const_ref.cpp)
+target_link_libraries(
+  convert_const_ref ${llvm_libs} clangBasic clangASTMatchers
+  clangTooling # Add more Clang components as neede
+)
+
+set_target_properties(convert_const_ref PROPERTIES CXX_STANDARD 20)

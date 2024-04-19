@@ -38,9 +38,6 @@ set(LLVM_GNU_INCLUDE "${LLVM_DIR}/include/x86_64-unknown-linux-gnu/c++/v1")
 # Standard library headers
 set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
 
-set(CMAKE_CXX_FLAGS_BASE "${CMAKE_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS_BASE "${CMAKE_EXE_LINKER_FLAGS}")
-
 # Globally configure compiler flags with all necessary flags etc., this will be shared 
 # down to all sub-components and dependencies. 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
