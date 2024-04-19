@@ -18,9 +18,10 @@
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/Demangle/ItaniumDemangle.h>
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <hstd/system/aux_utils.hpp>
+
 
 #include <boost/describe.hpp>
+
 
 namespace fs = std::filesystem;
 using namespace llvm;
@@ -38,6 +39,14 @@ BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 #include <llvm/Demangle/ItaniumNodes.def>
 BOOST_DESCRIBE_ENUM_END()
 
+
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);

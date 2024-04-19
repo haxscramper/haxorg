@@ -91,6 +91,8 @@ endfunction()
 
 function(glob_add_sources TARGET EXT_GLOB LS_REGEX)
   list_filter_files(SRC_FILES ${EXT_GLOB} "${LS_REGEX}")
+  message(STATUS "TARGET = ${TARGET} EXT_GLOB = ${EXT_GLOB} LS_REGEX = ${LS_REGEX}")
+  message(STATUS "SRC_FILES = ${SRC_FILES}")
   add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
 endfunction()
 

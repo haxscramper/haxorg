@@ -62,11 +62,11 @@ def get_script_root(relative: Optional[str] = None) -> Path:
 
 
 @beartype
-def get_real_build_basename(ctx: Context) -> str:
+def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"]) -> str:
     """
     Get basename of the binary output directory for component
     """
-    result = "haxorg_" + ("debug" if get_config(ctx).debug else "release")
+    result = component + "_" + ("debug" if get_config(ctx).debug else "release")
     if get_config(ctx).instrument.coverage:
         result += "_instrumented"
 
@@ -74,8 +74,8 @@ def get_real_build_basename(ctx: Context) -> str:
 
 
 @beartype
-def get_component_build_dir(ctx: Context) -> Path:
-    result = get_build_root(get_real_build_basename(ctx))
+def get_component_build_dir(ctx: Context, component: Literal["haxorg", "utils"]) -> Path:
+    result = get_build_root(get_real_build_basename(ctx, component))
     result.mkdir(parents=True, exist_ok=True)
     return result
 
@@ -424,6 +424,34 @@ def base_environment(ctx: Context):
     pass
 
 
+@org_task(pre=[base_environment])
+def cmake_configure_utils(ctx: Context):
+    """Execute configuration for utility binary compilation"""
+    log(CAT).info("Configuring cmake utils build")
+    run_command(
+        ctx,
+        "cmake",
+        [
+            "-B",
+            get_component_build_dir(ctx, "utils"),
+            "-S",
+            str(get_script_root().joinpath("scripts/cxx_codegen")),
+            "-G",
+            "Ninja",
+            f"-DCMAKE_BUILD_TYPE={'Debug' if get_config(ctx).debug else 'RelWithDebInfo'}",
+            f"-DCMAKE_CXX_COMPILER={get_script_root('toolchain/llvm/bin/clang++')}",
+        ],
+    )
+
+
+@org_task(task_name="Build cmake utils", pre=[cmake_configure_utils])
+def cmake_utils(ctx: Context):
+    """Compile libraries and binaries for utils"""
+    log(CAT).info("Building build utils")
+    run_command(ctx, "cmake", ["--build", get_component_build_dir(ctx, "utils")])
+    log(CAT).info("CMake utils build ok")
+
+
 REFLEX_PATH = "build/reflex"
 
 
@@ -526,7 +554,7 @@ def python_protobuf_files(ctx: Context):
 
 
 @org_task(pre=[base_environment])
-def cmake_configure(ctx: Context):
+def cmake_configure_haxorg(ctx: Context):
     """Execute cmake configuration step for haxorg"""
 
     with FileOperation.InTmp(
@@ -534,15 +562,15 @@ def cmake_configure(ctx: Context):
             Path("CMakeLists.txt"),
             Path("src/cmake").rglob("*.cmake"),
         ],
-            stamp_path=get_task_stamp("cmake_configure"),
+            stamp_path=get_task_stamp("cmake_configure_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
         log(CAT).info(op.explain("cmake configuration"))
-        if is_forced(ctx, "cmake_configure") or op.should_run():
+        if is_forced(ctx, "cmake_configure_haxorg") or op.should_run():
             log(CAT).info("running haxorg cmake configuration")
             pass_flags = [
                 "-B",
-                get_component_build_dir(ctx),
+                get_component_build_dir(ctx, "haxorg"),
                 "-S",
                 get_script_root(),
                 "-G",
@@ -554,9 +582,10 @@ def cmake_configure(ctx: Context):
             run_command(ctx, "cmake", tuple(pass_flags))
 
 
-@org_task(pre=[cmake_configure])
+@org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx: Context):
     """Compile main set of libraries and binaries for org-mode parser"""
+    build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
         [
             Path(path).rglob(glob) for path in ["src", "scripts", "tests"] for glob in [
@@ -572,35 +601,9 @@ def cmake_haxorg(ctx: Context):
     ) as op:
         if is_forced(ctx, "cmake_haxorg") or op.should_run():
             log(CAT).info(op.explain("Main C++"))
-            run_command(
-                ctx,
-                "cmake",
-                [
-                    "--build",
-                    get_component_build_dir(ctx),
-                    "--target",
-                    "all",
-                ],
-                env={'NINJA_FORCE_COLOR': '1'},
-            )
-
-
-@org_task(task_name="Build cmake utils", pre=[cmake_configure])
-def cmake_utils(ctx: Context):
-    """Compile libraries and binaries for utils"""
-    log(CAT).info("Building build utils")
-    run_command(
-        ctx,
-        "cmake",
-        [
-            "--build",
-            get_component_build_dir(ctx),
-            "--target",
-            "reflection_tool",
-            "profdata_merger",
-        ],
-    )
-    log(CAT).info("CMake utils build ok")
+            run_command(ctx,
+                        "cmake", ["--build", build_dir],
+                        env={'NINJA_FORCE_COLOR': '1'})
 
 
 LLDB_AUTO_BACKTRACE: List[str] = [
@@ -942,13 +945,13 @@ def symlink_build(ctx: Context):
         link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
     link(
-        real_path=get_component_build_dir(ctx),
+        real_path=get_component_build_dir(ctx, "haxorg"),
         link_path=get_build_root("haxorg"),
         is_dir=True,
     )
 
     link(
-        real_path=get_component_build_dir(ctx),
+        real_path=get_component_build_dir(ctx, "utils"),
         link_path=get_build_root("utils"),
         is_dir=True,
     )

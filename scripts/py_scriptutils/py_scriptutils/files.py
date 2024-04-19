@@ -157,10 +157,8 @@ class FileOperation:
             newer = [p for p in self.input if p.exists() and min_time < p.stat().st_mtime]
 
             def format_files(files: Iterable[Path]) -> str:
-                return ", ".join(("{} ({})".format(
-                    it.name,
-                    mtime_str(it.stat().st_mtime) if it.exists() else "<missing>",
-                ) for it in files))
+                return ", ".join(
+                    (f"{it.name} ({mtime_str(it.stat().st_mtime)})" for it in files))
 
             if newer:
                 why += " {} files were changed since last creation of {}: {}".format(
@@ -190,12 +188,10 @@ class FileOperation:
                 else:
                     file.write("xx")
 
-
 def cache_file_processing_result(input_arg_names: List[str]):
     cache: Dict[str, Dict[str, any]] = {}
 
     def decorator(func: Callable):
-
         @wraps(func)
         def wrapper(*args, **kwargs):
             cache_key = func.__name__
@@ -208,21 +204,18 @@ def cache_file_processing_result(input_arg_names: List[str]):
                     arg_index = func.__code__.co_varnames.index(arg_name)
                     file_path = Path(args[arg_index])
                     mod_times.append((file_path, file_path.stat().st_mtime))
-
+            
             if cache_key in cache:
-                cached_mod_times, cached_result = cache[cache_key]["mod_times"], cache[
-                    cache_key]["result"]
-                if all(mod_time == cached_mod_times[i][1]
-                       for i, (file_path, mod_time) in enumerate(mod_times)):
+                cached_mod_times, cached_result = cache[cache_key]["mod_times"], cache[cache_key]["result"]
+                if all(mod_time == cached_mod_times[i][1] for i, (file_path, mod_time) in enumerate(mod_times)):
                     return cached_result
-
+            
             result = func(*args, **kwargs)
             cache[cache_key] = {"mod_times": mod_times, "result": result}
             return result
-
         return wrapper
-
     return decorator
+
 
 
 def pickle_or_new(input_path: str, output_path: str, builder_cb: Callable[[str], T]) -> T:
