@@ -109,6 +109,7 @@ add_subdirectory(thirdparty/json)
 add_subdirectory(thirdparty/mp11)
 add_subdirectory(thirdparty/describe)
 add_subdirectory(src/hstd)
+add_subdirectory(thirdparty/SQLiteCpp)
 
 include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)
@@ -116,3 +117,4 @@ include(src/cmake/target_pyhaxorg.cmake)
 include(src/cmake/target_lsp.cmake)
 
 add_subdirectory(scripts/cxx_repository)
+add_subdirectory(scripts/cxx_codegen)
