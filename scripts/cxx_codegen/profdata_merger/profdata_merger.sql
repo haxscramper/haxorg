@@ -38,6 +38,53 @@ CREATE TABLE "CovRegion" (
 	"RegionKind" VARCHAR(15), 
 	PRIMARY KEY ("Id"), 
 	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id"), 
+	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id"), 
+	FOREIGN KEY("FileId") REFERENCES "CovFile" ("Id"), 
+	FOREIGN KEY("ExpandedFileId") REFERENCES "CovFile" ("Id")
+)
+
+;
+
+CREATE TABLE "CovFile" (
+	"Id" INTEGER NOT NULL, 
+	"Path" VARCHAR NOT NULL, 
+	PRIMARY KEY ("Id")
+)
+
+;
+
+CREATE TABLE "CovInstantiationGroup" (
+	"Id" INTEGER NOT NULL, 
+	"Line" INTEGER NOT NULL, 
+	"Col" INTEGER NOT NULL, 
+	PRIMARY KEY ("Id")
+)
+
+;
+
+CREATE TABLE "CovFunctionInstantiation" (
+	"Id" INTEGER NOT NULL, 
+	"Instantiation" INTEGER NOT NULL, 
+	"Function" INTEGER NOT NULL, 
+	PRIMARY KEY ("Id"), 
+	FOREIGN KEY("Instantiation") REFERENCES "CovInstantiationGroup" ("Id"), 
+	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id")
+)
+
+;
+
+CREATE TABLE "CovSegment" (
+	"Id" INTEGER NOT NULL, 
+	"Line" INTEGER NOT NULL, 
+	"Col" INTEGER NOT NULL, 
+	"Count" INTEGER NOT NULL, 
+	"HasCount" BOOLEAN NOT NULL, 
+	"IsRegionEntry" BOOLEAN NOT NULL, 
+	"IsGapRegion" BOOLEAN NOT NULL, 
+	"File" INTEGER NOT NULL, 
+	"Context" INTEGER NOT NULL, 
+	PRIMARY KEY ("Id"), 
+	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
 	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id")
 )
 

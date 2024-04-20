@@ -702,13 +702,53 @@ std::string SqlInsert(
 }
 
 struct queries {
-    SQLite::Statement cov_query;
-    SQLite::Statement context_insert;
-    SQLite::Statement func_query;
+    SQLite::Statement cov;
+    SQLite::Statement context;
+    SQLite::Statement func;
+    SQLite::Statement file;
+    SQLite::Statement segment;
+    SQLite::Statement instantiation_group;
+    SQLite::Statement function_instantiation;
 
     queries(SQLite::Database& db)
-        : cov_query(
+        : // ---
+        function_instantiation(
             db,
+            SqlInsert(
+                "CovFunctionInstantiation",
+                {
+                    "Instantiation", // 1
+                    "Function",      // 2
+                }))
+        ,
+        // ---
+        instantiation_group(
+            db,
+            SqlInsert(
+                "CovInstantiationGroup",
+                {
+                    "Line", // 1
+                    "Col",  // 2
+                }))
+        ,
+        // ---
+        segment(
+            db,
+            SqlInsert(
+                "CovSegment",
+                {
+                    "Line",          // 1
+                    "Col",           // 2
+                    "Count",         // 3
+                    "HasCount",      // 4
+                    "IsRegionEntry", // 5
+                    "IsGapRegion",   // 6
+                    "File",          // 7
+                    "Context",       // 8
+                }))
+        ,
+        // ---
+        cov(db,
             SqlInsert(
                 "CovRegion",
                 {
@@ -726,52 +766,106 @@ struct queries {
                     "ColumnEnd",           // 12
                     "RegionKind",          // 13
                 }))
-        , context_insert(
-              db,
-              SqlInsert(
-                  "CovContext",
-                  {
-                      "Id",      // 1
-                      "Name",    // 2
-                      "Parent",  // 3
-                      "Profile", // 4
-                      "Params",  // 5
-                      "Binary",  // 6
-                  }))
-        , func_query(
-              db,
-              SqlInsert(
-                  "CovFunction",
-                  {
-                      "Id",
-                      "Mangled",
-                      "Demangled",
-                      "Parsed",
-                  })) {}
+        ,
+        // ---
+        context(
+            db,
+            SqlInsert(
+                "CovContext",
+                {
+                    "Id",      // 1
+                    "Name",    // 2
+                    "Parent",  // 3
+                    "Profile", // 4
+                    "Params",  // 5
+                    "Binary",  // 6
+                }))
+        ,
+        // ---
+        func(
+            db,
+            SqlInsert(
+                "CovFunction",
+                {
+                    "Id",        // 1
+                    "Mangled",   // 2
+                    "Demangled", // 3
+                    "Parsed",    // 4
+                }))
+        ,
+        // ---
+        file(
+            db,
+            SqlInsert(
+                "CovFile",
+                {
+                    "Path" // 1
+                })) {}
 };
+
+struct db_build_ctx {
+    int                                  context_id{};
+    std::unordered_map<std::string, int> function_ids{};
+    std::unordered_map<std::string, int> file_ids{};
+
+    int get_file_id(std::string const& path, queries& q) {
+        if (!file_ids.contains(path)) {
+            int id         = file_ids.size();
+            file_ids[path] = id;
+
+            q.file.bind(1, path);
+            q.file.exec();
+            q.file.reset();
+        }
+        return file_ids.at(path);
+    }
+};
+
+void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
+    int file_id = ctx.get_file_id(file.getFilename().str(), q);
+
+    for (CoverageSegment const& s : file) {
+        q.segment.bind(1, s.Line);
+        q.segment.bind(2, s.Col);
+        q.segment.bind(3, (int64_t)s.Count);
+        q.segment.bind(4, s.HasCount);
+        q.segment.bind(5, s.IsRegionEntry);
+        q.segment.bind(6, s.IsGapRegion);
+        q.segment.bind(7, file_id);
+        q.segment.bind(8, ctx.context_id);
+        q.segment.exec();
+        q.segment.reset();
+    }
+}
 
 void add_regions(
     FunctionRecord const& f,
     queries&              q,
     int                   function_id,
-    int                   context_id) {
+    db_build_ctx&         ctx) {
+
+    auto get_file_id = [&](int in_function_id) {
+        std::string const& full_path = f.Filenames.at(in_function_id);
+        return ctx.get_file_id(full_path, q);
+    };
+
     auto add_region = [&](CountedRegion const& r, bool IsBranch) {
         if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
-            q.cov_query.bind(1, function_id);
-            q.cov_query.bind(2, context_id);
-            q.cov_query.bind(3, IsBranch);
-            q.cov_query.bind(4, (int64_t)r.ExecutionCount);
-            q.cov_query.bind(5, (int64_t)r.FalseExecutionCount);
-            q.cov_query.bind(6, r.Folded);
-            q.cov_query.bind(7, r.FileID);
-            q.cov_query.bind(8, r.ExpandedFileID);
-            q.cov_query.bind(9, r.LineStart);
-            q.cov_query.bind(10, r.ColumnStart);
-            q.cov_query.bind(11, r.LineEnd);
-            q.cov_query.bind(12, r.ColumnEnd);
-            q.cov_query.bind(13, r.Kind);
-            q.cov_query.exec();
-            q.cov_query.reset();
+            q.cov.bind(1, function_id);
+            q.cov.bind(2, ctx.context_id);
+            q.cov.bind(3, IsBranch);
+            q.cov.bind(4, (int64_t)r.ExecutionCount);
+            q.cov.bind(5, (int64_t)r.FalseExecutionCount);
+            q.cov.bind(6, r.Folded);
+            q.cov.bind(7, get_file_id(r.FileID));
+            q.cov.bind(8, get_file_id(r.ExpandedFileID));
+            q.cov.bind(9, r.LineStart);
+            q.cov.bind(10, r.ColumnStart);
+            q.cov.bind(11, r.LineEnd);
+            q.cov.bind(12, r.ColumnEnd);
+            q.cov.bind(13, r.Kind);
+            q.cov.exec();
+            q.cov.reset();
         }
     };
 
@@ -779,10 +873,10 @@ void add_regions(
     for (auto const& r : f.CountedBranchRegions) { add_region(r, true); }
 }
 
-int add_function(
-    FunctionRecord const&                 f,
-    queries&                              q,
-    std::unordered_map<std::string, int>& function_ids) {
+int get_function_id(
+    FunctionRecord const& f,
+    queries&              q,
+    db_build_ctx&         ctx) {
     std::string readeable = demangle(f.Name);
 
     Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
@@ -793,41 +887,40 @@ int add_function(
 
     int function_id = -1;
 
-    if (function_ids.contains(f.Name)) {
-        function_id = function_ids.at(f.Name);
+    if (ctx.function_ids.contains(f.Name)) {
+        function_id = ctx.function_ids.at(f.Name);
     } else {
-        function_id          = function_ids.size();
-        function_ids[f.Name] = function_id;
+        function_id              = ctx.function_ids.size();
+        ctx.function_ids[f.Name] = function_id;
 
-        q.func_query.bind(1, function_id);
-        q.func_query.bind(2, f.Name); // mangled
+        q.func.bind(1, function_id);
+        q.func.bind(2, f.Name); // mangled
         char const* demangled = llvm::itaniumDemangle(f.Name);
         if (demangled == nullptr) {
-            q.func_query.bind(3, f.Name);
+            q.func.bind(3, f.Name);
         } else {
-            q.func_query.bind(3, demangled);
+            q.func.bind(3, demangled);
         }
-        q.func_query.bind(4, llvm::formatv("{0}", repr));
-        q.func_query.exec();
-        q.func_query.reset();
+        q.func.bind(4, llvm::formatv("{0}", repr));
+        q.func.exec();
+        q.func.reset();
     }
 
     return function_id;
 }
 
-void add_context(json::Object const* run, queries& q, int& context_id) {
-    ++context_id;
+void add_context(json::Object const* run, queries& q, db_build_ctx& ctx) {
+    ++ctx.context_id;
 
-    q.context_insert.bind(1, context_id);
-    q.context_insert.bind(2, run->getString("test_name")->str());
-    q.context_insert.bind(3, run->getString("test_clas")->str());
-    q.context_insert.bind(4, run->getString("test_profile")->str());
-    q.context_insert.bind(
-        5, llvm::formatv("{0}", *run->get("test_params")));
-    q.context_insert.bind(6, run->getString("test_binary")->str());
+    q.context.bind(1, ctx.context_id);
+    q.context.bind(2, run->getString("test_name")->str());
+    q.context.bind(3, run->getString("test_class")->str());
+    q.context.bind(4, run->getString("test_profile")->str());
+    q.context.bind(5, llvm::formatv("{0}", *run->get("test_params")));
+    q.context.bind(6, run->getString("test_binary")->str());
 
-    q.context_insert.exec();
-    q.context_insert.reset();
+    q.context.exec();
+    q.context.reset();
 }
 
 int main(int argc, char** argv) {
@@ -868,10 +961,8 @@ int main(int argc, char** argv) {
     CreateTables(db);
     queries q{db};
 
-    std::unordered_map<std::string, int> function_ids;
-
-    auto FS         = vfs::getRealFileSystem();
-    int  context_id = 0;
+    db_build_ctx ctx;
+    auto         FS = vfs::getRealFileSystem();
 
 
     for (auto const& run_value :
@@ -881,7 +972,7 @@ int main(int argc, char** argv) {
         std::string coverage_path = run->getString("test_profile")->str();
         std::string binary_path   = run->getString("test_binary")->str();
 
-        add_context(run, q, context_id);
+        add_context(run, q, ctx);
 
         InstrProfWriter Writer;
         loadInput(coverage_path, binary_path, &Writer);
@@ -927,9 +1018,15 @@ int main(int argc, char** argv) {
         db.exec("BEGIN");
         for (auto const& f : mapping->getCoveredFunctions()) {
             if (f.ExecutionCount == 0) { continue; }
-            int function_id = add_function(f, q, function_ids);
-            add_regions(f, q, function_id, context_id);
+            int function_id = get_function_id(f, q, ctx);
+            add_regions(f, q, function_id, ctx);
         }
+
+        for (auto const& file : mapping->getUniqueSourceFiles()) {
+            CoverageData cover = mapping->getCoverageForFile(file);
+            add_file(cover, q, ctx);
+        }
+
         db.exec("COMMIT");
     }
 }

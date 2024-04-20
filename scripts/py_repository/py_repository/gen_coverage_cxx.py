@@ -32,6 +32,12 @@ class CovContext(CoverageSchema):
     Binary = StrColumn()
 
 
+class CovFile(CoverageSchema):
+    __tablename__ = "CovFile"
+    Id = IdColumn()
+    Path = StrColumn()
+
+
 class CovRegionKind(enum.Enum):
     CodeRegion = 0
     ExpansionRegion = 1
@@ -51,13 +57,40 @@ class CovRegion(CoverageSchema):
     Folded = BoolColumn()
 
     # Counter mapping region fields
-    FileId = IntColumn()
-    ExpandedFileId = IntColumn()
+    FileId = ForeignId("CovFile.Id")
+    ExpandedFileId = ForeignId("CovFile.Id")
     LineStart = IntColumn()
     ColumnStart = IntColumn()
     LineEnd = IntColumn()
     ColumnEnd = IntColumn()
     RegionKind = Column(SqlEnum(CovRegionKind))
+
+
+class CovSegment(CoverageSchema):
+    __tablename__ = "CovSegment"
+    Id = IdColumn()
+    Line = IntColumn()
+    Col = IntColumn()
+    Count = IntColumn()
+    HasCount = BoolColumn()
+    IsRegionEntry = BoolColumn()
+    IsGapRegion = BoolColumn()
+    File = ForeignId(CovFile.Id)
+    Context = ForeignId(CovContext.Id)
+
+
+class CovInstantiationGroup(CoverageSchema):
+    __tablename__ = "CovInstantiationGroup"
+    Id = IdColumn()
+    Line = IntColumn()
+    Col = IntColumn()
+
+
+class CovFunctionInstantiation(CoverageSchema):
+    __tablename__ = "CovFunctionInstantiation"
+    Id = IdColumn()
+    Instantiation = ForeignId(CovInstantiationGroup.Id)
+    Function = ForeignId(CovFunction.Id)
 
 
 class ProfdataCookie(BaseModel, extra="forbid"):
@@ -87,6 +120,10 @@ if __name__ == "__main__":
             CovFunction,
             CovContext,
             CovRegion,
+            CovFile,
+            CovInstantiationGroup,
+            CovFunctionInstantiation,
+            CovSegment,
     ]:
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 
