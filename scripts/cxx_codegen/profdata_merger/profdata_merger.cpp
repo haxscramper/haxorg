@@ -739,8 +739,9 @@ struct queries {
             SqlInsert(
                 "CovInstantiationGroup",
                 {
-                    "Line", // 1
-                    "Col",  // 2
+                    "Id",   // 1
+                    "Line", // 2
+                    "Col",  // 3
                 }))
         ,
         // ---
@@ -834,8 +835,10 @@ struct queries {
 
 struct db_build_ctx {
     int                                  context_id{};
+    int                                  instantiation_id{};
     std::unordered_map<std::string, int> function_ids{};
     std::unordered_map<std::string, int> file_ids{};
+
 
     int get_file_id(std::string const& path, queries& q) {
         if (!file_ids.contains(path)) {
@@ -887,6 +890,67 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
     }
 }
 
+int get_function_id(
+    FunctionRecord const& f,
+    queries&              q,
+    db_build_ctx&         ctx) {
+    std::string readeable = demangle(f.Name);
+
+    Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
+
+    Node*       AST  = Parser.parse();
+    json::Value repr = treeRepr(AST);
+
+
+    int function_id = -1;
+
+    if (ctx.function_ids.contains(f.Name)) {
+        function_id = ctx.function_ids.at(f.Name);
+    } else {
+        function_id              = ctx.function_ids.size();
+        ctx.function_ids[f.Name] = function_id;
+
+        q.func.bind(1, function_id);
+        q.func.bind(2, f.Name); // mangled
+        char const* demangled = llvm::itaniumDemangle(f.Name);
+        if (demangled == nullptr) {
+            q.func.bind(3, f.Name);
+        } else {
+            q.func.bind(3, demangled);
+        }
+        q.func.bind(4, llvm::formatv("{0}", repr));
+        q.func.exec();
+        q.func.reset();
+    }
+
+    return function_id;
+}
+
+
+void add_instantiations(
+    std::unique_ptr<CoverageMapping> const& mapping,
+    std::string const&                      file,
+    queries&                                q,
+    db_build_ctx&                           ctx) {
+    for (InstantiationGroup const& group :
+         mapping->getInstantiationGroups(file)) {
+        int inst_id = ++ctx.instantiation_id;
+        q.instantiation_group.bind(1, inst_id);
+        q.instantiation_group.bind(2, group.getLine());
+        q.instantiation_group.bind(3, group.getColumn());
+        q.instantiation_group.exec();
+        q.instantiation_group.reset();
+
+        for (FunctionRecord const* func : group.getInstantiations()) {
+            int func_id = get_function_id(*func, q, ctx);
+            q.function_instantiation.bind(1, inst_id);
+            q.function_instantiation.bind(2, func_id);
+            q.function_instantiation.exec();
+            q.function_instantiation.reset();
+        }
+    }
+}
+
 void add_regions(
     FunctionRecord const& f,
     queries&              q,
@@ -923,41 +987,6 @@ void add_regions(
     for (auto const& r : f.CountedBranchRegions) { add_region(r, true); }
 }
 
-int get_function_id(
-    FunctionRecord const& f,
-    queries&              q,
-    db_build_ctx&         ctx) {
-    std::string readeable = demangle(f.Name);
-
-    Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
-
-    Node*       AST  = Parser.parse();
-    json::Value repr = treeRepr(AST);
-
-
-    int function_id = -1;
-
-    if (ctx.function_ids.contains(f.Name)) {
-        function_id = ctx.function_ids.at(f.Name);
-    } else {
-        function_id              = ctx.function_ids.size();
-        ctx.function_ids[f.Name] = function_id;
-
-        q.func.bind(1, function_id);
-        q.func.bind(2, f.Name); // mangled
-        char const* demangled = llvm::itaniumDemangle(f.Name);
-        if (demangled == nullptr) {
-            q.func.bind(3, f.Name);
-        } else {
-            q.func.bind(3, demangled);
-        }
-        q.func.bind(4, llvm::formatv("{0}", repr));
-        q.func.exec();
-        q.func.reset();
-    }
-
-    return function_id;
-}
 
 void add_context(json::Object const* run, queries& q, db_build_ctx& ctx) {
     ++ctx.context_id;
@@ -1105,6 +1134,7 @@ int main(int argc, char** argv) {
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     CoverageData cover = mapping->getCoverageForFile(file);
                     add_file(cover, q, ctx);
+                    add_instantiations(mapping, file.str(), q, ctx);
                 }
             }
 
