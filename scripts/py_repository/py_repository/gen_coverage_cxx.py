@@ -2,11 +2,13 @@
 from beartype.typing import Optional, Any, List
 from pydantic import Field, BaseModel
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column
 from sqlalchemy.schema import CreateTable
 from sqlalchemy.orm import declarative_base
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from sqlalchemy.types import JSON
+
 
 CoverageSchema = declarative_base()
 
@@ -16,7 +18,7 @@ class CovFunction(CoverageSchema):
     id = IdColumn()
     mangled = StrColumn()
     demangled = StrColumn()
-    parsed = StrColumn()
+    parsed = Column(JSON)
 
 
 class ProfdataCookie(BaseModel, extra="forbid"):

@@ -5,10 +5,11 @@ from sqlalchemy.sql import select, Executable
 from sqlalchemy.types import TypeDecorator
 from rich.table import Table
 from rich.console import Console
-from beartype.typing import Optional, List
+from beartype.typing import Optional, List, Union, Dict, Any
 from beartype import beartype
 from pathlib import Path
 from datetime import datetime
+import py_scriptutils.json_utils as ju
 
 
 def IdColumn():
@@ -22,6 +23,7 @@ def ForeignId(name: str, nullable: bool = False):
 def IntColumn(nullable: bool = False):
     return Column(Integer, nullable=nullable)
 
+
 def BoolColumn(nullable: bool = False):
     return Column(Boolean, nullable=nullable)
 
@@ -32,6 +34,7 @@ def StrColumn(nullable: bool = False):
 
 def DateTimeColumn(**kwargs):
     return Column(DateTime, **kwargs)
+
 
 class MillisecondsUnixTimestamp(TypeDecorator):
     """Converts between Unix timestamp in milliseconds and Python datetime objects."""
@@ -88,7 +91,7 @@ def format_rich_query(
     query: Executable,
     column_labels: List[str] = [],
 ) -> Table:
-    
+
     rich_table = Table(show_header=True, header_style="bold blue")
     with engine.connect() as connection:
         result = connection.execute(query)
@@ -117,11 +120,14 @@ def get_table_names(engine: Engine, excluded_tables: List[str] = []) -> List[str
 
 @beartype
 def format_db_all(
-    engine: Engine,
+    engine: Union[Engine, Session],
     excluded_tables: List[str] = [],
     ignored_columns: dict[str, List[str]] = {},
     style: bool = True,
 ) -> str:
+
+    if isinstance(engine, Session):
+        engine = engine.get_bind()
 
     ignored_columns = ignored_columns or {}
     console = Console(no_color=not style)
@@ -150,14 +156,79 @@ def format_db_all(
 
 
 @beartype
-def open_sqlite(file: Path, base = None) -> Engine:
+def dump_flat_table(
+    engine: Union[Engine, Session],
+    table_name: str,
+    excluded_columns: List[str] = [],
+    dict_primary_key: Optional[str] = None,
+) -> ju.Json:
+    metadata = MetaData()
+    if isinstance(engine, Session):
+        engine = engine.get_bind()
+
+    table = SATable(table_name, metadata, autoload_with=engine)
+    columns_to_fetch = [c for c in table.columns if c.name not in excluded_columns]
+
+    with engine.connect() as connection:
+        if dict_primary_key is None:
+            table_list: List[Dict] = []
+            selection = connection.execute(select(*columns_to_fetch))
+            for row in selection:
+                table_list.append({c.name: r for c, r in zip(columns_to_fetch, row)})
+
+            return table_list
+
+        else:
+            table_dict: Dict[Any, Dict] = {}
+            selection = connection.execute(select(*columns_to_fetch))
+            for row in selection:
+                row_dict = {}
+                for c, r in zip(columns_to_fetch, row):
+                    if c.name != dict_primary_key:
+                        row_dict[c.name] = r
+
+                key_value = [
+                    r for c, r in zip(columns_to_fetch, row) if c.name == dict_primary_key
+                ]
+
+                assert len(key_value) == 1
+
+                table_dict[key_value[0]] = row_dict
+
+            return table_dict
+
+
+@beartype
+def dump_db_all(
+    engine: Union[Engine, Session],
+    excluded_tables: List[str] = [],
+    excluded_columns: Dict[str, List[str]] = {},
+) -> ju.Json:
+    if isinstance(engine, Session):
+        engine = engine.get_bind()
+
+    result = dict()
+    for table_name in get_table_names(engine, excluded_tables):
+        result[table_name] = dump_flat_table(engine, table_name,
+                                             excluded_columns.get(table_name, []))
+
+    return result
+
+
+@beartype
+def open_sqlite(file: Path, base=None) -> Engine:
     engine = create_engine("sqlite:///" + str(file))
     if base:
         base.metadata.create_all(engine)
 
     return engine
 
+
 @beartype
-def open_sqlite_session(file: Path, base = None) -> Session:
-    engine = open_sqlite(file, base)
-    return sessionmaker()(bind=engine)
+def open_sqlite_session(file: Union[Path, Engine], base=None) -> Session:
+    if isinstance(file, Engine):
+        return sessionmaker()(bind=engine)
+
+    else:
+        engine = open_sqlite(file, base)
+        return sessionmaker()(bind=engine)

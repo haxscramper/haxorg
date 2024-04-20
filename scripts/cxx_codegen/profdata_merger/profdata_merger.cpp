@@ -92,7 +92,7 @@ T match(TNode const* node) {
 
 json::Value treeRepr(Node const* node) {
     json::Object result;
-    if (node == nullptr) { return result; }
+    if (node == nullptr) { return nullptr; }
 
     std::string Kind = std::string{boost::describe::enum_to_string(
         static_cast<KindProxy>(node->getKind()), "<none>")};
@@ -115,7 +115,7 @@ json::Value treeRepr(Node const* node) {
         [&result](std::string const& field, NodeArray const& value) {
             json::Array array;
             for (auto const& it : value) { array.push_back(treeRepr(it)); }
-            result[field] = std::move(array);
+            if (!array.empty()) { result[field] = std::move(array); }
         },
         [&result](std::string const& field, Qualifiers const& value) {
             json::Array array;
@@ -131,13 +131,11 @@ json::Value treeRepr(Node const* node) {
                 array.push_back("QualRestrict");
             }
 
-            result[field] = std::move(array);
+            if (!array.empty()) { result[field] = std::move(array); }
         },
         [&result](std::string const& field, FunctionRefQual const& value) {
             switch (value) {
-                case FunctionRefQual::FrefQualNone:
-                    result[field] = "FrefQualNone";
-                    break;
+                case FunctionRefQual::FrefQualNone: break;
                 case FunctionRefQual::FrefQualLValue:
                     result[field] = "FrefQualLValue";
                     break;
@@ -805,7 +803,7 @@ int main(int argc, char** argv) {
             } else {
                 func_query.bind(3, demangled);
             }
-            func_query.bind(4, llvm::formatv("{}", repr));
+            func_query.bind(4, llvm::formatv("{0}", repr));
             func_query.exec();
             func_query.reset();
         }
