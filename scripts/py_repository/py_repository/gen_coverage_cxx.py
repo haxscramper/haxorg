@@ -77,6 +77,7 @@ class CovSegment(CoverageSchema):
     IsGapRegion = BoolColumn()
     File = ForeignId(CovFile.Id)
     Context = ForeignId(CovContext.Id)
+    SegmentIndex = IntColumn()
 
 
 class CovInstantiationGroup(CoverageSchema):
@@ -108,6 +109,7 @@ class ProfdataFullProfile(BaseModel, extra="forbid"):
 class ProfdataParams(BaseModel, extra="forbid"):
     coverage: str
     coverage_db: str
+    perf_trace: Optional[str]
 
 
 if __name__ == "__main__":

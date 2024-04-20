@@ -83,6 +83,7 @@ CREATE TABLE "CovSegment" (
 	"IsGapRegion" BOOLEAN NOT NULL, 
 	"File" INTEGER NOT NULL, 
 	"Context" INTEGER NOT NULL, 
+	"SegmentIndex" INTEGER NOT NULL, 
 	PRIMARY KEY ("Id"), 
 	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
 	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id")

@@ -6,10 +6,16 @@ add_subdirectory("${SQLCPP_DIR}" "${CMAKE_BINARY_DIR}/sqlitecpp_build")
 
 message(STATUS ${profdata_merger_llvm_libs})
 
+
+add_library(perfetto STATIC "${DEPS_DIR}/perfetto/sdk/perfetto.cc")
+target_include_directories(perfetto PUBLIC "${DEPS_DIR}/perfetto/sdk")
+
 target_link_libraries(profdata_merger
     ${profdata_merger_llvm_libs}
     SQLiteCpp
     sqlite3
+    perfetto
 )
 
+target_include_directories(profdata_merger PUBLIC "${BASE}/src")
 set_target_properties(profdata_merger PROPERTIES CXX_STANDARD 20)

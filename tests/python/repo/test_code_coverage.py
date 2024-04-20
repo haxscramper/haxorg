@@ -77,6 +77,9 @@ class ProfileRunParams():
     def get_summary(self) -> Path:
         return self.dir.joinpath("coverage-summary.json")
 
+    def get_perf(self) -> Path:
+        return self.dir.joinpath("profdata_merger.perfetto")
+
     def run_compile(self):
         cmd = local[tool_dir.joinpath("clang++")]
         self.get_code().write_text(self.text)
@@ -112,6 +115,7 @@ class ProfileRunParams():
             cov.ProfdataParams(
                 coverage=str(self.get_summary()),
                 coverage_db=str(self.get_sqlite()),
+                perf_trace=str(self.get_perf()),
             ).model_dump_json()
         ])
 

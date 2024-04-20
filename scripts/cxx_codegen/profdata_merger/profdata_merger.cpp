@@ -19,10 +19,21 @@
 #include <llvm/Demangle/ItaniumDemangle.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <unordered_map>
-
-
 #include <boost/describe.hpp>
 
+
+#include <perfetto.h>
+
+PERFETTO_DEFINE_CATEGORIES(
+    perfetto::Category("llvm").SetDescription("LLVM code execution time"),
+    perfetto::Category("sql").SetDescription("SQLite data insertion"),
+    perfetto::Category("transform").SetDescription("Data transform time"),
+    perfetto::Category("main").SetDescription("Top execution steps")
+    //
+);
+
+
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
 using namespace llvm;
@@ -745,6 +756,7 @@ struct queries {
                     "IsGapRegion",   // 6
                     "File",          // 7
                     "Context",       // 8
+                    "SegmentIndex",  // 9
                 }))
         ,
         // ---
@@ -822,9 +834,12 @@ struct db_build_ctx {
 };
 
 void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
+    TRACE_EVENT(
+        "sql", "File coverage data", "File", file.getFilename().str());
     int file_id = ctx.get_file_id(file.getFilename().str(), q);
 
-    for (CoverageSegment const& s : file) {
+    for (auto it : enumerate(file)) {
+        CoverageSegment const& s = it.value();
         q.segment.bind(1, s.Line);
         q.segment.bind(2, s.Col);
         q.segment.bind(3, (int64_t)s.Count);
@@ -833,6 +848,7 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
         q.segment.bind(6, s.IsGapRegion);
         q.segment.bind(7, file_id);
         q.segment.bind(8, ctx.context_id);
+        q.segment.bind(9, (int)it.index());
         q.segment.exec();
         q.segment.reset();
     }
@@ -843,6 +859,7 @@ void add_regions(
     queries&              q,
     int                   function_id,
     db_build_ctx&         ctx) {
+    TRACE_EVENT("sql", "Function record", "Mangled", f.Name);
 
     auto get_file_id = [&](int in_function_id) {
         std::string const& full_path = f.Filenames.at(in_function_id);
@@ -923,6 +940,57 @@ void add_context(json::Object const* run, queries& q, db_build_ctx& ctx) {
     q.context.reset();
 }
 
+std::unique_ptr<CoverageMapping> get_coverage_mapping(
+    std::string const& coverage_path,
+    std::string const& binary_path) {
+    TRACE_EVENT("llvm", "Profraw to coverage mapping");
+
+    InstrProfWriter Writer;
+    {
+        TRACE_EVENT("llvm", "Load raw profile coverage");
+        loadInput(coverage_path, binary_path, &Writer);
+        LOG(std::format(
+            "Loaded {} binary {}", coverage_path, binary_path));
+    }
+
+    std::string            tmp_path = "/tmp/tmp.profdata";
+    std::vector<StringRef> ObjectFilenames;
+    ObjectFilenames.push_back(binary_path);
+    {
+        TRACE_EVENT("llvm", "Write converted profile data");
+        std::error_code EC;
+        raw_fd_ostream  Output(tmp_path, EC, sys::fs::OF_None);
+
+        if (EC) {
+            LOG(std::format(
+                "Error while creating output stream {}", EC.message()));
+            return nullptr;
+        }
+
+        if (Error E = Writer.write(Output)) {
+            LOG(std::format("Failed write: {}", toString(std::move(E))));
+            return nullptr;
+        }
+    }
+
+
+    {
+        TRACE_EVENT("llvm", "Load coverage profile data");
+        auto FS = vfs::getRealFileSystem();
+        Expected<std::unique_ptr<CoverageMapping>>
+            mapping_or_err = CoverageMapping::load(
+                ObjectFilenames, tmp_path, *FS);
+
+        if (Error E = mapping_or_err.takeError()) {
+            LOG(std::format(
+                "Failed to load profdata {}", toString(std::move(E))));
+            return nullptr;
+        }
+
+        return std::move(mapping_or_err.get());
+    }
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         LOG("Expected single positional argument -- JSON literal "
@@ -938,21 +1006,28 @@ int main(int argc, char** argv) {
         json_parameters = std::string{argv[1]};
     }
 
-    Expected<json::Value> parsed = json::parse(json_parameters);
+    Expected<json::Value> config_value = json::parse(json_parameters);
 
-    if (!parsed) {
+    if (!config_value) {
         LOG(std::format(
             "Failed to parse JSON: {}\n{}",
-            toString(parsed.takeError()),
+            toString(config_value.takeError()),
             json_parameters));
         return 1;
     }
 
-    Expected<json::Value> summary = json::parse(
-        read_file(parsed->getAsObject()->getString("coverage")->str()));
+    auto config = config_value->getAsObject();
 
-    fs::path db_file{
-        parsed->getAsObject()->getString("coverage_db")->str()};
+    Expected<json::Value> summary = json::parse(
+        read_file(config->getString("coverage")->str()));
+
+    fs::path db_file{config->getString("coverage_db")->str()};
+
+    std::unique_ptr<perfetto::TracingSession> perfetto_session;
+    if (config->getString("perf_trace")) {
+        perfetto_session = StartProcessTracing("profdata_merger");
+    }
+
 
     if (fs::exists(db_file)) { fs::remove(db_file); }
 
@@ -967,6 +1042,7 @@ int main(int argc, char** argv) {
 
     for (auto const& run_value :
          *summary->getAsObject()->getArray("runs")) {
+        TRACE_EVENT("main", "Insert run data");
 
         auto        run           = run_value.getAsObject();
         std::string coverage_path = run->getString("test_profile")->str();
@@ -974,59 +1050,37 @@ int main(int argc, char** argv) {
 
         add_context(run, q, ctx);
 
-        InstrProfWriter Writer;
-        loadInput(coverage_path, binary_path, &Writer);
-        LOG(std::format(
-            "Loaded {} binary {}", coverage_path, binary_path));
+        std::unique_ptr<CoverageMapping> mapping = get_coverage_mapping(
+            coverage_path, binary_path);
 
-        std::vector<StringRef> ObjectFilenames;
-        ObjectFilenames.push_back(binary_path);
-
-        std::string tmp_path = "/tmp/tmp.profdata";
+        if (mapping.get() == nullptr) { return 1; }
 
         {
-            std::error_code EC;
-            raw_fd_ostream  Output(tmp_path, EC, sys::fs::OF_None);
-
-            if (EC) {
-                LOG(std::format(
-                    "Error while creating output stream {}",
-                    EC.message()));
-                return 1;
+            TRACE_EVENT("sql", "Full coverage run info");
+            db.exec("BEGIN");
+            {
+                TRACE_EVENT("sql", "Covered functions");
+                for (auto const& f : mapping->getCoveredFunctions()) {
+                    if (f.ExecutionCount == 0) { continue; }
+                    int function_id = get_function_id(f, q, ctx);
+                    add_regions(f, q, function_id, ctx);
+                }
             }
 
-            if (Error E = Writer.write(Output)) {
-                LOG(std::format(
-                    "Failed write: {}", toString(std::move(E))));
-                return 1;
+            {
+                TRACE_EVENT("sql", "Covered files");
+                for (auto const& file : mapping->getUniqueSourceFiles()) {
+                    CoverageData cover = mapping->getCoverageForFile(file);
+                    add_file(cover, q, ctx);
+                }
             }
+
+            db.exec("COMMIT");
         }
+    }
 
-        auto FS = vfs::getRealFileSystem();
-        Expected<std::unique_ptr<CoverageMapping>>
-            mapping_or_err = CoverageMapping::load(
-                ObjectFilenames, tmp_path, *FS);
-
-        if (Error E = mapping_or_err.takeError()) {
-            LOG(std::format(
-                "Failed to load profdata {}", toString(std::move(E))));
-            return 1;
-        }
-
-        auto const& mapping = mapping_or_err.get();
-
-        db.exec("BEGIN");
-        for (auto const& f : mapping->getCoveredFunctions()) {
-            if (f.ExecutionCount == 0) { continue; }
-            int function_id = get_function_id(f, q, ctx);
-            add_regions(f, q, function_id, ctx);
-        }
-
-        for (auto const& file : mapping->getUniqueSourceFiles()) {
-            CoverageData cover = mapping->getCoverageForFile(file);
-            add_file(cover, q, ctx);
-        }
-
-        db.exec("COMMIT");
+    if (config->getString("perf_trace")) {
+        fs::path out_path{config->getString("perf_trace")->str()};
+        StopTracing(std::move(perfetto_session), out_path);
     }
 }
