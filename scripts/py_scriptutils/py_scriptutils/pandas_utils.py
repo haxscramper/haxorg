@@ -1,7 +1,10 @@
 import pandas as pd
 from rich.table import Table
 from beartype.typing import List
+import rich.box
 from beartype import beartype
+import py_scriptutils.json_utils as ju
+from py_scriptutils.rich_utils import render_rich
 
 
 @beartype
@@ -27,3 +30,14 @@ def dataframe_to_rich_table(df: pd.DataFrame, exclude_columns: List[str] = []) -
         table.add_row(*row_content)
 
     return table
+
+
+@beartype
+def assert_frame(df: pd.DataFrame, subset: ju.Json):
+    render = dataframe_to_rich_table(df)
+    render.box = rich.box.ASCII
+    ju.assert_subset(
+        df.to_dict("records"),
+        subset,
+        message=render_rich(render, color=False),
+    )
