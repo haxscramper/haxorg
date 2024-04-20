@@ -20,6 +20,7 @@ import sys
 import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
+from py_repository.gen_coverage_cxx import ProfdataParams
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -986,13 +987,11 @@ def py_tests(ctx: Context, arg: List[str] = []):
         profile_path.parent.mkdir(parents=True, exist_ok=True)
 
         profile_path.write_text(
-            json.dumps(
-                {
-                    "coverage": str(coverage_dir.joinpath("test-summary.json")),
-                    "coverage_db": str(coverage_dir.joinpath("coverage.sqlite")),
-                },
-                indent=2,
-            ))
+            ProfdataParams(
+                coverage=str(coverage_dir.joinpath("test-summary.json")),
+                coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
+                perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
+            ).model_dump_json(indent=2))
 
     run_command(ctx, "poetry", [
         "run",

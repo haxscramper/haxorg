@@ -854,8 +854,7 @@ struct db_build_ctx {
 };
 
 void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
-    TRACE_EVENT(
-        "sql", "File coverage data", "File", file.getFilename().str());
+    TRACE_EVENT("sql", "File coverage data");
     int file_id = ctx.get_file_id(file.getFilename().str(), q);
 
 
@@ -932,8 +931,10 @@ void add_instantiations(
     std::string const&                      file,
     queries&                                q,
     db_build_ctx&                           ctx) {
+    TRACE_EVENT("sql", "Add instantiations");
     for (InstantiationGroup const& group :
          mapping->getInstantiationGroups(file)) {
+        if (group.getTotalExecutionCount() == 0) { continue; }
         int inst_id = ++ctx.instantiation_id;
         q.instantiation_group.bind(1, inst_id);
         q.instantiation_group.bind(2, group.getLine());
@@ -1132,7 +1133,14 @@ int main(int argc, char** argv) {
             {
                 TRACE_EVENT("sql", "Covered files");
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
+                    if (file.contains("base_lexer_gen.cpp")
+                        || file.contains("thirdparty")) {
+                        continue;
+                    }
+                    TRACE_EVENT("sql", "Add file", "File", file.str());
+                    TRACE_EVENT_BEGIN("llvm", "Get coverage for file");
                     CoverageData cover = mapping->getCoverageForFile(file);
+                    TRACE_EVENT_END("llvm");
                     add_file(cover, q, ctx);
                     add_instantiations(mapping, file.str(), q, ctx);
                 }
