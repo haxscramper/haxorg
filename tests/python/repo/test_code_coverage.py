@@ -129,7 +129,12 @@ class ProfileRunParams():
 def test_base_run():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        cmd = ProfileRunParams(dir=dir, text="int main() {}")
+        cmd = ProfileRunParams(dir=dir, text="""
+int main() {
+  int a = 1 + 2;
+  int b = a + 3;
+}
+""")
         cmd.run()
         assert cmd.get_sqlite().exists()
 
@@ -197,4 +202,26 @@ def test_coverage_regions_1():
             },
         )
 
+
+def test_region_types():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        cmd = ProfileRunParams(dir=dir, text="""
+template <typename T>
+void template_func() {}
+
+
+int main(int argc, char** argv) {
+    template_func<int>();
+    template_func<float>();
+    if (argc == 2) {
+        template_func<int>();
+    } else {
+        template_func<float>();
+    }
+}
+""")
+        cmd.run()
+        assert cmd.get_sqlite().exists()
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
         print(format_db_all(session))

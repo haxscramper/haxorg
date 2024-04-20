@@ -46,19 +46,35 @@ class CovRegionKind(enum.Enum):
     BranchRegion = 4
 
 
-class CovRegion(CoverageSchema):
-    __tablename__ = "CovRegion"
+class CovFunctionRegion(CoverageSchema):
+    __tablename__ = "CovFunctionRegion"
     Id = IdColumn()
-    Function = ForeignId("CovFunction.Id")
-    Context = ForeignId("CovContext.Id")
+    Function = ForeignId(CovFunction.Id)
+    Context = ForeignId(CovContext.Id)
     IsBranch = BoolColumn()
     ExecutionCount = IntColumn()
     FalseExecutionCount = IntColumn()
     Folded = BoolColumn()
 
     # Counter mapping region fields
-    FileId = ForeignId("CovFile.Id")
-    ExpandedFileId = ForeignId("CovFile.Id")
+    FileId = ForeignId(CovFile.Id)
+    ExpandedFileId = ForeignId(CovFile.Id)
+    LineStart = IntColumn()
+    ColumnStart = IntColumn()
+    LineEnd = IntColumn()
+    ColumnEnd = IntColumn()
+    RegionKind = Column(SqlEnum(CovRegionKind))
+
+
+class CovFileBranch(CoverageSchema):
+    __tablename__ = "CovFileBranch"
+    Id = IdColumn()
+    Context = ForeignId(CovContext.Id)
+    ExecutionCount = IntColumn()
+    FalseExecutionCount = IntColumn()
+    Folded = BoolColumn()
+
+    # Counter mapping region fields
     LineStart = IntColumn()
     ColumnStart = IntColumn()
     LineEnd = IntColumn()
@@ -121,7 +137,8 @@ if __name__ == "__main__":
     for table in [
             CovFunction,
             CovContext,
-            CovRegion,
+            CovFunctionRegion,
+            CovFileBranch,
             CovFile,
             CovInstantiationGroup,
             CovFunctionInstantiation,

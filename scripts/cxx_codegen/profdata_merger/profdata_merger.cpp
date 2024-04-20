@@ -713,7 +713,8 @@ std::string SqlInsert(
 }
 
 struct queries {
-    SQLite::Statement cov;
+    SQLite::Statement func_region;
+    SQLite::Statement file_branch;
     SQLite::Statement context;
     SQLite::Statement func;
     SQLite::Statement file;
@@ -760,9 +761,10 @@ struct queries {
                 }))
         ,
         // ---
-        cov(db,
+        func_region(
+            db,
             SqlInsert(
-                "CovRegion",
+                "CovFunctionRegion",
                 {
                     "Function",            // 1
                     "Context",             // 2
@@ -778,6 +780,21 @@ struct queries {
                     "ColumnEnd",           // 12
                     "RegionKind",          // 13
                 }))
+        , file_branch(
+              db,
+              SqlInsert(
+                  "CovFileBranch",
+                  {
+                      "Context",             // 1
+                      "ExecutionCount",      // 2
+                      "FalseExecutionCount", // 3
+                      "Folded",              // 4
+                      "LineStart",           // 5
+                      "ColumnStart",         // 6
+                      "LineEnd",             // 7
+                      "ColumnEnd",           // 8
+                      "RegionKind",          // 9
+                  }))
         ,
         // ---
         context(
@@ -838,6 +855,7 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
         "sql", "File coverage data", "File", file.getFilename().str());
     int file_id = ctx.get_file_id(file.getFilename().str(), q);
 
+
     for (auto it : enumerate(file)) {
         CoverageSegment const& s = it.value();
         q.segment.bind(1, s.Line);
@@ -851,6 +869,21 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
         q.segment.bind(9, (int)it.index());
         q.segment.exec();
         q.segment.reset();
+    }
+
+    for (auto it : enumerate(file.getBranches())) {
+        CountedRegion const& r = it.value();
+        q.file_branch.bind(1, ctx.context_id);
+        q.file_branch.bind(2, (int64_t)r.ExecutionCount);
+        q.file_branch.bind(3, (int64_t)r.FalseExecutionCount);
+        q.file_branch.bind(4, r.Folded);
+        q.file_branch.bind(5, (int64_t)r.LineStart);
+        q.file_branch.bind(6, (int64_t)r.ColumnStart);
+        q.file_branch.bind(7, (int64_t)r.LineEnd);
+        q.file_branch.bind(8, (int64_t)r.ColumnEnd);
+        q.func_region.bind(9, r.Kind);
+        q.file_branch.exec();
+        q.file_branch.reset();
     }
 }
 
@@ -868,21 +901,21 @@ void add_regions(
 
     auto add_region = [&](CountedRegion const& r, bool IsBranch) {
         if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
-            q.cov.bind(1, function_id);
-            q.cov.bind(2, ctx.context_id);
-            q.cov.bind(3, IsBranch);
-            q.cov.bind(4, (int64_t)r.ExecutionCount);
-            q.cov.bind(5, (int64_t)r.FalseExecutionCount);
-            q.cov.bind(6, r.Folded);
-            q.cov.bind(7, get_file_id(r.FileID));
-            q.cov.bind(8, get_file_id(r.ExpandedFileID));
-            q.cov.bind(9, r.LineStart);
-            q.cov.bind(10, r.ColumnStart);
-            q.cov.bind(11, r.LineEnd);
-            q.cov.bind(12, r.ColumnEnd);
-            q.cov.bind(13, r.Kind);
-            q.cov.exec();
-            q.cov.reset();
+            q.func_region.bind(1, function_id);
+            q.func_region.bind(2, ctx.context_id);
+            q.func_region.bind(3, IsBranch);
+            q.func_region.bind(4, (int64_t)r.ExecutionCount);
+            q.func_region.bind(5, (int64_t)r.FalseExecutionCount);
+            q.func_region.bind(6, r.Folded);
+            q.func_region.bind(7, get_file_id(r.FileID));
+            q.func_region.bind(8, get_file_id(r.ExpandedFileID));
+            q.func_region.bind(9, r.LineStart);
+            q.func_region.bind(10, r.ColumnStart);
+            q.func_region.bind(11, r.LineEnd);
+            q.func_region.bind(12, r.ColumnEnd);
+            q.func_region.bind(13, r.Kind);
+            q.func_region.exec();
+            q.func_region.reset();
         }
     };
 
