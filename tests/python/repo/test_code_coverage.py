@@ -1,4 +1,4 @@
-from py_repository.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile, ProfdataParams
+import py_repository.gen_coverage_cxx as cov
 from plumbum import local
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
@@ -6,6 +6,11 @@ from beartype.typing import Optional, List
 from beartype import beartype
 from dataclasses import dataclass, field
 from tempfile import TemporaryDirectory
+import pandas as pd
+from py_scriptutils.sqlalchemy_utils import open_sqlite_session
+from sqlalchemy import select
+from py_scriptutils.pandas_utils import dataframe_to_rich_table
+from py_scriptutils.rich_utils import render_rich
 
 profdata_merger = get_haxorg_repo_root_path().joinpath(
     "build/utils/profdata_merger/profdata_merger")
@@ -57,8 +62,8 @@ class ProfileRunParams():
 
     def run_profmerge(self):
         self.get_summary().write_text(
-            ProfdataFullProfile(runs=[
-                ProfdataCookie(
+            cov.ProfdataFullProfile(runs=[
+                cov.ProfdataCookie(
                     test_binary=str(self.get_binary()),
                     test_name="test",
                     test_class="class",
@@ -69,7 +74,7 @@ class ProfileRunParams():
 
         cmd = local[profdata_merger]
         cmd.run([
-            ProfdataParams(
+            cov.ProfdataParams(
                 coverage=str(self.get_summary()),
                 coverage_db=str(self.get_sqlite()),
             ).model_dump_json()
@@ -84,6 +89,13 @@ class ProfileRunParams():
 
 def test_base_run():
     with TemporaryDirectory() as tmp:
-        dir = Path(tmp)
+        # dir = Path(tmp)
+        dir = Path("/tmp/test_base_run_coverage")
         cmd = ProfileRunParams(dir=dir, text="int main() {}")
         cmd.run()
+        assert cmd.get_sqlite().exists()
+
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+
+        frame = pd.read_sql_query(session.query(cov.CovFunction).statement, session.bind)
+        print(render_rich(dataframe_to_rich_table(frame)))

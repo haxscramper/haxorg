@@ -514,7 +514,8 @@ def haxorg_base_lexer(ctx: Context):
 @org_task()
 def python_protobuf_files(ctx: Context):
     """Generate new python code from the protobuf reflection files"""
-    proto_config = get_script_root("scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
+    proto_config = get_script_root(
+        "scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
     with FileOperation.InTmp(
         [proto_config],
             stamp_path=get_task_stamp("python-protobuf-files"),
@@ -992,6 +993,12 @@ def py_tests(ctx: Context, arg: List[str] = []):
                 },
                 indent=2,
             ))
+
+    run_command(ctx, "poetry", [
+        "run",
+        "python",
+        "scripts/py_repository/py_repository/gen_coverage_cxx.py",
+    ])
 
     retcode, _, _ = run_command(
         ctx,

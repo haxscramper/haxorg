@@ -18,6 +18,7 @@
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/Demangle/ItaniumDemangle.h>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <unordered_map>
 
 
 #include <boost/describe.hpp>
@@ -38,6 +39,24 @@ BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 #define NODE(NodeKind) BOOST_DESCRIBE_ENUM_ENTRY(KindProxy, NodeKind)
 #include <llvm/Demangle/ItaniumNodes.def>
 BOOST_DESCRIBE_ENUM_END()
+
+std::string read_file(fs::path const& path) {
+    std::ifstream     file{path.native()};
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
+void llvm_unreachable_f(std::string const& msg) {
+    llvm_unreachable(msg.c_str());
+}
+
+
+void CreateTables(SQLite::Database& db) {
+    auto path = fs::path{__FILE__}.parent_path() / "profdata_merger.sql";
+    std::string sql = read_file(path);
+    db.exec(sql);
+}
 
 
 template <class... Ts>
@@ -615,13 +634,6 @@ class DefaultAllocator {
 
 using Demangler = itanium_demangle::ManglingParser<DefaultAllocator>;
 
-std::string read_file(fs::path const& path) {
-    std::ifstream     file{path.native()};
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
-
 
 static void loadInput(
     std::string const& Filename,
@@ -700,6 +712,25 @@ int main(int argc, char** argv) {
     Expected<json::Value> summary = json::parse(
         read_file(parsed->getAsObject()->getString("coverage")->str()));
 
+    fs::path db_file{
+        parsed->getAsObject()->getString("coverage_db")->str()};
+
+    if (fs::exists(db_file)) { fs::remove(db_file); }
+
+    SQLite::Database db(
+        db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    CreateTables(db);
+
+    std::unordered_map<std::string, int> function_ids;
+
+    auto get_function_id = [&](std::string const& name) {
+        if (function_ids.find(name) == function_ids.end()) {
+            function_ids[name] = function_ids.size();
+        }
+
+        return function_ids[name];
+    };
+
     auto FS = vfs::getRealFileSystem();
     for (auto const& run : *summary->getAsObject()->getArray("runs")) {
         std::string coverage_path = run.getAsObject()
@@ -752,6 +783,7 @@ int main(int argc, char** argv) {
 
         auto const& mapping = mapping_or_err.get();
 
+        db.exec("BEGIN");
         for (auto const& f : mapping->getCoveredFunctions()) {
             if (f.ExecutionCount == 0) { continue; }
 
@@ -762,7 +794,21 @@ int main(int argc, char** argv) {
 
             Node*       AST  = Parser.parse();
             json::Value repr = treeRepr(AST);
-            // LOG(formatv("{0:2}", repr));
+
+            SQLite::Statement func_query(
+                db, "INSERT INTO CovFunction VALUES (?, ?, ?, ?)");
+            func_query.bind(1, get_function_id(f.Name));
+            func_query.bind(2, f.Name); // mangled
+            char const* demangled = llvm::itaniumDemangle(f.Name);
+            if (demangled == nullptr) {
+                func_query.bind(3, f.Name);
+            } else {
+                func_query.bind(3, demangled);
+            }
+            func_query.bind(4, llvm::formatv("{}", repr));
+            func_query.exec();
+            func_query.reset();
         }
+        db.exec("COMMIT");
     }
 }
