@@ -721,23 +721,38 @@ int main(int argc, char** argv) {
 
     std::unordered_map<std::string, int> function_ids;
 
-    auto get_function_id = [&](std::string const& name) {
-        if (function_ids.find(name) == function_ids.end()) {
-            function_ids[name] = function_ids.size();
+    auto FS         = vfs::getRealFileSystem();
+    int  context_id = 0;
+
+    for (auto const& run_value :
+         *summary->getAsObject()->getArray("runs")) {
+
+        auto        run           = run_value.getAsObject();
+        std::string coverage_path = run->getString("test_profile")->str();
+        std::string binary_path   = run->getString("test_binary")->str();
+
+        ++context_id;
+        {
+            SQLite::Statement context_insert(
+                db, "INSERT INTO CovContext VALUES (?, ?, ?, ?, ?, ?)");
+
+            // id
+            context_insert.bind(1, context_id);
+            // name
+            context_insert.bind(2, run->getString("test_name")->str());
+            // parent
+            context_insert.bind(3, run->getString("test_clas")->str());
+            // profile
+            context_insert.bind(4, run->getString("test_profile")->str());
+            // params
+            context_insert.bind(
+                5, llvm::formatv("{0}", *run->get("test_params")));
+            // binary
+            context_insert.bind(6, run->getString("test_binary")->str());
+
+            context_insert.exec();
+            context_insert.reset();
         }
-
-        return function_ids[name];
-    };
-
-    auto FS = vfs::getRealFileSystem();
-    for (auto const& run : *summary->getAsObject()->getArray("runs")) {
-        std::string coverage_path = run.getAsObject()
-                                        ->getString("test_profile")
-                                        ->str();
-
-        std::string binary_path = run.getAsObject()
-                                      ->getString("test_binary")
-                                      ->str();
 
 
         InstrProfWriter Writer;
@@ -793,19 +808,28 @@ int main(int argc, char** argv) {
             Node*       AST  = Parser.parse();
             json::Value repr = treeRepr(AST);
 
-            SQLite::Statement func_query(
-                db, "INSERT INTO CovFunction VALUES (?, ?, ?, ?)");
-            func_query.bind(1, get_function_id(f.Name));
-            func_query.bind(2, f.Name); // mangled
-            char const* demangled = llvm::itaniumDemangle(f.Name);
-            if (demangled == nullptr) {
-                func_query.bind(3, f.Name);
+            int function_id = -1;
+
+            if (function_ids.contains(f.Name)) {
+                function_id = function_ids.at(f.Name);
             } else {
-                func_query.bind(3, demangled);
+                function_id          = function_ids.size();
+                function_ids[f.Name] = function_id;
+
+                SQLite::Statement func_query(
+                    db, "INSERT INTO CovFunction VALUES (?, ?, ?, ?)");
+                func_query.bind(1, function_id);
+                func_query.bind(2, f.Name); // mangled
+                char const* demangled = llvm::itaniumDemangle(f.Name);
+                if (demangled == nullptr) {
+                    func_query.bind(3, f.Name);
+                } else {
+                    func_query.bind(3, demangled);
+                }
+                func_query.bind(4, llvm::formatv("{0}", repr));
+                func_query.exec();
+                func_query.reset();
             }
-            func_query.bind(4, llvm::formatv("{0}", repr));
-            func_query.exec();
-            func_query.reset();
         }
         db.exec("COMMIT");
     }

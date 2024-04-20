@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import pandas as pd
 import py_repository.gen_coverage_cxx as cov
 from beartype import beartype
-from beartype.typing import List, Optional, Union
+from beartype.typing import List, Optional, Union, Dict, Tuple
 from plumbum import local
 from py_scriptutils.pandas_utils import assert_frame, dataframe_to_rich_table
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
@@ -59,9 +59,8 @@ def assert_subtable(
 class ProfileRunParams():
     dir: Path
     text: str
-    run_params: List[str] = field(default_factory=list)
-    stdout: Optional[str] = None
-    stderr: Optional[str] = None
+    run_contexts: Dict[str, List[str]] = field(default_factory=lambda: {"main": []})
+    run_results: Dict[str, Tuple[int, str, str]] = field(default_factory=dict)
 
     def get_code(self) -> Path:
         return self.dir.joinpath("file.cpp")
@@ -69,8 +68,8 @@ class ProfileRunParams():
     def get_binary(self) -> Path:
         return self.dir.joinpath("file.bin")
 
-    def get_profraw(self) -> Path:
-        return self.dir.joinpath("file.profraw")
+    def get_profraw(self, context: str) -> Path:
+        return self.dir.joinpath(context + ".profraw")
 
     def get_sqlite(self) -> Path:
         return self.dir.joinpath("file.sqlite")
@@ -90,22 +89,22 @@ class ProfileRunParams():
         ])
 
     def run_binary(self):
-        cmd = local[self.get_binary()].with_env(LLVM_PROFILE_FILE=str(self.get_profraw()))
-        code, stdout, stderr = cmd.run(self.run_params)
-        self.stdout = stdout
-        self.stderr = stderr
-        assert self.get_profraw().exists()
+        for context, run_params in self.run_contexts.items():
+            cmd = local[self.get_binary()].with_env(
+                LLVM_PROFILE_FILE=str(self.get_profraw(context)))
+            self.run_results[context] = cmd.run(run_params)
+            assert self.get_profraw(context).exists()
 
     def run_profmerge(self):
         self.get_summary().write_text(
             cov.ProfdataFullProfile(runs=[
                 cov.ProfdataCookie(
                     test_binary=str(self.get_binary()),
-                    test_name="test",
+                    test_name=context,
                     test_class="class",
-                    test_profile=str(self.get_profraw()),
-                    test_params=None,
-                )
+                    test_profile=str(self.get_profraw(context)),
+                    test_params=run_params,
+                ) for context, run_params in self.run_contexts.items()
             ]).model_dump_json(indent=2))
 
         cmd = local[profdata_merger]
@@ -142,7 +141,11 @@ def test_coverage_regions_1():
         cmd = ProfileRunParams(
             dir=dir,
             text=corpus_base.joinpath("test_coverage_regions_1.cpp").read_text(),
-        )
+            run_contexts={
+                "function_3": [],
+                "function_1": ["2"],
+                "function_2": ["3", "3"],
+            })
 
         cmd.run()
 
@@ -163,6 +166,17 @@ def test_coverage_regions_1():
                         parsed=None,
                         mangled="main",
                     ),
+                "function_1()":
+                    dict(),
+                "function_2()":
+                    dict(),
+                "function_3(char const*)":
+                    dict(parsed=dict(
+                        Name=dict(Name="function_3"),
+                        Params=[
+                            dict(Name="char"),
+                        ],
+                    )),
                 "function_3(char const*)":
                     dict(parsed=dict(
                         Name=dict(Name="function_3"),

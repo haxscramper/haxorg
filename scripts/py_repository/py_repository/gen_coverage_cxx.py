@@ -9,7 +9,6 @@ from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrC
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from sqlalchemy.types import JSON
 
-
 CoverageSchema = declarative_base()
 
 
@@ -19,6 +18,16 @@ class CovFunction(CoverageSchema):
     mangled = StrColumn()
     demangled = StrColumn()
     parsed = Column(JSON)
+
+
+class CovContext(CoverageSchema):
+    __tablename__ = "CovContext"
+    id = IdColumn()
+    name = StrColumn()
+    parent = StrColumn(nullable=True)
+    profile = StrColumn()
+    params = Column(JSON)
+    binary = StrColumn()
 
 
 class ProfdataCookie(BaseModel, extra="forbid"):
@@ -46,8 +55,9 @@ if __name__ == "__main__":
 
     for table in [
             CovFunction,
+            CovContext,
     ]:
-        full_code.append(str(CreateTable(table.__table__).compile(db_engine)))
+        full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 
     get_haxorg_repo_root_path().joinpath(
         "scripts/cxx_codegen/profdata_merger/profdata_merger.sql").write_text(
