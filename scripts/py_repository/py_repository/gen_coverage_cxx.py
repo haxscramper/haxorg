@@ -3,31 +3,61 @@ from beartype.typing import Optional, Any, List
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column
+from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.schema import CreateTable
 from sqlalchemy.orm import declarative_base
-from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn
+from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, BoolColumn
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from sqlalchemy.types import JSON
+import enum
 
 CoverageSchema = declarative_base()
 
 
 class CovFunction(CoverageSchema):
     __tablename__ = "CovFunction"
-    id = IdColumn()
-    mangled = StrColumn()
-    demangled = StrColumn()
-    parsed = Column(JSON)
+    Id = IdColumn()
+    Mangled = StrColumn()
+    Demangled = StrColumn()
+    Parsed = Column(JSON)
 
 
 class CovContext(CoverageSchema):
     __tablename__ = "CovContext"
-    id = IdColumn()
-    name = StrColumn()
-    parent = StrColumn(nullable=True)
-    profile = StrColumn()
-    params = Column(JSON)
-    binary = StrColumn()
+    Id = IdColumn()
+    Name = StrColumn()
+    Parent = StrColumn(nullable=True)
+    Profile = StrColumn()
+    Params = Column(JSON)
+    Binary = StrColumn()
+
+
+class CovRegionKind(enum.Enum):
+    CodeRegion = 0
+    ExpansionRegion = 1
+    SkippedRegion = 2
+    GapRegion = 3
+    BranchRegion = 4
+
+
+class CovRegion(CoverageSchema):
+    __tablename__ = "CovRegion"
+    Id = IdColumn()
+    Function = ForeignId("CovFunction.Id")
+    Context = ForeignId("CovContext.Id")
+    IsBranch = BoolColumn()
+    ExecutionCount = IntColumn()
+    FalseExecutionCount = IntColumn()
+    Folded = BoolColumn()
+
+    # Counter mapping region fields
+    FileId = IntColumn()
+    ExpandedFileId = IntColumn()
+    LineStart = IntColumn()
+    ColumnStart = IntColumn()
+    LineEnd = IntColumn()
+    ColumnEnd = IntColumn()
+    RegionKind = Column(SqlEnum(CovRegionKind))
 
 
 class ProfdataCookie(BaseModel, extra="forbid"):
@@ -56,6 +86,7 @@ if __name__ == "__main__":
     for table in [
             CovFunction,
             CovContext,
+            CovRegion,
     ]:
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 

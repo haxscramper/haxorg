@@ -681,6 +681,25 @@ static void loadInput(
     Writer->addBinaryIds(BinaryIds);
 }
 
+std::string SqlInsert(
+    std::string const&              Table,
+    std::vector<std::string> const& Columns) {
+    std::string result = std::format("INSERT INTO {} (", Table);
+    for (auto it : llvm::enumerate(Columns)) {
+        if (it.index() != 0) { result += ", "; }
+        result += it.value();
+    }
+
+    result += ") VALUES (";
+
+    for (auto it : llvm::enumerate(Columns)) {
+        if (it.index() != 0) { result += ", "; }
+        result += "?";
+    }
+
+    result += ")";
+    return result;
+}
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -724,6 +743,51 @@ int main(int argc, char** argv) {
     auto FS         = vfs::getRealFileSystem();
     int  context_id = 0;
 
+    SQLite::Statement cov_query(
+        db,
+        SqlInsert(
+            "CovRegion",
+            {
+                "Function",            // 1
+                "Context",             // 2
+                "IsBranch",            // 3
+                "ExecutionCount",      // 4
+                "FalseExecutionCount", // 5
+                "Folded",              // 6
+                "FileId",              // 7
+                "ExpandedFileId",      // 8
+                "LineStart",           // 9
+                "ColumnStart",         // 10
+                "LineEnd",             // 11
+                "ColumnEnd",           // 12
+                "RegionKind",          // 13
+            }));
+
+    SQLite::Statement context_insert(
+        db,
+        SqlInsert(
+            "CovContext",
+            {
+                "Id",      // 1
+                "Name",    // 2
+                "Parent",  // 3
+                "Profile", // 4
+                "Params",  // 5
+                "Binary",  // 6
+            }));
+
+    SQLite::Statement func_query(
+        db,
+        SqlInsert(
+            "CovFunction",
+            {
+                "Id",
+                "Mangled",
+                "Demangled",
+                "Parsed",
+            }));
+
+
     for (auto const& run_value :
          *summary->getAsObject()->getArray("runs")) {
 
@@ -732,27 +796,17 @@ int main(int argc, char** argv) {
         std::string binary_path   = run->getString("test_binary")->str();
 
         ++context_id;
-        {
-            SQLite::Statement context_insert(
-                db, "INSERT INTO CovContext VALUES (?, ?, ?, ?, ?, ?)");
 
-            // id
-            context_insert.bind(1, context_id);
-            // name
-            context_insert.bind(2, run->getString("test_name")->str());
-            // parent
-            context_insert.bind(3, run->getString("test_clas")->str());
-            // profile
-            context_insert.bind(4, run->getString("test_profile")->str());
-            // params
-            context_insert.bind(
-                5, llvm::formatv("{0}", *run->get("test_params")));
-            // binary
-            context_insert.bind(6, run->getString("test_binary")->str());
+        context_insert.bind(1, context_id);
+        context_insert.bind(2, run->getString("test_name")->str());
+        context_insert.bind(3, run->getString("test_clas")->str());
+        context_insert.bind(4, run->getString("test_profile")->str());
+        context_insert.bind(
+            5, llvm::formatv("{0}", *run->get("test_params")));
+        context_insert.bind(6, run->getString("test_binary")->str());
 
-            context_insert.exec();
-            context_insert.reset();
-        }
+        context_insert.exec();
+        context_insert.reset();
 
 
         InstrProfWriter Writer;
@@ -816,8 +870,6 @@ int main(int argc, char** argv) {
                 function_id          = function_ids.size();
                 function_ids[f.Name] = function_id;
 
-                SQLite::Statement func_query(
-                    db, "INSERT INTO CovFunction VALUES (?, ?, ?, ?)");
                 func_query.bind(1, function_id);
                 func_query.bind(2, f.Name); // mangled
                 char const* demangled = llvm::itaniumDemangle(f.Name);
@@ -829,6 +881,35 @@ int main(int argc, char** argv) {
                 func_query.bind(4, llvm::formatv("{0}", repr));
                 func_query.exec();
                 func_query.reset();
+            }
+
+
+            auto add_region = [&](CountedRegion const& r, bool IsBranch) {
+                if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
+                    cov_query.bind(1, function_id);
+                    cov_query.bind(2, context_id);
+                    cov_query.bind(3, IsBranch);
+                    cov_query.bind(4, (int64_t)r.ExecutionCount);
+                    cov_query.bind(5, (int64_t)r.FalseExecutionCount);
+                    cov_query.bind(6, r.Folded);
+                    cov_query.bind(7, r.FileID);
+                    cov_query.bind(8, r.ExpandedFileID);
+                    cov_query.bind(9, r.LineStart);
+                    cov_query.bind(10, r.ColumnStart);
+                    cov_query.bind(11, r.LineEnd);
+                    cov_query.bind(12, r.ColumnEnd);
+                    cov_query.bind(13, r.Kind);
+                    cov_query.exec();
+                    cov_query.reset();
+                }
+            };
+
+            for (auto const& r : f.CountedRegions) {
+                add_region(r, false);
+            }
+
+            for (auto const& r : f.CountedBranchRegions) {
+                add_region(r, true);
             }
         }
         db.exec("COMMIT");

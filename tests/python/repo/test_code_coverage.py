@@ -132,7 +132,7 @@ def test_base_run():
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
         frame = pd.read_sql_query(session.query(cov.CovFunction).statement, session.bind)
-        assert_frame(frame, [dict(mangled="main", demangled="main")])
+        assert_frame(frame, [dict(Mangled="main", Demangled="main")])
 
 
 def test_coverage_regions_1():
@@ -154,7 +154,7 @@ def test_coverage_regions_1():
         functions = dump_flat_table(
             session,
             table_name="CovFunction",
-            dict_primary_key="demangled",
+            dict_primary_key="Demangled",
         )
 
         assert_subtable(
@@ -163,22 +163,22 @@ def test_coverage_regions_1():
             subset={
                 "main":
                     dict(
-                        parsed=None,
-                        mangled="main",
+                        Parsed=None,
+                        Mangled="main",
                     ),
                 "function_1()":
                     dict(),
                 "function_2()":
                     dict(),
                 "function_3(char const*)":
-                    dict(parsed=dict(
+                    dict(Parsed=dict(
                         Name=dict(Name="function_3"),
                         Params=[
                             dict(Name="char"),
                         ],
                     )),
                 "function_3(char const*)":
-                    dict(parsed=dict(
+                    dict(Parsed=dict(
                         Name=dict(Name="function_3"),
                         Params=[
                             dict(
