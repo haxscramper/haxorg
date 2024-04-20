@@ -701,6 +701,135 @@ std::string SqlInsert(
     return result;
 }
 
+struct queries {
+    SQLite::Statement cov_query;
+    SQLite::Statement context_insert;
+    SQLite::Statement func_query;
+
+    queries(SQLite::Database& db)
+        : cov_query(
+            db,
+            SqlInsert(
+                "CovRegion",
+                {
+                    "Function",            // 1
+                    "Context",             // 2
+                    "IsBranch",            // 3
+                    "ExecutionCount",      // 4
+                    "FalseExecutionCount", // 5
+                    "Folded",              // 6
+                    "FileId",              // 7
+                    "ExpandedFileId",      // 8
+                    "LineStart",           // 9
+                    "ColumnStart",         // 10
+                    "LineEnd",             // 11
+                    "ColumnEnd",           // 12
+                    "RegionKind",          // 13
+                }))
+        , context_insert(
+              db,
+              SqlInsert(
+                  "CovContext",
+                  {
+                      "Id",      // 1
+                      "Name",    // 2
+                      "Parent",  // 3
+                      "Profile", // 4
+                      "Params",  // 5
+                      "Binary",  // 6
+                  }))
+        , func_query(
+              db,
+              SqlInsert(
+                  "CovFunction",
+                  {
+                      "Id",
+                      "Mangled",
+                      "Demangled",
+                      "Parsed",
+                  })) {}
+};
+
+void add_regions(
+    FunctionRecord const& f,
+    queries&              q,
+    int                   function_id,
+    int                   context_id) {
+    auto add_region = [&](CountedRegion const& r, bool IsBranch) {
+        if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
+            q.cov_query.bind(1, function_id);
+            q.cov_query.bind(2, context_id);
+            q.cov_query.bind(3, IsBranch);
+            q.cov_query.bind(4, (int64_t)r.ExecutionCount);
+            q.cov_query.bind(5, (int64_t)r.FalseExecutionCount);
+            q.cov_query.bind(6, r.Folded);
+            q.cov_query.bind(7, r.FileID);
+            q.cov_query.bind(8, r.ExpandedFileID);
+            q.cov_query.bind(9, r.LineStart);
+            q.cov_query.bind(10, r.ColumnStart);
+            q.cov_query.bind(11, r.LineEnd);
+            q.cov_query.bind(12, r.ColumnEnd);
+            q.cov_query.bind(13, r.Kind);
+            q.cov_query.exec();
+            q.cov_query.reset();
+        }
+    };
+
+    for (auto const& r : f.CountedRegions) { add_region(r, false); }
+    for (auto const& r : f.CountedBranchRegions) { add_region(r, true); }
+}
+
+int add_function(
+    FunctionRecord const&                 f,
+    queries&                              q,
+    std::unordered_map<std::string, int>& function_ids) {
+    std::string readeable = demangle(f.Name);
+
+    Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
+
+    Node*       AST  = Parser.parse();
+    json::Value repr = treeRepr(AST);
+
+
+    int function_id = -1;
+
+    if (function_ids.contains(f.Name)) {
+        function_id = function_ids.at(f.Name);
+    } else {
+        function_id          = function_ids.size();
+        function_ids[f.Name] = function_id;
+
+        q.func_query.bind(1, function_id);
+        q.func_query.bind(2, f.Name); // mangled
+        char const* demangled = llvm::itaniumDemangle(f.Name);
+        if (demangled == nullptr) {
+            q.func_query.bind(3, f.Name);
+        } else {
+            q.func_query.bind(3, demangled);
+        }
+        q.func_query.bind(4, llvm::formatv("{0}", repr));
+        q.func_query.exec();
+        q.func_query.reset();
+    }
+
+    return function_id;
+}
+
+void add_context(json::Object const* run, queries& q, int& context_id) {
+    ++context_id;
+
+    q.context_insert.bind(1, context_id);
+    q.context_insert.bind(2, run->getString("test_name")->str());
+    q.context_insert.bind(3, run->getString("test_clas")->str());
+    q.context_insert.bind(4, run->getString("test_profile")->str());
+    q.context_insert.bind(
+        5, llvm::formatv("{0}", *run->get("test_params")));
+    q.context_insert.bind(6, run->getString("test_binary")->str());
+
+    q.context_insert.exec();
+    q.context_insert.reset();
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         LOG("Expected single positional argument -- JSON literal "
@@ -737,55 +866,12 @@ int main(int argc, char** argv) {
     SQLite::Database db(
         db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     CreateTables(db);
+    queries q{db};
 
     std::unordered_map<std::string, int> function_ids;
 
     auto FS         = vfs::getRealFileSystem();
     int  context_id = 0;
-
-    SQLite::Statement cov_query(
-        db,
-        SqlInsert(
-            "CovRegion",
-            {
-                "Function",            // 1
-                "Context",             // 2
-                "IsBranch",            // 3
-                "ExecutionCount",      // 4
-                "FalseExecutionCount", // 5
-                "Folded",              // 6
-                "FileId",              // 7
-                "ExpandedFileId",      // 8
-                "LineStart",           // 9
-                "ColumnStart",         // 10
-                "LineEnd",             // 11
-                "ColumnEnd",           // 12
-                "RegionKind",          // 13
-            }));
-
-    SQLite::Statement context_insert(
-        db,
-        SqlInsert(
-            "CovContext",
-            {
-                "Id",      // 1
-                "Name",    // 2
-                "Parent",  // 3
-                "Profile", // 4
-                "Params",  // 5
-                "Binary",  // 6
-            }));
-
-    SQLite::Statement func_query(
-        db,
-        SqlInsert(
-            "CovFunction",
-            {
-                "Id",
-                "Mangled",
-                "Demangled",
-                "Parsed",
-            }));
 
 
     for (auto const& run_value :
@@ -795,19 +881,7 @@ int main(int argc, char** argv) {
         std::string coverage_path = run->getString("test_profile")->str();
         std::string binary_path   = run->getString("test_binary")->str();
 
-        ++context_id;
-
-        context_insert.bind(1, context_id);
-        context_insert.bind(2, run->getString("test_name")->str());
-        context_insert.bind(3, run->getString("test_clas")->str());
-        context_insert.bind(4, run->getString("test_profile")->str());
-        context_insert.bind(
-            5, llvm::formatv("{0}", *run->get("test_params")));
-        context_insert.bind(6, run->getString("test_binary")->str());
-
-        context_insert.exec();
-        context_insert.reset();
-
+        add_context(run, q, context_id);
 
         InstrProfWriter Writer;
         loadInput(coverage_path, binary_path, &Writer);
@@ -853,64 +927,8 @@ int main(int argc, char** argv) {
         db.exec("BEGIN");
         for (auto const& f : mapping->getCoveredFunctions()) {
             if (f.ExecutionCount == 0) { continue; }
-
-            std::string readeable = demangle(f.Name);
-
-            Demangler Parser(
-                f.Name.data(), f.Name.data() + f.Name.length());
-
-            Node*       AST  = Parser.parse();
-            json::Value repr = treeRepr(AST);
-
-            int function_id = -1;
-
-            if (function_ids.contains(f.Name)) {
-                function_id = function_ids.at(f.Name);
-            } else {
-                function_id          = function_ids.size();
-                function_ids[f.Name] = function_id;
-
-                func_query.bind(1, function_id);
-                func_query.bind(2, f.Name); // mangled
-                char const* demangled = llvm::itaniumDemangle(f.Name);
-                if (demangled == nullptr) {
-                    func_query.bind(3, f.Name);
-                } else {
-                    func_query.bind(3, demangled);
-                }
-                func_query.bind(4, llvm::formatv("{0}", repr));
-                func_query.exec();
-                func_query.reset();
-            }
-
-
-            auto add_region = [&](CountedRegion const& r, bool IsBranch) {
-                if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
-                    cov_query.bind(1, function_id);
-                    cov_query.bind(2, context_id);
-                    cov_query.bind(3, IsBranch);
-                    cov_query.bind(4, (int64_t)r.ExecutionCount);
-                    cov_query.bind(5, (int64_t)r.FalseExecutionCount);
-                    cov_query.bind(6, r.Folded);
-                    cov_query.bind(7, r.FileID);
-                    cov_query.bind(8, r.ExpandedFileID);
-                    cov_query.bind(9, r.LineStart);
-                    cov_query.bind(10, r.ColumnStart);
-                    cov_query.bind(11, r.LineEnd);
-                    cov_query.bind(12, r.ColumnEnd);
-                    cov_query.bind(13, r.Kind);
-                    cov_query.exec();
-                    cov_query.reset();
-                }
-            };
-
-            for (auto const& r : f.CountedRegions) {
-                add_region(r, false);
-            }
-
-            for (auto const& r : f.CountedBranchRegions) {
-                add_region(r, true);
-            }
+            int function_id = add_function(f, q, function_ids);
+            add_regions(f, q, function_id, context_id);
         }
         db.exec("COMMIT");
     }
