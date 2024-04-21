@@ -102,6 +102,12 @@ class CovInstantiationGroup(CoverageSchema):
     Line = IntColumn()
     Col = IntColumn()
 
+class CovExpansionRegion(CoverageSchema):
+    __tablename__ = "CovExpansionRegion"
+    Id = IdColumn()
+    FileId = ForeignId(CovFile.Id)
+    Region = ForeignId(CovFunctionRegion.Id)
+    Function = ForeignId(CovFunction.Id)
 
 class CovFunctionInstantiation(CoverageSchema):
     __tablename__ = "CovFunctionInstantiation"
@@ -143,6 +149,7 @@ if __name__ == "__main__":
             CovInstantiationGroup,
             CovFunctionInstantiation,
             CovSegment,
+            CovExpansionRegion,
     ]:
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 

@@ -20,6 +20,7 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <unordered_map>
 #include <boost/describe.hpp>
+#include <llvm/ADT/Hashing.h>
 
 
 #include <perfetto.h>
@@ -721,6 +722,7 @@ struct queries {
     SQLite::Statement segment;
     SQLite::Statement instantiation_group;
     SQLite::Statement function_instantiation;
+    SQLite::Statement expansion;
 
     queries(SQLite::Database& db)
         : // ---
@@ -731,6 +733,17 @@ struct queries {
                 {
                     "Instantiation", // 1
                     "Function",      // 2
+                }))
+        ,
+        // ---
+        expansion(
+            db,
+            SqlInsert(
+                "CovExpansionRegion",
+                {
+                    "FileId",
+                    "Region",
+                    "Function",
                 }))
         ,
         // ---
@@ -767,19 +780,20 @@ struct queries {
             SqlInsert(
                 "CovFunctionRegion",
                 {
-                    "Function",            // 1
-                    "Context",             // 2
-                    "IsBranch",            // 3
-                    "ExecutionCount",      // 4
-                    "FalseExecutionCount", // 5
-                    "Folded",              // 6
-                    "FileId",              // 7
-                    "ExpandedFileId",      // 8
-                    "LineStart",           // 9
-                    "ColumnStart",         // 10
-                    "LineEnd",             // 11
-                    "ColumnEnd",           // 12
-                    "RegionKind",          // 13
+                    "Id",                  // 1
+                    "Function",            // 2
+                    "Context",             // 3
+                    "IsBranch",            // 4
+                    "ExecutionCount",      // 5
+                    "FalseExecutionCount", // 6
+                    "Folded",              // 7
+                    "FileId",              // 8
+                    "ExpandedFileId",      // 9
+                    "LineStart",           // 10
+                    "ColumnStart",         // 11
+                    "LineEnd",             // 12
+                    "ColumnEnd",           // 13
+                    "RegionKind",          // 14
                 }))
         , file_branch(
               db,
@@ -833,11 +847,45 @@ struct queries {
                 })) {}
 };
 
+struct CountedRegionHasher {
+    size_t operator()(const CounterMappingRegion& region) const {
+        return hash_combine(
+            std::hash<unsigned>()(region.FileID),
+            std::hash<unsigned>()(region.ExpandedFileID),
+            std::hash<unsigned>()(region.LineStart),
+            std::hash<unsigned>()(region.ColumnStart),
+            std::hash<unsigned>()(region.LineEnd),
+            std::hash<unsigned>()(region.ColumnEnd),
+            std::hash<int>()(static_cast<int>(region.Kind)));
+    }
+};
+
+struct CountedRegionComparator {
+    size_t operator()(
+        const CounterMappingRegion& lhs,
+        const CounterMappingRegion& rhs) const {
+        return lhs.FileID == rhs.FileID
+            && lhs.ExpandedFileID == rhs.ExpandedFileID
+            && lhs.LineStart == rhs.LineStart
+            && lhs.ColumnStart == rhs.ColumnStart
+            && lhs.LineEnd == rhs.LineEnd && lhs.ColumnEnd == rhs.ColumnEnd
+            && lhs.Kind == rhs.Kind;
+    }
+};
+
 struct db_build_ctx {
     int                                  context_id{};
     int                                  instantiation_id{};
     std::unordered_map<std::string, int> function_ids{};
     std::unordered_map<std::string, int> file_ids{};
+    int                                  function_region_counter{};
+
+    std::unordered_map<
+        CountedRegion,
+        int,
+        CountedRegionHasher,
+        CountedRegionComparator>
+        function_region_ids{};
 
 
     int get_file_id(std::string const& path, queries& q) {
@@ -852,42 +900,6 @@ struct db_build_ctx {
         return file_ids.at(path);
     }
 };
-
-void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
-    TRACE_EVENT("sql", "File coverage data");
-    int file_id = ctx.get_file_id(file.getFilename().str(), q);
-
-
-    for (auto it : enumerate(file)) {
-        CoverageSegment const& s = it.value();
-        q.segment.bind(1, s.Line);
-        q.segment.bind(2, s.Col);
-        q.segment.bind(3, (int64_t)s.Count);
-        q.segment.bind(4, s.HasCount);
-        q.segment.bind(5, s.IsRegionEntry);
-        q.segment.bind(6, s.IsGapRegion);
-        q.segment.bind(7, file_id);
-        q.segment.bind(8, ctx.context_id);
-        q.segment.bind(9, (int)it.index());
-        q.segment.exec();
-        q.segment.reset();
-    }
-
-    for (auto it : enumerate(file.getBranches())) {
-        CountedRegion const& r = it.value();
-        q.file_branch.bind(1, ctx.context_id);
-        q.file_branch.bind(2, (int64_t)r.ExecutionCount);
-        q.file_branch.bind(3, (int64_t)r.FalseExecutionCount);
-        q.file_branch.bind(4, r.Folded);
-        q.file_branch.bind(5, (int64_t)r.LineStart);
-        q.file_branch.bind(6, (int64_t)r.ColumnStart);
-        q.file_branch.bind(7, (int64_t)r.LineEnd);
-        q.file_branch.bind(8, (int64_t)r.ColumnEnd);
-        q.func_region.bind(9, r.Kind);
-        q.file_branch.exec();
-        q.file_branch.reset();
-    }
-}
 
 int get_function_id(
     FunctionRecord const& f,
@@ -925,6 +937,92 @@ int get_function_id(
     return function_id;
 }
 
+int get_region_id(
+    FunctionRecord const& f,
+    CountedRegion const&  r,
+    bool                  IsBranch,
+    queries&              q,
+    int                   function_id,
+    db_build_ctx&         ctx) {
+    if (!ctx.function_region_ids.contains(r)) {
+        auto get_file_id = [&](int in_function_id) {
+            std::string const& full_path = f.Filenames.at(in_function_id);
+            return ctx.get_file_id(full_path, q);
+        };
+
+        int id                     = ++ctx.function_region_counter;
+        ctx.function_region_ids[r] = id;
+
+        q.func_region.bind(1, id);
+        q.func_region.bind(2, function_id);
+        q.func_region.bind(3, ctx.context_id);
+        q.func_region.bind(4, IsBranch);
+        q.func_region.bind(5, (int64_t)r.ExecutionCount);
+        q.func_region.bind(6, (int64_t)r.FalseExecutionCount);
+        q.func_region.bind(7, r.Folded);
+        q.func_region.bind(8, get_file_id(r.FileID));
+        q.func_region.bind(9, get_file_id(r.ExpandedFileID));
+        q.func_region.bind(10, r.LineStart);
+        q.func_region.bind(11, r.ColumnStart);
+        q.func_region.bind(12, r.LineEnd);
+        q.func_region.bind(13, r.ColumnEnd);
+        q.func_region.bind(14, r.Kind);
+        q.func_region.exec();
+        q.func_region.reset();
+    }
+
+
+    return ctx.function_region_ids.at(r);
+}
+
+void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
+    TRACE_EVENT("sql", "File coverage data");
+    int file_id = ctx.get_file_id(file.getFilename().str(), q);
+
+
+    for (auto it : enumerate(file)) {
+        CoverageSegment const& s = it.value();
+        q.segment.bind(1, s.Line);
+        q.segment.bind(2, s.Col);
+        q.segment.bind(3, (int64_t)s.Count);
+        q.segment.bind(4, s.HasCount);
+        q.segment.bind(5, s.IsRegionEntry);
+        q.segment.bind(6, s.IsGapRegion);
+        q.segment.bind(7, file_id);
+        q.segment.bind(8, ctx.context_id);
+        q.segment.bind(9, (int)it.index());
+        q.segment.exec();
+        q.segment.reset();
+    }
+
+    for (auto it : enumerate(file.getBranches())) {
+        CountedRegion const& r = it.value();
+        q.file_branch.bind(1, ctx.context_id);
+        q.file_branch.bind(2, (int64_t)r.ExecutionCount);
+        q.file_branch.bind(3, (int64_t)r.FalseExecutionCount);
+        q.file_branch.bind(4, r.Folded);
+        q.file_branch.bind(5, (int64_t)r.LineStart);
+        q.file_branch.bind(6, (int64_t)r.ColumnStart);
+        q.file_branch.bind(7, (int64_t)r.LineEnd);
+        q.file_branch.bind(8, (int64_t)r.ColumnEnd);
+        q.func_region.bind(9, r.Kind);
+        q.file_branch.exec();
+        q.file_branch.reset();
+    }
+
+    for (ExpansionRecord const& e : file.getExpansions()) {
+        int function_id = get_function_id(e.Function, q, ctx);
+        q.expansion.bind(1, e.FileID);
+        q.expansion.bind(
+            2,
+            get_region_id(
+                e.Function, e.Region, false, q, function_id, ctx));
+        q.expansion.bind(3, function_id);
+        q.expansion.exec();
+        q.expansion.reset();
+    }
+}
+
 
 void add_instantiations(
     std::unique_ptr<CoverageMapping> const& mapping,
@@ -952,6 +1050,7 @@ void add_instantiations(
     }
 }
 
+
 void add_regions(
     FunctionRecord const& f,
     queries&              q,
@@ -959,28 +1058,10 @@ void add_regions(
     db_build_ctx&         ctx) {
     TRACE_EVENT("sql", "Function record", "Mangled", f.Name);
 
-    auto get_file_id = [&](int in_function_id) {
-        std::string const& full_path = f.Filenames.at(in_function_id);
-        return ctx.get_file_id(full_path, q);
-    };
 
     auto add_region = [&](CountedRegion const& r, bool IsBranch) {
         if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
-            q.func_region.bind(1, function_id);
-            q.func_region.bind(2, ctx.context_id);
-            q.func_region.bind(3, IsBranch);
-            q.func_region.bind(4, (int64_t)r.ExecutionCount);
-            q.func_region.bind(5, (int64_t)r.FalseExecutionCount);
-            q.func_region.bind(6, r.Folded);
-            q.func_region.bind(7, get_file_id(r.FileID));
-            q.func_region.bind(8, get_file_id(r.ExpandedFileID));
-            q.func_region.bind(9, r.LineStart);
-            q.func_region.bind(10, r.ColumnStart);
-            q.func_region.bind(11, r.LineEnd);
-            q.func_region.bind(12, r.ColumnEnd);
-            q.func_region.bind(13, r.Kind);
-            q.func_region.exec();
-            q.func_region.reset();
+            get_region_id(f, r, IsBranch, q, function_id, ctx);
         }
     };
 
@@ -1110,11 +1191,13 @@ int main(int argc, char** argv) {
         auto        run           = run_value.getAsObject();
         std::string coverage_path = run->getString("test_profile")->str();
         std::string binary_path   = run->getString("test_binary")->str();
+        ctx.function_region_ids.clear();
 
         add_context(run, q, ctx);
 
         std::unique_ptr<CoverageMapping> mapping = get_coverage_mapping(
             coverage_path, binary_path);
+
 
         if (mapping.get() == nullptr) { return 1; }
 

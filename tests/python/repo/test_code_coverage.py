@@ -129,7 +129,8 @@ class ProfileRunParams():
 def test_base_run():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        cmd = ProfileRunParams(dir=dir, text="""
+        cmd = ProfileRunParams(dir=dir,
+                               text="""
 int main() {
   int a = 1 + 2;
   int b = a + 3;
@@ -146,7 +147,7 @@ int main() {
 
 def test_coverage_regions_1():
     with TemporaryDirectory() as tmp:
-        dir = Path("/tmp/test_base_run_coverage")
+        dir = Path(tmp)
         cmd = ProfileRunParams(
             dir=dir,
             text=corpus_base.joinpath("test_coverage_regions_1.cpp").read_text(),
@@ -206,21 +207,21 @@ def test_coverage_regions_1():
 def test_region_types():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        cmd = ProfileRunParams(dir=dir, text="""
-template <typename T>
-void template_func() {}
+        cmd = ProfileRunParams(
+            dir=dir,
+            text=corpus_base.joinpath("test_instantiation_regions.cpp").read_text())
+        cmd.run()
+        assert cmd.get_sqlite().exists()
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
 
-int main(int argc, char** argv) {
-    template_func<int>();
-    template_func<float>();
-    if (argc == 2) {
-        template_func<int>();
-    } else {
-        template_func<float>();
-    }
-}
-""")
+def test_region_types():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        dir = Path("/tmp/test_base_run_coverage")
+        cmd = ProfileRunParams(
+            dir=dir,
+            text=corpus_base.joinpath("test_macro_expansions.cpp").read_text())
         cmd.run()
         assert cmd.get_sqlite().exists()
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)

@@ -107,3 +107,16 @@ CREATE TABLE "CovSegment" (
 )
 
 ;
+
+CREATE TABLE "CovExpansionRegion" (
+	"Id" INTEGER NOT NULL, 
+	"FileId" INTEGER NOT NULL, 
+	"Region" INTEGER NOT NULL, 
+	"Function" INTEGER NOT NULL, 
+	PRIMARY KEY ("Id"), 
+	FOREIGN KEY("FileId") REFERENCES "CovFile" ("Id"), 
+	FOREIGN KEY("Region") REFERENCES "CovFunctionRegion" ("Id"), 
+	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id")
+)
+
+;
