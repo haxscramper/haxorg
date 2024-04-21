@@ -12,7 +12,8 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich, render_rich_pprint
 import py_scriptutils.json_utils as ju
 from py_scriptutils.sqlalchemy_utils import (dump_db_all, dump_flat_table, format_db_all,
-                                             open_sqlite_session, Session)
+                                             format_rich_query, open_sqlite_session,
+                                             Session)
 from sqlalchemy import select
 
 profdata_merger = get_haxorg_repo_root_path().joinpath(
@@ -58,14 +59,15 @@ def assert_subtable(
 @dataclass
 class ProfileRunParams():
     dir: Path
-    text: str
+    main: str
+    files: Dict[str, str]
     run_contexts: Dict[str, List[str]] = field(default_factory=lambda: {"main": []})
     run_results: Dict[str, Tuple[int, str, str]] = field(default_factory=dict)
     file_whitelist: List[str] = field(default_factory=lambda: [".*"])
     file_blacklist: List[str] = field(default_factory=lambda: [])
 
-    def get_code(self) -> Path:
-        return self.dir.joinpath("file.cpp")
+    def get_code(self, name: str) -> Path:
+        return self.dir.joinpath(name)
 
     def get_binary(self) -> Path:
         return self.dir.joinpath("file.bin")
@@ -87,9 +89,11 @@ class ProfileRunParams():
 
     def run_compile(self):
         cmd = local[tool_dir.joinpath("clang++")]
-        self.get_code().write_text(self.text)
+        for name, text in self.files.items():
+            self.get_code(name).write_text(text)
+
         cmd.run([
-            self.get_code(),
+            *[self.get_code(it) for it in self.files.keys()],
             "-fprofile-instr-generate",
             "-fcoverage-mapping",
             "-o",
@@ -137,13 +141,15 @@ class ProfileRunParams():
 def test_base_run():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        cmd = ProfileRunParams(dir=dir,
-                               text="""
+        cmd = ProfileRunParams(
+            dir=dir,
+            main="main.cpp",
+            files={"main.cpp": """
 int main() {
   int a = 1 + 2;
   int b = a + 3;
 }
-""")
+"""})
         cmd.run()
         assert cmd.get_sqlite().exists()
 
@@ -158,7 +164,11 @@ def test_coverage_regions_1():
         dir = Path(tmp)
         cmd = ProfileRunParams(
             dir=dir,
-            text=corpus_base.joinpath("test_coverage_regions_1.cpp").read_text(),
+            main="main.cpp",
+            files={
+                "main.cpp":
+                    corpus_base.joinpath("test_coverage_regions_1.cpp").read_text()
+            },
             run_contexts={
                 "function_3": [],
                 "function_1": ["2"],
@@ -217,7 +227,11 @@ def test_region_types():
         dir = Path(tmp)
         cmd = ProfileRunParams(
             dir=dir,
-            text=corpus_base.joinpath("test_instantiation_regions.cpp").read_text())
+            main="main.cpp",
+            files={
+                "main.cpp":
+                    corpus_base.joinpath("test_instantiation_regions.cpp").read_text()
+            })
         cmd.run()
         assert cmd.get_sqlite().exists()
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
@@ -228,9 +242,56 @@ def test_region_types():
         dir = Path(tmp)
         dir = Path("/tmp/test_base_run_coverage")
         cmd = ProfileRunParams(
-            dir=dir, text=corpus_base.joinpath("test_macro_expansions.cpp").read_text())
+            dir=dir,
+            main="main.cpp",
+            files={
+                "main.cpp": corpus_base.joinpath("test_macro_expansions.cpp").read_text()
+            })
+
         cmd.run()
         assert cmd.get_sqlite().exists()
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
-        print(format_db_all(session))
-        print(cmd.get_params())
+
+
+def test_file_coverage_filter():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        cmd = ProfileRunParams(
+            dir=dir,
+            main="main.cpp",
+            file_whitelist=["main.cpp", "file1.cpp"],
+            files={
+                "file1.cpp":
+                    "void file_1_function() {}",
+                "file2.cpp":
+                    "void file_2_function() {}",
+                "main.cpp":
+                    """
+void file_1_function();
+void file_2_function();
+
+int main() {
+  file_1_function();
+  file_2_function();
+}
+"""
+            },
+        )
+
+        cmd.run()
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+        file_table = select(cov.CovSegment, cov.CovFile).join(
+            cov.CovFile,
+            cov.CovSegment.File == cov.CovFile.Id,
+        )
+
+        df = pd.read_sql(file_table, session.get_bind())
+        df["Path"] = df["Path"].map(lambda it: Path(it).name)
+
+        assert len(df) == 4
+        assert_frame(df, [
+            dict(Line=1, Path="file1.cpp"),
+            dict(Line=1, Path="file1.cpp"),
+            dict(Line=5, Path="main.cpp"),
+            dict(Line=8, Path="main.cpp"),
+        ])

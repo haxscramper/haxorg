@@ -844,7 +844,8 @@ struct queries {
             SqlInsert(
                 "CovFile",
                 {
-                    "Path" // 1
+                    "Id",   // 1
+                    "Path", // 2
                 })) {}
 };
 
@@ -927,7 +928,8 @@ struct db_build_ctx {
             int id         = file_ids.size();
             file_ids[path] = id;
 
-            q.file.bind(1, path);
+            q.file.bind(1, id);
+            q.file.bind(2, path);
             q.file.exec();
             q.file.reset();
         }
