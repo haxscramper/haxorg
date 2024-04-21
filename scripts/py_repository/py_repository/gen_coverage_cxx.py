@@ -132,6 +132,8 @@ class ProfdataParams(BaseModel, extra="forbid"):
     coverage: str
     coverage_db: str
     perf_trace: Optional[str]
+    file_whitelist: List[str]
+    file_blacklist: List[str]
 
 
 if __name__ == "__main__":

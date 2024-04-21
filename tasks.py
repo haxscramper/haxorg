@@ -991,6 +991,11 @@ def py_tests(ctx: Context, arg: List[str] = []):
                 coverage=str(coverage_dir.joinpath("test-summary.json")),
                 coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
                 perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
+                file_whitelist=[".*"],
+                file_blacklist=[
+                    "thirdparty",
+                    r"base_lexer_gen\.cpp",
+                ],
             ).model_dump_json(indent=2))
 
     run_command(ctx, "poetry", [

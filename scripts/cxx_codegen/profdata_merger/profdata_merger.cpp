@@ -12,6 +12,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/Regex.h>
 #include <llvm/ProfileData/InstrProfReader.h>
 #include <llvm/ProfileData/InstrProfWriter.h>
 #include <llvm/ProfileData/Coverage/CoverageMappingReader.h>
@@ -880,6 +881,39 @@ struct db_build_ctx {
     std::unordered_map<std::string, int> file_ids{};
     int                                  function_region_counter{};
 
+    std::vector<Regex> file_blacklist;
+    std::vector<Regex> file_whitelist;
+
+    bool file_matches(std::string const& path, std::string& debug) const {
+        bool result = false;
+        if (file_whitelist.empty()) {
+            throw std::logic_error(
+                "file match whitelist cannot be empty -- specify at least "
+                "`.*` as a pattern");
+        }
+
+        for (auto const& r : file_whitelist) {
+            if (r.match(path)) {
+                result = true;
+                break;
+            }
+        }
+
+        if (!result) {
+            debug = "no matching whitelist";
+            return false;
+        }
+
+        for (auto const& r : file_blacklist) {
+            if (r.match(path)) {
+                debug = std::format("blacklisted");
+                return false;
+            }
+        }
+
+        return result;
+    }
+
     std::unordered_map<
         CountedRegion,
         int,
@@ -1106,14 +1140,13 @@ std::unique_ptr<CoverageMapping> get_coverage_mapping(
         raw_fd_ostream  Output(tmp_path, EC, sys::fs::OF_None);
 
         if (EC) {
-            LOG(std::format(
+            throw std::domain_error(std::format(
                 "Error while creating output stream {}", EC.message()));
-            return nullptr;
         }
 
         if (Error E = Writer.write(Output)) {
-            LOG(std::format("Failed write: {}", toString(std::move(E))));
-            return nullptr;
+            throw std::domain_error(
+                std::format("Failed write: {}", toString(std::move(E))));
         }
     }
 
@@ -1126,9 +1159,8 @@ std::unique_ptr<CoverageMapping> get_coverage_mapping(
                 ObjectFilenames, tmp_path, *FS);
 
         if (Error E = mapping_or_err.takeError()) {
-            LOG(std::format(
+            throw std::domain_error(std::format(
                 "Failed to load profdata {}", toString(std::move(E))));
-            return nullptr;
         }
 
         return std::move(mapping_or_err.get());
@@ -1137,10 +1169,10 @@ std::unique_ptr<CoverageMapping> get_coverage_mapping(
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        LOG("Expected single positional argument -- JSON literal "
+        throw std::logic_error(
+            "Expected single positional argument -- JSON literal "
             "with parameters or absolute path to the JSON "
             "configuration file.");
-        return 1;
     }
 
     std::string json_parameters;
@@ -1153,11 +1185,10 @@ int main(int argc, char** argv) {
     Expected<json::Value> config_value = json::parse(json_parameters);
 
     if (!config_value) {
-        LOG(std::format(
+        throw std::domain_error(std::format(
             "Failed to parse JSON: {}\n{}",
             toString(config_value.takeError()),
             json_parameters));
-        return 1;
     }
 
     auto config = config_value->getAsObject();
@@ -1184,6 +1215,36 @@ int main(int argc, char** argv) {
     auto         FS = vfs::getRealFileSystem();
 
 
+    auto get_regex_list =
+        [&](std::string const& list_name) -> std::vector<Regex> {
+        std::vector<Regex> result;
+        if (config->getArray(list_name) == nullptr) {
+            throw std::domain_error(std::format(
+                "{} was not supplied in CLI config, cannot get regex "
+                "filters",
+                list_name));
+        }
+
+        for (auto const& filter : *config->getArray(list_name)) {
+            Regex       r{*filter.getAsString()};
+            std::string error;
+            if (r.isValid(error)) {
+                result.push_back(std::move(r));
+            } else {
+                throw std::domain_error(std::format(
+                    "Failed to compile regex for {}: {}",
+                    list_name,
+                    error));
+            }
+        }
+
+        return result;
+    };
+
+    ctx.file_blacklist = get_regex_list("file_blacklist");
+    ctx.file_whitelist = get_regex_list("file_whitelist");
+
+
     for (auto const& run_value :
          *summary->getAsObject()->getArray("runs")) {
         TRACE_EVENT("main", "Insert run data");
@@ -1199,7 +1260,9 @@ int main(int argc, char** argv) {
             coverage_path, binary_path);
 
 
-        if (mapping.get() == nullptr) { return 1; }
+        if (mapping.get() == nullptr) {
+            throw std::logic_error("Failed to load coverage mapping");
+        }
 
         {
             TRACE_EVENT("sql", "Full coverage run info");
@@ -1216,8 +1279,10 @@ int main(int argc, char** argv) {
             {
                 TRACE_EVENT("sql", "Covered files");
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
-                    if (file.contains("base_lexer_gen.cpp")
-                        || file.contains("thirdparty")) {
+                    std::string debug;
+                    if (!ctx.file_matches(file.str(), debug)) {
+                        LOG(std::format(
+                            "Skipping {} with {}", file.str(), debug));
                         continue;
                     }
                     TRACE_EVENT("sql", "Add file", "File", file.str());

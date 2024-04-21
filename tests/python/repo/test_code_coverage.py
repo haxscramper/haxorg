@@ -61,6 +61,8 @@ class ProfileRunParams():
     text: str
     run_contexts: Dict[str, List[str]] = field(default_factory=lambda: {"main": []})
     run_results: Dict[str, Tuple[int, str, str]] = field(default_factory=dict)
+    file_whitelist: List[str] = field(default_factory=lambda: [".*"])
+    file_blacklist: List[str] = field(default_factory=lambda: [])
 
     def get_code(self) -> Path:
         return self.dir.joinpath("file.cpp")
@@ -79,6 +81,9 @@ class ProfileRunParams():
 
     def get_perf(self) -> Path:
         return self.dir.joinpath("profdata_merger.perfetto")
+
+    def get_params(self) -> Path:
+        return self.dir.joinpath("test-params.json")
 
     def run_compile(self):
         cmd = local[tool_dir.joinpath("clang++")]
@@ -111,13 +116,16 @@ class ProfileRunParams():
             ]).model_dump_json(indent=2))
 
         cmd = local[profdata_merger]
-        cmd.run([
+        self.get_params().write_text(
             cov.ProfdataParams(
                 coverage=str(self.get_summary()),
                 coverage_db=str(self.get_sqlite()),
                 perf_trace=str(self.get_perf()),
-            ).model_dump_json()
-        ])
+                file_whitelist=self.file_whitelist,
+                file_blacklist=self.file_blacklist,
+            ).model_dump_json(indent=2))
+
+        cmd.run([str(self.get_params())])
 
     def run(self):
         self.dir.mkdir(exist_ok=True, parents=True)
@@ -220,9 +228,9 @@ def test_region_types():
         dir = Path(tmp)
         dir = Path("/tmp/test_base_run_coverage")
         cmd = ProfileRunParams(
-            dir=dir,
-            text=corpus_base.joinpath("test_macro_expansions.cpp").read_text())
+            dir=dir, text=corpus_base.joinpath("test_macro_expansions.cpp").read_text())
         cmd.run()
         assert cmd.get_sqlite().exists()
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
         print(format_db_all(session))
+        print(cmd.get_params())
