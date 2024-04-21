@@ -22,7 +22,8 @@
 #include <unordered_map>
 #include <boost/describe.hpp>
 #include <llvm/ADT/Hashing.h>
-
+#include <hstd/system/Formatter.hpp>
+#include <algorithm>
 
 #include <perfetto.h>
 
@@ -765,16 +766,18 @@ struct queries {
             SqlInsert(
                 "CovSegment",
                 {
-                    "StartLine",    // 1
-                    "StartCol",     // 2
-                    "EndLine",      // 3
-                    "EndCol",       // 4
-                    "StartCount",   // 5
-                    "EndCount",     // 6
-                    "HasCount",     // 7
-                    "File",         // 8
-                    "Context",      // 9
-                    "SegmentIndex", // 10
+                    "Id",           // 1
+                    "StartLine",    // 2
+                    "StartCol",     // 3
+                    "EndLine",      // 4
+                    "EndCol",       // 5
+                    "StartCount",   // 6
+                    "EndCount",     // 7
+                    "HasCount",     // 8
+                    "File",         // 9
+                    "Context",      // 10
+                    "SegmentIndex", // 11
+                    "NestedIn",     // 12
                 }))
         ,
         // ---
@@ -1031,6 +1034,51 @@ int get_region_id(
     return ctx.function_region_ids.at(r);
 }
 
+
+template <typename T, typename FormatContext>
+auto fmt_ctx_field(
+    std::string const& field_name,
+    T const&           field_value,
+    FormatContext&     ctx) {
+    fmt_ctx(" ", ctx);
+    fmt_ctx(field_name, ctx);
+    fmt_ctx(" = ", ctx);
+    return fmt_ctx(field_value, ctx);
+}
+
+template <>
+struct std::formatter<CoverageSegment> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const CoverageSegment& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx_field("Line", p.Line, ctx);
+        fmt_ctx_field("Col", p.Col, ctx);
+        fmt_ctx_field("Count", p.Count, ctx);
+        fmt_ctx_field("HasCount", p.HasCount, ctx);
+        fmt_ctx_field("IsRegionEntry", p.IsRegionEntry, ctx);
+        fmt_ctx_field("IsGapRegion", p.IsGapRegion, ctx);
+        return fmt_ctx(" }", ctx);
+    }
+};
+
+template <typename T>
+std::string format_range(T begin, T end) {
+    bool        isFirst = true;
+    std::string result  = "[";
+    while (begin != end) {
+        if (isFirst) {
+            isFirst = false;
+        } else {
+            result += ", ";
+        }
+        result += std::format("{}", *begin);
+        ++begin;
+    }
+
+    result += "]";
+    return result;
+}
+
 void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
     TRACE_EVENT("sql", "File coverage data");
     int file_id = ctx.get_file_id(file.getFilename().str(), q);
@@ -1047,10 +1095,12 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
 
     for (auto it : enumerate(file)) {
         CoverageSegment const& s = it.value();
+        std::string prefix = std::string(segment_stack.size() * 2, ' ');
         if (s.IsRegionEntry) {
+            ++ctx.segment_counter;
             segment_stack.push({
                 .segment = s,
-                .self_id = ++ctx.segment_counter,
+                .self_id = ctx.segment_counter,
                 .parent  = std::nullopt,
             });
         } else {
@@ -1077,20 +1127,34 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
         q.segment_flat.reset();
     }
 
+    std::sort(
+        segment_pairs.begin(),
+        segment_pairs.end(),
+        [](std::pair<NestingData, CoverageSegment> const& lhs,
+           std::pair<NestingData, CoverageSegment> const& rhs) -> bool {
+            return lhs.first.self_id < rhs.first.self_id;
+        });
+
     for (auto it : enumerate(segment_pairs)) {
         auto const& [nesting, end] = it.value();
         auto const& start          = nesting.segment;
 
-        q.segment.bind(1, start.Line);
-        q.segment.bind(2, start.Col);
-        q.segment.bind(3, end.Line);
-        q.segment.bind(4, end.Col);
-        q.segment.bind(5, (int64_t)start.Count);
-        q.segment.bind(6, (int64_t)end.Count);
-        q.segment.bind(7, start.HasCount || end.HasCount);
-        q.segment.bind(8, file_id);
-        q.segment.bind(9, ctx.context_id);
-        q.segment.bind(10, (int)it.index());
+        q.segment.bind(1, nesting.self_id);
+        q.segment.bind(2, start.Line);
+        q.segment.bind(3, start.Col);
+        q.segment.bind(4, end.Line);
+        q.segment.bind(5, end.Col);
+        q.segment.bind(6, (int64_t)start.Count);
+        q.segment.bind(7, (int64_t)end.Count);
+        q.segment.bind(8, start.HasCount || end.HasCount);
+        q.segment.bind(9, file_id);
+        q.segment.bind(10, ctx.context_id);
+        q.segment.bind(11, (int)it.index());
+        if (nesting.parent) {
+            q.segment.bind(12, *nesting.parent);
+        } else {
+            q.segment.bind(12, nullptr);
+        }
         q.segment.exec();
         q.segment.reset();
     }

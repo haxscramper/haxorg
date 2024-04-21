@@ -102,9 +102,11 @@ CREATE TABLE "CovSegment" (
 	"File" INTEGER NOT NULL, 
 	"Context" INTEGER NOT NULL, 
 	"SegmentIndex" INTEGER NOT NULL, 
+	"NestedIn" INTEGER, 
 	PRIMARY KEY ("Id"), 
 	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
-	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id")
+	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id"), 
+	FOREIGN KEY("NestedIn") REFERENCES "CovSegment" ("Id")
 )
 
 ;

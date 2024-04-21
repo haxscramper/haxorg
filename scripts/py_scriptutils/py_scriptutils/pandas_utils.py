@@ -1,6 +1,6 @@
 import pandas as pd
 from rich.table import Table
-from beartype.typing import List
+from beartype.typing import List, Dict, Union
 import rich.box
 from beartype import beartype
 import py_scriptutils.json_utils as ju
@@ -32,12 +32,30 @@ def dataframe_to_rich_table(df: pd.DataFrame, exclude_columns: List[str] = []) -
     return table
 
 
+def dataframe_from_dict_list(
+    column_names: Union[List[str], pd.DataFrame],
+    data_dicts: List[Dict[str, any]],
+) -> pd.DataFrame:
+    if isinstance(column_names, pd.DataFrame):
+        column_names = column_names.columns.tolist()
+
+    data_prepared = [{col: d.get(col, None) for col in column_names} for d in data_dicts]
+    df = pd.DataFrame(data_prepared, columns=column_names)
+    return df
+
+
 @beartype
 def assert_frame(df: pd.DataFrame, subset: ju.Json):
-    render = dataframe_to_rich_table(df)
-    render.box = rich.box.ASCII
+    given_dataframe = dataframe_to_rich_table(df)
+    given_dataframe.box = rich.box.ASCII
+    df2 = dataframe_from_dict_list(df, subset)
+    expected_dataframe = dataframe_to_rich_table(df2)
+    expected_dataframe.box = rich.box.ASCII
     ju.assert_subset(
         df.to_dict("records"),
         subset,
-        message=render_rich(render, color=False),
+        message="\nGiven dataframe:\n{}\nExpected dataframe:\n{}".format(
+            render_rich(given_dataframe, color=False),
+            render_rich(expected_dataframe, color=False),
+        ),
     )

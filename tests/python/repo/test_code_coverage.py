@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import re
 import pandas as pd
 import py_repository.gen_coverage_cxx as cov
 from beartype import beartype
@@ -296,11 +297,16 @@ int main() {
         ])
 
 
+@beartype
+def cleanup_test_code(code: str) -> str:
+    return re.sub(r"\s+", " ", code.replace("\n", " "))
+
+
 def test_file_segmentation():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         dir = Path("/tmp/test_base_run_coverage")
-        code = corpus_base.joinpath("test_file_segmentation.cpp").read_text()
+        code = corpus_base.joinpath("test_file_segmentation_2.cpp").read_text()
         cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
 
         cmd.run()
@@ -312,22 +318,61 @@ def test_file_segmentation():
 
         df = pd.read_sql(select(cov.CovSegment), session.get_bind())
         df["Text"] = df.apply(
-            lambda row: cov.extract_text(
-                lines,
-                start=(row["StartLine"], row["StartCol"]),
-                end=(row["EndLine"], row["EndCol"]),
-            ),
+            lambda row: cleanup_test_code(
+                cov.extract_text(
+                    lines,
+                    start=(row["StartLine"], row["StartCol"]),
+                    end=(row["EndLine"], row["EndCol"]),
+                )),
             axis=1,
         )
 
         table = dataframe_to_rich_table(df)
-        table.box = rich.box.ASCII2
         table.show_lines = True
         Path("/tmp/regions.txt").write_text(render_rich(table, color=False))
 
         segment_df = pd.read_sql(select(cov.CovSegmentFlat), session.get_bind())
         segment_df["Text"] = segment_df["Line"].map(lambda it: lines[it - 1])
         table = dataframe_to_rich_table(segment_df)
-        table.box = rich.box.ASCII2
         table.show_lines = True
         Path("/tmp/segments.txt").write_text(render_rich(table, color=False))
+
+        assert_frame(df, [
+            dict(
+                StartLine=1,
+                EndLine=1,
+                SegmentIndex=0,
+                Text="{}",
+            ),
+            dict(
+                StartLine=3,
+                EndLine=5,
+                SegmentIndex=1,
+                Id=2,
+                Text="{ if (true || false) { action(); } }",
+            ),
+            dict(
+                StartLine=4,
+                EndLine=4,
+                SegmentIndex=2,
+                Text="true",
+                StartCol=9,
+                EndCol=13,
+                NestedIn=2,
+            ),
+            dict(
+                StartLine=4,
+                EndLine=4,
+                SegmentIndex=3,
+                Text="false",
+                StartCol=17,
+                EndCol=22,
+                NestedIn=2,
+            ),
+            dict(
+                StartLine=4,
+                SegmentIndex=4,
+                Text="{ action(); }",
+                NestedIn=2,
+            ),
+        ])

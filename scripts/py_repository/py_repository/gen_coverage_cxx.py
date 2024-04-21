@@ -96,6 +96,7 @@ class CovSegmentFlat(CoverageSchema):
     Context = ForeignId(CovContext.Id)
     SegmentIndex = IntColumn()
 
+
 class CovSegment(CoverageSchema):
     __tablename__ = "CovSegment"
     Id = IdColumn()
@@ -109,6 +110,7 @@ class CovSegment(CoverageSchema):
     File = ForeignId(CovFile.Id)
     Context = ForeignId(CovContext.Id)
     SegmentIndex = IntColumn()
+    NestedIn = ForeignId("CovSegment.Id", nullable=True)
 
 
 class CovInstantiationGroup(CoverageSchema):
@@ -160,7 +162,7 @@ def extract_text(lines: List[str], start: Tuple[int, int], end: Tuple[int, int])
 
     if start_line == end_line:
         return lines[start_line - 1][start_column - 1:end_column - 1]
-    
+
     else:
         extracted_lines = [
             lines[start_line - 1][start_column - 1:]
