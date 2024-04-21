@@ -7,6 +7,7 @@ import py_repository.gen_coverage_cxx as cov
 from beartype import beartype
 from beartype.typing import List, Optional, Union, Dict, Tuple
 from plumbum import local
+import rich.box
 from py_scriptutils.pandas_utils import assert_frame, dataframe_to_rich_table
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich, render_rich_pprint
@@ -240,7 +241,6 @@ def test_region_types():
 def test_region_types():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        dir = Path("/tmp/test_base_run_coverage")
         cmd = ProfileRunParams(
             dir=dir,
             main="main.cpp",
@@ -280,6 +280,7 @@ int main() {
 
         cmd.run()
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+
         file_table = select(cov.CovSegment, cov.CovFile).join(
             cov.CovFile,
             cov.CovSegment.File == cov.CovFile.Id,
@@ -288,10 +289,45 @@ int main() {
         df = pd.read_sql(file_table, session.get_bind())
         df["Path"] = df["Path"].map(lambda it: Path(it).name)
 
-        assert len(df) == 4
+        assert len(df) == 2
         assert_frame(df, [
-            dict(Line=1, Path="file1.cpp"),
-            dict(Line=1, Path="file1.cpp"),
-            dict(Line=5, Path="main.cpp"),
-            dict(Line=8, Path="main.cpp"),
+            dict(StartLine=1, EndLine=1, Path="file1.cpp"),
+            dict(StartLine=5, EndLine=8, Path="main.cpp"),
         ])
+
+
+def test_file_segmentation():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        dir = Path("/tmp/test_base_run_coverage")
+        code = corpus_base.joinpath("test_file_segmentation.cpp").read_text()
+        cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
+
+        cmd.run()
+        assert cmd.get_sqlite().exists()
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+        # print(format_db_all(session))
+
+        lines = code.split("\n")
+
+        df = pd.read_sql(select(cov.CovSegment), session.get_bind())
+        df["Text"] = df.apply(
+            lambda row: cov.extract_text(
+                lines,
+                start=(row["StartLine"], row["StartCol"]),
+                end=(row["EndLine"], row["EndCol"]),
+            ),
+            axis=1,
+        )
+
+        table = dataframe_to_rich_table(df)
+        table.box = rich.box.ASCII2
+        table.show_lines = True
+        Path("/tmp/regions.txt").write_text(render_rich(table, color=False))
+
+        segment_df = pd.read_sql(select(cov.CovSegmentFlat), session.get_bind())
+        segment_df["Text"] = segment_df["Line"].map(lambda it: lines[it - 1])
+        table = dataframe_to_rich_table(segment_df)
+        table.box = rich.box.ASCII2
+        table.show_lines = True
+        Path("/tmp/segments.txt").write_text(render_rich(table, color=False))

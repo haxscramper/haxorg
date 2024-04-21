@@ -721,6 +721,7 @@ struct queries {
     SQLite::Statement func;
     SQLite::Statement file;
     SQLite::Statement segment;
+    SQLite::Statement segment_flat;
     SQLite::Statement instantiation_group;
     SQLite::Statement function_instantiation;
     SQLite::Statement expansion;
@@ -763,6 +764,24 @@ struct queries {
             db,
             SqlInsert(
                 "CovSegment",
+                {
+                    "StartLine",    // 1
+                    "StartCol",     // 2
+                    "EndLine",      // 3
+                    "EndCol",       // 4
+                    "StartCount",   // 5
+                    "EndCount",     // 6
+                    "HasCount",     // 7
+                    "File",         // 8
+                    "Context",      // 9
+                    "SegmentIndex", // 10
+                }))
+        ,
+        // ---
+        segment_flat(
+            db,
+            SqlInsert(
+                "CovSegmentFlat",
                 {
                     "Line",          // 1
                     "Col",           // 2
@@ -880,6 +899,7 @@ struct db_build_ctx {
     int                                  instantiation_id{};
     std::unordered_map<std::string, int> function_ids{};
     std::unordered_map<std::string, int> file_ids{};
+    int                                  segment_counter{};
     int                                  function_region_counter{};
 
     std::vector<Regex> file_blacklist;
@@ -1016,17 +1036,61 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
     int file_id = ctx.get_file_id(file.getFilename().str(), q);
 
 
+    struct NestingData {
+        CoverageSegment    segment;
+        int                self_id;
+        std::optional<int> parent;
+    };
+
+    std::vector<std::pair<NestingData, CoverageSegment>> segment_pairs;
+    std::stack<NestingData>                              segment_stack;
+
     for (auto it : enumerate(file)) {
         CoverageSegment const& s = it.value();
-        q.segment.bind(1, s.Line);
-        q.segment.bind(2, s.Col);
-        q.segment.bind(3, (int64_t)s.Count);
-        q.segment.bind(4, s.HasCount);
-        q.segment.bind(5, s.IsRegionEntry);
-        q.segment.bind(6, s.IsGapRegion);
-        q.segment.bind(7, file_id);
-        q.segment.bind(8, ctx.context_id);
-        q.segment.bind(9, (int)it.index());
+        if (s.IsRegionEntry) {
+            segment_stack.push({
+                .segment = s,
+                .self_id = ++ctx.segment_counter,
+                .parent  = std::nullopt,
+            });
+        } else {
+            if (!segment_stack.empty()) {
+                segment_pairs.push_back({segment_stack.top(), s});
+                segment_stack.pop();
+                if (!segment_stack.empty()) {
+                    segment_pairs.back().first.parent = segment_stack.top()
+                                                            .self_id;
+                }
+            }
+        }
+
+        q.segment_flat.bind(1, s.Line);
+        q.segment_flat.bind(2, s.Col);
+        q.segment_flat.bind(3, (int64_t)s.Count);
+        q.segment_flat.bind(4, s.HasCount);
+        q.segment_flat.bind(5, s.IsRegionEntry);
+        q.segment_flat.bind(6, s.IsGapRegion);
+        q.segment_flat.bind(7, file_id);
+        q.segment_flat.bind(8, ctx.context_id);
+        q.segment_flat.bind(9, (int)it.index());
+        q.segment_flat.exec();
+        q.segment_flat.reset();
+    }
+
+    for (auto it : enumerate(segment_pairs)) {
+        auto const& [nesting, end] = it.value();
+        auto const& start          = nesting.segment;
+
+        q.segment.bind(1, start.Line);
+        q.segment.bind(2, start.Col);
+        q.segment.bind(3, end.Line);
+        q.segment.bind(4, end.Col);
+        q.segment.bind(5, (int64_t)start.Count);
+        q.segment.bind(6, (int64_t)end.Count);
+        q.segment.bind(7, start.HasCount || end.HasCount);
+        q.segment.bind(8, file_id);
+        q.segment.bind(9, ctx.context_id);
+        q.segment.bind(10, (int)it.index());
         q.segment.exec();
         q.segment.reset();
     }

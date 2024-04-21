@@ -1,5 +1,5 @@
 #!/usr/env/bin python
-from beartype.typing import Optional, Any, List
+from beartype.typing import Optional, Any, List, Tuple
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column
@@ -10,6 +10,7 @@ from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrC
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from sqlalchemy.types import JSON
 import enum
+from beartype import beartype
 
 CoverageSchema = declarative_base()
 
@@ -82,8 +83,8 @@ class CovFileBranch(CoverageSchema):
     RegionKind = Column(SqlEnum(CovRegionKind))
 
 
-class CovSegment(CoverageSchema):
-    __tablename__ = "CovSegment"
+class CovSegmentFlat(CoverageSchema):
+    __tablename__ = "CovSegmentFlat"
     Id = IdColumn()
     Line = IntColumn()
     Col = IntColumn()
@@ -95,6 +96,20 @@ class CovSegment(CoverageSchema):
     Context = ForeignId(CovContext.Id)
     SegmentIndex = IntColumn()
 
+class CovSegment(CoverageSchema):
+    __tablename__ = "CovSegment"
+    Id = IdColumn()
+    StartLine = IntColumn()
+    StartCol = IntColumn()
+    EndLine = IntColumn()
+    EndCol = IntColumn()
+    StartCount = IntColumn()
+    EndCount = IntColumn()
+    HasCount = BoolColumn()
+    File = ForeignId(CovFile.Id)
+    Context = ForeignId(CovContext.Id)
+    SegmentIndex = IntColumn()
+
 
 class CovInstantiationGroup(CoverageSchema):
     __tablename__ = "CovInstantiationGroup"
@@ -102,12 +117,14 @@ class CovInstantiationGroup(CoverageSchema):
     Line = IntColumn()
     Col = IntColumn()
 
+
 class CovExpansionRegion(CoverageSchema):
     __tablename__ = "CovExpansionRegion"
     Id = IdColumn()
     FileId = ForeignId(CovFile.Id)
     Region = ForeignId(CovFunctionRegion.Id)
     Function = ForeignId(CovFunction.Id)
+
 
 class CovFunctionInstantiation(CoverageSchema):
     __tablename__ = "CovFunctionInstantiation"
@@ -136,6 +153,21 @@ class ProfdataParams(BaseModel, extra="forbid"):
     file_blacklist: List[str]
 
 
+@beartype
+def extract_text(lines: List[str], start: Tuple[int, int], end: Tuple[int, int]) -> str:
+    start_line, start_column = start
+    end_line, end_column = end
+
+    if start_line == end_line:
+        return lines[start_line - 1][start_column - 1:end_column - 1]
+    
+    else:
+        extracted_lines = [
+            lines[start_line - 1][start_column - 1:]
+        ] + lines[start_line:end_line - 1] + [lines[end_line - 1][:end_column - 1]]
+        return "\n".join(extracted_lines)
+
+
 if __name__ == "__main__":
     sql_url = "sqlite:///:memory:"
     db_engine = create_engine(sql_url)
@@ -152,6 +184,7 @@ if __name__ == "__main__":
             CovFunctionInstantiation,
             CovSegment,
             CovExpansionRegion,
+            CovSegmentFlat,
     ]:
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 

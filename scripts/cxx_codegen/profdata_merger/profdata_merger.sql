@@ -92,12 +92,13 @@ CREATE TABLE "CovFunctionInstantiation" (
 
 CREATE TABLE "CovSegment" (
 	"Id" INTEGER NOT NULL, 
-	"Line" INTEGER NOT NULL, 
-	"Col" INTEGER NOT NULL, 
-	"Count" INTEGER NOT NULL, 
+	"StartLine" INTEGER NOT NULL, 
+	"StartCol" INTEGER NOT NULL, 
+	"EndLine" INTEGER NOT NULL, 
+	"EndCol" INTEGER NOT NULL, 
+	"StartCount" INTEGER NOT NULL, 
+	"EndCount" INTEGER NOT NULL, 
 	"HasCount" BOOLEAN NOT NULL, 
-	"IsRegionEntry" BOOLEAN NOT NULL, 
-	"IsGapRegion" BOOLEAN NOT NULL, 
 	"File" INTEGER NOT NULL, 
 	"Context" INTEGER NOT NULL, 
 	"SegmentIndex" INTEGER NOT NULL, 
@@ -117,6 +118,24 @@ CREATE TABLE "CovExpansionRegion" (
 	FOREIGN KEY("FileId") REFERENCES "CovFile" ("Id"), 
 	FOREIGN KEY("Region") REFERENCES "CovFunctionRegion" ("Id"), 
 	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id")
+)
+
+;
+
+CREATE TABLE "CovSegmentFlat" (
+	"Id" INTEGER NOT NULL, 
+	"Line" INTEGER NOT NULL, 
+	"Col" INTEGER NOT NULL, 
+	"Count" INTEGER NOT NULL, 
+	"HasCount" BOOLEAN NOT NULL, 
+	"IsRegionEntry" BOOLEAN NOT NULL, 
+	"IsGapRegion" BOOLEAN NOT NULL, 
+	"File" INTEGER NOT NULL, 
+	"Context" INTEGER NOT NULL, 
+	"SegmentIndex" INTEGER NOT NULL, 
+	PRIMARY KEY ("Id"), 
+	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
+	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id")
 )
 
 ;
