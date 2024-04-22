@@ -147,7 +147,8 @@ def describe_diff(
 def assert_subset(main: Json, subset: Json, message: Optional[str] = None):
     diff = get_subset_diff(main_set=main, expected_subset=subset)
 
-    compare = "\n".join([
+    compare = "Could not find expected subset of values in the main set\n\n"
+    compare += "\n".join([
         "[{}]{}".format(
             idx,
             describe_diff(

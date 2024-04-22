@@ -87,10 +87,13 @@ def format_rich_table(engine: Engine,
 
 @beartype
 def format_rich_query(
-    engine: Engine,
+    engine: Union[Engine, Session],
     query: Executable,
     column_labels: List[str] = [],
 ) -> Table:
+    
+    if isinstance(engine, Session):
+        engine = engine.get_bind()
 
     rich_table = Table(show_header=True, header_style="bold blue")
     with engine.connect() as connection:

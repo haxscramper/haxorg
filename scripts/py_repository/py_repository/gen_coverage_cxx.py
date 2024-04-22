@@ -1,16 +1,17 @@
 #!/usr/env/bin python
-from beartype.typing import Optional, Any, List, Tuple
+from beartype.typing import Optional, Any, List, Tuple, Iterable
 from pydantic import Field, BaseModel
 
-from sqlalchemy import create_engine, Column
+from sqlalchemy import create_engine, Column, select, Select
 from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.schema import CreateTable
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, Session
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, BoolColumn
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from sqlalchemy.types import JSON
 import enum
 from beartype import beartype
+from pathlib import Path
 
 CoverageSchema = declarative_base()
 
@@ -100,10 +101,10 @@ class CovSegmentFlat(CoverageSchema):
 class CovSegment(CoverageSchema):
     __tablename__ = "CovSegment"
     Id = IdColumn()
-    StartLine = IntColumn()
-    StartCol = IntColumn()
-    EndLine = IntColumn()
-    EndCol = IntColumn()
+    LineStart = IntColumn()
+    ColStart = IntColumn()
+    LineEnd = IntColumn()
+    ColEnd = IntColumn()
     StartCount = IntColumn()
     EndCount = IntColumn()
     HasCount = BoolColumn()
@@ -112,6 +113,10 @@ class CovSegment(CoverageSchema):
     SegmentIndex = IntColumn()
     NestedIn = ForeignId("CovSegment.Id", nullable=True)
     IsLeaf = BoolColumn()
+
+    def intersects(self, line: int, col: int) -> bool:
+        return (self.LineStart <= line <= self.LineEnd) and (self.ColStart <= col <=
+                                                             self.ColEnd)
 
 
 class CovInstantiationGroup(CoverageSchema):
@@ -169,6 +174,75 @@ def extract_text(lines: List[str], start: Tuple[int, int], end: Tuple[int, int])
             lines[start_line - 1][start_column - 1:]
         ] + lines[start_line:end_line - 1] + [lines[end_line - 1][:end_column - 1]]
         return "\n".join(extracted_lines)
+
+
+@beartype
+class CoverageSegmentTree:
+
+    def __init__(self, segments: Iterable[CovSegment]):
+        self.root = None
+        self.segments = sorted(segments, key=lambda x: (x.LineStart, x.ColStart))
+        if self.segments:
+            self.root = self.build_tree(0, len(self.segments) - 1)
+
+    @beartype
+    class Node:
+
+        def __init__(self, start: int, end: int, segments: Iterable[CovSegment]):
+            self.start = start
+            self.end = end
+            self.segments = segments
+            self.left: Optional['CoverageSegmentTree.Node'] = None
+            self.right: Optional['CoverageSegmentTree.Node'] = None
+
+    def build_tree(self, start: int, end: int) -> Node:
+        if start > end:
+            return None
+        if start == end:
+            return self.Node(start, end, [self.segments[start]])
+
+        mid = (start + end) // 2
+        node = self.Node(start, end, self.segments[start:end + 1])
+        node.left = self.build_tree(start, mid)
+        node.right = self.build_tree(mid + 1, end)
+        return node
+
+    def query(self,
+              line: int,
+              col: int,
+              node: Optional[Node] = None) -> Iterable[CovSegment]:
+        if node is None:
+            node = self.root
+        if node is None:
+            return []
+
+        # If the point is outside the bounds of the segments in this node
+        if node.start > line or node.end < line:
+            return []
+
+        # Check for intersection with segments at this node
+        result = [seg for seg in node.segments if seg.intersects(line, col)]
+
+        # Recurse on child nodes
+        if node.left and line <= (node.left.start + node.left.end) // 2:
+            result.extend(self.query(line, col, node.left))
+        if node.right and line >= (node.right.start + node.right.end) // 2 + 1:
+            result.extend(self.query(line, col, node.right))
+
+        return result
+
+
+@beartype
+def get_coverage_of(session: Session, path: Path) -> Select[Tuple[CovSegment]]:
+    target_id = session.execute(
+        select(CovFile).where(CovFile.Path == str(path))).fetchall()
+
+    if len(target_id) != 1:
+        raise ValueError(
+            f"{len(target_id)} files matched for given path '{path}', expected exactly one match"
+        )
+
+    return select(CovSegment).where(CovSegment.File == target_id[0][0].Id)
 
 
 if __name__ == "__main__":

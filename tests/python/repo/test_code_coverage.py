@@ -292,8 +292,8 @@ int main() {
 
         assert len(df) == 2
         assert_frame(df, [
-            dict(StartLine=1, EndLine=1, Path="file1.cpp"),
-            dict(StartLine=5, EndLine=8, Path="main.cpp"),
+            dict(LineStart=1, LineEnd=1, Path="file1.cpp"),
+            dict(LineStart=5, LineEnd=8, Path="main.cpp"),
         ])
 
 
@@ -302,7 +302,47 @@ def cleanup_test_code(code: str) -> str:
     return re.sub(r"\s+", " ", code.replace("\n", " "))
 
 
-def test_file_segmentation():
+@beartype
+def add_cov_segment_text(df: pd.DataFrame, lines: List[str]):
+    df["Text"] = df.apply(
+        lambda row: cleanup_test_code(
+            cov.extract_text(
+                lines,
+                start=(row["LineStart"], row["ColStart"]),
+                end=(row["LineEnd"], row["ColEnd"]),
+            )),
+        axis=1,
+    )
+
+
+def test_file_segmentation_1():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        dir = Path("/tmp/test_base_run_coverage")
+        code = corpus_base.joinpath("test_file_segmentation_1.cpp").read_text()
+        cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
+        cmd.run()
+
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+        main_cov = cov.get_coverage_of(session, cmd.get_code("main.cpp"))
+        lines = code.split("\n")
+
+        segtree = cov.CoverageSegmentTree(it[0] for it in session.execute(main_cov))
+        df = pd.read_sql(main_cov, session.get_bind())
+        add_cov_segment_text(df, lines)
+
+        # print(render_rich(dataframe_to_rich_table(df)))
+
+        # Coverage segments only overlay executable blocks and do not 
+        # account for extraneous elements such as function headers etc.
+        assert segtree.query(line=1, col=15)
+        assert not segtree.query(line=1, col=14)
+        assert_frame(df[df["LineStart"] == 1], [
+            dict(IsLeaf=True, Text="{}", ColStart=15, ColEnd=17),
+        ])
+
+
+def test_file_segmentation_2():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         dir = Path("/tmp/test_base_run_coverage")
@@ -317,15 +357,7 @@ def test_file_segmentation():
         lines = code.split("\n")
 
         df = pd.read_sql(select(cov.CovSegment), session.get_bind())
-        df["Text"] = df.apply(
-            lambda row: cleanup_test_code(
-                cov.extract_text(
-                    lines,
-                    start=(row["StartLine"], row["StartCol"]),
-                    end=(row["EndLine"], row["EndCol"]),
-                )),
-            axis=1,
-        )
+        add_cov_segment_text(df, lines)
 
         table = dataframe_to_rich_table(df)
         table.show_lines = True
@@ -339,42 +371,42 @@ def test_file_segmentation():
 
         assert_frame(df, [
             dict(
-                StartLine=1,
-                EndLine=1,
+                LineStart=1,
+                LineEnd=1,
                 SegmentIndex=0,
                 Text="{}",
                 IsLeaf=True,
             ),
             dict(
-                StartLine=3,
-                EndLine=5,
+                LineStart=3,
+                LineEnd=5,
                 SegmentIndex=1,
                 Id=2,
                 Text="{ if (true || false) { action(); } }",
                 IsLeaf=False,
             ),
             dict(
-                StartLine=4,
-                EndLine=4,
+                LineStart=4,
+                LineEnd=4,
                 SegmentIndex=2,
                 Text="true",
-                StartCol=9,
-                EndCol=13,
+                ColStart=9,
+                ColEnd=13,
                 NestedIn=2,
                 IsLeaf=True,
             ),
             dict(
-                StartLine=4,
-                EndLine=4,
+                LineStart=4,
+                LineEnd=4,
                 SegmentIndex=3,
                 Text="false",
-                StartCol=17,
-                EndCol=22,
+                ColStart=17,
+                ColEnd=22,
                 NestedIn=2,
                 IsLeaf=True,
             ),
             dict(
-                StartLine=4,
+                LineStart=4,
                 SegmentIndex=4,
                 Text="{ action(); }",
                 NestedIn=2,

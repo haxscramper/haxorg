@@ -767,10 +767,10 @@ struct queries {
                 "CovSegment",
                 {
                     "Id",           // 1
-                    "StartLine",    // 2
-                    "StartCol",     // 3
-                    "EndLine",      // 4
-                    "EndCol",       // 5
+                    "LineStart",    // 2
+                    "ColStart",     // 3
+                    "LineEnd",      // 4
+                    "ColEnd",       // 5
                     "StartCount",   // 6
                     "EndCount",     // 7
                     "HasCount",     // 8

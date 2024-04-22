@@ -92,10 +92,10 @@ CREATE TABLE "CovFunctionInstantiation" (
 
 CREATE TABLE "CovSegment" (
 	"Id" INTEGER NOT NULL, 
-	"StartLine" INTEGER NOT NULL, 
-	"StartCol" INTEGER NOT NULL, 
-	"EndLine" INTEGER NOT NULL, 
-	"EndCol" INTEGER NOT NULL, 
+	"LineStart" INTEGER NOT NULL, 
+	"ColStart" INTEGER NOT NULL, 
+	"LineEnd" INTEGER NOT NULL, 
+	"ColEnd" INTEGER NOT NULL, 
 	"StartCount" INTEGER NOT NULL, 
 	"EndCount" INTEGER NOT NULL, 
 	"HasCount" BOOLEAN NOT NULL, 
