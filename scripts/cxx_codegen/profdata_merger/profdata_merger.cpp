@@ -24,6 +24,7 @@
 #include <llvm/ADT/Hashing.h>
 #include <hstd/system/Formatter.hpp>
 #include <algorithm>
+#include <absl/hash/hash.h>
 
 #include <perfetto.h>
 
@@ -779,6 +780,7 @@ struct queries {
                     "SegmentIndex", // 11
                     "NestedIn",     // 12
                     "IsLeaf",       // 13
+                    "IsBranch",     // 14
                 }))
         ,
         // ---
@@ -885,6 +887,7 @@ struct CountedRegionHasher {
     }
 };
 
+
 struct CountedRegionComparator {
     size_t operator()(
         const CounterMappingRegion& lhs,
@@ -897,6 +900,35 @@ struct CountedRegionComparator {
             && lhs.Kind == rhs.Kind;
     }
 };
+
+
+struct FileSpan {
+    unsigned int LineStart{};
+    unsigned int LineEnd{};
+    unsigned int ColStart{};
+    unsigned int ColEnd{};
+};
+
+struct FileSpanHasher {
+    size_t operator()(const FileSpan& region) const {
+        return hash_combine(
+            region.LineStart,
+            region.LineEnd,
+            region.ColStart,
+            region.ColEnd);
+    }
+};
+
+
+struct FileSpanComparator {
+    size_t operator()(const FileSpan& lhs, const FileSpan& rhs) const {
+        return lhs.LineStart == rhs.LineStart //
+            && lhs.ColStart == rhs.ColStart   //
+            && lhs.LineEnd == rhs.LineEnd     //
+            && lhs.ColEnd == rhs.ColEnd;
+    }
+};
+
 
 struct db_build_ctx {
     int                                  context_id{};
@@ -1141,6 +1173,32 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
             return lhs.first.self_id < rhs.first.self_id;
         });
 
+    std::unordered_map<FileSpan, bool, FileSpanHasher, FileSpanComparator>
+        branch_cache{};
+
+    for (auto it : enumerate(file.getBranches())) {
+        CountedRegion const& r = it.value();
+        branch_cache.insert_or_assign(
+            FileSpan{
+                .LineStart = r.LineStart,
+                .LineEnd   = r.LineEnd,
+                .ColStart  = r.ColumnStart,
+                .ColEnd    = r.ColumnEnd,
+            },
+            true);
+        q.file_branch.bind(1, ctx.context_id);
+        q.file_branch.bind(2, (int64_t)r.ExecutionCount);
+        q.file_branch.bind(3, (int64_t)r.FalseExecutionCount);
+        q.file_branch.bind(4, r.Folded);
+        q.file_branch.bind(5, (int64_t)r.LineStart);
+        q.file_branch.bind(6, (int64_t)r.ColumnStart);
+        q.file_branch.bind(7, (int64_t)r.LineEnd);
+        q.file_branch.bind(8, (int64_t)r.ColumnEnd);
+        q.func_region.bind(9, r.Kind);
+        q.file_branch.exec();
+        q.file_branch.reset();
+    }
+
     for (auto it : enumerate(segment_pairs)) {
         auto const& [nesting, end] = it.value();
         auto const& start          = nesting.segment;
@@ -1162,24 +1220,19 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
             q.segment.bind(12, nullptr);
         }
         q.segment.bind(13, nesting.is_leaf);
+
+        FileSpan span{
+            .LineStart = start.Line,
+            .LineEnd   = end.Line,
+            .ColStart  = start.Col,
+            .ColEnd    = end.Col,
+        };
+
+        q.segment.bind(14, branch_cache.contains(span));
         q.segment.exec();
         q.segment.reset();
     }
 
-    for (auto it : enumerate(file.getBranches())) {
-        CountedRegion const& r = it.value();
-        q.file_branch.bind(1, ctx.context_id);
-        q.file_branch.bind(2, (int64_t)r.ExecutionCount);
-        q.file_branch.bind(3, (int64_t)r.FalseExecutionCount);
-        q.file_branch.bind(4, r.Folded);
-        q.file_branch.bind(5, (int64_t)r.LineStart);
-        q.file_branch.bind(6, (int64_t)r.ColumnStart);
-        q.file_branch.bind(7, (int64_t)r.LineEnd);
-        q.file_branch.bind(8, (int64_t)r.ColumnEnd);
-        q.func_region.bind(9, r.Kind);
-        q.file_branch.exec();
-        q.file_branch.reset();
-    }
 
     for (ExpansionRecord const& e : file.getExpansions()) {
         int function_id = get_function_id(e.Function, q, ctx);

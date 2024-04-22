@@ -12,7 +12,8 @@ Json = Union[str, int, float, None, Dict, List, Tuple]
 class Op(Enum):
     Replace = auto()
     Remove = auto()
-    Add = auto()
+    AddField = auto()
+    AppendItem = auto()
 
 
 @beartype
@@ -39,7 +40,7 @@ def json_diff(source: Json,
         result.append(DiffItem(Op.Replace, path, target))
         return result
 
-    if isinstance(source, list):
+    if isinstance(source, (list, tuple)):
         i = 0
         while i < len(source) and i < len(target):
             temp_diff = json_diff(source[i], target[i], path.child(Index(i)), ignore)
@@ -52,8 +53,10 @@ def json_diff(source: Json,
             i += 1
 
         while i < len(target):
-            result.append(DiffItem(Op.Add, path.child(Index(i)), target[i]))
+            result.append(DiffItem(Op.AppendItem, path.child(Index(i)), target[i]))
             i += 1
+
+        assert i == max(len(target), len(source))
 
     elif isinstance(source, dict):
         for key in source:
@@ -67,7 +70,7 @@ def json_diff(source: Json,
 
         for key in target:
             if key not in source:
-                result.append(DiffItem(Op.Add, path.child(Fields(key)), target[key]))
+                result.append(DiffItem(Op.AddField, path.child(Fields(key)), target[key]))
 
     else:
         result.append(DiffItem(Op.Replace, path, target))
@@ -84,7 +87,8 @@ def get_subset_diff(main_set: Json, expected_subset: Json) -> List[DiffItem]:
     # If some element from expect *sub*set was added, it is an expected behavior. All other operations
     # are returned.
     return [
-        it for it in json_diff(source=expected_subset, target=main_set) if it.op != Op.Add
+        it for it in json_diff(source=expected_subset, target=main_set)
+        if it.op != Op.AddField
     ]
 
 
@@ -101,8 +105,13 @@ def describe_diff(
 
     if it.op == Op.Remove:
         description += f"{source_name} has extra entry"
-    elif it.op == Op.Add:
-        description += f"{target_name} missing entry"
+
+    elif it.op == Op.AddField:
+        description += f"{target_name} missing field"
+
+    elif it.op == Op.AppendItem:
+        description += f"{target_name} missing list item"
+
     elif it.op == Op.Replace:
         description += "changed entry"
 
@@ -115,7 +124,10 @@ def describe_diff(
     if it.op == Op.Remove:
         description += f"    {json.dumps(get_path(source), indent=2)}"
 
-    elif it.op == Op.Add:
+    elif it.op == Op.AddField:
+        description += f"    {json.dumps(it.value, indent=2)}"
+
+    elif it.op == Op.AppendItem:
         description += f"    {json.dumps(it.value, indent=2)}"
 
     elif it.op == Op.Replace:

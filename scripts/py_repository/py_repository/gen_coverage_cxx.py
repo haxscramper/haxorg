@@ -113,6 +113,7 @@ class CovSegment(CoverageSchema):
     SegmentIndex = IntColumn()
     NestedIn = ForeignId("CovSegment.Id", nullable=True)
     IsLeaf = BoolColumn()
+    IsBranch = BoolColumn()
 
     def intersects(self, line: int, col: int) -> bool:
         return (self.LineStart <= line <= self.LineEnd) and (self.ColStart <= col <=

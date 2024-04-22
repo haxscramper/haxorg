@@ -326,6 +326,7 @@ def test_file_segmentation_1():
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
         main_cov = cov.get_coverage_of(session, cmd.get_code("main.cpp"))
         lines = code.split("\n")
+        # print(format_db_all(session))
 
         segtree = cov.CoverageSegmentTree(it[0] for it in session.execute(main_cov))
         df = pd.read_sql(main_cov, session.get_bind())
@@ -333,12 +334,30 @@ def test_file_segmentation_1():
 
         # print(render_rich(dataframe_to_rich_table(df)))
 
-        # Coverage segments only overlay executable blocks and do not 
+        # Coverage segments only overlay executable blocks and do not
         # account for extraneous elements such as function headers etc.
         assert segtree.query(line=1, col=15)
         assert not segtree.query(line=1, col=14)
         assert_frame(df[df["LineStart"] == 1], [
             dict(IsLeaf=True, Text="{}", ColStart=15, ColEnd=17),
+        ])
+
+        # print(render_rich(dataframe_to_rich_table(df[df["IsBranch"] == True])))
+        assert_frame(df[df["IsBranch"] == True], [
+            dict(LineStart=3, ColStart=9, LineEnd=3, ColEnd=16, Text="arg > 0"),
+            dict(LineStart=4, ColStart=13, LineEnd=4, ColEnd=21, Text="arg > 10"),
+            dict(LineStart=5, ColStart=17, LineEnd=5, ColEnd=25, Text="arg > 20"),
+            dict(LineStart=11, ColStart=17, LineEnd=11, ColEnd=24, Text="arg > 5"),
+            dict(LineStart=17, ColStart=16, LineEnd=17, ColEnd=23, Text="arg < 0"),
+            dict(LineStart=18, ColStart=13, LineEnd=18, ColEnd=22, Text="arg < -10"),
+            dict(LineStart=19, ColStart=17, LineEnd=19, ColEnd=26, Text="arg < -20"),
+            dict(LineStart=25, ColStart=17, LineEnd=25, ColEnd=25, Text="arg < -5"),
+            dict(LineStart=35, ColStart=9, LineEnd=35, ColEnd=17, Text="arg == 0"),
+            dict(LineStart=35, ColStart=21, LineEnd=35, ColEnd=29, Text="arg == 1"),
+            dict(LineStart=35, ColStart=33, LineEnd=35, ColEnd=41, Text="arg == 2"),
+            dict(LineStart=36, ColStart=14, LineEnd=36, ColEnd=22, Text="arg <= 5"),
+            dict(LineStart=36, ColStart=26, LineEnd=36, ColEnd=34, Text="arg <= 5"),
+            dict(LineStart=36, ColStart=39, LineEnd=36, ColEnd=47, Text="arg < 10"),
         ])
 
 

@@ -31,6 +31,11 @@ void coverage_branches(int arg) {
     } else {
         action();
     }
+
+    if (arg == 0 || arg == 1 || arg == 2
+        || ((arg <= 5 || arg <= 5) && arg < 10)) {
+        action();
+    }
 }
 
 
