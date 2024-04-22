@@ -343,6 +343,7 @@ def test_file_segmentation():
                 EndLine=1,
                 SegmentIndex=0,
                 Text="{}",
+                IsLeaf=True,
             ),
             dict(
                 StartLine=3,
@@ -350,6 +351,7 @@ def test_file_segmentation():
                 SegmentIndex=1,
                 Id=2,
                 Text="{ if (true || false) { action(); } }",
+                IsLeaf=False,
             ),
             dict(
                 StartLine=4,
@@ -359,6 +361,7 @@ def test_file_segmentation():
                 StartCol=9,
                 EndCol=13,
                 NestedIn=2,
+                IsLeaf=True,
             ),
             dict(
                 StartLine=4,
@@ -368,11 +371,13 @@ def test_file_segmentation():
                 StartCol=17,
                 EndCol=22,
                 NestedIn=2,
+                IsLeaf=True,
             ),
             dict(
                 StartLine=4,
                 SegmentIndex=4,
                 Text="{ action(); }",
                 NestedIn=2,
+                IsLeaf=True,
             ),
         ])

@@ -103,6 +103,7 @@ CREATE TABLE "CovSegment" (
 	"Context" INTEGER NOT NULL, 
 	"SegmentIndex" INTEGER NOT NULL, 
 	"NestedIn" INTEGER, 
+	"IsLeaf" BOOLEAN NOT NULL, 
 	PRIMARY KEY ("Id"), 
 	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
 	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id"), 

@@ -778,6 +778,7 @@ struct queries {
                     "Context",      // 10
                     "SegmentIndex", // 11
                     "NestedIn",     // 12
+                    "IsLeaf",       // 13
                 }))
         ,
         // ---
@@ -1088,6 +1089,7 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
         CoverageSegment    segment;
         int                self_id;
         std::optional<int> parent;
+        bool               is_leaf;
     };
 
     std::vector<std::pair<NestingData, CoverageSegment>> segment_pairs;
@@ -1098,10 +1100,14 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
         std::string prefix = std::string(segment_stack.size() * 2, ' ');
         if (s.IsRegionEntry) {
             ++ctx.segment_counter;
+            if (!segment_stack.empty()) {
+                segment_stack.top().is_leaf = false;
+            }
             segment_stack.push({
                 .segment = s,
                 .self_id = ctx.segment_counter,
                 .parent  = std::nullopt,
+                .is_leaf = true,
             });
         } else {
             if (!segment_stack.empty()) {
@@ -1155,6 +1161,7 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
         } else {
             q.segment.bind(12, nullptr);
         }
+        q.segment.bind(13, nesting.is_leaf);
         q.segment.exec();
         q.segment.reset();
     }

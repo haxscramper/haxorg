@@ -111,6 +111,7 @@ class CovSegment(CoverageSchema):
     Context = ForeignId(CovContext.Id)
     SegmentIndex = IntColumn()
     NestedIn = ForeignId("CovSegment.Id", nullable=True)
+    IsLeaf = BoolColumn()
 
 
 class CovInstantiationGroup(CoverageSchema):
