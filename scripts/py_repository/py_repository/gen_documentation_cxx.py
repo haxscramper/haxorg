@@ -18,6 +18,11 @@ from py_codegen.refl_read import strip_comment_prefixes
 from pygments import lex
 from pygments.lexers import CppLexer
 import py_haxorg.pyhaxorg_wrap as org
+from sqlalchemy.orm import Session
+import py_repository.gen_coverage_cxx as cov
+from py_scriptutils.script_logging import log
+
+CAT = "docgen"
 
 T = TypeVar("T")
 
@@ -93,6 +98,13 @@ class DocCodeCxxLine(docdata.DocCodeLine, extra="forbid"):
 class DocCodeCxxFile(docdata.DocCodeFile, extra="forbid"):
     Content: SerializeAsAny[List["DocCxxEntry"]] = Field(default_factory=list)
     Lines: List[DocCodeCxxLine] = Field(default_factory=list)
+    Coverage: Optional[cov.CoverageSegmentTree] = Field(default=None)
+
+    # FIXME temporary workaround until I implement coverage segment tree serde.
+    class Config:
+        orm_mode = True
+        arbitrary_types_allowed = True
+        json_encoders = {cov.CoverageSegmentTree: lambda v: "Not serializable"}
 
 
 class DocCxxConcept(docdata.DocBase, extra="forbid"):
@@ -652,15 +664,19 @@ def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
 
 
 @beartype
-def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
-                     AbsPath: Path) -> DocCodeCxxFile:
+def convert_cxx_tree(
+    tree: tree_sitter.Tree,
+    RootPath: Path,
+    AbsPath: Path,
+    coverage_session: Optional[Session],
+) -> DocCodeCxxFile:
     result: List[DocCxxEntry] = []
     for toplevel in docdata.convert_comment_groups(tree.root_node):
         entry = convert_cxx_entry(toplevel)
         if entry:
             result += entry
 
-    return DocCodeCxxFile(
+    outfile = DocCodeCxxFile(
         Content=result,
         RelPath=AbsPath.relative_to(RootPath),
         Lines=[
@@ -668,6 +684,18 @@ def convert_cxx_tree(tree: tree_sitter.Tree, RootPath: Path,
             for idx, line in enumerate(AbsPath.read_text().splitlines())
         ],
     )
+
+    if coverage_session:
+        query = cov.get_coverage_of(coverage_session, AbsPath)
+        if query is not None:
+            log(CAT).info(f"Has coverage for {AbsPath}")
+            outfile.Coverage = cov.CoverageSegmentTree(
+                it[0]
+                for it in coverage_session.execute(query.where(
+                    cov.CovSegment.IsLeaf == True)))
+            
+
+    return outfile
 
 
 @beartype

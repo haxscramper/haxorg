@@ -1086,19 +1086,22 @@ def docs_custom(ctx: Context):
     out_dir = get_script_root("docs/custom_html")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    run_command(
-        ctx,
-        "poetry",
-        [
-            "run",
-            get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
-            f"--html_out_path={out_dir}",
-            f"--root_path={get_script_root()}",
-            f"--src_path={get_script_root('src')}",
-            f"--src_path={get_script_root('scripts')}",
-            f"--coverage_path={get_script_root('.coverage')}",
-            f"--test_path={get_script_root('tests')}",
-        ])
+    args = [
+        "run",
+        get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
+        f"--html_out_path={out_dir}",
+        f"--root_path={get_script_root()}",
+        f"--src_path={get_script_root('src')}",
+        f"--src_path={get_script_root('scripts')}",
+        f"--py_coverage_path={get_script_root('.coverage')}",
+        f"--test_path={get_script_root('tests')}",
+    ]
+
+    # prof_params = get_cxx_profdata_params()
+    # if Path(prof_params.coverage_db).exists():
+    #     args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
+
+    run_command(ctx, "poetry", args)
 
 
 @org_task()

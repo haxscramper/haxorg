@@ -12,6 +12,7 @@ from sqlalchemy.types import JSON
 import enum
 from beartype import beartype
 from pathlib import Path
+from py_scriptutils.sqlalchemy_utils import open_sqlite_session
 
 CoverageSchema = declarative_base()
 
@@ -164,6 +165,10 @@ class ProfdataParams(BaseModel, extra="forbid"):
 
 
 @beartype
+def open_coverage(path: Path) -> Session:
+    return open_sqlite_session(path, CoverageSchema)
+
+@beartype
 def extract_text(lines: List[str], start: Tuple[int, int], end: Tuple[int, int]) -> str:
     start_line, start_column = start
     end_line, end_column = end
@@ -235,16 +240,22 @@ class CoverageSegmentTree:
 
 
 @beartype
-def get_coverage_of(session: Session, path: Path) -> Select[Tuple[CovSegment]]:
+def get_coverage_of(session: Session, path: Path) -> Optional[Select[Tuple[CovSegment]]]:
     target_id = session.execute(
         select(CovFile).where(CovFile.Path == str(path))).fetchall()
 
-    if len(target_id) != 1:
-        raise ValueError(
-            f"{len(target_id)} files matched for given path '{path}', expected exactly one match"
-        )
+    match len(target_id):
+        case 0: 
+            return None
+        
+        case 1: 
+            return select(CovSegment).where(CovSegment.File == target_id[0][0].Id)
+        
+        case _:
+            raise ValueError(
+                f"{len(target_id)} files matched for given path '{path}', expected exactly 0-1 matches"
+            )
 
-    return select(CovSegment).where(CovSegment.File == target_id[0][0].Id)
 
 
 if __name__ == "__main__":

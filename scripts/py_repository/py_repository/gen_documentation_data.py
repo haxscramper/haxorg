@@ -97,14 +97,15 @@ def get_code_line_span(
 
             token_html.add(token_text.strip("\n"))
 
-            tokens.add(
-                tags.span(token_html,
-                          _class=abbreviate_token_name(token_type) + " code-backlink"))
+            span = tags.span(token_html,
+                          _class=abbreviate_token_name(token_type) + " code-backlink")
+            
 
         else:
-            tokens.add(
-                tags.span(token_text.strip("\n"),
-                          _class=abbreviate_token_name(token_type)))
+            span = tags.span(token_text.strip("\n"),
+                          _class=abbreviate_token_name(token_type))
+            
+        tokens.add(span)
 
         column += len(token_text)
 
