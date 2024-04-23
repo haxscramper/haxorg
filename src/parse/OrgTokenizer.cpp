@@ -757,16 +757,15 @@ struct GroupToken {
     DECL_DESCRIBED_ENUM(Kind, Line, ListItem, Subtree, Properties, Block);
 
     struct Nested {
-        DECL_FIELDS(
-            Nested,
-            (),
-            ((Vec<GroupToken>), subgroups, {}),
-            ((LineToken), begin, {{}}),
-            ((LineToken), end, {{}}));
+        Vec<GroupToken> subgroups{};
+        LineToken       begin{};
+        LineToken       end{};
+        DESC_FIELDS(Nested, (subgroups, begin, end));
     };
 
     struct Leaf {
-        DECL_FIELDS(Leaf, (), ((Span<LineToken>), lines, {}));
+        Span<LineToken> lines{};
+        DESC_FIELDS(Leaf, (lines));
     };
 
     SUB_VARIANTS(DataKind, Data, data, getDataKind, Leaf, Nested);

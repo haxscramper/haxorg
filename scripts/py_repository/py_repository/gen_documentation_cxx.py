@@ -113,7 +113,7 @@ DocCxxEntry = Union[
 
 
 class DocCxxNamespace(docdata.DocBase, extra="forbid"):
-    Name: QualType
+    Name: Optional[QualType] = None
     Nested: SerializeAsAny[List[DocCxxEntry]] = Field(default_factory=list)
 
 
@@ -192,7 +192,7 @@ def convert_pointer_wraps(node: tree_sitter.Node, mut_type: QualType):
 
 
 @beartype
-@docutils.note_used_node
+@docdata.note_used_node
 def convert_cxx_type(
     node: tree_sitter.Node,
     name_decl: Optional[tree_sitter.Node] = None,
@@ -234,6 +234,13 @@ def convert_cxx_type(
 
             case "number_literal" | "binary_expression" | "decltype" | "sizeof_expression":
                 return QualType(Kind=QualTypeKind.TypeExpr, expr=node.text.decode())
+
+            case "template_function":
+                result = aux(get_subnode(node, "name"))
+                for sub in get_subnode(node, "arguments").named_children:
+                    result.Parameters.append(aux(sub))
+
+                return result
 
             case "nested_namespace_specifier":
                 result = aux(node.named_children[-1])
@@ -306,7 +313,7 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
         case "declaration" | \
              "init_declarator" | \
              "parameter_declaration" | \
-             "optional_parameter_declaration" | \
+            "optional_parameter_declaration" | \
              "variadic_parameter_declaration":
             return get_name_node(get_subnode("declarator"))
 
@@ -329,6 +336,7 @@ def convert_cxx_doc(doc: docdata.DocNodeGroup) -> Optional[docdata.DocText]:
 
 
 @beartype
+@docdata.note_used_node
 def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
     node = doc.node
     result = []
@@ -535,6 +543,9 @@ def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
 
                 result = [record]
 
+        case "linkage_specification":
+            return convert_cxx_entry(replace(doc, node=get_subnode(node, "body")))
+
         case "template_declaration":
             template_stack: List[tree_sitter.Node] = []
             template = node
@@ -588,10 +599,15 @@ def convert_cxx_entry(doc: docdata.DocNodeGroup) -> List[DocCxxEntry]:
 
         case "namespace_definition":
             name_node = get_subnode(node, "name")
-            space = DocCxxNamespace(
-                Name=convert_cxx_type(name_node),
-                **docdata.getNodePoints(node, name_node),
-            )
+
+            if name_node:
+                space = DocCxxNamespace(
+                    Name=convert_cxx_type(name_node),
+                    **docdata.getNodePoints(node, name_node),
+                )
+
+            else:
+                space = DocCxxNamespace(**docdata.getNodePoints(node, name_node),)
 
             for it in docdata.convert_comment_groups(get_subnode(node, "body")):
                 for entry in convert_cxx_entry(it):
@@ -676,7 +692,7 @@ def get_docs_fragment(
             return ctx + get_docs_fragment(entry.Name)
 
         case DocCxxFunction():
-            return ctx + entry.Name
+            return ctx + (entry.Name or "None")
 
         case DocCxxTypedef():
             return ctx + get_docs_fragment(entry.New)

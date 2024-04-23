@@ -14,6 +14,9 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_exporters.export_html import ExporterHtml
 import itertools
 from py_scriptutils.script_logging import log
+from functools import wraps
+from py_scriptutils.rich_utils import render_rich
+from py_repository.gen_documentation_utils import tree_repr
 
 CAT = "docgen"
 
@@ -59,7 +62,9 @@ def get_html_path(entry: Union[DocDirectory, DocCodeFile, DocTextFile],
             return html_out_path.joinpath(entry.RelPath)
 
         case DocCodeFile():
-            return html_out_path.joinpath(entry.RelPath).with_suffix(".html")
+            return html_out_path.joinpath(entry.RelPath).with_stem(
+                entry.RelPath.stem +
+                entry.RelPath.suffix.replace(".", "_")).with_suffix(".html")
 
 
 @beartype
@@ -191,6 +196,29 @@ def convert_comment_groups(node: tree_sitter.Node) -> List[DocNodeGroup]:
             converted.append(group)
 
     return converted
+
+
+def note_used_node(func):
+
+    @wraps(func)
+    def impl(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+
+        except Exception as e:
+            for value in args:
+                if isinstance(value, (tree_sitter.Node, DocNodeGroup)):
+                    if isinstance(value, DocNodeGroup):
+                        value = value.node
+
+                    if not hasattr(e, "__notes__") or not any(
+                        ["TS Tree:" in note for note in e.__notes__]):
+                        e.add_note(
+                            f"TS Tree: {render_rich(tree_repr(value), color=False)}")
+
+            raise e from None
+
+    return impl
 
 
 @beartype

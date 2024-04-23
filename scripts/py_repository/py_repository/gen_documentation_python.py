@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from beartype import beartype
 from beartype.typing import (Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union)
 from py_repository.gen_documentation_utils import (PY_LANG, fail_node, get_subnode,
-                                                   note_used_node, tree_repr)
+                                                   tree_repr)
 from pydantic import BaseModel, Field, SerializeAsAny
 from pygments.lexers import PythonLexer
 
@@ -118,7 +118,7 @@ def get_name_node(node: tree_sitter.Node) -> Optional[tree_sitter.Node]:
 
 
 @beartype
-@note_used_node
+@docdata.note_used_node
 def convert_py_type(node: tree_sitter.Node) -> DocPyType:
     match node.type:
         case "identifier" | "none":
@@ -233,7 +233,7 @@ def split_attribute(
 
 
 @beartype
-@note_used_node
+@docdata.note_used_node
 def convert_py_entry(doc: docdata.DocNodeGroup) -> List[DocPyEntry]:
     node = doc.node
 
@@ -450,7 +450,6 @@ def get_docs_fragment(
 @beartype
 def is_empty(line: DocCodePyLine) -> bool:
     return not line.Text.strip()
-
 
 @beartype
 def get_html_code_div(code_file: DocCodePyFile) -> tags.div:

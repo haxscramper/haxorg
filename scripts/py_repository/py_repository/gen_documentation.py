@@ -186,6 +186,8 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
 
         for code_file in directory.CodeFiles:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
+            # log(CAT).info(f"HTML for Code {code_file.RelPath} -> {path}")
+
             doc = document(title=str(code_file.RelPath))
             doc.head.add(tags.link(rel="stylesheet", href=css_path))
             doc.head.add(tags.script(src=str(js_path)))
@@ -362,7 +364,7 @@ def parse_code_file(
     is_test: bool,
 ) -> docdata.DocCodeFile:
     try:
-        if file.suffix == ".hpp":
+        if file.suffix in [".hpp", ".cpp"]:
             code_file = cxx.convert_cxx_tree(
                 cxx.parse_cxx(file),
                 RootPath=conf.root_path,
@@ -404,13 +406,15 @@ def parse_dir(
     for file in sorted(dir.glob("*")):
         if file.name in [
                 "base_lexer_gen.cpp",
+                "profdata_merger.cpp",
+                "pyhaxorg.cpp",
                 "__init__.py",
                 "__pycache__",
         ] or file.name.startswith("."):
             continue
 
         match file.suffix:
-            case ".hpp" | ".py":
+            case ".hpp" | ".py" | ".cpp":
                 result.CodeFiles.append(
                     parse_code_file(
                         file,
