@@ -15,6 +15,7 @@ target_link_libraries(profdata_merger
     SQLiteCpp
     sqlite3
     perfetto
+    tbb
 )
 
 target_include_directories(profdata_merger PUBLIC "${BASE}/src")

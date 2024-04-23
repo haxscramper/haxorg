@@ -27,6 +27,7 @@
 #include <absl/hash/hash.h>
 #include <fstream>
 #include <hstd/system/aux_utils.hpp>
+#include <execution>
 
 #include <perfetto.h>
 
@@ -1256,7 +1257,7 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
 
 
 void add_instantiations(
-    std::unique_ptr<CoverageMapping> const& mapping,
+    std::shared_ptr<CoverageMapping> const& mapping,
     std::string const&                      file,
     queries&                                q,
     db_build_ctx&                           ctx) {
@@ -1315,10 +1316,29 @@ void add_context(json::Object const* run, queries& q, db_build_ctx& ctx) {
     q.context.reset();
 }
 
-std::unique_ptr<CoverageMapping> get_coverage_mapping(
+llvm::MD5::MD5Result getMD5Digest(
+    const std::string& str1,
+    const std::string& str2) {
+    llvm::MD5 hash;
+    hash.update(llvm::ArrayRef<uint8_t>(
+        reinterpret_cast<const uint8_t*>(str1.data()), str1.size()));
+    hash.update(llvm::ArrayRef<uint8_t>(
+        reinterpret_cast<const uint8_t*>(str2.data()), str2.size()));
+    llvm::MD5::MD5Result result;
+    hash.final(result);
+    return result;
+}
+
+std::shared_ptr<CoverageMapping> get_coverage_mapping(
     std::string const& coverage_path,
     std::string const& binary_path) {
-    TRACE_EVENT("llvm", "Profraw to coverage mapping");
+    TRACE_EVENT(
+        "llvm",
+        "Profraw to coverage mapping",
+        "coverage_path",
+        coverage_path,
+        "binary_path",
+        binary_path);
 
     InstrProfWriter Writer;
     {
@@ -1328,7 +1348,10 @@ std::unique_ptr<CoverageMapping> get_coverage_mapping(
             "Loaded {} binary {}", coverage_path, binary_path));
     }
 
-    std::string            tmp_path = "/tmp/tmp.profdata";
+    std::string tmp_path = std::format(
+        "/tmp/{}.profdata",
+        getMD5Digest(coverage_path, binary_path).digest().str().str());
+
     std::vector<StringRef> ObjectFilenames;
     ObjectFilenames.push_back(binary_path);
     {
@@ -1351,7 +1374,7 @@ std::unique_ptr<CoverageMapping> get_coverage_mapping(
     {
         TRACE_EVENT("llvm", "Load coverage profile data");
         auto FS = vfs::getRealFileSystem();
-        Expected<std::unique_ptr<CoverageMapping>>
+        Expected<std::shared_ptr<CoverageMapping>>
             mapping_or_err = CoverageMapping::load(
                 ObjectFilenames, tmp_path, *FS);
 
@@ -1363,6 +1386,16 @@ std::unique_ptr<CoverageMapping> get_coverage_mapping(
         return std::move(mapping_or_err.get());
     }
 }
+
+// struct hash_pair {
+//     template <class T1, class T2>
+//     std::size_t operator() (const std::pair<T1, T2> &pair) const {
+//         auto hash1 = std::hash<T1>{}(pair.first);
+//         auto hash2 = std::hash<T2>{}(pair.second);
+//         return hash1 ^ hash2;
+//     }
+// };
+
 
 int main(int argc, char** argv) {
     json::Value debug_value = json::Object();
@@ -1468,6 +1501,38 @@ int main(int argc, char** argv) {
     ctx.file_whitelist = get_regex_list("file_whitelist");
 
 
+    std::unordered_map<
+        std::pair<std::string, std::string>,
+        std::shared_ptr<CoverageMapping>,
+        pair_hash<std::string, std::string>>
+        coverage_map;
+
+    {
+        TRACE_EVENT("llvm", "Parallel convert of coverage data");
+        std::vector<std::pair<std::string, std::string>> paths{};
+
+        for (auto const& run_value :
+             *summary->getAsObject()->getArray("runs")) {
+            auto        run           = run_value.getAsObject();
+            std::string coverage_path = run->getString("test_profile")
+                                            ->str();
+            std::string binary_path = run->getString("test_binary")->str();
+            paths.push_back({coverage_path, binary_path});
+        }
+
+        std::mutex coverage_mutex;
+
+        std::for_each(
+            std::execution::par,
+            paths.begin(),
+            paths.end(),
+            [&](const std::pair<std::string, std::string>& p) {
+                auto coverage = get_coverage_mapping(p.first, p.second);
+                std::scoped_lock lock{coverage_mutex};
+                coverage_map.emplace(p, std::move(coverage));
+            });
+    }
+
     for (auto const& run_value :
          *summary->getAsObject()->getArray("runs")) {
         TRACE_EVENT("main", "Insert run data");
@@ -1481,8 +1546,8 @@ int main(int argc, char** argv) {
 
         add_context(run, q, ctx);
 
-        std::unique_ptr<CoverageMapping> mapping = get_coverage_mapping(
-            coverage_path, binary_path);
+        std::shared_ptr<CoverageMapping> mapping = coverage_map.at(
+            {coverage_path, binary_path});
 
 
         if (mapping.get() == nullptr) {
