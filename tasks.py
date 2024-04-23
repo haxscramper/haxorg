@@ -965,6 +965,43 @@ def cmake_all(ctx: Context):
     pass
 
 
+@beartype
+def get_cxx_coverage_dir() -> Path:
+    return get_build_root("coverage_artifacts")
+
+
+@beartype
+def get_cxx_profdata_params_path() -> Path:
+    return get_cxx_coverage_dir().joinpath("profile-collect.json")
+
+
+@beartype
+def get_cxx_profdata_params() -> ProfdataParams:
+    coverage_dir = get_cxx_coverage_dir()
+    return ProfdataParams(
+        coverage=str(coverage_dir.joinpath("test-summary.json")),
+        coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
+        perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
+        file_whitelist=[".*"],
+        file_blacklist=[
+            "thirdparty",
+            r"base_lexer_gen\.cpp",
+        ],
+    )
+
+
+@org_task(pre=[cmake_utils])
+def cxx_merge_coverage(ctx: Context):
+    profile_path = get_cxx_profdata_params_path()
+    run_command(
+        ctx,
+        "build/utils/profdata_merger/profdata_merger",
+        [
+            profile_path,
+        ],
+    )
+
+
 @org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
 def py_tests(ctx: Context, arg: List[str] = []):
     """
@@ -976,27 +1013,13 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
     env = get_py_env(ctx)
 
-    coverage_dir = get_build_root("coverage_artifacts")
-
     if is_instrumented_coverage(ctx):
+        coverage_dir = get_cxx_coverage_dir()
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
-
-        profile_path = coverage_dir.joinpath("profile-collect.json")
+        profile_path = get_cxx_profdata_params_path()
         log(CAT).info(f"Profile collect options: {profile_path}")
-
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-
-        profile_path.write_text(
-            ProfdataParams(
-                coverage=str(coverage_dir.joinpath("test-summary.json")),
-                coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
-                perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
-                file_whitelist=[".*"],
-                file_blacklist=[
-                    "thirdparty",
-                    r"base_lexer_gen\.cpp",
-                ],
-            ).model_dump_json(indent=2))
+        profile_path.write_text(get_cxx_profdata_params().model_dump_json(indent=2))
 
     run_command(ctx, "poetry", [
         "run",

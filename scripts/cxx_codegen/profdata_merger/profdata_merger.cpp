@@ -1383,6 +1383,10 @@ int main(int argc, char** argv) {
 
     auto config = config_value->getAsObject();
 
+    LOG(std::format(
+        "Using test summary file {}",
+        config->getString("coverage")->str()));
+
     Expected<json::Value> summary = json::parse(
         read_file(config->getString("coverage")->str()));
 
