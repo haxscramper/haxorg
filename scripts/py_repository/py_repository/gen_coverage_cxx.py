@@ -160,6 +160,7 @@ class ProfdataParams(BaseModel, extra="forbid"):
     perf_trace: Optional[str]
     file_whitelist: List[str]
     file_blacklist: List[str]
+    debug_file: Optional[str]
 
 
 @beartype

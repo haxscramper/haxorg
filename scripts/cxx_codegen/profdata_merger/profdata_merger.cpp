@@ -25,6 +25,8 @@
 #include <hstd/system/Formatter.hpp>
 #include <algorithm>
 #include <absl/hash/hash.h>
+#include <fstream>
+#include <hstd/system/aux_utils.hpp>
 
 #include <perfetto.h>
 
@@ -73,17 +75,22 @@ void CreateTables(SQLite::Database& db) {
     db.exec(sql);
 }
 
-
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
 std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
+}
+
+json::Array& add_array_field(
+    json::Object&      obj,
+    std::string const& field,
+    json::Value const& value) {
+    if (obj.getArray(field) == nullptr) { obj[field] = json::Array(); }
+    obj.getArray(field)->push_back(value);
+    return *obj.getArray(field);
+}
+
+json::Object& add_obj_field(json::Object& obj, std::string const& field) {
+    if (obj.getObject(field) == nullptr) { obj[field] = json::Object(); }
+    return *obj.getObject(field);
 }
 
 
@@ -961,9 +968,9 @@ struct db_build_ctx {
             return false;
         }
 
-        for (auto const& r : file_blacklist) {
-            if (r.match(path)) {
-                debug = std::format("blacklisted");
+        for (auto const& r : llvm::enumerate(file_blacklist)) {
+            if (r.value().match(path)) {
+                debug = std::format("blacklisted by #{}", r.index());
                 return false;
             }
         }
@@ -1358,6 +1365,11 @@ std::unique_ptr<CoverageMapping> get_coverage_mapping(
 }
 
 int main(int argc, char** argv) {
+    json::Value debug_value = json::Object();
+    assert(debug_value.getAsObject() != nullptr);
+    json::Object& debug = *debug_value.getAsObject();
+
+
     if (argc != 2) {
         throw std::logic_error(
             "Expected single positional argument -- JSON literal "
@@ -1383,9 +1395,26 @@ int main(int argc, char** argv) {
 
     auto config = config_value->getAsObject();
 
+    auto flush_debug = [&]() {
+        if (config->getString("debug_file")) {
+            fs::path      out_path{config->getString("debug_file")->str()};
+            std::ofstream os{out_path};
+            os << llvm::formatv("{0:2}", debug_value).str();
+        }
+    };
+
+    finally{flush_debug};
+
+
     LOG(std::format(
         "Using test summary file {}",
         config->getString("coverage")->str()));
+
+    if (config->getString("debug_file")) {
+        LOG(std::format(
+            "Debug file enabled {}",
+            config->getString("debug_file")->str()));
+    }
 
     Expected<json::Value> summary = json::parse(
         read_file(config->getString("coverage")->str()));
@@ -1442,10 +1471,12 @@ int main(int argc, char** argv) {
     for (auto const& run_value :
          *summary->getAsObject()->getArray("runs")) {
         TRACE_EVENT("main", "Insert run data");
+        finally{flush_debug};
 
-        auto        run           = run_value.getAsObject();
-        std::string coverage_path = run->getString("test_profile")->str();
-        std::string binary_path   = run->getString("test_binary")->str();
+        json::Object j_run;
+        auto         run           = run_value.getAsObject();
+        std::string  coverage_path = run->getString("test_profile")->str();
+        std::string  binary_path   = run->getString("test_binary")->str();
         ctx.function_region_ids.clear();
 
         add_context(run, q, ctx);
@@ -1472,11 +1503,18 @@ int main(int argc, char** argv) {
 
             {
                 TRACE_EVENT("sql", "Covered files");
+                json::Object& j_files = add_obj_field(
+                    j_run, "covered_files");
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
                     if (!ctx.file_matches(file.str(), debug)) {
-                        LOG(std::format(
-                            "Skipping {} with {}", file.str(), debug));
+                        add_array_field(
+                            j_files,
+                            "skipped",
+                            json::Object({
+                                {"file", file.str()},
+                                {"reason", debug},
+                            }));
                         continue;
                     }
                     TRACE_EVENT("sql", "Add file", "File", file.str());
@@ -1490,6 +1528,8 @@ int main(int argc, char** argv) {
 
             db.exec("COMMIT");
         }
+
+        add_array_field(debug, "runs", std::move(j_run));
     }
 
     if (config->getString("perf_trace")) {

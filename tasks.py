@@ -982,6 +982,7 @@ def get_cxx_profdata_params() -> ProfdataParams:
         coverage=str(coverage_dir.joinpath("test-summary.json")),
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
         perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
+        debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
         file_whitelist=[".*"],
         file_blacklist=[
             "thirdparty",
