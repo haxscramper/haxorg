@@ -18,6 +18,7 @@ import rich.logging
 import _pytest.logging
 import pytest
 from py_scriptutils.rich_utils import render_debug
+import pytest
 
 CAT = "test-js"
 
@@ -116,7 +117,7 @@ def eval_js_visual(module_path: str, output_path: Path) -> None:
 def eval_visual_for(content: str,
                     js_module: str,
                     test_tmp_dir: Optional[Path] = None) -> Node:
-    
+
     if test_tmp_dir and not test_tmp_dir.exists():
         test_tmp_dir.mkdir(parents=True)
 
@@ -161,6 +162,7 @@ def dom_to_json(node: Node) -> Dict:
     return node_dict
 
 
+@pytest.mark.x11
 def test_indented_subtree():
     svg_content = eval_visual_for(
         content="""
@@ -178,6 +180,7 @@ def test_indented_subtree():
     assert titles[1]["subnodes"][0]["data"] == "<document>/Something", titles
 
 
+@pytest.mark.x11
 def test_collapsible_subtree():
     svg_content = eval_visual_for(
         content="""
@@ -204,6 +207,7 @@ def test_collapsible_subtree():
     ]
 
 
+@pytest.mark.x11
 def test_timeline_with_zoom():
     svg_content = eval_visual_for(
         content="""
@@ -223,6 +227,7 @@ def test_timeline_with_zoom():
     assert events[1]["subnodes"] == [{"kind": "Text", "data": "Event2"}], dbg(events)
 
 
+@pytest.mark.x11
 def test_standalone_tree_arcs():
     svg_content = eval_visual_for(
         content="""
@@ -235,12 +240,12 @@ def test_standalone_tree_arcs():
         js_module="mind_map/standalone_mind_map_arcs_test.html",
     )
 
-    events = [dom_to_json(it)["subnodes"] for it in svg_content.getElementsByTagName("text")][1:]
+    events = [
+        dom_to_json(it)["subnodes"] for it in svg_content.getElementsByTagName("text")
+    ][1:]
 
     assert events[0] == [{"kind": "Text", "data": "Top11"}], dbg(events)
     assert events[1] == [{"kind": "Text", "data": "Top12"}], dbg(events)
     assert events[2] == [{"kind": "Text", "data": "Top21"}], dbg(events)
     assert events[3] == [{"kind": "Text", "data": "Top22"}], dbg(events)
     assert events[4] == [{"kind": "Text", "data": "Top23"}], dbg(events)
-
-

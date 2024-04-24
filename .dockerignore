@@ -1,3 +1,5 @@
 *
 !pyproject.toml
 !poetry.lock
+!package.json
+!package-lock.json

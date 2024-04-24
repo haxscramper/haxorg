@@ -18,5 +18,5 @@ target_link_libraries(profdata_merger
     tbb
 )
 
-target_include_directories(profdata_merger PUBLIC "${BASE}/src")
+target_include_directories(profdata_merger PUBLIC "${BASE}/src" "${BASE}/thirdparty/abseil-cpp")
 set_target_properties(profdata_merger PROPERTIES CXX_STANDARD 20)

@@ -219,7 +219,7 @@ def ui_notify(message: str, is_ok: bool = True):
         cmd.run(
             [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
 
-    except plumbum.CommandNotFound:
+    except Exception:
         if is_ok:
             log(CAT).info(message)
 
@@ -1114,5 +1114,5 @@ def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
         run_command(ctx, "invoke", [
             "py-tests",
             "--arg=-m",
-            "--arg=not unstable",
+            "--arg=not (unstable or x11)",
         ])

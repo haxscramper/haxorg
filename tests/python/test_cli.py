@@ -5,6 +5,8 @@ from pathlib import Path
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.click_utils import click_run_test
 from plumbum import local
+import pytest
+from plumbum import CommandNotFound
 
 
 def test_help():
@@ -57,7 +59,14 @@ def test_sqlite_export():
             f"--outfile={out_file}",
         ])
 
+def has_pandoc() -> bool:
+    try:
+        local["pandoc"]
+        return True
+    except CommandNotFound:
+        return False
 
+@pytest.mark.skipif(not has_pandoc(), reason="`pandoc` binary is not installed, skipping tests")
 def test_pandoc_export():
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
