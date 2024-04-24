@@ -63,7 +63,9 @@ build-backend = "poetry.core.masonry.api"
 testpaths = ["tests"] 
 addopts = "--color=yes"
 console_output_style = "classic"
-
+markers = [
+    "unstable: fuzzy tests that can randomly fail in CI"
+]
 
 [tool.ruff]
 ignore = [

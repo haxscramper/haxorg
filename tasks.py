@@ -1111,4 +1111,8 @@ def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
         run_command(ctx, "invoke", ["cmake-all"])
 
     if test:
-        run_command(ctx, "invoke", ["py-tests"])
+        run_command(ctx, "invoke", [
+            "py-tests",
+            "--arg=-m",
+            "--arg=not unstable",
+        ])

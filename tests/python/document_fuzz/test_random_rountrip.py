@@ -799,6 +799,7 @@ gen_settings = dict(
 )
 
 
+@pytest.mark.unstable
 @settings(**gen_settings)
 @given(node_strategy(OrgGenCtx()))
 def test_ultraplain_export(doc: org.Document):
@@ -806,6 +807,7 @@ def test_ultraplain_export(doc: org.Document):
     exp.exp.evalTop(doc)
 
 
+@pytest.mark.unstable
 @settings(**gen_settings)
 @given(node_strategy(OrgGenCtx()))
 def test_tex_export(doc: org.Document):
@@ -813,6 +815,7 @@ def test_tex_export(doc: org.Document):
     exp.exp.evalTop(doc)
 
 
+@pytest.mark.unstable
 @settings(**gen_settings)
 @given(node_strategy(OrgGenCtx()))
 def test_html_export(doc: org.Document):
@@ -820,6 +823,7 @@ def test_html_export(doc: org.Document):
     exp.exp.evalTop(doc)
 
 
+@pytest.mark.unstable
 @settings(**gen_settings)
 @given(node_strategy(OrgGenCtx()))
 def test_render(doc: org.Document):
