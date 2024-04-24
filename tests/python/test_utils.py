@@ -17,7 +17,7 @@ def test_no_difference():
 def test_one_extra_element():
     res = get_diff([], [1])
     assert len(res) == 1, res
-    assert res[0].op == ju.Op.Add
+    assert res[0].op == ju.Op.AppendItem
     assert res[0].value == 1
 
 def test_one_removed_element():
@@ -35,7 +35,7 @@ def test_type_mismatch():
 def test_nested_structure_addition():
     res = get_diff({"a": {"b": 1}}, {"a": {"b": 1, "c": 2}})
     assert len(res) == 1, res
-    assert res[0].op == ju.Op.Add
+    assert res[0].op == ju.Op.AddField
     assert res[0].path == Root().child(Fields("a")).child(Fields("c"))
     assert res[0].value == 2
 
@@ -64,12 +64,12 @@ def test_addition_and_removal():
     assert len(res) == 2, res
     ops = set([item.op for item in res])
     assert ju.Op.Replace in ops, res
-    assert ju.Op.Add not in ops, res
+    assert ju.Op.AppendItem not in ops, res
     assert ju.Op.Remove not in ops, res
 
-def test_expected_subset_no_difference():
+def test_expected_subset_list_removed():
     res = ju.get_subset_diff([1], [])
-    assert len(res) == 0, res
+    assert len(res) == 1, res
 
 def test_expected_subset_missing_item():
     res = ju.get_subset_diff([1, 2], [1, 2, 3])
@@ -77,6 +77,5 @@ def test_expected_subset_missing_item():
     assert res[0].op == ju.Op.Remove
 
 def test_subset_assert():
-    ju.assert_subset([1], [])
     ju.assert_subset([3], [3])
     ju.assert_subset([{"a": "b", "c": "d"}], [{"a": "b"}])

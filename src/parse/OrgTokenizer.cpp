@@ -758,8 +758,8 @@ struct GroupToken {
 
     struct Nested {
         Vec<GroupToken> subgroups{};
-        LineToken       begin{};
-        LineToken       end{};
+        LineToken       begin{{}};
+        LineToken       end{{}};
         DESC_FIELDS(Nested, (subgroups, begin, end));
     };
 

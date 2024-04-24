@@ -35,7 +35,12 @@ def parse_cxx(code: str) -> Tuple[cxx.DocCodeCxxFile, tree_sitter.Tree]:
         with TemporaryDirectory() as tmp_dir:
             dir = Path(tmp_dir)
             dir.joinpath("file.hpp").write_text(code)
-            return (cxx.convert_cxx_tree(tree, dir, dir.joinpath("file.hpp")), tree)
+            return (cxx.convert_cxx_tree(
+                tree,
+                dir,
+                dir.joinpath("file.hpp"),
+                coverage_session=None,
+            ), tree)
 
     except Exception as e:
         e.add_note(render_parse(tree))
