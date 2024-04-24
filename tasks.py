@@ -122,6 +122,11 @@ def is_forced(ctx: Context, name: str) -> bool:
 
 
 @beartype
+def is_ci() -> bool:
+    return bool(os.getenv("INVOKE_CI"))
+
+
+@beartype
 def cmake_opt(name: str, value: Union[str, bool]) -> str:
     result = "-D" + name + "="
     if isinstance(value, str):
@@ -521,8 +526,10 @@ def python_protobuf_files(ctx: Context):
         [proto_config],
             stamp_path=get_task_stamp("python-protobuf-files"),
     ) as op:
-        if op.should_run():
-            log(CAT).info(f"Running protc {op.explain('python protobuf')}")
+        explain = op.explain("python protobuf")
+        forced = is_forced(ctx, "python_protobuf_files")
+        if forced or op.should_run():
+            log(CAT).info(f"Running protc {explain}")
             _, stdout, _ = run_command(ctx,
                                        "poetry", ["env", "info", "--path"],
                                        capture=True)
@@ -548,11 +555,13 @@ def python_protobuf_files(ctx: Context):
                     "-I",
                     get_script_root("scripts/cxx_codegen"),
                     "--proto_path=" +
-                    str(get_script_root("scripts/py_codegen/py_codegen")),
+                    str(get_script_root("scripts/py_codegen/py_codegen/reflection_tool")),
                     "--python_betterproto_out=" + str(proto_lib),
                     proto_config,
                 ],
             )
+        else:
+            log(CAT).info("Skipping protoc run " + explain)
 
 
 @org_task(pre=[base_environment])
@@ -1107,12 +1116,24 @@ def docs_custom(ctx: Context):
 @org_task()
 def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
     "Execute all CI tasks"
+    env = {"INVOKE_CI": "ON"}
     if build:
-        run_command(ctx, "invoke", ["cmake-all"])
+        run_command(
+            ctx,
+            "invoke",
+            ["cmake-all"],
+            env=env,
+        )
 
     if test:
-        run_command(ctx, "invoke", [
-            "py-tests",
-            "--arg=-m",
-            "--arg=not (unstable or x11)",
-        ])
+        python_protobuf_files(ctx)
+        run_command(
+            ctx,
+            "invoke",
+            [
+                "py-tests",
+                "--arg=-m",
+                "--arg=not (unstable or x11)",
+            ],
+            env=env,
+        )
