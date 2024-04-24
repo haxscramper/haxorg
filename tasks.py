@@ -1112,6 +1112,3 @@ def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
 
     if test:
         run_command(ctx, "invoke", ["py-tests"])
-
-    if docs:
-        run_command(ctx, "invoke", ["docs"])
