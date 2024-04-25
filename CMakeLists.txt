@@ -15,6 +15,7 @@ project(haxorg LANGUAGES CXX)
 set(BASE "${CMAKE_SOURCE_DIR}")
 message(STATUS "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 set(LLVM_DIR "${BASE}/toolchain/llvm")
+set(TOOLCHAIN_DIR "${BASE}/toolchain")
 
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
 set(SCRIPT_DIR "${BASE}/src/scripts")
@@ -29,23 +30,44 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # with LLVM
 set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/17/lib/x86_64-unknown-linux-gnu")
 # Standard library, libc++.so and other things
-set(LLVM_STD_DIRS "${LLVM_DIR}/lib/x86_64-unknown-linux-gnu")
+# set(LLVM_STD_DIRS "${TOOLCHAIN_DIR}/std_binaries/usr/lib/x86_64-linux-gnu")
 # Declare variable for the asan library path, it is used in target setups, this
 # is not some specific variable that is implicitly consumed, just declared it here
 set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
-# Headers that standard library apparently uses to interface with the system?
-set(LLVM_GNU_INCLUDE "${LLVM_DIR}/include/x86_64-unknown-linux-gnu/c++/v1")
+set(PACKAGED_STD_VERSION "14")
+# Include file config path
+# set(LLVM_GNU_INCLUDE "${TOOLCHAIN_DIR}/std_headers/usr/include/x86_64-linux-gnu/c++/${PACKAGED_STD_VERSION}/")
 # Standard library headers
-set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
+# set(LLVM_STD_INCLUDE "${TOOLCHAIN_DIR}/std_headers/usr/include/c++/${PACKAGED_STD_VERSION}")
+
+message(STATUS "[DBG] LLVM_STD_INCLUDE = ${LLVM_STD_INCLUDE}")
+# message(STATUS "[DBG] LLVM_ASAN_LIBRARY = ${LLVM_ASAN_LIBRARY}")
+# message(STATUS "[DBG] LLVM_STD_DIRS = ${LLVM_STD_DIRS}")
+message(STATUS "[DBG] LLVM_GNU_CLANG_DIR = ${LLVM_GNU_CLANG_DIR}")
+# message(STATUS "[DBG] LLVM_GNU_INCLUDE = ${LLVM_GNU_INCLUDE}")
+
+
+# set(CMAKE_FLAGS_LIST
+#     "-nostdinc++"
+#     "-nostdlib"
+#     # "-stdlib=libstdc++"
+#     "-Wno-unused-command-line-argument"
+#     "-isystem" "${LLVM_STD_INCLUDE}"
+#     "-isystem" "${LLVM_GNU_INCLUDE}"
+#     "-ftemplate-backtrace-limit=0"
+#     "-L${TOOLCHAIN_DIR}/std_binaries/usr/lib/x86_64-linux-gnu"
+# )
+
+string(JOIN " " CMAKE_FLAGS_TMP ${CMAKE_FLAGS_LIST})
 
 # Globally configure compiler flags with all necessary flags etc., this will be shared 
-# down to all sub-components and dependencies. 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
+# down to all sub-components and dependencies.
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_FLAGS_TMP}")
 # It is important to specify linker flags globally for the whole project here -- benchmark
 # subdirectory depends on the cxx_feature_check which fails if the shared parts of the standard
 # library are not found. Regex check compiles test code, everything is ok, but running
 # would fail without adding stdc++ runtime search paths
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${LLVM_GNU_CLANG_DIR},-rpath,${LLVM_STD_DIRS}")
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${LLVM_GNU_CLANG_DIR},-rpath,${LLVM_STD_DIRS}")
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})

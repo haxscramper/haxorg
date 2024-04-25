@@ -6,6 +6,7 @@
 #include <array>
 #include <hstd/stdlib/Func.hpp>
 #include <expected>
+#include <boost/outcome.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
 BOOST_DESCRIBE_ENUM(
@@ -57,7 +58,17 @@ struct GitFail {
 };
 
 template <typename T>
-using GitResult = std::expected<T, GitFail>;
+struct GitResult {
+    std::variant<T, GitFail> data;
+    GitResult(T const& value) : data(value) {}
+    GitResult(GitFail const& value) : data(value) {}
+    static GitResult Error(GitFail const& v) { return GitResult{v}; }
+    static GitResult Ok(T const& v) { return GitResult{v}; }
+    static GitResult Ok() { return GitResult{T{}}; }
+
+    T&       value() { return std::get<T>(data); }
+    T const& value() const { return std::get<T>(data); }
+};
 
 
 // NOLINTNEXTLINE
@@ -71,18 +82,18 @@ inline GitFail get_fail() {
     return GitFail{e->message, e->klass};
 }
 
-inline GitResult<void> from_result(int result) {
+inline GitResult<std::monostate> from_result(int result) {
     if (result < 0) {
-        return std::unexpected(get_fail());
+        return GitResult<std::monostate>::Error(get_fail());
     } else {
-        return GitResult<void>{};
+        return GitResult<std::monostate>::Ok();
     }
 }
 
 template <typename T>
 GitResult<T> from_result(int result, T const& value) {
     if (result < 0) {
-        return std::unexpected(get_fail());
+        return GitResult<T>::Error(get_fail());
     } else {
         return value;
     }
@@ -96,7 +107,7 @@ GitResult<SPtr<T>> wrap_ptr_result(
     T*  out    = nullptr;
     int result = allocator(&out, std::forward<Args>(args)...);
     if (result < 0) {
-        return std::unexpected(get_fail());
+        return GitResult<SPtr<T>>::Error(get_fail());
     } else {
         return std::shared_ptr<T>(out, deleter);
     }
@@ -276,7 +287,7 @@ inline GitResult<SPtr<git_commit>> commit_lookup(
         git_commit_lookup, git_commit_free, repo, id);
 }
 
-inline GitResult<void> revwalk_push_head(git_revwalk* walk) {
+inline GitResult<std::monostate> revwalk_push_head(git_revwalk* walk) {
     return from_result(git_revwalk_push_head(walk));
 }
 
@@ -293,7 +304,7 @@ inline const git_oid* commit_parent_id(
 }
 
 
-inline GitResult<void> tree_walk(
+inline GitResult<std::monostate> tree_walk(
     const git_tree*   tree,
     git_treewalk_mode mode,
     git_treewalk_cb   callback,
@@ -302,7 +313,7 @@ inline GitResult<void> tree_walk(
     return from_result(__result);
 }
 
-inline GitResult<void> diff_foreach(
+inline GitResult<std::monostate> diff_foreach(
     git_diff*          diff,
     git_diff_file_cb   file_cb,
     git_diff_binary_cb binary_cb,
@@ -314,7 +325,7 @@ inline GitResult<void> diff_foreach(
     return from_result(__result);
 }
 
-inline GitResult<void> revwalk_sorting(
+inline GitResult<std::monostate> revwalk_sorting(
     git_revwalk* walk,
     unsigned int sort_mode) {
     auto __result = git_revwalk_sorting(walk, sort_mode);
