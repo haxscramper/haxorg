@@ -2,6 +2,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field
 from beartype.typing import List
+import os
 
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
@@ -35,7 +36,9 @@ def get_haxorg_repo_root_path() -> Path:
 
 
 def get_haxorg_repo_root_config() -> HaxorgConfig:
-    file = get_haxorg_repo_root_path().joinpath("invoke.yaml")
+    file = get_haxorg_repo_root_path().joinpath(
+        "invoke-ci.yaml" if os.getenv("INVOKE_CI") else "invoke.yaml")
+    
     with open(file, 'r') as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -45,6 +48,6 @@ def get_haxorg_repo_root_config() -> HaxorgConfig:
 def get_maybe_repo_rel_path(path: Path) -> Path:
     if path.is_relative_to(path):
         return path.relative_to(get_haxorg_repo_root_path())
-    
+
     else:
         return path

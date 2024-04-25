@@ -360,6 +360,7 @@ def docker_run(
     build: bool = True,
     test: bool = True,
     docs: bool = True,
+    coverage: bool = True,
 ):
     """Run docker"""
 
@@ -388,6 +389,7 @@ def docker_run(
                     "tasks.py",
                     "docs",
                     "invoke.yaml",
+                    "invoke-ci.yaml",
                     "pyproject.toml",
                     "ignorelist.txt",
                     ".git",
@@ -410,6 +412,7 @@ def docker_run(
                 "--build" if build else "--no-build",
                 "--test" if test else "--no-test",
                 "--docs" if docs else "--no-docs",
+                "--coverage" if coverage else "--no-coverage",
             ]),
         ])
 
@@ -1114,7 +1117,13 @@ def docs_custom(ctx: Context):
 
 
 @org_task()
-def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
+def ci(
+    ctx: Context,
+    build: bool = True,
+    test: bool = True,
+    docs: bool = True,
+    coverage: bool = True,
+):
     "Execute all CI tasks"
     env = {"INVOKE_CI": "ON"}
     if build:
@@ -1135,5 +1144,21 @@ def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
                 "--arg=-m",
                 "--arg=not (unstable or x11)",
             ],
+            env=env,
+        )
+
+    if coverage:
+        run_command(
+            ctx,
+            "invoke",
+            ["cxx-merge-coverage"],
+            env=env,
+        )
+
+    if docs:
+        run_command(
+            ctx,
+            "invoke",
+            ["docs-custom"],
             env=env,
         )

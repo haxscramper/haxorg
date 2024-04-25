@@ -10,8 +10,6 @@ tasks:
   # skip_python_refl: false
 
 force_task: [
-  # "cmake_configure_haxorg",
-  # "cmake_haxorg",
   "python_protobuf_files",
 ]
 
