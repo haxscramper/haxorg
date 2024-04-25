@@ -116,6 +116,7 @@ add_subdirectory("${DEPS_DIR}/pybind11")
 
 add_subdirectory("${DEPS_DIR}/abseil-cpp")
 add_subdirectory("${DEPS_DIR}/googletest")
+add_subdirectory("${DEPS_DIR}/SQLiteCpp")
 
 
 set(protobuf_INSTALL OFF)
@@ -138,3 +139,4 @@ include(src/cmake/target_pyhaxorg.cmake)
 include(src/cmake/target_lsp.cmake)
 
 add_subdirectory(scripts/cxx_repository)
+add_subdirectory(scripts/cxx_codegen)

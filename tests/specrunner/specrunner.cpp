@@ -24,6 +24,7 @@ void to_json(json& j, TestResult::Data const& data) {
 }
 } // namespace nlohmann
 
+
 int main(int argc, char** argv) {
     CHECK(argc == 2);
     json      json_spec = json::parse(std::string(argv[1]));

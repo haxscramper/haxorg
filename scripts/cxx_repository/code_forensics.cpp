@@ -213,8 +213,7 @@ class LinePrinterLogSink : public absl::LogSink {
 };
 
 
-auto main(int argc, const char** argv) -> int {
-
+int main(int argc, char** argv) {
     auto config = UPtr<walker_config>(new walker_config{});
 
     {
@@ -332,9 +331,7 @@ auto main(int argc, const char** argv) -> int {
 
 
     fs::path db_file{config->cli.out.db_path};
-    if (fs::exists(db_file)) {
-        fs::remove(db_file);
-    }
+    if (fs::exists(db_file)) { fs::remove(db_file); }
 
     SQLite::Database db(
         db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);

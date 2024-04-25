@@ -289,6 +289,8 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 
+    result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
+
     return result
 
 
@@ -433,36 +435,7 @@ def base_environment(ctx: Context):
     pass
 
 
-@org_task(pre=[base_environment])
-def cmake_configure_utils(ctx: Context):
-    """Execute configuration for utility binary compilation"""
-    log(CAT).info("Configuring cmake utils build")
-    run_command(
-        ctx,
-        "cmake",
-        [
-            "-B",
-            get_component_build_dir(ctx, "utils"),
-            "-S",
-            str(get_script_root().joinpath("scripts/cxx_codegen")),
-            "-G",
-            "Ninja",
-            f"-DCMAKE_BUILD_TYPE={'Debug' if get_config(ctx).debug else 'RelWithDebInfo'}",
-            f"-DCMAKE_CXX_COMPILER={get_script_root('toolchain/llvm/bin/clang++')}",
-        ],
-    )
-
-
-@org_task(task_name="Build cmake utils", pre=[cmake_configure_utils])
-def cmake_utils(ctx: Context):
-    """Compile libraries and binaries for utils"""
-    log(CAT).info("Building build utils")
-    run_command(ctx, "cmake", ["--build", get_component_build_dir(ctx, "utils")])
-    log(CAT).info("CMake utils build ok")
-
-
 REFLEX_PATH = "build/reflex"
-
 
 @org_task(pre=[base_environment])
 def reflex_lexer_generator(ctx: Context):
@@ -666,7 +639,7 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
         run_command(ctx, tool, [json.dumps(config)])
 
 
-@org_task(pre=[cmake_utils, python_protobuf_files])
+@org_task(pre=[python_protobuf_files])
 def update_py_haxorg_reflection(
     ctx: Context,
     force: bool = False,
@@ -690,7 +663,7 @@ def update_py_haxorg_reflection(
         if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
             exitcode, stdout, stderr = run_command(
                 ctx,
-                "build/utils/reflection_tool/reflection_tool",
+                "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
                 [
                     "-p",
                     compile_commands,
@@ -722,7 +695,7 @@ def update_py_haxorg_reflection(
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[cmake_utils, update_py_haxorg_reflection])
+@org_task(pre=[update_py_haxorg_reflection])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR
@@ -865,7 +838,7 @@ def org_coverage(ctx: Context):
     binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
-@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
+@org_task(pre=[cmake_haxorg, python_protobuf_files])
 def py_cli(
     ctx: Context,
     arg: List[str] = [],
@@ -908,7 +881,7 @@ def py_debug_script(ctx: Context, arg):
     )
 
 
-@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
+@org_task(pre=[cmake_haxorg, python_protobuf_files])
 def py_test_debug(ctx: Context, test: str):
     log(CAT).info(get_py_env(ctx))
     test: Path = Path(test)
@@ -971,7 +944,7 @@ def symlink_build(ctx: Context):
     )
 
 
-@org_task(pre=[haxorg_base_lexer, cmake_haxorg, cmake_utils])
+@org_task(pre=[haxorg_base_lexer, cmake_haxorg])
 def cmake_all(ctx: Context):
     """Build all binary artifacts"""
     pass
@@ -1003,12 +976,12 @@ def get_cxx_profdata_params() -> ProfdataParams:
     )
 
 
-@org_task(pre=[cmake_utils])
+@org_task(pre=[cmake_haxorg])
 def cxx_merge_coverage(ctx: Context):
     profile_path = get_cxx_profdata_params_path()
     run_command(
         ctx,
-        "build/utils/profdata_merger/profdata_merger",
+        "build/haxorg/scripts/cxx_codegen/profdata_merger/profdata_merger",
         [
             profile_path,
         ],

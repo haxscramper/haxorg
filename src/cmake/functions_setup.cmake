@@ -58,7 +58,7 @@ function(set_target_flags TARGET)
     # have to depend on the LD_PRELOAD_PATH being set up correctly.
     add_target_property(
       ${TARGET} LINK_OPTIONS
-      "-Wl,-rpath,${LLVM_GNU_CLANG_DIR},-rpath,${LLVM_STD_DIRS}")
+      "-Wl,-rpath,${LLVM_GNU_CLANG_DIR}")
 
     if(${ORG_USE_XRAY})
       add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instrument")
