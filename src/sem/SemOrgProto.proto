@@ -122,87 +122,89 @@ enum OrgNodeKind {
   OrgNodeKind_CodeTangle_f                                                          = 52;
   OrgNodeKind_CodeCallout_f                                                         = 53;
   OrgNodeKind_QuoteBlock_f                                                          = 54;
-  OrgNodeKind_AdmonitionBlock_f                                                     = 55;
-  OrgNodeKind_CenterBlock_f                                                         = 56;
-  OrgNodeKind_VerseBlock_f                                                          = 57;
-  OrgNodeKind_Example_f                                                             = 58;
-  OrgNodeKind_SrcCode_f                                                             = 59;
-  OrgNodeKind_SrcInlineCode_f                                                       = 60;
-  OrgNodeKind_InlineCallCode_f                                                      = 61;
-  OrgNodeKind_CmdCallCode_f                                                         = 62;
-  OrgNodeKind_PassCode_f                                                            = 63;
-  OrgNodeKind_CmdArguments_f                                                        = 64;
-  OrgNodeKind_CmdFlag_f                                                             = 65;
-  OrgNodeKind_CmdKey_f                                                              = 66;
-  OrgNodeKind_CmdValue_f                                                            = 67;
-  OrgNodeKind_CmdNamedValue_f                                                       = 68;
-  OrgNodeKind_UrgencyStatus_f                                                       = 69;
-  OrgNodeKind_TextSeparator_f                                                       = 70;
-  OrgNodeKind_Paragraph_f                                                           = 71;
-  OrgNodeKind_AnnotatedParagraph_f                                                  = 72;
-  OrgNodeKind_Bold_f                                                                = 73;
-  OrgNodeKind_Italic_f                                                              = 74;
-  OrgNodeKind_Verbatim_f                                                            = 75;
-  OrgNodeKind_Backtick_f                                                            = 76;
-  OrgNodeKind_Underline_f                                                           = 77;
-  OrgNodeKind_Strike_f                                                              = 78;
-  OrgNodeKind_Quote_f                                                               = 79;
-  OrgNodeKind_Angle_f                                                               = 80;
-  OrgNodeKind_Monospace_f                                                           = 81;
-  OrgNodeKind_Par_f                                                                 = 82;
-  OrgNodeKind_InlineMath_f                                                          = 83;
-  OrgNodeKind_DisplayMath_f                                                         = 84;
-  OrgNodeKind_Space_f                                                               = 85;
-  OrgNodeKind_Punctuation_f                                                         = 86;
-  OrgNodeKind_Colon_f                                                               = 87;
-  OrgNodeKind_Word_f                                                                = 88;
-  OrgNodeKind_Escaped_f                                                             = 89;
-  OrgNodeKind_Newline_f                                                             = 90;
-  OrgNodeKind_RawLink_f                                                             = 91;
-  OrgNodeKind_Link_f                                                                = 92;
-  OrgNodeKind_Macro_f                                                               = 93;
-  OrgNodeKind_BackendRaw_f                                                          = 94;
-  OrgNodeKind_Symbol_f                                                              = 95;
-  OrgNodeKind_TimeAssoc_f                                                           = 96;
-  OrgNodeKind_StaticActiveTime_f                                                    = 97;
-  OrgNodeKind_StaticInactiveTime_f                                                  = 98;
-  OrgNodeKind_DynamicActiveTime_f                                                   = 99;
-  OrgNodeKind_DynamicInactiveTime_f                                                 = 100;
-  OrgNodeKind_TimeRange_f                                                           = 101;
-  OrgNodeKind_SimpleTime_f                                                          = 102;
-  OrgNodeKind_Details_f                                                             = 103;
-  OrgNodeKind_Summary_f                                                             = 104;
-  OrgNodeKind_Table_f                                                               = 105;
-  OrgNodeKind_TableRow_f                                                            = 106;
-  OrgNodeKind_TableCell_f                                                           = 107;
-  OrgNodeKind_InlineFootnote_f                                                      = 108;
-  OrgNodeKind_Footnote_f                                                            = 109;
-  OrgNodeKind_Horizontal_f                                                          = 110;
-  OrgNodeKind_Filetags_f                                                            = 111;
-  OrgNodeKind_OrgTag_f                                                              = 112;
-  OrgNodeKind_HashTag_f                                                             = 113;
-  OrgNodeKind_MetaSymbol_f                                                          = 114;
-  OrgNodeKind_AtMention_f                                                           = 115;
-  OrgNodeKind_BracTag_f                                                             = 116;
-  OrgNodeKind_Drawer_f                                                              = 117;
-  OrgNodeKind_LatexClass_f                                                          = 118;
-  OrgNodeKind_LatexHeader_f                                                         = 119;
-  OrgNodeKind_LatexCompiler_f                                                       = 120;
-  OrgNodeKind_LatexClassOptions_f                                                   = 121;
-  OrgNodeKind_HtmlHead_f                                                            = 122;
-  OrgNodeKind_Columns_f                                                             = 123;
-  OrgNodeKind_CmdPropertyArgs_f                                                     = 124;
-  OrgNodeKind_CmdPropertyText_f                                                     = 125;
-  OrgNodeKind_CmdPropertyRaw_f                                                      = 126;
-  OrgNodeKind_PropertyList_f                                                        = 127;
-  OrgNodeKind_Property_f                                                            = 128;
-  OrgNodeKind_Placeholder_f                                                         = 129;
-  OrgNodeKind_SubtreeDescription_f                                                  = 130;
-  OrgNodeKind_SubtreeUrgency_f                                                      = 131;
-  OrgNodeKind_Logbook_f                                                             = 132;
-  OrgNodeKind_LogbookStateChange_f                                                  = 133;
-  OrgNodeKind_RadioTarget_f                                                         = 134;
-  OrgNodeKind_Target_f                                                              = 135;
+  OrgNodeKind_CommentBlock_f                                                        = 55;
+  OrgNodeKind_AdmonitionBlock_f                                                     = 56;
+  OrgNodeKind_CenterBlock_f                                                         = 57;
+  OrgNodeKind_VerseBlock_f                                                          = 58;
+  OrgNodeKind_Example_f                                                             = 59;
+  OrgNodeKind_ColonExample_f                                                        = 60;
+  OrgNodeKind_SrcCode_f                                                             = 61;
+  OrgNodeKind_SrcInlineCode_f                                                       = 62;
+  OrgNodeKind_InlineCallCode_f                                                      = 63;
+  OrgNodeKind_CmdCallCode_f                                                         = 64;
+  OrgNodeKind_PassCode_f                                                            = 65;
+  OrgNodeKind_CmdArguments_f                                                        = 66;
+  OrgNodeKind_CmdFlag_f                                                             = 67;
+  OrgNodeKind_CmdKey_f                                                              = 68;
+  OrgNodeKind_CmdValue_f                                                            = 69;
+  OrgNodeKind_CmdNamedValue_f                                                       = 70;
+  OrgNodeKind_UrgencyStatus_f                                                       = 71;
+  OrgNodeKind_TextSeparator_f                                                       = 72;
+  OrgNodeKind_Paragraph_f                                                           = 73;
+  OrgNodeKind_AnnotatedParagraph_f                                                  = 74;
+  OrgNodeKind_Bold_f                                                                = 75;
+  OrgNodeKind_Italic_f                                                              = 76;
+  OrgNodeKind_Verbatim_f                                                            = 77;
+  OrgNodeKind_Backtick_f                                                            = 78;
+  OrgNodeKind_Underline_f                                                           = 79;
+  OrgNodeKind_Strike_f                                                              = 80;
+  OrgNodeKind_Quote_f                                                               = 81;
+  OrgNodeKind_Angle_f                                                               = 82;
+  OrgNodeKind_Monospace_f                                                           = 83;
+  OrgNodeKind_Par_f                                                                 = 84;
+  OrgNodeKind_InlineMath_f                                                          = 85;
+  OrgNodeKind_DisplayMath_f                                                         = 86;
+  OrgNodeKind_Space_f                                                               = 87;
+  OrgNodeKind_Punctuation_f                                                         = 88;
+  OrgNodeKind_Colon_f                                                               = 89;
+  OrgNodeKind_Word_f                                                                = 90;
+  OrgNodeKind_Escaped_f                                                             = 91;
+  OrgNodeKind_Newline_f                                                             = 92;
+  OrgNodeKind_RawLink_f                                                             = 93;
+  OrgNodeKind_Link_f                                                                = 94;
+  OrgNodeKind_Macro_f                                                               = 95;
+  OrgNodeKind_BackendRaw_f                                                          = 96;
+  OrgNodeKind_Symbol_f                                                              = 97;
+  OrgNodeKind_TimeAssoc_f                                                           = 98;
+  OrgNodeKind_StaticActiveTime_f                                                    = 99;
+  OrgNodeKind_StaticInactiveTime_f                                                  = 100;
+  OrgNodeKind_DynamicActiveTime_f                                                   = 101;
+  OrgNodeKind_DynamicInactiveTime_f                                                 = 102;
+  OrgNodeKind_TimeRange_f                                                           = 103;
+  OrgNodeKind_SimpleTime_f                                                          = 104;
+  OrgNodeKind_Details_f                                                             = 105;
+  OrgNodeKind_Summary_f                                                             = 106;
+  OrgNodeKind_Table_f                                                               = 107;
+  OrgNodeKind_TableRow_f                                                            = 108;
+  OrgNodeKind_TableCell_f                                                           = 109;
+  OrgNodeKind_InlineFootnote_f                                                      = 110;
+  OrgNodeKind_Footnote_f                                                            = 111;
+  OrgNodeKind_Horizontal_f                                                          = 112;
+  OrgNodeKind_Filetags_f                                                            = 113;
+  OrgNodeKind_OrgTag_f                                                              = 114;
+  OrgNodeKind_HashTag_f                                                             = 115;
+  OrgNodeKind_MetaSymbol_f                                                          = 116;
+  OrgNodeKind_AtMention_f                                                           = 117;
+  OrgNodeKind_BracTag_f                                                             = 118;
+  OrgNodeKind_Drawer_f                                                              = 119;
+  OrgNodeKind_LatexClass_f                                                          = 120;
+  OrgNodeKind_LatexHeader_f                                                         = 121;
+  OrgNodeKind_LatexCompiler_f                                                       = 122;
+  OrgNodeKind_LatexClassOptions_f                                                   = 123;
+  OrgNodeKind_HtmlHead_f                                                            = 124;
+  OrgNodeKind_Columns_f                                                             = 125;
+  OrgNodeKind_CmdPropertyArgs_f                                                     = 126;
+  OrgNodeKind_CmdPropertyText_f                                                     = 127;
+  OrgNodeKind_CmdPropertyRaw_f                                                      = 128;
+  OrgNodeKind_PropertyList_f                                                        = 129;
+  OrgNodeKind_Property_f                                                            = 130;
+  OrgNodeKind_Placeholder_f                                                         = 131;
+  OrgNodeKind_SubtreeDescription_f                                                  = 132;
+  OrgNodeKind_SubtreeUrgency_f                                                      = 133;
+  OrgNodeKind_Logbook_f                                                             = 134;
+  OrgNodeKind_LogbookStateChange_f                                                  = 135;
+  OrgNodeKind_RadioTarget_f                                                         = 136;
+  OrgNodeKind_Target_f                                                              = 137;
 }
 
 enum OrgSemKind {
@@ -215,56 +217,59 @@ enum OrgSemKind {
   OrgSemKind_Footnote_f                                                             = 6;
   OrgSemKind_Completion_f                                                           = 7;
   OrgSemKind_Paragraph_f                                                            = 8;
-  OrgSemKind_Center_f                                                               = 9;
-  OrgSemKind_Caption_f                                                              = 10;
-  OrgSemKind_CmdName_f                                                              = 11;
-  OrgSemKind_CmdResults_f                                                           = 12;
-  OrgSemKind_CommandGroup_f                                                         = 13;
-  OrgSemKind_Tblfm_f                                                                = 14;
-  OrgSemKind_Quote_f                                                                = 15;
-  OrgSemKind_Verse_f                                                                = 16;
-  OrgSemKind_Example_f                                                              = 17;
-  OrgSemKind_CmdArguments_f                                                         = 18;
-  OrgSemKind_CmdAttr_f                                                              = 19;
-  OrgSemKind_CmdArgument_f                                                          = 20;
-  OrgSemKind_Export_f                                                               = 21;
-  OrgSemKind_AdmonitionBlock_f                                                      = 22;
-  OrgSemKind_Call_f                                                                 = 23;
-  OrgSemKind_Code_f                                                                 = 24;
-  OrgSemKind_Time_f                                                                 = 25;
-  OrgSemKind_TimeRange_f                                                            = 26;
-  OrgSemKind_Macro_f                                                                = 27;
-  OrgSemKind_Symbol_f                                                               = 28;
-  OrgSemKind_SubtreeLog_f                                                           = 29;
-  OrgSemKind_Subtree_f                                                              = 30;
-  OrgSemKind_InlineMath_f                                                           = 31;
-  OrgSemKind_Escaped_f                                                              = 32;
-  OrgSemKind_Newline_f                                                              = 33;
-  OrgSemKind_Space_f                                                                = 34;
-  OrgSemKind_Word_f                                                                 = 35;
-  OrgSemKind_AtMention_f                                                            = 36;
-  OrgSemKind_RawText_f                                                              = 37;
-  OrgSemKind_Punctuation_f                                                          = 38;
-  OrgSemKind_Placeholder_f                                                          = 39;
-  OrgSemKind_BigIdent_f                                                             = 40;
-  OrgSemKind_Bold_f                                                                 = 41;
-  OrgSemKind_Underline_f                                                            = 42;
-  OrgSemKind_Monospace_f                                                            = 43;
-  OrgSemKind_MarkQuote_f                                                            = 44;
-  OrgSemKind_Verbatim_f                                                             = 45;
-  OrgSemKind_Italic_f                                                               = 46;
-  OrgSemKind_Strike_f                                                               = 47;
-  OrgSemKind_Par_f                                                                  = 48;
-  OrgSemKind_List_f                                                                 = 49;
-  OrgSemKind_ListItem_f                                                             = 50;
-  OrgSemKind_Link_f                                                                 = 51;
-  OrgSemKind_DocumentOptions_f                                                      = 52;
-  OrgSemKind_Document_f                                                             = 53;
-  OrgSemKind_ParseError_f                                                           = 54;
-  OrgSemKind_FileTarget_f                                                           = 55;
-  OrgSemKind_TextSeparator_f                                                        = 56;
-  OrgSemKind_Include_f                                                              = 57;
-  OrgSemKind_DocumentGroup_f                                                        = 58;
+  OrgSemKind_AnnotatedParagraph_f                                                   = 9;
+  OrgSemKind_Center_f                                                               = 10;
+  OrgSemKind_Caption_f                                                              = 11;
+  OrgSemKind_CmdName_f                                                              = 12;
+  OrgSemKind_CmdResults_f                                                           = 13;
+  OrgSemKind_CommandGroup_f                                                         = 14;
+  OrgSemKind_Tblfm_f                                                                = 15;
+  OrgSemKind_Quote_f                                                                = 16;
+  OrgSemKind_CommentBlock_f                                                         = 17;
+  OrgSemKind_Verse_f                                                                = 18;
+  OrgSemKind_Example_f                                                              = 19;
+  OrgSemKind_ColonExample_f                                                         = 20;
+  OrgSemKind_CmdArguments_f                                                         = 21;
+  OrgSemKind_CmdAttr_f                                                              = 22;
+  OrgSemKind_CmdArgument_f                                                          = 23;
+  OrgSemKind_Export_f                                                               = 24;
+  OrgSemKind_AdmonitionBlock_f                                                      = 25;
+  OrgSemKind_Call_f                                                                 = 26;
+  OrgSemKind_Code_f                                                                 = 27;
+  OrgSemKind_Time_f                                                                 = 28;
+  OrgSemKind_TimeRange_f                                                            = 29;
+  OrgSemKind_Macro_f                                                                = 30;
+  OrgSemKind_Symbol_f                                                               = 31;
+  OrgSemKind_SubtreeLog_f                                                           = 32;
+  OrgSemKind_Subtree_f                                                              = 33;
+  OrgSemKind_InlineMath_f                                                           = 34;
+  OrgSemKind_Escaped_f                                                              = 35;
+  OrgSemKind_Newline_f                                                              = 36;
+  OrgSemKind_Space_f                                                                = 37;
+  OrgSemKind_Word_f                                                                 = 38;
+  OrgSemKind_AtMention_f                                                            = 39;
+  OrgSemKind_RawText_f                                                              = 40;
+  OrgSemKind_Punctuation_f                                                          = 41;
+  OrgSemKind_Placeholder_f                                                          = 42;
+  OrgSemKind_BigIdent_f                                                             = 43;
+  OrgSemKind_Bold_f                                                                 = 44;
+  OrgSemKind_Underline_f                                                            = 45;
+  OrgSemKind_Monospace_f                                                            = 46;
+  OrgSemKind_MarkQuote_f                                                            = 47;
+  OrgSemKind_Verbatim_f                                                             = 48;
+  OrgSemKind_Italic_f                                                               = 49;
+  OrgSemKind_Strike_f                                                               = 50;
+  OrgSemKind_Par_f                                                                  = 51;
+  OrgSemKind_List_f                                                                 = 52;
+  OrgSemKind_ListItem_f                                                             = 53;
+  OrgSemKind_Link_f                                                                 = 54;
+  OrgSemKind_DocumentOptions_f                                                      = 55;
+  OrgSemKind_Document_f                                                             = 56;
+  OrgSemKind_ParseError_f                                                           = 57;
+  OrgSemKind_FileTarget_f                                                           = 58;
+  OrgSemKind_TextSeparator_f                                                        = 59;
+  OrgSemKind_Include_f                                                              = 60;
+  OrgSemKind_DocumentGroup_f                                                        = 61;
 }
 
 message Stmt {
@@ -280,75 +285,103 @@ message Inline {
 
 message StmtList {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Empty {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Cell {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Row {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  repeated Cell                                    cells                            = 4;
+  OrgSemKind                                       staticKind                       = 2;
+  repeated Cell                                    cells                            = 3;
   string                                           debug                            = 1000;
 }
 
 message Table {
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
-  repeated Row                                     rows                             = 5;
+  OrgSemKind                                       staticKind                       = 3;
+  repeated Row                                     rows                             = 4;
   string                                           debug                            = 1000;
 }
 
 message HashTag {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           head                             = 4;
-  repeated HashTag                                 subtags                          = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           head                             = 3;
+  repeated HashTag                                 subtags                          = 4;
   string                                           debug                            = 1000;
 }
 
 message Footnote {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           tag                              = 4;
-  optional AnyNode                                 definition                       = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           tag                              = 3;
+  optional AnyNode                                 definition                       = 4;
   string                                           debug                            = 1000;
 }
 
 message Completion {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  int32                                            done                             = 4;
-  int32                                            full                             = 5;
-  bool                                             isPercent                        = 6;
+  OrgSemKind                                       staticKind                       = 2;
+  int32                                            done                             = 3;
+  int32                                            full                             = 4;
+  bool                                             isPercent                        = 5;
   string                                           debug                            = 1000;
 }
 
 message Paragraph {
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           debug                            = 1000;
+}
+
+message AnnotatedParagraph {
+  message None {
+    string                                         debug                            = 1000;
+  }
+  message Footnote {
+    string                                         name                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Admonition {
+    BigIdent                                       name                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Timestamp {
+    Time                                           time                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      AnnotatedParagraph.None                      none                             = 1;
+      AnnotatedParagraph.Footnote                  footnote                         = 2;
+      AnnotatedParagraph.Admonition                admonition                       = 3;
+      AnnotatedParagraph.Timestamp                 timestamp                        = 4;
+    }
+  }
+  enum AnnotationKind {
+    AnnotationKind_None_f                                                           = 0;
+    AnnotationKind_Footnote_f                                                       = 1;
+    AnnotationKind_Admonition_f                                                     = 2;
+    AnnotationKind_Timestamp_f                                                      = 3;
+  }
+  repeated AnyNode                                 attached                         = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  AnnotatedParagraph.Data                          data                             = 4;
   string                                           debug                            = 1000;
 }
 
@@ -359,8 +392,7 @@ message Format {
 
 message Center {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
@@ -386,31 +418,27 @@ message Attached {
 
 message Caption {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  Paragraph                                        text                             = 4;
+  OrgSemKind                                       staticKind                       = 2;
+  Paragraph                                        text                             = 3;
   string                                           debug                            = 1000;
 }
 
 message CmdName {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message CmdResults {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message CommandGroup {
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
@@ -422,58 +450,63 @@ message Block {
 
 message Tblfm {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Quote {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           debug                            = 1000;
+}
+
+message CommentBlock {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Verse {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Example {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           debug                            = 1000;
+}
+
+message ColonExample {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message CmdArguments {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  repeated CmdArgument                             positional                       = 4;
-  map<string, CmdArgument>                         named                            = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  repeated CmdArgument                             positional                       = 3;
+  map<string, CmdArgument>                         named                            = 4;
   string                                           debug                            = 1000;
 }
 
 message CmdAttr {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           target                           = 4;
-  CmdArguments                                     parameters                       = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           target                           = 3;
+  CmdArguments                                     parameters                       = 4;
   string                                           debug                            = 1000;
 }
 
 message CmdArgument {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  optional string                                  key                              = 4;
-  string                                           value                            = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  optional string                                  key                              = 3;
+  string                                           value                            = 4;
   string                                           debug                            = 1000;
 }
 
@@ -485,28 +518,25 @@ message Export {
   }
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
-  Export.Format                                    format                           = 5;
-  string                                           exporter                         = 6;
-  optional string                                  placement                        = 7;
-  string                                           content                          = 8;
+  OrgSemKind                                       staticKind                       = 3;
+  Export.Format                                    format                           = 4;
+  string                                           exporter                         = 5;
+  optional string                                  placement                        = 6;
+  string                                           content                          = 7;
   string                                           debug                            = 1000;
 }
 
 message AdmonitionBlock {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Call {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  optional string                                  name                             = 4;
+  OrgSemKind                                       staticKind                       = 2;
+  optional string                                  name                             = 3;
   string                                           debug                            = 1000;
 }
 
@@ -595,17 +625,16 @@ message Code {
   }
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
-  optional string                                  lang                             = 5;
-  repeated Code.Switch                             switches                         = 6;
-  Code.Exports                                     exports                          = 7;
-  repeated Code.Line                               lines                            = 8;
-  bool                                             cache                            = 9;
-  bool                                             eval                             = 10;
-  bool                                             noweb                            = 11;
-  bool                                             hlines                           = 12;
-  bool                                             tangle                           = 13;
+  OrgSemKind                                       staticKind                       = 3;
+  optional string                                  lang                             = 4;
+  repeated Code.Switch                             switches                         = 5;
+  Code.Exports                                     exports                          = 6;
+  repeated Code.Line                               lines                            = 7;
+  bool                                             cache                            = 8;
+  bool                                             eval                             = 9;
+  bool                                             noweb                            = 10;
+  bool                                             hlines                           = 11;
+  bool                                             tangle                           = 12;
   string                                           debug                            = 1000;
 }
 
@@ -650,28 +679,25 @@ message Time {
     TimeKind_Dynamic_f                                                              = 1;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  bool                                             isActive                         = 4;
-  Time.TimeVariant                                 time                             = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  bool                                             isActive                         = 3;
+  Time.TimeVariant                                 time                             = 4;
   string                                           debug                            = 1000;
 }
 
 message TimeRange {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  Time                                             from                             = 4;
-  Time                                             to                               = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  Time                                             from                             = 3;
+  Time                                             to                               = 4;
   string                                           debug                            = 1000;
 }
 
 message Macro {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           name                             = 4;
-  repeated string                                  arguments                        = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           name                             = 3;
+  repeated string                                  arguments                        = 4;
   string                                           debug                            = 1000;
 }
 
@@ -682,11 +708,10 @@ message Symbol {
     string                                         debug                            = 1000;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           name                             = 4;
-  repeated Symbol.Param                            parameters                       = 5;
-  repeated AnyNode                                 positional                       = 6;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           name                             = 3;
+  repeated Symbol.Param                            parameters                       = 4;
+  repeated AnyNode                                 positional                       = 5;
   string                                           debug                            = 1000;
 }
 
@@ -705,6 +730,7 @@ message SubtreeLog {
     optional string                                oldPriority                      = 2;
     optional string                                newPriority                      = 3;
     Time                                           on                               = 4;
+    SubtreeLog.Priority.Action                     action                           = 5;
     string                                         debug                            = 1000;
   }
   message Note {
@@ -720,10 +746,8 @@ message SubtreeLog {
   }
   message Clock {
     optional StmtList                              desc                             = 1;
-    oneof range_kind {
-      Time                                         time                             = 2;
-      TimeRange                                    timerange                        = 3;
-    }
+    Time                                           from                             = 2;
+    optional Time                                  to                               = 3;
     string                                         debug                            = 1000;
   }
   message State {
@@ -740,6 +764,10 @@ message SubtreeLog {
     bool                                           added                            = 4;
     string                                         debug                            = 1000;
   }
+  message Unknown {
+    optional StmtList                              desc                             = 1;
+    string                                         debug                            = 1000;
+  }
   message LogEntry {
     oneof kind {
       SubtreeLog.Priority                          priority                         = 1;
@@ -748,6 +776,7 @@ message SubtreeLog {
       SubtreeLog.Clock                             clock                            = 4;
       SubtreeLog.State                             state                            = 5;
       SubtreeLog.Tag                               tag                              = 6;
+      SubtreeLog.Unknown                           unknown                          = 7;
     }
   }
   enum Kind {
@@ -757,11 +786,11 @@ message SubtreeLog {
     Kind_Clock_f                                                                    = 3;
     Kind_State_f                                                                    = 4;
     Kind_Tag_f                                                                      = 5;
+    Kind_Unknown_f                                                                  = 6;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  SubtreeLog.LogEntry                              log                              = 4;
+  OrgSemKind                                       staticKind                       = 2;
+  SubtreeLog.LogEntry                              log                              = 3;
   string                                           debug                            = 1000;
 }
 
@@ -769,17 +798,16 @@ message Subtree {
   message Period {
     enum Kind {
       Kind_Clocked_f                                                                = 0;
-      Kind_Scheduled_f                                                              = 1;
-      Kind_Titled_f                                                                 = 2;
-      Kind_Deadline_f                                                               = 3;
-      Kind_Created_f                                                                = 4;
-      Kind_Repeated_f                                                               = 5;
+      Kind_Closed_f                                                                 = 1;
+      Kind_Scheduled_f                                                              = 2;
+      Kind_Titled_f                                                                 = 3;
+      Kind_Deadline_f                                                               = 4;
+      Kind_Created_f                                                                = 5;
+      Kind_Repeated_f                                                               = 6;
     }
     Subtree.Period.Kind                            kind                             = 1;
-    oneof period_kind {
-      Time                                         time                             = 2;
-      TimeRange                                    timerange                        = 3;
-    }
+    Time                                           from                             = 2;
+    optional Time                                  to                               = 3;
     string                                         debug                            = 1000;
   }
   message Property {
@@ -903,20 +931,19 @@ message Subtree {
     string                                         debug                            = 1000;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  int32                                            level                            = 4;
-  optional string                                  treeId                           = 5;
-  optional string                                  todo                             = 6;
-  optional Completion                              completion                       = 7;
-  optional Paragraph                               description                      = 8;
-  repeated HashTag                                 tags                             = 9;
-  Paragraph                                        title                            = 10;
-  repeated SubtreeLog                              logbook                          = 11;
-  repeated Subtree.Property                        properties                       = 12;
-  optional Time                                    closed                           = 13;
-  optional Time                                    deadline                         = 14;
-  optional Time                                    scheduled                        = 15;
+  OrgSemKind                                       staticKind                       = 2;
+  int32                                            level                            = 3;
+  optional string                                  treeId                           = 4;
+  optional string                                  todo                             = 5;
+  optional Completion                              completion                       = 6;
+  optional Paragraph                               description                      = 7;
+  repeated HashTag                                 tags                             = 8;
+  Paragraph                                        title                            = 9;
+  repeated SubtreeLog                              logbook                          = 10;
+  repeated Subtree.Property                        properties                       = 11;
+  optional Time                                    closed                           = 12;
+  optional Time                                    deadline                         = 13;
+  optional Time                                    scheduled                        = 14;
   string                                           debug                            = 1000;
 }
 
@@ -927,8 +954,7 @@ message LatexBody {
 
 message InlineMath {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
@@ -941,72 +967,63 @@ message Leaf {
 message Escaped {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Newline {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Space {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Word {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message AtMention {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message RawText {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Punctuation {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message Placeholder {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
 message BigIdent {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional LineCol                                 loc                              = 3;
-  OrgSemKind                                       staticKind                       = 4;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
@@ -1017,64 +1034,55 @@ message Markup {
 
 message Bold {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Underline {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Monospace {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message MarkQuote {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Verbatim {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Italic {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Strike {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message Par {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message List {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
@@ -1086,10 +1094,9 @@ message ListItem {
     Checkbox_Partial_f                                                              = 3;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  ListItem.Checkbox                                checkbox                         = 4;
-  optional Paragraph                               header                           = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  ListItem.Checkbox                                checkbox                         = 3;
+  optional Paragraph                               header                           = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1144,10 +1151,9 @@ message Link {
     Kind_File_f                                                                     = 6;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  optional Paragraph                               description                      = 4;
-  Link.Data                                        data                             = 5;
+  OrgSemKind                                       staticKind                       = 2;
+  optional Paragraph                               description                      = 3;
+  Link.Data                                        data                             = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1186,67 +1192,62 @@ message DocumentOptions {
     Visibility_ShowEverything_f                                                     = 7;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  DocumentOptions.BrokenLinks                      brokenLinks                      = 4;
-  DocumentOptions.Visibility                       initialVisibility                = 5;
-  DocumentOptions.TocExport                        tocExport                        = 6;
-  repeated Subtree.Property                        properties                       = 7;
-  bool                                             smartQuotes                      = 8;
-  bool                                             emphasizedText                   = 9;
-  bool                                             specialStrings                   = 10;
-  bool                                             fixedWidthSections               = 11;
-  bool                                             includeTimestamps                = 12;
-  bool                                             preserveLineBreaks               = 13;
-  bool                                             plaintextSubscripts              = 14;
-  bool                                             exportArchived                   = 15;
-  bool                                             exportWithAuthor                 = 16;
-  bool                                             exportBrokenLinks                = 17;
-  bool                                             exportWithClock                  = 18;
-  bool                                             exportWithCreator                = 19;
-  DocumentOptions.TocExport                        data                             = 20;
+  OrgSemKind                                       staticKind                       = 2;
+  DocumentOptions.BrokenLinks                      brokenLinks                      = 3;
+  DocumentOptions.Visibility                       initialVisibility                = 4;
+  DocumentOptions.TocExport                        tocExport                        = 5;
+  repeated Subtree.Property                        properties                       = 6;
+  bool                                             smartQuotes                      = 7;
+  bool                                             emphasizedText                   = 8;
+  bool                                             specialStrings                   = 9;
+  bool                                             fixedWidthSections               = 10;
+  bool                                             includeTimestamps                = 11;
+  bool                                             preserveLineBreaks               = 12;
+  bool                                             plaintextSubscripts              = 13;
+  bool                                             exportArchived                   = 14;
+  bool                                             exportWithAuthor                 = 15;
+  bool                                             exportBrokenLinks                = 16;
+  bool                                             exportWithClock                  = 17;
+  bool                                             exportWithCreator                = 18;
+  DocumentOptions.TocExport                        data                             = 19;
   string                                           debug                            = 1000;
 }
 
 message Document {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  optional Paragraph                               title                            = 4;
-  optional Paragraph                               author                           = 5;
-  optional Paragraph                               creator                          = 6;
-  repeated HashTag                                 filetags                         = 7;
-  optional RawText                                 email                            = 8;
-  repeated string                                  language                         = 9;
-  DocumentOptions                                  options                          = 10;
-  optional string                                  exportFileName                   = 11;
+  OrgSemKind                                       staticKind                       = 2;
+  optional Paragraph                               title                            = 3;
+  optional Paragraph                               author                           = 4;
+  optional Paragraph                               creator                          = 5;
+  repeated HashTag                                 filetags                         = 6;
+  optional RawText                                 email                            = 7;
+  repeated string                                  language                         = 8;
+  DocumentOptions                                  options                          = 9;
+  optional string                                  exportFileName                   = 10;
   string                                           debug                            = 1000;
 }
 
 message ParseError {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message FileTarget {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           path                             = 4;
-  optional int32                                   line                             = 5;
-  optional string                                  searchTarget                     = 6;
-  bool                                             restrictToHeadlines              = 7;
-  optional string                                  targetId                         = 8;
-  optional string                                  regexp                           = 9;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           path                             = 3;
+  optional int32                                   line                             = 4;
+  optional string                                  searchTarget                     = 5;
+  bool                                             restrictToHeadlines              = 6;
+  optional string                                  targetId                         = 7;
+  optional string                                  regexp                           = 8;
   string                                           debug                            = 1000;
 }
 
 message TextSeparator {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
@@ -1278,16 +1279,14 @@ message Include {
     Kind_OrgDocument_f                                                              = 3;
   }
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  Include.Data                                     data                             = 4;
+  OrgSemKind                                       staticKind                       = 2;
+  Include.Data                                     data                             = 3;
   string                                           debug                            = 1000;
 }
 
 message DocumentGroup {
   repeated AnyNode                                 subnodes                         = 1;
-  optional LineCol                                 loc                              = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
@@ -1302,56 +1301,59 @@ message AnyNode {
     Footnote                                         footnote                         = 7;
     Completion                                       completion                       = 8;
     Paragraph                                        paragraph                        = 9;
-    Center                                           center                           = 10;
-    Caption                                          caption                          = 11;
-    CmdName                                          cmdname                          = 12;
-    CmdResults                                       cmdresults                       = 13;
-    CommandGroup                                     commandgroup                     = 14;
-    Tblfm                                            tblfm                            = 15;
-    Quote                                            quote                            = 16;
-    Verse                                            verse                            = 17;
-    Example                                          example                          = 18;
-    CmdArguments                                     cmdarguments                     = 19;
-    CmdAttr                                          cmdattr                          = 20;
-    CmdArgument                                      cmdargument                      = 21;
-    Export                                           export                           = 22;
-    AdmonitionBlock                                  admonitionblock                  = 23;
-    Call                                             call                             = 24;
-    Code                                             code                             = 25;
-    Time                                             time                             = 26;
-    TimeRange                                        timerange                        = 27;
-    Macro                                            macro                            = 28;
-    Symbol                                           symbol                           = 29;
-    SubtreeLog                                       subtreelog                       = 30;
-    Subtree                                          subtree                          = 31;
-    InlineMath                                       inlinemath                       = 32;
-    Escaped                                          escaped                          = 33;
-    Newline                                          newline                          = 34;
-    Space                                            space                            = 35;
-    Word                                             word                             = 36;
-    AtMention                                        atmention                        = 37;
-    RawText                                          rawtext                          = 38;
-    Punctuation                                      punctuation                      = 39;
-    Placeholder                                      placeholder                      = 40;
-    BigIdent                                         bigident                         = 41;
-    Bold                                             bold                             = 42;
-    Underline                                        underline                        = 43;
-    Monospace                                        monospace                        = 44;
-    MarkQuote                                        markquote                        = 45;
-    Verbatim                                         verbatim                         = 46;
-    Italic                                           italic                           = 47;
-    Strike                                           strike                           = 48;
-    Par                                              par                              = 49;
-    List                                             list                             = 50;
-    ListItem                                         listitem                         = 51;
-    Link                                             link                             = 52;
-    DocumentOptions                                  documentoptions                  = 53;
-    Document                                         document                         = 54;
-    ParseError                                       parseerror                       = 55;
-    FileTarget                                       filetarget                       = 56;
-    TextSeparator                                    textseparator                    = 57;
-    Include                                          include                          = 58;
-    DocumentGroup                                    documentgroup                    = 59;
+    AnnotatedParagraph                               annotatedparagraph               = 10;
+    Center                                           center                           = 11;
+    Caption                                          caption                          = 12;
+    CmdName                                          cmdname                          = 13;
+    CmdResults                                       cmdresults                       = 14;
+    CommandGroup                                     commandgroup                     = 15;
+    Tblfm                                            tblfm                            = 16;
+    Quote                                            quote                            = 17;
+    CommentBlock                                     commentblock                     = 18;
+    Verse                                            verse                            = 19;
+    Example                                          example                          = 20;
+    ColonExample                                     colonexample                     = 21;
+    CmdArguments                                     cmdarguments                     = 22;
+    CmdAttr                                          cmdattr                          = 23;
+    CmdArgument                                      cmdargument                      = 24;
+    Export                                           export                           = 25;
+    AdmonitionBlock                                  admonitionblock                  = 26;
+    Call                                             call                             = 27;
+    Code                                             code                             = 28;
+    Time                                             time                             = 29;
+    TimeRange                                        timerange                        = 30;
+    Macro                                            macro                            = 31;
+    Symbol                                           symbol                           = 32;
+    SubtreeLog                                       subtreelog                       = 33;
+    Subtree                                          subtree                          = 34;
+    InlineMath                                       inlinemath                       = 35;
+    Escaped                                          escaped                          = 36;
+    Newline                                          newline                          = 37;
+    Space                                            space                            = 38;
+    Word                                             word                             = 39;
+    AtMention                                        atmention                        = 40;
+    RawText                                          rawtext                          = 41;
+    Punctuation                                      punctuation                      = 42;
+    Placeholder                                      placeholder                      = 43;
+    BigIdent                                         bigident                         = 44;
+    Bold                                             bold                             = 45;
+    Underline                                        underline                        = 46;
+    Monospace                                        monospace                        = 47;
+    MarkQuote                                        markquote                        = 48;
+    Verbatim                                         verbatim                         = 49;
+    Italic                                           italic                           = 50;
+    Strike                                           strike                           = 51;
+    Par                                              par                              = 52;
+    List                                             list                             = 53;
+    ListItem                                         listitem                         = 54;
+    Link                                             link                             = 55;
+    DocumentOptions                                  documentoptions                  = 56;
+    Document                                         document                         = 57;
+    ParseError                                       parseerror                       = 58;
+    FileTarget                                       filetarget                       = 59;
+    TextSeparator                                    textseparator                    = 60;
+    Include                                          include                          = 61;
+    DocumentGroup                                    documentgroup                    = 62;
   }
 }
 /* clang-format on */

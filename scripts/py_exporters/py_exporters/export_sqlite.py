@@ -1,13 +1,14 @@
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, DateTimeColumn
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import DateTime, Column, Enum, Engine
+from sqlalchemy import DateTime, Column, Enum, Engine, Boolean
 import enum
 from py_scriptutils.script_logging import log
-from beartype.typing import List
+from beartype.typing import List, Optional
 from beartype import beartype
 from py_haxorg.pyhaxorg_utils import evalDateTime
 from py_exporters.export_ultraplain import ExporterUltraplain
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -41,7 +42,8 @@ class Subtree(Base):
     scheduled = DateTimeColumn(nullable=True)
     deadline = DateTimeColumn(nullable=True)
     closed = DateTimeColumn(nullable=True)
-    location = ForeignId(name="Location.id")
+    location = ForeignId(name="Location.id", nullable=True)
+    wordcount = IntColumn(nullable=True)
 
 
 class BlockKind(enum.Enum):
@@ -59,10 +61,71 @@ class Block(Base):
     timestamp = DateTimeColumn(nullable=True)
     parent = ForeignId(name="Block.id", nullable=True)
     wordcount = IntColumn(nullable=True)
-    location = ForeignId(name="Location.id")
+    location = ForeignId(name="Location.id", nullable=True)
+
+
+class ValueEditOperation(enum.Enum):
+    Added = 1
+    Removed = 2
+    Changed = 3
+
+
+class PriorityModified(Base):
+    __tablename__ = "PriorityModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id", nullable=False)
+    kind = Column(Enum(ValueEditOperation))
+    old_priority = StrColumn(nullable=True)
+    new_priority = StrColumn(nullable=True)
+    timestamp = DateTimeColumn(nullable=True)
+    description = StrColumn(nullable=True)
+
+
+class StateModified(Base):
+    __tablename__ = "StateModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id", nullable=False)
+    old_state = StrColumn(nullable=True)
+    new_state = StrColumn(nullable=True)
+    kind = Column(Enum(ValueEditOperation))
+    timestamp = DateTimeColumn(nullable=True)
+    description = StrColumn(nullable=True)
+
+
+class TagModified(Base):
+    __tablename__ = "TagModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id", nullable=False)
+    tag = StrColumn()
+    timestamp = DateTimeColumn(nullable=True)
+    added = Column(Boolean)
+    description = StrColumn(nullable=True)
+
+
+class ClockModified(Base):
+    __tablename__ = "ClockModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id")
+    from_ = DateTimeColumn()
+    to = DateTimeColumn(nullable=True)
+
+
+class NoteModified(Base):
+    __tablename__ = "NoteModified"
+    id = IdColumn()
+    subtree = ForeignId(name="Subtree.id")
+    plaintext = StrColumn()
+    timestamp = DateTimeColumn()
+
+
+class RefileModified(Base):
+    __tablename__ = "RefileModified"
+    id = IdColumn()
 
 
 CAT = "haxorg.export.sqlite"
+
+subtree_count = 0
 
 
 @beartype
@@ -78,7 +141,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
 
     counter = 0
 
-    def get_location(node: org.Org) -> int:
+    def get_location(node: org.Org) -> Optional[int]:
+        if not node.loc:
+            return None
+
         nonlocal counter
         result = file_record.id * 1E6 + counter
         counter += 1
@@ -89,55 +155,206 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                 file=file_record.id,
                 id=result,
             ))
+
         return result
 
     @beartype
-    def aux(node: org.Org):
-        match node.getKind():
-            case osk.Subtree:
+    def aux_subtree_log(node: org.SubtreeLog, subtree_id: int):
+        match node.getLogKind():
+            case org.SubtreeLogKind.Priority:
+                priority: org.SubtreeLogPriority = node.getPriority()
+                time = evalDateTime(priority.on.getStatic().time)
+                match priority.action:
+                    case org.SubtreeLogPriorityAction.Added:
+                        session.add(
+                            PriorityModified(
+                                kind=ValueEditOperation.Added,
+                                new_priority=priority.newPriority,
+                                timestamp=time,
+                                subtree=subtree_id,
+                                description=priority.desc and
+                                ExporterUltraplain.getStr(priority.desc),
+                            ))
+
+                    case org.SubtreeLogPriorityAction.Removed:
+                        session.add(
+                            PriorityModified(
+                                kind=ValueEditOperation.Removed,
+                                new_priority=priority.oldPriority,
+                                timestamp=time,
+                                subtree=subtree_id,
+                                description=priority.desc and
+                                ExporterUltraplain.getStr(priority.desc),
+                            ))
+
+                    case org.SubtreeLogPriorityAction.Changed:
+                        session.add(
+                            PriorityModified(
+                                kind=ValueEditOperation.Changed,
+                                new_priority=priority.newPriority,
+                                old_priority=priority.oldPriority,
+                                timestamp=time,
+                                subtree=subtree_id,
+                                description=priority.desc and
+                                ExporterUltraplain.getStr(priority.desc),
+                            ))
+
+            case org.SubtreeLogKind.State:
+                state = node.getState()
+                change = None
+                match (bool(state.from_), bool(state.to)):
+                    case (True, True):
+                        change = ValueEditOperation.Changed
+
+                    case (False, True):
+                        change = ValueEditOperation.Added
+
+                    case (True, False):
+                        change = ValueEditOperation.Removed
+
+                session.add(
+                    StateModified(
+                        subtree=subtree_id,
+                        old_state=state.from_,
+                        new_state=state.to,
+                        kind=change,
+                        timestamp=evalDateTime(state.on.getStatic().time),
+                        description=state.desc and ExporterUltraplain.getStr(state.desc),
+                    ))
+
+            case org.SubtreeLogKind.Tag:
+                tag: org.SubtreeLogTag = node.getTag()
+                session.add(
+                    TagModified(
+                        subtree=subtree_id,
+                        added=tag.added,
+                        timestamp=evalDateTime(tag.on.getStatic().time),
+                        tag=ExporterUltraplain.getStr(tag.tag),
+                        description=tag.desc and ExporterUltraplain.getStr(tag.desc),
+                    ))
+
+            case org.SubtreeLogKind.Clock:
+                clock: org.SubtreeLogClock = node.getClock()
+                session.add(
+                    ClockModified(
+                        subtree=subtree_id,
+                        from_=evalDateTime(clock.from_.getStatic().time),
+                        to=evalDateTime(clock.to.getStatic().time) if clock.to else None,
+                    ))
+
+            case org.SubtreeLogKind.Note:
+                note: org.SubtreeLogNote = node.getNote()
+                session.add(
+                    NoteModified(
+                        subtree=subtree_id,
+                        plaintext=ExporterUltraplain.getStr(note.desc)
+                        if note.desc else "",
+                    ))
+
+    @beartype
+    def getSubtreeTime(node: org.Subtree,
+                       kind: org.SubtreePeriodKind) -> Optional[datetime]:
+        result: Optional[datetime] = None
+        time: org.SubtreePeriod
+        for time in node.getTimePeriods(org.IntSetOfSubtreePeriodKind([kind])):
+
+            if time.from_.getTimeKind() == org.TimeTimeKind.Static:
+                result = evalDateTime(time.from_.getStatic().time)
+
+        return result
+
+    @beartype
+    def getCreationTime(node: org.Org) -> Optional[datetime]:
+        match node:
+            case org.Subtree():
+                return getSubtreeTime(node,
+                                      org.SubtreePeriodKind.Created) or getSubtreeTime(
+                                          node, org.SubtreePeriodKind.Titled)
+
+            case org.AnnotatedParagraph():
+                if node.getAnnotationKind(
+                ) == org.AnnotatedParagraphAnnotationKind.Timestamp:
+                    return evalDateTime(node.getTimestamp().time.getStatic().time)
+
+    @beartype
+    def aux(node: org.Org, parent: Optional[int] = None):
+        global subtree_count
+        match node:
+            case org.Subtree():
+
+                def getNestedWordcount(node: org.Org) -> int:
+                    if not node or getCreationTime(node) is not None:
+                        return 0
+
+                    else:
+                        result = 0
+                        match node:
+                            case org.Word() | org.BigIdent() | org.RawText(
+                            ) | org.HashTag() | org.AtMention():
+                                result += 1
+
+                            case _:
+                                for sub in node:
+                                    result += getNestedWordcount(sub)
+
+                        return result
+
+                count = 0
+                for sub in node:
+                    count += getNestedWordcount(sub)
+
+                # log(CAT).info("{} {} {}:{}".format(
+                #     ExporterUltraplain.getStr(node.title),
+                #     count,
+                #     node.loc.line if node.loc else -1,
+                #     node.loc.column if node.loc else -1,
+                # ))
+
                 session.add(
                     Subtree(
+                        id=subtree_count,
+                        parent=parent,
+                        created=getCreationTime(node),
+                        scheduled=getSubtreeTime(node, org.SubtreePeriodKind.Scheduled),
                         level=node.level,
                         plaintext_title=ExporterUltraplain.getStr(node.title),
                         location=get_location(node),
+                        wordcount=count,
                     ))
 
+                subtree_count += 1
+
+                for item in node.logbook:
+                    aux_subtree_log(item, id(node))
+
+                for sub in node:
+                    aux(sub, parent=id(node))
+
+            case org.Document():
+                session.add(Document(id=id(node)))
+                for sub in node:
+                    aux(sub, parent=id(node))
+
+            case org.List() | org.ListItem():
                 for sub in node:
                     aux(sub)
 
-            case osk.Document | osk.List | osk.ListItem:
-                for sub in node:
-                    aux(sub)
-
-            case osk.Paragraph:
+            case org.Paragraph() | org.AnnotatedParagraph():
                 subnodes: List[org.Org] = [n for n in node]
                 wordcount = 0
                 if 0 < len(subnodes):
-                    start = 2 if 2 < len(
-                        subnodes) and subnodes[0].getKind() == osk.Time else 0
-
-                    for sub in subnodes[start:]:
+                    for sub in subnodes:
                         if sub.getKind() == osk.Word:
                             wordcount += 1
 
-                    if subnodes[0].getKind() == osk.Time:
-                        session.add(
-                            Block(
-                                kind=BlockKind.Paragraph,
-                                timestamp=evalDateTime(subnodes[0].getStatic().time),
-                                wordcount=wordcount,
-                                plaintext=ExporterUltraplain.getStr(node),
-                                location=get_location(node),
-                            ))
-
-                    else:
-                        session.add(
-                            Block(
-                                kind=BlockKind.Paragraph,
-                                wordcount=wordcount,
-                                plaintext=ExporterUltraplain.getStr(node),
-                                location=get_location(node),
-                            ))
+                    session.add(
+                        Block(
+                            kind=BlockKind.Paragraph,
+                            wordcount=wordcount,
+                            timestamp=getCreationTime(node),
+                            plaintext=ExporterUltraplain.getStr(node),
+                            location=get_location(node),
+                        ))
 
             case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.Caption | osk.Tblfm | osk.Include:
                 pass
@@ -156,9 +373,6 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
 
             case osk.Table:
                 pass
-
-            case _:
-                log(CAT).warning(f"Unhandled sql export {node.getKind()} {node.loc.line}")
 
     aux(node)
     session.commit()

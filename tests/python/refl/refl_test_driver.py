@@ -134,7 +134,7 @@ def run_provider(
 
         base_dict = dict(
             input=[str(file) for file in text.keys()],
-            indexing_tool="{haxorg_root}/build/utils/reflection_tool",
+            indexing_tool="{haxorg_root}/build/utils/reflection_tool/reflection_tool",
             compilation_database=compile_commands.name,
             toolchain_include="{haxorg_root}/toolchain/llvm/lib/clang/17/include",
             output_directory=str(code_dir),

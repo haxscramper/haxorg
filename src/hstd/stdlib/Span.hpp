@@ -31,6 +31,7 @@ class Span : public std::span<T> {
     Span(T* data, int size) : std::span<T>(data, size) {}
     T const* cdata() const { return data(); }
 
+
     /// \brief Get data at specified offset from the current 'position' if
     /// it is available (offset fits in size) or `nullptr` otherwise.
     ///
@@ -203,3 +204,12 @@ struct std::formatter<Span<T>> : std::formatter<std::string> {
         return fmt_ctx("]", ctx);
     }
 };
+
+
+template <std::random_access_iterator Iter>
+static auto IteratorSpan(Iter begin, Iter end)
+    -> Span<typename Iter::value_type> {
+    return Span<typename Iter::value_type>{
+        const_cast<Iter::value_type*>(&*begin),
+        static_cast<int>(std::distance(begin, end))};
+}

@@ -3,10 +3,33 @@ import json
 from plumbum import local, ProcessExecutionError
 from beartype import beartype
 from dataclasses import dataclass
-from beartype.typing import Optional, Tuple, List
+from beartype.typing import Optional, Tuple, List, Any
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
+from pydantic import BaseModel, Field
+import json
+from py_repository.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
+
+COOKIE_SUFFIX = ".profdata-cookie"
+
+
+@beartype
+def get_profile_base(coverage: Path, test_name: str) -> Path:
+    return coverage.joinpath(test_name.replace("/", "_").replace(".", "_"))
+
+
+@beartype
+def get_profraw_path(coverage: Path, test_name: str) -> Path:
+    return get_profile_base(coverage, test_name).with_suffix(".profraw")
+
+
+cookie_list: List[ProfdataCookie] = []
+
+
+def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
+    result = ProfdataFullProfile(runs=cookie_list)
+    return result
 
 
 @beartype
@@ -16,6 +39,7 @@ class GTestParams():
     test_name: str
     parameter_name: Optional[str] = None
     parameter_desc: Optional[dict] = None
+    coverage_out_dir: Optional[Path] = None
 
     def get_source_file(self) -> str:
         if self.parameter_desc and "loc" in self.parameter_desc:
@@ -93,15 +117,15 @@ def parse_google_tests(binary_path: str) -> list[GTestParams]:
     return tests
 
 
-binary_path: str = str(
-    get_haxorg_repo_root_path().joinpath("build/haxorg/tests_org"))
+binary_path: str = str(get_haxorg_repo_root_path().joinpath("build/haxorg/tests_org"))
 
 
 class GTestClass(pytest.Class):
 
-    def __init__(self, name, parent):
+    def __init__(self, coverage_out_dir: Path, name, parent):
         super().__init__(name, parent)
         self.tests: list[GTestParams] = []
+        self.coverage_out_dir = coverage_out_dir
 
     def add_test(self, test: GTestParams):
         self.tests.append(test)
@@ -113,6 +137,7 @@ class GTestClass(pytest.Class):
                 gtest=test,
                 name=test.item_name(),
                 callobj=lambda: None,
+                coverage_out_dir=self.coverage_out_dir,
             )
 
     def _getobj(self):
@@ -139,21 +164,49 @@ class GTestRunError(Exception):
 
 class GTestItem(pytest.Function):
 
-    def __init__(self, gtest: GTestParams, *args, **kwargs):
+    def __init__(self, gtest: GTestParams, coverage_out_dir: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.gtest = gtest
+        self.coverage_out_dir = coverage_out_dir
 
     def runtest(self):
-        try:
-            local[binary_path](*self.gtest.gtest_params())
+        test = Path(binary_path)
 
-        except ProcessExecutionError as e:
-            raise GTestRunError(e, self) from None
+        def run(env: Optional[dict] = None):
+            try:
+                cmd = local[test]
+                if env:
+                    cmd = cmd.with_env(**env)
+
+                cmd.run(self.gtest.gtest_params())
+
+            except ProcessExecutionError as e:
+                raise GTestRunError(e, self) from None
+
+        if self.coverage_out_dir:
+            uniq_name = self.gtest.fullname()
+            profraw = get_profraw_path(self.coverage_out_dir, test_name=uniq_name)
+            cookie = ProfdataCookie(
+                test_binary=str(test),
+                test_class=self.gtest.class_name,
+                test_name=self.gtest.test_name,
+                test_profile=str(profraw),
+            )
+
+            if profraw.exists():
+                profraw.unlink()
+
+            run({"LLVM_PROFILE_FILE": str(profraw)})
+            cookie_list.append(cookie)
+
+        else:
+            run()
 
     @property
     def location(self) -> Tuple[str, Optional[int], str]:
         # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
-        return (self.gtest.get_source_file(), self.gtest.get_source_line(), self.gtest.fullname())
+        return (self.gtest.get_source_file(), self.gtest.get_source_line(),
+                self.gtest.fullname())
 
     def _getobj(self):
         # Return a dummy function
@@ -161,7 +214,8 @@ class GTestItem(pytest.Function):
 
 
 class GTestFile(pytest.Module):
-    def __init__(self, *args, **kwargs):
+
+    def __init__(self, coverage_out_dir: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.test_classes: List[GTestClass] = []
         class_tests = {}
@@ -169,7 +223,11 @@ class GTestFile(pytest.Module):
             class_tests.setdefault(test.group_name(), []).append(test)
 
         for class_name, tests in class_tests.items():
-            gtest_class = GTestClass.from_parent(self, name=class_name)
+            gtest_class = GTestClass.from_parent(
+                self,
+                name=class_name,
+                coverage_out_dir=coverage_out_dir,
+            )
             for test in tests:
                 gtest_class.add_test(test)
 

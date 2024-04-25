@@ -65,6 +65,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         Field(Range(1, N::Body), OrgPattern(org::StmtList)),
     });
 
+    const OrgPattern textWrapContent = OrgPattern({
+        fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
+        fieldN(slice(1, 1_B), N::Body, {org::Paragraph, org::Empty}),
+    });
+
     const OrgPattern anySubnodePattern = OrgPattern(
         {Field(Range(slice(0, 1_B), N::Body))});
 
@@ -164,25 +169,19 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::SubtreeDescription,
             OrgPattern({field1(0, N::Text, org::Paragraph)})},
-        SpecPair{
-            org::CenterBlock,
-            OrgPattern({
-                fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
-                fieldN(
-                    slice(1, 1_B), N::Body, {org::Paragraph, org::Empty}),
-            })},
-        SpecPair{
-            org::QuoteBlock,
-            OrgPattern({
-                fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
-                fieldN(
-                    slice(1, 1_B), N::Body, {org::Paragraph, org::Empty}),
-            })},
+        SpecPair{org::CenterBlock, textWrapContent},
+        SpecPair{org::QuoteBlock, textWrapContent},
+        SpecPair{org::CommentBlock, textWrapContent},
         SpecPair{
             org::Example,
             OrgPattern({
                 fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
                 fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
+            })},
+        SpecPair{
+            org::ColonExample,
+            OrgPattern({
+                fieldN(slice(0, 1_B), N::Body, {org::RawText, org::Empty}),
             })},
         SpecPair{
             org::AnnotatedParagraph,

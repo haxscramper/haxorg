@@ -15,7 +15,7 @@
 #include <type_traits>
 
 template <typename T>
-concept IsEnum = std::is_enum<T>::value;
+concept IsEnum = std::is_enum<T>::value;    
 
 template <typename T>
 concept IsRecord = std::is_class<T>::value;
@@ -33,7 +33,7 @@ concept DescribedRecord = boost::describe::has_describe_members<
 
 namespace boost::describe {
 
-inline void throw_invalid_name(char const* name, char const* type) {
+[[noreturn]] inline void throw_invalid_name(char const* name, char const* type) {
     throw std::runtime_error(
         (std::string("Invalid enumerator name '") + name
          + "' for enum type '" + type + "'"));

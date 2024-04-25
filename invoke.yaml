@@ -1,10 +1,18 @@
 quiet: false
 debug: false
 instrument:
-  coverage: false
+  coverage: true
   xray: false
   asan: false
 
 tasks:
-  skip_python_refl: true
+  skip_python_refl: false
   # skip_python_refl: false
+
+force_task: [
+  # "cmake_configure_haxorg",
+  # "cmake_haxorg",
+  "python_protobuf_files",
+]
+
+ 

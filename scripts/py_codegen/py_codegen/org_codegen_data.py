@@ -95,20 +95,12 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
             GenTuField(
                 t_osk(),
                 "staticKind",
-                GenTuDoc("Document"),
+                GenTuDoc(""),
                 isConst=True,
                 isStatic=True,
+                isExposedForWrap=False,
             ),
         )
-
-        res.fields.insert(
-            0,
-            GenTuField(
-                t_opt(t("LineCol")),
-                "loc",
-                GenTuDoc("Document"),
-                value="std::nullopt",
-            ))
 
         res.methods.insert(
             0,
@@ -120,19 +112,7 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
                 isVirtual=True,
                 isPureVirtual=False,
                 impl=f"return {t_osk().name}::{kind};",
-            ),
-        )
-
-        res.methods.insert(
-            0,
-            GenTuFunction(
-                t_id(QualType(name=name)),
-                "create",
-                GenTuDoc(""),
-                isStatic=True,
-                arguments=[
-                    GenTuIdent(t_opt(t("OrgAdapter")), "original", value="std::nullopt"),
-                ],
+                isExposedForWrap=False,
             ),
         )
 
@@ -279,16 +259,33 @@ def get_types() -> Sequence[GenTuStruct]:
             "Paragraph",
             GenTuDoc("Top-level or inline paragraph"),
             bases=[t_org("Stmt")],
-            methods=[
-                GenTuFunction(
-                    t_bool(),
-                    "isFootnoteDefinition",
-                    GenTuDoc("Check if paragraph defines footnote"),
-                    isConst=True,
-                    impl="return !subnodes.empty() && at(0)->is(OrgSemKind::Footnote);",
-                )
-            ],
         ),
+        d_org(
+            "AnnotatedParagraph",
+            GenTuDoc("Top-level or inline paragraph with prefix annotation"),
+            bases=[t_org("Stmt")],
+            nested=[
+                GenTuTypeGroup(
+                    [
+                        GenTuStruct(t("None")),
+                        GenTuStruct(t("Footnote"), fields=[GenTuField(t_str(), "name")]),
+                        GenTuStruct(
+                            t("Admonition"),
+                            fields=[
+                                id_field("BigIdent", "name",
+                                         GenTuDoc("Prefix admonition for the paragraph"))
+                            ]),
+                        GenTuStruct(
+                            t("Timestamp"),
+                            fields=[
+                                id_field("Time", "time",
+                                         GenTuDoc("Leading timestamp for the paragraph"))
+                            ]),
+                    ],
+                    kindGetter="getAnnotationKind",
+                    enumName="AnnotationKind",
+                )
+            ]),
         d_org(
             "Format",
             GenTuDoc("Base class for branch of formatting node classes"),
@@ -382,11 +379,19 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
         d_org(
+            "CommentBlock",
+            GenTuDoc("Comment block"),
+            bases=[t_org("Org")],
+        ),
+        d_org(
             "Verse",
             GenTuDoc("Verse quotation block"),
             bases=[t_org("Block")],
         ),
         d_org("Example", GenTuDoc("Example block"), bases=[t_org("Block")]),
+        d_org("ColonExample",
+              GenTuDoc("Shortened colon example block"),
+              bases=[t_org("Org")]),
         d_org(
             "CmdArguments",
             GenTuDoc("Additional arguments for command blocks"),
@@ -820,13 +825,24 @@ def get_types() -> Sequence[GenTuStruct]:
                             GenTuDoc("Priority added"),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             nested=[
-                                d_simple_enum(
-                                    "Action",
+                                GenTuEnum(
+                                    t("Action"),
                                     GenTuDoc("Priority change action"),
-                                    "Added",
-                                    "Removed",
-                                    "Changed",
-                                ),
+                                    fields=[
+                                        GenTuEnumField(
+                                            "Added",
+                                            GenTuDoc(
+                                                "`Priority B added on [timestamp]`")),
+                                        GenTuEnumField(
+                                            "Removed",
+                                            GenTuDoc(
+                                                "`Priority C removed on [timestamp]`")),
+                                        GenTuEnumField(
+                                            "Changed",
+                                            GenTuDoc(
+                                                "`Priority B changed from C on [timestamp]`"
+                                            )),
+                                    ]),
                                 GenTuPass("Priority() {}")
                             ],
                             fields=[
@@ -842,6 +858,8 @@ def get_types() -> Sequence[GenTuStruct]:
                                 ),
                                 id_field("Time", "on",
                                          GenTuDoc("When priority was changed")),
+                                GenTuField(t_nest("Action", ["SubtreeLog", "Priority"]),
+                                           "action", GenTuDoc("Which action taken")),
                             ],
                         ),
                         GenTuStruct(
@@ -872,13 +890,9 @@ def get_types() -> Sequence[GenTuStruct]:
                             ),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
-                                k_args(GenTuField(
-                                    t_var(t_id("Time"), t_id("TimeRange")),
-                                    "range",
-                                    GenTuDoc("Start-end or only start period"),
-                                    value="sem::SemId<sem::Time>::Nil()",
-                                ),
-                                       ignore=True)
+                                id_field("Time", "from", GenTuDoc("Clock start time")),
+                                opt_field(t_id("Time"), "to",
+                                          GenTuDoc("Optional end of the clock")),
                             ],
                             nested=[GenTuPass("Clock() {}")],
                         ),
@@ -911,6 +925,13 @@ def get_types() -> Sequence[GenTuStruct]:
                                            value="false"),
                             ],
                             nested=[GenTuPass("Tag() {}")],
+                        ),
+                        GenTuStruct(
+                            t("Unknown"),
+                            GenTuDoc("Unknown subtree log entry kind"),
+                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
+                            fields=[],
+                            nested=[GenTuPass("Unknown() {}")],
                         ),
                     ],
                     kindGetter="getLogKind",
@@ -977,6 +998,40 @@ def get_types() -> Sequence[GenTuStruct]:
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
                     ],
                 ),
+                GenTuFunction(
+                    t("void"),
+                    "removeProperty",
+                    GenTuDoc(
+                        "Remove all instances of the property with matching kind/subkind from the property list"
+                    ),
+                    arguments=[
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
+                    ],
+                ),
+                GenTuFunction(
+                    t("void"),
+                    "setProperty",
+                    GenTuDoc(
+                        "Create or override existing property value in the subtree property list"
+                    ),
+                    arguments=[
+                        GenTuIdent(t_cr(t_nest(t("Property"), ["Subtree"])), "value"),
+                    ],
+                ),
+                GenTuFunction(
+                    t("void"),
+                    "setPropertyStrValue",
+                    GenTuDoc(
+                        "Assign a raw string literal to a property.",
+                        "This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch."
+                    ),
+                    arguments=[
+                        GenTuIdent(t_cr(t_str()), "value"),
+                        GenTuIdent(t_cr(t_str()), "kind"),
+                        GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
+                    ],
+                ),
             ],
             nested=[
                 GenTuStruct(
@@ -990,27 +1045,10 @@ def get_types() -> Sequence[GenTuStruct]:
                                 "Time period kind -- not associated with point/range distinction"
                             ),
                         ),
-                        k_args(GenTuField(t_var(t_id("Time"), t_id("TimeRange")),
-                                          "period",
-                                          GenTuDoc("Stored time point/range"),
-                                          value="sem::SemId<sem::Time>::Nil()"),
-                               ignore=True),
+                        id_field("Time", "from", GenTuDoc("Clock start time")),
+                        opt_field(t_id("Time"), "to",
+                                  GenTuDoc("Optional end of the clock")),
                     ],
-                    methods=[
-                        GenTuFunction(
-                            t_id("Time"),
-                            "getTime",
-                            GenTuDoc("Get associated time point"),
-                            impl="return std::get<SemId<Time>>(period);",
-                        ),
-                        GenTuFunction(
-                            t_id("TimeRange"),
-                            "getTimeRange",
-                            GenTuDoc("Get associated time period"),
-                            impl="return std::get<SemId<TimeRange>>(period);",
-                        ),
-                    ],
-                    #  ;; TODO constructors
                     nested=[
                         GenTuPass("Period() {}"),
                         GenTuEnum(
@@ -1020,6 +1058,8 @@ def get_types() -> Sequence[GenTuStruct]:
                                 GenTuEnumField(
                                     "Clocked",
                                     GenTuDoc("Time period of the task execution.")),
+                                GenTuEnumField("Closed",
+                                               GenTuDoc("Task marked as closed")),
                                 GenTuEnumField(
                                     "Scheduled",
                                     GenTuDoc(
@@ -1044,9 +1084,6 @@ def get_types() -> Sequence[GenTuStruct]:
                                     "Repeated",
                                     GenTuDoc("Last repeat time of the recurring tasks")),
                             ],
-                        ),
-                        GenTuPass(
-                            "Period(CR<Variant<SemId<Time>, SemId<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}"
                         ),
                     ],
                 ),
@@ -1291,7 +1328,10 @@ def get_types() -> Sequence[GenTuStruct]:
                            GenTuDoc(""),
                            value="std::nullopt"),
             ],
-            nested=[d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty", "Partial")],
+            nested=[
+                d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty",
+                              "Partial")
+            ],
             methods=[
                 GenTuFunction(
                     t_bool(),
@@ -1788,11 +1828,14 @@ def get_enums():
                                GenTuDoc("Single tangle target in the code block")),
                 GenTuEnumField("CodeCallout",
                                GenTuDoc("`(refs:` callout in the source code")),
-                GenTuEnumField("QuoteBlock", GenTuDoc("`#+quote:` block in code")),
+                GenTuEnumField("QuoteBlock", GenTuDoc("`#+begin_quote:` block in code")),
+                GenTuEnumField("CommentBlock",
+                               GenTuDoc("`#+begin_comment:` block in code")),
                 GenTuEnumField("AdmonitionBlock", GenTuDoc("")),
                 GenTuEnumField("CenterBlock", GenTuDoc("'")),
                 GenTuEnumField("VerseBlock", GenTuDoc("")),
                 GenTuEnumField("Example", GenTuDoc("Verbatim example text block")),
+                GenTuEnumField("ColonExample", GenTuDoc("Colon example block")),
                 GenTuEnumField(
                     "SrcCode",
                     GenTuDoc("Block of source code - can be multiline, single-line and")),

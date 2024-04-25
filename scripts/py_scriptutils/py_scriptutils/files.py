@@ -8,7 +8,11 @@ from beartype.typing import (
     TypeAlias,
     Optional,
     Type,
+    Iterable,
+    Dict,
 )
+
+from functools import wraps
 import pickle
 from pathlib import Path
 from beartype import beartype
@@ -17,14 +21,12 @@ import traceback
 from types import GeneratorType
 from dataclasses import dataclass, field
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from datetime import datetime
 
 T = TypeVar('T')
 
 SomePath: TypeAlias = Union[str, Path, GeneratorType]
 SomePaths: TypeAlias = Union[SomePath, List[SomePath]]
-
-
-
 
 
 @beartype
@@ -111,15 +113,19 @@ class FileOperation:
         )
 
     @classmethod
-    def InTmp(self,
-              input: SomePaths,
-              stamp_path: Path,
-              stamp_content: Optional[str] = None,
-              output: List[Path] = []) -> 'FileOperation':
-        return FileOperation(normalize_paths(input),
-                             stamp_path=stamp_path,
-                             output=output,
-                             stamp_content=stamp_content)
+    def InTmp(
+        self,
+        input: SomePaths,
+        stamp_path: Path,
+        stamp_content: Optional[str] = None,
+        output: List[Path] = [],
+    ) -> 'FileOperation':
+        return FileOperation(
+            normalize_paths(input),
+            stamp_path=stamp_path,
+            output=output,
+            stamp_content=stamp_content,
+        )
 
     def stamp_content_is_new(self) -> bool:
         return bool(self.stamp_path.exists() and self.stamp_content and
@@ -134,6 +140,10 @@ class FileOperation:
 
     def explain(self, name: str) -> str:
         if self.should_run():
+
+            def mtime_str(time: float) -> str:
+                return datetime.fromtimestamp(time).strftime("%Y-%m-%d %H:%M:%S")
+
             why = f"[red]{name}[/red] needs rebuild,"
             if self.stamp_path and not self.stamp_path.exists():
                 why += " output stamp file is missing "
@@ -145,9 +155,19 @@ class FileOperation:
 
             min_time = min_mtime(self.get_output_files())
             newer = [p for p in self.input if p.exists() and min_time < p.stat().st_mtime]
+
+            def format_files(files: Iterable[Path]) -> str:
+                return ", ".join(("{} ({})".format(
+                    it.name,
+                    mtime_str(it.stat().st_mtime) if it.exists() else "<missing>",
+                ) for it in files))
+
             if newer:
-                why += f" {len(newer)} files were changed since last creation: " + ", ".join(
-                    (it.name for it in newer))
+                why += " {} files were changed since last creation of {}: {}".format(
+                    len(newer),
+                    format_files(self.get_output_files()),
+                    format_files(newer),
+                )
 
             return why
 
@@ -169,6 +189,35 @@ class FileOperation:
 
                 else:
                     file.write("xx")
+
+def cache_file_processing_result(input_arg_names: List[str]):
+    cache: Dict[str, Dict[str, any]] = {}
+
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            cache_key = func.__name__
+            mod_times = []
+            for arg_name in input_arg_names:
+                if arg_name in kwargs:
+                    file_path = Path(kwargs[arg_name])
+                    mod_times.append((file_path, file_path.stat().st_mtime))
+                else:
+                    arg_index = func.__code__.co_varnames.index(arg_name)
+                    file_path = Path(args[arg_index])
+                    mod_times.append((file_path, file_path.stat().st_mtime))
+            
+            if cache_key in cache:
+                cached_mod_times, cached_result = cache[cache_key]["mod_times"], cache[cache_key]["result"]
+                if all(mod_time == cached_mod_times[i][1] for i, (file_path, mod_time) in enumerate(mod_times)):
+                    return cached_result
+            
+            result = func(*args, **kwargs)
+            cache[cache_key] = {"mod_times": mod_times, "result": result}
+            return result
+        return wrapper
+    return decorator
+
 
 
 def pickle_or_new(input_path: str, output_path: str, builder_cb: Callable[[str], T]) -> T:

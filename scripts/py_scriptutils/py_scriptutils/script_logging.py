@@ -6,6 +6,7 @@ from rich.pretty import pprint
 import sys
 from types import MethodType
 from rich.text import Text
+from rich.console import Console
 
 
 def to_debug_json(
@@ -26,9 +27,18 @@ def to_debug_json(
 
         # Handle different data types
         if isinstance(obj, dict):
-            result = {}
+            safe_keys: dict[int | float | str | bool | None, any] = {}
             for key, value in obj.items():
+                if isinstance(key, (int, float, str, bool, type(None))):
+                    safe_keys[key] = value
+
+                else:
+                    safe_keys[str(key)] = value
+
+            result = {}
+            for key, value in safe_keys.items():
                 result[key] = aux(value)
+
             return result
 
         elif isinstance(obj, (list, tuple, set, frozenset)):
@@ -38,7 +48,6 @@ def to_debug_json(
             return f"{obj}"
 
         else:
-
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
@@ -144,10 +153,17 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
         print("{:<{}}{}{}".format(frame[0], max_formatted_width,
                                   " : " if one_line_format else "\n  ", frame[1]))
 
-    print(exc_type.__name__, ":", exc_value)
+    print(f"{exc_type.__name__} : {exc_value}")
+    if hasattr(exc_value, "__notes__"):
+        for note in exc_value.__notes__:
+            print(f"Note: {note}")
+
+    if hasattr(exc_value, "__rich_msg__"):
+        console.print(getattr(exc_value, "__rich_msg__"))
 
 
 sys.excepthook = custom_traceback_handler
 
-log("graphviz._tools").setLevel(logging.ERROR)
+log("graphviz").setLevel(logging.ERROR)
+log("asyncio").setLevel(logging.ERROR)
 log("matplotlib").setLevel(logging.WARNING)

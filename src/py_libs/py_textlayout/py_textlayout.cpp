@@ -69,13 +69,13 @@ struct TextLayout {
 
     std::string toString(Id id, CR<Options> options) {
         // try {
-            return store.toString(id);
+        return store.toString(id);
         // } catch (...) { exception_breakpoint(); }
     }
 
     std::string toTreeRepr(Id id) {
         // try {
-            return store.toTreeRepr(id);
+        return store.toTreeRepr(id);
         // } catch (...) { exception_breakpoint(); }
     }
 
@@ -140,9 +140,7 @@ namespace detail {
         bool load(handle src, bool) {
             PyObject* source = src.ptr();
             PyObject* tmp    = PyNumber_Long(source);
-            if (!tmp) {
-                return false;
-            }
+            if (!tmp) { return false; }
             value.id.setValue(PyLong_AsUnsignedLong(tmp));
             Py_DECREF(tmp);
             return !PyErr_Occurred();
@@ -150,8 +148,8 @@ namespace detail {
 
         static handle cast(
             TextLayout::Id src,
-            return_value_policy /* policy */,
-            handle /* parent */) {
+            return_value_policy,
+            handle) {
             return PyLong_FromUnsignedLongLong(src.id.getValue());
         }
     };

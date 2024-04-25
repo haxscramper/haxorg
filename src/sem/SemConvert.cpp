@@ -150,10 +150,14 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             | rs::to<Vec>();
 
         auto clock = Log::Clock{};
+        CHECK(!times.empty())
+            << a.treeRepr() << ExporterTree::treeRepr(item).toString();
         if (times.at(0)->is(osk::Time)) {
-            clock.range = times.at(0).as<Time>();
+            clock.from = times.at(0).as<Time>();
         } else {
-            clock.range = times.at(0).as<TimeRange>();
+            auto range = times.at(0).as<TimeRange>();
+            clock.from = range->from;
+            clock.to   = range->to;
         }
 
         log->log = clock;
@@ -164,7 +168,7 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             auto                tag  = Log::Tag{};
             Vec<SemId<HashTag>> tags = filter_subnodes<HashTag>(
                 par0, limit);
-
+            CHECK(!tags.empty() && !times.empty()) << a.treeRepr();
             tag.tag = tags.at(0);
             tag.on  = times.at(0);
             if (words.at(1) == "added") {
@@ -183,6 +187,7 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
                 | rs::to<Vec>();
 
             auto states = Log::State{};
+            CHECK(!big_idents.empty()) << a.treeRepr();
             states.from = big_idents.at(0);
             if (1 < big_idents.size()) { states.to = big_idents.at(1); }
             states.on = times.at(0);
@@ -192,50 +197,84 @@ SemId<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             Vec<SemId<Time>> times  = filter_subnodes<Time>(par0, limit);
             Vec<SemId<Link>> link   = filter_subnodes<Link>(par0, limit);
             auto             refile = Log::Refile{};
-            refile.on               = times.at(0);
-            refile.from             = link.at(0);
-            log->log                = refile;
+            CHECK(!times.empty())
+                << a.treeRepr() << ExporterTree::treeRepr(item).toString();
 
-        } else if (words.at(0) == "note") {
+            refile.on = times.at(0);
+            if (!link.empty()) { refile.from = link.at(0); }
+            log->log = refile;
+
+        } else if (words.at(0) == "priority") {
+            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
+            Vec<SemId<BigIdent>> priorities = filter_subnodes<BigIdent>(
+                par0, limit);
+            auto priority = Log::Priority{};
+
+            if (words.contains("added")) {
+                priority.newPriority = priorities.at(0)->text;
+                priority.action      = Log::Priority::Action::Added;
+            } else if (words.contains("changed")) {
+                priority.newPriority = priorities.at(0)->text;
+                priority.oldPriority = priorities.at(0)->text;
+                priority.action      = Log::Priority::Action::Changed;
+            } else if (words.contains("removed")) {
+                priority.oldPriority = priorities.at(0)->text;
+                priority.action      = Log::Priority::Action::Removed;
+            } else {
+                LOG(FATAL) << fmt1(words)
+                           << " Unexpected priority log message structure";
+            }
+
+            priority.on = times.at(0);
+            log->log    = priority;
+
+        } else if (words.at(0) == "note" && !times.empty()) {
             auto note = Log::Note{};
             note.on   = times.at(0);
             log->log  = note;
 
         } else {
-            LOG(FATAL) << fmt1(words)
-                       << ExporterTree::treeRepr(item).toString();
+            auto unknown = Log::Unknown{};
+            auto stmt    = SemId<StmtList>::New();
+            for (auto const& sub : item->subnodes) {
+                stmt->subnodes.push_back(sub);
+            }
+            unknown.desc = stmt;
+            log->log     = unknown;
         }
     }
 
-    auto description = //
-        par0->subnodes //
-        | rv::drop_while([](sem::OrgArg arg) {
-              return !(
-                  arg->is(osk::Punctuation)
-                  && arg.as<Punctuation>()->text == "\\\\");
-          })
-        | rv::drop(1) //
-        | rv::drop_while([](sem::OrgArg arg) {
-              return arg->is(osk::Newline) || arg->is(osk::Space);
-          })
-        | rs::to<Vec>();
+    if (log->getLogKind() != Log::Kind::Unknown) {
+        auto description = //
+            par0->subnodes //
+            | rv::drop_while([](sem::OrgArg arg) {
+                  return !(
+                      arg->is(osk::Punctuation)
+                      && arg.as<Punctuation>()->text == "\\\\");
+              })
+            | rv::drop(1) //
+            | rv::drop_while([](sem::OrgArg arg) {
+                  return arg->is(osk::Newline) || arg->is(osk::Space);
+              })
+            | rs::to<Vec>();
 
-    if (!description.empty() || 1 < item->subnodes.size()) {
-        SemId<StmtList> desc = SemId<StmtList>::New();
-        if (!description.empty()) {
-            SemId<Paragraph> para = SemId<Paragraph>::New();
-            for (auto const& it : description) { para->push_back(it); }
-            desc->push_back(para);
-        }
-
-        if (1 < item->subnodes.size()) {
-            for (int i = 1; i < item->subnodes.size(); ++i) {
-                desc->push_back(item->subnodes.at(i));
+        if (!description.empty() || 1 < item->subnodes.size()) {
+            SemId<StmtList> desc = SemId<StmtList>::New();
+            if (!description.empty()) {
+                SemId<Paragraph> para = SemId<Paragraph>::New();
+                for (auto const& it : description) { para->push_back(it); }
+                desc->push_back(para);
             }
-        }
 
-        CHECK(!desc.isNil());
-        log->setDescription(desc);
+            if (1 < item->subnodes.size()) {
+                for (int i = 1; i < item->subnodes.size(); ++i) {
+                    desc->push_back(item->subnodes.at(i));
+                }
+            }
+
+            CHECK(!desc.isNil());
+            log->setDescription(desc);
+        }
     }
 
 
@@ -337,8 +376,8 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         if (duration.size() == 1) {
             prop.minutes = duration[0].toInt();
         } else if (duration.size() == 2) {
-            prop.minutes = duration[0].toInt();
-            prop.hours   = duration[1].toInt();
+            prop.minutes = duration[1].toInt();
+            prop.hours   = duration[0].toInt();
         }
 
         result = Property(prop);
@@ -347,7 +386,11 @@ void OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
         Property::Unknown prop;
         prop.name  = basename;
         prop.value = convert(one(a, N::Values));
-        result     = Property(prop);
+        if (prop.value->is(osk::StmtList)
+            && prop.value->subnodes.size() == 1) {
+            prop.value = prop.value->at(0);
+        }
+        result = Property(prop);
     }
 
     if (false && result) {
@@ -585,14 +628,67 @@ SemId<Paragraph> OrgConverter::convertParagraph(__args) {
     __perf_trace("convert", "convertParagraph");
     auto __trace = trace(a);
     auto par     = Sem<Paragraph>(a);
-    bool first   = true;
-    for (const auto& item : a) {
-        if (first && item.kind() == org::Footnote) {
-            par->push_back(convertFootnote(item));
-        } else {
-            par->push_back(convert(item));
+    for (const auto& item : a) { par->push_back(convert(item)); }
+
+    while (!par->subnodes.empty()
+           && SemSet{osk::Newline, osk::Space}.contains(
+               par->subnodes.back()->getKind())) {
+        par->subnodes.pop_back();
+    }
+
+    return par;
+}
+
+namespace {
+OrgSet AnnotatedParagraphStarts{
+    org::BigIdent,
+    org::Footnote,
+    org::StaticActiveTime,
+    org::StaticInactiveTime};
+}
+
+SemId<AnnotatedParagraph> OrgConverter::convertAnnotatedParagraph(__args) {
+    auto __trace = trace(a);
+    auto par     = Sem<AnnotatedParagraph>(a);
+    auto it      = a.begin();
+    switch ((*it).getKind()) {
+        case org::Footnote: {
+            auto footnote = convertFootnote(*it);
+            ++it;
+            par->data = AnnotatedParagraph::Footnote{
+                .name = footnote->tag};
+            break;
         }
-        first = false;
+
+        case org::BigIdent: {
+            auto ident = convertBigIdent(*it);
+            ++it;
+            if ((*it).getKind() == org::Colon) { ++it; }
+            par->data = AnnotatedParagraph::Admonition{.name = ident};
+            break;
+        }
+
+        case org::StaticActiveTime:
+        case org::StaticInactiveTime: {
+            auto time = convertTime(*it);
+            ++it;
+            par->data = AnnotatedParagraph::Timestamp{.time = time};
+            break;
+        }
+
+        default: {
+            LOG(FATAL) << fmt1(a.at(0).getKind());
+        }
+    }
+
+
+    auto end = a.end();
+
+    while (it != end && (*it).getKind() == org::Space) { ++it; }
+
+    while (it != end) {
+        par->push_back(convert(*it));
+        ++it;
     }
 
     while (!par->subnodes.empty()
@@ -667,8 +763,6 @@ SemId<Link> OrgConverter::convertLink(__args) {
 
         } else {
             link->data = Link::UserProtocol{.protocol = protocol};
-            LOG(ERROR) << "Unhandled protocol kind '" << protocol << "'\n"
-                       << a.treeRepr();
         }
     }
 
@@ -846,6 +940,18 @@ SemId<Example> OrgConverter::convertExample(__args) {
     return result;
 }
 
+SemId<ColonExample> OrgConverter::convertColonExample(__args) {
+    SemId<ColonExample> result = Sem<ColonExample>(a);
+    for (auto const& it : many(a, N::Body)) {
+        if (it.isMono()) {
+            result->subnodes.push_back(Sem<RawText>(it));
+        } else {
+            result->subnodes.push_back(SemLeaf<RawText>(it));
+        }
+    }
+    return result;
+}
+
 SemId<Export> OrgConverter::convertExport(__args) {
     auto eexport = Sem<Export>(a);
     switch (a.kind()) {
@@ -900,6 +1006,15 @@ SemId<Quote> OrgConverter::convertQuote(__args) {
     return quote;
 }
 
+SemId<CommentBlock> OrgConverter::convertCommentBlock(__args) {
+    SemId<CommentBlock> result = Sem<CommentBlock>(a);
+    for (const auto& sub : many(a, N::Body)) {
+        auto aux = convert(sub);
+        result->push_back(aux);
+    }
+    return result;
+}
+
 SemId<LatexBody> OrgConverter::convertMath(__args) {
     if (a.kind() == org::InlineMath) {
         return Sem<InlineMath>(a).as<LatexBody>();
@@ -910,8 +1025,6 @@ SemId<LatexBody> OrgConverter::convertMath(__args) {
 
 SemId<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
-    LOG(WARNING) << "TODO implement include";
-
     return include;
 }
 
@@ -1049,7 +1162,6 @@ SemId<Org> OrgConverter::convert(__args) {
         CASE(StmtList);
         CASE(Subtree);
         CASE(TimeRange);
-        CASE(Paragraph);
         CASE(Space);
         CASE(Word);
         CASE(Bold);
@@ -1088,6 +1200,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::DynamicActiveTime:
         case org::DynamicInactiveTime: return convertTime(a);
         case org::Quote: return convertMarkQuote(a);
+        case org::CommentBlock: return convertCommentBlock(a);
         case org::QuoteBlock: return convertQuote(a);
         case org::Colon: return convertPunctuation(a);
         case org::CommandInclude: return convertInclude(a);
@@ -1098,6 +1211,24 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::Footnote: return convertFootnote(a);
         case org::CommandTblfm: return convertTblfm(a);
         case org::CommandAttr: return convertCmdAttr(a);
+        case org::ColonExample: return convertColonExample(a);
+        case org::Paragraph: {
+            if (2 < a.size()
+                && AnnotatedParagraphStarts.contains(a.at(0).kind())) {
+                if (a.at(0).kind() == org::BigIdent) {
+                    // NOTE: ....
+                    if (2 < a.size() && a.at(1).kind() == org::Colon) {
+                        return convertAnnotatedParagraph(a);
+                    } else {
+                        return convertParagraph(a);
+                    }
+                } else {
+                    return convertAnnotatedParagraph(a);
+                }
+            } else {
+                return convertParagraph(a);
+            }
+        }
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
             Vec<SemId<Org>> nested = flatConvertAttached(a);
@@ -1189,7 +1320,6 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
             auto __trace = trace(adapter, fmt1(sub.getKind()));
             switch (sub.kind()) {
                 case org::Columns: {
-                    LOG(WARNING) << "TODO: Skipping 'columns' node";
                     break;
                 }
                 case org::CommandTitle: {

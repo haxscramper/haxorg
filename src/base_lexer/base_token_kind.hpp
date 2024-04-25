@@ -25,6 +25,8 @@ enum class OrgTokenKind : unsigned short int {
   CmdCenterEnd,
   CmdColonIdent,
   CmdColumns,
+  CmdCommentBegin,
+  CmdCommentEnd,
   CmdContentBegin,
   CmdContentEnd,
   CmdCreator,

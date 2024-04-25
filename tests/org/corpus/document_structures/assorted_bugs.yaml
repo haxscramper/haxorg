@@ -1,13 +1,17 @@
 items:
-  - name: 1
+  - name: "1"
+    debug:
+      doFlatReparseCompare: false
     source: |
       haxscramper, [2023-10-14 01:20]
       #recall impossible to fully clarify the requirements, but even 70% were not reached
-  - name: 2
+  - name: "2"
     source: |
       don't think I've done
 
   - name: Long newline unhandled
+    debug:
+      doFlatReparseCompare: false
     source: |
       *** 2023-10-14 Saturday
 
@@ -16,6 +20,8 @@ items:
         LLVM XRay
 
   - name: "Timestamp with timezone"
+    debug:
+      doFlatReparseCompare: false
     source: |
       **** [2023-10-17 Tue 06:42:00 +04] :from_tg:work:
           :PROPERTIES:
@@ -28,6 +34,7 @@ items:
 
   - name: "Long newline after the command block end"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       #+begin_src 
@@ -38,6 +45,8 @@ items:
       #+end_src
 
   - name: "Subtree state transitions"
+    debug:
+      doFlatReparseCompare: false
     source: |
       **** COMPLETED Subtree title
         CLOSED: [2023-11-08 Wed 14:53:12 +04]
@@ -62,7 +71,9 @@ items:
     source: |
       ;
 
-  - name: "Iregular source block in the list"
+  - name: "Irregular source block in the list"
+    debug:
+      doFlatReparseCompare: false
     source: |
       - [2023-11-11  Sat 00:10:50  +04]  IDEA  #project##hcparse union  of  fields  can also  be
 
@@ -96,6 +107,8 @@ items:
       *discussions*, information  *material*,
 
   - name: "Internal assertion on the verbatim parsing"
+    debug:
+      doFlatReparseCompare: false
     source: |
       - F
         =MFC= X
@@ -108,6 +121,8 @@ items:
       **** COMPLETED =A=
 
   - name: "Incomplete italic-looking quote content"
+    debug:
+      doFlatReparseCompare: false
     source: |
       #+begin_quote
       i <If /> 
@@ -121,10 +136,14 @@ items:
       [[adf][TSDFS-1232]]
 
   - name: "Broken standalone content"
+    debug:
+      doFlatReparseCompare: false
     source: |
       scp -r $E:AWS_ACCESS':'$E:AWS_HOME'/build/binary.snap' ~/tmp/wip_snaps
 
   - name: "Numbered list"
+    debug:
+      doFlatReparseCompare: false
     source: |
       1. Item 1
       2. Item 2
@@ -141,6 +160,7 @@ items:
 
   - name: "Standalone caption"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       - [2023-11-09 Thu 18:33:38 +04]
@@ -159,6 +179,8 @@ items:
       - [[id:16cb0d5f-1e66-47ef-bc29-9f41ecb81f73][Descriuption]]  is not
         reproducible
   - name: "Interleaving monospace and verbatim"
+    debug:
+      doFlatReparseCompare: false
     source: |
       - If ~A~ is
         passes ~set(QWE OFF)~, but =11=  =cc= in
@@ -169,6 +191,8 @@ items:
 
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
+    debug:
+      doFlatReparseCompare: false
     # Double nested quote does not work though 
     source: |
       - Some text
@@ -188,6 +212,8 @@ items:
           - DF
 
   - name: "Logbook without properties"
+    debug:
+      doFlatReparseCompare: false
     source: |
       ****** XX
             :LOGBOOK:
@@ -196,6 +222,7 @@ items:
 
   - name: "Table with trailing medium newline"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
 
@@ -213,6 +240,8 @@ items:
       #+end_src
 
   - name: "Quote block parameters"
+    debug:
+      doFlatReparseCompare: false
     source: |
       #+begin_quote :cc @user
       Text
@@ -262,16 +291,21 @@ items:
 
   - name: "Closing curly in link"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       src_sh{ping
         https://google.com},
 
   - name: "At tag in subtree title"
+    debug:
+      doFlatReparseCompare: false
     source: |
       **** COMPLETED qxasd :work:activity##meeting:@repeated:
 
   - name: "Starting at mention in subtree tags"
+    debug:
+      doFlatReparseCompare: false
     source: |
       **** COMPLETED Store vscode configuration in dotfiles :@config:software##vscode:
 
@@ -295,16 +329,21 @@ items:
       OrgTokenKind> const&)}
 
   - name: "Uppercase subtree tag content"
+    debug:
+      doFlatReparseCompare: false
     source: |
       **** CANCELED [#C] User qweq :complexity##intricate_13:ARCHIVE:
 
   - name: "Empty paragraph"
+    debug:
+      doFlatReparseCompare: false
     source: |
       ****** AAA
 
   - name: "tbflm"
     debug: 
       doFormatReparse: false
+      doFlatReparseCompare: false
     source: |
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
@@ -318,6 +357,8 @@ items:
       [[file:notes.images/2023-03-30_17-27.png]]
 
   - name: "Not a time range"
+    debug:
+      doFlatReparseCompare: false
     source: |
       [2023-08-02 Wed 13:39:46 +04] -- [2023-08-02 Wed 13:39:46 +04]
 
@@ -334,10 +375,14 @@ items:
         haxconf:desktop/awesome_wm.lua:679  (B370DD3E)]]
 
   - name: "Relative links"
+    debug:
+      doFlatReparseCompare: false
     source: |
        [[./notes.images/file.png]],
 
   - name: "Inline latex expression"
+    debug:
+      doFlatReparseCompare: false
     source: |
       \(2006 - 17 = 1989\)
 
@@ -379,6 +424,8 @@ items:
     # Missing `:` after the deadline annotations causes the parser to treat 
     # property list as a standalone block of text, not attached to the subtree
     # and fail because of that 
+    debug:
+      doFlatReparseCompare: false
     source: |
       **** COMPLETED Зачет АПО ЭВМ
           CLOSED: [2022-04-08 Fri 21:45:09] DEADLINE <2022-04-08 Fri 12:40:00>
@@ -393,6 +440,8 @@ items:
       <%%(and (diary-block-d 2022 7 4 17) (diary-day '(1 3 5)))>
 
   - name: "Subtree with complex logbook notes"
+    debug:
+      doFlatReparseCompare: false
     source: |
       *** COMPLETED adfasdf
           :PROPERTIES:
@@ -418,6 +467,8 @@ items:
           :END:
 
   - name: "Leading plus in list"
+    debug:
+      doFlatReparseCompare: false
     source: |
       - A
       - B
@@ -427,6 +478,7 @@ items:
 
   - name: "Name and results"
     debug:
+      doFlatReparseCompare: false
       doFormatReparse: false
     source: |
       #+name: xxx
@@ -441,6 +493,8 @@ items:
       [[file:imgs/sch_1.tmp.png]]
 
   - name: "Attr HTML"
+    debug:
+      doFlatReparseCompare: false
     source: |
       #+ATTR_HTML: :width 300px border="2" rules="all" frame="border"
       | test num | image                   |   |
@@ -486,16 +540,20 @@ items:
     source: |
       computed as x×(1−a)+y×a.
 
-  - name: "ANSII escape"
+  - name: "ANSI escape"
+    debug:
+      doFlatReparseCompare: false
     source: |
       #+begin_src bash
       echo -e "ee \e[41mwefae\e[49m 123"
       #+end_src
 
       #+RESULTS:
-      : ee [41mwefae[49m 123
+      : ee [41mwefae[49m 123
 
-  - name: "MAcro with arguments"
+  - name: "Macro with arguments"
+    debug:
+      doFlatReparseCompare: false
     source: |
       {{{results(hello 12)}}}
       {{{keyword(NAME)}}}
@@ -511,6 +569,8 @@ items:
       - Disabled 
 
   - name: "Angle"
+    debug:
+      doFlatReparseCompare: false
     source: |
       #+begin_src nim
       dumpTree:
@@ -527,10 +587,14 @@ items:
       :         IntLit 1
 
   - name: "Property exports"
+    debug:
+      doFlatReparseCompare: false
     source: |
       #+property: header-args    :exports code
 
   - name: "Columns"
+    debug:
+      doFlatReparseCompare: false
     source: |
       #+columns: %7TODO(To do) %40ITEM(Task) %TAGS(Tags) %6CLOCKSUM(Clock)
 
@@ -546,6 +610,8 @@ items:
       Monday/[2022-03-07 Mon 14:58:22]]]
 
   - name: "Timestamp repeaters"
+    debug:
+      doFlatReparseCompare: false
     source: |
       * TODO V
         SCHEDULED: <2023-09-18 Mon 11:00:00 +04 +1d>
@@ -554,6 +620,8 @@ items:
         SCHEDULED: <2024-02-20 Tue 19:00:00 +04 ++1w>
 
   - name: "Assorted timestamps"
+    debug:
+      doFlatReparseCompare: false
     source: |
       <2022-02-05 Sat .+1w>
       <2005-10-01 Sat +1m -3d>
@@ -603,3 +671,85 @@ items:
   - name: "Multiple markup words with unbalanced markup"
     source: |
       */w1* *_w2/* *_w3* *w4+* *_w5_*
+
+  - name: "Standalone colon block"
+    source: |
+      ~#+end-table~. Secondly, to delimit rows you need to use ~#+row~ command -
+
+      : #+begin-table
+      :
+      : #+row
+      :
+      : #+end-table
+
+  - name: "Double colon out of place"
+    debug:
+      doParse: false
+    source: |
+      - [2023-05-09  Tue  14:32:07]   Using  [[https://doc.qt.io/qt-6/qtextdocumentfragment.html#toHtml][QTextDocumentFragment  Class::toHtml]]
+        paired
+
+  - name: "Double colon out of place 2"
+    debug:
+      doParse: false
+    source: |
+      - [2023-05-09  Tue  14:32:07]   Using  [[https://doc.qt.io/qt-6/qtextdocumentfragment.html#toHtml][QTextDocumentFragment  Class :: toHtml]]
+        paired
+
+  - name: "Another list abomination"
+    source: |
+      - e
+        - Sub list
+
+        Content
+
+        - Sub List
+
+        Content
+
+        - Item
+        - Item2 
+
+      - e2
+      - e3
+
+      Content
+
+  - name: "Another list abomination 2"
+    source: |
+      - e
+        - Pa
+
+          #+begin_example
+          ,#+begin_quote
+          #+end_example
+      - e
+        - Pa
+
+        #+begin_example
+        ,#+begin_quote
+        #+end_example
+
+  - name: "Unfinished clock item"
+    debug:
+      doFlatReparseCompare: false
+    source: |
+      *** WIP Personal notes analytics script
+          :LOGBOOK:
+          CLOCK: [2024-03-13 Wed 12:54:20 +04]--[2024-03-13 Wed 18:00:23 +04] =>  5:06
+          CLOCK: [2024-03-13 Wed 21:09:13 +04]
+          :END:
+
+  - name: "Completion percent"
+    debug:
+      doFlatReparseCompare: false
+    source: |
+      *** COMPLETED XAL WSDF Transition fixes [79/90]
+          CLOSED: [2023-05-08 Mon 15:14:06]
+
+
+
+
+
+
+

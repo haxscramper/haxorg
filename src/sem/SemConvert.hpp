@@ -104,8 +104,12 @@ struct OrgConverter : public OperationsTracer {
 
   public:
     UPtr<OrgSpec> spec;
+    Opt<int>      documentId = std::nullopt;
 
-    OrgConverter() { spec = getOrgSpec(); }
+    OrgConverter(Opt<int> documentId = std::nullopt)
+        : documentId(documentId) {
+        spec = getOrgSpec();
+    }
 
     OrgAdapter one(OrgAdapter node, OrgSpecName name) {
         return spec->getSingleSubnode(node, name);
@@ -116,54 +120,57 @@ struct OrgConverter : public OperationsTracer {
     }
 
   public:
-    SemId<Table>           convertTable(In);
-    SemId<HashTag>         convertHashTag(In);
-    void                   convertSubtreeDrawer(SemId<Subtree>&, In);
-    void                   convertPropertyList(SemId<Subtree>&, In);
-    SemId<SubtreeLog>      convertSubtreeLog(In);
-    SemId<Subtree>         convertSubtree(In);
-    SemId<StmtList>        convertStmtList(In);
-    SemId<Newline>         convertNewline(In);
-    SemId<Word>            convertWord(In);
-    SemId<Space>           convertSpace(In);
-    SemId<Paragraph>       convertParagraph(In);
-    SemId<TimeRange>       convertTimeRange(In);
-    SemId<Time>            convertTime(In);
-    SemId<Punctuation>     convertPunctuation(In);
-    SemId<Link>            convertLink(In);
-    SemId<BigIdent>        convertBigIdent(In);
-    SemId<MarkQuote>       convertMarkQuote(In);
-    SemId<Strike>          convertStrike(In);
-    SemId<Verbatim>        convertVerbatim(In);
-    SemId<Italic>          convertItalic(In);
-    SemId<Par>             convertPar(In);
-    SemId<Bold>            convertBold(In);
-    SemId<RawText>         convertRawText(In);
-    SemId<List>            convertList(In);
-    SemId<ListItem>        convertListItem(In);
-    SemId<Tblfm>           convertTblfm(In);
-    SemId<Caption>         convertCaption(In);
-    SemId<Quote>           convertQuote(In);
-    SemId<Placeholder>     convertPlaceholder(In);
-    SemId<LatexBody>       convertMath(In);
-    SemId<Footnote>        convertFootnote(In);
-    SemId<Include>         convertInclude(In);
-    SemId<Escaped>         convertEscaped(In);
-    SemId<TextSeparator>   convertTextSeparator(In);
-    SemId<ParseError>      convertParseError(In);
-    SemId<AtMention>       convertAtMention(In);
-    SemId<Underline>       convertUnderline(In);
-    SemId<AdmonitionBlock> convertAdmonitionBlock(In);
-    SemId<Example>         convertExample(In);
-    SemId<Center>          convertCenter(In);
-    SemId<Monospace>       convertMonospace(In);
-    SemId<Symbol>          convertSymbol(In);
-    SemId<Macro>           convertMacro(In);
-    SemId<Export>          convertExport(In);
-    SemId<CmdArgument>     convertCmdArgument(In);
-    SemId<CmdArguments>    convertCmdArguments(In);
-    SemId<Code>            convertCode(In);
-    SemId<CmdAttr>         convertCmdAttr(In);
+    SemId<Table>              convertTable(In);
+    SemId<HashTag>            convertHashTag(In);
+    void                      convertSubtreeDrawer(SemId<Subtree>&, In);
+    void                      convertPropertyList(SemId<Subtree>&, In);
+    SemId<SubtreeLog>         convertSubtreeLog(In);
+    SemId<Subtree>            convertSubtree(In);
+    SemId<StmtList>           convertStmtList(In);
+    SemId<Newline>            convertNewline(In);
+    SemId<Word>               convertWord(In);
+    SemId<Space>              convertSpace(In);
+    SemId<Paragraph>          convertParagraph(In);
+    SemId<AnnotatedParagraph> convertAnnotatedParagraph(In);
+    SemId<TimeRange>          convertTimeRange(In);
+    SemId<Time>               convertTime(In);
+    SemId<Punctuation>        convertPunctuation(In);
+    SemId<Link>               convertLink(In);
+    SemId<BigIdent>           convertBigIdent(In);
+    SemId<MarkQuote>          convertMarkQuote(In);
+    SemId<Strike>             convertStrike(In);
+    SemId<Verbatim>           convertVerbatim(In);
+    SemId<Italic>             convertItalic(In);
+    SemId<Par>                convertPar(In);
+    SemId<Bold>               convertBold(In);
+    SemId<RawText>            convertRawText(In);
+    SemId<List>               convertList(In);
+    SemId<ListItem>           convertListItem(In);
+    SemId<Tblfm>              convertTblfm(In);
+    SemId<Caption>            convertCaption(In);
+    SemId<Quote>              convertQuote(In);
+    SemId<CommentBlock>       convertCommentBlock(In);
+    SemId<Placeholder>        convertPlaceholder(In);
+    SemId<LatexBody>          convertMath(In);
+    SemId<Footnote>           convertFootnote(In);
+    SemId<Include>            convertInclude(In);
+    SemId<Escaped>            convertEscaped(In);
+    SemId<TextSeparator>      convertTextSeparator(In);
+    SemId<ParseError>         convertParseError(In);
+    SemId<AtMention>          convertAtMention(In);
+    SemId<Underline>          convertUnderline(In);
+    SemId<AdmonitionBlock>    convertAdmonitionBlock(In);
+    SemId<Example>            convertExample(In);
+    SemId<ColonExample>       convertColonExample(In);
+    SemId<Center>             convertCenter(In);
+    SemId<Monospace>          convertMonospace(In);
+    SemId<Symbol>             convertSymbol(In);
+    SemId<Macro>              convertMacro(In);
+    SemId<Export>             convertExport(In);
+    SemId<CmdArgument>        convertCmdArgument(In);
+    SemId<CmdArguments>       convertCmdArguments(In);
+    SemId<Code>               convertCode(In);
+    SemId<CmdAttr>            convertCmdAttr(In);
 
     Vec<SemId<Org>> flatConvertAttached(In);
 
@@ -182,8 +189,9 @@ struct OrgConverter : public OperationsTracer {
 
     template <typename T>
     SemId<T> Sem(In adapter) {
-        SemId<T> res = SemId<T>::New(adapter);
-        res->loc     = getLoc(adapter);
+        SemId<T> res    = SemId<T>::New(adapter);
+        res->loc        = getLoc(adapter);
+        res->documentId = documentId;
         return res;
     }
 
@@ -191,7 +199,6 @@ struct OrgConverter : public OperationsTracer {
     SemId<T> SemLeaf(In adapter) {
         auto res  = Sem<T>(adapter);
         res->text = adapter.val().text;
-        res->loc  = getLoc(adapter);
         return res;
     }
 

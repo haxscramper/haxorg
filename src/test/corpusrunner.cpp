@@ -164,7 +164,10 @@ void format(
             lines.push_back(pair);
         }
 
-        if (lines.empty()) { return; }
+        if (lines.empty()) {
+            os << "No diff content to compare\n";
+            return;
+        }
 
         Slice<int> range = slice(0, lines.size() - 1);
         if (dropLeadingKeep) {
@@ -502,12 +505,26 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
     auto         paths = longestCommonSubsequence<OrgNode>(
         parsed.nodes.content,
         expected.nodes.content,
-        [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
+        [&](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
             if (lhs.kind != rhs.kind) {
                 return false;
             } else {
                 if (lhs.isTerminal()) {
-                    return lhs.getToken() == rhs.getToken();
+                    if (parsed.tokens != nullptr
+                        && expected.tokens != nullptr
+                        && lhs.getToken().getIndex()
+                               < parsed.tokens->size()
+                        && rhs.getToken().getIndex()
+                               < expected.tokens->size()) {
+                        auto const& lhsTok = parsed.tokens->at(
+                            lhs.getToken());
+                        auto const& rhsTok = expected.tokens->at(
+                            rhs.getToken());
+                        return lhsTok.kind == rhsTok.kind
+                            && lhsTok.value.text == rhsTok.value.text;
+                    } else {
+                        return lhs.getToken() == rhs.getToken();
+                    }
                 } else {
                     return lhs.getExtent() == rhs.getExtent();
                 }
@@ -541,25 +558,24 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
 
                 auto group = isLhs ? &parsed : &expected;
 
-                return "$# $# $#($# $#)"
-                     % to_string_vec(
-                           id,
-                           node.kind,
-                           node.isTerminal() ? escape_literal(
-                               hshow(
-                                   group->tokens->tokens.content
-                                       .get_copy(
-                                           node.getToken().getIndex())
-                                       .value_or(OrgToken{})
-                                       ->text,
-                                   HDisplayOpts().excl(
-                                       HDisplayFlag::UseQuotes))
-                                   .toString(false))
-                                             : std::string(""),
-                           node.kind,
-                           node.isTerminal()
-                               ? "tok=" + fmt1(node.getToken().getIndex())
-                               : "ext=" + fmt1(node.getExtent()));
+                return fmt(
+                    "{} {} {}({})",
+                    id,
+                    node.kind,
+                    node.isTerminal() ? escape_literal(
+                        hshow(
+                            group->tokens->tokens.content
+                                .get_copy(node.getToken().getIndex())
+                                .value_or(OrgToken{})
+                                ->text,
+                            HDisplayOpts().excl(HDisplayFlag::UseQuotes))
+                            .toString(false))
+                                      : std::string(""),
+                    node.isTerminal() ? fmt(
+                        "id={} kind={}",
+                        node.getToken().getIndex(),
+                        group->tokens->at(node.getToken()).kind)
+                                      : fmt("ext={}", node.getExtent()));
             },
             48,
             16,
@@ -726,7 +742,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     auto sem_result = runSpecSem(p, spec);
     if (!parse_result.isOk) { return RunResult{sem_result}; }
 
-    if (!spec.debug.doFormatReparse) { return skip; }
+    if (!(spec.debug.doFormatReparse || spec.debug.doFlatReparseCompare)) {
+        return skip;
+    }
 
     inRerun              = true;
     ParseSpec      rerun = spec;
@@ -753,6 +771,40 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecBaseLex(p2, rerun);
     runSpecLex(p2, rerun);
     runSpecParse(p2, rerun);
+
+
+    if (spec.debug.doFlatReparseCompare) {
+        auto filterBrittleNodes =
+            [](OrgNodeGroup const& nodes) -> Vec<OrgNode> {
+            return nodes.nodes.content
+                 | rv::filter([](OrgNode const& it) -> bool {
+                       return !OrgSet{org::Newline, org::Empty, org::Space}
+                                   .contains(it.kind);
+                   })
+                 | rv::transform([](OrgNode const& it) -> OrgNode {
+                       OrgNode result = it;
+                       if (result.isNonTerminal()) { result.extend(0); }
+                       return result;
+                   })
+                 | rs::to<Vec>();
+        };
+
+        OrgNodeGroup originalNodes;
+        OrgNodeGroup reparsedNodes;
+        originalNodes.tokens        = &p.tokens;
+        originalNodes.nodes.content = filterBrittleNodes(p.nodes);
+        reparsedNodes.tokens        = &p2.tokens;
+        reparsedNodes.nodes.content = filterBrittleNodes(p2.nodes);
+
+        auto flat_reparse_compare = compareNodes(
+            reparsedNodes, originalNodes);
+        if (!flat_reparse_compare.isOk) {
+            return RunResult{flat_reparse_compare};
+        }
+    }
+
+    if (!spec.debug.doFormatReparse) { return skip; }
+
     auto reformat_result = runSpecSem(p2, rerun);
     if (!reformat_result.isOk || spec.debug.traceAll
         || spec.debug.printSem) {
@@ -821,7 +873,14 @@ ${split}
 
     if (!reformat_result.isOk) { return RunResult{reformat_result}; }
 
-    return RunResult();
+    // flat reparse and compare does not prevent the full test execution,
+    // but it *is* skipping parts of the check, so the example is
+    // considered skipped.
+    if (spec.debug.doFlatReparseCompare) {
+        return skip;
+    } else {
+        return RunResult();
+    }
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
@@ -882,7 +941,9 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     __perf_trace("lex");
 
     p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
-    p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
+    if (p.tokenizer->TraceState) {
+        p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
+    }
 
     __perf_trace("tokenize convert");
     p.tokenizeConvert();
@@ -975,7 +1036,9 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
 
     p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
-    p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
+    if (p.parser->TraceState) {
+        p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
+    }
 
     p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
         if (rep.kind == OrgParser::ReportKind::AddToken
@@ -1050,7 +1113,9 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     sem::OrgConverter converter{};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
-    converter.setTraceFile(spec.debugFile("trace_sem.log"));
+    if (converter.TraceState) {
+        converter.setTraceFile(spec.debugFile("trace_sem.log"));
+    }
 
     auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
     p.node        = document.asOrg();

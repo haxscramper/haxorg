@@ -67,6 +67,7 @@ class QualType(BaseModel, extra="forbid"):
     isBuiltin: bool = Field(default=False)
     #: Prefix the type with leading `::` to refer to the global namespace
     isGlobalNamespace: bool = Field(default=False)
+    IsPackExpansion: bool = Field(default=False)
 
     expr: Optional[str] = None
     Kind: QualTypeKind = QualTypeKind.RegularType

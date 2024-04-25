@@ -20,6 +20,7 @@ import sys
 import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
+from py_repository.gen_coverage_cxx import ProfdataParams
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -66,7 +67,18 @@ def get_real_build_basename(ctx: Context, component: Literal["haxorg", "utils"])
     """
     Get basename of the binary output directory for component
     """
-    return component + "_" + ("debug" if get_config(ctx).debug else "release")
+    result = component + "_" + ("debug" if get_config(ctx).debug else "release")
+    if get_config(ctx).instrument.coverage:
+        result += "_instrumented"
+
+    return result
+
+
+@beartype
+def get_component_build_dir(ctx: Context, component: Literal["haxorg", "utils"]) -> Path:
+    result = get_build_root(get_real_build_basename(ctx, component))
+    result.mkdir(parents=True, exist_ok=True)
+    return result
 
 
 @beartype
@@ -103,6 +115,15 @@ def is_instrumented_coverage(ctx: Context) -> bool:
 
 def is_xray_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["xray"]
+
+
+def is_forced(ctx: Context, name: str) -> bool:
+    return name in get_config(ctx).force_task
+
+
+@beartype
+def is_ci() -> bool:
+    return bool(os.getenv("INVOKE_CI"))
 
 
 @beartype
@@ -203,7 +224,7 @@ def ui_notify(message: str, is_ok: bool = True):
         cmd.run(
             [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
 
-    except plumbum.CommandNotFound:
+    except Exception:
         if is_ok:
             log(CAT).info(message)
 
@@ -243,9 +264,11 @@ def org_task(
 
                 color = "green"
                 name_format = f"<span color='#{color}'>{name:^40}</span>"
-                if 1000 < last.dur or force_notify:
-                    ui_notify(f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
-                              is_ok=run_ok)
+                if 100000 < last.dur or force_notify:
+                    ui_notify(
+                        f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
+                        is_ok=run_ok,
+                    )
 
                 GlobExportJson(get_build_root("task_build_time.json"))
 
@@ -337,6 +360,7 @@ def docker_run(
     build: bool = True,
     test: bool = True,
     docs: bool = True,
+    coverage: bool = True,
 ):
     """Run docker"""
 
@@ -365,6 +389,7 @@ def docker_run(
                     "tasks.py",
                     "docs",
                     "invoke.yaml",
+                    "invoke-ci.yaml",
                     "pyproject.toml",
                     "ignorelist.txt",
                     ".git",
@@ -387,6 +412,7 @@ def docker_run(
                 "--build" if build else "--no-build",
                 "--test" if test else "--no-test",
                 "--docs" if docs else "--no-docs",
+                "--coverage" if coverage else "--no-coverage",
             ]),
         ])
 
@@ -411,13 +437,12 @@ def base_environment(ctx: Context):
 def cmake_configure_utils(ctx: Context):
     """Execute configuration for utility binary compilation"""
     log(CAT).info("Configuring cmake utils build")
-    build_dir = "build/utils_debug" if get_config(ctx).debug else "build/utils_release"
     run_command(
         ctx,
         "cmake",
         [
             "-B",
-            get_script_root(build_dir),
+            get_component_build_dir(ctx, "utils"),
             "-S",
             str(get_script_root().joinpath("scripts/cxx_codegen")),
             "-G",
@@ -432,8 +457,7 @@ def cmake_configure_utils(ctx: Context):
 def cmake_utils(ctx: Context):
     """Compile libraries and binaries for utils"""
     log(CAT).info("Building build utils")
-    build_dir = "build/utils_debug" if get_config(ctx).debug else "build/utils_release"
-    run_command(ctx, "cmake", ["--build", get_script_root(build_dir)])
+    run_command(ctx, "cmake", ["--build", get_component_build_dir(ctx, "utils")])
     log(CAT).info("CMake utils build ok")
 
 
@@ -473,12 +497,15 @@ def haxorg_base_lexer(ctx: Context):
         "--namespace=base_lexer",
         gen_lexer,
     ]
-    with FileOperation.InTmp(input=[py_file, py_file.with_suffix(".yaml")],
-                             output=[gen_lexer],
-                             stamp_path=get_task_stamp("haxorg_base_lexer"),
-                             stamp_content=str(reflex_run_params)) as op:
+    with FileOperation.InTmp(
+            input=[py_file, py_file.with_suffix(".yaml")],
+            output=[gen_lexer],
+            stamp_path=get_task_stamp("haxorg_base_lexer"),
+            stamp_content=str(reflex_run_params),
+    ) as op:
         if op.should_run():
-            log(CAT).info("Generating base lexer for haxorg")
+            log(CAT).info(f"Generating base lexer for haxorg " +
+                          op.explain("haxorg_base_lexer"))
             run_command(ctx, "poetry", ["run", py_file])
             run_command(
                 ctx,
@@ -487,6 +514,8 @@ def haxorg_base_lexer(ctx: Context):
                 env={"LD_LIBRARY_PATH": str(get_script_root("thirdparty/RE-flex/lib"))},
             )
 
+            gen_lexer.touch()
+
         else:
             log(CAT).info("No changes in base lexer config")
 
@@ -494,13 +523,16 @@ def haxorg_base_lexer(ctx: Context):
 @org_task()
 def python_protobuf_files(ctx: Context):
     """Generate new python code from the protobuf reflection files"""
-    proto_config = get_script_root("scripts/cxx_codegen/reflection_defs.proto")
+    proto_config = get_script_root(
+        "scripts/cxx_codegen/reflection_tool/reflection_defs.proto")
     with FileOperation.InTmp(
         [proto_config],
             stamp_path=get_task_stamp("python-protobuf-files"),
     ) as op:
-        if op.should_run():
-            log(CAT).info(f"Running protc {op.explain('python protobuf')}")
+        explain = op.explain("python protobuf")
+        forced = is_forced(ctx, "python_protobuf_files")
+        if forced or op.should_run():
+            log(CAT).info(f"Running protc {explain}")
             _, stdout, _ = run_command(ctx,
                                        "poetry", ["env", "info", "--path"],
                                        capture=True)
@@ -526,11 +558,13 @@ def python_protobuf_files(ctx: Context):
                     "-I",
                     get_script_root("scripts/cxx_codegen"),
                     "--proto_path=" +
-                    str(get_script_root("scripts/py_codegen/py_codegen")),
+                    str(get_script_root("scripts/py_codegen/py_codegen/reflection_tool")),
                     "--python_betterproto_out=" + str(proto_lib),
                     proto_config,
                 ],
             )
+        else:
+            log(CAT).info("Skipping protoc run " + explain)
 
 
 @org_task(pre=[base_environment])
@@ -546,16 +580,17 @@ def cmake_configure_haxorg(ctx: Context):
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
         log(CAT).info(op.explain("cmake configuration"))
-        if op.should_run():
+        if is_forced(ctx, "cmake_configure_haxorg") or op.should_run():
             log(CAT).info("running haxorg cmake configuration")
-            build_dir = "build/haxorg_debug" if get_config(
-                ctx).debug else "build/haxorg_release"
             pass_flags = [
                 "-B",
-                get_script_root(build_dir), "-S",
-                get_script_root(), "-G", "Ninja",
+                get_component_build_dir(ctx, "haxorg"),
+                "-S",
+                get_script_root(),
+                "-G",
+                "Ninja",
                 f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
-                *get_cmake_defines(ctx)
+                *get_cmake_defines(ctx),
             ]
 
             run_command(ctx, "cmake", tuple(pass_flags))
@@ -564,19 +599,22 @@ def cmake_configure_haxorg(ctx: Context):
 @org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx: Context):
     """Compile main set of libraries and binaries for org-mode parser"""
-    build_dir = "build/" + get_real_build_basename(ctx, "haxorg")
+    build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
         [
-            Path(path).rglob(glob)
-            for path in ["src", "scripts", "tests"]
-            for glob in ["*.cpp", "*.hpp", "*.cppm"]
+            Path(path).rglob(glob) for path in ["src", "scripts", "tests"] for glob in [
+                "*.cpp",
+                "*.hpp",
+                "*.cppm",
+                "*.cmake",
+                "CMakeLists.txt",
+            ]
         ],
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
-        log(CAT).info(op.explain("Main C++"))
-        if op.should_run():
-            log(CAT).info('Running cmake haxorg build')
+        if is_forced(ctx, "cmake_haxorg") or op.should_run():
+            log(CAT).info(op.explain("Main C++"))
             run_command(ctx,
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
@@ -629,12 +667,16 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 
 
 @org_task(pre=[cmake_utils, python_protobuf_files])
-def update_py_haxorg_reflection(ctx: Context, force: bool = False):
+def update_py_haxorg_reflection(
+    ctx: Context,
+    force: bool = False,
+    verbose: bool = False,
+):
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = get_script_root("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
+    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
 
     with FileOperation.InTmp(
             input=[
@@ -646,24 +688,30 @@ def update_py_haxorg_reflection(ctx: Context, force: bool = False):
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
         if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
-            try:
-                run_command(
-                    ctx,
-                    "build/utils/reflection_tool",
-                    [
-                        "-p",
-                        compile_commands,
-                        "--compilation-database",
-                        compile_commands,
-                        "--toolchain-include",
-                        include_dir,
-                        "--out",
-                        out_file,
-                        src_file,
-                    ],
-                )
-            except ProcessExecutionError as e:
-                log(CAT).error("Reflection tool failed: %s", e)
+            exitcode, stdout, stderr = run_command(
+                ctx,
+                "build/utils/reflection_tool/reflection_tool",
+                [
+                    "-p",
+                    compile_commands,
+                    "--compilation-database",
+                    compile_commands,
+                    "--toolchain-include",
+                    include_dir,
+                    *(["--verbose"] if verbose else []),
+                    "--out",
+                    out_file,
+                    src_file,
+                ],
+                capture=True,
+                allow_fail=True,
+            )
+
+            Path("/tmp/debug_reflection_stdout.txt").write_text(stdout)
+            Path("/tmp/debug_reflection_stderr.txt").write_text(stderr)
+
+            if exitcode != 0:
+                log(CAT).error("Reflection tool failed: %s")
                 raise
 
             log(CAT).info("Updated reflection")
@@ -719,34 +767,6 @@ def binary_coverage(ctx: Context, test: Path):
 
     assert dir.exists()
     run_command(ctx, test, [], allow_fail=True, cwd=str(dir))
-
-    profraw = dir / "default.profraw"
-    coverage_dir = dir / "coverage_report"
-    if profraw.exists():
-        # Merging profdata
-        run_command(ctx, tools / "llvm-profdata", [
-            "merge",
-            "-output=" + str(dir / "test.profdata"),
-            str(profraw),
-        ])
-
-        # Generating coverage report
-        run_command(ctx, tools / "llvm-cov", [
-            "show",
-            str(test),
-            "-ignore-filename-regex",
-            ".*/(_?deps|thirdparty)/.*",
-            "-instr-profile=" + str(dir / "test.profdata"),
-            "-format=html",
-            "-output-dir=" + str(coverage_dir),
-        ])
-
-        log(CAT).info(f"Generated coverage to {coverage_dir}")
-
-    else:
-        raise Failure(
-            f"{profraw} does not exist after running tests. Instrumentation was set to {get_config(ctx).instrument}"
-        )
 
 
 @beartype
@@ -939,13 +959,13 @@ def symlink_build(ctx: Context):
         link_path.symlink_to(target=real_path, target_is_directory=is_dir)
 
     link(
-        real_path=get_build_root(get_real_build_basename(ctx, "haxorg")),
+        real_path=get_component_build_dir(ctx, "haxorg"),
         link_path=get_build_root("haxorg"),
         is_dir=True,
     )
 
     link(
-        real_path=get_build_root(get_real_build_basename(ctx, "utils")),
+        real_path=get_component_build_dir(ctx, "utils"),
         link_path=get_build_root("utils"),
         is_dir=True,
     )
@@ -957,6 +977,44 @@ def cmake_all(ctx: Context):
     pass
 
 
+@beartype
+def get_cxx_coverage_dir() -> Path:
+    return get_build_root("coverage_artifacts")
+
+
+@beartype
+def get_cxx_profdata_params_path() -> Path:
+    return get_cxx_coverage_dir().joinpath("profile-collect.json")
+
+
+@beartype
+def get_cxx_profdata_params() -> ProfdataParams:
+    coverage_dir = get_cxx_coverage_dir()
+    return ProfdataParams(
+        coverage=str(coverage_dir.joinpath("test-summary.json")),
+        coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
+        perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
+        debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
+        file_whitelist=[".*"],
+        file_blacklist=[
+            "thirdparty",
+            r"base_lexer_gen\.cpp",
+        ],
+    )
+
+
+@org_task(pre=[cmake_utils])
+def cxx_merge_coverage(ctx: Context):
+    profile_path = get_cxx_profdata_params_path()
+    run_command(
+        ctx,
+        "build/utils/profdata_merger/profdata_merger",
+        [
+            profile_path,
+        ],
+    )
+
+
 @org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
 def py_tests(ctx: Context, arg: List[str] = []):
     """
@@ -964,15 +1022,23 @@ def py_tests(ctx: Context, arg: List[str] = []):
     LLDB debugger to work on compiled component issues. 
     """
 
-    log(CAT).info(get_py_env(ctx))
+    args = arg
 
-    # log(CAT).debug("Import paths")
-    # for path in get_poetry_import_paths(ctx):
-    #     log(CAT).debug("> {} [{}] {}".format(
-    #         path,
-    #         "ok" if path.exists() else "err does not exist",
-    #         [str(it.relative_to(path)) for it in path.glob("*")],
-    #     ))
+    env = get_py_env(ctx)
+
+    if is_instrumented_coverage(ctx):
+        coverage_dir = get_cxx_coverage_dir()
+        env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
+        profile_path = get_cxx_profdata_params_path()
+        log(CAT).info(f"Profile collect options: {profile_path}")
+        profile_path.parent.mkdir(parents=True, exist_ok=True)
+        profile_path.write_text(get_cxx_profdata_params().model_dump_json(indent=2))
+
+    run_command(ctx, "poetry", [
+        "run",
+        "python",
+        "scripts/py_repository/py_repository/gen_coverage_cxx.py",
+    ])
 
     retcode, _, _ = run_command(
         ctx,
@@ -980,20 +1046,31 @@ def py_tests(ctx: Context, arg: List[str] = []):
         [
             "run",
             "pytest",
-            "-v",
+            "-vv",
             "-ra",
             "-s",
             "--tb=short",
             "--cov=scripts",
             "--cov-report=html",
-            *arg,
+            "--cov-context=test",
+            # "--cov-branch",
+            *args,
         ],
         allow_fail=True,
-        env=get_py_env(ctx),
+        env=env,
     )
 
     if retcode != 0:
         exit(1)
+
+
+@org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
+def py_script(ctx: Context, script: str, arg: List[str] = []):
+    run_command(ctx, "poetry", [
+        "run",
+        script,
+        *arg,
+    ])
 
 
 @org_task(pre=[py_tests])
@@ -1005,9 +1082,9 @@ def py_tests_ci(ctx: Context):
 
 
 @org_task()
-def docs(ctx: Context):
-    "Build docunentation for the project"
-    out_dir = get_script_root("docs/docs_out")
+def docs_doxygen(ctx: Context):
+    "Build docunentation for the project using doxygen"
+    out_dir = get_script_root("docs/docs_out/doxygen")
     if not out_dir.exists():
         out_dir.mkdir(parents=True)
 
@@ -1016,13 +1093,72 @@ def docs(ctx: Context):
 
 
 @org_task()
-def ci(ctx: Context, build: bool = True, test: bool = True, docs: bool = True):
+def docs_custom(ctx: Context):
+    """Build documentation for the project using custom script"""
+    out_dir = get_script_root("docs/custom_html")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    args = [
+        "run",
+        get_script_root("scripts/py_repository/py_repository/gen_documentation.py"),
+        f"--html_out_path={out_dir}",
+        f"--root_path={get_script_root()}",
+        f"--src_path={get_script_root('src')}",
+        f"--src_path={get_script_root('scripts')}",
+        f"--py_coverage_path={get_script_root('.coverage')}",
+        f"--test_path={get_script_root('tests')}",
+    ]
+
+    # prof_params = get_cxx_profdata_params()
+    # if Path(prof_params.coverage_db).exists():
+    #     args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
+
+    run_command(ctx, "poetry", args)
+
+
+@org_task()
+def ci(
+    ctx: Context,
+    build: bool = True,
+    test: bool = True,
+    docs: bool = True,
+    coverage: bool = True,
+):
     "Execute all CI tasks"
+    env = {"INVOKE_CI": "ON"}
     if build:
-        run_command(ctx, "invoke", ["cmake-all"])
+        run_command(
+            ctx,
+            "invoke",
+            ["cmake-all"],
+            env=env,
+        )
 
     if test:
-        run_command(ctx, "invoke", ["py-tests"])
+        python_protobuf_files(ctx)
+        run_command(
+            ctx,
+            "invoke",
+            [
+                "py-tests",
+                "--arg=-m",
+                "--arg=not (unstable or x11)",
+            ],
+            env=env,
+        )
+
+    if coverage:
+        run_command(
+            ctx,
+            "invoke",
+            ["cxx-merge-coverage"],
+            env=env,
+        )
 
     if docs:
-        run_command(ctx, "invoke", ["docs"])
+        run_command(
+            ctx,
+            "invoke",
+            ["docs-custom"],
+            env=env,
+        )

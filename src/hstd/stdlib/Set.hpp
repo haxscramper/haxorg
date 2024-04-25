@@ -33,22 +33,28 @@ struct UnorderedSet
     void        excl(CR<T> value) { erase(value); }
 
     void incl(CR<UnorderedSet<T>> other) {
-        for (const auto& it : other) {
-            this->incl(it);
-        }
+        for (const auto& it : other) { this->incl(it); }
     }
 
     void excl(CR<UnorderedSet<T>> value) {
-        for (const auto& it : value) {
-            this->erase(it);
-        }
+        for (const auto& it : value) { this->erase(it); }
     }
 };
 
 template <typename T>
 struct std::formatter<UnorderedSet<T>> : std::formatter<std::string> {
+    using FmtType = UnorderedSet<T>;
     template <typename FormatContext>
-    auto format(const UnorderedSet<T>& p, FormatContext& ctx) {
-        return "{" << join(", ", p) << "}";
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("{", ctx);
+        bool first = true;
+        for (const auto& it : p) {
+            if (!first) { fmt.format(", ", ctx); }
+            first = false;
+            fmt_ctx(it, ctx);
+        }
+        return fmt.format("}", ctx);
     }
 };

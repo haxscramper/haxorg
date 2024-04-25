@@ -495,7 +495,7 @@ struct RecombineState {
 
             case otk::Word: {
                 if (rs::all_of(lex.tok().value.text, [](char c) {
-                        return isupper(c);
+                        return isupper(c) || c == '_';
                     })) {
                     pop_as(otk::BigIdent);
                 } else {
@@ -584,6 +584,7 @@ struct LineToken {
         otk::CmdQuoteEnd,
         otk::CmdExportEnd,
         otk::CmdVerseEnd,
+        otk::CmdCommentEnd,
     };
 
     IntSet<OrgTokenKind> CmdBlockOpen{
@@ -593,6 +594,7 @@ struct LineToken {
         otk::CmdSrcBegin,
         otk::CmdQuoteBegin,
         otk::CmdVerseBegin,
+        otk::CmdCommentBegin,
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{
@@ -683,6 +685,7 @@ struct LineToken {
     void setIndent() {
         CR<OrgToken> first = tokens.at(0);
         switch (first.kind) {
+            case otk::CmdExampleLine:
             case otk::SrcContent: {
                 for (auto const& ch : first->text) {
                     if (ch == ' ') {
@@ -703,7 +706,7 @@ struct LineToken {
             case otk::LeadingNumber:
             case otk::TreeClock:
             case otk::LeadingMinus: {
-                indent = rs::count(first->text, ' ');
+                indent = rs::count(first->text, ' ') + 2;
                 break;
             }
             default:
@@ -754,16 +757,15 @@ struct GroupToken {
     DECL_DESCRIBED_ENUM(Kind, Line, ListItem, Subtree, Properties, Block);
 
     struct Nested {
-        DECL_FIELDS(
-            Nested,
-            (),
-            ((Vec<GroupToken>), subgroups, {}),
-            ((LineToken), begin, {{}}),
-            ((LineToken), end, {{}}));
+        Vec<GroupToken> subgroups{};
+        LineToken       begin{{}};
+        LineToken       end{{}};
+        DESC_FIELDS(Nested, (subgroups, begin, end));
     };
 
     struct Leaf {
-        DECL_FIELDS(Leaf, (), ((Span<LineToken>), lines, {}));
+        Span<LineToken> lines{};
+        DESC_FIELDS(Leaf, (lines));
     };
 
     SUB_VARIANTS(DataKind, Data, data, getDataKind, Leaf, Nested);
@@ -786,7 +788,8 @@ struct GroupToken {
         if (first) {
             auto const& token = first->get().tokens.get(0);
             if (token) {
-                return token->get().kind == otk::SrcContent;
+                return OrgTokSet{otk::SrcContent, otk::CmdExampleLine}
+                    .contains(token->get().kind);
             } else {
                 return false;
             }
@@ -813,11 +816,6 @@ struct GroupToken {
 using LK = LineToken::Kind;
 using GK = GroupToken::Kind;
 
-template <std::random_access_iterator Iter>
-auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
-    return Span<typename Iter::value_type>{
-        &*begin, static_cast<int>(std::distance(begin, end))};
-}
 
 struct TokenVisitor {
     OrgTokenizer*  d;
@@ -830,7 +828,7 @@ struct TokenVisitor {
 
         for (auto it = tokens->begin(); it != tokens->end(); ++it) {
             if (line_end.contains(it->kind)) {
-                auto span = make_span(start, std::next(it));
+                auto span = IteratorSpan(start, std::next(it));
                 auto line = LineToken{span};
                 if (TraceState) {
                     d->print(lex, fmt("{} {}", line.kind, line.tokens));
@@ -841,7 +839,7 @@ struct TokenVisitor {
         }
 
         if (start != tokens->end()) {
-            auto span = make_span(start, tokens->end());
+            auto span = IteratorSpan(start, tokens->end());
             if (TraceState) { d->print(lex, fmt("{}", span)); }
             lines.push_back(LineToken{span});
         }
@@ -871,7 +869,7 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::Line};
                 }
 
@@ -883,7 +881,7 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::ListItem};
                 }
 
@@ -909,14 +907,14 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::Properties};
                 }
 
                 case LK::BlockClose: {
                     nextline();
                     return GroupToken{
-                        .data = GroupToken::Leaf{make_span(start, it)},
+                        .data = GroupToken::Leaf{IteratorSpan(start, it)},
                         .kind = GK::Line};
                 }
 
@@ -1003,7 +1001,9 @@ struct GroupVisitorState {
         if (TraceState) {
             d->print(
                 lex,
-                fmt("  LINE: indent={} kind={}", line.indent, line.kind),
+                fmt("  ADD LINE: indent={} kind={}",
+                    line.indent,
+                    line.kind),
                 code_line,
                 function);
         }
@@ -1031,7 +1031,6 @@ struct GroupVisitorState {
                             ++tok_idx;
                         }
 
-                        add_fake(otk::StmtListBegin, ind);
                     } else {
                         add_base(tok, ind);
                     }
@@ -1048,9 +1047,6 @@ struct GroupVisitorState {
                         ++tok_idx;
                     }
 
-                    if (gr.kind == GK::ListItem) {
-                        add_fake(otk::StmtListBegin, ind);
-                    }
                     break;
                 }
                 default: {
@@ -1068,9 +1064,10 @@ struct GroupVisitorState {
                            char const* function = __builtin_FUNCTION()) {
                 if (TraceState) {
                     print1(
-                        fmt("indent: {}, gr.indent(): {}",
+                        fmt("indent: {}, gr.indent(): {} index {}",
                             ind,
-                            gr.indent()),
+                            gr.indent(),
+                            gr_index),
                         2,
                         line,
                         function);
@@ -1079,23 +1076,35 @@ struct GroupVisitorState {
             if (gr.kind == GK::ListItem) {
                 dbg();
                 if (ind.empty()) {
-                    add_fake(otk::ListBegin, ind);
+                    add_fake(otk::Indent, ind);
                     ind.push_back(gr.indent());
                 } else if (ind.back() < gr.indent()) {
-                    add_fake(otk::StmtListEnd, ind);
-                    add_fake(otk::ListItemEnd, ind);
                     add_fake(otk::Indent, ind);
                     ind.push_back(gr.indent());
                 } else if (gr.indent() < ind.back()) {
                     while (!ind.empty() && gr.indent() < ind.back()) {
-                        add_fake(otk::StmtListEnd, ind);
-                        add_fake(otk::ListItemEnd, ind);
                         add_fake(otk::Dedent, ind);
                         ind.pop_back();
                     }
+
+                    /*
+                     * ```
+                     * - top1
+                     *   - nested 1
+                     * - top2
+                     * ```
+                     *
+                     * This nested list arrangement causes ambiguity --
+                     * there is a 'dedent' for a nested list 1, but the
+                     * parser does not have enough information to figure
+                     * out that the whole top1 item is done and top2 must
+                     * be parsed as a part of different item.
+                     *
+                     */
+                    if (!ind.empty() && ind.back() == gr.indent()) {
+                        add_fake(otk::ListItemEnd, ind);
+                    }
                 } else if (ind.back() == gr.indent()) {
-                    add_fake(otk::StmtListEnd, ind);
-                    add_fake(otk::ListItemEnd, ind);
                     add_fake(otk::SameIndent, ind);
                 }
                 dbg();
@@ -1111,17 +1120,11 @@ struct GroupVisitorState {
                  * ```
                  */
 
-                dbg();
-                while (!ind.empty() && gr.indent() <= ind.back()) {
-                    add_fake(otk::StmtListEnd, ind);
-                    add_fake(otk::ListItemEnd, ind);
+                while (!ind.empty() && gr.indent() < ind.back()) {
+                    dbg();
                     ind.pop_back();
 
-                    if (ind.empty()) {
-                        add_fake(otk::ListEnd, ind);
-                    } else {
-                        add_fake(otk::Dedent, ind);
-                    }
+                    add_fake(otk::Dedent, ind);
                 }
                 dbg();
             }
@@ -1129,8 +1132,8 @@ struct GroupVisitorState {
             // Org-mode allows effectively any form of the source code
             // indentation and because of the base lexer does not have
             // enough context to figure out where indentation ends and
-            // source code begins token regrouping must do the transform
-            // here.
+            // source code begins, so token regrouping must do the
+            // transform here.
             if (gr.isSrc()) {
                 auto const& nest = gr.getNested();
                 rec_add_line(gr, nest.begin, ind);
@@ -1186,12 +1189,10 @@ struct GroupVisitorState {
 
         if (!ind.empty()) {
             for (auto const& _ : ind) {
-                add_fake(otk::StmtListEnd, ind);
-                add_fake(otk::ListItemEnd, ind);
                 ind.pop_back();
                 if (!ind.empty()) { add_fake(otk::Dedent, ind); }
             }
-            add_fake(otk::ListEnd, ind);
+            add_fake(otk::Dedent, ind);
         }
     }
 
@@ -1206,7 +1207,7 @@ struct GroupVisitorState {
                      + Str(" ").repeated(std::clamp<int>(
                          width - (text.runeLen() + level * 2), 0, width));
 
-        d->print(lex, aligned, __LINE__, "group", level);
+        d->print(lex, aligned, line, "group", level);
     };
 
     void print_line(CR<LineToken> line, Str prefix, int level) {

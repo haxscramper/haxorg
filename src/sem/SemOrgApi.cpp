@@ -2,6 +2,7 @@
 #include <boost/mp11.hpp>
 #include <concepts>
 #include <format>
+#include <exporters/exportertree.hpp>
 
 #define _define_static(__Kind)                                            \
     const OrgSemKind sem::__Kind::staticKind = OrgSemKind::__Kind;
@@ -26,7 +27,7 @@ struct value_domain<sem::Subtree::Period::Kind>
           sem::Subtree::Period::Kind::Repeated> {};
 
 namespace sem {
-sem::OrgVariant asVariant(SemId<Org> in) {
+sem::OrgIdVariant asVariant(SemId<Org> in) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: return in.as<__Kind>();
 
@@ -34,75 +35,20 @@ sem::OrgVariant asVariant(SemId<Org> in) {
 
 #undef __case
 }
+
+sem::OrgPtrVariant asVariant(Org* in) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: return dynamic_cast<__Kind*>(in);
+    switch (in->getKind()) { EACH_SEM_ORG_KIND(__case) }
+#undef __case
+}
+
 } // namespace sem
 
 Org::Org() : subnodes({}) {}
-
 Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
-
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
-namespace {
-void eachSubnodeRecImpl(
-    CR<SemId<Org>::SubnodeVisitor> visitor,
-    SemId<Org>                     org,
-    bool                           originalBase);
-
-template <sem::NotOrg T>
-void visitField(CR<SemId<Org>::SubnodeVisitor>, CR<T>) {}
-
-
-void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, SemId<Org> node) {
-    if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
-}
-
-template <typename T>
-void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, CVec<T> value) {
-    for (const auto& it : value) { visitField(visitor, it); }
-}
-
-
-template <typename T>
-void visitField(CR<SemId<Org>::SubnodeVisitor> visitor, CR<Opt<T>> value) {
-    if (value) { visitField(visitor, *value); }
-}
-
-template <typename T>
-void recVisitOrgNodesImpl(
-    CR<SemId<Org>::SubnodeVisitor> visitor,
-    sem::SemId<T>                  tree,
-    bool                           originalBase) {
-    if (originalBase) { visitor(tree); }
-    using Bd = describe_bases<T, mod_any_access>;
-    using Md = describe_members<T, mod_any_access>;
-    mp_for_each<Bd>([&](auto Base) {
-        using BaseType = typename decltype(Base)::type;
-        recVisitOrgNodesImpl<BaseType>(
-            visitor, tree.template as<BaseType>(), false);
-    });
-
-    mp_for_each<Md>([&](auto const& field) {
-        visitField(
-            visitor, (*static_cast<T const*>(tree.get())).*field.pointer);
-    });
-}
-
-void eachSubnodeRecImpl(
-    CR<SemId<Org>::SubnodeVisitor> visitor,
-    SemId<Org>                     org,
-    bool                           originalBase) {
-    std::visit(
-        [&](const auto& node) {
-            recVisitOrgNodesImpl(visitor, node, originalBase);
-        },
-        asVariant(org));
-}
-} // namespace
-
-template <>
-void SemId<Org>::eachSubnodeRec(SubnodeVisitor cb) {
-    eachSubnodeRecImpl(cb, *this, true);
-}
 
 Opt<SemId<CmdArgument>> CmdArguments::getParameter(CR<Str> param) const {
     return named.get(normalize(param));
@@ -121,10 +67,49 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
     Vec<Period> res;
     for (const auto& it : title->subnodes) {
         if (it->getKind() == osk::Time) {
-            res.push_back(Period(it.as<Time>(), Period::Kind::Titled));
+            Period period{};
+            period.from = it.as<Time>();
+            period.kind = Period::Kind::Titled;
+            res.push_back(period);
         } else if (it->getKind() == osk::TimeRange) {
-            res.push_back(
-                Period(it.as<TimeRange>(), Period::Kind::Titled));
+            Period period{};
+            period.from = it.as<TimeRange>()->from;
+            period.to   = it.as<TimeRange>()->to;
+            period.kind = Period::Kind::Titled;
+            res.push_back(period);
+        }
+    }
+
+    if (kinds.contains(Period::Kind::Deadline) && this->deadline) {
+        Period period{};
+        period.from = this->deadline.value();
+        period.kind = Period::Kind::Deadline;
+        res.push_back(period);
+    }
+
+    if (kinds.contains(Period::Kind::Scheduled) && this->scheduled) {
+        Period period{};
+        period.from = this->scheduled.value();
+        period.kind = Period::Kind::Scheduled;
+        res.push_back(period);
+    }
+
+    if (kinds.contains(Period::Kind::Closed) && this->closed) {
+        Period period{};
+        period.from = this->closed.value();
+        period.kind = Period::Kind::Closed;
+        res.push_back(period);
+    }
+
+    if (kinds.contains(Period::Kind::Clocked)) {
+        for (auto const& log : this->logbook) {
+            if (log->getLogKind() == SubtreeLog::Kind::Clock) {
+                Period period{};
+                period.from = log->getClock().from;
+                period.to   = log->getClock().to;
+                period.kind = Period::Kind::Clocked;
+                res.push_back(period);
+            }
         }
     }
 
@@ -132,7 +117,10 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
         std::visit(
             overloaded{
                 [&](Property::Created const& cr) {
-                    res.push_back(Period(cr.time, Period::Kind::Created));
+                    Period period{};
+                    period.from = cr.time;
+                    period.kind = Period::Kind::Created;
+                    res.push_back(period);
                 },
                 [](auto const&) {}},
             prop.data);
@@ -168,6 +156,28 @@ bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     }
 }
 
+void Subtree::setPropertyStrValue(
+    Str const&   value,
+    Str const&   kind,
+    CR<Opt<Str>> subkind) {
+    if (normalize(kind) == "id") {
+        this->treeId = value;
+    } else {
+        removeProperty(kind, subkind);
+        Property::Unknown prop;
+        prop.name  = kind;
+        auto text  = SemId<RawText>::New();
+        text->text = value;
+        prop.value = text;
+        properties.push_back(Property{prop});
+    }
+}
+
+void Subtree::setProperty(Property const& value) {
+    removeProperty(value.getName(), value.getSubKind());
+    properties.push_back(value);
+}
+
 Opt<Property> Subtree::getProperty(Str const& kind, CR<Opt<Str>> subkind)
     const {
     auto props = getProperties(kind, subkind);
@@ -175,6 +185,15 @@ Opt<Property> Subtree::getProperty(Str const& kind, CR<Opt<Str>> subkind)
         return std::nullopt;
     } else {
         return props[0];
+    }
+}
+
+void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
+    for (int i = properties.high(); 0 <= i; --i) {
+        if (properties.at(i).getName() == kind
+            && properties.at(i).getSubKind() == subkind) {
+            properties.erase(properties.begin() + i);
+        }
     }
 }
 
@@ -196,7 +215,9 @@ Opt<Str> Subtree::Property::getSubKind() const {
 
 bool Subtree::Property::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     const {
-    if (normalize(fmt1(getKind())) == normalize(kind)) {
+    if (getKind() == Property::Kind::Unknown) {
+        return normalize(getUnknown().name) == normalize(kind);
+    } else if (normalize(fmt1(getKind())) == normalize(kind)) {
         return true;
     } else if (
         getKind() == Property::Kind::ExportOptions && subkind

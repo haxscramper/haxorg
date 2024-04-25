@@ -10,15 +10,15 @@ Base = declarative_base()
 
 # Table Definitions
 class FilePath(Base):
-    __tablename__ = 'FilePath'
+    __tablename__ = "FilePath"
     id = IdColumn()
     file_path = StrColumn()
 
 
 class GitCommit(Base):
-    __tablename__ = 'GitCommit'
+    __tablename__ = "GitCommit"
     id = IdColumn()
-    author = ForeignId('Author.id')
+    author = ForeignId("Author.id")
     time = IntColumn()
     timezone = IntColumn()
     hash = StrColumn()
@@ -26,69 +26,69 @@ class GitCommit(Base):
 
 
 class GitCommitActions(Base):
-    __tablename__ = 'GitCommitActions'
+    __tablename__ = "GitCommitActions"
     id = IdColumn()
-    commit_id = ForeignId('GitCommit.id', nullable=False)
+    commit_id = ForeignId("GitCommit.id", nullable=False)
     kind = IntColumn()
-    track = ForeignId('FileTrack.id')
-    old_path = ForeignId('FilePath.id')
-    new_path = ForeignId('FilePath.id')
-    file = ForeignId('FilePath.id')
+    track = ForeignId("FileTrack.id")
+    old_path = ForeignId("FilePath.id")
+    new_path = ForeignId("FilePath.id")
+    file = ForeignId("FilePath.id")
     added = IntColumn()
     removed = IntColumn()
 
 
 class FileTrackSection(Base):
-    __tablename__ = 'FileTrackSection'
+    __tablename__ = "FileTrackSection"
     id = IdColumn()
-    commit_id = ForeignId('GitCommit.id')
-    path_id = ForeignId('FilePath.id')
-    track = ForeignId('FilePath.id')
+    commit_id = ForeignId("GitCommit.id")
+    path_id = ForeignId("FilePath.id")
+    track = ForeignId("FilePath.id")
 
 
 class FileTrack(Base):
-    __tablename__ = 'FileTrack'
+    __tablename__ = "FileTrack"
     id = IdColumn()
 
 
 class Directory(Base):
-    __tablename__ = 'Directory'
+    __tablename__ = "Directory"
     id = IdColumn()
-    parent = ForeignId('Directory.id')
+    parent = ForeignId("Directory.id")
     name = StrColumn()
 
 
 class GitString(Base):
-    __tablename__ = 'String'
+    __tablename__ = "String"
     id = IdColumn()
     text = StrColumn()
 
 
 class Author(Base):
-    __tablename__ = 'Author'
+    __tablename__ = "Author"
     id = IdColumn()
     name = StrColumn()
     email = StrColumn()
 
 
 class LineData(Base):
-    __tablename__ = 'LineData'
+    __tablename__ = "LineData"
     id = IdColumn()
-    content = ForeignId('String.id')
-    commit_id = ForeignId('GitCommit.id')
+    content = ForeignId("String.id")
+    commit_id = ForeignId("GitCommit.id")
 
 
 class FileSectionLines(Base):
-    __tablename__ = 'FileSectionLines'
+    __tablename__ = "FileSectionLines"
     id = IdColumn()
-    section = ForeignId('FileTrackSection.id', nullable=False)
+    section = ForeignId("FileTrackSection.id", nullable=False)
     line_index = IntColumn()
-    line_id = ForeignId('LineData.id')
+    line_id = ForeignId("LineData.id")
 
 
 # ORM Model for ViewJoinedFileSectionLines
 class ViewJoinedFileSectionLines(Base):
-    __tablename__ = 'ViewJoinedFileSectionLines'
+    __tablename__ = "ViewJoinedFileSectionLines"
     id = IdColumn()
     section_id = IntColumn()  # Assuming this can uniquely identify rows
     line_index = IntColumn()
@@ -99,7 +99,7 @@ class ViewJoinedFileSectionLines(Base):
 
 # ORM Model for ViewFullFileSectionLines
 class ViewFullFileSectionLines(Base):
-    __tablename__ = 'ViewFullFileSectionLines'
+    __tablename__ = "ViewFullFileSectionLines"
     text = StrColumn()
     id = IdColumn()
     section_id = IntColumn()  # Assuming this can uniquely identify rows

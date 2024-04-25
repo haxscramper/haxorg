@@ -1,12 +1,50 @@
 from copy import copy
 
-import py_codegen.proto_lib.reflection_defs as pb
+import py_codegen.proto_lib.reflection_tool.reflection_defs as pb
 import re
 
 from beartype import beartype
 from py_codegen.gen_tu_cpp import *
 from pathlib import Path
 
+
+@beartype
+def conv_proto_default(value: pb.Expr) -> Optional[str]:
+    if value.kind == pb.ExprKind.Lit and 0 < len(value.value):
+        return value.value
+    
+    else:
+        return None
+
+@beartype
+def strip_comment_prefixes(comment: str) -> List[str]:
+    def drop_leading(prefix: re.Pattern, text: str) -> List[str]:
+        result: List[str] = []
+        for line in text.strip().splitlines():
+            result.append(re.sub(prefix, "", line))
+
+        return result
+
+    # Identify and strip comment markers, then delegate to process_content
+    if comment.startswith("///") or comment.startswith("//!"):
+        return drop_leading("///?<?!?\\s*", comment)
+    elif comment.startswith("/**") or comment.startswith("/*!"):
+        # Removing the leading /** or /*! and trailing */
+        content = comment[3:-2].strip()
+        # Remove any '*' prefixes that might exist on each line
+        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
+        return content.splitlines()
+    elif comment.startswith("//"):
+        return comment[2:].splitlines()
+    elif comment.startswith("/*"):
+        # Removing the leading /* and potential trailing */
+        content = comment[2:]
+        if content.endswith("*/"):
+            content = content[:-2]
+        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
+        return content.splitlines()
+    else:
+        raise ValueError(f"Unrecognized comment style: {comment}")
 
 @beartype
 def conv_doc_comment(comment: str) -> GenTuDoc:
@@ -30,34 +68,10 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
                 full.append(line)
 
         return GenTuDoc('\n'.join(brief), '\n'.join(full))
+    
+    return process_content(strip_comment_prefixes(comment))
 
-    def drop_leading(prefix: re.Pattern, text: str) -> List[str]:
-        result: List[str] = []
-        for line in text.strip().splitlines():
-            result.append(re.sub(prefix, "", line))
 
-        return result
-
-    # Identify and strip comment markers, then delegate to process_content
-    if comment.startswith("///") or comment.startswith("//!"):
-        return process_content(drop_leading("///", comment))
-    elif comment.startswith("/**") or comment.startswith("/*!"):
-        # Removing the leading /** or /*! and trailing */
-        content = comment[3:-2].strip()
-        # Remove any '*' prefixes that might exist on each line
-        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
-        return process_content(content.splitlines())
-    elif comment.startswith("//"):
-        return process_content(comment[2:].splitlines())
-    elif comment.startswith("/*"):
-        # Removing the leading /* and potential trailing */
-        content = comment[2:]
-        if content.endswith("*/"):
-            content = content[:-2]
-        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
-        return process_content(content.splitlines())
-    else:
-        raise ValueError(f"Unrecognized comment style: {comment}")
 
 
 @beartype
@@ -107,8 +121,10 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
 
 @beartype
 def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruct:
-    result = GenTuStruct(conv_proto_type(record.name, is_anon_name=not record.has_name),
-                         GenTuDoc(""),)
+    result = GenTuStruct(
+        conv_proto_type(record.name, is_anon_name=not record.has_name),
+        GenTuDoc(""),
+    )
 
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
@@ -136,16 +152,14 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
             continue
 
         result.methods.append(
-            GenTuFunction(
-                result=conv_proto_type(meth.return_ty),
-                name=meth.name,
-                doc=conv_doc_comment(meth.doc),
-                isConst=meth.is_const,
-                original=original,
-                arguments=[
-                    GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
-                ],
-                parentClass=result))
+            GenTuFunction(result=conv_proto_type(meth.return_ty),
+                          name=meth.name,
+                          doc=conv_doc_comment(meth.doc),
+                          isConst=meth.is_const,
+                          isStatic=meth.is_static,
+                          original=original,
+                          arguments=[conv_proto_arg(arg) for arg in meth.args],
+                          parentClass=result))
 
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record, original))
@@ -170,7 +184,9 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
 
 @beartype
 def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
-    return GenTuIdent(name=arg.name, type=conv_proto_type(arg.type))
+    return GenTuIdent(name=arg.name,
+                      type=conv_proto_type(arg.type),
+                      value=conv_proto_default(arg.default))
 
 
 @beartype
@@ -181,6 +197,7 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
         arguments=[conv_proto_arg(arg) for arg in rec.arguments],
         doc=GenTuDoc(""),
         original=copy(original),
+        spaces=[conv_proto_type(T) for T in rec.spaces],
     )
 
 

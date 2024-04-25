@@ -1,7 +1,7 @@
 from py_textlayout.py_textlayout_wrap import TextLayout
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
-from beartype.typing import List
+from beartype.typing import List, Optional
 from beartype import beartype
 import py_codegen.astbuilder_base as base
 
@@ -35,7 +35,7 @@ class DecoratorParams:
 @dataclass
 class FunctionDefParams:
     Name: str
-    ResultTy: PyType
+    ResultTy: Optional[PyType]
     Args: List[IdentParams] = field(default_factory=list)
     Decorators: List[DecoratorParams] = field(default_factory=list)
     Doc: str = ""
@@ -115,10 +115,24 @@ class ASTBuilder(base.AstbuilderBase):
             self.pars(
                 self.csv(([b.text("self")] if withSelf else []) +
                          [self.Arg(A) for A in p.Args])),
-            b.text(" -> "),
-            self.Type(p.ResultTy),
-            b.text(":")
+            *([
+                b.text(" -> "),
+                self.Type(p.ResultTy),
+                b.text(":"),
+            ] if p.ResultTy else []),
         ]
+
+    def Function(self, p: FunctionDefParams) -> BlockId:
+        b = self.b
+
+        def_head = self.FuncHead(p, withSelf=False)
+
+        if p.IsStub:
+            def_head.append(b.text(" ..."))
+            return b.line(def_head)
+
+        else:
+            return b.stack([b.line(def_head), b.indent(4, b.stack(p.Body))])
 
     def Method(self, p: MethodParams) -> BlockId:
         b = self.b
@@ -127,10 +141,19 @@ class ASTBuilder(base.AstbuilderBase):
 
         if p.Func.IsStub:
             def_head.append(b.text(" ..."))
-            return b.line(def_head)
+            result = b.line(def_head)
 
         else:
-            return b.stack([b.line(def_head), b.indent(4, b.stack(p.Func.Body))])
+            result = b.stack([b.line(def_head), b.indent(4, b.stack(p.Func.Body))])
+
+        if p.Func.Decorators:
+            return b.stack([
+                *[self.Decorator(D) for D in p.Func.Decorators],
+                result,
+            ])
+
+        else:
+            return result
 
     def Field(self, p: FieldParams) -> BlockId:
         return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])

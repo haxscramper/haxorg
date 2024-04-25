@@ -188,10 +188,12 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CodeTangle") { return OrgNodeKind::CodeTangle; } else
   if (value == "CodeCallout") { return OrgNodeKind::CodeCallout; } else
   if (value == "QuoteBlock") { return OrgNodeKind::QuoteBlock; } else
+  if (value == "CommentBlock") { return OrgNodeKind::CommentBlock; } else
   if (value == "AdmonitionBlock") { return OrgNodeKind::AdmonitionBlock; } else
   if (value == "CenterBlock") { return OrgNodeKind::CenterBlock; } else
   if (value == "VerseBlock") { return OrgNodeKind::VerseBlock; } else
   if (value == "Example") { return OrgNodeKind::Example; } else
+  if (value == "ColonExample") { return OrgNodeKind::ColonExample; } else
   if (value == "SrcCode") { return OrgNodeKind::SrcCode; } else
   if (value == "SrcInlineCode") { return OrgNodeKind::SrcInlineCode; } else
   if (value == "InlineCallCode") { return OrgNodeKind::InlineCallCode; } else
@@ -328,10 +330,12 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CodeTangle: return "CodeTangle";
     case OrgNodeKind::CodeCallout: return "CodeCallout";
     case OrgNodeKind::QuoteBlock: return "QuoteBlock";
+    case OrgNodeKind::CommentBlock: return "CommentBlock";
     case OrgNodeKind::AdmonitionBlock: return "AdmonitionBlock";
     case OrgNodeKind::CenterBlock: return "CenterBlock";
     case OrgNodeKind::VerseBlock: return "VerseBlock";
     case OrgNodeKind::Example: return "Example";
+    case OrgNodeKind::ColonExample: return "ColonExample";
     case OrgNodeKind::SrcCode: return "SrcCode";
     case OrgNodeKind::SrcInlineCode: return "SrcInlineCode";
     case OrgNodeKind::InlineCallCode: return "InlineCallCode";
@@ -423,6 +427,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Footnote") { return OrgSemKind::Footnote; } else
   if (value == "Completion") { return OrgSemKind::Completion; } else
   if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
+  if (value == "AnnotatedParagraph") { return OrgSemKind::AnnotatedParagraph; } else
   if (value == "Center") { return OrgSemKind::Center; } else
   if (value == "Caption") { return OrgSemKind::Caption; } else
   if (value == "CmdName") { return OrgSemKind::CmdName; } else
@@ -430,8 +435,10 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CommandGroup") { return OrgSemKind::CommandGroup; } else
   if (value == "Tblfm") { return OrgSemKind::Tblfm; } else
   if (value == "Quote") { return OrgSemKind::Quote; } else
+  if (value == "CommentBlock") { return OrgSemKind::CommentBlock; } else
   if (value == "Verse") { return OrgSemKind::Verse; } else
   if (value == "Example") { return OrgSemKind::Example; } else
+  if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
   if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
@@ -486,6 +493,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Footnote: return "Footnote";
     case OrgSemKind::Completion: return "Completion";
     case OrgSemKind::Paragraph: return "Paragraph";
+    case OrgSemKind::AnnotatedParagraph: return "AnnotatedParagraph";
     case OrgSemKind::Center: return "Center";
     case OrgSemKind::Caption: return "Caption";
     case OrgSemKind::CmdName: return "CmdName";
@@ -493,8 +501,10 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CommandGroup: return "CommandGroup";
     case OrgSemKind::Tblfm: return "Tblfm";
     case OrgSemKind::Quote: return "Quote";
+    case OrgSemKind::CommentBlock: return "CommentBlock";
     case OrgSemKind::Verse: return "Verse";
     case OrgSemKind::Example: return "Example";
+    case OrgSemKind::ColonExample: return "ColonExample";
     case OrgSemKind::CmdArguments: return "CmdArguments";
     case OrgSemKind::CmdAttr: return "CmdAttr";
     case OrgSemKind::CmdArgument: return "CmdArgument";

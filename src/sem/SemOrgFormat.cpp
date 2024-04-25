@@ -636,6 +636,17 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                              toString(prop.getUnknown().value, ctx)}));
                     break;
                 }
+                case P::Kind::Effort: {
+                    b.add_at(
+                        head,
+                        b.line(
+                            {str(":CREATED: "),
+                             str(
+                                 fmt("{}:{}",
+                                     prop.getEffort().hours,
+                                     prop.getEffort().minutes))}));
+                    break;
+                }
                 default: {
                     LOG(FATAL) << fmt1(prop.getKind());
                 }
@@ -718,17 +729,66 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 case Log::Kind::Clock: {
                     auto const& clock = log->getClock();
 
-                    log_head = b.line({
-                        str("CLOCK: "),
-                        clock.range.index() == 0
-                            ? toString(std::get<0>(clock.range), ctx)
-                            : toString(std::get<1>(clock.range), ctx),
-                    });
+                    if (clock.to) {
+                        log_head = b.line({
+                            str("CLOCK: "),
+                            toString(clock.from, ctx),
+                            str("--"),
+                            toString(clock.to.value(), ctx),
+                        });
+                    } else {
+                        log_head = b.line({
+                            str("CLOCK: "),
+                            toString(clock.from, ctx),
+                        });
+                    }
+
 
                     break;
                 }
+
+                case Log::Kind::Priority: {
+                    auto const& priority = log->getPriority();
+                    switch (priority.action) {
+                        case Log::Priority::Action::Added: {
+                            log_head = b.line({
+                                str("- Priority "),
+                                str(priority.newPriority.value()),
+                                str(" added on "),
+                                toString(priority.on, ctx),
+                            });
+                            break;
+                        }
+                        case Log::Priority::Action::Changed: {
+                            log_head = b.line({
+                                str("- Priority "),
+                                str(priority.newPriority.value()),
+                                str(" changed from "),
+                                str(priority.oldPriority.value()),
+                                str(" on "),
+                                toString(priority.on, ctx),
+                            });
+                            break;
+                        }
+                        case Log::Priority::Action::Removed: {
+                            log_head = b.line({
+                                str("- Priority "),
+                                str(priority.oldPriority.value()),
+                                str(" removed on "),
+                                toString(priority.on, ctx),
+                            });
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+
                 default: {
-                    LOG(FATAL) << fmt1(log->getLogKind());
+                    log_head = b.line({
+                        str(" -"),
+                        toString(log->getUnknown().desc.value(), ctx),
+                    });
                 }
             }
 
@@ -776,6 +836,14 @@ auto Formatter::toString(SemId<Quote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_quote"), toSubnodes(id, ctx), str("#+end_quote")));
+}
+
+auto Formatter::toString(SemId<CommentBlock> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.stack(Vec<Res>::Splice(
+        str("#+begin_comment"),
+        toSubnodes(id, ctx),
+        str("#+end_comment")));
 }
 
 auto Formatter::toString(SemId<Verse> id, CR<Context> ctx) -> Res {
@@ -834,6 +902,15 @@ auto Formatter::toString(SemId<Example> id, CR<Context> ctx) -> Res {
         str("#+end_example")));
 }
 
+auto Formatter::toString(SemId<ColonExample> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.stack(Vec<Res>::Splice(
+        id->subnodes | rv::transform([&](OrgArg sub) {
+            return b.line({str(": "), toString(sub, ctx)});
+        })));
+}
+
+
 auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res     result = b.stack();
@@ -849,6 +926,58 @@ auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
         }
         b.add_at(result, line_out);
     }
+    return result;
+}
+
+auto Formatter::toString(SemId<AnnotatedParagraph> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    Res     result = b.stack();
+    bool    first  = true;
+    Context ctx2   = ctx;
+    ctx2.isInline  = true;
+    for (auto const& line :
+         id->subnodes | rv::split_when([](sem::SemId<sem::Org> id) {
+             return id->getKind() == OrgSemKind::Newline;
+         })) {
+        Res line_out = b.line();
+        if (first) {
+            switch (id->getAnnotationKind()) {
+                case sem::AnnotatedParagraph::AnnotationKind::Admonition: {
+                    b.add_at(
+                        line_out, toString(id->getAdmonition().name, ctx));
+                    break;
+                }
+                case sem::AnnotatedParagraph::AnnotationKind::Timestamp: {
+                    b.add_at(
+                        line_out, toString(id->getTimestamp().time, ctx));
+                    break;
+                }
+                case sem::AnnotatedParagraph::AnnotationKind::Footnote: {
+                    b.add_at(
+                        line_out,
+                        str(fmt("[fn:{}]", id->getFootnote().name)));
+                    break;
+                }
+                case sem::AnnotatedParagraph::AnnotationKind::None: {
+                }
+            }
+
+            if (id->getAnnotationKind()
+                != sem::AnnotatedParagraph::AnnotationKind::None) {
+                b.add_at(line_out, str(" "));
+            }
+            first = false;
+        }
+
+
+        for (auto const& item : line) {
+            b.add_at(line_out, toString(item, ctx2));
+        }
+        b.add_at(result, line_out);
+    }
+
+
     return result;
 }
 

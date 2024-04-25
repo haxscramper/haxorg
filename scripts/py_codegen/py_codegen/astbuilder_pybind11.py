@@ -31,8 +31,10 @@ else:
 
 @beartype
 def py_type_bind(Typ: QualType) -> pya.PyType:
-    return pya.PyType(Typ.name + ("Of" if Typ.Parameters else "") +
-                      "".join([py_type_bind(T).Name for T in Typ.Parameters]))
+    return pya.PyType(
+        "".join([py_type_bind(T).Name for T in Typ.withoutSpace("sem").Spaces]) +
+        Typ.name + ("Of" if Typ.Parameters else "") +
+        "".join([py_type_bind(T).Name for T in Typ.Parameters]))
 
 
 @beartype
@@ -118,85 +120,50 @@ def id_self(Typ: QualType) -> ParmVarParams:
 
 @beartype
 @dataclass
-class Py11Method:
+class Py11Function:
     PyName: str
     CxxName: str
-    ResultTy: QualType
+    ResultTy: Optional[QualType]
     Args: List[GenTuIdent] = field(default_factory=list)
     Body: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
-    IsConst: bool = False
-    IsInit: bool = False
     DefParams: Optional[List[BlockId]] = None
-    ExplicitClassParam: bool = False
+    Spaces: List[QualType] = field(default_factory=list)
+
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FunctionDefParams:
+        return pya.FunctionDefParams(
+            Name=py_ident(self.PyName),
+            ResultTy=self.ResultTy and py_type(self.ResultTy),
+            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
+            IsStub=True,
+        )
 
     @staticmethod
     def FromGenTu(
         meth: GenTuFunction,
         Body: Optional[List[BlockId]] = None,
         pySideOverride: Optional[str] = None,
-    ) -> 'Py11Method':
+    ) -> 'Py11Function':
 
-        if meth.name == "enableFileTrace":
-            pprint_to_file(meth, "/tmp/enableFileTrace_FromGenTu.py")
-
-        return Py11Method(
+        return Py11Function(
             PyName=py_ident(meth.name) if pySideOverride is None else pySideOverride,
             Body=Body,
             ResultTy=meth.result,
             CxxName=meth.name,
             Doc=meth.doc,
-            IsConst=meth.isConst,
             Args=meth.arguments,
+            Spaces=meth.spaces,
         )
 
-    def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
-        return pya.MethodParams(Func=pya.FunctionDefParams(
-            Name=py_ident(self.PyName),
-            ResultTy=py_type(self.ResultTy),
-            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
-            IsStub=True,
-        ))
-
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
-        b = ast.b
-        if self.Body is None:
-            function_type = QualType(
-                func=QualType.Function(
-                    ReturnTy=self.ResultTy,
-                    Args=[A.type for A in self.Args],
-                    Class=Class,
-                    IsConst=self.IsConst,
-                ),
-                Kind=QualTypeKind.FunctionPtr,
-            )
-            call_pass = ast.XCall(
-                "static_cast",
-                args=[ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))],
-                Params=[function_type],
-            )
-
-        else:
-            function_type = None
-            call_pass = ast.Lambda(
-                LambdaParams(
-                    ResultTy=self.ResultTy,
-                    Args=([] if self.ExplicitClassParam or self.IsInit else
-                          [ParmVarParams(Class, "_self")]) +
-                    [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
-                    Body=self.Body,
-                    IsLine=False,
-                ))
-
-            if self.IsInit:
-                call_pass = ast.XCall("pybind11::init", args=[call_pass])
-
+    def build_argument_binder(self, Args: List[GenTuIdent],
+                              ast: ASTBuilder) -> list[BlockId]:
         argument_binder: list[BlockId] = []
-        for Arg in self.Args[
-                1:] if self.ExplicitClassParam and not self.IsInit else self.Args:
+        b = ast.b
+
+        for Arg in Args:
             if Arg.type.name == "kwargs":
                 continue
-            
+
             elif Arg.value is None:
                 argument_binder.append(ast.XCall("pybind11::arg",
                                                  [ast.Literal(Arg.name)]))
@@ -208,19 +175,147 @@ class Py11Method:
                         b.text(Arg.value) if isinstance(Arg.value, str) else Arg.value,
                     ]))
 
-        doc_comment = [ast.StringLiteral(self.Doc.brief, forceRawStr=True)
-                      ] if self.Doc.brief else []
+        return argument_binder
 
-        def_params = self.DefParams if self.DefParams else []
+    def build_call_pass(
+        self,
+        ast: ASTBuilder,
+        Args: List[GenTuIdent],
+        FunctionQualName: BlockId,
+        Class: Optional[QualType] = None,
+        IsConst: bool = False,
+    ) -> BlockId:
+        if self.Body is None:
+            function_type = QualType(
+                func=QualType.Function(
+                    ReturnTy=self.ResultTy,
+                    Args=[A.type for A in Args],
+                    Class=Class,
+                    IsConst=IsConst,
+                ),
+                Kind=QualTypeKind.FunctionPtr,
+            )
+
+            return ast.XCall(
+                "static_cast",
+                args=[ast.Addr(FunctionQualName)],
+                Params=[function_type],
+            )
+
+        else:
+            return ast.Lambda(
+                LambdaParams(
+                    ResultTy=self.ResultTy,
+                    Args=[ParmVarParams(Arg.type, Arg.name) for Arg in Args],
+                    Body=self.Body,
+                    IsLine=False,
+                ))
+
+    def build_doc_comment(self, ast: ASTBuilder) -> list[BlockId]:
+        if self.Doc.brief:
+            return [ast.StringLiteral(self.Doc.brief, forceRawStr=True)]
+
+        else:
+            return []
+
+    def build_bind(self, ast: ASTBuilder) -> BlockId:
+        if self.Spaces:
+            full_name = ast.Scoped(
+                QualType(name=self.Spaces[0].name, Spaces=self.Spaces[1:]),
+                ast.string(self.CxxName))
+
+        else:
+            full_name = ast.string(self.CxxName)
 
         return ast.XCall(
-            ".def",
+            "m.def",
+            [
+                ast.Literal(self.PyName),
+                self.build_call_pass(
+                    ast,
+                    self.Args,
+                    FunctionQualName=full_name,
+                ),
+                *self.build_argument_binder(self.Args, ast),
+                *self.build_doc_comment(ast),
+                *(self.DefParams if self.DefParams else []),
+            ],
+            Line=len(self.Args) == 0,
+            Stmt=True,
+        )
+
+
+@beartype
+@dataclass
+class Py11Method(Py11Function):
+    IsConst: bool = False
+    IsInit: bool = False
+    IsStatic: bool = False
+    ExplicitClassParam: bool = False
+
+    @staticmethod
+    def FromGenTu(
+        meth: GenTuFunction,
+        Body: Optional[List[BlockId]] = None,
+        pySideOverride: Optional[str] = None,
+    ) -> 'Py11Method':
+
+        return Py11Method(
+            PyName=pySideOverride if pySideOverride else
+            py_ident(meth.name + ("Static" if meth.isStatic else "")),
+            Body=Body,
+            ResultTy=meth.result,
+            CxxName=meth.name,
+            Doc=meth.doc,
+            IsConst=meth.isConst,
+            Args=meth.arguments,
+            IsStatic=meth.isStatic,
+        )
+
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
+        return pya.MethodParams(Func=pya.FunctionDefParams(
+            Name=py_ident(self.PyName),
+            ResultTy=self.ResultTy and py_type(self.ResultTy),
+            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
+            IsStub=True,
+            Decorators=[pya.DecoratorParams("staticmethod")] if self.IsStatic else []))
+
+    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+        b = ast.b
+
+        Args: List[GenTuIdent] = []
+        if self.IsInit or self.ExplicitClassParam:
+            pass
+
+        elif self.Body:
+            Args = [GenTuIdent(type=Class, name="_self")]
+
+        Args += self.Args
+
+        call_pass = self.build_call_pass(
+            ast,
+            FunctionQualName=ast.Scoped(Class, ast.string(self.CxxName)),
+            Class=None if self.IsStatic else Class,
+            IsConst=self.IsConst,
+            Args=Args,
+        )
+
+        if self.IsInit:
+            call_pass = ast.XCall("pybind11::init", args=[call_pass])
+
+        if self.ExplicitClassParam and not self.IsInit:
+            argument_binder = self.build_argument_binder(self.Args[1:], ast=ast)
+        else:
+            argument_binder = self.build_argument_binder(self.Args, ast=ast)
+
+        return ast.XCall(
+            (".def_static" if (self.IsStatic and not self.IsInit) else ".def"),
             [
                 *([] if self.IsInit else [ast.Literal(self.PyName)]),
                 call_pass,
                 *argument_binder,
-                *doc_comment,
-                *def_params,
+                *self.build_doc_comment(ast),
+                *(self.DefParams if self.DefParams else []),
             ],
             Line=len(self.Args) == 0,
         )
@@ -384,7 +479,6 @@ class Py11Class:
     Fields: List[Py11Field] = field(default_factory=list)
     Methods: List[Py11Method] = field(default_factory=list)
     InitImpls: List[Py11Method] = field(default_factory=list)
-    PyBases: List[QualType] = field(default_factory=list)
 
     @staticmethod
     def FromGenTu(ast: ASTBuilder,
@@ -408,18 +502,6 @@ class Py11Class:
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
 
-        def to_arg(f: Py11Field) -> GenTuIdent:
-            value = f.Default
-            if f.Type.name == "Vec" and f.Default == "{}":
-                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
-
-            elif f.Type.name == "UnorderedMap" and not f.Default:
-                value = ast.b.line([ast.Type(f.Type), ast.string("{}")])
-
-            elif f.Type.name in ["Str", "string"] and not f.Default:
-                value = ast.Literal("")
-
-            return GenTuIdent(type=f.Type, name=f.PyName, value=value)
 
         self.InitImpls.append(
             Py11Method(
@@ -449,10 +531,7 @@ class Py11Class:
                 IsInit=True,
                 ExplicitClassParam=True,
             ))
-
-    def AddInit(self, Args: List[ParmVarParams], Impl: List[BlockId]):
-        self.InitImpls.append(Py11Method("", "", QualType.ForName(""), Args, Body=Impl))
-
+        
     def dedup_methods(self) -> List[Py11Method]:
         res: List[Py11Method] = []
         for key, _group in itertools.groupby(self.Methods, lambda M: (M.CxxName, M.Args)):
@@ -471,6 +550,19 @@ class Py11Class:
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
         res = pya.ClassParams(Name=self.PyName, Bases=[py_type(T) for T in self.Bases])
+
+        Init = Py11Method(
+            PyName="__init__",
+            CxxName="",
+            ResultTy=QualType.ForName("None"),
+            Args=[
+                GenTuIdent(name=it.PyName, type=it.Type, value=ast.b.text("None"))
+                for it in self.Fields
+            ],
+        )
+
+        res.Methods.append(Init.build_typedef(ast))
+
         for Meth in self.dedup_methods():
             res.Methods.append(Meth.build_typedef(ast))
 
@@ -519,7 +611,7 @@ class Py11TypedefPass:
     base: pya.PyType
 
 
-Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass]
+Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Function]
 
 
 @beartype
@@ -547,6 +639,10 @@ class Py11Module:
                     passes.append(ast.Class(item.build_typedef(ast)))
                     passes.append(ast.string(""))
 
+                case Py11Function():
+                    passes.append(ast.Function(item.build_typedef(ast)))
+                    passes.append(ast.string(""))
+
                 case Py11TypedefPass():
                     passes.append(
                         ast.b.line([
@@ -554,6 +650,12 @@ class Py11Module:
                             ast.b.text(" = "),
                             ast.Type(item.base),
                         ]))
+
+                case Py11BindPass() | int():
+                    pass
+
+                case _:
+                    assert False, type(item)
 
         return ast.b.stack(passes)
 
@@ -563,14 +665,24 @@ class Py11Module:
         passes: List[BlockId] = []
 
         for entry in self.Decls:
-            if isinstance(entry, Py11BindPass):
-                passes.append(entry.Id)
+            match entry:
+                case Py11BindPass():
+                    passes.append(entry.Id)
 
-            elif isinstance(entry, Py11Class):
-                passes.append(entry.build_bind(ast))
+                case Py11Class():
+                    passes.append(entry.build_bind(ast))
 
-            elif isinstance(entry, Py11Enum):
-                passes.append(entry.build_bind(ast))
+                case Py11Enum():
+                    passes.append(entry.build_bind(ast))
+
+                case Py11Function():
+                    passes.append(entry.build_bind(ast))
+
+                case int() | Py11TypedefPass():
+                    pass
+
+                case _:
+                    assert False, type(entry)
 
         return b.stack([
             *self.Before,

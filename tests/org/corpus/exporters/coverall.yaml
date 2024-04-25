@@ -1,6 +1,5 @@
-lex: "Global"
-expected: "Flat"
-parse: "Full"
 items:
   - name: "Process all nodes"
+    debug:
+      doFlatReparseCompare: false
     file: org/all.org

@@ -1,14 +1,17 @@
-lex: "Global"
-parse: "Top"
-expected: "Flat"
 items:
   - name: "Trailing markup in subtree with tags"
+    debug:
+      doFlatReparseCompare: false
     source: "**** COMPLETED Try =atmospace= :test##assesment##viability:"
 
   - name: "Trailing markup in subtree"
+    debug:
+      doFlatReparseCompare: false
     source: "***** COMPLETED Update sizes of the setting grid element to use ~@scale~"
 
   - name: "Trailing colon for subtree name"
+    debug:
+      doFlatReparseCompare: false
     source: "****** Pros:"
 
   - name: "Regular subtree"
@@ -51,6 +54,8 @@ items:
       - {kind: Word, str: content}
 
   - name: "Headline after paragraph"
+    debug:
+      doFlatReparseCompare: false
     source: |
       Paragraph text
       * New headline
@@ -70,5 +75,7 @@ items:
 
 
   - name: "Lorem ipsum subtree"
+    debug:
+      doFlatReparseCompare: false
     file: org/lorem_ipsum_subtree.org
 

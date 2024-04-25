@@ -18,12 +18,14 @@ from py_codegen.astbuilder_pybind11 import (
     Py11BindPass,
     Py11TypedefPass,
     Py11Enum,
+    Py11Function,
     flat_scope,
     id_self,
     py_type_bind,
     py_type,
 )
 
+CAT = "codegen"
 
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
@@ -54,7 +56,7 @@ def get_exporter_methods(forward: bool,
             full_scoped_name: List[str] = scope_names + [name]
             fields: List[GenTuField] = [
                 field for field in (value.fields + get_type_base_fields(value, base_map))
-                if not (field.isStatic)
+                if field.isExposedForWrap
             ]
 
             scoped_target = t_cr(
@@ -163,7 +165,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     res = Py11Class(
         PyName=typ.name.name,
         Class=base_type,
-        PyBases=typ.bases,
         PyHolderType=id_type,
     )
 
@@ -174,18 +175,13 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
     def map_obj_fields(Record: GenTuStruct):
         for _field in Record.fields:
-            if _field.isStatic or hasattr(_field, "ignore"):
-                continue
-
-            res.Fields.append(Py11Field.FromGenTu(_field))
+            if _field.isExposedForWrap:
+                res.Fields.append(Py11Field.FromGenTu(_field))
 
     def map_obj_methods(Record: GenTuStruct):
         for meth in Record.methods:
-            if meth.isStatic or meth.isPureVirtual or (meth.name == "getKind" and
-                                                       Record.name.name != "Org"):
-                continue
-
-            res.Methods.append(Py11Method.FromGenTu(meth))
+            if not meth.isPureVirtual and meth.isExposedForWrap:
+                res.Methods.append(Py11Method.FromGenTu(meth))
 
     def map_bases(Record: GenTuStruct):
         for base in Record.bases:
@@ -203,7 +199,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
         def cb(it: GenTuStruct):
             for field in it.fields:
-                if not field.isStatic:
+                if field.isExposedForWrap:
                     rec_fields.append(Py11Field.FromGenTu(field))
 
             for base in it.bases:
@@ -218,18 +214,19 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
 @beartype
 def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
-    res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
-    for meth in value.methods:
-        if meth.isStatic or meth.isPureVirtual:
-            continue
+    res = Py11Class(
+        PyName=py_type(value.name).Name,
+        Class=value.name,
+        Bases=value.bases,
+    )
 
-        res.Methods.append(Py11Method.FromGenTu(meth))
+    for meth in value.methods:
+        if meth.isExposedForWrap:
+            res.Methods.append(Py11Method.FromGenTu(meth))
 
     for _field in value.fields:
-        if _field.isStatic or hasattr(_field, "ignore"):
-            continue
-
-        res.Fields.append(Py11Field.FromGenTu(_field))
+        if _field.isExposedForWrap:
+            res.Fields.append(Py11Field.FromGenTu(_field))
 
     if not value.IsAbstract:
         res.InitDefault(ast, filter_init_fields(res.Fields))
@@ -512,6 +509,7 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                     t_id(),
                     [GenTuIdent(QualType.ForName("int"), "idx")],
                     IsConst=True,
+                    IsStatic=False,
                 ))
 
             org_decl.Methods.append(
@@ -539,6 +537,9 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
     for _enum in tu.enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
+
+    for _func in tu.functions:
+        autogen_structs.Decls.append(Py11Function.FromGenTu(_func))
 
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = []
@@ -571,18 +572,22 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
                 else:
                     seen_types.add(hash(T))
 
-                if T.name in ["Vec", "UnorderedMap"]:
+                if T.name in ["Vec", "UnorderedMap", "IntSet"]:
                     std_type: str = {
                         "Vec": "vector",
-                        "UnorderedMap": "unordered_map"
-                    }[T.name]
+                        "UnorderedMap": "unordered_map",
+                        "IntSet": "int_set",
+                    }.get(T.name, None)
 
-                    stdvec_t = QualType.ForName(std_type,
+                    if T.name not in ["IntSet"]:
+                        stdvec_t = QualType.ForName(std_type,
                                                 Spaces=[QualType.ForName("std")],
                                                 Parameters=T.Parameters)
 
-                    opaque_declarations.append(
-                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+                        opaque_declarations.append(
+                            ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+                        
+                        
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
 
@@ -619,174 +624,6 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
 
 @beartype
-@dataclass
-class QmlWrap():
-    wrapped: List[GenTuEntry]
-    toplevel: List[GenTuEntry]
-    implementation: List[GenTuEntry]
-
-
-@beartype
-def gen_qml_wrap(ast: ASTBuilder, expanded: List[GenTuStruct], tu: ConvTu) -> QmlWrap:
-    qml_wrapped: List[GenTuEntry] = []
-    qml_toplevel: List[GenTuEntry] = []
-
-    def qml_type(typ: QualType) -> QualType:
-        if typ.name == "Str" or typ.name == "string":
-            return QualType.ForName("QString")
-
-        elif typ.name == "SemId":
-            return typ.par0().withChangedSpace("org_qml")
-
-        else:
-            return typ
-
-    def gen_qml_wrap_struct(struct: GenTuStruct) -> GenTuStruct:
-        result = GenTuStruct(
-            name=struct.name.withoutSpace("sem").withExtraSpace("org_qml"),
-            GenDescribe=False,
-            bases=[b.withoutSpace("sem") for b in struct.bases],
-        )
-
-        result.nested.append(GenTuPass("Q_GADGET"))
-        result.nested.append(GenTuPass("public:"))
-        qml_toplevel.append(
-            GenTuPass(ast.Call(
-                ast.string("Q_DECLARE_METATYPE"),
-                [ast.Type(result.name)],
-            )))
-
-        BASE_NODE_FIELD = "__data"
-
-        if hasattr(struct, "isOrgType"):
-            pass
-
-        else:
-            result.fields.append(
-                GenTuField(
-                    type=struct.name.withGlobalSpace(),
-                    name=BASE_NODE_FIELD,
-                ))
-
-        def capitalize_first(s: str) -> str:
-            return s[0].upper() + s[1:] if s else ""
-
-        if hasattr(struct, "isOrgType"):
-            result.nested.append(GenTuPass(
-                ast.string(f"{struct.name.name}() = default;")))
-
-            result.nested.append(
-                GenTuPass(
-                    ast.string(
-                        "{name}(sem::SemId<sem::Org> const& id) : {base}(id) {{}}".format(
-                            name=struct.name.name,
-                            base=struct.bases[0].name,
-                        ))))
-
-        for field in struct.fields:
-            if field.isStatic:
-                continue
-
-            elif field.type.name in [
-                    "Opt",
-                    "Vec",
-                    "vector",
-                    "optional",
-                    "Org",
-                    "UnorderedMap",
-            ]:
-                continue
-
-            else:
-                result.nested.append(
-                    GenTuPass(
-                        ast.b.join([
-                            ast.string("Q_PROPERTY("),
-                            ast.Type(qml_type(field.type)),
-                            ast.string(field.name),
-                            ast.string("READ"),
-                            ast.string("get" + capitalize_first(field.name)),
-                            ast.string("WRITE"),
-                            ast.string("set" + capitalize_first(field.name)),
-                            ast.string(")"),
-                        ], ast.b.text(" "))))
-
-                if hasattr(struct, "isOrgType"):
-                    field_access = ast.string(
-                        f"{BASE_NODE_FIELD}.getAs<sem::{struct.name.name}>()->{field.name}"
-                    )
-
-                else:
-                    field_access = ast.string(f"{BASE_NODE_FIELD}.{field.name}")
-
-                serde_type = QualType(
-                    name="serde",
-                    Spaces=[QualType.ForName("org_qml")],
-                    Parameters=[qml_type(field.type), field.type],
-                )
-
-                result.methods.append(
-                    GenTuFunction(
-                        result=qml_type(field.type),
-                        name="get" + capitalize_first(field.name),
-                        impl=ast.Return(
-                            ast.CallStatic(
-                                serde_type,
-                                opc="cxx_to_qml",
-                                Args=[field_access],
-                            )),
-                    ))
-
-                result.methods.append(
-                    GenTuFunction(
-                        result=QualType.ForName("void"),
-                        name="set" + capitalize_first(field.name),
-                        arguments=[
-                            GenTuIdent(
-                                type=qml_type(field.type),
-                                name=field.name,
-                            )
-                        ],
-                        impl=ast.b.line([
-                            field_access,
-                            ast.string(" = "),
-                            ast.CallStatic(
-                                serde_type,
-                                opc="qml_to_cxx",
-                                Args=[ast.string(field.name)],
-                            ),
-                            ast.string(";"),
-                        ]),
-                    ))
-
-        return result
-
-    for item in tu.structs:
-        if item.name.name in ["LineCol"]:
-            qml_wrapped.append(gen_qml_wrap_struct(item))
-
-    for item in expanded:
-        qml_wrapped.append(gen_qml_wrap_struct(item))
-
-    qml_implementation: List[GenTuEntry] = []
-    gen = GenConverter(ast)
-    for item in qml_wrapped:
-        match item:
-            case GenTuStruct():
-                for meth in item.methods:
-                    declaration: MethodDeclParams = gen.convertMethod(meth)
-                    meth.impl = None
-                    qml_implementation.append(
-                        GenTuPass(ast.MethodDef(declaration.asMethodDef(item.name))))
-
-    return QmlWrap(
-        wrapped=qml_wrapped,
-        toplevel=qml_toplevel,
-        implementation=qml_implementation,
-    )
-
-
-@beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
     proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
@@ -804,13 +641,13 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         yaml.safe_dump(to_base_types(tu), stream=file)
 
     with open("/tmp/reflection_data.json", "w") as file:
+        log(CAT).debug(f"Debug reflection data to {file.name}")
         file.write(open_proto_file(reflection_path).to_json(2))
 
     global org_type_names
     org_type_names = [Typ.name for Typ in expanded]
 
     autogen_structs = gen_pybind11_wrappers(ast, expanded, tu)
-    qml = gen_qml_wrap(ast, expanded, tu)
 
     return GenFiles([
         GenUnit(
@@ -818,22 +655,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
-        GenUnit(
-            GenTu(
-                "{root}/src/editor/gui_lib/org_qml.hpp",
-                [
-                    GenTuPass("#pragma once"),
-                    GenTuPass("#include \"org_qml_manual.hpp\""),
-                    GenTuNamespace("org_qml", qml.wrapped),
-                ] + qml.toplevel,
-            ),
-            GenTu(
-                "{root}/src/editor/gui_lib/org_qml.cpp",
-                [
-                    GenTuPass("#include \"org_qml_manual2.hpp\""),
-                ] + qml.implementation,
-            ),
-        ),
         GenUnit(
             GenTu("{base}/sem/SemOrgProto.proto", [
                 GenTuPass('syntax = "proto3";'),
@@ -969,7 +790,7 @@ if __name__ == "__main__":
             directory = os.path.dirname(path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-                log().info(f"Created dir for {path}")
+                log(CAT).info(f"Created dir for {path}")
 
             opts = TextOptions()
             opts.rightMargin = 160
@@ -984,10 +805,10 @@ if __name__ == "__main__":
                 if oldCode != newCode:
                     with open(path, "w") as out:
                         out.write(newCode)
-                    log().info(f"[red]Updated code[/red] in {define.path}")
+                    log(CAT).info(f"[red]Updated code[/red] in {define.path}")
                 else:
-                    log().info(f"[green]No changes[/green] on {define.path}")
+                    log(CAT).info(f"[green]No changes[/green] on {define.path}")
             else:
                 with open(path, "w") as out:
                     out.write(newCode)
-                log().info(f"[red]Wrote[/red] to {define.path}")
+                log(CAT).info(f"[red]Wrote[/red] to {define.path}")

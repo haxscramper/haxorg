@@ -3,13 +3,17 @@
 #include <functional>
 #include "macros.hpp"
 
-/// \brief Trigger callback when exiting the scope. Ad-hoc RAII
+/// Trigger callback when exiting the scope. Ad-hoc RAII
 /// implementation
 struct finally {
+    /// Callback function called in destructor
     std::function<void(void)> action;
+
+    /// Default constructor, use as ~funally{[](){ callback-action(); }}~
     explicit finally(std::function<void(void)> _action)
         : action(_action) {}
 
+    /// Overloaded constructor to run scope finalizer with some captured value
     template <typename T>
     static finally init(
         std::function<void(T const&)> _action,
@@ -17,6 +21,7 @@ struct finally {
         return finally([value, _action]() { _action(value); });
     }
 
+    /// Constructor for do-nothing default action
     static finally nop() { return finally{finally::nop_impl}; }
 
     ~finally() { action(); }
@@ -25,7 +30,7 @@ struct finally {
     static void nop_impl() {}
 };
 
-/// \brief Overloading support for `std::visit`
+/// Overloading support for `std::visit`
 template <class... Ts>
 struct overloaded : Ts... {
     using Ts::operator()...;
@@ -39,13 +44,13 @@ bool notNil(T* ptr) {
     return ptr != nullptr;
 }
 
-/// \brief Check if pointer is a null pointer
+/// Check if pointer is a null pointer
 template <typename T>
 bool isNil(T* ptr) {
     return ptr == nullptr;
 }
 
-/// \brief Helper base type for defining CRTP classes
+/// Helper base type for defining CRTP classes
 template <typename T>
 struct CRTP_this_method {
   protected:
@@ -62,15 +67,14 @@ struct CRTP_this_method {
               << std::endl;
 
 
+/// Check if ~ptr~ falls in ~[start, start + size]~ range. Start and size addition
+/// will use pointer arichmetics to compute the size. 
 template <typename T>
 bool is_within_memory_block(
     T const*    ptr,
     T const*    start,
     std::size_t size) {
-    // calculate the end of the memory block
     T const* end = start + size;
-
-    // check if the pointer is within the memory block
     return start <= ptr && ptr < end;
 }
 

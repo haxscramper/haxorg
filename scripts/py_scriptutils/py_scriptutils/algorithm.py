@@ -1,4 +1,4 @@
-from beartype.typing import List, Any, TypeVar, Iterable
+from beartype.typing import List, Any, TypeVar, Iterable, Callable, Optional
 import itertools
 from beartype import beartype
 
@@ -8,6 +8,22 @@ T = TypeVar('T')
 @beartype
 def drop_none(items: Iterable[T]) -> Iterable[T]:
     return itertools.filterfalse(lambda it: not it, items)
+
+
+@beartype
+def first_index_if(items: Iterable[T], pred: Callable[[T], bool]) -> int:
+    for idx, value in enumerate(items):
+        if pred(value):
+            return idx
+
+    return -1
+
+
+@beartype
+def first_if(items: Iterable[T], pred: Callable[[T], bool]) -> Optional[T]:
+    for value in items:
+        if pred(value):
+            return value
 
 
 def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=None):
@@ -31,7 +47,7 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
 
     context.append(tree)
 
-    if isinstance(tree, list):
+    if isinstance(tree, (list, tuple)):
         for it in tree:
             iterate_object_tree(
                 it,
@@ -56,13 +72,17 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
 
     elif isinstance(tree, object):
         # If any object -- walk all slots (attributes)
-        for slot, value in vars(tree).items():
-            iterate_object_tree(
-                value,
-                context,
-                pre_visit=pre_visit,
-                post_visit=post_visit,
-            )
+        if hasattr(tree, "__dict__"):
+            for slot, value in vars(tree).items():
+                iterate_object_tree(
+                    value,
+                    context,
+                    pre_visit=pre_visit,
+                    post_visit=post_visit,
+                )
+
+        else:
+            print(f"??? {type(tree)}")
 
     # Walk over every item in list
     # Otherwise, print the value -- if something is missing it will be added later

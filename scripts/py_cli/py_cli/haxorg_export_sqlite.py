@@ -45,6 +45,4 @@ def export_sqlite(ctx: click.Context, config: Optional[str] = None, **kwargs):
                 with run.event("Register document", CAT, dict(path=str(file))):
                     registerDocument(node, engine, file)
 
-        log(CAT).info(f"Finished DB write to {opts.outfile}")
-
     run.finalize()

@@ -28,8 +28,14 @@ WORKDIR /haxorg
 RUN apt-get install -y qt6-base-dev qt6-declarative-dev qt6-quick3d-dev
 RUN apt-get install -y ninja-build pkg-config libkrb5-dev libssl-dev
 RUN apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
-RUN apt-get install -y libxkbcommon-dev libpcre2-dev libgraphviz-dev libboost-all-dev
+RUN apt-get install -y libxkbcommon-dev libgraphviz-dev libboost-all-dev
 RUN apt-get install -y mold
 RUN apt-get install -y elfutils libdw-dev
 RUN apt-get install -y libncurses5-dev doxygen graphviz
-# RUN apt-get install -y libpcre3 libpcre3-dev
+RUN apt-get install -y libpcre3 libpcre3-dev libtbb-dev
+# For JS visualization tests -- the main part of the code does not require JS. 
+RUN apt-get install -y nodejs npm
+
+COPY package.json .
+COPY package-lock.json .
+RUN npm install

@@ -1,0 +1,16 @@
+quiet: false
+debug: false
+instrument:
+  coverage: true
+  xray: false
+  asan: false
+
+tasks:
+  skip_python_refl: false
+  # skip_python_refl: false
+
+force_task: [
+  "python_protobuf_files",
+]
+
+ 

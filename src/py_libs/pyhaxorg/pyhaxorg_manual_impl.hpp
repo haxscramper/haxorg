@@ -21,6 +21,7 @@
 #include <py_type_casters.hpp>
 
 #include <frameobject.h>
+#include <sem/SemBaseApi.hpp>
 
 namespace py = pybind11;
 
@@ -65,7 +66,7 @@ void bind_enum_iterator(py::module& m, const char* PyTypeName) {
 
 template <typename T>
 void bind_int_set(py::module& m, const char* PyNameType) {
-    py::class_<IntSet<T>>(m, (std::string(PyNameType) + "IntVec").c_str())
+    py::class_<IntSet<T>>(m, PyNameType)
         .def(py::init([](py::list list) -> IntSet<T> {
             IntSet<T> result;
             for (auto const& it : list) { result.incl(it.cast<T>()); }
@@ -85,7 +86,9 @@ void bind_vector(py::module& m, const char* PyNameType) {
         .def(pybind11::init<std::initializer_list<T>>())
         .def(pybind11::init<const Vec<T>&>())
         .def("FromValue", &Vec<T>::FromValue)
-        .def("append", (void(Vec<T>::*)(const Vec<T>&)) & Vec<T>::append);
+        // .def("append", (void(Vec<T>::*)(const Vec<T>&)) &
+        // Vec<T>::append)
+        ;
 }
 
 template <typename K, typename V>
@@ -132,116 +135,36 @@ struct py_arg_convertor<Vec<T>> {
 
 template <DescribedRecord R>
 void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
+    UnorderedSet<Str> used_kwargs;
     for_each_field_with_bases<R>([&](auto const& field) {
         if (kwargs.contains(field.name)) {
+            used_kwargs.incl(field.name);
             auto& ref = value.*field.pointer;
             py_arg_convertor<std::remove_cvref_t<decltype(ref)>>::write(
                 ref, kwargs[field.name]);
         }
     });
+
+    if (used_kwargs.size() != kwargs.size()) {
+        UnorderedSet<Str> passed_kwargs;
+        for (auto const& it : kwargs) {
+            passed_kwargs.incl(Str(pybind11::str(it.first)));
+        }
+        throw std::logic_error(
+            fmt("Passed unknown field name {}",
+                (passed_kwargs - used_kwargs)));
+    }
 }
 
-
-struct ExporterJson;
-struct ExporterYaml;
-struct ExporterTree;
 
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
     sem::SemId<sem::Org> id,
     pybind11::slice      slice);
 sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index);
 
-struct [[refl]] OrgExporterJson {
-    SPtr<ExporterJson> impl;
-    json               result;
-
-    OrgExporterJson();
-    /// Visit top-level node of the exporter, filling in the internal
-    /// return state.
-    [[refl]] void visitNode(sem::SemId<sem::Org> node /*! Input node */);
-    [[refl]] std::string exportToString();
-    [[refl]] void        exportToFile(std::string path);
-
-    BOOST_DESCRIBE_CLASS(OrgExporterJson, (), (), (), ());
-};
-
-struct [[refl]] ExporterTreeOpts {
-    [[refl]] bool withLineCol     = true;
-    [[refl]] bool withOriginalId  = true;
-    [[refl]] bool withSubnodeIdx  = true;
-    [[refl]] bool skipEmptyFields = true;
-    [[refl]] int  startLevel      = 0;
-    [[refl]] bool withColor       = true;
-
-    BOOST_DESCRIBE_CLASS(
-        ExporterTreeOpts,
-        (),
-        (withLineCol,
-         withOriginalId,
-         withSubnodeIdx,
-         skipEmptyFields,
-         startLevel,
-         withColor),
-        (),
-        ());
-};
-
-
-struct [[refl]] OrgExporterTree {
-    [[refl]] std::string toString(
-        sem::SemId<sem::Org> node,
-        ExporterTreeOpts     opts);
-    [[refl]] void toFile(
-        sem::SemId<sem::Org> node,
-        std::string          path,
-        ExporterTreeOpts     opts);
-
-    void stream(
-        std::ostream&        stream,
-        sem::SemId<sem::Org> node,
-        ExporterTreeOpts     opts);
-
-    BOOST_DESCRIBE_CLASS(OrgExporterTree, (), (), (), ());
-};
-
-
-struct [[refl]] OrgExporterYaml {
-    SPtr<ExporterYaml> impl;
-    yaml               result;
-
-    OrgExporterYaml();
-    /// Visit top-level node of the exporter, filling in the internal
-    /// return state.
-    [[refl]] void        visitNode(sem::SemId<sem::Org> node);
-    [[refl]] std::string exportToString();
-    [[refl]] void        exportToFile(std::string path);
-
-    BOOST_DESCRIBE_CLASS(OrgExporterYaml, (), (), (), ());
-};
-
-struct [[refl]] OrgContext {
-    sem::SemId<sem::Document> node = sem::SemId<sem::Document>::Nil();
-
-    OrgContext() {}
-
-    [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
-    [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> parseTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> semTracePath       = std::nullopt;
-
-    [[refl]] sem::SemId<sem::Document> parseFile(std::string file);
-    [[refl]] sem::SemId<sem::Document> parseString(std::string const text);
-    [[refl]] sem::SemId<sem::Document> parseProtobuf(
-        std::string const& file);
-    [[refl]] void saveProtobuf(
-        sem::SemId<sem::Document> doc,
-        std::string const&        file);
-
-    [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
-
-    BOOST_DESCRIBE_CLASS(OrgContext, (), (), (), ());
-};
-
+[[refl]] void eachSubnodeRec(
+    sem::SemId<sem::Org> node,
+    py::function         callback);
 
 enum class [[refl]] LeafFieldType
 {
@@ -736,7 +659,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::PopVisit,
                 .visitedValue = &res,
                 .visitedNode  = id,
-                .msg = ("no callback for " + fmt1(T::staticKind)));
+                .msg = ("no 'pop visit' callback for " + fmt1(T::staticKind)));
         }
     }
 

@@ -1,0 +1,20 @@
+{
+  "name": "haxorg",
+  "version": "1.0.0",
+  "description": "Org-mode parser with focus on scripting, structured data processing and ease of embedding in software.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "d3": "^7.9.0",
+    "puppeteer": "^22.6.1"
+  }
+}

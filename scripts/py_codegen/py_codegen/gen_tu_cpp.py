@@ -77,6 +77,8 @@ class GenTuFunction:
     isPureVirtual: bool = False
     parentClass: Optional['GenTuStruct'] = None
     original: Optional[Path] = None
+    spaces: List[QualType] = field(default_factory=list)
+    isExposedForWrap: bool = True
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
@@ -107,6 +109,7 @@ class GenTuField:
     isConst: bool = False
     isStatic: bool = False
     isTypeDecl: bool = False
+    isExposedForWrap: bool = True
 
 
 GenTuEntry = Union[
