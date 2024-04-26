@@ -289,6 +289,8 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
 
+    result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
+
     return result
 
 
@@ -361,6 +363,7 @@ def docker_run(
     test: bool = True,
     docs: bool = True,
     coverage: bool = True,
+    reflection: bool = True,
 ):
     """Run docker"""
 
@@ -413,6 +416,7 @@ def docker_run(
                 "--test" if test else "--no-test",
                 "--docs" if docs else "--no-docs",
                 "--coverage" if coverage else "--no-coverage",
+                "--reflection" if reflection else "--no-reflection",
             ]),
         ])
 
@@ -431,34 +435,6 @@ def download_llvm(ctx: Context):
 def base_environment(ctx: Context):
     """Ensure base dependencies are installed"""
     pass
-
-
-@org_task(pre=[base_environment])
-def cmake_configure_utils(ctx: Context):
-    """Execute configuration for utility binary compilation"""
-    log(CAT).info("Configuring cmake utils build")
-    run_command(
-        ctx,
-        "cmake",
-        [
-            "-B",
-            get_component_build_dir(ctx, "utils"),
-            "-S",
-            str(get_script_root().joinpath("scripts/cxx_codegen")),
-            "-G",
-            "Ninja",
-            f"-DCMAKE_BUILD_TYPE={'Debug' if get_config(ctx).debug else 'RelWithDebInfo'}",
-            f"-DCMAKE_CXX_COMPILER={get_script_root('toolchain/llvm/bin/clang++')}",
-        ],
-    )
-
-
-@org_task(task_name="Build cmake utils", pre=[cmake_configure_utils])
-def cmake_utils(ctx: Context):
-    """Compile libraries and binaries for utils"""
-    log(CAT).info("Building build utils")
-    run_command(ctx, "cmake", ["--build", get_component_build_dir(ctx, "utils")])
-    log(CAT).info("CMake utils build ok")
 
 
 REFLEX_PATH = "build/reflex"
@@ -552,7 +528,7 @@ def python_protobuf_files(ctx: Context):
 
             run_command(
                 ctx,
-                "protoc",
+                get_build_root("haxorg/thirdparty/protobuf/protoc"),
                 [
                     f"--plugin={protoc_plugin}",
                     "-I",
@@ -666,15 +642,14 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
         run_command(ctx, tool, [json.dumps(config)])
 
 
-@org_task(pre=[cmake_utils, python_protobuf_files])
+@org_task(pre=[python_protobuf_files])
 def update_py_haxorg_reflection(
     ctx: Context,
-    force: bool = False,
     verbose: bool = False,
 ):
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
-    include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
+    toolchain_include = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = get_script_root("build/reflection.pb")
     src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
 
@@ -687,17 +662,18 @@ def update_py_haxorg_reflection(
             output=[out_file],
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
-        if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
+        if is_forced(ctx, "update_py_haxorg_reflection") or (
+                op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
             exitcode, stdout, stderr = run_command(
                 ctx,
-                "build/utils/reflection_tool/reflection_tool",
+                "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
                 [
                     "-p",
                     compile_commands,
                     "--compilation-database",
                     compile_commands,
                     "--toolchain-include",
-                    include_dir,
+                    toolchain_include,
                     *(["--verbose"] if verbose else []),
                     "--out",
                     out_file,
@@ -722,7 +698,7 @@ def update_py_haxorg_reflection(
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[cmake_utils, update_py_haxorg_reflection])
+@org_task(pre=[cmake_haxorg, update_py_haxorg_reflection])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR
@@ -865,7 +841,7 @@ def org_coverage(ctx: Context):
     binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
-@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
+@org_task(pre=[cmake_haxorg, python_protobuf_files])
 def py_cli(
     ctx: Context,
     arg: List[str] = [],
@@ -908,7 +884,7 @@ def py_debug_script(ctx: Context, arg):
     )
 
 
-@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
+@org_task(pre=[cmake_haxorg, python_protobuf_files])
 def py_test_debug(ctx: Context, test: str):
     log(CAT).info(get_py_env(ctx))
     test: Path = Path(test)
@@ -971,7 +947,7 @@ def symlink_build(ctx: Context):
     )
 
 
-@org_task(pre=[haxorg_base_lexer, cmake_haxorg, cmake_utils])
+@org_task(pre=[haxorg_base_lexer, cmake_haxorg])
 def cmake_all(ctx: Context):
     """Build all binary artifacts"""
     pass
@@ -1003,12 +979,12 @@ def get_cxx_profdata_params() -> ProfdataParams:
     )
 
 
-@org_task(pre=[cmake_utils])
+@org_task(pre=[cmake_haxorg])
 def cxx_merge_coverage(ctx: Context):
     profile_path = get_cxx_profdata_params_path()
     run_command(
         ctx,
-        "build/utils/profdata_merger/profdata_merger",
+        "build/haxorg/scripts/cxx_codegen/profdata_merger/profdata_merger",
         [
             profile_path,
         ],
@@ -1123,10 +1099,12 @@ def ci(
     test: bool = True,
     docs: bool = True,
     coverage: bool = True,
+    reflection: bool = True,
 ):
     "Execute all CI tasks"
     env = {"INVOKE_CI": "ON"}
     if build:
+        log(CAT).info("Running CI cmake")
         run_command(
             ctx,
             "invoke",
@@ -1134,7 +1112,17 @@ def ci(
             env=env,
         )
 
+    if reflection:
+        log(CAT).info("Running CI reflection")
+        run_command(
+            ctx,
+            "invoke",
+            ["haxorg-codegen"],
+            env=env,
+        )
+
     if test:
+        log(CAT).info("Running CI tests")
         python_protobuf_files(ctx)
         run_command(
             ctx,
@@ -1148,6 +1136,7 @@ def ci(
         )
 
     if coverage:
+        log(CAT).info("Running CI coverage merge")
         run_command(
             ctx,
             "invoke",
@@ -1156,6 +1145,7 @@ def ci(
         )
 
     if docs:
+        log(CAT).info("Running CI docs")
         run_command(
             ctx,
             "invoke",

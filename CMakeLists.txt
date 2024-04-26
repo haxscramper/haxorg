@@ -15,6 +15,7 @@ project(haxorg LANGUAGES CXX)
 set(BASE "${CMAKE_SOURCE_DIR}")
 message(STATUS "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 set(LLVM_DIR "${BASE}/toolchain/llvm")
+set(TOOLCHAIN_DIR "${BASE}/toolchain")
 
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
 set(SCRIPT_DIR "${BASE}/src/scripts")
@@ -28,24 +29,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Directory with clang-related runtime libraries such as asan that are shipped 
 # with LLVM
 set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/17/lib/x86_64-unknown-linux-gnu")
-# Standard library, libc++.so and other things
-set(LLVM_STD_DIRS "${LLVM_DIR}/lib/x86_64-unknown-linux-gnu")
 # Declare variable for the asan library path, it is used in target setups, this
 # is not some specific variable that is implicitly consumed, just declared it here
 set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
-# Headers that standard library apparently uses to interface with the system?
-set(LLVM_GNU_INCLUDE "${LLVM_DIR}/include/x86_64-unknown-linux-gnu/c++/v1")
-# Standard library headers
-set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
+set(PACKAGED_STD_VERSION "14")
 
-# Globally configure compiler flags with all necessary flags etc., this will be shared 
-# down to all sub-components and dependencies. 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
-# It is important to specify linker flags globally for the whole project here -- benchmark
-# subdirectory depends on the cxx_feature_check which fails if the shared parts of the standard
-# library are not found. Regex check compiles test code, everything is ok, but running
-# would fail without adding stdc++ runtime search paths
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${LLVM_GNU_CLANG_DIR},-rpath,${LLVM_STD_DIRS}")
+message(STATUS "[DBG] LLVM_STD_INCLUDE = ${LLVM_STD_INCLUDE}")
+message(STATUS "[DBG] LLVM_GNU_CLANG_DIR = ${LLVM_GNU_CLANG_DIR}")
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
@@ -94,6 +84,7 @@ add_subdirectory("${DEPS_DIR}/pybind11")
 
 add_subdirectory("${DEPS_DIR}/abseil-cpp")
 add_subdirectory("${DEPS_DIR}/googletest")
+add_subdirectory("${DEPS_DIR}/SQLiteCpp")
 
 
 set(protobuf_INSTALL OFF)
@@ -116,3 +107,4 @@ include(src/cmake/target_pyhaxorg.cmake)
 include(src/cmake/target_lsp.cmake)
 
 add_subdirectory(scripts/cxx_repository)
+add_subdirectory(scripts/cxx_codegen)

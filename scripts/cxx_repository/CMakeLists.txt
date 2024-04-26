@@ -14,9 +14,6 @@ set_target_flags(code_forensics)
 
 glob_add_sources2(code_forensics "${BASE}/scripts/cxx_repository/.*" "${BASE}")
 
-set(SQLCPP_DIR "${BASE}/thirdparty/SQLiteCpp")
-add_subdirectory("${SQLCPP_DIR}" "${CMAKE_BINARY_DIR}/sqlitecpp_build")
-
 SET(LIBGIT2_PREFIX "${CMAKE_BINARY_DIR}/libgit2")
 message(STATUS "LIBGIT2_PREFIX = ${LIBGIT2_PREFIX}")
 

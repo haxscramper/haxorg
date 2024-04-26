@@ -19,7 +19,7 @@ from py_scriptutils.sqlalchemy_utils import (dump_db_all, dump_flat_table, forma
 from sqlalchemy import select
 
 profdata_merger = get_haxorg_repo_root_path().joinpath(
-    "build/utils/profdata_merger/profdata_merger")
+    "build/haxorg/scripts/cxx_codegen/profdata_merger/profdata_merger")
 
 tool_dir = get_haxorg_repo_root_path().joinpath("toolchain/llvm/bin")
 corpus_base = get_haxorg_repo_root_path().joinpath("tests/python/repo/coverage_corpus")

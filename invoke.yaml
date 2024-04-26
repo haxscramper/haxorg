@@ -12,6 +12,7 @@ tasks:
 force_task: [
   # "cmake_configure_haxorg",
   # "cmake_haxorg",
+  "update_py_haxorg_reflection",
   "python_protobuf_files",
 ]
 

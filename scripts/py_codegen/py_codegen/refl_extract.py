@@ -256,6 +256,7 @@ def run_collector(
         f"--out={str(tmp_output)}",
         f"--toolchain-include={conf.toolchain_include}",
         f"--target-files={target_files}",
+        "--nostdinc",
         str(input),
     ]
 

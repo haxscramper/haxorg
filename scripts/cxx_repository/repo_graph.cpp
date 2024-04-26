@@ -10,9 +10,11 @@ CommitGraph::CommitGraph(
     SPtr<git_revwalk> walker = git::revwalk_new(repo.get()).value();
     git::revwalk_sorting(walker.get(), GIT_SORT_NONE);
 
-    auto branch = git::branch_lookup(repo.get(), branch_name).value();
-    auto first_commit = git::reference_peel(branch.get());
-    git_oid_cpy(&first_oid, git_commit_id(first_commit->get()));
+    SPtr<git_reference>
+        branch = git::branch_lookup(repo.get(), branch_name).value();
+    GitResult<SPtr<git_commit>> first_commit = git::reference_peel(
+        branch.get());
+    git_oid_cpy(&first_oid, git_commit_id(first_commit.value().get()));
     git_revwalk_push(walker.get(), &first_oid);
 
     LOG(INFO) << std::format(
@@ -35,9 +37,7 @@ CommitGraph::CommitGraph(
             auto oid        = *git::commit_parent_id(commit.get(), i);
             auto parent     = get_desc(oid);
             auto [edge, ok] = bg::add_edge(parent, current, g);
-            if (i == 0) {
-                g[parent].is_main = true;
-            }
+            if (i == 0) { g[parent].is_main = true; }
         }
     }
 }
@@ -91,9 +91,7 @@ CommitGraph::VDesc CommitGraph::get_desc(CR<git_oid> oid) {
 }
 Opt<CommitGraph::VDesc> CommitGraph::get_base(VDesc v) const {
     for (auto in : parent_commits(v)) {
-        if (g[bg::target(in, g)].is_main) {
-            return source(in);
-        }
+        if (g[bg::target(in, g)].is_main) { return source(in); }
     }
 
     return Opt<VDesc>{};

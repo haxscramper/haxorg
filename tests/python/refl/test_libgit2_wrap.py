@@ -22,7 +22,7 @@ def test_libgit2_conv():
         root = get_haxorg_repo_root_path()
         start = dict(
             input=["{config_dir}/include"],
-            indexing_tool="{tool_dir}/build/utils_debug/reflection_tool",
+            indexing_tool="{tool_dir}/build/haxorg/scripts/cxx_codegen/reflection_tool",
             build_root="{config_dir}/build",
             source_root="{config_dir}",
             header_root="{config_dir}/include",
