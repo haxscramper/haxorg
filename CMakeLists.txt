@@ -107,3 +107,4 @@ include(src/cmake/target_pyhaxorg.cmake)
 
 add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
+add_subdirectory("${BASE}/src/editor")
