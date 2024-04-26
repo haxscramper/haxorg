@@ -11,6 +11,7 @@ tasks:
 
 force_task: [
   "python_protobuf_files",
+  "update_py_haxorg_reflection",
 ]
 
  

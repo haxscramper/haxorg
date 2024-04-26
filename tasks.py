@@ -363,6 +363,7 @@ def docker_run(
     test: bool = True,
     docs: bool = True,
     coverage: bool = True,
+    reflection: bool = True,
 ):
     """Run docker"""
 
@@ -415,6 +416,7 @@ def docker_run(
                 "--test" if test else "--no-test",
                 "--docs" if docs else "--no-docs",
                 "--coverage" if coverage else "--no-coverage",
+                "--reflection" if reflection else "--no-reflection",
             ]),
         ])
 
@@ -436,6 +438,7 @@ def base_environment(ctx: Context):
 
 
 REFLEX_PATH = "build/reflex"
+
 
 @org_task(pre=[base_environment])
 def reflex_lexer_generator(ctx: Context):
@@ -525,7 +528,7 @@ def python_protobuf_files(ctx: Context):
 
             run_command(
                 ctx,
-                "protoc",
+                get_build_root("haxorg/thirdparty/protobuf/protoc"),
                 [
                     f"--plugin={protoc_plugin}",
                     "-I",
@@ -659,7 +662,8 @@ def update_py_haxorg_reflection(
             output=[out_file],
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
-        if is_forced(ctx, "update_py_haxorg_reflection") or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
+        if is_forced(ctx, "update_py_haxorg_reflection") or (
+                op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
             exitcode, stdout, stderr = run_command(
                 ctx,
                 "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
@@ -1095,10 +1099,12 @@ def ci(
     test: bool = True,
     docs: bool = True,
     coverage: bool = True,
+    reflection: bool = True,
 ):
     "Execute all CI tasks"
     env = {"INVOKE_CI": "ON"}
     if build:
+        log(CAT).info("Running CI cmake")
         run_command(
             ctx,
             "invoke",
@@ -1106,7 +1112,17 @@ def ci(
             env=env,
         )
 
+    if reflection:
+        log(CAT).info("Running CI reflection")
+        run_command(
+            ctx,
+            "invoke",
+            ["haxorg-codegen"],
+            env=env,
+        )
+
     if test:
+        log(CAT).info("Running CI tests")
         python_protobuf_files(ctx)
         run_command(
             ctx,
@@ -1120,6 +1136,7 @@ def ci(
         )
 
     if coverage:
+        log(CAT).info("Running CI coverage merge")
         run_command(
             ctx,
             "invoke",
@@ -1128,6 +1145,7 @@ def ci(
         )
 
     if docs:
+        log(CAT).info("Running CI docs")
         run_command(
             ctx,
             "invoke",
