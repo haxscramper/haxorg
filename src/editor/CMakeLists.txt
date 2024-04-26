@@ -16,7 +16,6 @@ set(EDITOR_DIR "${BASE}/src/editor")
 message("[DBG] EDITOR_DIR = ${EDITOR_DIR}")
 
 qt_add_executable(editor_app)
-glob_add_sources2(editor_app "${EDITOR_DIR}/.*" "${BASE}")
 target_link_libraries(
   editor_app
   PUBLIC hstd
@@ -27,3 +26,8 @@ target_link_libraries(
          Qt6::Quick
          Qt6::Core
          Qt6::Widgets)
+
+glob_add_sources2(editor_app "${EDITOR_DIR}/.*" "${BASE}")
+set_common_files(editor_app)
+set_target_output(editor_app)
+set_target_flags(editor_app)
