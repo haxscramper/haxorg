@@ -1,6 +1,6 @@
 #include "clang_reflection_lib.hpp"
 
-
+#include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/Tooling.h>
 #include <llvm/Support/CommandLine.h>
@@ -149,7 +149,9 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
             drop();
         } else if (Args[i].find("-fplugin=") != std::string::npos) {
             drop();
-        } else if (Args[i].starts_with("@")) {
+        } else if (
+            Args[i].starts_with("@")
+            || Args[i].starts_with("-vectorize")) {
             drop();
         } else if (
             Args[i].starts_with("-W") && !Args[i].starts_with("-Wno")) {
@@ -179,7 +181,8 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     // location Use serif output.
     push("-Wno-everything");
     push("-v");
-    push("-I" + ToolchainInclude);
+    push("-isystem");
+    push(ToolchainInclude);
     /*
      * Clang with custom LLVM toolchain is able to find toolchain include
      * correctly and append it to the path, but with this separate tool the
@@ -209,7 +212,14 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
      * reflection tool to actually construct the default stdinc++ path
      * correctly right away, but at the moment whatever I wrote also works.
      */
-    push("-nostdinc++");
+
+    // NOTE: The comment above was relevant when the custom standard
+    // library was used in the build process. When the system-provided one
+    // is used it does not seem to be required (on the contrary, removing
+    // std include causes issues with `cstdddef`), but the message above
+    // should stay there regardless.
+
+    // push("-nostdinc++");
 
     LOG_CERR() << "Filtered command line arguments\n";
     for (auto const& arg : filteredArgs) {

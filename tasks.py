@@ -642,12 +642,11 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 @org_task(pre=[python_protobuf_files])
 def update_py_haxorg_reflection(
     ctx: Context,
-    force: bool = False,
     verbose: bool = False,
 ):
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
-    include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
+    toolchain_include = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = get_script_root("build/reflection.pb")
     src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
 
@@ -660,7 +659,7 @@ def update_py_haxorg_reflection(
             output=[out_file],
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
-        if force or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
+        if is_forced(ctx, "update_py_haxorg_reflection") or (op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
             exitcode, stdout, stderr = run_command(
                 ctx,
                 "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
@@ -670,7 +669,7 @@ def update_py_haxorg_reflection(
                     "--compilation-database",
                     compile_commands,
                     "--toolchain-include",
-                    include_dir,
+                    toolchain_include,
                     *(["--verbose"] if verbose else []),
                     "--out",
                     out_file,
@@ -695,7 +694,7 @@ def update_py_haxorg_reflection(
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[update_py_haxorg_reflection])
+@org_task(pre=[cmake_haxorg, update_py_haxorg_reflection])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR

@@ -23,8 +23,10 @@ add_library(
   ${ORG_PROTO_GENERATED_FILES})
 
 target_include_directories(
-  reflection_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src"
-                        "${DEPS_DIR}/abseil-cpp")
+  reflection_lib
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR} "${DEPS_DIR}/protobuf/src"
+         "${DEPS_DIR}/abseil-cpp"
+         "${BASE}/build/haxorg/scripts/cxx_codegen/reflection_tool")
 
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
 target_compile_options(reflection_lib PRIVATE "-fPIC")
