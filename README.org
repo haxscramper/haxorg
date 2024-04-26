@@ -12,13 +12,12 @@ Org-mode parser with focus on scripting, structured data processing and ease of 
 
 Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second phase]] of the Python API, improving the ergonomics and adding more tests. Next step is to implement the CI for testing, documentation and artifact builds.
 
-| Phase       | Status   | Notes                                                     |
-|-------------+----------+-----------------------------------------------------------|
-| QML wrapper | 🔬 POC   | Enable Qt/QML application to work with org-mode documents |
-| C++ core    | 🚧 Alpha | Whole pipeline is complete, working on testing            |
-| Python API  | 🚧 Alpha | Whole DOM model is exposed, working on API improvements   |
-| C API       | ⬜ Todo  | Make the library usable from virtually any PL             |
-| CI          | 🚧 Alpha  | Documentation, testing, artifact builds                   |
+| Phase      | Status   | Notes                                                   |
+|------------+----------+---------------------------------------------------------|
+| Qt editor  | 🚧 WIP   | Qt/C++ editor for the org-mode                          |
+| C++ core   | 🚧 Alpha | Whole pipeline is complete, working on testing          |
+| Python API | 🚧 Alpha | Whole DOM model is exposed, working on API improvements |
+| C API      | ⬜ Todo  | Make the library usable from virtually any PL           |
 
 ** COMPLETED 🚧 C++ Core
 
@@ -32,12 +31,6 @@ Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second 
 - ✅ Automatically wrap C++ data model for python -- done, tested, working on ergonomics improvements
 - 🚧 Implement common data format exporters -- (latex, HTML, XML, Pandoc)
 - 🚧 Use hypothesis for fuzz testing -- porting earlier C++ =google/fuzztest= implementation
-
-** TODO 🚧 CI
-
-- ✅ Execute tests -- full C++ and python corpus, including support projects
-- ⬜ Build and deploy documentation -- integrate Doxygen, Sphynx and ~*.org~ files for the documentation in a single unified static site deployment.
-- ⬜ Create new release on each merge to master
 
 ** TODO ⬜ C API
 
