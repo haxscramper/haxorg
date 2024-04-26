@@ -7,6 +7,9 @@
 #include <QDebug>
 #include <QStandardPaths>
 #include <QDir>
+#include <QCoreApplication>
+#include <QLoggingCategory>
+#include <QDebug>
 
 struct AppOpenedFile {
     Str path;
@@ -137,17 +140,53 @@ AppState load_app_state(CR<Str> path) {
     return state;
 }
 
+void customMessageHandler(
+    QtMsgType                 type,
+    const QMessageLogContext& context,
+    const QString&            msg_in) {
+    QByteArray  localMsg     = msg_in.toLocal8Bit();
+    const char* fileName     = context.file ? context.file : "?";
+    const char* functionName = context.function ? context.function : "?";
+    std::string lvl;
+
+    switch (type) {
+        case QtDebugMsg: lvl = "DEBUG"; break;
+        case QtInfoMsg: lvl = "INFO "; break;
+        case QtWarningMsg: lvl = "WARN "; break;
+        case QtCriticalMsg: lvl = "CRIT "; break;
+        case QtFatalMsg: lvl = "FATAL";
+    }
+
+    std::string loc = fmt(
+        "[{}] {} ({}, {}:{})",
+        lvl,
+        localMsg.constData(),
+        functionName,
+        fileName,
+        context.line);
+
+    if (type == QtFatalMsg || type == QtCriticalMsg) {
+        std::cerr << loc << std::endl;
+        if (type == QtFatalMsg) { abort(); }
+    } else {
+        std::cout << loc << std::endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         throw editor_init_exception::init(
             "Expected at least one (1) CLI argument -- path to the file "
             "for the application init state.");
     }
+    qInstallMessageHandler(customMessageHandler);
 
     AppState state = load_app_state(argv[1]);
 
     QApplication a(argc, argv);
-    MainWindow   w;
+
+
+    MainWindow w;
     w.show();
     int result = a.exec();
 
