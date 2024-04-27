@@ -27,6 +27,9 @@ target_link_libraries(
          Qt6::Core
          Qt6::Widgets)
 
+target_include_directories(editor_app PUBLIC "${BASE}/thirdparty/immer"
+                                             "${BASE}/thirdparty/lager")
+
 glob_add_sources2(editor_app "${EDITOR_DIR}/.*" "${BASE}")
 set_common_files(editor_app)
 set_target_output(editor_app)
