@@ -2,6 +2,8 @@
 #include <hstd/stdlib/diffs.hpp>
 #include <exporters/ExporterUltraplain.hpp>
 #include <sem/SemBaseApi.hpp>
+#include <QLabel>
+#include "org_exporter_html.hpp"
 
 OrgSubtreeSearchModel::OrgSubtreeSearchModel(
     OrgDocumentModel* baseModel,
@@ -54,6 +56,36 @@ void OrgDocumentModel::loadFile(const fs::path& path) {
     auto document = sem::parseFile(path, sem::OrgParseParameters{});
     this->root = std::make_unique<TreeNode>(store->add(document), nullptr);
     buildTree(this->root.get());
+}
+
+SPtr<QWidget> make_label(sem::OrgArg node) {
+    auto         label = std::make_shared<QLabel>();
+    ExporterHtml exp;
+    auto         html_tree = exp.evalTop(node);
+    std::string  html      = exp.store.toString(html_tree);
+    label->setText(QString::fromStdString(html));
+    return label;
+}
+
+QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
+    if (!index.isValid() || role != Qt::DisplayRole) { return QVariant(); }
+
+    TreeNode*   node = static_cast<TreeNode*>(index.internalPointer());
+    sem::OrgArg res  = store->node(node->boxId);
+
+
+    switch (res->getKind()) {
+        case OrgSemKind::Subtree: {
+            return QVariant::fromValue(
+                make_label(res.as<sem::Subtree>()->title));
+        }
+        case OrgSemKind::Paragraph: {
+            return QVariant::fromValue(make_label(res));
+        }
+        default: {
+            return QVariant(QString::fromStdString(fmt1(res->getKind())));
+        }
+    }
 }
 
 sem::SemId<sem::Org> copy(sem::OrgArg node) {

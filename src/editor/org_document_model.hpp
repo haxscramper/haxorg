@@ -82,10 +82,20 @@ struct OrgDocumentModel : public QAbstractItemModel {
     void loadFile(fs::path const& path);
 
     void buildTree(TreeNode* parentNode) {
-        for (auto& subnodeId : store->node(parentNode->boxId)->subnodes) {
-            parentNode->children.push_back(std::make_unique<TreeNode>(
-                store->add(subnodeId), parentNode));
-            buildTree(parentNode->children.back().get());
+        auto const& node = store->node(parentNode->boxId);
+        if (SemSet{
+                OrgSemKind::Subtree,
+                OrgSemKind::Document,
+                OrgSemKind::List,
+                OrgSemKind::ListItem,
+                OrgSemKind::StmtList,
+            }
+                .contains(node->getKind())) {
+            for (auto& subnodeId : node->subnodes) {
+                parentNode->children.push_back(std::make_unique<TreeNode>(
+                    store->add(subnodeId), parentNode));
+                buildTree(parentNode->children.back().get());
+            }
         }
     }
 
@@ -139,14 +149,7 @@ struct OrgDocumentModel : public QAbstractItemModel {
         return 1;
     }
 
-    QVariant data(const QModelIndex& index, int role) const override {
-        if (!index.isValid()) { return QVariant(); }
-
-        if (role != Qt::DisplayRole) { return QVariant(); }
-
-        TreeNode* node = static_cast<TreeNode*>(index.internalPointer());
-        return QVariant::fromValue(node->boxId);
-    }
+    QVariant data(const QModelIndex& index, int role) const override;
 };
 
 

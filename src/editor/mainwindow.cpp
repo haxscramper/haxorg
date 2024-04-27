@@ -12,8 +12,7 @@ void MainWindow::loadFiles() {
     }
 
     for (auto const& model : models) {
-        OrgDocumentEdit* edit = new OrgDocumentEdit(this);
-        edit->setModel(model.get());
+        OrgDocumentEdit* edit = new OrgDocumentEdit(model.get(), this);
         edit->expandRecursively(edit->rootIndex());
         tabs->addTab(edit, "tab");
     }

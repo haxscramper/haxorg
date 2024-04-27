@@ -126,6 +126,10 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         res = lineWrap("b", {lineSubnodes(bold)});
     }
 
+    void visitItalic(Res& res, In<sem::Italic> bold) {
+        res = lineWrap("i", {lineSubnodes(bold)});
+    }
+
     void visitMarkQuote(Res& res, In<sem::MarkQuote> mark) {
         res = b.line({string("\""), lineSubnodes(mark), string("\"")});
     }
