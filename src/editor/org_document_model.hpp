@@ -150,6 +150,16 @@ struct OrgDocumentModel : public QAbstractItemModel {
     }
 
     QVariant data(const QModelIndex& index, int role) const override;
+
+    // QAbstractItemModel interface
+  public:
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const override {
+        if (index.isValid()) {
+            return Qt::ItemIsEditable | QAbstractItemModel::flags(index);
+        } else {
+            return Qt::NoItemFlags;
+        }
+    }
 };
 
 
@@ -158,8 +168,6 @@ struct OrgDocumentSearchFilter : public QSortFilterProxyModel {
         : QSortFilterProxyModel(parent) {
         setSourceModel(baseModel);
     }
-
-    virtual ~OrgDocumentSearchFilter() { __builtin_debugtrap(); };
 
     OrgBoxId getNode(QModelIndex const& source_index) const {
         OrgBoxId* data = static_cast<OrgBoxId*>(

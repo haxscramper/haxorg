@@ -109,7 +109,6 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
 
     void visitParagraph(Res& res, In<sem::Paragraph> tree) {
         res = lineSubnodes(tree);
-        //        res = lineWrap("p", {lineSubnodes(tree)});
     }
 
     void visitSubtree(Res& res, In<sem::Subtree> tree);
@@ -124,6 +123,10 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
 
     void visitBold(Res& res, In<sem::Bold> bold) {
         res = lineWrap("b", {lineSubnodes(bold)});
+    }
+
+    void visitMonospace(Res& res, In<sem::Monospace> bold) {
+        res = lineWrap("tt", {lineSubnodes(bold)});
     }
 
     void visitItalic(Res& res, In<sem::Italic> bold) {

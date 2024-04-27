@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     MainWindow   w{state};
 
     w.loadFiles();
-    w.showFullScreen();
+    w.show();
     int result = a.exec();
 
     json saved_state;

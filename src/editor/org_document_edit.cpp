@@ -1,10 +1,13 @@
 #include "org_document_edit.hpp"
 #include "org_document_model.hpp"
 
-OrgDocumentEdit::OrgDocumentEdit(OrgDocumentModel* model, QWidget* parent)
+OrgDocumentEdit::OrgDocumentEdit(
+    OrgStore*           store,
+    QAbstractItemModel* model,
+    QWidget*            parent)
     : QTreeView(parent) {
     setModel(model);
-    this->setItemDelegate(new OrgNodeEditWidget(this));
+    this->setItemDelegate(new OrgNodeEditWidget(store, this));
 }
 
 void OrgNodeEditWidget::paint(
@@ -15,8 +18,7 @@ void OrgNodeEditWidget::paint(
         index.data(Qt::DisplayRole));
     if (widget) {
         widget->setGeometry(option.rect);
-        widget->setSizePolicy(
-            QSizePolicy::Expanding, QSizePolicy::Expanding);
+        widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
         QPixmap pixmap(widget->size());
         widget->render(&pixmap);
         painter->drawPixmap(option.rect.topLeft(), pixmap);

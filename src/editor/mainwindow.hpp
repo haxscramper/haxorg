@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow {
         , state(state)
         , tabs(new QTabWidget(this)) //
     {
-        resize(600, 600);
+        resize(1200, 1200);
         setCentralWidget(tabs.get());
     }
 };

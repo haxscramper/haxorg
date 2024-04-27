@@ -12,7 +12,11 @@ void MainWindow::loadFiles() {
     }
 
     for (auto const& model : models) {
-        OrgDocumentEdit* edit = new OrgDocumentEdit(model.get(), this);
+        auto filter = new OrgDocumentSearchFilter(model.get(), this);
+        filter->acceptNode = [this](OrgBoxId id) -> bool {
+            return store.node(id)->getKind() != OrgSemKind::Newline;
+        };
+        OrgDocumentEdit* edit = new OrgDocumentEdit(&store, filter, this);
         edit->expandRecursively(edit->rootIndex());
         tabs->addTab(edit, "tab");
     }

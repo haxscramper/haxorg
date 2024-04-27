@@ -58,33 +58,45 @@ void OrgDocumentModel::loadFile(const fs::path& path) {
     buildTree(this->root.get());
 }
 
-SPtr<QWidget> make_label(sem::OrgArg node) {
-    auto         label = std::make_shared<QLabel>();
-    ExporterHtml exp;
-    auto         html_tree = exp.evalTop(node);
-    std::string  html      = exp.store.toString(html_tree);
-    label->setText(QString::fromStdString(html));
+SPtr<QWidget> make_label(Str const& node) {
+    auto label = std::make_shared<QLabel>();
+    label->setText(QString::fromStdString(node));
+    label->setWordWrap(true);
+    label->setStyleSheet("QLabel { background-color : white; }");
     return label;
 }
 
+
+SPtr<QWidget> make_label(sem::OrgArg node) {
+    ExporterHtml exp;
+    auto         html_tree = exp.evalTop(node);
+    return make_label(exp.store.toString(html_tree));
+}
+
 QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || role != Qt::DisplayRole) { return QVariant(); }
+    if (!index.isValid()) { return QVariant(); }
+    TreeNode* node = static_cast<TreeNode*>(index.internalPointer());
+    if (role == Qt::DisplayRole) {
+        sem::OrgArg res = store->node(node->boxId);
 
-    TreeNode*   node = static_cast<TreeNode*>(index.internalPointer());
-    sem::OrgArg res  = store->node(node->boxId);
 
-
-    switch (res->getKind()) {
-        case OrgSemKind::Subtree: {
-            return QVariant::fromValue(
-                make_label(res.as<sem::Subtree>()->title));
+        switch (res->getKind()) {
+            case OrgSemKind::Subtree: {
+                return QVariant::fromValue(
+                    make_label(res.as<sem::Subtree>()->title));
+            }
+            case OrgSemKind::Paragraph: {
+                return QVariant::fromValue(make_label(res));
+            }
+            default: {
+                return QVariant::fromValue(
+                    make_label(fmt1(res->getKind())));
+            }
         }
-        case OrgSemKind::Paragraph: {
-            return QVariant::fromValue(make_label(res));
-        }
-        default: {
-            return QVariant(QString::fromStdString(fmt1(res->getKind())));
-        }
+    } else if (role == Qt::EditRole) {
+        return QVariant::fromValue(node->boxId);
+    } else {
+        return QVariant();
     }
 }
 
