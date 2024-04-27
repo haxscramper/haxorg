@@ -8,6 +8,7 @@ project(
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.2 REQUIRED COMPONENTS Quick Core Test QuickTest Widgets)
+find_package(KF6ItemModels REQUIRED)
 add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
 
 qt_standard_project_setup()
@@ -25,7 +26,8 @@ target_link_libraries(
          Qt6::QuickTest
          Qt6::Quick
          Qt6::Core
-         Qt6::Widgets)
+         Qt6::Widgets
+         KF6::ItemModels)
 
 target_include_directories(editor_app PUBLIC "${BASE}/thirdparty/immer"
                                              "${BASE}/thirdparty/lager")

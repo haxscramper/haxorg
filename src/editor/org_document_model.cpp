@@ -3,6 +3,7 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <sem/SemBaseApi.hpp>
 #include <QLabel>
+#include <QTextEdit>
 #include "org_exporter_html.hpp"
 
 OrgSubtreeSearchModel::OrgSubtreeSearchModel(
@@ -58,16 +59,17 @@ void OrgDocumentModel::loadFile(const fs::path& path) {
     buildTree(this->root.get());
 }
 
-SPtr<QWidget> make_label(Str const& node) {
-    auto label = std::make_shared<QLabel>();
+QWidget* make_label(Str const& node) {
+    auto label = new QTextEdit();
     label->setText(QString::fromStdString(node));
-    label->setWordWrap(true);
-    label->setStyleSheet("QLabel { background-color : white; }");
+    label->setSizePolicy(
+        QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    label->setMinimumHeight(20);
     return label;
 }
 
 
-SPtr<QWidget> make_label(sem::OrgArg node) {
+QWidget* make_label(sem::OrgArg node) {
     ExporterHtml exp;
     auto         html_tree = exp.evalTop(node);
     return make_label(exp.store.toString(html_tree));
@@ -78,8 +80,6 @@ QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
     TreeNode* node = static_cast<TreeNode*>(index.internalPointer());
     if (role == Qt::DisplayRole) {
         sem::OrgArg res = store->node(node->boxId);
-
-
         switch (res->getKind()) {
             case OrgSemKind::Subtree: {
                 return QVariant::fromValue(

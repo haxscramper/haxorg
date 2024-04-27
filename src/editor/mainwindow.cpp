@@ -17,7 +17,6 @@ void MainWindow::loadFiles() {
             return store.node(id)->getKind() != OrgSemKind::Newline;
         };
         OrgDocumentEdit* edit = new OrgDocumentEdit(&store, filter, this);
-        edit->expandRecursively(edit->rootIndex());
         tabs->addTab(edit, "tab");
     }
 }
