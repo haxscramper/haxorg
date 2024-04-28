@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <QStandardPaths>
 #include <QDir>
+#include <hstd/stdlib/Exception.hpp>
 
 struct AppOpenedFile {
     Str path;

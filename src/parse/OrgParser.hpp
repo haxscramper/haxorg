@@ -4,8 +4,12 @@
 #include <parse/OrgTokenizer.hpp>
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Exception.hpp>
 
 #include <lexbase/TraceBase.hpp>
+
+struct parse_error : CRTP_hexception<parse_error> {};
+struct parse_context_error : CRTP_hexception<parse_error> {};
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
@@ -16,8 +20,8 @@ struct OrgParser : public OperationsTracer {
         OrgTokSet,
         Vec<OrgTokenKind>>;
 
-    std::string       getLocMsg(CR<OrgLexer> lex);
-    [[noreturn]] void fatalError(
+    std::string getLocMsg(CR<OrgLexer> lex);
+    parse_error fatalError(
         const OrgLexer& lex,
         CR<Str>         msg,
         int             line     = __builtin_LINE(),
@@ -94,6 +98,11 @@ struct OrgParser : public OperationsTracer {
     void  extendSubtreeTrails(OrgId position);
     void  parseCSVArguments(OrgLexer& lex);
 
+    OrgId subParseImpl(
+        OrgId (OrgParser::*func)(OrgLexer&),
+        OrgLexer&   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
   protected:
     CR<OrgNode> pending() const {

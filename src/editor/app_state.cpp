@@ -70,8 +70,9 @@ AppState load_app_state(CR<Str> path) {
     } else {
         qInfo() << fmt(
             "Initial app startup options file {} did not specify the "
-            "loading state, using default cache path.",
-            path);
+            "loading state, using default cache path {}",
+            path,
+            state_file);
     }
 
     return state;
