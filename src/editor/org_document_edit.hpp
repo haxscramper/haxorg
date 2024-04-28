@@ -21,6 +21,9 @@ struct OrgNodeEditWidget : public QStyledItemDelegate {
         if (index.column() == 0) {
             auto res = new QTextEdit(parent);
             res->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            res->setContentsMargins(0, 0, 0, 0);
+            res->document()->setDocumentMargin(0);
+            res->setStyleSheet("QTextEdit { border: none; }");
             return res;
         } else {
             return QStyledItemDelegate::createEditor(
@@ -73,7 +76,7 @@ struct OrgNodeEditWidget : public QStyledItemDelegate {
                 qobject_cast<QWidget*>(parent())->width()
                 - (getNestingLevel(index) * 20));
             QSize size = widget->sizeHint();
-            size.setHeight(size.height() + 20);
+            // size.setHeight(size.height());
             return size;
         } else {
             return QStyledItemDelegate::sizeHint(option, index);
