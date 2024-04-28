@@ -16,13 +16,21 @@ OrgDocumentEdit::OrgDocumentEdit(
 //
 {
     flatProxy->setSourceModel(model);
+
     auto mainLayout = new QVBoxLayout();
     this->setLayout(mainLayout);
-    auto scroll = new QScrollArea(this);
+    auto scroll    = new QScrollArea(this);
+    auto container = new QWidget(scroll);
+
+    container->setSizePolicy(
+        QSizePolicy::Expanding, QSizePolicy::Expanding);
+    container->setStyleSheet("background-color: white;");
+    scroll->setWidget(container);
     scroll->setWidgetResizable(true);
     mainLayout->addWidget(scroll);
-    scroll->setLayout(layout.get());
+    container->setLayout(layout.get());
     layout->setContentsMargins(0, 0, 0, 0);
+
     populateList();
 
     connect(

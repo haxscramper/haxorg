@@ -65,6 +65,9 @@ QWidget* make_label(Str const& node) {
     label->setSizePolicy(
         QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     label->setMinimumHeight(20);
+    label->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    label->setContentsMargins(0, 0, 0, 0);
+    label->setStyleSheet("QTextEdit { border: none; }");
     return label;
 }
 
@@ -85,6 +88,7 @@ QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
                 return QVariant::fromValue(
                     make_label(res.as<sem::Subtree>()->title));
             }
+            case OrgSemKind::AnnotatedParagraph:
             case OrgSemKind::Paragraph: {
                 return QVariant::fromValue(make_label(res));
             }

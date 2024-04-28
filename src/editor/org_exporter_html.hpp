@@ -111,6 +111,12 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         res = lineSubnodes(tree);
     }
 
+    void visitAnnotatedParagraph(
+        Res&                        res,
+        In<sem::AnnotatedParagraph> tree) {
+        res = lineSubnodes(tree);
+    }
+
     void visitSubtree(Res& res, In<sem::Subtree> tree);
 
     void visitStmtList(Res& res, In<sem::StmtList> doc) {
