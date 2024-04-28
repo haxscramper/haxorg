@@ -27,6 +27,11 @@ OrgDocumentEdit::OrgDocumentEdit(
     this->setDragDropMode(QAbstractItemView::InternalMove);
 }
 
+void OrgDocumentEdit::focusOn(QModelIndex index) {
+    qDebug() << "Document edit scroll" << index;
+    this->scrollTo(index);
+}
+
 namespace {
 SPtr<QWidget> make_render(sem::OrgArg node) {
     switch (node->getKind()) {

@@ -1,14 +1,16 @@
 #include "org_document_outline.hpp"
 #include "org_document_render.hpp"
 #include <QPainter>
+#include <QStandardItemModel>
+#include <QStyledItemDelegate>
+#include <QMouseEvent>
+
 
 void OrgOutlineItemDelegate::paint(
     QPainter*                   painter,
     const QStyleOptionViewItem& option,
     const QModelIndex&          index) const {
-    auto tree = static_cast<OrgDocumentModel::TreeNode*>(
-        index.internalPointer());
-    auto node = store->node(tree->boxId);
+    auto node = store->node(qvariant_cast<OrgBoxId>(index.data()));
     if (node->is(OrgSemKind::Subtree)) {
         auto widget = make_label(node.as<sem::Subtree>()->title);
         draw(widget.get(), painter, option, index);
@@ -22,46 +24,7 @@ void OrgDocumentOutline::setFilter(SPtr<OrgSubtreeSearchModel> model) {
     filter = model;
     setModel(filter.get()->filter.get());
     setItemDelegate(new OrgOutlineItemDelegate(store, this));
-}
-
-// QSize OrgOutlineItemDelegate::sizeHint(
-//     const QStyleOptionViewItem& option,
-//     const QModelIndex&          index) const {
-//     if (index.isValid()) {
-//         auto tree = static_cast<OrgDocumentModel::TreeNode*>(
-//             index.internalPointer());
-//         SPtr<QWidget> widget = make_label(store->node(tree->boxId));
-//         return get_width_fit(widget.get(), parent());
-//     } else {
-//         return QStyledItemDelegate::sizeHint(option, index);
-//     }
-// }
-
-
-OrgDocumentOutline::OrgDocumentOutline(
-    OrgStore*         store,
-    OrgDocumentModel* model,
-    QWidget*          parent)
-    : QTreeView(parent)
-    , docModel(model)
-    , store(store)
-//
-{
-    if (model != nullptr) {
-        auto filter        = new OrgDocumentSearchFilter(model, this);
-        filter->acceptNode = [this, store](OrgBoxId id) -> bool {
-            return store->node(id)->getKind() != OrgSemKind::Newline;
-        };
-
-        setModel(filter);
-    }
-
-    this->setItemDelegate(new OrgOutlineItemDelegate(store, this));
-    this->setSelectionMode(QAbstractItemView::SingleSelection);
-    this->setDragEnabled(true);
-    this->setAcceptDrops(true);
-    this->setDropIndicatorShown(true);
-    this->setDragDropMode(QAbstractItemView::InternalMove);
+    expandRecursively(rootIndex());
 }
 
 namespace {
@@ -76,31 +39,44 @@ SPtr<QWidget> make_render(sem::OrgArg node) {
 }
 } // namespace
 
-
-// void OrgOutlineItemDelegate::paint(
-//     QPainter*                   painter,
-//     const QStyleOptionViewItem& option,
-//     const QModelIndex&          index) const {
-//     SPtr<QWidget> widget = make_render(store->node(box(index)));
-//     if (widget) {
-//         draw(widget.get(), painter, option, index);
-//     } else {
-//         QStyledItemDelegate::paint(painter, option, index);
-//     }
-// }
-
-OrgBoxId OrgOutlineItemDelegate::box(const QModelIndex& index) const {
-    return qvariant_cast<OrgBoxId>(
-        index.model()->data(index, Qt::DisplayRole));
-}
-
 QSize OrgOutlineItemDelegate::sizeHint(
     const QStyleOptionViewItem& option,
     const QModelIndex&          index) const {
     if (index.isValid()) {
-        SPtr<QWidget> widget = make_render(store->node(box(index)));
+        OrgBoxId box = qvariant_cast<OrgBoxId>(
+            index.data(Qt::DisplayRole));
+        SPtr<QWidget> widget = make_render(store->node(box));
         return get_width_fit(widget.get(), parent());
     } else {
         return QStyledItemDelegate::sizeHint(option, index);
     }
+}
+
+bool OrgOutlineItemDelegate::editorEvent(
+    QEvent*                     event,
+    QAbstractItemModel*         model,
+    const QStyleOptionViewItem& option,
+    const QModelIndex&          index) {
+    if (event->type() == QEvent::MouseButtonDblClick) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::LeftButton) {
+            emit qobject_cast<OrgDocumentOutline*>(parent())
+                ->outlineFocusRequested(index);
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return QStyledItemDelegate::editorEvent(
+            event, model, option, index);
+    }
+}
+
+
+OrgDocumentOutline::OrgDocumentOutline(OrgStore* store, QWidget* parent)
+    : QTreeView(parent)
+    , store(store)
+//
+{
+    this->setItemDelegate(new OrgOutlineItemDelegate(store, this));
 }

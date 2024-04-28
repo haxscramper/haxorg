@@ -24,7 +24,7 @@ MainWindow::MainWindow(const AppState& state, QWidget* parent)
     : QMainWindow(parent)
     , state(state)
     , tabs(new QTabWidget(this))
-    , outline(std::make_shared<OrgDocumentOutline>(store.get(), nullptr, this))
+    , outline(std::make_shared<OrgDocumentOutline>(store.get(), this))
     , store(std::make_shared<OrgStore>())
 //
 {
@@ -43,8 +43,13 @@ MainWindow::MainWindow(const AppState& state, QWidget* parent)
         tabs.get(), &QTabWidget::currentChanged, this, [&](int tab) {
             OrgDocumentEdit* edit = qobject_cast<OrgDocumentEdit*>(
                 tabs->widget(tab));
-            outline->setModel(edit->docModel);
-            // outline->setFilter(std::make_shared<OrgSubtreeSearchModel>(
-            //     edit->docModel, this, store.get()));
+            outline->setFilter(std::make_shared<OrgSubtreeSearchModel>(
+                edit->docModel, this, store.get()));
+
+            connect(
+                outline.get(),
+                &OrgDocumentOutline::outlineFocusRequested,
+                edit,
+                &OrgDocumentEdit::focusOn);
         });
 }

@@ -92,4 +92,7 @@ class OrgDocumentEdit : public QTreeView {
         OrgStore*         store,
         OrgDocumentModel* model,
         QWidget*          parent);
+
+  public slots:
+    void focusOn(QModelIndex index);
 };

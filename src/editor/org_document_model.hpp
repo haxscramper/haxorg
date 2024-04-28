@@ -75,7 +75,7 @@ struct OrgStore {
 
 struct OrgDocumentModel : public QAbstractItemModel {
     struct TreeNode {
-        OrgBoxId            boxId;
+        OrgBoxId            boxId{};
         Vec<UPtr<TreeNode>> children;
         TreeNode*           parent;
 

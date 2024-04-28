@@ -6,20 +6,9 @@
 #include <sem/SemBaseApi.hpp>
 
 
+class OrgDocumentOutline;
+
 struct OrgOutlineItemDelegate : public QStyledItemDelegate {
-    // OrgStore* store;
-    // OrgOutlineItemDelegate(OrgStore* store, QWidget* parent)
-    //     : QStyledItemDelegate(parent), store(store) {}
-
-    // void paint(
-    //     QPainter*                   painter,
-    //     const QStyleOptionViewItem& option,
-    //     const QModelIndex&          index) const override;
-
-    // QSize sizeHint(
-    //     const QStyleOptionViewItem& option,
-    //     const QModelIndex&          index) const override;
-
     OrgStore* store;
     OrgOutlineItemDelegate(OrgStore* store, QWidget* parent)
         : QStyledItemDelegate(parent), store(store) {}
@@ -29,11 +18,15 @@ struct OrgOutlineItemDelegate : public QStyledItemDelegate {
         const QStyleOptionViewItem& option,
         const QModelIndex&          index) const override;
 
-    OrgBoxId box(QModelIndex const& index) const;
-
     QSize sizeHint(
         const QStyleOptionViewItem& option,
         const QModelIndex&          index) const override;
+
+    virtual bool editorEvent(
+        QEvent*                     event,
+        QAbstractItemModel*         model,
+        const QStyleOptionViewItem& option,
+        const QModelIndex&          index) override;
 };
 
 class OrgDocumentOutline : public QTreeView {
@@ -41,20 +34,9 @@ class OrgDocumentOutline : public QTreeView {
   public:
     SPtr<OrgSubtreeSearchModel> filter;
     OrgStore*                   store;
-
-    //   OrgDocumentOutline(OrgStore* store, QWidget* parent)
-    //       : QTreeView(parent)
-    //       , store(store)
-    //   //
-    //   {
-
-    //   }
-
     void setFilter(SPtr<OrgSubtreeSearchModel> model);
+    OrgDocumentOutline(OrgStore* store, QWidget* parent);
 
-    OrgDocumentModel* docModel;
-    OrgDocumentOutline(
-        OrgStore*         store,
-        OrgDocumentModel* model,
-        QWidget*          parent);
+  signals:
+    void outlineFocusRequested(QModelIndex index);
 };
