@@ -9,22 +9,76 @@
 #include <QTextEdit>
 #include <sem/SemBaseApi.hpp>
 
-class QVBoxLayout;
-class KDescendantsProxyModel;
+struct OrgNodeEditWidget : public QStyledItemDelegate {
+    OrgStore* store;
+    OrgNodeEditWidget(OrgStore* store, QWidget* parent)
+        : QStyledItemDelegate(parent), store(store) {}
 
-class OrgDocumentEdit : public QWidget {
-    Q_OBJECT
-  public:
-    SPtr<KDescendantsProxyModel> flatProxy;
-    SPtr<QVBoxLayout>            layout;
-    QAbstractItemModel*          baseModel;
+    QWidget* createEditor(
+        QWidget*                    parent,
+        const QStyleOptionViewItem& option,
+        const QModelIndex&          index) const override {
+        if (index.column() == 0) {
+            auto res = new QTextEdit(parent);
+            res->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            return res;
+        } else {
+            return QStyledItemDelegate::createEditor(
+                parent, option, index);
+        }
+    }
 
-    QAbstractItemModel* model();
+    void paint(
+        QPainter*                   painter,
+        const QStyleOptionViewItem& option,
+        const QModelIndex&          index) const override;
 
-    OrgDocumentEdit(
-        OrgStore*           store,
+    void setEditorData(QWidget* editor, const QModelIndex& index)
+        const override {
+        OrgBoxId id   = qvariant_cast<OrgBoxId>(index.data(Qt::EditRole));
+        auto     node = store->node(id);
+        switch (node->getKind()) {
+            case OrgSemKind::Paragraph: {
+                QTextEdit* edit = qobject_cast<QTextEdit*>(editor);
+                edit->setText(
+                    QString::fromStdString(sem::formatToString(node)));
+                break;
+            }
+            default: {
+            }
+        }
+    }
+
+    void setModelData(
+        QWidget*            editor,
         QAbstractItemModel* model,
-        QWidget*            parent);
+        const QModelIndex&  index) const override {}
+
+    void updateEditorGeometry(
+        QWidget*                    editor,
+        const QStyleOptionViewItem& option,
+        const QModelIndex&          index) const override {
+        editor->setGeometry(option.rect);
+    }
+
+    QSize sizeHint(
+        const QStyleOptionViewItem& option,
+        const QModelIndex&          index) const override {
+        if (index.isValid()) {
+            QVariant var = index.data(Qt::DisplayRole);
+            Q_ASSERT(var.isValid());
+            SPtr<QWidget> widget = qvariant_cast<SPtr<QWidget>>(var);
+            Q_ASSERT(widget);
+            widget->setFixedWidth(
+                qobject_cast<QWidget*>(parent())->width()
+                - (getNestingLevel(index) * 20));
+            QSize size = widget->sizeHint();
+            size.setHeight(size.height() + 20);
+            return size;
+        } else {
+            return QStyledItemDelegate::sizeHint(option, index);
+        }
+    }
 
     int getNestingLevel(const QModelIndex& index) const {
         int         level   = 0;
@@ -35,11 +89,11 @@ class OrgDocumentEdit : public QWidget {
         }
         return level;
     }
+};
 
-    QWidget* getWidget(CR<QModelIndex> index);
-
-  private slots:
-    void populateList();
-    void onRowsInserted(const QModelIndex& parent, int first, int last);
-    void onRowsRemoved(const QModelIndex& parent, int first, int last);
+struct OrgDocumentEdit : public QTreeView {
+    OrgDocumentEdit(
+        OrgStore*           store,
+        QAbstractItemModel* model,
+        QWidget*            parent);
 };
