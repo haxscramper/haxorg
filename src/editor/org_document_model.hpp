@@ -5,6 +5,8 @@
 #include <immer/box.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <QMimeData>
+#include <QIODevice>
 
 inline std::string to_std(QString const& value) {
     QByteArray tmp = value.toLatin1();
@@ -30,6 +32,17 @@ struct OrgBoxId {
         return this->value == other.value;
     }
 };
+
+
+inline QDataStream& operator<<(QDataStream& out, const OrgBoxId& myObj) {
+    return out << myObj.value;
+}
+
+inline QDataStream& operator>>(QDataStream& in, OrgBoxId& myObj) {
+    return in >> myObj.value;
+}
+
+Q_DECLARE_METATYPE(OrgBoxId);
 
 template <>
 struct std::hash<OrgBoxId> {
@@ -61,8 +74,6 @@ struct OrgStore {
 };
 
 struct OrgDocumentModel : public QAbstractItemModel {
-    OrgStore* store;
-
     struct TreeNode {
         OrgBoxId            boxId;
         Vec<UPtr<TreeNode>> children;
@@ -74,92 +85,56 @@ struct OrgDocumentModel : public QAbstractItemModel {
 
     UPtr<TreeNode> root;
 
+    OrgStore* store;
     explicit OrgDocumentModel(OrgStore* store, QObject* parent = nullptr)
         : QAbstractItemModel(parent), store(store) {}
 
     ~OrgDocumentModel() override = default;
 
+
     void loadFile(fs::path const& path);
+    void buildTree(TreeNode* parentNode);
 
-    void buildTree(TreeNode* parentNode) {
-        auto const& node = store->node(parentNode->boxId);
-        if (SemSet{
-                OrgSemKind::Subtree,
-                OrgSemKind::Document,
-                OrgSemKind::List,
-                OrgSemKind::ListItem,
-                OrgSemKind::StmtList,
-            }
-                .contains(node->getKind())) {
-            for (auto& subnodeId : node->subnodes) {
-                parentNode->children.push_back(std::make_unique<TreeNode>(
-                    store->add(subnodeId), parentNode));
-                buildTree(parentNode->children.back().get());
-            }
-        }
+    Qt::DropActions supportedDropActions() const override {
+        return Qt::CopyAction | Qt::MoveAction;
     }
 
+    QModelIndex parent(const QModelIndex& index) const override;
+    QVariant    data(const QModelIndex& index, int role) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent)
-        const override {
-        if (!hasIndex(row, column, parent)) { return QModelIndex(); }
+        const override;
 
-        TreeNode* parentNode = !parent.isValid()
-                                 ? root.get()
-                                 : static_cast<TreeNode*>(
-                                     parent.internalPointer());
-        TreeNode* childNode  = parentNode->children.at(row).get();
-        if (childNode) { return createIndex(row, column, childNode); }
-        return QModelIndex();
-    }
-
-    QModelIndex parent(const QModelIndex& index) const override {
-        if (!index.isValid()) { return QModelIndex(); }
-
-        TreeNode* childNode = static_cast<TreeNode*>(
-            index.internalPointer());
-        TreeNode* parentNode = childNode->parent;
-
-        if (parentNode == root.get()) { return QModelIndex(); }
-
-        int row = parentNode->parent
-                    ? std::find_if(
-                          parentNode->parent->children.begin(),
-                          parentNode->parent->children.end(),
-                          [&](CR<UPtr<TreeNode>> node) {
-                              return node.get() == parentNode;
-                          })
-                          - parentNode->parent->children.begin()
-                    : 0;
-        return createIndex(row, 0, parentNode);
-    }
-
-    int rowCount(
-        const QModelIndex& parent = QModelIndex()) const override {
-        if (parent.column() > 0) { return 0; }
-
-        TreeNode* parentNode = !parent.isValid()
-                                 ? root.get()
-                                 : static_cast<TreeNode*>(
-                                     parent.internalPointer());
-        return parentNode->children.size();
-    }
-
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(
         const QModelIndex& parent = QModelIndex()) const override {
         return 1;
     }
 
-    QVariant data(const QModelIndex& index, int role) const override;
-
-    // QAbstractItemModel interface
-  public:
-    virtual Qt::ItemFlags flags(const QModelIndex& index) const override {
-        if (index.isValid()) {
-            return Qt::ItemIsEditable | QAbstractItemModel::flags(index);
-        } else {
-            return Qt::NoItemFlags;
-        }
+    QStringList mimeTypes() const override {
+        QStringList types;
+        types << "application/vnd.myapp.treenode";
+        return types;
     }
+
+    QMimeData* mimeData(const QModelIndexList& indexes) const override;
+
+    bool dropMimeData(
+        const QMimeData*   data,
+        Qt::DropAction     action,
+        int                row,
+        int                column,
+        const QModelIndex& parent) override;
+    bool moveRows(
+        const QModelIndex& sourceParent,
+        int                sourceRow,
+        int                count,
+        const QModelIndex& destinationParent,
+        int                destinationChild) override;
+    virtual bool setData(
+        const QModelIndex& index,
+        const QVariant&    value,
+        int                role) override;
 };
 
 

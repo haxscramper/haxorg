@@ -36,6 +36,8 @@ struct OrgNodeEditWidget : public QStyledItemDelegate {
         const QStyleOptionViewItem& option,
         const QModelIndex&          index) const override;
 
+    OrgBoxId box(QModelIndex const& index) const;
+
     void setEditorData(QWidget* editor, const QModelIndex& index)
         const override {
         OrgBoxId id   = qvariant_cast<OrgBoxId>(index.data(Qt::EditRole));
@@ -55,7 +57,10 @@ struct OrgNodeEditWidget : public QStyledItemDelegate {
     void setModelData(
         QWidget*            editor,
         QAbstractItemModel* model,
-        const QModelIndex&  index) const override {}
+        const QModelIndex&  index) const override {
+        QTextEdit* edit = qobject_cast<QTextEdit*>(editor);
+        model->setData(index, edit->toPlainText(), Qt::EditRole);
+    }
 
     void updateEditorGeometry(
         QWidget*                    editor,
@@ -66,22 +71,7 @@ struct OrgNodeEditWidget : public QStyledItemDelegate {
 
     QSize sizeHint(
         const QStyleOptionViewItem& option,
-        const QModelIndex&          index) const override {
-        if (index.isValid()) {
-            QVariant var = index.data(Qt::DisplayRole);
-            Q_ASSERT(var.isValid());
-            SPtr<QWidget> widget = qvariant_cast<SPtr<QWidget>>(var);
-            Q_ASSERT(widget);
-            widget->setFixedWidth(
-                qobject_cast<QWidget*>(parent())->width()
-                - (getNestingLevel(index) * 20));
-            QSize size = widget->sizeHint();
-            // size.setHeight(size.height());
-            return size;
-        } else {
-            return QStyledItemDelegate::sizeHint(option, index);
-        }
-    }
+        const QModelIndex&          index) const override;
 
     int getNestingLevel(const QModelIndex& index) const {
         int         level   = 0;

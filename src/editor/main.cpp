@@ -9,6 +9,7 @@
 #include <QLoggingCategory>
 #include <QDebug>
 #include "app_state.hpp"
+#include <QDataStream>
 
 void customMessageHandler(
     QtMsgType                 type,
@@ -50,6 +51,7 @@ int main(int argc, char* argv[]) {
     }
 
     qInstallMessageHandler(customMessageHandler);
+    qRegisterMetaType<OrgBoxId>("OrgBoxId");
 
     AppState     state = load_app_state(argv[1]);
     QApplication a(argc, argv);
