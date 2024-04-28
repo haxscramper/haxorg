@@ -9,9 +9,9 @@
 #include <QTextEdit>
 #include <sem/SemBaseApi.hpp>
 
-struct OrgNodeEditWidget : public QStyledItemDelegate {
+struct OrgEditItemDelegate : public QStyledItemDelegate {
     OrgStore* store;
-    OrgNodeEditWidget(OrgStore* store, QWidget* parent)
+    OrgEditItemDelegate(OrgStore* store, QWidget* parent)
         : QStyledItemDelegate(parent), store(store) {}
 
     QWidget* createEditor(
@@ -84,9 +84,12 @@ struct OrgNodeEditWidget : public QStyledItemDelegate {
     }
 };
 
-struct OrgDocumentEdit : public QTreeView {
+class OrgDocumentEdit : public QTreeView {
+    Q_OBJECT
+  public:
+    OrgDocumentModel* docModel;
     OrgDocumentEdit(
-        OrgStore*           store,
-        QAbstractItemModel* model,
-        QWidget*            parent);
+        OrgStore*         store,
+        OrgDocumentModel* model,
+        QWidget*          parent);
 };

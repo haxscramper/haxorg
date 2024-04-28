@@ -1,10 +1,11 @@
 #include "mainwindow.hpp"
-
+#include "org_document_outline.hpp"
+#include <QSplitter>
 
 void MainWindow::loadFiles() {
     for (auto const& file : state.opened_files) {
         SPtr<OrgDocumentModel> model = std::make_shared<OrgDocumentModel>(
-            &store);
+            store.get());
         model->loadFile(file.path.toBase());
         models.emplace_back(model);
         qInfo() << std::format(
@@ -12,12 +13,38 @@ void MainWindow::loadFiles() {
     }
 
     for (auto const& model : models) {
-        auto filter = new OrgDocumentSearchFilter(model.get(), this);
-        filter->acceptNode = [this](OrgBoxId id) -> bool {
-            return store.node(id)->getKind() != OrgSemKind::Newline;
-        };
-        OrgDocumentEdit* edit = new OrgDocumentEdit(&store, filter, this);
+        OrgDocumentEdit* edit = new OrgDocumentEdit(
+            store.get(), model.get(), this);
         edit->expandRecursively(edit->rootIndex());
         tabs->addTab(edit, "tab");
     }
+}
+
+MainWindow::MainWindow(const AppState& state, QWidget* parent)
+    : QMainWindow(parent)
+    , state(state)
+    , tabs(new QTabWidget(this))
+    , outline(std::make_shared<OrgDocumentOutline>(store.get(), nullptr, this))
+    , store(std::make_shared<OrgStore>())
+//
+{
+
+
+    resize(1200, 1200);
+    auto splitter = new QSplitter(this);
+    setCentralWidget(splitter);
+    splitter->addWidget(outline.get());
+    splitter->addWidget(tabs.get());
+    splitter->setStretchFactor(0, 1);
+    splitter->setStretchFactor(1, 4);
+
+
+    QObject::connect(
+        tabs.get(), &QTabWidget::currentChanged, this, [&](int tab) {
+            OrgDocumentEdit* edit = qobject_cast<OrgDocumentEdit*>(
+                tabs->widget(tab));
+            outline->setModel(edit->docModel);
+            // outline->setFilter(std::make_shared<OrgSubtreeSearchModel>(
+            //     edit->docModel, this, store.get()));
+        });
 }

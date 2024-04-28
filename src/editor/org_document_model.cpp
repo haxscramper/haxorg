@@ -3,6 +3,7 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <sem/SemBaseApi.hpp>
 #include <QLabel>
+#include <QDebug>
 
 
 OrgSubtreeSearchModel::OrgSubtreeSearchModel(
@@ -10,9 +11,11 @@ OrgSubtreeSearchModel::OrgSubtreeSearchModel(
     QObject*          parent,
     OrgStore*         store)
     : QObject(parent)
-    , filter(
-          std::make_shared<OrgDocumentSearchFilter>(baseModel, parent)) {
-    filter->acceptNode = [this](OrgBoxId arg) -> bool {
+    , filter(std::make_shared<OrgDocumentSearchFilter>(baseModel, parent))
+    , store(store)
+//
+{
+    filter->acceptNode = [this, store](OrgBoxId arg) -> bool {
         auto const& node     = this->store->node(arg);
         bool        score_ok = pattern.empty() || -1 < getScore(arg);
         bool        result   = node->is(OrgSemKind::Document)
@@ -119,7 +122,7 @@ int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
     return parentNode->children.size();
 }
 
-static QString tree_node_mime{"application/vnd.myapp.treenode"};
+QString tree_node_mime{"application/vnd.myapp.treenode"};
 
 QMimeData* OrgDocumentModel::mimeData(
     const QModelIndexList& indexes) const {
