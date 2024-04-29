@@ -1,10 +1,10 @@
 #pragma once
 #include <QMainWindow>
 #include <QTabWidget>
-#include <editor/org_document_edit.hpp>
-#include <editor/org_document_model.hpp>
-#include "org_document_outline.hpp"
-#include "app_state.hpp"
+#include <editor/editor_lib/org_document_edit.hpp>
+#include <editor/editor_lib/org_document_model.hpp>
+#include <editor/editor_lib/org_document_outline.hpp>
+#include <editor/editor_lib/app_state.hpp>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QTreeView>
-#include <editor/org_document_model.hpp>
+#include <editor/editor_lib/org_document_model.hpp>
 #include <QStyledItemDelegate>
 #include <QLineEdit>
 #include <QPainter>

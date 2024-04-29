@@ -1,4 +1,4 @@
-#include "mainwindow.hpp"
+#include <editor/editor_lib/mainwindow.hpp>
 
 #include <QApplication>
 #include <hstd/stdlib/Json.hpp>
@@ -8,7 +8,7 @@
 #include <QCoreApplication>
 #include <QLoggingCategory>
 #include <QDebug>
-#include "app_state.hpp"
+#include <editor/editor_lib/app_state.hpp>
 #include <QDataStream>
 
 void customMessageHandler(
