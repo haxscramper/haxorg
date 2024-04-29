@@ -277,3 +277,29 @@ bool OrgDocumentModel::setData(
         return false;
     }
 }
+
+QModelIndex mapToNestedSource(const QModelIndex& index) {
+    QModelIndex currentIndex = index;
+    auto currentProxyModel   = qobject_cast<QSortFilterProxyModel const*>(
+        index.model());
+
+    while (currentProxyModel) {
+        currentIndex      = currentProxyModel->mapToSource(currentIndex);
+        currentProxyModel = qobject_cast<QSortFilterProxyModel const*>(
+            currentProxyModel->sourceModel());
+    }
+
+    return currentIndex;
+}
+
+QModelIndex mapToNestedProxy(
+    const QModelIndex&          index,
+    Vec<QSortFilterProxyModel*> proxies) {
+    QModelIndex currentIndex = index;
+
+    for (QSortFilterProxyModel* proxyModel : proxies) {
+        currentIndex = proxyModel->mapFromSource(currentIndex);
+    }
+
+    return currentIndex;
+}

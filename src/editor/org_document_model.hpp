@@ -200,3 +200,8 @@ struct OrgSubtreeSearchModel : QObject {
     Q_INVOKABLE void setPattern(CR<QString> pattern);
     Q_INVOKABLE void setScoreSorted(bool sorted);
 };
+
+QModelIndex mapToNestedSource(QModelIndex const& index);
+QModelIndex mapToNestedProxy(
+    QModelIndex const&          index,
+    Vec<QSortFilterProxyModel*> proxies);

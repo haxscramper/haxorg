@@ -87,7 +87,8 @@ struct OrgEditItemDelegate : public QStyledItemDelegate {
 class OrgDocumentEdit : public QTreeView {
     Q_OBJECT
   public:
-    OrgDocumentModel* docModel;
+    OrgDocumentModel*        docModel;
+    OrgDocumentSearchFilter* filter;
     OrgDocumentEdit(
         OrgStore*         store,
         OrgDocumentModel* model,

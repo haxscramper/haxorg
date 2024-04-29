@@ -61,7 +61,7 @@ bool OrgOutlineItemDelegate::editorEvent(
         QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
         if (mouseEvent->button() == Qt::LeftButton) {
             emit qobject_cast<OrgDocumentOutline*>(parent())
-                ->outlineFocusRequested(index);
+                ->outlineFocusRequested(mapToNestedSource(index));
             return true;
         } else {
             return false;

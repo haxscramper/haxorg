@@ -11,7 +11,7 @@ OrgDocumentEdit::OrgDocumentEdit(
 //
 {
     if (model != nullptr) {
-        auto filter        = new OrgDocumentSearchFilter(model, this);
+        filter             = new OrgDocumentSearchFilter(model, this);
         filter->acceptNode = [this, store](OrgBoxId id) -> bool {
             return store->node(id)->getKind() != OrgSemKind::Newline;
         };
@@ -28,8 +28,10 @@ OrgDocumentEdit::OrgDocumentEdit(
 }
 
 void OrgDocumentEdit::focusOn(QModelIndex index) {
-    qDebug() << "Document edit scroll" << index;
-    this->scrollTo(index);
+    if (index.isValid()) {
+        auto mapped = mapToNestedProxy(index, {filter});
+        this->scrollTo(mapped);
+    }
 }
 
 namespace {
