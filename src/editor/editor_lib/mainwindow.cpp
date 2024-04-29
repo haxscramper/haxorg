@@ -12,11 +12,13 @@ void MainWindow::loadFiles() {
             "Loded initial document from {}", file.path);
     }
 
-    for (auto const& model : models) {
+    for (auto const& [idx, model] : enumerate(models)) {
         OrgDocumentEdit* edit = new OrgDocumentEdit(
             store.get(), model.get(), this);
         edit->expandRecursively(edit->rootIndex());
         tabs->addTab(edit, "tab");
+        edit->setObjectName(
+            QString("MainWindow-OrgDocumentEdit-%1").arg(idx));
     }
 }
 
@@ -37,6 +39,8 @@ MainWindow::MainWindow(const AppState& state, QWidget* parent)
     splitter->addWidget(tabs.get());
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 4);
+    outline->setObjectName("MainWindow-OrgDocumentOutline");
+    tabs->setObjectName("MainWindow-CentralTabWidget");
 
 
     QObject::connect(

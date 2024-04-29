@@ -1,47 +1,10 @@
 #include <editor/editor_lib/mainwindow.hpp>
 
 #include <QApplication>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <QDebug>
-#include <QCoreApplication>
-#include <QLoggingCategory>
 #include <QDebug>
 #include <editor/editor_lib/app_state.hpp>
+#include <editor/editor_lib/app_init.hpp>
 #include <QDataStream>
-
-void customMessageHandler(
-    QtMsgType                 type,
-    const QMessageLogContext& context,
-    const QString&            msg_in) {
-    QByteArray  localMsg = msg_in.toLocal8Bit();
-    std::string lvl;
-
-    switch (type) {
-        case QtDebugMsg: lvl = "DEBUG"; break;
-        case QtInfoMsg: lvl = "INFO"; break;
-        case QtWarningMsg: lvl = "WARN"; break;
-        case QtCriticalMsg: lvl = "CRIT"; break;
-        case QtFatalMsg: lvl = "FATAL";
-    }
-
-    std::string loc = fmt(
-        "[{}:{}] {} ({}, {}:{})",
-        lvl,
-        context.category,
-        localMsg.constData(),
-        context.function ? context.function : "?",
-        context.file ? context.file : "?",
-        context.line);
-
-    if (type == QtFatalMsg || type == QtCriticalMsg) {
-        std::cerr << loc << std::endl;
-        if (type == QtFatalMsg) { abort(); }
-    } else {
-        std::cout << loc << std::endl;
-    }
-}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -50,8 +13,7 @@ int main(int argc, char* argv[]) {
             "for the application init state.");
     }
 
-    qInstallMessageHandler(customMessageHandler);
-    qRegisterMetaType<OrgBoxId>("OrgBoxId");
+    editorInitMain();
 
     AppState     state = load_app_state(argv[1]);
     QApplication a(argc, argv);
