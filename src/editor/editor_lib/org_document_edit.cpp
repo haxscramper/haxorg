@@ -31,6 +31,7 @@ void OrgDocumentEdit::focusOn(QModelIndex index) {
     if (index.isValid()) {
         auto mapped = mapToNestedProxy(index, {filter});
         this->scrollTo(mapped);
+        emit this->focusedOn(mapped);
     }
 }
 

@@ -94,6 +94,9 @@ class OrgDocumentEdit : public QTreeView {
         OrgDocumentModel* model,
         QWidget*          parent);
 
+  signals:
+    void focusedOn(QModelIndex index);
+
   public slots:
     void focusOn(QModelIndex index);
 };

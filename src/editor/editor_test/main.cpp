@@ -7,6 +7,20 @@ SPtr<MainWindow> init_window(AppState const& state) {
     return std::make_shared<MainWindow>(state);
 }
 
+void save_screenshot(const QString& filePath) {
+    QScreen* screen = QGuiApplication::primaryScreen();
+    if (const QWindow* window = QApplication::focusWindow()) {
+        QPixmap pixmap = screen->grabWindow(window->winId());
+        pixmap.save(filePath);
+    }
+}
+
+void save_screenshot(QWidget* widget, const QString& filePath) {
+    QPixmap pixmap = widget->grab();
+    pixmap.save(filePath);
+}
+
+
 void add_file(
     AppState&            state,
     QTemporaryDir const& dir,
@@ -29,6 +43,19 @@ Func<std::string(QModelIndex const&)> store_index_printer(
             qdebug_to_str(idx),
             node->getKind());
     };
+}
+
+QModelIndex index(QAbstractItemModel* model, Vec<Pair<int, int>> path) {
+    QModelIndex result = model->index(path.at(0).first, path.at(0).second);
+    for (int i = 1; i < path.size(); ++i) {
+        result = model->index(path.at(i).first, path.at(i).second, result);
+    }
+
+    return result;
+}
+
+sem::SemId<sem::Org> node(OrgStore* store, QModelIndex const& index) {
+    return store->node(qvariant_cast<OrgBoxId>(index.data()));
 }
 
 class GuiTest : public QObject {
@@ -72,26 +99,22 @@ Third subtree paragraph 2
 )");
 
         auto window = init_window(state);
+        auto s      = window->store.get();
         window->loadFiles();
 
         OrgDocumentOutline* outline = dynamic_cast<OrgDocumentOutline*>(
             window->findChild<OrgDocumentOutline*>(
                 "MainWindow-OrgDocumentOutline"));
 
-        OrgDocumentEdit* treeView2 = dynamic_cast<OrgDocumentEdit*>(
+        OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
             window->findChild<OrgDocumentEdit*>(
                 "MainWindow-OrgDocumentEdit-0"));
 
         QVERIFY(outline);
-        QVERIFY(treeView2);
+        QVERIFY(edit);
 
-        {
+        { // Text outline model structure
             auto m = outline->model();
-            // qDebug().noquote() << printModelTree(
-            //     m,
-            //     QModelIndex(),
-            //     store_index_printer(window->store.get()));
-
             QCOMPARE_EQ(m->rowCount(), 3);
             {
                 auto t1  = m->index(0, 0);
@@ -100,10 +123,14 @@ Third subtree paragraph 2
                 QCOMPARE_EQ(m->rowCount(t1), 2);
                 QCOMPARE_EQ(m->rowCount(t11), 0);
                 QCOMPARE_EQ(m->rowCount(t12), 0);
+                QCOMPARE_EQ(node(s, t1).getAs<sem::Subtree>()->level, 1);
+                QCOMPARE_EQ(node(s, t11).getAs<sem::Subtree>()->level, 2);
+                QCOMPARE_EQ(node(s, t12).getAs<sem::Subtree>()->level, 2);
             }
         }
-        {
-            auto m = treeView2->model();
+
+        { // Text edit model structure
+            auto m = edit->model();
             QCOMPARE_EQ(m->rowCount(), 3);
             // 'First subtree' has two nested paragraphs and two nested
             // sub-subtrees, each one having two paragraphs of their own.
@@ -111,14 +138,78 @@ Third subtree paragraph 2
             // have only two subtrees under t1 and no sub-sub-nodes under
             // t11 and t12.
             {
-                auto t1 = m->index(0, 0);
-                QCOMPARE_EQ(m->rowCount(t1), 4);
+                auto t1  = m->index(0, 0);
                 auto t11 = m->index(2, 0, t1);
-                QCOMPARE_EQ(m->rowCount(t11), 2);
                 auto t12 = m->index(3, 0, t1);
+                QCOMPARE_EQ(m->rowCount(t1), 4);
+                QCOMPARE_EQ(m->rowCount(t11), 2);
                 QCOMPARE_EQ(m->rowCount(t12), 2);
             }
         }
+
+        // HACK Not clear why, but triggering the `grab()` makes it
+        // possible to processing multiple `mouseDClick` events without any
+        // additional hacks with custom event loops or signal processing
+        // there. without this code it is not even possible to trigger
+        // explicit 'double click' block twice.
+        window->grab();
+
+        { // Trigger navigation double click
+            auto       outline_model = outline->model();
+            auto       edit_model    = edit->model();
+            QSignalSpy spy{edit, SIGNAL(focusedOn(QModelIndex))};
+
+            QTest::mouseDClick(
+                outline->viewport(),
+                Qt::LeftButton,
+                Qt::NoModifier,
+                outline->visualRect(outline_model->index(0, 0)).center());
+
+            QTest::qWait(100);
+            QCOMPARE_EQ(spy.count(), 1);
+            QList<QVariant> arguments = spy.takeFirst();
+            QVERIFY(
+                arguments.at(0).value<QModelIndex>()
+                == edit_model->index(0, 0));
+        }
+
+        { // Test the rest of the outline jump mappings
+            auto outline_model = outline->model();
+            auto edit_model    = edit->model();
+            for (auto const& [path_outline, path_edit] :
+                 Vec<Pair<Vec<Pair<int, int>>, Vec<Pair<int, int>>>>{
+                     // List of model index paths in both outlines
+                     {
+                         // Frist first toplevel tree in the outline to the
+                         // first toplevel tree in the editor.
+                         {{0, 0}},
+                         {{0, 0}},
+                     },
+                 }) {
+                edit->scrollTo(
+                    edit->model()->index(0, 0),
+                    QAbstractItemView::PositionAtTop);
+                QSignalSpy spy{edit, SIGNAL(focusedOn(QModelIndex))};
+                auto outline_index = index(outline_model, path_outline);
+                auto edit_index    = index(edit_model, path_edit);
+                QVERIFY(outline_index.isValid());
+                QVERIFY(edit_index.isValid());
+
+                QTest::mouseDClick(
+                    outline->viewport(),
+                    Qt::LeftButton,
+                    Qt::NoModifier,
+                    outline->visualRect(outline_index).center());
+
+                QTest::qWait(100);
+                QCOMPARE_EQ(spy.count(), 1);
+                QList<QVariant> arguments = spy.takeFirst();
+                QVERIFY(
+                    arguments.at(0).value<QModelIndex>() == edit_index);
+            }
+        }
+
+        qDebug() << "Completed full test";
     }
 };
 
