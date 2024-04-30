@@ -168,9 +168,9 @@ Third subtree paragraph 2
             QTest::qWait(100);
             QCOMPARE_EQ(spy.count(), 1);
             QList<QVariant> arguments = spy.takeFirst();
-            QVERIFY(
-                arguments.at(0).value<QModelIndex>()
-                == edit_model->index(0, 0));
+            QCOMPARE_EQ(
+                arguments.at(0).value<QModelIndex>(),
+                edit_model->index(0, 0));
         }
 
         { // Test the rest of the outline jump mappings
@@ -182,8 +182,18 @@ Third subtree paragraph 2
                      {
                          // Frist first toplevel tree in the outline to the
                          // first toplevel tree in the editor.
-                         {{0, 0}},
-                         {{0, 0}},
+                         {std::make_pair(0, 0)},
+                         {std::make_pair(0, 0)},
+                     },
+                     {
+                         // First-First toplevel to the first-first outline
+                         // should account for paragraph offsets.
+                         {std::make_pair(0, 0), std::make_pair(1, 0)},
+                         {std::make_pair(0, 0), std::make_pair(3, 0)},
+                     },
+                     {
+                         {std::make_pair(2, 0)},
+                         {std::make_pair(2, 0)},
                      },
                  }) {
                 edit->scrollTo(
@@ -204,8 +214,8 @@ Third subtree paragraph 2
                 QTest::qWait(100);
                 QCOMPARE_EQ(spy.count(), 1);
                 QList<QVariant> arguments = spy.takeFirst();
-                QVERIFY(
-                    arguments.at(0).value<QModelIndex>() == edit_index);
+                QCOMPARE_EQ(
+                    arguments.at(0).value<QModelIndex>(), edit_index);
             }
         }
 
