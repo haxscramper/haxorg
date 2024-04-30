@@ -62,6 +62,46 @@ class GuiTest : public QObject {
     Q_OBJECT
 
   private slots:
+    void testSubtreeEditing() {
+        QTemporaryDir dir;
+        AppState      state;
+        add_file(state, dir, "main.org", R"(
+First paragraph in document
+
+Second paragraph in document
+)");
+
+        auto window = init_window(state);
+        auto s      = window->store.get();
+        window->resize(300, 300);
+        window->loadFiles();
+        window->grab();
+
+        OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
+            window->findChild<OrgDocumentEdit*>(
+                "MainWindow-OrgDocumentEdit-0"));
+
+        QVERIFY(edit);
+
+        auto index = edit->model()->index(0, 0);
+        QVERIFY(index.isValid());
+        QTest::mouseDClick(
+            edit->viewport(),
+            Qt::LeftButton,
+            Qt::NoModifier,
+            edit->visualRect(index).center());
+        QTest::qWait(100);
+
+        QString inputText = "additional input";
+        foreach (QChar c, inputText) {
+            QTest::keyClick(edit, c.toLatin1());
+        }
+
+        QTest::qWait(100);
+
+        save_screenshot(window.get(), "/tmp/app.png");
+    }
+
     void testOutlineJump() {
         QTemporaryDir dir;
         AppState      state;
@@ -218,8 +258,6 @@ Third subtree paragraph 2
                     arguments.at(0).value<QModelIndex>(), edit_index);
             }
         }
-
-        qDebug() << "Completed full test";
     }
 };
 
