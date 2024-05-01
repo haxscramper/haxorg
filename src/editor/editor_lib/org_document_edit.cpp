@@ -48,6 +48,23 @@ SPtr<QWidget> make_render(sem::OrgArg node) {
 } // namespace
 
 
+QWidget* OrgEditItemDelegate::createEditor(
+    QWidget*                    parent,
+    const QStyleOptionViewItem& option,
+    const QModelIndex&          index) const {
+    qDebug() << index;
+    if (index.column() == 0) {
+        auto res = new QTextEdit(parent);
+        res->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        res->setContentsMargins(0, 0, 0, 0);
+        res->document()->setDocumentMargin(0);
+        res->setStyleSheet("QTextEdit { border: none; }");
+        return res;
+    } else {
+        return QStyledItemDelegate::createEditor(parent, option, index);
+    }
+}
+
 void OrgEditItemDelegate::paint(
     QPainter*                   painter,
     const QStyleOptionViewItem& option,
@@ -63,6 +80,24 @@ void OrgEditItemDelegate::paint(
 OrgBoxId OrgEditItemDelegate::box(const QModelIndex& index) const {
     return qvariant_cast<OrgBoxId>(
         index.model()->data(index, Qt::DisplayRole));
+}
+
+void OrgEditItemDelegate::setEditorData(
+    QWidget*           editor,
+    const QModelIndex& index) const {
+    qDebug() << "Called editor data set";
+    OrgBoxId id   = qvariant_cast<OrgBoxId>(index.data(Qt::EditRole));
+    auto     node = store->node(id);
+    switch (node->getKind()) {
+        case OrgSemKind::Paragraph: {
+            QTextEdit* edit = qobject_cast<QTextEdit*>(editor);
+            edit->setText(
+                QString::fromStdString(sem::formatToString(node)));
+            break;
+        }
+        default: {
+        }
+    }
 }
 
 QSize OrgEditItemDelegate::sizeHint(

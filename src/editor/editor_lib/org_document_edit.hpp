@@ -17,19 +17,7 @@ struct OrgEditItemDelegate : public QStyledItemDelegate {
     QWidget* createEditor(
         QWidget*                    parent,
         const QStyleOptionViewItem& option,
-        const QModelIndex&          index) const override {
-        if (index.column() == 0) {
-            auto res = new QTextEdit(parent);
-            res->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-            res->setContentsMargins(0, 0, 0, 0);
-            res->document()->setDocumentMargin(0);
-            res->setStyleSheet("QTextEdit { border: none; }");
-            return res;
-        } else {
-            return QStyledItemDelegate::createEditor(
-                parent, option, index);
-        }
-    }
+        const QModelIndex&          index) const override;
 
     void paint(
         QPainter*                   painter,
@@ -39,20 +27,7 @@ struct OrgEditItemDelegate : public QStyledItemDelegate {
     OrgBoxId box(QModelIndex const& index) const;
 
     void setEditorData(QWidget* editor, const QModelIndex& index)
-        const override {
-        OrgBoxId id   = qvariant_cast<OrgBoxId>(index.data(Qt::EditRole));
-        auto     node = store->node(id);
-        switch (node->getKind()) {
-            case OrgSemKind::Paragraph: {
-                QTextEdit* edit = qobject_cast<QTextEdit*>(editor);
-                edit->setText(
-                    QString::fromStdString(sem::formatToString(node)));
-                break;
-            }
-            default: {
-            }
-        }
-    }
+        const override;
 
     void setModelData(
         QWidget*            editor,

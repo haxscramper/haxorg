@@ -4,8 +4,13 @@
 #include <editor/editor_lib/app_utils.hpp>
 
 SPtr<MainWindow> init_window(AppState const& state) {
-    return std::make_shared<MainWindow>(state);
+    auto window = std::make_shared<MainWindow>(state);
+    window->show();
+    window->raise();
+    window->activateWindow();
+    return window;
 }
+
 
 void save_screenshot(const QString& filePath) {
     QScreen* screen = QGuiApplication::primaryScreen();
@@ -20,6 +25,36 @@ void save_screenshot(QWidget* widget, const QString& filePath) {
     pixmap.save(filePath);
 }
 
+
+class DebugEventFilter : public QObject {
+  public:
+    DebugEventFilter(QObject* parent) : QObject(parent) {}
+
+  protected:
+    bool eventFilter(QObject* obj, QEvent* event) override {
+        qDebug().noquote().nospace()
+            << "Object: '" << obj->metaObject()->className()
+            << "::" << obj->objectName() << //
+            "' Type: " << event->type() <<  //
+            " Event: " << event <<          //
+            " Receiver: " << obj;
+        return false;
+    }
+};
+
+
+void debug_event_filter(QObject* obj) {
+    obj->installEventFilter(new DebugEventFilter(obj));
+}
+
+finally scoped_debug_event_filter(QObject* obj) {
+    SPtr<DebugEventFilter> filter = std::make_shared<DebugEventFilter>(
+        obj);
+
+    obj->installEventFilter(filter.get());
+    return finally(
+        [filter, obj]() { obj->removeEventFilter(filter.get()); });
+}
 
 void add_file(
     AppState&            state,
@@ -58,6 +93,25 @@ sem::SemId<sem::Org> node(OrgStore* store, QModelIndex const& index) {
     return store->node(qvariant_cast<OrgBoxId>(index.data()));
 }
 
+void trigger_editor_of(QAbstractItemView* view, QModelIndex const& index) {
+    // https://stackoverflow.com/questions/46795224/qlistwidget-doesnt-recognize-signals-from-qtestmousedclick
+    // Using QTest, the signal doubleClicked is never emitted
+    QTest::mouseClick(
+        view->viewport(),
+        Qt::LeftButton,
+        Qt::NoModifier,
+        view->visualRect(index).center());
+    QTest::mouseDClick(
+        view->viewport(),
+        Qt::LeftButton,
+        Qt::NoModifier,
+        view->visualRect(index).center());
+
+    // Double click works for the outline processing where double click
+    // immediately sends the event off, but with the editor component there
+    // is no reaction to the event (event handler is not even triggered).
+}
+
 class GuiTest : public QObject {
     Q_OBJECT
 
@@ -75,7 +129,6 @@ Second paragraph in document
         auto s      = window->store.get();
         window->resize(300, 300);
         window->loadFiles();
-        window->grab();
 
         OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
             window->findChild<OrgDocumentEdit*>(
@@ -85,21 +138,18 @@ Second paragraph in document
 
         auto index = edit->model()->index(0, 0);
         QVERIFY(index.isValid());
-        QTest::mouseDClick(
-            edit->viewport(),
-            Qt::LeftButton,
-            Qt::NoModifier,
-            edit->visualRect(index).center());
-        QTest::qWait(100);
-
-        QString inputText = "additional input";
-        foreach (QChar c, inputText) {
-            QTest::keyClick(edit, c.toLatin1());
-        }
+        edit->setFocus();
+        QVERIFY(QTest::qWaitForWindowActive(window.get()));
+        trigger_editor_of(edit, index);
 
         QTest::qWait(100);
 
-        save_screenshot(window.get(), "/tmp/app.png");
+        QApplication::processEvents();
+
+        QTextEdit* focusedWidget = qobject_cast<QTextEdit*>(
+            QApplication::focusWidget());
+        QVERIFY(focusedWidget);
+        QTest::keyClicks(focusedWidget, "your text here");
     }
 
     void testOutlineJump() {
@@ -186,13 +236,6 @@ Third subtree paragraph 2
                 QCOMPARE_EQ(m->rowCount(t12), 2);
             }
         }
-
-        // HACK Not clear why, but triggering the `grab()` makes it
-        // possible to processing multiple `mouseDClick` events without any
-        // additional hacks with custom event loops or signal processing
-        // there. without this code it is not even possible to trigger
-        // explicit 'double click' block twice.
-        window->grab();
 
         { // Trigger navigation double click
             auto       outline_model = outline->model();
