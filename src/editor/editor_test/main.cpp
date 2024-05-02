@@ -183,7 +183,8 @@ class GuiTest : public QObject {
 
         auto dfs_before = dfs_boxes(edit->docModel->root.get());
 
-        {
+        { // Verify the original structure of the document read from the
+          // text
             auto r = edit->docModel->root.get();
             QCOMPARE_EQ(r->parent, nullptr);
             QCOMPARE_EQ(r->subnodes.size(), 3);
@@ -203,34 +204,44 @@ class GuiTest : public QObject {
         }
 
 
-        trigger_editor_of(edit, index);
+        { // Double-click on the editor cell and enter some text
+            trigger_editor_of(edit, index);
 
-        QTest::qWait(100);
+            QTest::qWait(100);
 
-        QApplication::processEvents();
+            QApplication::processEvents();
 
-        QTextEdit* focusedWidget = qobject_cast<QTextEdit*>(
-            QApplication::focusWidget());
-        QVERIFY(focusedWidget);
-        QTest::keyClicks(focusedWidget, "your text here ");
-        trigger_editor_complete(edit, index);
-        QTest::qWait(5);
+            QTextEdit* focusedWidget = qobject_cast<QTextEdit*>(
+                QApplication::focusWidget());
+            QVERIFY(focusedWidget);
+            QTest::keyClicks(focusedWidget, "your text here ");
+            trigger_editor_complete(edit, index);
+            QTest::qWait(5);
+        }
 
         auto dfs_after = dfs_boxes(edit->docModel->root.get());
 
-        QCOMPARE_EQ(dfs_before.size(), dfs_after.size());
-        QCOMPARE_EQ(dfs_before.size(), 4);
-        QCOMPARE_EQ(dfs_before.at(0), dfs_after.at(0));
-        QCOMPARE_NE(dfs_before.at(1), dfs_after.at(1));
-        QCOMPARE_EQ(dfs_before.at(2), dfs_after.at(2));
-        QCOMPARE_EQ(dfs_before.at(3), dfs_after.at(3));
 
-        QCOMPARE_EQ(
-            format(s->node(dfs_before.at(1))),
-            "First paragraph in document");
-        QCOMPARE_EQ(
-            format(s->node(dfs_after.at(1))),
-            "your text here First paragraph in document");
+        { // After editing operations only a single element in the model
+          // should change the boxed node value.
+            QCOMPARE_EQ(dfs_before.size(), dfs_after.size());
+            QCOMPARE_EQ(dfs_before.size(), 4);
+            QCOMPARE_EQ(dfs_before.at(0), dfs_after.at(0));
+            QCOMPARE_NE(dfs_before.at(1), dfs_after.at(1));
+            QCOMPARE_EQ(dfs_before.at(2), dfs_after.at(2));
+            QCOMPARE_EQ(dfs_before.at(3), dfs_after.at(3));
+
+            // The store does not replace the content of the original boxed
+            // node -- it creates an entirely new node and puts it into the
+            // store. This way it is still possible to access all the
+            // previous building blocks of the document.
+            QCOMPARE_EQ(
+                format(s->node(dfs_before.at(1))),
+                "First paragraph in document");
+            QCOMPARE_EQ(
+                format(s->node(dfs_after.at(1))),
+                "your text here First paragraph in document");
+        }
 
         {
             auto n = node(s, index);
