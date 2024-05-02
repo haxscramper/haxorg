@@ -52,13 +52,13 @@ QWidget* OrgEditItemDelegate::createEditor(
     QWidget*                    parent,
     const QStyleOptionViewItem& option,
     const QModelIndex&          index) const {
-    qDebug() << index;
     if (index.column() == 0) {
         auto res = new QTextEdit(parent);
         res->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         res->setContentsMargins(0, 0, 0, 0);
         res->document()->setDocumentMargin(0);
         res->setStyleSheet("QTextEdit { border: none; }");
+        res->setObjectName("OrgEditDelegateActive");
         return res;
     } else {
         return QStyledItemDelegate::createEditor(parent, option, index);
@@ -85,7 +85,6 @@ OrgBoxId OrgEditItemDelegate::box(const QModelIndex& index) const {
 void OrgEditItemDelegate::setEditorData(
     QWidget*           editor,
     const QModelIndex& index) const {
-    qDebug() << "Called editor data set";
     OrgBoxId id   = qvariant_cast<OrgBoxId>(index.data(Qt::EditRole));
     auto     node = store->node(id);
     switch (node->getKind()) {
@@ -98,6 +97,14 @@ void OrgEditItemDelegate::setEditorData(
         default: {
         }
     }
+}
+
+void OrgEditItemDelegate::setModelData(
+    QWidget*            editor,
+    QAbstractItemModel* model,
+    const QModelIndex&  index) const {
+    QTextEdit* edit = qobject_cast<QTextEdit*>(editor);
+    model->setData(index, edit->toPlainText(), Qt::EditRole);
 }
 
 QSize OrgEditItemDelegate::sizeHint(

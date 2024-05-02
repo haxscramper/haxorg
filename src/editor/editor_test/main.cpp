@@ -2,6 +2,7 @@
 #include <editor/editor_lib/mainwindow.hpp>
 #include <editor/editor_lib/app_init.hpp>
 #include <editor/editor_lib/app_utils.hpp>
+#include <exporters/ExporterUltraplain.hpp>
 
 SPtr<MainWindow> init_window(AppState const& state) {
     auto window = std::make_shared<MainWindow>(state);
@@ -93,6 +94,8 @@ sem::SemId<sem::Org> node(OrgStore* store, QModelIndex const& index) {
     return store->node(qvariant_cast<OrgBoxId>(index.data()));
 }
 
+Str str(sem::OrgArg node) { return ExporterUltraplain::toStr(node); }
+
 void trigger_editor_of(QAbstractItemView* view, QModelIndex const& index) {
     // https://stackoverflow.com/questions/46795224/qlistwidget-doesnt-recognize-signals-from-qtestmousedclick
     // Using QTest, the signal doubleClicked is never emitted
@@ -110,6 +113,19 @@ void trigger_editor_of(QAbstractItemView* view, QModelIndex const& index) {
     // Double click works for the outline processing where double click
     // immediately sends the event off, but with the editor component there
     // is no reaction to the event (event handler is not even triggered).
+}
+
+void trigger_editor_complete(
+    QAbstractItemView* view,
+    const QModelIndex& index) {
+    QWidget* editor = view->indexWidget(index);
+    QVERIFY2(
+        editor, "Cannot trigger editor completion with nullptr widget");
+
+    emit static_cast<QAbstractItemDelegate*>(view->itemDelegate())
+        ->commitData(editor);
+    emit static_cast<QAbstractItemDelegate*>(view->itemDelegate())
+        ->closeEditor(editor, QAbstractItemDelegate::SubmitModelCache);
 }
 
 class GuiTest : public QObject {
@@ -140,6 +156,15 @@ Second paragraph in document
         QVERIFY(index.isValid());
         edit->setFocus();
         QVERIFY(QTest::qWaitForWindowActive(window.get()));
+        QCOMPARE_EQ(edit->model()->rowCount(), 2);
+
+        {
+            auto n = node(s, index);
+            QVERIFY(n->is(OrgSemKind::Paragraph));
+            QCOMPARE_EQ(str(n), "First paragraph in document");
+        }
+
+
         trigger_editor_of(edit, index);
 
         QTest::qWait(100);
@@ -149,7 +174,15 @@ Second paragraph in document
         QTextEdit* focusedWidget = qobject_cast<QTextEdit*>(
             QApplication::focusWidget());
         QVERIFY(focusedWidget);
-        QTest::keyClicks(focusedWidget, "your text here");
+        QTest::keyClicks(focusedWidget, "your text here ");
+        trigger_editor_complete(edit, index);
+        QTest::qWait(5);
+
+        {
+            auto n = node(s, index);
+            QVERIFY(n->is(OrgSemKind::Paragraph));
+            QCOMPARE_EQ(str(n), "your text here First paragraph in document");
+        }
     }
 
     void testOutlineJump() {

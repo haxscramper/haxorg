@@ -32,10 +32,7 @@ struct OrgEditItemDelegate : public QStyledItemDelegate {
     void setModelData(
         QWidget*            editor,
         QAbstractItemModel* model,
-        const QModelIndex&  index) const override {
-        QTextEdit* edit = qobject_cast<QTextEdit*>(editor);
-        model->setData(index, edit->toPlainText(), Qt::EditRole);
-    }
+        const QModelIndex&  index) const override;
 
     void updateEditorGeometry(
         QWidget*                    editor,
