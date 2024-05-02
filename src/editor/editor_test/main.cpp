@@ -3,6 +3,8 @@
 #include <editor/editor_lib/app_init.hpp>
 #include <editor/editor_lib/app_utils.hpp>
 #include <exporters/ExporterUltraplain.hpp>
+#include <sem/SemOrgFormat.hpp>
+#include <exporters/exportertree.hpp>
 
 SPtr<MainWindow> init_window(AppState const& state) {
     auto window = std::make_shared<MainWindow>(state);
@@ -94,7 +96,28 @@ sem::SemId<sem::Org> node(OrgStore* store, QModelIndex const& index) {
     return store->node(qvariant_cast<OrgBoxId>(index.data()));
 }
 
+sem::SemId<sem::Org> node(
+    OrgStore*                         store,
+    OrgDocumentModel::TreeNode const* tree) {
+    return store->node(tree->boxId);
+}
+
 Str str(sem::OrgArg node) { return ExporterUltraplain::toStr(node); }
+Str format(sem::OrgArg node) { return sem::Formatter::format(node); }
+Str tree_repr(sem::OrgArg node) {
+    return ExporterTree::treeRepr(node).toString(false);
+}
+
+Vec<OrgBoxId> dfs_boxes(OrgDocumentModel::TreeNode const* node) {
+    Vec<OrgBoxId> result{node->boxId};
+    for (auto const& sub : node->subnodes) {
+        result.append(dfs_boxes(sub.get()));
+    }
+
+    return result;
+}
+
+using osk = OrgSemKind;
 
 void trigger_editor_of(QAbstractItemView* view, QModelIndex const& index) {
     // https://stackoverflow.com/questions/46795224/qlistwidget-doesnt-recognize-signals-from-qtestmousedclick
@@ -135,11 +158,11 @@ class GuiTest : public QObject {
     void testSubtreeEditing() {
         QTemporaryDir dir;
         AppState      state;
-        add_file(state, dir, "main.org", R"(
-First paragraph in document
-
-Second paragraph in document
-)");
+        add_file(
+            state,
+            dir,
+            "main.org",
+            "First paragraph in document\n\nSecond paragraph in document");
 
         auto window = init_window(state);
         auto s      = window->store.get();
@@ -158,10 +181,25 @@ Second paragraph in document
         QVERIFY(QTest::qWaitForWindowActive(window.get()));
         QCOMPARE_EQ(edit->model()->rowCount(), 2);
 
+        auto dfs_before = dfs_boxes(edit->docModel->root.get());
+
         {
+            auto r = edit->docModel->root.get();
+            QCOMPARE_EQ(r->parent, nullptr);
+            QCOMPARE_EQ(r->subnodes.size(), 3);
+            QVERIFY(node(s, r)->is(osk::Document));
+            QVERIFY(node(s, r->subnodes.at(0).get())->is(osk::Paragraph));
+            QVERIFY(node(s, r->subnodes.at(1).get())->is(osk::Newline));
+            QVERIFY(node(s, r->subnodes.at(2).get())->is(osk::Paragraph));
             auto n = node(s, index);
-            QVERIFY(n->is(OrgSemKind::Paragraph));
+            QVERIFY(n->is(osk::Paragraph));
             QCOMPARE_EQ(str(n), "First paragraph in document");
+            auto tree = edit->docModel->toNode();
+
+            QCOMPARE_EQ(
+                format(tree),
+                "First paragraph in document\n\nSecond paragraph in "
+                "document");
         }
 
 
@@ -178,10 +216,32 @@ Second paragraph in document
         trigger_editor_complete(edit, index);
         QTest::qWait(5);
 
+        auto dfs_after = dfs_boxes(edit->docModel->root.get());
+
+        QCOMPARE_EQ(dfs_before.size(), dfs_after.size());
+        QCOMPARE_EQ(dfs_before.size(), 4);
+        QCOMPARE_EQ(dfs_before.at(0), dfs_after.at(0));
+        QCOMPARE_NE(dfs_before.at(1), dfs_after.at(1));
+        QCOMPARE_EQ(dfs_before.at(2), dfs_after.at(2));
+        QCOMPARE_EQ(dfs_before.at(3), dfs_after.at(3));
+
+        QCOMPARE_EQ(
+            format(s->node(dfs_before.at(1))),
+            "First paragraph in document");
+        QCOMPARE_EQ(
+            format(s->node(dfs_after.at(1))),
+            "your text here First paragraph in document");
+
         {
             auto n = node(s, index);
-            QVERIFY(n->is(OrgSemKind::Paragraph));
-            QCOMPARE_EQ(str(n), "your text here First paragraph in document");
+            QVERIFY(n->is(osk::Paragraph));
+            QCOMPARE_EQ(
+                str(n), "your text here First paragraph in document");
+            auto tree = edit->docModel->toNode();
+            QCOMPARE_EQ(
+                format(tree),
+                "your text here First paragraph in document\n\nSecond "
+                "paragraph in document");
         }
     }
 

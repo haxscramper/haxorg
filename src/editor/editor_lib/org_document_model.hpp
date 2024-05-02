@@ -76,16 +76,20 @@ struct OrgStore {
 struct OrgDocumentModel : public QAbstractItemModel {
     struct TreeNode {
         OrgBoxId            boxId{};
-        Vec<UPtr<TreeNode>> children;
+        Vec<UPtr<TreeNode>> subnodes;
         TreeNode*           parent;
 
         TreeNode(OrgBoxId id, TreeNode* pParent = nullptr)
             : boxId(id), parent(pParent) {}
+
+        sem::SemId<sem::Org> toNode(OrgStore* store) const;
     };
 
     UPtr<TreeNode> root;
+    OrgStore*      store;
 
-    OrgStore* store;
+    sem::SemId<sem::Org> toNode() const { return root->toNode(store); }
+
     explicit OrgDocumentModel(OrgStore* store, QObject* parent = nullptr)
         : QAbstractItemModel(parent), store(store) {}
 

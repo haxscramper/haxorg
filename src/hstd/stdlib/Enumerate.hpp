@@ -22,18 +22,37 @@ class enumerator_impl {
         struct item {
             enumerate_iterator const& iterator_ref;
 
+            bool         is_first() const { return index() == 0; }
+            bool         is_last() const { return index() == size() - 1; }
             int          index() const { return iterator_ref.idx; }
             it_reference value() const { return *iterator_ref.it; }
             it_reference value() { return *iterator_ref.it; }
 
-            bool is_first() const { return index() == 0; }
-
-            bool is_last() const {
-                return index()
-                    == (iterator_ref.base_size
-                        - (1 + iterator_ref.skip_first
-                           + iterator_ref.skip_last));
+            int size() const {
+                return iterator_ref.base_size - iterator_ref.skip_first
+                     - iterator_ref.skip_last;
             }
+
+            it_reference prev(int offset = 1) {
+                if (0 <= index() + offset && index() + offset < size()) {
+                    return *(iterator_ref.it - offset);
+                } else {
+                    throw std::domain_error(
+                        "Current index - offset put the value outside of "
+                        "the iteration range");
+                }
+            }
+
+            it_reference next(int offset = 1) {
+                if (0 <= index() + offset && index() + offset < size()) {
+                    return *(iterator_ref.it + offset);
+                } else {
+                    throw std::domain_error(
+                        "Current index + offset put the value outside of "
+                        "the iteration range");
+                }
+            }
+
 
             int base_index() const {
                 return index() + iterator_ref.skip_first;

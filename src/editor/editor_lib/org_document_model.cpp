@@ -4,6 +4,7 @@
 #include <sem/SemBaseApi.hpp>
 #include <QLabel>
 #include <QDebug>
+#include <hstd/stdlib/Enumerate.hpp>
 
 
 OrgSubtreeSearchModel::OrgSubtreeSearchModel(
@@ -61,20 +62,23 @@ void OrgDocumentModel::loadFile(const fs::path& path) {
     buildTree(this->root.get());
 }
 
+namespace {
+SemSet NestedNodes{
+    OrgSemKind::Subtree,
+    OrgSemKind::Document,
+    OrgSemKind::List,
+    OrgSemKind::ListItem,
+    OrgSemKind::StmtList,
+};
+}
+
 void OrgDocumentModel::buildTree(TreeNode* parentNode) {
     auto const& node = store->node(parentNode->boxId);
-    if (SemSet{
-            OrgSemKind::Subtree,
-            OrgSemKind::Document,
-            OrgSemKind::List,
-            OrgSemKind::ListItem,
-            OrgSemKind::StmtList,
-        }
-            .contains(node->getKind())) {
+    if (NestedNodes.contains(node->getKind())) {
         for (auto& subnodeId : node->subnodes) {
-            parentNode->children.push_back(std::make_unique<TreeNode>(
+            parentNode->subnodes.push_back(std::make_unique<TreeNode>(
                 store->add(subnodeId), parentNode));
-            buildTree(parentNode->children.back().get());
+            buildTree(parentNode->subnodes.back().get());
         }
     }
 }
@@ -88,7 +92,7 @@ QModelIndex OrgDocumentModel::index(
     TreeNode* parentNode = !parent.isValid() ? root.get()
                                              : static_cast<TreeNode*>(
                                                  parent.internalPointer());
-    TreeNode* childNode  = parentNode->children.at(row).get();
+    TreeNode* childNode  = parentNode->subnodes.at(row).get();
     if (childNode) { return createIndex(row, column, childNode); }
     return QModelIndex();
 }
@@ -103,12 +107,12 @@ QModelIndex OrgDocumentModel::parent(const QModelIndex& index) const {
 
     int row = parentNode->parent
                 ? std::find_if(
-                      parentNode->parent->children.begin(),
-                      parentNode->parent->children.end(),
+                      parentNode->parent->subnodes.begin(),
+                      parentNode->parent->subnodes.end(),
                       [&](CR<UPtr<TreeNode>> node) {
                           return node.get() == parentNode;
                       })
-                      - parentNode->parent->children.begin()
+                      - parentNode->parent->subnodes.begin()
                 : 0;
     return createIndex(row, 0, parentNode);
 }
@@ -119,7 +123,7 @@ int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
     TreeNode* parentNode = !parent.isValid() ? root.get()
                                              : static_cast<TreeNode*>(
                                                  parent.internalPointer());
-    return parentNode->children.size();
+    return parentNode->subnodes.size();
 }
 
 QString tree_node_mime{"application/vnd.myapp.treenode"};
@@ -204,8 +208,8 @@ bool OrgDocumentModel::moveRows(
                                      destinationParent.internalPointer())
                                  : root.get();
 
-    if (sourceRow + count <= srcParentNode->children.size()
-        && destinationChild <= destParentNode->children.size()) {
+    if (sourceRow + count <= srcParentNode->subnodes.size()
+        && destinationChild <= destParentNode->subnodes.size()) {
         beginMoveRows(
             sourceParent,
             sourceRow,
@@ -215,16 +219,16 @@ bool OrgDocumentModel::moveRows(
         std::vector<std::unique_ptr<TreeNode>> movedNodes;
         for (int i = 0; i < count; ++i) {
             movedNodes.push_back(
-                std::move(srcParentNode->children[sourceRow]));
-            srcParentNode->children.erase(
-                srcParentNode->children.begin() + sourceRow);
+                std::move(srcParentNode->subnodes[sourceRow]));
+            srcParentNode->subnodes.erase(
+                srcParentNode->subnodes.begin() + sourceRow);
         }
-        if (destinationChild > srcParentNode->children.size()) {
-            destinationChild = destParentNode->children.size();
+        if (destinationChild > srcParentNode->subnodes.size()) {
+            destinationChild = destParentNode->subnodes.size();
         }
         for (auto& node : movedNodes) {
-            destParentNode->children.insert(
-                destParentNode->children.begin() + destinationChild,
+            destParentNode->subnodes.insert(
+                destParentNode->subnodes.begin() + destinationChild,
                 std::move(node));
             node->parent = destParentNode;
             ++destinationChild;
@@ -302,4 +306,19 @@ QModelIndex mapToNestedProxy(
     }
 
     return currentIndex;
+}
+
+sem::SemId<sem::Org> OrgDocumentModel::TreeNode::toNode(
+    OrgStore* store) const {
+    auto base = store->node(this->boxId);
+    if (NestedNodes.contains(base->getKind())) {
+        auto result = copy(base);
+        result->subnodes.clear();
+        for (auto const& it : enumerator(subnodes)) {
+            result->subnodes.push_back(it.value()->toNode(store));
+        }
+        return result;
+    } else {
+        return base;
+    }
 }
