@@ -279,6 +279,7 @@ class GuiTest : public QObject {
             edit->movePositionUp(i0, 200);
             QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
 
+            qDebug() << "????";
             auto i2 = edit->model()->index(2, 0);
             edit->movePositionDown(i2, 0);
             QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);

@@ -128,8 +128,11 @@ void OrgDocumentModel::changeLevel(CR<QModelIndex> index, int level) {
 }
 
 void OrgDocumentModel::changePosition(CR<QModelIndex> index, int offset) {
+    _qdbg(index);
+    _qdbg(offset);
     int move_position = std::clamp<int>(
-        index.row() + offset, 0, rowCount(index));
+        index.row() + offset, 0, rowCount(index.parent()) - 1);
+    _qdbg(move_position);
     Q_ASSERT(0 <= move_position);
     moveSubtree(index, index.parent(), move_position);
 }
@@ -143,6 +146,7 @@ void OrgDocumentModel::moveSubtree(
         && parent_position == moved_index.row()) {
         return;
     }
+    qDebug() << "----";
     _qdbg(new_parent);
     _qdbg(moved_index.parent());
     _qdbg(moved_index);
