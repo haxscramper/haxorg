@@ -266,6 +266,13 @@ class GuiTest : public QObject {
         { // Moving paragraph outside of the document boundary is ignored
             auto i0 = edit->model()->index(0, 0);
 
+            qDebug().noquote()
+                << "\n"
+                << printModelTree(
+                       edit->model(),
+                       i0.parent(),
+                       store_index_printer(edit->docModel->store));
+
             edit->movePositionUp(i0, 0);
             QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
 

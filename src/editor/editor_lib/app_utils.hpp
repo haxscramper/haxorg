@@ -8,8 +8,7 @@
 std::string printModelTree(
     const QAbstractItemModel*             model,
     const QModelIndex&                    parent,
-    Func<std::string(QModelIndex const&)> toString,
-    int                                   level = 0);
+    Func<std::string(QModelIndex const&)> toString);
 
 Func<std::string(QModelIndex const&)> store_index_printer(OrgStore* store);
 
@@ -19,3 +18,8 @@ std::string qdebug_to_str(T const& index) {
     QDebug(&output) << index;
     return output.toStdString();
 }
+
+QModelIndex mapToNestedSource(QModelIndex const& index);
+QModelIndex mapToNestedProxy(
+    QModelIndex const&          index,
+    Vec<QSortFilterProxyModel*> proxies);

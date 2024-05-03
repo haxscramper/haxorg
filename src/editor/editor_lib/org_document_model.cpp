@@ -145,6 +145,7 @@ void OrgDocumentModel::moveSubtree(
     }
     _qdbg(new_parent);
     _qdbg(moved_index.parent());
+    _qdbg(moved_index);
     _qdbg(parent_position);
     _qdbg(moved_index.row());
 
@@ -264,32 +265,6 @@ bool OrgDocumentModel::setData(
     } else {
         return false;
     }
-}
-
-QModelIndex mapToNestedSource(const QModelIndex& index) {
-    QModelIndex currentIndex = index;
-    auto currentProxyModel   = qobject_cast<QSortFilterProxyModel const*>(
-        index.model());
-
-    while (currentProxyModel) {
-        currentIndex      = currentProxyModel->mapToSource(currentIndex);
-        currentProxyModel = qobject_cast<QSortFilterProxyModel const*>(
-            currentProxyModel->sourceModel());
-    }
-
-    return currentIndex;
-}
-
-QModelIndex mapToNestedProxy(
-    const QModelIndex&          index,
-    Vec<QSortFilterProxyModel*> proxies) {
-    QModelIndex currentIndex = index;
-
-    for (QSortFilterProxyModel* proxyModel : proxies) {
-        currentIndex = proxyModel->mapFromSource(currentIndex);
-    }
-
-    return currentIndex;
 }
 
 sem::SemId<sem::Org> OrgDocumentModel::TreeNode::toNode(

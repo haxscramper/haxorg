@@ -1,6 +1,7 @@
 #include "org_document_edit.hpp"
 #include "org_document_model.hpp"
 #include "org_document_render.hpp"
+#include "app_utils.hpp"
 
 OrgDocumentEdit::OrgDocumentEdit(
     OrgStore*         store,
