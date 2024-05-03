@@ -131,7 +131,7 @@ std::string printModelTree(
 }
 
 Func<std::string(const QModelIndex&)> store_index_printer(
-    OrgStore* store) {
+    OrgStore const* store) {
     return [store](QModelIndex const& idx) -> std::string {
         OrgBoxId box = qvariant_cast<OrgBoxId>(idx.data());
         if (store->data.contains(box)) {

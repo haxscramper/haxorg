@@ -91,14 +91,13 @@ QModelIndex OrgDocumentModel::index(
     int                row,
     int                column,
     const QModelIndex& parent) const {
-    if (!hasIndex(row, column, parent)) { return QModelIndex(); }
-
-    TreeNode* parentNode = !parent.isValid() ? root.get()
-                                             : static_cast<TreeNode*>(
-                                                 parent.internalPointer());
-    TreeNode* childNode  = parentNode->subnodes.at(row).get();
-    if (childNode) {
-        return createIndex(row, column, childNode);
+    if (hasIndex(row, column, parent)) {
+        if (parent.isValid()) {
+            return createIndex(
+                row, column, tree(parent)->subnodes.at(row).get());
+        } else {
+            return createIndex(row, column, root.get());
+        }
     } else {
         return QModelIndex();
     }
@@ -128,11 +127,8 @@ void OrgDocumentModel::changeLevel(CR<QModelIndex> index, int level) {
 }
 
 void OrgDocumentModel::changePosition(CR<QModelIndex> index, int offset) {
-    _qdbg(index);
-    _qdbg(offset);
     int move_position = std::clamp<int>(
         index.row() + offset, 0, rowCount(index.parent()) - 1);
-    _qdbg(move_position);
     Q_ASSERT(0 <= move_position);
     moveSubtree(index, index.parent(), move_position);
 }
@@ -146,12 +142,6 @@ void OrgDocumentModel::moveSubtree(
         && parent_position == moved_index.row()) {
         return;
     }
-    qDebug() << "----";
-    _qdbg(new_parent);
-    _qdbg(moved_index.parent());
-    _qdbg(moved_index);
-    _qdbg(parent_position);
-    _qdbg(moved_index.row());
 
     Q_ASSERT(0 <= parent_position);
 
@@ -185,31 +175,34 @@ QModelIndex OrgDocumentModel::parent(const QModelIndex& index) const {
     TreeNode* childNode  = static_cast<TreeNode*>(index.internalPointer());
     TreeNode* parentNode = childNode->parent;
 
-    if (parentNode == root.get()) { return QModelIndex(); }
-
-    int row = parentNode->parent
-                ? std::find_if(
-                      parentNode->parent->subnodes.begin(),
-                      parentNode->parent->subnodes.end(),
-                      [&](CR<UPtr<TreeNode>> node) {
-                          return node.get() == parentNode;
-                      })
-                      - parentNode->parent->subnodes.begin()
-                : 0;
-    return createIndex(row, 0, parentNode);
+    if (parentNode == nullptr) {
+        return QModelIndex();
+    } else {
+        int row = parentNode->parent
+                    ? std::find_if(
+                          parentNode->parent->subnodes.begin(),
+                          parentNode->parent->subnodes.end(),
+                          [&](CR<UPtr<TreeNode>> node) {
+                              return node.get() == parentNode;
+                          })
+                          - parentNode->parent->subnodes.begin()
+                    : 0;
+        return createIndex(row, 0, parentNode);
+    }
 }
 
 int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
     if (0 < parent.column()) {
         return 0;
-    } else {
-        TreeNode* parentNode = parent.isValid() ? tree(parent)
-                                                : root.get();
+    } else if (parent.isValid()) {
+        TreeNode* parentNode = tree(parent);
         Q_ASSERT(parentNode != nullptr);
         auto const& t      = *parentNode;
         auto        result = parentNode->subnodes.size();
         Q_ASSERT(0 <= result);
         return result;
+    } else {
+        return 1;
     }
 }
 

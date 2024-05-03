@@ -10,7 +10,7 @@ std::string printModelTree(
     const QModelIndex&                    parent,
     Func<std::string(QModelIndex const&)> toString);
 
-Func<std::string(QModelIndex const&)> store_index_printer(OrgStore* store);
+Func<std::string(QModelIndex const&)> store_index_printer(const OrgStore *store);
 
 template <typename T>
 std::string qdebug_to_str(T const& index) {

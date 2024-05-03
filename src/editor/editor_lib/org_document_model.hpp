@@ -65,7 +65,7 @@ struct OrgStore {
         return id;
     }
 
-    sem::SemId<sem::Org> node(CR<OrgBoxId> id) {
+    sem::SemId<sem::Org> node(CR<OrgBoxId> id) const {
         return data.at(id).node();
     }
 
@@ -193,4 +193,3 @@ struct OrgSubtreeSearchModel : QObject {
     Q_INVOKABLE void setPattern(CR<QString> pattern);
     Q_INVOKABLE void setScoreSorted(bool sorted);
 };
-

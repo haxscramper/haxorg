@@ -95,6 +95,18 @@ Str tree_repr(sem::OrgArg node) {
     return ExporterTree::treeRepr(node).toString(false);
 }
 
+void debug_tree(
+    QAbstractItemModel const* model,
+    OrgStore const*           store,
+    CR<QModelIndex>           index = QModelIndex()) {
+    qDebug().noquote().nospace()
+        << "\n"
+        << printModelTree(
+               model,
+               index.isValid() ? index : model->index(0, 0),
+               store_index_printer(store));
+}
+
 Vec<OrgBoxId> dfs_boxes(OrgDocumentModel::TreeNode const* node) {
     Vec<OrgBoxId> result{node->boxId};
     for (auto const& sub : node->subnodes) {
@@ -162,11 +174,12 @@ class GuiTest : public QObject {
 
         QVERIFY(edit);
 
-        auto index = edit->model()->index(0, 0);
+        auto index = edit->model()->index(
+            0, 0, edit->model()->index(0, 0));
         QVERIFY(index.isValid());
         edit->setFocus();
         QVERIFY(QTest::qWaitForWindowActive(window.get()));
-        QCOMPARE_EQ(edit->model()->rowCount(), 2);
+        QCOMPARE_EQ(edit->model()->rowCount(), 1);
 
         auto dfs_before = dfs_boxes(edit->docModel->root.get());
 
@@ -241,62 +254,6 @@ class GuiTest : public QObject {
         }
     }
 
-    void testParagraphMovements() {
-        QTemporaryDir dir;
-        AppState      state;
-        Str           nl{"\n\n"};
-        Str           p1{"First paragraph in document"};
-        Str           p2{"Second paragraph in document"};
-        Str           p3{"Third paragraph in document"};
-
-        add_file(state, dir, "main.org", p1 + nl + p2 + nl + p3);
-
-
-        auto window = init_window(state);
-        window->resize(300, 300);
-        window->loadFiles();
-
-        OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
-            window->findChild<OrgDocumentEdit*>(
-                "MainWindow-OrgDocumentEdit-0"));
-
-        auto get = [&]() { return edit->docModel->toNode(); };
-
-
-        { // Moving paragraph outside of the document boundary is ignored
-            auto i0 = edit->model()->index(0, 0);
-
-            qDebug().noquote()
-                << "\n"
-                << printModelTree(
-                       edit->model(),
-                       i0.parent(),
-                       store_index_printer(edit->docModel->store));
-
-            edit->movePositionUp(i0, 0);
-            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
-
-            edit->movePositionUp(i0, 200);
-            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
-
-            qDebug() << "????";
-            auto i2 = edit->model()->index(2, 0);
-            edit->movePositionDown(i2, 0);
-            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
-
-            edit->movePositionDown(i2, 200);
-            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
-        }
-
-        {
-            edit->movePositionDown(edit->model()->index(0, 0), 1);
-            QCOMPARE_EQ(format(get()), p2 + nl + p1 + nl + p3);
-        }
-
-        QVERIFY(edit);
-    }
-
-
     void testOutlineJump() {
         QTemporaryDir dir;
         AppState      state;
@@ -348,13 +305,24 @@ Third subtree paragraph 2
         QVERIFY(outline);
         QVERIFY(edit);
 
+        debug_tree(outline->model(), s);
+
         { // Text outline model structure
             auto m = outline->model();
-            QCOMPARE_EQ(m->rowCount(), 3);
+            QCOMPARE_EQ(m->rowCount(), 1);
+            qDebug() << "Start model structure compare";
             {
-                auto t1  = m->index(0, 0);
+                auto r   = m->index(0, 0);
+                auto t1  = m->index(0, 0, r);
                 auto t11 = m->index(0, 0, t1);
                 auto t12 = m->index(1, 0, t1);
+                QVERIFY(node(s, r)->is(osk::Document));
+                QVERIFY(r.isValid());
+                QCOMPARE_EQ(m->rowCount(r), 3);
+
+                QVERIFY(t1.isValid());
+                QVERIFY(t11.isValid());
+                QVERIFY(t12.isValid());
                 QCOMPARE_EQ(m->rowCount(t1), 2);
                 QCOMPARE_EQ(m->rowCount(t11), 0);
                 QCOMPARE_EQ(m->rowCount(t12), 0);
@@ -366,14 +334,15 @@ Third subtree paragraph 2
 
         { // Text edit model structure
             auto m = edit->model();
-            QCOMPARE_EQ(m->rowCount(), 3);
+            QCOMPARE_EQ(m->rowCount(), 1);
             // 'First subtree' has two nested paragraphs and two nested
             // sub-subtrees, each one having two paragraphs of their own.
             // Outline model filters all non-subtree elements so it should
             // have only two subtrees under t1 and no sub-sub-nodes under
             // t11 and t12.
             {
-                auto t1  = m->index(0, 0);
+                auto r   = m->index(0, 0);
+                auto t1  = m->index(0, 0, r);
                 auto t11 = m->index(2, 0, t1);
                 auto t12 = m->index(3, 0, t1);
                 QCOMPARE_EQ(m->rowCount(t1), 4);
@@ -404,24 +373,25 @@ Third subtree paragraph 2
         { // Test the rest of the outline jump mappings
             auto outline_model = outline->model();
             auto edit_model    = edit->model();
+            auto p00           = std::make_pair(0, 0);
             for (auto const& [path_outline, path_edit] :
                  Vec<Pair<Vec<Pair<int, int>>, Vec<Pair<int, int>>>>{
                      // List of model index paths in both outlines
                      {
                          // Frist first toplevel tree in the outline to the
                          // first toplevel tree in the editor.
-                         {std::make_pair(0, 0)},
-                         {std::make_pair(0, 0)},
+                         {p00, p00},
+                         {p00, p00},
                      },
                      {
                          // First-First toplevel to the first-first outline
                          // should account for paragraph offsets.
-                         {std::make_pair(0, 0), std::make_pair(1, 0)},
-                         {std::make_pair(0, 0), std::make_pair(3, 0)},
+                         {p00, p00, std::make_pair(1, 0)},
+                         {p00, p00, std::make_pair(3, 0)},
                      },
                      {
-                         {std::make_pair(2, 0)},
-                         {std::make_pair(2, 0)},
+                         {p00, std::make_pair(2, 0)},
+                         {p00, std::make_pair(2, 0)},
                      },
                  }) {
                 edit->scrollTo(
@@ -446,6 +416,55 @@ Third subtree paragraph 2
                     arguments.at(0).value<QModelIndex>(), edit_index);
             }
         }
+    }
+
+
+    void testParagraphMovements() {
+        QTemporaryDir dir;
+        AppState      state;
+        Str           nl{"\n\n"};
+        Str           p1{"First paragraph in document"};
+        Str           p2{"Second paragraph in document"};
+        Str           p3{"Third paragraph in document"};
+
+        add_file(state, dir, "main.org", p1 + nl + p2 + nl + p3);
+
+
+        auto window = init_window(state);
+        window->resize(300, 300);
+        window->loadFiles();
+
+        OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
+            window->findChild<OrgDocumentEdit*>(
+                "MainWindow-OrgDocumentEdit-0"));
+
+        auto get  = [&]() { return edit->docModel->toNode(); };
+        auto root = edit->model()->index(0, 0);
+
+        { // Moving paragraph outside of the document boundary is ignored
+            auto i0 = edit->model()->index(0, 0, root);
+
+
+            edit->movePositionUp(i0, 0);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+
+            edit->movePositionUp(i0, 200);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+
+            auto i2 = edit->model()->index(2, 0, root);
+            edit->movePositionDown(i2, 0);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+
+            edit->movePositionDown(i2, 200);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+        }
+
+        {
+            edit->movePositionDown(edit->model()->index(0, 0, root), 1);
+            QCOMPARE_EQ(format(get()), p2 + nl + p1 + nl + p3);
+        }
+
+        QVERIFY(edit);
     }
 };
 
