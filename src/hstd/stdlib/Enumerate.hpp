@@ -33,24 +33,33 @@ class enumerator_impl {
                      - iterator_ref.skip_last;
             }
 
-            it_reference prev(int offset = 1) {
-                if (0 <= index() + offset && index() + offset < size()) {
-                    return *(iterator_ref.it - offset);
-                } else {
+            void check_offset(int offset) {
+                int pos = index() + offset;
+                if (pos < 0 || size() <= pos) {
                     throw std::domain_error(
                         "Current index - offset put the value outside of "
                         "the iteration range");
                 }
             }
 
+            it_reference prev(int offset = 1) const {
+                check_offset(offset);
+                return *(iterator_ref.it - offset);
+            }
+
+            it_reference next(int offset = 1) const {
+                check_offset(offset);
+                return *(iterator_ref.it + offset);
+            }
+
+            it_reference prev(int offset = 1) {
+                check_offset(offset);
+                return *(iterator_ref.it - offset);
+            }
+
             it_reference next(int offset = 1) {
-                if (0 <= index() + offset && index() + offset < size()) {
-                    return *(iterator_ref.it + offset);
-                } else {
-                    throw std::domain_error(
-                        "Current index + offset put the value outside of "
-                        "the iteration range");
-                }
+                check_offset(offset);
+                return *(iterator_ref.it + offset);
             }
 
 

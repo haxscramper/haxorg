@@ -90,6 +90,10 @@ struct OrgDocumentModel : public QAbstractItemModel {
 
     sem::SemId<sem::Org> toNode() const { return root->toNode(store); }
 
+    TreeNode* tree(CR<QModelIndex> index) const {
+        return static_cast<TreeNode*>(index.internalPointer());
+    }
+
     explicit OrgDocumentModel(OrgStore* store, QObject* parent = nullptr)
         : QAbstractItemModel(parent), store(store) {}
 
@@ -102,6 +106,16 @@ struct OrgDocumentModel : public QAbstractItemModel {
     QVariant    data(const QModelIndex& index, int role) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent)
         const override;
+
+    /// Change nesting level of the tree, promoting or demoting it.
+    void changeLevel(CR<QModelIndex> index, int level);
+
+    void changePosition(CR<QModelIndex> index, int offset);
+
+    void moveSubtree(
+        CR<QModelIndex> moved_index,
+        CR<QModelIndex> new_parent,
+        int             parent_position);
 
     virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;

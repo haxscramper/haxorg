@@ -3,12 +3,15 @@
 #include <string>
 #include <QAbstractItemModel>
 #include <hstd/stdlib/Func.hpp>
+#include <editor/editor_lib/org_document_model.hpp>
 
 std::string printModelTree(
     const QAbstractItemModel*             model,
     const QModelIndex&                    parent,
     Func<std::string(QModelIndex const&)> toString,
     int                                   level = 0);
+
+Func<std::string(QModelIndex const&)> store_index_printer(OrgStore* store);
 
 template <typename T>
 std::string qdebug_to_str(T const& index) {

@@ -69,19 +69,6 @@ void add_file(
     state.opened_files.push_back(AppOpenedFile{.path = file});
 }
 
-Func<std::string(QModelIndex const&)> store_index_printer(
-    OrgStore* store) {
-    return [store](QModelIndex const& idx) -> std::string {
-        OrgBoxId box  = qvariant_cast<OrgBoxId>(idx.data());
-        auto     node = store->node(box);
-        return fmt(
-            "[{}, {}] {} {}",
-            idx.row(),
-            idx.column(),
-            qdebug_to_str(idx),
-            node->getKind());
-    };
-}
 
 QModelIndex index(QAbstractItemModel* model, Vec<Pair<int, int>> path) {
     QModelIndex result = model->index(path.at(0).first, path.at(0).second);
@@ -187,11 +174,10 @@ class GuiTest : public QObject {
           // text
             auto r = edit->docModel->root.get();
             QCOMPARE_EQ(r->parent, nullptr);
-            QCOMPARE_EQ(r->subnodes.size(), 3);
+            QCOMPARE_EQ(r->subnodes.size(), 2);
             QVERIFY(node(s, r)->is(osk::Document));
             QVERIFY(node(s, r->subnodes.at(0).get())->is(osk::Paragraph));
-            QVERIFY(node(s, r->subnodes.at(1).get())->is(osk::Newline));
-            QVERIFY(node(s, r->subnodes.at(2).get())->is(osk::Paragraph));
+            QVERIFY(node(s, r->subnodes.at(1).get())->is(osk::Paragraph));
             auto n = node(s, index);
             QVERIFY(n->is(osk::Paragraph));
             QCOMPARE_EQ(str(n), "First paragraph in document");
@@ -225,11 +211,10 @@ class GuiTest : public QObject {
         { // After editing operations only a single element in the model
           // should change the boxed node value.
             QCOMPARE_EQ(dfs_before.size(), dfs_after.size());
-            QCOMPARE_EQ(dfs_before.size(), 4);
+            QCOMPARE_EQ(dfs_before.size(), 3);
             QCOMPARE_EQ(dfs_before.at(0), dfs_after.at(0));
             QCOMPARE_NE(dfs_before.at(1), dfs_after.at(1));
             QCOMPARE_EQ(dfs_before.at(2), dfs_after.at(2));
-            QCOMPARE_EQ(dfs_before.at(3), dfs_after.at(3));
 
             // The store does not replace the content of the original boxed
             // node -- it creates an entirely new node and puts it into the
@@ -259,24 +244,46 @@ class GuiTest : public QObject {
     void testParagraphMovements() {
         QTemporaryDir dir;
         AppState      state;
-        add_file(
-            state,
-            dir,
-            "main.org",
-            "First paragraph in document"
-            "\n\n"
-            "Second paragraph in document"
-            "\n\n"
-            "Third paragraph in document");
+        Str           nl{"\n\n"};
+        Str           p1{"First paragraph in document"};
+        Str           p2{"Second paragraph in document"};
+        Str           p3{"Third paragraph in document"};
+
+        add_file(state, dir, "main.org", p1 + nl + p2 + nl + p3);
+
 
         auto window = init_window(state);
-        auto s      = window->store.get();
         window->resize(300, 300);
         window->loadFiles();
 
         OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
             window->findChild<OrgDocumentEdit*>(
                 "MainWindow-OrgDocumentEdit-0"));
+
+        auto get = [&]() { return edit->docModel->toNode(); };
+
+
+        { // Moving paragraph outside of the document boundary is ignored
+            auto i0 = edit->model()->index(0, 0);
+
+            edit->movePositionUp(i0, 0);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+
+            edit->movePositionUp(i0, 200);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+
+            auto i2 = edit->model()->index(2, 0);
+            edit->movePositionDown(i2, 0);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+
+            edit->movePositionDown(i2, 200);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+        }
+
+        {
+            edit->movePositionDown(edit->model()->index(0, 0), 1);
+            QCOMPARE_EQ(format(get()), p2 + nl + p1 + nl + p3);
+        }
 
         QVERIFY(edit);
     }

@@ -17,3 +17,17 @@ std::string printModelTree(
     }
     return out.str();
 }
+
+Func<std::string(const QModelIndex&)> store_index_printer(
+    OrgStore* store) {
+    return [store](QModelIndex const& idx) -> std::string {
+        OrgBoxId box  = qvariant_cast<OrgBoxId>(idx.data());
+        auto     node = store->node(box);
+        return fmt(
+            "[{}, {}] {} {}",
+            idx.row(),
+            idx.column(),
+            qdebug_to_str(idx),
+            node->getKind());
+    };
+}

@@ -5,7 +5,9 @@
 #include <QLabel>
 #include <QDebug>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <editor/editor_lib/app_utils.hpp>
 
+#define _qdbg(expr) qDebug() << #expr << "=" << expr;
 
 OrgSubtreeSearchModel::OrgSubtreeSearchModel(
     OrgDocumentModel* baseModel,
@@ -75,10 +77,12 @@ SemSet NestedNodes{
 void OrgDocumentModel::buildTree(TreeNode* parentNode) {
     auto const& node = store->node(parentNode->boxId);
     if (NestedNodes.contains(node->getKind())) {
-        for (auto& subnodeId : node->subnodes) {
-            parentNode->subnodes.push_back(std::make_unique<TreeNode>(
-                store->add(subnodeId), parentNode));
-            buildTree(parentNode->subnodes.back().get());
+        for (auto& sub : node->subnodes) {
+            if (!sub->is(OrgSemKind::Newline)) {
+                parentNode->subnodes.push_back(std::make_unique<TreeNode>(
+                    store->add(sub), parentNode));
+                buildTree(parentNode->subnodes.back().get());
+            }
         }
     }
 }
@@ -93,8 +97,81 @@ QModelIndex OrgDocumentModel::index(
                                              : static_cast<TreeNode*>(
                                                  parent.internalPointer());
     TreeNode* childNode  = parentNode->subnodes.at(row).get();
-    if (childNode) { return createIndex(row, column, childNode); }
-    return QModelIndex();
+    if (childNode) {
+        return createIndex(row, column, childNode);
+    } else {
+        return QModelIndex();
+    }
+}
+
+void OrgDocumentModel::changeLevel(CR<QModelIndex> index, int level) {
+    QModelIndex targetParent    = index;
+    int         targetParentRow = 0;
+    // TODO change for the tree kind
+    if (0 < level) {
+        for (int i = 0; i < level; ++i) {
+            if (targetParent.parent().isValid()) {
+                targetParent    = targetParent.parent();
+                targetParentRow = targetParent.row();
+            } else {
+                break;
+            }
+        }
+    } else if (0 < level) {
+        qFatal("TODO Implement tree demotion");
+    }
+
+    moveSubtree(targetParent, index, targetParentRow);
+    // TODO after moving the tree, change the ID and/or  values of the
+    // respective fields to account for the new parenting level (for
+    // subtrees)
+}
+
+void OrgDocumentModel::changePosition(CR<QModelIndex> index, int offset) {
+    int move_position = std::clamp<int>(
+        index.row() + offset, 0, rowCount(index));
+    Q_ASSERT(0 <= move_position);
+    moveSubtree(index, index.parent(), move_position);
+}
+
+void OrgDocumentModel::moveSubtree(
+    CR<QModelIndex> moved_index,
+    CR<QModelIndex> new_parent,
+    int             parent_position) {
+
+    if (new_parent == moved_index.parent()
+        && parent_position == moved_index.row()) {
+        return;
+    }
+    _qdbg(new_parent);
+    _qdbg(moved_index.parent());
+    _qdbg(parent_position);
+    _qdbg(moved_index.row());
+
+    Q_ASSERT(0 <= parent_position);
+
+    beginMoveRows(
+        moved_index.parent(),
+        moved_index.row(),
+        moved_index.row(),
+        new_parent,
+        parent_position);
+
+    Q_ASSERT(moved_index.isValid());
+    auto current_parent = tree(moved_index.parent());
+    Q_ASSERT(current_parent != nullptr);
+    std::unique_ptr<TreeNode> moved_tree = std::move(
+        current_parent->subnodes[moved_index.row()]);
+
+    current_parent->subnodes.erase(
+        current_parent->subnodes.begin() + moved_index.row());
+
+    auto target_parent = tree(new_parent);
+    target_parent->subnodes.insert(
+        target_parent->subnodes.begin() + parent_position,
+        std::move(moved_tree));
+
+    endMoveRows();
 }
 
 QModelIndex OrgDocumentModel::parent(const QModelIndex& index) const {
@@ -118,15 +195,18 @@ QModelIndex OrgDocumentModel::parent(const QModelIndex& index) const {
 }
 
 int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
-    if (parent.column() > 0) { return 0; }
-
-    TreeNode* parentNode = !parent.isValid() ? root.get()
-                                             : static_cast<TreeNode*>(
-                                                 parent.internalPointer());
-    return parentNode->subnodes.size();
+    if (0 < parent.column()) {
+        return 0;
+    } else {
+        TreeNode* parentNode = parent.isValid() ? tree(parent)
+                                                : root.get();
+        Q_ASSERT(parentNode != nullptr);
+        auto const& t      = *parentNode;
+        auto        result = parentNode->subnodes.size();
+        Q_ASSERT(0 <= result);
+        return result;
+    }
 }
-
-QString tree_node_mime{"application/vnd.myapp.treenode"};
 
 QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) { return QVariant(); }
@@ -219,7 +299,15 @@ sem::SemId<sem::Org> OrgDocumentModel::TreeNode::toNode(
         auto result = copy(base);
         result->subnodes.clear();
         for (auto const& it : enumerator(subnodes)) {
+            auto it_node = store->node(it.value()->boxId);
             result->subnodes.push_back(it.value()->toNode(store));
+            if (!it.is_last()) {
+                if (it_node->is(OrgSemKind::Paragraph)) {
+                    auto nl  = sem::SemId<sem::Newline>::New();
+                    nl->text = "\n\n";
+                    result->subnodes.push_back(nl);
+                }
+            }
         }
         return result;
     } else {

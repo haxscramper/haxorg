@@ -71,4 +71,12 @@ class OrgDocumentEdit : public QTreeView {
 
   public slots:
     void focusOn(QModelIndex index);
+
+    void movePositionUp(QModelIndex index, int offset) {
+        docModel->changePosition(filter->mapToSource(index), offset);
+    }
+
+    void movePositionDown(QModelIndex index, int offset) {
+        docModel->changePosition(filter->mapToSource(index), -offset);
+    }
 };
