@@ -256,6 +256,32 @@ class GuiTest : public QObject {
         }
     }
 
+    void testParagraphMovements() {
+        QTemporaryDir dir;
+        AppState      state;
+        add_file(
+            state,
+            dir,
+            "main.org",
+            "First paragraph in document"
+            "\n\n"
+            "Second paragraph in document"
+            "\n\n"
+            "Third paragraph in document");
+
+        auto window = init_window(state);
+        auto s      = window->store.get();
+        window->resize(300, 300);
+        window->loadFiles();
+
+        OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
+            window->findChild<OrgDocumentEdit*>(
+                "MainWindow-OrgDocumentEdit-0"));
+
+        QVERIFY(edit);
+    }
+
+
     void testOutlineJump() {
         QTemporaryDir dir;
         AppState      state;

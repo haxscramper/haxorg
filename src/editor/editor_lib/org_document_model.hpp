@@ -96,13 +96,8 @@ struct OrgDocumentModel : public QAbstractItemModel {
     ~OrgDocumentModel() override = default;
 
 
-    void loadFile(fs::path const& path);
-    void buildTree(TreeNode* parentNode);
-
-    Qt::DropActions supportedDropActions() const override {
-        return Qt::CopyAction | Qt::MoveAction;
-    }
-
+    void        loadFile(fs::path const& path);
+    void        buildTree(TreeNode* parentNode);
     QModelIndex parent(const QModelIndex& index) const override;
     QVariant    data(const QModelIndex& index, int role) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent)
@@ -115,26 +110,6 @@ struct OrgDocumentModel : public QAbstractItemModel {
         return 1;
     }
 
-    QStringList mimeTypes() const override {
-        QStringList types;
-        types << "application/vnd.myapp.treenode";
-        return types;
-    }
-
-    QMimeData* mimeData(const QModelIndexList& indexes) const override;
-
-    bool dropMimeData(
-        const QMimeData*   data,
-        Qt::DropAction     action,
-        int                row,
-        int                column,
-        const QModelIndex& parent) override;
-    bool moveRows(
-        const QModelIndex& sourceParent,
-        int                sourceRow,
-        int                count,
-        const QModelIndex& destinationParent,
-        int                destinationChild) override;
     virtual bool setData(
         const QModelIndex& index,
         const QVariant&    value,

@@ -128,54 +128,6 @@ int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
 
 QString tree_node_mime{"application/vnd.myapp.treenode"};
 
-QMimeData* OrgDocumentModel::mimeData(
-    const QModelIndexList& indexes) const {
-    QMimeData*  mimeData = new QMimeData();
-    QByteArray  encodedData;
-    QDataStream stream(&encodedData, QIODevice::WriteOnly);
-
-    for (const QModelIndex& index : indexes) {
-        if (index.isValid()) { stream << index.data(Qt::EditRole); }
-    }
-
-    mimeData->setData(tree_node_mime, encodedData);
-    return mimeData;
-}
-
-bool OrgDocumentModel::dropMimeData(
-    const QMimeData*   data,
-    Qt::DropAction     action,
-    int                row,
-    int                column,
-    const QModelIndex& parent) {
-    if (data->hasFormat(tree_node_mime)) {
-        if (action == Qt::IgnoreAction) { return true; }
-
-        int beginRow;
-        if (row != -1) {
-            beginRow = row;
-        } else if (parent.isValid()) {
-            beginRow = rowCount(parent);
-        } else {
-            beginRow = rowCount(QModelIndex());
-        }
-
-        QByteArray  encodedData = data->data(tree_node_mime);
-        QDataStream stream(&encodedData, QIODevice::ReadOnly);
-        QVariant    id;
-        while (!stream.atEnd()) {
-            stream >> id;
-            insertRow(beginRow, parent);
-            QModelIndex idx = index(beginRow, 0, parent);
-            setData(idx, id, Qt::EditRole);
-        }
-        return true;
-    } else {
-        return false;
-    }
-}
-
-
 QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) { return QVariant(); }
     TreeNode* node = static_cast<TreeNode*>(index.internalPointer());
@@ -184,59 +136,11 @@ QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
 
 Qt::ItemFlags OrgDocumentModel::flags(const QModelIndex& index) const {
     if (index.isValid()) {
-        return Qt::ItemIsDragEnabled //
-             | Qt::ItemIsDropEnabled //
-             | Qt::ItemIsEditable    //
+        return Qt::ItemIsEditable //
              | QAbstractItemModel::flags(index);
     } else {
         return Qt::NoItemFlags;
     }
-}
-
-bool OrgDocumentModel::moveRows(
-    const QModelIndex& sourceParent,
-    int                sourceRow,
-    int                count,
-    const QModelIndex& destinationParent,
-    int                destinationChild) {
-    TreeNode* srcParentNode  = sourceParent.isValid()
-                                 ? static_cast<TreeNode*>(
-                                    sourceParent.internalPointer())
-                                 : root.get();
-    TreeNode* destParentNode = destinationParent.isValid()
-                                 ? static_cast<TreeNode*>(
-                                     destinationParent.internalPointer())
-                                 : root.get();
-
-    if (sourceRow + count <= srcParentNode->subnodes.size()
-        && destinationChild <= destParentNode->subnodes.size()) {
-        beginMoveRows(
-            sourceParent,
-            sourceRow,
-            sourceRow + count - 1,
-            destinationParent,
-            destinationChild);
-        std::vector<std::unique_ptr<TreeNode>> movedNodes;
-        for (int i = 0; i < count; ++i) {
-            movedNodes.push_back(
-                std::move(srcParentNode->subnodes[sourceRow]));
-            srcParentNode->subnodes.erase(
-                srcParentNode->subnodes.begin() + sourceRow);
-        }
-        if (destinationChild > srcParentNode->subnodes.size()) {
-            destinationChild = destParentNode->subnodes.size();
-        }
-        for (auto& node : movedNodes) {
-            destParentNode->subnodes.insert(
-                destParentNode->subnodes.begin() + destinationChild,
-                std::move(node));
-            node->parent = destParentNode;
-            ++destinationChild;
-        }
-        endMoveRows();
-        return true;
-    }
-    return false;
 }
 
 sem::SemId<sem::Org> copy(sem::OrgArg node) {
