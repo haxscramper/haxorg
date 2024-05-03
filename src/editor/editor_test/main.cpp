@@ -29,36 +29,6 @@ void save_screenshot(QWidget* widget, const QString& filePath) {
 }
 
 
-class DebugEventFilter : public QObject {
-  public:
-    DebugEventFilter(QObject* parent) : QObject(parent) {}
-
-  protected:
-    bool eventFilter(QObject* obj, QEvent* event) override {
-        qDebug().noquote().nospace()
-            << "Object: '" << obj->metaObject()->className()
-            << "::" << obj->objectName() << //
-            "' Type: " << event->type() <<  //
-            " Event: " << event <<          //
-            " Receiver: " << obj;
-        return false;
-    }
-};
-
-
-void debug_event_filter(QObject* obj) {
-    obj->installEventFilter(new DebugEventFilter(obj));
-}
-
-finally scoped_debug_event_filter(QObject* obj) {
-    SPtr<DebugEventFilter> filter = std::make_shared<DebugEventFilter>(
-        obj);
-
-    obj->installEventFilter(filter.get());
-    return finally(
-        [filter, obj]() { obj->removeEventFilter(filter.get()); });
-}
-
 void add_file(
     AppState&            state,
     QTemporaryDir const& dir,
@@ -69,15 +39,6 @@ void add_file(
     state.opened_files.push_back(AppOpenedFile{.path = file});
 }
 
-
-QModelIndex index(QAbstractItemModel* model, Vec<Pair<int, int>> path) {
-    QModelIndex result = model->index(path.at(0).first, path.at(0).second);
-    for (int i = 1; i < path.size(); ++i) {
-        result = model->index(path.at(i).first, path.at(i).second, result);
-    }
-
-    return result;
-}
 
 sem::SemId<sem::Org> node(OrgStore* store, QModelIndex const& index) {
     return store->node(qvariant_cast<OrgBoxId>(index.data()));
@@ -436,8 +397,15 @@ Third subtree paragraph 2
             window->findChild<OrgDocumentEdit*>(
                 "MainWindow-OrgDocumentEdit-0"));
 
-        auto get  = [&]() { return edit->docModel->toNode(); };
-        auto root = edit->model()->index(0, 0);
+        auto get       = [&]() { return edit->docModel->toNode(); };
+        auto root      = edit->model()->index(0, 0);
+        auto par_index = [&](int index) {
+            return edit->model()->index(index, 0, root);
+        };
+
+        auto par_text = [&](int row) {
+            return str(node(edit->docModel->store, par_index(row)));
+        };
 
         { // Moving paragraph outside of the document boundary is ignored
             auto i0 = edit->model()->index(0, 0, root);
@@ -459,10 +427,24 @@ Third subtree paragraph 2
 
         debug_tree(edit->model(), edit->docModel->store);
 
-        {
+        { // Move first paragraph down and back up
             edit->movePositionDown(edit->model()->index(0, 0, root), 1);
             QCOMPARE_EQ(format(get()), p2 + nl + p1 + nl + p3);
+            debug_tree(edit->model(), edit->docModel->store);
+
+            edit->movePositionUp(edit->model()->index(1, 0, root), 1);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
         }
+
+        { // Move first paragraph all the way down and then back again
+            edit->movePositionDown(edit->model()->index(0, 0, root), 2);
+            QCOMPARE_EQ(format(get()), p2 + nl + p3 + nl + p1);
+            debug_tree(edit->model(), edit->docModel->store);
+
+            edit->movePositionUp(edit->model()->index(2, 0, root), 2);
+            QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+        }
+
 
         QVERIFY(edit);
     }

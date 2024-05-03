@@ -1,6 +1,7 @@
 #include <editor/editor_lib/app_utils.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <exporters/ExporterUltraplain.hpp>
 
 QModelIndex mapToNestedSource(const QModelIndex& index) {
     QModelIndex currentIndex = index;
@@ -135,8 +136,18 @@ Func<std::string(const QModelIndex&)> store_index_printer(
     return [store](QModelIndex const& idx) -> std::string {
         OrgBoxId box = qvariant_cast<OrgBoxId>(idx.data());
         if (store->data.contains(box)) {
-            auto node = store->node(box);
-            return fmt("{}", node->getKind());
+            auto        node   = store->node(box);
+            std::string result = fmt("{}", node->getKind());
+            if (node->is(OrgSemKind::Paragraph)) {
+                result += " '";
+                auto str = ExporterUltraplain::toStr(node);
+                result += str.substr(
+                    0, std::clamp<int>(40, 0, str.size()));
+                if (40 < str.size()) { result += "..."; }
+                result += "'";
+            }
+
+            return result;
         } else {
             return fmt("[err:{}]", box.value);
         }
