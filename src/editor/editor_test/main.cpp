@@ -430,19 +430,29 @@ Third subtree paragraph 2
         { // Move first paragraph down and back up
             edit->movePositionDown(edit->model()->index(0, 0, root), 1);
             QCOMPARE_EQ(format(get()), p2 + nl + p1 + nl + p3);
-            debug_tree(edit->model(), edit->docModel->store);
+            QCOMPARE_EQ(par_text(0), p2);
+            QCOMPARE_EQ(par_text(1), p1);
+            QCOMPARE_EQ(par_text(2), p3);
 
             edit->movePositionUp(edit->model()->index(1, 0, root), 1);
             QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+            QCOMPARE_EQ(par_text(0), p1);
+            QCOMPARE_EQ(par_text(1), p2);
+            QCOMPARE_EQ(par_text(2), p3);
         }
 
         { // Move first paragraph all the way down and then back again
             edit->movePositionDown(edit->model()->index(0, 0, root), 2);
             QCOMPARE_EQ(format(get()), p2 + nl + p3 + nl + p1);
-            debug_tree(edit->model(), edit->docModel->store);
+            QCOMPARE_EQ(par_text(0), p2);
+            QCOMPARE_EQ(par_text(1), p3);
+            QCOMPARE_EQ(par_text(2), p1);
 
             edit->movePositionUp(edit->model()->index(2, 0, root), 2);
             QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
+            QCOMPARE_EQ(par_text(0), p1);
+            QCOMPARE_EQ(par_text(1), p2);
+            QCOMPARE_EQ(par_text(2), p3);
         }
 
 
