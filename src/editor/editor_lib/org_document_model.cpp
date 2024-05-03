@@ -133,6 +133,25 @@ void OrgDocumentModel::changePosition(CR<QModelIndex> index, int offset) {
     moveSubtree(index, index.parent(), move_position);
 }
 
+int computeDestinationChild(
+    CR<QModelIndex> moved_index,
+    CR<QModelIndex> new_parent,
+    int             parent_position) {
+    if (!moved_index.isValid()) {
+        throw std::invalid_argument("Invalid moved_index provided");
+    }
+
+    if (new_parent == moved_index.parent()) {
+        if (parent_position <= moved_index.row()) {
+            return parent_position;
+        } else {
+            return parent_position + 1;
+        }
+    } else {
+        return parent_position;
+    }
+}
+
 void OrgDocumentModel::moveSubtree(
     CR<QModelIndex> moved_index,
     CR<QModelIndex> new_parent,
@@ -145,28 +164,35 @@ void OrgDocumentModel::moveSubtree(
 
     Q_ASSERT(0 <= parent_position);
 
-    beginMoveRows(
-        moved_index.parent(),
-        moved_index.row(),
-        moved_index.row(),
-        new_parent,
-        parent_position);
+    int destinationChild = computeDestinationChild(
+        moved_index, new_parent, parent_position);
 
-    Q_ASSERT(moved_index.isValid());
-    auto current_parent = tree(moved_index.parent());
-    Q_ASSERT(current_parent != nullptr);
-    std::unique_ptr<TreeNode> moved_tree = std::move(
-        current_parent->subnodes[moved_index.row()]);
+    if (beginMoveRows(
+            moved_index.parent(),
+            moved_index.row(),
+            moved_index.row(),
+            new_parent,
+            destinationChild)) {
+        Q_ASSERT(moved_index.isValid());
+        auto current_parent = tree(moved_index.parent());
+        Q_ASSERT(current_parent != nullptr);
+        std::unique_ptr<TreeNode> moved_tree = std::move(
+            current_parent->subnodes[moved_index.row()]);
 
-    current_parent->subnodes.erase(
-        current_parent->subnodes.begin() + moved_index.row());
+        current_parent->subnodes.erase(
+            current_parent->subnodes.begin() + moved_index.row());
 
-    auto target_parent = tree(new_parent);
-    target_parent->subnodes.insert(
-        target_parent->subnodes.begin() + parent_position,
-        std::move(moved_tree));
+        auto target_parent = tree(new_parent);
+        target_parent->subnodes.insert(
+            target_parent->subnodes.begin() + parent_position,
+            std::move(moved_tree));
 
-    endMoveRows();
+        endMoveRows();
+    } else {
+        _qdbg(destinationChild);
+        _qdbg(moved_index.row());
+        _qdbg(parent_position);
+    }
 }
 
 QModelIndex OrgDocumentModel::parent(const QModelIndex& index) const {

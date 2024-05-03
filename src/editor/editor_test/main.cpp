@@ -305,8 +305,6 @@ Third subtree paragraph 2
         QVERIFY(outline);
         QVERIFY(edit);
 
-        debug_tree(outline->model(), s);
-
         { // Text outline model structure
             auto m = outline->model();
             QCOMPARE_EQ(m->rowCount(), 1);
@@ -458,6 +456,8 @@ Third subtree paragraph 2
             edit->movePositionDown(i2, 200);
             QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
         }
+
+        debug_tree(edit->model(), edit->docModel->store);
 
         {
             edit->movePositionDown(edit->model()->index(0, 0, root), 1);
