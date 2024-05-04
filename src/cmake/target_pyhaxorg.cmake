@@ -1,4 +1,4 @@
-find_package(PythonLibs 3.11)
+find_package(PythonLibs 3.12)
 
 # Declare python wrapper module
 pybind11_add_module(

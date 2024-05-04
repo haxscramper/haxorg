@@ -377,7 +377,6 @@ Third subtree paragraph 2
         }
     }
 
-
     void testParagraphMovements() {
         QTemporaryDir dir;
         AppState      state;
@@ -457,6 +456,80 @@ Third subtree paragraph 2
 
 
         QVERIFY(edit);
+    }
+
+    struct TestApiAccessor {
+        SPtr<MainWindow> window;
+        OrgDocumentEdit* edit;
+
+
+        sem::SemId<sem::Org> getNode() {
+            return edit->docModel->toNode();
+        };
+
+        /// Get root node of the editor model
+        QModelIndex getRoot() { return edit->model()->index(0, 0); }
+
+        /// Get nested node from the editor by traversing full path
+        QModelIndex getIndex(CVec<int> path) {
+            return ::index(edit->model(), path);
+        }
+
+        /// Get text of the node at a specified path
+        Str getText(CVec<int> path) {
+            return str(node(edit->docModel->store, getIndex(path)));
+        };
+    };
+
+    struct TestControllers {
+        SPtr<MainWindow> window;
+        OrgDocumentEdit* edit;
+        TestApiAccessor  api;
+    };
+
+    TestControllers init_test_for_file(CR<Str> file_content) {
+        QTemporaryDir dir;
+        AppState      state;
+        Str           nl{"\n\n"};
+
+        add_file(state, dir, "main.org", file_content);
+
+
+        auto window = init_window(state);
+        window->resize(300, 300);
+        window->loadFiles();
+
+        OrgDocumentEdit* edit = dynamic_cast<OrgDocumentEdit*>(
+            window->findChild<OrgDocumentEdit*>(
+                "MainWindow-OrgDocumentEdit-0"));
+
+        return {
+            .window = window,
+            .edit   = edit,
+            .api    = TestApiAccessor{
+                   .window = window,
+                   .edit   = edit,
+            }};
+    }
+
+    Str getSubtree(int treeLevel, CR<Str> name) {
+        return Str("*").repeated(treeLevel) + " "_ss + name;
+    }
+
+    Str getFile(CVec<Str> elements) { return join("\n\n", elements); }
+
+    void testSubtreePromotion() {
+        Str nl{"\n\n"};
+
+        auto [window, edit, api] = init_test_for_file(getFile({
+            getSubtree(1, "First"),
+            getSubtree(1, "Second"),
+        }));
+
+        QVERIFY(edit);
+
+        QCOMPARE_EQ(api.getText({0, 0}), "* First");
+        QCOMPARE_EQ(api.getText({0, 1}), "* Second");
     }
 };
 

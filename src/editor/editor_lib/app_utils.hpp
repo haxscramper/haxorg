@@ -28,11 +28,23 @@ QModelIndex mapToNestedProxy(
 
 
 inline QModelIndex index(
-    QAbstractItemModel* model,
-    Vec<Pair<int, int>> path) {
+    QAbstractItemModel*        model,
+    Vec<Pair<int, int>> const& path) {
     QModelIndex result = model->index(path.at(0).first, path.at(0).second);
     for (int i = 1; i < path.size(); ++i) {
         result = model->index(path.at(i).first, path.at(i).second, result);
+    }
+
+    return result;
+}
+
+inline QModelIndex index(
+    QAbstractItemModel* model,
+    Vec<int> const&     path,
+    int                 alwaysColumn = 0) {
+    QModelIndex result = model->index(path.at(0), alwaysColumn);
+    for (int i = 1; i < path.size(); ++i) {
+        result = model->index(path.at(i), alwaysColumn, result);
     }
 
     return result;
