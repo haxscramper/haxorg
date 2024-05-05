@@ -227,10 +227,11 @@ struct TestDocumentModel {
     }
 
     void compare(TestApiAccessor const& api, CR<TestDocumentNode> node) {
-        Func<void(CVec<int>, CR<TestDocumentNode>)> aux;
-        aux = [&](CVec<int> path, CR<TestDocumentNode> node) {
+        Func<void(CVec<int>, CR<TestDocumentNode>)> aux_compare;
+        using K     = TestDocumentNode::Kind;
+        aux_compare = [&](CVec<int> path, CR<TestDocumentNode> node) {
             switch (node.kind) {
-                case TestDocumentNode::Kind::Subtree: {
+                case K::Subtree: {
                     sem::SemId<sem::Subtree>
                                 tree  = api.getNodeT<sem::Subtree>(path);
                     QModelIndex index = api.getIndex(path);
@@ -241,12 +242,12 @@ struct TestDocumentModel {
                         node.subnodes.size());
                     break;
                 }
-                case TestDocumentNode::Kind::Paragraph: {
+                case K::Paragraph: {
                     sem::SemId<sem::Paragraph>
                         par = api.getNodeT<sem::Paragraph>(path);
                     break;
                 }
-                case TestDocumentNode::Kind::Document: {
+                case K::Document: {
                     sem::SemId<sem::Document>
                         par = api.getNodeT<sem::Document>(path);
                     break;
@@ -254,11 +255,40 @@ struct TestDocumentModel {
             }
 
             for (auto const& it : enumerator(node.subnodes)) {
-                aux(path + Vec<int>{it.index()}, it.value());
+                aux_compare(path + Vec<int>{it.index()}, it.value());
             }
         };
 
-        aux(Vec<int>{0}, node);
+        aux_compare(Vec<int>{0}, node);
+
+        Func<void(Str&, CR<TestDocumentNode>, int)> aux_format;
+        aux_format = [&](Str& res, CR<TestDocumentNode> node, int level) {
+            switch (node.kind) {
+                case K::Subtree: {
+                    res += Str("*").repeated(level);
+                    res += " ";
+                    res += node.text.value();
+                    if (!node.subnodes.empty()) { res += "\n"; }
+                    break;
+                }
+                case K::Paragraph: {
+                    res += node.text.value();
+                    break;
+                }
+                default: {
+                }
+            }
+
+            for (auto const& it : enumerator(node.subnodes)) {
+                if (!it.is_first()) { res += "\n"; }
+                if (node.kind == K::Subtree) { res += "\n"; }
+                aux_format(res, it.value(), level + 1);
+            }
+        };
+
+        Str expected_format;
+        aux_format(expected_format, node, 0);
+        QCOMPARE_EQ(api.getFormat(), expected_format);
     }
 };
 
