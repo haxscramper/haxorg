@@ -415,3 +415,147 @@ void TestEditorModel::testTestDocumentModel() {
             m.tree("tree3"),
         }));
 }
+
+void TestEditorModel::testDemoteLastSubtreeInDocument() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+        getSubtree(1, "tree2"),
+        getSubtree(1, "tree3"),
+    }));
+
+    QVERIFY(edit);
+
+    auto              t = api.getAt<sem::Subtree>();
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+            m.tree("tree2"),
+            m.tree("tree3"),
+        }));
+
+    edit->demoteSubtreeRecursive(api.getIndex({0, 2}));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+            m.tree("tree2", {m.tree("tree3")}),
+        }));
+}
+
+void TestEditorModel::testDemoteMiddleSubtreeInDocument() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+        getSubtree(1, "tree2"),
+        getSubtree(1, "tree3"),
+    }));
+
+    QVERIFY(edit);
+
+    auto              t = api.getAt<sem::Subtree>();
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+            m.tree("tree2"),
+            m.tree("tree3"),
+        }));
+
+    edit->demoteSubtreeRecursive(api.getIndex({0, 1}));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1", {m.tree("tree2")}),
+            m.tree("tree3"),
+        }));
+}
+
+void TestEditorModel::testDemoteSubtreeBlock1() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+        getSubtree(1, "tree2"),
+        getSubtree(2, "tree3"),
+    }));
+
+    QVERIFY(edit);
+
+    auto              t = api.getAt<sem::Subtree>();
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+            m.tree("tree2", {m.tree("tree3")}),
+        }));
+
+    edit->demoteSubtreeRecursive(api.getIndex({0, 1}));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1", {m.tree("tree2", {m.tree("tree3")})}),
+        }));
+}
+
+void TestEditorModel::testDemoteSubtreeBlock7() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+        getSubtree(1, "tree2"),
+        getSubtree(2, "tree3"),
+        getSubtree(3, "tree4"),
+        getSubtree(4, "tree5"),
+        getSubtree(5, "tree6"),
+        getSubtree(6, "tree7"),
+        getSubtree(7, "tree8"),
+    }));
+
+    QVERIFY(edit);
+
+    auto              t = api.getAt<sem::Subtree>();
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document(
+            {m.tree("tree1"),
+             m.tree(
+                 "tree2",
+                 {m.tree(
+                     "tree3",
+                     {m.tree(
+                         "tree4",
+                         {m.tree(
+                             "tree5",
+                             {m.tree(
+                                 "tree6",
+                                 {m.tree(
+                                     "tree7",
+                                     {m.tree("tree8")})})})})})})}));
+
+    edit->demoteSubtreeRecursive(api.getIndex({0, 1}));
+
+    m.compare(
+        api,
+        m.document({m.tree(
+            "tree1",
+            {m.tree(
+                "tree2",
+                {m.tree(
+                    "tree3",
+                    {m.tree(
+                        "tree4",
+                        {m.tree(
+                            "tree5",
+                            {m.tree(
+                                "tree6",
+                                {m.tree(
+                                    "tree7",
+                                    {m.tree("tree8")})})})})})})})}));
+}

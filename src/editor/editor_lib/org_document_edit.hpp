@@ -80,19 +80,19 @@ class OrgDocumentEdit : public QTreeView {
         docModel->changePosition(filter->mapToSource(index), offset);
     }
 
-    void demoteSubtreeSingle(QModelIndex index, int levels) {
+    void demoteSubtreeSingle(QModelIndex index, int levels = 1) {
         docModel->changeLevel(filter->mapToSource(index), levels, false);
     }
 
-    void promoteSubtreeSingle(QModelIndex index, int levels) {
+    void promoteSubtreeSingle(QModelIndex index, int levels = 1) {
         docModel->changeLevel(filter->mapToSource(index), -levels, false);
     }
 
-    void demoteSubtreeRecursive(QModelIndex index, int levels) {
+    void demoteSubtreeRecursive(QModelIndex index, int levels = 1) {
         docModel->changeLevel(filter->mapToSource(index), levels, true);
     }
 
-    void promoteSubtreeRecursive(QModelIndex index, int levels) {
+    void promoteSubtreeRecursive(QModelIndex index, int levels = 1) {
         docModel->changeLevel(filter->mapToSource(index), -levels, true);
     }
 };

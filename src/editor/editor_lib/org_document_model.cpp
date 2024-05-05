@@ -174,11 +174,24 @@ void OrgDocumentModel::changeLevel(
 
         moveSubtree(index, targetParent, targetParentRow);
         if (levelChange != 0) {
-            TreeNode* node = tree(index);
-            node->boxId    = store->update<sem::Subtree>(
-                node->boxId, [&](sem::Subtree& subtree) {
-                    subtree.level = subtree.level + levelChange;
-                });
+            Func<void(QModelIndex const&)> aux;
+            aux = [&](QModelIndex const& parent) {
+                if (store->node(tree(parent)->boxId)
+                        ->is(OrgSemKind::Subtree)) {
+                    TreeNode* node = tree(parent);
+                    node->boxId    = store->update<sem::Subtree>(
+                        node->boxId, [&](sem::Subtree& subtree) {
+                            subtree.level = subtree.level + levelChange;
+                        });
+                }
+
+                for (int i = 0; i < rowCount(parent); ++i) {
+                    auto nested = this->index(i, 0, parent);
+                    aux(nested);
+                }
+            };
+
+            aux(index);
         }
     } else {
         qFatal("Change tree in a non-recursive manner");

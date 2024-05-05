@@ -15,4 +15,9 @@ class TestEditorModel
     void testParagraphMovements();
     void testSubtreeDemotion();
     void testTestDocumentModel();
+
+    void testDemoteLastSubtreeInDocument();
+    void testDemoteMiddleSubtreeInDocument();
+    void testDemoteSubtreeBlock1();
+    void testDemoteSubtreeBlock7();
 };
