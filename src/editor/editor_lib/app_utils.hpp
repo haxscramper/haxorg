@@ -17,7 +17,7 @@ Func<std::string(QModelIndex const&)> store_index_printer(
 template <typename T>
 std::string qdebug_to_str(T const& index) {
     QString output;
-    QDebug(&output) << index;
+    QDebug(&output).noquote().nospace() << index;
     return output.toStdString();
 }
 
@@ -79,3 +79,11 @@ class DebugEventFilter : public QObject {
             [filter, obj]() { obj->removeEventFilter(filter.get()); });
     }
 };
+
+inline void qt_assert_x(
+    std::string const& where,
+    std::string const& what,
+    const char*        file,
+    int                line) noexcept {
+    qt_assert_x(strdup(where.c_str()), strdup(what.c_str()), file, line);
+}

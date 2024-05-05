@@ -19,6 +19,8 @@ struct ExporterUltraplain
         visit(res, range->to);
     }
 
+    void visitSubtree(std::string& res, In<sem::Subtree> tree);
+
     void visitTime(std::string& res, In<sem::Time> time);
 
     template <typename T>

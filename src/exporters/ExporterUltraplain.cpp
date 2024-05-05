@@ -33,6 +33,19 @@ void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {
     }
 }
 
+void ExporterUltraplain::visitSubtree(
+    std::string&     res,
+    In<sem::Subtree> tree) {
+
+    res += Str("*").repeated(tree->level);
+    res += " ";
+    visit(res, tree->title);
+    if (!tree->subnodes.empty()) {
+        res += "\n";
+        for (auto const& sub : tree->subnodes) { visit(res, sub); }
+    }
+}
+
 void ExporterUltraplain::visitTime(std::string& res, In<sem::Time> time) {
     if (time->isStatic()) {
         res += (time->getTimeKind() == sem::Time::TimeKind::Dynamic ? "<" : "[");

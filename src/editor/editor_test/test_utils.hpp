@@ -137,6 +137,17 @@ struct TestApiAccessor {
 
 
     sem::SemId<sem::Org> getNode() { return edit->docModel->toNode(); };
+    sem::SemId<sem::Org> getNode(CVec<int> path) {
+        auto index = getIndex(path);
+        auto t     = edit->docModel->tree(index);
+        Q_ASSERT(t != nullptr);
+        return t->toNode(edit->docModel->store);
+    };
+
+    template <typename T>
+    sem::SemId<T> getNodeT(CVec<int> path) {
+        return getNode(path).as<T>();
+    };
 
     /// Get root node of the editor model
     QModelIndex getRoot() { return edit->model()->index(0, 0); }
@@ -145,6 +156,8 @@ struct TestApiAccessor {
     QModelIndex getIndex(CVec<int> path) {
         return ::index(edit->model(), path);
     }
+
+    Str str(sem::OrgArg node) { return ExporterUltraplain::toStr(node); }
 
     /// Get text of the node at a specified path
     Str getText(CVec<int> path) {
@@ -159,3 +172,14 @@ struct TestControllers {
 };
 
 TestControllers init_test_for_file(CR<Str> file_content);
+
+void test_message_handler(
+    QtMsgType                 type,
+    const QMessageLogContext& context,
+    const QString&            msg);
+
+
+struct TestBase {
+    void init_test_base();
+    void cleanup_test_base();
+};

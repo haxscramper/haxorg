@@ -58,6 +58,12 @@ void OrgSubtreeSearchModel::setScoreSorted(bool sorted) {
     }
 }
 
+OrgDocumentModel::TreeNode* OrgDocumentModel::tree(
+    CR<QModelIndex> index) const {
+    return static_cast<TreeNode*>(
+        mapToNestedSource(index).internalPointer());
+}
+
 void OrgDocumentModel::loadFile(const fs::path& path) {
     auto document = sem::parseFile(path, sem::OrgParseParameters{});
     this->root = std::make_unique<TreeNode>(store->add(document), nullptr);
@@ -103,27 +109,71 @@ QModelIndex OrgDocumentModel::index(
     }
 }
 
-void OrgDocumentModel::changeLevel(CR<QModelIndex> index, int level) {
-    QModelIndex targetParent    = index;
-    int         targetParentRow = 0;
-    // TODO change for the tree kind
-    if (0 < level) {
-        for (int i = 0; i < level; ++i) {
-            if (targetParent.parent().isValid()) {
-                targetParent    = targetParent.parent();
-                targetParentRow = targetParent.row();
-            } else {
-                break;
-            }
-        }
-    } else if (0 < level) {
-        qFatal("TODO Implement tree demotion");
-    }
+void OrgDocumentModel::changeLevel(
+    CR<QModelIndex> index,
+    int             level,
+    bool            recursive) {
+    if (recursive) {
+        QModelIndex targetParent    = index;
+        int         targetParentRow = 0;
 
-    moveSubtree(targetParent, index, targetParentRow);
-    // TODO after moving the tree, change the ID and/or  values of the
-    // respective fields to account for the new parenting level (for
-    // subtrees)
+        // TODO change for the tree kind
+        if (0 < level) {
+            int abs_level = -level;
+            if (index.row() == 0) {
+                // Current subtree is the first one in the list, promotion
+                // will not introduce any parents
+                qDebug() << fmt(
+                    "index {} is at row 0, demoting without movement",
+                    qdebug_to_str(index));
+            } else {
+                targetParent    = index.siblingAtRow(index.row() - 1);
+                targetParentRow = rowCount(targetParent);
+                qDebug() << fmt(
+                    "index {} is not first, parent {} target row {}",
+                    qdebug_to_str(index),
+                    qdebug_to_str(targetParent),
+                    targetParentRow);
+
+                for (int i = 1; i < abs_level; ++i) {
+                    targetParent = this->index(
+                        rowCount(targetParent) - 1, 0, targetParent);
+                    targetParentRow = rowCount(targetParent);
+
+                    qDebug()
+                        << fmt("nesting level {} under {} target row {}",
+                               i,
+                               qdebug_to_str(targetParent),
+                               targetParentRow);
+                }
+            }
+
+        } else if (level < 0) {
+            for (int i = 0; i < level; ++i) {
+                if (targetParent.parent().isValid()) {
+                    qDebug()
+                        << fmt("{} has valid parent {}, parent row is {}",
+                               qdebug_to_str(targetParent),
+                               qdebug_to_str(targetParent.parent()),
+                               targetParent.row());
+
+                    targetParentRow = targetParent.row();
+                    targetParent    = targetParent.parent();
+                } else {
+                    break;
+                }
+            }
+        } else {
+            return;
+        }
+
+        moveSubtree(index, targetParent, targetParentRow);
+        // TODO after moving the tree, change the ID and/or  values of the
+        // respective fields to account for the new parenting level (for
+        // subtrees)
+    } else {
+        qFatal("Change tree in a non-recursive manner");
+    }
 }
 
 void OrgDocumentModel::changePosition(CR<QModelIndex> index, int offset) {
@@ -157,12 +207,23 @@ void OrgDocumentModel::moveSubtree(
     CR<QModelIndex> new_parent,
     int             parent_position) {
 
-    if (new_parent == moved_index.parent()
-        && parent_position == moved_index.row()) {
+    if ((new_parent == moved_index.parent()
+         && parent_position == moved_index.row())
+        || (moved_index == new_parent)) {
         return;
     }
 
     Q_ASSERT(0 <= parent_position);
+
+    for (auto p = new_parent.parent(); p.isValid(); p = p.parent()) {
+        Q_ASSERT_X(
+            moved_index != p,
+            "moveSubtree",
+            fmt("Moved index {} is ancestor of the new parent {} -- move "
+                "is invalid",
+                qdebug_to_str(moved_index),
+                qdebug_to_str(new_parent)));
+    }
 
     int destinationChild = computeDestinationChild(
         moved_index, new_parent, parent_position);
@@ -189,9 +250,17 @@ void OrgDocumentModel::moveSubtree(
 
         endMoveRows();
     } else {
-        _qdbg(destinationChild);
-        _qdbg(moved_index.row());
-        _qdbg(parent_position);
+        Q_ASSERT_X(
+            false,
+            "moveSubtree",
+            fmt("Could not execute subtree move with provided parameters"
+                "destinationChild = {} moved_index.row() = {} "
+                "parent_position = {} moved_index = {} new_parent = {}",
+                destinationChild,
+                moved_index.row(),
+                parent_position,
+                qdebug_to_str(moved_index),
+                qdebug_to_str(new_parent)));
     }
 }
 

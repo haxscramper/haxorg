@@ -9,6 +9,14 @@ QModelIndex mapToNestedSource(const QModelIndex& index) {
         index.model());
 
     while (currentProxyModel) {
+        Q_ASSERT_X(
+            currentIndex.model() == currentProxyModel,
+            "mapToNestedSource",
+            fmt("Index to wrong model passed to mapToSource: index is {}, "
+                "model is {}",
+                qdebug_to_str(currentIndex),
+                qdebug_to_str(currentProxyModel)));
+
         currentIndex      = currentProxyModel->mapToSource(currentIndex);
         currentProxyModel = qobject_cast<QSortFilterProxyModel const*>(
             currentProxyModel->sourceModel());

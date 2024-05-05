@@ -305,7 +305,7 @@ void TestEditorModel::testParagraphMovements() {
         QCOMPARE_EQ(format(get()), p1 + nl + p2 + nl + p3);
     }
 
-    debug_tree(edit->model(), edit->docModel->store);
+    // debug_tree(edit->model(), edit->docModel->store);
 
     { // Move first paragraph down and back up
         edit->movePositionDown(edit->model()->index(0, 0, root), 1);
@@ -339,7 +339,7 @@ void TestEditorModel::testParagraphMovements() {
     QVERIFY(edit);
 }
 
-void TestEditorModel::testSubtreePromotion() {
+void TestEditorModel::testSubtreeDemotion() {
     Str nl{"\n\n"};
 
     auto [window, edit, api] = init_test_for_file(getFile({
@@ -349,6 +349,42 @@ void TestEditorModel::testSubtreePromotion() {
 
     QVERIFY(edit);
 
-    // QCOMPARE_EQ(api.getText({0, 0}), "* First");
-    // QCOMPARE_EQ(api.getText({0, 1}), "* Second");
+    auto t = [&](CVec<int> path) -> sem::SemId<sem::Subtree> {
+        auto result = api.getNodeT<sem::Subtree>(path);
+        if (result.isNil()) {
+            throw std::domain_error(
+                fmt("cannot get node at path {}", path));
+        }
+        return result;
+    };
+
+    auto compare_no_change = [&]() {
+        QCOMPARE_EQ((api.getNode({0, 0})->getKind()), osk::Subtree);
+        QCOMPARE_EQ((api.getNode({0, 0})->getKind()), osk::Subtree);
+        QCOMPARE_EQ((api.str(t({0, 0})->title)), "First");
+        QCOMPARE_EQ((api.str(t({0, 1})->title)), "Second");
+        QCOMPARE_EQ((t({0, 0})->subnodes.size()), 0);
+        QCOMPARE_EQ((t({0, 1})->subnodes.size()), 0);
+        QCOMPARE_EQ((t({0, 0})->level), 1);
+        QCOMPARE_EQ((t({0, 1})->level), 1);
+    };
+
+    compare_no_change();
+    edit->demoteSubtreeRecursive(api.getIndex({0, 1}), 0);
+    compare_no_change();
+    edit->promoteSubtreeRecursive(api.getIndex({0, 1}), 20);
+    compare_no_change();
+
+    edit->demoteSubtreeRecursive(api.getIndex({0, 1}), 1);
+
+    debug_tree(edit->model(), edit->docModel->store);
+
+    QCOMPARE_EQ((api.getNode({0, 0})->getKind()), osk::Subtree);
+    QCOMPARE_EQ((api.getNode({0, 0, 0})->getKind()), osk::Subtree);
+    QCOMPARE_EQ((api.str(t({0, 0})->title)), "First");
+    QCOMPARE_EQ((api.str(t({0, 0, 0})->title)), "Second");
+    QCOMPARE_EQ((t({0, 0})->subnodes.size()), 1);
+    QCOMPARE_EQ((t({0, 0, 0})->subnodes.size()), 0);
+    QCOMPARE_EQ((t({0, 0})->level), 1);
+    QCOMPARE_EQ((t({0, 0, 0})->level), 2);
 }
