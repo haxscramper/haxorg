@@ -467,8 +467,10 @@ json::Value treeRepr(Node const* node) {
 
         K_CAST(ClosureTypeName) {
             K_FIELD(TemplateParams, 0, NodeArray);
-            K_FIELD(Params, 1, NodeArray);
-            K_FIELD(Count, 2, std::string_view);
+            K_FIELD(Requires1, 1, NPtr);
+            K_FIELD(Params, 2, NodeArray);
+            K_FIELD(Requires2, 3, NPtr);
+            K_FIELD(Count, 4, std::string_view);
         }
 
 
@@ -516,8 +518,9 @@ json::Value treeRepr(Node const* node) {
             K_FIELD(Name, 1, NPtr);
             K_FIELD(Params, 2, NodeArray);
             K_FIELD(Attrs, 3, NPtr);
-            K_FIELD(CVQuals, 4, Qualifiers);
-            K_FIELD(RefQual, 5, FunctionRefQual);
+            K_FIELD(Requires, 4, NPtr);
+            K_FIELD(CVQuals, 5, Qualifiers);
+            K_FIELD(RefQual, 6, FunctionRefQual);
         }
 
         K_CAST(FunctionType) {

@@ -26,7 +26,7 @@ def test_libgit2_conv():
             build_root="{config_dir}/build",
             source_root="{config_dir}",
             header_root="{config_dir}/include",
-            toolchain_include="{tool_dir}/toolchain/llvm/lib/clang/17/include",
+            toolchain_include="{tool_dir}/toolchain/llvm/lib/clang/18/include",
             output_directory=str(code_dir),
             execution_trace=str(code_dir.joinpath("run_trace.json")),
             cmake_configure_options=["-DBULD_TEST=OFF"],
