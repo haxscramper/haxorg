@@ -16,8 +16,8 @@ class TestEditorModel
     void testSubtreeDemotion();
     void testTestDocumentModel();
 
-    void testDemoteLastSubtreeInDocument();
-    void testDemoteMiddleSubtreeInDocument();
-    void testDemoteSubtreeBlock1();
-    void testDemoteSubtreeBlock7();
+    void testRecursiveDemoteLastSubtreeInDocument();
+    void testRecursiveDemoteMiddleSubtreeInDocument();
+    void testRecursiveDemoteSubtreeBlock1();
+    void testRecursiveDemoteSubtreeBlock7();
 };

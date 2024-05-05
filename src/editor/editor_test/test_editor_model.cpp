@@ -416,7 +416,7 @@ void TestEditorModel::testTestDocumentModel() {
         }));
 }
 
-void TestEditorModel::testDemoteLastSubtreeInDocument() {
+void TestEditorModel::testRecursiveDemoteLastSubtreeInDocument() {
     auto [window, edit, api] = init_test_for_file(getFile({
         getSubtree(1, "tree1"),
         getSubtree(1, "tree2"),
@@ -446,7 +446,7 @@ void TestEditorModel::testDemoteLastSubtreeInDocument() {
         }));
 }
 
-void TestEditorModel::testDemoteMiddleSubtreeInDocument() {
+void TestEditorModel::testRecursiveDemoteMiddleSubtreeInDocument() {
     auto [window, edit, api] = init_test_for_file(getFile({
         getSubtree(1, "tree1"),
         getSubtree(1, "tree2"),
@@ -476,7 +476,7 @@ void TestEditorModel::testDemoteMiddleSubtreeInDocument() {
         }));
 }
 
-void TestEditorModel::testDemoteSubtreeBlock1() {
+void TestEditorModel::testRecursiveDemoteSubtreeBlock1() {
     auto [window, edit, api] = init_test_for_file(getFile({
         getSubtree(1, "tree1"),
         getSubtree(1, "tree2"),
@@ -504,7 +504,7 @@ void TestEditorModel::testDemoteSubtreeBlock1() {
         }));
 }
 
-void TestEditorModel::testDemoteSubtreeBlock7() {
+void TestEditorModel::testRecursiveDemoteSubtreeBlock7() {
     auto [window, edit, api] = init_test_for_file(getFile({
         getSubtree(1, "tree1"),
         getSubtree(1, "tree2"),
