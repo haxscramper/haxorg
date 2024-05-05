@@ -8,7 +8,6 @@ project(
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Test Widgets)
-find_package(KF6ItemModels REQUIRED)
 add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
 
 qt_standard_project_setup()
@@ -27,8 +26,7 @@ target_link_libraries(
          haxorg
          Qt6::Test
          Qt6::Core
-         Qt6::Widgets
-         KF6::ItemModels)
+         Qt6::Widgets)
 
 target_include_directories(
   editor_lib PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"

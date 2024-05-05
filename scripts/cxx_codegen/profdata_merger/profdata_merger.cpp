@@ -40,6 +40,8 @@ PERFETTO_DEFINE_CATEGORIES(
 );
 
 
+#pragma clang diagnostic error "-Wswitch"
+
 #include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
@@ -568,11 +570,45 @@ json::Value treeRepr(Node const* node) {
             K_FIELD(Inits, 1, NodeArray);
         }
 
-        K_DEFAULT() {
-            std::string msg = std::format("ERR:'{}'", Kind);
-            llvm_unreachable(msg.c_str());
-            break;
+        K_CAST(TemplateParamQualifiedArg) {
+            K_FIELD(Param, 0, NPtr);
+            K_FIELD(Arg, 1, NPtr);
         }
+
+        K_CAST(ConstrainedTypeTemplateParamDecl) {
+            K_FIELD(Constraint, 0, NPtr);
+            K_FIELD(Name, 1, NPtr);
+        }
+
+
+        K_CAST(ExplicitObjectParameter) { K_FIELD(Base, 0, NPtr); }
+        K_CAST(NestedRequirement) { K_FIELD(Constraint, 0, NPtr); }
+        K_CAST(TypeRequirement) { K_FIELD(Type, 0, NPtr); }
+        K_CAST(MemberLikeFriendName) {
+            K_FIELD(Qual, 0, NPtr);
+            K_FIELD(Name, 1, NPtr);
+        }
+        K_CAST(RequiresExpr) {
+            K_FIELD(Parameters, 0, NodeArray);
+            K_FIELD(Requirements, 1, NodeArray);
+        }
+        K_CAST(ExprRequirement) {
+            K_FIELD(Expr, 0, NPtr);
+            K_FIELD(IsNoexcept, 1, bool);
+            K_FIELD(TypeConstraint, 2, NPtr);
+        }
+
+        K_CAST(TransformedType) {
+            K_FIELD(Transform, 0, std::string_view);
+            K_FIELD(BaseType, 1, NPtr);
+        }
+
+        K_CASE_END()
+        // K_DEFAULT() {
+        //     std::string msg = std::format("ERR:'{}'", Kind);
+        //     llvm_unreachable(msg.c_str());
+        //     break;
+        // }
     }
 }
 
