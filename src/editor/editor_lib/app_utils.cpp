@@ -3,6 +3,14 @@
 #include <hstd/stdlib/Map.hpp>
 #include <exporters/ExporterUltraplain.hpp>
 
+Q_LOGGING_CATEGORY(editor, "editor");
+/// Logging related to the editable document model in the tree or outline
+Q_LOGGING_CATEGORY(editor_model, "editor.model");
+/// Logging for operations and diagnostics with files -- opening, closing,
+/// parsing etc.
+Q_LOGGING_CATEGORY(editor_files, "editor.files");
+
+
 QModelIndex mapToNestedSource(const QModelIndex& index) {
     QModelIndex currentIndex = index;
     auto currentProxyModel   = qobject_cast<QSortFilterProxyModel const*>(

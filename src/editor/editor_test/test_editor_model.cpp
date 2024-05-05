@@ -152,7 +152,6 @@ Third subtree paragraph 2
     { // Text outline model structure
         auto m = outline->model();
         QCOMPARE_EQ(m->rowCount(), 1);
-        qDebug() << "Start model structure compare";
         {
             auto r   = m->index(0, 0);
             auto t1  = m->index(0, 0, r);

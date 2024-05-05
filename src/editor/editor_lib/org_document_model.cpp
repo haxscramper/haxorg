@@ -124,14 +124,14 @@ void OrgDocumentModel::changeLevel(
             if (index.row() == 0) {
                 // Current subtree is the first one in the list, promotion
                 // will not introduce any parents
-                qDebug() << fmt(
+                qCDebug(editor_model) << fmt(
                     "index {} is at row 0, demoting without movement",
                     qdebug_to_str(index));
                 ++levelChange;
             } else {
                 targetParent    = index.siblingAtRow(index.row() - 1);
                 targetParentRow = rowCount(targetParent);
-                qDebug() << fmt(
+                qCDebug(editor_model) << fmt(
                     "index {} is not first, parent {} target row {}",
                     qdebug_to_str(index),
                     qdebug_to_str(targetParent),
@@ -143,7 +143,7 @@ void OrgDocumentModel::changeLevel(
                         rowCount(targetParent) - 1, 0, targetParent);
                     targetParentRow = rowCount(targetParent);
 
-                    qDebug()
+                    qCDebug(editor_model)
                         << fmt("nesting level {} under {} target row {}",
                                i,
                                qdebug_to_str(targetParent),
@@ -155,7 +155,7 @@ void OrgDocumentModel::changeLevel(
         } else if (level < 0) {
             for (int i = 0; i < level; ++i) {
                 if (targetParent.parent().isValid()) {
-                    qDebug()
+                    qCDebug(editor_model)
                         << fmt("{} has valid parent {}, parent row is {}",
                                qdebug_to_str(targetParent),
                                qdebug_to_str(targetParent.parent()),
@@ -363,7 +363,7 @@ bool OrgDocumentModel::setData(
         } else {
             QString text = value.toString();
             if (text.isEmpty()) {
-                qDebug()
+                qCDebug(editor_model)
                     << "Setting model data with empty text -- removing row"
                     << index;
                 removeRow(index.row(), index.parent());

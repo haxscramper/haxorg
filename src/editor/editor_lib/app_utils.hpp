@@ -6,6 +6,18 @@
 #include <editor/editor_lib/org_document_model.hpp>
 #include <QEvent>
 
+#include <QLoggingCategory>
+
+
+/// Top-level logs for all editor logging that does not fit into any
+/// specific categories
+Q_DECLARE_LOGGING_CATEGORY(editor);
+/// Logging related to the editable document model in the tree or outline
+Q_DECLARE_LOGGING_CATEGORY(editor_model);
+/// Logging for operations and diagnostics with files -- opening, closing,
+/// parsing etc.
+Q_DECLARE_LOGGING_CATEGORY(editor_files);
+
 std::string printModelTree(
     const QAbstractItemModel*             model,
     const QModelIndex&                    parent,
@@ -57,7 +69,7 @@ class DebugEventFilter : public QObject {
 
   protected:
     bool eventFilter(QObject* obj, QEvent* event) override {
-        qDebug().noquote().nospace()
+        qCDebug(editor_model).noquote().nospace()
             << "Object: '" << obj->metaObject()->className()
             << "::" << obj->objectName() << //
             "' Type: " << event->type() <<  //
