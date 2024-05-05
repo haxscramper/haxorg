@@ -99,7 +99,7 @@ class QTestClass(pytest.Class):
 
             test_item.add_marker("x11")
 
-            if test.item_name in [
+            if test_item.name in [
                     "testParagraphMovements",
             ]:
                 test_item.add_marker("unstable")
