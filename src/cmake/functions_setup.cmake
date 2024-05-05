@@ -140,3 +140,10 @@ function(set_common_files TARGET)
   endif()
 
 endfunction()
+
+
+function(haxorg_target_setup TARGET)
+  set_common_files("${TARGET}")
+  set_target_output("${TARGET}")
+  set_target_flags("${TARGET}")
+endfunction()

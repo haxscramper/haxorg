@@ -9,25 +9,34 @@ from pathlib import Path
 import subprocess
 import os
 
+GUI_SCREEN_DISPLAY = ":14"
+
 
 @beartype
 @dataclass
 class QTestParams():
-    test_name: str
+    test_name: Optional[str]
     meth_name: str
 
-    def class_name(self):
-        return self.test_name.replace(" ", "")
+    def class_name(self) -> Optional[str]:
+        return self.test_name and self.test_name.replace(" ", "")
 
     def item_name(self):
         return self.meth_name.replace("test_", "")
 
     def qtest_params(self):
-        result = [f"{self.test_name}::{self.meth_name}"]
-        return result
+        if self.test_name:
+            return [f"{self.test_name}::{self.meth_name}"]
+
+        else:
+            return [self.meth_name]
 
     def fullname(self):
-        return f"{self.class_name()}.{self.item_name()}"
+        if self.test_name:
+            return f"{self.class_name()}.{self.item_name()}"
+
+        else:
+            return self.item_name()
 
 
 def parse_qt_tests(binary_path: str) -> list[QTestParams]:
@@ -36,27 +45,30 @@ def parse_qt_tests(binary_path: str) -> list[QTestParams]:
     cmd = local[binary_path]
     cmd = cmd.with_cwd(str(get_haxorg_repo_root_path()))
     print("2", file=dbg)
-    print(binary_path)
+    print(binary_path, file=dbg)
     print("3", file=dbg)
-
-    for key in sorted(os.environ.keys()):
-        print(key, os.getenv(key), file=dbg)
 
     code, stdout, stderr = cmd.run(["-functions"])
     print(binary_path, file=dbg)
     print(stdout, file=dbg)
     print(stderr, file=dbg)
     print(code, file=dbg)
-    assert (code == 0, f"{stdout}\n{stderr}")
+    assert code == 0, f"{stdout}\n{stderr}"
     tests = []
 
     line: str
-    for line in stderr.splitlines():
+    for line in stdout.splitlines():
         if "QML debugging" in line:
             continue
 
         else:
-            class_name, test_name = line.strip().split('::')
+            if "::" in line:
+                class_name, test_name = line.strip().split('::')
+
+            else:
+                class_name = None
+                test_name = line
+
             test_name = test_name.replace("()", "")
             tests.append(QTestParams(test_name=class_name, meth_name=test_name))
 
@@ -64,13 +76,13 @@ def parse_qt_tests(binary_path: str) -> list[QTestParams]:
 
 
 binary_path: str = str(
-    get_haxorg_repo_root_path().joinpath("build/haxorg/src/editor/gui_tests"))
+    get_haxorg_repo_root_path().joinpath("build/haxorg/src/editor/editor_test"))
 
 
 class QTestClass(pytest.Class):
 
     def __init__(self, name, parent):
-        super().__init__(name, parent)
+        super().__init__(name or "QtGui", parent)
         self.tests: list[QTestParams] = []
 
     def add_test(self, test: QTestParams):
@@ -78,12 +90,21 @@ class QTestClass(pytest.Class):
 
     def collect(self):
         for test in self.tests:
-            yield QTestItem.from_parent(
+            test_item = QTestItem.from_parent(
                 self,
                 qtest=test,
                 name=test.item_name(),
                 callobj=lambda: None,
             )
+
+            test_item.add_marker("x11")
+
+            if test_item.name in [
+                    "testParagraphMovements",
+            ]:
+                test_item.add_marker("unstable")
+
+            yield test_item
 
     def _getobj(self):
         # Return a dummy class object
@@ -97,7 +118,9 @@ class QTestRunError(Exception):
 
     def __str__(self):
         result = []
-        result.append("error message: " + " ".join(self.item.qtest.qtest_params()))
+        result.append("")
+        result.append(f"command: {self.shell_error.argv}")
+        result.append("error message:\n" + " ".join(self.item.qtest.qtest_params()))
         if self.shell_error.stdout:
             result.append(self.shell_error.stdout)
 
@@ -115,7 +138,8 @@ class QTestItem(pytest.Function):
 
     def runtest(self):
         try:
-            local[binary_path](*self.qtest.qtest_params())
+            local[binary_path].with_env(DISPLAY=GUI_SCREEN_DISPLAY)(
+                *self.qtest.qtest_params())
 
         except ProcessExecutionError as e:
             raise QTestRunError(e, self) from None
@@ -131,6 +155,7 @@ class QTestItem(pytest.Function):
 
 
 class QTestFile(pytest.Module):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.test_classes: List[QTestClass] = []
@@ -144,9 +169,7 @@ class QTestFile(pytest.Module):
                 test_class.add_test(test)
 
             self.test_classes.append(test_class)
-        
 
     def collect(self):
         for it in self.test_classes:
             yield it
-
