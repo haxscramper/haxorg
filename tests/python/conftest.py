@@ -55,22 +55,29 @@ STDERR: {stderr.decode()}
         print(f"Failed to start the application: {str(e)}")
 
 
+@beartype
+def is_ci() -> bool:
+    return bool(os.getenv("INVOKE_CI"))
+
 @pytest.fixture(scope="session", autouse=True)
 def trace_session():
     get_trace_collector().push_complete_event("session", "test-session")
-    xvfb = local["Xvfb"]
-    xvfb_process = xvfb.popen(args=[GUI_SCREEN_DISPLAY, "-srceen", "0", "1280x1024x24"])
 
-    if xvfb_process.poll() is not None:  # None means still running
-        output, errors = xvfb_process.communicate()
-        raise Exception(f"Xvfb failed to start: {errors.decode()} {output.decode()}")
+    if not is_ci():
+        xvfb = local["Xvfb"]
+        xvfb_process = xvfb.popen(args=[GUI_SCREEN_DISPLAY, "-srceen", "0", "1280x1024x24"])
 
-    check_gui_application_on_display("xev", GUI_SCREEN_DISPLAY)
+        if xvfb_process.poll() is not None:  # None means still running
+            output, errors = xvfb_process.communicate()
+            raise Exception(f"Xvfb failed to start: {errors.decode()} {output.decode()}")
+
+        check_gui_application_on_display("xev", GUI_SCREEN_DISPLAY)
 
     yield
 
-    xvfb_process.terminate()
-    xvfb_process.wait()
+    if not is_ci():
+        xvfb_process.terminate()
+        xvfb_process.wait()
 
     get_trace_collector().pop_complete_event()
     get_trace_collector().export_to_json(Path("/tmp/haxorg_py_tests.json"))
@@ -116,9 +123,10 @@ def pytest_collect_file(parent: Module, path: str):
         return result
 
     elif test.name == "test_integrate_qt.py":
-        result = QTestFile.from_parent(parent, path=test)
-        debug(result, "/tmp/qt_tests")
-        return result
+        if not is_ci():
+            result = QTestFile.from_parent(parent, path=test)
+            debug(result, "/tmp/qt_tests")
+            return result
 
 
 def pytest_collection_modifyitems(session: Session, config: Config,

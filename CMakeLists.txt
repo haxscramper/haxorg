@@ -20,6 +20,7 @@ set(TOOLCHAIN_DIR "${BASE}/toolchain")
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
 set(SCRIPT_DIR "${BASE}/src/scripts")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 
 ## Describe relative paths to the shared and header libraries packaged with LLVM

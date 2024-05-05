@@ -33,6 +33,11 @@ std::string qdebug_to_str(T const& index) {
     return output.toStdString();
 }
 
+inline QDebug operator<<(QDebug debug, const std::string& str) {
+    debug.nospace() << QString::fromStdString(str);
+    return debug.space();
+}
+
 QModelIndex mapToNestedSource(QModelIndex const& index);
 QModelIndex mapToNestedProxy(
     QModelIndex const&          index,

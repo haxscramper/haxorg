@@ -136,7 +136,7 @@ def run_provider(
             input=[str(file) for file in text.keys()],
             indexing_tool="{haxorg_root}/build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
             compilation_database=compile_commands.name,
-            toolchain_include="{haxorg_root}/toolchain/llvm/lib/clang/17/include",
+            toolchain_include="{haxorg_root}/toolchain/llvm/lib/clang/18/include",
             output_directory=str(code_dir),
             directory_root=str(code_dir),
             header_root=str(code_dir),

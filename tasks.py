@@ -28,8 +28,8 @@ import graphviz
 
 # Major version of the LLVM toolchain used for the project. This is not a configuration
 # value, only as constant to avoid typing the same thing all over.
-LLVM_MAJOR = "17"
-LLVM_VERSION = f"{LLVM_MAJOR}.0.6"
+LLVM_MAJOR = "18"
+LLVM_VERSION = "18.1.4"
 CAT = "tasks"
 
 
