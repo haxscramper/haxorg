@@ -14,4 +14,5 @@ class TestEditorModel
     void testOutlineJump();
     void testParagraphMovements();
     void testSubtreeDemotion();
+    void testSubtreeDemotion3();
 };

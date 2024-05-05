@@ -77,7 +77,7 @@ struct OrgStore {
     /// new updated node to the store as well.
     template <typename T>
     OrgBoxId update(OrgBoxId prev, Func<void(T&)> replace) {
-        sem::SemId<sem::Org> node = copy(node(prev));
+        sem::SemId<sem::Org> node = copy(this->node(prev));
         replace(*node.getAs<T>());
         return add(node);
     }

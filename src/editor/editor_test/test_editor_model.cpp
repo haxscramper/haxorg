@@ -340,8 +340,6 @@ void TestEditorModel::testParagraphMovements() {
 }
 
 void TestEditorModel::testSubtreeDemotion() {
-    Str nl{"\n\n"};
-
     auto [window, edit, api] = init_test_for_file(getFile({
         getSubtree(1, "First"),
         getSubtree(1, "Second"),
@@ -349,14 +347,7 @@ void TestEditorModel::testSubtreeDemotion() {
 
     QVERIFY(edit);
 
-    auto t = [&](CVec<int> path) -> sem::SemId<sem::Subtree> {
-        auto result = api.getNodeT<sem::Subtree>(path);
-        if (result.isNil()) {
-            throw std::domain_error(
-                fmt("cannot get node at path {}", path));
-        }
-        return result;
-    };
+    auto t = api.getAt<sem::Subtree>();
 
     auto compare_no_change = [&]() {
         QCOMPARE_EQ((api.getNode({0, 0})->getKind()), osk::Subtree);
@@ -367,6 +358,11 @@ void TestEditorModel::testSubtreeDemotion() {
         QCOMPARE_EQ((t({0, 1})->subnodes.size()), 0);
         QCOMPARE_EQ((t({0, 0})->level), 1);
         QCOMPARE_EQ((t({0, 1})->level), 1);
+        auto tree1 = getFile({
+            getSubtree(1, "First"),
+            getSubtree(1, "Second"),
+        });
+        QCOMPARE_EQ(api.getFormat(), tree1);
     };
 
     compare_no_change();
@@ -379,12 +375,34 @@ void TestEditorModel::testSubtreeDemotion() {
 
     debug_tree(edit->model(), edit->docModel->store);
 
-    QCOMPARE_EQ((api.getNode({0, 0})->getKind()), osk::Subtree);
-    QCOMPARE_EQ((api.getNode({0, 0, 0})->getKind()), osk::Subtree);
-    QCOMPARE_EQ((api.str(t({0, 0})->title)), "First");
-    QCOMPARE_EQ((api.str(t({0, 0, 0})->title)), "Second");
-    QCOMPARE_EQ((t({0, 0})->subnodes.size()), 1);
-    QCOMPARE_EQ((t({0, 0, 0})->subnodes.size()), 0);
-    QCOMPARE_EQ((t({0, 0})->level), 1);
-    QCOMPARE_EQ((t({0, 0, 0})->level), 2);
+    {
+        QCOMPARE_EQ((api.getNode({0, 0})->getKind()), osk::Subtree);
+        QCOMPARE_EQ((api.getNode({0, 0, 0})->getKind()), osk::Subtree);
+        QCOMPARE_EQ((api.str(t({0, 0})->title)), "First");
+        QCOMPARE_EQ((api.str(t({0, 0, 0})->title)), "Second");
+        QCOMPARE_EQ((t({0, 0})->subnodes.size()), 1);
+        QCOMPARE_EQ((t({0, 0, 0})->subnodes.size()), 0);
+        QCOMPARE_EQ((t({0, 0})->level), 1);
+        QCOMPARE_EQ((t({0, 0, 0})->level), 2);
+
+        auto tree = getFile({
+            getSubtree(1, "First"),
+            "",
+            getSubtree(2, "Second"),
+        });
+
+        QCOMPARE_EQ(api.getFormat(), tree);
+    }
+}
+
+void TestEditorModel::testSubtreeDemotion3() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "First"),
+        getSubtree(1, "Second"),
+        getSubtree(1, "Third"),
+    }));
+
+    QVERIFY(edit);
+
+    auto t = api.getAt<sem::Subtree>();
 }

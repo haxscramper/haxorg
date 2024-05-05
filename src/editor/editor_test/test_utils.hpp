@@ -128,7 +128,7 @@ inline Str getSubtree(int treeLevel, CR<Str> name) {
     return Str("*").repeated(treeLevel) + " "_ss + name;
 }
 
-inline Str getFile(CVec<Str> elements) { return join("\n\n", elements); }
+inline Str getFile(CVec<Str> elements) { return join("\n", elements); }
 
 
 struct TestApiAccessor {
@@ -159,10 +159,28 @@ struct TestApiAccessor {
 
     Str str(sem::OrgArg node) { return ExporterUltraplain::toStr(node); }
 
+    Str getFormat(sem::OrgArg node) {
+        return sem::Formatter::format(node);
+    }
+
+    Str getFormat() { return sem::Formatter::format(getNode()); }
+
     /// Get text of the node at a specified path
     Str getText(CVec<int> path) {
         return str(node(edit->docModel->store, getIndex(path)));
     };
+
+    template <typename T>
+    Func<sem::SemId<T>(CVec<int>)> getAt() {
+        return [this](CVec<int> path) -> sem::SemId<T> {
+            auto result = this->getNodeT<T>(path);
+            if (result.isNil()) {
+                throw std::domain_error(
+                    fmt("cannot get node at path {}", path));
+            }
+            return result;
+        };
+    }
 };
 
 struct TestControllers {

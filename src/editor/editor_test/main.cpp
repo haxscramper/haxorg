@@ -9,5 +9,3 @@ int main(int argc, char** argv) {
     TestEditorModel test;
     return QTest::qExec(&test, argc, argv);
 }
-
-#include "main.moc"
