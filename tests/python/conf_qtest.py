@@ -9,6 +9,8 @@ from pathlib import Path
 import subprocess
 import os
 
+GUI_SCREEN_DISPLAY = ":14"
+
 
 @beartype
 @dataclass
@@ -136,7 +138,8 @@ class QTestItem(pytest.Function):
 
     def runtest(self):
         try:
-            local[binary_path](*self.qtest.qtest_params())
+            local[binary_path].with_env(DISPLAY=GUI_SCREEN_DISPLAY)(
+                *self.qtest.qtest_params())
 
         except ProcessExecutionError as e:
             raise QTestRunError(e, self) from None
