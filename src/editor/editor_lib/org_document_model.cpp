@@ -116,6 +116,7 @@ void OrgDocumentModel::changeLevel(
     if (recursive) {
         QModelIndex targetParent    = index;
         int         targetParentRow = 0;
+        int         levelChange     = 0;
 
         // TODO change for the tree kind
         if (0 < level) {
@@ -126,6 +127,7 @@ void OrgDocumentModel::changeLevel(
                 qDebug() << fmt(
                     "index {} is at row 0, demoting without movement",
                     qdebug_to_str(index));
+                ++levelChange;
             } else {
                 targetParent    = index.siblingAtRow(index.row() - 1);
                 targetParentRow = rowCount(targetParent);
@@ -134,6 +136,7 @@ void OrgDocumentModel::changeLevel(
                     qdebug_to_str(index),
                     qdebug_to_str(targetParent),
                     targetParentRow);
+                ++levelChange;
 
                 for (int i = 1; i < abs_level; ++i) {
                     targetParent = this->index(
@@ -145,6 +148,7 @@ void OrgDocumentModel::changeLevel(
                                i,
                                qdebug_to_str(targetParent),
                                targetParentRow);
+                    ++levelChange;
                 }
             }
 
@@ -159,6 +163,7 @@ void OrgDocumentModel::changeLevel(
 
                     targetParentRow = targetParent.row();
                     targetParent    = targetParent.parent();
+                    --levelChange;
                 } else {
                     break;
                 }
@@ -168,9 +173,13 @@ void OrgDocumentModel::changeLevel(
         }
 
         moveSubtree(index, targetParent, targetParentRow);
-        // TODO after moving the tree, change the ID and/or  values of the
-        // respective fields to account for the new parenting level (for
-        // subtrees)
+        if (levelChange != 0) {
+            TreeNode* node = tree(index);
+            node->boxId    = store->update<sem::Subtree>(
+                node->boxId, [&](sem::Subtree& subtree) {
+                    subtree.level = subtree.level + levelChange;
+                });
+        }
     } else {
         qFatal("Change tree in a non-recursive manner");
     }
@@ -335,8 +344,7 @@ bool OrgDocumentModel::setData(
     int                role) {
     if (!index.isValid()) { return false; }
     if (role == Qt::EditRole) {
-        TreeNode* node = static_cast<TreeNode*>(index.internalPointer());
-
+        TreeNode* node = tree(index);
         if (value.typeId() == QMetaType::type("OrgBoxId")) {
             node->boxId = qvariant_cast<OrgBoxId>(value);
         } else {

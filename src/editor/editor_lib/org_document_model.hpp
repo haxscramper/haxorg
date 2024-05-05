@@ -71,6 +71,16 @@ struct OrgStore {
 
     UnorderedMap<OrgBoxId, OrgBox> data{};
     OrgStore() {}
+
+    /// Create a shallow copy of the sem org tree from the `prev` boxed
+    /// value and apply the replacement callback to the object. Then add a
+    /// new updated node to the store as well.
+    template <typename T>
+    OrgBoxId update(OrgBoxId prev, Func<void(T&)> replace) {
+        sem::SemId<sem::Org> node = copy(node(prev));
+        replace(*node.getAs<T>());
+        return add(node);
+    }
 };
 
 struct OrgDocumentModel : public QAbstractItemModel {
@@ -87,6 +97,7 @@ struct OrgDocumentModel : public QAbstractItemModel {
 
     UPtr<TreeNode> root;
     OrgStore*      store;
+
 
     sem::SemId<sem::Org> toNode() const { return root->toNode(store); }
 
