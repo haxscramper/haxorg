@@ -41,6 +41,9 @@ void test_message_handler(
         && msg.contains("QSortFilterProxyModel: index from wrong model "
                         "passed to mapFromSource")) {
         qFatal("Sort filter proxy model invalid index");
+
+    // } else if (msg.contains("Caught unhandled exception")) {
+    //     qFatal("Caught unhandled exception");
     } else {
         pre_test_handler(type, context, msg);
     }

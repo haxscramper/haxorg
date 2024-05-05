@@ -395,14 +395,23 @@ void TestEditorModel::testSubtreeDemotion() {
     }
 }
 
-void TestEditorModel::testSubtreeDemotion3() {
+void TestEditorModel::testTestDocumentModel() {
     auto [window, edit, api] = init_test_for_file(getFile({
-        getSubtree(1, "First"),
-        getSubtree(1, "Second"),
-        getSubtree(1, "Third"),
+        getSubtree(1, "tree1"),
+        getSubtree(1, "tree2"),
+        getSubtree(1, "tree3"),
     }));
 
     QVERIFY(edit);
 
-    auto t = api.getAt<sem::Subtree>();
+    auto              t = api.getAt<sem::Subtree>();
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+            m.tree("tree2"),
+            m.tree("tree3"),
+        }));
 }

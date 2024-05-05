@@ -7,6 +7,7 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <sem/SemOrgFormat.hpp>
 #include <exporters/exportertree.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 
 using osk = OrgSemKind;
 
@@ -130,14 +131,16 @@ inline Str getSubtree(int treeLevel, CR<Str> name) {
 
 inline Str getFile(CVec<Str> elements) { return join("\n", elements); }
 
-
 struct TestApiAccessor {
     SPtr<MainWindow> window;
     OrgDocumentEdit* edit;
 
 
-    sem::SemId<sem::Org> getNode() { return edit->docModel->toNode(); };
-    sem::SemId<sem::Org> getNode(CVec<int> path) {
+    sem::SemId<sem::Org> getNode() const {
+        return edit->docModel->toNode();
+    };
+
+    sem::SemId<sem::Org> getNode(CVec<int> path) const {
         auto index = getIndex(path);
         auto t     = edit->docModel->tree(index);
         Q_ASSERT(t != nullptr);
@@ -145,33 +148,35 @@ struct TestApiAccessor {
     };
 
     template <typename T>
-    sem::SemId<T> getNodeT(CVec<int> path) {
+    sem::SemId<T> getNodeT(CVec<int> path) const {
         return getNode(path).as<T>();
     };
 
     /// Get root node of the editor model
-    QModelIndex getRoot() { return edit->model()->index(0, 0); }
+    QModelIndex getRoot() const { return edit->model()->index(0, 0); }
 
     /// Get nested node from the editor by traversing full path
-    QModelIndex getIndex(CVec<int> path) {
+    QModelIndex getIndex(CVec<int> path) const {
         return ::index(edit->model(), path);
     }
 
-    Str str(sem::OrgArg node) { return ExporterUltraplain::toStr(node); }
+    Str str(sem::OrgArg node) const {
+        return ExporterUltraplain::toStr(node);
+    }
 
-    Str getFormat(sem::OrgArg node) {
+    Str getFormat(sem::OrgArg node) const {
         return sem::Formatter::format(node);
     }
 
-    Str getFormat() { return sem::Formatter::format(getNode()); }
+    Str getFormat() const { return sem::Formatter::format(getNode()); }
 
     /// Get text of the node at a specified path
-    Str getText(CVec<int> path) {
+    Str getText(CVec<int> path) const {
         return str(node(edit->docModel->store, getIndex(path)));
     };
 
     template <typename T>
-    Func<sem::SemId<T>(CVec<int>)> getAt() {
+    Func<sem::SemId<T>(CVec<int>)> getAt() const {
         return [this](CVec<int> path) -> sem::SemId<T> {
             auto result = this->getNodeT<T>(path);
             if (result.isNil()) {
@@ -182,6 +187,81 @@ struct TestApiAccessor {
         };
     }
 };
+
+struct TestDocumentNode {
+    enum class Kind
+    {
+        Subtree,
+        Paragraph,
+        Document,
+    };
+
+    Kind                  kind;
+    Vec<TestDocumentNode> subnodes;
+    Opt<Str>              text;
+};
+
+struct TestDocumentModel {
+    TestDocumentNode document(CVec<TestDocumentNode> subnodes = {}) const {
+        return TestDocumentNode{
+            .kind     = TestDocumentNode::Kind::Document,
+            .subnodes = subnodes,
+        };
+    }
+
+    TestDocumentNode tree(
+        CR<Str>                title    = "Subtree",
+        CVec<TestDocumentNode> subnodes = {}) const {
+        return TestDocumentNode{
+            .kind     = TestDocumentNode::Kind::Subtree,
+            .subnodes = subnodes,
+            .text     = title,
+        };
+    }
+
+    TestDocumentNode paragraph(CR<Str> text = "Paragraph") const {
+        return TestDocumentNode{
+            .kind = TestDocumentNode::Kind::Paragraph,
+            .text = text,
+        };
+    }
+
+    void compare(TestApiAccessor const& api, CR<TestDocumentNode> node) {
+        Func<void(CVec<int>, CR<TestDocumentNode>)> aux;
+        aux = [&](CVec<int> path, CR<TestDocumentNode> node) {
+            switch (node.kind) {
+                case TestDocumentNode::Kind::Subtree: {
+                    sem::SemId<sem::Subtree>
+                                tree  = api.getNodeT<sem::Subtree>(path);
+                    QModelIndex index = api.getIndex(path);
+                    QCOMPARE_EQ(tree->level, path.size() - 1);
+                    QCOMPARE_EQ(api.str(tree->title), node.text);
+                    QCOMPARE_EQ(
+                        api.edit->model()->rowCount(index),
+                        node.subnodes.size());
+                    break;
+                }
+                case TestDocumentNode::Kind::Paragraph: {
+                    sem::SemId<sem::Paragraph>
+                        par = api.getNodeT<sem::Paragraph>(path);
+                    break;
+                }
+                case TestDocumentNode::Kind::Document: {
+                    sem::SemId<sem::Document>
+                        par = api.getNodeT<sem::Document>(path);
+                    break;
+                }
+            }
+
+            for (auto const& it : enumerator(node.subnodes)) {
+                aux(path + Vec<int>{it.index()}, it.value());
+            }
+        };
+
+        aux(Vec<int>{0}, node);
+    }
+};
+
 
 struct TestControllers {
     SPtr<MainWindow> window;
