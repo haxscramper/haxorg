@@ -1,5 +1,5 @@
 #pragma once
-#if false
+
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
 #include <string>
@@ -11,7 +11,6 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
-#include <new>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/system/generator.hpp>
 #include <absl/log/check.h>
@@ -67,6 +66,7 @@ class Graphviz {
         switch (direction) {
             case TextAlign::Left: res.replaceAll("\n", "\\l"); break;
             case TextAlign::Right: res.replaceAll("\n", "\\r"); break;
+            case TextAlign::Center: break;
         }
 
         return res;
@@ -132,25 +132,19 @@ class Graphviz {
         void getAttr(Str const& key, Opt<int>& value) const {
             Opt<Str> tmp;
             getAttr(key, tmp);
-            if (tmp) {
-                value = tmp->toInt();
-            }
+            if (tmp) { value = tmp->toInt(); }
         }
 
         void getAttr(Str const& key, Opt<double>& value) const {
             Opt<Str> tmp;
             getAttr(key, tmp);
-            if (tmp) {
-                value = tmp->toDouble();
-            }
+            if (tmp) { value = tmp->toDouble(); }
         }
 
         void getAttr(Str const& key, Opt<bool>& value) const {
             Opt<Str> tmp;
             getAttr(key, tmp);
-            if (tmp) {
-                value = *tmp == "true";
-            }
+            if (tmp) { value = *tmp == "true"; }
         }
 
 
@@ -236,9 +230,7 @@ class Graphviz {
 
             void push_back(CR<Vec<Str>> cells) {
                 Vec<Record> row;
-                for (const auto& it : cells) {
-                    row.push_back(it);
-                }
+                for (const auto& it : cells) { row.push_back(it); }
                 getNested().push_back(Record(row));
             }
 
@@ -682,5 +674,3 @@ class Graphviz {
   private:
     GVC_t* gvc;
 };
-
-#endif

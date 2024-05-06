@@ -34,12 +34,14 @@ set_property(TARGET libcola_external PROPERTY INTERFACE_LINK_LIBRARIES
 )
 
 set_property(TARGET libcola_external
-    PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DEPS_DIR}/adaptagrams"
+    PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DEPS_DIR}/adaptagrams/cola"
 )
 
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Test Widgets)
-add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
+find_package(PkgConfig)
+pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 
+add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
 
 qt_policy(SET QTP0003 NEW)
 
@@ -62,11 +64,12 @@ target_link_libraries(
          Qt6::Test
          Qt6::Core
          Qt6::Widgets
+         ${CAIROMM_LIBRARIES}
          libcola_external)
 
 target_include_directories(
   editor_lib PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"
-                    "${BASE}/src")
+                    "${BASE}/src" ${CAIROMM_INCLUDE_DIRS})
 
 qt_add_executable(editor_app)
 glob_add_sources2(editor_app "${EDITOR_DIR}/editor_app.*" "${BASE}")

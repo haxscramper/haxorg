@@ -1,5 +1,3 @@
-#if false
-
 #include <hstd/wrappers/graphviz.hpp>
 #include <filesystem>
 #include <format>
@@ -25,18 +23,14 @@ void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
 Str Graphviz::Node::Record::toString(bool braceCount) const {
     Str result;
     if (isFinal()) {
-        if (tag) {
-            result += std::format("<{}>", *tag);
-        }
+        if (tag) { result += std::format("<{}>", *tag); }
         result += Record::escape(getLabel());
     } else {
         const auto& c = getNested();
         if (!c.empty()) {
             result += Str("{").repeated(braceCount);
             for (int i = 0; i < c.size(); ++i) {
-                if (0 < i) {
-                    result += "|";
-                }
+                if (0 < i) { result += "|"; }
                 result += c[i].toString(1);
             }
             result += Str("}").repeated(braceCount);
@@ -178,7 +172,7 @@ void Graphviz::writeFile(
         FILE* output_file = fopen(fileName.c_str(), "w");
         if (output_file == NULL) {
             perror("Error opening output file");
-            return 1;
+            return;
         }
 
         agwrite(const_cast<Agraph_t*>(graph.get()), output_file);
@@ -256,5 +250,3 @@ generator<CRw<Graphviz::Edge>> Graphviz::Node::edges() {
         co_yield std::ref(value);
     }
 }
-
-#endif
