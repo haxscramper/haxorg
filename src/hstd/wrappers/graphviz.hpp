@@ -22,7 +22,7 @@
         setAttr(#key, value, direction);                                  \
     }                                                                     \
                                                                           \
-    Opt<Type> set##Method() {                                             \
+    Opt<Type> get##Method() const {                                       \
         Opt<Type> value;                                                  \
         getAttr(#key, value);                                             \
         return value;                                                     \
@@ -31,7 +31,7 @@
 #define _attr(Method, key, Type)                                          \
     void set##Method(Type const& value) { setAttr(#key, value); }         \
                                                                           \
-    Opt<Type> set##Method() {                                             \
+    Opt<Type> get##Method() const {                                       \
         Opt<Type> value;                                                  \
         getAttr(#key, value);                                             \
         return value;                                                     \
@@ -509,6 +509,8 @@ class Graphviz {
         void eachNode(Func<void(Node)> cb);
         void eachEdge(Func<void(Edge)> cb);
 
+        int nodeCount() { return agnnodes(graph); }
+
 
         /// Set default attriute value for edge
         void setDefaultEdgeAttr(Str const& key, Str const& value) {}
@@ -517,6 +519,7 @@ class Graphviz {
             agsubnode(graph, node.node, 1);
             return node;
         }
+
         Node node(Str const& name) {
             CHECK(graph != nullptr);
             auto tmp = Node(graph, name);
@@ -616,14 +619,11 @@ class Graphviz {
 
 
     Graphviz() {
-        gvc = gvContext();
+        gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
         if (!gvc) {
             throw std::runtime_error("Failed to create Graphviz context");
         }
     }
-
-    ~Graphviz() { gvFreeContext(gvc); }
-
 
     enum class LayoutType
     {
@@ -672,5 +672,5 @@ class Graphviz {
         LayoutType   layout = LayoutType::Dot);
 
   private:
-    GVC_t* gvc;
+    SPtr<GVC_t> gvc;
 };

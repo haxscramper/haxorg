@@ -152,7 +152,7 @@ Str Graphviz::renderFormatToString(RenderFormat renderFormat) {
 
 void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) {
     int res = gvLayout(
-        gvc,
+        gvc.get(),
         const_cast<Agraph_t*>(graph.get()),
         strdup(layoutTypeToString(layout)));
 }
@@ -161,7 +161,7 @@ void Graphviz::freeLayout(Graph graph) {
     CHECK(gvLayoutDone(graph.get()));
     CHECK(graph.get() != nullptr);
     CHECK(gvc != nullptr);
-    gvFreeLayout(gvc, const_cast<Agraph_t*>(graph.get()));
+    gvFreeLayout(gvc.get(), const_cast<Agraph_t*>(graph.get()));
 }
 
 void Graphviz::writeFile(
@@ -185,7 +185,7 @@ void Graphviz::writeFile(
                "`createLayout()` before writing or use 'renderToFile' to "
                "execute render in one step";
         gvRenderFilename(
-            gvc,
+            gvc.get(),
             const_cast<Agraph_t*>(graph.get()),
             strdup(renderFormatToString(format)),
             strdup(fileName));

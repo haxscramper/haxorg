@@ -4,6 +4,7 @@
 #include <libcola/output_svg.h>
 #include <QRect>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/wrappers/graphviz.hpp>
 
 struct GraphConstraint {
     struct Align {
@@ -41,12 +42,28 @@ struct GraphConstraint {
     GraphConstraint(CR<Data> data) : data(data) {};
 };
 
+constexpr float graphviz_size_scaling = 12;
+
+
+QRect getNodeRectangle(CR<Graphviz::Graph> g, CR<Graphviz::Node> node) {
+    auto   pos    = node.getAttr<Str>("pos").value().split(",");
+    double width  = node.getWidth().value() * graphviz_size_scaling;
+    double height = node.getHeight().value() * graphviz_size_scaling;
+    double x      = pos.at(0).toDouble();
+    double y      = pos.at(1).toDouble();
+    int    x1     = static_cast<int>(x - width / 2);
+    int    y1     = static_cast<int>(y - height / 2);
+    return QRect(x1, y1, width, height);
+}
+
+
 struct GraphLayoutIR {
     Vec<QRect>           rectangles;
     Vec<Pair<int, int>>  edges;
     Vec<GraphConstraint> constraints;
-    double               width  = 100;
-    double               height = 100;
+    double               width     = 100;
+    double               height    = 100;
+    Str                  graphName = "G";
 
     void validate() {
         for (auto const& e : enumerator(edges)) {
@@ -69,6 +86,66 @@ struct GraphLayoutIR {
         Vec<QPolygonF> lines;
     };
 
+    struct GraphvizResult {
+        Graphviz::Graph graph;
+        Graphviz        gvc;
+
+        void writeSvg(CR<Str> path) {
+            gvc.writeFile(path, graph, Graphviz::RenderFormat::SVG);
+        }
+
+        void writeXDot(CR<Str> path) {
+            gvc.writeFile(path, graph, Graphviz::RenderFormat::XDOT);
+        }
+
+        Result convert() {
+            Result res;
+            res.fixed.resize(graph.nodeCount());
+
+            graph.eachNode([&](CR<Graphviz::Node> node) {
+                res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
+                    graph, node);
+            });
+
+            return res;
+        }
+    };
+
+    GraphvizResult doGraphvizLayout(
+        Graphviz             gvc,
+        Graphviz::LayoutType layout = Graphviz::LayoutType::Dot) {
+        GraphvizResult      result{.graph{graphName}, .gvc{gvc}};
+        int                 nodeCounter = 0;
+        Vec<Graphviz::Node> nodes //
+            = this->rectangles
+            | rv::transform([&](CR<QRect> r) -> Graphviz::Node {
+                  auto node = result.graph.node(fmt1(nodeCounter));
+                  // default DPI used by graphviz to convert from
+                  // inches.
+                  node.setHeight(r.height() / graphviz_size_scaling);
+                  node.setWidth(r.width() / graphviz_size_scaling);
+                  node.setAttr("index", nodeCounter);
+                  node.setAttr("fixedsize", true);
+                  node.setShape(Graphviz::Node::Shape::rectangle);
+                  ++nodeCounter;
+                  return node;
+              })
+            | rs::to<Vec>();
+
+        Vec<Graphviz::Edge> //
+            edges = this->edges
+                  | rv::transform(
+                        [&](CR<Pair<int, int>> e) -> Graphviz::Edge {
+                            return result.graph.edge(
+                                nodes.at(e.first), nodes.at(e.second));
+                        })
+                  | rs::to<Vec>();
+
+        gvc.createLayout(result.graph, layout);
+
+        return result;
+    }
+
     /// Intermediate layout representation storage
     struct ColaResult {
         Vec<vpsc::Rectangle>          baseRectangles;
@@ -78,16 +155,17 @@ struct GraphLayoutIR {
         Result convert() {
             Result res;
 
-            res.fixed = baseRectangles
-                      | rv::transform([](CR<vpsc::Rectangle> r) {
-                            return QRect(
-                                r.getMinX(),               // top left x
-                                r.getMaxY(),               // top left y
-                                r.getMaxX() - r.getMinX(), // width
-                                r.getMaxY() - r.getMinY()  // height
-                            );
-                        })
-                      | rs::to<Vec>();
+            res.fixed //
+                = baseRectangles
+                | rv::transform([](CR<vpsc::Rectangle> r) {
+                      return QRect(
+                          r.getMinX(),               // top left x
+                          r.getMaxY(),               // top left y
+                          r.getMaxX() - r.getMinX(), // width
+                          r.getMaxY() - r.getMinY()  // height
+                      );
+                  })
+                | rs::to<Vec>();
 
             return res;
         }
@@ -104,11 +182,11 @@ struct GraphLayoutIR {
         ColaResult                ir;
         cola::CompoundConstraints ccs;
 
-        auto constraints = this->constraints
-                         | rv::transform([](CR<GraphConstraint> c) {
-                               return c.toCola();
-                           })
-                         | rs::to<Vec>();
+        auto constraints        //
+            = this->constraints //
+            | rv::transform(
+                  [](CR<GraphConstraint> c) { return c.toCola(); })
+            | rs::to<Vec>();
 
         for (auto const& c : constraints) { ccs.push_back(c.get()); }
 
@@ -118,17 +196,17 @@ struct GraphLayoutIR {
                 vpsc::Rectangle(r.left(), r.right(), r.top(), r.bottom()));
         }
 
-        ir.rectPointers = ir.baseRectangles
-                        | rv::transform([](auto& r) { return &r; })
-                        | rs::to<Vec>();
+        ir.rectPointers                                 //
+            = ir.baseRectangles                         //
+            | rv::transform([](auto& r) { return &r; }) //
+            | rs::to<Vec>();
 
-        ir.edges = edges
-                 | rv::transform(
-                       [](auto const& i) -> Pair<unsigned, unsigned> {
-                           return std::make_pair<unsigned>(
-                               i.first, i.second);
-                       })
-                 | rs::to<Vec>();
+        ir.edges //
+            = edges
+            | rv::transform([](auto const& i) -> Pair<unsigned, unsigned> {
+                  return std::make_pair<unsigned>(i.first, i.second);
+              })
+            | rs::to<Vec>();
 
         cola::ConstrainedFDLayout alg2(
             ir.rectPointers, ir.edges, width / 2);
@@ -207,4 +285,34 @@ void TestMindMap::testLibcolaIr1() {
     auto lyt = ir.doColaLayout();
     lyt.writeSvg("/tmp/testLibcolaIr1.svg");
     lyt.convert();
+}
+
+void TestMindMap::testGraphvizIr1() {
+    GraphLayoutIR ir;
+    Graphviz      gvc;
+    ir.edges.push_back({0, 1});
+    ir.edges.push_back({1, 2});
+    ir.edges.push_back({2, 3});
+
+    ir.rectangles.push_back(QRect(0, 0, 5, 5));
+    ir.rectangles.push_back(QRect(5, 5, 5, 5));
+    ir.rectangles.push_back(QRect(10, 10, 20, 20));
+    ir.rectangles.push_back(QRect(15, 15, 20, 20));
+    auto lyt = ir.doGraphvizLayout(gvc);
+    lyt.writeSvg("/tmp/testGraphvizIr1.svg");
+    lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
+    auto converted = lyt.convert();
+    QCOMPARE_EQ(converted.fixed.size(), 4);
+
+    QCOMPARE_EQ(converted.fixed.at(0).width(), 5);
+    QCOMPARE_EQ(converted.fixed.at(0).height(), 5);
+
+    QCOMPARE_EQ(converted.fixed.at(1).width(), 5);
+    QCOMPARE_EQ(converted.fixed.at(1).height(), 5);
+
+    QCOMPARE_EQ(converted.fixed.at(2).width(), 20);
+    QCOMPARE_EQ(converted.fixed.at(2).height(), 20);
+
+    QCOMPARE_EQ(converted.fixed.at(3).width(), 20);
+    QCOMPARE_EQ(converted.fixed.at(3).height(), 20);
 }
