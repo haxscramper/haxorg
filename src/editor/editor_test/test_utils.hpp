@@ -11,7 +11,6 @@
 
 using osk = OrgSemKind;
 
-
 inline Vec<OrgBoxId> dfs_boxes(OrgDocumentModel::TreeNode const* node) {
     Vec<OrgBoxId> result{node->boxId};
     for (auto const& sub : node->subnodes) {

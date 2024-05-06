@@ -1,0 +1,10 @@
+[
+  {
+    "class_name": "TestEditorModel",
+    "path": "test_editor_model"
+  },
+  {
+    "class_name": "TestMindMap",
+    "path": "test_mind_map"
+  }
+]

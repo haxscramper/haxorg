@@ -42,14 +42,15 @@ void test_message_handler(
                         "passed to mapFromSource")) {
         qFatal("Sort filter proxy model invalid index");
 
-    // } else if (msg.contains("Caught unhandled exception")) {
-    //     qFatal("Caught unhandled exception");
+        // } else if (msg.contains("Caught unhandled exception")) {
+        //     qFatal("Caught unhandled exception");
     } else {
         pre_test_handler(type, context, msg);
     }
 }
 
 void TestBase::init_test_base() {
+    editorInitMain();
     pre_test_handler = qInstallMessageHandler(test_message_handler);
 }
 

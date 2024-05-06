@@ -1,0 +1,2 @@
+#include <editor/editor_test/@TEST_FILE_NAME@.hpp>
+QTEST_MAIN(@TEST_CLASS_NAME@)
