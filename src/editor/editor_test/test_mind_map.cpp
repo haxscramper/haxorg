@@ -56,10 +56,27 @@ QRect getNodeRectangle(CR<Graphviz::Graph> g, CR<Graphviz::Node> node) {
     return QRect(x1, y1, width, height);
 }
 
+QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge) {
+    auto posString = QString::fromStdString(
+        edge.getAttr<Str>("pos").value());
+    QPolygonF   polygon;
+    QStringList points = posString.split(' ', Qt::SkipEmptyParts);
+    for (const QString& point : points) {
+        if (point.contains(',')) {
+            QStringList coords = point.split(',');
+            double      x      = coords[0].toDouble();
+            double      y      = coords[1].toDouble();
+            polygon << QPointF(x, y);
+        }
+    }
+    return polygon;
+}
+
 
 struct GraphLayoutIR {
+    using IrEdge = Pair<int, int>;
     Vec<QRect>           rectangles;
-    Vec<Pair<int, int>>  edges;
+    Vec<IrEdge>          edges;
     Vec<GraphConstraint> constraints;
     double               width     = 100;
     double               height    = 100;
@@ -82,8 +99,8 @@ struct GraphLayoutIR {
     }
 
     struct Result {
-        Vec<QRect>     fixed;
-        Vec<QPolygonF> lines;
+        Vec<QRect>                      fixed;
+        UnorderedMap<IrEdge, QPolygonF> lines;
     };
 
     struct GraphvizResult {
@@ -105,6 +122,14 @@ struct GraphLayoutIR {
             graph.eachNode([&](CR<Graphviz::Node> node) {
                 res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
                     graph, node);
+            });
+
+            graph.eachEdge([&](CR<Graphviz::Edge> edge) {
+                res.lines.insert_or_assign(
+                    std::make_pair(
+                        edge.getAttr<int>("source_index").value(),
+                        edge.getAttr<int>("target_index").value()),
+                    getEdgeSpline(edge));
             });
 
             return res;
@@ -136,8 +161,11 @@ struct GraphLayoutIR {
             edges = this->edges
                   | rv::transform(
                         [&](CR<Pair<int, int>> e) -> Graphviz::Edge {
-                            return result.graph.edge(
+                            auto edge = result.graph.edge(
                                 nodes.at(e.first), nodes.at(e.second));
+                            edge.setAttr("source_index", e.first);
+                            edge.setAttr("target_index", e.second);
+                            return edge;
                         })
                   | rs::to<Vec>();
 
@@ -315,4 +343,6 @@ void TestMindMap::testGraphvizIr1() {
 
     QCOMPARE_EQ(converted.fixed.at(3).width(), 20);
     QCOMPARE_EQ(converted.fixed.at(3).height(), 20);
+
+    QCOMPARE_EQ(converted.lines.size(), 3);
 }
