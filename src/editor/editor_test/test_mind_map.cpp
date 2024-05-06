@@ -48,6 +48,22 @@ struct GraphLayoutIR {
     double               width  = 100;
     double               height = 100;
 
+    void validate() {
+        for (auto const& e : enumerator(edges)) {
+            for (auto const& it :
+                 Vec<int>{e.value().first, e.value().second}) {
+                Q_ASSERT_X(
+                    it < rectangles.size(),
+                    "validate",
+                    fmt("Edge {} point is out of range for rectangles: "
+                        "[{}] out of {} rects",
+                        e.index(),
+                        it,
+                        rectangles.size()));
+            }
+        }
+    }
+
     struct Result {
         Vec<QRect>     fixed;
         Vec<QPolygonF> lines;
@@ -84,6 +100,7 @@ struct GraphLayoutIR {
     };
 
     ColaResult doColaLayout() {
+        validate();
         ColaResult                ir;
         cola::CompoundConstraints ccs;
 
@@ -98,7 +115,7 @@ struct GraphLayoutIR {
         ir.baseRectangles.reserve(rectangles.size());
         for (auto const& r : rectangles) {
             ir.baseRectangles.push_back(
-                vpsc::Rectangle(r.left(), r.right(), r.bottom(), r.top()));
+                vpsc::Rectangle(r.left(), r.right(), r.top(), r.bottom()));
         }
 
         ir.rectPointers = ir.baseRectangles
@@ -169,6 +186,11 @@ void TestMindMap::testLibcolaIr1() {
     ir.edges.push_back({0, 1});
     ir.edges.push_back({1, 2});
     ir.edges.push_back({2, 3});
+
+    ir.rectangles.push_back(QRect(0, 0, 5, 5));
+    ir.rectangles.push_back(QRect(5, 5, 5, 5));
+    ir.rectangles.push_back(QRect(10, 10, 5, 5));
+    ir.rectangles.push_back(QRect(15, 15, 5, 5));
 
     using C = GraphConstraint;
 
