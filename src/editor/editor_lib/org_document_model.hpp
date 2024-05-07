@@ -1,121 +1,24 @@
 #pragma once
 #include <QSortFilterProxyModel>
 #include <QAbstractItemModel>
-#include <sem/SemOrg.hpp>
-#include <immer/box.hpp>
-#include <hstd/stdlib/Map.hpp>
+
+#include <editor/editor_lib/org_document_store.hpp>
+
 #include <hstd/stdlib/Filesystem.hpp>
-#include <QMimeData>
-#include <QIODevice>
 
 inline std::string to_std(QString const& value) {
     QByteArray tmp = value.toLatin1();
     return std::string{tmp.data(), static_cast<size_t>(tmp.size())};
 }
 
-struct OrgBox {
-    immer::box<sem::SemId<sem::Org>> boxed;
-    OrgBox(sem::SemId<sem::Org> node) : boxed(node) {}
-
-    sem::Org const&      operator*() { return *boxed.get().get(); }
-    sem::Org const*      operator->() { return boxed.get().get(); }
-    sem::SemId<sem::Org> node() const { return boxed.get(); }
-    OrgBox() : boxed(sem::SemId<sem::Org>::Nil()) {}
-};
-
-struct OrgBoxId {
-    int      value = 0;
-    OrgBoxId next() const { return OrgBoxId{value + 1}; }
-    OrgBoxId(int value = 0) : value(value) {};
-
-    bool operator==(OrgBoxId const& other) const {
-        return this->value == other.value;
-    }
-};
-
-
-inline QDataStream& operator<<(QDataStream& out, const OrgBoxId& myObj) {
-    return out << myObj.value;
-}
-
-inline QDataStream& operator>>(QDataStream& in, OrgBoxId& myObj) {
-    return in >> myObj.value;
-}
-
-Q_DECLARE_METATYPE(OrgBoxId);
-
-template <>
-struct std::hash<OrgBoxId> {
-    std::size_t operator()(OrgBoxId const& it) const noexcept {
-        std::size_t result = 0;
-        boost::hash_combine(result, it.value);
-        return result;
-    }
-};
-
-
-sem::SemId<sem::Org> copy(sem::OrgArg node);
-
-struct OrgStore : public QObject {
-  private:
-    Q_OBJECT
-
-  public:
-    OrgBoxId lastId{0};
-    OrgBoxId add(sem::OrgArg node) {
-        auto id  = lastId.next();
-        data[id] = OrgBox{node};
-        lastId   = id;
-        return id;
-    }
-
-    sem::SemId<sem::Org> node(CR<OrgBoxId> id) const {
-        return data.at(id).node();
-    }
-
-    UnorderedMap<OrgBoxId, OrgBox> data{};
-
-    generator<OrgBoxId> boxes() {
-        for (auto const& id : data.keys()) { co_yield id; }
-    }
-
-    OrgStore() {}
-
-    /// Create a shallow copy of the sem org tree from the `prev` boxed
-    /// value and apply the replacement callback to the object. Then add a
-    /// new updated node to the store as well.
-    template <typename T>
-    OrgBoxId update(OrgBoxId prev, Func<void(T&)> replace) {
-        sem::SemId<sem::Org> node = copy(this->node(prev));
-        replace(*node.getAs<T>());
-        auto result = add(node);
-        emit boxReplaced(prev, result);
-        return result;
-    }
-
-  signals:
-    void boxReplaced(OrgBoxId prev, OrgBoxId replace);
-};
 
 struct OrgDocumentModel : public QAbstractItemModel {
-    struct TreeNode {
-        OrgBoxId            boxId{};
-        Vec<UPtr<TreeNode>> subnodes;
-        TreeNode*           parent;
-
-        TreeNode(OrgBoxId id, TreeNode* pParent = nullptr)
-            : boxId(id), parent(pParent) {}
-
-        sem::SemId<sem::Org> toNode(OrgStore* store) const;
-    };
-
-    UPtr<TreeNode> root;
-    OrgStore*      store;
-
+    OrgTreeNode* root;
+    OrgStore*    store;
 
     sem::SemId<sem::Org> toNode() const { return root->toNode(store); }
 
-    TreeNode* tree(CR<QModelIndex> index) const;
+    OrgTreeNode* tree(CR<QModelIndex> index) const;
 
     explicit OrgDocumentModel(OrgStore* store, QObject* parent = nullptr)
         : QAbstractItemModel(parent), store(store) {}
@@ -124,7 +27,6 @@ struct OrgDocumentModel : public QAbstractItemModel {
 
 
     void        loadFile(fs::path const& path);
-    void        buildTree(TreeNode* parentNode);
     QModelIndex parent(const QModelIndex& index) const override;
     QVariant    data(const QModelIndex& index, int role) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent)
@@ -132,7 +34,6 @@ struct OrgDocumentModel : public QAbstractItemModel {
 
     /// Change nesting level of the tree, promoting or demoting it.
     void changeLevel(CR<QModelIndex> index, int level, bool recursive);
-
     void changePosition(CR<QModelIndex> index, int offset);
 
     void moveSubtree(

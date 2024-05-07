@@ -26,16 +26,16 @@ void TestEditorModel::testSubtreeEditing() {
     QVERIFY(QTest::qWaitForWindowActive(window.get()));
     QCOMPARE_EQ(edit->model()->rowCount(), 1);
 
-    auto dfs_before = dfs_boxes(edit->docModel->root.get());
+    auto dfs_before = dfs_boxes(edit->docModel->root);
 
     { // Verify the original structure of the document read from the
       // text
-        auto r = edit->docModel->root.get();
+        auto r = edit->docModel->root;
         QCOMPARE_EQ(r->parent, nullptr);
         QCOMPARE_EQ(r->subnodes.size(), 2);
         QVERIFY(node(s, r)->is(osk::Document));
-        QVERIFY(node(s, r->subnodes.at(0).get())->is(osk::Paragraph));
-        QVERIFY(node(s, r->subnodes.at(1).get())->is(osk::Paragraph));
+        QVERIFY(node(s, r->at(0))->is(osk::Paragraph));
+        QVERIFY(node(s, r->at(1))->is(osk::Paragraph));
         auto n = node(s, index);
         QVERIFY(n->is(osk::Paragraph));
         QCOMPARE_EQ(str(n), "First paragraph in document");
@@ -63,7 +63,7 @@ void TestEditorModel::testSubtreeEditing() {
         QTest::qWait(5);
     }
 
-    auto dfs_after = dfs_boxes(edit->docModel->root.get());
+    auto dfs_after = dfs_boxes(edit->docModel->root);
 
 
     { // After editing operations only a single element in the model

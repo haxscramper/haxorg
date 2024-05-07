@@ -11,7 +11,7 @@
 
 using osk = OrgSemKind;
 
-inline Vec<OrgBoxId> dfs_boxes(OrgDocumentModel::TreeNode const* node) {
+inline Vec<OrgBoxId> dfs_boxes(OrgTreeNode const* node) {
     Vec<OrgBoxId> result{node->boxId};
     for (auto const& sub : node->subnodes) {
         result.append(dfs_boxes(sub.get()));
@@ -97,8 +97,8 @@ inline sem::SemId<sem::Org> node(
 }
 
 inline sem::SemId<sem::Org> node(
-    OrgStore*                         store,
-    OrgDocumentModel::TreeNode const* tree) {
+    OrgStore*          store,
+    OrgTreeNode const* tree) {
     return store->node(tree->boxId);
 }
 
