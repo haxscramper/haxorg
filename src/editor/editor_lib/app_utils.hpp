@@ -8,6 +8,7 @@
 
 #include <QLoggingCategory>
 
+using osk = OrgSemKind;
 
 /// Top-level logs for all editor logging that does not fit into any
 /// specific categories

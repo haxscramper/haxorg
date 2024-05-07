@@ -35,11 +35,21 @@ struct OrgGraph : public QObject {
     UnorderedMap<OrgBoxId, VDesc> boxToVertex;
     OrgStore*                     store;
 
+    UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
+    UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
+
     void addFullStore() {
         for (auto const& box : store->boxes()) { addBox(box); }
     }
 
     VDesc desc(CR<OrgBoxId> id) const { return boxToVertex.at(id); }
+
+    generator<VDesc> nodes() const {
+        for (auto [begin, end] = boost::vertices(g); begin != end;
+             ++begin) {
+            co_yield *begin;
+        }
+    }
 
     template <typename Self>
     OrgGraphEdge&& edge(this Self&& self, EDesc desc) {
@@ -67,5 +77,5 @@ struct OrgGraph : public QObject {
 
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {}
-    void addBox(CR<OrgBoxId> box) {}
+    void addBox(CR<OrgBoxId> box);
 };

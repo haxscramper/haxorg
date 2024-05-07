@@ -4,7 +4,9 @@
 #include <hstd/stdlib/Map.hpp>
 #include <QMimeData>
 #include <QIODevice>
+#include <sem/SemBaseApi.hpp>
 #include <immer/box.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 struct OrgBox {
     immer::box<sem::SemId<sem::Org>> boxed;
@@ -49,6 +51,14 @@ struct std::hash<OrgBoxId> {
 
 sem::SemId<sem::Org> copy(sem::OrgArg node);
 
+static const SemSet NestedNodes{
+    OrgSemKind::Subtree,
+    OrgSemKind::Document,
+    OrgSemKind::List,
+    OrgSemKind::ListItem,
+    OrgSemKind::StmtList,
+};
+
 struct OrgStore;
 
 struct OrgTreeNode {
@@ -59,7 +69,19 @@ struct OrgTreeNode {
     OrgTreeNode(OrgBoxId id, OrgTreeNode* pParent = nullptr)
         : boxId(id), parent(pParent) {}
 
+    OrgTreeNode* root() {
+        OrgTreeNode* result = this;
+        while (result->parent != nullptr) { result = result->parent; }
+        return result;
+    }
+
     OrgTreeNode* at(int idx) { return subnodes.at(idx).get(); }
+
+    OrgTreeNode* at(CVec<int> path) {
+        auto result = this;
+        for (auto const& idx : path) { result = result->at(idx); }
+        return result;
+    }
 
     sem::SemId<sem::Org> toNode(OrgStore* store) const;
     void buildTree(OrgTreeNode* parentNode, OrgStore* store);
@@ -86,6 +108,18 @@ struct OrgStore : public QObject {
         root->buildTree(root.get(), this);
         this->roots.push_back(std::move(root));
         return roots.back().get();
+    }
+
+    OrgTreeNode* addRoot(
+        CR<fs::path>                path,
+        CR<sem::OrgParseParameters> opts = sem::OrgParseParameters{}) {
+        return addRoot(sem::parseFile(path, opts));
+    }
+
+    OrgTreeNode* addRoot(
+        CR<Str>                     text,
+        CR<sem::OrgParseParameters> opts = sem::OrgParseParameters{}) {
+        return addRoot(sem::parseStringOpts(text, opts));
     }
 
     sem::SemId<sem::Org> node(CR<OrgBoxId> id) const {

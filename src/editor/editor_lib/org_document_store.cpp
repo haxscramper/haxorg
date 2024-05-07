@@ -1,16 +1,6 @@
 #include <editor/editor_lib/org_document_store.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 
-namespace {
-SemSet NestedNodes{
-    OrgSemKind::Subtree,
-    OrgSemKind::Document,
-    OrgSemKind::List,
-    OrgSemKind::ListItem,
-    OrgSemKind::StmtList,
-};
-}
-
 sem::SemId<sem::Org> OrgTreeNode::toNode(OrgStore* store) const {
     auto base = store->node(this->boxId);
     if (NestedNodes.contains(base->getKind())) {

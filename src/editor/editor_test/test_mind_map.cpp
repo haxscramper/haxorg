@@ -351,5 +351,13 @@ void TestMindMap::testGraphvizIr1() {
 void TestMindMap::testGraphConstruction() {
     OrgStore store;
     OrgGraph graph{&store};
+    auto     root = store.addRoot(R"(
+* Tree1
+** Tree2
+)"_ss);
+
     graph.addFullStore();
+
+    Vec<OrgGraph::VDesc> nodes = gen_view(graph.nodes()) | rs::to<Vec>();
+    QCOMPARE_EQ(nodes.size(), 3);
 }
