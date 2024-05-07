@@ -1,6 +1,10 @@
 #include <editor/editor_lib/org_document_store.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 
+sem::SemId<sem::Org> OrgTreeNode::boxedNode() const {
+    return store->node(this->boxId);
+}
+
 sem::SemId<sem::Org> OrgTreeNode::toNode() const {
     auto base = store->node(this->boxId);
     if (NestedNodes.contains(base->getKind())) {

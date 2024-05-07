@@ -51,7 +51,8 @@ struct OrgGraph : public QObject {
     void updateUnresolved(VDesc newNode);
 
     struct UnresolvedLink {
-        sem::SemId<sem::Link> link;
+        sem::SemId<sem::Link>     link;
+        Opt<sem::SemId<sem::Org>> description;
     };
 
     UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;

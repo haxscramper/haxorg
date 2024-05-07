@@ -83,11 +83,23 @@ struct OrgTreeNode {
         OrgTreeNode* pParent = nullptr)
         : boxId(id), parent(pParent), store(store) {}
 
+    Vec<OrgTreeNode*> parentChain(bool withSelf = true) {
+        OrgTreeNode*      tmp = this;
+        Vec<OrgTreeNode*> result;
+        while (tmp->parent != nullptr) {
+            if (withSelf || tmp != this) { result.push_back(tmp); }
+            tmp = tmp->parent;
+        }
+        return result;
+    }
+
     OrgTreeNode* root() {
         OrgTreeNode* result = this;
         while (result->parent != nullptr) { result = result->parent; }
         return result;
     }
+
+    sem::SemId<sem::Org> boxedNode() const;
 
     OrgTreeNode* at(int idx) { return subnodes.at(idx).get(); }
 
@@ -148,7 +160,14 @@ struct OrgStore : public QObject {
         return addRoot(sem::parseStringOpts(text, opts));
     }
 
-    OrgTreeNode* tree(CR<OrgBoxId> id) const { return nodeLookup.at(id); }
+    OrgTreeNode*  tree(CR<OrgBoxId> id) const { return nodeLookup.at(id); }
+    Opt<OrgBoxId> parent(CR<OrgBoxId> id) const {
+        if (tree(id)->parent) {
+            return tree(id)->parent->boxId;
+        } else {
+            return std::nullopt;
+        }
+    }
 
     sem::SemId<sem::Org> node(CR<OrgBoxId> id) const {
         return data.at(id).node();

@@ -3,12 +3,36 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <QDebug>
+#include <exporters/ExporterUltraplain.hpp>
 
 #pragma clang diagnostic error "-Wswitch"
 
 using slk = sem::Link::Kind;
 
+bool isLinkedDescriptionItem(sem::OrgArg n) {
+    return n->is(osk::ListItem)
+        && n.as<sem::ListItem>()->isDescriptionItem()
+        && rs::any_of(
+               n.as<sem::ListItem>()->header.value()->subnodes,
+               [](sem::OrgArg head) {
+                   return head->is(osk::Link)
+                       && head.as<sem::Link>()->getLinkKind() != slk::Raw;
+               });
+}
+
 void OrgGraph::addBox(CR<OrgBoxId> box) {
+    // If any of the parent nodes for this box is a linked description
+    // item, ignore the entry as it has already been added as a part of the
+    // link descripion.
+    if (rs::any_of(
+            store->tree(box)->parentChain(/*withSelf = */ false),
+            [](OrgTreeNode* parent) -> bool {
+                return isLinkedDescriptionItem(parent->boxedNode());
+            })) {
+        return;
+    }
+
+
     sem::SemId<sem::Org> n = store->node(box);
     if (n->is(osk::Subtree)) {
         sem::SemId<sem::Subtree> tree = n.as<sem::Subtree>();
@@ -25,19 +49,45 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         }
     }
 
-    if (!NestedNodes.contains(n->getKind())) {
-        sem::eachSubnodeRec(n, [&](sem::OrgArg arg) {
-            // Unconditionally register all links as unresolved -- some of
-            // them will be converted to edges later on.
-            if (arg->is(osk::Link)) {
-                auto link = arg.as<sem::Link>();
-                if (link->getLinkKind() != slk::Raw) {
-                    unresolved[box].push_back(UnresolvedLink{
-                        .link = arg.as<sem::Link>(),
-                    });
+    auto register_used_links = [&](sem::OrgArg arg) {
+        // Unconditionally register all links as unresolved -- some of
+        // them will be converted to edges later on.
+        if (arg->is(osk::Link)) {
+            auto link = arg.as<sem::Link>();
+            if (link->getLinkKind() != slk::Raw) {
+                unresolved[box].push_back(UnresolvedLink{
+                    .link = arg.as<sem::Link>(),
+                    .description //
+                    = link->description
+                        ? std::make_optional(link->description->asOrg())
+                        : std::nullopt});
+            }
+        }
+    };
+
+    if (NestedNodes.contains(n->getKind())) {
+        if (isLinkedDescriptionItem(n)) {
+            auto desc = n.as<sem::ListItem>();
+            qDebug() << "Found description item";
+
+            for (auto const& head : desc->header.value()->subnodes) {
+                qDebug() << "Header subnode" << debug(head);
+                if (head->is(osk::Link)) {
+                    auto link = head.as<sem::Link>();
+                    if (link->getLinkKind() != slk::Raw) {
+                        auto description = sem::SemId<
+                            sem::StmtList>::New();
+                        description->subnodes = n->subnodes;
+                        unresolved[box].push_back(UnresolvedLink{
+                            .link        = link,
+                            .description = description,
+                        });
+                    }
                 }
             }
-        });
+        }
+    } else {
+        sem::eachSubnodeRec(n, register_used_links);
     }
 
     VDesc v  = boost::add_vertex(g);
@@ -101,10 +151,7 @@ void OrgGraph::updateUnresolved(VDesc) {
             bool        found_match = false;
             auto const& link        = it.value().link;
 
-            auto        description //
-                = link->description
-                    ? std::make_optional(link->description->asOrg())
-                    : std::nullopt;
+
             switch (link->getLinkKind()) {
                 case slk::Id: {
                     if (auto target = subtreeIds.get(link->getId().text)) {
@@ -112,7 +159,7 @@ void OrgGraph::updateUnresolved(VDesc) {
                         add_edge(
                             OrgGraphEdge{
                                 .kind = OrgGraphEdge::Kind::SubtreeId,
-                                .description = description,
+                                .description = it.value().description,
                             },
                             *target);
                     }
@@ -126,7 +173,7 @@ void OrgGraph::updateUnresolved(VDesc) {
                         add_edge(
                             OrgGraphEdge{
                                 .kind = OrgGraphEdge::Kind::Footnote,
-                                .description = description,
+                                .description = it.value().description,
                             },
                             *target);
                     }
@@ -162,6 +209,15 @@ std::string OrgGraph::toGraphviz() {
             "shape",
             boost::make_constant_property<Graph::vertex_descriptor>(
                 std::string("rect")))
+        .property(
+            "description",
+            make_transform_value_property_map<std::string>(
+                [&](OrgGraphEdge const& prop) -> std::string {
+                    return prop.description ? ExporterUltraplain::toStr(
+                                                  prop.description.value())
+                                            : "";
+                },
+                get(boost::edge_bundle, g)))
         .property(
             "label",
             make_transform_value_property_map<std::string>(

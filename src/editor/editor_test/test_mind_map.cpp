@@ -479,8 +479,7 @@ description refers to the [[id:9879fed7-f0a4-44bd-bf56-983279afc622][other]] tre
         // 0.1.1.0 -- first list item node
         R"(- )",
         // 0.1.1.0.0
-        R"(when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used
-  to create annotated links
+        R"(when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used for annotated links
 
 )",
         // 0.1.1.0.1
@@ -611,4 +610,12 @@ void TestMindMap::testFullMindMapGraph() {
         "other");
 
     QCOMPARE_EQ(graph->in_edges(r->id({0, 2})).size(), 2);
+    {
+        auto desc = graph->out_edge0(r->id({0, 1, 1, 0}), r->id({0, 0}))
+                        .description.value();
+        auto desc_str = str(desc);
+        QVERIFY(desc_str.contains(
+            "Description lists can be used for annotated links"));
+        QVERIFY(desc_str.contains("Multiple paragraphs attached to link"));
+    }
 }
