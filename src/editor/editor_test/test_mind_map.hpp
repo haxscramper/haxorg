@@ -12,4 +12,5 @@ class TestMindMap
     void testLibcolaApi1();
     void testLibcolaIr1();
     void testGraphvizIr1();
+    void testGraphConstruction();
 };

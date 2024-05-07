@@ -5,6 +5,7 @@
 #include <QRect>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/wrappers/graphviz.hpp>
+#include <editor/editor_lib/org_graph_model.hpp>
 
 struct GraphConstraint {
     struct Align {
@@ -345,4 +346,10 @@ void TestMindMap::testGraphvizIr1() {
     QCOMPARE_EQ(converted.fixed.at(3).height(), 20);
 
     QCOMPARE_EQ(converted.lines.size(), 3);
+}
+
+void TestMindMap::testGraphConstruction() {
+    OrgStore store;
+    OrgGraph graph{&store};
+    graph.addFullStore();
 }

@@ -26,7 +26,7 @@ struct OrgBox {
 struct OrgBoxId {
     int      value = 0;
     OrgBoxId next() const { return OrgBoxId{value + 1}; }
-    OrgBoxId(int value = 0) : value(value){};
+    OrgBoxId(int value = 0) : value(value) {};
 
     bool operator==(OrgBoxId const& other) const {
         return this->value == other.value;
@@ -56,7 +56,11 @@ struct std::hash<OrgBoxId> {
 
 sem::SemId<sem::Org> copy(sem::OrgArg node);
 
-struct OrgStore {
+struct OrgStore : public QObject {
+  private:
+    Q_OBJECT
+
+  public:
     OrgBoxId lastId{0};
     OrgBoxId add(sem::OrgArg node) {
         auto id  = lastId.next();
@@ -70,6 +74,11 @@ struct OrgStore {
     }
 
     UnorderedMap<OrgBoxId, OrgBox> data{};
+
+    generator<OrgBoxId> boxes() {
+        for (auto const& id : data.keys()) { co_yield id; }
+    }
+
     OrgStore() {}
 
     /// Create a shallow copy of the sem org tree from the `prev` boxed
@@ -79,8 +88,13 @@ struct OrgStore {
     OrgBoxId update(OrgBoxId prev, Func<void(T&)> replace) {
         sem::SemId<sem::Org> node = copy(this->node(prev));
         replace(*node.getAs<T>());
-        return add(node);
+        auto result = add(node);
+        emit boxReplaced(prev, result);
+        return result;
     }
+
+  signals:
+    void boxReplaced(OrgBoxId prev, OrgBoxId replace);
 };
 
 struct OrgDocumentModel : public QAbstractItemModel {
