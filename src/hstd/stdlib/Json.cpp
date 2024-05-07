@@ -105,3 +105,22 @@ void from_json(const json& in, bool& out) { out = in.get<bool>(); }
 void from_json(const json& in, std::string& out) {
     out = in.get<std::string>();
 }
+
+void filterFields(
+    json&                           j,
+    const std::vector<std::string>& fieldsToRemove) {
+    if (j.is_object()) {
+        for (auto it = j.begin(); it != j.end();) {
+            if (std::find(
+                    fieldsToRemove.begin(), fieldsToRemove.end(), it.key())
+                != fieldsToRemove.end()) {
+                it = j.erase(it);
+            } else {
+                filterFields(*it, fieldsToRemove);
+                ++it;
+            }
+        }
+    } else if (j.is_array()) {
+        for (json& el : j) { filterFields(el, fieldsToRemove); }
+    }
+}

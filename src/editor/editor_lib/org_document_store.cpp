@@ -37,3 +37,31 @@ void OrgTreeNode::buildTree(OrgTreeNode* parentNode, OrgStore* store) {
         }
     }
 }
+
+Opt<int> OrgTreeNode::selfRow() const {
+    if (parent) {
+        return std::find_if(
+                   parent->subnodes.begin(),
+                   parent->subnodes.end(),
+                   [&](CR<UPtr<OrgTreeNode>> node) {
+                       return node.get() == this;
+                   })
+             - parent->subnodes.begin();
+    } else {
+        return std::nullopt;
+    }
+}
+
+Vec<int> OrgTreeNode::selfPath() const {
+    Vec<int>           result;
+    OrgTreeNode const* tmp = this;
+    while (tmp->parent != nullptr) {
+        if (Opt<int> idx = tmp->selfRow()) {
+            result.push_back(idx.value());
+        }
+        tmp = tmp->parent;
+    }
+
+    rs::reverse(result);
+    return result;
+}

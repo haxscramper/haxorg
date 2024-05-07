@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
             "for the application init state.");
     }
 
+    qInstallMessageHandler(customMessageHandler);
     editorInitMain();
 
     AppState     state = load_app_state(argv[1]);

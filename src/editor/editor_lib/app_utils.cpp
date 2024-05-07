@@ -2,6 +2,7 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <exporters/ExporterUltraplain.hpp>
+#include <exporters/ExporterJson.hpp>
 
 Q_LOGGING_CATEGORY(editor, "editor");
 /// Logging related to the editable document model in the tree or outline
@@ -68,7 +69,7 @@ std::string printModelTree(
 
         QModelIndex currentIndex      = index;
         auto        currentProxyModel = qobject_cast<
-            QSortFilterProxyModel const*>(index.model());
+                   QSortFilterProxyModel const*>(index.model());
 
         auto add_proxy = [&](CR<QModelIndex> index) {
             record.proxies.push_back(ModelProxyRecord{
@@ -168,4 +169,13 @@ Func<std::string(const QModelIndex&)> store_index_printer(
             return fmt("[err:{}]", box.value);
         }
     };
+}
+
+Str debug(sem::OrgArg arg) {
+    ExporterJson exporter;
+    exporter.skipEmptyLists = true;
+    exporter.skipNullFields = true;
+    json converted          = exporter.evalTop(arg);
+    filterFields(converted, {"loc"});
+    return converted.dump();
 }

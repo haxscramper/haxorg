@@ -27,6 +27,8 @@ std::string printModelTree(
 Func<std::string(QModelIndex const&)> store_index_printer(
     const OrgStore* store);
 
+Str debug(sem::OrgArg);
+
 template <typename T>
 std::string qdebug_to_str(T const& index) {
     QString output;
@@ -38,6 +40,13 @@ inline QDebug operator<<(QDebug debug, const std::string& str) {
     debug.nospace() << QString::fromStdString(str);
     return debug.space();
 }
+
+template <DescribedEnum E>
+inline QDebug operator<<(QDebug debug, E const& str) {
+    debug.nospace() << enum_serde<E>::to_string(str);
+    return debug.space();
+}
+
 
 QModelIndex mapToNestedSource(QModelIndex const& index);
 QModelIndex mapToNestedProxy(

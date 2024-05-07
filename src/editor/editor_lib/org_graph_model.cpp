@@ -1,6 +1,8 @@
 #include <editor/editor_lib/org_graph_model.hpp>
 #include <editor/editor_lib/app_utils.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <QDebug>
 
 #pragma clang diagnostic error "-Wswitch"
 
@@ -18,7 +20,11 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
             par = n.as<sem::AnnotatedParagraph>();
         if (par->getAnnotationKind()
             == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
-            this->footnoteTargets[par->getFootnote().name].push_back(box);
+            Str name = par->getFootnote().name;
+            this->footnoteTargets[name].push_back(box);
+            qDebug().noquote()
+                << fmt1(this->footnoteTargets)
+                << "Found footnote definition" << name << debug(par);
         }
     }
 
@@ -27,6 +33,7 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
             // Unconditionally register all links as unresolved -- some of
             // them will be converted to edges later on.
             if (arg->is(osk::Link)) {
+                qDebug().noquote() << "Found link" << debug(arg);
                 auto link = arg.as<sem::Link>();
                 if (link->getLinkKind() != slk::Raw) {
                     unresolved[box].push_back(UnresolvedLink{
@@ -37,7 +44,8 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         });
     }
 
-    VDesc v = boost::add_vertex(g);
+    VDesc v  = boost::add_vertex(g);
+    g[v].box = box;
 
     switch (n->getKind()) {
         case osk::Subtree: {
@@ -45,7 +53,7 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
             break;
         }
 
-        case osk::AdmonitionBlock: {
+        case osk::AnnotatedParagraph: {
             if (n.as<sem::AnnotatedParagraph>()->getAnnotationKind()
                 == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
                 g[v].kind = OrgGraphNode::Kind::Footnote;
@@ -101,8 +109,12 @@ void OrgGraph::updateUnresolved(VDesc newNode) {
                 }
 
                 case slk::Footnote: {
+                    qDebug() << "Searching for footnote target"
+                             << link->getFootnote().target << "in"
+                             << fmt1(this->footnoteTargets);
                     if (auto target = footnoteTargets.get(
                             link->getFootnote().target)) {
+                        qDebug() << "Found match";
                         found_match = true;
                         add_edge(
                             OrgGraphEdge{
@@ -127,4 +139,31 @@ void OrgGraph::updateUnresolved(VDesc newNode) {
 
         if (unresolved_list.empty()) { unresolved.erase(id); }
     }
+}
+
+std::string OrgGraph::toGraphviz() {
+    std::stringstream         os;
+    boost::dynamic_properties dp;
+
+    dp //
+        .property("node_id", get(boost::vertex_index, g))
+        .property(
+            "splines",
+            boost::make_constant_property<Graph*>(std::string("polyline")))
+        .property(
+            "shape",
+            boost::make_constant_property<Graph::vertex_descriptor>(
+                std::string("rect")))
+        .property(
+            "label",
+            make_transform_value_property_map<std::string>(
+                [&](OrgGraphNode const& prop) -> std::string {
+                    return fmt("{}-{}", prop.box, prop.kind);
+                },
+                get(boost::vertex_bundle, g)));
+
+
+    write_graphviz_dp(os, g, dp);
+
+    return os.str();
 }

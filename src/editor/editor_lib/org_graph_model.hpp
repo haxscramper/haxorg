@@ -48,6 +48,8 @@ struct OrgGraph : public QObject {
 
     UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
 
+    std::string toGraphviz();
+
     void addFullStore() {
         Q_ASSERT(store != nullptr);
         for (auto const& box : store->boxes()) { addBox(box); }
@@ -58,7 +60,7 @@ struct OrgGraph : public QObject {
     int  numNodes() { return boost::num_vertices(g); }
     int  numEdges() { return boost::num_edges(g); }
     bool hasEdge(CR<OrgBoxId> source, CR<OrgBoxId> target) {
-        return 0 < edges(source, target).size();
+        return 0 < out_edges(source, target).size();
     }
 
     generator<VDesc> nodes() const {
@@ -71,17 +73,33 @@ struct OrgGraph : public QObject {
     OrgGraphEdge& edge(EDesc desc) { return g[desc]; }
     OrgGraphNode& node(VDesc desc) { return g[desc]; }
 
-    OrgGraphEdge& edge0(CR<OrgBoxId> source, CR<OrgBoxId> target) {
-        return edge(edges(source, target).at(0));
+    OrgGraphEdge& out_edge0(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+        return edge(out_edges(source, target).at(0));
     }
 
-    Vec<EDesc> edges(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+    Vec<EDesc> out_edges(CR<OrgBoxId> source, CR<OrgBoxId> target) {
         VDesc      v1 = desc(source);
         VDesc      v2 = desc(target);
         Vec<EDesc> result;
 
         Graph::out_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = out_edges(v1, g); ei != ei_end;
+        for (boost::tie(ei, ei_end) = boost::out_edges(v1, g);
+             ei != ei_end;
+             ++ei) {
+            if (boost::target(*ei, g) == v2) { result.push_back(*ei); }
+        }
+
+        return result;
+    }
+
+
+    Vec<EDesc> in_edges(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+        VDesc      v1 = desc(source);
+        VDesc      v2 = desc(target);
+        Vec<EDesc> result;
+
+        Graph::in_edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = boost::in_edges(v1, g); ei != ei_end;
              ++ei) {
             if (boost::target(*ei, g) == v2) { result.push_back(*ei); }
         }

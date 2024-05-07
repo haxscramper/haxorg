@@ -28,6 +28,16 @@ struct OrgBoxId {
     }
 };
 
+template <>
+struct std::formatter<OrgBoxId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const OrgBoxId& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx(p.value, ctx);
+        return fmt_ctx("}", ctx);
+    }
+};
+
 
 inline QDataStream& operator<<(QDataStream& out, const OrgBoxId& myObj) {
     return out << myObj.value;
@@ -88,6 +98,9 @@ struct OrgTreeNode {
 
     sem::SemId<sem::Org> toNode(OrgStore* store) const;
     void buildTree(OrgTreeNode* parentNode, OrgStore* store);
+
+    Opt<int> selfRow() const;
+    Vec<int> selfPath() const;
 };
 
 struct OrgStore : public QObject {

@@ -35,7 +35,6 @@ void customMessageHandler(
 }
 
 void editorInitMain() {
-    qInstallMessageHandler(customMessageHandler);
     qRegisterMetaType<OrgBoxId>("OrgBoxId");
 
     QByteArray envVar = qgetenv("QT_LOGGING_RULES");

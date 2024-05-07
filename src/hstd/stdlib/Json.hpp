@@ -25,9 +25,9 @@ void from_json(const json& in, int& out);
 void from_json(const json& in, bool& out);
 
 struct JsonFormatOptions {
-    int  width       = 80;
-    int  indent      = 2;
-    int  startIndent = 0;
+    int width       = 80;
+    int indent      = 2;
+    int startIndent = 0;
 };
 
 std::string to_compact_json(
@@ -148,3 +148,5 @@ inline void to_json(json& res, std::unique_ptr<T> const& value) {
         res = json();
     }
 }
+
+void filterFields(json& j, const std::vector<std::string>& fieldsToRemove);
