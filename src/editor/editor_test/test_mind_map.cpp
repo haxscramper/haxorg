@@ -390,4 +390,24 @@ Paragraph [[id:subtree-id]]
     QCOMPARE_EQ(
         graph->edge0(r->id(0), r->id(1)).kind,
         OrgGraphEdge::Kind::SubtreeId);
+    QVERIFY(graph->unresolved.empty());
+}
+
+void TestMindMap::testGraphConstructionFootnoteId() {
+    auto [store, graph] = build_graph(R"(
+Paragraph [fn:target]
+
+[fn:target] Description
+)");
+
+
+    auto r = store->getRoot(0);
+
+    QCOMPARE_EQ(r->subnodes.size(), 2);
+    QCOMPARE_EQ(graph->numNodes(), 3);
+    QVERIFY(graph->unresolved.empty());
+    QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
+    QCOMPARE_EQ(
+        graph->edge0(r->id(0), r->id(1)).kind,
+        OrgGraphEdge::Kind::Footnote);
 }

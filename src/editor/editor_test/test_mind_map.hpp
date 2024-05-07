@@ -14,4 +14,5 @@ class TestMindMap
     void testGraphvizIr1();
     void testGraphConstruction();
     void testGraphConstructionSubtreeId1();
+    void testGraphConstructionFootnoteId();
 };
