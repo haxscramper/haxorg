@@ -100,6 +100,11 @@ void OrgGraph::updateUnresolved(VDesc) {
         for (auto const& it : enumerator(unresolved_list)) {
             bool        found_match = false;
             auto const& link        = it.value().link;
+
+            auto        description //
+                = link->description
+                    ? std::make_optional(link->description->asOrg())
+                    : std::nullopt;
             switch (link->getLinkKind()) {
                 case slk::Id: {
                     if (auto target = subtreeIds.get(link->getId().text)) {
@@ -107,6 +112,7 @@ void OrgGraph::updateUnresolved(VDesc) {
                         add_edge(
                             OrgGraphEdge{
                                 .kind = OrgGraphEdge::Kind::SubtreeId,
+                                .description = description,
                             },
                             *target);
                     }
@@ -120,6 +126,7 @@ void OrgGraph::updateUnresolved(VDesc) {
                         add_edge(
                             OrgGraphEdge{
                                 .kind = OrgGraphEdge::Kind::Footnote,
+                                .description = description,
                             },
                             *target);
                     }

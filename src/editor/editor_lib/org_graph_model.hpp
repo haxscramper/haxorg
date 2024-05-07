@@ -20,7 +20,8 @@ struct OrgGraphNode {
 
 struct OrgGraphEdge {
     DECL_DESCRIBED_ENUM(Kind, SubtreeId, Footnote);
-    Kind kind;
+    Kind                      kind;
+    Opt<sem::SemId<sem::Org>> description;
 };
 
 struct OrgGraph : public QObject {

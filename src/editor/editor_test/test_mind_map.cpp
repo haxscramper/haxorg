@@ -475,12 +475,16 @@ Links are attached to specific [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][rows]]
 so it is easier to track which part of the
 description refers to the [[id:9879fed7-f0a4-44bd-bf56-983279afc622][other]] tree
 )",
-        // 0.1.1
-        R"(
-- when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used
+        // 0.1.1 -- main list node
+        // 0.1.1.0 -- first list item node
+        R"(- )",
+        // 0.1.1.0.0
+        R"(when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used
   to create annotated links
 
-  Multiple paragraphs attached to link
+)",
+        // 0.1.1.0.1
+        R"(  Multiple paragraphs attached to link
 )",
         // 0.1.2
         R"(
@@ -588,9 +592,23 @@ void TestMindMap::testFullMindMapGraph() {
 
     // First paragraph has three named links to subtrees before and after
     // itself
-    QVERIFY(graph->hasEdge(r->id({0, 1, 0}), r->id({0, 0})));
-    QVERIFY(graph->hasEdge(r->id({0, 1, 0}), r->id({0, 2})));
-    QVERIFY(graph->hasEdge(r->id({0, 1, 0}), r->id({1, 1})));
+    Vec<int> par_010{0, 1, 0};
+    QVERIFY(graph->hasEdge(r->id(par_010), r->id({0, 0})));
+    QVERIFY(graph->hasEdge(r->id(par_010), r->id({0, 2})));
+    QVERIFY(graph->hasEdge(r->id(par_010), r->id({1, 1})));
+
+    QCOMPARE_EQ(
+        str(graph->out_edge0(r->id(par_010), r->id({0, 0}))
+                .description.value()),
+        "links");
+    QCOMPARE_EQ(
+        str(graph->out_edge0(r->id(par_010), r->id({0, 2}))
+                .description.value()),
+        "rows");
+    QCOMPARE_EQ(
+        str(graph->out_edge0(r->id(par_010), r->id({1, 1}))
+                .description.value()),
+        "other");
 
     QCOMPARE_EQ(graph->in_edges(r->id({0, 2})).size(), 2);
 }
