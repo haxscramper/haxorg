@@ -16,7 +16,7 @@ struct OrgDocumentModel : public QAbstractItemModel {
     OrgTreeNode* root;
     OrgStore*    store;
 
-    sem::SemId<sem::Org> toNode() const { return root->toNode(store); }
+    sem::SemId<sem::Org> toNode() const { return root->toNode(); }
 
     OrgTreeNode* tree(CR<QModelIndex> index) const;
 

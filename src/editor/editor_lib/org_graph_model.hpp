@@ -7,7 +7,14 @@
 
 struct OrgGraphNode {
     OrgBoxId box;
-    DECL_DESCRIBED_ENUM(Kind, Subtree, Document, Paragraph, Footnote);
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        Subtree,
+        Document,
+        Paragraph,
+        Footnote,
+        List,
+        ListItem);
     Kind kind;
 };
 

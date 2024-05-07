@@ -22,9 +22,6 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
             == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
             Str name = par->getFootnote().name;
             this->footnoteTargets[name].push_back(box);
-            qDebug().noquote()
-                << fmt1(this->footnoteTargets)
-                << "Found footnote definition" << name << debug(par);
         }
     }
 
@@ -33,7 +30,6 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
             // Unconditionally register all links as unresolved -- some of
             // them will be converted to edges later on.
             if (arg->is(osk::Link)) {
-                qDebug().noquote() << "Found link" << debug(arg);
                 auto link = arg.as<sem::Link>();
                 if (link->getLinkKind() != slk::Raw) {
                     unresolved[box].push_back(UnresolvedLink{
@@ -73,6 +69,16 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
             break;
         }
 
+        case osk::List: {
+            g[v].kind = OrgGraphNode::Kind::List;
+            break;
+        }
+
+        case osk::ListItem: {
+            g[v].kind = OrgGraphNode::Kind::ListItem;
+            break;
+        }
+
         default: {
         }
     }
@@ -81,15 +87,14 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
     updateUnresolved(v);
 }
 
-void OrgGraph::updateUnresolved(VDesc newNode) {
-
-    auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
-        for (auto const& box : target) {
-            boost::add_edge(newNode, desc(box), spec, g);
-        }
-    };
-
+void OrgGraph::updateUnresolved(VDesc) {
     for (auto const& id : unresolved.keys()) {
+        auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
+            for (auto const& box : target) {
+                boost::add_edge(desc(id), desc(box), spec, g);
+            }
+        };
+
         Vec<int> resolved;
         auto&    unresolved_list = unresolved[id];
         for (auto const& it : enumerator(unresolved_list)) {
@@ -109,12 +114,8 @@ void OrgGraph::updateUnresolved(VDesc newNode) {
                 }
 
                 case slk::Footnote: {
-                    qDebug() << "Searching for footnote target"
-                             << link->getFootnote().target << "in"
-                             << fmt1(this->footnoteTargets);
                     if (auto target = footnoteTargets.get(
                             link->getFootnote().target)) {
-                        qDebug() << "Found match";
                         found_match = true;
                         add_edge(
                             OrgGraphEdge{
@@ -158,7 +159,11 @@ std::string OrgGraph::toGraphviz() {
             "label",
             make_transform_value_property_map<std::string>(
                 [&](OrgGraphNode const& prop) -> std::string {
-                    return fmt("{}-{}", prop.box, prop.kind);
+                    return fmt(
+                        "{}-{} [{}]",
+                        prop.box,
+                        prop.kind,
+                        store->tree(prop.box)->selfPath());
                 },
                 get(boost::vertex_bundle, g)));
 

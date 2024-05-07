@@ -450,7 +450,7 @@ Paragraph [fn:target]
         OrgGraphEdge::Kind::Footnote);
 }
 
-void TestMindMap::testFullMindMapGraph() {
+Str getFullMindMapText() {
     Vec<Str> text{
         // 0
         R"(
@@ -545,8 +545,11 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
 [[id:XXSDASD][Unresolved subtree]]
 )",
     };
+    return join("", text);
+}
 
-    auto [store, graph] = build_graph(join("\n", text));
+void TestMindMap::testFullMindMapGraph() {
+    auto [store, graph] = build_graph(getFullMindMapText());
     auto r              = store->getRoot(0);
 
     qDebug().noquote() << graph->toGraphviz();

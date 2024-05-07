@@ -75,9 +75,13 @@ struct OrgTreeNode {
     OrgBoxId               boxId{};
     Vec<UPtr<OrgTreeNode>> subnodes;
     OrgTreeNode*           parent;
+    OrgStore*              store;
 
-    OrgTreeNode(OrgBoxId id, OrgTreeNode* pParent = nullptr)
-        : boxId(id), parent(pParent) {}
+    OrgTreeNode(
+        OrgBoxId     id,
+        OrgStore*    store,
+        OrgTreeNode* pParent = nullptr)
+        : boxId(id), parent(pParent), store(store) {}
 
     OrgTreeNode* root() {
         OrgTreeNode* result = this;
@@ -96,8 +100,8 @@ struct OrgTreeNode {
     OrgBoxId id(int inx) { return at(inx)->boxId; }
     OrgBoxId id(CVec<int> idx) { return at(idx)->boxId; }
 
-    sem::SemId<sem::Org> toNode(OrgStore* store) const;
-    void buildTree(OrgTreeNode* parentNode, OrgStore* store);
+    sem::SemId<sem::Org> toNode() const;
+    void                 buildTree(OrgTreeNode* parentNode);
 
     Opt<int> selfRow() const;
     Vec<int> selfPath() const;
@@ -108,9 +112,10 @@ struct OrgStore : public QObject {
     Q_OBJECT
 
   public:
-    OrgBoxId                       lastId{0};
-    UnorderedMap<OrgBoxId, OrgBox> data{};
-    Vec<UPtr<OrgTreeNode>>         roots;
+    OrgBoxId                             lastId{0};
+    UnorderedMap<OrgBoxId, OrgBox>       data{};
+    UnorderedMap<OrgBoxId, OrgTreeNode*> nodeLookup;
+    Vec<UPtr<OrgTreeNode>>               roots;
 
     OrgBoxId add(sem::OrgArg node) {
         auto id  = lastId.next();
@@ -124,8 +129,9 @@ struct OrgStore : public QObject {
     OrgTreeNode* getRoot(int idx) { return roots.at(idx).get(); }
 
     OrgTreeNode* addRoot(sem::OrgArg node) {
-        auto root = std::make_unique<OrgTreeNode>(add(node), nullptr);
-        root->buildTree(root.get(), this);
+        auto box  = add(node);
+        auto root = std::make_unique<OrgTreeNode>(box, this, nullptr);
+        root->buildTree(root.get());
         this->roots.push_back(std::move(root));
         return roots.back().get();
     }
@@ -141,6 +147,8 @@ struct OrgStore : public QObject {
         CR<sem::OrgParseParameters> opts = sem::OrgParseParameters{}) {
         return addRoot(sem::parseStringOpts(text, opts));
     }
+
+    OrgTreeNode* tree(CR<OrgBoxId> id) const { return nodeLookup.at(id); }
 
     sem::SemId<sem::Org> node(CR<OrgBoxId> id) const {
         return data.at(id).node();
@@ -161,6 +169,9 @@ struct OrgStore : public QObject {
         sem::SemId<sem::Org> node = copy(this->node(prev));
         replace(*node.getAs<T>());
         auto result = add(node);
+        auto tree   = nodeLookup.at(prev);
+        nodeLookup.erase(prev);
+        nodeLookup[result] = tree;
         emit boxReplaced(prev, result);
         return result;
     }

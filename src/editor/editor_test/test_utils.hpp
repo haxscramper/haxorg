@@ -143,7 +143,7 @@ struct TestApiAccessor {
         auto index = getIndex(path);
         auto t     = edit->docModel->tree(index);
         Q_ASSERT(t != nullptr);
-        return t->toNode(edit->docModel->store);
+        return t->toNode();
     };
 
     template <typename T>
