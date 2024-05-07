@@ -84,31 +84,41 @@ struct OrgGraph : public QObject {
         return edge(out_edges(source, target).at(0));
     }
 
-    Vec<EDesc> out_edges(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+    Vec<EDesc> out_edges(
+        CR<OrgBoxId>      source,
+        CR<Opt<OrgBoxId>> target = std::nullopt) {
         VDesc      v1 = desc(source);
-        VDesc      v2 = desc(target);
+        Opt<VDesc> v2 = target ? std::make_optional(desc(*target))
+                               : std::nullopt;
         Vec<EDesc> result;
 
         Graph::out_edge_iterator ei, ei_end;
         for (boost::tie(ei, ei_end) = boost::out_edges(v1, g);
              ei != ei_end;
              ++ei) {
-            if (boost::target(*ei, g) == v2) { result.push_back(*ei); }
+            if (!v2 || boost::target(*ei, g) == *v2) {
+                result.push_back(*ei);
+            }
         }
 
         return result;
     }
 
 
-    Vec<EDesc> in_edges(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+    Vec<EDesc> in_edges(
+        CR<OrgBoxId>      source,
+        CR<Opt<OrgBoxId>> target = std::nullopt) {
         VDesc      v1 = desc(source);
-        VDesc      v2 = desc(target);
+        Opt<VDesc> v2 = target ? std::make_optional(desc(*target))
+                               : std::nullopt;
         Vec<EDesc> result;
 
         Graph::in_edge_iterator ei, ei_end;
         for (boost::tie(ei, ei_end) = boost::in_edges(v1, g); ei != ei_end;
              ++ei) {
-            if (boost::target(*ei, g) == v2) { result.push_back(*ei); }
+            if (!v2 || boost::target(*ei, g) == *v2) {
+                result.push_back(*ei);
+            }
         }
 
         return result;

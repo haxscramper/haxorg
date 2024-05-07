@@ -559,12 +559,38 @@ void TestMindMap::testFullMindMapGraph() {
     QCOMPARE_EQ2(store->node(r->id({0, 0}))->getKind(), osk::Subtree);
     QCOMPARE_EQ2(store->node(r->id({0, 1}))->getKind(), osk::Subtree);
     QCOMPARE_EQ2(store->node(r->id({0, 1, 0}))->getKind(), osk::Paragraph);
+
+    // Description list with annotations for links
+    // List itself is also a part of the node structure
+    QCOMPARE_EQ2(store->node(r->id({0, 1, 1}))->getKind(), osk::List);
+    // List contains one or more nested list items
+    QCOMPARE_EQ2(
+        store->node(r->id({0, 1, 1, 0}))->getKind(), osk::ListItem);
+
+    // And then the list item is subdivided into individual paragraphs
+    QCOMPARE_EQ2(
+        store->node(r->id({0, 1, 1, 0, 0}))->getKind(), osk::Paragraph);
+    QCOMPARE_EQ2(
+        store->node(r->id({0, 1, 1, 0, 1}))->getKind(), osk::Paragraph);
+
     QCOMPARE_EQ2(store->node(r->id({0, 1, 2}))->getKind(), osk::Paragraph);
     QCOMPARE_EQ2(
         store->node(r->id({0, 1, 3}))->getKind(), osk::AnnotatedParagraph);
     QCOMPARE_EQ2(
         store->node(r->id({0, 1, 4}))->getKind(), osk::AnnotatedParagraph);
     QCOMPARE_EQ2(store->node(r->id(1))->getKind(), osk::Subtree);
+
+    // Link from the paragraph using `lines-20` to the footnote definition
     QVERIFY(graph->hasEdge(r->id({0, 1, 2}), r->id({0, 1, 3})));
+    // The footnote definition in turn can refer to another footnote
+    // definition of its own
     QVERIFY(graph->hasEdge(r->id({0, 1, 3}), r->id({0, 1, 4})));
+
+    // First paragraph has three named links to subtrees before and after
+    // itself
+    QVERIFY(graph->hasEdge(r->id({0, 1, 0}), r->id({0, 0})));
+    QVERIFY(graph->hasEdge(r->id({0, 1, 0}), r->id({0, 2})));
+    QVERIFY(graph->hasEdge(r->id({0, 1, 0}), r->id({1, 1})));
+
+    QCOMPARE_EQ(graph->in_edges(r->id({0, 2})).size(), 2);
 }
