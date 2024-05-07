@@ -7,6 +7,7 @@
 #include <hstd/system/Formatter.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/all.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {
@@ -23,10 +24,13 @@ struct MapBase : public CRTP_this_method<Map> {
         }
     }
 
-    generator<K> keys() const {
+    Vec<K> keys() const {
+        Vec<K> result;
         for (const auto& [key, value] : *_this()) {
-            co_yield key;
+            result.push_back(key);
         }
+
+        return result;
     }
 };
 
@@ -70,9 +74,7 @@ struct std::formatter<UnorderedMap<K, V>> : std::formatter<std::string> {
         fmt.format("{", ctx);
         bool first = true;
         for (const auto& [key, value] : p) {
-            if (!first) {
-                fmt.format(", ", ctx);
-            }
+            if (!first) { fmt.format(", ", ctx); }
             first = false;
             fmt_ctx(key, ctx);
             fmt.format(": ", ctx);

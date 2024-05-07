@@ -10,7 +10,7 @@ struct OrgGraphNode {
 };
 
 struct OrgGraphEdge {
-    DECL_DESCRIBED_ENUM(Kind, Nested);
+    DECL_DESCRIBED_ENUM(Kind, SubtreeId, Footnote);
     Kind kind;
 };
 
@@ -38,11 +38,26 @@ struct OrgGraph : public QObject {
     UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
     UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
 
+    Opt<Vec<OrgBoxId>> resolve(CR<sem::SemId<sem::Link>> link);
+
+    struct UnresolvedLink {
+        sem::SemId<sem::Link> link;
+    };
+
+    UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
+
     void addFullStore() {
+        Q_ASSERT(store != nullptr);
         for (auto const& box : store->boxes()) { addBox(box); }
     }
 
     VDesc desc(CR<OrgBoxId> id) const { return boxToVertex.at(id); }
+
+    int  numNodes() { return boost::num_vertices(g); }
+    int  numEdges() { return boost::num_edges(g); }
+    bool hasEdge(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+        return 0 < edges(source, target).size();
+    }
 
     generator<VDesc> nodes() const {
         for (auto [begin, end] = boost::vertices(g); begin != end;
@@ -55,6 +70,7 @@ struct OrgGraph : public QObject {
     OrgGraphEdge&& edge(this Self&& self, EDesc desc) {
         return self.g[desc];
     }
+
 
     template <typename Self>
     OrgGraphNode&& node(this Self&& self, VDesc desc) {

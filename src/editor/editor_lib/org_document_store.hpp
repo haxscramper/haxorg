@@ -83,6 +83,9 @@ struct OrgTreeNode {
         return result;
     }
 
+    OrgBoxId id(int inx) { return at(inx)->boxId; }
+    OrgBoxId id(CVec<int> idx) { return at(idx)->boxId; }
+
     sem::SemId<sem::Org> toNode(OrgStore* store) const;
     void buildTree(OrgTreeNode* parentNode, OrgStore* store);
 };
@@ -102,6 +105,10 @@ struct OrgStore : public QObject {
         lastId   = id;
         return id;
     }
+
+    int rootCount() const { return roots.size(); }
+
+    OrgTreeNode* getRoot(int idx) { return roots.at(idx).get(); }
 
     OrgTreeNode* addRoot(sem::OrgArg node) {
         auto root = std::make_unique<OrgTreeNode>(add(node), nullptr);

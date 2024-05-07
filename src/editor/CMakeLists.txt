@@ -6,10 +6,8 @@ set(COLA_INSTALL_DIR "${CMAKE_BINARY_DIR}/libcola/install")
 ExternalProject_Add(libcola
     SOURCE_DIR "${DEPS_DIR}/adaptagrams/cola"
     PREFIX "${CMAKE_BINARY_DIR}/libcola"
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
     BUILD_IN_SOURCE 1
+    # BUILD_ALWAYS 1
     CONFIGURE_COMMAND
         mkdir -p <SOURCE_DIR>/m4
     COMMAND
@@ -21,6 +19,15 @@ ExternalProject_Add(libcola
         CXX=${CMAKE_CXX_COMPILER}
     BUILD_COMMAND make
     INSTALL_COMMAND make install
+    # Otherwise Ninja build dies on spot because muh simplicity certainly
+    # meant that honoring project-target dependencies written in cmake file
+    # is too difficult.
+    BUILD_BYPRODUCTS
+        "${COLA_INSTALL_DIR}/lib/libavoid.a"
+        "${COLA_INSTALL_DIR}/lib/libcola.a"
+        "${COLA_INSTALL_DIR}/lib/libdialect.a"
+        "${COLA_INSTALL_DIR}/lib/libtopology.a"
+        "${COLA_INSTALL_DIR}/lib/libvpsc.a"
 )
 
 add_library(libcola_external INTERFACE)
@@ -37,6 +44,7 @@ set_property(TARGET libcola_external
     PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DEPS_DIR}/adaptagrams/cola"
 )
 
+
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Test Widgets)
 find_package(PkgConfig)
 pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
@@ -50,7 +58,7 @@ enable_testing(true)
 set(EDITOR_DIR "${BASE}/src/editor")
 message("[DBG] EDITOR_DIR = ${EDITOR_DIR}")
 
-qt_add_library(editor_lib)
+qt_add_library(editor_lib STATIC)
 glob_add_sources2(editor_lib "${EDITOR_DIR}/editor_lib.*" "${BASE}")
 haxorg_target_setup(editor_lib)
 
@@ -76,7 +84,7 @@ glob_add_sources2(editor_app "${EDITOR_DIR}/editor_app.*" "${BASE}")
 haxorg_target_setup(editor_app)
 target_link_libraries(editor_app PUBLIC editor_lib)
 
-qt_add_library(editor_test_lib)
+qt_add_library(editor_test_lib STATIC)
 glob_add_sources2(editor_test_lib "${EDITOR_DIR}/editor_test.*" "${BASE}")
 haxorg_target_setup(editor_test_lib)
 target_link_libraries(editor_test_lib PUBLIC editor_lib)

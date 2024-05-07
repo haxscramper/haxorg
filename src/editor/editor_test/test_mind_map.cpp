@@ -361,3 +361,30 @@ void TestMindMap::testGraphConstruction() {
     Vec<OrgGraph::VDesc> nodes = gen_view(graph.nodes()) | rs::to<Vec>();
     QCOMPARE_EQ(nodes.size(), 3);
 }
+
+Pair<SPtr<OrgStore>, SPtr<OrgGraph>> build_graph(CR<Str> text) {
+    auto store = std::make_shared<OrgStore>();
+    auto graph = std::make_shared<OrgGraph>(store.get());
+    auto root  = store->addRoot(text);
+    graph->addFullStore();
+    return std::make_pair(store, graph);
+}
+
+void TestMindMap::testGraphConstructionSubtreeId1() {
+    auto [store, graph] = build_graph(R"(
+Paragraph [[id:subtree-id]]
+
+* Subtree
+  :properties:
+  :id: subtree-id
+  :end:
+)"_ss);
+
+    auto r = store->getRoot(0);
+    QCOMPARE_EQ(r->subnodes.size(), 2);
+    QCOMPARE_EQ(r->at(0)->subnodes.size(), 0);
+    QCOMPARE_EQ(r->at(1)->subnodes.size(), 0);
+
+    QCOMPARE_EQ(graph->numNodes(), 3);
+    QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
+}

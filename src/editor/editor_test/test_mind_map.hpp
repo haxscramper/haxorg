@@ -13,4 +13,5 @@ class TestMindMap
     void testLibcolaIr1();
     void testGraphvizIr1();
     void testGraphConstruction();
+    void testGraphConstructionSubtreeId1();
 };
