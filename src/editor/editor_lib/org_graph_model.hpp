@@ -7,6 +7,8 @@
 
 struct OrgGraphNode {
     OrgBoxId box;
+    DECL_DESCRIBED_ENUM(Kind, Subtree, Document, Paragraph, Footnote);
+    Kind kind;
 };
 
 struct OrgGraphEdge {
@@ -38,7 +40,7 @@ struct OrgGraph : public QObject {
     UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
     UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
 
-    Opt<Vec<OrgBoxId>> resolve(CR<sem::SemId<sem::Link>> link);
+    void updateUnresolved(VDesc newNode);
 
     struct UnresolvedLink {
         sem::SemId<sem::Link> link;
@@ -66,15 +68,11 @@ struct OrgGraph : public QObject {
         }
     }
 
-    template <typename Self>
-    OrgGraphEdge&& edge(this Self&& self, EDesc desc) {
-        return self.g[desc];
-    }
+    OrgGraphEdge& edge(EDesc desc) { return g[desc]; }
+    OrgGraphNode& node(VDesc desc) { return g[desc]; }
 
-
-    template <typename Self>
-    OrgGraphNode&& node(this Self&& self, VDesc desc) {
-        return self.g[desc];
+    OrgGraphEdge& edge0(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+        return edge(edges(source, target).at(0));
     }
 
     Vec<EDesc> edges(CR<OrgBoxId> source, CR<OrgBoxId> target) {

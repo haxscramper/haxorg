@@ -387,4 +387,7 @@ Paragraph [[id:subtree-id]]
 
     QCOMPARE_EQ(graph->numNodes(), 3);
     QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
+    QCOMPARE_EQ(
+        graph->edge0(r->id(0), r->id(1)).kind,
+        OrgGraphEdge::Kind::SubtreeId);
 }

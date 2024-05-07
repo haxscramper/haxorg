@@ -37,26 +37,87 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         });
     }
 
-    VDesc v          = boost::add_vertex(g);
+    VDesc v = boost::add_vertex(g);
+
+    switch (n->getKind()) {
+        case osk::Subtree: {
+            g[v].kind = OrgGraphNode::Kind::Subtree;
+            break;
+        }
+
+        case osk::AdmonitionBlock: {
+            if (n.as<sem::AnnotatedParagraph>()->getAnnotationKind()
+                == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
+                g[v].kind = OrgGraphNode::Kind::Footnote;
+            } else {
+                g[v].kind = OrgGraphNode::Kind::Paragraph;
+            }
+            break;
+        }
+
+        case osk::Paragraph: {
+            g[v].kind = OrgGraphNode::Kind::Paragraph;
+            break;
+        }
+
+        case osk::Document: {
+            g[v].kind = OrgGraphNode::Kind::Document;
+            break;
+        }
+
+        default: {
+        }
+    }
+
     boxToVertex[box] = v;
+    updateUnresolved(v);
+}
+
+void OrgGraph::updateUnresolved(VDesc newNode) {
+
+    auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
+        for (auto const& box : target) {
+            boost::add_edge(newNode, desc(box), spec, g);
+        }
+    };
 
     for (auto const& id : unresolved.keys()) {
         Vec<int> resolved;
         auto&    unresolved_list = unresolved[id];
         for (auto const& it : enumerator(unresolved_list)) {
-            auto target = resolve(it.value().link);
-            if (target) {
-                for (auto const& box : *target) {
-                    OrgGraphEdge spec;
-                    if (it.value().link->getLinkKind() == slk::Id) {
-                        spec.kind = OrgGraphEdge::Kind::SubtreeId;
+            bool        found_match = false;
+            auto const& link        = it.value().link;
+            switch (link->getLinkKind()) {
+                case slk::Id: {
+                    if (auto target = subtreeIds.get(link->getId().text)) {
+                        found_match = true;
+                        add_edge(
+                            OrgGraphEdge{
+                                .kind = OrgGraphEdge::Kind::SubtreeId,
+                            },
+                            *target);
                     }
-
-
-                    boost::add_edge(v, desc(box), spec, g);
+                    break;
                 }
-                resolved.push_back(it.index());
+
+                case slk::Footnote: {
+                    if (auto target = footnoteTargets.get(
+                            link->getFootnote().target)) {
+                        found_match = true;
+                        add_edge(
+                            OrgGraphEdge{
+                                .kind = OrgGraphEdge::Kind::Footnote,
+                            },
+                            *target);
+                    }
+                    break;
+                }
+
+                default: {
+                }
             }
+
+            if (found_match) { resolved.push_back(it.index()); }
         }
 
         rs::reverse(resolved);
@@ -65,25 +126,5 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         }
 
         if (unresolved_list.empty()) { unresolved.erase(id); }
-    }
-}
-
-Opt<Vec<OrgBoxId>> OrgGraph::resolve(CR<sem::SemId<sem::Link>> link) {
-    switch (link->getLinkKind()) {
-        case slk::Id: {
-            return subtreeIds.get(link->getId().text);
-        }
-
-        case slk::Footnote: {
-            return footnoteTargets.get(link->getFootnote().target);
-        }
-
-        case slk::File:
-        case slk::UserProtocol:
-        case slk::Internal:
-        case slk::Person:
-        case slk::Raw: {
-            return std::nullopt;
-        }
     }
 }
