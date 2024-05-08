@@ -79,6 +79,12 @@ struct OrgGraph : public QObject {
         }
     }
 
+    generator<EDesc> edges() const {
+        for (auto [begin, end] = boost::edges(g); begin != end; ++begin) {
+            co_yield *begin;
+        }
+    }
+
     OrgGraphEdge& edge(EDesc desc) { return g[desc]; }
     OrgGraphNode& node(VDesc desc) { return g[desc]; }
 

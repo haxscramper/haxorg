@@ -174,6 +174,8 @@ struct OrgStore : public QObject {
     }
 
     sem::SemId<sem::Org> nodeWithoutNested(CR<OrgBoxId> id) const;
+    sem::SemId<sem::Org> nodeWithoutNested(
+        CR<sem::SemId<sem::Org>> id) const;
 
 
     generator<OrgBoxId> boxes() {

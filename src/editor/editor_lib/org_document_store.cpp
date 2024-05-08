@@ -72,7 +72,12 @@ Vec<int> OrgTreeNode::selfPath() const {
 }
 
 sem::SemId<sem::Org> OrgStore::nodeWithoutNested(CR<OrgBoxId> id) const {
-    auto result = copy(node(id));
+    return nodeWithoutNested(node(id));
+}
+
+sem::SemId<sem::Org> OrgStore::nodeWithoutNested(
+    CR<sem::SemId<sem::Org>> id) const {
+    auto result = copy(id);
     if (NestedNodes.contains(result->getKind())) {
         result->subnodes.clear();
     }

@@ -620,7 +620,7 @@ void TestMindMap::testFullMindMapGraph() {
     }
 
     {
-        auto node_text //
+        Vec<Str> node_text //
             = gen_view(graph->nodes())
             | rv::transform([&](OrgGraph::VDesc desc) -> Str {
                   auto node = store->nodeWithoutNested(
@@ -629,18 +629,44 @@ void TestMindMap::testFullMindMapGraph() {
               })
             | rs::to<Vec>();
 
-        auto get_idx = [&](CR<Str> str) -> int {
-            auto it = rs::find_if(node_text, [&](CR<Str> item) {
-                return item.contains(str);
-            });
+        Vec<Str> edge_text //
+            = gen_view(graph->edges())
+            | rv::transform([&](OrgGraph::EDesc desc) -> Opt<Str> {
+                  if (graph->edge(desc).description) {
+                      return str(*graph->edge(desc).description);
+                  } else {
+                      return std::nullopt;
+                  }
+              })
+            | drop_if_nullopt() //
+            | unpack_optional() //
+            | rs::to<Vec>();
 
-            return it == node_text.end()
-                     ? -1
-                     : std::distance(node_text.begin(), it);
+        auto get_idx = [](CVec<Str> list, CR<Str> str) -> int {
+            auto it = rs::find_if(
+                list, [&](CR<Str> item) { return item.contains(str); });
+
+            return it == list.end() ? -1 : std::distance(list.begin(), it);
         };
 
-        for (auto const& it : node_text) { qDebug() << it; }
+        std::stringstream os;
+        for (auto const& it : node_text) { os << "NODE " << it << "\n"; }
+        for (auto const& it : edge_text) { os << "EDGE " << it << "\n"; }
+        auto  dbg_str = os.str();
+        char* dbg     = dbg_str.data();
 
-        QVERIFY(get_idx("Mind map nodes are made from subtrees") != -1);
+
+        // clang-format off
+        QVERIFY2(get_idx(node_text, "Mind map nodes are made from subtrees") != -1, dbg);
+
+        // Annotation in the description list items are moved into the edge properties and
+        // are not stored as separate nodes in graph.
+        int list_desc_index = get_idx(edge_text, "Description lists can be used for annotated links");
+        QVERIFY2(list_desc_index != -1, dbg);
+        QVERIFY2(edge_text.at(list_desc_index).contains("Multiple paragraphs attached to link"), dbg);
+        QVERIFY2(get_idx(node_text, "Description lists can be used for annotated links") == -1, dbg);
+        QVERIFY2(get_idx(node_text, "Multiple paragraphs attached to link") == -1, dbg);
+
+        // clang-format on
     }
 }
