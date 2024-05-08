@@ -1,12 +1,12 @@
 #include <editor/editor_lib/org_graph_layout.hpp>
 
-constexpr float graphviz_size_scaling = 1;
-
-
-QRect getNodeRectangle(CR<Graphviz::Graph> g, CR<Graphviz::Node> node) {
+QRect getNodeRectangle(
+    CR<Graphviz::Graph> g,
+    CR<Graphviz::Node>  node,
+    int                 scaling) {
     auto   pos    = node.getAttr<Str>("pos").value().split(",");
-    double width  = node.getWidth().value() * graphviz_size_scaling;
-    double height = node.getHeight().value() * graphviz_size_scaling;
+    double width  = node.getWidth().value() * scaling;
+    double height = node.getHeight().value() * scaling;
     double x      = pos.at(0).toDouble();
     double y      = pos.at(1).toDouble();
     int    x1     = static_cast<int>(x - width / 2);
@@ -34,7 +34,13 @@ QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge) {
 GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     Graphviz             gvc,
     Graphviz::LayoutType layout) {
-    GraphvizResult      result{.graph{graphName}, .gvc{gvc}};
+
+    GraphvizResult result{
+        .graph{graphName},
+        .gvc{gvc},
+        .graphviz_size_scaling = graphviz_size_scaling,
+    };
+
     int                 nodeCounter = 0;
     Vec<Graphviz::Node> nodes //
         = this->rectangles
@@ -112,7 +118,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
 
     graph.eachNode([&](CR<Graphviz::Node> node) {
         res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
-            graph, node);
+            graph, node, graphviz_size_scaling);
     });
 
     graph.eachEdge([&](CR<Graphviz::Edge> edge) {

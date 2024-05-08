@@ -267,31 +267,18 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
             }
         }
 
-        case OrgGraphModelRoles::NodeSizeRole: {
-            if (isNode(index)) {
-                auto label = make_label(
-                    g->store->nodeWithoutNested(boxAt(index.row())));
-
-                return QVariant::fromValue(
-                    get_width_fit(label.get(), 200));
-
-            } else {
-                return QVariant();
-            }
-        }
-
-        case OrgGraphModelRoles::AnyDescRole: {
-            if (isNode(index)) {
-                return QVariant::fromValue(nodeAt(index));
-            } else {
-                return QVariant::fromValue(edgeAt(index));
-            }
-        }
-
         default: {
             return QVariant();
         }
     }
+}
+
+QSize OrgGraphModel::nodeSize(const QModelIndex& index) const {
+    Q_ASSERT(isNode(index));
+    auto label = make_label(
+        g->store->nodeWithoutNested(boxAt(index.row())));
+
+    return get_width_fit(label.get(), 200);
 }
 
 OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
@@ -304,12 +291,11 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
         if (src->isNode(index)) {
-            QVariant desc = src->data(
-                index, OrgGraphModelRoles::AnyDescRole);
-            nodeToRect[qvariant_cast<OrgGraph::VDesc>(desc)] //
-                = ir.rectangles.size();
-            ir.rectangles.push_back(qvariant_cast<QRect>(
-                src->data(index, OrgGraphModelRoles::NodeSizeRole)));
+            auto desc        = src->nodeAt(index);
+            nodeToRect[desc] = ir.rectangles.size();
+            auto size        = src->nodeSize(index);
+            ir.rectangles.push_back(
+                QRect(0, 0, size.width(), size.height()));
         } else {
             auto [source, target] = src->sourceTargetAt(index);
             ir.edges.push_back(
@@ -329,10 +315,9 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
         if (src->isNode(index)) {
-            auto desc = qvariant_cast<OrgGraph::VDesc>(
-                src->data(index, OrgGraphModelRoles::AnyDescRole));
             res.data[index] = ElementLayout{
-                .data = conv_lyt.fixed.at(nodeToRect.at(desc))};
+                .data = conv_lyt.fixed.at(
+                    nodeToRect.at(src->nodeAt(index)))};
         } else {
             auto [source, target] = src->sourceTargetAt(index);
             res.data[index]       = ElementLayout{conv_lyt.lines.at({

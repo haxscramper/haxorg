@@ -161,7 +161,7 @@ struct OrgGraph : public QObject {
 /// strapped on top of the flat list model.
 enum OrgGraphModelRoles
 {
-    AnyDescRole = SharedModelRoles::__LAST__ + 1,
+    OrgGraphModelRoles__FIRST__ = SharedModelRoles::__LAST__ + 1,
     NodeShapeRole, ///< Node shape in absolute coordinates after layout
     EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
 };
@@ -213,11 +213,12 @@ struct OrgGraphModel : public QAbstractListModel {
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
         const override;
 
+    QSize nodeSize(QModelIndex const& index) const;
+
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
-        roles[Qt::DisplayRole]                 = "DisplayRole";
-        roles[SharedModelRoles::IndexBoxRole]  = "IndexBoxRole";
-        roles[OrgGraphModelRoles::AnyDescRole] = "AnyDescRole";
+        roles[Qt::DisplayRole]                = "DisplayRole";
+        roles[SharedModelRoles::IndexBoxRole] = "IndexBoxRole";
         return roles;
     }
 };

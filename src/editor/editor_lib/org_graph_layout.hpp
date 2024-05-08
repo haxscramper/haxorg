@@ -55,6 +55,8 @@ struct GraphLayoutIR {
     double               height    = 100;
     Str                  graphName = "G";
 
+    int graphviz_size_scaling = 12;
+
     void validate() {
         for (auto const& e : enumerator(edges)) {
             for (auto const& it :
@@ -79,6 +81,7 @@ struct GraphLayoutIR {
     struct GraphvizResult {
         Graphviz::Graph graph;
         Graphviz        gvc;
+        const int       graphviz_size_scaling;
 
         void writeSvg(CR<Str> path) {
             gvc.writeFile(path, graph, Graphviz::RenderFormat::SVG);
