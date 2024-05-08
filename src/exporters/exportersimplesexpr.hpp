@@ -28,6 +28,10 @@ struct ExporterSimpleSExpr
 
     void visit(Res& res, sem::SemId<sem::Org> org);
 
+    template <sem::IsOrg T>
+    void visit(Res& res, CR<T> value) {
+        visit(res, value.asOrg());
+    }
 
     template <sem::NotOrg T>
     void visit(Res& res, CR<T> value) {

@@ -173,6 +173,8 @@ struct OrgStore : public QObject {
         return data.at(id).node();
     }
 
+    sem::SemId<sem::Org> nodeWithoutNested(CR<OrgBoxId> id) const;
+
 
     generator<OrgBoxId> boxes() {
         for (auto const& id : data.keys()) { co_yield id; }

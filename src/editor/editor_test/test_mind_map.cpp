@@ -618,4 +618,29 @@ void TestMindMap::testFullMindMapGraph() {
             "Description lists can be used for annotated links"));
         QVERIFY(desc_str.contains("Multiple paragraphs attached to link"));
     }
+
+    {
+        auto node_text //
+            = gen_view(graph->nodes())
+            | rv::transform([&](OrgGraph::VDesc desc) -> Str {
+                  auto node = store->nodeWithoutNested(
+                      graph->node(desc).box);
+                  return str(node);
+              })
+            | rs::to<Vec>();
+
+        auto get_idx = [&](CR<Str> str) -> int {
+            auto it = rs::find_if(node_text, [&](CR<Str> item) {
+                return item.contains(str);
+            });
+
+            return it == node_text.end()
+                     ? -1
+                     : std::distance(node_text.begin(), it);
+        };
+
+        for (auto const& it : node_text) { qDebug() << it; }
+
+        QVERIFY(get_idx("Mind map nodes are made from subtrees") != -1);
+    }
 }

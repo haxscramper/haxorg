@@ -70,3 +70,11 @@ Vec<int> OrgTreeNode::selfPath() const {
     rs::reverse(result);
     return result;
 }
+
+sem::SemId<sem::Org> OrgStore::nodeWithoutNested(CR<OrgBoxId> id) const {
+    auto result = copy(node(id));
+    if (NestedNodes.contains(result->getKind())) {
+        result->subnodes.clear();
+    }
+    return result;
+}

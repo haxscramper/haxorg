@@ -64,7 +64,7 @@
 namespace sem {
 template <typename T>
 concept NotOrg = !(
-    std::derived_from<typename remove_smart_pointer<T>::type, sem::Org>
+    std::derived_from<typename remove_sem_org<T>::type, sem::Org>
     || std::derived_from<T, Org>);
 
 /// \brief  Compile-time check whether the element is an org-mode node or
