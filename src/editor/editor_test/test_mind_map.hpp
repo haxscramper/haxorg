@@ -16,4 +16,5 @@ class TestMindMap
     void testGraphConstructionSubtreeId1();
     void testGraphConstructionFootnoteId();
     void testFullMindMapGraph();
+    void testQtGraphModel1();
 };

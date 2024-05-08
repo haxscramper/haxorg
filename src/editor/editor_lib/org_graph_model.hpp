@@ -4,9 +4,10 @@
 #include <editor/editor_lib/org_document_model.hpp>
 #include <QObject>
 #include <hstd/system/macros.hpp>
+#include <QAbstractItemModel>
+#include <editor/editor_lib/app_utils.hpp>
 
 struct OrgGraphNode {
-    OrgBoxId box;
     DECL_DESCRIBED_ENUM(
         Kind,
         Subtree,
@@ -15,7 +16,9 @@ struct OrgGraphNode {
         Footnote,
         List,
         ListItem);
-    Kind kind;
+
+    OrgBoxId box;
+    Kind     kind;
 };
 
 struct OrgGraphEdge {
@@ -88,6 +91,21 @@ struct OrgGraph : public QObject {
     OrgGraphEdge& edge(EDesc desc) { return g[desc]; }
     OrgGraphNode& node(VDesc desc) { return g[desc]; }
 
+    EDesc edgeAt(int idx) {
+        auto [it, end] = boost::edges(g);
+        std::advance(it, idx);
+        return *it;
+    }
+
+    VDesc source(EDesc d) const { return boost::source(d, g); }
+    VDesc target(EDesc d) const { return boost::target(d, g); }
+
+    VDesc nodeAt(int idx) {
+        auto [it, end] = boost::vertices(g);
+        std::advance(it, idx);
+        return *it;
+    }
+
     OrgGraphEdge& out_edge0(CR<OrgBoxId> source, CR<OrgBoxId> target) {
         return edge(out_edges(source, target).at(0));
     }
@@ -135,4 +153,61 @@ struct OrgGraph : public QObject {
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {}
     void addBox(CR<OrgBoxId> box);
+};
+
+
+struct OrgGraphModel : public QAbstractListModel {
+  private:
+    Q_OBJECT
+  public:
+    enum Roles
+    {
+        DescriptorRole = SharedModelRoles::__LAST__ + 1,
+        NodeSizeRole,
+    };
+
+    OrgGraph* g;
+    explicit OrgGraphModel(OrgGraph* g, QObject* parent)
+        : QAbstractListModel(parent), g(g) {}
+
+    int rowCount(
+        const QModelIndex& parent = QModelIndex()) const override {
+        if (parent.isValid()) {
+            return 0;
+        } else {
+            return g->numNodes() + g->numEdges();
+        }
+    }
+
+    bool isNode(CR<QModelIndex> index) const {
+        return index.row() < g->numNodes();
+    }
+
+    OrgBoxId boxAt(int row) const { return g->node(nodeAt(row)).box; }
+
+    OrgGraph::VDesc nodeAt(int row) const { return g->nodeAt(row); }
+
+    OrgGraph::VDesc nodeAt(QModelIndex index) const {
+        return nodeAt(index.row());
+    }
+
+    OrgGraph::EDesc edgeAt(int row) const {
+        return g->edgeAt(row - g->numNodes());
+    }
+
+    OrgGraph::EDesc edgeAt(QModelIndex index) const {
+        return edgeAt(index.row());
+    }
+
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+
+    QHash<int, QByteArray> roleNames() const override {
+        QHash<int, QByteArray> roles;
+        roles[Qt::DisplayRole]                = "DisplayRole";
+        roles[SharedModelRoles::IndexBoxRole] = "IndexBoxRole";
+        roles[Roles::DescriptorRole]          = "DescriptorRole";
+        roles[Roles::NodeSizeRole]            = "NodeSizeRole";
+        return roles;
+    }
 };

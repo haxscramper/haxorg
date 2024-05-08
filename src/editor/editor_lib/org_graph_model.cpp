@@ -4,6 +4,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <QDebug>
 #include <exporters/ExporterUltraplain.hpp>
+#include <editor/editor_lib/org_document_render.hpp>
 
 #pragma clang diagnostic error "-Wswitch"
 
@@ -234,4 +235,59 @@ std::string OrgGraph::toGraphviz() {
     write_graphviz_dp(os, g, dp);
 
     return os.str();
+}
+QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
+    if (!index.isValid() || rowCount() <= index.row()) {
+        return QVariant();
+    }
+
+    switch (role) {
+        case SharedModelRoles::IndexBoxRole: {
+            if (isNode(index)) {
+                return QVariant::fromValue(boxAt(index.row()));
+            } else {
+                return QVariant();
+            }
+        }
+
+        case Qt::DisplayRole: {
+            if (isNode(index)) {
+                auto sem = g->store->nodeWithoutNested(boxAt(index.row()));
+                return QString::fromStdString(
+                    fmt("NODE[{}] \"{}\"",
+                        boxAt(index.row()),
+                        ExporterUltraplain::toStr(sem)));
+
+            } else {
+                return QString::fromStdString(
+                    fmt("EDGE[{}-{}]",
+                        g->node(g->source(edgeAt(index))).box,
+                        g->node(g->target(edgeAt(index))).box));
+            }
+        }
+
+        case Roles::NodeSizeRole: {
+            if (isNode(index)) {
+                auto label = make_label(
+                    g->store->nodeWithoutNested(boxAt(index.row())));
+
+                return QVariant::fromValue(
+                    get_width_fit(label.get(), 200));
+
+            } else {
+                return QVariant();
+            }
+        }
+
+        case Roles::DescriptorRole: {
+            if (isNode(index)) {
+                return QVariant::fromValue(nodeAt(index));
+            } else {
+                return QVariant::fromValue(edgeAt(index));
+            }
+        }
+        default: {
+            return QVariant();
+        }
+    }
 }

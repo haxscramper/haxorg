@@ -19,13 +19,23 @@ Q_DECLARE_LOGGING_CATEGORY(editor_model);
 /// parsing etc.
 Q_DECLARE_LOGGING_CATEGORY(editor_files);
 
+/// Model roles shared between qbstract item models working with the
+/// org-mode tree representation.
+enum SharedModelRoles
+{
+    IndexBoxRole = Qt::UserRole + 1,
+
+    __LAST__,
+};
+
 std::string printModelTree(
     const QAbstractItemModel*             model,
     const QModelIndex&                    parent,
     Func<std::string(QModelIndex const&)> toString);
 
 Func<std::string(QModelIndex const&)> store_index_printer(
-    const OrgStore* store);
+    const OrgStore* store,
+    int             role = SharedModelRoles::IndexBoxRole);
 
 Str debug(sem::OrgArg);
 

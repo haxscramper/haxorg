@@ -670,3 +670,18 @@ void TestMindMap::testFullMindMapGraph() {
         // clang-format on
     }
 }
+
+void TestMindMap::testQtGraphModel1() {
+    auto [store, graph] = build_graph(R"(
+Paragraph [[id:subtree-id]]
+
+* Subtree
+  :properties:
+  :id: subtree-id
+  :end:
+)");
+
+    OrgGraphModel model{graph.get(), nullptr};
+    qDebug().noquote() << printModelTree(
+        &model, QModelIndex(), store_index_printer(store.get()));
+}

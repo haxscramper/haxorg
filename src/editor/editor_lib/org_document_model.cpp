@@ -301,9 +301,13 @@ int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
 }
 
 QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid()) { return QVariant(); }
-    OrgTreeNode* node = static_cast<OrgTreeNode*>(index.internalPointer());
-    return QVariant::fromValue(node->boxId);
+    if (index.isValid()) {
+        OrgTreeNode* node = static_cast<OrgTreeNode*>(
+            index.internalPointer());
+        return QVariant::fromValue(node->boxId);
+    } else {
+        return QVariant();
+    }
 }
 
 Qt::ItemFlags OrgDocumentModel::flags(const QModelIndex& index) const {
