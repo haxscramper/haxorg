@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Map.hpp>
 #include <exporters/ExporterUltraplain.hpp>
 #include <exporters/ExporterJson.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 
 Q_LOGGING_CATEGORY(editor, "editor");
 /// Logging related to the editable document model in the tree or outline
@@ -56,26 +57,52 @@ std::string printModelTree(
         QModelIndex index;
     };
 
+    struct IndexRoleRepr {
+        Str roleName;
+        Str roleValue;
+    };
+
     struct ModelLevelRecord {
         int                   depth;
         Vec<ModelProxyRecord> proxies;
         Str                   finalRepr;
+        Vec<IndexRoleRepr>    roles;
     };
 
+    Vec<ModelLevelRecord> records;
+
+    QHash<int, QByteArray> role_names = model->roleNames();
+
+    for (auto const& it : role_names.keys()) {
+        if (it != Qt::DisplayRole && it < Qt::UserRole) {
+            role_names.remove(it);
+        }
+    }
+
     Func<void(CR<QModelIndex> index, int level)> aux;
-    Vec<ModelLevelRecord>                        records;
     aux = [&](CR<QModelIndex> index, int level) -> void {
         ModelLevelRecord record{.depth = level};
 
         QModelIndex currentIndex      = index;
         auto        currentProxyModel = qobject_cast<
                    QSortFilterProxyModel const*>(index.model());
+        Vec<int> roles = sorted(
+            role_names.keys() | rs::to<Vec>(), std::less_equal<int>{});
+
+
+        for (int role : roles) {
+            QByteArray role_name = role_names[role];
+            QVariant   value     = index.data(role);
+            if (value.isValid()) {
+                IndexRoleRepr repr;
+                repr.roleName  = role_name.toStdString();
+                repr.roleValue = qdebug_to_str(value);
+                record.roles.push_back(repr);
+            }
+        }
 
         auto add_proxy = [&](CR<QModelIndex> index) {
-            record.proxies.push_back(ModelProxyRecord{
-                .index = index
-
-            });
+            record.proxies.push_back(ModelProxyRecord{.index = index});
         };
 
         add_proxy(currentIndex);
@@ -142,6 +169,13 @@ std::string printModelTree(
         }
 
         out << " " << l.finalRepr;
+
+        for (auto const& role : l.roles) {
+            out << "\n";
+            out << std::string(l.depth * 2 + 3, ' ');
+            out << role.roleName << " = " << role.roleValue;
+        }
+
         if (!level.is_last()) { out << "\n"; }
     }
 
