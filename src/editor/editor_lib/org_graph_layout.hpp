@@ -46,7 +46,6 @@ struct GraphConstraint {
 };
 
 
-
 struct GraphLayoutIR {
     using IrEdge = Pair<int, int>;
     Vec<QRect>           rectangles;

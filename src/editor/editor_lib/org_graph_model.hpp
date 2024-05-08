@@ -6,6 +6,7 @@
 #include <hstd/system/macros.hpp>
 #include <QAbstractItemModel>
 #include <editor/editor_lib/app_utils.hpp>
+#include <editor/editor_lib/org_graph_layout.hpp>
 
 struct OrgGraphNode {
     DECL_DESCRIBED_ENUM(
@@ -91,6 +92,7 @@ struct OrgGraph : public QObject {
     OrgGraphEdge& edge(EDesc desc) { return g[desc]; }
     OrgGraphNode& node(VDesc desc) { return g[desc]; }
 
+
     EDesc edgeAt(int idx) {
         auto [it, end] = boost::edges(g);
         std::advance(it, idx);
@@ -155,17 +157,19 @@ struct OrgGraph : public QObject {
     void addBox(CR<OrgBoxId> box);
 };
 
+/// Model roles shared between org graph model and proxy layouts that are
+/// strapped on top of the flat list model.
+enum OrgGraphModelRoles
+{
+    AnyDescRole = SharedModelRoles::__LAST__ + 1,
+    NodeShapeRole, ///< Node shape in absolute coordinates after layout
+    EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
+};
 
 struct OrgGraphModel : public QAbstractListModel {
   private:
     Q_OBJECT
   public:
-    enum Roles
-    {
-        DescriptorRole = SharedModelRoles::__LAST__ + 1,
-        NodeSizeRole,
-    };
-
     OrgGraph* g;
     explicit OrgGraphModel(OrgGraph* g, QObject* parent)
         : QAbstractListModel(parent), g(g) {}
@@ -199,15 +203,80 @@ struct OrgGraphModel : public QAbstractListModel {
         return edgeAt(index.row());
     }
 
+    Pair<OrgGraph::VDesc, OrgGraph::VDesc> sourceTargetAt(
+        QModelIndex index) const {
+        auto eDesc = edgeAt(index);
+        return std::make_pair<OrgGraph::VDesc, OrgGraph::VDesc>(
+            g->source(eDesc), g->target(eDesc));
+    }
+
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
         const override;
 
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
-        roles[Qt::DisplayRole]                = "DisplayRole";
-        roles[SharedModelRoles::IndexBoxRole] = "IndexBoxRole";
-        roles[Roles::DescriptorRole]          = "DescriptorRole";
-        roles[Roles::NodeSizeRole]            = "NodeSizeRole";
+        roles[Qt::DisplayRole]                 = "DisplayRole";
+        roles[SharedModelRoles::IndexBoxRole]  = "IndexBoxRole";
+        roles[OrgGraphModelRoles::AnyDescRole] = "AnyDescRole";
         return roles;
+    }
+};
+
+struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
+  private:
+    Q_OBJECT
+  public:
+    struct ElementLayout {
+        Variant<QRect, QPolygonF> data;
+
+        bool isNode() const { return std::holds_alternative<QRect>(data); }
+        QRect const& getNode() const { return std::get<QRect>(data); }
+
+        QPolygonF const& getEdge() const {
+            return std::get<QPolygonF>(data);
+        }
+    };
+
+    struct FullLayout {
+        QHash<QModelIndex, ElementLayout> data;
+    };
+
+
+    FullLayout currentLayout;
+    FullLayout getFullLayout() const;
+    void       updateCurrentLayout() { currentLayout = getFullLayout(); }
+
+    OrgGraphModel const* graphModel() const {
+        return static_cast<OrgGraphModel*>(sourceModel());
+    }
+
+    OrgGraphModel* graphModel() {
+        return static_cast<OrgGraphModel*>(sourceModel());
+    }
+
+    virtual QVariant data(const QModelIndex& index, int role)
+        const override {
+        switch (role) {
+            case OrgGraphModelRoles::NodeShapeRole: {
+                return QVariant::fromValue(
+                    currentLayout.data.value(index).getNode());
+            }
+
+            case OrgGraphModelRoles::EdgeShapeRole: {
+                return QVariant::fromValue(
+                    currentLayout.data.value(index).getEdge());
+            }
+
+            default: {
+                return QVariant();
+            }
+        }
+    }
+
+    virtual QHash<int, QByteArray> roleNames() const override {
+        auto base = sourceModel()->roleNames();
+        base[OrgGraphModelRoles::NodeShapeRole] = "NodeShapeRole";
+        base[OrgGraphModelRoles::EdgeShapeRole] = "EdgeShapeRole";
+        return base;
     }
 };

@@ -236,6 +236,7 @@ std::string OrgGraph::toGraphviz() {
 
     return os.str();
 }
+
 QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || rowCount() <= index.row()) {
         return QVariant();
@@ -266,7 +267,7 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
             }
         }
 
-        case Roles::NodeSizeRole: {
+        case OrgGraphModelRoles::NodeSizeRole: {
             if (isNode(index)) {
                 auto label = make_label(
                     g->store->nodeWithoutNested(boxAt(index.row())));
@@ -279,15 +280,68 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
             }
         }
 
-        case Roles::DescriptorRole: {
+        case OrgGraphModelRoles::AnyDescRole: {
             if (isNode(index)) {
                 return QVariant::fromValue(nodeAt(index));
             } else {
                 return QVariant::fromValue(edgeAt(index));
             }
         }
+
         default: {
             return QVariant();
         }
     }
+}
+
+OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
+    const {
+    GraphLayoutIR        ir;
+    OrgGraphModel const* src = graphModel();
+
+    UnorderedMap<OrgGraph::VDesc, int> nodeToRect;
+
+    for (int row = 0; row < src->rowCount(); ++row) {
+        QModelIndex index = src->index(row, 0);
+        if (src->isNode(index)) {
+            QVariant desc = src->data(
+                index, OrgGraphModelRoles::AnyDescRole);
+            nodeToRect[qvariant_cast<OrgGraph::VDesc>(desc)] //
+                = ir.rectangles.size();
+            ir.rectangles.push_back(qvariant_cast<QRect>(
+                src->data(index, OrgGraphModelRoles::NodeSizeRole)));
+        } else {
+            auto [source, target] = src->sourceTargetAt(index);
+            ir.edges.push_back(
+                {nodeToRect.at(source), nodeToRect.at(target)});
+        }
+    }
+
+    Graphviz gvc;
+    auto     lyt = ir.doGraphvizLayout(gvc);
+
+    lyt.writeSvg("/tmp/getFullLayout.svg");
+    lyt.writeXDot("/tmp/getFullLayout.xdot");
+
+    auto conv_lyt = lyt.convert();
+
+    FullLayout res;
+    for (int row = 0; row < sourceModel()->rowCount(); ++row) {
+        QModelIndex index = src->index(row, 0);
+        if (src->isNode(index)) {
+            auto desc = qvariant_cast<OrgGraph::VDesc>(
+                src->data(index, OrgGraphModelRoles::AnyDescRole));
+            res.data[index] = ElementLayout{
+                .data = conv_lyt.fixed.at(nodeToRect.at(desc))};
+        } else {
+            auto [source, target] = src->sourceTargetAt(index);
+            res.data[index]       = ElementLayout{conv_lyt.lines.at({
+                nodeToRect.at(source),
+                nodeToRect.at(target),
+            })};
+        }
+    }
+
+
+    return res;
 }

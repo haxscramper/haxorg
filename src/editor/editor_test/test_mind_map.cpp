@@ -315,7 +315,8 @@ void TestMindMap::testFullMindMapGraph() {
     auto [store, graph] = build_graph(getFullMindMapText());
     auto r              = store->getRoot(0);
 
-    qDebug().noquote() << graph->toGraphviz();
+    // qDebug().noquote() <<
+    graph->toGraphviz();
 
     QCOMPARE_EQ2(graph->unresolved.size(), 1);
     QCOMPARE_EQ2(store->node(r->id(0))->getKind(), osk::Subtree);
@@ -444,4 +445,8 @@ Paragraph [[id:subtree-id]]
     OrgGraphModel model{graph.get(), nullptr};
     qDebug().noquote() << printModelTree(
         &model, QModelIndex(), store_index_printer(store.get()));
+
+    OrgGraphLayoutProxy proxy{};
+    proxy.setSourceModel(&model);
+    proxy.updateCurrentLayout();
 }

@@ -1,6 +1,6 @@
 #include <editor/editor_lib/org_graph_layout.hpp>
 
-constexpr float graphviz_size_scaling = 12;
+constexpr float graphviz_size_scaling = 1;
 
 
 QRect getNodeRectangle(CR<Graphviz::Graph> g, CR<Graphviz::Node> node) {
