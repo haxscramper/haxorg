@@ -7,8 +7,6 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <editor/editor_lib/app_utils.hpp>
 
-#define _qdbg(expr) qDebug() << #expr << "=" << expr;
-
 OrgSubtreeSearchModel::OrgSubtreeSearchModel(
     OrgDocumentModel* baseModel,
     QObject*          parent,

@@ -39,6 +39,18 @@ Func<std::string(QModelIndex const&)> store_index_printer(
 
 Str debug(sem::OrgArg);
 
+#define _QDBG_PRINT(z, n, data)                                           \
+    << BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, data)) << "=" << BOOST_PP_TUPLE_ELEM(n, data) << ","
+#define _QDBG_ARG_COUNT(...) BOOST_PP_VARIADIC_SIZE(__VA_ARGS__)
+
+#define _QDBG_DISPATCHER(count, ...)                                      \
+    BOOST_PP_REPEAT(count, _QDBG_PRINT, (__VA_ARGS__))
+
+#define _qdbg(...)                                                        \
+    qDebug() << __LINE__ _QDBG_DISPATCHER(                                \
+        _QDBG_ARG_COUNT(__VA_ARGS__), __VA_ARGS__);
+
+
 template <typename T>
 std::string qdebug_to_str(T const& index) {
     QString output;

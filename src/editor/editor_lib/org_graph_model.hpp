@@ -164,6 +164,7 @@ enum OrgGraphModelRoles
     OrgGraphModelRoles__FIRST__ = SharedModelRoles::__LAST__ + 1,
     NodeShapeRole, ///< Node shape in absolute coordinates after layout
     EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
+    IsNodeRole,    ///< Check if the index points to and edge or to a node.
 };
 
 struct OrgGraphModel : public QAbstractListModel {
@@ -219,6 +220,7 @@ struct OrgGraphModel : public QAbstractListModel {
         QHash<int, QByteArray> roles;
         roles[Qt::DisplayRole]                = "DisplayRole";
         roles[SharedModelRoles::IndexBoxRole] = "IndexBoxRole";
+        roles[OrgGraphModelRoles::IsNodeRole] = "IsNodeRole";
         return roles;
     }
 };
@@ -242,6 +244,10 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         QHash<QModelIndex, ElementLayout> data;
     };
 
+    ElementLayout getElement(QModelIndex const& idx) const {
+        Q_ASSERT(currentLayout.data.contains(mapToSource(idx)));
+        return currentLayout.data[mapToSource(idx)];
+    }
 
     FullLayout currentLayout;
     FullLayout getFullLayout() const;
@@ -256,23 +262,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     }
 
     virtual QVariant data(const QModelIndex& index, int role)
-        const override {
-        switch (role) {
-            case OrgGraphModelRoles::NodeShapeRole: {
-                return QVariant::fromValue(
-                    currentLayout.data.value(index).getNode());
-            }
-
-            case OrgGraphModelRoles::EdgeShapeRole: {
-                return QVariant::fromValue(
-                    currentLayout.data.value(index).getEdge());
-            }
-
-            default: {
-                return QVariant();
-            }
-        }
-    }
+        const override;
 
     virtual QHash<int, QByteArray> roleNames() const override {
         auto base = sourceModel()->roleNames();

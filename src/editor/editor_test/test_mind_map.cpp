@@ -6,6 +6,7 @@
 #include <QRect>
 #include <hstd/stdlib/Ranges.hpp>
 #include <editor/editor_lib/org_graph_model.hpp>
+#include <editor/editor_lib/org_graph_scene.hpp>
 
 void TestMindMap::testLibcolaApi1() {
     std::vector<std::pair<unsigned, unsigned>> edges{
@@ -449,4 +450,30 @@ Paragraph [[id:subtree-id]]
     OrgGraphLayoutProxy proxy{};
     proxy.setSourceModel(&model);
     proxy.updateCurrentLayout();
+}
+
+void TestMindMap::testQtGraphScene1() {
+    auto [store, graph] = build_graph(R"(
+Paragraph [[id:subtree-id]]
+
+* Subtree
+  :properties:
+  :id: subtree-id
+  :end:
+)");
+    OrgGraphModel model{graph.get(), nullptr};
+    qDebug().noquote() << printModelTree(
+        &model, QModelIndex(), store_index_printer(store.get()));
+
+    _qdbg(graph->numEdges(), graph->numNodes());
+
+    OrgGraphLayoutProxy proxy{};
+    proxy.setSourceModel(&model);
+    proxy.updateCurrentLayout();
+
+    qDebug().noquote() << printModelTree(
+        &proxy, QModelIndex(), store_index_printer(store.get()));
+
+    OrgGraphView view{&proxy, nullptr};
+    save_screenshot(&view, "/tmp/graph_screenshot.png");
 }

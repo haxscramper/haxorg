@@ -267,6 +267,10 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
             }
         }
 
+        case OrgGraphModelRoles::IsNodeRole: {
+            return isNode(index);
+        }
+
         default: {
             return QVariant();
         }
@@ -329,4 +333,32 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
 
 
     return res;
+}
+
+QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
+    const {
+    auto isNodeVar = sourceModel()->data(
+        mapToSource(index), OrgGraphModelRoles::IsNodeRole);
+    bool isNode = isNodeVar.toBool();
+    switch (role) {
+        case OrgGraphModelRoles::NodeShapeRole: {
+            if (isNode) {
+                return QVariant::fromValue(getElement(index).getNode());
+            } else {
+                return QVariant();
+            }
+        }
+
+        case OrgGraphModelRoles::EdgeShapeRole: {
+            if (isNode) {
+                return QVariant();
+            } else {
+                return QVariant::fromValue(getElement(index).getEdge());
+            }
+        }
+
+        default: {
+            return sourceModel()->data(mapToSource(index), role);
+        }
+    }
 }

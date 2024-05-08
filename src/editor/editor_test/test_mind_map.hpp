@@ -17,4 +17,5 @@ class TestMindMap
     void testGraphConstructionFootnoteId();
     void testFullMindMapGraph();
     void testQtGraphModel1();
+    void testQtGraphScene1();
 };
