@@ -483,9 +483,14 @@ struct SceneBench {
 
         QSize const& box = proxy->currentLayout.bbox.size();
         window->resize(box);
-        QTest::qWait(10);
+        QTest::qWait(100);
         Q_ASSERT(QTest::qWaitForWindowActive(window.get()));
-        Q_ASSERT(window->size() == box);
+        Q_ASSERT_X(
+            window->size() == box,
+            "init bench",
+            fmt("{} != {}",
+                qdebug_to_str(window->size()),
+                qdebug_to_str(box)));
     }
 
     void debugModel() {
@@ -522,7 +527,7 @@ Paragraph [[id:subtree-id]]
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
-    // b.debugProxy();
+    b.debugProxy();
     auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
         b.proxy->currentLayout.original);
 

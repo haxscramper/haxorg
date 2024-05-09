@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <editor/editor_lib/app_utils.hpp>
+#include <QPainterPath>
 
 struct GraphConstraint {
     struct Align {
@@ -74,9 +75,9 @@ struct GraphLayoutIR {
     }
 
     struct Result {
-        Vec<QRect>                      fixed;
-        UnorderedMap<IrEdge, QPolygonF> lines;
-        QRect                           bbox;
+        Vec<QRect>                         fixed;
+        UnorderedMap<IrEdge, QPainterPath> lines;
+        QRect                              bbox;
     };
 
     struct GraphvizResult {

@@ -201,9 +201,18 @@ ColText printModelTree(
         for (auto const& role : l.roles) {
             os << "\n";
             os << std::string(l.depth * 2 + 3, ' ');
-            os << os.green() << role.roleName << os.end() << " = "
-               << os.yellow() << escape_literal(role.roleValue)
-               << os.end();
+            os << os.green() << role.roleName << os.end() << " = ";
+            if (role.roleValue.contains("\n")) {
+                os << "\n";
+                auto lines = role.roleValue.split("\n");
+                for (auto const& line : enumerator(lines)) {
+                    os << Str(" ").repeated(l.depth * 2 + 3) << "| "
+                       << os.yellow() << line.value() << os.end();
+                    if (!line.is_last()) { os << "\n"; }
+                }
+            } else {
+                os << os.yellow() << role.roleValue << os.end();
+            }
         }
 
         if (!level.is_last()) { os << "\n"; }

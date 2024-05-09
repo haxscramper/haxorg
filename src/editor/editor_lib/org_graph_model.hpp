@@ -7,6 +7,7 @@
 #include <QAbstractItemModel>
 #include <editor/editor_lib/app_utils.hpp>
 #include <editor/editor_lib/org_graph_layout.hpp>
+#include <QPainterPath>
 
 struct OrgGraphNode {
     DECL_DESCRIBED_ENUM(
@@ -230,13 +231,13 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     Q_OBJECT
   public:
     struct ElementLayout {
-        Variant<QRect, QPolygonF> data;
+        Variant<QRect, QPainterPath> data;
 
         bool isNode() const { return std::holds_alternative<QRect>(data); }
         QRect const& getNode() const { return std::get<QRect>(data); }
 
-        QPolygonF const& getEdge() const {
-            return std::get<QPolygonF>(data);
+        QPainterPath const& getEdge() const {
+            return std::get<QPainterPath>(data);
         }
     };
 

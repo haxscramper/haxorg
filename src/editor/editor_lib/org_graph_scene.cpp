@@ -2,8 +2,8 @@
 
 struct EdgePolylineItem : public QGraphicsItem {
     explicit EdgePolylineItem(
-        const QPolygonF& points,
-        QGraphicsItem*   parent = nullptr)
+        const QPainterPath& points,
+        QGraphicsItem*      parent = nullptr)
         : QGraphicsItem(parent), points(points) {}
 
     QRectF boundingRect() const override { return points.boundingRect(); }
@@ -13,10 +13,10 @@ struct EdgePolylineItem : public QGraphicsItem {
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
         painter->setPen(QPen(Qt::red, 2));
-        painter->drawPolyline(points);
+        painter->drawPath(points);
     }
 
-    QPolygonF points;
+    QPainterPath points;
 };
 
 void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
@@ -40,9 +40,8 @@ void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
                 index, QSharedPointer<QGraphicsItem>(item));
         }
     } else {
-        QPolygonF edgeShape = qvariant_cast<QPolygonF>(
+        QPainterPath edgeShape = qvariant_cast<QPainterPath>(
             model->data(index, OrgGraphModelRoles::EdgeShapeRole));
-        qDebug() << "Add edge shape" << edgeShape << "for index" << index;
         if (item) {
             dynamic_cast<EdgePolylineItem*>(item)->points = edgeShape;
         } else {

@@ -1,6 +1,6 @@
 #include <editor/editor_lib/org_graph_layout.hpp>
 #include <editor/editor_lib/app_utils.hpp>
-
+#include <QPainterPath>
 
 QRect getGraphBBox(CR<Graphviz::Graph> g) {
     boxf rect = g.info()->bb;
@@ -90,17 +90,36 @@ QRect getNodeRectangle(
     return result;
 }
 
-QPolygonF getEdgeSpline(
+QPoint toGvPoint(pointf p, int height) {
+    return QPoint(p.x, height - p.y);
+}
+
+QPainterPath getEdgeSpline(
     CR<Graphviz::Edge> edge,
     int                scaling,
     CR<QRect>          bbox) {
-    QPolygonF   polygon;
-    Ppolyline_t points = edge.info()->path;
-    for (int i = 0; i < points.pn; ++i) {
-        Ppoint_t point = points.ps[i];
-        polygon << QPointF(point.x, bbox.height() - point.y);
+    splines*     spl = edge.info()->spl;
+    QPainterPath path;
+    int          height = bbox.height();
+    if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
+        bezier bez = spl->list[0];
+        if (bez.sflag) {
+            path.moveTo(toGvPoint(bez.sp, height));
+            path.lineTo(toGvPoint(bez.list[0], height));
+        } else {
+            path.moveTo(toGvPoint(bez.list[0], height));
+        }
+
+        for (int i = 1; i < bez.size; i += 3) {
+            path.cubicTo(
+                toGvPoint(bez.list[i], height),
+                toGvPoint(bez.list[i + 1], height),
+                toGvPoint(bez.list[i + 2], height));
+        }
+
+        if (bez.eflag) { path.lineTo(toGvPoint(bez.ep, height)); }
     }
-    return polygon;
+    return path;
 }
 
 
