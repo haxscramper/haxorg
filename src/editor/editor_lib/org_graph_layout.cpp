@@ -1,22 +1,35 @@
 #include <editor/editor_lib/org_graph_layout.hpp>
 #include <editor/editor_lib/app_utils.hpp>
 
+QRect getGraphBBox(CR<Graphviz::Graph> g) {
+    Vec<int> bb = own_view(g.getAttr<Str>("bb").value().split(","))
+                | rv::transform([](CR<Str> s) { return s.toInt(); })
+                | rs::to<Vec>();
+
+    return QRect(
+        bb.at(0), bb.at(1), bb.at(2) - bb.at(0), bb.at(3) - bb.at(1));
+}
+
 QRect getNodeRectangle(
     CR<Graphviz::Graph> g,
     CR<Graphviz::Node>  node,
-    int                 scaling) {
+    int                 scaling,
+    CR<QRect>           bbox) {
     auto   pos    = node.getAttr<Str>("pos").value().split(",");
     double width  = node.getWidth().value() * scaling;
     double height = node.getHeight().value() * scaling;
     double x      = pos.at(0).toDouble();
-    double y      = pos.at(1).toDouble();
+    double y      = bbox.height() - pos.at(1).toDouble();
     int    x1     = static_cast<int>(x - width / 2);
     int    y1     = static_cast<int>(y - height / 2);
-    auto   result = QRect(x1, -y1, width, height);
+    auto   result = QRect(x1, y1, width, height);
     return result;
 }
 
-QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge, int scaling) {
+QPolygonF getEdgeSpline(
+    CR<Graphviz::Edge> edge,
+    int                scaling,
+    CR<QRect>          bbox) {
     auto posString = QString::fromStdString(
         edge.getAttr<Str>("pos").value());
     QPolygonF   polygon;
@@ -27,7 +40,7 @@ QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge, int scaling) {
             int         offset = coords.at(0) == "e" ? 1 : 0;
             double      x      = coords[offset + 0].toDouble();
             double      y      = coords[offset + 1].toDouble();
-            polygon << QPointF(x, -y);
+            polygon << QPointF(x, bbox.height() - y);
         }
     }
     return polygon;
@@ -122,9 +135,11 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
     res.fixed.resize(graph.nodeCount());
 
+    auto bbox = getGraphBBox(graph);
+
     graph.eachNode([&](CR<Graphviz::Node> node) {
         res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
-            graph, node, graphviz_size_scaling);
+            graph, node, graphviz_size_scaling, bbox);
     });
 
     graph.eachEdge([&](CR<Graphviz::Edge> edge) {
@@ -132,7 +147,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             std::make_pair(
                 edge.getAttr<int>("source_index").value(),
                 edge.getAttr<int>("target_index").value()),
-            getEdgeSpline(edge, graphviz_size_scaling));
+            getEdgeSpline(edge, graphviz_size_scaling, bbox));
     });
 
     return res;
