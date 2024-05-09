@@ -89,8 +89,8 @@ void TestMindMap::testGraphvizIr1() {
     ir.rectangles.push_back(QRect(10, 10, 20, 20));
     ir.rectangles.push_back(QRect(15, 15, 20, 20));
     auto lyt = ir.doGraphvizLayout(gvc);
-    lyt.writeSvg(gvc, "/tmp/testGraphvizIr1.svg");
-    lyt.writeXDot(gvc, "/tmp/testGraphvizIr1.xdot");
+    lyt.writeSvg("/tmp/testGraphvizIr1.svg");
+    lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
     auto converted = lyt.convert();
     QCOMPARE_EQ(converted.fixed.size(), 4);
 
@@ -457,21 +457,35 @@ struct SceneBench {
     SPtr<OrgGraph>            graph;
     SPtr<OrgGraphModel>       model;
     SPtr<OrgGraphLayoutProxy> proxy;
-    SPtr<OrgGraphView>        view;
+    OrgGraphView*             view;
+    SPtr<QMainWindow>         window;
 
     SceneBench(CR<Str> text) {
+        window = std::make_shared<QMainWindow>();
+        window->show();
+        window->raise();
+        window->activateWindow();
+
         auto [store, graph] = build_graph(text);
         this->store         = store;
         this->graph         = graph;
+
         model = std::make_shared<OrgGraphModel>(graph.get(), nullptr);
 
         proxy = std::make_shared<OrgGraphLayoutProxy>();
         proxy->setSourceModel(model.get());
         proxy->updateCurrentLayout();
-        view = std::make_shared<OrgGraphView>(proxy.get(), nullptr);
-        view->resize(
-            proxy->currentLayout.bbox.width(),
-            proxy->currentLayout.bbox.height());
+        view = new OrgGraphView(proxy.get(), window.get());
+
+
+        window->setContentsMargins(0, 0, 0, 0);
+        window->setCentralWidget(view);
+
+        QSize const& box = proxy->currentLayout.bbox.size();
+        window->resize(box);
+        QTest::qWait(10);
+        Q_ASSERT(QTest::qWaitForWindowActive(window.get()));
+        Q_ASSERT(window->size() == box);
     }
 
     void debugModel() {
@@ -503,11 +517,17 @@ Paragraph [[id:subtree-id]]
   :end:
 )"};
 
-    save_screenshot(b.view.get(), "/tmp/graph_screenshot.png");
+    save_screenshot("/tmp/graph_screenshot.png");
 }
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
-    b.debugProxy();
-    save_screenshot(b.view.get(), "/tmp/full_mind_map_screenshot.png");
+    // b.debugProxy();
+    auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
+        b.proxy->currentLayout.original);
+
+    lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap.svg");
+    lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
+
+    save_screenshot(b.window.get(), "/tmp/full_mind_map_screenshot.png");
 }

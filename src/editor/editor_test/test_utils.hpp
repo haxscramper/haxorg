@@ -66,11 +66,11 @@ inline SPtr<MainWindow> init_window(AppState const& state) {
 
 
 inline void save_screenshot(const QString& filePath) {
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (const QWindow* window = QApplication::focusWindow()) {
-        QPixmap pixmap = screen->grabWindow(window->winId());
-        pixmap.save(filePath);
-    }
+    QScreen*       screen = QGuiApplication::primaryScreen();
+    const QWindow* window = QApplication::focusWindow();
+    Q_ASSERT(window != nullptr);
+    QPixmap pixmap = screen->grabWindow(window->winId());
+    pixmap.save(filePath);
 }
 
 inline void save_screenshot(QWidget* widget, const QString& filePath) {

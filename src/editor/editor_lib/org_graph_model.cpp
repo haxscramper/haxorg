@@ -310,10 +310,9 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     Graphviz   gvc;
     FullLayout res;
     auto       lyt = ir.doGraphvizLayout(gvc);
-    // lyt.writeXDot(gvc, "/tmp/result.xdot");
-    res.original = lyt;
-
-    auto conv_lyt = lyt.convert();
+    res.original   = lyt;
+    auto conv_lyt  = lyt.convert();
+    res.bbox       = conv_lyt.bbox;
 
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);

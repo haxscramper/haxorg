@@ -9,11 +9,10 @@ QRect getGraphBBox(CR<Graphviz::Graph> g) {
     // |       |
     // [LL]----+
 
-    return QRect(
-        rect.LL.x,
-        -rect.UR.y,
-        rect.UR.x - rect.LL.x,
-        rect.LL.y - rect.UR.y);
+    auto res = QRect(0, 0, rect.UR.x, rect.UR.y);
+
+    Q_ASSERT(res.isValid());
+    return res;
 }
 
 std::string getEdgePropertiesAsString(
@@ -112,6 +111,7 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     GraphvizResult result{
         .graph{graphName},
         .graphviz_size_scaling = graphviz_size_scaling,
+        .gvc{gvc},
     };
 
     int                 nodeCounter = 0;
@@ -188,27 +188,13 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     return ir;
 }
 
-
-QRect computeBoundingBox(GraphLayoutIR::Result const& result) {
-    QRect boundingBox;
-
-    for (const QRect& rect : result.fixed) {
-        boundingBox = boundingBox.united(rect);
-    }
-
-    for (const auto& pair : result.lines) {
-        boundingBox = boundingBox.united(
-            pair.second.boundingRect().toRect());
-    }
-
-    return boundingBox;
-}
-
 GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
     res.fixed.resize(graph.nodeCount());
 
-    res.bbox = computeBoundingBox(res);
+    res.bbox = getGraphBBox(graph);
+    qDebug() << "bounding box for graphviz" << res.bbox;
+    Q_ASSERT(res.bbox.size() != QSize(0, 0));
 
     graph.eachNode([&](CR<Graphviz::Node> node) {
         res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(

@@ -31,6 +31,7 @@ void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
     if (isNode) {
         QRect nodeRect = qvariant_cast<QRect>(
             model->data(index, OrgGraphModelRoles::NodeShapeRole));
+        qDebug() << "Add node rect" << nodeRect << "for index" << index;
         if (item) {
             dynamic_cast<QGraphicsRectItem*>(item)->setRect(nodeRect);
         } else {
@@ -41,6 +42,7 @@ void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
     } else {
         QPolygonF edgeShape = qvariant_cast<QPolygonF>(
             model->data(index, OrgGraphModelRoles::EdgeShapeRole));
+        qDebug() << "Add edge shape" << edgeShape << "for index" << index;
         if (item) {
             dynamic_cast<EdgePolylineItem*>(item)->points = edgeShape;
         } else {
