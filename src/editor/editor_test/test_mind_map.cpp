@@ -89,8 +89,8 @@ void TestMindMap::testGraphvizIr1() {
     ir.rectangles.push_back(QRect(10, 10, 20, 20));
     ir.rectangles.push_back(QRect(15, 15, 20, 20));
     auto lyt = ir.doGraphvizLayout(gvc);
-    lyt.writeSvg("/tmp/testGraphvizIr1.svg");
-    lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
+    lyt.writeSvg(gvc, "/tmp/testGraphvizIr1.svg");
+    lyt.writeXDot(gvc, "/tmp/testGraphvizIr1.xdot");
     auto converted = lyt.convert();
     QCOMPARE_EQ(converted.fixed.size(), 4);
 

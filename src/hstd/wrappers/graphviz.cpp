@@ -123,7 +123,7 @@ void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
     }
 }
 
-Str Graphviz::layoutTypeToString(LayoutType layoutType) {
+Str Graphviz::layoutTypeToString(LayoutType layoutType) const {
     switch (layoutType) {
         case LayoutType::Dot: return "dot";
         case LayoutType::Neato: return "neato";
@@ -135,7 +135,7 @@ Str Graphviz::layoutTypeToString(LayoutType layoutType) {
     }
 }
 
-Str Graphviz::renderFormatToString(RenderFormat renderFormat) {
+Str Graphviz::renderFormatToString(RenderFormat renderFormat) const {
     switch (renderFormat) {
         case RenderFormat::PNG: return "png";
         case RenderFormat::PDF: return "pdf";
@@ -150,14 +150,15 @@ Str Graphviz::renderFormatToString(RenderFormat renderFormat) {
     }
 }
 
-void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) {
+void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) const {
     int res = gvLayout(
         gvc.get(),
         const_cast<Agraph_t*>(graph.get()),
         strdup(layoutTypeToString(layout)));
+    if (res != 0) { throw std::logic_error("Could not compute layout"); }
 }
 
-void Graphviz::freeLayout(Graph graph) {
+void Graphviz::freeLayout(Graph graph) const {
     CHECK(gvLayoutDone(graph.get()));
     CHECK(graph.get() != nullptr);
     CHECK(gvc != nullptr);
@@ -167,7 +168,7 @@ void Graphviz::freeLayout(Graph graph) {
 void Graphviz::writeFile(
     const Str&   fileName,
     CR<Graph>    graph,
-    RenderFormat format) {
+    RenderFormat format) const {
     if (format == RenderFormat::DOT) {
         FILE* output_file = fopen(fileName.c_str(), "w");
         if (output_file == NULL) {
@@ -196,14 +197,13 @@ void Graphviz::renderToFile(
     const Str&   fileName,
     CR<Graph>    graph,
     RenderFormat format,
-    LayoutType   layout) {
+    LayoutType   layout) const {
     CHECK(graph.get() != nullptr);
     CHECK(gvc != nullptr);
     if (format == RenderFormat::DOT) {
         writeFile(fileName, graph, format);
 
     } else {
-
         createLayout(graph, layout);
 
         writeFile(fileName, graph, format);

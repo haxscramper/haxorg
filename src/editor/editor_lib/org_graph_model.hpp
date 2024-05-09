@@ -243,6 +243,12 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     struct FullLayout {
         QHash<QModelIndex, ElementLayout> data;
         QRect                             bbox;
+        Variant<
+            std::monostate,
+            GraphLayoutIR::GraphvizResult,
+            GraphLayoutIR::ColaResult //
+            >
+            original;
     };
 
     ElementLayout getElement(QModelIndex const& idx) const {

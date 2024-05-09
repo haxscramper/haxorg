@@ -307,15 +307,14 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         }
     }
 
-    Graphviz gvc;
-    auto     lyt = ir.doGraphvizLayout(gvc);
-
-    lyt.writeSvg("/tmp/getFullLayout.svg");
-    lyt.writeXDot("/tmp/getFullLayout.xdot");
+    Graphviz   gvc;
+    FullLayout res;
+    auto       lyt = ir.doGraphvizLayout(gvc);
+    lyt.writeXDot(gvc, "/tmp/result.xdot");
+    res.original   = lyt;
 
     auto conv_lyt = lyt.convert();
 
-    FullLayout res;
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
         if (src->isNode(index)) {

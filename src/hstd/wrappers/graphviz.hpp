@@ -480,7 +480,6 @@ class Graphviz {
         Node defaultNode;
         Edge defaultEdge;
 
-
         Graph(Str const& name, Agdesc_t desc = Agdirected);
         Graph(fs::path const& file);
         Graph(Agraph_t* graph)
@@ -650,26 +649,23 @@ class Graphviz {
     };
 
 
-    Str layoutTypeToString(LayoutType layoutType);
+    Str  layoutTypeToString(LayoutType layoutType) const;
+    Str  renderFormatToString(RenderFormat renderFormat) const;
+    void createLayout(CR<Graph> graph, LayoutType layout = LayoutType::Dot)
+        const;
 
-    Str renderFormatToString(RenderFormat renderFormat);
-
-    void createLayout(
-        CR<Graph>  graph,
-        LayoutType layout = LayoutType::Dot);
-
-    void freeLayout(Graph graph);
+    void freeLayout(Graph graph) const;
 
     void writeFile(
         Str const&   fileName,
         CR<Graph>    graph,
-        RenderFormat format = RenderFormat::DOT);
+        RenderFormat format = RenderFormat::DOT) const;
 
     void renderToFile(
         Str const&   fileName,
         CR<Graph>    graph,
         RenderFormat format = RenderFormat::PNG,
-        LayoutType   layout = LayoutType::Dot);
+        LayoutType   layout = LayoutType::Dot) const;
 
   private:
     SPtr<GVC_t> gvc;

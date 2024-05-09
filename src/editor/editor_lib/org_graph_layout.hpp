@@ -81,14 +81,13 @@ struct GraphLayoutIR {
 
     struct GraphvizResult {
         Graphviz::Graph graph;
-        Graphviz        gvc;
-        const int       graphviz_size_scaling;
+        int             graphviz_size_scaling;
 
-        void writeSvg(CR<Str> path) {
+        void writeSvg(CR<Graphviz> gvc, CR<Str> path) {
             gvc.writeFile(path, graph, Graphviz::RenderFormat::SVG);
         }
 
-        void writeXDot(CR<Str> path) {
+        void writeXDot(CR<Graphviz> gvc, CR<Str> path) {
             gvc.writeFile(path, graph, Graphviz::RenderFormat::XDOT);
         }
 
