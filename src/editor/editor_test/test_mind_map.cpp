@@ -452,29 +452,48 @@ Paragraph [[id:subtree-id]]
     proxy.updateCurrentLayout();
 }
 
+struct SceneBench {
+    SPtr<OrgStore>            store;
+    SPtr<OrgGraph>            graph;
+    SPtr<OrgGraphModel>       model;
+    SPtr<OrgGraphLayoutProxy> proxy;
+    SPtr<OrgGraphView>        view;
+
+    SceneBench(CR<Str> text) {
+        auto [store, graph] = build_graph(text);
+        this->store         = store;
+        this->graph         = graph;
+        model = std::make_shared<OrgGraphModel>(graph.get(), nullptr);
+
+        proxy = std::make_shared<OrgGraphLayoutProxy>();
+        proxy->setSourceModel(model.get());
+        proxy->updateCurrentLayout();
+        view = std::make_shared<OrgGraphView>(proxy.get(), nullptr);
+        view->resize(
+            proxy->currentLayout.bbox.width(),
+            proxy->currentLayout.bbox.height());
+    }
+
+    void debugModel() {
+        qDebug().noquote() << printModelTree(
+            model.get(), QModelIndex(), store_index_printer(store.get()));
+    }
+
+    void debugProxy() {
+        qDebug().noquote() << printModelTree(
+            proxy.get(), QModelIndex(), store_index_printer(store.get()));
+    }
+};
+
 void TestMindMap::testQtGraphScene1() {
-    auto [store, graph] = build_graph(R"(
+    SceneBench b{R"(
 Paragraph [[id:subtree-id]]
 
 * Subtree
   :properties:
   :id: subtree-id
   :end:
-)");
-    OrgGraphModel model{graph.get(), nullptr};
-    qDebug().noquote() << printModelTree(
-        &model, QModelIndex(), store_index_printer(store.get()));
+)"};
 
-    _qdbg(graph->numEdges(), graph->numNodes());
-
-    OrgGraphLayoutProxy proxy{};
-    proxy.setSourceModel(&model);
-    proxy.updateCurrentLayout();
-
-    qDebug().noquote() << printModelTree(
-        &proxy, QModelIndex(), store_index_printer(store.get()));
-
-    OrgGraphView view{&proxy, nullptr};
-    view.resize(2200, 1200);
-    save_screenshot(&view, "/tmp/graph_screenshot.png");
+    save_screenshot(b.view.get(), "/tmp/graph_screenshot.png");
 }

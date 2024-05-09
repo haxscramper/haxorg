@@ -76,6 +76,7 @@ struct GraphLayoutIR {
     struct Result {
         Vec<QRect>                      fixed;
         UnorderedMap<IrEdge, QPolygonF> lines;
+        QRect                           bbox;
     };
 
     struct GraphvizResult {

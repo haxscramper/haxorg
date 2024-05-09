@@ -135,11 +135,11 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
     res.fixed.resize(graph.nodeCount());
 
-    auto bbox = getGraphBBox(graph);
+    res.bbox = getGraphBBox(graph);
 
     graph.eachNode([&](CR<Graphviz::Node> node) {
         res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
-            graph, node, graphviz_size_scaling, bbox);
+            graph, node, graphviz_size_scaling, res.bbox);
     });
 
     graph.eachEdge([&](CR<Graphviz::Edge> edge) {
@@ -147,7 +147,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             std::make_pair(
                 edge.getAttr<int>("source_index").value(),
                 edge.getAttr<int>("target_index").value()),
-            getEdgeSpline(edge, graphviz_size_scaling, bbox));
+            getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
     });
 
     return res;
