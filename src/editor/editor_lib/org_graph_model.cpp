@@ -244,11 +244,23 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
 
     switch (role) {
         case SharedModelRoles::IndexBoxRole: {
-            if (isNode(index)) {
-                return QVariant::fromValue(boxAt(index.row()));
-            } else {
-                return QVariant();
-            }
+            return isNode(index) ? QVariant::fromValue(boxAt(index.row()))
+                                 : QVariant();
+        }
+
+        case OrgGraphModelRoles::NodeSizeRole: {
+            return isNode(index) ? nodeSize(index) : QVariant();
+        }
+
+        case OrgGraphModelRoles::NodeDescAtRole: {
+            return isNode(index) ? QVariant::fromValue(nodeAt(index))
+                                 : QVariant();
+        }
+
+        case OrgGraphModelRoles::SourceAndTargetRole: {
+            return isNode(index)
+                     ? QVariant()
+                     : QVariant::fromValue(sourceTargetAt(index));
         }
 
         case Qt::DisplayRole: {
@@ -285,23 +297,63 @@ QSize OrgGraphModel::nodeSize(const QModelIndex& index) const {
     return get_width_fit(label.get(), 200);
 }
 
+template <typename T>
+T qvariant_get(QVariant const& var) {
+    Q_ASSERT(var.isValid());
+    Q_ASSERT_X(
+        var.typeId() == qMetaTypeId<T>(),
+        "qvariant_get",
+        fmt("Expected and given variant types differ. {} ({}) != {} "
+            "({}):",
+            var.typeId(),
+            var.typeName() ? var.typeName() : "<unnamed>",
+            qMetaTypeId<T>(),
+            QMetaType::fromType<T>().name()
+                ? QMetaType::fromType<T>().name()
+                : "<unnamed>"));
+
+    return qvariant_cast<T>(var);
+}
+
+template <typename T>
+T qindex_get(QModelIndex const& index, int role) {
+    QVariant result = index.data(role);
+    Q_ASSERT_X(
+        result.isValid(),
+        "qindex_get",
+        fmt("Getting index {} for role {} in model {} failed: qvariant is "
+            "invalid",
+            qdebug_to_str(index),
+            index.model()->roleNames().contains(role)
+                ? index.model()->roleNames().value(role).toStdString()
+                : fmt("<unnamed {}>", role),
+            qdebug_to_str(index.model())));
+
+    return qvariant_get<T>(result);
+}
+
 OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     const {
-    GraphLayoutIR        ir;
-    OrgGraphModel const* src = graphModel();
+    GraphLayoutIR ir;
+    auto          src = sourceModel();
 
-    UnorderedMap<OrgGraph::VDesc, int> nodeToRect;
+    using V = OrgGraph::VDesc;
+
+    UnorderedMap<V, int> nodeToRect;
 
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
-        if (src->isNode(index)) {
-            auto desc        = src->nodeAt(index);
+        if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+            auto desc = qindex_get<V>(
+                index, OrgGraphModelRoles::NodeDescAtRole);
             nodeToRect[desc] = ir.rectangles.size();
-            auto size        = src->nodeSize(index);
+            auto size        = qindex_get<QSize>(
+                index, OrgGraphModelRoles::NodeSizeRole);
             ir.rectangles.push_back(
                 QRect(0, 0, size.width(), size.height()));
         } else {
-            auto [source, target] = src->sourceTargetAt(index);
+            auto [source, target] = qindex_get<Pair<V, V>>(
+                index, OrgGraphModelRoles::SourceAndTargetRole);
             ir.edges.push_back(
                 {nodeToRect.at(source), nodeToRect.at(target)});
         }
@@ -316,13 +368,14 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
 
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
-        if (src->isNode(index)) {
+        if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
             res.data[index] = ElementLayout{
-                .data = conv_lyt.fixed.at(
-                    nodeToRect.at(src->nodeAt(index)))};
+                .data = conv_lyt.fixed.at(nodeToRect.at(qindex_get<V>(
+                    index, OrgGraphModelRoles::NodeDescAtRole)))};
         } else {
-            auto [source, target] = src->sourceTargetAt(index);
-            res.data[index]       = ElementLayout{conv_lyt.lines.at({
+            auto [source, target] = qindex_get<Pair<V, V>>(
+                index, OrgGraphModelRoles::SourceAndTargetRole);
+            res.data[index] = ElementLayout{conv_lyt.lines.at({
                 nodeToRect.at(source),
                 nodeToRect.at(target),
             })};

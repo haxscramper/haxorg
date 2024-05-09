@@ -133,6 +133,8 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
         .gvc{gvc},
     };
 
+    result.graph.setRankDirection(Graphviz::Graph::RankDirection::LR);
+
     int                 nodeCounter = 0;
     Vec<Graphviz::Node> nodes //
         = this->rectangles

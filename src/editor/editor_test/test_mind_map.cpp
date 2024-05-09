@@ -481,7 +481,8 @@ struct SceneBench {
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
 
-        QSize const& box = proxy->currentLayout.bbox.size();
+        QSize box = proxy->currentLayout.bbox.size();
+        box       = box.grownBy(QMargins(50, 50, 50, 50));
         window->resize(box);
         QTest::qWait(100);
         Q_ASSERT(QTest::qWaitForWindowActive(window.get()));
@@ -493,22 +494,31 @@ struct SceneBench {
                 qdebug_to_str(box)));
     }
 
-    void debugModel() {
-        std::cout << printModelTree(
-                         model.get(),
-                         QModelIndex(),
-                         store_index_printer(store.get()))
-                         .toString()
-                  << std::endl;
+    void debugModel(Opt<Str> path = std::nullopt) {
+        Str text = printModelTree(
+                       model.get(),
+                       QModelIndex(),
+                       store_index_printer(store.get()))
+                       .toString(!path.has_value());
+        if (path) {
+            writeFile(fs::path{path->toBase()}, text);
+        } else {
+            std::cout << text << std::endl;
+        }
     }
 
-    void debugProxy() {
-        std::cout << printModelTree(
-                         proxy.get(),
-                         QModelIndex(),
-                         store_index_printer(store.get()))
-                         .toString()
-                  << std::endl;
+    void debugProxy(Opt<Str> path = std::nullopt) {
+        Str text = printModelTree(
+                       proxy.get(),
+                       QModelIndex(),
+                       store_index_printer(store.get()))
+                       .toString(!path.has_value());
+
+        if (path) {
+            writeFile(fs::path{path->toBase()}, text);
+        } else {
+            std::cout << text << std::endl;
+        }
     }
 };
 
@@ -527,7 +537,8 @@ Paragraph [[id:subtree-id]]
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
-    // b.debugProxy();
+    b.debugModel("/tmp/testQtGraphSceneFullMindMap_model.txt");
+    b.debugProxy("/tmp/testQtGraphSceneFullMindMap_proxy.txt");
     auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
         b.proxy->currentLayout.original);
 

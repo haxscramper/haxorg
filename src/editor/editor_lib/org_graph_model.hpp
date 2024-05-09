@@ -166,6 +166,9 @@ enum OrgGraphModelRoles
     NodeShapeRole, ///< Node shape in absolute coordinates after layout
     EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
     IsNodeRole,    ///< Check if the index points to and edge or to a node.
+    NodeDescAtRole,
+    NodeSizeRole,
+    SourceAndTargetRole,
 };
 
 struct OrgGraphModel : public QAbstractListModel {
@@ -219,9 +222,12 @@ struct OrgGraphModel : public QAbstractListModel {
 
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
-        roles[Qt::DisplayRole]                = "DisplayRole";
-        roles[SharedModelRoles::IndexBoxRole] = "IndexBoxRole";
-        roles[OrgGraphModelRoles::IsNodeRole] = "IsNodeRole";
+        roles[Qt::DisplayRole]                    = "DisplayRole";
+        roles[SharedModelRoles::IndexBoxRole]     = "IndexBoxRole";
+        roles[OrgGraphModelRoles::IsNodeRole]     = "IsNodeRole";
+        roles[OrgGraphModelRoles::NodeDescAtRole] = "NodeDescAtRole";
+        roles[OrgGraphModelRoles::SourceAndTargetRole]
+            = "SourceAndTargetRole";
         return roles;
     }
 };
@@ -260,14 +266,6 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     FullLayout currentLayout;
     FullLayout getFullLayout() const;
     void       updateCurrentLayout() { currentLayout = getFullLayout(); }
-
-    OrgGraphModel const* graphModel() const {
-        return static_cast<OrgGraphModel*>(sourceModel());
-    }
-
-    OrgGraphModel* graphModel() {
-        return static_cast<OrgGraphModel*>(sourceModel());
-    }
 
     virtual QVariant data(const QModelIndex& index, int role)
         const override;
