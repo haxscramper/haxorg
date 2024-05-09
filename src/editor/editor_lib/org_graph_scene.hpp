@@ -16,8 +16,15 @@ class OrgGraphView : public QGraphicsView {
     Q_OBJECT
 
   public:
-    OrgGraphView(QAbstractItemModel* model, QWidget* parent)
-        : QGraphicsView(parent), model(model) {
+    OrgGraphView(
+        QAbstractItemModel* model,
+        OrgStore*           store,
+        QWidget*            parent)
+        : QGraphicsView(parent)
+        , store(store)
+        , model(model)
+    //
+    {
         scene = new QGraphicsScene(this);
         this->setScene(scene);
         connect(
@@ -39,9 +46,10 @@ class OrgGraphView : public QGraphicsView {
     }
 
   private:
-    QAbstractItemModel*                               model;
-    QGraphicsScene*                                   scene;
-    QHash<QModelIndex, QSharedPointer<QGraphicsItem>> indexItemMap;
+    OrgStore*                               store;
+    QAbstractItemModel*                     model;
+    QGraphicsScene*                         scene;
+    QHash<QModelIndex, SPtr<QGraphicsItem>> indexItemMap;
 
     void populateScene() {
         int rowCount = model->rowCount();
@@ -62,7 +70,7 @@ class OrgGraphView : public QGraphicsView {
         for (int row = first; row <= last; ++row) {
             QModelIndex index = model->index(row, 0, parent);
             if (indexItemMap.contains(index)) {
-                QGraphicsItem* item = indexItemMap.take(index).data();
+                QGraphicsItem* item = indexItemMap.take(index).get();
                 scene->removeItem(item);
             }
         }

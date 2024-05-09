@@ -38,9 +38,14 @@ void test_message_handler(
     // incorrect code would actually fail the test in a way that I can
     // debug.
     if (type == QtWarningMsg
-        && msg.contains("QSortFilterProxyModel: index from wrong model "
-                        "passed to mapFromSource")) {
-        qFatal("Sort filter proxy model invalid index");
+        && (
+            // clang-format off
+            msg.contains("QSortFilterProxyModel: index from wrong model")
+            || msg.contains("QWidget::repaint: Recursive repaint detected")
+            || msg.contains("Cannot destroy paint device that is being painted")
+            // clang-format on
+            )) {
+        qFatal("%s", msg.toStdString().data());
 
         // } else if (msg.contains("Caught unhandled exception")) {
         //     qFatal("Caught unhandled exception");

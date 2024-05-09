@@ -1,22 +1,70 @@
 #include <editor/editor_lib/org_graph_scene.hpp>
+#include <editor/editor_lib/org_document_render.hpp>
 
-struct EdgePolylineItem : public QGraphicsItem {
-    explicit EdgePolylineItem(
-        const QPainterPath& points,
-        QGraphicsItem*      parent = nullptr)
-        : QGraphicsItem(parent), points(points) {}
+struct OrgEdgeItem : public QGraphicsItem {
+    explicit OrgEdgeItem(
+        OrgStore*          store,
+        QModelIndex const& index,
+        QGraphicsItem*     parent)
+        : QGraphicsItem(parent), store(store), index(index) {}
 
-    QRectF boundingRect() const override { return points.boundingRect(); }
+    QPainterPath getPoints() const {
+        return qvariant_cast<QPainterPath>(
+            index.data(OrgGraphModelRoles::EdgeShapeRole));
+    }
+
+    QRectF boundingRect() const override {
+        return getPoints().boundingRect();
+    }
 
     void paint(
         QPainter*                       painter,
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
         painter->setPen(QPen(Qt::red, 2));
-        painter->drawPath(points);
+        painter->drawPath(getPoints());
     }
 
-    QPainterPath points;
+    QModelIndex index;
+    OrgStore*   store;
+};
+
+struct OrgNodeItem : public QGraphicsItem {
+    explicit OrgNodeItem(
+        OrgStore*          store,
+        QModelIndex const& index,
+        QGraphicsItem*     parent)
+        : QGraphicsItem(parent), store(store), index(index) {}
+
+    OrgBoxId getBox() const {
+        return qvariant_cast<OrgBoxId>(
+            index.data(SharedModelRoles::IndexBoxRole));
+    }
+
+    QRect getRect() const {
+        return qvariant_cast<QRect>(
+            index.data(OrgGraphModelRoles::NodeShapeRole));
+    }
+
+    QRectF boundingRect() const override { return getRect().toRectF(); }
+
+    void paint(
+        QPainter*                       painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget*                        widget) override {
+        painter->drawRect(getRect());
+        SPtr<QWidget> to_draw = make_label(
+            store->nodeWithoutNested(getBox()));
+        to_draw->setGeometry(getRect());
+        to_draw->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        QPixmap pixmap(to_draw->size());
+        to_draw->render(&pixmap);
+        painter->drawPixmap(getRect().topLeft(), pixmap);
+    }
+
+
+    QModelIndex index;
+    OrgStore*   store;
 };
 
 void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
@@ -25,30 +73,24 @@ void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
     QGraphicsItem* item = nullptr;
 
     if (indexItemMap.contains(index)) {
-        item = indexItemMap.value(index).data();
+        item = indexItemMap.value(index).get();
     }
 
     if (isNode) {
-        QRect nodeRect = qvariant_cast<QRect>(
-            model->data(index, OrgGraphModelRoles::NodeShapeRole));
-        qDebug() << "Add node rect" << nodeRect << "for index" << index;
         if (item) {
-            dynamic_cast<QGraphicsRectItem*>(item)->setRect(nodeRect);
+            item->update();
         } else {
-            item = scene->addRect(nodeRect);
-            indexItemMap.insert(
-                index, QSharedPointer<QGraphicsItem>(item));
+            OrgNodeItem* polyline = new OrgNodeItem(store, index, nullptr);
+            scene->addItem(polyline);
+            indexItemMap.insert(index, SPtr<QGraphicsItem>(polyline));
         }
     } else {
-        QPainterPath edgeShape = qvariant_cast<QPainterPath>(
-            model->data(index, OrgGraphModelRoles::EdgeShapeRole));
         if (item) {
-            dynamic_cast<EdgePolylineItem*>(item)->points = edgeShape;
+            item->update();
         } else {
-            EdgePolylineItem* polyline = new EdgePolylineItem(edgeShape);
+            OrgEdgeItem* polyline = new OrgEdgeItem(store, index, nullptr);
             scene->addItem(polyline);
-            indexItemMap.insert(
-                index, QSharedPointer<QGraphicsItem>(polyline));
+            indexItemMap.insert(index, SPtr<QGraphicsItem>(polyline));
         }
     }
 }

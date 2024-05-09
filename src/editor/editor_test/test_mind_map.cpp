@@ -475,7 +475,7 @@ struct SceneBench {
         proxy = std::make_shared<OrgGraphLayoutProxy>();
         proxy->setSourceModel(model.get());
         proxy->updateCurrentLayout();
-        view = new OrgGraphView(proxy.get(), window.get());
+        view = new OrgGraphView(proxy.get(), store.get(), window.get());
 
 
         window->setContentsMargins(0, 0, 0, 0);
@@ -527,7 +527,7 @@ Paragraph [[id:subtree-id]]
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
-    b.debugProxy();
+    // b.debugProxy();
     auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
         b.proxy->currentLayout.original);
 
