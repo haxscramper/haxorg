@@ -96,7 +96,7 @@ std::string to_colored_string(
             result += ansiEsc(0);
         }
     } else {
-        for (const auto rune : runes) { result += rune.rune; }
+        for (const auto& rune : runes) { result += rune.rune; }
     }
     return result;
 }

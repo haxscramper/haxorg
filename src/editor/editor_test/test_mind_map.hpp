@@ -18,4 +18,5 @@ class TestMindMap
     void testFullMindMapGraph();
     void testQtGraphModel1();
     void testQtGraphScene1();
+    void testQtGraphSceneFullMindMap();
 };

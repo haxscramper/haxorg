@@ -121,7 +121,8 @@ inline void debug_tree(
         << printModelTree(
                model,
                index.isValid() ? index : model->index(0, 0),
-               store_index_printer(store));
+               store_index_printer(store))
+               .toString(false);
 }
 
 inline Str getSubtree(int treeLevel, CR<Str> name) {

@@ -444,8 +444,8 @@ Paragraph [[id:subtree-id]]
 )");
 
     OrgGraphModel model{graph.get(), nullptr};
-    qDebug().noquote() << printModelTree(
-        &model, QModelIndex(), store_index_printer(store.get()));
+    printModelTree(&model, QModelIndex(), store_index_printer(store.get()))
+        .toString();
 
     OrgGraphLayoutProxy proxy{};
     proxy.setSourceModel(&model);
@@ -475,13 +475,21 @@ struct SceneBench {
     }
 
     void debugModel() {
-        qDebug().noquote() << printModelTree(
-            model.get(), QModelIndex(), store_index_printer(store.get()));
+        std::cout << printModelTree(
+                         model.get(),
+                         QModelIndex(),
+                         store_index_printer(store.get()))
+                         .toString()
+                  << std::endl;
     }
 
     void debugProxy() {
-        qDebug().noquote() << printModelTree(
-            proxy.get(), QModelIndex(), store_index_printer(store.get()));
+        std::cout << printModelTree(
+                         proxy.get(),
+                         QModelIndex(),
+                         store_index_printer(store.get()))
+                         .toString()
+                  << std::endl;
     }
 };
 
@@ -496,4 +504,10 @@ Paragraph [[id:subtree-id]]
 )"};
 
     save_screenshot(b.view.get(), "/tmp/graph_screenshot.png");
+}
+
+void TestMindMap::testQtGraphSceneFullMindMap() {
+    SceneBench b{getFullMindMapText()};
+    b.debugProxy();
+    save_screenshot(b.view.get(), "/tmp/full_mind_map_screenshot.png");
 }

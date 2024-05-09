@@ -47,11 +47,29 @@ QModelIndex mapToNestedProxy(
     return currentIndex;
 }
 
-std::string printModelTree(
-    const QAbstractItemModel*             model,
-    const QModelIndex&                    parent,
-    Func<std::string(QModelIndex const&)> toString) {
-    if (!model) { return ""; }
+inline ColText escape_literal(ColText const& in) {
+    ColText res;
+    res.reserve(in.size() + 2);
+    res.append(ColText{"«"});
+    for (ColRune const& c : in) {
+        if (c.rune == "\n") {
+            res.append({"␤"});
+
+        } else {
+            res.append(c);
+        }
+    }
+
+    res.append(ColText{"»"});
+
+    return res;
+}
+
+ColText printModelTree(
+    const QAbstractItemModel*         model,
+    const QModelIndex&                parent,
+    Func<ColText(QModelIndex const&)> toString) {
+    if (!model) { return ColText{""}; }
 
     struct ModelProxyRecord {
         QModelIndex index;
@@ -65,7 +83,7 @@ std::string printModelTree(
     struct ModelLevelRecord {
         int                   depth;
         Vec<ModelProxyRecord> proxies;
-        Str                   finalRepr;
+        ColText               finalRepr;
         Vec<IndexRoleRepr>    roles;
     };
 
@@ -95,8 +113,12 @@ std::string printModelTree(
             QVariant   value     = index.data(role);
             if (value.isValid()) {
                 IndexRoleRepr repr;
-                repr.roleName  = role_name.toStdString();
-                repr.roleValue = qdebug_to_str(value);
+                repr.roleName = role_name.toStdString();
+                if (value.typeName() == "QString"_ss) {
+                    repr.roleValue = value.toString().toStdString();
+                } else {
+                    repr.roleValue = qdebug_to_str(value);
+                }
                 record.roles.push_back(repr);
             }
         }
@@ -127,7 +149,7 @@ std::string printModelTree(
 
     aux(parent, 0);
 
-    std::ostringstream out;
+    ColStream os;
 
     UnorderedMap<QAbstractItemModel const*, Str> model_names;
     for (auto const& level : records) {
@@ -151,52 +173,60 @@ std::string printModelTree(
 
     for (auto const& level : enumerator(records)) {
         auto const& l = level.value();
-        out << std::string(l.depth * 2, ' ');
+        os << std::string(l.depth * 2, ' ');
         for (auto const& proxy : enumerator(l.proxies)) {
             if (proxy.is_first()) {
-                out << " ";
+                os << " ";
             } else {
-                out << "->";
+                os << "->";
             }
 
             auto const& p = proxy.value();
-            out << fmt(
-                "[{}:{}, @{}, {}]",
-                p.index.row(),
-                p.index.column(),
-                fmt("{:p}", p.index.internalPointer()),
-                model_names.at(p.index.model()));
+            os << "["
+               //
+               << os.cyan() << fmt1(p.index.row()) << os.end() << ":"
+               << os.cyan() << fmt1(p.index.column()) << os.end()
+               << ","
+               //
+               << os.green() << fmt("@{:p}", p.index.internalPointer())
+               << os.end()
+               //
+               << ", " << os.red() << model_names.at(p.index.model())
+               << os.end() << "]";
+            ;
         }
 
-        out << " " << l.finalRepr;
+        os << " " << ColText{escape_literal(l.finalRepr)};
 
         for (auto const& role : l.roles) {
-            out << "\n";
-            out << std::string(l.depth * 2 + 3, ' ');
-            out << role.roleName << " = " << role.roleValue;
+            os << "\n";
+            os << std::string(l.depth * 2 + 3, ' ');
+            os << os.green() << role.roleName << os.end() << " = "
+               << os.yellow() << escape_literal(role.roleValue)
+               << os.end();
         }
 
-        if (!level.is_last()) { out << "\n"; }
+        if (!level.is_last()) { os << "\n"; }
     }
 
-    return out.str();
+    return os.getBuffer();
 }
 
-Func<std::string(const QModelIndex&)> store_index_printer(
+Func<ColText(const QModelIndex&)> store_index_printer(
     OrgStore const* store,
     int             role) {
-    return [store, role](QModelIndex const& idx) -> std::string {
+    return [store, role](QModelIndex const& idx) -> ColText {
         OrgBoxId box = qvariant_cast<OrgBoxId>(idx.data(role));
         if (store->data.contains(box)) {
-            auto        node   = store->node(box);
-            std::string result = fmt("{}", node->getKind());
+            auto    node   = store->node(box);
+            ColText result = fmt("{}", node->getKind());
             if (node->is(OrgSemKind::Paragraph)) {
-                result += " '";
+                result.append(ColText{" '"});
                 auto str = ExporterUltraplain::toStr(node);
-                result += str.substr(
-                    0, std::clamp<int>(40, 0, str.size()));
-                if (40 < str.size()) { result += "..."; }
-                result += "'";
+                result.append(ColText{
+                    str.substr(0, std::clamp<int>(40, 0, str.size()))});
+                if (40 < str.size()) { result.append(ColText{"..."}); }
+                result.append(ColText{"'"});
             }
 
             return result;

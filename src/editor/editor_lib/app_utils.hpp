@@ -28,12 +28,12 @@ enum SharedModelRoles
     __LAST__,
 };
 
-std::string printModelTree(
-    const QAbstractItemModel*             model,
-    const QModelIndex&                    parent,
-    Func<std::string(QModelIndex const&)> toString);
+ColText printModelTree(
+    const QAbstractItemModel*         model,
+    const QModelIndex&                parent,
+    Func<ColText(QModelIndex const&)> toString);
 
-Func<std::string(QModelIndex const&)> store_index_printer(
+Func<ColText(QModelIndex const&)> store_index_printer(
     const OrgStore* store,
     int             role = SharedModelRoles::IndexBoxRole);
 
