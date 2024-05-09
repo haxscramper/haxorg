@@ -310,8 +310,8 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     Graphviz   gvc;
     FullLayout res;
     auto       lyt = ir.doGraphvizLayout(gvc);
-    lyt.writeXDot(gvc, "/tmp/result.xdot");
-    res.original   = lyt;
+    // lyt.writeXDot(gvc, "/tmp/result.xdot");
+    res.original = lyt;
 
     auto conv_lyt = lyt.convert();
 

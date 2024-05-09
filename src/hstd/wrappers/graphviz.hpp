@@ -426,6 +426,11 @@ class Graphviz {
         /// \brief Position of the node's external label
         _attr(XLabelPosition, xlabelpos, Point);
 
+        Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
+        Agnodeinfo_t const* info() const {
+            return (Agnodeinfo_t*)AGDATA(node);
+        }
+
       public:
         Agnode_t* node;
         Agraph_t* graph;
@@ -467,6 +472,11 @@ class Graphviz {
 
         void setLHead(Node node) { setLHead(node.name()); }
         void setLTail(Node node) { setLTail(node.name()); }
+
+        Agedgeinfo_t*       info() { return (Agedgeinfo_t*)AGDATA(edge_); }
+        Agedgeinfo_t const* info() const {
+            return (Agedgeinfo_t*)AGDATA(edge_);
+        }
 
       public:
         Agraph_t* graph;
@@ -517,6 +527,11 @@ class Graphviz {
         Node subNode(Node const& node) {
             agsubnode(graph, node.node, 1);
             return node;
+        }
+
+        Agraphinfo_t*       info() { return (Agraphinfo_t*)AGDATA(graph); }
+        Agraphinfo_t const* info() const {
+            return (Agraphinfo_t*)AGDATA(graph);
         }
 
         Node node(Str const& name) {

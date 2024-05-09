@@ -1,34 +1,105 @@
 #include <editor/editor_lib/org_graph_layout.hpp>
 #include <editor/editor_lib/app_utils.hpp>
 
+
+QRect getGraphBBox(CR<Graphviz::Graph> g) {
+    boxf rect = g.info()->bb;
+
+    // +----[UR]
+    // |       |
+    // [LL]----+
+
+    return QRect(
+        rect.LL.x,
+        -rect.UR.y,
+        rect.UR.x - rect.LL.x,
+        rect.LL.y - rect.UR.y);
+}
+
+std::string getEdgePropertiesAsString(
+    CR<Graphviz::Graph> graph,
+    CR<Graphviz::Edge>  edge) {
+    std::stringstream ss;
+    Agsym_t*          sym;
+    char*             value;
+
+    for (sym = agnxtattr(graph.graph, AGEDGE, NULL); sym;
+         sym = agnxtattr(graph.graph, AGEDGE, sym)) {
+        value = agxget(edge.edge_, sym);
+        if (value) { ss << sym->name << " = " << value << ", "; }
+    }
+    std::string result = ss.str();
+    if (!result.empty()) {
+        result.pop_back();
+        result.pop_back();
+    }
+    return result;
+}
+
+std::string getGraphPropertiesAsString(CR<Graphviz::Graph> graph) {
+    std::stringstream ss;
+    Agsym_t*          sym;
+    char*             value;
+
+    for (sym = agnxtattr(graph.graph, AGRAPH, NULL); sym;
+         sym = agnxtattr(graph.graph, AGRAPH, sym)) {
+        value = agget(graph.graph, sym->name);
+        if (value) { ss << sym->name << " = " << value << ", "; }
+    }
+    std::string result = ss.str();
+    if (!result.empty()) {
+        result.pop_back();
+        result.pop_back();
+    }
+    return result;
+}
+
+std::string getNodePropertiesAsString(
+    CR<Graphviz::Graph> graph,
+    CR<Graphviz::Node>  node) {
+    std::stringstream ss;
+    Agsym_t*          sym;
+    char*             value;
+
+    for (sym = agnxtattr(graph.graph, AGNODE, NULL); sym;
+         sym = agnxtattr(graph.graph, AGNODE, sym)) {
+        value = agxget(node.node, sym);
+        if (value) { ss << sym->name << " = " << value << ", "; }
+    }
+
+    std::string result = ss.str();
+    if (!result.empty()) {
+        result.pop_back();
+        result.pop_back();
+    }
+
+    return result;
+}
+
 QRect getNodeRectangle(
     CR<Graphviz::Graph> g,
     CR<Graphviz::Node>  node,
-    int                 scaling) {
-    auto   pos    = node.getAttr<Str>("pos").value().split(",");
-    double width  = node.getWidth().value() * scaling;
-    double height = node.getHeight().value() * scaling;
-    double x      = pos.at(0).toDouble();
-    double y      = -pos.at(1).toDouble();
+    int                 scaling,
+    CR<QRect>           bbox) {
+    double width  = node.info()->width * scaling;
+    double height = node.info()->height * scaling;
+    double x      = node.info()->coord.x;
+    double y      = bbox.height() - node.info()->coord.y;
     int    x1     = static_cast<int>(x - width / 2);
     int    y1     = static_cast<int>(y - height / 2);
     auto   result = QRect(x1, y1, width, height);
     return result;
 }
 
-QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge, int scaling) {
-    auto posString = QString::fromStdString(
-        edge.getAttr<Str>("pos").value());
+QPolygonF getEdgeSpline(
+    CR<Graphviz::Edge> edge,
+    int                scaling,
+    CR<QRect>          bbox) {
     QPolygonF   polygon;
-    QStringList points = posString.split(' ', Qt::SkipEmptyParts);
-    for (const QString& point : points) {
-        if (point.contains(',')) {
-            QStringList coords = point.split(',');
-            int         offset = coords.at(0) == "e" ? 1 : 0;
-            double      x      = coords[offset + 0].toDouble();
-            double      y      = coords[offset + 1].toDouble();
-            polygon << QPointF(x, -y);
-        }
+    Ppolyline_t points = edge.info()->path;
+    for (int i = 0; i < points.pn; ++i) {
+        Ppoint_t point = points.ps[i];
+        polygon << QPointF(point.x, bbox.height() - point.y);
     }
     return polygon;
 }
@@ -137,9 +208,11 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
     res.fixed.resize(graph.nodeCount());
 
+    res.bbox = computeBoundingBox(res);
+
     graph.eachNode([&](CR<Graphviz::Node> node) {
         res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
-            graph, node, graphviz_size_scaling);
+            graph, node, graphviz_size_scaling, res.bbox);
     });
 
     graph.eachEdge([&](CR<Graphviz::Edge> edge) {
@@ -147,19 +220,9 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             std::make_pair(
                 edge.getAttr<int>("source_index").value(),
                 edge.getAttr<int>("target_index").value()),
-            getEdgeSpline(edge, graphviz_size_scaling));
+            getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
     });
 
-    auto bbox = computeBoundingBox(res);
-    for (auto& it : res.fixed) { it.setY(it.y() + bbox .height()); }
-    for (auto const& key : res.lines.keys()) {
-        QPolygonF& polygon = res.lines[key];
-        for (int i = 0; i < polygon.size(); ++i) {
-            polygon[i].setY(polygon[i].y() + bbox.height());
-        }
-    }
-
-    res.bbox = computeBoundingBox(res);
 
     return res;
 }
