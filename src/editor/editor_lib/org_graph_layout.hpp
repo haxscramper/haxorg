@@ -55,7 +55,7 @@ struct GraphLayoutIR {
     double               height    = 100;
     Str                  graphName = "G";
 
-    int graphviz_size_scaling = 12;
+    int graphviz_size_scaling = 72;
 
     void validate() {
         for (auto const& e : enumerator(edges)) {

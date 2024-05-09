@@ -1,4 +1,5 @@
 #include <editor/editor_lib/org_graph_layout.hpp>
+#include <editor/editor_lib/app_utils.hpp>
 
 QRect getNodeRectangle(
     CR<Graphviz::Graph> g,
@@ -11,10 +12,11 @@ QRect getNodeRectangle(
     double y      = pos.at(1).toDouble();
     int    x1     = static_cast<int>(x - width / 2);
     int    y1     = static_cast<int>(y - height / 2);
-    return QRect(x1, y1, width, height);
+    auto   result = QRect(x1, -y1, width, height);
+    return result;
 }
 
-QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge) {
+QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge, int scaling) {
     auto posString = QString::fromStdString(
         edge.getAttr<Str>("pos").value());
     QPolygonF   polygon;
@@ -22,9 +24,10 @@ QPolygonF getEdgeSpline(CR<Graphviz::Edge> edge) {
     for (const QString& point : points) {
         if (point.contains(',')) {
             QStringList coords = point.split(',');
-            double      x      = coords[0].toDouble();
-            double      y      = coords[1].toDouble();
-            polygon << QPointF(x, y);
+            int         offset = coords.at(0) == "e" ? 1 : 0;
+            double      x      = coords[offset + 0].toDouble();
+            double      y      = coords[offset + 1].toDouble();
+            polygon << QPointF(x, -y);
         }
     }
     return polygon;
@@ -48,11 +51,14 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
               auto node = result.graph.node(fmt1(nodeCounter));
               // default DPI used by graphviz to convert from
               // inches.
-              node.setHeight(r.height() / graphviz_size_scaling);
-              node.setWidth(r.width() / graphviz_size_scaling);
+              node.setHeight(r.height() / float(graphviz_size_scaling));
+              node.setWidth(r.width() / float(graphviz_size_scaling));
               node.setAttr("index", nodeCounter);
               node.setAttr("fixedsize", true);
+              node.setAttr("original_height", r.height());
+              node.setAttr("original_width", r.width());
               node.setShape(Graphviz::Node::Shape::rectangle);
+              node.setLabel("");
               ++nodeCounter;
               return node;
           })
@@ -126,7 +132,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             std::make_pair(
                 edge.getAttr<int>("source_index").value(),
                 edge.getAttr<int>("target_index").value()),
-            getEdgeSpline(edge));
+            getEdgeSpline(edge, graphviz_size_scaling));
     });
 
     return res;

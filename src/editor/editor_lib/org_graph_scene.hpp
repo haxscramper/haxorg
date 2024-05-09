@@ -50,38 +50,7 @@ class OrgGraphView : public QGraphicsView {
         }
     }
 
-    void addOrUpdateItem(const QModelIndex& index) {
-        bool isNode = model->data(index, OrgGraphModelRoles::IsNodeRole)
-                          .toBool();
-        QGraphicsItem* item = nullptr;
-
-        if (indexItemMap.contains(index)) {
-            item = indexItemMap.value(index).data();
-        }
-
-        if (isNode) {
-            QRect nodeRect = qvariant_cast<QRect>(
-                model->data(index, OrgGraphModelRoles::NodeShapeRole));
-            if (!item) {
-                item = scene->addRect(nodeRect);
-                indexItemMap.insert(
-                    index, QSharedPointer<QGraphicsItem>(item));
-            } else {
-                dynamic_cast<QGraphicsRectItem*>(item)->setRect(nodeRect);
-            }
-        } else {
-            QPolygonF edgeShape = qvariant_cast<QPolygonF>(
-                model->data(index, OrgGraphModelRoles::EdgeShapeRole));
-            if (!item) {
-                item = scene->addPolygon(edgeShape);
-                indexItemMap.insert(
-                    index, QSharedPointer<QGraphicsItem>(item));
-            } else {
-                dynamic_cast<QGraphicsPolygonItem*>(item)->setPolygon(
-                    edgeShape);
-            }
-        }
-    }
+    void addOrUpdateItem(const QModelIndex& index);
 
     void onRowsInserted(const QModelIndex& parent, int first, int last) {
         for (int row = first; row <= last; ++row) {

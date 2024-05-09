@@ -475,5 +475,6 @@ Paragraph [[id:subtree-id]]
         &proxy, QModelIndex(), store_index_printer(store.get()));
 
     OrgGraphView view{&proxy, nullptr};
+    view.resize(2200, 1200);
     save_screenshot(&view, "/tmp/graph_screenshot.png");
 }
