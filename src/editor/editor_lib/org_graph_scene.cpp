@@ -148,6 +148,21 @@ struct OrgNodeItem : public QGraphicsItem {
                 painter->setPen(Qt::black);
                 painter->drawText(textRect, Qt::AlignCenter, text);
             }
+        } else if (node->is(osk::Subtree)) {
+            QFont   current = painter->font();
+            QString text    = QString("*").repeated(
+                node.as<sem::Subtree>()->level);
+            current.setPointSize(12);
+            current.setBold(true);
+            painter->setFont(current);
+
+            QFontMetrics fm{current};
+            auto         pos = rect.topLeft();
+            pos.setY(pos.y() + 7);
+            QRect textRect = fm.boundingRect(text).translated(pos);
+
+            painter->setPen(Qt::red);
+            painter->drawText(textRect, Qt::AlignCenter, text);
         }
 
         painter->restore();
