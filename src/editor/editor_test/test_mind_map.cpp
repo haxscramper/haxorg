@@ -550,5 +550,6 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap.svg");
     lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
 
-    save_screenshot(b.window.get(), "/tmp/full_mind_map_screenshot.png");
+    save_screenshot(
+        b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
 }

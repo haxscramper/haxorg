@@ -73,8 +73,13 @@ inline void save_screenshot(const QString& filePath) {
     pixmap.save(filePath);
 }
 
-inline void save_screenshot(QWidget* widget, const QString& filePath) {
-    QPixmap pixmap = widget->grab();
+inline void save_screenshot(
+    QWidget*       widget,
+    const QString& filePath,
+    qreal          scaleFactor = 1.0) {
+    QPixmap pixmap(widget->size() * scaleFactor);
+    pixmap.setDevicePixelRatio(scaleFactor);
+    widget->render(&pixmap);
     pixmap.save(filePath);
 }
 
