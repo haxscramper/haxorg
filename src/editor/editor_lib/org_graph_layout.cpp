@@ -84,9 +84,14 @@ QRect getNodeRectangle(
     double height = node.info()->height * scaling;
     double x      = node.info()->coord.x;
     double y      = bbox.height() - node.info()->coord.y;
-    int    x1     = static_cast<int>(x - width / 2);
-    int    y1     = static_cast<int>(y - height / 2);
-    auto   result = QRect(x1, y1, width, height);
+    int    x1     = std::round(x - width / 2);
+    int    y1     = std::round(y - height / 2);
+    auto   result = QRect(
+        std::round(x1),
+        std::round(y1),
+        std::round(width),
+        std::round(height));
+
     return result;
 }
 

@@ -111,7 +111,7 @@ void TestMindMap::testGraphvizIr1() {
 
 void TestMindMap::testGraphConstruction() {
     OrgStore store;
-    OrgGraph graph{&store};
+    OrgGraph graph{&store, nullptr};
     store.addRoot(R"(
 * Tree1
 ** Tree2
@@ -119,13 +119,12 @@ void TestMindMap::testGraphConstruction() {
 
     graph.addFullStore();
 
-    Vec<OrgGraph::VDesc> nodes = gen_view(graph.nodes()) | rs::to<Vec>();
-    QCOMPARE_EQ(nodes.size(), 3);
+    QCOMPARE_EQ(graph.nodes.size(), 3);
 }
 
 Pair<SPtr<OrgStore>, SPtr<OrgGraph>> build_graph(CR<Str> text) {
     auto store = std::make_shared<OrgStore>();
-    auto graph = std::make_shared<OrgGraph>(store.get());
+    auto graph = std::make_shared<OrgGraph>(store.get(), nullptr);
     store->addRoot(text);
     graph->addFullStore();
     return std::make_pair(store, graph);
@@ -383,19 +382,19 @@ void TestMindMap::testFullMindMapGraph() {
 
     {
         Vec<Str> node_text //
-            = gen_view(graph->nodes())
+            = graph->nodes
             | rv::transform([&](OrgGraph::VDesc desc) -> Str {
                   auto node = store->nodeWithoutNested(
-                      graph->node(desc).box);
+                      graph->getNodeProp(desc).box);
                   return str(node);
               })
             | rs::to<Vec>();
 
         Vec<Str> edge_text //
-            = gen_view(graph->edges())
+            = graph->edges
             | rv::transform([&](OrgGraph::EDesc desc) -> Opt<Str> {
-                  if (graph->edge(desc).description) {
-                      return str(*graph->edge(desc).description);
+                  if (graph->getEdgeProp(desc).description) {
+                      return str(*graph->getEdgeProp(desc).description);
                   } else {
                       return std::nullopt;
                   }
@@ -443,19 +442,18 @@ Paragraph [[id:subtree-id]]
   :end:
 )");
 
-    OrgGraphModel model{graph.get(), nullptr};
-    printModelTree(&model, QModelIndex(), store_index_printer(store.get()))
+    printModelTree(
+        graph.get(), QModelIndex(), store_index_printer(store.get()))
         .toString();
 
     OrgGraphLayoutProxy proxy{};
-    proxy.setSourceModel(&model);
+    proxy.setSourceModel(graph.get());
     proxy.updateCurrentLayout();
 }
 
 struct SceneBench {
     SPtr<OrgStore>            store;
     SPtr<OrgGraph>            graph;
-    SPtr<OrgGraphModel>       model;
     SPtr<OrgGraphLayoutProxy> proxy;
     OrgGraphView*             view;
     SPtr<QMainWindow>         window;
@@ -470,10 +468,8 @@ struct SceneBench {
         this->store         = store;
         this->graph         = graph;
 
-        model = std::make_shared<OrgGraphModel>(graph.get(), nullptr);
-
         proxy = std::make_shared<OrgGraphLayoutProxy>();
-        proxy->setSourceModel(model.get());
+        proxy->setSourceModel(graph.get());
         proxy->updateCurrentLayout();
         view = new OrgGraphView(proxy.get(), store.get(), window.get());
 
@@ -496,7 +492,7 @@ struct SceneBench {
 
     void debugModel(Opt<Str> path = std::nullopt) {
         Str text = printModelTree(
-                       model.get(),
+                       graph.get(),
                        QModelIndex(),
                        store_index_printer(store.get()))
                        .toString(!path.has_value());

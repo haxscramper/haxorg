@@ -30,12 +30,27 @@ struct OrgGraphEdge {
     Opt<sem::SemId<sem::Org>> description;
 };
 
-struct OrgGraph : public QObject {
+/// Model roles shared between org graph model and proxy layouts that are
+/// strapped on top of the flat list model.
+enum OrgGraphModelRoles
+{
+    OrgGraphModelRoles__FIRST__ = SharedModelRoles::__LAST__ + 1,
+    NodeShapeRole, ///< Node shape in absolute coordinates after layout
+    EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
+    IsNodeRole,    ///< Check if the index points to and edge or to a node.
+    NodeDescAtRole,
+    NodeSizeRole,
+    SourceAndTargetRole,
+    DebugDisplayRole,
+};
+
+
+struct OrgGraph : public QAbstractListModel {
   private:
     Q_OBJECT
   public:
     using Graph = boost::adjacency_list<
-        boost::setS,
+        boost::vecS,
         boost::vecS,
         boost::bidirectionalS,
         OrgGraphNode,
@@ -45,16 +60,22 @@ struct OrgGraph : public QObject {
     using VDesc       = GraphTraits::vertex_descriptor;
     using EDesc       = GraphTraits::edge_descriptor;
 
-    OrgGraph(OrgStore* store) : store(store) {}
+    OrgGraph(OrgStore* store, QObject* parent)
+        : QAbstractListModel(parent), store(store) {}
 
     Graph                         g;
     UnorderedMap<OrgBoxId, VDesc> boxToVertex;
     OrgStore*                     store;
+    /// List of edges and nodes for a graph to maintain stable flat list of
+    /// nodes.
+    Vec<EDesc> edges;
+    Vec<VDesc> nodes;
 
     UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
     UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
 
     void updateUnresolved(VDesc newNode);
+
 
     struct UnresolvedLink {
         sem::SemId<sem::Link>     link;
@@ -63,62 +84,145 @@ struct OrgGraph : public QObject {
 
     UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
 
+    int rowCount(
+        const QModelIndex& parent = QModelIndex()) const override {
+        if (parent.isValid()) {
+            return 0;
+        } else {
+            return numNodes() + numEdges();
+        }
+    }
+
+    bool isNode(CR<QModelIndex> index) const {
+        return index.row() < numNodes();
+    }
+
+    Pair<OrgGraph::VDesc, OrgGraph::VDesc> sourceTargetAt(
+        QModelIndex index) const {
+        auto eDesc = getEdgeDesc(index.row());
+        return std::make_pair<OrgGraph::VDesc, OrgGraph::VDesc>(
+            getEdgeSource(eDesc), getEdgeTarget(eDesc));
+    }
+
+
     std::string toGraphviz();
+
+    QString getDisplayText(CR<QModelIndex> index) const;
+
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+
+    QSize nodeSize(QModelIndex const& index) const;
+
+    QHash<int, QByteArray> roleNames() const override {
+        QHash<int, QByteArray> roles;
+        roles[Qt::DisplayRole]                    = "DisplayRole";
+        roles[SharedModelRoles::IndexBoxRole]     = "IndexBoxRole";
+        roles[OrgGraphModelRoles::IsNodeRole]     = "IsNodeRole";
+        roles[OrgGraphModelRoles::NodeDescAtRole] = "NodeDescAtRole";
+        roles[OrgGraphModelRoles::SourceAndTargetRole]
+            = "SourceAndTargetRole";
+        roles[OrgGraphModelRoles::DebugDisplayRole] = "DebugDisplayRole";
+        return roles;
+    }
+
 
     void addFullStore() {
         Q_ASSERT(store != nullptr);
         for (auto const& box : store->boxes()) { addBox(box); }
     }
 
-    VDesc desc(CR<OrgBoxId> id) const { return boxToVertex.at(id); }
 
-    int  numNodes() { return boost::num_vertices(g); }
-    int  numEdges() { return boost::num_edges(g); }
     bool hasEdge(CR<OrgBoxId> source, CR<OrgBoxId> target) {
         return 0 < out_edges(source, target).size();
     }
 
-    generator<VDesc> nodes() const {
-        for (auto [begin, end] = boost::vertices(g); begin != end;
-             ++begin) {
-            co_yield *begin;
+    int numNodes() const { return boost::num_vertices(g); }
+
+    int numEdges() const { return boost::num_edges(g); }
+
+    EDesc getEdgeDesc(int row) const { return edges.at(row - numNodes()); }
+
+    EDesc getEdgeDesc(QModelIndex index) const {
+        return getEdgeDesc(index.row());
+    }
+
+    VDesc getBoxNode(CR<OrgBoxId> id) const { return boxToVertex.at(id); }
+
+    VDesc getEdgeSource(EDesc d) const { return boost::source(d, g); }
+
+    VDesc getEdgeTarget(EDesc d) const { return boost::target(d, g); }
+
+    VDesc getNodeDesc(int idx) const { return nodes.at(idx); }
+
+    VDesc getNodeDesc(QModelIndex index) const {
+        return getNodeDesc(index.row());
+    }
+
+    OrgBoxId getBox(int row) const {
+        return getNodeProp(getNodeDesc(row)).box;
+    }
+
+    OrgGraphEdge& getEdgeProp(EDesc desc) { return g[desc]; }
+
+    OrgGraphNode& getNodeProp(VDesc desc) { return g[desc]; }
+
+    OrgGraphEdge const& getEdgeProp(EDesc desc) const { return g[desc]; }
+
+    OrgGraphNode const& getNodeProp(VDesc desc) const { return g[desc]; }
+
+    EDesc addEdge(VDesc source, VDesc target) {
+        beginInsertRows(QModelIndex(), rowCount(), rowCount());
+        EDesc e;
+        bool  inserted;
+        boost::tie(e, inserted) = boost::add_edge(source, target, g);
+        if (inserted) { edges.push_back(e); }
+        endInsertRows();
+        return e;
+    }
+
+    VDesc addVertex() {
+        beginInsertRows(QModelIndex(), nodes.size(), nodes.size());
+        VDesc v = boost::add_vertex(g);
+        nodes.push_back(v);
+        endInsertRows();
+        return v;
+    }
+
+
+    void removeVertex(VDesc vertex) {
+        auto it = std::find(nodes.begin(), nodes.end(), vertex);
+        if (it != nodes.end()) {
+            int index = std::distance(nodes.begin(), it);
+            beginRemoveRows(QModelIndex(), index, index);
+            boost::clear_vertex(*it, g);
+            boost::remove_vertex(*it, g);
+            nodes.erase(it);
+
+            rebuildEdges();
+            endRemoveRows();
         }
     }
 
-    generator<EDesc> edges() const {
-        for (auto [begin, end] = boost::edges(g); begin != end; ++begin) {
-            co_yield *begin;
+    void rebuildEdges() {
+        edges.clear();
+        Graph::edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end;
+             ++ei) {
+            edges.push_back(*ei);
         }
     }
 
-    OrgGraphEdge& edge(EDesc desc) { return g[desc]; }
-    OrgGraphNode& node(VDesc desc) { return g[desc]; }
-
-
-    EDesc edgeAt(int idx) {
-        auto [it, end] = boost::edges(g);
-        std::advance(it, idx);
-        return *it;
-    }
-
-    VDesc source(EDesc d) const { return boost::source(d, g); }
-    VDesc target(EDesc d) const { return boost::target(d, g); }
-
-    VDesc nodeAt(int idx) {
-        auto [it, end] = boost::vertices(g);
-        std::advance(it, idx);
-        return *it;
-    }
 
     OrgGraphEdge& out_edge0(CR<OrgBoxId> source, CR<OrgBoxId> target) {
-        return edge(out_edges(source, target).at(0));
+        return getEdgeProp(out_edges(source, target).at(0));
     }
 
     Vec<EDesc> out_edges(
         CR<OrgBoxId>      source,
         CR<Opt<OrgBoxId>> target = std::nullopt) {
-        VDesc      v1 = desc(source);
-        Opt<VDesc> v2 = target ? std::make_optional(desc(*target))
+        VDesc      v1 = getBoxNode(source);
+        Opt<VDesc> v2 = target ? std::make_optional(getBoxNode(*target))
                                : std::nullopt;
         Vec<EDesc> result;
 
@@ -138,8 +242,8 @@ struct OrgGraph : public QObject {
     Vec<EDesc> in_edges(
         CR<OrgBoxId>      source,
         CR<Opt<OrgBoxId>> target = std::nullopt) {
-        VDesc      v1 = desc(source);
-        Opt<VDesc> v2 = target ? std::make_optional(desc(*target))
+        VDesc      v1 = getBoxNode(source);
+        Opt<VDesc> v2 = target ? std::make_optional(getBoxNode(*target))
                                : std::nullopt;
         Vec<EDesc> result;
 
@@ -157,82 +261,6 @@ struct OrgGraph : public QObject {
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {}
     void addBox(CR<OrgBoxId> box);
-};
-
-/// Model roles shared between org graph model and proxy layouts that are
-/// strapped on top of the flat list model.
-enum OrgGraphModelRoles
-{
-    OrgGraphModelRoles__FIRST__ = SharedModelRoles::__LAST__ + 1,
-    NodeShapeRole, ///< Node shape in absolute coordinates after layout
-    EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
-    IsNodeRole,    ///< Check if the index points to and edge or to a node.
-    NodeDescAtRole,
-    NodeSizeRole,
-    SourceAndTargetRole,
-};
-
-struct OrgGraphModel : public QAbstractListModel {
-  private:
-    Q_OBJECT
-  public:
-    OrgGraph* g;
-    explicit OrgGraphModel(OrgGraph* g, QObject* parent)
-        : QAbstractListModel(parent), g(g) {}
-
-    int rowCount(
-        const QModelIndex& parent = QModelIndex()) const override {
-        if (parent.isValid()) {
-            return 0;
-        } else {
-            return g->numNodes() + g->numEdges();
-        }
-    }
-
-    QString getDisplayText(CR<QModelIndex> index) const;
-
-    bool isNode(CR<QModelIndex> index) const {
-        return index.row() < g->numNodes();
-    }
-
-    OrgBoxId boxAt(int row) const { return g->node(nodeAt(row)).box; }
-
-    OrgGraph::VDesc nodeAt(int row) const { return g->nodeAt(row); }
-
-    OrgGraph::VDesc nodeAt(QModelIndex index) const {
-        return nodeAt(index.row());
-    }
-
-    OrgGraph::EDesc edgeAt(int row) const {
-        return g->edgeAt(row - g->numNodes());
-    }
-
-    OrgGraph::EDesc edgeAt(QModelIndex index) const {
-        return edgeAt(index.row());
-    }
-
-    Pair<OrgGraph::VDesc, OrgGraph::VDesc> sourceTargetAt(
-        QModelIndex index) const {
-        auto eDesc = edgeAt(index);
-        return std::make_pair<OrgGraph::VDesc, OrgGraph::VDesc>(
-            g->source(eDesc), g->target(eDesc));
-    }
-
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
-
-    QSize nodeSize(QModelIndex const& index) const;
-
-    QHash<int, QByteArray> roleNames() const override {
-        QHash<int, QByteArray> roles;
-        roles[Qt::DisplayRole]                    = "DisplayRole";
-        roles[SharedModelRoles::IndexBoxRole]     = "IndexBoxRole";
-        roles[OrgGraphModelRoles::IsNodeRole]     = "IsNodeRole";
-        roles[OrgGraphModelRoles::NodeDescAtRole] = "NodeDescAtRole";
-        roles[OrgGraphModelRoles::SourceAndTargetRole]
-            = "SourceAndTargetRole";
-        return roles;
-    }
 };
 
 struct OrgGraphLayoutProxy : public QSortFilterProxyModel {

@@ -89,7 +89,7 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         sem::eachSubnodeRec(n, register_used_links);
     }
 
-    VDesc v  = boost::add_vertex(g);
+    VDesc v  = addVertex();
     g[v].box = box;
 
     switch (n->getKind()) {
@@ -140,7 +140,8 @@ void OrgGraph::updateUnresolved(VDesc) {
     for (auto const& id : unresolved.keys()) {
         auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
             for (auto const& box : target) {
-                boost::add_edge(desc(id), desc(box), spec, g);
+                auto e = addEdge(getBoxNode(id), getBoxNode(box));
+                g[e]   = spec;
             }
         };
 
@@ -235,10 +236,10 @@ std::string OrgGraph::toGraphviz() {
     return os.str();
 }
 
-QString OrgGraphModel::getDisplayText(CR<QModelIndex> index) const {
+QString OrgGraph::getDisplayText(CR<QModelIndex> index) const {
     sem::SemId<sem::Org> display;
     if (isNode(index)) {
-        display = g->store->node(boxAt(index.row()));
+        display = store->node(getBox(index.row()));
         switch (display->getKind()) {
             case osk::Document: {
                 if (auto title = display.as<sem::Document>()->title) {
@@ -255,7 +256,7 @@ QString OrgGraphModel::getDisplayText(CR<QModelIndex> index) const {
             default:
         }
     } else {
-        auto edge = g->edge(edgeAt(index));
+        auto edge = this->getEdgeProp(getEdgeDesc(index));
         if (edge.description) { display = edge.description.value(); }
     }
 
@@ -271,14 +272,14 @@ QString OrgGraphModel::getDisplayText(CR<QModelIndex> index) const {
     }
 }
 
-QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
+QVariant OrgGraph::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || rowCount() <= index.row()) {
         return QVariant();
     }
 
     switch (role) {
         case SharedModelRoles::IndexBoxRole: {
-            return isNode(index) ? QVariant::fromValue(boxAt(index.row()))
+            return isNode(index) ? QVariant::fromValue(getBox(index.row()))
                                  : QVariant();
         }
 
@@ -286,8 +287,12 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
             return isNode(index) ? nodeSize(index) : QVariant();
         }
 
+        case OrgGraphModelRoles::DebugDisplayRole: {
+            return QVariant();
+        }
+
         case OrgGraphModelRoles::NodeDescAtRole: {
-            return isNode(index) ? QVariant::fromValue(nodeAt(index))
+            return isNode(index) ? QVariant::fromValue(getNodeDesc(index))
                                  : QVariant();
         }
 
@@ -311,10 +316,9 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
     }
 }
 
-QSize OrgGraphModel::nodeSize(const QModelIndex& index) const {
+QSize OrgGraph::nodeSize(const QModelIndex& index) const {
     Q_ASSERT(isNode(index));
-    auto label = make_label(
-        g->store->nodeWithoutNested(boxAt(index.row())));
+    auto label = make_label(store->nodeWithoutNested(getBox(index.row())));
 
     return get_width_fit(label.get(), 200);
 }
