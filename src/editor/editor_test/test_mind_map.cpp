@@ -485,6 +485,7 @@ struct SceneBench {
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
         proxy->updateCurrentLayout();
+        view->rebuildScene();
 
         QSize box = proxy->currentLayout.bbox.size();
         box       = box.grownBy(QMargins(50, 50, 50, 50));

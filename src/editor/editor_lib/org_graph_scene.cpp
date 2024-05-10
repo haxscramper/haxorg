@@ -335,8 +335,7 @@ void OrgGraphView::onRowsRemoved(
 }
 
 void OrgGraphView::setModel(QAbstractItemModel* model) {
-    this->model = model;
-    rebuildScene();
+    this->model                                                    = model;
     dynamic_cast<OrgBackgroundGridItem*>(background.get())->source = model;
 }
 

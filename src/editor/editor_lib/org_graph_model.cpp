@@ -354,13 +354,13 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
         if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
-            res.data[index] = ElementLayout{
+            res.data[row] = ElementLayout{
                 .data = conv_lyt.fixed.at(nodeToRect.at(qindex_get<V>(
                     index, OrgGraphModelRoles::NodeDescAtRole)))};
         } else {
             auto [source, target] = qindex_get<Pair<V, V>>(
                 index, OrgGraphModelRoles::SourceAndTargetRole);
-            res.data[index] = ElementLayout{conv_lyt.lines.at({
+            res.data[row] = ElementLayout{conv_lyt.lines.at({
                 nodeToRect.at(source),
                 nodeToRect.at(target),
             })};
