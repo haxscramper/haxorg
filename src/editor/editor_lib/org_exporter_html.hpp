@@ -128,6 +128,10 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         res = lineSubnodes(verb);
     }
 
+    void visitFootnote(Res& res, In<sem::Footnote> note) {
+        res = lineWrap("sup", {string("["_ss + note->tag + "]"_ss)});
+    }
+
     void visitBold(Res& res, In<sem::Bold> bold) {
         res = lineWrap("b", {lineSubnodes(bold)});
     }
@@ -148,13 +152,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         res = b.line({eval(range->from), string("--"), eval(range->to)});
     }
 
-    void visitLink(Res& res, In<sem::Link> link) {
-        if (link->description) {
-            res = eval(link->description.value());
-        } else {
-            res = string("");
-        }
-    }
+    void visitLink(Res& res, In<sem::Link> link);
 
     void visitTime(Res& res, In<sem::Time> time) {
         if (time->isStatic()) {

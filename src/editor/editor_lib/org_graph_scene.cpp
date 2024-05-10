@@ -112,6 +112,7 @@ struct OrgNodeItem : public QGraphicsItem {
         QPainter*                       painter,
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
+
         auto rect = getRect();
         painter->save();
         {
@@ -119,6 +120,36 @@ struct OrgNodeItem : public QGraphicsItem {
             painter->setBrush(QBrush{QColor{215, 214, 213}});
             painter->drawRoundedRect(rect, 5, 5);
         }
+        painter->restore();
+
+        painter->save();
+        sem::SemId<sem::Org> node = store->node(getBox());
+        if (node->is(osk::AnnotatedParagraph)) {
+            auto ap = node.as<sem::AnnotatedParagraph>();
+            if (ap->getAnnotationKind()
+                == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
+                auto const& footnote = ap->getFootnote();
+                QFont       current  = painter->font();
+                QString     text     = QString("[%1]").arg(
+                    QString::fromStdString(footnote.name));
+                current.setPointSize(6);
+                painter->setFont(current);
+
+                QFontMetrics fm{current};
+                QRect        textRect = fm.boundingRect(text)
+                                     .translated(rect.topLeft())
+                                     .marginsAdded(QMargins(2, 2, 2, 2));
+
+
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(QColor(255, 0, 0));
+                painter->drawRect(textRect);
+
+                painter->setPen(Qt::black);
+                painter->drawText(textRect, Qt::AlignCenter, text);
+            }
+        }
+
         painter->restore();
 
         painter->save();
