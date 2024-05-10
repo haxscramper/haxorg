@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <exporters/ExporterUltraplain.hpp>
 #include <editor/editor_lib/org_document_render.hpp>
+#include <editor/editor_lib/org_exporter_html.hpp>
 
 #pragma clang diagnostic error "-Wswitch"
 
@@ -69,10 +70,7 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
     if (NestedNodes.contains(n->getKind())) {
         if (isLinkedDescriptionItem(n)) {
             auto desc = n.as<sem::ListItem>();
-            qDebug() << "Found description item";
-
             for (auto const& head : desc->header.value()->subnodes) {
-                qDebug() << "Header subnode" << debug(head);
                 if (head->is(osk::Link)) {
                     auto link = head.as<sem::Link>();
                     if (link->getLinkKind() != slk::Raw) {
@@ -237,6 +235,42 @@ std::string OrgGraph::toGraphviz() {
     return os.str();
 }
 
+QString OrgGraphModel::getDisplayText(CR<QModelIndex> index) const {
+    sem::SemId<sem::Org> display;
+    if (isNode(index)) {
+        display = g->store->node(boxAt(index.row()));
+        switch (display->getKind()) {
+            case osk::Document: {
+                if (auto title = display.as<sem::Document>()->title) {
+                    display = title->asOrg();
+                } else {
+                    display = display.Nil();
+                }
+                break;
+            }
+            case osk::Subtree: {
+                display = display.as<sem::Subtree>()->title;
+                break;
+            }
+            default:
+        }
+    } else {
+        auto edge = g->edge(edgeAt(index));
+        if (edge.description) { display = edge.description.value(); }
+    }
+
+    if (display.isNil()) {
+        return QString("");
+    } else {
+        ExporterHtml exp;
+        exp.newlineToSpace = true;
+        auto html_tree     = exp.evalTop(display);
+
+        QTextDocument result;
+        return QString::fromStdString(exp.store.toString(html_tree));
+    }
+}
+
 QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || rowCount() <= index.row()) {
         return QVariant();
@@ -264,19 +298,7 @@ QVariant OrgGraphModel::data(const QModelIndex& index, int role) const {
         }
 
         case Qt::DisplayRole: {
-            if (isNode(index)) {
-                auto sem = g->store->nodeWithoutNested(boxAt(index.row()));
-                return QString::fromStdString(
-                    fmt("NODE[{}] \"{}\"",
-                        boxAt(index.row()),
-                        ExporterUltraplain::toStr(sem)));
-
-            } else {
-                return QString::fromStdString(
-                    fmt("EDGE[{}-{}]",
-                        g->node(g->source(edgeAt(index))).box,
-                        g->node(g->target(edgeAt(index))).box));
-            }
+            return getDisplayText(index);
         }
 
         case OrgGraphModelRoles::IsNodeRole: {
@@ -295,41 +317,6 @@ QSize OrgGraphModel::nodeSize(const QModelIndex& index) const {
         g->store->nodeWithoutNested(boxAt(index.row())));
 
     return get_width_fit(label.get(), 200);
-}
-
-template <typename T>
-T qvariant_get(QVariant const& var) {
-    Q_ASSERT(var.isValid());
-    Q_ASSERT_X(
-        var.typeId() == qMetaTypeId<T>(),
-        "qvariant_get",
-        fmt("Expected and given variant types differ. {} ({}) != {} "
-            "({}):",
-            var.typeId(),
-            var.typeName() ? var.typeName() : "<unnamed>",
-            qMetaTypeId<T>(),
-            QMetaType::fromType<T>().name()
-                ? QMetaType::fromType<T>().name()
-                : "<unnamed>"));
-
-    return qvariant_cast<T>(var);
-}
-
-template <typename T>
-T qindex_get(QModelIndex const& index, int role) {
-    QVariant result = index.data(role);
-    Q_ASSERT_X(
-        result.isValid(),
-        "qindex_get",
-        fmt("Getting index {} for role {} in model {} failed: qvariant is "
-            "invalid",
-            qdebug_to_str(index),
-            index.model()->roleNames().contains(role)
-                ? index.model()->roleNames().value(role).toStdString()
-                : fmt("<unnamed {}>", role),
-            qdebug_to_str(index.model())));
-
-    return qvariant_get<T>(result);
 }
 
 OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()

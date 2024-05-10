@@ -136,3 +136,38 @@ inline void qt_assert_x(
     int                line) noexcept {
     qt_assert_x(strdup(where.c_str()), strdup(what.c_str()), file, line);
 }
+
+template <typename T>
+T qvariant_get(QVariant const& var) {
+    Q_ASSERT(var.isValid());
+    Q_ASSERT_X(
+        var.typeId() == qMetaTypeId<T>(),
+        "qvariant_get",
+        fmt("Expected and given variant types differ. {} ({}) != {} "
+            "({}):",
+            var.typeId(),
+            var.typeName() ? var.typeName() : "<unnamed>",
+            qMetaTypeId<T>(),
+            QMetaType::fromType<T>().name()
+                ? QMetaType::fromType<T>().name()
+                : "<unnamed>"));
+
+    return qvariant_cast<T>(var);
+}
+
+template <typename T>
+T qindex_get(QModelIndex const& index, int role) {
+    QVariant result = index.data(role);
+    Q_ASSERT_X(
+        result.isValid(),
+        "qindex_get",
+        fmt("Getting index {} for role {} in model {} failed: qvariant is "
+            "invalid",
+            qdebug_to_str(index),
+            index.model()->roleNames().contains(role)
+                ? index.model()->roleNames().value(role).toStdString()
+                : fmt("<unnamed {}>", role),
+            qdebug_to_str(index.model())));
+
+    return qvariant_get<T>(result);
+}

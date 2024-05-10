@@ -52,14 +52,18 @@ struct OrgNodeItem : public QGraphicsItem {
         QPainter*                       painter,
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
-        painter->drawRect(getRect());
-        SPtr<QWidget> to_draw = make_label(
-            store->nodeWithoutNested(getBox()));
-        to_draw->setGeometry(getRect());
-        to_draw->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-        QPixmap pixmap(to_draw->size());
-        to_draw->render(&pixmap);
-        painter->drawPixmap(getRect().topLeft(), pixmap);
+        auto rect = getRect();
+        painter->drawRect(rect);
+
+        QTextDocument doc;
+        QString       text = qindex_get<QString>(index, Qt::DisplayRole);
+        doc.setHtml(text);
+        doc.setTextWidth(rect.width());
+        doc.setDocumentMargin(0);
+        painter->save();
+        painter->translate(rect.topLeft());
+        doc.drawContents(painter);
+        painter->restore();
     }
 
 

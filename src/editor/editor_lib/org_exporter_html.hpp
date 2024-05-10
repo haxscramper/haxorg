@@ -12,6 +12,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     EXPORTER_USING()
 #undef __ExporterBase
 
+    bool newlineToSpace = false;
 
     using Res    = layout::BlockId;
     using LytStr = layout::LytStr;
@@ -165,12 +166,27 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
 
     void visitDocument(Res& res, In<sem::Document> doc);
 
+    void visitNewline(Res& res, In<sem::Newline> doc) {
+        if (newlineToSpace) {
+            res = string(Str(" "));
+        } else {
+            res = string(doc->text);
+        }
+    }
+
+
 #define __leaf(__Kind)                                                    \
     void visit##__Kind(Res& res, In<sem::__Kind> word) {                  \
         res = string(word->text);                                         \
     }
 
-    EACH_SEM_ORG_LEAF_KIND(__leaf)
+
+    __leaf(Space);
+    __leaf(Word);
+    __leaf(RawText);
+    __leaf(Punctuation);
+    __leaf(Placeholder);
+    __leaf(BigIdent);
 
 #undef __leaf
 };

@@ -8,6 +8,7 @@
 #include <editor/editor_lib/app_utils.hpp>
 #include <editor/editor_lib/org_graph_layout.hpp>
 #include <QPainterPath>
+#include <QTextDocument>
 
 struct OrgGraphNode {
     DECL_DESCRIBED_ENUM(
@@ -187,6 +188,8 @@ struct OrgGraphModel : public QAbstractListModel {
             return g->numNodes() + g->numEdges();
         }
     }
+
+    QString getDisplayText(CR<QModelIndex> index) const;
 
     bool isNode(CR<QModelIndex> index) const {
         return index.row() < g->numNodes();
