@@ -19,8 +19,9 @@ class OrgGraphView : public QGraphicsView {
     OrgGraphView(
         QAbstractItemModel* model,
         OrgStore*           store,
-        QWidget*            parent,
-        QRect               graphBBox);
+        QWidget*            parent);
+
+    QSize getNodeSize(const QModelIndex& index);
 
   private:
     OrgStore*                               store;
@@ -28,7 +29,6 @@ class OrgGraphView : public QGraphicsView {
     QGraphicsScene*                         scene;
     QHash<QModelIndex, SPtr<QGraphicsItem>> indexItemMap;
     SPtr<QGraphicsItem>                     background;
-    QRect                                   graphBBox;
 
     void populateScene() {
         int rowCount = model->rowCount();

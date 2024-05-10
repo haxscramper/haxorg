@@ -313,31 +313,12 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
     }
 }
 
-QSize OrgGraphLayoutProxy::getNodeSize(const QModelIndex& index) const {
-    if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
-        QString text = qindex_get<QString>(index, Qt::DisplayRole);
-        if (text.isEmpty()) {
-            return QSize(20, 20);
-        } else {
-            QTextDocument doc;
-            QTextOption   opt{};
-            opt.setWrapMode(QTextOption::WrapAnywhere);
-            doc.setDefaultTextOption(opt);
-            doc.setHtml(text);
-            doc.setTextWidth(200);
-            return doc.size().toSize();
-        }
-    } else {
-        return QSize(-1, -1);
-    }
-}
 
 OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     const {
     GraphLayoutIR ir;
     auto          src = sourceModel();
-
-    using V = OrgGraph::VDesc;
+    using V           = OrgGraph::VDesc;
 
     UnorderedMap<V, int> nodeToRect;
 
@@ -391,10 +372,9 @@ QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
         mapToSource(index), OrgGraphModelRoles::IsNodeRole);
     bool isNode = isNodeVar.toBool();
     switch (role) {
-        case OrgGraphModelRoles::NodeSizeRole: {
-            return getNodeSize(index);
+        case LayoutBBoxRole: {
+            return QVariant::fromValue(currentLayout.bbox);
         }
-
         case OrgGraphModelRoles::NodeShapeRole: {
             if (isNode) {
                 return QVariant::fromValue(getElement(index).getNode());

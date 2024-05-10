@@ -1,20 +1,37 @@
 #include <editor/editor_lib/org_graph_scene.hpp>
 #include <editor/editor_lib/org_document_render.hpp>
 
+namespace {
+SPtr<QTextDocument> toDocument(QString const& text) {
+    auto        doc = std::make_shared<QTextDocument>();
+    QTextOption opt{};
+    opt.setWrapMode(QTextOption::WrapAnywhere);
+    doc->setDefaultTextOption(opt);
+    doc->setHtml(text);
+    doc->setTextWidth(200);
+    return std::move(doc);
+}
+} // namespace
 
 struct OrgBackgroundGridItem : public QGraphicsItem {
   public:
-    explicit OrgBackgroundGridItem(int n, const QRectF& bbox)
-        : n(n), bbox(bbox.marginsAdded(QMargins(20, 20, 20, 20))) {}
+    explicit OrgBackgroundGridItem(int n, QAbstractItemModel* source)
+        : n(n), source(source) {}
 
-    QRectF boundingRect() const override { return bbox; }
+    QRectF boundingRect() const override {
+        return qindex_get<QRect>(
+                   source->index(0, 0),
+                   OrgGraphLayoutProxy::LayoutBBoxRole)
+            .marginsAdded(QMargins(20, 20, 20, 20));
+        ;
+    }
 
     void paint(
         QPainter*                       painter,
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
-        Q_UNUSED(option)
-        Q_UNUSED(widget)
+
+        auto bbox = boundingRect();
 
         painter->setBrush(QColor{245, 245, 220, 150});
         painter->setPen(QPen{Qt::black, 2});
@@ -40,8 +57,8 @@ struct OrgBackgroundGridItem : public QGraphicsItem {
         }
     }
 
-    int    n;
-    QRectF bbox;
+    int                 n;
+    QAbstractItemModel* source;
 };
 
 struct OrgEdgeItem : public QGraphicsItem {
@@ -106,15 +123,9 @@ struct OrgNodeItem : public QGraphicsItem {
 
         painter->save();
         {
-            QTextDocument doc;
-            QString     text = qindex_get<QString>(index, Qt::DisplayRole);
-            QTextOption opt{};
-            opt.setWrapMode(QTextOption::WrapAnywhere);
-            doc.setDefaultTextOption(opt);
-            doc.setHtml(text);
-            doc.setTextWidth(rect.width());
+            QString text = qindex_get<QString>(index, Qt::DisplayRole);
             painter->translate(rect.topLeft());
-            doc.drawContents(painter);
+            toDocument(text)->drawContents(painter);
         }
         painter->restore();
     }
@@ -127,8 +138,7 @@ struct OrgNodeItem : public QGraphicsItem {
 OrgGraphView::OrgGraphView(
     QAbstractItemModel* model,
     OrgStore*           store,
-    QWidget*            parent,
-    QRect               graphBBox)
+    QWidget*            parent)
     : QGraphicsView(parent)
     , store(store)
     , model(model)
@@ -137,7 +147,7 @@ OrgGraphView::OrgGraphView(
     scene = new QGraphicsScene(this);
     this->setScene(scene);
 
-    background = std::make_shared<OrgBackgroundGridItem>(20, graphBBox);
+    background = std::make_shared<OrgBackgroundGridItem>(20, model);
     scene->addItem(background.get());
 
     connect(
@@ -158,6 +168,19 @@ OrgGraphView::OrgGraphView(
     populateScene();
 }
 
+QSize OrgGraphView::getNodeSize(const QModelIndex& index) {
+    if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+        QString text = qindex_get<QString>(index, Qt::DisplayRole);
+        if (text.isEmpty()) {
+            return QSize(20, 20);
+        } else {
+            return toDocument(text)->size().toSize();
+        }
+    } else {
+        return QSize(-1, -1);
+    }
+}
+
 void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
     bool isNode = model->data(index, OrgGraphModelRoles::IsNodeRole)
                       .toBool();
@@ -166,6 +189,9 @@ void OrgGraphView::addOrUpdateItem(const QModelIndex& index) {
     if (indexItemMap.contains(index)) {
         item = indexItemMap.value(index).get();
     }
+
+    background->update();
+
 
     if (isNode) {
         if (item) {

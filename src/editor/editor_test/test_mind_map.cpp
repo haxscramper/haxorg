@@ -446,7 +446,11 @@ Paragraph [[id:subtree-id]]
         graph.get(), QModelIndex(), store_index_printer(store.get()))
         .toString();
 
-    OrgGraphLayoutProxy proxy{};
+    OrgGraphLayoutProxy proxy{
+        [](QModelIndex const&) -> QSize { return QSize(20, 20); },
+        nullptr,
+    };
+
     proxy.setSourceModel(graph.get());
     proxy.updateCurrentLayout();
 }
@@ -468,18 +472,19 @@ struct SceneBench {
         this->store         = store;
         this->graph         = graph;
 
-        proxy = std::make_shared<OrgGraphLayoutProxy>();
+        proxy = std::make_shared<OrgGraphLayoutProxy>(
+            [&](QModelIndex const& index) {
+                return view->getNodeSize(index);
+            },
+            nullptr);
+
         proxy->setSourceModel(graph.get());
-        proxy->updateCurrentLayout();
-        view = new OrgGraphView(
-            proxy.get(),
-            store.get(),
-            window.get(),
-            proxy->currentLayout.bbox);
+        view = new OrgGraphView(proxy.get(), store.get(), window.get());
 
 
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
+        proxy->updateCurrentLayout();
 
         QSize box = proxy->currentLayout.bbox.size();
         box       = box.grownBy(QMargins(50, 50, 50, 50));

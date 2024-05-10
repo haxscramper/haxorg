@@ -39,9 +39,10 @@ enum OrgGraphModelRoles
     EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
     IsNodeRole,    ///< Check if the index points to and edge or to a node.
     NodeDescAtRole,
-    NodeSizeRole,
     SourceAndTargetRole,
     DebugDisplayRole,
+
+    OrgGraphModelRoles__LAST__,
 };
 
 
@@ -265,6 +266,12 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
   private:
     Q_OBJECT
   public:
+    enum Roles
+    {
+        LayoutBBoxRole = OrgGraphModelRoles::OrgGraphModelRoles__LAST__
+                       + 1,
+    };
+
     struct ElementLayout {
         Variant<QRect, QPainterPath> data;
 
@@ -287,7 +294,12 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
             original;
     };
 
-    QSize getNodeSize(QModelIndex const& index) const;
+    using GetNodeSize = Func<QSize(QModelIndex const& index)>;
+    GetNodeSize getNodeSize;
+
+    OrgGraphLayoutProxy(CR<GetNodeSize> size, QObject* parent)
+        : QSortFilterProxyModel(parent), getNodeSize(size) {}
+
 
     ElementLayout getElement(QModelIndex const& idx) const {
         Q_ASSERT(currentLayout.data.contains(mapToSource(idx)));
@@ -305,7 +317,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         auto base = sourceModel()->roleNames();
         base[OrgGraphModelRoles::NodeShapeRole] = "NodeShapeRole";
         base[OrgGraphModelRoles::EdgeShapeRole] = "EdgeShapeRole";
-        base[OrgGraphModelRoles::NodeSizeRole]  = "NodeSizeRole";
+        base[LayoutBBoxRole]                    = "LayoutBBoxRole";
         return base;
     }
 };
