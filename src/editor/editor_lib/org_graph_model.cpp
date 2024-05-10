@@ -1,3 +1,4 @@
+#include "qtextoption.h"
 #include <editor/editor_lib/org_graph_model.hpp>
 #include <editor/editor_lib/app_utils.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
@@ -319,6 +320,9 @@ QSize OrgGraphLayoutProxy::getNodeSize(const QModelIndex& index) const {
             return QSize(20, 20);
         } else {
             QTextDocument doc;
+            QTextOption   opt{};
+            opt.setWrapMode(QTextOption::WrapAnywhere);
+            doc.setDefaultTextOption(opt);
             doc.setHtml(text);
             doc.setTextWidth(200);
             return doc.size().toSize();

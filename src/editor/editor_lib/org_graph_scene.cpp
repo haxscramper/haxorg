@@ -57,9 +57,11 @@ struct OrgNodeItem : public QGraphicsItem {
 
         QTextDocument doc;
         QString       text = qindex_get<QString>(index, Qt::DisplayRole);
+        QTextOption   opt{};
+        opt.setWrapMode(QTextOption::WrapAnywhere);
+        doc.setDefaultTextOption(opt);
         doc.setHtml(text);
         doc.setTextWidth(rect.width());
-        doc.setDocumentMargin(0);
         painter->save();
         painter->translate(rect.topLeft());
         doc.drawContents(painter);
