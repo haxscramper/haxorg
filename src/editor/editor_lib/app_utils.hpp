@@ -157,6 +157,7 @@ T qvariant_get(QVariant const& var) {
 
 template <typename T>
 T qindex_get(QModelIndex const& index, int role) {
+    Q_ASSERT(index.model() != nullptr);
     QVariant result = index.data(role);
     Q_ASSERT_X(
         result.isValid(),

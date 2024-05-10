@@ -288,6 +288,11 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
             return QVariant();
         }
 
+        case OrgGraphModelRoles::EdgeDescAtRole: {
+            return isNode(index) ? QVariant()
+                                 : QVariant::fromValue(getEdgeDesc(index));
+        }
+
         case OrgGraphModelRoles::NodeDescAtRole: {
             return isNode(index) ? QVariant::fromValue(getNodeDesc(index))
                                  : QVariant();
@@ -368,15 +373,12 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
 
 QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
     const {
-    auto isNodeVar = sourceModel()->data(
-        mapToSource(index), OrgGraphModelRoles::IsNodeRole);
-    bool isNode = isNodeVar.toBool();
     switch (role) {
         case LayoutBBoxRole: {
             return QVariant::fromValue(currentLayout.bbox);
         }
         case OrgGraphModelRoles::NodeShapeRole: {
-            if (isNode) {
+            if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
                 return QVariant::fromValue(getElement(index).getNode());
             } else {
                 return QVariant();
@@ -384,7 +386,7 @@ QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
         }
 
         case OrgGraphModelRoles::EdgeShapeRole: {
-            if (isNode) {
+            if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
                 return QVariant();
             } else {
                 return QVariant::fromValue(getElement(index).getEdge());
@@ -392,7 +394,8 @@ QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
         }
 
         default: {
-            return sourceModel()->data(mapToSource(index), role);
+            Q_ASSERT(sourceModel() != nullptr);
+            return mapToSource(index).data(role);
         }
     }
 }

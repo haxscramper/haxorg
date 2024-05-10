@@ -551,5 +551,23 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
 
     save_screenshot(
+        b.window.get(), "/tmp/full_mind_map_screenshot_pre_filter.png", 2);
+
+    OrgGraphFilterProxy pre_layout_filter{};
+
+    pre_layout_filter.accept_edge = [](OrgGraph::EDesc edge) {
+        return true;
+    };
+
+    pre_layout_filter.accept_node = [](OrgGraph::VDesc node) {
+        return true;
+    };
+
+    pre_layout_filter.setSourceModel(b.graph.get());
+    b.proxy->setSourceModel(&pre_layout_filter);
+    b.view->setModel(b.proxy.get());
+    b.view->rebuildScene();
+
+    save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
 }

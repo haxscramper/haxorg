@@ -22,38 +22,40 @@ class OrgGraphView : public QGraphicsView {
         QWidget*            parent);
 
     QSize getNodeSize(const QModelIndex& index);
+    void  setModel(QAbstractItemModel* model);
+    void  rebuildScene();
 
   private:
-    OrgStore*                               store;
-    QAbstractItemModel*                     model;
-    QGraphicsScene*                         scene;
-    QHash<QModelIndex, SPtr<QGraphicsItem>> indexItemMap;
-    SPtr<QGraphicsItem>                     background;
+    OrgStore*                store;
+    QAbstractItemModel*      model;
+    QGraphicsScene*          scene;
+    SPtr<QGraphicsItem>      background;
+    Vec<SPtr<QGraphicsItem>> modelItems;
 
-    void populateScene() {
-        int rowCount = model->rowCount();
-        for (int row = 0; row < rowCount; ++row) {
-            addOrUpdateItem(model->index(row, 0));
-        }
-    }
 
-    void addOrUpdateItem(const QModelIndex& index);
+    void updateItem(const QModelIndex& index);
+
+    void addItem(QModelIndex const& index);
 
     void onRowsInserted(const QModelIndex& parent, int first, int last) {
         for (int row = first; row <= last; ++row) {
-            addOrUpdateItem(model->index(row, 0, parent));
+            updateItem(model->index(row, 0, parent));
         }
     }
 
-    void onRowsRemoved(const QModelIndex& parent, int first, int last) {
-        for (int row = first; row <= last; ++row) {
-            QModelIndex index = model->index(row, 0, parent);
-            if (indexItemMap.contains(index)) {
-                QGraphicsItem* item = indexItemMap.take(index).get();
-                scene->removeItem(item);
-            }
-        }
+    void onRowsShifted(int lastShifted);
+
+    void validateItemRows();
+
+    void resetSceneItem(int row) {
+        QGraphicsItem* item = modelItems.at(row).get();
+        Q_ASSERT(item != nullptr);
+        Q_ASSERT(item->scene() == scene);
+        scene->removeItem(item);
+        modelItems.at(row).reset((QGraphicsItem*)nullptr);
     }
+
+    void onRowsRemoved(const QModelIndex& parent, int first, int last);
 
     void onDataChanged(
         const QModelIndex&  topLeft,
@@ -61,7 +63,7 @@ class OrgGraphView : public QGraphicsView {
         const QVector<int>& roles) {
         for (int row = topLeft.row(); row <= bottomRight.row(); ++row) {
             QModelIndex index = model->index(row, 0);
-            if (indexItemMap.contains(index)) { addOrUpdateItem(index); }
+            updateItem(index);
         }
     }
 };

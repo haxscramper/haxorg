@@ -43,6 +43,7 @@ void test_message_handler(
             msg.contains("QSortFilterProxyModel: index from wrong model")
             || msg.contains("QWidget::repaint: Recursive repaint detected")
             || msg.contains("Cannot destroy paint device that is being painted")
+            || (msg.contains("is different from this scene") && msg.contains("QGraphicsScene::removeItem"))
             // clang-format on
             )) {
         qFatal("%s", msg.toStdString().data());

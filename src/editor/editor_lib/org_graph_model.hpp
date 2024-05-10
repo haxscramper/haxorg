@@ -38,7 +38,8 @@ enum OrgGraphModelRoles
     NodeShapeRole, ///< Node shape in absolute coordinates after layout
     EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
     IsNodeRole,    ///< Check if the index points to and edge or to a node.
-    NodeDescAtRole,
+    NodeDescAtRole, ///< Get node descriptor for an index
+    EdgeDescAtRole, ///< Get edge descriptor for index
     SourceAndTargetRole,
     DebugDisplayRole,
 
@@ -119,6 +120,7 @@ struct OrgGraph : public QAbstractListModel {
         roles[SharedModelRoles::IndexBoxRole]     = "IndexBoxRole";
         roles[OrgGraphModelRoles::IsNodeRole]     = "IsNodeRole";
         roles[OrgGraphModelRoles::NodeDescAtRole] = "NodeDescAtRole";
+        roles[OrgGraphModelRoles::EdgeDescAtRole] = "EdgeDescAtRole";
         roles[OrgGraphModelRoles::SourceAndTargetRole]
             = "SourceAndTargetRole";
         roles[OrgGraphModelRoles::DebugDisplayRole] = "DebugDisplayRole";
@@ -260,6 +262,31 @@ struct OrgGraph : public QAbstractListModel {
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {}
     void addBox(CR<OrgBoxId> box);
+};
+
+struct OrgGraphFilterProxy : public QSortFilterProxyModel {
+  private:
+    Q_OBJECT
+  public:
+    using AcceptNodeCb = Func<bool(OrgGraph::VDesc const&)>;
+    using AcceptEdgeCb = Func<bool(OrgGraph::EDesc const&)>;
+
+    AcceptNodeCb accept_node;
+    AcceptEdgeCb accept_edge;
+
+    virtual bool filterAcceptsRow(
+        int                source_row,
+        const QModelIndex& source_parent) const override {
+        QModelIndex index = sourceModel()->index(
+            source_row, 0, source_parent);
+        if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+            return accept_node(qindex_get<OrgGraph::VDesc>(
+                index, OrgGraphModelRoles::NodeDescAtRole));
+        } else {
+            return accept_edge(qindex_get<OrgGraph::EDesc>(
+                index, OrgGraphModelRoles::EdgeDescAtRole));
+        }
+    }
 };
 
 struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
