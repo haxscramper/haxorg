@@ -112,8 +112,6 @@ struct OrgGraph : public QAbstractListModel {
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
         const override;
 
-    QSize nodeSize(QModelIndex const& index) const;
-
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
         roles[Qt::DisplayRole]                    = "DisplayRole";
@@ -289,6 +287,8 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
             original;
     };
 
+    QSize getNodeSize(QModelIndex const& index) const;
+
     ElementLayout getElement(QModelIndex const& idx) const {
         Q_ASSERT(currentLayout.data.contains(mapToSource(idx)));
         return currentLayout.data[mapToSource(idx)];
@@ -305,6 +305,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         auto base = sourceModel()->roleNames();
         base[OrgGraphModelRoles::NodeShapeRole] = "NodeShapeRole";
         base[OrgGraphModelRoles::EdgeShapeRole] = "EdgeShapeRole";
+        base[OrgGraphModelRoles::NodeSizeRole]  = "NodeSizeRole";
         return base;
     }
 };

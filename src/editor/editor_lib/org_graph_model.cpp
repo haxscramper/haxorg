@@ -283,10 +283,6 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
                                  : QVariant();
         }
 
-        case OrgGraphModelRoles::NodeSizeRole: {
-            return isNode(index) ? nodeSize(index) : QVariant();
-        }
-
         case OrgGraphModelRoles::DebugDisplayRole: {
             return QVariant();
         }
@@ -316,11 +312,20 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
     }
 }
 
-QSize OrgGraph::nodeSize(const QModelIndex& index) const {
-    Q_ASSERT(isNode(index));
-    auto label = make_label(store->nodeWithoutNested(getBox(index.row())));
-
-    return get_width_fit(label.get(), 200);
+QSize OrgGraphLayoutProxy::getNodeSize(const QModelIndex& index) const {
+    if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+        QString text = qindex_get<QString>(index, Qt::DisplayRole);
+        if (text.isEmpty()) {
+            return QSize(20, 20);
+        } else {
+            QTextDocument doc;
+            doc.setHtml(text);
+            doc.setTextWidth(200);
+            return doc.size().toSize();
+        }
+    } else {
+        return QSize(-1, -1);
+    }
 }
 
 OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
@@ -338,8 +343,7 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
             auto desc = qindex_get<V>(
                 index, OrgGraphModelRoles::NodeDescAtRole);
             nodeToRect[desc] = ir.rectangles.size();
-            auto size        = qindex_get<QSize>(
-                index, OrgGraphModelRoles::NodeSizeRole);
+            auto size        = getNodeSize(index);
             ir.rectangles.push_back(
                 QRect(0, 0, size.width(), size.height()));
         } else {
@@ -383,6 +387,10 @@ QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
         mapToSource(index), OrgGraphModelRoles::IsNodeRole);
     bool isNode = isNodeVar.toBool();
     switch (role) {
+        case OrgGraphModelRoles::NodeSizeRole: {
+            return getNodeSize(index);
+        }
+
         case OrgGraphModelRoles::NodeShapeRole: {
             if (isNode) {
                 return QVariant::fromValue(getElement(index).getNode());
