@@ -19,37 +19,16 @@ class OrgGraphView : public QGraphicsView {
     OrgGraphView(
         QAbstractItemModel* model,
         OrgStore*           store,
-        QWidget*            parent)
-        : QGraphicsView(parent)
-        , store(store)
-        , model(model)
-    //
-    {
-        scene = new QGraphicsScene(this);
-        this->setScene(scene);
-        connect(
-            model,
-            &QAbstractItemModel::rowsInserted,
-            this,
-            &OrgGraphView::onRowsInserted);
-        connect(
-            model,
-            &QAbstractItemModel::rowsRemoved,
-            this,
-            &OrgGraphView::onRowsRemoved);
-        connect(
-            model,
-            &QAbstractItemModel::dataChanged,
-            this,
-            &OrgGraphView::onDataChanged);
-        populateScene();
-    }
+        QWidget*            parent,
+        QRect               graphBBox);
 
   private:
     OrgStore*                               store;
     QAbstractItemModel*                     model;
     QGraphicsScene*                         scene;
     QHash<QModelIndex, SPtr<QGraphicsItem>> indexItemMap;
+    SPtr<QGraphicsItem>                     background;
+    QRect                                   graphBBox;
 
     void populateScene() {
         int rowCount = model->rowCount();

@@ -471,7 +471,11 @@ struct SceneBench {
         proxy = std::make_shared<OrgGraphLayoutProxy>();
         proxy->setSourceModel(graph.get());
         proxy->updateCurrentLayout();
-        view = new OrgGraphView(proxy.get(), store.get(), window.get());
+        view = new OrgGraphView(
+            proxy.get(),
+            store.get(),
+            window.get(),
+            proxy->currentLayout.bbox);
 
 
         window->setContentsMargins(0, 0, 0, 0);
