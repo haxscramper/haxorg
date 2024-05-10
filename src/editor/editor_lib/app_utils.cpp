@@ -68,7 +68,8 @@ inline ColText escape_literal(ColText const& in) {
 ColText printModelTree(
     const QAbstractItemModel*         model,
     const QModelIndex&                parent,
-    Func<ColText(QModelIndex const&)> toString) {
+    Func<ColText(QModelIndex const&)> toString,
+    bool                              ignoreExceptions) {
     if (!model) { return ColText{""}; }
 
     struct ModelProxyRecord {
@@ -109,17 +110,31 @@ ColText printModelTree(
 
 
         for (int role : roles) {
-            QByteArray role_name = role_names[role];
-            QVariant   value     = index.data(role);
-            if (value.isValid()) {
-                IndexRoleRepr repr;
-                repr.roleName = role_name.toStdString();
-                if (value.typeName() == "QString"_ss) {
-                    repr.roleValue = value.toString().toStdString();
-                } else {
-                    repr.roleValue = qdebug_to_str(value);
+            QByteArray    role_name = role_names[role];
+            IndexRoleRepr repr;
+            repr.roleName = role_name.toStdString();
+            auto act      = [&]() {
+                QVariant value = index.data(role);
+                if (value.isValid()) {
+
+                    if (value.typeName() == "QString"_ss) {
+                        repr.roleValue = value.toString().toStdString();
+                    } else {
+                        repr.roleValue = qdebug_to_str(value);
+                    }
+                    record.roles.push_back(repr);
                 }
-                record.roles.push_back(repr);
+            };
+            if (ignoreExceptions) {
+                try {
+                    act();
+                } catch (std::exception& ex) {
+                    repr.roleValue = fmt(
+                        "Exception {} {}", typeid(ex).name(), ex.what());
+                    record.roles.push_back(repr);
+                }
+            } else {
+                act();
             }
         }
 
@@ -252,4 +267,14 @@ Str debug(sem::OrgArg arg) {
     json converted          = exporter.evalTop(arg);
     filterFields(converted, {"loc"});
     return converted.dump();
+}
+
+std::string qdebug_obj(const QObject* obj) {
+    std::stringstream os;
+    os << fmt("QObj{:p}", (void*)obj);
+    if (!obj->objectName().isEmpty()) {
+        os << " name:" << obj->objectName().toStdString();
+    }
+
+    return os.str();
 }

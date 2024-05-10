@@ -63,14 +63,24 @@ struct OrgBackgroundGridItem : public QGraphicsItem {
 
 
 struct OrgGraphElementItem : public QGraphicsItem {
+  public:
     explicit OrgGraphElementItem(
         OrgStore*          store,
         QModelIndex const& index,
         QGraphicsItem*     parent)
         : QGraphicsItem(parent), store(store), index(index) {}
 
+    OrgStore* store;
+
+    void setIndex(QModelIndex index) {
+        Q_ASSERT(index.isValid());
+        this->index = index;
+    }
+
+    QModelIndex const& getIndex() const { return this->index; }
+
+  protected:
     QModelIndex index;
-    OrgStore*   store;
 };
 
 
@@ -79,11 +89,23 @@ struct OrgEdgeItem : public OrgGraphElementItem {
         OrgStore*          store,
         QModelIndex const& index,
         QGraphicsItem*     parent)
-        : OrgGraphElementItem(store, index, parent) {}
+        : OrgGraphElementItem(store, index, parent) {
+        updateStateFromIndex();
+    }
+
+    Opt<QPainterPath> path;
+
+    void updateStateFromIndex() {
+        path = qindex_get<QPainterPath>(
+            index, OrgGraphModelRoles::EdgeShapeRole);
+    }
 
     QPainterPath getPoints() const {
-        return qvariant_cast<QPainterPath>(
-            index.data(OrgGraphModelRoles::EdgeShapeRole));
+        if (path) {
+            return path.value();
+        } else {
+            return QPainterPath();
+        }
     }
 
     QRectF boundingRect() const override {
@@ -94,12 +116,10 @@ struct OrgEdgeItem : public OrgGraphElementItem {
         QPainter*                       painter,
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
+        updateStateFromIndex();
         painter->setPen(QPen(Qt::red, 2));
         painter->drawPath(getPoints());
     }
-
-    QModelIndex index;
-    OrgStore*   store;
 };
 
 struct OrgNodeItem : public OrgGraphElementItem {
@@ -108,12 +128,12 @@ struct OrgNodeItem : public OrgGraphElementItem {
         QModelIndex const& index,
         QGraphicsItem*     parent)
         : OrgGraphElementItem(store, index, parent) {
-        updateRect();
+        updateStateFromIndex();
     }
 
     Opt<QRect> rect;
 
-    void updateRect() {
+    void updateStateFromIndex() {
         rect = qvariant_cast<QRect>(
             index.data(OrgGraphModelRoles::NodeShapeRole));
     }
@@ -137,9 +157,11 @@ struct OrgNodeItem : public OrgGraphElementItem {
         QPainter*                       painter,
         const QStyleOptionGraphicsItem* option,
         QWidget*                        widget) override {
-        updateRect();
+        updateStateFromIndex();
+
 
         auto rect = getRect();
+
         painter->save();
         {
             painter->setPen(QPen{Qt::black, 2});
@@ -283,7 +305,7 @@ void OrgGraphView::onRowsShifted(int lastShifted) {
         auto item = dynamic_cast<OrgGraphElementItem*>(
             modelItems.at(row).get());
         Q_ASSERT(item != nullptr);
-        item->index = model->index(row, 0);
+        item->setIndex(model->index(row, 0));
         item->update();
     }
 }
@@ -307,14 +329,20 @@ void OrgGraphView::validateItemRows() {
         }
 
         Q_ASSERT_X(
-            item->index.row() == index.row(),
+            item->getIndex().row() == index.row(),
             "validateItemRows",
             fmt("item row: {}, index row: {}",
-                item->index.row(),
+                item->getIndex().row(),
                 index.row()));
     }
 
-    Q_ASSERT(modelItems.size() == model->rowCount());
+    Q_ASSERT_X(
+        modelItems.size() == model->rowCount(),
+        "validateItemRows",
+        fmt("Base model {} has {} rows, list model items have {}",
+            qdebug_to_str(model),
+            model->rowCount(),
+            modelItems.size()));
 }
 
 void OrgGraphView::onRowsRemoved(
@@ -347,4 +375,6 @@ void OrgGraphView::rebuildScene() {
     for (int row = 0; row < rowCount; ++row) {
         addItem(model->index(row, 0));
     }
+
+    validateItemRows();
 }

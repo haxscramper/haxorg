@@ -31,7 +31,8 @@ enum SharedModelRoles
 ColText printModelTree(
     const QAbstractItemModel*         model,
     const QModelIndex&                parent,
-    Func<ColText(QModelIndex const&)> toString);
+    Func<ColText(QModelIndex const&)> toString,
+    bool                              ignoreExceptions = false);
 
 Func<ColText(QModelIndex const&)> store_index_printer(
     const OrgStore* store,
@@ -57,6 +58,8 @@ std::string qdebug_to_str(T const& index) {
     QDebug(&output).noquote().nospace() << index;
     return output.toStdString();
 }
+
+std::string qdebug_obj(QObject const* obj);
 
 inline QDebug operator<<(QDebug debug, const std::string& str) {
     debug.nospace() << QString::fromStdString(str);

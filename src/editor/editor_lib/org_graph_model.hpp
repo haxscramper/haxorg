@@ -168,6 +168,10 @@ struct OrgGraph : public QAbstractListModel {
 
     OrgGraphNode& getNodeProp(VDesc desc) { return g[desc]; }
 
+    sem::SemId<sem::Org> getNodeSem(VDesc desc) const {
+        return store->node(getNodeProp(desc).box);
+    }
+
     OrgGraphEdge const& getEdgeProp(EDesc desc) const { return g[desc]; }
 
     OrgGraphNode const& getNodeProp(VDesc desc) const { return g[desc]; }
@@ -283,8 +287,13 @@ struct OrgGraphFilterProxy : public QSortFilterProxyModel {
             return accept_node(qindex_get<OrgGraph::VDesc>(
                 index, OrgGraphModelRoles::NodeDescAtRole));
         } else {
-            return accept_edge(qindex_get<OrgGraph::EDesc>(
-                index, OrgGraphModelRoles::EdgeDescAtRole));
+            auto [source, target] = qindex_get<
+                Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(
+                index, OrgGraphModelRoles::SourceAndTargetRole);
+            return accept_node(source) //
+                && accept_node(target)
+                && accept_edge(qindex_get<OrgGraph::EDesc>(
+                    index, OrgGraphModelRoles::EdgeDescAtRole));
         }
     }
 };

@@ -455,6 +455,25 @@ Paragraph [[id:subtree-id]]
     proxy.updateCurrentLayout();
 }
 
+void debugModel(
+    QAbstractItemModel* model,
+    OrgStore*           store,
+    Opt<Str>            path             = std::nullopt,
+    bool                ignoreExceptions = false) {
+    Str text = printModelTree(
+                   model,
+                   QModelIndex(),
+                   store_index_printer(store),
+                   ignoreExceptions)
+                   .toString(!path.has_value());
+    if (path) {
+        writeFile(fs::path{path->toBase()}, text);
+        qDebug().noquote() << "Wrote tree to" << path.value();
+    } else {
+        std::cout << text << std::endl;
+    }
+}
+
 struct SceneBench {
     SPtr<OrgStore>            store;
     SPtr<OrgGraph>            graph;
@@ -500,31 +519,12 @@ struct SceneBench {
                 qdebug_to_str(box)));
     }
 
-    void debugModel(Opt<Str> path = std::nullopt) {
-        Str text = printModelTree(
-                       graph.get(),
-                       QModelIndex(),
-                       store_index_printer(store.get()))
-                       .toString(!path.has_value());
-        if (path) {
-            writeFile(fs::path{path->toBase()}, text);
-        } else {
-            std::cout << text << std::endl;
-        }
+    void debugModel(CR<Opt<Str>> path = std::nullopt) {
+        ::debugModel(graph.get(), store.get(), path);
     }
 
     void debugProxy(Opt<Str> path = std::nullopt) {
-        Str text = printModelTree(
-                       proxy.get(),
-                       QModelIndex(),
-                       store_index_printer(store.get()))
-                       .toString(!path.has_value());
-
-        if (path) {
-            writeFile(fs::path{path->toBase()}, text);
-        } else {
-            std::cout << text << std::endl;
-        }
+        ::debugModel(proxy.get(), store.get(), path);
     }
 };
 
@@ -560,14 +560,34 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
         return true;
     };
 
-    pre_layout_filter.accept_node = [](OrgGraph::VDesc node) {
-        return true;
+    pre_layout_filter.accept_node = [&](OrgGraph::VDesc node) {
+        return !SemSet{osk::ListItem, osk::List, osk::Document}.contains(
+            b.graph->getNodeSem(node)->getKind());
     };
 
     pre_layout_filter.setSourceModel(b.graph.get());
     b.proxy->setSourceModel(&pre_layout_filter);
+    b.proxy->updateCurrentLayout();
     b.view->setModel(b.proxy.get());
     b.view->rebuildScene();
+
+    ::debugModel(
+        b.graph.get(),
+        b.store.get(),
+        "/tmp/testQtGraphSceneFullMindMap_filter_graph.txt");
+
+
+    ::debugModel(
+        &pre_layout_filter,
+        b.store.get(),
+        "/tmp/testQtGraphSceneFullMindMap_filter_pre_layout.txt");
+
+
+    ::debugModel(
+        b.proxy.get(),
+        b.store.get(),
+        "/tmp/testQtGraphSceneFullMindMap_filter_layout_proxy.txt",
+        true);
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
