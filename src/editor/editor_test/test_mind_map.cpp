@@ -189,8 +189,15 @@ void TestMindMap::testGraphvizIrClusters() {
 
     QCOMPARE_EQ2(c.subgraphPaths.size(), 3);
     QCOMPARE_EQ2(c.subgraphs.size(), 1);
-    QCOMPARE_EQ2(c.subgraphs.at(0).subgraphs.size(), 1);
-    QCOMPARE_EQ2(c.subgraphs.at(1).subgraphs.size(), 1);
+    QCOMPARE_EQ2(c.subgraphs.at(0).subgraphs.size(), 2);
+    QCOMPARE_EQ2(c.getSubgraph({0}).subgraphs.size(), 2);
+    QCOMPARE_EQ2(c.getSubgraph({0, 0}).subgraphs.size(), 0);
+    QCOMPARE_EQ2(c.getSubgraph({0, 1}).subgraphs.size(), 0);
+    QCOMPARE_EQ2(c.subgraphPaths.at(0), Vec<int>{0});
+    QCOMPARE_EQ2(c.subgraphPaths.at(1), (Vec<int>{0, 0}));
+    QCOMPARE_EQ2(c.subgraphPaths.at(2), (Vec<int>{0, 1}));
+    QVERIFY(c.getSubgraph({0}).bbox.contains(c.getSubgraph({0, 0}).bbox));
+    QVERIFY(c.getSubgraph({0}).bbox.contains(c.getSubgraph({0, 1}).bbox));
 }
 
 void TestMindMap::testGraphConstruction() {

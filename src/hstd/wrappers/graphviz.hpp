@@ -517,7 +517,7 @@ class Graphviz {
         void setSplines(Splines splines);
         void eachNode(Func<void(Node)> cb);
         void eachEdge(Func<void(Edge)> cb);
-        void eachSubgraph(Func<void(Graph)> cb);
+        void eachSubgraph(Func<void(Graph)> cb) const;
 
         int nodeCount() { return agnnodes(graph); }
 

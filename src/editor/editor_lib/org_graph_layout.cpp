@@ -197,10 +197,10 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
                 fmt("cluster_{}",
                     sub.graphName.empty() ? Str(fmt1(subgraph_counter))
                                           : sub.graphName));
+            out_graph.setAttr(original_subgraph_index, subgraph_counter);
 
             ++subgraph_counter;
 
-            out_graph.setAttr(original_subgraph_index, subgraph_counter);
             out_graph.setAttr(
                 original_subgraph_path_prop, to_json_eval(path).dump());
             out_graph.setAttr(
@@ -297,6 +297,11 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
     });
 
+    auto mut_at = []<typename T>(Vec<T>& list, int idx) -> T& {
+        if (!list.has(idx)) { list.resize(idx + 1); }
+        return list.at(idx);
+    };
+
     auto set_graph = [&](this auto&&         self,
                          Result::Subgraph&   out_parent,
                          CR<Graphviz::Graph> in_subgraph,
@@ -311,41 +316,35 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
                 json::parse(str));
             out_parent.bbox = getGraphBBox(in_subgraph);
         } else {
-            if (!out_parent.subgraphs.has(path.front())) {
-                out_parent.subgraphs.resize(path.front() + 1);
-            }
-
             self(
-                out_parent.subgraphs.at(path.front()),
+                mut_at(out_parent.subgraphs, path.front()),
                 in_subgraph,
                 path[slice(1, 1_B)]);
         }
     };
 
-    graph.eachSubgraph([&](CR<Graphviz::Graph> g) {
+    Func<void(CR<Graphviz::Graph>)> rec_subgraph;
+    rec_subgraph = [&](CR<Graphviz::Graph> g) {
         auto original_path = from_json_eval<Vec<int>>(json::parse(
             g.getAttr<Str>(original_subgraph_path_prop).value().toBase()));
 
         int original_index = g.getAttr<int>(original_subgraph_index)
                                  .value();
 
-        if (!res.subgraphs.has(original_path.front())) {
-            res.subgraphs.resize(original_path.front() + 1);
-        }
 
         _qdbg(original_index);
 
-        if (!res.subgraphPaths.has(original_index)) {
-            res.subgraphPaths.resize(original_index + 1);
-        }
-
-        res.subgraphPaths.at(original_index) = original_path;
+        mut_at(res.subgraphPaths, original_index) = original_path;
 
         set_graph(
-            res.subgraphs.at(original_path.front()),
+            mut_at(res.subgraphs, original_path.front()),
             g,
             original_path[slice(1, 1_B)]);
-    });
+
+        g.eachSubgraph(rec_subgraph);
+    };
+
+    graph.eachSubgraph(rec_subgraph);
 
     return res;
 }

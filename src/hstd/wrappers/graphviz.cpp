@@ -123,7 +123,7 @@ void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
     }
 }
 
-void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) {
+void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) const {
     for (Agraph_t* subgraph = agfstsubg(graph); subgraph;
          subgraph           = agnxtsubg(subgraph)) {
         cb(Graph(subgraph));

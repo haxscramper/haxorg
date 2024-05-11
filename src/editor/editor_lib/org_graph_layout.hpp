@@ -88,11 +88,12 @@ struct GraphLayoutIR {
             Vec<Subgraph> subgraphs;
 
             Subgraph const& getSubgraph(Span<int> path) const {
-                if (path.empty()) {
-                    return *this;
-                } else {
-                    return subgraphs.at(path.front())
-                        .getSubgraph(path.at(slice(1, 1_B)));
+                switch (path.size()) {
+                    case 0: return *this;
+                    case 1: return subgraphs.at(path.front());
+                    default:
+                             return subgraphs.at(path.front())
+                            .getSubgraph(path.at(slice(1, 1_B)));
                 }
             }
         };
@@ -104,8 +105,16 @@ struct GraphLayoutIR {
         Vec<Vec<int>>                      subgraphPaths;
 
         Subgraph const& getSubgraph(CVec<int> path) {
-            return subgraphs.at(path.front())
-                .getSubgraph(path.at(slice(1, 1_B)));
+            switch (path.size()) {
+                case 0:
+                    throw std::invalid_argument(
+                        "Expected at least 1 element in the subgraph "
+                        "path, got 0");
+                case 1: return subgraphs.at(path.front());
+                default:
+                    return subgraphs.at(path.front())
+                        .getSubgraph(path.at(slice(1, 1_B)));
+            }
         }
     };
 
