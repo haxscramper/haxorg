@@ -3,6 +3,20 @@
 #include <QPainterPath>
 #include <hstd/stdlib/Set.hpp>
 
+
+QPoint toGvPoint(pointf p, int height) {
+    return QPoint(p.x, height - p.y);
+}
+
+QRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<QRect> bbox) {
+    boxf  rect = g.info()->bb;
+    QRect res{};
+    res.setBottomLeft(toGvPoint(rect.LL, bbox.height()));
+    res.setTopRight(toGvPoint(rect.UR, bbox.height()));
+    Q_ASSERT(res.isValid());
+    return res;
+}
+
 QRect getGraphBBox(CR<Graphviz::Graph> g) {
     boxf rect = g.info()->bb;
 
@@ -94,10 +108,6 @@ QRect getNodeRectangle(
         std::round(height));
 
     return result;
-}
-
-QPoint toGvPoint(pointf p, int height) {
-    return QPoint(p.x, height - p.y);
 }
 
 QPainterPath getEdgeSpline(
@@ -313,7 +323,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
 
             auto original_nodes = from_json_eval<Vec<int>>(
                 json::parse(str));
-            out_parent.bbox = getGraphBBox(in_subgraph);
+            out_parent.bbox = getSubgraphBBox(in_subgraph, res.bbox);
         } else {
             self(
                 mut_at(out_parent.subgraphs, path.front()),
