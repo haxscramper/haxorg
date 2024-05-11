@@ -125,16 +125,24 @@ ColText printModelTree(
                     record.roles.push_back(repr);
                 }
             };
-            if (ignoreExceptions) {
-                try {
+
+            try {
+                if (ignoreExceptions) {
+                    try {
+                        act();
+                    } catch (std::exception& ex) {
+                        repr.roleValue = fmt(
+                            "Exception {} {}",
+                            typeid(ex).name(),
+                            ex.what());
+                        record.roles.push_back(repr);
+                    }
+                } else {
                     act();
-                } catch (std::exception& ex) {
-                    repr.roleValue = fmt(
-                        "Exception {} {}", typeid(ex).name(), ex.what());
-                    record.roles.push_back(repr);
                 }
-            } else {
-                act();
+            } catch (model_role_not_implemented const& ex) {
+                repr.roleValue = fmt("Role not implemented {}", ex.what());
+                record.roles.push_back(repr);
             }
         }
 

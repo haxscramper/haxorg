@@ -658,6 +658,13 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     b.proxy->updateCurrentLayout();
     b.view->rebuildScene();
 
+    ::debugModel(
+        b.proxy.get(),
+        b.store.get(),
+        "/tmp/testQtGraphSceneFullMindMap_filter_layout_proxy.txt",
+        true);
+
+
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_clusters.png", 2);
 }

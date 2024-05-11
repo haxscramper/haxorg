@@ -21,7 +21,7 @@ struct OrgBackgroundGridItem : public QGraphicsItem {
     QRectF boundingRect() const override {
         return qindex_get<QRect>(
                    source->index(0, 0),
-                   OrgGraphLayoutProxy::LayoutBBoxRole)
+                   OrgGraphLayoutProxy::Role::LayoutBBoxRole)
             .marginsAdded(QMargins(20, 20, 20, 20));
         ;
     }
@@ -84,6 +84,44 @@ struct OrgGraphElementItem : public QGraphicsItem {
 };
 
 
+struct OrgSubgraphItem : public OrgGraphElementItem {
+    explicit OrgSubgraphItem(
+        OrgStore*          store,
+        QModelIndex const& index,
+        QGraphicsItem*     parent)
+        : OrgGraphElementItem(store, index, parent) {
+        updateStateFromIndex();
+    }
+
+    Opt<OrgGraphLayoutProxy::Subgraph> path;
+
+    void updateStateFromIndex() {
+        path = qindex_get<OrgGraphLayoutProxy::Subgraph>(
+            index, OrgGraphLayoutProxy::Role::Subgraph);
+    }
+
+    OrgGraphLayoutProxy::Subgraph getSubgraph() const {
+        if (path) {
+            return path.value();
+        } else {
+            return OrgGraphLayoutProxy::Subgraph{};
+        }
+    }
+
+    QRectF boundingRect() const override {
+        return getSubgraph().bbox.toRectF();
+    }
+
+    void paint(
+        QPainter*                       painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget*                        widget) override {
+        updateStateFromIndex();
+        painter->setPen(QPen(Qt::red, 2));
+        painter->drawRect(getSubgraph().bbox);
+    }
+};
+
 struct OrgEdgeItem : public OrgGraphElementItem {
     explicit OrgEdgeItem(
         OrgStore*          store,
@@ -96,8 +134,7 @@ struct OrgEdgeItem : public OrgGraphElementItem {
     Opt<QPainterPath> path;
 
     void updateStateFromIndex() {
-        path = qindex_get<QPainterPath>(
-            index, OrgGraphRoles::EdgeShape);
+        path = qindex_get<QPainterPath>(index, OrgGraphRoles::EdgeShape);
     }
 
     QPainterPath getPoints() const {
@@ -275,20 +312,67 @@ void OrgGraphView::updateItem(const QModelIndex& index) {
     background->update();
 }
 
-void OrgGraphView::addItem(const QModelIndex& index) {
-    SPtr<QGraphicsItem> added;
-    if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-        OrgNodeItem* polyline = new OrgNodeItem(store, index, nullptr);
-        scene->addItem(polyline);
-        added = SPtr<QGraphicsItem>(polyline);
-        Q_ASSERT(polyline->scene() == scene);
-    } else {
-        OrgEdgeItem* polyline = new OrgEdgeItem(store, index, nullptr);
-        scene->addItem(polyline);
-        added = SPtr<QGraphicsItem>(polyline);
-        Q_ASSERT(polyline->scene() == scene);
+void verifyModelGraph(QAbstractItemModel const* model) {
+    auto const& roles = model->roleNames();
+    Q_ASSERT_X(
+        roles.contains((int)OrgGraphRoles::NodeShape),
+        "verify model",
+        "Model should pass through or directly provide a node and edge "
+        "shape roles");
+
+    Vec<QAbstractItemModel const*> models;
+    while (model != nullptr) {
+        models.push_back(model);
+        if (auto dyn = qobject_cast<QSortFilterProxyModel const*>(model);
+            dyn != nullptr) {
+            model = dyn->sourceModel();
+        } else {
+            break;
+        }
     }
 
+    if (!rs::any_of(models, [](QAbstractItemModel const* m) {
+            return qobject_cast<OrgGraphLayoutProxy const*>(m) != nullptr;
+        })) {
+        Q_ASSERT_X(
+            false,
+            "verify model graph",
+            "Abstract model does not have a layout provider in the filter "
+            "chain.");
+    }
+}
+
+void OrgGraphView::addItem(const QModelIndex& index) {
+    verifyModelGraph(index.model());
+    SPtr<QGraphicsItem> added;
+
+    // if (index.row() == 24) { __builtin_debugtrap(); }
+
+    switch (OrgGraphIndex{index}.getKind()) {
+        case OrgGraphElementKind::Node: {
+            OrgNodeItem* polyline = new OrgNodeItem(store, index, nullptr);
+            scene->addItem(polyline);
+            added = SPtr<QGraphicsItem>(polyline);
+            Q_ASSERT(polyline->scene() == scene);
+            break;
+        }
+
+        case OrgGraphElementKind::Edge: {
+            OrgEdgeItem* polyline = new OrgEdgeItem(store, index, nullptr);
+            scene->addItem(polyline);
+            added = SPtr<QGraphicsItem>(polyline);
+            Q_ASSERT(polyline->scene() == scene);
+            break;
+        }
+
+        case OrgGraphElementKind::Subgraph: {
+            OrgSubgraphItem* subgraph = new OrgSubgraphItem(
+                store, index, nullptr);
+            scene->addItem(subgraph);
+            added = SPtr<QGraphicsItem>(subgraph);
+            break;
+        }
+    }
 
     if (index.row() < modelItems.size()) {
         modelItems.push_back(added);
@@ -315,15 +399,28 @@ void OrgGraphView::validateItemRows() {
         auto        item  = dynamic_cast<OrgGraphElementItem*>(
             modelItems.at(row).get());
 
-        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-            auto item = dynamic_cast<OrgNodeItem*>(
-                modelItems.at(row).get());
-            Q_ASSERT(item != nullptr);
+        switch (OrgGraphIndex{index}.getKind()) {
+            case OrgGraphElementKind::Node: {
+                auto item = dynamic_cast<OrgNodeItem*>(
+                    modelItems.at(row).get());
+                Q_ASSERT(item != nullptr);
+                break;
+            }
 
-        } else {
-            auto item = dynamic_cast<OrgEdgeItem*>(
-                modelItems.at(row).get());
-            Q_ASSERT(item != nullptr);
+            case OrgGraphElementKind::Edge: {
+                auto item = dynamic_cast<OrgEdgeItem*>(
+                    modelItems.at(row).get());
+                Q_ASSERT(item != nullptr);
+                break;
+            }
+
+
+            case OrgGraphElementKind::Subgraph: {
+                auto item = dynamic_cast<OrgSubgraphItem*>(
+                    modelItems.at(row).get());
+                Q_ASSERT(item != nullptr);
+                break;
+            }
         }
 
         Q_ASSERT_X(
@@ -349,6 +446,7 @@ void OrgGraphView::onRowsRemoved(
     int                last) {
     for (int row = first; row <= last; ++row) {
         QModelIndex index = model->index(row, 0, parent);
+        verifyModelGraph(model);
         resetSceneItem(index.row());
     }
 
@@ -361,6 +459,7 @@ void OrgGraphView::onRowsRemoved(
 }
 
 void OrgGraphView::setModel(QAbstractItemModel* model) {
+    verifyModelGraph(model);
     this->model                                                    = model;
     dynamic_cast<OrgBackgroundGridItem*>(background.get())->source = model;
 }
@@ -371,7 +470,9 @@ void OrgGraphView::rebuildScene() {
 
     int rowCount = model->rowCount();
     for (int row = 0; row < rowCount; ++row) {
-        addItem(model->index(row, 0));
+        Q_ASSERT(model != nullptr);
+        auto index = model->index(row, 0);
+        addItem(index);
     }
 
     validateItemRows();

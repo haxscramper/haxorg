@@ -314,6 +314,16 @@ struct OrgGraphIndex {
         return qindex_get<OrgBoxId>(index, SharedModelRoles::IndexBox);
     }
 
+    Pair<OrgGraph::VDesc, OrgGraph::VDesc> getSourceTarget() const {
+        return qindex_get<Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(
+            index, OrgGraphRoles::SourceAndTarget);
+    }
+
+    OrgGraphElementKind getKind() const {
+        return qindex_get<OrgGraphElementKind>(
+            index, OrgGraphRoles::ElementKind);
+    }
+
     QList<QModelIndex> getSubnodes() const {
         return qindex_get<QList<QModelIndex>>(
             index, OrgGraphRoles::SubnodeIndices);
@@ -354,17 +364,41 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
   private:
     Q_OBJECT
   public:
-    enum Roles
+    enum class Role
     {
         LayoutBBoxRole = (int)OrgGraphRoles::OrgGraphModelRoles__LAST__
                        + 1,
+        Subgraph,
+    };
+
+    struct Subgraph {
+        Str   name;
+        QRect bbox;
     };
 
     struct ElementLayout {
-        Variant<QRect, QPainterPath> data;
+        Variant<std::monostate, QRect, QPainterPath, Subgraph> data;
 
-        bool isNode() const { return std::holds_alternative<QRect>(data); }
+        OrgGraphElementKind getKind() const {
+            Q_ASSERT_X(
+                !std::holds_alternative<std::monostate>(data),
+                "getKind",
+                "element layout not initialized");
+
+            if (std::holds_alternative<QRect>(data)) {
+                return OrgGraphElementKind::Node;
+            } else if (std::holds_alternative<QPainterPath>(data)) {
+                return OrgGraphElementKind::Edge;
+            } else {
+                return OrgGraphElementKind::Subgraph;
+            }
+        }
+
         QRect const& getNode() const { return std::get<QRect>(data); }
+
+        Subgraph const& getSubgraph() const {
+            return std::get<Subgraph>(data);
+        }
 
         QPainterPath const& getEdge() const {
             return std::get<QPainterPath>(data);
@@ -380,8 +414,8 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
 
 
     struct FullLayout {
-        QHash<int, ElementLayout> data;
-        QRect                     bbox;
+        Vec<ElementLayout> data;
+        QRect              bbox;
         Variant<
             std::monostate,
             GraphLayoutIR::GraphvizResult,
@@ -401,9 +435,9 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         : QSortFilterProxyModel(parent), store(store), config(size) {}
 
 
-    ElementLayout getElement(QModelIndex const& idx) const {
+    ElementLayout const& getElement(QModelIndex const& idx) const {
         Q_ASSERT_X(
-            currentLayout.data.contains(idx.row()),
+            currentLayout.data.has(idx.row()),
             "getElement",
             fmt("No element for index {}", idx.row()));
         return currentLayout.data[idx.row()];
@@ -421,7 +455,27 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         auto base                           = sourceModel()->roleNames();
         base[(int)OrgGraphRoles::NodeShape] = "NodeShapeRole";
         base[(int)OrgGraphRoles::EdgeShape] = "EdgeShapeRole";
-        base[LayoutBBoxRole]                = "LayoutBBoxRole";
+        base[(int)Role::Subgraph]           = "SubgraphBBox";
+        base[(int)Role::LayoutBBoxRole]     = "LayoutBBoxRole";
         return base;
+    }
+
+    virtual int rowCount(const QModelIndex& parent) const override {
+        if (parent.isValid()) {
+            return 0;
+        } else {
+            return currentLayout.data.size();
+        }
+    }
+
+    virtual QModelIndex index(
+        int                row,
+        int                column,
+        const QModelIndex& parent) const override {
+        if (sourceModel()->hasIndex(row, column, parent)) {
+            return QSortFilterProxyModel::index(row, column, parent);
+        } else {
+            return createIndex(row, column);
+        }
     }
 };

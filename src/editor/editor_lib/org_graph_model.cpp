@@ -335,6 +335,12 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
             return getDisplayText(index);
         }
 
+        case (int)OrgGraphRoles::ElementKind: {
+            return QVariant::fromValue(
+                isNode(index) ? OrgGraphElementKind::Node
+                              : OrgGraphElementKind::Edge);
+        }
+
         case (int)OrgGraphRoles::IsNode: {
             return isNode(index);
         }
@@ -436,27 +442,38 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     FullLayout res;
     auto       lyt = ir.doGraphvizLayout(gvc);
     res.original   = lyt;
-
-    lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap_post_cluster.svg");
-    lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap_post_cluster.xdot");
-
-    auto conv_lyt = lyt.convert();
-    res.bbox      = conv_lyt.bbox;
+    auto conv_lyt  = lyt.convert();
+    res.bbox       = conv_lyt.bbox;
+    res.data.clear();
+    res.data.resize(
+        conv_lyt.fixed.size() + conv_lyt.lines.size()
+            + conv_lyt.subgraphPaths.size(),
+        ElementLayout{std::monostate{}});
 
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
         if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-            res.data[row] = ElementLayout{
+            res.data.at(row) = ElementLayout{
                 .data = conv_lyt.fixed.at(nodeToRect.at(
                     qindex_get<V>(index, OrgGraphRoles::NodeDesc)))};
         } else {
             auto [source, target] = qindex_get<Pair<V, V>>(
                 index, OrgGraphRoles::SourceAndTarget);
-            res.data[row] = ElementLayout{conv_lyt.lines.at({
+            res.data.at(row) = ElementLayout{conv_lyt.lines.at({
                 nodeToRect.at(source),
                 nodeToRect.at(target),
             })};
         }
+    }
+
+    for (auto const& it : enumerator(conv_lyt.subgraphPaths)) {
+        int row = sourceModel()->rowCount() + it.index();
+        Q_ASSERT(
+            std::holds_alternative<std::monostate>(res.data.at(row).data));
+        res.data.at(row) = ElementLayout{
+            .data = Subgraph{
+                .bbox = conv_lyt.getSubgraph(it.value()).bbox,
+            }};
     }
 
 
@@ -465,30 +482,61 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
 
 QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
     const {
-    switch (role) {
-        case LayoutBBoxRole: {
-            return QVariant::fromValue(currentLayout.bbox);
-        }
+    auto const& e = getElement(index);
 
-        case (int)OrgGraphRoles::NodeShape: {
-            if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-                return QVariant::fromValue(getElement(index).getNode());
-            } else {
-                return QVariant();
+    if (role == (int)OrgGraphRoles::ElementKind) {
+        return QVariant::fromValue(e.getKind());
+    }
+
+    if (e.getKind() == OrgGraphElementKind::Subgraph) {
+        switch (role) {
+            case (int)Role::Subgraph: {
+                return QVariant::fromValue(e.getSubgraph());
+            }
+            default: {
+                auto err = model_role_not_implemented::init(
+                    fmt("Subgraph element for layout proxy does not "
+                        "implement {}",
+                        roleNames().value(role).toStdString()));
+                err.model = this;
+                throw err;
             }
         }
+    } else {
+        Q_ASSERT_X(
+            index.row() < sourceModel()->rowCount(),
+            "data",
+            fmt("additional data rows are created by the proxymodel. "
+                "Index {} has a non-subgraph kind",
+                qdebug_to_str(index)));
 
-        case (int)OrgGraphRoles::EdgeShape: {
-            if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-                return QVariant();
-            } else {
-                return QVariant::fromValue(getElement(index).getEdge());
+        switch (role) {
+            case (int)Role::LayoutBBoxRole: {
+                return QVariant::fromValue(currentLayout.bbox);
             }
-        }
 
-        default: {
-            Q_ASSERT(sourceModel() != nullptr);
-            return mapToSource(index).data(role);
+            case (int)OrgGraphRoles::NodeShape: {
+                if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
+                    return QVariant::fromValue(
+                        getElement(index).getNode());
+                } else {
+                    return QVariant();
+                }
+            }
+
+            case (int)OrgGraphRoles::EdgeShape: {
+                if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
+                    return QVariant();
+                } else {
+                    return QVariant::fromValue(
+                        getElement(index).getEdge());
+                }
+            }
+
+            default: {
+                Q_ASSERT(sourceModel() != nullptr);
+                return mapToSource(index).data(role);
+            }
         }
     }
 }

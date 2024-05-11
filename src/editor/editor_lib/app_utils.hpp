@@ -7,6 +7,7 @@
 #include <QEvent>
 #include <boost/preprocessor.hpp>
 #include <QLoggingCategory>
+#include <hstd/stdlib/Exception.hpp>
 
 using osk = OrgSemKind;
 
@@ -51,6 +52,11 @@ Str debug(sem::OrgArg);
     qDebug() << __LINE__ _QDBG_DISPATCHER(                                \
         _QDBG_ARG_COUNT(__VA_ARGS__), __VA_ARGS__);
 
+
+struct model_role_not_implemented
+    : public CRTP_hexception<model_role_not_implemented> {
+    QAbstractItemModel const* model;
+};
 
 template <typename T>
 std::string qdebug_to_str(T const& index) {
@@ -162,16 +168,23 @@ template <typename T>
 T qindex_get(QModelIndex const& index, int role) {
     Q_ASSERT(index.model() != nullptr);
     QVariant result = index.data(role);
-    Q_ASSERT_X(
-        result.isValid(),
-        "qindex_get",
-        fmt("Getting index {} for role {} in model {} failed: qvariant is "
+
+    if (!result.isValid()) {
+        Str fail = fmt(
+            "Getting index {} for role {} in model {} failed: qvariant is "
             "invalid",
             qdebug_to_str(index),
             index.model()->roleNames().contains(role)
                 ? index.model()->roleNames().value(role).toStdString()
                 : fmt("<unnamed {}>", role),
-            qdebug_to_str(index.model())));
+            qdebug_to_str(index.model()));
+
+        __builtin_debugtrap();
+        index.data(role);
+
+        Q_ASSERT_X(result.isValid(), "qindex_get", fail);
+    }
+
 
     return qvariant_get<T>(result);
 }
