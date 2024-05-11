@@ -8,6 +8,44 @@
 #include <editor/editor_lib/org_graph_model.hpp>
 #include <editor/editor_lib/org_graph_scene.hpp>
 
+#define QCOMPARE_OP2_IMPL(lhs, rhs, op, opId)                             \
+    do {                                                                  \
+        if (![](auto&& qt_lhs_arg, auto&& qt_rhs_arg) {                   \
+                bool success = std::forward<decltype(qt_lhs_arg)>(        \
+                    qt_lhs_arg)                                           \
+                    op std::forward<decltype(qt_rhs_arg)>(qt_rhs_arg);    \
+                return QTest::reportResult(                               \
+                    success,                                              \
+                    [&qt_lhs_arg] {                                       \
+                        return qstrdup(fmt1(qt_lhs_arg).c_str());         \
+                    },                                                    \
+                    [&qt_rhs_arg] {                                       \
+                        return qstrdup(fmt1(qt_rhs_arg).c_str());         \
+                    },                                                    \
+                    #lhs,                                                 \
+                    #rhs,                                                 \
+                    QTest::ComparisonOperation::opId,                     \
+                    __FILE__,                                             \
+                    __LINE__);                                            \
+            }(lhs, rhs)) {                                                \
+            return;                                                       \
+        }                                                                 \
+    } while (false)
+
+#define QCOMPARE_EQ2(computed, baseline)                                  \
+    QCOMPARE_OP2_IMPL(computed, baseline, ==, Equal)
+#define QCOMPARE_NE2(computed, baseline)                                  \
+    QCOMPARE_OP2_IMPL(computed, baseline, !=, NotEqual)
+#define QCOMPARE_LT2(computed, baseline)                                  \
+    QCOMPARE_OP2_IMPL(computed, baseline, <, LessThan)
+#define QCOMPARE_LE2(computed, baseline)                                  \
+    QCOMPARE_OP2_IMPL(computed, baseline, <=, LessThanOrEqual)
+#define QCOMPARE_GT2(computed, baseline)                                  \
+    QCOMPARE_OP2_IMPL(computed, baseline, >, GreaterThan)
+#define QCOMPARE_GE2(computed, baseline)                                  \
+    QCOMPARE_OP_IMPL(computed, baseline, >=, GreaterThanOrEqual)
+
+
 void TestMindMap::testLibcolaApi1() {
     std::vector<std::pair<unsigned, unsigned>> edges{
         {0, 1},
@@ -147,7 +185,12 @@ void TestMindMap::testGraphvizIrClusters() {
     auto lyt = ir.doGraphvizLayout(gvc);
     lyt.writeSvg("/tmp/testGraphvizIrClusters.svg");
     lyt.writeXDot("/tmp/testGraphvizIrClusters.xdot");
-    auto converted = lyt.convert();
+    auto c = lyt.convert();
+
+    QCOMPARE_EQ2(c.subgraphPaths.size(), 3);
+    QCOMPARE_EQ2(c.subgraphs.size(), 1);
+    QCOMPARE_EQ2(c.subgraphs.at(0).subgraphs.size(), 1);
+    QCOMPARE_EQ2(c.subgraphs.at(1).subgraphs.size(), 1);
 }
 
 void TestMindMap::testGraphConstruction() {
@@ -170,44 +213,6 @@ Pair<SPtr<OrgStore>, SPtr<OrgGraph>> build_graph(CR<Str> text) {
     graph->addFullStore();
     return std::make_pair(store, graph);
 }
-
-#define QCOMPARE_OP2_IMPL(lhs, rhs, op, opId)                             \
-    do {                                                                  \
-        if (![](auto&& qt_lhs_arg, auto&& qt_rhs_arg) {                   \
-                bool success = std::forward<decltype(qt_lhs_arg)>(        \
-                    qt_lhs_arg)                                           \
-                    op std::forward<decltype(qt_rhs_arg)>(qt_rhs_arg);    \
-                return QTest::reportResult(                               \
-                    success,                                              \
-                    [&qt_lhs_arg] {                                       \
-                        return qstrdup(fmt1(qt_lhs_arg).c_str());         \
-                    },                                                    \
-                    [&qt_rhs_arg] {                                       \
-                        return qstrdup(fmt1(qt_rhs_arg).c_str());         \
-                    },                                                    \
-                    #lhs,                                                 \
-                    #rhs,                                                 \
-                    QTest::ComparisonOperation::opId,                     \
-                    __FILE__,                                             \
-                    __LINE__);                                            \
-            }(lhs, rhs)) {                                                \
-            return;                                                       \
-        }                                                                 \
-    } while (false)
-
-#define QCOMPARE_EQ2(computed, baseline)                                  \
-    QCOMPARE_OP2_IMPL(computed, baseline, ==, Equal)
-#define QCOMPARE_NE2(computed, baseline)                                  \
-    QCOMPARE_OP2_IMPL(computed, baseline, !=, NotEqual)
-#define QCOMPARE_LT2(computed, baseline)                                  \
-    QCOMPARE_OP2_IMPL(computed, baseline, <, LessThan)
-#define QCOMPARE_LE2(computed, baseline)                                  \
-    QCOMPARE_OP2_IMPL(computed, baseline, <=, LessThanOrEqual)
-#define QCOMPARE_GT2(computed, baseline)                                  \
-    QCOMPARE_OP2_IMPL(computed, baseline, >, GreaterThan)
-#define QCOMPARE_GE2(computed, baseline)                                  \
-    QCOMPARE_OP_IMPL(computed, baseline, >=, GreaterThanOrEqual)
-
 
 void TestMindMap::testGraphConstructionSubtreeId1() {
     auto [store, graph] = build_graph(R"(

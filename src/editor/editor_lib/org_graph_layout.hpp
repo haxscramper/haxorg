@@ -83,9 +83,30 @@ struct GraphLayoutIR {
     }
 
     struct Result {
+        struct Subgraph {
+            QRect         bbox;
+            Vec<Subgraph> subgraphs;
+
+            Subgraph const& getSubgraph(Span<int> path) const {
+                if (path.empty()) {
+                    return *this;
+                } else {
+                    return subgraphs.at(path.front())
+                        .getSubgraph(path.at(slice(1, 1_B)));
+                }
+            }
+        };
+
         Vec<QRect>                         fixed;
         UnorderedMap<IrEdge, QPainterPath> lines;
         QRect                              bbox;
+        Vec<Subgraph>                      subgraphs;
+        Vec<Vec<int>>                      subgraphPaths;
+
+        Subgraph const& getSubgraph(CVec<int> path) {
+            return subgraphs.at(path.front())
+                .getSubgraph(path.at(slice(1, 1_B)));
+        }
     };
 
     struct GraphvizResult {

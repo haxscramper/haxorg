@@ -1,6 +1,7 @@
 #include <editor/editor_lib/org_graph_layout.hpp>
 #include <editor/editor_lib/app_utils.hpp>
 #include <QPainterPath>
+#include <hstd/stdlib/Set.hpp>
 
 QRect getGraphBBox(CR<Graphviz::Graph> g) {
     boxf rect = g.info()->bb;
@@ -127,6 +128,11 @@ QPainterPath getEdgeSpline(
     return path;
 }
 
+namespace {
+const char* original_subgraph_nodes_prop = "original_nodes";
+const char* original_subgraph_path_prop  = "original_path";
+const char* original_subgraph_index      = "original_index";
+} // namespace
 
 GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     Graphviz             gvc,
@@ -140,31 +146,87 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
 
     result.graph.setRankDirection(Graphviz::Graph::RankDirection::LR);
 
-    int                 nodeCounter = 0;
-    Vec<Graphviz::Node> nodes //
-        = this->rectangles
-        | rv::transform([&](CR<QRect> r) -> Graphviz::Node {
-              auto node = result.graph.node(fmt1(nodeCounter));
-              // default DPI used by graphviz to convert from
-              // inches.
-              node.setHeight(r.height() / float(graphviz_size_scaling));
-              node.setWidth(r.width() / float(graphviz_size_scaling));
-              node.setAttr("index", nodeCounter);
-              node.setAttr("fixedsize", true);
-              node.setAttr("original_height", r.height());
-              node.setAttr("original_width", r.width());
-              node.setShape(Graphviz::Node::Shape::rectangle);
-              node.setLabel("");
-              ++nodeCounter;
-              return node;
-          })
-        | rs::to<Vec>();
+    auto add_node = [&](Graphviz::Graph& graph,
+                        int              index) -> Graphviz::Node {
+        CR<QRect> r    = rectangles.at(index);
+        auto      node = graph.node(fmt1(index));
+        // default DPI used by graphviz to convert from
+        // inches.
+        node.setHeight(r.height() / float(graphviz_size_scaling));
+        node.setWidth(r.width() / float(graphviz_size_scaling));
+        node.setAttr("index", index);
+        node.setAttr("fixedsize", true);
+        node.setAttr("original_height", r.height());
+        node.setAttr("original_width", r.width());
+        node.setShape(Graphviz::Node::Shape::rectangle);
+        node.setLabel("");
+        return node;
+    };
+
+    UnorderedSet<int> nodes_in_clusters;
+
+    {
+        auto aux = [&](this auto&& self, Subgraph const& sub) -> void {
+            for (int node : sub.nodes) { nodes_in_clusters.incl(node); }
+            for (auto const& s : sub.subgraphs) { self(s); }
+        };
+
+        for (auto const& g : subgraphs) { aux(g); }
+    }
+
+    Vec<Opt<Graphviz::Node>> nodes;
+    nodes.resize(this->rectangles.size());
+
+    for (auto const& it : enumerator(this->rectangles)) {
+        if (!nodes_in_clusters.contains(it.index())) {
+            nodes.at(it.index()) = add_node(result.graph, it.index());
+        }
+    }
+
+    {
+        Vec<Graphviz::Graph> added_subgraphs;
+
+        int subgraph_counter = 0;
+
+        Func<void(Graphviz::Graph&, Subgraph const&, CVec<int>)> aux;
+
+        aux = [&](Graphviz::Graph& parent,
+                  Subgraph const&  sub,
+                  CVec<int>        path) -> void {
+            auto out_graph = parent.newSubgraph(
+                fmt("cluster_{}",
+                    sub.graphName.empty() ? Str(fmt1(subgraph_counter))
+                                          : sub.graphName));
+
+            ++subgraph_counter;
+
+            out_graph.setAttr(original_subgraph_index, subgraph_counter);
+            out_graph.setAttr(
+                original_subgraph_path_prop, to_json_eval(path).dump());
+            out_graph.setAttr(
+                original_subgraph_nodes_prop,
+                to_json_eval(sub.nodes).dump());
+
+            for (int node : sub.nodes) {
+                nodes.at(node) = add_node(out_graph, node);
+            }
+
+            for (auto const& s : enumerator(sub.subgraphs)) {
+                aux(out_graph, s.value(), path + Vec<int>{s.index()});
+            }
+        };
+
+        for (auto const& g : enumerator(subgraphs)) {
+            aux(result.graph, g.value(), Vec<int>{g.index()});
+        }
+    }
 
     Vec<Graphviz::Edge> //
         edges = this->edges
               | rv::transform([&](CR<Pair<int, int>> e) -> Graphviz::Edge {
                     auto edge = result.graph.edge(
-                        nodes.at(e.first), nodes.at(e.second));
+                        nodes.at(e.first).value(),
+                        nodes.at(e.second).value());
                     edge.setAttr("source_index", e.first);
                     edge.setAttr("target_index", e.second);
                     return edge;
@@ -235,6 +297,55 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
     });
 
+    auto set_graph = [&](this auto&&         self,
+                         Result::Subgraph&   out_parent,
+                         CR<Graphviz::Graph> in_subgraph,
+                         Span<int>           path) -> void {
+        if (path.empty()) {
+            std::string str //
+                = in_subgraph.getAttr<Str>(original_subgraph_nodes_prop)
+                      .value()
+                      .toBase();
+
+            auto original_nodes = from_json_eval<Vec<int>>(
+                json::parse(str));
+            out_parent.bbox = getGraphBBox(in_subgraph);
+        } else {
+            if (!out_parent.subgraphs.has(path.front())) {
+                out_parent.subgraphs.resize(path.front() + 1);
+            }
+
+            self(
+                out_parent.subgraphs.at(path.front()),
+                in_subgraph,
+                path[slice(1, 1_B)]);
+        }
+    };
+
+    graph.eachSubgraph([&](CR<Graphviz::Graph> g) {
+        auto original_path = from_json_eval<Vec<int>>(json::parse(
+            g.getAttr<Str>(original_subgraph_path_prop).value().toBase()));
+
+        int original_index = g.getAttr<int>(original_subgraph_index)
+                                 .value();
+
+        if (!res.subgraphs.has(original_path.front())) {
+            res.subgraphs.resize(original_path.front() + 1);
+        }
+
+        _qdbg(original_index);
+
+        if (!res.subgraphPaths.has(original_index)) {
+            res.subgraphPaths.resize(original_index + 1);
+        }
+
+        res.subgraphPaths.at(original_index) = original_path;
+
+        set_graph(
+            res.subgraphs.at(original_path.front()),
+            g,
+            original_path[slice(1, 1_B)]);
+    });
 
     return res;
 }

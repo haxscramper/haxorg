@@ -17,6 +17,20 @@ namespace ns = nlohmann;
 
 extern template class nlohmann::basic_json<>;
 
+template <typename T>
+json to_json_eval(T const& value) {
+    json result;
+    to_json(result, value);
+    return result;
+}
+
+template <typename T>
+T from_json_eval(json const& value) {
+    T result = SerdeDefaultProvider<T>::get();
+    from_json(value, result);
+    return result;
+}
+
 void to_json(json& j, int i);
 void to_json(json& j, CR<std::string> str);
 void to_json(json& j, CR<Str> str);
@@ -115,6 +129,7 @@ void from_json(const json& in, Vec<T>& out) {
 
 template <typename T>
 inline void to_json(json& res, CR<Vec<T>> str) {
+    res = json::array();
     for (const auto& it : str) {
         json tmp;
         to_json(tmp, it);
@@ -124,6 +139,7 @@ inline void to_json(json& res, CR<Vec<T>> str) {
 
 template <typename T>
 inline void to_json(json& res, CR<std::vector<T>> str) {
+    res = json::array();
     for (const auto& it : str) {
         json tmp;
         to_json(tmp, it);

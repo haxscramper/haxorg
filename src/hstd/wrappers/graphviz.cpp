@@ -123,6 +123,13 @@ void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
     }
 }
 
+void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) {
+    for (Agraph_t* subgraph = agfstsubg(graph); subgraph;
+         subgraph           = agnxtsubg(subgraph)) {
+        cb(Graph(subgraph));
+    }
+}
+
 Str Graphviz::layoutTypeToString(LayoutType layoutType) const {
     switch (layoutType) {
         case LayoutType::Dot: return "dot";
