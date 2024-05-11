@@ -147,10 +147,15 @@ inline void qt_assert_x(
 }
 
 template <typename T>
+bool is_of_type(QVariant const& var) {
+    return var.typeId() == qMetaTypeId<T>();
+}
+
+template <typename T>
 T qvariant_get(QVariant const& var) {
     Q_ASSERT(var.isValid());
     Q_ASSERT_X(
-        var.typeId() == qMetaTypeId<T>(),
+        is_of_type<T>(var),
         "qvariant_get",
         fmt("Expected and given variant types differ. {} ({}) != {} "
             "({}):",

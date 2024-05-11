@@ -116,7 +116,6 @@ ColText printModelTree(
             auto act      = [&]() {
                 QVariant value = index.data(role);
                 if (value.isValid()) {
-
                     if (value.typeName() == "QString"_ss) {
                         repr.roleValue = value.toString().toStdString();
                     } else {
@@ -126,23 +125,16 @@ ColText printModelTree(
                 }
             };
 
-            try {
-                if (ignoreExceptions) {
-                    try {
-                        act();
-                    } catch (std::exception& ex) {
-                        repr.roleValue = fmt(
-                            "Exception {} {}",
-                            typeid(ex).name(),
-                            ex.what());
-                        record.roles.push_back(repr);
-                    }
-                } else {
+            if (ignoreExceptions) {
+                try {
                     act();
+                } catch (std::exception& ex) {
+                    repr.roleValue = fmt(
+                        "Exception {} {}", typeid(ex).name(), ex.what());
+                    record.roles.push_back(repr);
                 }
-            } catch (model_role_not_implemented const& ex) {
-                repr.roleValue = fmt("Role not implemented {}", ex.what());
-                record.roles.push_back(repr);
+            } else {
+                act();
             }
         }
 
@@ -153,11 +145,23 @@ ColText printModelTree(
         add_proxy(currentIndex);
 
         while (currentProxyModel) {
-            auto mapped  = currentProxyModel->mapToSource(currentIndex);
-            currentIndex = mapped;
-            add_proxy(currentIndex);
-            currentProxyModel = qobject_cast<QSortFilterProxyModel const*>(
-                currentProxyModel->sourceModel());
+            Q_ASSERT(currentIndex.model() != nullptr);
+            Q_ASSERT(currentProxyModel->sourceModel() != nullptr);
+            if (!currentProxyModel->sourceModel()->hasIndex(
+                    currentIndex.row(), currentIndex.column())) {
+                break;
+            }
+
+            auto mapped = currentProxyModel->mapToSource(currentIndex);
+            if (mapped.isValid()) {
+                currentIndex = mapped;
+                add_proxy(currentIndex);
+                currentProxyModel = qobject_cast<
+                    QSortFilterProxyModel const*>(
+                    currentProxyModel->sourceModel());
+            } else {
+                break;
+            }
         }
 
         record.finalRepr = toString(index);

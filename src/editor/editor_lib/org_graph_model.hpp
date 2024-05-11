@@ -374,6 +374,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     struct Subgraph {
         Str   name;
         QRect bbox;
+        DESC_FIELDS(Subgraph, (name, bbox));
     };
 
     struct ElementLayout {
@@ -455,7 +456,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         auto base                           = sourceModel()->roleNames();
         base[(int)OrgGraphRoles::NodeShape] = "NodeShapeRole";
         base[(int)OrgGraphRoles::EdgeShape] = "EdgeShapeRole";
-        base[(int)Role::Subgraph]           = "SubgraphBBox";
+        base[(int)Role::Subgraph]           = "Subgraph";
         base[(int)Role::LayoutBBoxRole]     = "LayoutBBoxRole";
         return base;
     }
@@ -479,3 +480,15 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         }
     }
 };
+
+
+Q_DECLARE_METATYPE(OrgGraphLayoutProxy::Subgraph);
+
+inline QDebug operator<<(
+    QDebug                               debug,
+    const OrgGraphLayoutProxy::Subgraph& t) {
+    QDebugStateSaver saver(debug);
+    debug.nospace() << "OrgGraphLayoutProxy::Subgraph(" << t.name << " "
+                    << t.bbox << ")";
+    return debug;
+}

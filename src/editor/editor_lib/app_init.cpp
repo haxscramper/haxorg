@@ -1,5 +1,6 @@
 #include <editor/editor_lib/app_init.hpp>
 #include <editor/editor_lib/org_document_model.hpp>
+#include <editor/editor_lib/org_graph_model.hpp>
 #include <iostream>
 
 void customMessageHandler(
@@ -36,6 +37,8 @@ void customMessageHandler(
 
 void editorInitMain() {
     qRegisterMetaType<OrgBoxId>("OrgBoxId");
+    qRegisterMetaType<OrgGraphLayoutProxy::Subgraph>(
+        "OrgGraphLayoutProxySubgraph");
 
     QByteArray envVar = qgetenv("QT_LOGGING_RULES");
     if (!envVar.isEmpty()) {

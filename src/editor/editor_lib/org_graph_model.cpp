@@ -498,8 +498,7 @@ QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
                     fmt("Subgraph element for layout proxy does not "
                         "implement {}",
                         roleNames().value(role).toStdString()));
-                err.model = this;
-                throw err;
+                return QVariant();
             }
         }
     } else {
