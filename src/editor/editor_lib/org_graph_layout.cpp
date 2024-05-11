@@ -207,6 +207,12 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
                 fmt("cluster_{}",
                     sub.graphName.empty() ? Str(fmt1(subgraph_counter))
                                           : sub.graphName));
+
+            if (sub.internalMargin) {
+                out_graph.setAttr("margin", sub.internalMargin.value());
+            }
+
+
             out_graph.setAttr(original_subgraph_index, subgraph_counter);
 
             ++subgraph_counter;

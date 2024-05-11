@@ -406,11 +406,13 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         }
     };
 
-    using GetNodeSize = Func<QSize(QModelIndex const& index)>;
+    using GetNodeSize       = Func<QSize(QModelIndex const& index)>;
+    using GetSubgraphMargin = Func<Opt<int>(QModelIndex const&)>;
 
     struct LayoutConfig {
-        bool        clusterSubtrees = false;
-        GetNodeSize getNodeSize;
+        bool                   clusterSubtrees = false;
+        GetNodeSize            getNodeSize;
+        Opt<GetSubgraphMargin> getSubgraphMargin;
     };
 
 

@@ -54,6 +54,7 @@ struct GraphLayoutIR {
         Str           graphName;
         Vec<int>      nodes;
         Vec<Subgraph> subgraphs;
+        Opt<int>      internalMargin;
         bool          isEmpty() const {
             return nodes.empty()
                 && rs::all_of(subgraphs, [](CR<Subgraph> s) {

@@ -655,6 +655,8 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
 
     b.proxy->config.clusterSubtrees = true;
+    b.proxy->config.getSubgraphMargin =
+        [](QModelIndex const& index) -> Opt<int> { return 10; };
     b.proxy->updateCurrentLayout();
     b.view->rebuildScene();
 

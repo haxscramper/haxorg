@@ -412,6 +412,10 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                 if (result.isEmpty()) {
                     return std::nullopt;
                 } else {
+                    if (config.getSubgraphMargin) {
+                        result.internalMargin = config.getSubgraphMargin
+                                                    .value()(index);
+                    }
                     result.nodes.push_back(
                         nodeToRect.at(cluster_index.getVDesc()));
                     return result;
