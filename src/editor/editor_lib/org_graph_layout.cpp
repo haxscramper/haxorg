@@ -158,7 +158,7 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
 
     auto add_node = [&](Graphviz::Graph& graph,
                         int              index) -> Graphviz::Node {
-        CR<QRect> r    = rectangles.at(index);
+        CR<QSize> r    = rectangles.at(index);
         auto      node = graph.node(fmt1(index));
         // default DPI used by graphviz to convert from
         // inches.
@@ -269,7 +269,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     ir.baseRectangles.reserve(rectangles.size());
     for (auto const& r : rectangles) {
         ir.baseRectangles.push_back(
-            vpsc::Rectangle(r.left(), r.right(), r.top(), r.bottom()));
+            vpsc::Rectangle(0, r.width(), 0, r.width()));
     }
 
     ir.rectPointers                                 //

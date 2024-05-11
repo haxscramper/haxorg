@@ -63,7 +63,7 @@ struct GraphLayoutIR {
         }
     };
 
-    Vec<QRect>           rectangles;
+    Vec<QSize>           rectangles;
     Vec<IrEdge>          edges;
     Vec<GraphConstraint> constraints;
     Vec<Subgraph>        subgraphs;

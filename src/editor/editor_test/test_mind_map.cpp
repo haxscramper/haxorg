@@ -93,10 +93,10 @@ void TestMindMap::testLibcolaIr1() {
     ir.edges.push_back({1, 2});
     ir.edges.push_back({2, 3});
 
-    ir.rectangles.push_back(QRect(0, 0, 5, 5));
-    ir.rectangles.push_back(QRect(5, 5, 5, 5));
-    ir.rectangles.push_back(QRect(10, 10, 5, 5));
-    ir.rectangles.push_back(QRect(15, 15, 5, 5));
+    ir.rectangles.push_back(QSize(5, 5));
+    ir.rectangles.push_back(QSize(5, 5));
+    ir.rectangles.push_back(QSize(5, 5));
+    ir.rectangles.push_back(QSize(5, 5));
 
     using C = GraphConstraint;
 
@@ -122,10 +122,10 @@ void TestMindMap::testGraphvizIr1() {
     ir.edges.push_back({1, 2});
     ir.edges.push_back({2, 3});
 
-    ir.rectangles.push_back(QRect(0, 0, 5, 5));
-    ir.rectangles.push_back(QRect(5, 5, 5, 5));
-    ir.rectangles.push_back(QRect(10, 10, 20, 20));
-    ir.rectangles.push_back(QRect(15, 15, 20, 20));
+    ir.rectangles.push_back(QSize(5, 5));
+    ir.rectangles.push_back(QSize(5, 5));
+    ir.rectangles.push_back(QSize(20, 20));
+    ir.rectangles.push_back(QSize(20, 20));
     auto lyt = ir.doGraphvizLayout(gvc);
     lyt.writeSvg("/tmp/testGraphvizIr1.svg");
     lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
@@ -156,7 +156,7 @@ void TestMindMap::testGraphvizIrClusters() {
     };
 
     for (int i = 0; i <= 10; ++i) {
-        ir.rectangles.push_back(QRect(0, 0, 10, 10));
+        ir.rectangles.push_back(QSize(10, 10));
     }
 
     using S = GraphLayoutIR::Subgraph;
@@ -569,7 +569,7 @@ struct SceneBench {
         view->rebuildScene();
 
         QSize box = proxy->currentLayout.bbox.size();
-        box       = box.grownBy(QMargins(50, 50, 50, 50));
+        box       = box.grownBy(QMargins(20, 20, 20, 20));
         window->resize(box);
         QTest::qWait(100);
         Q_ASSERT(QTest::qWaitForWindowActive(window.get()));
@@ -607,11 +607,13 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
     b.debugModel("/tmp/testQtGraphSceneFullMindMap_model.txt");
     b.debugProxy("/tmp/testQtGraphSceneFullMindMap_proxy.txt");
-    auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
-        b.proxy->currentLayout.original);
+    {
+        auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
+            b.proxy->currentLayout.original);
 
-    lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap.svg");
-    lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
+        lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap.svg");
+        lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
+    }
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_pre_filter.png", 2);
@@ -660,12 +662,23 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     b.proxy->updateCurrentLayout();
     b.view->rebuildScene();
 
+    b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
+        QMargins(100, 100, 100, 100)));
+
     ::debugModel(
         b.proxy.get(),
         b.store.get(),
         "/tmp/testQtGraphSceneFullMindMap_filter_layout_proxy.txt",
         true);
 
+    {
+
+        auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
+            b.proxy->currentLayout.original);
+
+        lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap_cluster.svg");
+        lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap_cluster.xdot");
+    }
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_clusters.png", 2);

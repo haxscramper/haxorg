@@ -366,8 +366,7 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
             auto desc = qindex_get<V>(index, OrgGraphRoles::NodeDesc);
             nodeToRect[desc] = ir.rectangles.size();
             auto size        = config.getNodeSize(index);
-            ir.rectangles.push_back(
-                QRect(0, 0, size.width(), size.height()));
+            ir.rectangles.push_back(QSize(size.width(), size.height()));
         } else {
             auto [source, target] = qindex_get<Pair<V, V>>(
                 index, OrgGraphRoles::SourceAndTarget);
