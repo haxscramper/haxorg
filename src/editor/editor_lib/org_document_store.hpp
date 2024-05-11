@@ -160,10 +160,13 @@ struct OrgStore : public QObject {
         return addRoot(sem::parseStringOpts(text, opts));
     }
 
-    OrgTreeNode*  tree(CR<OrgBoxId> id) const { return nodeLookup.at(id); }
+    OrgTreeNode* getOrgTree(CR<OrgBoxId> id) const {
+        return nodeLookup.at(id);
+    }
+
     Opt<OrgBoxId> parent(CR<OrgBoxId> id) const {
-        if (tree(id)->parent) {
-            return tree(id)->parent->boxId;
+        if (getOrgTree(id)->parent) {
+            return getOrgTree(id)->parent->boxId;
         } else {
             return std::nullopt;
         }

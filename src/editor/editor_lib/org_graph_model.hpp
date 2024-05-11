@@ -42,6 +42,9 @@ enum OrgGraphModelRoles
     EdgeDescAtRole, ///< Get edge descriptor for index
     SourceAndTargetRole,
     DebugDisplayRole,
+    SubnodeIndicesRole, ///< Get list of model indixes for subnode.
+                        ///< Returned indices come from the base graph
+                        ///< model.
 
     OrgGraphModelRoles__LAST__,
 };
@@ -124,6 +127,8 @@ struct OrgGraph : public QAbstractListModel {
         roles[OrgGraphModelRoles::SourceAndTargetRole]
             = "SourceAndTargetRole";
         roles[OrgGraphModelRoles::DebugDisplayRole] = "DebugDisplayRole";
+        roles[OrgGraphModelRoles::SubnodeIndicesRole]
+            = "SubnodeIndicesRole";
         return roles;
     }
 
@@ -148,7 +153,11 @@ struct OrgGraph : public QAbstractListModel {
         return getEdgeDesc(index.row());
     }
 
-    VDesc getBoxNode(CR<OrgBoxId> id) const { return boxToVertex.at(id); }
+    bool hasBoxDesc(CR<OrgBoxId> id) const {
+        return boxToVertex.contains(id);
+    }
+
+    VDesc getBoxDesc(CR<OrgBoxId> id) const { return boxToVertex.at(id); }
 
     VDesc getEdgeSource(EDesc d) const { return boost::source(d, g); }
 
@@ -162,6 +171,14 @@ struct OrgGraph : public QAbstractListModel {
 
     OrgBoxId getBox(int row) const {
         return getNodeProp(getNodeDesc(row)).box;
+    }
+
+    int getDescIndex(VDesc desc) const {
+        for (auto const& it : enumerator(nodes)) {
+            if (it.value() == desc) { return it.index(); }
+        }
+
+        throw std::logic_error("vertex does not exist in graph");
     }
 
     OrgGraphEdge& getEdgeProp(EDesc desc) { return g[desc]; }
@@ -186,11 +203,14 @@ struct OrgGraph : public QAbstractListModel {
         return e;
     }
 
-    VDesc addVertex() {
+    VDesc addVertex(CR<OrgBoxId> box) {
         beginInsertRows(QModelIndex(), nodes.size(), nodes.size());
         VDesc v = boost::add_vertex(g);
         nodes.push_back(v);
         endInsertRows();
+        g[v].box         = box;
+        boxToVertex[box] = v;
+
         return v;
     }
 
@@ -226,8 +246,8 @@ struct OrgGraph : public QAbstractListModel {
     Vec<EDesc> out_edges(
         CR<OrgBoxId>      source,
         CR<Opt<OrgBoxId>> target = std::nullopt) {
-        VDesc      v1 = getBoxNode(source);
-        Opt<VDesc> v2 = target ? std::make_optional(getBoxNode(*target))
+        VDesc      v1 = getBoxDesc(source);
+        Opt<VDesc> v2 = target ? std::make_optional(getBoxDesc(*target))
                                : std::nullopt;
         Vec<EDesc> result;
 
@@ -247,8 +267,8 @@ struct OrgGraph : public QAbstractListModel {
     Vec<EDesc> in_edges(
         CR<OrgBoxId>      source,
         CR<Opt<OrgBoxId>> target = std::nullopt) {
-        VDesc      v1 = getBoxNode(source);
-        Opt<VDesc> v2 = target ? std::make_optional(getBoxNode(*target))
+        VDesc      v1 = getBoxDesc(source);
+        Opt<VDesc> v2 = target ? std::make_optional(getBoxDesc(*target))
                                : std::nullopt;
         Vec<EDesc> result;
 

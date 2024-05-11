@@ -23,17 +23,19 @@ bool isLinkedDescriptionItem(sem::OrgArg n) {
                });
 }
 
-void OrgGraph::addBox(CR<OrgBoxId> box) {
+bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
     // If any of the parent nodes for this box is a linked description
     // item, ignore the entry as it has already been added as a part of the
     // link descripion.
-    if (rs::any_of(
-            store->tree(box)->parentChain(/*withSelf = */ false),
-            [](OrgTreeNode* parent) -> bool {
-                return isLinkedDescriptionItem(parent->boxedNode());
-            })) {
-        return;
-    }
+    return rs::any_of(
+        store->getOrgTree(box)->parentChain(/*withSelf = */ false),
+        [](OrgTreeNode* parent) -> bool {
+            return isLinkedDescriptionItem(parent->boxedNode());
+        });
+}
+
+void OrgGraph::addBox(CR<OrgBoxId> box) {
+    if (isLinkedDescriptionItem(store, box)) { return; }
 
 
     sem::SemId<sem::Org> n = store->node(box);
@@ -90,8 +92,7 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         sem::eachSubnodeRec(n, register_used_links);
     }
 
-    VDesc v  = addVertex();
-    g[v].box = box;
+    VDesc v = addVertex(box);
 
     switch (n->getKind()) {
         case osk::Subtree: {
@@ -133,7 +134,7 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         }
     }
 
-    boxToVertex[box] = v;
+
     updateUnresolved(v);
 }
 
@@ -141,7 +142,7 @@ void OrgGraph::updateUnresolved(VDesc) {
     for (auto const& id : unresolved.keys()) {
         auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
             for (auto const& box : target) {
-                auto e = addEdge(getBoxNode(id), getBoxNode(box));
+                auto e = addEdge(getBoxDesc(id), getBoxDesc(box));
                 g[e]   = spec;
             }
         };
@@ -227,7 +228,7 @@ std::string OrgGraph::toGraphviz() {
                         "{}-{} [{}]",
                         prop.box,
                         prop.kind,
-                        store->tree(prop.box)->selfPath());
+                        store->getOrgTree(prop.box)->selfPath());
                 },
                 get(boost::vertex_bundle, g)));
 
@@ -286,6 +287,31 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
 
         case OrgGraphModelRoles::DebugDisplayRole: {
             return QVariant();
+        }
+
+        case OrgGraphModelRoles::SubnodeIndicesRole: {
+            if (isNode(index)) {
+                Vec<QModelIndex> result;
+                OrgTreeNode* node = store->getOrgTree(getBox(index.row()));
+                Q_ASSERT_X(
+                    node != nullptr,
+                    "data for subnode indices",
+                    qdebug_to_str(index));
+                for (auto const& it : enumerator(node->subnodes)) {
+                    // Not all node boxes are directly mapped to the graph
+                    // vertices -- description lists are filtered into edge
+                    // properties.
+                    if (!isLinkedDescriptionItem(
+                            store, it.value()->boxId)) {
+                        result.push_back(this->index(
+                            getDescIndex(getBoxDesc(it.value()->boxId))));
+                    }
+                }
+
+                return QVariant::fromValue(result);
+            } else {
+                return QVariant();
+            }
         }
 
         case OrgGraphModelRoles::EdgeDescAtRole: {
