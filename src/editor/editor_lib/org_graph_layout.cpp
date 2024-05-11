@@ -281,7 +281,6 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     res.fixed.resize(graph.nodeCount());
 
     res.bbox = getGraphBBox(graph);
-    qDebug() << "bounding box for graphviz" << res.bbox;
     Q_ASSERT(res.bbox.size() != QSize(0, 0));
 
     graph.eachNode([&](CR<Graphviz::Node> node) {
@@ -331,8 +330,6 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
         int original_index = g.getAttr<int>(original_subgraph_index)
                                  .value();
 
-
-        _qdbg(original_index);
 
         mut_at(res.subgraphPaths, original_index) = original_path;
 

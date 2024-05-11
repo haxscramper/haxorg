@@ -7,6 +7,7 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <editor/editor_lib/org_document_render.hpp>
 #include <editor/editor_lib/org_exporter_html.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 #pragma clang diagnostic error "-Wswitch"
 
@@ -291,7 +292,7 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
 
         case (int)OrgGraphRoles::SubnodeIndices: {
             if (isNode(index)) {
-                Vec<QModelIndex> result;
+                QList<QModelIndex> result;
                 OrgTreeNode* node = store->getOrgTree(getBox(index.row()));
                 Q_ASSERT_X(
                     node != nullptr,
@@ -358,7 +359,7 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
             auto desc = qindex_get<V>(index, OrgGraphRoles::NodeDesc);
             nodeToRect[desc] = ir.rectangles.size();
-            auto size        = getNodeSize(index);
+            auto size        = config.getNodeSize(index);
             ir.rectangles.push_back(
                 QRect(0, 0, size.width(), size.height()));
         } else {
@@ -369,12 +370,77 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         }
     }
 
+    if (config.clusterSubtrees) {
+        Func<Opt<GraphLayoutIR::Subgraph>(QModelIndex const&)> rec_cluster;
+
+        rec_cluster = [&](QModelIndex const& cluster_index)
+            -> Opt<GraphLayoutIR::Subgraph> {
+            auto cluster_box = qindex_get<OrgBoxId>(
+                cluster_index, SharedModelRoles::IndexBox);
+            auto cluster_desc = qindex_get<V>(
+                cluster_index, OrgGraphRoles::NodeDesc);
+            sem::SemId<sem::Org> node = store->node(cluster_box);
+
+            if (node->is(osk::Subtree)) {
+                GraphLayoutIR::Subgraph result;
+                for (auto const& sub : qindex_get<QList<QModelIndex>>(
+                         cluster_index, OrgGraphRoles::SubnodeIndices)) {
+                    auto sub_box = qindex_get<OrgBoxId>(
+                        sub, SharedModelRoles::IndexBox);
+                    sem::SemId<sem::Org> sub_node = store->node(sub_box);
+                    auto                 sub_desc = qindex_get<V>(
+                        sub, OrgGraphRoles::NodeDesc);
+
+                    if (sub_node->is(osk::Subtree)) {
+                        if (auto sub_cluster = rec_cluster(sub)) {
+                            result.subgraphs.push_back(
+                                sub_cluster.value());
+                        }
+
+                    } else {
+                        // Not all subtrees for an entry are guaranted to
+                        // be represented in the cluster - nodes can be
+                        // filtered prior to layout.
+                        if (nodeToRect.contains(sub_desc)) {
+                            result.nodes.push_back(
+                                nodeToRect.at(sub_desc));
+                        }
+                    }
+                }
+
+                if (result.isEmpty()) {
+                    return std::nullopt;
+                } else {
+                    result.nodes.push_back(nodeToRect.at(cluster_desc));
+                    return result;
+                }
+
+            } else {
+                return std::nullopt;
+            }
+        };
+
+        for (int row = 0; row < src->rowCount(); ++row) {
+            QModelIndex index = src->index(row, 0);
+            if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
+                if (auto sub = rec_cluster(index)) {
+                    ir.subgraphs.push_back(*sub);
+                }
+            }
+        }
+    }
+
+
     Graphviz   gvc;
     FullLayout res;
     auto       lyt = ir.doGraphvizLayout(gvc);
     res.original   = lyt;
-    auto conv_lyt  = lyt.convert();
-    res.bbox       = conv_lyt.bbox;
+
+    lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap_post_cluster.svg");
+    lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap_post_cluster.xdot");
+
+    auto conv_lyt = lyt.convert();
+    res.bbox      = conv_lyt.bbox;
 
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);

@@ -54,6 +54,12 @@ struct GraphLayoutIR {
         Str           graphName;
         Vec<int>      nodes;
         Vec<Subgraph> subgraphs;
+        bool          isEmpty() const {
+            return nodes.empty()
+                && rs::all_of(subgraphs, [](CR<Subgraph> s) {
+                       return s.isEmpty();
+                   });
+        }
     };
 
     Vec<QRect>           rectangles;
@@ -92,7 +98,7 @@ struct GraphLayoutIR {
                     case 0: return *this;
                     case 1: return subgraphs.at(path.front());
                     default:
-                             return subgraphs.at(path.front())
+                        return subgraphs.at(path.front())
                             .getSubgraph(path.at(slice(1, 1_B)));
                 }
             }

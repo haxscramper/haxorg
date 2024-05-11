@@ -343,6 +343,14 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         }
     };
 
+    using GetNodeSize = Func<QSize(QModelIndex const& index)>;
+
+    struct LayoutConfig {
+        bool        clusterSubtrees = false;
+        GetNodeSize getNodeSize;
+    };
+
+
     struct FullLayout {
         QHash<int, ElementLayout> data;
         QRect                     bbox;
@@ -354,11 +362,15 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
             original;
     };
 
-    using GetNodeSize = Func<QSize(QModelIndex const& index)>;
-    GetNodeSize getNodeSize;
 
-    OrgGraphLayoutProxy(CR<GetNodeSize> size, QObject* parent)
-        : QSortFilterProxyModel(parent), getNodeSize(size) {}
+    LayoutConfig config;
+    OrgStore*    store;
+
+    OrgGraphLayoutProxy(
+        OrgStore*        store,
+        CR<LayoutConfig> size,
+        QObject*         parent)
+        : QSortFilterProxyModel(parent), store(store), config(size) {}
 
 
     ElementLayout getElement(QModelIndex const& idx) const {
@@ -372,6 +384,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     FullLayout currentLayout;
     FullLayout getFullLayout() const;
     void       updateCurrentLayout() { currentLayout = getFullLayout(); }
+
 
     virtual QVariant data(const QModelIndex& index, int role)
         const override;

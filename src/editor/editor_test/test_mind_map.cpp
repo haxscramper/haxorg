@@ -500,7 +500,12 @@ Paragraph [[id:subtree-id]]
         .toString();
 
     OrgGraphLayoutProxy proxy{
-        [](QModelIndex const&) -> QSize { return QSize(20, 20); },
+        store.get(),
+        OrgGraphLayoutProxy::LayoutConfig{
+            .getNodeSize = [](QModelIndex const&) -> QSize {
+                return QSize(20, 20);
+            },
+        },
         nullptr,
     };
 
@@ -545,8 +550,12 @@ struct SceneBench {
         this->graph         = graph;
 
         proxy = std::make_shared<OrgGraphLayoutProxy>(
-            [&](QModelIndex const& index) {
-                return view->getNodeSize(index);
+            store.get(),
+            OrgGraphLayoutProxy::LayoutConfig{
+                .getNodeSize =
+                    [&](QModelIndex const& index) {
+                        return view->getNodeSize(index);
+                    },
             },
             nullptr);
 
@@ -644,4 +653,11 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
+
+    b.proxy->config.clusterSubtrees = true;
+    b.proxy->updateCurrentLayout();
+    b.view->rebuildScene();
+
+    save_screenshot(
+        b.window.get(), "/tmp/full_mind_map_screenshot_clusters.png", 2);
 }
