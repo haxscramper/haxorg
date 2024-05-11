@@ -109,6 +109,47 @@ void TestMindMap::testGraphvizIr1() {
     QCOMPARE_EQ(converted.lines.size(), 3);
 }
 
+void TestMindMap::testGraphvizIrClusters() {
+    GraphLayoutIR ir;
+    Graphviz      gvc;
+
+    auto edge = [&](int source, int target) {
+        ir.edges.push_back({source, target});
+    };
+
+    for (int i = 0; i <= 10; ++i) {
+        ir.rectangles.push_back(QRect(0, 0, 10, 10));
+    }
+
+    using S = GraphLayoutIR::Subgraph;
+
+
+    edge(0, 2);
+    edge(2, 1);
+    edge(1, 8);
+    edge(8, 3);
+    edge(3, 4);
+    edge(4, 6);
+    edge(3, 6);
+    edge(8, 5);
+    edge(5, 9);
+    edge(9, 10);
+    edge(10, 7);
+    edge(7, 5);
+
+    ir.subgraphs.push_back(
+        S{.nodes     = {}, // No nodes in the first cluster,
+          .subgraphs = {
+              S{.nodes = {3, 4, 6}},
+              S{.nodes = {5, 9, 7, 10}},
+          }});
+
+    auto lyt = ir.doGraphvizLayout(gvc);
+    lyt.writeSvg("/tmp/testGraphvizIrClusters.svg");
+    lyt.writeXDot("/tmp/testGraphvizIrClusters.xdot");
+    auto converted = lyt.convert();
+}
+
 void TestMindMap::testGraphConstruction() {
     OrgStore store;
     OrgGraph graph{&store, nullptr};

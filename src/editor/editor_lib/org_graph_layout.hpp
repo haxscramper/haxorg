@@ -49,9 +49,6 @@ struct GraphConstraint {
 
 struct GraphLayoutIR {
     using IrEdge = Pair<int, int>;
-    Vec<QRect>           rectangles;
-    Vec<IrEdge>          edges;
-    Vec<GraphConstraint> constraints;
 
     struct Subgraph {
         Str           graphName;
@@ -59,9 +56,13 @@ struct GraphLayoutIR {
         Vec<Subgraph> subgraphs;
     };
 
-    double width     = 100;
-    double height    = 100;
-    Str    graphName = "G";
+    Vec<QRect>           rectangles;
+    Vec<IrEdge>          edges;
+    Vec<GraphConstraint> constraints;
+    Vec<Subgraph>        subgraphs;
+    double               width     = 100;
+    double               height    = 100;
+    Str                  graphName = "G";
 
     int graphviz_size_scaling = 72;
 
