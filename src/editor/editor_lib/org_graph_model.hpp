@@ -292,6 +292,34 @@ struct OrgGraph : public QAbstractListModel {
     void addBox(CR<OrgBoxId> box);
 };
 
+struct OrgGraphIndex {
+    QModelIndex const& index;
+    OrgGraphIndex(QModelIndex const& index) : index(index) {}
+
+    operator QModelIndex const&() const { return index; }
+
+    OrgGraph::VDesc getVDesc() const {
+        return qindex_get<OrgGraph::VDesc>(index, OrgGraphRoles::NodeDesc);
+    }
+
+    OrgGraph::EDesc getEDesc() const {
+        return qindex_get<OrgGraph::EDesc>(index, OrgGraphRoles::EdgeDesc);
+    }
+
+    bool isNode() const {
+        return qindex_get<bool>(index, OrgGraphRoles::IsNode);
+    }
+
+    OrgBoxId getBox() const {
+        return qindex_get<OrgBoxId>(index, SharedModelRoles::IndexBox);
+    }
+
+    QList<QModelIndex> getSubnodes() const {
+        return qindex_get<QList<QModelIndex>>(
+            index, OrgGraphRoles::SubnodeIndices);
+    }
+};
+
 struct OrgGraphFilterProxy : public QSortFilterProxyModel {
   private:
     Q_OBJECT

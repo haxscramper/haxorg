@@ -373,23 +373,18 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     if (config.clusterSubtrees) {
         Func<Opt<GraphLayoutIR::Subgraph>(QModelIndex const&)> rec_cluster;
 
-        rec_cluster = [&](QModelIndex const& cluster_index)
-            -> Opt<GraphLayoutIR::Subgraph> {
-            auto cluster_box = qindex_get<OrgBoxId>(
-                cluster_index, SharedModelRoles::IndexBox);
-            auto cluster_desc = qindex_get<V>(
-                cluster_index, OrgGraphRoles::NodeDesc);
-            sem::SemId<sem::Org> node = store->node(cluster_box);
+        rec_cluster =
+            [&](QModelIndex const& index) -> Opt<GraphLayoutIR::Subgraph> {
+            OrgGraphIndex        cluster_index{index};
+            sem::SemId<sem::Org> node = store->node(
+                cluster_index.getBox());
 
             if (node->is(osk::Subtree)) {
                 GraphLayoutIR::Subgraph result;
-                for (auto const& sub : qindex_get<QList<QModelIndex>>(
-                         cluster_index, OrgGraphRoles::SubnodeIndices)) {
-                    auto sub_box = qindex_get<OrgBoxId>(
-                        sub, SharedModelRoles::IndexBox);
-                    sem::SemId<sem::Org> sub_node = store->node(sub_box);
-                    auto                 sub_desc = qindex_get<V>(
-                        sub, OrgGraphRoles::NodeDesc);
+                for (auto const& i : cluster_index.getSubnodes()) {
+                    OrgGraphIndex sub{i};
+                    auto          sub_node = store->node(sub.getBox());
+                    auto          sub_desc = sub.getVDesc();
 
                     if (sub_node->is(osk::Subtree)) {
                         if (auto sub_cluster = rec_cluster(sub)) {
@@ -411,7 +406,8 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                 if (result.isEmpty()) {
                     return std::nullopt;
                 } else {
-                    result.nodes.push_back(nodeToRect.at(cluster_desc));
+                    result.nodes.push_back(
+                        nodeToRect.at(cluster_index.getVDesc()));
                     return result;
                 }
 
@@ -421,10 +417,15 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         };
 
         for (int row = 0; row < src->rowCount(); ++row) {
-            QModelIndex index = src->index(row, 0);
-            if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-                if (auto sub = rec_cluster(index)) {
-                    ir.subgraphs.push_back(*sub);
+            QModelIndex   i = src->index(row, 0);
+            OrgGraphIndex index{i};
+            if (index.isNode()) {
+                if (auto node = store->node(index.getBox());
+                    node->is(osk::Subtree)
+                    && node.as<sem::Subtree>()->level == 1) {
+                    if (auto sub = rec_cluster(i)) {
+                        ir.subgraphs.push_back(*sub);
+                    }
                 }
             }
         }
