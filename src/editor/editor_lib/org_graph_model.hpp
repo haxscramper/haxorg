@@ -32,23 +32,29 @@ struct OrgGraphEdge {
 
 /// Model roles shared between org graph model and proxy layouts that are
 /// strapped on top of the flat list model.
-enum OrgGraphModelRoles
+enum class OrgGraphRoles
 {
-    OrgGraphModelRoles__FIRST__ = SharedModelRoles::__LAST__ + 1,
-    NodeShapeRole, ///< Node shape in absolute coordinates after layout
-    EdgeShapeRole, ///< Edge spline in absolute coordinates after layout
-    IsNodeRole,    ///< Check if the index points to and edge or to a node.
-    NodeDescAtRole, ///< Get node descriptor for an index
-    EdgeDescAtRole, ///< Get edge descriptor for index
-    SourceAndTargetRole,
-    DebugDisplayRole,
-    SubnodeIndicesRole, ///< Get list of model indixes for subnode.
-                        ///< Returned indices come from the base graph
-                        ///< model.
-
+    OrgGraphModelRoles__FIRST__ = (int)SharedModelRoles::__LAST__ + 1,
+    NodeShape, ///< Node shape in absolute coordinates after layout
+    EdgeShape, ///< Edge spline in absolute coordinates after layout
+    IsNode,    ///< Check if the index points to and edge or to a node.
+    NodeDesc,  ///< Get node descriptor for an index
+    EdgeDesc,  ///< Get edge descriptor for index
+    SourceAndTarget,
+    DebugDisplay,
+    SubnodeIndices, ///< Get list of model indixes for subnode.
+                    ///< Returned indices come from the base graph
+                    ///< model.
+    ElementKind,
     OrgGraphModelRoles__LAST__,
 };
 
+enum class OrgGraphElementKind
+{
+    Node,
+    Edge,
+    Subgraph,
+};
 
 struct OrgGraph : public QAbstractListModel {
   private:
@@ -119,16 +125,14 @@ struct OrgGraph : public QAbstractListModel {
 
     QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> roles;
-        roles[Qt::DisplayRole]                    = "DisplayRole";
-        roles[SharedModelRoles::IndexBoxRole]     = "IndexBoxRole";
-        roles[OrgGraphModelRoles::IsNodeRole]     = "IsNodeRole";
-        roles[OrgGraphModelRoles::NodeDescAtRole] = "NodeDescAtRole";
-        roles[OrgGraphModelRoles::EdgeDescAtRole] = "EdgeDescAtRole";
-        roles[OrgGraphModelRoles::SourceAndTargetRole]
-            = "SourceAndTargetRole";
-        roles[OrgGraphModelRoles::DebugDisplayRole] = "DebugDisplayRole";
-        roles[OrgGraphModelRoles::SubnodeIndicesRole]
-            = "SubnodeIndicesRole";
+        roles[Qt::DisplayRole]                     = "DisplayRole";
+        roles[(int)SharedModelRoles::IndexBox]     = "IndexBoxRole";
+        roles[(int)OrgGraphRoles::IsNode]          = "IsNodeRole";
+        roles[(int)OrgGraphRoles::NodeDesc]        = "NodeDescAtRole";
+        roles[(int)OrgGraphRoles::EdgeDesc]        = "EdgeDescAtRole";
+        roles[(int)OrgGraphRoles::SourceAndTarget] = "SourceAndTargetRole";
+        roles[(int)OrgGraphRoles::DebugDisplay]    = "DebugDisplayRole";
+        roles[(int)OrgGraphRoles::SubnodeIndices]  = "SubnodeIndicesRole";
         return roles;
     }
 
@@ -303,17 +307,17 @@ struct OrgGraphFilterProxy : public QSortFilterProxyModel {
         const QModelIndex& source_parent) const override {
         QModelIndex index = sourceModel()->index(
             source_row, 0, source_parent);
-        if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
             return accept_node(qindex_get<OrgGraph::VDesc>(
-                index, OrgGraphModelRoles::NodeDescAtRole));
+                index, OrgGraphRoles::NodeDesc));
         } else {
             auto [source, target] = qindex_get<
                 Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(
-                index, OrgGraphModelRoles::SourceAndTargetRole);
+                index, OrgGraphRoles::SourceAndTarget);
             return accept_node(source) //
                 && accept_node(target)
                 && accept_edge(qindex_get<OrgGraph::EDesc>(
-                    index, OrgGraphModelRoles::EdgeDescAtRole));
+                    index, OrgGraphRoles::EdgeDesc));
         }
     }
 };
@@ -324,7 +328,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
   public:
     enum Roles
     {
-        LayoutBBoxRole = OrgGraphModelRoles::OrgGraphModelRoles__LAST__
+        LayoutBBoxRole = (int)OrgGraphRoles::OrgGraphModelRoles__LAST__
                        + 1,
     };
 
@@ -373,10 +377,10 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         const override;
 
     virtual QHash<int, QByteArray> roleNames() const override {
-        auto base = sourceModel()->roleNames();
-        base[OrgGraphModelRoles::NodeShapeRole] = "NodeShapeRole";
-        base[OrgGraphModelRoles::EdgeShapeRole] = "EdgeShapeRole";
-        base[LayoutBBoxRole]                    = "LayoutBBoxRole";
+        auto base                           = sourceModel()->roleNames();
+        base[(int)OrgGraphRoles::NodeShape] = "NodeShapeRole";
+        base[(int)OrgGraphRoles::EdgeShape] = "EdgeShapeRole";
+        base[LayoutBBoxRole]                = "LayoutBBoxRole";
         return base;
     }
 };

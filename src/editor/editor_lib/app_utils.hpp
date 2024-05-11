@@ -21,9 +21,9 @@ Q_DECLARE_LOGGING_CATEGORY(editor_files);
 
 /// Model roles shared between qbstract item models working with the
 /// org-mode tree representation.
-enum SharedModelRoles
+enum class SharedModelRoles
 {
-    IndexBoxRole = Qt::UserRole + 1,
+    IndexBox = (int)Qt::UserRole + 1,
 
     __LAST__,
 };
@@ -36,7 +36,7 @@ ColText printModelTree(
 
 Func<ColText(QModelIndex const&)> store_index_printer(
     const OrgStore* store,
-    int             role = SharedModelRoles::IndexBoxRole);
+    int             role = (int)SharedModelRoles::IndexBox);
 
 Str debug(sem::OrgArg);
 
@@ -174,4 +174,9 @@ T qindex_get(QModelIndex const& index, int role) {
             qdebug_to_str(index.model())));
 
     return qvariant_get<T>(result);
+}
+
+template <typename T, IsEnum E>
+T qindex_get(QModelIndex const& index, E role) {
+    return qindex_get<T>(index, (int)role);
 }

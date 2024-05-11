@@ -280,16 +280,16 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
     }
 
     switch (role) {
-        case SharedModelRoles::IndexBoxRole: {
+        case (int)SharedModelRoles::IndexBox: {
             return isNode(index) ? QVariant::fromValue(getBox(index.row()))
                                  : QVariant();
         }
 
-        case OrgGraphModelRoles::DebugDisplayRole: {
+        case (int)OrgGraphRoles::DebugDisplay: {
             return QVariant();
         }
 
-        case OrgGraphModelRoles::SubnodeIndicesRole: {
+        case (int)OrgGraphRoles::SubnodeIndices: {
             if (isNode(index)) {
                 Vec<QModelIndex> result;
                 OrgTreeNode* node = store->getOrgTree(getBox(index.row()));
@@ -314,17 +314,17 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
             }
         }
 
-        case OrgGraphModelRoles::EdgeDescAtRole: {
+        case (int)OrgGraphRoles::EdgeDesc: {
             return isNode(index) ? QVariant()
                                  : QVariant::fromValue(getEdgeDesc(index));
         }
 
-        case OrgGraphModelRoles::NodeDescAtRole: {
+        case (int)OrgGraphRoles::NodeDesc: {
             return isNode(index) ? QVariant::fromValue(getNodeDesc(index))
                                  : QVariant();
         }
 
-        case OrgGraphModelRoles::SourceAndTargetRole: {
+        case (int)OrgGraphRoles::SourceAndTarget: {
             return isNode(index)
                      ? QVariant()
                      : QVariant::fromValue(sourceTargetAt(index));
@@ -334,7 +334,7 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
             return getDisplayText(index);
         }
 
-        case OrgGraphModelRoles::IsNodeRole: {
+        case (int)OrgGraphRoles::IsNode: {
             return isNode(index);
         }
 
@@ -355,16 +355,15 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
 
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
-        if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
-            auto desc = qindex_get<V>(
-                index, OrgGraphModelRoles::NodeDescAtRole);
+        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
+            auto desc = qindex_get<V>(index, OrgGraphRoles::NodeDesc);
             nodeToRect[desc] = ir.rectangles.size();
             auto size        = getNodeSize(index);
             ir.rectangles.push_back(
                 QRect(0, 0, size.width(), size.height()));
         } else {
             auto [source, target] = qindex_get<Pair<V, V>>(
-                index, OrgGraphModelRoles::SourceAndTargetRole);
+                index, OrgGraphRoles::SourceAndTarget);
             ir.edges.push_back(
                 {nodeToRect.at(source), nodeToRect.at(target)});
         }
@@ -379,13 +378,13 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
 
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex index = src->index(row, 0);
-        if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
             res.data[row] = ElementLayout{
-                .data = conv_lyt.fixed.at(nodeToRect.at(qindex_get<V>(
-                    index, OrgGraphModelRoles::NodeDescAtRole)))};
+                .data = conv_lyt.fixed.at(nodeToRect.at(
+                    qindex_get<V>(index, OrgGraphRoles::NodeDesc)))};
         } else {
             auto [source, target] = qindex_get<Pair<V, V>>(
-                index, OrgGraphModelRoles::SourceAndTargetRole);
+                index, OrgGraphRoles::SourceAndTarget);
             res.data[row] = ElementLayout{conv_lyt.lines.at({
                 nodeToRect.at(source),
                 nodeToRect.at(target),
@@ -403,16 +402,17 @@ QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
         case LayoutBBoxRole: {
             return QVariant::fromValue(currentLayout.bbox);
         }
-        case OrgGraphModelRoles::NodeShapeRole: {
-            if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+
+        case (int)OrgGraphRoles::NodeShape: {
+            if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
                 return QVariant::fromValue(getElement(index).getNode());
             } else {
                 return QVariant();
             }
         }
 
-        case OrgGraphModelRoles::EdgeShapeRole: {
-            if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+        case (int)OrgGraphRoles::EdgeShape: {
+            if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
                 return QVariant();
             } else {
                 return QVariant::fromValue(getElement(index).getEdge());

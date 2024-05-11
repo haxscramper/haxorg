@@ -52,9 +52,16 @@ struct GraphLayoutIR {
     Vec<QRect>           rectangles;
     Vec<IrEdge>          edges;
     Vec<GraphConstraint> constraints;
-    double               width     = 100;
-    double               height    = 100;
-    Str                  graphName = "G";
+
+    struct Subgraph {
+        Str           graphName;
+        Vec<int>      nodes;
+        Vec<Subgraph> subgraphs;
+    };
+
+    double width     = 100;
+    double height    = 100;
+    Str    graphName = "G";
 
     int graphviz_size_scaling = 72;
 

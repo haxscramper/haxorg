@@ -97,7 +97,7 @@ struct OrgEdgeItem : public OrgGraphElementItem {
 
     void updateStateFromIndex() {
         path = qindex_get<QPainterPath>(
-            index, OrgGraphModelRoles::EdgeShapeRole);
+            index, OrgGraphRoles::EdgeShape);
     }
 
     QPainterPath getPoints() const {
@@ -134,13 +134,11 @@ struct OrgNodeItem : public OrgGraphElementItem {
     Opt<QRect> rect;
 
     void updateStateFromIndex() {
-        rect = qvariant_cast<QRect>(
-            index.data(OrgGraphModelRoles::NodeShapeRole));
+        rect = qindex_get<QRect>(index, OrgGraphRoles::NodeShape);
     }
 
     OrgBoxId getBox() const {
-        return qvariant_cast<OrgBoxId>(
-            index.data(SharedModelRoles::IndexBoxRole));
+        return qindex_get<OrgBoxId>(index, SharedModelRoles::IndexBox);
     }
 
     QRect getRect() const {
@@ -259,7 +257,7 @@ OrgGraphView::OrgGraphView(
 }
 
 QSize OrgGraphView::getNodeSize(const QModelIndex& index) {
-    if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+    if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
         QString text = qindex_get<QString>(index, Qt::DisplayRole);
         if (text.isEmpty()) {
             return QSize(20, 20);
@@ -279,7 +277,7 @@ void OrgGraphView::updateItem(const QModelIndex& index) {
 
 void OrgGraphView::addItem(const QModelIndex& index) {
     SPtr<QGraphicsItem> added;
-    if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+    if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
         OrgNodeItem* polyline = new OrgNodeItem(store, index, nullptr);
         scene->addItem(polyline);
         added = SPtr<QGraphicsItem>(polyline);
@@ -317,7 +315,7 @@ void OrgGraphView::validateItemRows() {
         auto        item  = dynamic_cast<OrgGraphElementItem*>(
             modelItems.at(row).get());
 
-        if (qindex_get<bool>(index, OrgGraphModelRoles::IsNodeRole)) {
+        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
             auto item = dynamic_cast<OrgNodeItem*>(
                 modelItems.at(row).get());
             Q_ASSERT(item != nullptr);
