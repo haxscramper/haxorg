@@ -176,7 +176,6 @@ void OrgGraph::updateUnresolved(VDesc) {
                                 .description = it.value().description,
                             },
                             *target);
-
                     }
                     break;
                 }
@@ -489,15 +488,14 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         ElementLayout{std::monostate{}});
 
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
-        QModelIndex index = src->index(row, 0);
-        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
+        QModelIndex   index = src->index(row, 0);
+        OrgGraphIndex gi{index};
+        if (gi.isNode()) {
             res.data.at(row) = ElementLayout{
-                .data = conv_lyt.fixed.at(nodeToRect.at(
-                    qindex_get<V>(index, OrgGraphRoles::NodeDesc)))};
+                .data = conv_lyt.fixed.at(nodeToRect.at(gi.getVDesc()))};
         } else {
-            auto [source, target] = qindex_get<Pair<V, V>>(
-                index, OrgGraphRoles::SourceAndTarget);
-            res.data.at(row) = ElementLayout{conv_lyt.lines.at({
+            auto [source, target] = gi.getSourceTarget();
+            res.data.at(row)      = ElementLayout{conv_lyt.lines.at({
                 nodeToRect.at(source),
                 nodeToRect.at(target),
             })};
