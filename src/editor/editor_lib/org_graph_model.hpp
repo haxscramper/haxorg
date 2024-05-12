@@ -292,6 +292,19 @@ struct OrgGraph : public QAbstractListModel {
     void addBox(CR<OrgBoxId> box);
 };
 
+template <>
+struct std::formatter<OrgGraph::EDesc> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const OrgGraph::EDesc& p, FormatContext& ctx) const {
+        fmt_ctx(p.m_source, ctx);
+        fmt_ctx("-", ctx);
+        return fmt_ctx(p.m_target, ctx);
+    }
+};
+
+Q_DECLARE_FMT_METATYPE(OrgGraph::VDesc);
+Q_DECLARE_FMT_METATYPE(OrgGraph::EDesc);
+
 struct OrgGraphIndex {
     QModelIndex const& index;
     OrgGraphIndex(QModelIndex const& index) : index(index) {}
@@ -416,7 +429,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     struct LayoutConfig {
         bool                   clusterSubtrees = false;
         GetNodeSize            getNodeSize;
-        GetNodeSize getEdgeLabelSize;
+        GetNodeSize            getEdgeLabelSize;
         Opt<GetSubgraphMargin> getSubgraphMargin;
     };
 

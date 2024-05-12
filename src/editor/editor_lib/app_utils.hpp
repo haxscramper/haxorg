@@ -52,25 +52,34 @@ Str debug(sem::OrgArg);
     qDebug() << __LINE__ _QDBG_DISPATCHER(                                \
         _QDBG_ARG_COUNT(__VA_ARGS__), __VA_ARGS__);
 
+#define Q_DECLARE_FMT_METATYPE(Type)                                      \
+    inline QDebug operator<<(QDebug debug, Type const& t) {               \
+        QDebugStateSaver saver(debug);                                    \
+        debug.nospace() << fmt1(t);                                       \
+        return debug;                                                     \
+    }                                                                     \
+                                                                          \
+    Q_DECLARE_METATYPE(Type);
+
 
 #define Q_DECLARE_REFL_METATYPE(Type)                                     \
-inline QDebug operator<<(QDebug debug, Type const& t) {               \
+    inline QDebug operator<<(QDebug debug, Type const& t) {               \
         QDebugStateSaver saver(debug);                                    \
         debug.nospace() << #Type << described_class_printer<Type>(t);     \
         return debug;                                                     \
-}                                                                     \
+    }                                                                     \
                                                                           \
     Q_DECLARE_METATYPE(Type);
 
 #define DECL_QDEBUG_FORMATTER(Type)                                       \
-template <>                                                           \
+    template <>                                                           \
     struct std::formatter<Type> : std::formatter<std::string> {           \
         template <typename FormatContext>                                 \
         FormatContext::iterator format(Type const& p, FormatContext& ctx) \
-        const {                                                       \
+            const {                                                       \
             return fmt_ctx(qdebug_to_str(p), ctx);                        \
-    }                                                                 \
-};
+        }                                                                 \
+    };
 
 struct model_role_not_implemented
     : public CRTP_hexception<model_role_not_implemented> {

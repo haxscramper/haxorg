@@ -430,7 +430,7 @@ void TestMindMap::testFullMindMapGraph() {
 
     QCOMPARE_EQ(graph->in_edges(r->id({0, 2})).size(), 2);
     {
-        auto desc = graph->out_edge0(r->id({0, 1, 1, 0}), r->id({0, 0}))
+        auto desc = graph->out_edge0(r->id({0, 1}), r->id({0, 0}))
                         .description.value();
         auto desc_str = str(desc);
         QVERIFY(desc_str.contains(
@@ -624,8 +624,14 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     };
 
     pre_layout_filter.accept_node = [&](OrgGraph::VDesc node) {
-        return !SemSet{osk::ListItem, osk::List, osk::Document}.contains(
-            b.graph->getNodeSem(node)->getKind());
+        auto sem_node = b.graph->getNodeSem(node);
+        bool result   = !SemSet{osk::ListItem, osk::List, osk::Document}
+                           .contains(sem_node->getKind());
+        if (!result) {
+            qDebug() << fmt(
+                "skipping node {} kind {}", node, sem_node->getKind());
+        }
+        return result;
     };
 
     pre_layout_filter.setSourceModel(b.graph.get());

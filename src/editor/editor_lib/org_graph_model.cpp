@@ -72,6 +72,9 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
     };
 
     if (NestedNodes.contains(n->getKind())) {
+        // Description lists with links in header are attached as the
+        // outgoing link to the parent subtree. It is the only supported
+        // way to provide an extensive label between subtree edges.
         if (isLinkedDescriptionItem(n)) {
             auto desc = n.as<sem::ListItem>();
             for (auto const& head : desc->header.value()->subnodes) {
@@ -81,10 +84,18 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
                         auto description = sem::SemId<
                             sem::StmtList>::New();
                         description->subnodes = n->subnodes;
-                        unresolved[box].push_back(UnresolvedLink{
-                            .link        = link,
-                            .description = description,
-                        });
+                        auto parent_subtree   = store->parent(box).value();
+                        while (!store->node(parent_subtree)
+                                    ->is(osk::Subtree)) {
+                            parent_subtree = store->parent(parent_subtree)
+                                                 .value();
+                        }
+
+                        unresolved[parent_subtree].push_back(
+                            UnresolvedLink{
+                                .link        = link,
+                                .description = description,
+                            });
                     }
                 }
             }
