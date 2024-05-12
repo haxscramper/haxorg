@@ -123,17 +123,27 @@ struct GraphLayoutIR {
         }
     }
 
+    /// \brief Graph edge layout
     struct Edge {
+        /// \brief Sequence of painter paths going from source to target
+        /// node. If the node has a label rectangle specified, the paths
+        /// are placed in a way to accomodate for the rectangle.
         Vec<QPainterPath> paths;
-        Opt<QRect>        labelRect;
+        /// \brief Edge label rectangle
+        Opt<QRect> labelRect;
         DESC_FIELDS(Edge, (paths, labelRect));
     };
 
+    /// \brief Full layout result from the conversion
     struct Result {
+        /// \brief Recursive subgraph layout. Nodes and edges inside of the
+        /// subgraph are stored in a flat layout result.
         struct Subgraph {
+            /// \brief Bounding box for the rectangle content
             QRect         bbox;
             Vec<Subgraph> subgraphs;
 
+            /// \brief Get reference to subgraph specified at path
             Subgraph const& getSubgraph(Span<int> path) const {
                 switch (path.size()) {
                     case 0: return *this;
@@ -145,12 +155,21 @@ struct GraphLayoutIR {
             }
         };
 
-        Vec<QRect>                 fixed;
+        /// \brief Fixed node layout rectangles with absolute coordinates.
+        /// Subgraph nodes are also included. Edge label nodes are not
+        /// included.
+        Vec<QRect> fixed;
+        /// \brief Mapping from the source-target edge pair to the edge
+        /// layout spec
         UnorderedMap<IrEdge, Edge> lines;
-        QRect                      bbox;
-        Vec<Subgraph>              subgraphs;
-        Vec<Vec<int>>              subgraphPaths;
+        /// \brief Bounding box for the whole rectangle
+        QRect bbox;
+        /// \brief Top-level list of subgraphs
+        Vec<Subgraph> subgraphs;
+        /// \brief Flattened list of subgraphs in DFS order with paths
+        Vec<Vec<int>> subgraphPaths;
 
+        /// \brief Get subgraph at path
         Subgraph const& getSubgraph(CVec<int> path) {
             switch (path.size()) {
                 case 0:
@@ -165,6 +184,7 @@ struct GraphLayoutIR {
         }
     };
 
+    /// \brief Backend-specific layout results for graphviz graph
     struct GraphvizResult {
         Graphviz::Graph graph;
         Graphviz        gvc;
@@ -185,7 +205,7 @@ struct GraphLayoutIR {
         Graphviz             gvc,
         Graphviz::LayoutType layout = Graphviz::LayoutType::Dot);
 
-    /// Intermediate layout representation storage
+    /// \brief Backend-specific layout results for cola graph layout
     struct ColaResult {
         Vec<vpsc::Rectangle>          baseRectangles;
         Vec<vpsc::Rectangle*>         rectPointers;
@@ -193,6 +213,7 @@ struct GraphLayoutIR {
 
         Result convert();
 
+        /// \brief write graph layout result into the SVG svg file
         void writeSvg(CR<Str> path) {
             OutputFile output(rectPointers, edges, nullptr, path);
             output.rects = true;

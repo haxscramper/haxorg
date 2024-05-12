@@ -4,10 +4,13 @@
 #include <hstd/stdlib/Set.hpp>
 
 
+/// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
+/// (y down). `height` is the vertical size of the main graph bounding box.
 QPoint toGvPoint(pointf p, int height) {
     return QPoint(p.x, height - p.y);
 }
 
+/// \brief Get bounding gox for the nested subtraph
 QRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<QRect> bbox) {
     boxf  rect = g.info()->bb;
     QRect res{};
@@ -158,6 +161,7 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
 
     result.graph.setRankDirection(Graphviz::Graph::RankDirection::LR);
 
+    // Add node to a specified subgraph
     auto add_node = [&](Graphviz::Graph& graph,
                         int              index) -> Graphviz::Node {
         CR<QSize> r    = rectangles.at(index);
@@ -198,15 +202,20 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     using NodeSet     = UnorderedSet<int>;
     using SubgraphSet = Pair<NodeSet, Graphviz::Graph>;
 
+    // Store mapping subgraph node sets to the newly created subgraphs for
+    // label node creation later on. Label node should be in subgraph that
+    // is closest to the original source-target nodes. This is done to
+    // avoid extraneous edges and labels on the edge of the graph.
     Vec<SubgraphSet> added_subgraphs;
     {
+        // Deafult fallback 'sub' graph that contains all nodes, so 'which
+        // subgraph' search down the line always succeeds.
         NodeSet allNodes{};
         for (int i : slice(0, rectangles.size() - 1)) { allNodes.incl(i); }
         added_subgraphs.push_back({allNodes, result.graph});
     }
 
     {
-
         int subgraph_counter = 0;
 
         Func<Vec<int>(Graphviz::Graph&, Subgraph const&, CVec<int>)> aux;
@@ -280,13 +289,14 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
             in.setAttr(target_index_prop, e.second);
         };
 
+        // If there is a label size for an edge, split the line in two
+        // parts and insert an intermediate node in between, so large
+        // labels will not overlap with the graph structure later on.
         if (edgeLabels.contains(e)) {
             CR<QSize> r = edgeLabels.at(e);
 
-            auto target_graph = get_subgraph_containers(
-                                    {e.first, e.second})
-                                    .at(0)
-                                    .second;
+            auto target_graph = //
+                get_subgraph_containers({e.first, e.second}).at(0).second;
 
             // TODO choose which graph/subgraph to add node to based on the
             // subgraphs for source/target, implement this as a
@@ -301,6 +311,8 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
 
             node.setShape(Graphviz::Node::Shape::rectangle);
             node.setLabel("");
+
+            // `----<pre_label>----[node]----<post_label>----`
 
             auto pre_label = target_graph.edge(
                 nodes.at(e.first).value(), node);
@@ -367,7 +379,11 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     res.bbox = getGraphBBox(graph);
     Q_ASSERT(res.bbox.size() != QSize(0, 0));
 
+    // 'each node' iterates over all nodes at once, including ones places
+    // in a subgraph
     graph.eachNode([&](CR<Graphviz::Node> node) {
+        // 'edge label' nodes do not correspond to any specific rectangle
+        // and are instead pushed out to edge properties.
         if (auto prop = node.getAttr<bool>("is_edge_label");
             prop.has_value() && *prop) {
             auto key = std::make_pair(
@@ -378,6 +394,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
                 graph, node, graphviz_size_scaling, res.bbox);
 
         } else {
+            // assign to a specific index to match original rectangle.
             res.fixed.resize_at(node.getAttr<int>("index").value()) = getNodeRectangle(
                 graph, node, graphviz_size_scaling, res.bbox);
         }
@@ -388,14 +405,11 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             edge.getAttr<int>(source_index_prop).value(),
             edge.getAttr<int>(target_index_prop).value());
 
+        // Push back instead of assignment to collect all pieces of
+        // multi-element edges with label nodes.
         res.lines[key].paths.push_back(
             getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
     });
-
-    auto mut_at = []<typename T>(Vec<T>& list, int idx) -> T& {
-        if (!list.has(idx)) { list.resize(idx + 1); }
-        return list.at(idx);
-    };
 
     auto set_graph = [&](this auto&&         self,
                          Result::Subgraph&   out_parent,
@@ -412,7 +426,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             out_parent.bbox = getSubgraphBBox(in_subgraph, res.bbox);
         } else {
             self(
-                mut_at(out_parent.subgraphs, path.front()),
+                out_parent.subgraphs.resize_at(path.front()),
                 in_subgraph,
                 path[slice(1, 1_B)]);
         }
@@ -423,14 +437,13 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
         auto original_path = from_json_eval<Vec<int>>(json::parse(
             g.getAttr<Str>(original_subgraph_path_prop).value().toBase()));
 
-        int original_index = g.getAttr<int>(original_subgraph_index)
-                                 .value();
+        int original_index //
+            = g.getAttr<int>(original_subgraph_index).value();
 
-
-        mut_at(res.subgraphPaths, original_index) = original_path;
+        res.subgraphPaths.resize_at(original_index) = original_path;
 
         set_graph(
-            mut_at(res.subgraphs, original_path.front()),
+            res.subgraphs.resize_at(original_path.front()),
             g,
             original_path[slice(1, 1_B)]);
 
