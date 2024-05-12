@@ -195,16 +195,25 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
         }
     }
 
+    using NodeSet     = UnorderedSet<int>;
+    using SubgraphSet = Pair<NodeSet, Graphviz::Graph>;
+
+    Vec<SubgraphSet> added_subgraphs;
     {
-        Vec<Graphviz::Graph> added_subgraphs;
+        NodeSet allNodes{};
+        for (int i : slice(0, rectangles.size() - 1)) { allNodes.incl(i); }
+        added_subgraphs.push_back({allNodes, result.graph});
+    }
+
+    {
 
         int subgraph_counter = 0;
 
-        Func<void(Graphviz::Graph&, Subgraph const&, CVec<int>)> aux;
+        Func<Vec<int>(Graphviz::Graph&, Subgraph const&, CVec<int>)> aux;
 
         aux = [&](Graphviz::Graph& parent,
                   Subgraph const&  sub,
-                  CVec<int>        path) -> void {
+                  CVec<int>        path) -> Vec<int> {
             auto out_graph = parent.newSubgraph(
                 fmt("cluster_{}",
                     sub.graphName.empty() ? Str(fmt1(subgraph_counter))
@@ -229,15 +238,41 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
                 nodes.at(node) = add_node(out_graph, node);
             }
 
+            Vec<int> nodes = sub.nodes;
             for (auto const& s : enumerator(sub.subgraphs)) {
-                aux(out_graph, s.value(), path + Vec<int>{s.index()});
+                Vec<int> sub_nodes = aux(
+                    out_graph, s.value(), path + Vec<int>{s.index()});
+                nodes.append(sub_nodes);
             }
+
+            added_subgraphs.push_back(std::make_pair(
+                NodeSet{nodes.begin(), nodes.end()}, out_graph));
+
+            return nodes;
         };
 
         for (auto const& g : enumerator(subgraphs)) {
             aux(result.graph, g.value(), Vec<int>{g.index()});
         }
     }
+
+    // Get most fitting (smallest size) subgraph that contains all nodes
+    // from the expected set.
+    auto get_subgraph_containers = [&](NodeSet node) -> Vec<SubgraphSet> {
+        Vec<SubgraphSet> result;
+        for (auto const& it : added_subgraphs) {
+            if (rs::all_of(
+                    node, [&](int n) { return it.first.contains(n); })) {
+                result.push_back(it);
+            }
+        }
+
+        rs::sort(result, [](CR<SubgraphSet> lhs, CR<SubgraphSet> rhs) {
+            return lhs.first.size() < rhs.first.size();
+        });
+
+        return result;
+    };
 
     for (auto const& e : this->edges) {
         auto init_targets = [&]<typename T>(T& in) {
@@ -248,10 +283,15 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
         if (edgeLabels.contains(e)) {
             CR<QSize> r = edgeLabels.at(e);
 
+            auto target_graph = get_subgraph_containers(
+                                    {e.first, e.second})
+                                    .at(0)
+                                    .second;
+
             // TODO choose which graph/subgraph to add node to based on the
             // subgraphs for source/target, implement this as a
             // `getCommonSubgraph(int n1, int n2)`
-            auto node = result.graph.node(fmt("{}_{}", e.first, e.second));
+            auto node = target_graph.node(fmt("{}_{}", e.first, e.second));
 
             node.setHeight(r.height() / float(graphviz_size_scaling));
             node.setWidth(r.width() / float(graphviz_size_scaling));
@@ -262,12 +302,12 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
             node.setShape(Graphviz::Node::Shape::rectangle);
             node.setLabel("");
 
-            auto pre_label = result.graph.edge(
+            auto pre_label = target_graph.edge(
                 nodes.at(e.first).value(), node);
             init_targets(pre_label);
             pre_label.setAttr("headport", "w"_ss);
 
-            auto post_label = result.graph.edge(
+            auto post_label = target_graph.edge(
                 node, nodes.at(e.second).value());
             init_targets(post_label);
             post_label.setAttr("tailport", "e"_ss);
