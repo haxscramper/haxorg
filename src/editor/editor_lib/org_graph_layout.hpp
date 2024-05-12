@@ -169,3 +169,10 @@ struct GraphLayoutIR {
 
     ColaResult doColaLayout();
 };
+
+
+DECL_QDEBUG_FORMATTER(QPainterPath);
+DECL_QDEBUG_FORMATTER(QRect);
+DECL_QDEBUG_FORMATTER(QSize);
+
+Q_DECLARE_REFL_METATYPE(GraphLayoutIR::Edge);

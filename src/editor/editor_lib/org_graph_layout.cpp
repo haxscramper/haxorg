@@ -322,13 +322,12 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
 GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
-    res.fixed.resize(graph.nodeCount());
-
     res.bbox = getGraphBBox(graph);
     Q_ASSERT(res.bbox.size() != QSize(0, 0));
 
     graph.eachNode([&](CR<Graphviz::Node> node) {
-        if (auto prop = node.getAttr<bool>("is_edge_label")) {
+        if (auto prop = node.getAttr<bool>("is_edge_label");
+            prop.has_value() && *prop) {
             auto key = std::make_pair(
                 node.getAttr<int>(source_index_prop).value(),
                 node.getAttr<int>(target_index_prop).value());
@@ -337,7 +336,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
                 graph, node, graphviz_size_scaling, res.bbox);
 
         } else {
-            res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
+            res.fixed.resize_at(node.getAttr<int>("index").value()) = getNodeRectangle(
                 graph, node, graphviz_size_scaling, res.bbox);
         }
     });

@@ -361,17 +361,21 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     UnorderedMap<V, int> nodeToRect;
 
     for (int row = 0; row < src->rowCount(); ++row) {
-        QModelIndex index = src->index(row, 0);
-        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-            auto desc = qindex_get<V>(index, OrgGraphRoles::NodeDesc);
-            nodeToRect[desc] = ir.rectangles.size();
-            auto size        = config.getNodeSize(index);
+        QModelIndex   gi = src->index(row, 0);
+        OrgGraphIndex index{gi};
+        if (index.isNode()) {
+            nodeToRect[index.getVDesc()] = ir.rectangles.size();
+            auto size                    = config.getNodeSize(gi);
             ir.rectangles.push_back(QSize(size.width(), size.height()));
         } else {
-            auto [source, target] = qindex_get<Pair<V, V>>(
-                index, OrgGraphRoles::SourceAndTarget);
-            ir.edges.push_back(
-                {nodeToRect.at(source), nodeToRect.at(target)});
+            auto [source, target] = index.getSourceTarget();
+            auto ir_edge          = std::make_pair(
+                nodeToRect.at(source), nodeToRect.at(target));
+            ir.edges.push_back(ir_edge);
+
+            if (auto str = index.getDisplay(); !str.isEmpty()) {
+                ir.edgeLabels[ir_edge] = config.getEdgeLabelSize(gi);
+            }
         }
     }
 
@@ -459,9 +463,13 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     Graphviz   gvc;
     FullLayout res;
     auto       lyt = ir.doGraphvizLayout(gvc);
-    res.original   = lyt;
-    auto conv_lyt  = lyt.convert();
-    res.bbox       = conv_lyt.bbox;
+    if (true) {
+        lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap.svg");
+        lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
+    }
+    res.original  = lyt;
+    auto conv_lyt = lyt.convert();
+    res.bbox      = conv_lyt.bbox;
     res.data.clear();
     res.data.resize(
         conv_lyt.fixed.size() + conv_lyt.lines.size()

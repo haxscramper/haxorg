@@ -203,6 +203,16 @@ class Vec : public std::vector<T> {
 
     T const& at(BackwardsIndex idx) const { return this->at(index(idx)); }
 
+    T& resize_at(int idx) {
+        if (high() < idx) { this->resize(idx + 1); }
+        return at(idx);
+    }
+
+    T& resize_at(int idx, T const& value) {
+        if (high() < idx) { this->resize(idx + 1, value); }
+        return at(idx);
+    }
+
     void failEmpty() const {
         if (empty()) {
             throw std::out_of_range(

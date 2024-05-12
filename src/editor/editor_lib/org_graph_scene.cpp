@@ -167,6 +167,10 @@ struct OrgEdgeItem : public OrgGraphElementItem {
         if (auto rect = getEdge().labelRect) {
             painter->save();
             {
+                painter->setPen(QPen{Qt::black, 2});
+                painter->drawText(
+                    rect->topLeft(),
+                    QString::fromStdString(qdebug_to_str(index)));
                 painter->setPen(QPen{Qt::green, 2});
                 painter->setBrush(QBrush{QColor{215, 214, 213}});
                 painter->drawRoundedRect(*rect, 5, 5);
@@ -319,15 +323,12 @@ OrgGraphView::OrgGraphView(
 }
 
 QSize OrgGraphView::getNodeSize(const QModelIndex& index) {
-    if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-        QString text = qindex_get<QString>(index, Qt::DisplayRole);
-        if (text.isEmpty()) {
-            return QSize(20, 20);
-        } else {
-            return toDocument(text)->size().toSize();
-        }
+    OrgGraphIndex gi{index};
+    QString       text = gi.getDisplay();
+    if (text.isEmpty()) {
+        return QSize(20, 20);
     } else {
-        return QSize(-1, -1);
+        return toDocument(text)->size().toSize();
     }
 }
 

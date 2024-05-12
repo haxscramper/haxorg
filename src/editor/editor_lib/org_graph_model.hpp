@@ -314,6 +314,10 @@ struct OrgGraphIndex {
         return qindex_get<OrgBoxId>(index, SharedModelRoles::IndexBox);
     }
 
+    QString getDisplay() const {
+        return qindex_get<QString>(index, Qt::DisplayRole);
+    }
+
     Pair<OrgGraph::VDesc, OrgGraph::VDesc> getSourceTarget() const {
         return qindex_get<Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(
             index, OrgGraphRoles::SourceAndTarget);
@@ -412,6 +416,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     struct LayoutConfig {
         bool                   clusterSubtrees = false;
         GetNodeSize            getNodeSize;
+        GetNodeSize getEdgeLabelSize;
         Opt<GetSubgraphMargin> getSubgraphMargin;
     };
 

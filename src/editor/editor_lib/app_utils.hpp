@@ -53,6 +53,25 @@ Str debug(sem::OrgArg);
         _QDBG_ARG_COUNT(__VA_ARGS__), __VA_ARGS__);
 
 
+#define Q_DECLARE_REFL_METATYPE(Type)                                     \
+inline QDebug operator<<(QDebug debug, Type const& t) {               \
+        QDebugStateSaver saver(debug);                                    \
+        debug.nospace() << #Type << described_class_printer<Type>(t);     \
+        return debug;                                                     \
+}                                                                     \
+                                                                          \
+    Q_DECLARE_METATYPE(Type);
+
+#define DECL_QDEBUG_FORMATTER(Type)                                       \
+template <>                                                           \
+    struct std::formatter<Type> : std::formatter<std::string> {           \
+        template <typename FormatContext>                                 \
+        FormatContext::iterator format(Type const& p, FormatContext& ctx) \
+        const {                                                       \
+            return fmt_ctx(qdebug_to_str(p), ctx);                        \
+    }                                                                 \
+};
+
 struct model_role_not_implemented
     : public CRTP_hexception<model_role_not_implemented> {
     QAbstractItemModel const* model;

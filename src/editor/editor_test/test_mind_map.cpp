@@ -561,6 +561,10 @@ struct SceneBench {
                     [&](QModelIndex const& index) {
                         return view->getNodeSize(index);
                     },
+                .getEdgeLabelSize =
+                    [&](QModelIndex const& index) {
+                        return view->getNodeSize(index);
+                    },
             },
             nullptr);
 
@@ -610,16 +614,6 @@ Paragraph [[id:subtree-id]]
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
-    b.debugModel("/tmp/testQtGraphSceneFullMindMap_model.txt");
-    b.debugProxy("/tmp/testQtGraphSceneFullMindMap_proxy.txt");
-    {
-        auto const& lyt = std::get<GraphLayoutIR::GraphvizResult>(
-            b.proxy->currentLayout.original);
-
-        lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap.svg");
-        lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
-    }
-
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_pre_filter.png", 2);
 
@@ -640,23 +634,6 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     b.view->setModel(b.proxy.get());
     b.view->rebuildScene();
 
-    ::debugModel(
-        b.graph.get(),
-        b.store.get(),
-        "/tmp/testQtGraphSceneFullMindMap_filter_graph.txt");
-
-
-    ::debugModel(
-        &pre_layout_filter,
-        b.store.get(),
-        "/tmp/testQtGraphSceneFullMindMap_filter_pre_layout.txt");
-
-
-    ::debugModel(
-        b.proxy.get(),
-        b.store.get(),
-        "/tmp/testQtGraphSceneFullMindMap_filter_layout_proxy.txt",
-        true);
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
@@ -669,6 +646,17 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 
     b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
         QMargins(100, 100, 100, 100)));
+
+    ::debugModel(
+        b.graph.get(),
+        b.store.get(),
+        "/tmp/testQtGraphSceneFullMindMap_filter_graph.txt");
+
+
+    ::debugModel(
+        &pre_layout_filter,
+        b.store.get(),
+        "/tmp/testQtGraphSceneFullMindMap_filter_pre_layout.txt");
 
     ::debugModel(
         b.proxy.get(),
