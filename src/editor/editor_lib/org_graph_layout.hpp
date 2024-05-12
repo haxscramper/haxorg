@@ -63,13 +63,14 @@ struct GraphLayoutIR {
         }
     };
 
-    Vec<QSize>           rectangles;
-    Vec<IrEdge>          edges;
-    Vec<GraphConstraint> constraints;
-    Vec<Subgraph>        subgraphs;
-    double               width     = 100;
-    double               height    = 100;
-    Str                  graphName = "G";
+    Vec<QSize>                  rectangles;
+    Vec<IrEdge>                 edges;
+    Vec<GraphConstraint>        constraints;
+    Vec<Subgraph>               subgraphs;
+    UnorderedMap<IrEdge, QSize> edgeLabels;
+    double                      width     = 100;
+    double                      height    = 100;
+    Str                         graphName = "G";
 
     int graphviz_size_scaling = 72;
 
@@ -89,6 +90,12 @@ struct GraphLayoutIR {
         }
     }
 
+    struct Edge {
+        Vec<QPainterPath> paths;
+        Opt<QRect>        labelRect;
+        DESC_FIELDS(Edge, (paths, labelRect));
+    };
+
     struct Result {
         struct Subgraph {
             QRect         bbox;
@@ -105,11 +112,11 @@ struct GraphLayoutIR {
             }
         };
 
-        Vec<QRect>                         fixed;
-        UnorderedMap<IrEdge, QPainterPath> lines;
-        QRect                              bbox;
-        Vec<Subgraph>                      subgraphs;
-        Vec<Vec<int>>                      subgraphPaths;
+        Vec<QRect>                 fixed;
+        UnorderedMap<IrEdge, Edge> lines;
+        QRect                      bbox;
+        Vec<Subgraph>              subgraphs;
+        Vec<Vec<int>>              subgraphPaths;
 
         Subgraph const& getSubgraph(CVec<int> path) {
             switch (path.size()) {

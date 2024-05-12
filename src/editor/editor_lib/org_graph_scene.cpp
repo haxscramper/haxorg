@@ -131,22 +131,27 @@ struct OrgEdgeItem : public OrgGraphElementItem {
         updateStateFromIndex();
     }
 
-    Opt<QPainterPath> path;
+    Opt<GraphLayoutIR::Edge> path;
 
     void updateStateFromIndex() {
-        path = qindex_get<QPainterPath>(index, OrgGraphRoles::EdgeShape);
+        path = qindex_get<GraphLayoutIR::Edge>(
+            index, OrgGraphRoles::EdgeShape);
     }
 
-    QPainterPath getPoints() const {
+    GraphLayoutIR::Edge getEdge() const {
         if (path) {
             return path.value();
         } else {
-            return QPainterPath();
+            return GraphLayoutIR::Edge();
         }
     }
 
     QRectF boundingRect() const override {
-        return getPoints().boundingRect();
+        QRectF boundingRect;
+        for (const QPainterPath& path : getEdge().paths) {
+            boundingRect = boundingRect.united(path.boundingRect());
+        }
+        return boundingRect;
     }
 
     void paint(
@@ -155,7 +160,27 @@ struct OrgEdgeItem : public OrgGraphElementItem {
         QWidget*                        widget) override {
         updateStateFromIndex();
         painter->setPen(QPen(Qt::red, 2));
-        painter->drawPath(getPoints());
+        for (QPainterPath const& path : getEdge().paths) {
+            painter->drawPath(path);
+        }
+
+        if (auto rect = getEdge().labelRect) {
+            painter->save();
+            {
+                painter->setPen(QPen{Qt::green, 2});
+                painter->setBrush(QBrush{QColor{215, 214, 213}});
+                painter->drawRoundedRect(*rect, 5, 5);
+            }
+            painter->restore();
+
+            painter->save();
+            {
+                QString text = qindex_get<QString>(index, Qt::DisplayRole);
+                painter->translate(rect->topLeft());
+                toDocument(text)->drawContents(painter);
+            }
+            painter->restore();
+        }
     }
 };
 

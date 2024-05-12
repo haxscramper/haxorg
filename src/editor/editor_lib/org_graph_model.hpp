@@ -378,7 +378,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     };
 
     struct ElementLayout {
-        Variant<std::monostate, QRect, QPainterPath, Subgraph> data;
+        Variant<std::monostate, QRect, GraphLayoutIR::Edge, Subgraph> data;
 
         OrgGraphElementKind getKind() const {
             Q_ASSERT_X(
@@ -388,7 +388,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
 
             if (std::holds_alternative<QRect>(data)) {
                 return OrgGraphElementKind::Node;
-            } else if (std::holds_alternative<QPainterPath>(data)) {
+            } else if (std::holds_alternative<GraphLayoutIR::Edge>(data)) {
                 return OrgGraphElementKind::Edge;
             } else {
                 return OrgGraphElementKind::Subgraph;
@@ -401,8 +401,8 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
             return std::get<Subgraph>(data);
         }
 
-        QPainterPath const& getEdge() const {
-            return std::get<QPainterPath>(data);
+        GraphLayoutIR::Edge const& getEdge() const {
+            return std::get<GraphLayoutIR::Edge>(data);
         }
     };
 

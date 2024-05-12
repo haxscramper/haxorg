@@ -142,6 +142,8 @@ namespace {
 const char* original_subgraph_nodes_prop = "original_nodes";
 const char* original_subgraph_path_prop  = "original_path";
 const char* original_subgraph_index      = "original_index";
+const char* source_index_prop            = "source_index";
+const char* target_index_prop            = "target_index";
 } // namespace
 
 GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
@@ -237,17 +239,43 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
         }
     }
 
-    Vec<Graphviz::Edge> //
-        edges = this->edges
-              | rv::transform([&](CR<Pair<int, int>> e) -> Graphviz::Edge {
-                    auto edge = result.graph.edge(
-                        nodes.at(e.first).value(),
-                        nodes.at(e.second).value());
-                    edge.setAttr("source_index", e.first);
-                    edge.setAttr("target_index", e.second);
-                    return edge;
-                })
-              | rs::to<Vec>();
+    for (auto const& e : this->edges) {
+        auto init_targets = [&]<typename T>(T& in) {
+            in.setAttr(source_index_prop, e.first);
+            in.setAttr(target_index_prop, e.second);
+        };
+
+        if (edgeLabels.contains(e)) {
+            CR<QSize> r = edgeLabels.at(e);
+
+            // TODO choose which graph/subgraph to add node to based on the
+            // subgraphs for source/target, implement this as a
+            // `getCommonSubgraph(int n1, int n2)`
+            auto node = result.graph.node(fmt("{}_{}", e.first, e.second));
+
+            node.setHeight(r.height() / float(graphviz_size_scaling));
+            node.setWidth(r.width() / float(graphviz_size_scaling));
+            node.setAttr("is_edge_label", true);
+            node.setAttr("fixedsize", true);
+            init_targets(node);
+
+            node.setShape(Graphviz::Node::Shape::rectangle);
+            node.setLabel("");
+
+            auto pre_label = result.graph.edge(
+                nodes.at(e.first).value(), node);
+            init_targets(pre_label);
+
+            auto post_label = result.graph.edge(
+                node, nodes.at(e.second).value());
+            init_targets(post_label);
+
+        } else {
+            auto edge = result.graph.edge(
+                nodes.at(e.first).value(), nodes.at(e.second).value());
+            init_targets(edge);
+        }
+    }
 
     gvc.createLayout(result.graph, layout);
 
@@ -300,15 +328,26 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Q_ASSERT(res.bbox.size() != QSize(0, 0));
 
     graph.eachNode([&](CR<Graphviz::Node> node) {
-        res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
-            graph, node, graphviz_size_scaling, res.bbox);
+        if (auto prop = node.getAttr<bool>("is_edge_label")) {
+            auto key = std::make_pair(
+                node.getAttr<int>(source_index_prop).value(),
+                node.getAttr<int>(target_index_prop).value());
+
+            res.lines[key].labelRect = getNodeRectangle(
+                graph, node, graphviz_size_scaling, res.bbox);
+
+        } else {
+            res.fixed.at(node.getAttr<int>("index").value()) = getNodeRectangle(
+                graph, node, graphviz_size_scaling, res.bbox);
+        }
     });
 
     graph.eachEdge([&](CR<Graphviz::Edge> edge) {
-        res.lines.insert_or_assign(
-            std::make_pair(
-                edge.getAttr<int>("source_index").value(),
-                edge.getAttr<int>("target_index").value()),
+        auto key = std::make_pair(
+            edge.getAttr<int>(source_index_prop).value(),
+            edge.getAttr<int>(target_index_prop).value());
+
+        res.lines[key].paths.push_back(
             getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
     });
 
