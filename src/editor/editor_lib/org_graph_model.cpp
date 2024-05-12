@@ -36,6 +36,9 @@ bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
 }
 
 void OrgGraph::addBox(CR<OrgBoxId> box) {
+    // `- [[link-to-something]] :: Description` is stored as a description
+    // field and is collected from the list item. So all boxes with
+    // individual list items are dropped here.
     if (isLinkedDescriptionItem(store, box)) { return; }
 
 
@@ -78,6 +81,8 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         if (isLinkedDescriptionItem(n)) {
             auto desc = n.as<sem::ListItem>();
             for (auto const& head : desc->header.value()->subnodes) {
+                // Description list header might contain non-link elements.
+                // These are ignored in the mind map.
                 if (head->is(osk::Link)) {
                     auto link = head.as<sem::Link>();
                     if (link->getLinkKind() != slk::Raw) {
@@ -145,7 +150,6 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         default: {
         }
     }
-
 
     updateUnresolved(v);
 }
@@ -228,7 +232,7 @@ std::string OrgGraph::toGraphviz() {
             make_transform_value_property_map<std::string>(
                 [&](OrgGraphEdge const& prop) -> std::string {
                     return prop.description ? ExporterUltraplain::toStr(
-                                                  prop.description.value())
+                               prop.description.value())
                                             : "";
                 },
                 get(boost::edge_bundle, g)))
@@ -371,6 +375,7 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
 
     UnorderedMap<V, int> nodeToRect;
 
+    // Build IR content for edges and nodes
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex   gi = src->index(row, 0);
         OrgGraphIndex index{gi};
@@ -393,6 +398,7 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     if (config.clusterSubtrees) {
         Func<Opt<GraphLayoutIR::Subgraph>(QModelIndex const&)> rec_cluster;
 
+        // Recursively iterate over sub-nodes and build IR clusters
         rec_cluster =
             [&](QModelIndex const& index) -> Opt<GraphLayoutIR::Subgraph> {
             OrgGraphIndex        cluster_index{index};
@@ -403,6 +409,10 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                 GraphLayoutIR::Subgraph          result;
                 Func<void(QModelIndex const& i)> rec_nodes;
 
+                // Recurse over subtree elements -- lists and list items do
+                // not form own clusters and are not visible in the tree,
+                // but they contain paragraph elements internally, which
+                // should be visible.
                 rec_nodes = [&](QModelIndex const& i) {
                     OrgGraphIndex sub{i};
                     auto          sub_node = store->node(sub.getBox());
@@ -413,6 +423,22 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                             result.subgraphs.push_back(
                                 sub_cluster.value());
                         } else {
+                            // Subtree can form an empty cluster if it has
+                            // no elements of its own. This branch handles
+                            // the
+                            //
+                            // ```
+                            // * Top subtree
+                            // ** Nested subtree 1
+                            // ** Nested subtree 2
+                            // ** Nested 3
+                            //
+                            // Actual content
+                            // ```
+                            //
+                            // All subtrees need to go under the 'Top
+                            // Subtree' cluster. Tree 1 and Tree 2 fall
+                            // into this branch.
                             result.nodes.push_back(
                                 nodeToRect.at(sub_desc));
                         }
@@ -420,7 +446,8 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                     } else if (nodeToRect.contains(sub_desc)) {
                         // Not all subtrees for an entry are guaranted to
                         // be represented in the cluster - nodes can be
-                        // filtered prior to layout.
+                        // filtered prior to layout. List and list items
+                        // are not added in the graph, handled below.
                         result.nodes.push_back(nodeToRect.at(sub_desc));
                     } else if (SemSet{osk::List, osk::ListItem}.contains(
                                    sub_node->getKind())) {
@@ -481,12 +508,15 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     res.original  = lyt;
     auto conv_lyt = lyt.convert();
     res.bbox      = conv_lyt.bbox;
+    // drop all the content from the layout and set the size from the
+    // expected computed layout.
     res.data.clear();
     res.data.resize(
         conv_lyt.fixed.size() + conv_lyt.lines.size()
             + conv_lyt.subgraphPaths.size(),
         ElementLayout{std::monostate{}});
 
+    /// Fill in the node+edge indices from the source model.
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
         QModelIndex   index = src->index(row, 0);
         OrgGraphIndex gi{index};
@@ -502,6 +532,8 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         }
     }
 
+    // Top off the [node..., edge...] list with the clusters provided by
+    // the layout content.
     for (auto const& it : enumerator(conv_lyt.subgraphPaths)) {
         int row = sourceModel()->rowCount() + it.index();
         Q_ASSERT(

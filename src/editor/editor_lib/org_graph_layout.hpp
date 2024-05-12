@@ -1,5 +1,10 @@
 #pragma once
 
+/// \file org_graph_layout.hpp
+///
+/// \brief Intermediate representation for interfacing with specific graph
+/// layout backends: graphviz and adaptagrams/cola.
+
 #include <libcola/cola.h>
 #include <libcola/output_svg.h>
 #include <hstd/wrappers/graphviz.hpp>
@@ -10,18 +15,23 @@
 #include <editor/editor_lib/app_utils.hpp>
 #include <QPainterPath>
 
+
+/// \brief IR wrapper for the cola layout constraints
 struct GraphConstraint {
+    /// \brief Listed nodes must be positioned on the same X/Y dimension in
+    /// the layout
     struct Align {
         struct Spec {
-            int         node;
-            Opt<double> fixPos = std::nullopt;
-            double      offset = 0.0;
+            int         node;                  ///< Rectangle index
+            Opt<double> fixPos = std::nullopt; ///< ??? wtf
+            double      offset = 0.0;          ///< Offset from the axis
         };
 
         Vec<Spec> nodes;
-        vpsc::Dim dimension;
+        vpsc::Dim dimension; ///< Which axist to align on
         DESC_FIELDS(Align, (nodes, dimension));
 
+        /// \brief Map to cola layout constraint object
         SPtr<cola::CompoundConstraint> toCola() const {
             auto result = std::make_shared<cola::AlignmentConstraint>(
                 dimension);
@@ -43,19 +53,29 @@ struct GraphConstraint {
     SUB_VARIANTS(Kind, Data, data, getKind, Align);
     Data data;
 
-    GraphConstraint(CR<Data> data) : data(data) {};
+    GraphConstraint(CR<Data> data) : data(data){};
 };
 
-
+/// \brief Main store for the graph layout intermediate representation.
+/// Stores a minimum amount of information about the graph properties --
+/// list of edges, shapes of nodes, and some backend-specific parameters.
 struct GraphLayoutIR {
     using IrEdge = Pair<int, int>;
 
     struct Subgraph {
-        Str           graphName;
-        Vec<int>      nodes;
+        Str graphName; ///< Graphviz graph name
+
+        /// \brief Which nodes go directly in this cluster level (subgraphs
+        /// will have their own sub-nodes, there should be no overlap or
+        /// duplication)
+        Vec<int> nodes;
+        /// \brief List of nested subgraphs
         Vec<Subgraph> subgraphs;
-        Opt<int>      internalMargin;
-        bool          isEmpty() const {
+        /// \brief For graphviz: px spacing between subgraph and the
+        /// content inside.
+        Opt<int> internalMargin;
+
+        bool isEmpty() const {
             return nodes.empty()
                 && rs::all_of(subgraphs, [](CR<Subgraph> s) {
                        return s.isEmpty();
@@ -63,17 +83,30 @@ struct GraphLayoutIR {
         }
     };
 
-    Vec<QSize>                  rectangles;
-    Vec<IrEdge>                 edges;
-    Vec<GraphConstraint>        constraints;
-    Vec<Subgraph>               subgraphs;
+    /// \brief Nodes for the graph. Node is identified by the index in the
+    /// array of sizes. In the result value each original qsize is mapped
+    /// to the rectangle.
+    Vec<QSize> rectangles;
+    /// \brief List of source-target pairs. Edge source/target IDs refer to
+    /// the size rectangles.
+    Vec<IrEdge> edges;
+    /// \brief Cola constraints for graph layout. This part is
+    /// backend-specific.
+    Vec<GraphConstraint> constraints;
+    Vec<Subgraph>        subgraphs;
+    /// \brief If some edge has a dedicated label of specified size.
     UnorderedMap<IrEdge, QSize> edgeLabels;
-    double                      width     = 100;
-    double                      height    = 100;
-    Str                         graphName = "G";
+    double                      width  = 100;
+    double                      height = 100;
+    /// \brief Graph name. Backend-specific.
+    Str graphName = "G";
 
+    /// \brief Which DPI to use when converting to and from graphviz sizes.
+    /// Backend-specific, 72 is the default used by graphviz.
     int graphviz_size_scaling = 72;
 
+    /// \brief validate the edge/rectangle structure for debugging. Throws
+    /// assert failure if the structure is incorrect.
     void validate() {
         for (auto const& e : enumerator(edges)) {
             for (auto const& it :

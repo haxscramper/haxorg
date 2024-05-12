@@ -10,6 +10,7 @@
 #include <QPainterPath>
 #include <QTextDocument>
 
+/// \brief Property for the org-mode graph structure
 struct OrgGraphNode {
     DECL_DESCRIBED_ENUM(
         Kind,
@@ -20,18 +21,24 @@ struct OrgGraphNode {
         List,
         ListItem);
 
-    OrgBoxId box;
-    Kind     kind;
+    OrgBoxId box;  ///< Original box ID for the node
+    Kind     kind; ///< Structural type of the original node.
 };
 
+
+/// Mind map graph property
 struct OrgGraphEdge {
     DECL_DESCRIBED_ENUM(Kind, SubtreeId, Footnote);
-    Kind                      kind;
+    Kind kind; ///< What is the context for the edge creation
+    /// Link description field can be reused or, for description list
+    /// items, this field contains a newly created statment list
     Opt<sem::SemId<sem::Org>> description;
 };
 
 /// Model roles shared between org graph model and proxy layouts that are
-/// strapped on top of the flat list model.
+/// strapped on top of the flat list model. In addition to the roles listed
+/// here, model also provides a regular display role that returns an HTML
+/// formatted value of the node text or edge label.
 enum class OrgGraphRoles
 {
     OrgGraphModelRoles__FIRST__ = (int)SharedModelRoles::__LAST__ + 1,
@@ -40,26 +47,33 @@ enum class OrgGraphRoles
     IsNode,    ///< Check if the index points to and edge or to a node.
     NodeDesc,  ///< Get node descriptor for an index
     EdgeDesc,  ///< Get edge descriptor for index
-    SourceAndTarget,
-    DebugDisplay,
+    SourceAndTarget, ///< Pair of vertex ID elements
+    DebugDisplay, ///< String value for debug visualization of the content.
     SubnodeIndices, ///< Get list of model indixes for subnode.
                     ///< Returned indices come from the base graph
                     ///< model.
-    ElementKind,
+    ElementKind,    ///< Node, edge, or subgraph. Base model only provides
+                    /// nodes and subgraphs.
     OrgGraphModelRoles__LAST__,
 };
 
+/// Type of the individual graph element that model can provide
 enum class OrgGraphElementKind
 {
-    Node,
-    Edge,
-    Subgraph,
+    Node,     ///< Base mode, created from some org-mode box in the store
+    Edge,     ///< Link between two boxes in the store
+    Subgraph, ///< Grouping element, provided by the proxy layout model
 };
 
+/// Base data provider model for all interactions with the graph. Wraps
+/// around boost graph and exposes its nodes and edges as a flat list of
+/// elements.
 struct OrgGraph : public QAbstractListModel {
   private:
     Q_OBJECT
   public:
+    /// Base data structure for the whole mind map. The parameters are
+    /// not configurable,
     using Graph = boost::adjacency_list<
         boost::vecS,
         boost::vecS,
@@ -82,17 +96,26 @@ struct OrgGraph : public QAbstractListModel {
     Vec<EDesc> edges;
     Vec<VDesc> nodes;
 
+    /// Mapping from the subtree to the box IDs. This field is dynamically
+    /// updated as new nodes are removed or added to the graph
     UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
     UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
 
+    /// Iterate over all unresolved links visited so far and *try to* fix
+    /// them. Does not guarantee to resolve all the links. Called when a
+    /// new node is added to the graph.
     void updateUnresolved(VDesc newNode);
 
-
+    /// Link node in the mind map pending resolution. Might be due to
+    /// an error, might be because an element have not been added yet.
     struct UnresolvedLink {
-        sem::SemId<sem::Link>     link;
+        sem::SemId<sem::Link> link;
+        /// Link description at the time when an element was added.
         Opt<sem::SemId<sem::Org>> description;
     };
 
+    /// Map each box to a list of unresolved outgoing links. This field is
+    /// mutated as boxes are added or removed from the tree.
     UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
 
     int rowCount(
@@ -115,9 +138,12 @@ struct OrgGraph : public QAbstractListModel {
             getEdgeSource(eDesc), getEdgeTarget(eDesc));
     }
 
-
+    /// Dump mind map structure in simple graphviz representation for
+    /// debugging.
     std::string toGraphviz();
 
+    /// \brief Get formatted HTML text for rendering in the graph view or
+    /// computing size for.
     QString getDisplayText(CR<QModelIndex> index) const;
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
@@ -136,21 +162,23 @@ struct OrgGraph : public QAbstractListModel {
         return roles;
     }
 
-
+    /// Add all boxes registered in the store.
     void addFullStore() {
         Q_ASSERT(store != nullptr);
         for (auto const& box : store->boxes()) { addBox(box); }
     }
 
-
+    /// \brief There is at least one edge between source and target boxes
     bool hasEdge(CR<OrgBoxId> source, CR<OrgBoxId> target) {
         return 0 < out_edges(source, target).size();
     }
 
+    /// Full number of nodes in the graph.
     int numNodes() const { return boost::num_vertices(g); }
 
     int numEdges() const { return boost::num_edges(g); }
 
+    /// Graph edge descriptor for a specific row
     EDesc getEdgeDesc(int row) const { return edges.at(row - numNodes()); }
 
     EDesc getEdgeDesc(QModelIndex index) const {
@@ -173,10 +201,12 @@ struct OrgGraph : public QAbstractListModel {
         return getNodeDesc(index.row());
     }
 
+    /// \brief Store box for a row
     OrgBoxId getBox(int row) const {
         return getNodeProp(getNodeDesc(row)).box;
     }
 
+    /// Find model row number for a graph vertex descriptor
     int getDescIndex(VDesc desc) const {
         for (auto const& it : enumerator(nodes)) {
             if (it.value() == desc) { return it.index(); }
@@ -189,6 +219,7 @@ struct OrgGraph : public QAbstractListModel {
 
     OrgGraphNode& getNodeProp(VDesc desc) { return g[desc]; }
 
+    /// \brief Sem node from a graph vertex.
     sem::SemId<sem::Org> getNodeSem(VDesc desc) const {
         return store->node(getNodeProp(desc).box);
     }
@@ -197,6 +228,8 @@ struct OrgGraph : public QAbstractListModel {
 
     OrgGraphNode const& getNodeProp(VDesc desc) const { return g[desc]; }
 
+    /// \brief Add new edge between two boxes, register it in all fields
+    /// and emit model update signals.
     EDesc addEdge(VDesc source, VDesc target) {
         beginInsertRows(QModelIndex(), rowCount(), rowCount());
         EDesc e;
@@ -207,6 +240,9 @@ struct OrgGraph : public QAbstractListModel {
         return e;
     }
 
+    /// \brief Add new vertex for a box, register it in all fields. This
+    /// only registers a vertex in a graph. To do full box content
+    /// registration call `addBox()`
     VDesc addVertex(CR<OrgBoxId> box) {
         beginInsertRows(QModelIndex(), nodes.size(), nodes.size());
         VDesc v = boost::add_vertex(g);
@@ -233,6 +269,9 @@ struct OrgGraph : public QAbstractListModel {
         }
     }
 
+    /// \brief Clear cached values for edge rows and push a new list of
+    /// edges. Called when graph vertex descriptors might have been
+    /// invalidated.
     void rebuildEdges() {
         edges.clear();
         Graph::edge_iterator ei, ei_end;
@@ -242,11 +281,15 @@ struct OrgGraph : public QAbstractListModel {
         }
     }
 
-
+    /// \brief Get property of the first edge between source and target.
+    /// Mainly for testing purposes. Can raise range error if there are no
+    /// edges between provided nodes.
     OrgGraphEdge& out_edge0(CR<OrgBoxId> source, CR<OrgBoxId> target) {
         return getEdgeProp(out_edges(source, target).at(0));
     }
 
+    /// \brief get full list of edges between source and target. If the
+    /// target is null return all outgoing edges for a source node.
     Vec<EDesc> out_edges(
         CR<OrgBoxId>      source,
         CR<Opt<OrgBoxId>> target = std::nullopt) {
@@ -267,7 +310,9 @@ struct OrgGraph : public QAbstractListModel {
         return result;
     }
 
-
+    /// \brief Get full list of all nodes incoming to the target from the
+    /// source. If the target is none, return full list of all edges
+    /// incoming to the source.
     Vec<EDesc> in_edges(
         CR<OrgBoxId>      source,
         CR<Opt<OrgBoxId>> target = std::nullopt) {
@@ -305,6 +350,11 @@ struct std::formatter<OrgGraph::EDesc> : std::formatter<std::string> {
 Q_DECLARE_FMT_METATYPE(OrgGraph::VDesc);
 Q_DECLARE_FMT_METATYPE(OrgGraph::EDesc);
 
+
+/// \brief Helper type to provide more convenient API for accessing
+/// different node element properties. NOTE: Holds the reference to a
+/// wrapped widget, is not intended as a copyable type to store/work with.
+/// Only as an more type-safe entry point to the API.
 struct OrgGraphIndex {
     QModelIndex const& index;
     OrgGraphIndex(QModelIndex const& index) : index(index) {}
@@ -347,6 +397,7 @@ struct OrgGraphIndex {
     }
 };
 
+/// \brief Filter nodes from a graph using callback predicates.
 struct OrgGraphFilterProxy : public QSortFilterProxyModel {
   private:
     Q_OBJECT
@@ -354,8 +405,10 @@ struct OrgGraphFilterProxy : public QSortFilterProxyModel {
     using AcceptNodeCb = Func<bool(OrgGraph::VDesc const&)>;
     using AcceptEdgeCb = Func<bool(OrgGraph::EDesc const&)>;
 
-    AcceptNodeCb accept_node;
-    AcceptEdgeCb accept_edge;
+    AcceptNodeCb accept_node; ///< Individual node is ok
+    AcceptEdgeCb accept_edge; ///< Individual edge is ok. If source/target
+                              ///< for edge are not OK nodes the edge is
+                              ///< also filtered.
 
     virtual bool filterAcceptsRow(
         int                source_row,
@@ -369,6 +422,7 @@ struct OrgGraphFilterProxy : public QSortFilterProxyModel {
             auto [source, target] = qindex_get<
                 Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(
                 index, OrgGraphRoles::SourceAndTarget);
+            // Avoid dangling edges with missing source/target nodes.
             return accept_node(source) //
                 && accept_node(target)
                 && accept_edge(qindex_get<OrgGraph::EDesc>(
@@ -377,24 +431,47 @@ struct OrgGraphFilterProxy : public QSortFilterProxyModel {
     }
 };
 
+/// \brief Layout data provider for the graph. Implements node and edge
+/// shape properties, adds new rows with graph cluster elements.
+///
+/// The model maintains an internal list of layout elements which is
+/// effectively put 'on top' of the underlying graph data. The list of
+/// elemens differs in size as it also contains subgraphs. Layout elements
+/// are all populated and updated in a single layout run.
+///
+/// General control flow for this model is:
+/// - Provide an underlying node/edge provider
+/// - Call `updateCurrentLayout` to run the layout backend of choice
+/// - Now the model can serve a new set of layout elements`
 struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
   private:
     Q_OBJECT
   public:
     enum class Role
     {
+        /// Get bounding box for the whole graph
         LayoutBBoxRole = (int)OrgGraphRoles::OrgGraphModelRoles__LAST__
                        + 1,
-        Subgraph,
+        Subgraph, ///< Get subgraph object
     };
 
+    /// \brief Subgraph layout description.
+    ///
+    /// List of these objects is created automatically if layout is enabled
+    /// and they are concatenated together after the node+edge rows.
+    /// Clusters can be spatially nested, but the model returns them as a
+    /// flat list, not as parent/child indices.
     struct Subgraph {
-        Str   name;
-        QRect bbox;
+        Str name;   /// Subgraph description name, may be assigned
+                    /// automatically.
+        QRect bbox; /// Bounding box around subgraph content
         DESC_FIELDS(Subgraph, (name, bbox));
     };
 
+    /// \brief Single entry for the layout
     struct ElementLayout {
+        // Monostate used to identify an invalid default value of the
+        // layout element.
         Variant<std::monostate, QRect, GraphLayoutIR::Edge, Subgraph> data;
 
         OrgGraphElementKind getKind() const {
@@ -426,17 +503,29 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     using GetNodeSize       = Func<QSize(QModelIndex const& index)>;
     using GetSubgraphMargin = Func<Opt<int>(QModelIndex const&)>;
 
+
+    /// \brief Layout algorithm configuration options.
     struct LayoutConfig {
-        bool                   clusterSubtrees = false;
-        GetNodeSize            getNodeSize;
-        GetNodeSize            getEdgeLabelSize;
+        /// \brief Add grouping cluster for each individual subtree in the
+        /// graph.
+        bool        clusterSubtrees = false;
+        GetNodeSize getNodeSize;
+        /// If the node has a complex label, use this function to get its
+        /// size
+        GetNodeSize getEdgeLabelSize;
+        /// Customize internal margin between subtree clusters and the
+        /// content. Default margin is ~10
         Opt<GetSubgraphMargin> getSubgraphMargin;
     };
 
 
+    /// \brief current layout state
     struct FullLayout {
+        /// \brief Full result of layout for all elements
         Vec<ElementLayout> data;
-        QRect              bbox;
+        /// \brief Bounding box for the main graph content
+        QRect bbox;
+        /// \brief Original layout content
         Variant<
             std::monostate,
             GraphLayoutIR::GraphvizResult,

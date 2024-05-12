@@ -1,0 +1,15 @@
+#+title: Mind map
+
+* Architecture
+
+Mind map provides a graph-based representation of all/some boxes in the current application store. The assumption is that there is only one mind map and a single store in the running application. Store stores all the elements in all documents and the mind map provides extracted data on all sort of complex relations between boxes.
+
+Mind map is made up from several layers.
+
+- The first layer is the application store, it provides a set of node boxes. One box generally corresponds to one node in the graph
+- On top of the store there is a ~OrgGraph~, which does all the computing for the mind map structure and exposes the results as a flat ~QAbstractItemModel~. There is one graph for the app and it stores all the data for all the nodes.
+- ~OrgGraphFilterProxy~ is the first class that tailored for specific mind map visualization. It is a regular qt filter proxy to weed out all the unnecessary nodes and edges.
+- ~OrgGraphLayoutProxy~ provides layout information from underlying graph model. Using graph layout backend it computes positions for nodes, edges and subgraphs for all elements in the graph at once and exposes a new set of data.
+- ~OrgGraphView~ widget to render results of the graph layout.
+
+There is one base graph, but it can have any number of filters on top of it, providing data for any number of layouts and views.

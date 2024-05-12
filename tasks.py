@@ -1060,7 +1060,7 @@ def py_tests_ci(ctx: Context):
 @org_task()
 def docs_doxygen(ctx: Context):
     "Build docunentation for the project using doxygen"
-    out_dir = get_script_root("docs/docs_out/doxygen")
+    out_dir = get_script_root("/tmp/doxygen")
     if not out_dir.exists():
         out_dir.mkdir(parents=True)
 
