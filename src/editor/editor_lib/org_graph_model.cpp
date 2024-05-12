@@ -385,8 +385,10 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                 cluster_index.getBox());
 
             if (node->is(osk::Subtree)) {
-                GraphLayoutIR::Subgraph result;
-                for (auto const& i : cluster_index.getSubnodes()) {
+                GraphLayoutIR::Subgraph          result;
+                Func<void(QModelIndex const& i)> rec_nodes;
+
+                rec_nodes = [&](QModelIndex const& i) {
                     OrgGraphIndex sub{i};
                     auto          sub_node = store->node(sub.getBox());
                     auto          sub_desc = sub.getVDesc();
@@ -400,15 +402,23 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                                 nodeToRect.at(sub_desc));
                         }
 
-                    } else {
+                    } else if (nodeToRect.contains(sub_desc)) {
                         // Not all subtrees for an entry are guaranted to
                         // be represented in the cluster - nodes can be
                         // filtered prior to layout.
-                        if (nodeToRect.contains(sub_desc)) {
-                            result.nodes.push_back(
-                                nodeToRect.at(sub_desc));
+                        result.nodes.push_back(nodeToRect.at(sub_desc));
+                    } else if (SemSet{osk::List, osk::ListItem}.contains(
+                                   sub_node->getKind())) {
+                        for (auto const& list_element :
+                             sub.getSubnodes()) {
+                            rec_nodes(list_element);
                         }
                     }
+                };
+
+                for (auto const& cluster_element :
+                     cluster_index.getSubnodes()) {
+                    rec_nodes(cluster_element);
                 }
 
                 if (result.isEmpty()) {

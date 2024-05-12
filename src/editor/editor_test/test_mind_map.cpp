@@ -360,6 +360,11 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
 [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][Subtrees can be nested for clustering]]
 [[id:XXSDASD][Unresolved subtree]]
 )",
+        // 1.2.1.1
+        R"(
+- Regular list element
+- Two items in a list
+)",
     };
     return join("", text);
 }
