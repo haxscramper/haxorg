@@ -395,6 +395,9 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                         if (auto sub_cluster = rec_cluster(sub)) {
                             result.subgraphs.push_back(
                                 sub_cluster.value());
+                        } else {
+                            result.nodes.push_back(
+                                nodeToRect.at(sub_desc));
                         }
 
                     } else {
@@ -415,8 +418,10 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                         result.internalMargin = config.getSubgraphMargin
                                                     .value()(index);
                     }
+
                     result.nodes.push_back(
                         nodeToRect.at(cluster_index.getVDesc()));
+
                     return result;
                 }
 
