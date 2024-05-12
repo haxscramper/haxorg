@@ -357,7 +357,7 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
 )",
         // 1.2.1.0
         R"(
-[[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][Subtrees can be nested for clustering]]
+[[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][Annotation for the target subtree]]
 [[id:XXSDASD][Unresolved subtree]]
 )",
         // 1.2.1.1
@@ -625,13 +625,8 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 
     pre_layout_filter.accept_node = [&](OrgGraph::VDesc node) {
         auto sem_node = b.graph->getNodeSem(node);
-        bool result   = !SemSet{osk::ListItem, osk::List, osk::Document}
-                           .contains(sem_node->getKind());
-        if (!result) {
-            qDebug() << fmt(
-                "skipping node {} kind {}", node, sem_node->getKind());
-        }
-        return result;
+        return !SemSet{osk::ListItem, osk::List, osk::Document}.contains(
+            sem_node->getKind());
     };
 
     pre_layout_filter.setSourceModel(b.graph.get());
@@ -644,6 +639,9 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
 
+    pre_layout_filter.setObjectName("pre_layout_filter");
+    b.graph->setObjectName("base_graph");
+    b.proxy->setObjectName("layout_proxy");
     b.proxy->config.clusterSubtrees = true;
     b.proxy->config.getSubgraphMargin =
         [](QModelIndex const& index) -> Opt<int> { return 15; };

@@ -265,10 +265,12 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
             auto pre_label = result.graph.edge(
                 nodes.at(e.first).value(), node);
             init_targets(pre_label);
+            pre_label.setAttr("headport", "w"_ss);
 
             auto post_label = result.graph.edge(
                 node, nodes.at(e.second).value());
             init_targets(post_label);
+            post_label.setAttr("tailport", "e"_ss);
 
         } else {
             auto edge = result.graph.edge(

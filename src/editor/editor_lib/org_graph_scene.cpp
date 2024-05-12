@@ -154,6 +154,31 @@ struct OrgEdgeItem : public OrgGraphElementItem {
         return boundingRect;
     }
 
+
+    QPolygonF getArrowHeadPolygon(
+        const QPainterPath& path,
+        qreal               arrowSize) {
+        QPointF lastPoint = path.currentPosition();
+        QPointF prevPoint = path.elementAt(path.elementCount() - 2);
+        QLineF  line(prevPoint, lastPoint);
+
+        qreal   angle   = std::atan2(-line.dy(), line.dx());
+        QPointF arrowP1 = lastPoint
+                        + QPointF(
+                              -sin(angle + M_PI / 3) * arrowSize,
+                              cos(angle + M_PI / 3) * arrowSize);
+
+        QPointF arrowP2 = lastPoint
+                        + QPointF(
+                              -sin(angle + M_PI - M_PI / 3) * arrowSize,
+                              cos(angle + M_PI - M_PI / 3) * arrowSize);
+
+        QPolygonF arrowHead;
+        arrowHead << arrowP1 << lastPoint << arrowP2;
+
+        return arrowHead;
+    }
+
     void paint(
         QPainter*                       painter,
         const QStyleOptionGraphicsItem* option,
@@ -164,13 +189,17 @@ struct OrgEdgeItem : public OrgGraphElementItem {
             painter->drawPath(path);
         }
 
+        painter->save();
+        {
+            painter->setBrush(QBrush{Qt::red});
+            painter->drawPolygon(
+                getArrowHeadPolygon(getEdge().paths.back(), 5.0));
+        }
+        painter->restore();
+
         if (auto rect = getEdge().labelRect) {
             painter->save();
             {
-                painter->setPen(QPen{Qt::black, 2});
-                painter->drawText(
-                    rect->topLeft(),
-                    QString::fromStdString(qdebug_to_str(index)));
                 painter->setPen(QPen{Qt::green, 2});
                 painter->setBrush(QBrush{QColor{215, 214, 213}});
                 painter->drawRoundedRect(*rect, 5, 5);
@@ -231,6 +260,15 @@ struct OrgNodeItem : public OrgGraphElementItem {
             painter->setPen(QPen{Qt::black, 2});
             painter->setBrush(QBrush{QColor{215, 214, 213}});
             painter->drawRoundedRect(rect, 5, 5);
+        }
+        painter->restore();
+
+        painter->save();
+        if (false) {
+            painter->setPen(QPen{Qt::black, 2});
+            painter->drawText(
+                rect.topLeft(),
+                QString::fromStdString(qdebug_to_str(index)));
         }
         painter->restore();
 
