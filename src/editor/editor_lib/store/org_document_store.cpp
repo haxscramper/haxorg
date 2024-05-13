@@ -1,4 +1,4 @@
-#include <editor/editor_lib/org_document_store.hpp>
+#include <editor/editor_lib/store/org_document_store.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 
 sem::SemId<sem::Org> OrgTreeNode::boxedNode() const {

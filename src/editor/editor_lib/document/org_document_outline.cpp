@@ -4,7 +4,7 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QMouseEvent>
-#include "app_utils.hpp"
+#include <editor/editor_lib/common/app_utils.hpp>
 
 
 void OrgOutlineItemDelegate::paint(

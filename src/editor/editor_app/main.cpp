@@ -1,9 +1,9 @@
-#include <editor/editor_lib/mainwindow.hpp>
+#include <editor/editor_lib/main_gui/mainwindow.hpp>
 
 #include <QApplication>
 #include <QDebug>
-#include <editor/editor_lib/app_state.hpp>
-#include <editor/editor_lib/app_init.hpp>
+#include <editor/editor_lib/common/app_state.hpp>
+#include <editor/editor_lib/common/app_init.hpp>
 #include <QDataStream>
 
 int main(int argc, char* argv[]) {

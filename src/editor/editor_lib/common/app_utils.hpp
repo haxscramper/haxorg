@@ -3,7 +3,7 @@
 #include <string>
 #include <QAbstractItemModel>
 #include <hstd/stdlib/Func.hpp>
-#include <editor/editor_lib/org_document_model.hpp>
+#include <editor/editor_lib/document/org_document_model.hpp>
 #include <QEvent>
 #include <boost/preprocessor.hpp>
 #include <QLoggingCategory>

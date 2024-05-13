@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QtTest>
-#include <editor/editor_lib/mainwindow.hpp>
-#include <editor/editor_lib/app_init.hpp>
-#include <editor/editor_lib/app_utils.hpp>
+#include <editor/editor_lib/main_gui/mainwindow.hpp>
+#include <editor/editor_lib/common/app_init.hpp>
+#include <editor/editor_lib/common/app_utils.hpp>
 #include <exporters/ExporterUltraplain.hpp>
 #include <sem/SemOrgFormat.hpp>
 #include <exporters/exportertree.hpp>

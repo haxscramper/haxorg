@@ -1,12 +1,12 @@
 #include "test_mind_map.hpp"
 
-#include <editor/editor_lib/org_graph_layout.hpp>
+#include <editor/editor_lib/mind_map/org_graph_layout.hpp>
 
 
 #include <QRect>
 #include <hstd/stdlib/Ranges.hpp>
-#include <editor/editor_lib/org_graph_model.hpp>
-#include <editor/editor_lib/org_graph_scene.hpp>
+#include <editor/editor_lib/mind_map/org_graph_model.hpp>
+#include <editor/editor_lib/mind_map/org_graph_scene.hpp>
 
 #define QCOMPARE_OP2_IMPL(lhs, rhs, op, opId)                             \
     do {                                                                  \

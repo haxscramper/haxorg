@@ -1,5 +1,5 @@
-#include <editor/editor_lib/org_graph_scene.hpp>
-#include <editor/editor_lib/org_document_render.hpp>
+#include <editor/editor_lib/mind_map/org_graph_scene.hpp>
+#include <editor/editor_lib/document/org_document_render.hpp>
 
 namespace {
 SPtr<QTextDocument> toDocument(QString const& text) {

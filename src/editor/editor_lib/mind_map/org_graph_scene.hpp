@@ -9,7 +9,7 @@
 #include <QSharedPointer>
 #include <QHash>
 
-#include <editor/editor_lib/org_graph_model.hpp>
+#include <editor/editor_lib/mind_map/org_graph_model.hpp>
 
 class OrgGraphView : public QGraphicsView {
   private:

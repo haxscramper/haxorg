@@ -1,5 +1,5 @@
-#include <editor/editor_lib/mainwindow.hpp>
-#include <editor/editor_lib/org_document_outline.hpp>
+#include <editor/editor_lib/main_gui/mainwindow.hpp>
+#include <editor/editor_lib/document/org_document_outline.hpp>
 #include <QSplitter>
 
 void MainWindow::loadFiles() {

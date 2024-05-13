@@ -1,5 +1,5 @@
-#include "org_document_render.hpp"
-#include "org_exporter_html.hpp"
+#include <editor/editor_lib/document/org_document_render.hpp>
+#include <editor/editor_lib/store/org_exporter_html.hpp>
 #include <QLabel>
 #include <QPainter>
 

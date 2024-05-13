@@ -1,5 +1,5 @@
-#include <editor/editor_lib/org_graph_layout.hpp>
-#include <editor/editor_lib/app_utils.hpp>
+#include <editor/editor_lib/mind_map/org_graph_layout.hpp>
+#include <editor/editor_lib/common/app_utils.hpp>
 #include <QPainterPath>
 #include <hstd/stdlib/Set.hpp>
 

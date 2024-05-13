@@ -1,12 +1,12 @@
 #pragma once
 
 #include <boost/graph/adjacency_list.hpp>
-#include <editor/editor_lib/org_document_model.hpp>
+#include <editor/editor_lib/document/org_document_model.hpp>
 #include <QObject>
 #include <hstd/system/macros.hpp>
 #include <QAbstractItemModel>
-#include <editor/editor_lib/app_utils.hpp>
-#include <editor/editor_lib/org_graph_layout.hpp>
+#include <editor/editor_lib/common/app_utils.hpp>
+#include <editor/editor_lib/mind_map/org_graph_layout.hpp>
 #include <QPainterPath>
 #include <QTextDocument>
 

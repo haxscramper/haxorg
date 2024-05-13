@@ -1,12 +1,12 @@
 #include "qtextoption.h"
-#include <editor/editor_lib/org_graph_model.hpp>
-#include <editor/editor_lib/app_utils.hpp>
+#include <editor/editor_lib/mind_map/org_graph_model.hpp>
+#include <editor/editor_lib/common/app_utils.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <QDebug>
 #include <exporters/ExporterUltraplain.hpp>
-#include <editor/editor_lib/org_document_render.hpp>
-#include <editor/editor_lib/org_exporter_html.hpp>
+#include <editor/editor_lib/document/org_document_render.hpp>
+#include <editor/editor_lib/store/org_exporter_html.hpp>
 #include <hstd/stdlib/Set.hpp>
 
 #pragma clang diagnostic error "-Wswitch"

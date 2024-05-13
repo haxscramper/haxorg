@@ -1,6 +1,6 @@
-#include <editor/editor_lib/app_init.hpp>
-#include <editor/editor_lib/org_document_model.hpp>
-#include <editor/editor_lib/org_graph_model.hpp>
+#include <editor/editor_lib/common/app_init.hpp>
+#include <editor/editor_lib/document/org_document_model.hpp>
+#include <editor/editor_lib/mind_map/org_graph_model.hpp>
 #include <iostream>
 
 void customMessageHandler(
