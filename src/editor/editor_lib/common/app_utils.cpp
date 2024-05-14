@@ -290,3 +290,13 @@ std::string qdebug_obj(const QObject* obj) {
 
     return os.str();
 }
+
+json dumpModelTree(
+    QAbstractItemModel*            model,
+    const QModelIndex&             parent,
+    Func<json(const QModelIndex&)> dumpJson) {
+    json result;
+
+
+    return result;
+}

@@ -84,6 +84,11 @@ glob_add_sources2(editor_app "${EDITOR_DIR}/editor_app.*" "${BASE}")
 haxorg_target_setup(editor_app)
 target_link_libraries(editor_app PUBLIC editor_lib)
 
+qt_add_executable(editor_driver)
+glob_add_sources2(editor_driver "${EDITOR_DIR}/editor_driver.*" "${BASE}")
+haxorg_target_setup(editor_driver)
+target_link_libraries(editor_driver PUBLIC editor_lib)
+
 qt_add_library(editor_test_lib STATIC)
 glob_add_sources2(editor_test_lib "${EDITOR_DIR}/editor_test.*" "${BASE}")
 haxorg_target_setup(editor_test_lib)

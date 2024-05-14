@@ -35,6 +35,11 @@ ColText printModelTree(
     Func<ColText(QModelIndex const&)> toString,
     bool                              ignoreExceptions = false);
 
+json dumpModelTree(
+    QAbstractItemModel*            model,
+    QModelIndex const&             parent,
+    Func<json(QModelIndex const&)> dumpJson);
+
 Func<ColText(QModelIndex const&)> store_index_printer(
     const OrgStore* store,
     int             role = (int)SharedModelRoles::IndexBox);
