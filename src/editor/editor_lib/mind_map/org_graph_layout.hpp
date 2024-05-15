@@ -18,6 +18,8 @@
 
 /// \brief IR wrapper for the cola layout constraints
 struct GraphConstraint {
+    using Res = SPtr<cola::CompoundConstraint>;
+
     /// \brief Listed nodes must be positioned on the same X/Y dimension in
     /// the layout
     struct Align {
@@ -32,7 +34,7 @@ struct GraphConstraint {
         DESC_FIELDS(Align, (nodes, dimension));
 
         /// \brief Map to cola layout constraint object
-        SPtr<cola::CompoundConstraint> toCola() const {
+        Res toCola() const {
             auto result = std::make_shared<cola::AlignmentConstraint>(
                 dimension);
 
@@ -45,15 +47,125 @@ struct GraphConstraint {
         }
     };
 
-    SPtr<cola::CompoundConstraint> toCola() const {
+    struct Separate {
+        Align     left;
+        Align     right;
+        double    separationDistance = 1.0;
+        bool      isExactSeparation  = false;
+        vpsc::Dim dimension; ///< Which axis to partition nodes
+        DESC_FIELDS(
+            Separate,
+            (left, right, separationDistance, isExactSeparation));
+
+        Vec<Res> toCola() const {
+            auto left_constraint  = left.toCola();
+            auto right_constraint = right.toCola();
+            auto result = std::make_shared<cola::SeparationConstraint>(
+                dimension,
+                dynamic_cast<cola::AlignmentConstraint*>(
+                    left_constraint.get()),
+                dynamic_cast<cola::AlignmentConstraint*>(
+                    right_constraint.get()),
+                separationDistance,
+                isExactSeparation);
+
+            return {result, left_constraint, right_constraint};
+        }
+    };
+
+    struct MultiSeparate {
+        Vec<Align>          lines;
+        Vec<Pair<int, int>> alignPairs;
+        vpsc::Dim           dimension;
+        double              separationDistance;
+        bool                isExactSeparation;
+
+        Vec<Res> toCola() const {
+            Vec<Res> result;
+            for (auto const& line : lines) {
+                result.push_back(line.toCola());
+            }
+
+            auto sep = std::make_shared<cola::MultiSeparationConstraint>(
+                dimension, separationDistance, isExactSeparation);
+
+            for (auto [pair1, pair2] : alignPairs) {
+                sep->addAlignmentPair(
+                    dynamic_cast<cola::AlignmentConstraint*>(
+                        result.at(pair1).get()),
+                    dynamic_cast<cola::AlignmentConstraint*>(
+                        result.at(pair2).get()));
+            }
+
+            result.push_back(sep);
+
+            return result;
+        }
+    };
+
+    struct FixedRelative {
+        Vec<int> nodes;
+        bool     fixedPosition = false;
+        Res toCola(std::vector<vpsc::Rectangle*> const& allRects) const {
+            return std::make_shared<cola::FixedRelativeConstraint>(
+                allRects,
+                nodes //
+                    | rv::transform(
+                        [](int i) { return static_cast<unsigned>(i); })
+                    | rs::to<std::vector>(),
+                fixedPosition);
+        }
+    };
+
+    struct PageBoundary {
+        QRect  rect;
+        double weight = 100.0;
+        Res    toCola() const {
+            return std::make_shared<cola::PageBoundaryConstraints>(
+                rect.left(),
+                rect.right(),
+                rect.bottom(),
+                rect.top(),
+                weight);
+        }
+    };
+
+    Vec<Res> toCola(std::vector<vpsc::Rectangle*> const& allRects) const {
         return std::visit(
-            [](auto const& spec) { return spec.toCola(); }, data);
+            overloaded{
+                [&](FixedRelative const& fixed) -> Vec<Res> {
+                    return {fixed.toCola(allRects)};
+                },
+                [&](Align const& align) -> Vec<Res> {
+                    return {align.toCola()};
+                },
+                [&](MultiSeparate const& sep) -> Vec<Res> {
+                    return sep.toCola();
+                },
+                [&](PageBoundary const& sep) -> Vec<Res> {
+                    return {sep.toCola()};
+                },
+                [&](Separate const& sep) -> Vec<Res> {
+                    return sep.toCola();
+                },
+            },
+            data);
     }
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Align);
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        Align,
+        FixedRelative,
+        Separate,
+        MultiSeparate,
+        PageBoundary);
+
     Data data;
 
-    GraphConstraint(CR<Data> data) : data(data){};
+    GraphConstraint(CR<Data> data) : data(data) {};
 };
 
 /// \brief Main store for the graph layout intermediate representation.

@@ -338,15 +338,7 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
 
 GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     validate();
-    ColaResult                ir;
-    cola::CompoundConstraints ccs;
-
-    auto constraints        //
-        = this->constraints //
-        | rv::transform([](CR<GraphConstraint> c) { return c.toCola(); })
-        | rs::to<Vec>();
-
-    for (auto const& c : constraints) { ccs.push_back(c.get()); }
+    ColaResult ir;
 
     ir.baseRectangles.reserve(rectangles.size());
     for (auto const& r : rectangles) {
@@ -358,6 +350,19 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         = ir.baseRectangles                         //
         | rv::transform([](auto& r) { return &r; }) //
         | rs::to<Vec>();
+
+    cola::CompoundConstraints ccs;
+
+    Vec<SPtr<cola::CompoundConstraint>> constraints //
+        = this->constraints                         //
+        | rv::transform([&](CR<GraphConstraint> c) {
+              return c.toCola(ir.rectPointers);
+          })
+        | rv::join //
+        | rs::to<Vec>();
+
+    for (auto const& c : constraints) { ccs.push_back(c.get()); }
+
 
     ir.edges //
         = edges

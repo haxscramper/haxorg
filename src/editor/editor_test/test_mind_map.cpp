@@ -87,6 +87,23 @@ void TestMindMap::testLibcolaApi1() {
     for (auto r : rectangles) { delete r; }
 }
 
+GraphLayoutIR init_graph(CVec<Pair<int, int>> edges) {
+    int           max_node = 0;
+    GraphLayoutIR ir;
+    ir.edges = edges;
+    for (auto const& e : edges) {
+        max_node = std::max(max_node, std::max(e.first, e.second));
+    }
+
+    for (int i = 0; i <= max_node; ++i) {
+        ir.rectangles.push_back(QSize(5, 5));
+    }
+
+    return ir;
+}
+
+using C = GraphConstraint;
+
 void TestMindMap::testLibcolaIr1() {
     GraphLayoutIR ir;
     ir.edges.push_back({0, 1});
@@ -98,7 +115,6 @@ void TestMindMap::testLibcolaIr1() {
     ir.rectangles.push_back(QSize(5, 5));
     ir.rectangles.push_back(QSize(5, 5));
 
-    using C = GraphConstraint;
 
     ir.constraints.push_back(C{C::Align{
         .nodes = {C::Align::Spec{.node = 0}, C::Align::Spec{.node = 1}},
@@ -113,6 +129,14 @@ void TestMindMap::testLibcolaIr1() {
     auto lyt = ir.doColaLayout();
     lyt.writeSvg("/tmp/testLibcolaIr1.svg");
     lyt.convert();
+}
+
+void TestMindMap::testLibcolaIr2() {
+    auto ir = init_graph({
+        {0, 1},
+        {1, 2},
+        {2, 3},
+    });
 }
 
 void TestMindMap::testGraphvizIr1() {
