@@ -201,6 +201,15 @@ T qvariant_get(QVariant const& var) {
 }
 
 template <typename T>
+Opt<T> qvariant_opt(QVariant const& var) {
+    if (is_of_type<T>(var)) {
+        return qvariant_get<T>(var);
+    } else {
+        return std::nullopt;
+    }
+}
+
+template <typename T>
 T qindex_get(QModelIndex const& index, int role) {
     Q_ASSERT(index.model() != nullptr);
     QVariant result = index.data(role);

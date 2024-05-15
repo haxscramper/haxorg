@@ -76,15 +76,13 @@ struct DriverConfig {
 struct ModelDumpIr {
 
     struct IndexChain {
-        Opt<std::string> modelName;
-        u64              modelAddr;
-        Opt<u64>         internalPtr;
-        Opt<u64>         internalId;
-        int              row;
-        int              col;
-        DESC_FIELDS(
-            IndexChain,
-            (modelName, modelAddr, internalPtr, internalId, row, col));
+        std::string modelName;
+        // u64              modelAddr;
+        // Opt<u64>         internalPtr;
+        // Opt<u64>         internalId;
+        int row;
+        int col;
+        DESC_FIELDS(IndexChain, (modelName, row, col));
     };
 
     struct Row;
@@ -123,10 +121,11 @@ struct DriverResult {
     };
 
     Vec<DocumentDump> document_dumps;
+    Opt<MindMapDump>  mind_map_dump;
 
 
     Action action;
-    DESC_FIELDS(DriverResult, (action, document_dumps));
+    DESC_FIELDS(DriverResult, (action, document_dumps, mind_map_dump));
 };
 
 
@@ -162,20 +161,12 @@ ModelDumpIr dumpModelTree(
             auto add_proxy = [&](QAbstractItemModel const* proxy_model,
                                  CR<QModelIndex>           index) {
                 out.chain.push_back(ModelDumpIr::IndexChain{
-                    .row        = index.row(),
-                    .col        = index.column(),
-                    .internalId = index.internalId(),
-                    .modelAddr  = (u64)model,
+                    .row = index.row(),
+                    .col = index.column(),
                     .modelName //
                     = model->objectName().isEmpty()
-                        ? std::nullopt
-                        : std::make_optional(
-                              model->objectName().toStdString()),
-                    .internalPtr //
-                    = index.internalPointer() != nullptr
-                        ? std::make_optional<u64>(
-                              (u64)index.internalPointer())
-                        : std::nullopt,
+                        ? fmt("{}", (u64)model)
+                        : model->objectName().toStdString(),
                 });
             };
 
@@ -229,6 +220,13 @@ ModelDumpIr dumpModelTree(
 std::optional<nlohmann::json> QVariantToJson(const QVariant& variant) {
     if (!variant.isValid() || variant.isNull()) {
         return std::nullopt;
+    } else if (auto r = qvariant_opt<QRect>(variant)) {
+        return json::object({
+            {"x", r->x()},
+            {"y", r->y()},
+            {"width", r->width()},
+            {"height", r->height()},
+        });
     } else {
         QJsonValue jsonValue = QJsonValue::fromVariant(variant);
 
@@ -282,8 +280,12 @@ int main(int argc, char** argv) {
     auto variant_dump_cb = [](QVariant const& val) -> json {
         if (auto conv = QVariantToJson(val)) {
             return conv.value();
-        } else if (is_of_type<OrgBoxId>(val)) {
-            return to_json_eval<OrgBoxId>(qvariant_get<OrgBoxId>(val));
+        } else if (auto box = qvariant_opt<OrgBoxId>(val)) {
+            return to_json_eval(*box);
+        } else if (
+            auto pair = qvariant_opt<
+                Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(val)) {
+            return to_json_eval(*pair);
         } else {
             return qdebug_to_str(val);
         }
@@ -357,6 +359,19 @@ int main(int argc, char** argv) {
                     QString::fromStdString(map.screenshotPath.value()),
                     2);
             }
+            result.mind_map_dump = DriverResult::MindMapDump{};
+            auto& dump           = result.mind_map_dump.value();
+
+            proxy->setObjectName("layout_proxy");
+            graph->setObjectName("base_graph");
+
+            dump.graphvizDump = graph->toGraphviz();
+            dump.graphModel   = dumpModelTree(
+                graph.get(), QModelIndex(), variant_dump_cb);
+            dump.layoutDump = dumpModelTree(
+                proxy.get(), QModelIndex(), variant_dump_cb);
+
+
             break;
         }
     }

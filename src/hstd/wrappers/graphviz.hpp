@@ -120,7 +120,8 @@ class Graphviz {
 
         void getAttr(Str const& attribute, Opt<Str>& value) const {
             char* found = agget(
-                (void*)(_this()->get()), strdup(attribute));
+                (void*)(_this()->get()),
+                const_cast<char*>(attribute.data()));
 
             if (found != nullptr) {
                 value = found;
@@ -157,12 +158,12 @@ class Graphviz {
             }
         }
 
-        void setAttr(Str const& attribute, Str const& value) {
+        void setAttr(Str attribute, Str const& value) {
             if (setOverride) {
                 setOverride(attribute, value);
             } else {
                 agsafeset(
-                    _this()->get(), strdup(attribute), strdup(value), "");
+                    _this()->get(), attribute.data(), value.c_str(), "");
             }
         }
 

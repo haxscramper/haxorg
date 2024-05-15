@@ -195,8 +195,8 @@ void Graphviz::writeFile(
         gvRenderFilename(
             gvc.get(),
             const_cast<Agraph_t*>(graph.get()),
-            strdup(renderFormatToString(format)),
-            strdup(fileName));
+            renderFormatToString(format).c_str(),
+            fileName.c_str());
     }
 }
 
