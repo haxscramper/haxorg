@@ -87,7 +87,9 @@ void TestMindMap::testLibcolaApi1() {
     for (auto r : rectangles) { delete r; }
 }
 
-GraphLayoutIR init_graph(CVec<Pair<int, int>> edges) {
+GraphLayoutIR init_graph(
+    CVec<Pair<int, int>> edges,
+    QSize                size = QSize(5, 5)) {
     int           max_node = 0;
     GraphLayoutIR ir;
     ir.edges = edges;
@@ -95,9 +97,7 @@ GraphLayoutIR init_graph(CVec<Pair<int, int>> edges) {
         max_node = std::max(max_node, std::max(e.first, e.second));
     }
 
-    for (int i = 0; i <= max_node; ++i) {
-        ir.rectangles.push_back(QSize(5, 5));
-    }
+    for (int i = 0; i <= max_node; ++i) { ir.rectangles.push_back(size); }
 
     return ir;
 }

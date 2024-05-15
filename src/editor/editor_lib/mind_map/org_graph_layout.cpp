@@ -2,6 +2,7 @@
 #include <editor/editor_lib/common/app_utils.hpp>
 #include <QPainterPath>
 #include <hstd/stdlib/Set.hpp>
+#include <libavoid/libavoid.h>
 
 
 /// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
@@ -375,6 +376,24 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
     alg2.setConstraints(ccs);
     alg2.run();
+
+    auto router = std::make_shared<Avoid::Router>(
+        Avoid::OrthogonalRouting);
+    Vec<Avoid::Polygon>   polygons;
+    Vec<Avoid::ShapeRef*> shapes;
+    for (auto const& it : enumerator(ir.baseRectangles)) {
+        auto const& r    = it.value();
+        auto&       poly = polygons.emplace_back(4);
+        poly.setPoint(0, Avoid::Point(r.getMinX(), r.getMaxY()));
+        poly.setPoint(1, Avoid::Point(r.getMaxX(), r.getMaxY()));
+        poly.setPoint(2, Avoid::Point(r.getMaxX(), r.getMinY()));
+        poly.setPoint(3, Avoid::Point(r.getMinX(), r.getMinY()));
+
+        auto shape = new Avoid::ShapeRef(
+            router.get(), poly, static_cast<unsigned>(it.index()));
+
+        shapes.emplace_back(shape);
+    }
 
     return ir;
 }
