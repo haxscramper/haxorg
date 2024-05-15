@@ -4,6 +4,10 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <exporters/ExporterJson.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <QMainWindow>
+#include <QApplication>
+#include <QScreen>
+#include <QWindow>
 
 Q_LOGGING_CATEGORY(editor, "editor");
 /// Logging related to the editable document model in the tree or outline
@@ -289,4 +293,22 @@ std::string qdebug_obj(const QObject* obj) {
     }
 
     return os.str();
+}
+
+void save_screenshot(
+    QWidget*       widget,
+    const QString& filePath,
+    qreal          scaleFactor) {
+    QPixmap pixmap(widget->size() * scaleFactor);
+    pixmap.setDevicePixelRatio(scaleFactor);
+    widget->render(&pixmap);
+    pixmap.save(filePath);
+}
+
+void save_screenshot(const QString& filePath) {
+    QScreen*       screen = QGuiApplication::primaryScreen();
+    const QWindow* window = QApplication::focusWindow();
+    Q_ASSERT(window != nullptr);
+    QPixmap pixmap = screen->grabWindow(window->winId());
+    pixmap.save(filePath);
 }

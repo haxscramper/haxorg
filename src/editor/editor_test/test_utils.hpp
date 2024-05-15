@@ -65,24 +65,6 @@ inline SPtr<MainWindow> init_window(AppState const& state) {
 }
 
 
-inline void save_screenshot(const QString& filePath) {
-    QScreen*       screen = QGuiApplication::primaryScreen();
-    const QWindow* window = QApplication::focusWindow();
-    Q_ASSERT(window != nullptr);
-    QPixmap pixmap = screen->grabWindow(window->winId());
-    pixmap.save(filePath);
-}
-
-inline void save_screenshot(
-    QWidget*       widget,
-    const QString& filePath,
-    qreal          scaleFactor = 1.0) {
-    QPixmap pixmap(widget->size() * scaleFactor);
-    pixmap.setDevicePixelRatio(scaleFactor);
-    widget->render(&pixmap);
-    pixmap.save(filePath);
-}
-
 
 inline void add_file(
     AppState&            state,

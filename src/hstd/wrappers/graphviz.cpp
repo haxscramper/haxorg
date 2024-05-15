@@ -161,7 +161,7 @@ void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) const {
     int res = gvLayout(
         gvc.get(),
         const_cast<Agraph_t*>(graph.get()),
-        strdup(layoutTypeToString(layout)));
+        layoutTypeToString(layout).c_str());
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
 }
 

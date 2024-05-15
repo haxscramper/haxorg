@@ -9,6 +9,8 @@
 #include <QLoggingCategory>
 #include <hstd/stdlib/Exception.hpp>
 
+class QWindow;
+
 using osk = OrgSemKind;
 
 /// Top-level logs for all editor logging that does not fit into any
@@ -227,3 +229,11 @@ template <typename T, IsEnum E>
 T qindex_get(QModelIndex const& index, E role) {
     return qindex_get<T>(index, (int)role);
 }
+
+
+void save_screenshot(const QString& filePath);
+
+void save_screenshot(
+    QWidget*       widget,
+    const QString& filePath,
+    qreal          scaleFactor = 1.0);

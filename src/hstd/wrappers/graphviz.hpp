@@ -162,10 +162,7 @@ class Graphviz {
                 setOverride(attribute, value);
             } else {
                 agsafeset(
-                    _this()->get(),
-                    strdup(attribute),
-                    strdup(value),
-                    strdup(""));
+                    _this()->get(), strdup(attribute), strdup(value), "");
             }
         }
 

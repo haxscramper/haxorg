@@ -3,10 +3,14 @@
 #include <editor/editor_lib/common/app_state.hpp>
 #include <editor/editor_lib/common/app_init.hpp>
 #include <editor/editor_lib/document/org_document_outline.hpp>
+#include <editor/editor_lib/mind_map/org_graph_model.hpp>
+#include <editor/editor_lib/mind_map/org_graph_scene.hpp>
 #include <QJsonValue>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QMainWindow>
+#include <QApplication>
 
 
 template <typename E, IsVariant Var>
@@ -42,7 +46,8 @@ void to_json_variant(
 
 struct Action {
     struct MindMap {
-        DESC_FIELDS(MindMap, ());
+        Opt<std::string> screenshotPath;
+        DESC_FIELDS(MindMap, (screenshotPath));
     };
 
     struct None {
@@ -108,6 +113,13 @@ struct DriverResult {
         ModelDumpIr outline_document;
         std::string path;
         DESC_FIELDS(DocumentDump, (main_document, outline_document, path));
+    };
+
+    struct MindMapDump {
+        ModelDumpIr graphModel;
+        std::string graphvizDump;
+        ModelDumpIr layoutDump;
+        DESC_FIELDS(MindMapDump, (graphModel, graphvizDump, layoutDump));
     };
 
     Vec<DocumentDump> document_dumps;
@@ -300,6 +312,52 @@ int main(int argc, char** argv) {
 
                 result.document_dumps.push_back(dump);
             }
+            break;
+        }
+
+        case Action::Kind::MindMap: {
+            QApplication      app{argc, argv};
+            SPtr<QMainWindow> window = std::make_shared<QMainWindow>();
+            window->show();
+            window->raise();
+            window->activateWindow();
+
+            auto graph = std::make_shared<OrgGraph>(&store, nullptr);
+            graph->addFullStore();
+
+            OrgGraphView* view;
+
+            SPtr<OrgGraphLayoutProxy>
+                proxy = std::make_shared<OrgGraphLayoutProxy>(
+                    &store,
+                    OrgGraphLayoutProxy::LayoutConfig{
+                        .getNodeSize =
+                            [&](QModelIndex const& index) {
+                                return view->getNodeSize(index);
+                            },
+                        .getEdgeLabelSize =
+                            [&](QModelIndex const& index) {
+                                return view->getNodeSize(index);
+                            },
+                    },
+                    nullptr);
+
+            proxy->setSourceModel(graph.get());
+            view = new OrgGraphView(proxy.get(), &store, window.get());
+
+            window->setContentsMargins(0, 0, 0, 0);
+            window->setCentralWidget(view);
+            proxy->updateCurrentLayout();
+            view->rebuildScene();
+
+            auto const& map = config.action.getMindMap();
+            if (map.screenshotPath) {
+                save_screenshot(
+                    window.get(),
+                    QString::fromStdString(map.screenshotPath.value()),
+                    2);
+            }
+            break;
         }
     }
 
