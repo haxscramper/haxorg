@@ -26,6 +26,8 @@ struct OrgBoxId {
     bool operator==(OrgBoxId const& other) const {
         return this->value == other.value;
     }
+
+    DESC_FIELDS(OrgBoxId, (value));
 };
 
 template <>

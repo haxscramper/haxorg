@@ -32,6 +32,7 @@ struct OrgDocumentModel : public QAbstractItemModel {
     QModelIndex index(int row, int column, const QModelIndex& parent)
         const override;
 
+
     /// Change nesting level of the tree, promoting or demoting it.
     void changeLevel(CR<QModelIndex> index, int level, bool recursive);
     void changePosition(CR<QModelIndex> index, int offset);
@@ -52,6 +53,13 @@ struct OrgDocumentModel : public QAbstractItemModel {
         const QModelIndex& index,
         const QVariant&    value,
         int                role) override;
+
+  public:
+    virtual QHash<int, QByteArray> roleNames() const override {
+        QHash<int, QByteArray> result;
+        result[Qt::DisplayRole] = "ItemData";
+        return result;
+    }
 };
 
 

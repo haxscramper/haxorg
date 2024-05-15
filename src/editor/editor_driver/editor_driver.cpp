@@ -2,6 +2,11 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <editor/editor_lib/common/app_state.hpp>
 #include <editor/editor_lib/common/app_init.hpp>
+#include <editor/editor_lib/document/org_document_outline.hpp>
+#include <QJsonValue>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 
 template <typename E, IsVariant Var>
@@ -62,11 +67,46 @@ struct DriverConfig {
     DESC_FIELDS(DriverConfig, (input_paths, output_path, action));
 };
 
+
+struct ModelDumpIr {
+
+    struct IndexChain {
+        Opt<std::string> modelName;
+        u64              modelAddr;
+        Opt<u64>         internalPtr;
+        Opt<u64>         internalId;
+        int              row;
+        int              col;
+        DESC_FIELDS(
+            IndexChain,
+            (modelName, modelAddr, internalPtr, internalId, row, col));
+    };
+
+    struct Row;
+
+    struct Index {
+        Vec<IndexChain>                 chain;
+        UnorderedMap<std::string, json> roles;
+        Vec<SPtr<Row>>                  nested;
+        DESC_FIELDS(Index, (chain, roles, nested));
+    };
+
+    struct Row {
+        Vec<Opt<Index>> columns;
+        DESC_FIELDS(Row, (columns));
+    };
+
+    Opt<std::string> name; ///< Main model object name
+    Index            root;
+
+    DESC_FIELDS(ModelDumpIr, (name, root));
+};
+
 struct DriverResult {
     struct DocumentDump {
-        json main_document;
-        json outline_document;
-        Str  path;
+        ModelDumpIr main_document;
+        ModelDumpIr outline_document;
+        std::string path;
         DESC_FIELDS(DocumentDump, (main_document, outline_document, path));
     };
 
@@ -77,6 +117,7 @@ struct DriverResult {
     DESC_FIELDS(DriverResult, (action, document_dumps));
 };
 
+
 void from_json(json const& j, Action& out) {
     from_json_variant<Action::Kind>("kind", j, out.data);
 }
@@ -85,6 +126,124 @@ void to_json(json& j, Action const& in) {
     to_json_variant("kind", j, in.data, in.getKind());
 }
 
+
+ModelDumpIr dumpModelTree(
+    QAbstractItemModel*         model,
+    const QModelIndex&          parent,
+    Func<json(QVariant const&)> dumpValue) {
+    ModelDumpIr result;
+
+    Func<ModelDumpIr::Index(CR<QModelIndex>)> aux;
+    aux = [&](CR<QModelIndex> index) -> ModelDumpIr::Index {
+        ModelDumpIr::Index out;
+
+        auto roles = model->roleNames();
+        for (int const& role : roles.keys()) {
+            QVariant value = index.data(role);
+            if (value.isValid()) {
+                out.roles[roles.value(role).toStdString()] = dumpValue(
+                    value);
+            }
+        }
+
+        {
+            auto add_proxy = [&](QAbstractItemModel const* proxy_model,
+                                 CR<QModelIndex>           index) {
+                out.chain.push_back(ModelDumpIr::IndexChain{
+                    .row        = index.row(),
+                    .col        = index.column(),
+                    .internalId = index.internalId(),
+                    .modelAddr  = (u64)model,
+                    .modelName //
+                    = model->objectName().isEmpty()
+                        ? std::nullopt
+                        : std::make_optional(
+                              model->objectName().toStdString()),
+                    .internalPtr //
+                    = index.internalPointer() != nullptr
+                        ? std::make_optional<u64>(
+                              (u64)index.internalPointer())
+                        : std::nullopt,
+                });
+            };
+
+            add_proxy(model, index);
+
+            QModelIndex currentIndex      = index;
+            auto        currentProxyModel = qobject_cast<
+                       QSortFilterProxyModel const*>(model);
+
+            while (currentProxyModel && currentIndex.model() != nullptr) {
+                Q_ASSERT(currentProxyModel->sourceModel() != nullptr);
+                if (!currentProxyModel->sourceModel()->hasIndex(
+                        currentIndex.row(), currentIndex.column())) {
+                    break;
+                }
+
+                auto mapped = currentProxyModel->mapToSource(currentIndex);
+                if (mapped.isValid()) {
+                    currentIndex = mapped;
+                    add_proxy(currentProxyModel, currentIndex);
+                    currentProxyModel = qobject_cast<
+                        QSortFilterProxyModel const*>(
+                        currentProxyModel->sourceModel());
+                } else {
+                    break;
+                }
+            }
+        }
+
+        for (int row = 0; row < model->rowCount(index); ++row) {
+            out.nested.push_back(std::make_shared<ModelDumpIr::Row>());
+            auto& it = out.nested.back();
+            for (int col = 0; col < model->columnCount(index); ++col) {
+                QModelIndex sub = model->index(row, col, index);
+                if (sub.isValid()) {
+                    it->columns.push_back(aux(sub));
+                } else {
+                    it->columns.push_back(std::nullopt);
+                }
+            }
+        }
+
+        return out;
+    };
+
+    result.root = aux(parent);
+
+    return result;
+}
+
+std::optional<nlohmann::json> QVariantToJson(const QVariant& variant) {
+    if (!variant.isValid() || variant.isNull()) {
+        return std::nullopt;
+    } else {
+        QJsonValue jsonValue = QJsonValue::fromVariant(variant);
+
+        if (jsonValue.isUndefined()) {
+            return std::nullopt;
+        } else if (jsonValue.isObject()) {
+            return nlohmann::json::parse(
+                jsonValue.toString().toStdString());
+        } else if (jsonValue.isArray()) {
+            return json::parse(
+                QJsonDocument(jsonValue.toArray()).toJson().toStdString());
+        } else if (jsonValue.isBool()) {
+            return json(jsonValue.toBool());
+        } else if (jsonValue.isDouble()) {
+            return json(jsonValue.toDouble());
+        } else if (jsonValue.isNull()) {
+            return std::nullopt;
+        } else if (jsonValue.isString()) {
+            return json(jsonValue.toString().toStdString());
+        } else {
+            QJsonObject obj;
+            obj["value"]      = jsonValue;
+            QJsonDocument doc = QJsonDocument(obj);
+            return nlohmann::json::parse(doc.toJson().toStdString());
+        }
+    }
+}
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -108,6 +267,16 @@ int main(int argc, char** argv) {
     DriverResult result;
     result.action = config.action;
 
+    auto variant_dump_cb = [](QVariant const& val) -> json {
+        if (auto conv = QVariantToJson(val)) {
+            return conv.value();
+        } else if (is_of_type<OrgBoxId>(val)) {
+            return to_json_eval<OrgBoxId>(qvariant_get<OrgBoxId>(val));
+        } else {
+            return qdebug_to_str(val);
+        }
+    };
+
     switch (config.action.getKind()) {
         case Action::Kind::None: {
             throw std::invalid_argument(
@@ -118,12 +287,17 @@ int main(int argc, char** argv) {
         case Action::Kind::DocumentModel: {
             for (auto const& root : store.roots) {
                 OrgDocumentModel model{&store, nullptr};
+                model.setObjectName("document_model");
                 model.root = root.get();
                 DriverResult::DocumentDump dump;
-                dump.main_document = dumpModelTree(
-                    &model, QModelIndex(), [](QModelIndex const&) {
-                        return json();
-                    });
+                dump.main_document = //
+                    dumpModelTree(&model, QModelIndex(), variant_dump_cb);
+
+                OrgSubtreeSearchModel outline{&model, nullptr, &store};
+                outline.filter->setObjectName("outline_filter");
+                dump.outline_document = dumpModelTree(
+                    outline.filter.get(), QModelIndex(), variant_dump_cb);
+
                 result.document_dumps.push_back(dump);
             }
         }

@@ -2,7 +2,6 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-#include <sstream>
 #include <memory>
 
 #include <hstd/stdlib/Str.hpp>
@@ -51,15 +50,20 @@ std::string to_compact_json(
 template <typename T>
 concept DescribedMembers = boost::describe::has_describe_members<T>::value;
 
-
-template <typename T>
-inline void to_json(json& res, CR<Opt<T>> str);
-
 template <typename T>
 inline void to_json(json& res, CR<Vec<T>> str);
 
 template <typename T>
 inline void to_json(json& res, std::unique_ptr<T> const& value);
+
+template <typename T>
+inline void to_json(json& res, std::shared_ptr<T> const& value) {
+    if (value) {
+        to_json(res, *value);
+    } else {
+        res = json();
+    }
+}
 
 template <DescribedEnum E>
 void from_json(json const& j, E& str) {
@@ -147,6 +151,7 @@ inline void to_json(json& res, CR<std::vector<T>> str) {
     }
 }
 
+namespace std {
 template <typename T>
 inline void to_json(json& res, CR<Opt<T>> str) {
     if (str.has_value()) {
@@ -154,6 +159,7 @@ inline void to_json(json& res, CR<Opt<T>> str) {
     } else {
         res = json();
     }
+}
 }
 
 template <typename T>
