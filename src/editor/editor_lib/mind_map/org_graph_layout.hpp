@@ -14,6 +14,7 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <editor/editor_lib/common/app_utils.hpp>
 #include <QPainterPath>
+#include <libavoid/libavoid.h>
 
 
 /// \brief IR wrapper for the cola layout constraints
@@ -322,22 +323,33 @@ struct GraphLayoutIR {
         Vec<vpsc::Rectangle>  baseRectangles;
         Vec<vpsc::Rectangle*> rectPointers;
 
-        UnorderedMap<IrEdge, Edge> lines;
+        struct EdgeData {
+            IrEdge                     edge;
+            Avoid::ShapeConnectionPin* sourcePin;
+            Avoid::ShapeConnectionPin* targetPin;
+            Avoid::ConnEnd             sourceEnd;
+            Avoid::ConnEnd             targetEnd;
+            Avoid::ConnRef*            connection;
+            int                        sourcePinClassId;
+            int                        targetPinClassId;
+        };
+
+        SPtr<Avoid::Router> router;
+        Vec<EdgeData>       edges;
 
         Result convert();
 
         /// \brief write graph layout result into the SVG svg file
         void writeSvg(CR<Str> path) {
-            auto edges //
-                = lines
-                | rv::transform(
-                      [](Pair<IrEdge, Edge> const& e) -> Pair<uint, uint> {
-                          return std::make_pair(
-                              static_cast<uint>(e.first.first),
-                              static_cast<uint>(e.first.second));
-                      })
+            auto e //
+                = edges
+                | rv::transform([](EdgeData const& e) -> Pair<uint, uint> {
+                      return std::make_pair(
+                          static_cast<uint>(e.edge.first),
+                          static_cast<uint>(e.edge.second));
+                  })
                 | rs::to<std::vector>();
-            OutputFile output(rectPointers, edges, nullptr, path);
+            OutputFile output(rectPointers, e, nullptr, path);
             output.rects = true;
             output.generate();
         }

@@ -383,22 +383,10 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     alg2.run();
 
 
-    struct EdgeData {
-        IrEdge                     edge;
-        Avoid::ShapeConnectionPin* sourcePin;
-        Avoid::ShapeConnectionPin* targetPin;
-        Avoid::ConnEnd             sourceEnd;
-        Avoid::ConnEnd             targetEnd;
-        Avoid::ConnRef*            connection;
-        int                        sourcePinClassId;
-        int                        targetPinClassId;
-    };
-
-    auto router = std::make_shared<Avoid::Router>(
-        Avoid::OrthogonalRouting);
+    ir.router = std::make_shared<Avoid::Router>(Avoid::OrthogonalRouting);
     Vec<Avoid::Polygon>   polygons;
     Vec<Avoid::ShapeRef*> shapes;
-    Vec<EdgeData>         edgeRoutings;
+
 
     // class ID
     unsigned int connectionPinClassID = 1;
@@ -412,11 +400,14 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         poly.setPoint(3, Avoid::Point(r.getMinX(), r.getMinY()));
 
         auto shape = new Avoid::ShapeRef(
-            router.get(), poly, static_cast<unsigned>(it.index()));
+            ir.router.get(), poly, static_cast<unsigned>(it.index()));
+
+        auto sourcePinClassId = ++connectionPinClassID;
+        auto targetPinClassId = ++connectionPinClassID;
 
         auto sourcePin = new Avoid::ShapeConnectionPin(
             shape,
-            connectionPinClassID,
+            sourcePinClassId,
             Avoid::ATTACH_POS_CENTRE,
             Avoid::ATTACH_POS_CENTRE,
             /*proportional=*/true,
@@ -426,38 +417,32 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
         auto targetPin = new Avoid::ShapeConnectionPin(
             shape,
-            connectionPinClassID,
+            targetPinClassId,
             Avoid::ATTACH_POS_CENTRE,
             Avoid::ATTACH_POS_CENTRE,
             true,
             0.0,
             Avoid::ConnDirNone);
 
-        auto sourcePinClassId = ++connectionPinClassID;
-        auto targetPinClassId = ++connectionPinClassID;
-
-        EdgeData route{
-            .connection = new Avoid::ConnRef(router.get()),
+        ColaResult::EdgeData route{
+            .connection = new Avoid::ConnRef(ir.router.get()),
             .sourceEnd  = Avoid::ConnEnd{shape, sourcePinClassId},
             .targetEnd  = Avoid::ConnEnd{shape, targetPinClassId},
             .sourcePin  = sourcePin,
             .targetPin  = targetPin,
         };
 
+        route.connection->setRoutingType(Avoid::ConnType_Orthogonal);
+        route.connection->setSourceEndpoint(route.sourceEnd);
+        route.connection->setSourceEndpoint(route.targetEnd);
 
-        edgeRoutings.push_back(route);
+        ir.edges.push_back(route);
 
         shapes.emplace_back(shape);
     }
 
-    router->processTransaction();
+    ir.router->processTransaction();
 
-    for (auto const& edge : edgeRoutings) {
-        QPainterPath           path;
-        Avoid::PolyLine const& route = edge.connection->displayRoute();
-        for (auto const& p : route.ps) { path.lineTo(p.x, p.y); }
-        ir.lines[edge.edge] = Edge{.paths = {path}};
-    }
 
     return ir;
 }
@@ -546,8 +531,9 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
 GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
     Result res;
 
-    res.fixed //
-        = baseRectangles | rv::transform([](CR<vpsc::Rectangle> r) {
+    res.fixed            //
+        = baseRectangles //
+        | rv::transform([](CR<vpsc::Rectangle> r) {
               return QRect(
                   r.getMinX(),               // top left x
                   r.getMaxY(),               // top left y
@@ -557,7 +543,14 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
           })
         | rs::to<Vec>();
 
-    res.lines = lines;
+    for (auto const& edge : edges) {
+        QPainterPath           path;
+        Avoid::PolyLine const& route = edge.connection->displayRoute();
+        for (auto const& p : route.ps) { path.lineTo(p.x, p.y); }
+        res.lines[edge.edge] = Edge{.paths = {path}};
+        qDebug() << path;
+    }
+
 
     return res;
 }

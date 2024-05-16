@@ -10,6 +10,8 @@ class TestMindMap
     void cleanupTestCase() { cleanup_test_base(); }
 
     void testLibcolaApi1();
+    void testLibcolaRaw1();
+    void testLibcolaRaw2();
     void testLibcolaIr1();
     void testLibcolaIr2();
     void testGraphvizIr1();
