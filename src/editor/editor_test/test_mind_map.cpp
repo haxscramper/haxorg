@@ -137,6 +137,10 @@ void TestMindMap::testLibcolaIr2() {
         {1, 2},
         {2, 3},
     });
+
+    auto lyt = ir.doColaLayout();
+    lyt.writeSvg("/tmp/testLibcolaIr2");
+    lyt.convert();
 }
 
 void TestMindMap::testGraphvizIr1() {

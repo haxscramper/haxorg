@@ -319,14 +319,24 @@ struct GraphLayoutIR {
 
     /// \brief Backend-specific layout results for cola graph layout
     struct ColaResult {
-        Vec<vpsc::Rectangle>          baseRectangles;
-        Vec<vpsc::Rectangle*>         rectPointers;
-        Vec<Pair<unsigned, unsigned>> edges;
+        Vec<vpsc::Rectangle>  baseRectangles;
+        Vec<vpsc::Rectangle*> rectPointers;
+
+        UnorderedMap<IrEdge, Edge> lines;
 
         Result convert();
 
         /// \brief write graph layout result into the SVG svg file
         void writeSvg(CR<Str> path) {
+            auto edges //
+                = lines
+                | rv::transform(
+                      [](Pair<IrEdge, Edge> const& e) -> Pair<uint, uint> {
+                          return std::make_pair(
+                              static_cast<uint>(e.first.first),
+                              static_cast<uint>(e.first.second));
+                      })
+                | rs::to<std::vector>();
             OutputFile output(rectPointers, edges, nullptr, path);
             output.rects = true;
             output.generate();

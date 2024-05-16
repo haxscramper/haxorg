@@ -337,6 +337,11 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     return result;
 }
 
+template <typename T>
+enumerator_impl<T*> enumerator(T const* it, int size) {
+    return enumerator_impl<T*>(it, it + size);
+}
+
 GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     validate();
     ColaResult ir;
@@ -365,22 +370,39 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     for (auto const& c : constraints) { ccs.push_back(c.get()); }
 
 
-    ir.edges //
-        = edges
-        | rv::transform([](auto const& i) -> Pair<unsigned, unsigned> {
-              return std::make_pair<unsigned>(i.first, i.second);
-          })
-        | rs::to<Vec>();
-
-    cola::ConstrainedFDLayout alg2(ir.rectPointers, ir.edges, width / 2);
+    cola::ConstrainedFDLayout alg2(
+        ir.rectPointers,
+        edges
+            | rv::transform([](auto const& i) -> Pair<unsigned, unsigned> {
+                  return std::make_pair<unsigned>(i.first, i.second);
+              })
+            | rs::to<std::vector>(),
+        width / 2);
 
     alg2.setConstraints(ccs);
     alg2.run();
+
+
+    struct EdgeData {
+        IrEdge                     edge;
+        Avoid::ShapeConnectionPin* sourcePin;
+        Avoid::ShapeConnectionPin* targetPin;
+        Avoid::ConnEnd             sourceEnd;
+        Avoid::ConnEnd             targetEnd;
+        Avoid::ConnRef*            connection;
+        int                        sourcePinClassId;
+        int                        targetPinClassId;
+    };
 
     auto router = std::make_shared<Avoid::Router>(
         Avoid::OrthogonalRouting);
     Vec<Avoid::Polygon>   polygons;
     Vec<Avoid::ShapeRef*> shapes;
+    Vec<EdgeData>         edgeRoutings;
+
+    // class ID
+    unsigned int connectionPinClassID = 1;
+
     for (auto const& it : enumerator(ir.baseRectangles)) {
         auto const& r    = it.value();
         auto&       poly = polygons.emplace_back(4);
@@ -392,7 +414,49 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         auto shape = new Avoid::ShapeRef(
             router.get(), poly, static_cast<unsigned>(it.index()));
 
+        auto sourcePin = new Avoid::ShapeConnectionPin(
+            shape,
+            connectionPinClassID,
+            Avoid::ATTACH_POS_CENTRE,
+            Avoid::ATTACH_POS_CENTRE,
+            /*proportional=*/true,
+            /*insideOffset=*/0.0,
+            /*visDirs=*/Avoid::ConnDirNone //
+        );
+
+        auto targetPin = new Avoid::ShapeConnectionPin(
+            shape,
+            connectionPinClassID,
+            Avoid::ATTACH_POS_CENTRE,
+            Avoid::ATTACH_POS_CENTRE,
+            true,
+            0.0,
+            Avoid::ConnDirNone);
+
+        auto sourcePinClassId = ++connectionPinClassID;
+        auto targetPinClassId = ++connectionPinClassID;
+
+        EdgeData route{
+            .connection = new Avoid::ConnRef(router.get()),
+            .sourceEnd  = Avoid::ConnEnd{shape, sourcePinClassId},
+            .targetEnd  = Avoid::ConnEnd{shape, targetPinClassId},
+            .sourcePin  = sourcePin,
+            .targetPin  = targetPin,
+        };
+
+
+        edgeRoutings.push_back(route);
+
         shapes.emplace_back(shape);
+    }
+
+    router->processTransaction();
+
+    for (auto const& edge : edgeRoutings) {
+        QPainterPath           path;
+        Avoid::PolyLine const& route = edge.connection->displayRoute();
+        for (auto const& p : route.ps) { path.lineTo(p.x, p.y); }
+        ir.lines[edge.edge] = Edge{.paths = {path}};
     }
 
     return ir;
@@ -492,6 +556,8 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
               );
           })
         | rs::to<Vec>();
+
+    res.lines = lines;
 
     return res;
 }
