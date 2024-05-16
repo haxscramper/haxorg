@@ -384,65 +384,67 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
 
     ir.router = std::make_shared<Avoid::Router>(Avoid::OrthogonalRouting);
-    Vec<Avoid::Polygon>   polygons;
-    Vec<Avoid::ShapeRef*> shapes;
-
+    ir.router->setRoutingPenalty(
+        Avoid::RoutingParameter::segmentPenalty, 50);
+    ir.router->setRoutingPenalty(Avoid::RoutingParameter::anglePenalty, 0);
+    ir.router->setRoutingPenalty(
+        Avoid::RoutingParameter::crossingPenalty, 400);
+    ir.router->setRoutingPenalty(
+        Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
+    ir.router->setRoutingPenalty(
+        Avoid::RoutingParameter::fixedSharedPathPenalty, 110);
 
     // class ID
-    unsigned int connectionPinClassID = 1;
+
+
+    Vec<Avoid::ShapeRef*> shapes;
 
     for (auto const& it : enumerator(ir.baseRectangles)) {
         auto const& r    = it.value();
-        auto&       poly = polygons.emplace_back(4);
-        poly.setPoint(0, Avoid::Point(r.getMinX(), r.getMaxY()));
-        poly.setPoint(1, Avoid::Point(r.getMaxX(), r.getMaxY()));
-        poly.setPoint(2, Avoid::Point(r.getMaxX(), r.getMinY()));
-        poly.setPoint(3, Avoid::Point(r.getMinX(), r.getMinY()));
+        auto        poly = Avoid::Polygon{4};
+        poly.setPoint(0, Avoid::Point{r.getMinX(), r.getMaxY()});
+        poly.setPoint(1, Avoid::Point{r.getMaxX(), r.getMaxY()});
+        poly.setPoint(2, Avoid::Point{r.getMaxX(), r.getMinY()});
+        poly.setPoint(3, Avoid::Point{r.getMinX(), r.getMinY()});
+        shapes.push_back(new Avoid::ShapeRef{ir.router.get(), poly});
+    }
 
-        auto shape = new Avoid::ShapeRef(
-            ir.router.get(), poly, static_cast<unsigned>(it.index()));
-
-        auto sourcePinClassId = ++connectionPinClassID;
-        auto targetPinClassId = ++connectionPinClassID;
-
-        auto sourcePin = new Avoid::ShapeConnectionPin(
+    auto pin_for_shape = [](Avoid::ShapeRef* shape, int pinClass) {
+        return new Avoid::ShapeConnectionPin{
             shape,
-            sourcePinClassId,
-            Avoid::ATTACH_POS_CENTRE,
-            Avoid::ATTACH_POS_CENTRE,
-            /*proportional=*/true,
-            /*insideOffset=*/0.0,
-            /*visDirs=*/Avoid::ConnDirNone //
-        );
-
-        auto targetPin = new Avoid::ShapeConnectionPin(
-            shape,
-            targetPinClassId,
+            static_cast<uint>(pinClass),
             Avoid::ATTACH_POS_CENTRE,
             Avoid::ATTACH_POS_CENTRE,
             true,
-            0.0,
-            Avoid::ConnDirNone);
+            0,
+            Avoid::ConnDirNone,
+        };
+    };
+
+    unsigned int connectionPinClassID = 1;
+    for (auto const& edge : edges) {
+        ++connectionPinClassID;
+        pin_for_shape(shapes.at(edge.first), connectionPinClassID);
+        pin_for_shape(shapes.at(edge.second), connectionPinClassID);
+
+        Avoid::ConnEnd sourceEnd{
+            shapes.at(edge.first), connectionPinClassID};
+        Avoid::ConnEnd targetEnd{
+            shapes.at(edge.second), connectionPinClassID};
+        auto conn = new Avoid::ConnRef{
+            ir.router.get(), sourceEnd, targetEnd};
+        conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
 
         ColaResult::EdgeData route{
-            .connection = new Avoid::ConnRef(ir.router.get()),
-            .sourceEnd  = Avoid::ConnEnd{shape, sourcePinClassId},
-            .targetEnd  = Avoid::ConnEnd{shape, targetPinClassId},
-            .sourcePin  = sourcePin,
-            .targetPin  = targetPin,
+            .edge       = edge,
+            .connection = conn,
         };
 
-        route.connection->setRoutingType(Avoid::ConnType_Orthogonal);
-        route.connection->setSourceEndpoint(route.sourceEnd);
-        route.connection->setSourceEndpoint(route.targetEnd);
-
         ir.edges.push_back(route);
-
-        shapes.emplace_back(shape);
     }
 
-    ir.router->processTransaction();
 
+    ir.router->processTransaction();
 
     return ir;
 }
@@ -548,7 +550,6 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
         Avoid::PolyLine const& route = edge.connection->displayRoute();
         for (auto const& p : route.ps) { path.lineTo(p.x, p.y); }
         res.lines[edge.edge] = Edge{.paths = {path}};
-        qDebug() << path;
     }
 
 

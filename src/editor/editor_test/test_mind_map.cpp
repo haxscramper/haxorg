@@ -280,6 +280,11 @@ void TestMindMap::testLibcolaIr2() {
         {0, 1},
         {1, 2},
         {2, 0},
+        {3, 0},
+        {4, 0},
+        {2, 3},
+        {3, 4},
+        {4, 5},
     });
 
     auto lyt = ir.doColaLayout();
