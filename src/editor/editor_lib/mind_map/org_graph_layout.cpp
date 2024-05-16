@@ -380,6 +380,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         width / 2);
 
     alg2.setConstraints(ccs);
+    // alg2.setAvoidNodeOverlaps(true);
     alg2.run();
 
 

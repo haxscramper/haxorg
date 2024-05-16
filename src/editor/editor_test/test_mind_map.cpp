@@ -276,16 +276,21 @@ void TestMindMap::testLibcolaIr1() {
 }
 
 void TestMindMap::testLibcolaIr2() {
-    auto ir = init_graph({
-        {0, 1},
-        {1, 2},
-        {2, 0},
-        {3, 0},
-        {4, 0},
-        {2, 3},
-        {3, 4},
-        {4, 5},
-    });
+    auto ir = init_graph(
+        {
+            {0, 1},
+            {1, 2},
+            {2, 0},
+            {3, 0},
+            {4, 0},
+            {2, 3},
+            {3, 4},
+            {4, 5},
+        },
+        QSize(60, 60));
+
+    ir.width  = 400;
+    ir.height = 400;
 
     auto lyt = ir.doColaLayout();
     lyt.writeSvg("/tmp/testLibcolaIr2.svg");
