@@ -3,6 +3,8 @@
 #include <QPainterPath>
 #include <hstd/stdlib/Set.hpp>
 #include <libavoid/libavoid.h>
+#include <libdialect/hola.h>
+#include <libdialect/opts.h>
 
 
 /// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
@@ -150,6 +152,7 @@ const char* source_index_prop            = "source_index";
 const char* target_index_prop            = "target_index";
 } // namespace
 
+
 GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     Graphviz             gvc,
     Graphviz::LayoutType layout) {
@@ -159,6 +162,7 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
         .graphviz_size_scaling = graphviz_size_scaling,
         .gvc{gvc},
     };
+
 
     result.graph.setRankDirection(Graphviz::Graph::RankDirection::LR);
 
@@ -341,6 +345,30 @@ template <typename T>
 enumerator_impl<T*> enumerator(T const* it, int size) {
     return enumerator_impl<T*>(it, it + size);
 }
+
+GraphLayoutIR::HolaResult GraphLayoutIR::doHolaLayout() {
+    HolaResult res;
+    res.graph = std::make_shared<dialect::Graph>();
+
+    for (auto const& rect : rectangles) {
+        auto node = dialect::Node::allocate();
+        node->setDims(rect.width(), rect.height());
+        res.graph->addNode(node);
+        res.nodes.push_back(node);
+    }
+
+    for (auto const& pair : edges) {
+        auto edge = dialect::Edge::allocate(
+            res.nodes.at(pair.first), res.nodes.at(pair.second));
+        res.graph->addEdge(edge);
+        res.edges[pair] = edge;
+    }
+
+    dialect::HolaOpts opts;
+    opts.routingScalar_crossingPenalty = 20;
+    dialect::doHOLA(*res.graph, opts);
+    return res;
+};
 
 GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     validate();

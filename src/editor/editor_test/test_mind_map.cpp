@@ -300,6 +300,24 @@ void TestMindMap::testLibcolaIr2() {
     lyt.router->outputDiagramText("/tmp/testLibcolaIr2_router");
 }
 
+void TestMindMap::testHolaIr1() {
+    auto ir = init_graph(
+        {
+            {0, 1},
+            {1, 2},
+            {2, 0},
+            {3, 0},
+            {4, 0},
+            {2, 3},
+            {3, 4},
+            {4, 5},
+        },
+        QSize(60, 60));
+
+    auto lyt = ir.doHolaLayout();
+    writeFile("/tmp/testHolaIr1.svg", lyt.graph->writeSvg());
+}
+
 void TestMindMap::testGraphvizIr1() {
     GraphLayoutIR ir;
     Graphviz      gvc;

@@ -14,6 +14,7 @@ class TestMindMap
     void testLibcolaRaw2();
     void testLibcolaIr1();
     void testLibcolaIr2();
+    void testHolaIr1();
     void testGraphvizIr1();
     void testGraphvizIrClusters();
     void testGraphConstruction();

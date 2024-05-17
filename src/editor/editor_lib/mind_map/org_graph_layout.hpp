@@ -15,6 +15,7 @@
 #include <editor/editor_lib/common/app_utils.hpp>
 #include <QPainterPath>
 #include <libavoid/libavoid.h>
+#include <libdialect/graphs.h>
 
 
 /// \brief IR wrapper for the cola layout constraints
@@ -317,6 +318,14 @@ struct GraphLayoutIR {
     GraphvizResult doGraphvizLayout(
         Graphviz             gvc,
         Graphviz::LayoutType layout = Graphviz::LayoutType::Dot);
+
+    struct HolaResult {
+        SPtr<dialect::Graph>                      graph;
+        Vec<SPtr<dialect::Node>>                  nodes;
+        UnorderedMap<IrEdge, SPtr<dialect::Edge>> edges;
+    };
+
+    HolaResult doHolaLayout();
 
     /// \brief Backend-specific layout results for cola graph layout
     struct ColaResult {
