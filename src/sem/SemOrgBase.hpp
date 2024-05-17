@@ -106,6 +106,15 @@ struct SemId {
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
 
     template <typename T>
+    SemId<T> asOpt() const {
+        if(isNil() || value->getKind() != T::staticKind) {
+            return SemId<T>::Nil();
+        } else {
+            return as<T>();
+        }
+    }
+
+    template <typename T>
     T* getAs() {
         return dynamic_cast<T*>(get());
     }

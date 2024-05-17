@@ -25,4 +25,5 @@ class TestMindMap
     void testQtGraphScene1();
     void testQtGraphSceneFullMindMap();
     void testMindMapNodeAdd1();
+    void testMindMapSignals1();
 };

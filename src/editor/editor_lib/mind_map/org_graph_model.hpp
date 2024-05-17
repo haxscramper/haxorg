@@ -33,6 +33,10 @@ struct OrgGraphEdge {
     /// Link description field can be reused or, for description list
     /// items, this field contains a newly created statment list
     Opt<sem::SemId<sem::Org>> description;
+    /// \brief Original link used to create the graph edge. Used to return
+    /// an edge to unresolved state when target is deleted. When source is
+    /// deleted the edge is simply dropped.
+    sem::SemId<sem::Link> link;
 };
 
 /// Model roles shared between org graph model and proxy layouts that are
@@ -107,23 +111,6 @@ struct OrgGraph : public QAbstractListModel {
     /// updated as new nodes are removed or added to the graph
     UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
     UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
-
-    /// Iterate over all unresolved links visited so far and *try to* fix
-    /// them. Does not guarantee to resolve all the links. Called when a
-    /// new node is added to the graph.
-    void updateUnresolved(VDesc newNode);
-
-    /// Link node in the mind map pending resolution. Might be due to
-    /// an error, might be because an element have not been added yet.
-    struct UnresolvedLink {
-        sem::SemId<sem::Link> link;
-        /// Link description at the time when an element was added.
-        Opt<sem::SemId<sem::Org>> description;
-    };
-
-    /// Map each box to a list of unresolved outgoing links. This field is
-    /// mutated as boxes are added or removed from the tree.
-    UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
 
     int rowCount(
         const QModelIndex& parent = QModelIndex()) const override {
@@ -244,6 +231,7 @@ struct OrgGraph : public QAbstractListModel {
         boost::tie(e, inserted) = boost::add_edge(source, target, g);
         if (inserted) { edges.push_back(e); }
         endInsertRows();
+        emit edgeAdded(e);
         return e;
     }
 
@@ -257,7 +245,7 @@ struct OrgGraph : public QAbstractListModel {
         endInsertRows();
         g[v].box         = box;
         boxToVertex[box] = v;
-
+        emit nodeAdded(v);
         return v;
     }
 
@@ -269,11 +257,15 @@ struct OrgGraph : public QAbstractListModel {
             beginRemoveRows(QModelIndex(), index, index);
             boost::clear_vertex(*it, g);
             boost::remove_vertex(*it, g);
+            for (auto const& edge : in_edges(vertex)) {
+                emit edgeRemoved(edge);
+            }
             nodes.erase(it);
 
             rebuildEdges();
             endRemoveRows();
         }
+        emit nodeRemoved(vertex);
     }
 
     /// \brief Clear cached values for edge rows and push a new list of
@@ -321,10 +313,10 @@ struct OrgGraph : public QAbstractListModel {
     /// source. If the target is none, return full list of all edges
     /// incoming to the source.
     Vec<EDesc> in_edges(
-        CR<OrgBoxId>      source,
-        CR<Opt<OrgBoxId>> target = std::nullopt) {
-        VDesc      v1 = getBoxDesc(source);
-        Opt<VDesc> v2 = target ? std::make_optional(getBoxDesc(*target))
+        CR<OrgBoxId>      target,
+        CR<Opt<OrgBoxId>> source = std::nullopt) {
+        VDesc      v1 = getBoxDesc(target);
+        Opt<VDesc> v2 = source ? std::make_optional(getBoxDesc(*source))
                                : std::nullopt;
         Vec<EDesc> result;
 
@@ -339,10 +331,77 @@ struct OrgGraph : public QAbstractListModel {
         return result;
     }
 
+    // Graph modification API
+
+    struct EdgeData {
+        VDesc        source;
+        VDesc        target;
+        OrgGraphEdge spec;
+    };
+
+    /// Link node in the mind map pending resolution. Might be due to
+    /// an error, might be because an element have not been added yet.
+    struct UnresolvedLink {
+        sem::SemId<sem::Link> link;
+        /// Link description at the time when an element was added.
+        Opt<sem::SemId<sem::Org>> description;
+    };
+
+    struct ResolveResult {
+        Vec<EdgeData>       establishedEdges;
+        Vec<UnresolvedLink> missingLinks;
+    };
+
+    /// Iterate over all unresolved links visited so far and *try to* fix
+    /// them. Does not guarantee to resolve all the links. Called when a
+    /// new node is added to the graph.
+    ResolveResult updateUnresolved(
+        OrgBoxId             unresolved_source,
+        CVec<UnresolvedLink> list) const;
+
+    /// Map each box to a list of unresolved outgoing links. This field is
+    /// mutated as boxes are added or removed from the tree.
+    UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
+
+
+    void insertNewNode(CR<OrgBoxId> box);
+
+    void insertUnresolvedEdges() {
+        for (auto const& id : unresolved.keys()) {
+            auto resolve_result = updateUnresolved(id, unresolved.at(id));
+            if (resolve_result.missingLinks.empty()) {
+                unresolved.erase(id);
+            } else {
+                unresolved.at(id) = resolve_result.missingLinks;
+            }
+            for (auto const& e : resolve_result.establishedEdges) {
+                auto desc = addEdge(e.source, e.target);
+                g[desc]   = e.spec;
+            }
+        }
+    }
+
   public slots:
-    void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace);
-    void addBox(CR<OrgBoxId> box);
+    void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
+        deleteBox(before);
+        addBox(replace);
+    }
+
+    void addBox(CR<OrgBoxId> box) {
+        insertNewNode(box);
+        insertUnresolvedEdges();
+    }
+
     void deleteBox(CR<OrgBoxId> deleted);
+
+  signals:
+    void nodeAdded(VDesc desc);
+    void nodeRemoved(VDesc desc);
+    void edgeAdded(EDesc edge);
+    void edgeRemoved(EDesc edge);
+    /// \brief Store box value was replaced with something differrent. No
+    /// new nodes added to the graph, potentially edges added to the graph.
+    void nodeUpdated(VDesc desc);
 };
 
 template <>

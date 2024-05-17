@@ -35,12 +35,11 @@ bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
         });
 }
 
-void OrgGraph::addBox(CR<OrgBoxId> box) {
+void OrgGraph::insertNewNode(CR<OrgBoxId> box) {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
     if (isLinkedDescriptionItem(store, box)) { return; }
-
 
     sem::SemId<sem::Org> n = store->node(box);
     if (n->is(osk::Subtree)) {
@@ -150,72 +149,92 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
         default: {
         }
     }
-
-    updateUnresolved(v);
 }
 
 void OrgGraph::deleteBox(CR<OrgBoxId> deleted) {
+    sem::SemId<sem::Org> n    = store->node(deleted);
+    auto                 desc = boxToVertex.at(deleted);
 
+    // Find all incoming links targeting this node and return them in
+    // unresolved state
+    for (EDesc link : in_edges(desc)) {
+        this->unresolved[g[getEdgeSource(link)].box].push_back(
+            UnresolvedLink{
+                .description = g[link].description,
+                .link        = g[link].link,
+            });
+    }
+
+    // Mirror the state drop from the node box addition
+    if (auto tree = n.asOpt<sem::Subtree>()) {
+        if (tree->treeId) { this->subtreeIds.erase(*tree->treeId); }
+    } else if (auto par = n.asOpt<sem::AnnotatedParagraph>()) {
+        if (par->getAnnotationKind()
+            == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
+            this->footnoteTargets.erase(par->getFootnote().name);
+        }
+    }
+
+    removeVertex(desc);
 }
 
-void OrgGraph::updateUnresolved(VDesc) {
-    for (auto const& id : unresolved.keys()) {
-        auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
-            for (auto const& box : target) {
-                auto e = addEdge(getBoxDesc(id), getBoxDesc(box));
-                g[e]   = spec;
-            }
-        };
+OrgGraph::ResolveResult OrgGraph::updateUnresolved(
+    OrgBoxId             unresolved_source,
+    CVec<UnresolvedLink> missing_links) const {
+    OrgGraph::ResolveResult result;
+    auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
+        for (auto const& box : target) {
+            result.establishedEdges.push_back({
+                .source = getBoxDesc(unresolved_source),
+                .target = getBoxDesc(box),
+                .spec   = spec,
+            });
+        }
+    };
 
-        Vec<int> resolved;
-        auto&    unresolved_list = unresolved[id];
-        for (auto const& it : enumerator(unresolved_list)) {
-            bool        found_match = false;
-            auto const& link        = it.value().link;
+    for (auto const& it : enumerator(missing_links)) {
+        bool        found_match = false;
+        auto const& link        = it.value().link;
 
 
-            switch (link->getLinkKind()) {
-                case slk::Id: {
-                    if (auto target = subtreeIds.get(link->getId().text)) {
-                        found_match = true;
-                        add_edge(
-                            OrgGraphEdge{
-                                .kind = OrgGraphEdge::Kind::SubtreeId,
-                                .description = it.value().description,
-                            },
-                            *target);
-                    }
-                    break;
+        switch (link->getLinkKind()) {
+            case slk::Id: {
+                if (auto target = subtreeIds.get(link->getId().text)) {
+                    found_match = true;
+                    add_edge(
+                        OrgGraphEdge{
+                            .kind        = OrgGraphEdge::Kind::SubtreeId,
+                            .description = it.value().description,
+                            .link        = link,
+                        },
+                        *target);
                 }
-
-                case slk::Footnote: {
-                    if (auto target = footnoteTargets.get(
-                            link->getFootnote().target)) {
-                        found_match = true;
-                        add_edge(
-                            OrgGraphEdge{
-                                .kind = OrgGraphEdge::Kind::Footnote,
-                                .description = it.value().description,
-                            },
-                            *target);
-                    }
-                    break;
-                }
-
-                default: {
-                }
+                break;
             }
 
-            if (found_match) { resolved.push_back(it.index()); }
+            case slk::Footnote: {
+                if (auto target = footnoteTargets.get(
+                        link->getFootnote().target)) {
+                    found_match = true;
+                    add_edge(
+                        OrgGraphEdge{
+                            .kind        = OrgGraphEdge::Kind::Footnote,
+                            .description = it.value().description,
+                            .link        = link,
+                        },
+                        *target);
+                }
+                break;
+            }
+
+            default: {
+            }
         }
 
-        rs::reverse(resolved);
-        for (auto const& it : resolved) {
-            unresolved_list.erase(unresolved_list.begin() + it);
-        }
-
-        if (unresolved_list.empty()) { unresolved.erase(id); }
+        if (!found_match) { result.missingLinks.push_back(it.value()); }
     }
+
+    return result;
 }
 
 std::string OrgGraph::toGraphviz() {
@@ -236,7 +255,7 @@ std::string OrgGraph::toGraphviz() {
             make_transform_value_property_map<std::string>(
                 [&](OrgGraphEdge const& prop) -> std::string {
                     return prop.description ? ExporterUltraplain::toStr(
-                               prop.description.value())
+                                                  prop.description.value())
                                             : "";
                 },
                 get(boost::edge_bundle, g)))
@@ -369,11 +388,6 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
         }
     }
 }
-
-void OrgGraph::replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
-
-}
-
 
 OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     const {

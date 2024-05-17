@@ -414,8 +414,6 @@ void TestMindMap::testGraphConstruction() {
 ** Tree2
 )"_ss);
 
-    graph.addFullStore();
-
     QCOMPARE_EQ(graph.nodes.size(), 3);
 }
 
@@ -423,7 +421,6 @@ Pair<SPtr<OrgStore>, SPtr<OrgGraph>> build_graph(CR<Str> text) {
     auto store = std::make_shared<OrgStore>();
     auto graph = std::make_shared<OrgGraph>(store.get(), nullptr);
     store->addRoot(text);
-    graph->addFullStore();
     return std::make_pair(store, graph);
 }
 
@@ -895,7 +892,8 @@ void TestMindMap::testMindMapNodeAdd1() {
 * Second subtree
 )");
 
-    QSignalSpy spy(&store, &OrgStore::boxAdded);
+    QSignalSpy store_spy{&store, &OrgStore::boxAdded};
+    QSignalSpy graph_spy{&graph, &OrgGraph::nodeAdded};
 
     Vec<OrgBoxId> added;
     QObject::connect(&store, &OrgStore::boxAdded, [&](OrgBoxId id) {
@@ -904,5 +902,50 @@ void TestMindMap::testMindMapNodeAdd1() {
 
     store.addRoot(node);
     QCOMPARE_EQ(added.size(), 3);
-    QCOMPARE_EQ(spy.count(), 3);
+    QCOMPARE_EQ(store_spy.count(), 3);
+    QCOMPARE_EQ(graph_spy.count(), 3);
+}
+
+void TestMindMap::testMindMapSignals1() {
+    OrgStore store;
+    OrgGraph graph{&store, nullptr};
+    auto     node = sem::parseString(R"(
+Paragraph [[id:subtree-id]]
+
+* Subtree
+  :properties:
+  :id: subtree-id
+  :end:
+)");
+
+    {
+        QSignalSpy store_spy{&store, &OrgStore::boxAdded};
+        QSignalSpy graph_spy{&graph, &OrgGraph::edgeAdded};
+
+        store.addRoot(node);
+
+        QCOMPARE_EQ(store_spy.count(), 3);
+        QCOMPARE_EQ(graph_spy.count(), 1);
+        auto subtree_box   = store.getRoot(0)->at(1);
+        auto paragraph_box = store.getRoot(0)->at(0);
+        QCOMPARE_EQ(graph.in_edges(paragraph_box).size(), 1);
+        QCOMPARE_EQ(graph.out_edges(subtree_box).size(), 1);
+    }
+
+    {
+        QSignalSpy node_update_spy{&graph, &OrgGraph::nodeUpdated};
+        QSignalSpy edge_remove_spy{&graph, &OrgGraph::edgeRemoved};
+
+        OrgBoxId paragraph_box = store.roots.at(0)->at(0)->boxId;
+        QCOMPARE_EQ(store.node(paragraph_box)->getKind(), osk::Paragraph);
+        auto new_text = sem::parseString("Paragraph without edge")->at(0);
+        QCOMPARE_EQ(new_text->getKind(), osk::Paragraph);
+        auto new_box = store.update<sem::Paragraph>(
+            paragraph_box, [&](sem::Paragraph& prev) {
+                prev = *new_text.getAs<sem::Paragraph>();
+            });
+
+        // QCOMPARE_EQ(node_update_spy.count(), 1);
+        QCOMPARE_EQ(edge_remove_spy.count(), 1);
+    }
 }
