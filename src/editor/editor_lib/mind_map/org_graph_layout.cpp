@@ -370,6 +370,26 @@ GraphLayoutIR::HolaResult GraphLayoutIR::doHolaLayout() {
     return res;
 };
 
+
+GraphLayoutIR::Result GraphLayoutIR::HolaResult::convert() {
+    Result res;
+    for (auto const& e : this->edges) {
+        QPainterPath path;
+        for (auto const& p : e.second->getRoutePoints()) {
+            path.lineTo(p.x, p.y);
+        }
+        res.lines[e.first] = Edge{.paths = {path}};
+    }
+
+    for (auto const& n : this->nodes) {
+        auto b = n->getBoundingBox();
+        res.fixed.push_back(QRect(b.x, b.y, b.w(), b.h()));
+    }
+
+    return res;
+}
+
+
 GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     validate();
     ColaResult ir;
@@ -580,7 +600,6 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
         for (auto const& p : route.ps) { path.lineTo(p.x, p.y); }
         res.lines[edge.edge] = Edge{.paths = {path}};
     }
-
 
     return res;
 }

@@ -294,10 +294,11 @@ void TestMindMap::testLibcolaIr2() {
 
     auto lyt = ir.doColaLayout();
     lyt.writeSvg("/tmp/testLibcolaIr2.svg");
-    lyt.convert();
+    auto conv = lyt.convert();
 
     lyt.router->outputInstanceToSVG("/tmp/testLibcolaIr2_router");
     lyt.router->outputDiagramText("/tmp/testLibcolaIr2_router");
+    QVERIFY(!conv.lines.at({0, 1}).paths.at(0).isEmpty());
 }
 
 void TestMindMap::testHolaIr1() {
@@ -316,6 +317,8 @@ void TestMindMap::testHolaIr1() {
 
     auto lyt = ir.doHolaLayout();
     writeFile("/tmp/testHolaIr1.svg", lyt.graph->writeSvg());
+    auto conv = lyt.convert();
+    QVERIFY(!conv.lines.at({0, 1}).paths.at(0).isEmpty());
 }
 
 void TestMindMap::testGraphvizIr1() {

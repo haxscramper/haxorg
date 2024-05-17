@@ -323,6 +323,8 @@ struct GraphLayoutIR {
         SPtr<dialect::Graph>                      graph;
         Vec<SPtr<dialect::Node>>                  nodes;
         UnorderedMap<IrEdge, SPtr<dialect::Edge>> edges;
+
+        Result convert();
     };
 
     HolaResult doHolaLayout();
