@@ -131,6 +131,15 @@ struct OrgStore : public QObject {
     UnorderedMap<OrgBoxId, OrgTreeNode*> nodeLookup;
     Vec<UPtr<OrgTreeNode>>               roots;
 
+    /// \brief Create new org tree node for the ID and register it in the
+    /// node lookup.
+    UPtr<OrgTreeNode> addTree(OrgBoxId id, OrgTreeNode* parent) {
+        auto result    = std::make_unique<OrgTreeNode>(id, this, parent);
+        nodeLookup[id] = result.get();
+        emit boxAdded(id);
+        return result;
+    }
+
     OrgBoxId add(sem::OrgArg node) {
         auto id  = lastId.next();
         data[id] = OrgBox{node};
@@ -144,7 +153,7 @@ struct OrgStore : public QObject {
 
     OrgTreeNode* addRoot(sem::OrgArg node) {
         auto box  = add(node);
-        auto root = std::make_unique<OrgTreeNode>(box, this, nullptr);
+        auto root = addTree(box, nullptr);
         root->buildTree(root.get());
         this->roots.push_back(std::move(root));
         return roots.back().get();
@@ -206,4 +215,6 @@ struct OrgStore : public QObject {
 
   signals:
     void boxReplaced(OrgBoxId prev, OrgBoxId replace);
+    void boxDeleted(OrgBoxId box);
+    void boxAdded(OrgBoxId box);
 };

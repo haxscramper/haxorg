@@ -35,8 +35,7 @@ void OrgTreeNode::buildTree(OrgTreeNode* parentNode) {
         for (auto& sub : node->subnodes) {
             if (!sub->is(OrgSemKind::Newline)) {
                 parentNode->subnodes.push_back(
-                    std::make_unique<OrgTreeNode>(
-                        store->add(sub), parentNode->store, parentNode));
+                    store->addTree(store->add(sub), parentNode));
                 buildTree(parentNode->subnodes.back().get());
             }
         }

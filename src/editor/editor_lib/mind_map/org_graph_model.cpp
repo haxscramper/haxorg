@@ -154,6 +154,10 @@ void OrgGraph::addBox(CR<OrgBoxId> box) {
     updateUnresolved(v);
 }
 
+void OrgGraph::deleteBox(CR<OrgBoxId> deleted) {
+
+}
+
 void OrgGraph::updateUnresolved(VDesc) {
     for (auto const& id : unresolved.keys()) {
         auto add_edge = [&](CR<OrgGraphEdge> spec, CVec<OrgBoxId> target) {
@@ -364,6 +368,10 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
             return QVariant();
         }
     }
+}
+
+void OrgGraph::replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
+
 }
 
 

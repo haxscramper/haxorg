@@ -886,3 +886,23 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_clusters.png", 2);
 }
+
+void TestMindMap::testMindMapNodeAdd1() {
+    OrgStore store;
+    OrgGraph graph{&store, nullptr};
+    auto     node = sem::parseString(R"(
+* Subtree
+* Second subtree
+)");
+
+    QSignalSpy spy(&store, &OrgStore::boxAdded);
+
+    Vec<OrgBoxId> added;
+    QObject::connect(&store, &OrgStore::boxAdded, [&](OrgBoxId id) {
+        added.push_back(id);
+    });
+
+    store.addRoot(node);
+    QCOMPARE_EQ(added.size(), 3);
+    QCOMPARE_EQ(spy.count(), 3);
+}

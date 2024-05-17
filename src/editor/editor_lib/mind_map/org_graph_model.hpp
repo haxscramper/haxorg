@@ -86,7 +86,14 @@ struct OrgGraph : public QAbstractListModel {
     using EDesc       = GraphTraits::edge_descriptor;
 
     OrgGraph(OrgStore* store, QObject* parent)
-        : QAbstractListModel(parent), store(store) {}
+        : QAbstractListModel(parent), store(store) {
+        QObject::connect(
+            store, &OrgStore::boxReplaced, this, &OrgGraph::replaceBox);
+        QObject::connect(
+            store, &OrgStore::boxDeleted, this, &OrgGraph::deleteBox);
+        QObject::connect(
+            store, &OrgStore::boxAdded, this, &OrgGraph::addBox);
+    }
 
     Graph                         g;
     UnorderedMap<OrgBoxId, VDesc> boxToVertex;
@@ -333,8 +340,9 @@ struct OrgGraph : public QAbstractListModel {
     }
 
   public slots:
-    void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {}
+    void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace);
     void addBox(CR<OrgBoxId> box);
+    void deleteBox(CR<OrgBoxId> deleted);
 };
 
 template <>
