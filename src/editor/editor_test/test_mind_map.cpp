@@ -156,7 +156,7 @@ void TestMindMap::testLibcolaRaw2() {
     ShapeRef* shapeRef2;
 
     auto pin_for_shape = [](ShapeRef* shape, int pinClass) {
-        return new ShapeConnectionPin(
+        new ShapeConnectionPin(
             shape,
             pinClass,
             Avoid::ATTACH_POS_CENTRE,

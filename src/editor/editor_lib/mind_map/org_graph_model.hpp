@@ -226,7 +226,7 @@ struct OrgGraph : public QAbstractListModel {
     /// \brief Add new edge between two boxes, register it in all fields
     /// and emit model update signals.
     EDesc addEdge(VDesc source, VDesc target) {
-        beginInsertRows(QModelIndex(), rowCount(), rowCount());
+
         EDesc e;
         bool  inserted;
         boost::tie(e, inserted) = boost::add_edge(source, target, state.g);
@@ -239,32 +239,8 @@ struct OrgGraph : public QAbstractListModel {
     /// \brief Add new vertex for a box, register it in all fields. This
     /// only registers a vertex in a graph. To do full box content
     /// registration call `addBox()`
-    VDesc addVertex(CR<OrgBoxId> box) {
-        beginInsertRows(
-            QModelIndex(), state.nodes.size(), state.nodes.size());
-        VDesc v = boost::add_vertex(state.g);
-        state.nodes.push_back(v);
-        endInsertRows();
-        state.g[v].box         = box;
-        state.boxToVertex[box] = v;
-        emit nodeAdded(v);
-        return v;
-    }
+    VDesc addVertex(CR<OrgBoxId> box);
 
-
-    void removeVertex(VDesc vertex);
-
-    /// \brief Clear cached values for edge rows and push a new list of
-    /// edges. Called when graph vertex descriptors might have been
-    /// invalidated.
-    void rebuildEdges() {
-        state.edges.clear();
-        Graph::edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::edges(state.g); ei != ei_end;
-             ++ei) {
-            state.edges.push_back(*ei);
-        }
-    }
 
     /// \brief Get property of the first edge between source and target.
     /// Mainly for testing purposes. Can raise range error if there are no
@@ -275,20 +251,7 @@ struct OrgGraph : public QAbstractListModel {
 
     Vec<EDesc> out_edges(
         CR<VDesc>      source,
-        CR<Opt<VDesc>> target = std::nullopt) {
-        Vec<EDesc> result;
-
-        Graph::out_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::out_edges(source, state.g);
-             ei != ei_end;
-             ++ei) {
-            if (!target || boost::target(*ei, state.g) == *target) {
-                result.push_back(*ei);
-            }
-        }
-
-        return result;
-    }
+        CR<Opt<VDesc>> target = std::nullopt);
 
     /// \brief get full list of edges between source and target. If the
     /// target is null return all outgoing edges for a source node.
@@ -303,20 +266,7 @@ struct OrgGraph : public QAbstractListModel {
 
     Vec<EDesc> in_edges(
         CR<VDesc>      target,
-        CR<Opt<VDesc>> source = std::nullopt) {
-        Vec<EDesc> result;
-
-        Graph::in_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::in_edges(target, state.g);
-             ei != ei_end;
-             ++ei) {
-            if (!source || boost::source(*ei, state.g) == *source) {
-                result.push_back(*ei);
-            }
-        }
-
-        return result;
-    }
+        CR<Opt<VDesc>> source = std::nullopt);
 
     /// \brief Get full list of all nodes incoming to the target from the
     /// source. If the target is none, return full list of all edges
@@ -332,32 +282,55 @@ struct OrgGraph : public QAbstractListModel {
 
     // Graph modification API
 
-    struct EdgeData {
-        VDesc        source;
-        VDesc        target;
-        OrgGraphEdge spec;
-    };
 
     /// Link node in the mind map pending resolution. Might be due to
     /// an error, might be because an element have not been added yet.
     struct UnresolvedLink {
+        OrgBoxId              origin;
         sem::SemId<sem::Link> link;
         /// Link description at the time when an element was added.
         Opt<sem::SemId<sem::Org>> description;
     };
 
-    struct ResolveResult {
-        Vec<EdgeData>       establishedEdges;
-        Vec<UnresolvedLink> missingLinks;
+    struct Edit {
+        struct FootnoteTarget {
+            Str      name;
+            OrgBoxId box;
+        };
+
+        struct SubtreeId {
+            Str      name;
+            OrgBoxId box;
+        };
+
+        struct Vertex {
+            OrgBoxId           box;
+            OrgGraphNode::Kind kind;
+        };
+
+        struct ResolveLink {
+            VDesc          source;
+            VDesc          target;
+            OrgGraphEdge   spec;
+            UnresolvedLink original;
+        };
+
+        Vec<Vertex>         vertices;
+        Vec<SubtreeId>      subtrees;
+        Vec<FootnoteTarget> footnotes;
+        Vec<UnresolvedLink> links;
+        Vec<ResolveLink>    edges;
     };
 
-    /// Iterate over all unresolved links visited so far and *try to* fix
-    /// them. Does not guarantee to resolve all the links. Called when a
-    /// new node is added to the graph.
-    ResolveResult updateUnresolved(
-        OrgBoxId             unresolved_source,
-        CVec<UnresolvedLink> list) const;
+    struct GraphStructureUpdate {
+        Vec<EDesc> removed_edges;
+        Vec<VDesc> removed_nodes;
 
+        Vec<EDesc> added_edges;
+        Vec<VDesc> added_nodes;
+
+        Vec<UnresolvedLink> missingLinks;
+    };
 
     struct State {
         Graph                         g;
@@ -376,46 +349,67 @@ struct OrgGraph : public QAbstractListModel {
         /// Map each box to a list of unresolved outgoing links. This field
         /// is mutated as boxes are added or removed from the tree.
         UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
+
+        GraphStructureUpdate addMutation(Edit const& edit);
+        GraphStructureUpdate delMutation(Edit const& edit);
+
+        /// \brief Clear cached values for edge rows and push a new list of
+        /// edges. Called when graph vertex descriptors might have been
+        /// invalidated.
+        void rebuildEdges() {
+            edges.clear();
+            Graph::edge_iterator ei, ei_end;
+            for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end;
+                 ++ei) {
+                edges.push_back(*ei);
+            }
+        }
     };
 
     State state;
 
-    void insertNewNode(CR<OrgBoxId> box);
+    Edit             getNodeInsertEdits(CR<OrgBoxId> box) const;
+    Pair<Edit, Edit> getNodeUpdateEdits(
+        CR<OrgBoxId> before,
+        CR<OrgBoxId> after);
 
-    void insertUnresolvedEdges() {
-        for (auto const& id : state.unresolved.keys()) {
-            auto resolve_result = updateUnresolved(
-                id, state.unresolved.at(id));
-            if (resolve_result.missingLinks.empty()) {
-                state.unresolved.erase(id);
-            } else {
-                state.unresolved.at(id) = resolve_result.missingLinks;
-            }
-            for (auto const& e : resolve_result.establishedEdges) {
-                auto desc     = addEdge(e.source, e.target);
-                state.g[desc] = e.spec;
-            }
-        }
-    }
+    /// Iterate over all unresolved links visited so far and *try to* fix
+    /// them. Does not guarantee to resolve all the links. Called when a
+    /// new node is added to the graph.
+    Edit getUnresolvedEdits(OrgBoxId unresolved_source, CR<Edit> edit)
+        const;
+
+    void emitChanges(CR<GraphStructureUpdate> upd) {}
 
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
-        deleteBox(before);
-        addBox(replace);
+        auto [delete_edits, add_edits] = getNodeUpdateEdits(
+            before, replace);
+        beginInsertRows(QModelIndex(), rowCount(), rowCount());
+        auto upd1 = state.delMutation(delete_edits);
+        auto upd2 = state.addMutation(add_edits);
+        endInsertRows();
+        emitChanges(upd1);
+        emitChanges(upd2);
     }
 
     void addBox(CR<OrgBoxId> box) {
-        insertNewNode(box);
-        insertUnresolvedEdges();
+        beginInsertRows(QModelIndex(), rowCount(), rowCount());
+        auto edits = getNodeInsertEdits(box);
+        auto upd   = state.addMutation(edits);
+        endInsertRows();
+        emitChanges(upd);
     }
 
-    void deleteBox(CR<OrgBoxId> deleted);
+    void deleteBox(CR<OrgBoxId> deleted) {
+        auto edits = getNodeInsertEdits(deleted);
+        beginInsertRows(QModelIndex(), rowCount(), rowCount());
+        auto upd = state.delMutation(edits);
+        endInsertRows();
+        emitChanges(upd);
+    }
 
   signals:
-    void nodeAdded(VDesc desc);
-    void nodeRemoved(VDesc desc);
-    void edgeAdded(EDesc edge);
-    void edgeRemoved(EDesc edge);
     /// \brief Store box value was replaced with something differrent. No
     /// new nodes added to the graph, potentially edges added to the graph.
     void nodeUpdated(VDesc desc);
