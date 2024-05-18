@@ -321,6 +321,7 @@ struct Graph : public QAbstractListModel {
     struct ResolvedLink {
         GraphLink link;
         OrgBoxId  target;
+        OrgBoxId  source;
         DESC_FIELDS(ResolvedLink, (link, target))
     };
 
@@ -355,7 +356,9 @@ struct Graph : public QAbstractListModel {
         /// fix them. Does not guarantee to resolve all the links. Called
         /// when a new node is added to the graph.
         ResolveResult     getUnresolvedEdits(CR<OrgGraphNode> edit) const;
-        Vec<ResolvedLink> getResolveTarget(CR<GraphLink> link) const;
+        Vec<ResolvedLink> getResolveTarget(
+            CR<OrgBoxId>  source,
+            CR<GraphLink> link) const;
 
         /// \brief Clear cached values for edge rows and push a new list of
         /// edges. Called when graph vertex descriptors might have been

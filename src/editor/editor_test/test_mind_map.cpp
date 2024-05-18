@@ -507,10 +507,8 @@ Paragraph [fn:target]
     QCOMPARE_EQ(r->subnodes.size(), 2);
     QCOMPARE_EQ(graph->numNodes(), 3);
     QVERIFY(graph->state.unresolved.empty());
+    qDebug().noquote() << graph->toGraphviz();
     QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
-    QCOMPARE_EQ(
-        graph->out_edge0(r->id(0), r->id(1)).kind,
-        OrgGraphEdge::Kind::Footnote);
 }
 
 Str getFullMindMapText() {

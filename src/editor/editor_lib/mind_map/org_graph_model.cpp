@@ -166,7 +166,7 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     result.node.unresolved.clear();
 
     for (auto const& it : edit.unresolved) {
-        Vec<ResolvedLink> resolved_edit = getResolveTarget(it);
+        Vec<ResolvedLink> resolved_edit = getResolveTarget(edit.box, it);
         if (resolved_edit.empty()) {
             result.node.unresolved.push_back(it);
         } else {
@@ -175,13 +175,13 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     }
 
     for (auto const& it : unresolved) {
-        qDebug().noquote()
-            << fmt("box:{} desc:{} value:{}",
-                   boxToVertex.at(it),
-                   it,
-                   g[boxToVertex.at(it)]);
+        _qfmt(
+            "box:{} desc:{} value:{}",
+            boxToVertex.at(it),
+            it,
+            g[boxToVertex.at(it)]);
         for (auto const& link : g[boxToVertex.at(it)].unresolved) {
-            Vec<ResolvedLink> resolved_edit = getResolveTarget(link);
+            Vec<ResolvedLink> resolved_edit = getResolveTarget(it, link);
             if (!resolved_edit.empty()) {
                 result.resolved.append(resolved_edit);
             }
@@ -192,6 +192,7 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
 }
 
 Vec<Graph::ResolvedLink> Graph::State::getResolveTarget(
+    CR<OrgBoxId>  source,
     CR<GraphLink> it) const {
 
     Vec<Graph::ResolvedLink> result;
@@ -199,9 +200,15 @@ Vec<Graph::ResolvedLink> Graph::State::getResolveTarget(
     auto add_edge = [&](OrgGraphEdge::Kind kind, CVec<OrgBoxId> target) {
         for (auto const& box : target) {
             Q_ASSERT(!it.link.isNil());
-            result.push_back(ResolvedLink{.target = box, .link = it});
+            result.push_back(ResolvedLink{
+                .target = box,
+                .link   = it,
+                .source = source,
+            });
         }
     };
+
+    _qfmt("subtreeIds:{} footnoteTargets:{}", subtreeIds, footnoteTargets);
 
     switch (it.link->getLinkKind()) {
         case slk::Id: {
@@ -223,6 +230,7 @@ Vec<Graph::ResolvedLink> Graph::State::getResolveTarget(
         }
     }
 
+    _qfmt("result:{}", result);
     return result;
 }
 
@@ -240,6 +248,20 @@ std::string Graph::toGraphviz() {
             "shape",
             boost::make_constant_property<BoostBase::vertex_descriptor>(
                 std::string("rect")))
+        .property(
+            "node_dump",
+            make_transform_value_property_map<std::string>(
+                [&](OrgGraphNode const& prop) -> std::string {
+                    return fmt1(prop);
+                },
+                get(boost::vertex_bundle, state.g)))
+        .property(
+            "edge_dump",
+            make_transform_value_property_map<std::string>(
+                [&](OrgGraphEdge const& prop) -> std::string {
+                    return fmt1(prop);
+                },
+                get(boost::edge_bundle, state.g)))
         .property(
             "description",
             make_transform_value_property_map<std::string>(

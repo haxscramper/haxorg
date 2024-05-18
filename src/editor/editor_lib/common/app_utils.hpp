@@ -55,6 +55,10 @@ Str debug(sem::OrgArg);
     qDebug() << __LINE__ _QDBG_DISPATCHER(                                \
         _QDBG_ARG_COUNT(__VA_ARGS__), __VA_ARGS__);
 
+#define _qfmt(...)                                                        \
+    qDebug().noquote().nospace()                                          \
+        << fmt("[{}:{}]", __FUNCTION__, __LINE__) << fmt(__VA_ARGS__);
+
 #define Q_DECLARE_FMT_METATYPE(Type)                                      \
     inline QDebug operator<<(QDebug debug, Type const& t) {               \
         QDebugStateSaver saver(debug);                                    \

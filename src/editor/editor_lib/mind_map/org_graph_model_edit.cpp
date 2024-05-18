@@ -55,7 +55,7 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
         this->subtreeIds[edit.subtreeId.value()].push_back(edit.box);
     }
 
-    qDebug().noquote() << fmt(
+    _qfmt(
         "Added edit mutation box:{} desc:{} box->vertex:{}",
         boxToVertex.at(edit.box),
         edit.box,
@@ -64,9 +64,14 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
     ResolveResult updated_resolve = getUnresolvedEdits(edit);
     g[v]                          = updated_resolve.node;
 
+    if (g[v].unresolved.empty()) {
+        auto it = unresolved.indexOf(edit.box);
+        if (it != -1) { unresolved.erase(unresolved.begin() + it); }
+    }
+
     for (auto const& op : updated_resolve.resolved) {
         auto remove_resolved = [&](OrgBoxId box) {
-            _qdbg(fmt1(box));
+            _qfmt("{}", box);
             auto desc = boxToVertex.at(box);
             rs::actions::remove_if(
                 g[desc].unresolved, [&](CR<GraphLink> old) -> bool {
@@ -82,9 +87,11 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
             return g[boxToVertex.at(box)].unresolved.empty();
         });
 
+        qDebug().noquote()
+            << fmt("adding edge box:{}->box:{}", edit.box, op.target);
 
         auto [e, added] = boost::add_edge(
-            boxToVertex.at(edit.box), boxToVertex.at(op.target), g);
+            boxToVertex.at(op.source), boxToVertex.at(op.target), g);
 
         edges.push_back(e);
         result.added_edges.push_back(e);
