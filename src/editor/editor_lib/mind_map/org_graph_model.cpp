@@ -45,7 +45,7 @@ void OrgGraph::insertNewNode(CR<OrgBoxId> box) {
     if (n->is(osk::Subtree)) {
         sem::SemId<sem::Subtree> tree = n.as<sem::Subtree>();
         if (tree->treeId) {
-            this->subtreeIds[tree->treeId.value()].push_back(box);
+            state.subtreeIds[tree->treeId.value()].push_back(box);
         }
     } else if (n->is(osk::AnnotatedParagraph)) {
         sem::SemId<sem::AnnotatedParagraph>
@@ -53,7 +53,7 @@ void OrgGraph::insertNewNode(CR<OrgBoxId> box) {
         if (par->getAnnotationKind()
             == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
             Str name = par->getFootnote().name;
-            this->footnoteTargets[name].push_back(box);
+            state.footnoteTargets[name].push_back(box);
         }
     }
 
@@ -63,7 +63,7 @@ void OrgGraph::insertNewNode(CR<OrgBoxId> box) {
         if (arg->is(osk::Link)) {
             auto link = arg.as<sem::Link>();
             if (link->getLinkKind() != slk::Raw) {
-                unresolved[box].push_back(UnresolvedLink{
+                state.unresolved[box].push_back(UnresolvedLink{
                     .link = arg.as<sem::Link>(),
                     .description //
                     = link->description
@@ -95,7 +95,7 @@ void OrgGraph::insertNewNode(CR<OrgBoxId> box) {
                                                  .value();
                         }
 
-                        unresolved[parent_subtree].push_back(
+                        state.unresolved[parent_subtree].push_back(
                             UnresolvedLink{
                                 .link        = link,
                                 .description = description,
@@ -112,37 +112,37 @@ void OrgGraph::insertNewNode(CR<OrgBoxId> box) {
 
     switch (n->getKind()) {
         case osk::Subtree: {
-            g[v].kind = OrgGraphNode::Kind::Subtree;
+            state.g[v].kind = OrgGraphNode::Kind::Subtree;
             break;
         }
 
         case osk::AnnotatedParagraph: {
             if (n.as<sem::AnnotatedParagraph>()->getAnnotationKind()
                 == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
-                g[v].kind = OrgGraphNode::Kind::Footnote;
+                state.g[v].kind = OrgGraphNode::Kind::Footnote;
             } else {
-                g[v].kind = OrgGraphNode::Kind::Paragraph;
+                state.g[v].kind = OrgGraphNode::Kind::Paragraph;
             }
             break;
         }
 
         case osk::Paragraph: {
-            g[v].kind = OrgGraphNode::Kind::Paragraph;
+            state.g[v].kind = OrgGraphNode::Kind::Paragraph;
             break;
         }
 
         case osk::Document: {
-            g[v].kind = OrgGraphNode::Kind::Document;
+            state.g[v].kind = OrgGraphNode::Kind::Document;
             break;
         }
 
         case osk::List: {
-            g[v].kind = OrgGraphNode::Kind::List;
+            state.g[v].kind = OrgGraphNode::Kind::List;
             break;
         }
 
         case osk::ListItem: {
-            g[v].kind = OrgGraphNode::Kind::ListItem;
+            state.g[v].kind = OrgGraphNode::Kind::ListItem;
             break;
         }
 
@@ -153,25 +153,25 @@ void OrgGraph::insertNewNode(CR<OrgBoxId> box) {
 
 void OrgGraph::deleteBox(CR<OrgBoxId> deleted) {
     sem::SemId<sem::Org> n    = store->node(deleted);
-    auto                 desc = boxToVertex.at(deleted);
+    auto                 desc = state.boxToVertex.at(deleted);
 
     // Find all incoming links targeting this node and return them in
     // unresolved state
     for (EDesc link : in_edges(desc)) {
-        this->unresolved[g[getEdgeSource(link)].box].push_back(
+        state.unresolved[state.g[getEdgeSource(link)].box].push_back(
             UnresolvedLink{
-                .description = g[link].description,
-                .link        = g[link].link,
+                .description = state.g[link].description,
+                .link        = state.g[link].link,
             });
     }
 
     // Mirror the state drop from the node box addition
     if (auto tree = n.asOpt<sem::Subtree>()) {
-        if (tree->treeId) { this->subtreeIds.erase(*tree->treeId); }
+        if (tree->treeId) { state.subtreeIds.erase(*tree->treeId); }
     } else if (auto par = n.asOpt<sem::AnnotatedParagraph>()) {
         if (par->getAnnotationKind()
             == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
-            this->footnoteTargets.erase(par->getFootnote().name);
+            state.footnoteTargets.erase(par->getFootnote().name);
         }
     }
 
@@ -199,7 +199,8 @@ OrgGraph::ResolveResult OrgGraph::updateUnresolved(
 
         switch (link->getLinkKind()) {
             case slk::Id: {
-                if (auto target = subtreeIds.get(link->getId().text)) {
+                if (auto target = state.subtreeIds.get(
+                        link->getId().text)) {
                     found_match = true;
                     add_edge(
                         OrgGraphEdge{
@@ -213,7 +214,7 @@ OrgGraph::ResolveResult OrgGraph::updateUnresolved(
             }
 
             case slk::Footnote: {
-                if (auto target = footnoteTargets.get(
+                if (auto target = state.footnoteTargets.get(
                         link->getFootnote().target)) {
                     found_match = true;
                     add_edge(
@@ -242,7 +243,7 @@ std::string OrgGraph::toGraphviz() {
     boost::dynamic_properties dp;
 
     dp //
-        .property("node_id", get(boost::vertex_index, g))
+        .property("node_id", get(boost::vertex_index, state.g))
         .property(
             "splines",
             boost::make_constant_property<Graph*>(std::string("polyline")))
@@ -258,7 +259,7 @@ std::string OrgGraph::toGraphviz() {
                                                   prop.description.value())
                                             : "";
                 },
-                get(boost::edge_bundle, g)))
+                get(boost::edge_bundle, state.g)))
         .property(
             "label",
             make_transform_value_property_map<std::string>(
@@ -269,10 +270,10 @@ std::string OrgGraph::toGraphviz() {
                         prop.kind,
                         store->getOrgTree(prop.box)->selfPath());
                 },
-                get(boost::vertex_bundle, g)));
+                get(boost::vertex_bundle, state.g)));
 
 
-    write_graphviz_dp(os, g, dp);
+    write_graphviz_dp(os, state.g, dp);
 
     return os.str();
 }
@@ -390,12 +391,10 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
 }
 
 void OrgGraph::removeVertex(VDesc vertex) {
-    auto it = std::find(nodes.begin(), nodes.end(), vertex);
-    if (it != nodes.end()) {
-        int index = std::distance(nodes.begin(), it);
+    auto it = std::find(state.nodes.begin(), state.nodes.end(), vertex);
+    if (it != state.nodes.end()) {
+        int index = std::distance(state.nodes.begin(), it);
         beginRemoveRows(QModelIndex(), index, index);
-
-        _qdbg(in_edges(vertex).size(), out_edges(vertex).size());
 
         for (auto const& edge : in_edges(vertex)) {
             emit edgeRemoved(edge);
@@ -405,10 +404,10 @@ void OrgGraph::removeVertex(VDesc vertex) {
             emit edgeRemoved(edge);
         }
 
-        boost::clear_vertex(*it, g);
-        boost::remove_vertex(*it, g);
+        boost::clear_vertex(*it, state.g);
+        boost::remove_vertex(*it, state.g);
 
-        nodes.erase(it);
+        state.nodes.erase(it);
 
         rebuildEdges();
         endRemoveRows();

@@ -421,7 +421,7 @@ void TestMindMap::testGraphConstruction() {
 ** Tree2
 )"_ss);
 
-    QCOMPARE_EQ(graph.nodes.size(), 3);
+    QCOMPARE_EQ(graph.state.nodes.size(), 3);
 }
 
 Pair<SPtr<OrgStore>, SPtr<OrgGraph>> build_graph(CR<Str> text) {
@@ -451,7 +451,7 @@ Paragraph [[id:subtree-id]]
     QCOMPARE_EQ(
         graph->out_edge0(r->id(0), r->id(1)).kind,
         OrgGraphEdge::Kind::SubtreeId);
-    QVERIFY(graph->unresolved.empty());
+    QVERIFY(graph->state.unresolved.empty());
 }
 
 void TestMindMap::testGraphConstructionFootnoteId() {
@@ -466,7 +466,7 @@ Paragraph [fn:target]
 
     QCOMPARE_EQ(r->subnodes.size(), 2);
     QCOMPARE_EQ(graph->numNodes(), 3);
-    QVERIFY(graph->unresolved.empty());
+    QVERIFY(graph->state.unresolved.empty());
     QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
     QCOMPARE_EQ(
         graph->out_edge0(r->id(0), r->id(1)).kind,
@@ -586,7 +586,7 @@ void TestMindMap::testFullMindMapGraph() {
     // qDebug().noquote() <<
     graph->toGraphviz();
 
-    QCOMPARE_EQ2(graph->unresolved.size(), 1);
+    QCOMPARE_EQ2(graph->state.unresolved.size(), 1);
     QCOMPARE_EQ2(store->node(r->id(0))->getKind(), osk::Subtree);
     QCOMPARE_EQ2(store->node(r->id({0, 0}))->getKind(), osk::Subtree);
     QCOMPARE_EQ2(store->node(r->id({0, 1}))->getKind(), osk::Subtree);
@@ -650,7 +650,7 @@ void TestMindMap::testFullMindMapGraph() {
 
     {
         Vec<Str> node_text //
-            = graph->nodes
+            = graph->state.nodes
             | rv::transform([&](OrgGraph::VDesc desc) -> Str {
                   auto node = store->nodeWithoutNested(
                       graph->getNodeProp(desc).box);
@@ -659,7 +659,7 @@ void TestMindMap::testFullMindMapGraph() {
             | rs::to<Vec>();
 
         Vec<Str> edge_text //
-            = graph->edges
+            = graph->state.edges
             | rv::transform([&](OrgGraph::EDesc desc) -> Opt<Str> {
                   if (graph->getEdgeProp(desc).description) {
                       return str(*graph->getEdgeProp(desc).description);

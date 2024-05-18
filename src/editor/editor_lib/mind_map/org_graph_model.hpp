@@ -99,18 +99,7 @@ struct OrgGraph : public QAbstractListModel {
             store, &OrgStore::boxAdded, this, &OrgGraph::addBox);
     }
 
-    Graph                         g;
-    UnorderedMap<OrgBoxId, VDesc> boxToVertex;
-    OrgStore*                     store;
-    /// List of edges and nodes for a graph to maintain stable flat list of
-    /// nodes.
-    Vec<EDesc> edges;
-    Vec<VDesc> nodes;
-
-    /// Mapping from the subtree to the box IDs. This field is dynamically
-    /// updated as new nodes are removed or added to the graph
-    UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
-    UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
+    OrgStore* store;
 
     int rowCount(
         const QModelIndex& parent = QModelIndex()) const override {
@@ -168,28 +157,36 @@ struct OrgGraph : public QAbstractListModel {
     }
 
     /// Full number of nodes in the graph.
-    int numNodes() const { return boost::num_vertices(g); }
+    int numNodes() const { return boost::num_vertices(state.g); }
 
-    int numEdges() const { return boost::num_edges(g); }
+    int numEdges() const { return boost::num_edges(state.g); }
 
     /// Graph edge descriptor for a specific row
-    EDesc getEdgeDesc(int row) const { return edges.at(row - numNodes()); }
+    EDesc getEdgeDesc(int row) const {
+        return state.edges.at(row - numNodes());
+    }
 
     EDesc getEdgeDesc(QModelIndex index) const {
         return getEdgeDesc(index.row());
     }
 
     bool hasBoxDesc(CR<OrgBoxId> id) const {
-        return boxToVertex.contains(id);
+        return state.boxToVertex.contains(id);
     }
 
-    VDesc getBoxDesc(CR<OrgBoxId> id) const { return boxToVertex.at(id); }
+    VDesc getBoxDesc(CR<OrgBoxId> id) const {
+        return state.boxToVertex.at(id);
+    }
 
-    VDesc getEdgeSource(EDesc d) const { return boost::source(d, g); }
+    VDesc getEdgeSource(EDesc d) const {
+        return boost::source(d, state.g);
+    }
 
-    VDesc getEdgeTarget(EDesc d) const { return boost::target(d, g); }
+    VDesc getEdgeTarget(EDesc d) const {
+        return boost::target(d, state.g);
+    }
 
-    VDesc getNodeDesc(int idx) const { return nodes.at(idx); }
+    VDesc getNodeDesc(int idx) const { return state.nodes.at(idx); }
 
     VDesc getNodeDesc(QModelIndex index) const {
         return getNodeDesc(index.row());
@@ -202,25 +199,29 @@ struct OrgGraph : public QAbstractListModel {
 
     /// Find model row number for a graph vertex descriptor
     int getDescIndex(VDesc desc) const {
-        for (auto const& it : enumerator(nodes)) {
+        for (auto const& it : enumerator(state.nodes)) {
             if (it.value() == desc) { return it.index(); }
         }
 
         throw std::logic_error("vertex does not exist in graph");
     }
 
-    OrgGraphEdge& getEdgeProp(EDesc desc) { return g[desc]; }
+    OrgGraphEdge& getEdgeProp(EDesc desc) { return state.g[desc]; }
 
-    OrgGraphNode& getNodeProp(VDesc desc) { return g[desc]; }
+    OrgGraphNode& getNodeProp(VDesc desc) { return state.g[desc]; }
 
     /// \brief Sem node from a graph vertex.
     sem::SemId<sem::Org> getNodeSem(VDesc desc) const {
         return store->node(getNodeProp(desc).box);
     }
 
-    OrgGraphEdge const& getEdgeProp(EDesc desc) const { return g[desc]; }
+    OrgGraphEdge const& getEdgeProp(EDesc desc) const {
+        return state.g[desc];
+    }
 
-    OrgGraphNode const& getNodeProp(VDesc desc) const { return g[desc]; }
+    OrgGraphNode const& getNodeProp(VDesc desc) const {
+        return state.g[desc];
+    }
 
     /// \brief Add new edge between two boxes, register it in all fields
     /// and emit model update signals.
@@ -228,8 +229,8 @@ struct OrgGraph : public QAbstractListModel {
         beginInsertRows(QModelIndex(), rowCount(), rowCount());
         EDesc e;
         bool  inserted;
-        boost::tie(e, inserted) = boost::add_edge(source, target, g);
-        if (inserted) { edges.push_back(e); }
+        boost::tie(e, inserted) = boost::add_edge(source, target, state.g);
+        if (inserted) { state.edges.push_back(e); }
         endInsertRows();
         emit edgeAdded(e);
         return e;
@@ -239,12 +240,13 @@ struct OrgGraph : public QAbstractListModel {
     /// only registers a vertex in a graph. To do full box content
     /// registration call `addBox()`
     VDesc addVertex(CR<OrgBoxId> box) {
-        beginInsertRows(QModelIndex(), nodes.size(), nodes.size());
-        VDesc v = boost::add_vertex(g);
-        nodes.push_back(v);
+        beginInsertRows(
+            QModelIndex(), state.nodes.size(), state.nodes.size());
+        VDesc v = boost::add_vertex(state.g);
+        state.nodes.push_back(v);
         endInsertRows();
-        g[v].box         = box;
-        boxToVertex[box] = v;
+        state.g[v].box         = box;
+        state.boxToVertex[box] = v;
         emit nodeAdded(v);
         return v;
     }
@@ -256,11 +258,11 @@ struct OrgGraph : public QAbstractListModel {
     /// edges. Called when graph vertex descriptors might have been
     /// invalidated.
     void rebuildEdges() {
-        edges.clear();
+        state.edges.clear();
         Graph::edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end;
+        for (boost::tie(ei, ei_end) = boost::edges(state.g); ei != ei_end;
              ++ei) {
-            edges.push_back(*ei);
+            state.edges.push_back(*ei);
         }
     }
 
@@ -277,10 +279,10 @@ struct OrgGraph : public QAbstractListModel {
         Vec<EDesc> result;
 
         Graph::out_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::out_edges(source, g);
+        for (boost::tie(ei, ei_end) = boost::out_edges(source, state.g);
              ei != ei_end;
              ++ei) {
-            if (!target || boost::target(*ei, g) == *target) {
+            if (!target || boost::target(*ei, state.g) == *target) {
                 result.push_back(*ei);
             }
         }
@@ -305,10 +307,10 @@ struct OrgGraph : public QAbstractListModel {
         Vec<EDesc> result;
 
         Graph::in_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::in_edges(target, g);
+        for (boost::tie(ei, ei_end) = boost::in_edges(target, state.g);
              ei != ei_end;
              ++ei) {
-            if (!source || boost::source(*ei, g) == *source) {
+            if (!source || boost::source(*ei, state.g) == *source) {
                 result.push_back(*ei);
             }
         }
@@ -356,24 +358,42 @@ struct OrgGraph : public QAbstractListModel {
         OrgBoxId             unresolved_source,
         CVec<UnresolvedLink> list) const;
 
-    /// Map each box to a list of unresolved outgoing links. This field is
-    /// mutated as boxes are added or removed from the tree.
-    UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
 
+    struct State {
+        Graph                         g;
+        UnorderedMap<OrgBoxId, VDesc> boxToVertex;
+        /// List of edges and nodes for a graph to maintain stable flat
+        /// list of nodes.
+        Vec<EDesc> edges;
+        Vec<VDesc> nodes;
+
+        /// Mapping from the subtree to the box IDs. This field is
+        /// dynamically updated as new nodes are removed or added to the
+        /// graph
+        UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
+        UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
+
+        /// Map each box to a list of unresolved outgoing links. This field
+        /// is mutated as boxes are added or removed from the tree.
+        UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
+    };
+
+    State state;
 
     void insertNewNode(CR<OrgBoxId> box);
 
     void insertUnresolvedEdges() {
-        for (auto const& id : unresolved.keys()) {
-            auto resolve_result = updateUnresolved(id, unresolved.at(id));
+        for (auto const& id : state.unresolved.keys()) {
+            auto resolve_result = updateUnresolved(
+                id, state.unresolved.at(id));
             if (resolve_result.missingLinks.empty()) {
-                unresolved.erase(id);
+                state.unresolved.erase(id);
             } else {
-                unresolved.at(id) = resolve_result.missingLinks;
+                state.unresolved.at(id) = resolve_result.missingLinks;
             }
             for (auto const& e : resolve_result.establishedEdges) {
-                auto desc = addEdge(e.source, e.target);
-                g[desc]   = e.spec;
+                auto desc     = addEdge(e.source, e.target);
+                state.g[desc] = e.spec;
             }
         }
     }
