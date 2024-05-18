@@ -70,7 +70,7 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
         if (arg->is(osk::Link)) {
             auto link = arg.as<sem::Link>();
             if (link->getLinkKind() != slk::Raw) {
-                result.links.push_back(UnresolvedLink{
+                result.unresolved.push_back(UnresolvedLink{
                     .origin = box,
                     .link   = arg.as<sem::Link>(),
                     .description //
@@ -104,7 +104,7 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
                                                  .value();
                         }
 
-                        result.links.push_back(UnresolvedLink{
+                        result.unresolved.push_back(UnresolvedLink{
                             .origin      = parent_subtree,
                             .link        = link,
                             .description = description,
@@ -164,16 +164,20 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
     return getUnresolvedEdits(box, result);
 }
 
+Pair<OrgGraph::Edit, OrgGraph::Edit> OrgGraph::getNodeUpdateEdits(
+    CR<OrgBoxId> before,
+    CR<OrgBoxId> after) const {}
+
 OrgGraph::Edit OrgGraph::getUnresolvedEdits(
     OrgBoxId unresolved_source,
     CR<Edit> edit) const {
     OrgGraph::Edit result = edit;
-    result.links.clear();
+    result.unresolved.clear();
     auto add_edge = [&](CR<OrgGraphEdge>   spec,
                         CVec<OrgBoxId>     target,
                         CR<UnresolvedLink> original) {
         for (auto const& box : target) {
-            result.edges.push_back({
+            result.resolved.push_back({
                 .source = getBoxDesc(unresolved_source),
                 .target = getBoxDesc(box),
                 .spec   = spec,
@@ -181,7 +185,7 @@ OrgGraph::Edit OrgGraph::getUnresolvedEdits(
         }
     };
 
-    for (auto const& it : enumerator(edit.links)) {
+    for (auto const& it : enumerator(edit.unresolved)) {
         bool        found_match = false;
         auto const& link        = it.value().link;
 
@@ -223,7 +227,7 @@ OrgGraph::Edit OrgGraph::getUnresolvedEdits(
             }
         }
 
-        if (!found_match) { result.links.push_back(it.value()); }
+        if (!found_match) { result.unresolved.push_back(it.value()); }
     }
 
     return result;

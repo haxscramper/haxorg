@@ -37,6 +37,8 @@ struct OrgGraphEdge {
     /// an edge to unresolved state when target is deleted. When source is
     /// deleted the edge is simply dropped.
     sem::SemId<sem::Link> link;
+
+    DESC_FIELDS(OrgGraphEdge, (kind, description, link));
 };
 
 /// Model roles shared between org graph model and proxy layouts that are
@@ -223,24 +225,6 @@ struct OrgGraph : public QAbstractListModel {
         return state.g[desc];
     }
 
-    /// \brief Add new edge between two boxes, register it in all fields
-    /// and emit model update signals.
-    EDesc addEdge(VDesc source, VDesc target) {
-
-        EDesc e;
-        bool  inserted;
-        boost::tie(e, inserted) = boost::add_edge(source, target, state.g);
-        if (inserted) { state.edges.push_back(e); }
-        endInsertRows();
-        emit edgeAdded(e);
-        return e;
-    }
-
-    /// \brief Add new vertex for a box, register it in all fields. This
-    /// only registers a vertex in a graph. To do full box content
-    /// registration call `addBox()`
-    VDesc addVertex(CR<OrgBoxId> box);
-
 
     /// \brief Get property of the first edge between source and target.
     /// Mainly for testing purposes. Can raise range error if there are no
@@ -290,22 +274,26 @@ struct OrgGraph : public QAbstractListModel {
         sem::SemId<sem::Link> link;
         /// Link description at the time when an element was added.
         Opt<sem::SemId<sem::Org>> description;
+        DESC_FIELDS(UnresolvedLink, (origin, link, description));
     };
 
     struct Edit {
         struct FootnoteTarget {
             Str      name;
             OrgBoxId box;
+            DESC_FIELDS(FootnoteTarget, (name, box));
         };
 
         struct SubtreeId {
             Str      name;
             OrgBoxId box;
+            DESC_FIELDS(SubtreeId, (name, box));
         };
 
         struct Vertex {
             OrgBoxId           box;
             OrgGraphNode::Kind kind;
+            DESC_FIELDS(Vertex, (box, kind));
         };
 
         struct ResolveLink {
@@ -313,13 +301,17 @@ struct OrgGraph : public QAbstractListModel {
             VDesc          target;
             OrgGraphEdge   spec;
             UnresolvedLink original;
+            DESC_FIELDS(ResolveLink, (source, target, spec, original));
         };
 
         Vec<Vertex>         vertices;
         Vec<SubtreeId>      subtrees;
         Vec<FootnoteTarget> footnotes;
-        Vec<UnresolvedLink> links;
-        Vec<ResolveLink>    edges;
+        Vec<UnresolvedLink> unresolved;
+        Vec<ResolveLink>    resolved;
+        DESC_FIELDS(
+            Edit,
+            (vertices, subtrees, footnotes, unresolved, resolved));
     };
 
     struct GraphStructureUpdate {
@@ -330,6 +322,9 @@ struct OrgGraph : public QAbstractListModel {
         Vec<VDesc> added_nodes;
 
         Vec<UnresolvedLink> missingLinks;
+        DESC_FIELDS(
+            GraphStructureUpdate,
+            (removed_edges, removed_nodes, added_edges, added_nodes));
     };
 
     struct State {
@@ -364,6 +359,10 @@ struct OrgGraph : public QAbstractListModel {
                 edges.push_back(*ei);
             }
         }
+
+        DESC_FIELDS(
+            State,
+            (g, boxToVertex, edges, nodes, subtreeIds, footnoteTargets));
     };
 
     State state;
@@ -371,7 +370,7 @@ struct OrgGraph : public QAbstractListModel {
     Edit             getNodeInsertEdits(CR<OrgBoxId> box) const;
     Pair<Edit, Edit> getNodeUpdateEdits(
         CR<OrgBoxId> before,
-        CR<OrgBoxId> after);
+        CR<OrgBoxId> after) const;
 
     /// Iterate over all unresolved links visited so far and *try to* fix
     /// them. Does not guarantee to resolve all the links. Called when a
@@ -379,7 +378,12 @@ struct OrgGraph : public QAbstractListModel {
     Edit getUnresolvedEdits(OrgBoxId unresolved_source, CR<Edit> edit)
         const;
 
-    void emitChanges(CR<GraphStructureUpdate> upd) {}
+    void emitChanges(CR<GraphStructureUpdate> upd) {
+        for (auto const& e : upd.added_edges) { emit edgeAdded(e); }
+        for (auto const& e : upd.removed_edges) { emit edgeRemoved(e); }
+        for (auto const& e : upd.added_nodes) { emit nodeAdded(e); }
+        for (auto const& e : upd.removed_nodes) { emit nodeRemoved(e); }
+    }
 
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
@@ -413,6 +417,11 @@ struct OrgGraph : public QAbstractListModel {
     /// \brief Store box value was replaced with something differrent. No
     /// new nodes added to the graph, potentially edges added to the graph.
     void nodeUpdated(VDesc desc);
+
+    void edgeAdded(EDesc desc);
+    void edgeRemoved(EDesc desc);
+    void nodeAdded(VDesc desc);
+    void nodeRemoved(VDesc desc);
 };
 
 template <>

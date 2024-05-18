@@ -107,7 +107,7 @@ struct SemId {
 
     template <typename T>
     SemId<T> asOpt() const {
-        if(isNil() || value->getKind() != T::staticKind) {
+        if (isNil() || value->getKind() != T::staticKind) {
             return SemId<T>::Nil();
         } else {
             return as<T>();
@@ -222,7 +222,6 @@ struct [[refl]] Org {
 };
 
 
-
 }; // namespace sem
 
 #define EACH_SEM_ORG_LEAF_KIND(__IMPL)                                    \
@@ -250,6 +249,10 @@ struct std::formatter<sem::SemId<T>> : std::formatter<std::string> {
     FormatContext::iterator format(
         const sem::SemId<T>& p,
         FormatContext&       ctx) const {
-        return fmt_ctx(p->getKind(), ctx);
+        if (p.isNil()) {
+            return fmt_ctx("<nil>", ctx);
+        } else {
+            return fmt_ctx(p->getKind(), ctx);
+        }
     }
 };

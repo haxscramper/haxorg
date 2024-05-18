@@ -46,7 +46,34 @@ OrgGraph::GraphStructureUpdate OrgGraph::State::addMutation(
         result.added_nodes.push_back(v);
     }
 
-    for (auto const& op : edit.links) {}
+    for (auto const& op : edit.unresolved) {
+        this->unresolved[op.origin].push_back(op);
+    }
+
+    for (auto const& op : edit.resolved) {
+        rs::remove_if(
+            this->unresolved[op.original.origin],
+            [&](CR<UnresolvedLink> old) -> bool {
+                return old.link == op.original.link;
+            });
+
+        auto [e, added] = boost::add_edge(
+            boxToVertex.at(op.original.origin),
+            boxToVertex.at(op.target),
+            g);
+
+        edges.push_back(e);
+        result.added_edges.push_back(e);
+        g[e] = op.spec;
+    }
+
+    for (auto const& note : edit.footnotes) {
+        this->footnoteTargets[note.name].push_back(note.box);
+    }
+
+    for (auto const& note : edit.subtrees) {
+        this->subtreeIds[note.name].push_back(note.box);
+    }
 
     rebuildEdges();
 
@@ -60,8 +87,6 @@ OrgGraph::GraphStructureUpdate OrgGraph::State::delMutation(
         auto vertex = boxToVertex.at(op.box);
         auto it     = std::find(nodes.begin(), nodes.end(), vertex);
         if (it != nodes.end()) {
-            int index = std::distance(nodes.begin(), it);
-
             for (auto [ei, ei_end] = boost::in_edges(vertex, g);
                  ei != ei_end;
                  ++ei) {

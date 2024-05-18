@@ -421,6 +421,7 @@ void TestMindMap::testGraphConstruction() {
 ** Tree2
 )"_ss);
 
+
     QCOMPARE_EQ(graph.state.nodes.size(), 3);
 }
 
@@ -440,6 +441,11 @@ Paragraph [[id:subtree-id]]
   :id: subtree-id
   :end:
 )"_ss);
+
+
+    auto edits = graph->getNodeInsertEdits(
+        store->getRoot(0)->at(0)->boxId);
+    qDebug().noquote() << fmt1(edits);
 
     auto r = store->getRoot(0);
     QCOMPARE_EQ(r->subnodes.size(), 2);
