@@ -511,6 +511,25 @@ Paragraph [fn:target]
     QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
 }
 
+void TestMindMap::testGraphConstructionMultipleLinks() {
+    auto [store, graph] = build_graph(R"(
+Paragraph [fn:target1] [fn:target2]
+
+[fn:target1] Description
+
+[fn:target2] Description
+)");
+
+    auto r = store->getRoot(0);
+
+    QCOMPARE_EQ(r->subnodes.size(), 3);
+    QCOMPARE_EQ(graph->numNodes(), 4);
+    QCOMPARE_EQ(graph->numEdges(), 2);
+    QCOMPARE_EQ(graph->out_edges(r->id(0)).size(), 2);
+    QCOMPARE_EQ(graph->in_edges(r->id(1)).size(), 1);
+    QCOMPARE_EQ(graph->in_edges(r->id(2)).size(), 1);
+}
+
 Str getFullMindMapText() {
     Vec<Str> text{
         // 0

@@ -175,9 +175,11 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     }
 
     for (auto const& it : unresolved) {
+        _qfmt("  {}", g[boxToVertex.at(it)].unresolved);
         for (auto const& link : g[boxToVertex.at(it)].unresolved) {
             Opt<ResolvedLink> resolved_edit = getResolveTarget(it, link);
             if (resolved_edit) {
+                _qfmt("    desc:{} box:{}", boxToVertex.at(it), it);
                 result.resolved.push_back(*resolved_edit);
             }
         }
