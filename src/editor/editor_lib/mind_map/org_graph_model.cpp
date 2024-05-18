@@ -389,6 +389,34 @@ QVariant OrgGraph::data(const QModelIndex& index, int role) const {
     }
 }
 
+void OrgGraph::removeVertex(VDesc vertex) {
+    auto it = std::find(nodes.begin(), nodes.end(), vertex);
+    if (it != nodes.end()) {
+        int index = std::distance(nodes.begin(), it);
+        beginRemoveRows(QModelIndex(), index, index);
+
+        _qdbg(in_edges(vertex).size(), out_edges(vertex).size());
+
+        for (auto const& edge : in_edges(vertex)) {
+            emit edgeRemoved(edge);
+        }
+
+        for (auto const& edge : out_edges(vertex)) {
+            emit edgeRemoved(edge);
+        }
+
+        boost::clear_vertex(*it, g);
+        boost::remove_vertex(*it, g);
+
+        nodes.erase(it);
+
+        rebuildEdges();
+        endRemoveRows();
+    }
+    emit nodeRemoved(vertex);
+}
+
+
 OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     const {
     GraphLayoutIR ir;

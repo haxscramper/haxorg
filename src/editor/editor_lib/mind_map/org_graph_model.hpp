@@ -250,23 +250,7 @@ struct OrgGraph : public QAbstractListModel {
     }
 
 
-    void removeVertex(VDesc vertex) {
-        auto it = std::find(nodes.begin(), nodes.end(), vertex);
-        if (it != nodes.end()) {
-            int index = std::distance(nodes.begin(), it);
-            beginRemoveRows(QModelIndex(), index, index);
-            boost::clear_vertex(*it, g);
-            boost::remove_vertex(*it, g);
-            for (auto const& edge : in_edges(vertex)) {
-                emit edgeRemoved(edge);
-            }
-            nodes.erase(it);
-
-            rebuildEdges();
-            endRemoveRows();
-        }
-        emit nodeRemoved(vertex);
-    }
+    void removeVertex(VDesc vertex);
 
     /// \brief Clear cached values for edge rows and push a new list of
     /// edges. Called when graph vertex descriptors might have been
@@ -287,21 +271,44 @@ struct OrgGraph : public QAbstractListModel {
         return getEdgeProp(out_edges(source, target).at(0));
     }
 
+    Vec<EDesc> out_edges(
+        CR<VDesc>      source,
+        CR<Opt<VDesc>> target = std::nullopt) {
+        Vec<EDesc> result;
+
+        Graph::out_edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = boost::out_edges(source, g);
+             ei != ei_end;
+             ++ei) {
+            if (!target || boost::target(*ei, g) == *target) {
+                result.push_back(*ei);
+            }
+        }
+
+        return result;
+    }
+
     /// \brief get full list of edges between source and target. If the
     /// target is null return all outgoing edges for a source node.
     Vec<EDesc> out_edges(
         CR<OrgBoxId>      source,
         CR<Opt<OrgBoxId>> target = std::nullopt) {
-        VDesc      v1 = getBoxDesc(source);
-        Opt<VDesc> v2 = target ? std::make_optional(getBoxDesc(*target))
-                               : std::nullopt;
+        return out_edges(
+            getBoxDesc(source),
+            target ? std::make_optional(getBoxDesc(*target))
+                   : std::nullopt);
+    }
+
+    Vec<EDesc> in_edges(
+        CR<VDesc>      target,
+        CR<Opt<VDesc>> source = std::nullopt) {
         Vec<EDesc> result;
 
-        Graph::out_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::out_edges(v1, g);
+        Graph::in_edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = boost::in_edges(target, g);
              ei != ei_end;
              ++ei) {
-            if (!v2 || boost::target(*ei, g) == *v2) {
+            if (!source || boost::source(*ei, g) == *source) {
                 result.push_back(*ei);
             }
         }
@@ -315,20 +322,10 @@ struct OrgGraph : public QAbstractListModel {
     Vec<EDesc> in_edges(
         CR<OrgBoxId>      target,
         CR<Opt<OrgBoxId>> source = std::nullopt) {
-        VDesc      v1 = getBoxDesc(target);
-        Opt<VDesc> v2 = source ? std::make_optional(getBoxDesc(*source))
-                               : std::nullopt;
-        Vec<EDesc> result;
-
-        Graph::in_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = boost::in_edges(v1, g); ei != ei_end;
-             ++ei) {
-            if (!v2 || boost::target(*ei, g) == *v2) {
-                result.push_back(*ei);
-            }
-        }
-
-        return result;
+        return in_edges(
+            getBoxDesc(target),
+            source ? std::make_optional(getBoxDesc(*source))
+                   : std::nullopt);
     }
 
     // Graph modification API

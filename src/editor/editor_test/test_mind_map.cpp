@@ -4,6 +4,13 @@
 
 
 #include <QRect>
+#include <QEvent>
+#include <QMetaMethod>
+#include <QMetaObject>
+#include <QDebug>
+#include <QObject>
+#include <QCoreApplication>
+
 #include <hstd/stdlib/Ranges.hpp>
 #include <editor/editor_lib/mind_map/org_graph_model.hpp>
 #include <editor/editor_lib/mind_map/org_graph_scene.hpp>
@@ -926,26 +933,37 @@ Paragraph [[id:subtree-id]]
 
         QCOMPARE_EQ(store_spy.count(), 3);
         QCOMPARE_EQ(graph_spy.count(), 1);
-        auto subtree_box   = store.getRoot(0)->at(1);
-        auto paragraph_box = store.getRoot(0)->at(0);
-        QCOMPARE_EQ(graph.in_edges(paragraph_box).size(), 1);
-        QCOMPARE_EQ(graph.out_edges(subtree_box).size(), 1);
+        auto subtree_box   = store.getRoot(0)->at(1)->boxId;
+        auto paragraph_box = store.getRoot(0)->at(0)->boxId;
+
+        QCOMPARE_EQ(graph.in_edges(subtree_box).size(), 1);
+        QCOMPARE_EQ(graph.out_edges(paragraph_box).size(), 1);
     }
 
     {
         QSignalSpy node_update_spy{&graph, &OrgGraph::nodeUpdated};
         QSignalSpy edge_remove_spy{&graph, &OrgGraph::edgeRemoved};
 
-        OrgBoxId paragraph_box = store.roots.at(0)->at(0)->boxId;
-        QCOMPARE_EQ(store.node(paragraph_box)->getKind(), osk::Paragraph);
-        auto new_text = sem::parseString("Paragraph without edge")->at(0);
-        QCOMPARE_EQ(new_text->getKind(), osk::Paragraph);
-        auto new_box = store.update<sem::Paragraph>(
-            paragraph_box, [&](sem::Paragraph& prev) {
-                prev = *new_text.getAs<sem::Paragraph>();
-            });
+        {
+            OrgBoxId paragraph_box = store.roots.at(0)->at(0)->boxId;
+            QCOMPARE_EQ(
+                store.node(paragraph_box)->getKind(), osk::Paragraph);
+            auto new_text = sem::parseString("Paragraph without edge")
+                                ->at(0);
+            QCOMPARE_EQ(new_text->getKind(), osk::Paragraph);
+            store.update<sem::Paragraph>(
+                paragraph_box, [&](sem::Paragraph& prev) {
+                    prev = *new_text.getAs<sem::Paragraph>();
+                });
+        }
 
-        // QCOMPARE_EQ(node_update_spy.count(), 1);
-        QCOMPARE_EQ(edge_remove_spy.count(), 1);
+        {
+            auto subtree_box   = store.getRoot(0)->at(1)->boxId;
+            auto paragraph_box = store.getRoot(0)->at(0)->boxId;
+
+            QCOMPARE_EQ(edge_remove_spy.count(), 1);
+            QCOMPARE_EQ(graph.in_edges(subtree_box).size(), 0);
+            QCOMPARE_EQ(graph.out_edges(paragraph_box).size(), 0);
+        }
     }
 }
