@@ -20,7 +20,8 @@ class TestMindMap
     void testGraphConstruction();
     void testGraphConstructionSubtreeId1();
     void testGraphConstructionFootnoteId();
-    void testGraphConstructionMultipleLinks();
+    void testGraphConstructionMultipleLinks_footnote1();
+    void testGraphConstructionMultipleLinks_footnote2();
     void testFullMindMapGraph();
     void testQtGraphModel1();
     void testQtGraphScene1();
