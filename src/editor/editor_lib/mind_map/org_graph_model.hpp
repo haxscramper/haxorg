@@ -9,6 +9,7 @@
 #include <editor/editor_lib/mind_map/org_graph_layout.hpp>
 #include <QPainterPath>
 #include <QTextDocument>
+#include <hstd/stdlib/Set.hpp>
 
 namespace org::mind_map {
 
@@ -345,12 +346,12 @@ struct Graph : public QAbstractListModel {
         /// Mapping from the subtree to the box IDs. This field is
         /// dynamically updated as new nodes are removed or added to the
         /// graph
-        UnorderedMap<Str, Vec<OrgBoxId>> subtreeIds;
-        UnorderedMap<Str, Vec<OrgBoxId>> footnoteTargets;
+        UnorderedMap<Str, OrgBoxId> subtreeIds;
+        UnorderedMap<Str, OrgBoxId> footnoteTargets;
 
         /// Map each box to a list of unresolved outgoing links. This field
         /// is mutated as boxes are added or removed from the tree.
-        Vec<OrgBoxId> unresolved;
+        UnorderedSet<OrgBoxId> unresolved;
 
         GraphStructureUpdate addMutation(OrgGraphNode const& edit);
         GraphStructureUpdate delMutation(OrgGraphNode const& edit);
@@ -359,7 +360,7 @@ struct Graph : public QAbstractListModel {
         /// fix them. Does not guarantee to resolve all the links. Called
         /// when a new node is added to the graph.
         ResolveResult     getUnresolvedEdits(CR<OrgGraphNode> edit) const;
-        Vec<ResolvedLink> getResolveTarget(
+        Opt<ResolvedLink> getResolveTarget(
             CR<OrgBoxId>  source,
             CR<GraphLink> link) const;
 

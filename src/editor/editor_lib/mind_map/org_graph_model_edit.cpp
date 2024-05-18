@@ -44,29 +44,44 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
     boxToVertex[edit.box] = v;
     result.added_nodes.push_back(v);
 
-    if (!edit.unresolved.empty()) { unresolved.push_back(edit.box); }
+    if (!edit.unresolved.empty()) {
+        Q_ASSERT_X(
+            !unresolved.contains(edit.box),
+            "addMutation",
+            fmt("Duplicate unresolved boxes are not expected: {}", edit));
+
+        unresolved.incl(edit.box);
+    }
 
     if (edit.footnoteName) {
-        this->footnoteTargets[edit.footnoteName.value()].push_back(
-            edit.box);
+        Q_ASSERT(!footnoteTargets.contains(*edit.footnoteName));
+        footnoteTargets[*edit.footnoteName] = edit.box;
     }
 
     if (edit.subtreeId) {
-        this->subtreeIds[edit.subtreeId.value()].push_back(edit.box);
+        Q_ASSERT(!subtreeIds.contains(*edit.subtreeId));
+        subtreeIds[*edit.subtreeId] = edit.box;
     }
 
-    _qfmt("edit:{}", edit);
 
     ResolveResult updated_resolve = getUnresolvedEdits(edit);
-    g[v]                          = updated_resolve.node;
+    _qfmt("v:{} g[v]:{} updated:{}", v, g[v], updated_resolve.node);
+    for (auto const& u : g[v].unresolved) {
+        _qfmt(">> {}", debug(u.link.asOrg()));
+    }
+    for (auto const& u : updated_resolve.node.unresolved) {
+        _qfmt("<<- {}", debug(u.link.asOrg()));
+    }
+    for (auto const& u : updated_resolve.resolved) {
+        _qfmt("<<+ {}", debug(u.link.link.asOrg()));
+    }
+    g[v] = updated_resolve.node;
 
     if (g[v].unresolved.empty()) {
-        auto it = unresolved.indexOf(edit.box);
-        if (it != -1) { unresolved.erase(unresolved.begin() + it); }
+        if (unresolved.contains(edit.box)) { unresolved.erase(edit.box); }
     }
 
     for (auto const& op : updated_resolve.resolved) {
-        _qfmt("op:{} node:{}", op, debug(op.link.link.asOrg()));
         auto remove_resolved = [&](OrgBoxId box) {
             auto desc = boxToVertex.at(box);
             rs::actions::remove_if(
@@ -79,9 +94,13 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
         for (auto const& box : unresolved) { remove_resolved(box); }
         remove_resolved(edit.box);
 
-        rs::actions::remove_if(unresolved, [&](CR<OrgBoxId> box) {
-            return g[boxToVertex.at(box)].unresolved.empty();
-        });
+        for (auto it = unresolved.begin(); it != unresolved.end();) {
+            if (g[boxToVertex.at(*it)].unresolved.empty()) {
+                it = unresolved.erase(it);
+            } else {
+                ++it;
+            }
+        }
 
         auto [e, added] = boost::add_edge(
             boxToVertex.at(op.source), boxToVertex.at(op.target), g);

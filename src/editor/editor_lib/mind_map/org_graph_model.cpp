@@ -166,19 +166,19 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     result.node.unresolved.clear();
 
     for (auto const& it : edit.unresolved) {
-        Vec<ResolvedLink> resolved_edit = getResolveTarget(edit.box, it);
-        if (resolved_edit.empty()) {
-            result.node.unresolved.push_back(it);
+        Opt<ResolvedLink> resolved_edit = getResolveTarget(edit.box, it);
+        if (resolved_edit) {
+            result.resolved.push_back(*resolved_edit);
         } else {
-            result.resolved.append(resolved_edit);
+            result.node.unresolved.push_back(it);
         }
     }
 
     for (auto const& it : unresolved) {
         for (auto const& link : g[boxToVertex.at(it)].unresolved) {
-            Vec<ResolvedLink> resolved_edit = getResolveTarget(it, link);
-            if (!resolved_edit.empty()) {
-                result.resolved.append(resolved_edit);
+            Opt<ResolvedLink> resolved_edit = getResolveTarget(it, link);
+            if (resolved_edit) {
+                result.resolved.push_back(*resolved_edit);
             }
         }
     }
@@ -186,21 +186,19 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     return result;
 }
 
-Vec<Graph::ResolvedLink> Graph::State::getResolveTarget(
+Opt<Graph::ResolvedLink> Graph::State::getResolveTarget(
     CR<OrgBoxId>  source,
     CR<GraphLink> it) const {
 
-    Vec<Graph::ResolvedLink> result;
+    Opt<Graph::ResolvedLink> result;
 
-    auto add_edge = [&](OrgGraphEdge::Kind kind, CVec<OrgBoxId> target) {
-        for (auto const& box : target) {
-            Q_ASSERT(!it.link.isNil());
-            result.push_back(ResolvedLink{
-                .target = box,
-                .link   = it,
-                .source = source,
-            });
-        }
+    auto add_edge = [&](OrgGraphEdge::Kind kind, OrgBoxId target) {
+        Q_ASSERT(!it.link.isNil());
+        result = ResolvedLink{
+            .target = target,
+            .link   = it,
+            .source = source,
+        };
     };
 
     switch (it.link->getLinkKind()) {
