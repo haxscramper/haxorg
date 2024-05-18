@@ -86,9 +86,7 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
     TypArray() {}
 
     TypArray(std::initializer_list<Pair<Key, Val>> items) {
-        for (const auto& [key, val] : items) {
-            at(key) = val;
-        }
+        for (const auto& [key, val] : items) { at(key) = val; }
     }
 
     Val& at(CR<Key> value) {
@@ -129,7 +127,9 @@ template <typename T, int Size, typename CharT>
 struct std::formatter<Array<T, Size>, CharT> : Fmt<std::string, CharT> {
     using FmtType = Array<T, Size>;
     template <typename FormatContext>
-    typename FormatContext::iterator format(FmtType const& p, FormatContext& ctx) {
+    typename FormatContext::iterator format(
+        FmtType const& p,
+        FormatContext& ctx) {
         Fmt<std::string, CharT> fmt;
         fmt.format("[", ctx);
         fmt.format(join(", ", p));

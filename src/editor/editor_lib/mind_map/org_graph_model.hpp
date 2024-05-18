@@ -10,6 +10,9 @@
 #include <QPainterPath>
 #include <QTextDocument>
 
+namespace org::mind_map {
+
+
 /// \brief Property for the org-mode graph structure
 struct OrgGraphNode {
     DECL_DESCRIBED_ENUM(
@@ -71,36 +74,46 @@ enum class OrgGraphElementKind
     Subgraph, ///< Grouping element, provided by the proxy layout model
 };
 
+/// Base data structure for the whole mind map. The parameters are
+/// not configurable,
+using BoostBase = boost::adjacency_list<
+    boost::vecS,
+    boost::vecS,
+    boost::bidirectionalS,
+    OrgGraphNode,
+    OrgGraphEdge>;
+
+using GraphTraits = boost::graph_traits<BoostBase>;
+using VDesc       = GraphTraits::vertex_descriptor;
+using EDesc       = GraphTraits::edge_descriptor;
+
+
+/// Link node in the mind map pending resolution. Might be due to
+/// an error, might be because an element have not been added yet.
+struct UnresolvedLink {
+    OrgBoxId              origin;
+    sem::SemId<sem::Link> link;
+    /// Link description at the time when an element was added.
+    Opt<sem::SemId<sem::Org>> description;
+    DESC_FIELDS(UnresolvedLink, (origin, link, description));
+};
+
 /// Base data provider model for all interactions with the graph. Wraps
 /// around boost graph and exposes its nodes and edges as a flat list of
 /// elements.
-struct OrgGraph : public QAbstractListModel {
+struct Graph : public QAbstractListModel {
   private:
     Q_OBJECT
   public:
-    /// Base data structure for the whole mind map. The parameters are
-    /// not configurable,
-    using Graph = boost::adjacency_list<
-        boost::vecS,
-        boost::vecS,
-        boost::bidirectionalS,
-        OrgGraphNode,
-        OrgGraphEdge>;
-
-    using GraphTraits = boost::graph_traits<Graph>;
-    using VDesc       = GraphTraits::vertex_descriptor;
-    using EDesc       = GraphTraits::edge_descriptor;
-
     void connectStore() {
         QObject::connect(
-            store, &OrgStore::boxReplaced, this, &OrgGraph::replaceBox);
+            store, &OrgStore::boxReplaced, this, &Graph::replaceBox);
         QObject::connect(
-            store, &OrgStore::boxDeleted, this, &OrgGraph::deleteBox);
-        QObject::connect(
-            store, &OrgStore::boxAdded, this, &OrgGraph::addBox);
+            store, &OrgStore::boxDeleted, this, &Graph::deleteBox);
+        QObject::connect(store, &OrgStore::boxAdded, this, &Graph::addBox);
     }
 
-    OrgGraph(OrgStore* store, QObject* parent)
+    Graph(OrgStore* store, QObject* parent)
         : QAbstractListModel(parent), store(store) {}
 
     OrgStore* store;
@@ -118,10 +131,9 @@ struct OrgGraph : public QAbstractListModel {
         return index.row() < numNodes();
     }
 
-    Pair<OrgGraph::VDesc, OrgGraph::VDesc> sourceTargetAt(
-        QModelIndex index) const {
+    Pair<VDesc, VDesc> sourceTargetAt(QModelIndex index) const {
         auto eDesc = getEdgeDesc(index.row());
-        return std::make_pair<OrgGraph::VDesc, OrgGraph::VDesc>(
+        return std::make_pair<VDesc, VDesc>(
             getEdgeSource(eDesc), getEdgeTarget(eDesc));
     }
 
@@ -269,16 +281,6 @@ struct OrgGraph : public QAbstractListModel {
     // Graph modification API
 
 
-    /// Link node in the mind map pending resolution. Might be due to
-    /// an error, might be because an element have not been added yet.
-    struct UnresolvedLink {
-        OrgBoxId              origin;
-        sem::SemId<sem::Link> link;
-        /// Link description at the time when an element was added.
-        Opt<sem::SemId<sem::Org>> description;
-        DESC_FIELDS(UnresolvedLink, (origin, link, description));
-    };
-
     struct Edit {
         struct FootnoteTarget {
             Str      name;
@@ -330,7 +332,7 @@ struct OrgGraph : public QAbstractListModel {
     };
 
     struct State {
-        Graph                         g;
+        BoostBase                     g;
         UnorderedMap<OrgBoxId, VDesc> boxToVertex;
         /// List of edges and nodes for a graph to maintain stable flat
         /// list of nodes.
@@ -355,7 +357,7 @@ struct OrgGraph : public QAbstractListModel {
         /// invalidated.
         void rebuildEdges() {
             edges.clear();
-            Graph::edge_iterator ei, ei_end;
+            BoostBase::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end;
                  ++ei) {
                 edges.push_back(*ei);
@@ -431,36 +433,23 @@ struct OrgGraph : public QAbstractListModel {
     void nodeRemoved(VDesc desc);
 };
 
-template <>
-struct std::formatter<OrgGraph::EDesc> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const OrgGraph::EDesc& p, FormatContext& ctx) const {
-        fmt_ctx(p.m_source, ctx);
-        fmt_ctx("-", ctx);
-        return fmt_ctx(p.m_target, ctx);
-    }
-};
-
-Q_DECLARE_FMT_METATYPE(OrgGraph::VDesc);
-Q_DECLARE_FMT_METATYPE(OrgGraph::EDesc);
-
 
 /// \brief Helper type to provide more convenient API for accessing
 /// different node element properties. NOTE: Holds the reference to a
 /// wrapped widget, is not intended as a copyable type to store/work with.
 /// Only as an more type-safe entry point to the API.
-struct OrgGraphIndex {
+struct GraphIndex {
     QModelIndex const& index;
-    OrgGraphIndex(QModelIndex const& index) : index(index) {}
+    GraphIndex(QModelIndex const& index) : index(index) {}
 
     operator QModelIndex const&() const { return index; }
 
-    OrgGraph::VDesc getVDesc() const {
-        return qindex_get<OrgGraph::VDesc>(index, OrgGraphRoles::NodeDesc);
+    VDesc getVDesc() const {
+        return qindex_get<VDesc>(index, OrgGraphRoles::NodeDesc);
     }
 
-    OrgGraph::EDesc getEDesc() const {
-        return qindex_get<OrgGraph::EDesc>(index, OrgGraphRoles::EdgeDesc);
+    EDesc getEDesc() const {
+        return qindex_get<EDesc>(index, OrgGraphRoles::EdgeDesc);
     }
 
     bool isNode() const {
@@ -475,8 +464,8 @@ struct OrgGraphIndex {
         return qindex_get<QString>(index, Qt::DisplayRole);
     }
 
-    Pair<OrgGraph::VDesc, OrgGraph::VDesc> getSourceTarget() const {
-        return qindex_get<Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(
+    Pair<VDesc, VDesc> getSourceTarget() const {
+        return qindex_get<Pair<VDesc, VDesc>>(
             index, OrgGraphRoles::SourceAndTarget);
     }
 
@@ -492,12 +481,12 @@ struct OrgGraphIndex {
 };
 
 /// \brief Filter nodes from a graph using callback predicates.
-struct OrgGraphFilterProxy : public QSortFilterProxyModel {
+struct GraphFilterProxy : public QSortFilterProxyModel {
   private:
     Q_OBJECT
   public:
-    using AcceptNodeCb = Func<bool(OrgGraph::VDesc const&)>;
-    using AcceptEdgeCb = Func<bool(OrgGraph::EDesc const&)>;
+    using AcceptNodeCb = Func<bool(VDesc const&)>;
+    using AcceptEdgeCb = Func<bool(EDesc const&)>;
 
     AcceptNodeCb accept_node; ///< Individual node is ok
     AcceptEdgeCb accept_edge; ///< Individual edge is ok. If source/target
@@ -510,17 +499,16 @@ struct OrgGraphFilterProxy : public QSortFilterProxyModel {
         QModelIndex index = sourceModel()->index(
             source_row, 0, source_parent);
         if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-            return accept_node(qindex_get<OrgGraph::VDesc>(
-                index, OrgGraphRoles::NodeDesc));
+            return accept_node(
+                qindex_get<VDesc>(index, OrgGraphRoles::NodeDesc));
         } else {
-            auto [source, target] = qindex_get<
-                Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(
+            auto [source, target] = qindex_get<Pair<VDesc, VDesc>>(
                 index, OrgGraphRoles::SourceAndTarget);
             // Avoid dangling edges with missing source/target nodes.
             return accept_node(source) //
                 && accept_node(target)
-                && accept_edge(qindex_get<OrgGraph::EDesc>(
-                    index, OrgGraphRoles::EdgeDesc));
+                && accept_edge(
+                       qindex_get<EDesc>(index, OrgGraphRoles::EdgeDesc));
         }
     }
 };
@@ -537,7 +525,7 @@ struct OrgGraphFilterProxy : public QSortFilterProxyModel {
 /// - Provide an underlying node/edge provider
 /// - Call `updateCurrentLayout` to run the layout backend of choice
 /// - Now the model can serve a new set of layout elements`
-struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
+struct GraphLayoutProxy : public QSortFilterProxyModel {
   private:
     Q_OBJECT
   public:
@@ -632,7 +620,7 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
     LayoutConfig config;
     OrgStore*    store;
 
-    OrgGraphLayoutProxy(
+    GraphLayoutProxy(
         OrgStore*        store,
         CR<LayoutConfig> size,
         QObject*         parent)
@@ -683,15 +671,28 @@ struct OrgGraphLayoutProxy : public QSortFilterProxyModel {
         }
     }
 };
+} // namespace org::mind_map
 
-
-Q_DECLARE_METATYPE(OrgGraphLayoutProxy::Subgraph);
+Q_DECLARE_METATYPE(org::mind_map::GraphLayoutProxy::Subgraph);
 
 inline QDebug operator<<(
-    QDebug                               debug,
-    const OrgGraphLayoutProxy::Subgraph& t) {
+    QDebug                                           debug,
+    const org::mind_map::GraphLayoutProxy::Subgraph& t) {
     QDebugStateSaver saver(debug);
     debug.nospace() << "OrgGraphLayoutProxy::Subgraph(" << t.name << " "
                     << t.bbox << ")";
     return debug;
 }
+
+template <>
+struct std::formatter<org::mind_map::EDesc> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::mind_map::EDesc& p, FormatContext& ctx) const {
+        fmt_ctx(p.m_source, ctx);
+        fmt_ctx("-", ctx);
+        return fmt_ctx(p.m_target, ctx);
+    }
+};
+
+Q_DECLARE_FMT_METATYPE(org::mind_map::VDesc);
+Q_DECLARE_FMT_METATYPE(org::mind_map::EDesc);

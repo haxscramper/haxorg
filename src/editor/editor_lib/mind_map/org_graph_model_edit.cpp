@@ -1,11 +1,11 @@
 #include <editor/editor_lib/mind_map/org_graph_model.hpp>
 
-Vec<OrgGraph::EDesc> OrgGraph::out_edges(
-    CR<VDesc>      source,
-    CR<Opt<VDesc>> target) {
+using namespace org::mind_map;
+
+Vec<EDesc> Graph::out_edges(CR<VDesc> source, CR<Opt<VDesc>> target) {
     Vec<EDesc> result;
 
-    Graph::out_edge_iterator ei, ei_end;
+    BoostBase::out_edge_iterator ei, ei_end;
     for (boost::tie(ei, ei_end) = boost::out_edges(source, state.g);
          ei != ei_end;
          ++ei) {
@@ -17,12 +17,10 @@ Vec<OrgGraph::EDesc> OrgGraph::out_edges(
     return result;
 }
 
-Vec<OrgGraph::EDesc> OrgGraph::in_edges(
-    CR<VDesc>      target,
-    CR<Opt<VDesc>> source) {
+Vec<EDesc> Graph::in_edges(CR<VDesc> target, CR<Opt<VDesc>> source) {
     Vec<EDesc> result;
 
-    Graph::in_edge_iterator ei, ei_end;
+    BoostBase::in_edge_iterator ei, ei_end;
     for (boost::tie(ei, ei_end) = boost::in_edges(target, state.g);
          ei != ei_end;
          ++ei) {
@@ -36,8 +34,7 @@ Vec<OrgGraph::EDesc> OrgGraph::in_edges(
 
 using slk = sem::Link::Kind;
 
-OrgGraph::GraphStructureUpdate OrgGraph::State::addMutation(
-    const Edit& edit) {
+Graph::GraphStructureUpdate Graph::State::addMutation(const Edit& edit) {
     GraphStructureUpdate result;
     for (auto const& op : edit.vertices) {
         VDesc v = boost::add_vertex(g);
@@ -98,8 +95,7 @@ OrgGraph::GraphStructureUpdate OrgGraph::State::addMutation(
     return result;
 }
 
-OrgGraph::GraphStructureUpdate OrgGraph::State::delMutation(
-    const Edit& edit) {
+Graph::GraphStructureUpdate Graph::State::delMutation(const Edit& edit) {
     GraphStructureUpdate result;
     for (auto const& op : edit.vertices) {
         auto vertex = boxToVertex.at(op.box);

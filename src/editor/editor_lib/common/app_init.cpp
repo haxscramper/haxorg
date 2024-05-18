@@ -37,7 +37,7 @@ void customMessageHandler(
 
 void editorInitMain() {
     qRegisterMetaType<OrgBoxId>("OrgBoxId");
-    qRegisterMetaType<OrgGraphLayoutProxy::Subgraph>(
+    qRegisterMetaType<org::mind_map::GraphLayoutProxy::Subgraph>(
         "OrgGraphLayoutProxySubgraph");
 
     QByteArray envVar = qgetenv("QT_LOGGING_RULES");

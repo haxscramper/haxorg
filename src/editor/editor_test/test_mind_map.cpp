@@ -15,6 +15,8 @@
 #include <editor/editor_lib/mind_map/org_graph_model.hpp>
 #include <editor/editor_lib/mind_map/org_graph_scene.hpp>
 
+using namespace org::mind_map;
+
 #define QCOMPARE_OP2_IMPL(lhs, rhs, op, opId)                             \
     do {                                                                  \
         if (![](auto&& qt_lhs_arg, auto&& qt_rhs_arg) {                   \
@@ -415,7 +417,7 @@ void TestMindMap::testGraphvizIrClusters() {
 
 void TestMindMap::testGraphConstruction() {
     OrgStore store;
-    OrgGraph graph{&store, nullptr};
+    Graph    graph{&store, nullptr};
     graph.connectStore();
     store.addRoot(R"(
 * Tree1
@@ -426,9 +428,9 @@ void TestMindMap::testGraphConstruction() {
     QCOMPARE_EQ(graph.state.nodes.size(), 3);
 }
 
-Pair<SPtr<OrgStore>, SPtr<OrgGraph>> build_graph(CR<Str> text) {
+Pair<SPtr<OrgStore>, SPtr<Graph>> build_graph(CR<Str> text) {
     auto store = std::make_shared<OrgStore>();
-    auto graph = std::make_shared<OrgGraph>(store.get(), nullptr);
+    auto graph = std::make_shared<Graph>(store.get(), nullptr);
     graph->connectStore();
     store->addRoot(text);
     return std::make_pair(store, graph);
@@ -446,7 +448,7 @@ Paragraph [[id:subtree-id]]
 
     {
         OrgStore store;
-        OrgGraph graph{&store, nullptr};
+        Graph    graph{&store, nullptr};
         store.addRoot(text);
 
         // First time paragraph is added to the graph it has an unresolved
@@ -701,8 +703,7 @@ void TestMindMap::testFullMindMapGraph() {
 
     {
         Vec<Str> node_text //
-            = graph->state.nodes
-            | rv::transform([&](OrgGraph::VDesc desc) -> Str {
+            = graph->state.nodes | rv::transform([&](VDesc desc) -> Str {
                   auto node = store->nodeWithoutNested(
                       graph->getNodeProp(desc).box);
                   return str(node);
@@ -711,7 +712,7 @@ void TestMindMap::testFullMindMapGraph() {
 
         Vec<Str> edge_text //
             = graph->state.edges
-            | rv::transform([&](OrgGraph::EDesc desc) -> Opt<Str> {
+            | rv::transform([&](EDesc desc) -> Opt<Str> {
                   if (graph->getEdgeProp(desc).description) {
                       return str(*graph->getEdgeProp(desc).description);
                   } else {
@@ -765,9 +766,9 @@ Paragraph [[id:subtree-id]]
         graph.get(), QModelIndex(), store_index_printer(store.get()))
         .toString();
 
-    OrgGraphLayoutProxy proxy{
+    GraphLayoutProxy proxy{
         store.get(),
-        OrgGraphLayoutProxy::LayoutConfig{
+        GraphLayoutProxy::LayoutConfig{
             .getNodeSize = [](QModelIndex const&) -> QSize {
                 return QSize(20, 20);
             },
@@ -799,11 +800,11 @@ void debugModel(
 }
 
 struct SceneBench {
-    SPtr<OrgStore>            store;
-    SPtr<OrgGraph>            graph;
-    SPtr<OrgGraphLayoutProxy> proxy;
-    OrgGraphView*             view;
-    SPtr<QMainWindow>         window;
+    SPtr<OrgStore>         store;
+    SPtr<Graph>            graph;
+    SPtr<GraphLayoutProxy> proxy;
+    OrgGraphView*          view;
+    SPtr<QMainWindow>      window;
 
     SceneBench(CR<Str> text) {
         window = std::make_shared<QMainWindow>();
@@ -815,9 +816,9 @@ struct SceneBench {
         this->store         = store;
         this->graph         = graph;
 
-        proxy = std::make_shared<OrgGraphLayoutProxy>(
+        proxy = std::make_shared<GraphLayoutProxy>(
             store.get(),
-            OrgGraphLayoutProxy::LayoutConfig{
+            GraphLayoutProxy::LayoutConfig{
                 .getNodeSize =
                     [&](QModelIndex const& index) {
                         return view->getNodeSize(index);
@@ -878,13 +879,11 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_pre_filter.png", 2);
 
-    OrgGraphFilterProxy pre_layout_filter{};
+    GraphFilterProxy pre_layout_filter{};
 
-    pre_layout_filter.accept_edge = [](OrgGraph::EDesc edge) {
-        return true;
-    };
+    pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
 
-    pre_layout_filter.accept_node = [&](OrgGraph::VDesc node) {
+    pre_layout_filter.accept_node = [&](VDesc node) {
         auto sem_node = b.graph->getNodeSem(node);
         return !SemSet{osk::ListItem, osk::List, osk::Document}.contains(
             sem_node->getKind());
@@ -944,7 +943,7 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 
 void TestMindMap::testMindMapNodeAdd1() {
     OrgStore store;
-    OrgGraph graph{&store, nullptr};
+    Graph    graph{&store, nullptr};
     graph.connectStore();
     auto node = sem::parseString(R"(
 * Subtree
@@ -952,7 +951,7 @@ void TestMindMap::testMindMapNodeAdd1() {
 )");
 
     QSignalSpy store_spy{&store, &OrgStore::boxAdded};
-    QSignalSpy graph_spy{&graph, &OrgGraph::nodeAdded};
+    QSignalSpy graph_spy{&graph, &Graph::nodeAdded};
 
     Vec<OrgBoxId> added;
     QObject::connect(&store, &OrgStore::boxAdded, [&](OrgBoxId id) {
@@ -967,7 +966,7 @@ void TestMindMap::testMindMapNodeAdd1() {
 
 void TestMindMap::testMindMapSignals1() {
     OrgStore store;
-    OrgGraph graph{&store, nullptr};
+    Graph    graph{&store, nullptr};
     graph.connectStore();
     auto node = sem::parseString(R"(
 Paragraph [[id:subtree-id]]
@@ -980,7 +979,7 @@ Paragraph [[id:subtree-id]]
 
     {
         QSignalSpy store_spy{&store, &OrgStore::boxAdded};
-        QSignalSpy graph_spy{&graph, &OrgGraph::edgeAdded};
+        QSignalSpy graph_spy{&graph, &Graph::edgeAdded};
 
         store.addRoot(node);
 
@@ -994,8 +993,8 @@ Paragraph [[id:subtree-id]]
     }
 
     {
-        QSignalSpy node_update_spy{&graph, &OrgGraph::nodeUpdated};
-        QSignalSpy edge_remove_spy{&graph, &OrgGraph::edgeRemoved};
+        QSignalSpy node_update_spy{&graph, &Graph::nodeUpdated};
+        QSignalSpy edge_remove_spy{&graph, &Graph::edgeRemoved};
 
         {
             OrgBoxId paragraph_box = store.roots.at(0)->at(0)->boxId;

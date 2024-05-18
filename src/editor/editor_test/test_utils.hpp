@@ -65,7 +65,6 @@ inline SPtr<MainWindow> init_window(AppState const& state) {
 }
 
 
-
 inline void add_file(
     AppState&            state,
     QTemporaryDir const& dir,

@@ -76,9 +76,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 i += 1;
                 const auto starti   = i;
                 auto       negative = formatstr[i] == '-';
-                if (negative) {
-                    i += 1;
-                }
+                if (negative) { i += 1; }
                 while (
                     ((i < formatstr.size())
                      && (std::isdigit(formatstr[i])))) {
@@ -98,20 +96,16 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 auto       k        = 0;
                 auto       negative = formatstr[j] == '-';
                 const auto starti   = j;
-                if (negative) {
-                    j += 1;
-                }
+                if (negative) { j += 1; }
                 auto isNumber = 0;
-                while (
-                    ((j < formatstr.size())
-                     && (!(formatstr[j] == '\0' || formatstr[j] == '}')))) {
+                while ((
+                    (j < formatstr.size())
+                    && (!(formatstr[j] == '\0' || formatstr[j] == '}')))) {
                     if (std::isdigit(formatstr[j])) {
                         k = ((k * 10)
                              + value_domain<char>::ord(formatstr[j]))
                           - value_domain<char>::ord('0');
-                        if (isNumber == 0) {
-                            isNumber = 1;
-                        }
+                        if (isNumber == 0) { isNumber = 1; }
                     } else {
                         isNumber = -1;
                     }

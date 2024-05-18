@@ -108,7 +108,7 @@ ColText printModelTree(
 
         QModelIndex currentIndex      = index;
         auto        currentProxyModel = qobject_cast<
-                   QSortFilterProxyModel const*>(index.model());
+            QSortFilterProxyModel const*>(index.model());
         Vec<int> roles = sorted(
             role_names.keys() | rs::to<Vec>(), std::less_equal<int>{});
 

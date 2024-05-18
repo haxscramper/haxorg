@@ -13,7 +13,8 @@ struct finally {
     explicit finally(std::function<void(void)> _action)
         : action(_action) {}
 
-    /// Overloaded constructor to run scope finalizer with some captured value
+    /// Overloaded constructor to run scope finalizer with some captured
+    /// value
     template <typename T>
     static finally init(
         std::function<void(T const&)> _action,
@@ -67,8 +68,8 @@ struct CRTP_this_method {
               << std::endl;
 
 
-/// Check if ~ptr~ falls in ~[start, start + size]~ range. Start and size addition
-/// will use pointer arichmetics to compute the size. 
+/// Check if ~ptr~ falls in ~[start, start + size]~ range. Start and size
+/// addition will use pointer arichmetics to compute the size.
 template <typename T>
 bool is_within_memory_block(
     T const*    ptr,

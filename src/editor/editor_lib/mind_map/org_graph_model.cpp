@@ -12,6 +12,7 @@
 #pragma clang diagnostic error "-Wswitch"
 
 using slk = sem::Link::Kind;
+using namespace org::mind_map;
 
 bool isLinkedDescriptionItem(sem::OrgArg n) {
     return n->is(osk::ListItem)
@@ -35,7 +36,7 @@ bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
         });
 }
 
-OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
+Graph::Edit Graph::getNodeInsertEdits(CR<OrgBoxId> box) const {
     Edit result;
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
@@ -167,7 +168,7 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
     return getUnresolvedEdits(result);
 }
 
-Pair<OrgGraph::Edit, OrgGraph::Edit> OrgGraph::getNodeUpdateEdits(
+Pair<Graph::Edit, Graph::Edit> Graph::getNodeUpdateEdits(
     CR<OrgBoxId> before,
     CR<OrgBoxId> after) const {
     auto const to_remove = getNodeInsertEdits(before);
@@ -182,8 +183,8 @@ Pair<OrgGraph::Edit, OrgGraph::Edit> OrgGraph::getNodeUpdateEdits(
     };
 }
 
-OrgGraph::Edit OrgGraph::getUnresolvedEdits(CR<Edit> edit) const {
-    OrgGraph::Edit result = edit;
+Graph::Edit Graph::getUnresolvedEdits(CR<Edit> edit) const {
+    Graph::Edit result = edit;
     result.unresolved.clear();
 
     for (auto const& it : edit.unresolved) {
@@ -205,11 +206,11 @@ OrgGraph::Edit OrgGraph::getUnresolvedEdits(CR<Edit> edit) const {
     return result;
 }
 
-Vec<OrgGraph::Edit::ResolveLink> OrgGraph::getResolveTarget(
+Vec<Graph::Edit::ResolveLink> Graph::getResolveTarget(
     CR<Edit>           edit,
     CR<UnresolvedLink> it) const {
 
-    Vec<OrgGraph::Edit::ResolveLink> result;
+    Vec<Graph::Edit::ResolveLink> result;
 
     auto add_edge = [&](OrgGraphEdge::Kind kind, CVec<OrgBoxId> target) {
         for (auto const& box : target) {
@@ -264,7 +265,7 @@ Vec<OrgGraph::Edit::ResolveLink> OrgGraph::getResolveTarget(
     return result;
 }
 
-std::string OrgGraph::toGraphviz() {
+std::string Graph::toGraphviz() {
     std::stringstream         os;
     boost::dynamic_properties dp;
 
@@ -272,17 +273,18 @@ std::string OrgGraph::toGraphviz() {
         .property("node_id", get(boost::vertex_index, state.g))
         .property(
             "splines",
-            boost::make_constant_property<Graph*>(std::string("polyline")))
+            boost::make_constant_property<BoostBase*>(
+                std::string("polyline")))
         .property(
             "shape",
-            boost::make_constant_property<Graph::vertex_descriptor>(
+            boost::make_constant_property<BoostBase::vertex_descriptor>(
                 std::string("rect")))
         .property(
             "description",
             make_transform_value_property_map<std::string>(
                 [&](OrgGraphEdge const& prop) -> std::string {
                     return prop.description ? ExporterUltraplain::toStr(
-                                                  prop.description.value())
+                               prop.description.value())
                                             : "";
                 },
                 get(boost::edge_bundle, state.g)))
@@ -304,7 +306,7 @@ std::string OrgGraph::toGraphviz() {
     return os.str();
 }
 
-QString OrgGraph::getDisplayText(CR<QModelIndex> index) const {
+QString Graph::getDisplayText(CR<QModelIndex> index) const {
     sem::SemId<sem::Org> display;
     if (isNode(index)) {
         display = store->node(getBox(index.row()));
@@ -340,7 +342,7 @@ QString OrgGraph::getDisplayText(CR<QModelIndex> index) const {
     }
 }
 
-QVariant OrgGraph::data(const QModelIndex& index, int role) const {
+QVariant Graph::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || rowCount() <= index.row()) {
         return QVariant();
     }

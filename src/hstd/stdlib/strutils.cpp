@@ -1038,9 +1038,7 @@ Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
 
 Vec<Str> split(CR<Str> str, char ch) {
     Vec<Str> res;
-    for (const auto& it : str.split(ch)) {
-        res.push_back(it);
-    }
+    for (const auto& it : str.split(ch)) { res.push_back(it); }
     return res;
 }
 
@@ -1063,9 +1061,7 @@ Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
             curr++;
         }
     }
-    if (prev < curr) {
-        result.push_back(str.substr(prev, curr - prev));
-    }
+    if (prev < curr) { result.push_back(str.substr(prev, curr - prev)); }
     return result;
 }
 
@@ -1153,18 +1149,14 @@ Str normalize(CR<Str> in) {
 Str repeat(CR<Str> str, int count) {
     Str res;
     res.reserve(str.size() * count);
-    for (int i = 0; i < count; ++i) {
-        res += str;
-    }
+    for (int i = 0; i < count; ++i) { res += str; }
     return res;
 }
 
 Str left_aligned(CR<Str> str, int n, char c) {
     auto s         = str;
     int  rune_size = rune_length(str);
-    if (rune_size < n) {
-        s.append(Str(c).repeated(n - rune_size));
-    }
+    if (rune_size < n) { s.append(Str(c).repeated(n - rune_size)); }
     return s;
 }
 
@@ -1172,9 +1164,7 @@ Str right_aligned(CR<Str> str, int n, char c) {
     Str res;
     int rune_size = rune_length(str);
 
-    if (rune_size < n) {
-        res.append(Str(c).repeated(n - rune_size));
-    }
+    if (rune_size < n) { res.append(Str(c).repeated(n - rune_size)); }
 
     res.append(str);
     return res;
@@ -1183,9 +1173,7 @@ Str right_aligned(CR<Str> str, int n, char c) {
 Str escape_for_write(const Str& str, bool quote) {
     Str res;
     res.reserve(str.size());
-    if (quote) {
-        res += "\"";
-    }
+    if (quote) { res += "\""; }
     for (const auto& c : str) {
         if (c == '\t') {
             res += "\\t";
@@ -1197,9 +1185,7 @@ Str escape_for_write(const Str& str, bool quote) {
             res += c;
         }
     }
-    if (quote) {
-        res += "\"";
-    }
+    if (quote) { res += "\""; }
     return res;
 }
 

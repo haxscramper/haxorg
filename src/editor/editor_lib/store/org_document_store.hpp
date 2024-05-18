@@ -21,7 +21,7 @@ struct OrgBox {
 struct OrgBoxId {
     int      value = 0;
     OrgBoxId next() const { return OrgBoxId{value + 1}; }
-    OrgBoxId(int value = 0) : value(value) {};
+    OrgBoxId(int value = 0) : value(value){};
 
     bool operator==(OrgBoxId const& other) const {
         return this->value == other.value;

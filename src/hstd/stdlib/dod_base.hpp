@@ -150,9 +150,7 @@ struct [[nodiscard]] Id {
     std::string format(std::string name = "Id", bool withMask = true)
         const {
         std::string result;
-        if (name.size() != 0) {
-            result += name + "(";
-        }
+        if (name.size() != 0) { result += name + "("; }
 
         if (withMask) {
             if (0 < mask_size) {
@@ -166,9 +164,7 @@ struct [[nodiscard]] Id {
             result += std::to_string(getIndex());
         }
 
-        if (name.size() != 0) {
-            result += ")";
-        }
+        if (name.size() != 0) { result += ")"; }
 
         return result;
     }
@@ -385,17 +381,13 @@ struct Store {
 
     /// \brief Return generator for stored values
     auto items() const -> generator<CP<T>> {
-        for (const auto& it : content) {
-            co_yield &it;
-        }
+        for (const auto& it : content) { co_yield &it; }
     }
 
     /// \brief Iterate over mutable pointers to the items stored in the
     /// container
     auto items() -> generator<Ptr<T>> {
-        for (auto& it : content) {
-            co_yield &it;
-        }
+        for (auto& it : content) { co_yield &it; }
     }
 
     /// \brief Insert value into the store at position, either appending to

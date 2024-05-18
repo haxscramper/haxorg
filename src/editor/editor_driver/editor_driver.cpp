@@ -174,7 +174,7 @@ ModelDumpIr dumpModelTree(
 
             QModelIndex currentIndex      = index;
             auto        currentProxyModel = qobject_cast<
-                       QSortFilterProxyModel const*>(model);
+                QSortFilterProxyModel const*>(model);
 
             while (currentProxyModel && currentIndex.model() != nullptr) {
                 Q_ASSERT(currentProxyModel->sourceModel() != nullptr);
@@ -284,7 +284,7 @@ int main(int argc, char** argv) {
             return to_json_eval(*box);
         } else if (
             auto pair = qvariant_opt<
-                Pair<OrgGraph::VDesc, OrgGraph::VDesc>>(val)) {
+                Pair<org::mind_map::VDesc, org::mind_map::VDesc>>(val)) {
             return to_json_eval(*pair);
         } else {
             return qdebug_to_str(val);
@@ -324,15 +324,16 @@ int main(int argc, char** argv) {
             window->raise();
             window->activateWindow();
 
-            auto graph = std::make_shared<OrgGraph>(&store, nullptr);
+            auto graph = std::make_shared<org::mind_map::Graph>(
+                &store, nullptr);
             graph->addFullStore();
 
             OrgGraphView* view;
 
-            SPtr<OrgGraphLayoutProxy>
-                proxy = std::make_shared<OrgGraphLayoutProxy>(
+            SPtr<org::mind_map::GraphLayoutProxy>
+                proxy = std::make_shared<org::mind_map::GraphLayoutProxy>(
                     &store,
-                    OrgGraphLayoutProxy::LayoutConfig{
+                    org::mind_map::GraphLayoutProxy::LayoutConfig{
                         .getNodeSize =
                             [&](QModelIndex const& index) {
                                 return view->getNodeSize(index);

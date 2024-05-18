@@ -194,9 +194,7 @@ void fill_margin_elements(
             if (margin && c.is_line) {
                 margin_ptr = std::make_pair(margin.value(), is_start);
             } else if (!is_start && (!is_end || c.is_line)) {
-                if (!vbar && !is_parent) {
-                    vbar = label;
-                }
+                if (!vbar && !is_parent) { vbar = label; }
             } else if (c.report_row.has_value()) {
                 auto report_row_value = c.report_row.value();
                 int  label_row        = 0;
@@ -215,9 +213,7 @@ void fill_margin_elements(
                             vbar = std::nullopt;
                         }
 
-                        if (is_start) {
-                            continue;
-                        }
+                        if (is_start) { continue; }
                     }
 
                     if (report_row_value.second) {
@@ -226,9 +222,7 @@ void fill_margin_elements(
                             corner = std::make_pair(label, is_start);
                         }
                     } else if (!is_start) {
-                        if (!vbar && !is_parent) {
-                            vbar = label;
-                        }
+                        if (!vbar && !is_parent) { vbar = label; }
                     }
                 } else {
                     if (!vbar && !is_parent
@@ -360,9 +354,7 @@ void write_margin(MarginContext const& c) {
                 c, col, corner, vbar, hbar, margin_ptr, multi_label);
 
             c.w << ab.first;
-            if (!c.config.compact) {
-                c.w << ab.second;
-            }
+            if (!c.config.compact) { c.w << ab.second; }
         }
     }
 }
@@ -397,17 +389,11 @@ Opt<CRw<Label>> get_highlight(
     std::optional<LineLabel> margin_label) {
     Vec<CRw<Label>> candidates;
 
-    if (margin_label) {
-        candidates.push_back(margin_label->label);
-    }
+    if (margin_label) { candidates.push_back(margin_label->label); }
 
-    for (const auto& l : multi_labels) {
-        candidates.push_back(l);
-    }
+    for (const auto& l : multi_labels) { candidates.push_back(l); }
 
-    for (const auto& l : line_labels) {
-        candidates.push_back(l.label);
-    }
+    for (const auto& l : line_labels) { candidates.push_back(l.label); }
 
     auto it = std::min_element(
         candidates.begin(),
@@ -436,9 +422,7 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
         }
     }
 
-    if (candidates.empty()) {
-        return std::nullopt;
-    }
+    if (candidates.empty()) { return std::nullopt; }
 
     return *std::min_element(
         candidates.begin(),
@@ -464,9 +448,7 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
                       : 1;
 
         Opt<LineLabel> underline = get_underline(c, col);
-        if (row != 0) {
-            underline.reset();
-        }
+        if (row != 0) { underline.reset(); }
 
         std::array<ColRune, 2> ct_array;
         if (Opt<LineLabel> vbar = get_vbar(
@@ -507,9 +489,7 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
             c.w << ((i == 0) ? ct_array[0] : ct_array[1]);
         }
 
-        if (chars != c.line.chars.end()) {
-            ++chars;
-        }
+        if (chars != c.line.chars.end()) { ++chars; }
     }
     c.w << "\n";
 }
@@ -682,16 +662,10 @@ void write_lines(
             };
         }
 
-        if (width > 0) {
-            c.w << ct_array[0];
-        }
-        for (int i = 1; i < width; ++i) {
-            c.w << ct_array[1];
-        }
+        if (width > 0) { c.w << ct_array[0]; }
+        for (int i = 1; i < width; ++i) { c.w << ct_array[1]; }
 
-        if (chars != line.chars.end()) {
-            ++chars;
-        }
+        if (chars != line.chars.end()) { ++chars; }
     }
 }
 }; // namespace
@@ -701,9 +675,7 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
     for (const auto& label : labels) {
         auto src_display            = cache->display(label.span->source());
         std::shared_ptr<Source> src = cache->fetch(label.span->source());
-        if (!src) {
-            continue;
-        }
+        if (!src) { continue; }
 
         assert(label.span->start() <= label.span->end());
 
@@ -849,9 +821,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
         bool is_ellipsis = false;
         for (int idx = line_range.first; idx <= line_range.last; ++idx) {
             auto line_opt = src->line(idx);
-            if (!line_opt) {
-                continue;
-            }
+            if (!line_opt) { continue; }
 
 
             Line                     line         = line_opt.value();
@@ -883,9 +853,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
             bool do_skip = sort_line_labels(
                 base, is_ellipsis, line_labels);
 
-            if (do_skip) {
-                continue;
-            }
+            if (do_skip) { continue; }
 
             // Determine label bounds so we know where to put error
             // messages
@@ -1026,9 +994,7 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
             [](const Line& line, int offset) {
                 return line.offset < offset;
             });
-        if (it != lines.begin()) {
-            --it;
-        }
+        if (it != lines.begin()) { --it; }
         int         idx  = std::distance(lines.begin(), it);
         const Line& line = lines[idx];
         CHECK(offset >= line.offset);

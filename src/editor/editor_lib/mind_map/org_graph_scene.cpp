@@ -1,6 +1,8 @@
 #include <editor/editor_lib/mind_map/org_graph_scene.hpp>
 #include <editor/editor_lib/document/org_document_render.hpp>
 
+using namespace org::mind_map;
+
 namespace {
 SPtr<QTextDocument> toDocument(QString const& text) {
     auto        doc = std::make_shared<QTextDocument>();
@@ -21,7 +23,7 @@ struct OrgBackgroundGridItem : public QGraphicsItem {
     QRectF boundingRect() const override {
         return qindex_get<QRect>(
                    source->index(0, 0),
-                   OrgGraphLayoutProxy::Role::LayoutBBoxRole)
+                   GraphLayoutProxy::Role::LayoutBBoxRole)
             .marginsAdded(QMargins(20, 20, 20, 20));
         ;
     }
@@ -93,18 +95,18 @@ struct OrgSubgraphItem : public OrgGraphElementItem {
         updateStateFromIndex();
     }
 
-    Opt<OrgGraphLayoutProxy::Subgraph> path;
+    Opt<GraphLayoutProxy::Subgraph> path;
 
     void updateStateFromIndex() {
-        path = qindex_get<OrgGraphLayoutProxy::Subgraph>(
-            index, OrgGraphLayoutProxy::Role::Subgraph);
+        path = qindex_get<GraphLayoutProxy::Subgraph>(
+            index, GraphLayoutProxy::Role::Subgraph);
     }
 
-    OrgGraphLayoutProxy::Subgraph getSubgraph() const {
+    GraphLayoutProxy::Subgraph getSubgraph() const {
         if (path) {
             return path.value();
         } else {
-            return OrgGraphLayoutProxy::Subgraph{};
+            return GraphLayoutProxy::Subgraph{};
         }
     }
 
@@ -361,8 +363,8 @@ OrgGraphView::OrgGraphView(
 }
 
 QSize OrgGraphView::getNodeSize(const QModelIndex& index) {
-    OrgGraphIndex gi{index};
-    QString       text = gi.getDisplay();
+    GraphIndex gi{index};
+    QString    text = gi.getDisplay();
     if (text.isEmpty()) {
         return QSize(20, 20);
     } else {
@@ -396,7 +398,7 @@ void verifyModelGraph(QAbstractItemModel const* model) {
     }
 
     if (!rs::any_of(models, [](QAbstractItemModel const* m) {
-            return qobject_cast<OrgGraphLayoutProxy const*>(m) != nullptr;
+            return qobject_cast<GraphLayoutProxy const*>(m) != nullptr;
         })) {
         Q_ASSERT_X(
             false,
@@ -412,7 +414,7 @@ void OrgGraphView::addItem(const QModelIndex& index) {
 
     // if (index.row() == 24) { __builtin_debugtrap(); }
 
-    switch (OrgGraphIndex{index}.getKind()) {
+    switch (GraphIndex{index}.getKind()) {
         case OrgGraphElementKind::Node: {
             OrgNodeItem* polyline = new OrgNodeItem(store, index, nullptr);
             scene->addItem(polyline);
@@ -463,7 +465,7 @@ void OrgGraphView::validateItemRows() {
         auto        item  = dynamic_cast<OrgGraphElementItem*>(
             modelItems.at(row).get());
 
-        switch (OrgGraphIndex{index}.getKind()) {
+        switch (GraphIndex{index}.getKind()) {
             case OrgGraphElementKind::Node: {
                 auto item = dynamic_cast<OrgNodeItem*>(
                     modelItems.at(row).get());

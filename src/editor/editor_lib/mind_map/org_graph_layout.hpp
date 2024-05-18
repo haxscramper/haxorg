@@ -167,7 +167,7 @@ struct GraphConstraint {
 
     Data data;
 
-    GraphConstraint(CR<Data> data) : data(data) {};
+    GraphConstraint(CR<Data> data) : data(data){};
 };
 
 /// \brief Main store for the graph layout intermediate representation.

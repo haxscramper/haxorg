@@ -1,19 +1,18 @@
 #include <editor/editor_lib/mind_map/org_graph_model.hpp>
 
+using namespace org::mind_map;
 
-
-OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
-    const {
+GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
     GraphLayoutIR ir;
     auto          src = sourceModel();
-    using V           = OrgGraph::VDesc;
+    using V           = VDesc;
 
     UnorderedMap<V, int> nodeToRect;
 
-           // Build IR content for edges and nodes
+    // Build IR content for edges and nodes
     for (int row = 0; row < src->rowCount(); ++row) {
-        QModelIndex   gi = src->index(row, 0);
-        OrgGraphIndex index{gi};
+        QModelIndex gi = src->index(row, 0);
+        GraphIndex  index{gi};
         if (index.isNode()) {
             nodeToRect[index.getVDesc()] = ir.rectangles.size();
             auto size                    = config.getNodeSize(gi);
@@ -33,10 +32,10 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
     if (config.clusterSubtrees) {
         Func<Opt<GraphLayoutIR::Subgraph>(QModelIndex const&)> rec_cluster;
 
-               // Recursively iterate over sub-nodes and build IR clusters
+        // Recursively iterate over sub-nodes and build IR clusters
         rec_cluster =
             [&](QModelIndex const& index) -> Opt<GraphLayoutIR::Subgraph> {
-            OrgGraphIndex        cluster_index{index};
+            GraphIndex           cluster_index{index};
             sem::SemId<sem::Org> node = store->node(
                 cluster_index.getBox());
 
@@ -44,14 +43,14 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
                 GraphLayoutIR::Subgraph          result;
                 Func<void(QModelIndex const& i)> rec_nodes;
 
-                       // Recurse over subtree elements -- lists and list items do
-                       // not form own clusters and are not visible in the tree,
-                       // but they contain paragraph elements internally, which
-                       // should be visible.
+                // Recurse over subtree elements -- lists and list items do
+                // not form own clusters and are not visible in the tree,
+                // but they contain paragraph elements internally, which
+                // should be visible.
                 rec_nodes = [&](QModelIndex const& i) {
-                    OrgGraphIndex sub{i};
-                    auto          sub_node = store->node(sub.getBox());
-                    auto          sub_desc = sub.getVDesc();
+                    GraphIndex sub{i};
+                    auto       sub_node = store->node(sub.getBox());
+                    auto       sub_desc = sub.getVDesc();
 
                     if (sub_node->is(osk::Subtree)) {
                         if (auto sub_cluster = rec_cluster(sub)) {
@@ -118,8 +117,8 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         };
 
         for (int row = 0; row < src->rowCount(); ++row) {
-            QModelIndex   i = src->index(row, 0);
-            OrgGraphIndex index{i};
+            QModelIndex i = src->index(row, 0);
+            GraphIndex  index{i};
             if (index.isNode()) {
                 if (auto node = store->node(index.getBox());
                     node->is(osk::Subtree)
@@ -151,13 +150,13 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
             + conv_lyt.subgraphPaths.size(),
         ElementLayout{std::monostate{}});
 
-           /// Fill in the node+edge indices from the source model.
+    /// Fill in the node+edge indices from the source model.
     for (int row = 0; row < sourceModel()->rowCount(); ++row) {
-        QModelIndex   index = src->index(row, 0);
-        OrgGraphIndex gi{index};
+        QModelIndex index = src->index(row, 0);
+        GraphIndex  gi{index};
         if (gi.isNode()) {
             res.data.at(row) = ElementLayout{
-                                             .data = conv_lyt.fixed.at(nodeToRect.at(gi.getVDesc()))};
+                .data = conv_lyt.fixed.at(nodeToRect.at(gi.getVDesc()))};
         } else {
             auto [source, target] = gi.getSourceTarget();
             res.data.at(row)      = ElementLayout{conv_lyt.lines.at({
@@ -167,24 +166,23 @@ OrgGraphLayoutProxy::FullLayout OrgGraphLayoutProxy::getFullLayout()
         }
     }
 
-           // Top off the [node..., edge...] list with the clusters provided by
-           // the layout content.
+    // Top off the [node..., edge...] list with the clusters provided by
+    // the layout content.
     for (auto const& it : enumerator(conv_lyt.subgraphPaths)) {
         int row = sourceModel()->rowCount() + it.index();
         Q_ASSERT(
             std::holds_alternative<std::monostate>(res.data.at(row).data));
         res.data.at(row) = ElementLayout{
-                                         .data = Subgraph{
-                                             .bbox = conv_lyt.getSubgraph(it.value()).bbox,
-                                         }};
+            .data = Subgraph{
+                .bbox = conv_lyt.getSubgraph(it.value()).bbox,
+            }};
     }
 
 
     return res;
 }
 
-QVariant OrgGraphLayoutProxy::data(const QModelIndex& index, int role)
-    const {
+QVariant GraphLayoutProxy::data(const QModelIndex& index, int role) const {
     auto const& e = getElement(index);
 
     if (role == (int)OrgGraphRoles::ElementKind) {

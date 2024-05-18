@@ -5,7 +5,6 @@
 #include <QLoggingCategory>
 
 
-
 void customMessageHandler(
     QtMsgType                 type,
     const QMessageLogContext& context,

@@ -8,8 +8,8 @@ void MainWindow::loadFiles() {
             store.get());
         model->loadFile(file.path.toBase());
         models.emplace_back(model);
-        qInfo(editor_files) << std::format(
-            "Loded initial document from {}", file.path);
+        qInfo(editor_files)
+            << std::format("Loded initial document from {}", file.path);
     }
 
     for (auto const& [idx, model] : enumerate(models)) {

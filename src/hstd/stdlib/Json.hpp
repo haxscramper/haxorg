@@ -160,7 +160,7 @@ inline void to_json(json& res, CR<Opt<T>> str) {
         res = json();
     }
 }
-}
+} // namespace std
 
 template <typename T>
 inline void to_json(json& res, std::unique_ptr<T> const& value) {
