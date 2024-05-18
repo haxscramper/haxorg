@@ -135,7 +135,9 @@ struct Graph : public QAbstractListModel {
     }
 
     Graph(OrgStore* store, QObject* parent)
-        : QAbstractListModel(parent), store(store) {}
+        : QAbstractListModel(parent), store(store) {
+        state.store = store;
+    }
 
     OrgStore* store;
 
@@ -332,6 +334,7 @@ struct Graph : public QAbstractListModel {
     };
 
     struct State {
+        OrgStore*                     store;
         BoostBase                     g;
         UnorderedMap<OrgBoxId, VDesc> boxToVertex;
         /// List of edges and nodes for a graph to maintain stable flat

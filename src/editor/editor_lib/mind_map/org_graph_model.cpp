@@ -175,11 +175,6 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     }
 
     for (auto const& it : unresolved) {
-        _qfmt(
-            "box:{} desc:{} value:{}",
-            boxToVertex.at(it),
-            it,
-            g[boxToVertex.at(it)]);
         for (auto const& link : g[boxToVertex.at(it)].unresolved) {
             Vec<ResolvedLink> resolved_edit = getResolveTarget(it, link);
             if (!resolved_edit.empty()) {
@@ -208,8 +203,6 @@ Vec<Graph::ResolvedLink> Graph::State::getResolveTarget(
         }
     };
 
-    _qfmt("subtreeIds:{} footnoteTargets:{}", subtreeIds, footnoteTargets);
-
     switch (it.link->getLinkKind()) {
         case slk::Id: {
             if (auto target = subtreeIds.get(it.link->getId().text)) {
@@ -230,7 +223,6 @@ Vec<Graph::ResolvedLink> Graph::State::getResolveTarget(
         }
     }
 
-    _qfmt("result:{}", result);
     return result;
 }
 

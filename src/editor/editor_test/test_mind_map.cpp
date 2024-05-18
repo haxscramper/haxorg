@@ -676,6 +676,8 @@ void TestMindMap::testFullMindMapGraph() {
                 .link.description.value()),
         "other");
 
+    writeFile("/tmp/testFullMindMapGraph.dot", graph->toGraphviz());
+
     QCOMPARE_EQ(graph->in_edges(r->id({0, 2})).size(), 2);
     {
         auto desc = graph->out_edge0(r->id({0, 1}), r->id({0, 0}))
