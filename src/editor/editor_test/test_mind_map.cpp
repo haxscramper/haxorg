@@ -416,6 +416,7 @@ void TestMindMap::testGraphvizIrClusters() {
 void TestMindMap::testGraphConstruction() {
     OrgStore store;
     OrgGraph graph{&store, nullptr};
+    graph.connectStore();
     store.addRoot(R"(
 * Tree1
 ** Tree2
@@ -944,7 +945,8 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 void TestMindMap::testMindMapNodeAdd1() {
     OrgStore store;
     OrgGraph graph{&store, nullptr};
-    auto     node = sem::parseString(R"(
+    graph.connectStore();
+    auto node = sem::parseString(R"(
 * Subtree
 * Second subtree
 )");
@@ -966,7 +968,8 @@ void TestMindMap::testMindMapNodeAdd1() {
 void TestMindMap::testMindMapSignals1() {
     OrgStore store;
     OrgGraph graph{&store, nullptr};
-    auto     node = sem::parseString(R"(
+    graph.connectStore();
+    auto node = sem::parseString(R"(
 Paragraph [[id:subtree-id]]
 
 * Subtree

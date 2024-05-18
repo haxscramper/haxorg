@@ -169,7 +169,18 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
 
 Pair<OrgGraph::Edit, OrgGraph::Edit> OrgGraph::getNodeUpdateEdits(
     CR<OrgBoxId> before,
-    CR<OrgBoxId> after) const {}
+    CR<OrgBoxId> after) const {
+    auto const to_remove = getNodeInsertEdits(before);
+    auto const to_add    = getNodeInsertEdits(after);
+
+
+    return {
+        // delete
+        Edit{},
+        // add
+        Edit{},
+    };
+}
 
 OrgGraph::Edit OrgGraph::getUnresolvedEdits(CR<Edit> edit) const {
     OrgGraph::Edit result = edit;
@@ -238,7 +249,7 @@ Vec<OrgGraph::Edit::ResolveLink> OrgGraph::getResolveTarget(
             }
 
             for (auto const& target : edit.footnotes) {
-                if (target.name == it.link->getId().text) {
+                if (target.name == it.link->getFootnote().target) {
                     add_edge(OrgGraphEdge::Kind::Footnote, {target.box});
                 }
             }

@@ -392,14 +392,16 @@ struct OrgGraph : public QAbstractListModel {
 
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
-        auto [delete_edits, add_edits] = getNodeUpdateEdits(
-            before, replace);
-        beginInsertRows(QModelIndex(), rowCount(), rowCount());
-        auto upd1 = state.delMutation(delete_edits);
-        auto upd2 = state.addMutation(add_edits);
-        endInsertRows();
-        emitChanges(upd1);
-        emitChanges(upd2);
+        deleteBox(before);
+        addBox(replace);
+        // auto [delete_edits, add_edits] = getNodeUpdateEdits(
+        //     before, replace);
+        // beginInsertRows(QModelIndex(), rowCount(), rowCount());
+        // auto upd1 = state.delMutation(delete_edits);
+        // auto upd2 = state.addMutation(add_edits);
+        // endInsertRows();
+        // emitChanges(upd1);
+        // emitChanges(upd2);
     }
 
     void addBox(CR<OrgBoxId> box) {
