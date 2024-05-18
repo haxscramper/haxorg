@@ -149,6 +149,11 @@ struct OrgStore : public QObject {
 
     int rootCount() const { return roots.size(); }
 
+    /// \brief Get box from the root 0. Mainly for testing purposes.
+    OrgBoxId getBox0(CVec<int> path) {
+        return getRoot(0)->at(path)->boxId;
+    }
+
     OrgTreeNode* getRoot(int idx) { return roots.at(idx).get(); }
 
     OrgTreeNode* addRoot(sem::OrgArg node) {

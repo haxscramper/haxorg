@@ -428,36 +428,80 @@ void TestMindMap::testGraphConstruction() {
 Pair<SPtr<OrgStore>, SPtr<OrgGraph>> build_graph(CR<Str> text) {
     auto store = std::make_shared<OrgStore>();
     auto graph = std::make_shared<OrgGraph>(store.get(), nullptr);
+    graph->connectStore();
     store->addRoot(text);
     return std::make_pair(store, graph);
 }
 
 void TestMindMap::testGraphConstructionSubtreeId1() {
-    auto [store, graph] = build_graph(R"(
+    Str text{R"(
 Paragraph [[id:subtree-id]]
 
 * Subtree
   :properties:
   :id: subtree-id
   :end:
-)"_ss);
+)"_ss};
+
+    {
+        OrgStore store;
+        OrgGraph graph{&store, nullptr};
+        store.addRoot(text);
+
+        // First time paragraph is added to the graph it has an unresolved
+        // outgoing link
+        auto paragraph_edits = graph.getNodeInsertEdits(
+            store.getBox0({0}));
+        qDebug().noquote() << fmt1(paragraph_edits);
+        QCOMPARE_EQ(paragraph_edits.unresolved.size(), 1);
+        QCOMPARE_EQ(paragraph_edits.vertices.size(), 1);
+
+        // The tree has no links, but has a single subtree ID.
+        auto subtree_edits1 = graph.getNodeInsertEdits(store.getBox0({1}));
+
+        QCOMPARE_EQ(subtree_edits1.unresolved.size(), 0);
+        QCOMPARE_EQ(subtree_edits1.vertices.size(), 1);
+        QCOMPARE_EQ(subtree_edits1.subtrees.size(), 1);
+
+        // Integrating first paragraph into the graph structure pushes the
+        // link into part of the mutable state
+        graph.addBox(store.getBox0({0}));
+        QCOMPARE_EQ(graph.numNodes(), 1);
+        QCOMPARE_EQ(graph.numEdges(), 0);
+        QCOMPARE_EQ(graph.state.unresolved.size(), 1);
+
+        // Adding the tree now will correctly resolve the link targets
+        auto subtree_edits2 = graph.getNodeInsertEdits(store.getBox0({1}));
+        QCOMPARE_EQ(subtree_edits2.unresolved.size(), 0);
+        QCOMPARE_EQ(subtree_edits2.resolved.size(), 1);
+
+        // Integrating the second tree cleans up the unresolved mutable
+        // state
+        graph.addBox(store.getBox0({1}));
+        QCOMPARE_EQ(graph.state.unresolved.size(), 0);
+    }
 
 
-    auto edits = graph->getNodeInsertEdits(
-        store->getRoot(0)->at(0)->boxId);
-    qDebug().noquote() << fmt1(edits);
+    {
+        auto [store, graph] = build_graph(text);
 
-    auto r = store->getRoot(0);
-    QCOMPARE_EQ(r->subnodes.size(), 2);
-    QCOMPARE_EQ(r->at(0)->subnodes.size(), 0);
-    QCOMPARE_EQ(r->at(1)->subnodes.size(), 0);
+        auto edits = graph->getNodeInsertEdits(
+            store->getRoot(0)->at(0)->boxId);
 
-    QCOMPARE_EQ(graph->numNodes(), 3);
-    QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
-    QCOMPARE_EQ(
-        graph->out_edge0(r->id(0), r->id(1)).kind,
-        OrgGraphEdge::Kind::SubtreeId);
-    QVERIFY(graph->state.unresolved.empty());
+
+        auto r = store->getRoot(0);
+        QCOMPARE_EQ(r->subnodes.size(), 2);
+        QCOMPARE_EQ(r->at(0)->subnodes.size(), 0);
+        QCOMPARE_EQ(r->at(1)->subnodes.size(), 0);
+
+        QCOMPARE_EQ(graph->numNodes(), 3);
+        QCOMPARE_EQ(graph->numEdges(), 1);
+        QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
+        QCOMPARE_EQ(
+            graph->out_edge0(r->id(0), r->id(1)).kind,
+            OrgGraphEdge::Kind::SubtreeId);
+        QVERIFY(graph->state.unresolved.empty());
+    }
 }
 
 void TestMindMap::testGraphConstructionFootnoteId() {

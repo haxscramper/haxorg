@@ -65,6 +65,7 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
     }
 
     auto register_used_links = [&](sem::OrgArg arg) {
+        Q_ASSERT(!arg.isNil());
         // Unconditionally register all links as unresolved -- some of
         // them will be converted to edges later on.
         if (arg->is(osk::Link)) {
@@ -104,6 +105,7 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
                                                  .value();
                         }
 
+                        Q_ASSERT(!link.isNil());
                         result.unresolved.push_back(UnresolvedLink{
                             .origin      = parent_subtree,
                             .link        = link,
@@ -161,73 +163,91 @@ OrgGraph::Edit OrgGraph::getNodeInsertEdits(CR<OrgBoxId> box) const {
 
     result.vertices.push_back(vert);
 
-    return getUnresolvedEdits(box, result);
+
+    return getUnresolvedEdits(result);
 }
 
 Pair<OrgGraph::Edit, OrgGraph::Edit> OrgGraph::getNodeUpdateEdits(
     CR<OrgBoxId> before,
     CR<OrgBoxId> after) const {}
 
-OrgGraph::Edit OrgGraph::getUnresolvedEdits(
-    OrgBoxId unresolved_source,
-    CR<Edit> edit) const {
+OrgGraph::Edit OrgGraph::getUnresolvedEdits(CR<Edit> edit) const {
     OrgGraph::Edit result = edit;
     result.unresolved.clear();
-    auto add_edge = [&](CR<OrgGraphEdge>   spec,
-                        CVec<OrgBoxId>     target,
-                        CR<UnresolvedLink> original) {
+
+    for (auto const& it : edit.unresolved) {
+        Vec<Edit::ResolveLink> resolved_edit = getResolveTarget(edit, it);
+        if (resolved_edit.empty()) {
+            result.unresolved.push_back(it);
+        } else {
+            result.resolved.append(resolved_edit);
+        }
+    }
+
+    for (auto const& it : this->state.unresolved) {
+        Vec<Edit::ResolveLink> resolved_edit = getResolveTarget(edit, it);
+        if (!resolved_edit.empty()) {
+            result.resolved.append(resolved_edit);
+        }
+    }
+
+    return result;
+}
+
+Vec<OrgGraph::Edit::ResolveLink> OrgGraph::getResolveTarget(
+    CR<Edit>           edit,
+    CR<UnresolvedLink> it) const {
+
+    Vec<OrgGraph::Edit::ResolveLink> result;
+
+    auto add_edge = [&](OrgGraphEdge::Kind kind, CVec<OrgBoxId> target) {
         for (auto const& box : target) {
-            result.resolved.push_back({
-                .source = getBoxDesc(unresolved_source),
-                .target = getBoxDesc(box),
-                .spec   = spec,
-            });
+            Q_ASSERT(!it.link.isNil());
+            result.push_back(Edit::ResolveLink{
+                .source   = it.origin,
+                .target   = box,
+                .original = it,
+                .spec     = OrgGraphEdge{
+                        .link        = it.link,
+                        .description = it.description,
+                        .kind        = kind,
+                }});
         }
     };
 
-    for (auto const& it : enumerator(edit.unresolved)) {
-        bool        found_match = false;
-        auto const& link        = it.value().link;
+    switch (it.link->getLinkKind()) {
+        case slk::Id: {
+            if (auto target = state.subtreeIds.get(
+                    it.link->getId().text)) {
+                add_edge(OrgGraphEdge::Kind::SubtreeId, *target);
+            }
 
-
-        switch (link->getLinkKind()) {
-            case slk::Id: {
-                if (auto target = state.subtreeIds.get(
-                        link->getId().text)) {
-                    found_match = true;
-                    add_edge(
-                        OrgGraphEdge{
-                            .kind        = OrgGraphEdge::Kind::SubtreeId,
-                            .description = it.value().description,
-                            .link        = link,
-                        },
-                        *target,
-                        it.value());
+            for (auto const& target : edit.subtrees) {
+                if (target.name == it.link->getId().text) {
+                    add_edge(OrgGraphEdge::Kind::SubtreeId, {target.box});
                 }
-                break;
             }
 
-            case slk::Footnote: {
-                if (auto target = state.footnoteTargets.get(
-                        link->getFootnote().target)) {
-                    found_match = true;
-                    add_edge(
-                        OrgGraphEdge{
-                            .kind        = OrgGraphEdge::Kind::Footnote,
-                            .description = it.value().description,
-                            .link        = link,
-                        },
-                        *target,
-                        it.value());
-                }
-                break;
-            }
-
-            default: {
-            }
+            break;
         }
 
-        if (!found_match) { result.unresolved.push_back(it.value()); }
+        case slk::Footnote: {
+            if (auto target = state.footnoteTargets.get(
+                    it.link->getFootnote().target)) {
+                add_edge(OrgGraphEdge::Kind::Footnote, *target);
+            }
+
+            for (auto const& target : edit.footnotes) {
+                if (target.name == it.link->getId().text) {
+                    add_edge(OrgGraphEdge::Kind::Footnote, {target.box});
+                }
+            }
+
+            break;
+        }
+
+        default: {
+        }
     }
 
     return result;

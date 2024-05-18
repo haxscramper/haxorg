@@ -91,8 +91,7 @@ struct OrgGraph : public QAbstractListModel {
     using VDesc       = GraphTraits::vertex_descriptor;
     using EDesc       = GraphTraits::edge_descriptor;
 
-    OrgGraph(OrgStore* store, QObject* parent)
-        : QAbstractListModel(parent), store(store) {
+    void connectStore() {
         QObject::connect(
             store, &OrgStore::boxReplaced, this, &OrgGraph::replaceBox);
         QObject::connect(
@@ -100,6 +99,9 @@ struct OrgGraph : public QAbstractListModel {
         QObject::connect(
             store, &OrgStore::boxAdded, this, &OrgGraph::addBox);
     }
+
+    OrgGraph(OrgStore* store, QObject* parent)
+        : QAbstractListModel(parent), store(store) {}
 
     OrgStore* store;
 
@@ -297,8 +299,8 @@ struct OrgGraph : public QAbstractListModel {
         };
 
         struct ResolveLink {
-            VDesc          source;
-            VDesc          target;
+            OrgBoxId       source;
+            OrgBoxId       target;
             OrgGraphEdge   spec;
             UnresolvedLink original;
             DESC_FIELDS(ResolveLink, (source, target, spec, original));
@@ -343,7 +345,7 @@ struct OrgGraph : public QAbstractListModel {
 
         /// Map each box to a list of unresolved outgoing links. This field
         /// is mutated as boxes are added or removed from the tree.
-        UnorderedMap<OrgBoxId, Vec<UnresolvedLink>> unresolved;
+        Vec<UnresolvedLink> unresolved;
 
         GraphStructureUpdate addMutation(Edit const& edit);
         GraphStructureUpdate delMutation(Edit const& edit);
@@ -375,8 +377,11 @@ struct OrgGraph : public QAbstractListModel {
     /// Iterate over all unresolved links visited so far and *try to* fix
     /// them. Does not guarantee to resolve all the links. Called when a
     /// new node is added to the graph.
-    Edit getUnresolvedEdits(OrgBoxId unresolved_source, CR<Edit> edit)
-        const;
+    Edit getUnresolvedEdits(CR<Edit> edit) const;
+
+    Vec<Edit::ResolveLink> getResolveTarget(
+        CR<Edit>           edit,
+        CR<UnresolvedLink> link) const;
 
     void emitChanges(CR<GraphStructureUpdate> upd) {
         for (auto const& e : upd.added_edges) { emit edgeAdded(e); }

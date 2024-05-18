@@ -34,6 +34,7 @@ Vec<OrgGraph::EDesc> OrgGraph::in_edges(
     return result;
 }
 
+using slk = sem::Link::Kind;
 
 OrgGraph::GraphStructureUpdate OrgGraph::State::addMutation(
     const Edit& edit) {
@@ -47,15 +48,32 @@ OrgGraph::GraphStructureUpdate OrgGraph::State::addMutation(
     }
 
     for (auto const& op : edit.unresolved) {
-        this->unresolved[op.origin].push_back(op);
+        this->unresolved.push_back(op);
     }
 
     for (auto const& op : edit.resolved) {
-        rs::remove_if(
-            this->unresolved[op.original.origin],
-            [&](CR<UnresolvedLink> old) -> bool {
-                return old.link == op.original.link;
-            });
+        auto is_same = [&](CR<UnresolvedLink> old) -> bool {
+            Q_ASSERT(!old.link.isNil());
+            Q_ASSERT(!op.original.link.isNil());
+
+            sem::Link const& lhs = *old.link.value;
+            sem::Link const& rhs = *op.original.link.value;
+
+            if (lhs.getLinkKind() != rhs.getLinkKind()) {
+                return false;
+            } else {
+                switch (lhs.getLinkKind()) {
+                    case slk::Id:
+                        return lhs.getId().text == rhs.getId().text;
+                    case slk::Footnote:
+                        return lhs.getFootnote().target
+                            == rhs.getFootnote().target;
+                    default: qFatal("TODO");
+                }
+            }
+        };
+
+        rs::actions::remove_if(this->unresolved, is_same);
 
         auto [e, added] = boost::add_edge(
             boxToVertex.at(op.original.origin),
