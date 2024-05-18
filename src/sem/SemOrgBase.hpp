@@ -134,6 +134,17 @@ struct SemId {
         return SemId<T>{std::dynamic_pointer_cast<T>(value)};
     }
 
+    template <typename T>
+    Vec<SemId<T>> subAs() const {
+        Vec<SemId<T>> result;
+        for (auto const& sub : value->subnodes) {
+            if (sub->getKind() == T::staticKind) {
+                result.push_back(sub.template as<T>());
+            }
+        }
+        return result;
+    }
+
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
 };

@@ -36,32 +36,23 @@ bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
         });
 }
 
-Graph::Edit Graph::getNodeInsertEdits(CR<OrgBoxId> box) const {
-    Edit result;
+Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
-    if (isLinkedDescriptionItem(store, box)) { return result; }
+    if (isLinkedDescriptionItem(store, box)) { return std::nullopt; }
+    OrgGraphNode result{.box = box};
 
     sem::SemId<sem::Org> n = store->node(box);
     if (n->is(osk::Subtree)) {
         sem::SemId<sem::Subtree> tree = n.as<sem::Subtree>();
-        if (tree->treeId) {
-            result.subtrees.push_back(Edit::SubtreeId{
-                .box  = box,
-                .name = tree->treeId.value(),
-            });
-        }
+        if (tree->treeId) { result.subtreeId = tree->treeId.value(); }
     } else if (n->is(osk::AnnotatedParagraph)) {
         sem::SemId<sem::AnnotatedParagraph>
             par = n.as<sem::AnnotatedParagraph>();
         if (par->getAnnotationKind()
             == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
-            Str name = par->getFootnote().name;
-            result.footnotes.push_back(Edit::FootnoteTarget{
-                .name = name,
-                .box  = box,
-            });
+            result.footnoteName = par->getFootnote().name;
         }
     }
 
@@ -72,9 +63,8 @@ Graph::Edit Graph::getNodeInsertEdits(CR<OrgBoxId> box) const {
         if (arg->is(osk::Link)) {
             auto link = arg.as<sem::Link>();
             if (link->getLinkKind() != slk::Raw) {
-                result.unresolved.push_back(UnresolvedLink{
-                    .origin = box,
-                    .link   = arg.as<sem::Link>(),
+                result.unresolved.push_back(GraphLink{
+                    .link = arg.as<sem::Link>(),
                     .description //
                     = link->description
                         ? std::make_optional(link->description->asOrg())
@@ -84,77 +74,81 @@ Graph::Edit Graph::getNodeInsertEdits(CR<OrgBoxId> box) const {
         }
     };
 
-    if (NestedNodes.contains(n->getKind())) {
+    if (auto tree = n.asOpt<sem::Subtree>()) {
         // Description lists with links in header are attached as the
         // outgoing link to the parent subtree. It is the only supported
         // way to provide an extensive label between subtree edges.
-        if (isLinkedDescriptionItem(n)) {
-            auto desc = n.as<sem::ListItem>();
-            for (auto const& head : desc->header.value()->subnodes) {
-                // Description list header might contain non-link elements.
-                // These are ignored in the mind map.
-                if (head->is(osk::Link)) {
-                    auto link = head.as<sem::Link>();
-                    if (link->getLinkKind() != slk::Raw) {
-                        auto description = sem::SemId<
-                            sem::StmtList>::New();
-                        description->subnodes = n->subnodes;
-                        auto parent_subtree   = store->parent(box).value();
-                        while (!store->node(parent_subtree)
-                                    ->is(osk::Subtree)) {
-                            parent_subtree = store->parent(parent_subtree)
-                                                 .value();
-                        }
+        for (auto const& list : tree.subAs<sem::List>()) {
+            for (auto const& item : list->subnodes) {
+                if (isLinkedDescriptionItem(n)) {
+                    auto desc = n.as<sem::ListItem>();
+                    for (auto const& head :
+                         desc->header->subAs<sem::Link>()) {
+                        // Description list header might contain
+                        // non-link elements. These are ignored in the
+                        // mind map.
+                        auto link = head.as<sem::Link>();
+                        if (link->getLinkKind() != slk::Raw) {
+                            auto description = sem::SemId<
+                                sem::StmtList>::New();
+                            description->subnodes = n->subnodes;
+                            auto parent_subtree   = store->parent(box)
+                                                      .value();
+                            while (!store->node(parent_subtree)
+                                        ->is(osk::Subtree)) {
+                                parent_subtree = store
+                                                     ->parent(
+                                                         parent_subtree)
+                                                     .value();
+                            }
 
-                        Q_ASSERT(!link.isNil());
-                        result.unresolved.push_back(UnresolvedLink{
-                            .origin      = parent_subtree,
-                            .link        = link,
-                            .description = description,
-                        });
+                            Q_ASSERT(!link.isNil());
+                            result.unresolved.push_back(GraphLink{
+                                .link        = link,
+                                .description = description,
+                            });
+                        }
                     }
                 }
             }
         }
-    } else {
+    } else if (!NestedNodes.contains(n->getKind())) {
         sem::eachSubnodeRec(n, register_used_links);
     }
 
-    Edit::Vertex vert{.box = box};
-
     switch (n->getKind()) {
         case osk::Subtree: {
-            vert.kind = OrgGraphNode::Kind::Subtree;
+            result.kind = OrgGraphNode::Kind::Subtree;
             break;
         }
 
         case osk::AnnotatedParagraph: {
             if (n.as<sem::AnnotatedParagraph>()->getAnnotationKind()
                 == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
-                vert.kind = OrgGraphNode::Kind::Footnote;
+                result.kind = OrgGraphNode::Kind::Footnote;
             } else {
-                vert.kind = OrgGraphNode::Kind::Paragraph;
+                result.kind = OrgGraphNode::Kind::Paragraph;
             }
             break;
         }
 
         case osk::Paragraph: {
-            vert.kind = OrgGraphNode::Kind::Paragraph;
+            result.kind = OrgGraphNode::Kind::Paragraph;
             break;
         }
 
         case osk::Document: {
-            vert.kind = OrgGraphNode::Kind::Document;
+            result.kind = OrgGraphNode::Kind::Document;
             break;
         }
 
         case osk::List: {
-            vert.kind = OrgGraphNode::Kind::List;
+            result.kind = OrgGraphNode::Kind::List;
             break;
         }
 
         case osk::ListItem: {
-            vert.kind = OrgGraphNode::Kind::ListItem;
+            result.kind = OrgGraphNode::Kind::ListItem;
             break;
         }
 
@@ -162,99 +156,66 @@ Graph::Edit Graph::getNodeInsertEdits(CR<OrgBoxId> box) const {
         }
     }
 
-    result.vertices.push_back(vert);
-
-
-    return getUnresolvedEdits(result);
+    return result;
 }
 
-Pair<Graph::Edit, Graph::Edit> Graph::getNodeUpdateEdits(
-    CR<OrgBoxId> before,
-    CR<OrgBoxId> after) const {
-    auto const to_remove = getNodeInsertEdits(before);
-    auto const to_add    = getNodeInsertEdits(after);
-
-
-    return {
-        // delete
-        Edit{},
-        // add
-        Edit{},
-    };
-}
-
-Graph::Edit Graph::getUnresolvedEdits(CR<Edit> edit) const {
-    Graph::Edit result = edit;
-    result.unresolved.clear();
+Graph::ResolveResult Graph::State::getUnresolvedEdits(
+    CR<OrgGraphNode> edit) const {
+    Graph::ResolveResult result;
+    result.node = edit;
+    result.node.unresolved.clear();
 
     for (auto const& it : edit.unresolved) {
-        Vec<Edit::ResolveLink> resolved_edit = getResolveTarget(edit, it);
+        Vec<ResolvedLink> resolved_edit = getResolveTarget(it);
         if (resolved_edit.empty()) {
-            result.unresolved.push_back(it);
+            result.node.unresolved.push_back(it);
         } else {
             result.resolved.append(resolved_edit);
         }
     }
 
-    for (auto const& it : this->state.unresolved) {
-        Vec<Edit::ResolveLink> resolved_edit = getResolveTarget(edit, it);
-        if (!resolved_edit.empty()) {
-            result.resolved.append(resolved_edit);
+    for (auto const& it : unresolved) {
+        qDebug().noquote()
+            << fmt("box:{} desc:{} value:{}",
+                   boxToVertex.at(it),
+                   it,
+                   g[boxToVertex.at(it)]);
+        for (auto const& link : g[boxToVertex.at(it)].unresolved) {
+            Vec<ResolvedLink> resolved_edit = getResolveTarget(link);
+            if (!resolved_edit.empty()) {
+                result.resolved.append(resolved_edit);
+            }
         }
     }
 
     return result;
 }
 
-Vec<Graph::Edit::ResolveLink> Graph::getResolveTarget(
-    CR<Edit>           edit,
-    CR<UnresolvedLink> it) const {
+Vec<Graph::ResolvedLink> Graph::State::getResolveTarget(
+    CR<GraphLink> it) const {
 
-    Vec<Graph::Edit::ResolveLink> result;
+    Vec<Graph::ResolvedLink> result;
 
     auto add_edge = [&](OrgGraphEdge::Kind kind, CVec<OrgBoxId> target) {
         for (auto const& box : target) {
             Q_ASSERT(!it.link.isNil());
-            result.push_back(Edit::ResolveLink{
-                .source   = it.origin,
-                .target   = box,
-                .original = it,
-                .spec     = OrgGraphEdge{
-                        .link        = it.link,
-                        .description = it.description,
-                        .kind        = kind,
-                }});
+            result.push_back(ResolvedLink{.target = box, .link = it});
         }
     };
 
     switch (it.link->getLinkKind()) {
         case slk::Id: {
-            if (auto target = state.subtreeIds.get(
-                    it.link->getId().text)) {
+            if (auto target = subtreeIds.get(it.link->getId().text)) {
                 add_edge(OrgGraphEdge::Kind::SubtreeId, *target);
             }
-
-            for (auto const& target : edit.subtrees) {
-                if (target.name == it.link->getId().text) {
-                    add_edge(OrgGraphEdge::Kind::SubtreeId, {target.box});
-                }
-            }
-
             break;
         }
 
         case slk::Footnote: {
-            if (auto target = state.footnoteTargets.get(
+            if (auto target = footnoteTargets.get(
                     it.link->getFootnote().target)) {
                 add_edge(OrgGraphEdge::Kind::Footnote, *target);
             }
-
-            for (auto const& target : edit.footnotes) {
-                if (target.name == it.link->getFootnote().target) {
-                    add_edge(OrgGraphEdge::Kind::Footnote, {target.box});
-                }
-            }
-
             break;
         }
 
@@ -283,9 +244,10 @@ std::string Graph::toGraphviz() {
             "description",
             make_transform_value_property_map<std::string>(
                 [&](OrgGraphEdge const& prop) -> std::string {
-                    return prop.description ? ExporterUltraplain::toStr(
-                               prop.description.value())
-                                            : "";
+                    return prop.link.description
+                             ? ExporterUltraplain::toStr(
+                                   prop.link.description.value())
+                             : "";
                 },
                 get(boost::edge_bundle, state.g)))
         .property(
@@ -327,7 +289,9 @@ QString Graph::getDisplayText(CR<QModelIndex> index) const {
         }
     } else {
         auto edge = this->getEdgeProp(getEdgeDesc(index));
-        if (edge.description) { display = edge.description.value(); }
+        if (edge.link.description) {
+            display = edge.link.description.value();
+        }
     }
 
     if (display.isNil()) {

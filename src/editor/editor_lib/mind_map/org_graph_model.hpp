@@ -13,6 +13,39 @@
 namespace org::mind_map {
 
 
+struct GraphLink {
+    /// Link description field can be reused or, for description list
+    /// items, this field contains a newly created statment list
+    Opt<sem::SemId<sem::Org>> description;
+    /// \brief Original link used to create the graph edge. Used to return
+    /// an edge to unresolved state when target is deleted. When source is
+    /// deleted the edge is simply dropped.
+    sem::SemId<sem::Link> link;
+
+    bool operator==(GraphLink const& other) const {
+        Q_ASSERT(!link.isNil());
+        Q_ASSERT(!other.link.isNil());
+
+        sem::Link const& lhs = *link.value;
+        sem::Link const& rhs = *other.link.value;
+
+        if (lhs.getLinkKind() != rhs.getLinkKind()) {
+            return false;
+        } else {
+            switch (lhs.getLinkKind()) {
+                case sem::Link::Kind::Id:
+                    return lhs.getId().text == rhs.getId().text;
+                case sem::Link::Kind::Footnote:
+                    return lhs.getFootnote().target
+                        == rhs.getFootnote().target;
+                default: qFatal("TODO");
+            }
+        }
+    }
+
+    DESC_FIELDS(GraphLink, (link, description));
+};
+
 /// \brief Property for the org-mode graph structure
 struct OrgGraphNode {
     DECL_DESCRIBED_ENUM(
@@ -24,24 +57,23 @@ struct OrgGraphNode {
         List,
         ListItem);
 
-    OrgBoxId box;  ///< Original box ID for the node
-    Kind     kind; ///< Structural type of the original node.
+    OrgBoxId       box;  ///< Original box ID for the node
+    Kind           kind; ///< Structural type of the original node.
+    Opt<Str>       subtreeId;
+    Opt<Str>       footnoteName;
+    Vec<GraphLink> unresolved;
+    DESC_FIELDS(
+        OrgGraphNode,
+        (box, kind, subtreeId, footnoteName, unresolved));
 };
 
 
 /// Mind map graph property
 struct OrgGraphEdge {
     DECL_DESCRIBED_ENUM(Kind, SubtreeId, Footnote);
-    Kind kind; ///< What is the context for the edge creation
-    /// Link description field can be reused or, for description list
-    /// items, this field contains a newly created statment list
-    Opt<sem::SemId<sem::Org>> description;
-    /// \brief Original link used to create the graph edge. Used to return
-    /// an edge to unresolved state when target is deleted. When source is
-    /// deleted the edge is simply dropped.
-    sem::SemId<sem::Link> link;
-
-    DESC_FIELDS(OrgGraphEdge, (kind, description, link));
+    Kind      kind; ///< What is the context for the edge creation
+    GraphLink link;
+    DESC_FIELDS(OrgGraphEdge, (kind, link));
 };
 
 /// Model roles shared between org graph model and proxy layouts that are
@@ -86,17 +118,6 @@ using BoostBase = boost::adjacency_list<
 using GraphTraits = boost::graph_traits<BoostBase>;
 using VDesc       = GraphTraits::vertex_descriptor;
 using EDesc       = GraphTraits::edge_descriptor;
-
-
-/// Link node in the mind map pending resolution. Might be due to
-/// an error, might be because an element have not been added yet.
-struct UnresolvedLink {
-    OrgBoxId              origin;
-    sem::SemId<sem::Link> link;
-    /// Link description at the time when an element was added.
-    Opt<sem::SemId<sem::Org>> description;
-    DESC_FIELDS(UnresolvedLink, (origin, link, description));
-};
 
 /// Base data provider model for all interactions with the graph. Wraps
 /// around boost graph and exposes its nodes and edges as a flat list of
@@ -240,6 +261,11 @@ struct Graph : public QAbstractListModel {
     }
 
 
+    OrgGraphNode const& getNodeProp(OrgBoxId desc) const {
+        return state.g[state.boxToVertex.at(desc)];
+    }
+
+
     /// \brief Get property of the first edge between source and target.
     /// Mainly for testing purposes. Can raise range error if there are no
     /// edges between provided nodes.
@@ -280,44 +306,6 @@ struct Graph : public QAbstractListModel {
 
     // Graph modification API
 
-
-    struct Edit {
-        struct FootnoteTarget {
-            Str      name;
-            OrgBoxId box;
-            DESC_FIELDS(FootnoteTarget, (name, box));
-        };
-
-        struct SubtreeId {
-            Str      name;
-            OrgBoxId box;
-            DESC_FIELDS(SubtreeId, (name, box));
-        };
-
-        struct Vertex {
-            OrgBoxId           box;
-            OrgGraphNode::Kind kind;
-            DESC_FIELDS(Vertex, (box, kind));
-        };
-
-        struct ResolveLink {
-            OrgBoxId       source;
-            OrgBoxId       target;
-            OrgGraphEdge   spec;
-            UnresolvedLink original;
-            DESC_FIELDS(ResolveLink, (source, target, spec, original));
-        };
-
-        Vec<Vertex>         vertices;
-        Vec<SubtreeId>      subtrees;
-        Vec<FootnoteTarget> footnotes;
-        Vec<UnresolvedLink> unresolved;
-        Vec<ResolveLink>    resolved;
-        DESC_FIELDS(
-            Edit,
-            (vertices, subtrees, footnotes, unresolved, resolved));
-    };
-
     struct GraphStructureUpdate {
         Vec<EDesc> removed_edges;
         Vec<VDesc> removed_nodes;
@@ -325,10 +313,21 @@ struct Graph : public QAbstractListModel {
         Vec<EDesc> added_edges;
         Vec<VDesc> added_nodes;
 
-        Vec<UnresolvedLink> missingLinks;
         DESC_FIELDS(
             GraphStructureUpdate,
             (removed_edges, removed_nodes, added_edges, added_nodes));
+    };
+
+    struct ResolvedLink {
+        GraphLink link;
+        OrgBoxId  target;
+        DESC_FIELDS(ResolvedLink, (link, target))
+    };
+
+    struct ResolveResult {
+        OrgGraphNode      node;
+        Vec<ResolvedLink> resolved;
+        DESC_FIELDS(ResolveResult, (node, resolved));
     };
 
     struct State {
@@ -347,10 +346,16 @@ struct Graph : public QAbstractListModel {
 
         /// Map each box to a list of unresolved outgoing links. This field
         /// is mutated as boxes are added or removed from the tree.
-        Vec<UnresolvedLink> unresolved;
+        Vec<OrgBoxId> unresolved;
 
-        GraphStructureUpdate addMutation(Edit const& edit);
-        GraphStructureUpdate delMutation(Edit const& edit);
+        GraphStructureUpdate addMutation(OrgGraphNode const& edit);
+        GraphStructureUpdate delMutation(OrgGraphNode const& edit);
+
+        /// Iterate over all unresolved links visited so far and *try to*
+        /// fix them. Does not guarantee to resolve all the links. Called
+        /// when a new node is added to the graph.
+        ResolveResult     getUnresolvedEdits(CR<OrgGraphNode> edit) const;
+        Vec<ResolvedLink> getResolveTarget(CR<GraphLink> link) const;
 
         /// \brief Clear cached values for edge rows and push a new list of
         /// edges. Called when graph vertex descriptors might have been
@@ -371,19 +376,8 @@ struct Graph : public QAbstractListModel {
 
     State state;
 
-    Edit             getNodeInsertEdits(CR<OrgBoxId> box) const;
-    Pair<Edit, Edit> getNodeUpdateEdits(
-        CR<OrgBoxId> before,
-        CR<OrgBoxId> after) const;
+    Opt<OrgGraphNode> getNodeInsert(CR<OrgBoxId> box) const;
 
-    /// Iterate over all unresolved links visited so far and *try to* fix
-    /// them. Does not guarantee to resolve all the links. Called when a
-    /// new node is added to the graph.
-    Edit getUnresolvedEdits(CR<Edit> edit) const;
-
-    Vec<Edit::ResolveLink> getResolveTarget(
-        CR<Edit>           edit,
-        CR<UnresolvedLink> link) const;
 
     void emitChanges(CR<GraphStructureUpdate> upd) {
         for (auto const& e : upd.added_edges) { emit edgeAdded(e); }
@@ -396,30 +390,26 @@ struct Graph : public QAbstractListModel {
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
         deleteBox(before);
         addBox(replace);
-        // auto [delete_edits, add_edits] = getNodeUpdateEdits(
-        //     before, replace);
-        // beginInsertRows(QModelIndex(), rowCount(), rowCount());
-        // auto upd1 = state.delMutation(delete_edits);
-        // auto upd2 = state.addMutation(add_edits);
-        // endInsertRows();
-        // emitChanges(upd1);
-        // emitChanges(upd2);
     }
 
     void addBox(CR<OrgBoxId> box) {
-        beginInsertRows(QModelIndex(), rowCount(), rowCount());
-        auto edits = getNodeInsertEdits(box);
-        auto upd   = state.addMutation(edits);
-        endInsertRows();
-        emitChanges(upd);
+        auto edits = getNodeInsert(box);
+        if (edits) {
+            beginInsertRows(QModelIndex(), rowCount(), rowCount());
+            auto upd = state.addMutation(edits.value());
+            endInsertRows();
+            emitChanges(upd);
+        }
     }
 
     void deleteBox(CR<OrgBoxId> deleted) {
-        auto edits = getNodeInsertEdits(deleted);
-        beginInsertRows(QModelIndex(), rowCount(), rowCount());
-        auto upd = state.delMutation(edits);
-        endInsertRows();
-        emitChanges(upd);
+        auto edits = getNodeInsert(deleted);
+        if (edits) {
+            beginInsertRows(QModelIndex(), rowCount(), rowCount());
+            auto upd = state.delMutation(edits.value());
+            endInsertRows();
+            emitChanges(upd);
+        }
     }
 
   signals:

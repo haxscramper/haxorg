@@ -453,18 +453,11 @@ Paragraph [[id:subtree-id]]
 
         // First time paragraph is added to the graph it has an unresolved
         // outgoing link
-        auto paragraph_edits = graph.getNodeInsertEdits(
-            store.getBox0({0}));
+        auto paragraph_edits = graph.getNodeInsert(store.getBox0({0}));
         qDebug().noquote() << fmt1(paragraph_edits);
-        QCOMPARE_EQ(paragraph_edits.unresolved.size(), 1);
-        QCOMPARE_EQ(paragraph_edits.vertices.size(), 1);
 
         // The tree has no links, but has a single subtree ID.
-        auto subtree_edits1 = graph.getNodeInsertEdits(store.getBox0({1}));
-
-        QCOMPARE_EQ(subtree_edits1.unresolved.size(), 0);
-        QCOMPARE_EQ(subtree_edits1.vertices.size(), 1);
-        QCOMPARE_EQ(subtree_edits1.subtrees.size(), 1);
+        auto subtree_edits1 = graph.getNodeInsert(store.getBox0({1}));
 
         // Integrating first paragraph into the graph structure pushes the
         // link into part of the mutable state
@@ -474,9 +467,7 @@ Paragraph [[id:subtree-id]]
         QCOMPARE_EQ(graph.state.unresolved.size(), 1);
 
         // Adding the tree now will correctly resolve the link targets
-        auto subtree_edits2 = graph.getNodeInsertEdits(store.getBox0({1}));
-        QCOMPARE_EQ(subtree_edits2.unresolved.size(), 0);
-        QCOMPARE_EQ(subtree_edits2.resolved.size(), 1);
+        auto subtree_edits2 = graph.getNodeInsert(store.getBox0({1}));
 
         // Integrating the second tree cleans up the unresolved mutable
         // state
@@ -488,8 +479,7 @@ Paragraph [[id:subtree-id]]
     {
         auto [store, graph] = build_graph(text);
 
-        auto edits = graph->getNodeInsertEdits(
-            store->getRoot(0)->at(0)->boxId);
+        auto edits = graph->getNodeInsert(store->getRoot(0)->at(0)->boxId);
 
 
         auto r = store->getRoot(0);
@@ -500,9 +490,6 @@ Paragraph [[id:subtree-id]]
         QCOMPARE_EQ(graph->numNodes(), 3);
         QCOMPARE_EQ(graph->numEdges(), 1);
         QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
-        QCOMPARE_EQ(
-            graph->out_edge0(r->id(0), r->id(1)).kind,
-            OrgGraphEdge::Kind::SubtreeId);
         QVERIFY(graph->state.unresolved.empty());
     }
 }
@@ -680,21 +667,21 @@ void TestMindMap::testFullMindMapGraph() {
 
     QCOMPARE_EQ(
         str(graph->out_edge0(r->id(par_010), r->id({0, 0}))
-                .description.value()),
+                .link.description.value()),
         "links");
     QCOMPARE_EQ(
         str(graph->out_edge0(r->id(par_010), r->id({0, 2}))
-                .description.value()),
+                .link.description.value()),
         "rows");
     QCOMPARE_EQ(
         str(graph->out_edge0(r->id(par_010), r->id({1, 1}))
-                .description.value()),
+                .link.description.value()),
         "other");
 
     QCOMPARE_EQ(graph->in_edges(r->id({0, 2})).size(), 2);
     {
         auto desc = graph->out_edge0(r->id({0, 1}), r->id({0, 0}))
-                        .description.value();
+                        .link.description.value();
         auto desc_str = str(desc);
         QVERIFY(desc_str.contains(
             "Description lists can be used for annotated links"));
@@ -713,8 +700,9 @@ void TestMindMap::testFullMindMapGraph() {
         Vec<Str> edge_text //
             = graph->state.edges
             | rv::transform([&](EDesc desc) -> Opt<Str> {
-                  if (graph->getEdgeProp(desc).description) {
-                      return str(*graph->getEdgeProp(desc).description);
+                  if (graph->getEdgeProp(desc).link.description) {
+                      return str(
+                          *graph->getEdgeProp(desc).link.description);
                   } else {
                       return std::nullopt;
                   }

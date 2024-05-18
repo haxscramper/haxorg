@@ -34,92 +34,91 @@ Vec<EDesc> Graph::in_edges(CR<VDesc> target, CR<Opt<VDesc>> source) {
 
 using slk = sem::Link::Kind;
 
-Graph::GraphStructureUpdate Graph::State::addMutation(const Edit& edit) {
+Graph::GraphStructureUpdate Graph::State::addMutation(
+    OrgGraphNode const& edit) {
     GraphStructureUpdate result;
-    for (auto const& op : edit.vertices) {
-        VDesc v = boost::add_vertex(g);
-        nodes.push_back(v);
-        g[v].box            = op.box;
-        boxToVertex[op.box] = v;
-        result.added_nodes.push_back(v);
+    VDesc                v = boost::add_vertex(g);
+    nodes.push_back(v);
+    g[v] = edit;
+    Q_ASSERT(!boxToVertex.contains(edit.box));
+    boxToVertex[edit.box] = v;
+    result.added_nodes.push_back(v);
+
+    if (!edit.unresolved.empty()) { unresolved.push_back(edit.box); }
+
+    if (edit.footnoteName) {
+        this->footnoteTargets[edit.footnoteName.value()].push_back(
+            edit.box);
     }
 
-    for (auto const& op : edit.unresolved) {
-        this->unresolved.push_back(op);
+    if (edit.subtreeId) {
+        this->subtreeIds[edit.subtreeId.value()].push_back(edit.box);
     }
 
-    for (auto const& op : edit.resolved) {
-        auto is_same = [&](CR<UnresolvedLink> old) -> bool {
-            Q_ASSERT(!old.link.isNil());
-            Q_ASSERT(!op.original.link.isNil());
+    qDebug().noquote() << fmt(
+        "Added edit mutation box:{} desc:{} box->vertex:{}",
+        boxToVertex.at(edit.box),
+        edit.box,
+        boxToVertex);
 
-            sem::Link const& lhs = *old.link.value;
-            sem::Link const& rhs = *op.original.link.value;
+    ResolveResult updated_resolve = getUnresolvedEdits(edit);
+    g[v]                          = updated_resolve.node;
 
-            if (lhs.getLinkKind() != rhs.getLinkKind()) {
-                return false;
-            } else {
-                switch (lhs.getLinkKind()) {
-                    case slk::Id:
-                        return lhs.getId().text == rhs.getId().text;
-                    case slk::Footnote:
-                        return lhs.getFootnote().target
-                            == rhs.getFootnote().target;
-                    default: qFatal("TODO");
-                }
-            }
+    for (auto const& op : updated_resolve.resolved) {
+        auto remove_resolved = [&](OrgBoxId box) {
+            _qdbg(fmt1(box));
+            auto desc = boxToVertex.at(box);
+            rs::actions::remove_if(
+                g[desc].unresolved, [&](CR<GraphLink> old) -> bool {
+                    bool result = old == op.link;
+                    return result;
+                });
         };
 
-        rs::actions::remove_if(this->unresolved, is_same);
+        for (auto const& box : unresolved) { remove_resolved(box); }
+        remove_resolved(edit.box);
+
+        rs::actions::remove_if(unresolved, [&](CR<OrgBoxId> box) {
+            return g[boxToVertex.at(box)].unresolved.empty();
+        });
+
 
         auto [e, added] = boost::add_edge(
-            boxToVertex.at(op.original.origin),
-            boxToVertex.at(op.target),
-            g);
+            boxToVertex.at(edit.box), boxToVertex.at(op.target), g);
 
         edges.push_back(e);
         result.added_edges.push_back(e);
-        g[e] = op.spec;
+        g[e] = OrgGraphEdge{.link = op.link};
     }
 
-    for (auto const& note : edit.footnotes) {
-        this->footnoteTargets[note.name].push_back(note.box);
-    }
-
-    for (auto const& note : edit.subtrees) {
-        this->subtreeIds[note.name].push_back(note.box);
-    }
 
     rebuildEdges();
 
     return result;
 }
 
-Graph::GraphStructureUpdate Graph::State::delMutation(const Edit& edit) {
+Graph::GraphStructureUpdate Graph::State::delMutation(
+    OrgGraphNode const& edit) {
     GraphStructureUpdate result;
-    for (auto const& op : edit.vertices) {
-        auto vertex = boxToVertex.at(op.box);
-        auto it     = std::find(nodes.begin(), nodes.end(), vertex);
-        if (it != nodes.end()) {
-            for (auto [ei, ei_end] = boost::in_edges(vertex, g);
-                 ei != ei_end;
-                 ++ei) {
-                result.removed_edges.push_back(*ei);
-            }
-
-            for (auto [ei, ei_end] = boost::out_edges(vertex, g);
-                 ei != ei_end;
-                 ++ei) {
-                result.removed_edges.push_back(*ei);
-            }
-
-
-            nodes.erase(it);
+    auto                 vertex = boxToVertex.at(edit.box);
+    auto it = std::find(nodes.begin(), nodes.end(), vertex);
+    if (it != nodes.end()) {
+        for (auto [ei, ei_end] = boost::in_edges(vertex, g); ei != ei_end;
+             ++ei) {
+            result.removed_edges.push_back(*ei);
         }
 
-        boost::clear_vertex(*it, g);
-        boost::remove_vertex(*it, g);
+        for (auto [ei, ei_end] = boost::out_edges(vertex, g); ei != ei_end;
+             ++ei) {
+            result.removed_edges.push_back(*ei);
+        }
+
+
+        nodes.erase(it);
     }
+
+    boost::clear_vertex(*it, g);
+    boost::remove_vertex(*it, g);
 
     rebuildEdges();
     return result;
