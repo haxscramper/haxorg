@@ -156,6 +156,8 @@ Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
         }
     }
 
+    _qfmt("box:{} unresolved:{}", box, result.unresolved);
+
     return result;
 }
 
@@ -168,6 +170,7 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     for (auto const& it : edit.unresolved) {
         Opt<ResolvedLink> resolved_edit = getResolveTarget(edit.box, it);
         if (resolved_edit) {
+            _qfmt("resolved:{}", *resolved_edit);
             result.resolved.push_back(*resolved_edit);
         } else {
             result.node.unresolved.push_back(it);
@@ -175,14 +178,35 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     }
 
     for (auto const& it : unresolved) {
-        _qfmt("  {}", g[boxToVertex.at(it)].unresolved);
         for (auto const& link : g[boxToVertex.at(it)].unresolved) {
             Opt<ResolvedLink> resolved_edit = getResolveTarget(it, link);
             if (resolved_edit) {
-                _qfmt("    desc:{} box:{}", boxToVertex.at(it), it);
+                _qfmt("resolved:{}", *resolved_edit);
                 result.resolved.push_back(*resolved_edit);
             }
         }
+    }
+
+    _qfmt(
+        "box:{} resolved:{} unresolved:{}",
+        edit.box,
+        result.resolved,
+        result.node.unresolved);
+
+    for (auto const& r1 : result.resolved) {
+        int count = 0;
+        for (auto const& r2 : result.resolved) {
+            if (r1.target == r2.target && r1.source == r2.source) {
+                ++count;
+            }
+        }
+
+        Q_ASSERT_X(
+            count <= 1,
+            "resolved duplicates",
+            fmt("Resolved link target contains duplicate edges: {}-{}",
+                r1.source,
+                r1.target));
     }
 
     return result;

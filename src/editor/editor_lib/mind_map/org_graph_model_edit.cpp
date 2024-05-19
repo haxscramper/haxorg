@@ -44,15 +44,6 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
     boxToVertex[edit.box] = v;
     result.added_nodes.push_back(v);
 
-    if (!edit.unresolved.empty()) {
-        Q_ASSERT_X(
-            !unresolved.contains(edit.box),
-            "addMutation",
-            fmt("Duplicate unresolved boxes are not expected: {}", edit));
-
-        unresolved.incl(edit.box);
-    }
-
     if (edit.footnoteName) {
         Q_ASSERT(!footnoteTargets.contains(*edit.footnoteName));
         footnoteTargets[*edit.footnoteName] = edit.box;
@@ -65,21 +56,35 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
 
 
     ResolveResult updated_resolve = getUnresolvedEdits(edit);
-    _qfmt("v:{} g[v]:{} updated:{}", v, g[v], updated_resolve.node);
+    _qfmt(
+        "v:{} g[v]:{} edit:{} updated:{}",
+        v,
+        g[v].unresolved,
+        edit.unresolved,
+        updated_resolve.node.unresolved);
+
     for (auto const& u : g[v].unresolved) {
-        _qfmt(">> {}", debug(u.link.asOrg()));
+        _qfmt(">> g[v] unresolved {}", debug(u.link.asOrg()));
     }
     for (auto const& u : updated_resolve.node.unresolved) {
-        _qfmt("<<- {}", debug(u.link.asOrg()));
+        _qfmt("<<- updated unresolved {}", debug(u.link.asOrg()));
     }
     for (auto const& u : updated_resolve.resolved) {
-        _qfmt("<<+ {}", debug(u.link.link.asOrg()));
+        _qfmt("<<+ updated resolved {}", debug(u.link.link.asOrg()));
     }
     g[v] = updated_resolve.node;
 
     if (g[v].unresolved.empty()) {
         if (unresolved.contains(edit.box)) { unresolved.erase(edit.box); }
+    } else {
+        Q_ASSERT_X(
+            !unresolved.contains(edit.box),
+            "addMutation",
+            fmt("Duplicate unresolved boxes are not expected: {}", edit));
+
+        unresolved.incl(edit.box);
     }
+
 
     for (auto const& op : updated_resolve.resolved) {
         auto remove_resolved = [&](OrgBoxId box) {
@@ -102,8 +107,21 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
             }
         }
 
-        auto [e, added] = boost::add_edge(
-            boxToVertex.at(op.source), boxToVertex.at(op.target), g);
+        VDesc source = boxToVertex.at(op.source);
+        VDesc target = boxToVertex.at(op.target);
+        for (auto [it, end] = boost::in_edges(target, g); it != end;
+             ++it) {
+            Q_ASSERT_X(
+                (boost::source(*it, g) != source),
+                "duplicate edge",
+                fmt("There is already a link between {} and {} (vertex "
+                    "{}-{}), graph cannot contain duplicate edges",
+                    op.source,
+                    op.target,
+                    source,
+                    target));
+        }
+        auto [e, added] = boost::add_edge(source, target, g);
 
         edges.push_back(e);
         result.added_edges.push_back(e);

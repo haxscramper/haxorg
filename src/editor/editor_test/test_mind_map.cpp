@@ -531,22 +531,112 @@ Paragraph [fn:target1] [fn:target2]
 }
 
 void TestMindMap::testGraphConstructionMultipleLinks_footnote2() {
-    auto [store, graph] = build_graph(R"(
+    auto text = R"(
 [fn:target1] Description
 
 Paragraph [fn:target1] [fn:target2]
 
 [fn:target2] Description
-)");
+)"_ss;
 
-    auto r = store->getRoot(0);
 
-    QCOMPARE_EQ(r->subnodes.size(), 3);
-    QCOMPARE_EQ(graph->numNodes(), 4);
-    QCOMPARE_EQ(graph->numEdges(), 2);
-    QCOMPARE_EQ(graph->in_edges(r->id(0)).size(), 1);
-    QCOMPARE_EQ(graph->out_edges(r->id(1)).size(), 2);
-    QCOMPARE_EQ(graph->in_edges(r->id(2)).size(), 1);
+    {
+        OrgStore s;
+        s.addRoot(text);
+        Graph graph{&s, nullptr};
+
+        { // dry run adding all nodes in the graph. `getNodeInsert` returns
+          // an IR representation of the node where all links present are
+          // marked as 'unresolved'
+            auto n0 = graph.getNodeInsert(s.getBox0({0}));
+            QCOMPARE_EQ(n0->unresolved.size(), 0);
+            auto n1 = graph.getNodeInsert(s.getBox0({1}));
+            QCOMPARE_EQ(n1->unresolved.size(), 2);
+            auto n2 = graph.getNodeInsert(s.getBox0({2}));
+            QCOMPARE_EQ(n2->unresolved.size(), 0);
+        }
+
+        // Add the first box with footnote definition
+        graph.addBox(s.getBox0({0}));
+        QCOMPARE_EQ(graph.numNodes(), 1);
+        QCOMPARE_EQ(graph.numEdges(), 0);
+        QCOMPARE_EQ(graph.state.unresolved.size(), 0);
+
+        { // Dry run second node insertion
+            auto n1 = graph.getNodeInsert(s.getBox0({1}));
+            QVERIFY(n1.has_value());
+            // "get node insert" does not resolve the links, so the result
+            // will stay the same
+            QCOMPARE_EQ(n1->unresolved.size(), 2);
+            // 'get unresolved' splits the block of unresolved links into
+            // an updated graph node value and a list of resolved nodes.
+            auto n1edit = graph.state.getUnresolvedEdits(n1.value());
+            // Can resolve link targeting the first paragraph
+            QCOMPARE_EQ(n1edit.resolved.size(), 1);
+            QCOMPARE_EQ(n1edit.resolved.at(0).target, s.getBox0({0}));
+            // Second paragraph link still cannot be resolved
+            QCOMPARE_EQ(n1edit.node.unresolved.size(), 1);
+        }
+
+        // Add the second box with outgoing links
+        graph.addBox(s.getBox0({1}));
+        {
+            // It must resolve one link in the paragraph, the other one
+            // stays the same
+            QCOMPARE_EQ(
+                graph.getNodeProp(s.getBox0({1})).unresolved.size(), 1);
+            QVERIFY(graph.hasEdge(s.getBox0({1}), s.getBox0({0})));
+        }
+
+
+        QCOMPARE_EQ(graph.numNodes(), 2);
+        // The first link must be resolved by this time, the graph has
+        // target information
+        QCOMPARE_EQ(graph.numEdges(), 1);
+        QCOMPARE_EQ(graph.state.unresolved.size(), 1);
+        QCOMPARE_EQ(
+            graph.getNodeProp(s.getBox0({0})).unresolved.size(), 0);
+        QCOMPARE_EQ(
+            graph.getNodeProp(s.getBox0({1})).unresolved.size(), 1);
+
+
+        graph.addBox(s.getBox0({2}));
+        QCOMPARE_EQ(graph.numNodes(), 3);
+        QCOMPARE_EQ(graph.numEdges(), 2);
+        QCOMPARE_EQ(graph.state.unresolved.size(), 0);
+        QCOMPARE_EQ(
+            graph.getNodeProp(s.getBox0({1})).unresolved.size(), 0);
+        QVERIFY(graph.hasEdge(s.getBox0({1}), s.getBox0({0})));
+        QVERIFY(graph.hasEdge(s.getBox0({1}), s.getBox0({2})));
+    }
+
+    // Test with bulk addition
+    {
+        OrgStore s;
+        s.addRoot(text);
+        Graph graph{&s, nullptr};
+        graph.addFullStore();
+
+        QCOMPARE_EQ(graph.numNodes(), 4);
+        QCOMPARE_EQ(graph.numEdges(), 2);
+        QCOMPARE_EQ(graph.in_edges(s.getBox0({0})).size(), 1);
+        QCOMPARE_EQ(graph.out_edges(s.getBox0({1})).size(), 2);
+        QCOMPARE_EQ(graph.in_edges(s.getBox0({2})).size(), 1);
+    }
+
+    // Test with signal-based element add
+    {
+        OrgStore s;
+        Graph    graph{&s, nullptr};
+        graph.connectStore();
+        s.addRoot(text);
+
+        QCOMPARE_EQ(graph.numNodes(), 4);
+        QCOMPARE_EQ(graph.numEdges(), 2);
+        QCOMPARE_EQ(graph.in_edges(s.getBox0({0})).size(), 1);
+        QCOMPARE_EQ(graph.out_edges(s.getBox0({1})).size(), 2);
+        QCOMPARE_EQ(graph.in_edges(s.getBox0({2})).size(), 1);
+    }
 }
 
 Str getFullMindMapText() {

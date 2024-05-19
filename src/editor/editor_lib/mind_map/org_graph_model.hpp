@@ -325,7 +325,7 @@ struct Graph : public QAbstractListModel {
         GraphLink link;
         OrgBoxId  target;
         OrgBoxId  source;
-        DESC_FIELDS(ResolvedLink, (link, target))
+        DESC_FIELDS(ResolvedLink, (link, target, source))
     };
 
     struct ResolveResult {
