@@ -39,13 +39,12 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
     GraphStructureUpdate result;
     VDesc                v = boost::add_vertex(g);
     if (debug) { _qfmt("unresolved:{}", unresolved); }
-    nodes.push_back(v);
     g[v] = edit;
     Q_ASSERT(!boxToVertex.contains(edit.box));
     Q_ASSERT(!unresolved.contains(edit.box));
 
     boxToVertex[edit.box] = v;
-    result.added_nodes.push_back(v);
+    result.added_node     = v;
 
     if (debug) {
         _qfmt("box:{} v:{} boxToVertex:{}", edit.box, v, boxToVertex);
@@ -148,12 +147,9 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
 
         auto [e, added] = boost::add_edge(source, target, g);
 
-        edges.push_back(e);
         result.added_edges.push_back(e);
         g[e] = OrgGraphEdge{.link = op.link};
     }
-
-    rebuildEdges();
 
     return result;
 }
@@ -178,19 +174,17 @@ Graph::GraphStructureUpdate Graph::State::delMutation(
              ++ei) {
             result.removed_edges.push_back(*ei);
         }
-
-        nodes.erase(it);
     }
 
     boost::clear_vertex(*it, g);
     boost::remove_vertex(*it, g);
 
-    rebuildEdges();
     boxToVertex.erase(edit.box);
 
     if (unresolved.contains(edit.box)) { unresolved.excl(edit.box); }
     if (edit.subtreeId) { subtreeIds.erase(*edit.subtreeId); }
     if (edit.footnoteName) { footnoteTargets.erase(*edit.footnoteName); }
+    result.removed_node = vertex;
 
     return result;
 }

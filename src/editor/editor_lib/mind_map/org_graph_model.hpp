@@ -314,14 +314,13 @@ struct Graph : public QAbstractListModel {
 
     struct GraphStructureUpdate {
         Vec<EDesc> removed_edges;
-        Vec<VDesc> removed_nodes;
-
         Vec<EDesc> added_edges;
-        Vec<VDesc> added_nodes;
+        Opt<VDesc> removed_node = std::nullopt;
+        Opt<VDesc> added_node   = std::nullopt;
 
         DESC_FIELDS(
             GraphStructureUpdate,
-            (removed_edges, removed_nodes, added_edges, added_nodes));
+            (removed_edges, removed_node, added_edges, added_node));
     };
 
     struct ResolvedLink {
@@ -369,18 +368,6 @@ struct Graph : public QAbstractListModel {
             CR<OrgBoxId>  source,
             CR<GraphLink> link) const;
 
-        /// \brief Clear cached values for edge rows and push a new list of
-        /// edges. Called when graph vertex descriptors might have been
-        /// invalidated.
-        void rebuildEdges() {
-            edges.clear();
-            BoostBase::edge_iterator ei, ei_end;
-            for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end;
-                 ++ei) {
-                edges.push_back(*ei);
-            }
-        }
-
         DESC_FIELDS(
             State,
             (g, boxToVertex, edges, nodes, subtreeIds, footnoteTargets));
@@ -395,37 +382,42 @@ struct Graph : public QAbstractListModel {
     Opt<OrgGraphNode> getNodeInsert(CR<OrgBoxId> box) const;
 
 
-    void emitChanges(CR<GraphStructureUpdate> upd) {
-        for (auto const& e : upd.added_edges) { emit edgeAdded(e); }
-        for (auto const& e : upd.removed_edges) { emit edgeRemoved(e); }
-        for (auto const& e : upd.added_nodes) { emit nodeAdded(e); }
-        for (auto const& e : upd.removed_nodes) { emit nodeRemoved(e); }
+    void emitChanges(CR<GraphStructureUpdate> upd);
+
+    void addBoxImpl(CR<OrgBoxId> box) {
+        auto edits = getNodeInsert(box);
+        if (edits) {
+            auto upd = state.addMutation(edits.value());
+            emitChanges(upd);
+        }
+    }
+
+    void deleteBoxImpl(CR<OrgBoxId> deleted) {
+        if (state.boxToVertex.contains(deleted)) {
+            auto v   = state.boxToVertex.at(deleted);
+            auto upd = state.delMutation(state.g[v]);
+            emitChanges(upd);
+        }
     }
 
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
-        deleteBox(before);
-        addBox(replace);
+        emit layoutAboutToBeChanged();
+        deleteBoxImpl(before);
+        addBoxImpl(replace);
+        emit layoutChanged();
     }
 
     void addBox(CR<OrgBoxId> box) {
-        auto edits = getNodeInsert(box);
-        if (edits) {
-            beginInsertRows(QModelIndex(), rowCount(), rowCount());
-            auto upd = state.addMutation(edits.value());
-            endInsertRows();
-            emitChanges(upd);
-        }
+        emit layoutAboutToBeChanged();
+        addBoxImpl(box);
+        emit layoutChanged();
     }
 
     void deleteBox(CR<OrgBoxId> deleted) {
-        if (state.boxToVertex.contains(deleted)) {
-            auto v = state.boxToVertex.at(deleted);
-            beginInsertRows(QModelIndex(), rowCount(), rowCount());
-            auto upd = state.delMutation(state.g[v]);
-            endInsertRows();
-            emitChanges(upd);
-        }
+        emit layoutAboutToBeChanged();
+        deleteBoxImpl(deleted);
+        emit layoutChanged();
     }
 
   signals:

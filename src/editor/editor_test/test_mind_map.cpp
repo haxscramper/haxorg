@@ -1474,14 +1474,27 @@ Paragraph [[id:subtree-id]]
     auto  b1 = store.getBox0({1});
     Graph g{&store, nullptr};
 
-    AbstractItemModelSignalListener list{&g};
-    g.addBox(b0);
+    AbstractItemModelSignalListener l{&g};
 
-    auto rows = list.popRecordsT<R::RowsInserted>();
-    QCOMPARE_EQ(rows.size(), 1);
-    QCOMPARE_EQ(rows.at(0).first, 0);
-    QCOMPARE_EQ(rows.at(0).last, 0);
-    for (auto const& q : list.records) {
-        _qfmt("-> {} {}", q.getKind(), q);
+    {
+        g.addBox(b0);
+        auto rows = l.popRecordsT<R::RowsInserted>();
+        QCOMPARE_EQ(rows.size(), 1);
+        QCOMPARE_EQ(rows.at(0).first, 0);
+        QCOMPARE_EQ(rows.at(0).last, 0);
+        QCOMPARE_EQ(g.rowCount(), 1);
+    }
+
+    l.clear();
+
+    {
+        g.addBox(b1);
+        QCOMPARE_EQ(g.rowCount(), 3);
+        l.debug();
+        auto rows = l.popRecordsT<R::RowsInserted>();
+        QCOMPARE_EQ(rows.size(), 2);
+        QCOMPARE_EQ(rows.at(0).first, 1);
+        QCOMPARE_EQ(rows.at(1).first, 2);
+        QCOMPARE_EQ(rows.at(1).last, 2);
     }
 }

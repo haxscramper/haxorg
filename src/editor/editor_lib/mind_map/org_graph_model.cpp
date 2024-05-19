@@ -185,6 +185,57 @@ Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
     return result;
 }
 
+void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
+    for (auto const& e : upd.added_edges) { emit edgeAdded(e); }
+    for (auto const& e : upd.removed_edges) { emit edgeRemoved(e); }
+    if (upd.added_node) { emit nodeAdded(upd.added_node.value()); }
+    if (upd.removed_node) { emit nodeRemoved(upd.removed_node.value()); }
+
+    Vec<int> removed_edge_indices //
+        = upd.removed_edges       //
+        | rv::transform([&](EDesc const& e) -> int {
+              int result = state.edges.indexOf(e);
+              Q_ASSERT(result != -1);
+              return result;
+          })
+        | rs::to<Vec>();
+
+    rs::actions::sort(removed_edge_indices);
+    rs::actions::reverse(removed_edge_indices);
+    int const base_node_count = state.nodes.size();
+    for (int idx : removed_edge_indices) {
+        beginRemoveRows(
+            QModelIndex(), base_node_count + idx, base_node_count + idx);
+        state.edges.erase(state.edges.begin() + idx);
+        endRemoveRows();
+    }
+
+    if (upd.removed_node) {
+        int idx = state.nodes.indexOf(*upd.removed_node);
+        Q_ASSERT(idx != -1);
+        beginRemoveRows(QModelIndex(), idx, idx);
+        state.nodes.erase(state.nodes.begin() + idx);
+        endRemoveRows();
+    }
+
+    if (upd.added_node) {
+        beginInsertRows(
+            QModelIndex(), state.nodes.size(), state.nodes.size());
+        state.nodes.push_back(*upd.added_node);
+        endInsertRows();
+    }
+
+    if (!upd.added_edges.empty()) {
+        beginInsertRows(
+            QModelIndex(),
+            state.nodes.size() + state.edges.size(),
+            state.nodes.size() + state.edges.size()
+                + upd.added_edges.size() - 1);
+        state.edges.append(upd.added_edges);
+        endInsertRows();
+    }
+}
+
 Graph::ResolveResult Graph::State::getUnresolvedEdits(
     CR<OrgGraphNode> edit) const {
     Graph::ResolveResult result;
