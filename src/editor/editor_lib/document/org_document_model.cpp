@@ -17,7 +17,7 @@ OrgSubtreeSearchModel::OrgSubtreeSearchModel(
 //
 {
     filter->acceptNode = [this, store](OrgBoxId arg) -> bool {
-        auto const& node     = this->store->node(arg);
+        auto const& node     = this->store->getBoxedNode(arg);
         bool        score_ok = pattern.empty() || -1 < getScore(arg);
         bool        result   = node->is(OrgSemKind::Document)
                    || (node->is(OrgSemKind::Subtree) && score_ok);
@@ -28,7 +28,7 @@ OrgSubtreeSearchModel::OrgSubtreeSearchModel(
 }
 
 int OrgSubtreeSearchModel::getScore(OrgBoxId arg) {
-    auto const& node = store->node(arg);
+    auto const& node = store->getBoxedNode(arg);
     u64         addr = (u64)node.get();
     if (!scoreCache.contains(addr)) {
         FuzzyMatcher<char const> matcher;
@@ -150,7 +150,7 @@ void OrgDocumentModel::changeLevel(
         if (levelChange != 0) {
             Func<void(QModelIndex const&)> aux;
             aux = [&](QModelIndex const& parent) {
-                if (store->node(tree(parent)->boxId)
+                if (store->getBoxedNode(tree(parent)->boxId)
                         ->is(OrgSemKind::Subtree)) {
                     OrgTreeNode* node = tree(parent);
                     node->boxId       = store->update<sem::Subtree>(

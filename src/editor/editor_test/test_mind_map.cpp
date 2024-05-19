@@ -638,7 +638,7 @@ Paragraph [fn:target1] [fn:target2]
 }
 
 void TestMindMap::testGraphConstructionSubtree_description_lists() {
-    Str      text{R"(
+    Str text{R"(
 * Subtree1
   :properties:
   :id: subtree-1
@@ -654,27 +654,25 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
 - [[id:subtree-1]] :: Backlink
 
 )"};
-    OrgStore store;
-    Graph    graph{&store, nullptr};
-    graph.state.debug = true;
-    store.addRoot(text);
 
-    auto r = store.getRoot(0);
-
-    writeFile(
-        "/tmp/testGraphConstructionSubtree_description_lists.txt",
-        ExporterTree::treeRepr(store.node(r->boxId)).toString(false));
-
-    auto count = [](this auto&&  self,
-                    OrgTreeNode* node) -> Vec<sem::SemId<sem::Org>> {
-        Vec<sem::SemId<sem::Org>> result{node->getBoxedNode()};
-        for (auto const& sub : node->subnodes) {
-            result.append(self(sub.get()));
-        }
-        return result;
-    };
 
     {
+        OrgStore store;
+        store.addRoot(text);
+        auto r = store.getRoot(0);
+        writeFile(
+            "/tmp/testGraphConstructionSubtree_description_lists.txt",
+            ExporterTree::treeRepr(store.getBoxedNode(r->boxId)).toString(false));
+
+        auto count = [](this auto&&  self,
+                        OrgTreeNode* node) -> Vec<sem::SemId<sem::Org>> {
+            Vec<sem::SemId<sem::Org>> result{node->getBoxedNode()};
+            for (auto const& sub : node->subnodes) {
+                result.append(self(sub.get()));
+            }
+            return result;
+        };
+
         // List items and paragraphs are stored as separate boxed nodes.
         auto res = count(r);
         QCOMPARE_EQ2(res.at(0)->getKind(), osk::Document);
@@ -690,38 +688,86 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
         QCOMPARE_EQ(res.size(), 9);
     }
 
-    QCOMPARE_EQ(r->getBoxedNode()->getKind(), osk::Document);
-    QCOMPARE_EQ(r->subnodes.size(), 2);
-    QCOMPARE_EQ(r->at(0)->getBoxedNode()->getKind(), osk::Subtree);
-    QCOMPARE_EQ(r->at(1)->getBoxedNode()->getKind(), osk::Subtree);
+    {
+        OrgStore store;
+        Graph    graph{&store, nullptr};
+        store.addRoot(text);
 
-    QCOMPARE_EQ(r->at(0)->subnodes.size(), 1);
-    QCOMPARE_EQ(r->at({0, 0})->getBoxedNode()->getKind(), osk::List);
-    QCOMPARE_EQ(
-        r->at({0, 0, 0})->getBoxedNode()->getKind(), osk::ListItem);
+        graph.state.debug = true;
+        auto n0 = graph.getNodeInsert(store.getBox0({0}));
+        QVERIFY(n0.has_value());
+        QCOMPARE_EQ(n0->unresolved.size(), 1);
 
-    QCOMPARE_EQ(r->at(1)->subnodes.size(), 1);
-    QCOMPARE_EQ(r->at({1, 0})->getBoxedNode()->getKind(), osk::List);
-    QCOMPARE_EQ(
-        r->at({1, 0, 0})->getBoxedNode()->getKind(), osk::ListItem);
+        auto n1 = graph.getNodeInsert(store.getBox0({1}));
+        QVERIFY(n1.has_value());
+        QCOMPARE_EQ(n1->unresolved.size(), 1);
 
+        graph.addBox(store.getBox0({0}));
+        QCOMPARE_EQ(graph.numNodes(), 1);
+        QCOMPARE_EQ(graph.numEdges(), 0);
+        QCOMPARE_EQ(
+            graph.getNodeProp(store.getBox0({0})).unresolved.size(), 1);
 
-    QVERIFY(!graph.getNodeInsert(store.getBox0({0})).has_value());
-    QVERIFY(!graph.getNodeInsert(store.getBox0({0, 0})).has_value());
-    QVERIFY(!graph.getNodeInsert(store.getBox0({0, 0, 0})).has_value());
-    QVERIFY(!graph.getNodeInsert(store.getBox0({1})).has_value());
-    QVERIFY(!graph.getNodeInsert(store.getBox0({1, 0})).has_value());
-    QVERIFY(!graph.getNodeInsert(store.getBox0({1, 0, 0})).has_value());
+        graph.addBox(store.getBox0({1}));
+        QCOMPARE_EQ(graph.numNodes(), 2);
+        QCOMPARE_EQ(
+            graph.getNodeProp(store.getBox0({0})).unresolved.size(), 0);
+        QCOMPARE_EQ(
+            graph.getNodeProp(store.getBox0({1})).unresolved.size(), 0);
+        QCOMPARE_EQ(graph.numEdges(), 2);
+    }
 
-    graph.addFullStore();
+    {
+        OrgStore store;
+        Graph    graph{&store, nullptr};
 
-    QCOMPARE_EQ(r->subnodes.size(), 2);
-    QCOMPARE_EQ(graph.numNodes(), 2);
-    QCOMPARE_EQ(graph.numEdges(), 2);
-    QCOMPARE_EQ(graph.out_edges(store.getBox0({0})).size(), 1);
-    QCOMPARE_EQ(graph.in_edges(store.getBox0({0})).size(), 1);
-    QCOMPARE_EQ(graph.out_edges(store.getBox0({1})).size(), 1);
-    QCOMPARE_EQ(graph.in_edges(store.getBox0({1})).size(), 1);
+        store.addRoot(text);
+        auto r = store.getRoot(0);
+
+        QCOMPARE_EQ2(r->getBoxedNode()->getKind(), osk::Document);
+        QCOMPARE_EQ2(r->subnodes.size(), 2);
+        QCOMPARE_EQ2(r->at(0)->getBoxedNode()->getKind(), osk::Subtree);
+        QCOMPARE_EQ2(r->at(1)->getBoxedNode()->getKind(), osk::Subtree);
+
+        QCOMPARE_EQ2(r->at(0)->subnodes.size(), 1);
+        QCOMPARE_EQ2(r->at({0, 0})->getBoxedNode()->getKind(), osk::List);
+        QCOMPARE_EQ2(
+            r->at({0, 0, 0})->getBoxedNode()->getKind(), osk::ListItem);
+        QCOMPARE_EQ2(
+            r->at({0, 0, 0, 0})->getBoxedNode()->getKind(),
+            osk::Paragraph);
+
+        QCOMPARE_EQ2(r->at(1)->subnodes.size(), 1);
+        QCOMPARE_EQ2(r->at({1, 0})->getBoxedNode()->getKind(), osk::List);
+        QCOMPARE_EQ2(
+            r->at({1, 0, 0})->getBoxedNode()->getKind(), osk::ListItem);
+        QCOMPARE_EQ2(
+            r->at({1, 0, 0, 0})->getBoxedNode()->getKind(),
+            osk::Paragraph);
+
+        QVERIFY(graph.getNodeInsert(store.getBox0({0})).has_value());
+        QVERIFY(!graph.getNodeInsert(store.getBox0({0, 0})).has_value());
+        QVERIFY(
+            !graph.getNodeInsert(store.getBox0({0, 0, 0})).has_value());
+        QVERIFY(
+            !graph.getNodeInsert(store.getBox0({0, 0, 0, 0})).has_value());
+        QVERIFY(graph.getNodeInsert(store.getBox0({1})).has_value());
+        QVERIFY(!graph.getNodeInsert(store.getBox0({1, 0})).has_value());
+        QVERIFY(
+            !graph.getNodeInsert(store.getBox0({1, 0, 0})).has_value());
+        QVERIFY(
+            !graph.getNodeInsert(store.getBox0({1, 0, 0, 0})).has_value());
+
+        graph.addFullStore();
+
+        QCOMPARE_EQ2(r->subnodes.size(), 2);
+        QCOMPARE_EQ2(graph.numNodes(), 3);
+        QCOMPARE_EQ2(graph.numEdges(), 2);
+        QCOMPARE_EQ2(graph.out_edges(store.getBox0({0})).size(), 1);
+        QCOMPARE_EQ2(graph.in_edges(store.getBox0({0})).size(), 1);
+        QCOMPARE_EQ2(graph.out_edges(store.getBox0({1})).size(), 1);
+        QCOMPARE_EQ2(graph.in_edges(store.getBox0({1})).size(), 1);
+    }
 }
 
 Str getFullMindMapText() {
@@ -838,30 +884,30 @@ void TestMindMap::testFullMindMapGraph() {
     graph->toGraphviz();
 
     QCOMPARE_EQ2(graph->state.unresolved.size(), 1);
-    QCOMPARE_EQ2(store->node(r->id(0))->getKind(), osk::Subtree);
-    QCOMPARE_EQ2(store->node(r->id({0, 0}))->getKind(), osk::Subtree);
-    QCOMPARE_EQ2(store->node(r->id({0, 1}))->getKind(), osk::Subtree);
-    QCOMPARE_EQ2(store->node(r->id({0, 1, 0}))->getKind(), osk::Paragraph);
+    QCOMPARE_EQ2(store->getBoxedNode(r->id(0))->getKind(), osk::Subtree);
+    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 0}))->getKind(), osk::Subtree);
+    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1}))->getKind(), osk::Subtree);
+    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1, 0}))->getKind(), osk::Paragraph);
 
     // Description list with annotations for links
     // List itself is also a part of the node structure
-    QCOMPARE_EQ2(store->node(r->id({0, 1, 1}))->getKind(), osk::List);
+    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1, 1}))->getKind(), osk::List);
     // List contains one or more nested list items
     QCOMPARE_EQ2(
-        store->node(r->id({0, 1, 1, 0}))->getKind(), osk::ListItem);
+        store->getBoxedNode(r->id({0, 1, 1, 0}))->getKind(), osk::ListItem);
 
     // And then the list item is subdivided into individual paragraphs
     QCOMPARE_EQ2(
-        store->node(r->id({0, 1, 1, 0, 0}))->getKind(), osk::Paragraph);
+        store->getBoxedNode(r->id({0, 1, 1, 0, 0}))->getKind(), osk::Paragraph);
     QCOMPARE_EQ2(
-        store->node(r->id({0, 1, 1, 0, 1}))->getKind(), osk::Paragraph);
+        store->getBoxedNode(r->id({0, 1, 1, 0, 1}))->getKind(), osk::Paragraph);
 
-    QCOMPARE_EQ2(store->node(r->id({0, 1, 2}))->getKind(), osk::Paragraph);
+    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1, 2}))->getKind(), osk::Paragraph);
     QCOMPARE_EQ2(
-        store->node(r->id({0, 1, 3}))->getKind(), osk::AnnotatedParagraph);
+        store->getBoxedNode(r->id({0, 1, 3}))->getKind(), osk::AnnotatedParagraph);
     QCOMPARE_EQ2(
-        store->node(r->id({0, 1, 4}))->getKind(), osk::AnnotatedParagraph);
-    QCOMPARE_EQ2(store->node(r->id(1))->getKind(), osk::Subtree);
+        store->getBoxedNode(r->id({0, 1, 4}))->getKind(), osk::AnnotatedParagraph);
+    QCOMPARE_EQ2(store->getBoxedNode(r->id(1))->getKind(), osk::Subtree);
 
     // Link from the paragraph using `lines-20` to the footnote definition
     QVERIFY(graph->hasEdge(r->id({0, 1, 2}), r->id({0, 1, 3})));
@@ -1200,7 +1246,7 @@ Paragraph [[id:subtree-id]]
         {
             OrgBoxId paragraph_box = store.roots.at(0)->at(0)->boxId;
             QCOMPARE_EQ(
-                store.node(paragraph_box)->getKind(), osk::Paragraph);
+                store.getBoxedNode(paragraph_box)->getKind(), osk::Paragraph);
             auto new_text = sem::parseString("Paragraph without edge")
                                 ->at(0);
             QCOMPARE_EQ(new_text->getKind(), osk::Paragraph);

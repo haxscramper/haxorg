@@ -258,7 +258,7 @@ Func<ColText(const QModelIndex&)> store_index_printer(
     return [store, role](QModelIndex const& idx) -> ColText {
         OrgBoxId box = qvariant_cast<OrgBoxId>(idx.data(role));
         if (store->data.contains(box)) {
-            auto    node   = store->node(box);
+            auto    node   = store->getBoxedNode(box);
             ColText result = fmt("{}", node->getKind());
             if (node->is(OrgSemKind::Paragraph)) {
                 result.append(ColText{" '"});

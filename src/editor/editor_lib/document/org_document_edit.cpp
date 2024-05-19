@@ -14,7 +14,7 @@ OrgDocumentEdit::OrgDocumentEdit(
     if (model != nullptr) {
         filter             = new OrgDocumentSearchFilter(model, this);
         filter->acceptNode = [this, store](OrgBoxId id) -> bool {
-            return store->node(id)->getKind() != OrgSemKind::Newline;
+            return store->getBoxedNode(id)->getKind() != OrgSemKind::Newline;
         };
 
         setModel(filter);
@@ -70,7 +70,7 @@ void OrgEditItemDelegate::paint(
     QPainter*                   painter,
     const QStyleOptionViewItem& option,
     const QModelIndex&          index) const {
-    SPtr<QWidget> widget = make_render(store->node(box(index)));
+    SPtr<QWidget> widget = make_render(store->getBoxedNode(box(index)));
     if (widget) {
         draw(widget.get(), painter, option, index);
     } else {
@@ -87,7 +87,7 @@ void OrgEditItemDelegate::setEditorData(
     QWidget*           editor,
     const QModelIndex& index) const {
     OrgBoxId id   = qvariant_cast<OrgBoxId>(index.data(Qt::EditRole));
-    auto     node = store->node(id);
+    auto     node = store->getBoxedNode(id);
     switch (node->getKind()) {
         case OrgSemKind::Paragraph: {
             QTextEdit* edit = qobject_cast<QTextEdit*>(editor);
@@ -112,7 +112,7 @@ QSize OrgEditItemDelegate::sizeHint(
     const QStyleOptionViewItem& option,
     const QModelIndex&          index) const {
     if (index.isValid()) {
-        SPtr<QWidget> widget = make_render(store->node(box(index)));
+        SPtr<QWidget> widget = make_render(store->getBoxedNode(box(index)));
         return get_width_fit(widget.get(), parent());
     } else {
         return QStyledItemDelegate::sizeHint(option, index);

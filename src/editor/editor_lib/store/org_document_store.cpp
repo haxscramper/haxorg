@@ -2,16 +2,16 @@
 #include <hstd/stdlib/Enumerate.hpp>
 
 sem::SemId<sem::Org> OrgTreeNode::getBoxedNode() const {
-    return store->node(this->boxId);
+    return store->getBoxedNode(this->boxId);
 }
 
 sem::SemId<sem::Org> OrgTreeNode::toNode() const {
-    auto base = store->node(this->boxId);
+    auto base = store->getBoxedNode(this->boxId);
     if (NestedNodes.contains(base->getKind())) {
         auto result = copy(base);
         result->subnodes.clear();
         for (auto const& it : enumerator(subnodes)) {
-            auto it_node = store->node(it.value()->boxId);
+            auto it_node = store->getBoxedNode(it.value()->boxId);
             result->subnodes.push_back(it.value()->toNode());
             if (!it.is_last()) {
                 if (it_node->is(OrgSemKind::Paragraph)) {
@@ -29,7 +29,7 @@ sem::SemId<sem::Org> OrgTreeNode::toNode() const {
 
 
 void OrgTreeNode::buildTree(OrgTreeNode* parentNode) {
-    auto const& node                     = store->node(parentNode->boxId);
+    auto const& node                     = store->getBoxedNode(parentNode->boxId);
     store->nodeLookup[parentNode->boxId] = parentNode;
     if (NestedNodes.contains(node->getKind())) {
         for (auto& sub : node->subnodes) {
@@ -71,7 +71,7 @@ Vec<int> OrgTreeNode::selfPath() const {
 }
 
 sem::SemId<sem::Org> OrgStore::nodeWithoutNested(CR<OrgBoxId> id) const {
-    return nodeWithoutNested(node(id));
+    return nodeWithoutNested(getBoxedNode(id));
 }
 
 sem::SemId<sem::Org> OrgStore::nodeWithoutNested(

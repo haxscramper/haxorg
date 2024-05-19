@@ -36,7 +36,7 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
         rec_cluster =
             [&](QModelIndex const& index) -> Opt<GraphLayoutIR::Subgraph> {
             GraphIndex           cluster_index{index};
-            sem::SemId<sem::Org> node = store->node(
+            sem::SemId<sem::Org> node = store->getBoxedNode(
                 cluster_index.getBox());
 
             if (node->is(osk::Subtree)) {
@@ -49,7 +49,7 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
                 // should be visible.
                 rec_nodes = [&](QModelIndex const& i) {
                     GraphIndex sub{i};
-                    auto       sub_node = store->node(sub.getBox());
+                    auto       sub_node = store->getBoxedNode(sub.getBox());
                     auto       sub_desc = sub.getVDesc();
 
                     if (sub_node->is(osk::Subtree)) {
@@ -120,7 +120,7 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
             QModelIndex i = src->index(row, 0);
             GraphIndex  index{i};
             if (index.isNode()) {
-                if (auto node = store->node(index.getBox());
+                if (auto node = store->getBoxedNode(index.getBox());
                     node->is(osk::Subtree)
                     && node.as<sem::Subtree>()->level == 1) {
                     if (auto sub = rec_cluster(i)) {

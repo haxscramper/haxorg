@@ -250,9 +250,9 @@ struct Graph : public QAbstractListModel {
 
     OrgGraphNode& getNodeProp(VDesc desc) { return state.g[desc]; }
 
-    /// \brief Sem node from a graph vertex.
+    /// \brief Sem getBoxedNode from a graph vertex.
     sem::SemId<sem::Org> getNodeSem(VDesc desc) const {
-        return store->node(getNodeProp(desc).box);
+        return store->getBoxedNode(getNodeProp(desc).box);
     }
 
     OrgGraphEdge const& getEdgeProp(EDesc desc) const {

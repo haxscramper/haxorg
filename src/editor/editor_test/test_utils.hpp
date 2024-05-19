@@ -79,13 +79,13 @@ inline void add_file(
 inline sem::SemId<sem::Org> node(
     OrgStore*          store,
     QModelIndex const& index) {
-    return store->node(qvariant_cast<OrgBoxId>(index.data()));
+    return store->getBoxedNode(qvariant_cast<OrgBoxId>(index.data()));
 }
 
 inline sem::SemId<sem::Org> node(
     OrgStore*          store,
     OrgTreeNode const* tree) {
-    return store->node(tree->boxId);
+    return store->getBoxedNode(tree->boxId);
 }
 
 inline Str str(sem::OrgArg node) {

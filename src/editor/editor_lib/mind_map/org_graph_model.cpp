@@ -37,13 +37,14 @@ bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
         });
 }
 
-/// \brief Check if node is a description list. By design, having at least
-/// one description list item in the description list makes the whole list
-/// into a linked description as well.
+/// \brief Check if getBoxedNode is a description list. By design, having
+/// at least one description list item in the description list makes the
+/// whole list into a linked description as well.
 bool isLinkedDescriptionList(OrgStore* store, CR<OrgBoxId> box) {
-    return store->node(box)->is(osk::List)
+    return store->getBoxedNode(box)->is(osk::List)
         && rs::any_of(
-               store->node(box)->subnodes, [](sem::OrgArg arg) -> bool {
+               store->getBoxedNode(box)->subnodes,
+               [](sem::OrgArg arg) -> bool {
                    return isLinkedDescriptionItem(arg);
                });
 }
@@ -72,18 +73,15 @@ Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
             box,
             isLinkedDescriptionItem(store, box),
             isLinkedDescriptionList(store, box),
-            store->node(box)->original.id);
+            store->getBoxedNode(box)->original.id);
     }
 
     OrgGraphNode result{.box = box};
 
-    sem::SemId<sem::Org> n = store->node(box);
-    if (n->is(osk::Subtree)) {
-        sem::SemId<sem::Subtree> tree = n.as<sem::Subtree>();
+    sem::SemId<sem::Org> node = store->getBoxedNode(box);
+    if (auto tree = node.asOpt<sem::Subtree>()) {
         if (tree->treeId) { result.subtreeId = tree->treeId.value(); }
-    } else if (n->is(osk::AnnotatedParagraph)) {
-        sem::SemId<sem::AnnotatedParagraph>
-            par = n.as<sem::AnnotatedParagraph>();
+    } else if (auto par = node.asOpt<sem::AnnotatedParagraph>()) {
         if (par->getAnnotationKind()
             == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
             result.footnoteName = par->getFootnote().name;
@@ -108,34 +106,22 @@ Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
         }
     };
 
-    if (auto tree = n.asOpt<sem::Subtree>()) {
+    if (auto tree = node.asOpt<sem::Subtree>()) {
         // Description lists with links in header are attached as the
         // outgoing link to the parent subtree. It is the only supported
         // way to provide an extensive label between subtree edges.
         for (auto const& list : tree.subAs<sem::List>()) {
-            for (auto const& item : list->subnodes) {
-                if (isLinkedDescriptionItem(n)) {
-                    auto desc = n.as<sem::ListItem>();
-                    for (auto const& head :
-                         desc->header->subAs<sem::Link>()) {
+            for (auto const& item : list.subAs<sem::ListItem>()) {
+                if (isLinkedDescriptionItem(item.asOrg())) {
+                    for (auto const& link :
+                         item->header->subAs<sem::Link>()) {
                         // Description list header might contain
                         // non-link elements. These are ignored in the
                         // mind map.
-                        auto link = head.as<sem::Link>();
                         if (link->getLinkKind() != slk::Raw) {
                             auto description = sem::SemId<
                                 sem::StmtList>::New();
-                            description->subnodes = n->subnodes;
-                            auto parent_subtree   = store->parent(box)
-                                                      .value();
-                            while (!store->node(parent_subtree)
-                                        ->is(osk::Subtree)) {
-                                parent_subtree = store
-                                                     ->parent(
-                                                         parent_subtree)
-                                                     .value();
-                            }
-
+                            description->subnodes = item->subnodes;
                             Q_ASSERT(!link.isNil());
                             result.unresolved.push_back(GraphLink{
                                 .link        = link,
@@ -146,18 +132,18 @@ Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
                 }
             }
         }
-    } else if (!NestedNodes.contains(n->getKind())) {
-        sem::eachSubnodeRec(n, register_used_links);
+    } else if (!NestedNodes.contains(node->getKind())) {
+        sem::eachSubnodeRec(node, register_used_links);
     }
 
-    switch (n->getKind()) {
+    switch (node->getKind()) {
         case osk::Subtree: {
             result.kind = OrgGraphNode::Kind::Subtree;
             break;
         }
 
         case osk::AnnotatedParagraph: {
-            if (n.as<sem::AnnotatedParagraph>()->getAnnotationKind()
+            if (node.as<sem::AnnotatedParagraph>()->getAnnotationKind()
                 == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
                 result.kind = OrgGraphNode::Kind::Footnote;
             } else {
@@ -347,7 +333,7 @@ std::string Graph::toGraphviz() {
 QString Graph::getDisplayText(CR<QModelIndex> index) const {
     sem::SemId<sem::Org> display;
     if (isNode(index)) {
-        display = store->node(getBox(index.row()));
+        display = store->getBoxedNode(getBox(index.row()));
         switch (display->getKind()) {
             case osk::Document: {
                 if (auto title = display.as<sem::Document>()->title) {

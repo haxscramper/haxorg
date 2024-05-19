@@ -79,10 +79,10 @@ void TestEditorModel::testSubtreeEditing() {
         // store. This way it is still possible to access all the
         // previous building blocks of the document.
         QCOMPARE_EQ(
-            format(s->node(dfs_before.at(1))),
+            format(s->getBoxedNode(dfs_before.at(1))),
             "First paragraph in document");
         QCOMPARE_EQ(
-            format(s->node(dfs_after.at(1))),
+            format(s->getBoxedNode(dfs_after.at(1))),
             "your text here First paragraph in document");
     }
 

@@ -103,6 +103,21 @@ struct OrgTreeNode {
 
     sem::SemId<sem::Org> getBoxedNode() const;
 
+    template <typename T>
+    sem::SemId<T> getBoxedNodeAs() const {
+        return getBoxedNode().as<T>();
+    }
+
+    Vec<OrgTreeNode*> filterSubnodes(SemSet kind) {
+        Vec<OrgTreeNode*> result;
+        for (auto const& sub : subnodes) {
+            if (kind.contains(sub->getBoxedNode()->getKind())) {
+                result.push_back(sub.get());
+            }
+        }
+        return result;
+    }
+
     OrgTreeNode* at(int idx) { return subnodes.at(idx).get(); }
 
     OrgTreeNode* at(CVec<int> path) {
@@ -188,7 +203,7 @@ struct OrgStore : public QObject {
         }
     }
 
-    sem::SemId<sem::Org> node(CR<OrgBoxId> id) const {
+    sem::SemId<sem::Org> getBoxedNode(CR<OrgBoxId> id) const {
         return data.at(id).node();
     }
 
@@ -208,7 +223,7 @@ struct OrgStore : public QObject {
     /// new updated node to the store as well.
     template <typename T>
     OrgBoxId update(OrgBoxId prev, Func<void(T&)> replace) {
-        sem::SemId<sem::Org> node = copy(this->node(prev));
+        sem::SemId<sem::Org> node = copy(this->getBoxedNode(prev));
         replace(*node.getAs<T>());
         auto result = add(node);
         auto tree   = nodeLookup.at(prev);

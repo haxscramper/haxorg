@@ -275,7 +275,7 @@ struct OrgNodeItem : public OrgGraphElementItem {
         painter->restore();
 
         painter->save();
-        sem::SemId<sem::Org> node = store->node(getBox());
+        sem::SemId<sem::Org> node = store->getBoxedNode(getBox());
         if (node->is(osk::AnnotatedParagraph)) {
             auto ap = node.as<sem::AnnotatedParagraph>();
             if (ap->getAnnotationKind()
