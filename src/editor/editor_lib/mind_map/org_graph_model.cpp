@@ -190,6 +190,14 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     Graph::ResolveResult result;
     result.node = edit;
     result.node.unresolved.clear();
+    Q_ASSERT_X(
+        !unresolved.contains(edit.box),
+        "get unresolved",
+        fmt("Node edit has with unresolved elements is already listed as "
+            "unresolved node: box is {}",
+            edit.box));
+
+    if (debug) { _qfmt("unresolved:{}", unresolved); }
 
     for (auto const& it : edit.unresolved) {
         Opt<ResolvedLink> resolved_edit = getResolveTarget(edit.box, it);
@@ -202,10 +210,17 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     }
 
     for (auto const& it : unresolved) {
+        Q_ASSERT(it != edit.box);
         for (auto const& link : g[boxToVertex.at(it)].unresolved) {
             Opt<ResolvedLink> resolved_edit = getResolveTarget(it, link);
             if (resolved_edit) {
-                if (debug) { _qfmt("resolved:{}", *resolved_edit); }
+                if (debug) {
+                    _qfmt(
+                        "resolved:{} it:{} edit:{}",
+                        *resolved_edit,
+                        it,
+                        edit.box);
+                }
                 result.resolved.push_back(*resolved_edit);
             }
         }
@@ -243,6 +258,15 @@ Opt<Graph::ResolvedLink> Graph::State::getResolveTarget(
     CR<GraphLink> it) const {
 
     Opt<Graph::ResolvedLink> result;
+
+    if (debug) {
+        _qfmt(
+            "subtreeIds:{} footnoteTargets:{} source:{} link:{}",
+            subtreeIds,
+            footnoteTargets,
+            source,
+            ::debug(it.link.asOrg()));
+    }
 
     auto add_edge = [&](OrgGraphEdge::Kind kind, OrgBoxId target) {
         Q_ASSERT(!it.link.isNil());

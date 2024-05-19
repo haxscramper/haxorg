@@ -247,6 +247,9 @@ struct Graph : public QAbstractListModel {
     }
 
     OrgGraphEdge& getEdgeProp(EDesc desc) { return state.g[desc]; }
+    OrgGraphEdge& getEdgeProp(CR<OrgBoxId> source, CR<OrgBoxId> target) {
+        return getEdgeProp(out_edges(source, target).at(0));
+    }
 
     OrgGraphNode& getNodeProp(VDesc desc) { return state.g[desc]; }
 

@@ -1230,8 +1230,7 @@ void TestMindMap::testMindMapNodeAdd1() {
 void TestMindMap::testMindMapNodeAddRemoveAdd() {
     OrgStore store;
     Graph    graph{&store, nullptr};
-
-    Str text{R"(
+    Str      text{R"(
 * Subtree1
   :properties:
   :id: subtree-1
@@ -1261,7 +1260,14 @@ void TestMindMap::testMindMapNodeAddRemoveAdd() {
     QCOMPARE_EQ(graph.state.nodes.size(), 1);
     QCOMPARE_EQ(graph.state.edges.size(), 0);
 
-    graph.addBox(b1);
+
+    { // pre-existing mappings should have stable vertex IDs so old boxes
+      // would point to the same graph elements/properties
+        auto v0 = graph.getBoxDesc(b0);
+        graph.addBox(b1);
+        QCOMPARE_EQ(v0, graph.getBoxDesc(b0));
+    }
+
     QCOMPARE_EQ(graph.numNodes(), 2);
     QCOMPARE_EQ(graph.numEdges(), 2);
     QCOMPARE_EQ(graph.getNodeProp(b1).unresolved.size(), 0);
@@ -1272,24 +1278,63 @@ void TestMindMap::testMindMapNodeAddRemoveAdd() {
     QCOMPARE_EQ(graph.state.nodes.size(), 2);
     QCOMPARE_EQ(graph.state.edges.size(), 2);
 
+    // adding second box closes all unresolved state for all nodes
     QVERIFY(!graph.state.unresolved.contains(b1));
     QVERIFY(!graph.state.unresolved.contains(b0));
 
+    QCOMPARE_EQ(
+        graph.getEdgeProp(b0, b1).link.link->getId().text, "subtree-2");
+    QCOMPARE_EQ(
+        graph.getEdgeProp(b1, b0).link.link->getId().text, "subtree-1");
+
     graph.deleteBox(b0);
+    // Deleting box removes a node and all associated in/out edges.
     QCOMPARE_EQ(graph.numNodes(), 1);
     QCOMPARE_EQ(graph.numEdges(), 0);
     QCOMPARE_EQ(graph.state.nodes.size(), 1);
     QCOMPARE_EQ(graph.state.edges.size(), 0);
+    // Node pointing back to the subtree-1 is now unresolved again
     QCOMPARE_EQ(graph.getNodeProp(b1).unresolved.size(), 1);
+    // Details about unresolved link are put in the graph property, box ID
+    // is also stored in the full unresolved list.
     QCOMPARE_EQ(graph.state.unresolved.size(), 1);
     QVERIFY(graph.state.unresolved.contains(b1));
     QVERIFY(!graph.state.unresolved.contains(b0));
 
+    // moving link from resolved back to unresolved should not mess up
+    // ordering etc.
+    QCOMPARE_EQ(
+        graph.getNodeProp(b1).unresolved.at(0).link->getId().text,
+        "subtree-1");
 
+    // Box->vertex mapping is updated.
     QVERIFY(!graph.state.boxToVertex.contains(b0));
     QVERIFY(graph.state.boxToVertex.contains(b1));
-    graph.state.debug = true;
 
+    { // NOTE: This test is an example of clunkiness of the current design.
+      // There is no clean way to dry run the node insertion with the
+      // information node itself provides. `addBox` will insert all the
+      // required elements and then it will resolve all targets.
+
+        auto n0 = graph.getNodeInsert(b0);
+        QCOMPARE_EQ(n0->unresolved.size(), 1);
+        QCOMPARE_EQ(n0->unresolved.at(0).link->getId().text, "subtree-2");
+
+        // Dry run of the data insertion with unchanged graph mappings
+        auto n0_edit = graph.state.getUnresolvedEdits(n0.value());
+        // Subtree1 has one unresolved link that will find the subtree-2
+        // target
+        QCOMPARE_EQ(n0_edit.node.unresolved.size(), 0);
+        QCOMPARE_EQ(n0_edit.resolved.size(), 1);
+        auto n0_link = n0_edit.resolved.at(0);
+        // Getting edits does not change the existing unresolved state
+        QCOMPARE_EQ(graph.state.unresolved.size(), 1);
+        QCOMPARE_EQ2(n0_link.source, b0);
+        QCOMPARE_EQ2(n0_link.target, b1);
+        QCOMPARE_EQ(n0_link.link.link->getId().text, "subtree-2");
+    }
+
+    graph.state.debug = true;
     graph.addBox(b0);
     QCOMPARE_EQ(graph.state.nodes.size(), 2);
     QCOMPARE_EQ(graph.state.edges.size(), 2);

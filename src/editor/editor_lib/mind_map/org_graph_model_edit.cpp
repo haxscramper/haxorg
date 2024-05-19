@@ -38,9 +38,12 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
     OrgGraphNode const& edit) {
     GraphStructureUpdate result;
     VDesc                v = boost::add_vertex(g);
+    if (debug) { _qfmt("unresolved:{}", unresolved); }
     nodes.push_back(v);
     g[v] = edit;
     Q_ASSERT(!boxToVertex.contains(edit.box));
+    Q_ASSERT(!unresolved.contains(edit.box));
+
     boxToVertex[edit.box] = v;
     result.added_nodes.push_back(v);
 
@@ -71,7 +74,11 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
             _qfmt("<<- updated unresolved {}", ::debug(u.link.asOrg()));
         }
         for (auto const& u : updated_resolve.resolved) {
-            _qfmt("<<+ updated resolved {}", ::debug(u.link.link.asOrg()));
+            _qfmt(
+                "<<+ updated resolved {} {}->{}",
+                ::debug(u.link.link.asOrg()),
+                u.source,
+                u.target);
         }
     }
 
@@ -118,12 +125,23 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
                 (boost::source(*it, g) != source),
                 "duplicate edge",
                 fmt("There is already a link between {} and {} (vertex "
-                    "{}-{}), graph cannot contain duplicate edges",
+                    "{}-{}), graph cannot contain duplicate edges op:{}",
                     op.source,
                     op.target,
                     source,
-                    target));
+                    target,
+                    op));
         }
+
+        if (debug) {
+            _qfmt(
+                "add edge {}-{} (vertex {}-{})",
+                op.source,
+                op.target,
+                source,
+                target);
+        }
+
         auto [e, added] = boost::add_edge(source, target, g);
 
         edges.push_back(e);
@@ -145,6 +163,8 @@ Graph::GraphStructureUpdate Graph::State::delMutation(
         for (auto [ei, ei_end] = boost::in_edges(vertex, g); ei != ei_end;
              ++ei) {
             auto source = boost::source(*ei, g);
+            auto target = boost::target(*ei, g);
+            Q_ASSERT(g[target].box == edit.box);
             g[source].unresolved.push_back(g[*ei].link);
             result.removed_edges.push_back(*ei);
             unresolved.incl(g[source].box);
