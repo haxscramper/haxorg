@@ -1481,5 +1481,7 @@ Paragraph [[id:subtree-id]]
     QCOMPARE_EQ(rows.size(), 1);
     QCOMPARE_EQ(rows.at(0).first, 0);
     QCOMPARE_EQ(rows.at(0).last, 0);
-    // for (auto const& q : list.records) { _qfmt("-> {}", q); }
+    for (auto const& q : list.records) {
+        _qfmt("-> {} {}", q.getKind(), q);
+    }
 }

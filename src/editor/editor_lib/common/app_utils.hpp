@@ -88,6 +88,7 @@ Str debug(sem::OrgArg);
         }                                                                 \
     };
 
+
 struct model_role_not_implemented
     : public CRTP_hexception<model_role_not_implemented> {
     QAbstractItemModel const* model;
@@ -112,6 +113,23 @@ inline QDebug operator<<(QDebug debug, E const& str) {
     debug.nospace() << enum_serde<E>::to_string(str);
     return debug.space();
 }
+
+
+DECL_QDEBUG_FORMATTER(QModelIndex);
+DECL_QDEBUG_FORMATTER(QPersistentModelIndex);
+
+template <typename T>
+struct std::formatter<QList<T>> : std::formatter<std::string> {
+    using FmtType = QList<T>;
+    template <typename FormatContext>
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("[", ctx);
+        fmt.format(join(", ", p), ctx);
+        return fmt.format("]", ctx);
+    }
+};
 
 
 QModelIndex mapToNestedSource(QModelIndex const& index);

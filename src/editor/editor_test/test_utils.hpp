@@ -479,6 +479,7 @@ class AbstractItemModelSignalListener : public QObject {
             ColumnsMoved);
 
         Data data;
+        DESC_FIELDS(Record, (data));
     };
 
     template <typename T>
