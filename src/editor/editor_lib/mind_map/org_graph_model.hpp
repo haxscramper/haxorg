@@ -335,6 +335,8 @@ struct Graph : public QAbstractListModel {
     };
 
     struct State {
+        bool debug = false;
+
         OrgStore*                     store;
         BoostBase                     g;
         UnorderedMap<OrgBoxId, VDesc> boxToVertex;

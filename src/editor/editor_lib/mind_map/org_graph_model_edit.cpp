@@ -56,22 +56,25 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
 
 
     ResolveResult updated_resolve = getUnresolvedEdits(edit);
-    _qfmt(
-        "v:{} g[v]:{} edit:{} updated:{}",
-        v,
-        g[v].unresolved,
-        edit.unresolved,
-        updated_resolve.node.unresolved);
+    if (debug) {
+        _qfmt(
+            "v:{} g[v]:{} edit:{} updated:{}",
+            v,
+            g[v].unresolved,
+            edit.unresolved,
+            updated_resolve.node.unresolved);
 
-    for (auto const& u : g[v].unresolved) {
-        _qfmt(">> g[v] unresolved {}", debug(u.link.asOrg()));
+        for (auto const& u : g[v].unresolved) {
+            _qfmt(">> g[v] unresolved {}", ::debug(u.link.asOrg()));
+        }
+        for (auto const& u : updated_resolve.node.unresolved) {
+            _qfmt("<<- updated unresolved {}", ::debug(u.link.asOrg()));
+        }
+        for (auto const& u : updated_resolve.resolved) {
+            _qfmt("<<+ updated resolved {}", ::debug(u.link.link.asOrg()));
+        }
     }
-    for (auto const& u : updated_resolve.node.unresolved) {
-        _qfmt("<<- updated unresolved {}", debug(u.link.asOrg()));
-    }
-    for (auto const& u : updated_resolve.resolved) {
-        _qfmt("<<+ updated resolved {}", debug(u.link.link.asOrg()));
-    }
+
     g[v] = updated_resolve.node;
 
     if (g[v].unresolved.empty()) {

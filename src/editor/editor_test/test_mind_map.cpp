@@ -454,7 +454,6 @@ Paragraph [[id:subtree-id]]
         // First time paragraph is added to the graph it has an unresolved
         // outgoing link
         auto paragraph_edits = graph.getNodeInsert(store.getBox0({0}));
-        qDebug().noquote() << fmt1(paragraph_edits);
 
         // The tree has no links, but has a single subtree ID.
         auto subtree_edits1 = graph.getNodeInsert(store.getBox0({1}));
@@ -507,7 +506,6 @@ Paragraph [fn:target]
     QCOMPARE_EQ(r->subnodes.size(), 2);
     QCOMPARE_EQ(graph->numNodes(), 3);
     QVERIFY(graph->state.unresolved.empty());
-    qDebug().noquote() << graph->toGraphviz();
     QVERIFY(graph->hasEdge(r->id(0), r->id(1)));
 }
 
@@ -637,6 +635,96 @@ Paragraph [fn:target1] [fn:target2]
         QCOMPARE_EQ(graph.out_edges(s.getBox0({1})).size(), 2);
         QCOMPARE_EQ(graph.in_edges(s.getBox0({2})).size(), 1);
     }
+}
+
+void TestMindMap::testGraphConstructionSubtree_description_lists() {
+    Str      text{R"(
+* Subtree1
+  :properties:
+  :id: subtree-1
+  :end:
+
+- [[id:subtree-2]] :: Forward link
+
+* Subtree2
+  :properties:
+  :id: subtree-2
+  :end:
+
+- [[id:subtree-1]] :: Backlink
+
+)"};
+    OrgStore store;
+    Graph    graph{&store, nullptr};
+    graph.state.debug = true;
+    store.addRoot(text);
+
+    auto r = store.getRoot(0);
+
+    writeFile(
+        "/tmp/testGraphConstructionSubtree_description_lists.txt",
+        ExporterTree::treeRepr(store.node(r->boxId)).toString(false));
+
+    auto count = [](this auto&&  self,
+                    OrgTreeNode* node) -> Vec<sem::SemId<sem::Org>> {
+        Vec<sem::SemId<sem::Org>> result{node->boxedNode()};
+        for (auto const& sub : node->subnodes) {
+            result.append(self(sub.get()));
+        }
+        return result;
+    };
+
+    {
+        // List items and paragraphs are stored as separate boxed nodes.
+        auto res = count(r);
+        QCOMPARE_EQ2(res.at(0)->getKind(), osk::Document);
+        QCOMPARE_EQ2(res.at(1)->getKind(), osk::Subtree);
+        QCOMPARE_EQ2(res.at(2)->getKind(), osk::List);
+        QCOMPARE_EQ2(res.at(3)->getKind(), osk::ListItem);
+        QCOMPARE_EQ2(res.at(4)->getKind(), osk::Paragraph);
+        QCOMPARE_EQ2(res.at(5)->getKind(), osk::Subtree);
+        QCOMPARE_EQ2(res.at(6)->getKind(), osk::List);
+        QCOMPARE_EQ2(res.at(7)->getKind(), osk::ListItem);
+        QCOMPARE_EQ2(res.at(8)->getKind(), osk::Paragraph);
+
+        QCOMPARE_EQ(res.size(), 9);
+    }
+
+    QCOMPARE_EQ(r->boxedNode()->getKind(), osk::Document);
+    QCOMPARE_EQ(r->subnodes.size(), 2);
+    QCOMPARE_EQ(r->at(0)->boxedNode()->getKind(), osk::Subtree);
+    QCOMPARE_EQ(r->at(1)->boxedNode()->getKind(), osk::Subtree);
+
+    QCOMPARE_EQ(r->at(0)->subnodes.size(), 1);
+    QCOMPARE_EQ(r->at({0, 0})->boxedNode()->getKind(), osk::List);
+    QCOMPARE_EQ(r->at({0, 0, 0})->boxedNode()->getKind(), osk::ListItem);
+
+    QCOMPARE_EQ(r->at(1)->subnodes.size(), 1);
+    QCOMPARE_EQ(r->at({1, 0})->boxedNode()->getKind(), osk::List);
+    QCOMPARE_EQ(r->at({2, 0, 0})->boxedNode()->getKind(), osk::ListItem);
+
+
+    auto n0 = graph.getNodeInsert(store.getBox0({0}));
+    QVERIFY(n0.has_value());
+
+    auto n1 = graph.getNodeInsert(store.getBox0({0, 0}));
+    QVERIFY(!n1.has_value());
+
+    auto n2 = graph.getNodeInsert(store.getBox0({1}));
+    QVERIFY(n2.has_value());
+
+    auto n3 = graph.getNodeInsert(store.getBox0({1, 0}));
+    QVERIFY(!n3.has_value());
+
+    graph.addFullStore();
+
+    QCOMPARE_EQ(r->subnodes.size(), 2);
+    QCOMPARE_EQ(graph.numNodes(), 2);
+    QCOMPARE_EQ(graph.numEdges(), 2);
+    QCOMPARE_EQ(graph.out_edges(store.getBox0({0})).size(), 1);
+    QCOMPARE_EQ(graph.in_edges(store.getBox0({0})).size(), 1);
+    QCOMPARE_EQ(graph.out_edges(store.getBox0({1})).size(), 1);
+    QCOMPARE_EQ(graph.in_edges(store.getBox0({1})).size(), 1);
 }
 
 Str getFullMindMapText() {

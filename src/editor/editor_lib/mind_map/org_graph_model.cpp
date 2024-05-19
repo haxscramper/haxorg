@@ -8,6 +8,7 @@
 #include <editor/editor_lib/document/org_document_render.hpp>
 #include <editor/editor_lib/store/org_exporter_html.hpp>
 #include <hstd/stdlib/Set.hpp>
+#include <exporters/exportertree.hpp>
 
 #pragma clang diagnostic error "-Wswitch"
 
@@ -36,11 +37,32 @@ bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
         });
 }
 
+bool isLinkedDescriptionList(OrgStore* store, CR<OrgBoxId> box) {
+    return store->node(box)->is(osk::List)
+        && rs::any_of(
+               store->node(box)->subnodes, [](sem::OrgArg arg) -> bool {
+                   return isLinkedDescriptionItem(arg);
+               });
+}
+
 Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
-    if (isLinkedDescriptionItem(store, box)) { return std::nullopt; }
+    if (isLinkedDescriptionItem(store, box)
+        || isLinkedDescriptionList(store, box)) {
+        return std::nullopt;
+    }
+
+    if (state.debug) {
+        _qfmt(
+            "box:{} desc-item:{} desc-list:{} ID:{}",
+            box,
+            isLinkedDescriptionItem(store, box),
+            isLinkedDescriptionList(store, box),
+            store->node(box)->original.id);
+    }
+
     OrgGraphNode result{.box = box};
 
     sem::SemId<sem::Org> n = store->node(box);
@@ -156,7 +178,9 @@ Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
         }
     }
 
-    _qfmt("box:{} unresolved:{}", box, result.unresolved);
+    if (state.debug) {
+        _qfmt("box:{} unresolved:{}", box, result.unresolved);
+    }
 
     return result;
 }
@@ -170,7 +194,7 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
     for (auto const& it : edit.unresolved) {
         Opt<ResolvedLink> resolved_edit = getResolveTarget(edit.box, it);
         if (resolved_edit) {
-            _qfmt("resolved:{}", *resolved_edit);
+            if (debug) { _qfmt("resolved:{}", *resolved_edit); }
             result.resolved.push_back(*resolved_edit);
         } else {
             result.node.unresolved.push_back(it);
@@ -181,17 +205,19 @@ Graph::ResolveResult Graph::State::getUnresolvedEdits(
         for (auto const& link : g[boxToVertex.at(it)].unresolved) {
             Opt<ResolvedLink> resolved_edit = getResolveTarget(it, link);
             if (resolved_edit) {
-                _qfmt("resolved:{}", *resolved_edit);
+                if (debug) { _qfmt("resolved:{}", *resolved_edit); }
                 result.resolved.push_back(*resolved_edit);
             }
         }
     }
 
-    _qfmt(
-        "box:{} resolved:{} unresolved:{}",
-        edit.box,
-        result.resolved,
-        result.node.unresolved);
+    if (debug) {
+        _qfmt(
+            "box:{} resolved:{} unresolved:{}",
+            edit.box,
+            result.resolved,
+            result.node.unresolved);
+    }
 
     for (auto const& r1 : result.resolved) {
         int count = 0;
