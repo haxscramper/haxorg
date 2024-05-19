@@ -1227,6 +1227,79 @@ void TestMindMap::testMindMapNodeAdd1() {
     QCOMPARE_EQ(graph_spy.count(), 3);
 }
 
+void TestMindMap::testMindMapNodeAddRemoveAdd() {
+    OrgStore store;
+    Graph    graph{&store, nullptr};
+
+    Str text{R"(
+* Subtree1
+  :properties:
+  :id: subtree-1
+  :end:
+
+- [[id:subtree-2]] :: Forward link
+
+* Subtree2
+  :properties:
+  :id: subtree-2
+  :end:
+
+- [[id:subtree-1]] :: Backlink
+
+)"};
+
+    store.addRoot(text);
+
+    auto b0 = store.getBox0({0});
+    auto b1 = store.getBox0({1});
+
+    graph.addBox(b0);
+    QCOMPARE_EQ(graph.numNodes(), 1);
+    QCOMPARE_EQ(graph.numEdges(), 0);
+    QCOMPARE_EQ(graph.getNodeProp(b0).unresolved.size(), 1);
+    QVERIFY(graph.state.unresolved.contains(b0));
+    QCOMPARE_EQ(graph.state.nodes.size(), 1);
+    QCOMPARE_EQ(graph.state.edges.size(), 0);
+
+    graph.addBox(b1);
+    QCOMPARE_EQ(graph.numNodes(), 2);
+    QCOMPARE_EQ(graph.numEdges(), 2);
+    QCOMPARE_EQ(graph.getNodeProp(b1).unresolved.size(), 0);
+    QCOMPARE_EQ(graph.getNodeProp(b0).unresolved.size(), 0);
+    QCOMPARE_EQ(graph.in_edges(b0).size(), 1);
+    QCOMPARE_EQ(graph.in_edges(b1).size(), 1);
+    QCOMPARE_EQ(graph.state.unresolved.size(), 0);
+    QCOMPARE_EQ(graph.state.nodes.size(), 2);
+    QCOMPARE_EQ(graph.state.edges.size(), 2);
+
+    QVERIFY(!graph.state.unresolved.contains(b1));
+    QVERIFY(!graph.state.unresolved.contains(b0));
+
+    graph.deleteBox(b0);
+    QCOMPARE_EQ(graph.numNodes(), 1);
+    QCOMPARE_EQ(graph.numEdges(), 0);
+    QCOMPARE_EQ(graph.state.nodes.size(), 1);
+    QCOMPARE_EQ(graph.state.edges.size(), 0);
+    QCOMPARE_EQ(graph.getNodeProp(b1).unresolved.size(), 1);
+    QCOMPARE_EQ(graph.state.unresolved.size(), 1);
+    QVERIFY(graph.state.unresolved.contains(b1));
+    QVERIFY(!graph.state.unresolved.contains(b0));
+
+
+    QVERIFY(!graph.state.boxToVertex.contains(b0));
+    QVERIFY(graph.state.boxToVertex.contains(b1));
+    graph.state.debug = true;
+
+    graph.addBox(b0);
+    QCOMPARE_EQ(graph.state.nodes.size(), 2);
+    QCOMPARE_EQ(graph.state.edges.size(), 2);
+    QCOMPARE_EQ(graph.numNodes(), 2);
+    QCOMPARE_EQ(graph.numEdges(), 2);
+    QCOMPARE_EQ(graph.getNodeProp(b1).unresolved.size(), 0);
+    QCOMPARE_EQ(graph.getNodeProp(b0).unresolved.size(), 0);
+    QCOMPARE_EQ(graph.state.unresolved.size(), 0);
+}
+
 void TestMindMap::testMindMapSignals1() {
     OrgStore store;
     Graph    graph{&store, nullptr};

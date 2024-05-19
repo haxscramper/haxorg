@@ -144,14 +144,16 @@ Graph::GraphStructureUpdate Graph::State::delMutation(
     if (it != nodes.end()) {
         for (auto [ei, ei_end] = boost::in_edges(vertex, g); ei != ei_end;
              ++ei) {
+            auto source = boost::source(*ei, g);
+            g[source].unresolved.push_back(g[*ei].link);
             result.removed_edges.push_back(*ei);
+            unresolved.incl(g[source].box);
         }
 
         for (auto [ei, ei_end] = boost::out_edges(vertex, g); ei != ei_end;
              ++ei) {
             result.removed_edges.push_back(*ei);
         }
-
 
         nodes.erase(it);
     }
@@ -160,5 +162,11 @@ Graph::GraphStructureUpdate Graph::State::delMutation(
     boost::remove_vertex(*it, g);
 
     rebuildEdges();
+    boxToVertex.erase(edit.box);
+
+    if (unresolved.contains(edit.box)) { unresolved.excl(edit.box); }
+    if (edit.subtreeId) { subtreeIds.erase(*edit.subtreeId); }
+    if (edit.footnoteName) { footnoteTargets.erase(*edit.footnoteName); }
+
     return result;
 }
