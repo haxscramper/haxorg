@@ -31,12 +31,15 @@ bool isLinkedDescriptionItem(OrgStore* store, CR<OrgBoxId> box) {
     // item, ignore the entry as it has already been added as a part of the
     // link descripion.
     return rs::any_of(
-        store->getOrgTree(box)->parentChain(/*withSelf = */ false),
+        store->getOrgTree(box)->getParentChain(/*withSelf = */ false),
         [](OrgTreeNode* parent) -> bool {
-            return isLinkedDescriptionItem(parent->boxedNode());
+            return isLinkedDescriptionItem(parent->getBoxedNode());
         });
 }
 
+/// \brief Check if node is a description list. By design, having at least
+/// one description list item in the description list makes the whole list
+/// into a linked description as well.
 bool isLinkedDescriptionList(OrgStore* store, CR<OrgBoxId> box) {
     return store->node(box)->is(osk::List)
         && rs::any_of(
@@ -45,11 +48,20 @@ bool isLinkedDescriptionList(OrgStore* store, CR<OrgBoxId> box) {
                });
 }
 
+/// \brief Check if a node is placed in the description list item or *is* a
+/// description list item.
+bool isInLinkedDescriptionList(OrgStore* store, CR<OrgBoxId> box) {
+    return rs::any_of(
+        store->getOrgTree(box)->getParentChain(), [](OrgTreeNode* tree) {
+            return isLinkedDescriptionItem(tree->getBoxedNode());
+        });
+}
+
 Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
-    if (isLinkedDescriptionItem(store, box)
+    if (isInLinkedDescriptionList(store, box)
         || isLinkedDescriptionList(store, box)) {
         return std::nullopt;
     }

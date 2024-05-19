@@ -1,7 +1,7 @@
 #include <editor/editor_lib/store/org_document_store.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 
-sem::SemId<sem::Org> OrgTreeNode::boxedNode() const {
+sem::SemId<sem::Org> OrgTreeNode::getBoxedNode() const {
     return store->node(this->boxId);
 }
 

@@ -667,7 +667,7 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
 
     auto count = [](this auto&&  self,
                     OrgTreeNode* node) -> Vec<sem::SemId<sem::Org>> {
-        Vec<sem::SemId<sem::Org>> result{node->boxedNode()};
+        Vec<sem::SemId<sem::Org>> result{node->getBoxedNode()};
         for (auto const& sub : node->subnodes) {
             result.append(self(sub.get()));
         }
@@ -690,31 +690,28 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
         QCOMPARE_EQ(res.size(), 9);
     }
 
-    QCOMPARE_EQ(r->boxedNode()->getKind(), osk::Document);
+    QCOMPARE_EQ(r->getBoxedNode()->getKind(), osk::Document);
     QCOMPARE_EQ(r->subnodes.size(), 2);
-    QCOMPARE_EQ(r->at(0)->boxedNode()->getKind(), osk::Subtree);
-    QCOMPARE_EQ(r->at(1)->boxedNode()->getKind(), osk::Subtree);
+    QCOMPARE_EQ(r->at(0)->getBoxedNode()->getKind(), osk::Subtree);
+    QCOMPARE_EQ(r->at(1)->getBoxedNode()->getKind(), osk::Subtree);
 
     QCOMPARE_EQ(r->at(0)->subnodes.size(), 1);
-    QCOMPARE_EQ(r->at({0, 0})->boxedNode()->getKind(), osk::List);
-    QCOMPARE_EQ(r->at({0, 0, 0})->boxedNode()->getKind(), osk::ListItem);
+    QCOMPARE_EQ(r->at({0, 0})->getBoxedNode()->getKind(), osk::List);
+    QCOMPARE_EQ(
+        r->at({0, 0, 0})->getBoxedNode()->getKind(), osk::ListItem);
 
     QCOMPARE_EQ(r->at(1)->subnodes.size(), 1);
-    QCOMPARE_EQ(r->at({1, 0})->boxedNode()->getKind(), osk::List);
-    QCOMPARE_EQ(r->at({2, 0, 0})->boxedNode()->getKind(), osk::ListItem);
+    QCOMPARE_EQ(r->at({1, 0})->getBoxedNode()->getKind(), osk::List);
+    QCOMPARE_EQ(
+        r->at({1, 0, 0})->getBoxedNode()->getKind(), osk::ListItem);
 
 
-    auto n0 = graph.getNodeInsert(store.getBox0({0}));
-    QVERIFY(n0.has_value());
-
-    auto n1 = graph.getNodeInsert(store.getBox0({0, 0}));
-    QVERIFY(!n1.has_value());
-
-    auto n2 = graph.getNodeInsert(store.getBox0({1}));
-    QVERIFY(n2.has_value());
-
-    auto n3 = graph.getNodeInsert(store.getBox0({1, 0}));
-    QVERIFY(!n3.has_value());
+    QVERIFY(!graph.getNodeInsert(store.getBox0({0})).has_value());
+    QVERIFY(!graph.getNodeInsert(store.getBox0({0, 0})).has_value());
+    QVERIFY(!graph.getNodeInsert(store.getBox0({0, 0, 0})).has_value());
+    QVERIFY(!graph.getNodeInsert(store.getBox0({1})).has_value());
+    QVERIFY(!graph.getNodeInsert(store.getBox0({1, 0})).has_value());
+    QVERIFY(!graph.getNodeInsert(store.getBox0({1, 0, 0})).has_value());
 
     graph.addFullStore();
 

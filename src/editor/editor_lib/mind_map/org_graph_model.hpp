@@ -385,6 +385,10 @@ struct Graph : public QAbstractListModel {
 
     State state;
 
+    /// \brief Compute an IR reprensetation of the box ID associated with a
+    /// node if it should be inserted in a graph. Return nullopt if a node
+    /// does not have a direct representation in the graph (description
+    /// list item or elements nested in it etc.)
     Opt<OrgGraphNode> getNodeInsert(CR<OrgBoxId> box) const;
 
 

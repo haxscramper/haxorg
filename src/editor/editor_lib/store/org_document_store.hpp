@@ -21,7 +21,7 @@ struct OrgBox {
 struct OrgBoxId {
     int      value = 0;
     OrgBoxId next() const { return OrgBoxId{value + 1}; }
-    OrgBoxId(int value = 0) : value(value){};
+    OrgBoxId(int value = 0) : value(value) {};
 
     bool operator==(OrgBoxId const& other) const {
         return this->value == other.value;
@@ -85,7 +85,7 @@ struct OrgTreeNode {
         OrgTreeNode* pParent = nullptr)
         : boxId(id), parent(pParent), store(store) {}
 
-    Vec<OrgTreeNode*> parentChain(bool withSelf = true) {
+    Vec<OrgTreeNode*> getParentChain(bool withSelf = true) {
         OrgTreeNode*      tmp = this;
         Vec<OrgTreeNode*> result;
         while (tmp->parent != nullptr) {
@@ -101,7 +101,7 @@ struct OrgTreeNode {
         return result;
     }
 
-    sem::SemId<sem::Org> boxedNode() const;
+    sem::SemId<sem::Org> getBoxedNode() const;
 
     OrgTreeNode* at(int idx) { return subnodes.at(idx).get(); }
 
