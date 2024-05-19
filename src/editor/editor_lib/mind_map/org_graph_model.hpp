@@ -416,10 +416,10 @@ struct Graph : public QAbstractListModel {
     }
 
     void deleteBox(CR<OrgBoxId> deleted) {
-        auto edits = getNodeInsert(deleted);
-        if (edits) {
+        if (state.boxToVertex.contains(deleted)) {
+            auto v = state.boxToVertex.at(deleted);
             beginInsertRows(QModelIndex(), rowCount(), rowCount());
-            auto upd = state.delMutation(edits.value());
+            auto upd = state.delMutation(state.g[v]);
             endInsertRows();
             emitChanges(upd);
         }
