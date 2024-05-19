@@ -138,6 +138,14 @@ void to_json(json& j, Action const& in) {
 }
 
 
+void to_json(json& j, org::mind_map::EDesc const& d) {
+    to_json(j, fmt1(d));
+}
+
+void to_json(json& j, org::mind_map::VDesc const& d) {
+    to_json(j, fmt1(d));
+}
+
 ModelDumpIr dumpModelTree(
     QAbstractItemModel*         model,
     const QModelIndex&          parent,
@@ -174,7 +182,7 @@ ModelDumpIr dumpModelTree(
 
             QModelIndex currentIndex      = index;
             auto        currentProxyModel = qobject_cast<
-                QSortFilterProxyModel const*>(model);
+                       QSortFilterProxyModel const*>(model);
 
             while (currentProxyModel && currentIndex.model() != nullptr) {
                 Q_ASSERT(currentProxyModel->sourceModel() != nullptr);
@@ -285,7 +293,11 @@ int main(int argc, char** argv) {
         } else if (
             auto pair = qvariant_opt<
                 Pair<org::mind_map::VDesc, org::mind_map::VDesc>>(val)) {
-            return to_json_eval(*pair);
+            return json::array({
+                to_json_eval(fmt1(pair->first)),
+                to_json_eval(fmt1(pair->second)),
+            });
+
         } else {
             return qdebug_to_str(val);
         }

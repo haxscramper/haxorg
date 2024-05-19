@@ -1334,7 +1334,7 @@ void TestMindMap::testMindMapNodeAddRemoveAdd() {
         QCOMPARE_EQ(n0_link.link.link->getId().text, "subtree-2");
     }
 
-    graph.state.debug = true;
+    // graph.state.debug = true;
     graph.addBox(b0);
     QCOMPARE_EQ(graph.state.nodes.size(), 2);
     QCOMPARE_EQ(graph.state.edges.size(), 2);
@@ -1385,10 +1385,21 @@ Paragraph [[id:subtree-id]]
             auto new_text = sem::parseString("Paragraph without edge")
                                 ->at(0);
             QCOMPARE_EQ(new_text->getKind(), osk::Paragraph);
-            store.update<sem::Paragraph>(
+
+            QVERIFY(graph.state.boxToVertex.contains(store.getBox0({0})));
+            QVERIFY(graph.state.boxToVertex.contains(store.getBox0({1})));
+
+            graph.state.debug  = true;
+            auto new_paragraph = store.update<sem::Paragraph>(
                 paragraph_box, [&](sem::Paragraph& prev) {
                     prev = *new_text.getAs<sem::Paragraph>();
                 });
+
+            _qfmt(
+                "box0:{} box1:{}", store.getBox0({0}), store.getBox0({1}));
+            QCOMPARE_EQ2(new_paragraph, store.getBox0({0}));
+            QVERIFY(graph.state.boxToVertex.contains(store.getBox0({0})));
+            QVERIFY(graph.state.boxToVertex.contains(store.getBox0({1})));
         }
 
         {

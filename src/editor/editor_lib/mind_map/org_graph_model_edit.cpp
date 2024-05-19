@@ -47,6 +47,10 @@ Graph::GraphStructureUpdate Graph::State::addMutation(
     boxToVertex[edit.box] = v;
     result.added_nodes.push_back(v);
 
+    if (debug) {
+        _qfmt("box:{} v:{} boxToVertex:{}", edit.box, v, boxToVertex);
+    }
+
     if (edit.footnoteName) {
         Q_ASSERT(!footnoteTargets.contains(*edit.footnoteName));
         footnoteTargets[*edit.footnoteName] = edit.box;

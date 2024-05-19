@@ -229,6 +229,7 @@ struct OrgStore : public QObject {
         auto tree   = nodeLookup.at(prev);
         nodeLookup.erase(prev);
         nodeLookup[result] = tree;
+        tree->boxId        = result;
         emit boxReplaced(prev, result);
         return result;
     }

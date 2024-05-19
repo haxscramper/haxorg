@@ -305,7 +305,13 @@ std::string Graph::toGraphviz() {
     boost::dynamic_properties dp;
 
     dp //
-        .property("node_id", get(boost::vertex_index, state.g))
+        .property(
+            "node_id",
+            make_transform_value_property_map<std::string>(
+                [&](OrgGraphNode const& prop) -> std::string {
+                    return fmt("{}", prop.box.value);
+                },
+                get(boost::vertex_bundle, state.g)))
         .property(
             "splines",
             boost::make_constant_property<BoostBase*>(

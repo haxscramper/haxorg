@@ -110,8 +110,8 @@ enum class OrgGraphElementKind
 /// Base data structure for the whole mind map. The parameters are
 /// not configurable,
 using BoostBase = boost::adjacency_list<
-    boost::vecS,
-    boost::vecS,
+    boost::setS,
+    boost::setS,
     boost::bidirectionalS,
     OrgGraphNode,
     OrgGraphEdge>;
