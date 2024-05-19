@@ -662,7 +662,8 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
         auto r = store.getRoot(0);
         writeFile(
             "/tmp/testGraphConstructionSubtree_description_lists.txt",
-            ExporterTree::treeRepr(store.getBoxedNode(r->boxId)).toString(false));
+            ExporterTree::treeRepr(store.getBoxedNode(r->boxId))
+                .toString(false));
 
         auto count = [](this auto&&  self,
                         OrgTreeNode* node) -> Vec<sem::SemId<sem::Org>> {
@@ -694,7 +695,7 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
         store.addRoot(text);
 
         graph.state.debug = true;
-        auto n0 = graph.getNodeInsert(store.getBox0({0}));
+        auto n0           = graph.getNodeInsert(store.getBox0({0}));
         QVERIFY(n0.has_value());
         QCOMPARE_EQ(n0->unresolved.size(), 1);
 
@@ -885,28 +886,38 @@ void TestMindMap::testFullMindMapGraph() {
 
     QCOMPARE_EQ2(graph->state.unresolved.size(), 1);
     QCOMPARE_EQ2(store->getBoxedNode(r->id(0))->getKind(), osk::Subtree);
-    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 0}))->getKind(), osk::Subtree);
-    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1}))->getKind(), osk::Subtree);
-    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1, 0}))->getKind(), osk::Paragraph);
+    QCOMPARE_EQ2(
+        store->getBoxedNode(r->id({0, 0}))->getKind(), osk::Subtree);
+    QCOMPARE_EQ2(
+        store->getBoxedNode(r->id({0, 1}))->getKind(), osk::Subtree);
+    QCOMPARE_EQ2(
+        store->getBoxedNode(r->id({0, 1, 0}))->getKind(), osk::Paragraph);
 
     // Description list with annotations for links
     // List itself is also a part of the node structure
-    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1, 1}))->getKind(), osk::List);
+    QCOMPARE_EQ2(
+        store->getBoxedNode(r->id({0, 1, 1}))->getKind(), osk::List);
     // List contains one or more nested list items
     QCOMPARE_EQ2(
-        store->getBoxedNode(r->id({0, 1, 1, 0}))->getKind(), osk::ListItem);
+        store->getBoxedNode(r->id({0, 1, 1, 0}))->getKind(),
+        osk::ListItem);
 
     // And then the list item is subdivided into individual paragraphs
     QCOMPARE_EQ2(
-        store->getBoxedNode(r->id({0, 1, 1, 0, 0}))->getKind(), osk::Paragraph);
+        store->getBoxedNode(r->id({0, 1, 1, 0, 0}))->getKind(),
+        osk::Paragraph);
     QCOMPARE_EQ2(
-        store->getBoxedNode(r->id({0, 1, 1, 0, 1}))->getKind(), osk::Paragraph);
+        store->getBoxedNode(r->id({0, 1, 1, 0, 1}))->getKind(),
+        osk::Paragraph);
 
-    QCOMPARE_EQ2(store->getBoxedNode(r->id({0, 1, 2}))->getKind(), osk::Paragraph);
     QCOMPARE_EQ2(
-        store->getBoxedNode(r->id({0, 1, 3}))->getKind(), osk::AnnotatedParagraph);
+        store->getBoxedNode(r->id({0, 1, 2}))->getKind(), osk::Paragraph);
     QCOMPARE_EQ2(
-        store->getBoxedNode(r->id({0, 1, 4}))->getKind(), osk::AnnotatedParagraph);
+        store->getBoxedNode(r->id({0, 1, 3}))->getKind(),
+        osk::AnnotatedParagraph);
+    QCOMPARE_EQ2(
+        store->getBoxedNode(r->id({0, 1, 4}))->getKind(),
+        osk::AnnotatedParagraph);
     QCOMPARE_EQ2(store->getBoxedNode(r->id(1))->getKind(), osk::Subtree);
 
     // Link from the paragraph using `lines-20` to the footnote definition
@@ -1080,6 +1091,9 @@ struct SceneBench {
         proxy->setSourceModel(graph.get());
         view = new OrgGraphView(proxy.get(), store.get(), window.get());
 
+        view->setStyleSheet("OrgGraphView { border: none; }");
+        view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        view->setContentsMargins(0, 0, 0, 0);
 
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
@@ -1142,6 +1156,8 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     b.view->setModel(b.proxy.get());
     b.view->rebuildScene();
 
+    b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
+        QMargins(100, 100, 100, 100)));
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
@@ -1246,7 +1262,8 @@ Paragraph [[id:subtree-id]]
         {
             OrgBoxId paragraph_box = store.roots.at(0)->at(0)->boxId;
             QCOMPARE_EQ(
-                store.getBoxedNode(paragraph_box)->getKind(), osk::Paragraph);
+                store.getBoxedNode(paragraph_box)->getKind(),
+                osk::Paragraph);
             auto new_text = sem::parseString("Paragraph without edge")
                                 ->at(0);
             QCOMPARE_EQ(new_text->getKind(), osk::Paragraph);

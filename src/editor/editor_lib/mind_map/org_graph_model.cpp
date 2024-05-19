@@ -58,14 +58,16 @@ bool isInLinkedDescriptionList(OrgStore* store, CR<OrgBoxId> box) {
         });
 }
 
+bool isMmapIgnored(OrgStore* store, CR<OrgBoxId> box) {
+    return isInLinkedDescriptionList(store, box)
+        || isLinkedDescriptionList(store, box);
+}
+
 Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
-    if (isInLinkedDescriptionList(store, box)
-        || isLinkedDescriptionList(store, box)) {
-        return std::nullopt;
-    }
+    if (isMmapIgnored(store, box)) { return std::nullopt; }
 
     if (state.debug) {
         _qfmt(
@@ -395,8 +397,7 @@ QVariant Graph::data(const QModelIndex& index, int role) const {
                     // Not all node boxes are directly mapped to the graph
                     // vertices -- description lists are filtered into edge
                     // properties.
-                    if (!isLinkedDescriptionItem(
-                            store, it.value()->boxId)) {
+                    if (!isMmapIgnored(store, it.value()->boxId)) {
                         result.push_back(this->index(
                             getDescIndex(getBoxDesc(it.value()->boxId))));
                     }
