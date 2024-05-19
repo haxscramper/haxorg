@@ -771,6 +771,49 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
     }
 }
 
+void TestMindMap::testGraphConstructionLoose_end_origin() {
+    auto text = R"(
+Paragraph [fn:target1]
+
+Paragraph [fn:target2]
+)"_ss;
+
+
+    OrgStore s;
+    s.addRoot(text);
+    Graph graph{&s, nullptr};
+
+    auto b0 = s.getBox0({0});
+    auto b1 = s.getBox0({1});
+    graph.addBox(b0);
+    QCOMPARE_EQ(graph.state.unresolved.size(), 1);
+    QCOMPARE_EQ(graph.state.boxToVertex.size(), 1);
+    QCOMPARE_EQ(graph.getNodeProp(b0).unresolved.size(), 1);
+    QCOMPARE_EQ(
+        graph.getNodeProp(b0).unresolved.at(0).link->getFootnote().target,
+        "target1");
+
+    graph.addBox(b1);
+    QCOMPARE_EQ(graph.state.unresolved.size(), 2);
+    QCOMPARE_EQ(graph.state.boxToVertex.size(), 2);
+    QCOMPARE_EQ(graph.getNodeProp(b1).unresolved.size(), 1);
+    QCOMPARE_EQ(
+        graph.getNodeProp(b1).unresolved.at(0).link->getFootnote().target,
+        "target2");
+
+    graph.deleteBox(b0);
+    QCOMPARE_EQ(graph.state.unresolved.size(), 1);
+    QCOMPARE_EQ(graph.state.boxToVertex.size(), 1);
+
+    graph.addBox(b0);
+    QCOMPARE_EQ(graph.state.unresolved.size(), 2);
+    QCOMPARE_EQ(graph.state.boxToVertex.size(), 2);
+    QCOMPARE_EQ(graph.getNodeProp(b1).unresolved.size(), 1);
+    QCOMPARE_EQ(
+        graph.getNodeProp(b1).unresolved.at(0).link->getFootnote().target,
+        "target2");
+}
+
 Str getFullMindMapText() {
     Vec<Str> text{
         // 0
