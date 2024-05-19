@@ -297,3 +297,424 @@ struct TestBase {
     void init_test_base();
     void cleanup_test_base();
 };
+
+
+class AbstractItemModelSignalListener : public QObject {
+    Q_OBJECT
+
+  public:
+    struct Record {
+        struct DataChanged {
+            QModelIndex topLeft;
+            QModelIndex bottomRight;
+            QList<int>  roles;
+            DESC_FIELDS(DataChanged, (topLeft, bottomRight, roles));
+        };
+
+        struct HeaderDataChanged {
+            Qt::Orientation orientation;
+            int             first;
+            int             last;
+            DESC_FIELDS(HeaderDataChanged, (orientation, first, last));
+        };
+
+        struct LayoutChanged {
+            QList<QPersistentModelIndex>         parents;
+            QAbstractItemModel::LayoutChangeHint hint;
+            DESC_FIELDS(LayoutChanged, (parents, hint));
+        };
+
+        struct LayoutAboutToBeChanged {
+            QList<QPersistentModelIndex>         parents;
+            QAbstractItemModel::LayoutChangeHint hint;
+            DESC_FIELDS(LayoutAboutToBeChanged, (parents, hint));
+        };
+
+        struct RowsAboutToBeInserted {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(RowsAboutToBeInserted, (parent, first, last));
+        };
+
+        struct RowsInserted {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(RowsInserted, (parent, first, last));
+        };
+
+        struct RowsAboutToBeRemoved {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(RowsAboutToBeRemoved, (parent, first, last));
+        };
+
+        struct RowsRemoved {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(RowsRemoved, (parent, first, last));
+        };
+
+        struct ColumnsAboutToBeInserted {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(ColumnsAboutToBeInserted, (parent, first, last));
+        };
+
+        struct ColumnsInserted {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(ColumnsInserted, (parent, first, last));
+        };
+
+        struct ColumnsAboutToBeRemoved {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(ColumnsAboutToBeRemoved, (parent, first, last));
+        };
+
+        struct ColumnsRemoved {
+            QModelIndex parent;
+            int         first;
+            int         last;
+            DESC_FIELDS(ColumnsRemoved, (parent, first, last));
+        };
+
+        struct ModelAboutToBeReset {
+            DESC_FIELDS(ModelAboutToBeReset, ());
+        };
+        struct ModelReset {
+            DESC_FIELDS(ModelReset, ());
+        };
+
+        struct RowsAboutToBeMoved {
+            QModelIndex sourceParent;
+            int         sourceStart;
+            int         sourceEnd;
+            QModelIndex destinationParent;
+            int         destinationRow;
+            DESC_FIELDS(
+                RowsAboutToBeMoved,
+                (sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationRow));
+        };
+
+        struct RowsMoved {
+            QModelIndex sourceParent;
+            int         sourceStart;
+            int         sourceEnd;
+            QModelIndex destinationParent;
+            int         destinationRow;
+            DESC_FIELDS(
+                RowsMoved,
+                (sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationRow));
+        };
+
+        struct ColumnsAboutToBeMoved {
+            QModelIndex sourceParent;
+            int         sourceStart;
+            int         sourceEnd;
+            QModelIndex destinationParent;
+            int         destinationColumn;
+            DESC_FIELDS(
+                ColumnsAboutToBeMoved,
+                (sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationColumn));
+        };
+
+        struct ColumnsMoved {
+            QModelIndex sourceParent;
+            int         sourceStart;
+            int         sourceEnd;
+            QModelIndex destinationParent;
+            int         destinationColumn;
+            DESC_FIELDS(
+                ColumnsMoved,
+                (sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationColumn));
+        };
+
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            DataChanged,
+            HeaderDataChanged,
+            LayoutChanged,
+            LayoutAboutToBeChanged,
+            RowsAboutToBeInserted,
+            RowsInserted,
+            RowsAboutToBeRemoved,
+            RowsRemoved,
+            ColumnsAboutToBeInserted,
+            ColumnsInserted,
+            ColumnsAboutToBeRemoved,
+            ColumnsRemoved,
+            ModelAboutToBeReset,
+            ModelReset,
+            RowsAboutToBeMoved,
+            RowsMoved,
+            ColumnsAboutToBeMoved,
+            ColumnsMoved);
+
+        Data data;
+    };
+
+    template <typename T>
+    Vec<T> getRecordsT() {
+        Vec<T> result;
+        for (auto const& it : records) {
+            if (std::holds_alternative<T>(it.data)) {
+                result.push_back(std::get<T>(it.data));
+            }
+        }
+
+        return result;
+    }
+
+    template <typename T>
+    Vec<T> popRecordsT() {
+        Vec<T> result = getRecordsT<T>();
+
+        records       //
+            = records //
+            | rv::remove_if([](CR<Record> it) -> bool {
+                  return std::holds_alternative<T>(it.data);
+              })
+            | rs::to<Vec>();
+
+        return result;
+    }
+
+    AbstractItemModelSignalListener(QAbstractItemModel* model) {
+        // clang-format off
+        connect(model, &QAbstractItemModel::dataChanged, this, &AbstractItemModelSignalListener::onDataChanged);
+        connect(model, &QAbstractItemModel::headerDataChanged, this, &AbstractItemModelSignalListener::onHeaderDataChanged);
+        connect(model, &QAbstractItemModel::layoutChanged, this, &AbstractItemModelSignalListener::onLayoutChanged);
+        connect(model, &QAbstractItemModel::layoutAboutToBeChanged, this, &AbstractItemModelSignalListener::onLayoutAboutToBeChanged);
+        connect(model, &QAbstractItemModel::rowsAboutToBeInserted, this, &AbstractItemModelSignalListener::onRowsAboutToBeInserted);
+        connect(model, &QAbstractItemModel::rowsInserted, this, &AbstractItemModelSignalListener::onRowsInserted);
+        connect(model, &QAbstractItemModel::rowsAboutToBeRemoved, this, &AbstractItemModelSignalListener::onRowsAboutToBeRemoved);
+        connect(model, &QAbstractItemModel::rowsRemoved, this, &AbstractItemModelSignalListener::onRowsRemoved);
+        connect(model, &QAbstractItemModel::columnsAboutToBeInserted, this, &AbstractItemModelSignalListener::onColumnsAboutToBeInserted);
+        connect(model, &QAbstractItemModel::columnsInserted, this, &AbstractItemModelSignalListener::onColumnsInserted);
+        connect(model, &QAbstractItemModel::columnsAboutToBeRemoved, this, &AbstractItemModelSignalListener::onColumnsAboutToBeRemoved);
+        connect(model, &QAbstractItemModel::columnsRemoved, this, &AbstractItemModelSignalListener::onColumnsRemoved);
+        connect(model, &QAbstractItemModel::modelAboutToBeReset, this, &AbstractItemModelSignalListener::onModelAboutToBeReset);
+        connect(model, &QAbstractItemModel::modelReset, this, &AbstractItemModelSignalListener::onModelReset);
+        connect(model, &QAbstractItemModel::rowsAboutToBeMoved, this, &AbstractItemModelSignalListener::onRowsAboutToBeMoved);
+        connect(model, &QAbstractItemModel::rowsMoved, this, &AbstractItemModelSignalListener::onRowsMoved);
+        connect(model, &QAbstractItemModel::columnsAboutToBeMoved, this, &AbstractItemModelSignalListener::onColumnsAboutToBeMoved);
+        connect(model, &QAbstractItemModel::columnsMoved, this, &AbstractItemModelSignalListener::onColumnsMoved);
+        // clang-format on
+    }
+
+    std::vector<Record> records;
+
+  private slots:
+    void onDataChanged(
+        const QModelIndex& topLeft,
+        const QModelIndex& bottomRight,
+        const QList<int>&  roles) {
+        records.push_back({Record::DataChanged{
+            .topLeft     = topLeft,
+            .bottomRight = bottomRight,
+            .roles       = roles,
+        }});
+    }
+
+    void onHeaderDataChanged(
+        Qt::Orientation orientation,
+        int             first,
+        int             last) {
+        records.push_back({Record::HeaderDataChanged{
+            .orientation = orientation,
+            .first       = first,
+            .last        = last,
+        }});
+    }
+
+    void onLayoutChanged(
+        const QList<QPersistentModelIndex>&  parents,
+        QAbstractItemModel::LayoutChangeHint hint) {
+        records.push_back({Record::LayoutChanged{
+            .parents = parents,
+            .hint    = hint,
+        }});
+    }
+
+    void onLayoutAboutToBeChanged(
+        const QList<QPersistentModelIndex>&  parents,
+        QAbstractItemModel::LayoutChangeHint hint) {
+        records.push_back({Record::LayoutAboutToBeChanged{
+            .parents = parents,
+            .hint    = hint,
+        }});
+    }
+
+    void onRowsAboutToBeInserted(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        records.push_back({Record::RowsAboutToBeInserted{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onRowsInserted(const QModelIndex& parent, int first, int last) {
+        records.push_back({Record::RowsInserted{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onRowsAboutToBeRemoved(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        records.push_back({Record::RowsAboutToBeRemoved{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onRowsRemoved(const QModelIndex& parent, int first, int last) {
+        records.push_back({Record::RowsRemoved{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsAboutToBeInserted(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        records.push_back({Record::ColumnsAboutToBeInserted{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsInserted(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        records.push_back({Record::ColumnsInserted{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsAboutToBeRemoved(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        records.push_back({Record::ColumnsAboutToBeRemoved{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsRemoved(const QModelIndex& parent, int first, int last) {
+        records.push_back({Record::ColumnsRemoved{
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onModelAboutToBeReset() {
+        records.push_back({Record::ModelAboutToBeReset{}});
+    }
+
+    void onModelReset() { records.push_back({Record::ModelReset{}}); }
+
+    void onRowsAboutToBeMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationRow) {
+        records.push_back({Record::RowsAboutToBeMoved{
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationRow    = destinationRow,
+        }});
+    }
+
+    void onRowsMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationRow) {
+        records.push_back({Record::RowsMoved{
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationRow    = destinationRow,
+        }});
+    }
+
+    void onColumnsAboutToBeMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationColumn) {
+        records.push_back({Record::ColumnsAboutToBeMoved{
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationColumn = destinationColumn,
+        }});
+    }
+
+    void onColumnsMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationColumn) {
+        records.push_back({Record::ColumnsMoved{
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationColumn = destinationColumn,
+        }});
+    }
+};

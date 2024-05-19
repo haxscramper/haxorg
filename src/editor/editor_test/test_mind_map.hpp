@@ -31,4 +31,5 @@ class TestMindMap
     void testMindMapNodeAdd1();
     void testMindMapNodeAddRemoveAdd();
     void testMindMapSignals1();
+    void testRowModelSignals();
 };

@@ -1455,3 +1455,31 @@ Paragraph [[id:subtree-id]]
         }
     }
 }
+
+
+void TestMindMap::testRowModelSignals() {
+    using R = AbstractItemModelSignalListener::Record;
+    Str text{R"(
+Paragraph [[id:subtree-id]]
+
+* Subtree
+  :properties:
+  :id: subtree-id
+  :end:
+)"};
+
+    OrgStore store;
+    store.addRoot(text);
+    auto  b0 = store.getBox0({0});
+    auto  b1 = store.getBox0({1});
+    Graph g{&store, nullptr};
+
+    AbstractItemModelSignalListener list{&g};
+    g.addBox(b0);
+
+    auto rows = list.popRecordsT<R::RowsInserted>();
+    QCOMPARE_EQ(rows.size(), 1);
+    QCOMPARE_EQ(rows.at(0).first, 0);
+    QCOMPARE_EQ(rows.at(0).last, 0);
+    // for (auto const& q : list.records) { _qfmt("-> {}", q); }
+}
