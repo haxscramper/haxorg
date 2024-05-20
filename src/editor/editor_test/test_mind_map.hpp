@@ -32,4 +32,5 @@ class TestMindMap
     void testMindMapNodeAddRemoveAdd();
     void testMindMapSignals1();
     void testRowModelSignals();
+    void testGraphLayoutUpdateSignals();
 };

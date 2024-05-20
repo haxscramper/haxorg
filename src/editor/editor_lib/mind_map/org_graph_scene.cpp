@@ -64,28 +64,6 @@ struct OrgBackgroundGridItem : public QGraphicsItem {
 };
 
 
-struct OrgGraphElementItem : public QGraphicsItem {
-  public:
-    explicit OrgGraphElementItem(
-        OrgStore*          store,
-        QModelIndex const& index,
-        QGraphicsItem*     parent)
-        : QGraphicsItem(parent), store(store), index(index) {}
-
-    OrgStore* store;
-
-    void setIndex(QModelIndex index) {
-        Q_ASSERT(index.isValid());
-        this->index = index;
-    }
-
-    QModelIndex const& getIndex() const { return this->index; }
-
-  protected:
-    QModelIndex index;
-};
-
-
 struct OrgSubgraphItem : public OrgGraphElementItem {
     explicit OrgSubgraphItem(
         OrgStore*          store,
@@ -344,21 +322,6 @@ OrgGraphView::OrgGraphView(
     background = std::make_shared<OrgBackgroundGridItem>(20, model);
     scene->addItem(background.get());
 
-    connect(
-        model,
-        &QAbstractItemModel::rowsInserted,
-        this,
-        &OrgGraphView::onRowsInserted);
-    connect(
-        model,
-        &QAbstractItemModel::rowsRemoved,
-        this,
-        &OrgGraphView::onRowsRemoved);
-    connect(
-        model,
-        &QAbstractItemModel::dataChanged,
-        this,
-        &OrgGraphView::onDataChanged);
     setModel(model);
 }
 
@@ -409,6 +372,7 @@ void verifyModelGraph(QAbstractItemModel const* model) {
 }
 
 void OrgGraphView::addItem(const QModelIndex& index) {
+    if (debug) { _qfmt("index:{}", index); }
     verifyModelGraph(index.model());
     SPtr<QGraphicsItem> added;
 
@@ -506,22 +470,23 @@ void OrgGraphView::validateItemRows() {
             modelItems.size()));
 }
 
+void OrgGraphView::removeSceneItem(int row) {
+    QGraphicsItem* item = modelItems.at(row).get();
+    Q_ASSERT(item != nullptr);
+    Q_ASSERT(item->scene() == scene);
+    scene->removeItem(item);
+    modelItems.erase(modelItems.begin() + row);
+}
+
 void OrgGraphView::onRowsRemoved(
     const QModelIndex& parent,
     int                first,
     int                last) {
-    for (int row = first; row <= last; ++row) {
-        QModelIndex index = model->index(row, 0, parent);
-        verifyModelGraph(model);
-        resetSceneItem(index.row());
-    }
+    if (debug) { _qfmt("first:{} last:{}", first, last); }
 
-    for (int row = last; first <= row; ++row) {
-        modelItems.erase(modelItems.begin() + row);
-    }
+    for (int row = first; row <= last; ++row) { removeSceneItem(row); }
 
     onRowsShifted(last);
-    validateItemRows();
 }
 
 void OrgGraphView::setModel(QAbstractItemModel* model) {
@@ -531,8 +496,7 @@ void OrgGraphView::setModel(QAbstractItemModel* model) {
 }
 
 void OrgGraphView::rebuildScene() {
-    for (int i = 0; i < modelItems.size(); ++i) { resetSceneItem(i); }
-    modelItems.clear();
+    for (int i = 0; i < modelItems.size(); ++i) { removeSceneItem(i); }
 
     int rowCount = model->rowCount();
     for (int row = 0; row < rowCount; ++row) {
@@ -540,6 +504,4 @@ void OrgGraphView::rebuildScene() {
         auto index = model->index(row, 0);
         addItem(index);
     }
-
-    validateItemRows();
 }

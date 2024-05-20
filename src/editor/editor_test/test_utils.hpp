@@ -480,6 +480,35 @@ class AbstractItemModelSignalListener : public QObject {
 
         Data data;
         DESC_FIELDS(Record, (data));
+
+        std::string toString() const {
+            std::string text;
+            switch (getKind()) {
+                    // clang-format off
+                case Kind::DataChanged: text = fmt1(std::get<DataChanged>(data)); break;
+                case Kind::HeaderDataChanged: text = fmt1(std::get<HeaderDataChanged>(data)); break;
+                case Kind::LayoutChanged: text = fmt1(std::get<LayoutChanged>(data)); break;
+                case Kind::LayoutAboutToBeChanged: text = fmt1(std::get<LayoutAboutToBeChanged>(data)); break;
+                case Kind::RowsAboutToBeInserted: text = fmt1(std::get<RowsAboutToBeInserted>(data)); break;
+                case Kind::RowsInserted: text = fmt1(std::get<RowsInserted>(data)); break;
+                case Kind::RowsAboutToBeRemoved: text = fmt1(std::get<RowsAboutToBeRemoved>(data)); break;
+                case Kind::RowsRemoved: text = fmt1(std::get<RowsRemoved>(data)); break;
+                case Kind::ColumnsAboutToBeInserted: text = fmt1(std::get<ColumnsAboutToBeInserted>(data)); break;
+                case Kind::ColumnsInserted: text = fmt1(std::get<ColumnsInserted>(data)); break;
+                case Kind::ColumnsAboutToBeRemoved: text = fmt1(std::get<ColumnsAboutToBeRemoved>(data)); break;
+                case Kind::ColumnsRemoved: text = fmt1(std::get<ColumnsRemoved>(data)); break;
+                case Kind::ModelAboutToBeReset: text = fmt1(std::get<ModelAboutToBeReset>(data)); break;
+                case Kind::ModelReset: text = fmt1(std::get<ModelReset>(data)); break;
+                case Kind::RowsAboutToBeMoved: text = fmt1(std::get<RowsAboutToBeMoved>(data)); break;
+                case Kind::RowsMoved: text = fmt1(std::get<RowsMoved>(data)); break;
+                case Kind::ColumnsAboutToBeMoved: text = fmt1(std::get<ColumnsAboutToBeMoved>(data)); break;
+                case Kind::ColumnsMoved: text = fmt1(std::get<ColumnsMoved>(data)); break;
+                default: { qFatal("???"); }
+                    // clang-format on
+            }
+
+            return fmt("{} {}", getKind(), text);
+        }
     };
 
     template <typename T>
@@ -532,11 +561,19 @@ class AbstractItemModelSignalListener : public QObject {
 
     void clear() { records.clear(); }
 
-    void debug();
+    void debug() {
+        for (auto const& q : records) { _qfmt("-> {}", q.toString()); }
+    }
 
     AbstractItemModelSignalListener(QAbstractItemModel* model);
 
     std::vector<Record> records;
+    bool                printOnTrigger = false;
+
+    void addRecord(CR<Record> record) {
+        if (printOnTrigger) { _qfmt(">> {}", record.toString()); }
+        records.push_back(record);
+    }
 
   private slots:
     void onDataChanged(

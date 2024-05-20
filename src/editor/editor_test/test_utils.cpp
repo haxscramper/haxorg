@@ -64,36 +64,7 @@ void TestBase::cleanup_test_base() {
     qInstallMessageHandler(pre_test_handler);
 }
 
-void AbstractItemModelSignalListener::debug() {
-    for (auto const& q : records) {
-        std::string text;
-        switch (q.getKind()) {
-                // clang-format off
-                case Record::Kind::DataChanged: text = fmt1(std::get<Record::DataChanged>(q.data)); break;
-                case Record::Kind::HeaderDataChanged: text = fmt1(std::get<Record::HeaderDataChanged>(q.data)); break;
-                case Record::Kind::LayoutChanged: text = fmt1(std::get<Record::LayoutChanged>(q.data)); break;
-                case Record::Kind::LayoutAboutToBeChanged: text = fmt1(std::get<Record::LayoutAboutToBeChanged>(q.data)); break;
-                case Record::Kind::RowsAboutToBeInserted: text = fmt1(std::get<Record::RowsAboutToBeInserted>(q.data)); break;
-                case Record::Kind::RowsInserted: text = fmt1(std::get<Record::RowsInserted>(q.data)); break;
-                case Record::Kind::RowsAboutToBeRemoved: text = fmt1(std::get<Record::RowsAboutToBeRemoved>(q.data)); break;
-                case Record::Kind::RowsRemoved: text = fmt1(std::get<Record::RowsRemoved>(q.data)); break;
-                case Record::Kind::ColumnsAboutToBeInserted: text = fmt1(std::get<Record::ColumnsAboutToBeInserted>(q.data)); break;
-                case Record::Kind::ColumnsInserted: text = fmt1(std::get<Record::ColumnsInserted>(q.data)); break;
-                case Record::Kind::ColumnsAboutToBeRemoved: text = fmt1(std::get<Record::ColumnsAboutToBeRemoved>(q.data)); break;
-                case Record::Kind::ColumnsRemoved: text = fmt1(std::get<Record::ColumnsRemoved>(q.data)); break;
-                case Record::Kind::ModelAboutToBeReset: text = fmt1(std::get<Record::ModelAboutToBeReset>(q.data)); break;
-                case Record::Kind::ModelReset: text = fmt1(std::get<Record::ModelReset>(q.data)); break;
-                case Record::Kind::RowsAboutToBeMoved: text = fmt1(std::get<Record::RowsAboutToBeMoved>(q.data)); break;
-                case Record::Kind::RowsMoved: text = fmt1(std::get<Record::RowsMoved>(q.data)); break;
-                case Record::Kind::ColumnsAboutToBeMoved: text = fmt1(std::get<Record::ColumnsAboutToBeMoved>(q.data)); break;
-                case Record::Kind::ColumnsMoved: text = fmt1(std::get<Record::ColumnsMoved>(q.data)); break;
-                default: { qFatal("???"); }
-                // clang-format on
-        }
 
-        _qfmt("-> {} {}", q.getKind(), text);
-    }
-}
 
 AbstractItemModelSignalListener::AbstractItemModelSignalListener(
     QAbstractItemModel* model) {

@@ -11,6 +11,27 @@
 
 #include <editor/editor_lib/mind_map/org_graph_model.hpp>
 
+struct OrgGraphElementItem : public QGraphicsItem {
+  public:
+    explicit OrgGraphElementItem(
+        OrgStore*          store,
+        QModelIndex const& index,
+        QGraphicsItem*     parent)
+        : QGraphicsItem(parent), store(store), index(index) {}
+
+    OrgStore* store;
+
+    void setIndex(QModelIndex index) {
+        Q_ASSERT(index.isValid());
+        this->index = index;
+    }
+
+    QModelIndex const& getIndex() const { return this->index; }
+
+  protected:
+    QModelIndex index;
+};
+
 class OrgGraphView : public QGraphicsView {
   private:
     Q_OBJECT
@@ -24,6 +45,40 @@ class OrgGraphView : public QGraphicsView {
     QSize getNodeSize(const QModelIndex& index);
     void  setModel(QAbstractItemModel* model);
     void  rebuildScene();
+    bool  debug = false;
+
+    Vec<OrgGraphElementItem*> graphItems() {
+        Vec<OrgGraphElementItem*> result;
+        for (auto it : items()) {
+            if (auto p = dynamic_cast<OrgGraphElementItem*>(it)) {
+                result.push_back(p);
+            }
+        }
+        return result;
+    }
+
+    void connectModel() {
+        connect(
+            model,
+            &QAbstractItemModel::rowsInserted,
+            this,
+            &OrgGraphView::onRowsInserted);
+        connect(
+            model,
+            &QAbstractItemModel::rowsRemoved,
+            this,
+            &OrgGraphView::onRowsRemoved);
+        connect(
+            model,
+            &QAbstractItemModel::dataChanged,
+            this,
+            &OrgGraphView::onDataChanged);
+        connect(
+            model,
+            &QAbstractItemModel::layoutChanged,
+            this,
+            &OrgGraphView::onLayoutChanged);
+    }
 
   private:
     OrgStore*                store;
@@ -39,7 +94,7 @@ class OrgGraphView : public QGraphicsView {
 
     void onRowsInserted(const QModelIndex& parent, int first, int last) {
         for (int row = first; row <= last; ++row) {
-            updateItem(model->index(row, 0, parent));
+            addItem(model->index(row, 0, parent));
         }
     }
 
@@ -47,15 +102,15 @@ class OrgGraphView : public QGraphicsView {
 
     void validateItemRows();
 
-    void resetSceneItem(int row) {
-        QGraphicsItem* item = modelItems.at(row).get();
-        Q_ASSERT(item != nullptr);
-        Q_ASSERT(item->scene() == scene);
-        scene->removeItem(item);
-        modelItems.at(row).reset((QGraphicsItem*)nullptr);
-    }
+    void removeSceneItem(int row);
 
     void onRowsRemoved(const QModelIndex& parent, int first, int last);
+
+    void onLayoutChanged(
+        const QList<QPersistentModelIndex>&  parents,
+        QAbstractItemModel::LayoutChangeHint hint) {
+        validateItemRows();
+    }
 
     void onDataChanged(
         const QModelIndex&  topLeft,

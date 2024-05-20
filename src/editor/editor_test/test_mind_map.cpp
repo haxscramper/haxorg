@@ -1137,9 +1137,11 @@ struct SceneBench {
         view->setStyleSheet("OrgGraphView { border: none; }");
         view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         view->setContentsMargins(0, 0, 0, 0);
+        view->connectModel();
 
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
+        proxy->connectModel();
         proxy->updateCurrentLayout();
         view->rebuildScene();
 
@@ -1523,4 +1525,33 @@ Paragraph [[id:subtree-id]]
         auto rows = l.popRecordsT<R::RowsRemoved>();
         QCOMPARE_EQ(rows.size(), 1);
     }
+}
+
+void TestMindMap::testGraphLayoutUpdateSignals() {
+    Str text{R"(
+Paragraph [fn:target1] [fn:target2]
+
+[fn:target1] Description
+
+[fn:target2] Description
+)"};
+
+    SceneBench b{text};
+    save_screenshot(
+        b.window.get(), "/tmp/testGraphLayoutUpdateSignals_1.png", 2);
+
+    QCOMPARE_EQ(b.graph->numNodes(), 4);
+    QCOMPARE_EQ(b.graph->numEdges(), 2);
+    QCOMPARE_EQ(b.view->graphItems().size(), 6);
+    b.view->debug = true;
+
+    AbstractItemModelSignalListener l{b.graph.get()};
+    l.printOnTrigger = true;
+
+    auto b0 = b.store->getBox0({0});
+    auto b1 = b.store->getBox0({1});
+    auto b2 = b.store->getBox0({2});
+    b.graph->deleteBox(b0);
+
+    // b.view->items().si
 }

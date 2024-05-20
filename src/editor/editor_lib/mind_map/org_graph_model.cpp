@@ -186,6 +186,18 @@ Opt<OrgGraphNode> Graph::getNodeInsert(CR<OrgBoxId> box) const {
 }
 
 void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
+    if (state.debug) { _qfmt("upd:{}", upd); }
+
+    Q_ASSERT(
+        state.nodes.size() + (upd.added_node ? 1 : 0)
+            - (upd.removed_node ? 1 : 0)
+        == boost::num_vertices(state.g));
+
+    Q_ASSERT(
+        state.edges.size() + (upd.added_edges.size())
+            - (upd.removed_edges.size())
+        == boost::num_edges(state.g));
+
     for (auto const& e : upd.added_edges) { emit edgeAdded(e); }
     for (auto const& e : upd.removed_edges) { emit edgeRemoved(e); }
     if (upd.added_node) { emit nodeAdded(upd.added_node.value()); }
@@ -234,6 +246,9 @@ void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
         state.edges.append(upd.added_edges);
         endInsertRows();
     }
+
+    Q_ASSERT(state.nodes.size() == boost::num_vertices(state.g));
+    Q_ASSERT(state.edges.size() == boost::num_edges(state.g));
 }
 
 Graph::ResolveResult Graph::State::getUnresolvedEdits(
