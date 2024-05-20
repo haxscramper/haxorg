@@ -249,6 +249,18 @@ void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
 
     Q_ASSERT(state.nodes.size() == boost::num_vertices(state.g));
     Q_ASSERT(state.edges.size() == boost::num_edges(state.g));
+    if (state.debug) {
+        _qfmt(
+            "nodes:{}/{} edges:{}/{} boost-nodes:{} boost-edges:{} "
+            "row-count:{}",
+            state.nodes,
+            state.nodes.size(),
+            state.edges,
+            state.edges.size(),
+            boost::num_vertices(state.g),
+            boost::num_edges(state.g),
+            rowCount());
+    }
 }
 
 Graph::ResolveResult Graph::State::getUnresolvedEdits(

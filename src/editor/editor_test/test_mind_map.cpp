@@ -1544,6 +1544,8 @@ Paragraph [fn:target1] [fn:target2]
     QCOMPARE_EQ(b.graph->numEdges(), 2);
     QCOMPARE_EQ(b.view->graphItems().size(), 6);
     b.view->debug = true;
+    b.proxy->setObjectName("layout_proxy");
+    b.graph->state.debug = false;
 
     AbstractItemModelSignalListener l{b.graph.get()};
     l.printOnTrigger = true;
@@ -1552,6 +1554,7 @@ Paragraph [fn:target1] [fn:target2]
     auto b1 = b.store->getBox0({1});
     auto b2 = b.store->getBox0({2});
     b.graph->deleteBox(b0);
+    b.view->validateItemRows();
 
     // b.view->items().si
 }

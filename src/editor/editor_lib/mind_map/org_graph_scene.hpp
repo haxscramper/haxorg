@@ -47,6 +47,8 @@ class OrgGraphView : public QGraphicsView {
     void  rebuildScene();
     bool  debug = false;
 
+    void validateItemRows();
+
     Vec<OrgGraphElementItem*> graphItems() {
         Vec<OrgGraphElementItem*> result;
         for (auto it : items()) {
@@ -100,7 +102,6 @@ class OrgGraphView : public QGraphicsView {
 
     void onRowsShifted(int lastShifted);
 
-    void validateItemRows();
 
     void removeSceneItem(int row);
 
@@ -109,7 +110,7 @@ class OrgGraphView : public QGraphicsView {
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        validateItemRows();
+        // validateItemRows();
     }
 
     void onDataChanged(
