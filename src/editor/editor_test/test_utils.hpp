@@ -483,7 +483,7 @@ class AbstractItemModelSignalListener : public QObject {
     };
 
     template <typename T>
-    Vec<T> getRecordsT() {
+    Vec<T> getRecordsT() const {
         Vec<T> result;
         for (auto const& it : records) {
             if (std::holds_alternative<T>(it.data)) {
@@ -491,6 +491,28 @@ class AbstractItemModelSignalListener : public QObject {
             }
         }
 
+        return result;
+    }
+
+    template <typename T>
+    int countT() const {
+        return getRecordsT<T>().size();
+    }
+
+    int count(Record::Kind kind) {
+        int result = 0;
+        for (auto const& it : records) {
+            if (it.getKind() == kind) { ++result; }
+        }
+
+        return result;
+    }
+
+    int indexOf(Record::Kind kind) {
+        int result = -1;
+        for (auto const& it : enumerator(records)) {
+            if (it.value().getKind() == kind) { return it.index(); }
+        }
         return result;
     }
 

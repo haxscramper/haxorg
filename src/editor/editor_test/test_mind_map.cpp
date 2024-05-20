@@ -1459,6 +1459,7 @@ Paragraph [[id:subtree-id]]
 
 void TestMindMap::testRowModelSignals() {
     using R = AbstractItemModelSignalListener::Record;
+    using K = R::Kind;
     Str text{R"(
 Paragraph [[id:subtree-id]]
 
@@ -1490,11 +1491,36 @@ Paragraph [[id:subtree-id]]
     {
         g.addBox(b1);
         QCOMPARE_EQ(g.rowCount(), 3);
-        l.debug();
         auto rows = l.popRecordsT<R::RowsInserted>();
         QCOMPARE_EQ(rows.size(), 2);
         QCOMPARE_EQ(rows.at(0).first, 1);
         QCOMPARE_EQ(rows.at(1).first, 2);
         QCOMPARE_EQ(rows.at(1).last, 2);
+        QCOMPARE_EQ(l.countT<R::RowsRemoved>(), 0);
+        QCOMPARE_EQ(l.countT<R::LayoutChanged>(), 1);
+        QCOMPARE_LT(
+            l.indexOf(K::LayoutAboutToBeChanged),
+            l.indexOf(K::LayoutChanged));
+    }
+
+    l.clear();
+
+    {
+        g.deleteBox(b0);
+        QCOMPARE_EQ(g.rowCount(), 1);
+        auto rows = l.popRecordsT<R::RowsRemoved>();
+        QCOMPARE_EQ(rows.size(), 2);
+        // First signal edge removal
+        QCOMPARE_EQ(rows.at(0).first, 2);
+        // Then signal node removal
+        QCOMPARE_EQ(rows.at(1).first, 0);
+    }
+
+    l.clear();
+
+    {
+        g.deleteBox(b1);
+        auto rows = l.popRecordsT<R::RowsRemoved>();
+        QCOMPARE_EQ(rows.size(), 1);
     }
 }

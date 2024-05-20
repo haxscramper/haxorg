@@ -176,10 +176,11 @@ Graph::GraphStructureUpdate Graph::State::delMutation(
         }
     }
 
+    boxToVertex.erase(edit.box);
+
     boost::clear_vertex(*it, g);
     boost::remove_vertex(*it, g);
 
-    boxToVertex.erase(edit.box);
 
     if (unresolved.contains(edit.box)) { unresolved.excl(edit.box); }
     if (edit.subtreeId) { subtreeIds.erase(*edit.subtreeId); }
