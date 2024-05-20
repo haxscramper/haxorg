@@ -636,7 +636,7 @@ struct GraphLayoutProxy : public QSortFilterProxyModel {
     FullLayout currentLayout;
     FullLayout getFullLayout() const;
 
-    void updateCurrentLayout() { currentLayout = getFullLayout(); }
+    void setNewLayout() { currentLayout = getFullLayout(); }
 
     virtual QVariant data(const QModelIndex& index, int role)
         const override;
@@ -677,16 +677,20 @@ struct GraphLayoutProxy : public QSortFilterProxyModel {
             &GraphLayoutProxy::onLayoutChanged);
     }
 
+    void resetLayoutData() {
+        emit layoutAboutToBeChanged();
+        setNewLayout();
+        emit dataChanged(
+            index(0, 0, QModelIndex{}),
+            index(rowCount(QModelIndex{}) - 1, 0, QModelIndex{}));
+        emit layoutChanged();
+    }
+
   public slots:
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        emit layoutAboutToBeChanged(parents, hint);
-        updateCurrentLayout();
-        emit dataChanged(
-            index(0, 0, QModelIndex{}),
-            index(rowCount(QModelIndex{}) - 1, 0, QModelIndex{}));
-        emit layoutChanged(parents, hint);
+        resetLayoutData();
     }
 };
 } // namespace org::mind_map

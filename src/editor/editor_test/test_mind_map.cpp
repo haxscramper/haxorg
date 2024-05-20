@@ -694,8 +694,8 @@ void TestMindMap::testGraphConstructionSubtree_description_lists() {
         Graph    graph{&store, nullptr};
         store.addRoot(text);
 
-        graph.state.debug = true;
-        auto n0           = graph.getNodeInsert(store.getBox0({0}));
+        // graph.state.debug = true;
+        auto n0 = graph.getNodeInsert(store.getBox0({0}));
         QVERIFY(n0.has_value());
         QCOMPARE_EQ(n0->unresolved.size(), 1);
 
@@ -1078,7 +1078,7 @@ Paragraph [[id:subtree-id]]
     };
 
     proxy.setSourceModel(graph.get());
-    proxy.updateCurrentLayout();
+    proxy.setNewLayout();
 }
 
 void debugModel(
@@ -1142,7 +1142,7 @@ struct SceneBench {
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
         proxy->connectModel();
-        proxy->updateCurrentLayout();
+        proxy->setNewLayout();
         view->rebuildScene();
 
         QSize box = proxy->currentLayout.bbox.size();
@@ -1195,9 +1195,32 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
             sem_node->getKind());
     };
 
+    auto dump_all = [&](CR<Str> suffix) {
+        ::debugModel(
+            b.graph.get(),
+            b.store.get(),
+            "/tmp/testQtGraphSceneFullMindMap_filter_graph_"_ss + suffix
+                + ".txt"_ss);
+
+
+        ::debugModel(
+            &pre_layout_filter,
+            b.store.get(),
+            "/tmp/testQtGraphSceneFullMindMap_filter_pre_layout_"_ss
+                + suffix + ".txt"_ss);
+
+        ::debugModel(
+            b.proxy.get(),
+            b.store.get(),
+            "/tmp/testQtGraphSceneFullMindMap_filter_layout_proxy_"_ss
+                + suffix + ".txt"_ss,
+            true);
+    };
+
     pre_layout_filter.setSourceModel(b.graph.get());
     b.proxy->setSourceModel(&pre_layout_filter);
-    b.proxy->updateCurrentLayout();
+    dump_all("1");
+    b.proxy->resetLayoutData();
     b.view->setModel(b.proxy.get());
     b.view->rebuildScene();
 
@@ -1213,28 +1236,12 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     b.proxy->config.clusterSubtrees = true;
     b.proxy->config.getSubgraphMargin =
         [](QModelIndex const& index) -> Opt<int> { return 15; };
-    b.proxy->updateCurrentLayout();
+    b.proxy->resetLayoutData();
     b.view->rebuildScene();
 
     b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
         QMargins(100, 100, 100, 100)));
 
-    ::debugModel(
-        b.graph.get(),
-        b.store.get(),
-        "/tmp/testQtGraphSceneFullMindMap_filter_graph.txt");
-
-
-    ::debugModel(
-        &pre_layout_filter,
-        b.store.get(),
-        "/tmp/testQtGraphSceneFullMindMap_filter_pre_layout.txt");
-
-    ::debugModel(
-        b.proxy.get(),
-        b.store.get(),
-        "/tmp/testQtGraphSceneFullMindMap_filter_layout_proxy.txt",
-        true);
 
     {
 

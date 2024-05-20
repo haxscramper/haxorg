@@ -362,7 +362,7 @@ int main(int argc, char** argv) {
 
             window->setContentsMargins(0, 0, 0, 0);
             window->setCentralWidget(view);
-            proxy->updateCurrentLayout();
+            proxy->setNewLayout();
             view->rebuildScene();
 
             auto const& map = config.action.getMindMap();

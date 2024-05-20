@@ -513,18 +513,37 @@ QVariant Graph::data(const QModelIndex& index, int role) const {
 
                 return QVariant::fromValue(result);
             } else {
+                if (state.debug) {
+                    _qfmt(
+                        "index:{} does not provide role:SubnodeIndices",
+                        index);
+                }
                 return QVariant();
             }
         }
 
         case (int)OrgGraphRoles::EdgeDesc: {
-            return isNode(index) ? QVariant()
-                                 : QVariant::fromValue(getEdgeDesc(index));
+            if (isNode(index)) {
+                if (state.debug) {
+                    _qfmt(
+                        "index:{} does not provide role:EdgeDesc", index);
+                }
+                return QVariant();
+            } else {
+                return QVariant::fromValue(getEdgeDesc(index));
+            }
         }
 
         case (int)OrgGraphRoles::NodeDesc: {
-            return isNode(index) ? QVariant::fromValue(getNodeDesc(index))
-                                 : QVariant();
+            if (isNode(index)) {
+                return QVariant::fromValue(getNodeDesc(index));
+            } else {
+                if (state.debug) {
+                    _qfmt(
+                        "index:{} does not provide role:EdgeDesc", index);
+                }
+                return QVariant();
+            }
         }
 
         case (int)OrgGraphRoles::SourceAndTarget: {

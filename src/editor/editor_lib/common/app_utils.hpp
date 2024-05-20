@@ -246,7 +246,6 @@ T qindex_get(QModelIndex const& index, int role) {
                 : fmt("<unnamed {}>", role),
             qdebug_to_str(index.model()));
 
-        __builtin_debugtrap();
         index.data(role);
 
         Q_ASSERT_X(result.isValid(), "qindex_get", fail);

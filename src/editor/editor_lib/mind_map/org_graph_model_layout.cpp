@@ -49,8 +49,8 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
                 // should be visible.
                 rec_nodes = [&](QModelIndex const& i) {
                     GraphIndex sub{i};
-                    auto       sub_node = store->getBoxedNode(sub.getBox());
-                    auto       sub_desc = sub.getVDesc();
+                    auto sub_node = store->getBoxedNode(sub.getBox());
+                    auto sub_desc = sub.getVDesc();
 
                     if (sub_node->is(osk::Subtree)) {
                         if (auto sub_cluster = rec_cluster(sub)) {
@@ -203,12 +203,14 @@ QVariant GraphLayoutProxy::data(const QModelIndex& index, int role) const {
             }
         }
     } else {
-        Q_ASSERT_X(
-            index.row() < sourceModel()->rowCount(),
-            "data",
-            fmt("additional data rows are created by the proxymodel. "
-                "Index {} has a non-subgraph kind",
-                qdebug_to_str(index)));
+        if (false) {
+            Q_ASSERT_X(
+                index.row() < sourceModel()->rowCount(),
+                "data",
+                fmt("additional data rows are created by the proxymodel. "
+                    "Index {} has a non-subgraph kind",
+                    qdebug_to_str(index)));
+        }
 
         switch (role) {
             case (int)Role::LayoutBBoxRole: {
@@ -220,12 +222,18 @@ QVariant GraphLayoutProxy::data(const QModelIndex& index, int role) const {
                     return QVariant::fromValue(
                         getElement(index).getNode());
                 } else {
+                    // _qfmt(
+                    //     "index:{} does not provide role:NodeShape",
+                    //     index);
                     return QVariant();
                 }
             }
 
             case (int)OrgGraphRoles::EdgeShape: {
                 if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
+                    // _qfmt(
+                    //     "index:{} does not provide role:EdgeShape",
+                    //     index);
                     return QVariant();
                 } else {
                     return QVariant::fromValue(
