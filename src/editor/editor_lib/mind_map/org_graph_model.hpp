@@ -686,11 +686,12 @@ struct GraphLayoutProxy : public QSortFilterProxyModel {
     }
 
     void connectModel() {
-        connect(
+        Q_ASSERT(connect(
             sourceModel(),
             &QAbstractItemModel::layoutChanged,
             this,
-            &GraphLayoutProxy::onLayoutChanged);
+            &GraphLayoutProxy::onLayoutChanged,
+            Qt::UniqueConnection));
     }
 
     void resetLayoutData() {

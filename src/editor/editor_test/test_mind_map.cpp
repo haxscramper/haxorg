@@ -15,6 +15,13 @@
 #include <editor/editor_lib/mind_map/org_graph_model.hpp>
 #include <editor/editor_lib/mind_map/org_graph_scene.hpp>
 
+#include <QMetaMethod>
+#include <QCoreApplication>
+#include <QObject>
+#include <QDebug>
+#include <QMetaMethod>
+#include <QMetaObject>
+
 using namespace org::mind_map;
 
 #define QCOMPARE_OP2_IMPL(lhs, rhs, op, opId)                             \
@@ -1137,7 +1144,7 @@ struct SceneBench {
         view->setStyleSheet("OrgGraphView { border: none; }");
         view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         view->setContentsMargins(0, 0, 0, 0);
-        view->connectModel();
+        // view->connectModel();
 
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
@@ -1182,6 +1189,7 @@ Paragraph [[id:subtree-id]]
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
+    b.view->connectModel();
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_pre_filter.png", 2);
 
@@ -1239,7 +1247,7 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     b.proxy->config.getSubgraphMargin =
         [](QModelIndex const& index) -> Opt<int> { return 15; };
     b.proxy->resetLayoutData();
-    b.view->rebuildScene();
+    // b.view->rebuildScene();
 
     b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
         QMargins(100, 100, 100, 100)));
@@ -1562,8 +1570,12 @@ Paragraph [fn:target1] [fn:target2]
     auto b0 = b.store->getBox0({0});
     auto b1 = b.store->getBox0({1});
     auto b2 = b.store->getBox0({2});
+
+    b.proxy->disconnect(nullptr, b.graph.get());
+    b.view->disconnect(nullptr, b.proxy.get());
+    b.view->disconnect(nullptr, b.graph.get());
+
     b.graph->deleteBox(b0);
-    b.view->validateItemRows();
 
     // b.view->items().si
 }

@@ -308,9 +308,9 @@ struct OrgNodeItem : public OrgGraphElementItem {
 };
 
 OrgGraphView::OrgGraphView(
-    QAbstractItemModel* model,
-    OrgStore*           store,
-    QWidget*            parent)
+    GraphLayoutProxy* model,
+    OrgStore*         store,
+    QWidget*          parent)
     : QGraphicsView(parent)
     , store(store)
     , model(model)
@@ -348,6 +348,7 @@ void verifyModelGraph(QAbstractItemModel const* model) {
         "verify model",
         "Model should pass through or directly provide a node and edge "
         "shape roles");
+
 
     Vec<QAbstractItemModel const*> models;
     while (model != nullptr) {
@@ -479,18 +480,7 @@ void OrgGraphView::removeSceneItem(int row) {
     modelItems.erase(modelItems.begin() + row);
 }
 
-void OrgGraphView::onRowsRemoved(
-    const QModelIndex& parent,
-    int                first,
-    int                last) {
-    if (debug) { _qfmt("first:{} last:{}", first, last); }
-
-    for (int row = first; row <= last; ++row) { removeSceneItem(row); }
-
-    onRowsShifted(last);
-}
-
-void OrgGraphView::setModel(QAbstractItemModel* model) {
+void OrgGraphView::setModel(GraphLayoutProxy* model) {
     verifyModelGraph(model);
     QObject::disconnect(this->model, nullptr, this, nullptr);
     this->model                                                    = model;

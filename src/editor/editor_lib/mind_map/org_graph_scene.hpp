@@ -57,12 +57,12 @@ class OrgGraphView : public QGraphicsView {
 
   public:
     OrgGraphView(
-        QAbstractItemModel* model,
-        OrgStore*           store,
-        QWidget*            parent);
+        org::mind_map::GraphLayoutProxy* model,
+        OrgStore*                        store,
+        QWidget*                         parent);
 
     QSize getNodeSize(const QModelIndex& index);
-    void  setModel(QAbstractItemModel* model);
+    void  setModel(org::mind_map::GraphLayoutProxy* model);
     void  rebuildScene();
     bool  debug = false;
 
@@ -79,21 +79,12 @@ class OrgGraphView : public QGraphicsView {
     }
 
     void connectModel() {
-        connect(
-            model,
-            &QAbstractItemModel::rowsInserted,
-            this,
-            &OrgGraphView::onRowsInserted);
-        connect(
-            model,
-            &QAbstractItemModel::rowsRemoved,
-            this,
-            &OrgGraphView::onRowsRemoved);
-        connect(
+        Q_ASSERT(connect(
             model,
             &QAbstractItemModel::layoutChanged,
             this,
-            &OrgGraphView::onLayoutChanged);
+            &OrgGraphView::onLayoutChanged,
+            Qt::UniqueConnection));
     }
 
   private:
@@ -107,23 +98,14 @@ class OrgGraphView : public QGraphicsView {
     void updateItem(const QModelIndex& index);
 
     void addItem(QModelIndex const& index);
-
-    void onRowsInserted(const QModelIndex& parent, int first, int last) {
-        for (int row = first; row <= last; ++row) {
-            addItem(model->index(row, 0, parent));
-        }
-    }
-
     void onRowsShifted(int lastShifted);
 
-
     void removeSceneItem(int row);
-
-    void onRowsRemoved(const QModelIndex& parent, int first, int last);
 
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        // validateItemRows();
+        rebuildScene();
+        validateItemRows();
     }
 };
