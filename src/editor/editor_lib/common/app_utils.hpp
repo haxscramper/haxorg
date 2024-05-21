@@ -14,6 +14,7 @@
 #include <QDebug>
 #include <QMetaMethod>
 #include <QMetaObject>
+#include <QPixmap>
 
 
 class QWindow;
@@ -274,6 +275,15 @@ QPixmap save_screenshot(
     QWidget*       widget,
     const QString& filePath,
     qreal          scaleFactor = 1.0);
+
+inline Func<QPixmap(CR<Str>)> make_shot(QWidget* window, CR<Str> name) {
+    return [name, window](CR<Str> text) -> QPixmap {
+        return save_screenshot(
+            window,
+            QString::fromStdString(fmt("/tmp/{}_{}.png", name, text)),
+            2);
+    };
+}
 
 
 /// \brief CRTP method injection for debugging methods

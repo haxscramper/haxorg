@@ -33,4 +33,5 @@ class TestMindMap
     void testMindMapSignals1();
     void testRowModelSignals();
     void testGraphLayoutUpdateSignals();
+    void testGraphvizLayoutAlgorithms();
 };

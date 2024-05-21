@@ -134,11 +134,8 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
 
     Graphviz   gvc;
     FullLayout res;
-    auto       lyt = ir.doGraphvizLayout(gvc);
-    if (true) {
-        lyt.writeSvg("/tmp/testQtGraphSceneFullMindMap.svg");
-        lyt.writeXDot("/tmp/testQtGraphSceneFullMindMap.xdot");
-    }
+    auto       lyt = ir.doGraphvizLayout(gvc, config.graphvizLayout);
+
     res.original  = lyt;
     auto conv_lyt = lyt.convert();
     res.bbox      = conv_lyt.bbox;

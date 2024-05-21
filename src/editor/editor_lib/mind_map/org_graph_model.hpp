@@ -622,6 +622,8 @@ struct GraphLayoutProxy
         /// Customize internal margin between subtree clusters and the
         /// content. Default margin is ~10
         Opt<GetSubgraphMargin> getSubgraphMargin;
+
+        Graphviz::LayoutType graphvizLayout = Graphviz::LayoutType::Dot;
     };
 
 

@@ -167,7 +167,7 @@ struct GraphConstraint {
 
     Data data;
 
-    GraphConstraint(CR<Data> data) : data(data){};
+    GraphConstraint(CR<Data> data) : data(data) {};
 };
 
 /// \brief Main store for the graph layout intermediate representation.
@@ -213,7 +213,7 @@ struct GraphLayoutIR {
     double                      width  = 100;
     double                      height = 100;
     /// \brief Graph name. Backend-specific.
-    Str graphName = "G";
+    Str                  graphName      = "G";
 
     /// \brief Which DPI to use when converting to and from graphviz sizes.
     /// Backend-specific, 72 is the default used by graphviz.

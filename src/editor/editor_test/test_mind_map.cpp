@@ -1114,6 +1114,11 @@ struct SceneBench {
     OrgGraphView*          view;
     SPtr<QMainWindow>      window;
 
+    void adjustWindow() {
+        window->resize(proxy->currentLayout.bbox.size().grownBy(
+            QMargins(20, 20, 20, 20)));
+    }
+
     SceneBench(CR<Str> text) {
         window = std::make_shared<QMainWindow>();
         window->show();
@@ -1554,13 +1559,7 @@ Paragraph [fn:target1] [fn:target2]
 
     SceneBench b{text};
 
-    auto shot = [&](CR<Str> text) {
-        return save_screenshot(
-            b.window.get(),
-            QString::fromStdString(
-                fmt("/tmp/testGraphLayoutUpdateSignals_{}.png", text)),
-            2);
-    };
+    auto shot = make_shot(b.window.get(), "testGraphLayoutUpdateSignals");
 
     shot("start");
 
@@ -1596,4 +1595,16 @@ Paragraph [fn:target1] [fn:target2]
     auto after_readding_everything = shot("add_targets_back");
     QCOMPARE_EQ(
         without_doc_root.toImage(), after_readding_everything.toImage());
+}
+
+void TestMindMap::testGraphvizLayoutAlgorithms() {
+    SceneBench b{getFullMindMapText()};
+    auto shot = make_shot(b.window.get(), "testGraphvizLayoutAlgorithms");
+
+    for (auto const& it : sliceT<Graphviz::LayoutType>()) {
+        b.proxy->config.graphvizLayout = it;
+        b.proxy->resetLayoutData();
+        b.adjustWindow();
+        shot(fmt1(it));
+    }
 }

@@ -648,6 +648,15 @@ class Graphviz {
         Circo  /// Circular layout
     };
 
+    BOOST_DESCRIBE_NESTED_ENUM(
+        LayoutType,
+        Dot,
+        Neato,
+        Fdp,
+        Sfdp,
+        Twopi,
+        Circo);
+
     enum class RenderFormat
     {
         PNG,  /// Portable Network Graphics format
