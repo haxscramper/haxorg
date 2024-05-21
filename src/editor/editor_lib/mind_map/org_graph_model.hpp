@@ -721,9 +721,7 @@ struct GraphLayoutProxy
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        _qfmt("GraphLayoutProxy from {}", qdebug_to_str(sender()));
         resetLayoutData();
-        _qfmt("GraphLayoutProxy");
     }
 };
 } // namespace org::mind_map

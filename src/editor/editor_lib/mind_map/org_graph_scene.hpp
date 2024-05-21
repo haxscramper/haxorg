@@ -105,9 +105,7 @@ class OrgGraphView : public QGraphicsView {
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        _qfmt("OrgGraphView from {}", qdebug_to_str(sender()));
         rebuildScene();
         validateItemRows();
-        _qfmt("OrgGraphView");
     }
 };

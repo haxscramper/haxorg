@@ -1553,26 +1553,47 @@ Paragraph [fn:target1] [fn:target2]
 )"};
 
     SceneBench b{text};
-    save_screenshot(
-        b.window.get(), "/tmp/testGraphLayoutUpdateSignals_1.png", 2);
+
+    auto shot = [&](CR<Str> text) {
+        return save_screenshot(
+            b.window.get(),
+            QString::fromStdString(
+                fmt("/tmp/testGraphLayoutUpdateSignals_{}.png", text)),
+            2);
+    };
+
+    shot("start");
+
 
     QCOMPARE_EQ(b.graph->numNodes(), 4);
     QCOMPARE_EQ(b.graph->numEdges(), 2);
     QCOMPARE_EQ(b.view->graphItems().size(), 6);
-    b.view->debug = true;
     b.proxy->setObjectName("layout_proxy");
     b.view->setObjectName("view");
     b.graph->setObjectName("graph");
-    b.graph->state.debug = false;
 
     AbstractItemModelSignalListener l{b.graph.get()};
     l.printOnTrigger = true;
 
-    auto b0 = b.store->getBox0({0});
-    auto b1 = b.store->getBox0({1});
-    auto b2 = b.store->getBox0({2});
+    auto doc = b.store->getBox0({});
+    auto b0  = b.store->getBox0({0});
+    auto b1  = b.store->getBox0({1});
+    auto b2  = b.store->getBox0({2});
 
+    b.graph->deleteBox(doc);
+    auto without_doc_root = shot("drop_doc");
     b.graph->deleteBox(b0);
+    shot("delete_box_0");
+    b.graph->addBox(b0);
+    shot("add_box_0");
 
-    // b.view->items().si
+    b.graph->deleteBox(b1);
+    shot("remove_target_1");
+    b.graph->deleteBox(b2);
+    shot("remove_target_2");
+    b.graph->addBox(b1);
+    b.graph->addBox(b2);
+    auto after_readding_everything = shot("add_targets_back");
+    QCOMPARE_EQ(
+        without_doc_root.toImage(), after_readding_everything.toImage());
 }

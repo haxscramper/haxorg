@@ -108,7 +108,7 @@ ColText printModelTree(
 
         QModelIndex currentIndex      = index;
         auto        currentProxyModel = qobject_cast<
-            QSortFilterProxyModel const*>(index.model());
+                   QSortFilterProxyModel const*>(index.model());
         Vec<int> roles = sorted(
             role_names.keys() | rs::to<Vec>(), std::less_equal<int>{});
 
@@ -295,7 +295,7 @@ std::string qdebug_obj(const QObject* obj) {
     return os.str();
 }
 
-void save_screenshot(
+QPixmap save_screenshot(
     QWidget*       widget,
     const QString& filePath,
     qreal          scaleFactor) {
@@ -303,12 +303,14 @@ void save_screenshot(
     pixmap.setDevicePixelRatio(scaleFactor);
     widget->render(&pixmap);
     pixmap.save(filePath);
+    return pixmap;
 }
 
-void save_screenshot(const QString& filePath) {
+QPixmap save_screenshot(const QString& filePath) {
     QScreen*       screen = QGuiApplication::primaryScreen();
     const QWindow* window = QApplication::focusWindow();
     Q_ASSERT(window != nullptr);
     QPixmap pixmap = screen->grabWindow(window->winId());
     pixmap.save(filePath);
+    return pixmap;
 }

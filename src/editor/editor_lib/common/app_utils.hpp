@@ -268,9 +268,9 @@ T qindex_get(QModelIndex const& index, E role) {
 }
 
 
-void save_screenshot(const QString& filePath);
+QPixmap save_screenshot(const QString& filePath);
 
-void save_screenshot(
+QPixmap save_screenshot(
     QWidget*       widget,
     const QString& filePath,
     qreal          scaleFactor = 1.0);
