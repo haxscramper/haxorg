@@ -1219,8 +1219,8 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 
     pre_layout_filter.setSourceModel(b.graph.get());
     b.proxy->setSourceModel(&pre_layout_filter);
-    dump_all("1");
     b.proxy->resetLayoutData();
+    dump_all("1");
     b.view->setModel(b.proxy.get());
     b.view->rebuildScene();
 

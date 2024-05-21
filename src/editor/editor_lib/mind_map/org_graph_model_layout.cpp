@@ -243,7 +243,11 @@ QVariant GraphLayoutProxy::data(const QModelIndex& index, int role) const {
 
             default: {
                 Q_ASSERT(sourceModel() != nullptr);
-                return mapToSource(index).data(role);
+                Q_ASSERT(index.isValid());
+                Q_ASSERT(index.internalPointer() != nullptr);
+                auto mapped = mapToSource(index);
+                Q_ASSERT(mapped.isValid());
+                return mapped.data(role);
             }
         }
     }
