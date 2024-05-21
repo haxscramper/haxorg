@@ -55,15 +55,30 @@ void test_message_handler(
     }
 }
 
+namespace {
+const QString perfetto_trace_name{"perfetto_trace"};
+}
+
 void TestBase::init_test_base() {
     editorInitMain();
     pre_test_handler = qInstallMessageHandler(test_message_handler);
+
+    parser.addOption(QCommandLineOption(
+        perfetto_trace_name, "Description of myparam", "value"));
+    parser.process(QCoreApplication::arguments());
+
+    if (parser.isSet(perfetto_trace_name)) { tracing = StartTracing(); }
 }
 
 void TestBase::cleanup_test_base() {
     qInstallMessageHandler(pre_test_handler);
+    if (parser.isSet(perfetto_trace_name)) {
+        Q_ASSERT(tracing.get() != nullptr);
+        StopTracing(
+            std::move(tracing),
+            parser.value(perfetto_trace_name).toStdString());
+    }
 }
-
 
 
 AbstractItemModelSignalListener::AbstractItemModelSignalListener(

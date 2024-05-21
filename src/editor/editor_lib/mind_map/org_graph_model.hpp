@@ -423,22 +423,22 @@ struct Graph
 
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
-        emit layoutAboutToBeChanged();
+        PERF_EMIT_SIGNAL(layoutAboutToBeChanged);
         deleteBoxImpl(before);
         addBoxImpl(replace);
-        emit layoutChanged();
+        PERF_EMIT_SIGNAL(layoutChanged);
     }
 
     void addBox(CR<OrgBoxId> box) {
-        emit layoutAboutToBeChanged();
+        PERF_EMIT_SIGNAL(layoutAboutToBeChanged);
         addBoxImpl(box);
-        emit layoutChanged();
+        PERF_EMIT_SIGNAL(layoutChanged);
     }
 
     void deleteBox(CR<OrgBoxId> deleted) {
-        emit layoutAboutToBeChanged();
+        PERF_EMIT_SIGNAL(layoutAboutToBeChanged);
         deleteBoxImpl(deleted);
-        emit layoutChanged();
+        PERF_EMIT_SIGNAL(layoutChanged);
     }
 
   signals:

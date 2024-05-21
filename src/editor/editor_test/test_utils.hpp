@@ -294,6 +294,9 @@ void test_message_handler(
 
 
 struct TestBase {
+    std::unique_ptr<perfetto::TracingSession> tracing;
+    QCommandLineParser                        parser;
+
     void init_test_base();
     void cleanup_test_base();
 };

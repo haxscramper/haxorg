@@ -16,6 +16,37 @@
 #include <QMetaObject>
 #include <QPixmap>
 
+#include <hstd/wrappers/perfetto_aux.hpp>
+
+// The set of track event categories that the example is using.
+PERFETTO_DEFINE_CATEGORIES(
+    perfetto::Category("qt_signals")
+        .SetDescription("Flow events for signal processing"),
+    perfetto::Category("mind_map").SetDescription("Mind map operations")
+    //
+);
+
+inline int getSignalId() {
+    // this makes absolutely no sense when processing signals that jump
+    // across threads, but in a single thread the signals are going to be
+    // processed in sequence? POC state anyway.
+    return std::hash<std::thread::id>{}(std::this_thread::get_id());
+}
+
+#define PERF_EMIT_SIGNAL(signal, ...)                                     \
+    TRACE_EVENT(                                                          \
+        "qt_signals",                                                     \
+        #signal,                                                          \
+        perfetto::Flow::ProcessScoped(getSignalId()));                    \
+    emit signal(__VA_ARGS__);
+
+#define PERF_ACCEPT_SIGNAL(...)                                           \
+    TRACE_EVENT(                                                          \
+        "qt_signals",                                                     \
+        __function__,                                                     \
+        perfetto::TerminatingFlow::ProcessScoped(getSignalId()));
+
+#define PERF_MMAP(...) TRACE_EVENT("mind_map", __VA_ARGS__)
 
 class QWindow;
 
