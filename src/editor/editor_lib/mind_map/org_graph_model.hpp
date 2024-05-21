@@ -99,6 +99,20 @@ enum class OrgGraphRoles
     OrgGraphModelRoles__LAST__,
 };
 
+BOOST_DESCRIBE_ENUM(
+    OrgGraphRoles,
+    OrgGraphModelRoles__FIRST__,
+    NodeShape,
+    EdgeShape,
+    IsNode,
+    NodeDesc,
+    EdgeDesc,
+    SourceAndTarget,
+    DebugDisplay,
+    SubnodeIndices,
+    ElementKind,
+    OrgGraphModelRoles__LAST__);
+
 /// Type of the individual graph element that model can provide
 enum class OrgGraphElementKind
 {
@@ -106,6 +120,8 @@ enum class OrgGraphElementKind
     Edge,     ///< Link between two boxes in the store
     Subgraph, ///< Grouping element, provided by the proxy layout model
 };
+
+BOOST_DESCRIBE_ENUM(OrgGraphElementKind, Node, Edge, Subgraph);
 
 /// Base data structure for the whole mind map. The parameters are
 /// not configurable,

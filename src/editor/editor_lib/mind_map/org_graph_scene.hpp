@@ -28,8 +28,27 @@ struct OrgGraphElementItem : public QGraphicsItem {
 
     QModelIndex const& getIndex() const { return this->index; }
 
-  protected:
     QModelIndex index;
+};
+
+template <>
+struct std::formatter<OrgGraphElementItem> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const OrgGraphElementItem& p, FormatContext& ctx) const {
+        return fmt_ctx(p.index, ctx);
+    }
+};
+
+template <>
+struct std::formatter<OrgGraphElementItem*> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(OrgGraphElementItem const* p, FormatContext& ctx) const {
+        if (p) {
+            return fmt_ctx(p->index, ctx);
+        } else {
+            return fmt_ctx("<nil>", ctx);
+        }
+    }
 };
 
 class OrgGraphView : public QGraphicsView {
@@ -72,22 +91,17 @@ class OrgGraphView : public QGraphicsView {
             &OrgGraphView::onRowsRemoved);
         connect(
             model,
-            &QAbstractItemModel::dataChanged,
-            this,
-            &OrgGraphView::onDataChanged);
-        connect(
-            model,
             &QAbstractItemModel::layoutChanged,
             this,
             &OrgGraphView::onLayoutChanged);
     }
 
   private:
-    OrgStore*                store;
-    QAbstractItemModel*      model;
-    QGraphicsScene*          scene;
-    SPtr<QGraphicsItem>      background;
-    Vec<SPtr<QGraphicsItem>> modelItems;
+    OrgStore*                      store;
+    QAbstractItemModel*            model;
+    QGraphicsScene*                scene;
+    SPtr<QGraphicsItem>            background;
+    Vec<SPtr<OrgGraphElementItem>> modelItems;
 
 
     void updateItem(const QModelIndex& index);
@@ -111,15 +125,5 @@ class OrgGraphView : public QGraphicsView {
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
         // validateItemRows();
-    }
-
-    void onDataChanged(
-        const QModelIndex&  topLeft,
-        const QModelIndex&  bottomRight,
-        const QVector<int>& roles) {
-        for (int row = topLeft.row(); row <= bottomRight.row(); ++row) {
-            QModelIndex index = model->index(row, 0);
-            updateItem(index);
-        }
     }
 };

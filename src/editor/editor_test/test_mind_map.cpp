@@ -1217,6 +1217,8 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
             true);
     };
 
+    b.view->rebuildScene();
+
     pre_layout_filter.setSourceModel(b.graph.get());
     b.proxy->setSourceModel(&pre_layout_filter);
     b.proxy->resetLayoutData();

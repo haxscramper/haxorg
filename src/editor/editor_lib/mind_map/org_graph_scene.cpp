@@ -372,17 +372,18 @@ void verifyModelGraph(QAbstractItemModel const* model) {
 }
 
 void OrgGraphView::addItem(const QModelIndex& index) {
-    if (debug) { _qfmt("index:{}", index); }
+    GraphIndex gi{index};
+
+    if (debug) { _qfmt("index:{} kind:{}", index, gi.getKind()); }
+
     verifyModelGraph(index.model());
-    SPtr<QGraphicsItem> added;
+    SPtr<OrgGraphElementItem> added;
 
-    // if (index.row() == 24) { __builtin_debugtrap(); }
-
-    switch (GraphIndex{index}.getKind()) {
+    switch (gi.getKind()) {
         case OrgGraphElementKind::Node: {
             OrgNodeItem* polyline = new OrgNodeItem(store, index, nullptr);
             scene->addItem(polyline);
-            added = SPtr<QGraphicsItem>(polyline);
+            added = SPtr<OrgGraphElementItem>(polyline);
             Q_ASSERT(polyline->scene() == scene);
             break;
         }
@@ -390,7 +391,7 @@ void OrgGraphView::addItem(const QModelIndex& index) {
         case OrgGraphElementKind::Edge: {
             OrgEdgeItem* polyline = new OrgEdgeItem(store, index, nullptr);
             scene->addItem(polyline);
-            added = SPtr<QGraphicsItem>(polyline);
+            added = SPtr<OrgGraphElementItem>(polyline);
             Q_ASSERT(polyline->scene() == scene);
             break;
         }
@@ -399,7 +400,7 @@ void OrgGraphView::addItem(const QModelIndex& index) {
             OrgSubgraphItem* subgraph = new OrgSubgraphItem(
                 store, index, nullptr);
             scene->addItem(subgraph);
-            added = SPtr<QGraphicsItem>(subgraph);
+            added = SPtr<OrgGraphElementItem>(subgraph);
             break;
         }
     }
@@ -498,7 +499,17 @@ void OrgGraphView::setModel(QAbstractItemModel* model) {
 }
 
 void OrgGraphView::rebuildScene() {
-    for (int i = 0; i < modelItems.size(); ++i) { removeSceneItem(i); }
+    while (!modelItems.empty()) { removeSceneItem(modelItems.high()); }
+
+    Q_ASSERT_X(
+        modelItems.size() == 0,
+        "rebuildScene",
+        fmt("size:{}", modelItems.size()));
+
+    Q_ASSERT_X(
+        graphItems().size() == 0,
+        "rebuildScene",
+        fmt("scene:{}", graphItems()));
 
     int rowCount = model->rowCount();
     for (int row = 0; row < rowCount; ++row) {
