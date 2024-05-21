@@ -139,7 +139,12 @@ using EDesc       = GraphTraits::edge_descriptor;
 /// Base data provider model for all interactions with the graph. Wraps
 /// around boost graph and exposes its nodes and edges as a flat list of
 /// elements.
-struct Graph : public QAbstractListModel {
+struct Graph
+    : public QAbstractListModel
+    , public CRTP_qdebug<Graph> {
+
+    friend class CRTP_qdebug;
+
   private:
     Q_OBJECT
   public:
@@ -539,7 +544,12 @@ struct GraphFilterProxy : public QSortFilterProxyModel {
 /// - Provide an underlying node/edge provider
 /// - Call `updateCurrentLayout` to run the layout backend of choice
 /// - Now the model can serve a new set of layout elements`
-struct GraphLayoutProxy : public QSortFilterProxyModel {
+struct GraphLayoutProxy
+    : public QSortFilterProxyModel
+    , public CRTP_qdebug<GraphLayoutProxy> {
+
+    friend class CRTP_qdebug;
+
   private:
     Q_OBJECT
   public:
@@ -638,7 +648,9 @@ struct GraphLayoutProxy : public QSortFilterProxyModel {
         OrgStore*        store,
         CR<LayoutConfig> size,
         QObject*         parent)
-        : QSortFilterProxyModel(parent), store(store), config(size) {}
+        : QSortFilterProxyModel(parent), store(store), config(size) {
+        blockSignals(true);
+    }
 
 
     ElementLayout const& getElement(QModelIndex const& idx) const {
@@ -695,19 +707,23 @@ struct GraphLayoutProxy : public QSortFilterProxyModel {
     }
 
     void resetLayoutData() {
+        blockSignals(false);
         emit layoutAboutToBeChanged();
         setNewLayout();
         emit dataChanged(
             index(0, 0, QModelIndex{}),
             index(rowCount(QModelIndex{}) - 1, 0, QModelIndex{}));
         emit layoutChanged();
+        blockSignals(true);
     }
 
   public slots:
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
+        _qfmt("GraphLayoutProxy from {}", qdebug_to_str(sender()));
         resetLayoutData();
+        _qfmt("GraphLayoutProxy");
     }
 };
 } // namespace org::mind_map

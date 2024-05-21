@@ -1189,7 +1189,6 @@ Paragraph [[id:subtree-id]]
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
     SceneBench b{getFullMindMapText()};
-    b.view->connectModel();
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_pre_filter.png", 2);
 
@@ -1562,6 +1561,8 @@ Paragraph [fn:target1] [fn:target2]
     QCOMPARE_EQ(b.view->graphItems().size(), 6);
     b.view->debug = true;
     b.proxy->setObjectName("layout_proxy");
+    b.view->setObjectName("view");
+    b.graph->setObjectName("graph");
     b.graph->state.debug = false;
 
     AbstractItemModelSignalListener l{b.graph.get()};
@@ -1570,10 +1571,6 @@ Paragraph [fn:target1] [fn:target2]
     auto b0 = b.store->getBox0({0});
     auto b1 = b.store->getBox0({1});
     auto b2 = b.store->getBox0({2});
-
-    b.proxy->disconnect(nullptr, b.graph.get());
-    b.view->disconnect(nullptr, b.proxy.get());
-    b.view->disconnect(nullptr, b.graph.get());
 
     b.graph->deleteBox(b0);
 
