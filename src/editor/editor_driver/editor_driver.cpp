@@ -12,6 +12,7 @@
 #include <QMainWindow>
 #include <QApplication>
 
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 template <typename E, IsVariant Var>
 void from_json_variant(CR<Str> variantField, json const& in, Var& out) {

@@ -56,27 +56,33 @@ void test_message_handler(
 }
 
 namespace {
-const QString perfetto_trace_name{"perfetto_trace"};
+const std::string perfetto_trace_name{"PERFETTO_TRACE_PATH"};
+Opt<Str>          getPerfTrace() {
+    if (getenv(perfetto_trace_name.c_str())
+        && !Str{getenv(perfetto_trace_name.c_str())}.empty()) {
+        return Str{getenv(perfetto_trace_name.c_str())};
+    } else {
+        return std::nullopt;
+    }
 }
+} // namespace
 
 void TestBase::init_test_base() {
     editorInitMain();
     pre_test_handler = qInstallMessageHandler(test_message_handler);
 
-    parser.addOption(QCommandLineOption(
-        perfetto_trace_name, "Description of myparam", "value"));
-    parser.process(QCoreApplication::arguments());
 
-    if (parser.isSet(perfetto_trace_name)) { tracing = StartTracing(); }
+    if (getPerfTrace()) {
+        InitializePerfetto();
+        tracing = StartTracing();
+    }
 }
 
 void TestBase::cleanup_test_base() {
     qInstallMessageHandler(pre_test_handler);
-    if (parser.isSet(perfetto_trace_name)) {
+    if (getPerfTrace()) {
         Q_ASSERT(tracing.get() != nullptr);
-        StopTracing(
-            std::move(tracing),
-            parser.value(perfetto_trace_name).toStdString());
+        StopTracing(std::move(tracing), *getPerfTrace());
     }
 }
 
