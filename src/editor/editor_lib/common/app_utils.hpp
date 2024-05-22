@@ -26,25 +26,23 @@ PERFETTO_DEFINE_CATEGORIES(
     //
 );
 
-inline int getSignalId() {
-    // this makes absolutely no sense when processing signals that jump
-    // across threads, but in a single thread the signals are going to be
-    // processed in sequence? POC state anyway.
-    return std::hash<std::thread::id>{}(std::this_thread::get_id());
-}
+int getSignalId(char const* signalName, QObject const* sender);
+
+void perf_emit_signal(char const* signalName, QObject const* sender);
+
+void perf_accept_signal(
+    char const*    signalName,
+    QObject const* sender,
+    QObject const* receiver);
+
 
 #define PERF_EMIT_SIGNAL(signal, ...)                                     \
-    TRACE_EVENT(                                                          \
-        "qt_signals",                                                     \
-        #signal,                                                          \
-        perfetto::Flow::ProcessScoped(getSignalId()));                    \
+    perf_emit_signal(SIGNAL(signal), this);                               \
     emit signal(__VA_ARGS__);
 
-#define PERF_ACCEPT_SIGNAL(...)                                           \
-    TRACE_EVENT(                                                          \
-        "qt_signals",                                                     \
-        __function__,                                                     \
-        perfetto::TerminatingFlow::ProcessScoped(getSignalId()));
+#define PERF_ACCEPT_SIGNAL(signal, ...)                                   \
+    perf_accept_signal(SIGNAL(signal), this->sender(), this);
+
 
 #define PERF_MMAP(...) TRACE_EVENT("mind_map", __VA_ARGS__)
 

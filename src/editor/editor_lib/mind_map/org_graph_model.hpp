@@ -723,6 +723,8 @@ struct GraphLayoutProxy
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
+        PERF_ACCEPT_SIGNAL(layoutChanged);
+        qDebug() << "Layout changed";
         resetLayoutData();
     }
 };

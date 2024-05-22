@@ -314,3 +314,31 @@ QPixmap save_screenshot(const QString& filePath) {
     pixmap.save(filePath);
     return pixmap;
 }
+
+void perf_accept_signal(
+    const char*    signalName,
+    const QObject* sender,
+    const QObject* receiver) {
+    _qfmt("signal-name:{} sender:{}", signalName, qdebug_to_str(sender));
+
+    TRACE_EVENT(
+        "qt_signals",
+        signalName,
+        perfetto::TerminatingFlow::ProcessScoped(
+            getSignalId(signalName, sender)));
+}
+
+void perf_emit_signal(const char* signalName, const QObject* sender) {
+    _qfmt("signal-name:{} sender:{}", signalName, qdebug_to_str(sender));
+    TRACE_EVENT(
+        "qt_signals",
+        signalName,
+        perfetto::Flow::ProcessScoped(getSignalId(signalName, sender)));
+}
+
+int getSignalId(const char* signalName, const QObject* sender) {
+    std::size_t result;
+    boost::hash_combine(result, signalName);
+    boost::hash_combine(result, (void*)sender);
+    return static_cast<int>(result);
+}
