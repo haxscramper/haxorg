@@ -1608,3 +1608,31 @@ void TestMindMap::testGraphvizLayoutAlgorithms() {
         shot(fmt1(it));
     }
 }
+
+void TestMindMap::testMultiRootGraphConstruction() {
+    OrgStore store;
+    Graph    graph{&store, nullptr};
+    graph.connectStore();
+    store.addRoot(R"(
+* Subtree1
+  :properties:
+  :id: subtree-1
+  :end:
+
+- [[id:subtree-2]] :: Forward link
+)"_ss);
+
+    store.addRoot(R"(
+* Subtree2
+  :properties:
+  :id: subtree-2
+  :end:
+
+- [[id:subtree-1]] :: Backlink
+)"_ss);
+
+    auto r0 = store.getRoot(0);
+    auto r1 = store.getRoot(1);
+
+    QVERIFY(graph.hasEdge(r0->id(0), r1->id(0)));
+}

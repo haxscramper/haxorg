@@ -34,4 +34,5 @@ class TestMindMap
     void testRowModelSignals();
     void testGraphLayoutUpdateSignals();
     void testGraphvizLayoutAlgorithms();
+    void testMultiRootGraphConstruction();
 };
