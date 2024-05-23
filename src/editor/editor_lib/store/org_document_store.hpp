@@ -172,11 +172,13 @@ struct OrgStore : public QObject {
     OrgTreeNode* getRoot(int idx) { return roots.at(idx).get(); }
 
     OrgTreeNode* addRoot(sem::OrgArg node) {
+        emit batchAddBegin();
         auto box  = add(node);
         auto root = addTree(box, nullptr);
         root->buildTree(root.get());
         this->roots.push_back(std::move(root));
         return roots.back().get();
+        emit batchAddEnd();
     }
 
     OrgTreeNode* addRoot(
@@ -238,4 +240,7 @@ struct OrgStore : public QObject {
     void boxReplaced(OrgBoxId prev, OrgBoxId replace);
     void boxDeleted(OrgBoxId box);
     void boxAdded(OrgBoxId box);
+
+    void batchAddBegin();
+    bool batchAddEnd();
 };

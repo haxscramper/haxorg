@@ -652,6 +652,18 @@ struct GraphLayoutProxy
         QObject*         parent)
         : QSortFilterProxyModel(parent), store(store), config(size) {
         blockSignals(true);
+        Q_ASSERT(connect(
+            store,
+            &OrgStore::batchAddBegin,
+            this,
+            &GraphLayoutProxy::batchAddBegin,
+            Qt::UniqueConnection));
+        Q_ASSERT(connect(
+            store,
+            &OrgStore::batchAddEnd,
+            this,
+            &GraphLayoutProxy::batchAddEnd,
+            Qt::UniqueConnection));
     }
 
 
@@ -709,6 +721,7 @@ struct GraphLayoutProxy
     }
 
     void resetLayoutData() {
+        PERF_MMAP(__func__);
         blockSignals(false);
         emit layoutAboutToBeChanged();
         setNewLayout();
@@ -719,12 +732,20 @@ struct GraphLayoutProxy
         blockSignals(true);
     }
 
+    bool isBatchAdd = false;
+
   public slots:
+    void batchAddBegin() { isBatchAdd = true; }
+
+    void batchAddEnd() {
+        isBatchAdd = false;
+        resetLayoutData();
+    }
+
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        PERF_MMAP(__func__);
-        resetLayoutData();
+        if (!isBatchAdd) { resetLayoutData(); }
     }
 };
 } // namespace org::mind_map
