@@ -315,30 +315,24 @@ QPixmap save_screenshot(const QString& filePath) {
     return pixmap;
 }
 
-void perf_accept_signal(
-    const char*    signalName,
-    const QObject* sender,
-    const QObject* receiver) {
-    _qfmt("signal-name:{} sender:{}", signalName, qdebug_to_str(sender));
-
+void perf_accept_signal(CR<Str> signal, int extraId) {
     TRACE_EVENT(
         "qt_signals",
-        signalName,
+        signal.c_str(),
         perfetto::TerminatingFlow::ProcessScoped(
-            getSignalId(signalName, sender)));
+            getSignalId(signal, extraId)));
 }
 
-void perf_emit_signal(const char* signalName, const QObject* sender) {
-    _qfmt("signal-name:{} sender:{}", signalName, qdebug_to_str(sender));
+void perf_emit_signal(CR<Str> signal, int extraId) {
     TRACE_EVENT(
         "qt_signals",
-        signalName,
-        perfetto::Flow::ProcessScoped(getSignalId(signalName, sender)));
+        signal.c_str(),
+        perfetto::Flow::ProcessScoped(getSignalId(signal, extraId)));
 }
 
-int getSignalId(const char* signalName, const QObject* sender) {
+int getSignalId(CR<Str> signal, int extraId) {
     std::size_t result;
-    boost::hash_combine(result, signalName);
-    boost::hash_combine(result, (void*)sender);
+    boost::hash_combine(result, signal);
+    boost::hash_combine(result, extraId);
     return static_cast<int>(result);
 }

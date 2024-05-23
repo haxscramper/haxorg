@@ -134,11 +134,14 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
 
     Graphviz   gvc;
     FullLayout res;
-    auto       lyt = ir.doGraphvizLayout(gvc, config.graphvizLayout);
+    PERF_MMAP_BEGIN("doGraphvizLayout");
+    auto lyt = ir.doGraphvizLayout(gvc, config.graphvizLayout);
+    PERF_MMAP_END();
 
     res.original  = lyt;
     auto conv_lyt = lyt.convert();
-    res.bbox      = conv_lyt.bbox;
+
+    res.bbox = conv_lyt.bbox;
     // drop all the content from the layout and set the size from the
     // expected computed layout.
     res.data.clear();

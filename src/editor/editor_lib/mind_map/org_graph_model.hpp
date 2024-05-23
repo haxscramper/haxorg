@@ -423,22 +423,22 @@ struct Graph
 
   public slots:
     void replaceBox(CR<OrgBoxId> before, CR<OrgBoxId> replace) {
-        PERF_EMIT_SIGNAL(layoutAboutToBeChanged);
+        emit layoutAboutToBeChanged();
         deleteBoxImpl(before);
         addBoxImpl(replace);
-        PERF_EMIT_SIGNAL(layoutChanged);
+        emit layoutChanged();
     }
 
     void addBox(CR<OrgBoxId> box) {
-        PERF_EMIT_SIGNAL(layoutAboutToBeChanged);
+        emit layoutAboutToBeChanged();
         addBoxImpl(box);
-        PERF_EMIT_SIGNAL(layoutChanged);
+        emit layoutChanged();
     }
 
     void deleteBox(CR<OrgBoxId> deleted) {
-        PERF_EMIT_SIGNAL(layoutAboutToBeChanged);
+        emit layoutAboutToBeChanged();
         deleteBoxImpl(deleted);
-        PERF_EMIT_SIGNAL(layoutChanged);
+        emit layoutChanged();
     }
 
   signals:
@@ -723,8 +723,7 @@ struct GraphLayoutProxy
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        PERF_ACCEPT_SIGNAL(layoutChanged);
-        qDebug() << "Layout changed";
+        PERF_MMAP(__func__);
         resetLayoutData();
     }
 };

@@ -26,25 +26,15 @@ PERFETTO_DEFINE_CATEGORIES(
     //
 );
 
-int getSignalId(char const* signalName, QObject const* sender);
+int  getSignalId(CR<Str> signal, int extraId);
+void perf_emit_signal(CR<Str> signal, int extraId);
+void perf_accept_signal(CR<Str> signal, int extraId);
 
-void perf_emit_signal(char const* signalName, QObject const* sender);
-
-void perf_accept_signal(
-    char const*    signalName,
-    QObject const* sender,
-    QObject const* receiver);
-
-
-#define PERF_EMIT_SIGNAL(signal, ...)                                     \
-    perf_emit_signal(SIGNAL(signal), this);                               \
-    emit signal(__VA_ARGS__);
-
-#define PERF_ACCEPT_SIGNAL(signal, ...)                                   \
-    perf_accept_signal(SIGNAL(signal), this->sender(), this);
-
-
-#define PERF_MMAP(...) TRACE_EVENT("mind_map", __VA_ARGS__)
+#define PERF_MMAP(...) TRACE_EVENT("mind_map" __VA_OPT__(, ) __VA_ARGS__)
+#define PERF_MMAP_BEGIN(...)                                              \
+    TRACE_EVENT_BEGIN("mind_map" __VA_OPT__(, ) __VA_ARGS__)
+#define PERF_MMAP_END(...)                                                \
+    TRACE_EVENT_END("mind_map" __VA_OPT__(, ) __VA_ARGS__)
 
 class QWindow;
 
