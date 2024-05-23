@@ -130,6 +130,8 @@ std::string qdebug_to_str(T const& index) {
 
 std::string qdebug_obj(QObject const* obj);
 
+void break_if_debugger();
+
 inline QDebug operator<<(QDebug debug, const std::string& str) {
     debug.nospace() << QString::fromStdString(str);
     return debug.space();
@@ -144,6 +146,7 @@ inline QDebug operator<<(QDebug debug, E const& str) {
 
 DECL_QDEBUG_FORMATTER(QModelIndex);
 DECL_QDEBUG_FORMATTER(QPersistentModelIndex);
+DECL_QDEBUG_FORMATTER(QObject const*);
 
 template <typename T>
 struct std::formatter<QList<T>> : std::formatter<std::string> {
@@ -273,7 +276,9 @@ T qindex_get(QModelIndex const& index, int role) {
                 : fmt("<unnamed {}>", role),
             qdebug_to_str(index.model()));
 
-        index.data(role);
+        break_if_debugger();
+        auto model = index.model();
+        model->data(index, role);
 
         Q_ASSERT_X(result.isValid(), "qindex_get", fail);
     }

@@ -231,9 +231,10 @@ void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
     }
 
     if (upd.added_node) {
-        beginInsertRows(
-            QModelIndex(), state.nodes.size(), state.nodes.size());
+        int row = state.nodes.size();
         state.nodes.push_back(*upd.added_node);
+        _qfmt("row:{} count:{}", row, rowCount());
+        beginInsertRows(QModelIndex(), row, row);
         endInsertRows();
     }
 
@@ -569,5 +570,33 @@ QVariant Graph::data(const QModelIndex& index, int role) const {
         default: {
             return QVariant();
         }
+    }
+}
+
+bool GraphFilterProxy::filterAcceptsRow(
+    int                source_row,
+    const QModelIndex& source_parent) const {
+    QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+    bool valid = sourceModel()->hasIndex(source_row, 0, source_parent);
+    _qfmt(
+        "row count:{} index:{} valid:{}",
+        sourceModel()->rowCount(),
+        index,
+        valid);
+    if (valid) {
+        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
+            return accept_node(
+                qindex_get<VDesc>(index, OrgGraphRoles::NodeDesc));
+        } else {
+            auto [source, target] = qindex_get<Pair<VDesc, VDesc>>(
+                index, OrgGraphRoles::SourceAndTarget);
+            // Avoid dangling edges with missing source/target nodes.
+            return accept_node(source) //
+                && accept_node(target)
+                && accept_edge(
+                       qindex_get<EDesc>(index, OrgGraphRoles::EdgeDesc));
+        }
+    } else {
+        return false;
     }
 }

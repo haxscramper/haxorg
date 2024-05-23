@@ -8,6 +8,8 @@
 #include <QApplication>
 #include <QScreen>
 #include <QWindow>
+#include <boost/stacktrace.hpp>
+#include <sys/ptrace.h>
 
 Q_LOGGING_CATEGORY(editor, "editor");
 /// Logging related to the editable document model in the tree or outline
@@ -335,4 +337,21 @@ int getSignalId(CR<Str> signal, int extraId) {
     boost::hash_combine(result, signal);
     boost::hash_combine(result, extraId);
     return static_cast<int>(result);
+}
+
+bool isDebuggerPresent() {
+    // Try to trace the process
+    if (ptrace(PTRACE_TRACEME, 0, nullptr, 0) == -1) {
+        return true; // If tracing fails, it means the process is already
+                     // being traced (i.e., under a debugger)
+    } else {
+        // Detach from the process to clean up
+        ptrace(PTRACE_DETACH, 0, nullptr, 0);
+        return false; // If tracing succeeds, the process is not being
+                      // traced by a debugger
+    }
+}
+
+void break_if_debugger() {
+    if (isDebuggerPresent()) { __builtin_debugtrap(); }
 }

@@ -218,9 +218,8 @@ struct Graph
     }
 
     /// Full number of nodes in the graph.
-    int numNodes() const { return boost::num_vertices(state.g); }
-
-    int numEdges() const { return boost::num_edges(state.g); }
+    int numNodes() const { return state.nodes.size(); }
+    int numEdges() const { return state.edges.size(); }
 
     /// Graph edge descriptor for a specific row
     EDesc getEdgeDesc(int row) const {
@@ -514,22 +513,7 @@ struct GraphFilterProxy : public QSortFilterProxyModel {
 
     virtual bool filterAcceptsRow(
         int                source_row,
-        const QModelIndex& source_parent) const override {
-        QModelIndex index = sourceModel()->index(
-            source_row, 0, source_parent);
-        if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-            return accept_node(
-                qindex_get<VDesc>(index, OrgGraphRoles::NodeDesc));
-        } else {
-            auto [source, target] = qindex_get<Pair<VDesc, VDesc>>(
-                index, OrgGraphRoles::SourceAndTarget);
-            // Avoid dangling edges with missing source/target nodes.
-            return accept_node(source) //
-                && accept_node(target)
-                && accept_edge(
-                       qindex_get<EDesc>(index, OrgGraphRoles::EdgeDesc));
-        }
-    }
+        const QModelIndex& source_parent) const override;
 };
 
 /// \brief Layout data provider for the graph. Implements node and edge

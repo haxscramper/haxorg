@@ -307,103 +307,132 @@ class AbstractItemModelSignalListener : public QObject {
   public:
     struct Record {
         struct DataChanged {
-            QModelIndex topLeft;
-            QModelIndex bottomRight;
-            QList<int>  roles;
-            DESC_FIELDS(DataChanged, (topLeft, bottomRight, roles));
+            QObject const* sender;
+            QModelIndex    topLeft;
+            QModelIndex    bottomRight;
+            QList<int>     roles;
+            DESC_FIELDS(
+                DataChanged,
+                (sender, topLeft, bottomRight, roles));
         };
 
         struct HeaderDataChanged {
+            QObject const*  sender;
             Qt::Orientation orientation;
             int             first;
             int             last;
-            DESC_FIELDS(HeaderDataChanged, (orientation, first, last));
+            DESC_FIELDS(
+                HeaderDataChanged,
+                (sender, orientation, first, last));
         };
 
         struct LayoutChanged {
+            QObject const*                       sender;
             QList<QPersistentModelIndex>         parents;
             QAbstractItemModel::LayoutChangeHint hint;
-            DESC_FIELDS(LayoutChanged, (parents, hint));
+            DESC_FIELDS(LayoutChanged, (sender, parents, hint));
         };
 
         struct LayoutAboutToBeChanged {
+            QObject const*                       sender;
             QList<QPersistentModelIndex>         parents;
             QAbstractItemModel::LayoutChangeHint hint;
-            DESC_FIELDS(LayoutAboutToBeChanged, (parents, hint));
+            DESC_FIELDS(LayoutAboutToBeChanged, (sender, parents, hint));
         };
 
         struct RowsAboutToBeInserted {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(RowsAboutToBeInserted, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                RowsAboutToBeInserted,
+                (sender, parent, first, last));
         };
 
         struct RowsInserted {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(RowsInserted, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(RowsInserted, (sender, parent, first, last));
         };
 
         struct RowsAboutToBeRemoved {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(RowsAboutToBeRemoved, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                RowsAboutToBeRemoved,
+                (sender, parent, first, last));
         };
 
         struct RowsRemoved {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(RowsRemoved, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(RowsRemoved, (sender, parent, first, last));
         };
 
         struct ColumnsAboutToBeInserted {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(ColumnsAboutToBeInserted, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                ColumnsAboutToBeInserted,
+                (sender, parent, first, last));
         };
 
         struct ColumnsInserted {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(ColumnsInserted, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(ColumnsInserted, (sender, parent, first, last));
         };
 
         struct ColumnsAboutToBeRemoved {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(ColumnsAboutToBeRemoved, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                ColumnsAboutToBeRemoved,
+                (sender, parent, first, last));
         };
 
         struct ColumnsRemoved {
-            QModelIndex parent;
-            int         first;
-            int         last;
-            DESC_FIELDS(ColumnsRemoved, (parent, first, last));
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(ColumnsRemoved, (sender, parent, first, last));
         };
 
         struct ModelAboutToBeReset {
-            DESC_FIELDS(ModelAboutToBeReset, ());
+            QObject const* sender;
+            DESC_FIELDS(ModelAboutToBeReset, (sender));
         };
+
         struct ModelReset {
-            DESC_FIELDS(ModelReset, ());
+            QObject const* sender;
+            DESC_FIELDS(ModelReset, (sender));
         };
 
         struct RowsAboutToBeMoved {
-            QModelIndex sourceParent;
-            int         sourceStart;
-            int         sourceEnd;
-            QModelIndex destinationParent;
-            int         destinationRow;
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationRow;
             DESC_FIELDS(
                 RowsAboutToBeMoved,
-                (sourceParent,
+                (sender,
+                 sourceParent,
                  sourceStart,
                  sourceEnd,
                  destinationParent,
@@ -411,14 +440,16 @@ class AbstractItemModelSignalListener : public QObject {
         };
 
         struct RowsMoved {
-            QModelIndex sourceParent;
-            int         sourceStart;
-            int         sourceEnd;
-            QModelIndex destinationParent;
-            int         destinationRow;
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationRow;
             DESC_FIELDS(
                 RowsMoved,
-                (sourceParent,
+                (sender,
+                 sourceParent,
                  sourceStart,
                  sourceEnd,
                  destinationParent,
@@ -426,14 +457,16 @@ class AbstractItemModelSignalListener : public QObject {
         };
 
         struct ColumnsAboutToBeMoved {
-            QModelIndex sourceParent;
-            int         sourceStart;
-            int         sourceEnd;
-            QModelIndex destinationParent;
-            int         destinationColumn;
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationColumn;
             DESC_FIELDS(
                 ColumnsAboutToBeMoved,
-                (sourceParent,
+                (sender,
+                 sourceParent,
                  sourceStart,
                  sourceEnd,
                  destinationParent,
@@ -441,14 +474,16 @@ class AbstractItemModelSignalListener : public QObject {
         };
 
         struct ColumnsMoved {
-            QModelIndex sourceParent;
-            int         sourceStart;
-            int         sourceEnd;
-            QModelIndex destinationParent;
-            int         destinationColumn;
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationColumn;
             DESC_FIELDS(
                 ColumnsMoved,
-                (sourceParent,
+                (sender,
+                 sourceParent,
                  sourceStart,
                  sourceEnd,
                  destinationParent,
@@ -483,34 +518,7 @@ class AbstractItemModelSignalListener : public QObject {
         Data data;
         DESC_FIELDS(Record, (data));
 
-        std::string toString() const {
-            std::string text;
-            switch (getKind()) {
-                    // clang-format off
-                case Kind::DataChanged: text = fmt1(std::get<DataChanged>(data)); break;
-                case Kind::HeaderDataChanged: text = fmt1(std::get<HeaderDataChanged>(data)); break;
-                case Kind::LayoutChanged: text = fmt1(std::get<LayoutChanged>(data)); break;
-                case Kind::LayoutAboutToBeChanged: text = fmt1(std::get<LayoutAboutToBeChanged>(data)); break;
-                case Kind::RowsAboutToBeInserted: text = fmt1(std::get<RowsAboutToBeInserted>(data)); break;
-                case Kind::RowsInserted: text = fmt1(std::get<RowsInserted>(data)); break;
-                case Kind::RowsAboutToBeRemoved: text = fmt1(std::get<RowsAboutToBeRemoved>(data)); break;
-                case Kind::RowsRemoved: text = fmt1(std::get<RowsRemoved>(data)); break;
-                case Kind::ColumnsAboutToBeInserted: text = fmt1(std::get<ColumnsAboutToBeInserted>(data)); break;
-                case Kind::ColumnsInserted: text = fmt1(std::get<ColumnsInserted>(data)); break;
-                case Kind::ColumnsAboutToBeRemoved: text = fmt1(std::get<ColumnsAboutToBeRemoved>(data)); break;
-                case Kind::ColumnsRemoved: text = fmt1(std::get<ColumnsRemoved>(data)); break;
-                case Kind::ModelAboutToBeReset: text = fmt1(std::get<ModelAboutToBeReset>(data)); break;
-                case Kind::ModelReset: text = fmt1(std::get<ModelReset>(data)); break;
-                case Kind::RowsAboutToBeMoved: text = fmt1(std::get<RowsAboutToBeMoved>(data)); break;
-                case Kind::RowsMoved: text = fmt1(std::get<RowsMoved>(data)); break;
-                case Kind::ColumnsAboutToBeMoved: text = fmt1(std::get<ColumnsAboutToBeMoved>(data)); break;
-                case Kind::ColumnsMoved: text = fmt1(std::get<ColumnsMoved>(data)); break;
-                default: { qFatal("???"); }
-                    // clang-format on
-            }
-
-            return fmt("{} {}", getKind(), text);
-        }
+        std::string toString() const;
     };
 
     template <typename T>
@@ -582,7 +590,8 @@ class AbstractItemModelSignalListener : public QObject {
         const QModelIndex& topLeft,
         const QModelIndex& bottomRight,
         const QList<int>&  roles) {
-        records.push_back({Record::DataChanged{
+        addRecord({Record::DataChanged{
+            .sender      = sender(),
             .topLeft     = topLeft,
             .bottomRight = bottomRight,
             .roles       = roles,
@@ -593,7 +602,8 @@ class AbstractItemModelSignalListener : public QObject {
         Qt::Orientation orientation,
         int             first,
         int             last) {
-        records.push_back({Record::HeaderDataChanged{
+        addRecord({Record::HeaderDataChanged{
+            .sender      = sender(),
             .orientation = orientation,
             .first       = first,
             .last        = last,
@@ -603,7 +613,8 @@ class AbstractItemModelSignalListener : public QObject {
     void onLayoutChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        records.push_back({Record::LayoutChanged{
+        addRecord({Record::LayoutChanged{
+            .sender  = sender(),
             .parents = parents,
             .hint    = hint,
         }});
@@ -612,7 +623,8 @@ class AbstractItemModelSignalListener : public QObject {
     void onLayoutAboutToBeChanged(
         const QList<QPersistentModelIndex>&  parents,
         QAbstractItemModel::LayoutChangeHint hint) {
-        records.push_back({Record::LayoutAboutToBeChanged{
+        addRecord({Record::LayoutAboutToBeChanged{
+            .sender  = sender(),
             .parents = parents,
             .hint    = hint,
         }});
@@ -622,7 +634,8 @@ class AbstractItemModelSignalListener : public QObject {
         const QModelIndex& parent,
         int                first,
         int                last) {
-        records.push_back({Record::RowsAboutToBeInserted{
+        addRecord({Record::RowsAboutToBeInserted{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -630,7 +643,8 @@ class AbstractItemModelSignalListener : public QObject {
     }
 
     void onRowsInserted(const QModelIndex& parent, int first, int last) {
-        records.push_back({Record::RowsInserted{
+        addRecord({Record::RowsInserted{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -641,7 +655,8 @@ class AbstractItemModelSignalListener : public QObject {
         const QModelIndex& parent,
         int                first,
         int                last) {
-        records.push_back({Record::RowsAboutToBeRemoved{
+        addRecord({Record::RowsAboutToBeRemoved{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -649,7 +664,8 @@ class AbstractItemModelSignalListener : public QObject {
     }
 
     void onRowsRemoved(const QModelIndex& parent, int first, int last) {
-        records.push_back({Record::RowsRemoved{
+        addRecord({Record::RowsRemoved{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -660,7 +676,8 @@ class AbstractItemModelSignalListener : public QObject {
         const QModelIndex& parent,
         int                first,
         int                last) {
-        records.push_back({Record::ColumnsAboutToBeInserted{
+        addRecord({Record::ColumnsAboutToBeInserted{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -671,7 +688,8 @@ class AbstractItemModelSignalListener : public QObject {
         const QModelIndex& parent,
         int                first,
         int                last) {
-        records.push_back({Record::ColumnsInserted{
+        addRecord({Record::ColumnsInserted{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -682,7 +700,8 @@ class AbstractItemModelSignalListener : public QObject {
         const QModelIndex& parent,
         int                first,
         int                last) {
-        records.push_back({Record::ColumnsAboutToBeRemoved{
+        addRecord({Record::ColumnsAboutToBeRemoved{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -690,7 +709,8 @@ class AbstractItemModelSignalListener : public QObject {
     }
 
     void onColumnsRemoved(const QModelIndex& parent, int first, int last) {
-        records.push_back({Record::ColumnsRemoved{
+        addRecord({Record::ColumnsRemoved{
+            .sender = sender(),
             .parent = parent,
             .first  = first,
             .last   = last,
@@ -698,10 +718,17 @@ class AbstractItemModelSignalListener : public QObject {
     }
 
     void onModelAboutToBeReset() {
-        records.push_back({Record::ModelAboutToBeReset{}});
+        addRecord({Record::ModelAboutToBeReset{
+            .sender = sender(),
+        }});
     }
 
-    void onModelReset() { records.push_back({Record::ModelReset{}}); }
+    void onModelReset() {
+        addRecord({Record::ModelReset{
+            .sender = sender(),
+        }});
+    }
+
 
     void onRowsAboutToBeMoved(
         const QModelIndex& sourceParent,
@@ -709,7 +736,8 @@ class AbstractItemModelSignalListener : public QObject {
         int                sourceEnd,
         const QModelIndex& destinationParent,
         int                destinationRow) {
-        records.push_back({Record::RowsAboutToBeMoved{
+        addRecord({Record::RowsAboutToBeMoved{
+            .sender            = sender(),
             .sourceParent      = sourceParent,
             .sourceStart       = sourceStart,
             .sourceEnd         = sourceEnd,
@@ -724,7 +752,8 @@ class AbstractItemModelSignalListener : public QObject {
         int                sourceEnd,
         const QModelIndex& destinationParent,
         int                destinationRow) {
-        records.push_back({Record::RowsMoved{
+        addRecord({Record::RowsMoved{
+            .sender            = sender(),
             .sourceParent      = sourceParent,
             .sourceStart       = sourceStart,
             .sourceEnd         = sourceEnd,
@@ -739,7 +768,8 @@ class AbstractItemModelSignalListener : public QObject {
         int                sourceEnd,
         const QModelIndex& destinationParent,
         int                destinationColumn) {
-        records.push_back({Record::ColumnsAboutToBeMoved{
+        addRecord({Record::ColumnsAboutToBeMoved{
+            .sender            = sender(),
             .sourceParent      = sourceParent,
             .sourceStart       = sourceStart,
             .sourceEnd         = sourceEnd,
@@ -754,7 +784,8 @@ class AbstractItemModelSignalListener : public QObject {
         int                sourceEnd,
         const QModelIndex& destinationParent,
         int                destinationColumn) {
-        records.push_back({Record::ColumnsMoved{
+        addRecord({Record::ColumnsMoved{
+            .sender            = sender(),
             .sourceParent      = sourceParent,
             .sourceStart       = sourceStart,
             .sourceEnd         = sourceEnd,

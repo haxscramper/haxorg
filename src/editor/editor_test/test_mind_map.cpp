@@ -1549,6 +1549,9 @@ Paragraph [[id:subtree-id]]
 }
 
 void TestMindMap::testGraphLayoutUpdateSignals() {
+    using R = AbstractItemModelSignalListener::Record;
+    using K = R::Kind;
+
     Str text{R"(
 Paragraph [fn:target1] [fn:target2]
 
@@ -1557,45 +1560,95 @@ Paragraph [fn:target1] [fn:target2]
 [fn:target2] Description
 )"};
 
-    SceneBench b{text};
+    for (bool use_proxy : Vec<bool>{false, true}) {
+        SceneBench       b{text};
+        GraphFilterProxy pre_layout_filter{};
+        pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
+        pre_layout_filter.accept_node = [&](VDesc node) { return true; };
 
-    auto shot = make_shot(b.window.get(), "testGraphLayoutUpdateSignals");
+        b.proxy->setObjectName("layout_proxy");
+        b.view->setObjectName("view");
+        b.graph->setObjectName("graph");
+        pre_layout_filter.setObjectName("filter");
+        pre_layout_filter.setSourceModel(b.graph.get());
 
-    shot("start");
+        if (use_proxy) {
+            b.proxy->setSourceModel(&pre_layout_filter);
+            b.proxy->resetLayoutData();
+            b.view->setModel(b.proxy.get());
+        }
+
+        auto shot = make_shot(
+            b.window.get(), "testGraphLayoutUpdateSignals");
+
+        QCOMPARE_EQ(b.graph->numNodes(), 4);
+        QCOMPARE_EQ(b.graph->numEdges(), 2);
+        QCOMPARE_EQ(b.view->graphItems().size(), 6);
+        auto validate_filter = [&]() {
+            QCOMPARE_EQ(pre_layout_filter.rowCount(), b.graph->rowCount());
+        };
+
+        AbstractItemModelSignalListener l{b.proxy->sourceModel()};
+        l.printOnTrigger = true;
+        // validate_filter();
+
+        auto doc = b.store->getBox0({});
+        auto b0  = b.store->getBox0({0});
+        auto b1  = b.store->getBox0({1});
+        auto b2  = b.store->getBox0({2});
 
 
-    QCOMPARE_EQ(b.graph->numNodes(), 4);
-    QCOMPARE_EQ(b.graph->numEdges(), 2);
-    QCOMPARE_EQ(b.view->graphItems().size(), 6);
-    b.proxy->setObjectName("layout_proxy");
-    b.view->setObjectName("view");
-    b.graph->setObjectName("graph");
+        b.graph->deleteBox(doc);
+        QCOMPARE_EQ(l.count(K::RowsRemoved), 1);
+        l.clear();
 
-    AbstractItemModelSignalListener l{b.graph.get()};
-    l.printOnTrigger = true;
-
-    auto doc = b.store->getBox0({});
-    auto b0  = b.store->getBox0({0});
-    auto b1  = b.store->getBox0({1});
-    auto b2  = b.store->getBox0({2});
-
-    b.graph->deleteBox(doc);
-    auto without_doc_root = shot("drop_doc");
-    b.graph->deleteBox(b0);
-    shot("delete_box_0");
-    b.graph->addBox(b0);
-    shot("add_box_0");
-
-    b.graph->deleteBox(b1);
-    shot("remove_target_1");
-    b.graph->deleteBox(b2);
-    shot("remove_target_2");
-    b.graph->addBox(b1);
-    b.graph->addBox(b2);
-    auto after_readding_everything = shot("add_targets_back");
-    QCOMPARE_EQ(
-        without_doc_root.toImage(), after_readding_everything.toImage());
+        // validate_filter();
+        auto without_doc_root = shot("drop_doc");
+        {
+            b.graph->deleteBox(b0);
+            // Node + 2 outgoing links
+            QCOMPARE_EQ(l.count(K::RowsRemoved), 3);
+            l.clear();
+            validate_filter();
+        }
+        b.graph->state.debug = true;
+        {
+            b.graph->addBox(b0);
+            QCOMPARE_EQ(l.count(K::RowsInserted), 2);
+            l.clear();
+            // validate_filter();
+        }
+        {
+            b.graph->deleteBox(b1);
+            QCOMPARE_EQ(l.count(K::RowsRemoved), 2);
+            l.clear();
+            validate_filter();
+        }
+        {
+            b.graph->deleteBox(b2);
+            QCOMPARE_EQ(l.count(K::RowsRemoved), 2);
+            l.clear();
+            validate_filter();
+        }
+        {
+            b.graph->addBox(b1);
+            QCOMPARE_EQ(l.count(K::RowsInserted), 2);
+            l.clear();
+            validate_filter();
+        }
+        {
+            b.graph->addBox(b2);
+            QCOMPARE_EQ(l.count(K::RowsInserted), 2);
+            l.clear();
+            validate_filter();
+        }
+        auto after_readding_everything = shot("add_targets_back");
+        QCOMPARE_EQ(
+            without_doc_root.toImage(),
+            after_readding_everything.toImage());
+    }
 }
+
 
 void TestMindMap::testGraphvizLayoutAlgorithms() {
     SceneBench b{getFullMindMapText()};
