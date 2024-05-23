@@ -111,6 +111,26 @@ AbstractItemModelSignalListener::AbstractItemModelSignalListener(
     // clang-format on
 }
 
+void AbstractItemModelSignalListener::addRecord(CR<Record> record) {
+    if (printOnTrigger) {
+        _qfmt(
+            "<{}> {}",
+            std::visit(
+                [](auto const& it) -> std::string {
+                    if (it.sender == nullptr) {
+                        return "?";
+                    } else if (it.sender->objectName().isEmpty()) {
+                        return fmt("{:p}", (void*)it.sender);
+                    } else {
+                        return it.sender->objectName().toStdString();
+                    }
+                },
+                record.data),
+            record.toString());
+    }
+    records.push_back(record);
+}
+
 std::string AbstractItemModelSignalListener::Record::toString() const {
     std::string text;
     switch (getKind()) {

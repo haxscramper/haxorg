@@ -580,10 +580,7 @@ class AbstractItemModelSignalListener : public QObject {
     std::vector<Record> records;
     bool                printOnTrigger = false;
 
-    void addRecord(CR<Record> record) {
-        if (printOnTrigger) { _qfmt(">> {}", record.toString()); }
-        records.push_back(record);
-    }
+    void addRecord(CR<Record> record);
 
   private slots:
     void onDataChanged(

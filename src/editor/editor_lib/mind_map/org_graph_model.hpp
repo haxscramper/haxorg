@@ -514,6 +514,13 @@ struct GraphFilterProxy : public QSortFilterProxyModel {
     virtual bool filterAcceptsRow(
         int                source_row,
         const QModelIndex& source_parent) const override;
+
+    int rowCount(
+        const QModelIndex& parent = QModelIndex()) const override {
+        int count = QSortFilterProxyModel::rowCount(parent);
+        _qfmt("ProxyModel rowCount:{}", count);
+        return count;
+    }
 };
 
 /// \brief Layout data provider for the graph. Implements node and edge

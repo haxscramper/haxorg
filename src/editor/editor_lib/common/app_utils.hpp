@@ -314,34 +314,4 @@ inline Func<QPixmap(CR<Str>)> make_shot(QWidget* window, CR<Str> name) {
 template <typename Derived>
 struct CRTP_qdebug : CRTP_this_method<Derived> {
     using CRTP_this_method<Derived>::_this;
-
-    void printReceivers() {
-        const QMetaObject* metaObj = _this()->metaObject();
-        for (int i = 0; i < metaObj->methodCount(); ++i) {
-            QMetaMethod method = metaObj->method(i);
-            if (method.methodType() == QMetaMethod::Signal) {
-                qDebug() << "Signal:" << method.methodSignature();
-                for (auto connection :
-                     _this()->template findChildren<QObject*>()) {
-                    if (_this()->receivers(method.methodSignature()) > 0) {
-                        qDebug() << "  Receiver:" << connection;
-                    }
-                }
-            }
-        }
-    }
-
-    void printSenders() {
-        const QMetaObject* metaObj = _this()->metaObject();
-        for (int i = 0; i < metaObj->methodCount(); ++i) {
-            QMetaMethod method = metaObj->method(i);
-            if (method.methodType() == QMetaMethod::Slot) {
-                qDebug() << "Slot:" << method.methodSignature();
-                for (auto sender :
-                     _this()->template findChildren<QObject*>()) {
-                    qDebug() << "  Possible Sender:" << sender;
-                }
-            }
-        }
-    }
 };

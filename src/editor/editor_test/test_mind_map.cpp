@@ -1561,6 +1561,7 @@ Paragraph [fn:target1] [fn:target2]
 )"};
 
     for (bool use_proxy : Vec<bool>{false, true}) {
+        qDebug() << "//////////////////////////////////////////////";
         SceneBench       b{text};
         GraphFilterProxy pre_layout_filter{};
         pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
@@ -1589,7 +1590,9 @@ Paragraph [fn:target1] [fn:target2]
         };
 
         AbstractItemModelSignalListener l{b.proxy->sourceModel()};
+        AbstractItemModelSignalListener dbg{b.graph.get()};
         l.printOnTrigger = true;
+        if (use_proxy) { dbg.printOnTrigger = true; }
         // validate_filter();
 
         auto doc = b.store->getBox0({});
@@ -1609,7 +1612,7 @@ Paragraph [fn:target1] [fn:target2]
             // Node + 2 outgoing links
             QCOMPARE_EQ(l.count(K::RowsRemoved), 3);
             l.clear();
-            validate_filter();
+            // validate_filter();
         }
         b.graph->state.debug = true;
         {
@@ -1619,6 +1622,7 @@ Paragraph [fn:target1] [fn:target2]
             // validate_filter();
         }
         {
+            // pre_layout_filter.rowCount();
             b.graph->deleteBox(b1);
             QCOMPARE_EQ(l.count(K::RowsRemoved), 2);
             l.clear();
