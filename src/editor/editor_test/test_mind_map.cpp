@@ -1548,6 +1548,115 @@ Paragraph [[id:subtree-id]]
     }
 }
 
+void TestMindMap::testGraphLayoutFilterSignals() {
+    Str text{R"(
+Paragraph [fn:target1] [fn:target2]
+
+[fn:target1] Description
+
+[fn:target2] Description
+)"};
+
+    SceneBench       b{text};
+    GraphFilterProxy pre_layout_filter{};
+    pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
+    pre_layout_filter.accept_node = [&](VDesc node) { return true; };
+    pre_layout_filter.setSourceModel(b.graph.get());
+
+    AbstractItemModelSignalListener graph_events{b.graph.get()};
+    AbstractItemModelSignalListener filter_events{&pre_layout_filter};
+
+    auto doc = b.store->getBox0({});
+    auto b0  = b.store->getBox0({0});
+    auto b1  = b.store->getBox0({1});
+    auto b2  = b.store->getBox0({2});
+
+    using R = AbstractItemModelSignalListener::Record;
+    using K = R::Kind;
+
+
+    auto compare_signals = [&]() {
+        int max_event_count = std::max(
+            graph_events.records.size(), filter_events.records.size());
+        auto get_formatted = [&](CVec<R> records) {
+            return //
+                rv::ints(0, max_event_count)
+                | rv::transform([&](int i) -> Str {
+                      if (records.has(i)) {
+                          return records.at(i).toString();
+                      } else {
+                          return "?";
+                      }
+                  })
+                | rs::to<Vec>();
+        };
+
+        Vec<Str> graph_text  = get_formatted(graph_events.records);
+        Vec<Str> filter_text = get_formatted(filter_events.records);
+        int      left_align //
+            = rs::max(graph_text | rv::transform([](CR<Str> it) -> int {
+                          return it.size();
+                      }));
+
+        Str full //
+            = rv::ints(0, max_event_count)
+            | rv::transform([&](int i) -> std::string {
+                  return fmt(
+                      "{:<{}} {}",
+                      graph_text.at(i),
+                      left_align,
+                      filter_text.at(i));
+              })
+            | rv::intersperse("\n") //
+            | rv::join              //
+            | rs::to<std::string>();
+
+
+        if (graph_events.records.size() != filter_events.records.size()) {
+            full = "\n" + full;
+            QFAIL(full.c_str());
+        }
+
+        for (int i = 0; i < graph_events.records.size(); ++i) {
+            auto const& graph_rec  = graph_events.records.at(i);
+            auto const& filter_rec = filter_events.records.at(i);
+            QCOMPARE_EQ2(graph_rec.getKind(), filter_rec.getKind());
+
+#define __cmp(Type, Field)                                                \
+    QVERIFY2(                                                             \
+        graph_rec.get##Type().Field == filter_rec.get##Type().Field,      \
+        qstrdup(fmt("{} != {}, (graph: {} filter:{} index:{})",           \
+                    graph_rec.get##Type().Field,                          \
+                    filter_rec.get##Type().Field,                         \
+                    graph_rec.get##Type(),                                \
+                    filter_rec.get##Type(),                               \
+                    i)                                                    \
+                    .c_str()));
+
+            switch (graph_rec.getKind()) {
+                case K::RowsInserted: {
+                    __cmp(RowsInserted, first);
+                    __cmp(RowsInserted, last);
+                    break;
+                }
+                case K::RowsAboutToBeInserted: {
+                    __cmp(RowsAboutToBeInserted, first);
+                    __cmp(RowsAboutToBeInserted, last);
+                    break;
+                }
+                default: {
+                }
+            }
+        }
+
+        QCOMPARE_EQ(b.graph->rowCount(), pre_layout_filter.rowCount());
+#undef __cmp
+    };
+
+    b.graph->deleteBox(doc);
+    compare_signals();
+}
+
 void TestMindMap::testGraphLayoutUpdateSignals() {
     using R = AbstractItemModelSignalListener::Record;
     using K = R::Kind;

@@ -577,8 +577,8 @@ class AbstractItemModelSignalListener : public QObject {
 
     AbstractItemModelSignalListener(QAbstractItemModel* model);
 
-    std::vector<Record> records;
-    bool                printOnTrigger = false;
+    Vec<Record> records;
+    bool        printOnTrigger = false;
 
     void addRecord(CR<Record> record);
 
