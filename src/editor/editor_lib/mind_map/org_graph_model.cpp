@@ -216,6 +216,7 @@ void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
     rs::actions::reverse(removed_edge_indices);
     int const base_node_count = state.nodes.size();
     for (int idx : removed_edge_indices) {
+        if (state.debug) { _qfmt("remove edge at index:{}", idx); }
         beginRemoveRows(
             QModelIndex(), base_node_count + idx, base_node_count + idx);
         state.edges.erase(state.edges.begin() + idx);
@@ -224,6 +225,7 @@ void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
 
     if (upd.removed_node) {
         int idx = state.nodes.indexOf(*upd.removed_node);
+        if (state.debug) { _qfmt("remove node at index:{}", idx); }
         Q_ASSERT(idx != -1);
         beginRemoveRows(QModelIndex(), idx, idx);
         state.nodes.erase(state.nodes.begin() + idx);
@@ -232,18 +234,19 @@ void Graph::emitChanges(CR<GraphStructureUpdate> upd) {
 
     if (upd.added_node) {
         int row = state.nodes.size();
+        if (state.debug) { _qfmt("add node at index:{}", row); }
         state.nodes.push_back(*upd.added_node);
-        _qfmt("row:{} count:{}", row, rowCount());
         beginInsertRows(QModelIndex(), row, row);
         endInsertRows();
     }
 
     if (!upd.added_edges.empty()) {
-        beginInsertRows(
-            QModelIndex(),
-            state.nodes.size() + state.edges.size(),
-            state.nodes.size() + state.edges.size()
-                + upd.added_edges.size() - 1);
+        int base_size = state.nodes.size() + state.edges.size();
+        int max_edge  = base_size + upd.added_edges.size() - 1;
+        if (state.debug) {
+            _qfmt("add edge at index:{}-{}", base_size, max_edge);
+        }
+        beginInsertRows(QModelIndex(), base_size, max_edge);
         state.edges.append(upd.added_edges);
         endInsertRows();
     }
@@ -578,25 +581,31 @@ bool GraphFilterProxy::filterAcceptsRow(
     const QModelIndex& source_parent) const {
     QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
     bool valid = sourceModel()->hasIndex(source_row, 0, source_parent);
-    _qfmt(
-        "row count:{} index:{} valid:{}",
-        sourceModel()->rowCount(),
-        index,
-        valid);
+
+    bool result{};
     if (valid) {
         if (qindex_get<bool>(index, OrgGraphRoles::IsNode)) {
-            return accept_node(
+            result = accept_node(
                 qindex_get<VDesc>(index, OrgGraphRoles::NodeDesc));
         } else {
             auto [source, target] = qindex_get<Pair<VDesc, VDesc>>(
                 index, OrgGraphRoles::SourceAndTarget);
             // Avoid dangling edges with missing source/target nodes.
-            return accept_node(source) //
-                && accept_node(target)
-                && accept_edge(
-                       qindex_get<EDesc>(index, OrgGraphRoles::EdgeDesc));
+            result = accept_node(source) //
+                  && accept_node(target)
+                  && accept_edge(qindex_get<EDesc>(
+                      index, OrgGraphRoles::EdgeDesc));
         }
     } else {
-        return false;
+        result = false;
     }
+
+    _qfmt(
+        "row count:{} index:{} valid:{} result:{}",
+        sourceModel()->rowCount(),
+        index,
+        valid,
+        result);
+
+    return result;
 }

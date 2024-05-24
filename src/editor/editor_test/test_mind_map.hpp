@@ -32,6 +32,7 @@ class TestMindMap
     void testMindMapNodeAddRemoveAdd();
     void testMindMapSignals1();
     void testRowModelSignals();
+    void testGraphLayoutRowConsistency();
     void testGraphLayoutFilterSignals();
     void testGraphLayoutUpdateSignals();
     void testGraphvizLayoutAlgorithms();

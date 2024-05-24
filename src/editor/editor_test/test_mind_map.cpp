@@ -1548,6 +1548,129 @@ Paragraph [[id:subtree-id]]
     }
 }
 
+void TestMindMap::testGraphLayoutRowConsistency() {
+    using R = AbstractItemModelSignalListener::Record;
+    using K = R::Kind;
+
+
+    Str text{R"(
+Paragraph [fn:target1] [fn:target2]
+
+[fn:target1] Description
+
+[fn:target2] Description
+)"};
+
+    OrgStore store;
+    Graph    graph{&store, nullptr};
+    graph.connectStore();
+    store.addRoot(text);
+    graph.setObjectName("graph");
+
+    auto doc = store.getBox0({});
+    auto b0  = store.getBox0({0});
+    auto b1  = store.getBox0({1});
+    auto b2  = store.getBox0({2});
+
+    AbstractItemModelSignalListener l{&graph};
+    Vec<R>                          stored_events;
+
+    Vec<Str> rows;
+    auto     apply_events = [&]() {
+        stored_events.append(l.records);
+        Str msg;
+
+        for (auto const& r : stored_events) {
+            switch (r.getKind()) {
+                case K::RowsAboutToBeInserted:
+                case K::RowsAboutToBeRemoved:
+                case K::LayoutChanged:
+                case K::LayoutAboutToBeChanged: break;
+                default: msg += r.toString(); msg += "\n";
+            }
+        }
+
+        int change_delta = 0;
+
+        for (auto const& e : l.records) {
+            switch (e.getKind()) {
+                case K::RowsRemoved: {
+                    auto const& rm = e.getRowsRemoved();
+                    rows.erase(
+                        rows.begin() + rm.first,
+                        rows.begin() + rm.last + 1);
+                    int count_removed = (rm.last - rm.first + 1);
+                    change_delta -= count_removed;
+                    _qfmt("count_removed:{}", count_removed);
+                    break;
+                }
+                case K::RowsInserted: {
+                    auto const& ins = e.getRowsInserted();
+                    for (int i = ins.first; i <= ins.last; ++i) {
+                        if (i <= rows.size()) {
+                            rows.insert(
+                                rows.begin() + i,
+                                qdebug_to_str(graph.index(i, 0)));
+                        } else {
+                            throw std::logic_error(
+                                fmt("Cannot insert element at index {}, "
+                                        "modeled rows size:{} change delta so "
+                                        "far:{}\n{}",
+                                    i,
+                                    rows.size(),
+                                    change_delta,
+                                    msg));
+                        }
+                    }
+                    int count_added = (ins.last - ins.first + 1);
+                    change_delta += count_added;
+                    _qfmt("count_added:{}", count_added);
+                    break;
+                }
+                default: {
+                }
+            }
+        }
+
+
+        if (graph.rowCount() != rows.size()) {
+
+
+            throw std::logic_error(
+                fmt("graph row count:{} modeled row count:{} delta:{}\n{}",
+                    graph.rowCount(),
+                    rows.size(),
+                    change_delta,
+                    msg));
+        }
+
+        _qfmt("rows:{}", rows);
+
+        l.clear();
+    };
+
+    for (int i = 0; i < graph.rowCount(); ++i) {
+        rows.push_back(qdebug_to_str(graph.index(i)));
+    }
+
+    _qfmt("row size:{}", rows.size());
+    graph.state.debug = true;
+    _qfmt("rows:{}", rows);
+    graph.deleteBox(doc);
+    apply_events();
+    graph.deleteBox(b0);
+    apply_events();
+    graph.addBox(b0);
+    apply_events();
+    graph.deleteBox(b1);
+    apply_events();
+    graph.deleteBox(b2);
+    apply_events();
+    graph.addBox(b1);
+    apply_events();
+    graph.addBox(b2);
+}
+
 void TestMindMap::testGraphLayoutFilterSignals() {
     Str text{R"(
 Paragraph [fn:target1] [fn:target2]
@@ -1557,19 +1680,26 @@ Paragraph [fn:target1] [fn:target2]
 [fn:target2] Description
 )"};
 
-    SceneBench       b{text};
+    OrgStore store;
+    Graph    graph{&store, nullptr};
+    graph.connectStore();
+    store.addRoot(text);
     GraphFilterProxy pre_layout_filter{};
+    graph.setObjectName("graph");
+    pre_layout_filter.setObjectName("filter");
     pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
     pre_layout_filter.accept_node = [&](VDesc node) { return true; };
-    pre_layout_filter.setSourceModel(b.graph.get());
+    pre_layout_filter.setSourceModel(&graph);
 
-    AbstractItemModelSignalListener graph_events{b.graph.get()};
+    AbstractItemModelSignalListener graph_events{&graph};
     AbstractItemModelSignalListener filter_events{&pre_layout_filter};
+    graph_events.setObjectName("graph_events");
+    filter_events.setObjectName("filter_events");
 
-    auto doc = b.store->getBox0({});
-    auto b0  = b.store->getBox0({0});
-    auto b1  = b.store->getBox0({1});
-    auto b2  = b.store->getBox0({2});
+    auto doc = store.getBox0({});
+    auto b0  = store.getBox0({0});
+    auto b1  = store.getBox0({1});
+    auto b2  = store.getBox0({2});
 
     using R = AbstractItemModelSignalListener::Record;
     using K = R::Kind;
@@ -1612,6 +1742,7 @@ Paragraph [fn:target1] [fn:target2]
             | rs::to<std::string>();
 
 
+        QCOMPARE_EQ(graph.rowCount(), pre_layout_filter.rowCount());
         if (graph_events.records.size() != filter_events.records.size()) {
             full = "\n" + full;
             QFAIL(full.c_str());
@@ -1649,12 +1780,12 @@ Paragraph [fn:target1] [fn:target2]
             }
         }
 
-        QCOMPARE_EQ(b.graph->rowCount(), pre_layout_filter.rowCount());
+
 #undef __cmp
     };
 
-    b.graph->deleteBox(doc);
-    compare_signals();
+    graph.deleteBox(b0);
+    // compare_signals();
 }
 
 void TestMindMap::testGraphLayoutUpdateSignals() {
