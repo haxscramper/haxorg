@@ -636,16 +636,77 @@ bool GraphFilterProxy::filterAcceptsRow(
 }
 
 void GraphFilterProxy::setSourceModel(QAbstractItemModel* sourceModel) {
-    if (this->sourceModel() != nullptr) {
-        disconnect(this, nullptr, this->sourceModel(), nullptr);
+    // if (this->sourceModel() != nullptr) {
+    //     disconnect(this, nullptr, this->sourceModel(), nullptr);
+    // }
+
+    // Q_ASSERT(connect(
+    //     sourceModel,
+    //     &QAbstractItemModel::layoutChanged,
+    //     this,
+    //     &QSortFilterProxyModel::invalidate,
+    //     Qt::UniqueConnection));
+
+
+    if (this->sourceModel()) {
+        disconnect(this->sourceModel(), nullptr, this, nullptr);
     }
 
-    Q_ASSERT(connect(
-        sourceModel,
-        &QAbstractItemModel::layoutChanged,
-        this,
-        &QSortFilterProxyModel::invalidate,
-        Qt::UniqueConnection));
+    _qfmt("set source model:{}", qdebug_to_str(sourceModel));
 
     QSortFilterProxyModel::setSourceModel(sourceModel);
+
+    if (sourceModel) {
+        auto dbg = [this](CR<Str> msg) {
+            this->sourceModel()->rowCount();
+            this->rowCount();
+            // _qfmt(
+            //     "msg:{}, source row count:{}, this row count:{}",
+            //     msg,
+            //     this->sourceModel()->rowCount(),
+            //     this->rowCount());
+        };
+
+        using M = QAbstractItemModel;
+
+        // connect(this, &M::rowsInserted, this, [dbg]() {
+        //     dbg("this rowsInserted");
+        // });
+        // connect(this, &M::rowsRemoved, this, [dbg]() {
+        //     dbg("this rowsRemoved");
+        // });
+        // connect(this, &M::dataChanged, this, [dbg]() {
+        //     dbg("this dataChanged");
+        // });
+        // connect(this, &M::modelAboutToBeReset, this, [dbg]() {
+        //     dbg("this modelAboutToBeReset"); //
+        // });
+        // connect(this, &M::modelReset, this, [dbg]() {
+        //     dbg("this modelReset"); //
+        // });
+        connect(this, &M::layoutChanged, this, [dbg]() {
+            dbg("this layoutChanged"); //
+        });
+
+        //
+
+        // connect(sourceModel, &M::rowsInserted, this, [dbg]() {
+        //     dbg("source rowsInserted");
+        // });
+        // connect(sourceModel, &M::rowsRemoved, this, [dbg]() {
+        //     dbg("source rowsRemoved");
+        // });
+        // connect(sourceModel, &M::dataChanged, this, [dbg]() {
+        //     dbg("source dataChanged");
+        // });
+        // connect(sourceModel, &M::modelAboutToBeReset, this, [dbg]() {
+        //     dbg("source modelAboutToBeReset");
+        // });
+        // connect(sourceModel, &M::modelReset, this, [dbg]() {
+        //     dbg("source modelReset");
+        // });
+        connect(sourceModel, &M::layoutChanged, this, [dbg]() {
+            dbg("source layoutChanged"); //
+        });
+    }
 }

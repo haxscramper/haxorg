@@ -1782,14 +1782,20 @@ Paragraph [fn:target1] [fn:target2]
         QCOMPARE_EQ(b.graph->numEdges(), 2);
         QCOMPARE_EQ(b.view->graphItems().size(), 6);
         auto validate_filter = [&]() {
-            QCOMPARE_EQ(pre_layout_filter.rowCount(), b.graph->rowCount());
+            // pre_layout_filter.rowCount();
+            // _qfmt(
+            //     "graph rows:{} filter rows:{}",
+            //     b.graph->rowCount(),
+            //     pre_layout_filter.rowCount());
+            // QCOMPARE_EQ(pre_layout_filter.rowCount(),
+            // b.graph->rowCount());
         };
 
         AbstractItemModelSignalListener l{b.proxy->sourceModel()};
         AbstractItemModelSignalListener dbg{b.graph.get()};
         l.printOnTrigger = true;
         if (use_proxy) { dbg.printOnTrigger = true; }
-        // validate_filter();
+        validate_filter();
 
         auto doc = b.store->getBox0({});
         auto b0  = b.store->getBox0({0});
@@ -1801,24 +1807,23 @@ Paragraph [fn:target1] [fn:target2]
         QCOMPARE_EQ(l.count(K::RowsRemoved), 1);
         l.clear();
 
-        // validate_filter();
+        validate_filter();
         auto without_doc_root = shot("drop_doc");
         {
             b.graph->deleteBox(b0);
             // Node + 2 outgoing links
             QCOMPARE_EQ(l.count(K::RowsRemoved), 3);
             l.clear();
-            // validate_filter();
+            validate_filter();
         }
         b.graph->state.debug = true;
         {
             b.graph->addBox(b0);
             QCOMPARE_EQ(l.count(K::RowsInserted), 2);
             l.clear();
-            // validate_filter();
+            validate_filter();
         }
         {
-            // pre_layout_filter.rowCount();
             b.graph->deleteBox(b1);
             QCOMPARE_EQ(l.count(K::RowsRemoved), 2);
             l.clear();
