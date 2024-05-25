@@ -480,7 +480,7 @@ void OrgGraphView::removeSceneItem(int row) {
     modelItems.erase(modelItems.begin() + row);
 }
 
-void OrgGraphView::setModel(GraphLayoutProxy* model) {
+void OrgGraphView::setModel(QAbstractItemModel* model) {
     verifyModelGraph(model);
     QObject::disconnect(this->model, nullptr, this, nullptr);
     this->model                                                    = model;

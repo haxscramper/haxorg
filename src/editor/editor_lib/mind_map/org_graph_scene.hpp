@@ -62,7 +62,7 @@ class OrgGraphView : public QGraphicsView {
         QWidget*                         parent);
 
     QSize getNodeSize(const QModelIndex& index);
-    void  setModel(org::mind_map::GraphLayoutProxy* model);
+    void  setModel(QAbstractItemModel* model);
     void  rebuildScene();
     bool  debug = false;
 

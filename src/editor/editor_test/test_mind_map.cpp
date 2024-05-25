@@ -1744,6 +1744,8 @@ Paragraph [fn:target1] [fn:target2]
     graph.addBox(b2);
 }
 
+DECL_DESCRIBED_ENUM_STANDALONE(ProxyOrder, None, PreLayout, PostLayout);
+
 void TestMindMap::testGraphLayoutUpdateSignals() {
     using R = AbstractItemModelSignalListener::Record;
     using K = R::Kind;
@@ -1756,10 +1758,28 @@ Paragraph [fn:target1] [fn:target2]
 [fn:target2] Description
 )"};
 
-    for (bool use_proxy : Vec<bool>{false, true}) {
-        qDebug() << "//////////////////////////////////////////////";
-        SceneBench       b{text};
-        GraphFilterProxy pre_layout_filter{};
+    struct Run {
+        QPixmap                pixmap;
+        SPtr<SceneBench>       bench;
+        SPtr<GraphFilterProxy> filter;
+    };
+
+    Run run_no_proxy;
+    Run run_pre_layout;
+    Run run_post_layout;
+
+    for (ProxyOrder use_proxy : Vec<ProxyOrder>{
+             ProxyOrder::None,
+             ProxyOrder::PreLayout,
+             ProxyOrder::PostLayout,
+         }) {
+
+        Run run;
+        run.bench     = std::make_shared<SceneBench>(text);
+        run.filter    = std::make_shared<GraphFilterProxy>();
+        SceneBench& b = *run.bench.get();
+
+        GraphFilterProxy& pre_layout_filter = *run.filter.get();
         pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
         pre_layout_filter.accept_node = [&](VDesc node) { return true; };
 
@@ -1769,10 +1789,19 @@ Paragraph [fn:target1] [fn:target2]
         pre_layout_filter.setObjectName("filter");
         pre_layout_filter.setSourceModel(b.graph.get());
 
-        if (use_proxy) {
-            b.proxy->setSourceModel(&pre_layout_filter);
-            b.proxy->resetLayoutData();
-            b.view->setModel(b.proxy.get());
+        switch (use_proxy) {
+            case ProxyOrder::None: break;
+            case ProxyOrder::PreLayout: {
+                b.proxy->setSourceModel(&pre_layout_filter);
+                b.proxy->resetLayoutData();
+                b.view->setModel(b.proxy.get());
+                break;
+            }
+            case ProxyOrder::PostLayout: {
+                pre_layout_filter.setSourceModel(b.proxy.get());
+                b.view->setModel(&pre_layout_filter);
+                break;
+            }
         }
 
         auto shot = make_shot(
@@ -1782,19 +1811,13 @@ Paragraph [fn:target1] [fn:target2]
         QCOMPARE_EQ(b.graph->numEdges(), 2);
         QCOMPARE_EQ(b.view->graphItems().size(), 6);
         auto validate_filter = [&]() {
-            // pre_layout_filter.rowCount();
-            // _qfmt(
-            //     "graph rows:{} filter rows:{}",
-            //     b.graph->rowCount(),
-            //     pre_layout_filter.rowCount());
-            // QCOMPARE_EQ(pre_layout_filter.rowCount(),
-            // b.graph->rowCount());
+
         };
 
         AbstractItemModelSignalListener l{b.proxy->sourceModel()};
         AbstractItemModelSignalListener dbg{b.graph.get()};
         l.printOnTrigger = true;
-        if (use_proxy) { dbg.printOnTrigger = true; }
+        if (use_proxy != ProxyOrder::None) { dbg.printOnTrigger = true; }
         validate_filter();
 
         auto doc = b.store->getBox0({});
@@ -1851,7 +1874,20 @@ Paragraph [fn:target1] [fn:target2]
         QCOMPARE_EQ(
             without_doc_root.toImage(),
             after_readding_everything.toImage());
+
+        run.pixmap = after_readding_everything;
+
+        switch (use_proxy) {
+            case ProxyOrder::None: run_no_proxy = run; break;
+            case ProxyOrder::PreLayout: run_pre_layout = run; break;
+            case ProxyOrder::PostLayout: run_post_layout = run; break;
+        }
     }
+
+    QCOMPARE_EQ(
+        run_no_proxy.pixmap.toImage(), run_pre_layout.pixmap.toImage());
+    QCOMPARE_EQ(
+        run_no_proxy.pixmap.toImage(), run_pre_layout.pixmap.toImage());
 }
 
 
