@@ -1953,6 +1953,7 @@ void TestMindMap::testMultiRootGraphConstruction() {
     QVERIFY(graph.hasEdge(r0->id(0), r1->id(0)));
 }
 
+/// \brief Run multiple layout views for the same base graph
 void TestMindMap::testMultiViewGraphConstruction() {
     auto [store, graph] = build_graph(getFullMindMapText());
     SceneBench dot_layout{store, graph};
@@ -1971,11 +1972,20 @@ void TestMindMap::testMultiViewGraphConstruction() {
     QCOMPARE_EQ(dot_layout.view->graphItems().size(), graph->rowCount());
     QCOMPARE_EQ(neato_layout.view->graphItems().size(), graph->rowCount());
     QCOMPARE_EQ(fdp_layout.view->graphItems().size(), graph->rowCount());
-    save_screenshot(
-        dot_layout.view, "/tmp/testMultiViewGraphConstruction_dot.png");
-    save_screenshot(
-        neato_layout.view,
-        "/tmp/testMultiViewGraphConstruction_neato.png");
-    save_screenshot(
-        fdp_layout.view, "/tmp/testMultiViewGraphConstruction_fdp.png");
+
+    auto idx1       = graph->index(0);
+    auto idx1_dot   = dot_layout.view->graphItemForIndex(idx1);
+    auto idx1_neato = neato_layout.view->graphItemForIndex(idx1);
+    auto idx1_fdp   = neato_layout.view->graphItemForIndex(idx1);
+    QVERIFY(idx1_dot.has_value());
+    QVERIFY(idx1_neato.has_value());
+    QVERIFY(idx1_fdp.has_value());
+
+    // Check if the constructed view really does have some elements
+    // structured differently.
+    QCOMPARE_NE(
+        (**idx1_dot).boundingRect(), (**idx1_neato).boundingRect());
+    QCOMPARE_EQ(
+        (**idx1_dot).boundingRect().size(),
+        (**idx1_neato).boundingRect().size());
 }

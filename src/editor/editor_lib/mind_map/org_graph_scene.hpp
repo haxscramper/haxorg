@@ -78,6 +78,17 @@ class OrgGraphView : public QGraphicsView {
         return result;
     }
 
+    /// \brief Get graph element with a specified index. For testing
+    /// purposes.
+    Opt<OrgGraphElementItem*> graphItemForIndex(CR<QModelIndex> index) {
+        for (auto const& it : graphItems()) {
+            if (mapToNestedSource(it->index) == mapToNestedSource(index)) {
+                return it;
+            }
+        }
+        return std::nullopt;
+    }
+
     void connectModel() {
         Q_ASSERT(connect(
             model,
