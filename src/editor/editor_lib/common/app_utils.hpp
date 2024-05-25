@@ -84,7 +84,8 @@ Str debug(sem::OrgArg);
 
 #define _qfmt(...)                                                        \
     qDebug().noquote().nospace()                                          \
-        << fmt("[{}:{}]", __FUNCTION__, __LINE__) << fmt(__VA_ARGS__);
+        << fmt("[qfmt] [{}:{}]", __FUNCTION__, __LINE__)                  \
+        << fmt(__VA_ARGS__);
 
 #define Q_DECLARE_FMT_METATYPE(Type)                                      \
     inline QDebug operator<<(QDebug debug, Type const& t) {               \
@@ -161,6 +162,15 @@ struct std::formatter<QList<T>> : std::formatter<std::string> {
     }
 };
 
+
+template <>
+struct std::formatter<QString> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(QString const& p, FormatContext& ctx)
+        const {
+        return fmt_ctx(p.toStdString(), ctx);
+    }
+};
 
 QModelIndex mapToNestedSource(QModelIndex const& index);
 QModelIndex mapToNestedProxy(

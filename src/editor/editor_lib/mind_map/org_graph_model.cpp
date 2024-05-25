@@ -483,18 +483,36 @@ QString Graph::getDisplayText(CR<QModelIndex> index) const {
 }
 
 QVariant Graph::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || rowCount() <= index.row()) {
-        return QVariant();
+    if (role == (int)OrgGraphRoles::DebugDisplay) {
+        if (!index.isValid()) {
+            return QString::fromStdString(
+                fmt("invalid index:{}", qdebug_to_str(index)));
+        } else if (rowCount() <= index.row()) {
+            return QString::fromStdString(fmt(
+                "row count:{}, index row:{}", rowCount(), index.row()));
+        } else {
+            if (isNode(index)) {
+                return QString::fromStdString(
+                    fmt("row:{} box:{} desc:{}",
+                        index.row(),
+                        getBox(index.row()),
+                        getNodeDesc(index.row())));
+            } else {
+                auto ed = getEdgeDesc(index);
+                return QString::fromStdString(
+                    fmt("row:{} box:{}-{} desc:{}",
+                        index.row(),
+                        getBox(getEdgeSource(ed)),
+                        getBox(getEdgeTarget(ed)),
+                        ed));
+            }
+        }
     }
 
     switch (role) {
         case (int)SharedModelRoles::IndexBox: {
             return isNode(index) ? QVariant::fromValue(getBox(index.row()))
                                  : QVariant();
-        }
-
-        case (int)OrgGraphRoles::DebugDisplay: {
-            return QVariant();
         }
 
         case (int)OrgGraphRoles::SubnodeIndices: {
@@ -608,4 +626,19 @@ bool GraphFilterProxy::filterAcceptsRow(
         result);
 
     return result;
+}
+
+void GraphFilterProxy::setSourceModel(QAbstractItemModel* sourceModel) {
+    if (this->sourceModel() != nullptr) {
+        disconnect(this, nullptr, this->sourceModel(), nullptr);
+    }
+
+    Q_ASSERT(connect(
+        sourceModel,
+        &QAbstractItemModel::layoutChanged,
+        this,
+        &QSortFilterProxyModel::invalidate,
+        Qt::UniqueConnection));
+
+    QSortFilterProxyModel::setSourceModel(sourceModel);
 }

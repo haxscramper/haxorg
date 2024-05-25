@@ -12,13 +12,14 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
     // Build IR content for edges and nodes
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex gi = src->index(row, 0);
+        GraphIndex  index{gi};
         _qfmt(
-            "row:{} index:{} src-row-count:{}",
+            "row:{} index:{} src-row-count:{} debug:{}",
             row,
             qdebug_to_str(gi),
-            src->rowCount());
+            src->rowCount(),
+            index.debug());
 
-        GraphIndex index{gi};
         if (index.isNode()) {
             nodeToRect[index.getVDesc()] = ir.rectangles.size();
             auto size                    = config.getNodeSize(gi);

@@ -257,6 +257,8 @@ struct Graph
         return getNodeProp(getNodeDesc(row)).box;
     }
 
+    OrgBoxId getBox(VDesc vertex) const { return getNodeProp(vertex).box; }
+
     /// Find model row number for a graph vertex descriptor
     int getDescIndex(VDesc desc) const {
         for (auto const& it : enumerator(state.nodes)) {
@@ -496,6 +498,10 @@ struct GraphIndex {
         return qindex_get<QList<QModelIndex>>(
             index, OrgGraphRoles::SubnodeIndices);
     }
+
+    QString debug() const {
+        return qindex_get<QString>(index, OrgGraphRoles::DebugDisplay);
+    }
 };
 
 /// \brief Filter nodes from a graph using callback predicates.
@@ -510,7 +516,6 @@ struct GraphFilterProxy : public QSortFilterProxyModel {
     AcceptEdgeCb accept_edge; ///< Individual edge is ok. If source/target
                               ///< for edge are not OK nodes the edge is
                               ///< also filtered.
-
     virtual bool filterAcceptsRow(
         int                source_row,
         const QModelIndex& source_parent) const override;
@@ -518,9 +523,11 @@ struct GraphFilterProxy : public QSortFilterProxyModel {
     int rowCount(
         const QModelIndex& parent = QModelIndex()) const override {
         int count = QSortFilterProxyModel::rowCount(parent);
-        _qfmt("ProxyModel rowCount:{}", count);
         return count;
     }
+
+
+    virtual void setSourceModel(QAbstractItemModel* sourceModel) override;
 };
 
 /// \brief Layout data provider for the graph. Implements node and edge
