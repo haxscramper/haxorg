@@ -13,12 +13,12 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex gi = src->index(row, 0);
         GraphIndex index{gi};
-        _qfmt(
-            "row:{} index:{} src-row-count:{} debug:{}",
-            row,
-            qdebug_to_str(gi),
-            src->rowCount(),
-            index.debug());
+        // _qfmt(
+        //     "row:{} index:{} src-row-count:{} debug:{}",
+        //     row,
+        //     qdebug_to_str(gi),
+        //     src->rowCount(),
+        //     index.debug());
 
         if (index.isNode()) {
             nodeToRect[index.getVDesc()] = ir.rectangles.size();

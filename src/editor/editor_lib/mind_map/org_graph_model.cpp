@@ -625,12 +625,12 @@ bool GraphFilterProxy::filterAcceptsRow(
         result = false;
     }
 
-    _qfmt(
-        "row count:{} index:{} valid:{} result:{}",
-        sourceModel()->rowCount(),
-        index,
-        valid,
-        result);
+    // _qfmt(
+    //     "row count:{} index:{} valid:{} result:{}",
+    //     sourceModel()->rowCount(),
+    //     index,
+    //     valid,
+    //     result);
 
     return result;
 }
@@ -652,7 +652,7 @@ void GraphFilterProxy::setSourceModel(QAbstractItemModel* sourceModel) {
         disconnect(this->sourceModel(), nullptr, this, nullptr);
     }
 
-    _qfmt("set source model:{}", qdebug_to_str(sourceModel));
+    // _qfmt("set source model:{}", qdebug_to_str(sourceModel));
 
     QSortFilterProxyModel::setSourceModel(sourceModel);
 

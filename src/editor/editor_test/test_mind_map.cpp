@@ -1455,7 +1455,7 @@ Paragraph [[id:subtree-id]]
             QVERIFY(graph.state.boxToVertex.contains(store.getBox0({0})));
             QVERIFY(graph.state.boxToVertex.contains(store.getBox0({1})));
 
-            graph.state.debug  = true;
+            // graph.state.debug  = true;
             auto new_paragraph = store.update<sem::Paragraph>(
                 paragraph_box, [&](sem::Paragraph& prev) {
                     prev = *new_text.getAs<sem::Paragraph>();
@@ -1601,7 +1601,7 @@ Paragraph [fn:target1] [fn:target2]
                         rows.begin() + rm.last + 1);
                     int count_removed = (rm.last - rm.first + 1);
                     change_delta -= count_removed;
-                    _qfmt("count_removed:{}", count_removed);
+                    // _qfmt("count_removed:{}", count_removed);
                     break;
                 }
                 case K::RowsInserted: {
@@ -1624,7 +1624,7 @@ Paragraph [fn:target1] [fn:target2]
                     }
                     int count_added = (ins.last - ins.first + 1);
                     change_delta += count_added;
-                    _qfmt("count_added:{}", count_added);
+                    // _qfmt("count_added:{}", count_added);
                     break;
                 }
                 default: {
@@ -1650,7 +1650,7 @@ Paragraph [fn:target1] [fn:target2]
             gi.debug();
         }
 
-        _qfmt("rows:{}", rows);
+        // _qfmt("rows:{}", rows);
 
         l.clear();
     };
@@ -1659,9 +1659,9 @@ Paragraph [fn:target1] [fn:target2]
         rows.push_back(qdebug_to_str(graph.index(i)));
     }
 
-    _qfmt("row size:{}", rows.size());
-    graph.state.debug = true;
-    _qfmt("rows:{}", rows);
+    // _qfmt("row size:{}", rows.size());
+    // graph.state.debug = true;
+    // _qfmt("rows:{}", rows);
     graph.deleteBox(doc);
     apply_events();
     graph.deleteBox(b0);
@@ -1816,8 +1816,9 @@ Paragraph [fn:target1] [fn:target2]
 
         AbstractItemModelSignalListener l{b.proxy->sourceModel()};
         AbstractItemModelSignalListener dbg{b.graph.get()};
-        l.printOnTrigger = true;
-        if (use_proxy != ProxyOrder::None) { dbg.printOnTrigger = true; }
+        // l.printOnTrigger = true;
+        // if (use_proxy != ProxyOrder::None) { dbg.printOnTrigger = true;
+        // }
         validate_filter();
 
         auto doc = b.store->getBox0({});
@@ -1839,7 +1840,7 @@ Paragraph [fn:target1] [fn:target2]
             l.clear();
             validate_filter();
         }
-        b.graph->state.debug = true;
+        // b.graph->state.debug = true;
         {
             b.graph->addBox(b0);
             QCOMPARE_EQ(l.count(K::RowsInserted), 2);
