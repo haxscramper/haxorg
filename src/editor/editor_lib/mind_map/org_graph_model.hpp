@@ -259,13 +259,18 @@ struct Graph
 
     OrgBoxId getBox(VDesc vertex) const { return getNodeProp(vertex).box; }
 
-    /// Find model row number for a graph vertex descriptor
+    /// \brief Find model row number for a graph vertex descriptor. Finds
+    /// element by O(n) iteration over all nodes.
     int getDescIndex(VDesc desc) const {
         for (auto const& it : enumerator(state.nodes)) {
             if (it.value() == desc) { return it.index(); }
         }
 
         throw std::logic_error("vertex does not exist in graph");
+    }
+
+    int getBoxIndex(CR<OrgBoxId> desc) const {
+        return getDescIndex(getBoxDesc(desc));
     }
 
     OrgGraphEdge& getEdgeProp(EDesc desc) { return state.g[desc]; }
@@ -690,7 +695,8 @@ struct GraphLayoutProxy
         return base;
     }
 
-    virtual int rowCount(const QModelIndex& parent) const override {
+    virtual int rowCount(
+        const QModelIndex& parent = QModelIndex()) const override {
         if (parent.isValid()) {
             return 0;
         } else {
@@ -700,8 +706,8 @@ struct GraphLayoutProxy
 
     virtual QModelIndex index(
         int                row,
-        int                column,
-        const QModelIndex& parent) const override {
+        int                column = 0,
+        const QModelIndex& parent = QModelIndex()) const override {
         if (sourceModel()->hasIndex(row, column, parent)) {
             return QSortFilterProxyModel::index(row, column, parent);
         } else {

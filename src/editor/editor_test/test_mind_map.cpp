@@ -1107,6 +1107,10 @@ void debugModel(
     }
 }
 
+/// \brief Common boilerplate to set the graph rendering scene
+///
+/// Default scene bench structure does not have graph filtering logic,
+/// tests that need to add it, do so through `setSourceModel` etc.
 struct SceneBench {
     SPtr<OrgStore>         store;
     SPtr<Graph>            graph;
@@ -1114,6 +1118,9 @@ struct SceneBench {
     OrgGraphView*          view;
     SPtr<QMainWindow>      window;
 
+    /// \brief Different graph layout algorithms generate differently sized
+    /// bounding boxes for graph, even if nothing else has changed. This is
+    /// used to readjust the window size to fit the whole graph scene.
     void adjustWindow() {
         window->resize(proxy->currentLayout.bbox.size().grownBy(
             QMargins(20, 20, 20, 20)));
@@ -1150,7 +1157,6 @@ struct SceneBench {
         view->setStyleSheet("OrgGraphView { border: none; }");
         view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         view->setContentsMargins(0, 0, 0, 0);
-        // view->connectModel();
 
         window->setContentsMargins(0, 0, 0, 0);
         window->setCentralWidget(view);
@@ -1173,6 +1179,7 @@ struct SceneBench {
 
     SceneBench() { initWindow(); }
 
+    /// \brief Build scene bench using already constructed graph and store.
     SceneBench(SPtr<OrgStore> in_store, SPtr<Graph> in_graph) {
         initWindow();
 
@@ -1183,6 +1190,8 @@ struct SceneBench {
         initView();
     }
 
+    /// \brief Build scene bench using text, create a new store and a new
+    /// graph in the bench
     SceneBench(CR<Str> text) {
         initWindow();
 
@@ -1194,10 +1203,13 @@ struct SceneBench {
         initView();
     }
 
+    /// \brief Dump the tree representation of the base graph model into
+    /// stdout or in the provided file, if not nullopt
     void debugModel(CR<Opt<Str>> path = std::nullopt) {
         ::debugModel(graph.get(), store.get(), path);
     }
 
+    /// \brief Dump the graph layout proxy model to the stdout/file
     void debugProxy(Opt<Str> path = std::nullopt) {
         ::debugModel(proxy.get(), store.get(), path);
     }
@@ -1214,6 +1226,45 @@ Paragraph [[id:subtree-id]]
 )"};
 
     save_screenshot("/tmp/graph_screenshot.png");
+}
+
+/// \brief Find list of all graphics items that have a given rectangle in
+/// their own bounding rect, and return then sorted on their area.
+///
+/// Used mainly for testing, getting overlapping clusters.
+Vec<OrgGraphElementItem*> getFullyOverlappingItems(
+    OrgGraphView* scene,
+    const QRectF& rect) {
+
+    Vec<OrgGraphElementItem*> matchingItems;
+
+    for (OrgGraphElementItem* item : scene->graphItems()) {
+        if (item->boundingRect().contains(rect)) {
+            matchingItems.push_back(item);
+        }
+    }
+
+    std::sort(
+        matchingItems.begin(),
+        matchingItems.end(),
+        [](OrgGraphElementItem* a, OrgGraphElementItem* b) {
+            return a->boundingRect().width() * a->boundingRect().height()
+                 < b->boundingRect().width() * b->boundingRect().height();
+        });
+
+    return matchingItems;
+}
+
+Vec<OrgGraphElementItem*> getItemsInRect(
+    OrgGraphView* scene,
+    QRectF const& rect) {
+    Vec<OrgGraphElementItem*> result;
+    for (OrgGraphElementItem* item : scene->graphItems()) {
+        if (rect.contains(item->boundingRect())) {
+            result.push_back(item);
+        }
+    }
+    return result;
 }
 
 void TestMindMap::testQtGraphSceneFullMindMap() {
@@ -1258,7 +1309,7 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     pre_layout_filter.setSourceModel(b.graph.get());
     b.proxy->setSourceModel(&pre_layout_filter);
     b.proxy->resetLayoutData();
-    dump_all("1");
+    // dump_all("1");
     b.view->setModel(b.proxy.get());
     b.view->rebuildScene();
 
@@ -1271,11 +1322,20 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     pre_layout_filter.setObjectName("pre_layout_filter");
     b.graph->setObjectName("base_graph");
     b.proxy->setObjectName("layout_proxy");
+
+    // With clustering disabled, proxy layout will generate the same number
+    // of elements as the base graph
+    QCOMPARE_EQ(b.view->graphItems().size(), pre_layout_filter.rowCount());
+    QCOMPARE_EQ(b.view->graphItems().size(), pre_layout_filter.rowCount());
+
     b.proxy->config.clusterSubtrees = true;
     b.proxy->config.getSubgraphMargin =
         [](QModelIndex const& index) -> Opt<int> { return 15; };
     b.proxy->resetLayoutData();
-    // b.view->rebuildScene();
+
+    // If clustering is disabled, the view will have more elements
+    QCOMPARE_EQ(b.view->graphItems().size(), b.proxy->rowCount());
+    QCOMPARE_LT(pre_layout_filter.rowCount(), b.view->graphItems().size());
 
     b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
         QMargins(100, 100, 100, 100)));
@@ -1292,6 +1352,21 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_clusters.png", 2);
+
+    auto box_0_1  = b.store->getBox0({0, 1});
+    auto item_0_1 = b.view
+                        ->graphItemForIndex(
+                            b.graph->index(b.graph->getBoxIndex(box_0_1)))
+                        .value();
+
+    auto clusters_0_1 = getFullyOverlappingItems(
+        b.view, item_0_1->boundingRect());
+
+    QCOMPARE_EQ(clusters_0_1.size(), 2);
+    QVERIFY(clusters_0_1.at(0)->boundingRect().contains(
+        clusters_0_1.at(1)->boundingRect()));
+    auto adjacent_0_1 = getItemsInRect(
+        b.view, clusters_0_1.at(0)->boundingRect());
 }
 
 void TestMindMap::testMindMapNodeAdd1() {

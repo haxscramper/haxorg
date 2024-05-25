@@ -33,9 +33,15 @@ QModelIndex mapToNestedSource(const QModelIndex& index) {
                 qdebug_to_str(currentIndex),
                 qdebug_to_str(currentProxyModel)));
 
-        currentIndex      = currentProxyModel->mapToSource(currentIndex);
-        currentProxyModel = qobject_cast<QSortFilterProxyModel const*>(
-            currentProxyModel->sourceModel());
+        // Proxy model might potentially create indices that are not backed
+        // by any source model elements.
+        if (currentIndex.internalPointer() == nullptr) {
+            break;
+        } else {
+            currentIndex = currentProxyModel->mapToSource(currentIndex);
+            currentProxyModel = qobject_cast<QSortFilterProxyModel const*>(
+                currentProxyModel->sourceModel());
+        }
     }
 
     return currentIndex;
