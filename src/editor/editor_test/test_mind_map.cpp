@@ -1811,14 +1811,11 @@ Paragraph [fn:target1] [fn:target2]
         QCOMPARE_EQ(b.graph->numEdges(), 2);
         QCOMPARE_EQ(b.view->graphItems().size(), 6);
         auto validate_filter = [&]() {
-
+            QCOMPARE_EQ(b.view->graphItems().size(), b.graph->rowCount());
         };
 
         AbstractItemModelSignalListener l{b.proxy->sourceModel()};
         AbstractItemModelSignalListener dbg{b.graph.get()};
-        // l.printOnTrigger = true;
-        // if (use_proxy != ProxyOrder::None) { dbg.printOnTrigger = true;
-        // }
         validate_filter();
 
         auto doc = b.store->getBox0({});
