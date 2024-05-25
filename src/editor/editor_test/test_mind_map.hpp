@@ -37,4 +37,5 @@ class TestMindMap
     void testGraphLayoutUpdateSignals();
     void testGraphvizLayoutAlgorithms();
     void testMultiRootGraphConstruction();
+    void testMultiViewGraphConstruction();
 };

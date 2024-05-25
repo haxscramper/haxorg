@@ -1119,16 +1119,14 @@ struct SceneBench {
             QMargins(20, 20, 20, 20)));
     }
 
-    SceneBench(CR<Str> text) {
+    void initWindow() {
         window = std::make_shared<QMainWindow>();
         window->show();
         window->raise();
         window->activateWindow();
+    }
 
-        auto [store, graph] = build_graph(text);
-        this->store         = store;
-        this->graph         = graph;
-
+    void initProxy() {
         proxy = std::make_shared<GraphLayoutProxy>(
             store.get(),
             GraphLayoutProxy::LayoutConfig{
@@ -1144,6 +1142,9 @@ struct SceneBench {
             nullptr);
 
         proxy->setSourceModel(graph.get());
+    }
+
+    void initView() {
         view = new OrgGraphView(proxy.get(), store.get(), window.get());
 
         view->setStyleSheet("OrgGraphView { border: none; }");
@@ -1168,6 +1169,29 @@ struct SceneBench {
             fmt("{} != {}",
                 qdebug_to_str(window->size()),
                 qdebug_to_str(box)));
+    }
+
+    SceneBench() { initWindow(); }
+
+    SceneBench(SPtr<OrgStore> in_store, SPtr<Graph> in_graph) {
+        initWindow();
+
+        this->store = in_store;
+        this->graph = in_graph;
+
+        initProxy();
+        initView();
+    }
+
+    SceneBench(CR<Str> text) {
+        initWindow();
+
+        auto [store, graph] = build_graph(text);
+        this->store         = store;
+        this->graph         = graph;
+
+        initProxy();
+        initView();
     }
 
     void debugModel(CR<Opt<Str>> path = std::nullopt) {
@@ -1927,4 +1951,31 @@ void TestMindMap::testMultiRootGraphConstruction() {
     auto r1 = store.getRoot(1);
 
     QVERIFY(graph.hasEdge(r0->id(0), r1->id(0)));
+}
+
+void TestMindMap::testMultiViewGraphConstruction() {
+    auto [store, graph] = build_graph(getFullMindMapText());
+    SceneBench dot_layout{store, graph};
+    SceneBench neato_layout{store, graph};
+    SceneBench fdp_layout{store, graph};
+
+    dot_layout.proxy->config.graphvizLayout   = Graphviz::LayoutType::Dot;
+    neato_layout.proxy->config.graphvizLayout = Graphviz::LayoutType::
+        Neato;
+    fdp_layout.proxy->config.graphvizLayout = Graphviz::LayoutType::Fdp;
+
+    dot_layout.proxy->resetLayoutData();
+    neato_layout.proxy->resetLayoutData();
+    fdp_layout.proxy->resetLayoutData();
+
+    QCOMPARE_EQ(dot_layout.view->graphItems().size(), graph->rowCount());
+    QCOMPARE_EQ(neato_layout.view->graphItems().size(), graph->rowCount());
+    QCOMPARE_EQ(fdp_layout.view->graphItems().size(), graph->rowCount());
+    save_screenshot(
+        dot_layout.view, "/tmp/testMultiViewGraphConstruction_dot.png");
+    save_screenshot(
+        neato_layout.view,
+        "/tmp/testMultiViewGraphConstruction_neato.png");
+    save_screenshot(
+        fdp_layout.view, "/tmp/testMultiViewGraphConstruction_fdp.png");
 }
