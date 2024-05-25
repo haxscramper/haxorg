@@ -1219,6 +1219,7 @@ struct SceneBench {
     }
 };
 
+/// \brief Initial sanity check for the graph structure
 void TestMindMap::testQtGraphScene1() {
     SceneBench b{R"(
 Paragraph [[id:subtree-id]]
@@ -1248,7 +1249,8 @@ Vec<OrgGraphElementItem*> getFullyOverlappingItems(
             auto bb = item->boundingRect();
             /* qDebug().noquote()
                  <<*/
-            fmt("rect:{} bbox:{} contains:{} points:{} neq:{} "
+            auto str = fmt(
+                "rect:{} bbox:{} contains:{} points:{} neq:{} "
                 "index:{}\nprint:{}",
                 qdebug_to_str(rect),
                 qdebug_to_str(item->sceneBoundingRect()),
@@ -1281,6 +1283,8 @@ Vec<OrgGraphElementItem*> getFullyOverlappingItems(
     return matchingItems;
 }
 
+/// \brief Get all graph elements that are placed in a give rectangle,
+/// excluding one that has exactly the same rectangle.
 Vec<OrgGraphElementItem*> getItemsInRect(
     OrgGraphView* scene,
     QRectF const& rect) {
@@ -1303,12 +1307,15 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
 
     pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
 
+    // Omit list item nodes, list elemenst and the parent document from the
+    // graph.
     pre_layout_filter.accept_node = [&](VDesc node) {
         auto sem_node = b.graph->getNodeSem(node);
         return !SemSet{osk::ListItem, osk::List, osk::Document}.contains(
             sem_node->getKind());
     };
 
+    // Debug function to dump the full tree structure
     auto dump_all = [&](CR<Str> suffix) {
         ::debugModel(
             b.graph.get(),
@@ -1340,8 +1347,7 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     b.view->setModel(b.proxy.get());
     b.view->rebuildScene();
 
-    b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
-        QMargins(100, 100, 100, 100)));
+    b.adjustWindow();
 
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot.png", 2);
@@ -1364,8 +1370,7 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     QCOMPARE_EQ(b.view->graphItems().size(), b.proxy->rowCount());
     QCOMPARE_LT(pre_layout_filter.rowCount(), b.view->graphItems().size());
 
-    b.window->resize(b.proxy->currentLayout.bbox.size().grownBy(
-        QMargins(100, 100, 100, 100)));
+    b.adjustWindow();
 
 
     {
@@ -1393,8 +1398,11 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
              | rs::to<Vec>();
     };
 
+    // Check subgraph and node placement.
+
     { // "More than one subtree can exist in cluster" -- 5 surrounding
       // nodes, 2 links.
+        // Find 'target' node and search for surrounding clusters around it
         auto box  = b.store->getBox0({0, 1});
         auto item = b.view
                         ->graphItemForIndex(
@@ -1464,6 +1472,9 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
             b.store->getBox0({1, 0}),
             b.store->getBox0({1, 1}),
         };
+
+        // 3 nested clusters, check each one in sequence, surrounding
+        // clusters must contain all their inner elements.
 
         {
             auto adjacent = getItemsInRect(
@@ -1796,6 +1807,8 @@ Paragraph [[id:subtree-id]]
     }
 }
 
+/// \brief Graph layout emits row insert/remove signals when elements are
+/// added. This test checks for consistency in the generated indices.
 void TestMindMap::testGraphLayoutRowConsistency() {
     using R = AbstractItemModelSignalListener::Record;
     using K = R::Kind;
@@ -1823,6 +1836,9 @@ Paragraph [fn:target1] [fn:target2]
     AbstractItemModelSignalListener l{&graph};
     Vec<R>                          stored_events;
 
+    // Simplified test representation of the graph model. When rows are
+    // added or removed in the graph, the test will replay captured signals
+    // on this modeled variant and then check for consistency.
     Vec<Str> rows;
     auto     apply_events = [&]() {
         stored_events.append(l.records);
@@ -1830,6 +1846,7 @@ Paragraph [fn:target1] [fn:target2]
 
         for (auto const& r : stored_events) {
             switch (r.getKind()) {
+                    // Ignore these to clean up debug output
                 case K::RowsAboutToBeInserted:
                 case K::RowsAboutToBeRemoved:
                 case K::LayoutChanged:
@@ -1882,8 +1899,6 @@ Paragraph [fn:target1] [fn:target2]
 
 
         if (graph.rowCount() != rows.size()) {
-
-
             throw std::logic_error(
                 fmt("graph row count:{} modeled row count:{} delta:{}\n{}",
                     graph.rowCount(),
@@ -1994,6 +2009,9 @@ Paragraph [fn:target1] [fn:target2]
 
 DECL_DESCRIBED_ENUM_STANDALONE(ProxyOrder, None, PreLayout, PostLayout);
 
+/// \brief Changes in the underlying graph structure should be
+/// automatically propagated to the graph view, with default graph and with
+/// any order of the pre/post layout filtering.
 void TestMindMap::testGraphLayoutUpdateSignals() {
     using R = AbstractItemModelSignalListener::Record;
     using K = R::Kind;
@@ -2018,7 +2036,12 @@ Paragraph [fn:target1] [fn:target2]
 
     for (ProxyOrder use_proxy : Vec<ProxyOrder>{
              ProxyOrder::None,
+             // Pre layout filtering removes elements before the graph and
+             // then proxy arranges everything.
              ProxyOrder::PreLayout,
+             // Post layout filtering would leave all the nodes in right
+             // places, but might leave "holes" in the graph if some
+             // elements were filtered out
              ProxyOrder::PostLayout,
          }) {
 
@@ -2028,8 +2051,10 @@ Paragraph [fn:target1] [fn:target2]
         SceneBench& b = *run.bench.get();
 
         GraphFilterProxy& pre_layout_filter = *run.filter.get();
+        // Testing signal propagation here, so the filters automatically
+        // accept all elements
         pre_layout_filter.accept_edge = [](EDesc edge) { return true; };
-        pre_layout_filter.accept_node = [&](VDesc node) { return true; };
+        pre_layout_filter.accept_node = [](VDesc node) { return true; };
 
         b.proxy->setObjectName("layout_proxy");
         b.view->setObjectName("view");
@@ -2072,12 +2097,14 @@ Paragraph [fn:target1] [fn:target2]
         auto b2  = b.store->getBox0({2});
 
 
+        // Remove root doc to clean up the graph render a bit
         b.graph->deleteBox(doc);
         QCOMPARE_EQ(l.count(K::RowsRemoved), 1);
         l.clear();
 
         validate_filter();
         auto without_doc_root = shot("drop_doc");
+
         {
             b.graph->deleteBox(b0);
             // Node + 2 outgoing links
@@ -2085,7 +2112,6 @@ Paragraph [fn:target1] [fn:target2]
             l.clear();
             validate_filter();
         }
-        // b.graph->state.debug = true;
         {
             b.graph->addBox(b0);
             QCOMPARE_EQ(l.count(K::RowsInserted), 2);
@@ -2130,13 +2156,41 @@ Paragraph [fn:target1] [fn:target2]
         }
     }
 
+    // All final elements should have the same visual result, number of
+    // graph elements and representations of the graph elements.
     QCOMPARE_EQ(
         run_no_proxy.pixmap.toImage(), run_pre_layout.pixmap.toImage());
     QCOMPARE_EQ(
-        run_no_proxy.pixmap.toImage(), run_pre_layout.pixmap.toImage());
+        run_no_proxy.pixmap.toImage(), run_post_layout.pixmap.toImage());
+
+    for (int row = 0; row < run_no_proxy.bench->graph->rowCount(); ++row) {
+        auto no_proxy_item //
+            = run_no_proxy.bench->view
+                  ->graphItemForIndex(
+                      run_no_proxy.bench->graph->index(row))
+                  .value();
+        auto pre_layout_item //
+            = run_pre_layout.bench->view
+                  ->graphItemForIndex(
+                      run_pre_layout.bench->graph->index(row))
+                  .value();
+        auto post_layout_item //
+            = run_post_layout.bench->view
+                  ->graphItemForIndex(
+                      run_post_layout.bench->graph->index(row))
+                  .value();
+
+        QCOMPARE_EQ(
+            no_proxy_item->boundingRect(),
+            pre_layout_item->boundingRect());
+        QCOMPARE_EQ(
+            no_proxy_item->boundingRect(),
+            post_layout_item->boundingRect());
+    }
 }
 
 
+/// \brief Run over all supported graphviz algorithms.
 void TestMindMap::testGraphvizLayoutAlgorithms() {
     SceneBench b{getFullMindMapText()};
     auto shot = make_shot(b.window.get(), "testGraphvizLayoutAlgorithms");
@@ -2149,6 +2203,8 @@ void TestMindMap::testGraphvizLayoutAlgorithms() {
     }
 }
 
+/// \brief Graph construction works with the whole store at the same time
+/// and tracks node relations across different tree root.
 void TestMindMap::testMultiRootGraphConstruction() {
     OrgStore store;
     Graph    graph{&store, nullptr};
