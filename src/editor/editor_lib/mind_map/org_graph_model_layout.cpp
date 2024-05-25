@@ -12,7 +12,7 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
     // Build IR content for edges and nodes
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex gi = src->index(row, 0);
-        GraphIndex  index{gi};
+        GraphIndex index{gi};
         _qfmt(
             "row:{} index:{} src-row-count:{} debug:{}",
             row,

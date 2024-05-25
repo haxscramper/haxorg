@@ -20,6 +20,8 @@ inline Vec<OrgBoxId> dfs_boxes(OrgTreeNode const* node) {
     return result;
 }
 
+struct test_error : CRTP_hexception<test_error> {};
+
 
 inline void trigger_editor_of(
     QAbstractItemView* view,
@@ -305,6 +307,7 @@ class AbstractItemModelSignalListener : public QObject {
     Q_OBJECT
 
   public:
+    QAbstractItemModel* model;
     struct Record {
         struct DataChanged {
             QObject const* sender;
@@ -581,6 +584,8 @@ class AbstractItemModelSignalListener : public QObject {
     bool        printOnTrigger = false;
 
     void addRecord(CR<Record> record);
+
+    void assertEq(CR<AbstractItemModelSignalListener> other);
 
   private slots:
     void onDataChanged(

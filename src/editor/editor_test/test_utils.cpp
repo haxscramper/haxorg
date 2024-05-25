@@ -88,7 +88,8 @@ void TestBase::cleanup_test_base() {
 
 
 AbstractItemModelSignalListener::AbstractItemModelSignalListener(
-    QAbstractItemModel* model) {
+    QAbstractItemModel* model)
+    : model(model) {
     // clang-format off
         connect(model, &QAbstractItemModel::dataChanged, this, &AbstractItemModelSignalListener::onDataChanged);
         connect(model, &QAbstractItemModel::headerDataChanged, this, &AbstractItemModelSignalListener::onHeaderDataChanged);
@@ -129,6 +130,93 @@ void AbstractItemModelSignalListener::addRecord(CR<Record> record) {
             record.toString());
     }
     records.push_back(record);
+}
+
+void AbstractItemModelSignalListener::assertEq(
+    CR<AbstractItemModelSignalListener> other) {
+
+    int max_event_count = std::max(
+        this->records.size(), other.records.size());
+
+    auto get_formatted = [&](CVec<Record> records) {
+        return //
+            rv::ints(0, max_event_count)
+            | rv::transform([&](int i) -> Str {
+                  if (records.has(i)) {
+                      return records.at(i).toString();
+                  } else {
+                      return "?";
+                  }
+              })
+            | rs::to<Vec>();
+    };
+
+    Vec<Str> graph_text  = get_formatted(this->records);
+    Vec<Str> filter_text = get_formatted(other.records);
+    int      left_align //
+        = rs::max(graph_text | rv::transform([](CR<Str> it) -> int {
+                      return it.size();
+                  }));
+
+    Str full //
+        = rv::ints(0, max_event_count)
+        | rv::transform([&](int i) -> std::string {
+              return fmt(
+                  "{:<{}} {}",
+                  graph_text.at(i),
+                  left_align,
+                  filter_text.at(i));
+          })
+        | rv::intersperse("\n") //
+        | rv::join              //
+        | rs::to<std::string>();
+
+
+    QCOMPARE_EQ(this->model->rowCount(), other.model->rowCount());
+    if (this->records.size() != other.records.size()) {
+        full = "\n" + full;
+        throw test_error::init(full);
+    }
+
+    for (int i = 0; i < this->records.size(); ++i) {
+        auto const& graph_rec  = this->records.at(i);
+        auto const& filter_rec = other.records.at(i);
+        if (graph_rec.getKind() != filter_rec.getKind()) {
+            throw test_error::init(
+                fmt("record [{}] kind mismatch {} != {}",
+                    i,
+                    graph_rec.getKind(),
+                    filter_rec.getKind()));
+        }
+#define __cmp(Type, Field)                                                \
+    if (graph_rec.get##Type().Field != filter_rec.get##Type().Field) {    \
+        throw test_error::init(                                           \
+            fmt("{} != {}, (graph: {} filter:{} index:{})",               \
+                graph_rec.get##Type().Field,                              \
+                filter_rec.get##Type().Field,                             \
+                graph_rec.get##Type(),                                    \
+                filter_rec.get##Type(),                                   \
+                i));                                                      \
+    }
+
+        switch (graph_rec.getKind()) {
+            case Record::Kind::RowsInserted: {
+                __cmp(RowsInserted, first);
+                __cmp(RowsInserted, last);
+                break;
+            }
+            case Record::Kind::RowsAboutToBeInserted: {
+                __cmp(RowsAboutToBeInserted, first);
+                __cmp(RowsAboutToBeInserted, last);
+                break;
+            }
+            default: {
+            }
+        }
+    }
+
+
+#undef __cmp
 }
 
 std::string AbstractItemModelSignalListener::Record::toString() const {

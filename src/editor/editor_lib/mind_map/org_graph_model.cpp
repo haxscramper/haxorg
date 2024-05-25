@@ -483,6 +483,13 @@ QString Graph::getDisplayText(CR<QModelIndex> index) const {
 }
 
 QVariant Graph::data(const QModelIndex& index, int role) const {
+    if (state.debug) {
+        _qfmt(
+            "index:{} role:{} name:{}",
+            qdebug_to_str(index),
+            role,
+            roleNames().value(role).toStdString());
+    }
     if (role == (int)OrgGraphRoles::DebugDisplay) {
         if (!index.isValid()) {
             return QString::fromStdString(

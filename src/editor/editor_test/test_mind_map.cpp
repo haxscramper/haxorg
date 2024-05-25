@@ -1644,6 +1644,12 @@ Paragraph [fn:target1] [fn:target2]
                     msg));
         }
 
+        for (int i = 0; i < graph.rowCount(); ++i) {
+            auto       index = graph.index(i);
+            GraphIndex gi{index};
+            gi.debug();
+        }
+
         _qfmt("rows:{}", rows);
 
         l.clear();
@@ -1704,88 +1710,38 @@ Paragraph [fn:target1] [fn:target2]
     using R = AbstractItemModelSignalListener::Record;
     using K = R::Kind;
 
+    auto compare_content = [&]() {
+        for (int i = 0;
+             i < std::max<int>(
+                 graph.rowCount(), pre_layout_filter.rowCount());
+             ++i) {
+            auto       graph_index = graph.index(i);
+            GraphIndex gi1{graph_index};
 
-    auto compare_signals = [&]() {
-        int max_event_count = std::max(
-            graph_events.records.size(), filter_events.records.size());
-        auto get_formatted = [&](CVec<R> records) {
-            return //
-                rv::ints(0, max_event_count)
-                | rv::transform([&](int i) -> Str {
-                      if (records.has(i)) {
-                          return records.at(i).toString();
-                      } else {
-                          return "?";
-                      }
-                  })
-                | rs::to<Vec>();
-        };
-
-        Vec<Str> graph_text  = get_formatted(graph_events.records);
-        Vec<Str> filter_text = get_formatted(filter_events.records);
-        int      left_align //
-            = rs::max(graph_text | rv::transform([](CR<Str> it) -> int {
-                          return it.size();
-                      }));
-
-        Str full //
-            = rv::ints(0, max_event_count)
-            | rv::transform([&](int i) -> std::string {
-                  return fmt(
-                      "{:<{}} {}",
-                      graph_text.at(i),
-                      left_align,
-                      filter_text.at(i));
-              })
-            | rv::intersperse("\n") //
-            | rv::join              //
-            | rs::to<std::string>();
-
-
-        QCOMPARE_EQ(graph.rowCount(), pre_layout_filter.rowCount());
-        if (graph_events.records.size() != filter_events.records.size()) {
-            full = "\n" + full;
-            QFAIL(full.c_str());
+            auto       filter_index = pre_layout_filter.index(i, 0);
+            GraphIndex gi2{filter_index};
+            QCOMPARE_EQ(gi1.debug(), gi2.debug());
         }
-
-        for (int i = 0; i < graph_events.records.size(); ++i) {
-            auto const& graph_rec  = graph_events.records.at(i);
-            auto const& filter_rec = filter_events.records.at(i);
-            QCOMPARE_EQ2(graph_rec.getKind(), filter_rec.getKind());
-
-#define __cmp(Type, Field)                                                \
-    QVERIFY2(                                                             \
-        graph_rec.get##Type().Field == filter_rec.get##Type().Field,      \
-        qstrdup(fmt("{} != {}, (graph: {} filter:{} index:{})",           \
-                    graph_rec.get##Type().Field,                          \
-                    filter_rec.get##Type().Field,                         \
-                    graph_rec.get##Type(),                                \
-                    filter_rec.get##Type(),                               \
-                    i)                                                    \
-                    .c_str()));
-
-            switch (graph_rec.getKind()) {
-                case K::RowsInserted: {
-                    __cmp(RowsInserted, first);
-                    __cmp(RowsInserted, last);
-                    break;
-                }
-                case K::RowsAboutToBeInserted: {
-                    __cmp(RowsAboutToBeInserted, first);
-                    __cmp(RowsAboutToBeInserted, last);
-                    break;
-                }
-                default: {
-                }
-            }
-        }
-
-
-#undef __cmp
     };
 
+    auto do_check = [&]() {
+        // compare_signals();
+        compare_content();
+    };
+
+    graph.deleteBox(doc);
+    do_check();
     graph.deleteBox(b0);
-    // compare_signals();
+    do_check();
+    graph.addBox(b0);
+    do_check();
+    graph.deleteBox(b1);
+    do_check();
+    graph.deleteBox(b2);
+    do_check();
+    graph.addBox(b1);
+    do_check();
+    graph.addBox(b2);
 }
 
 void TestMindMap::testGraphLayoutUpdateSignals() {
