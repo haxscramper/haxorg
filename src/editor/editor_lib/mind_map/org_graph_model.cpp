@@ -499,11 +499,13 @@ QVariant Graph::data(const QModelIndex& index, int role) const {
                 "row count:{}, index row:{}", rowCount(), index.row()));
         } else {
             if (isNode(index)) {
+                auto box = getBox(index.row());
                 return QString::fromStdString(
-                    fmt("row:{} box:{} desc:{}",
+                    fmt("row:{} box:{} desc:{} path:{}",
                         index.row(),
-                        getBox(index.row()),
-                        getNodeDesc(index.row())));
+                        box,
+                        getNodeDesc(index.row()),
+                        store->getOrgTree(box)->selfPath()));
             } else {
                 auto ed = getEdgeDesc(index);
                 return QString::fromStdString(

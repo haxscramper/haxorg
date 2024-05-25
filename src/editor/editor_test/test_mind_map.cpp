@@ -909,20 +909,24 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
         R"(
 *** And nodes
 )",
-        // 1.2.1
+        // 1.2.2
         R"(
 *** Intercluster links are possible
 )",
-        // 1.2.1.0
+        // 1.2.2.0
         R"(
 [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][Annotation for the target subtree]]
 [[id:XXSDASD][Unresolved subtree]]
 )",
-        // 1.2.1.1
-        R"(
-- Regular list element
-- Two items in a list
-)",
+        // 1.2.2.1
+        // 1.2.2.1.0
+        "- ",
+        // 1.2.2.1.0.0
+        "Regular list element\n",
+        // 1.2.2.1.1
+        "- ",
+        // 1.2.2.1.1.0
+        "Two items in a list\n",
     };
     return join("", text);
 }
@@ -1239,7 +1243,29 @@ Vec<OrgGraphElementItem*> getFullyOverlappingItems(
     Vec<OrgGraphElementItem*> matchingItems;
 
     for (OrgGraphElementItem* item : scene->graphItems()) {
-        if (item->boundingRect().contains(rect)) {
+        if (GraphIndex{item->index}.getKind()
+            == OrgGraphElementKind::Subgraph) {
+            auto bb = item->boundingRect();
+            /* qDebug().noquote()
+                 <<*/
+            fmt("rect:{} bbox:{} contains:{} points:{} neq:{} "
+                "index:{}\nprint:{}",
+                qdebug_to_str(rect),
+                qdebug_to_str(item->sceneBoundingRect()),
+                bb.contains(rect.topLeft()),
+                fmt("{}-{} {}-{}",
+                    bb.topLeft(),
+                    bb.bottomRight(),
+                    rect.topLeft(),
+                    rect.bottomRight()),
+                bb != rect,
+                qdebug_to_str(item->index),
+                printIndex(item->index).toString(false));
+        }
+
+        if (item->boundingRect().contains(rect)
+            // Exclude the item itself
+            && item->boundingRect() != rect) {
             matchingItems.push_back(item);
         }
     }
@@ -1260,7 +1286,8 @@ Vec<OrgGraphElementItem*> getItemsInRect(
     QRectF const& rect) {
     Vec<OrgGraphElementItem*> result;
     for (OrgGraphElementItem* item : scene->graphItems()) {
-        if (rect.contains(item->boundingRect())) {
+        if (rect.contains(item->boundingRect())
+            && item->boundingRect() != rect) {
             result.push_back(item);
         }
     }
@@ -1353,20 +1380,142 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
     save_screenshot(
         b.window.get(), "/tmp/full_mind_map_screenshot_clusters.png", 2);
 
-    auto box_0_1  = b.store->getBox0({0, 1});
-    auto item_0_1 = b.view
+    auto get_node_boxes =
+        [](CVec<OrgGraphElementItem*> items) -> Vec<OrgBoxId> {
+        return items //
+             | rv::filter([](OrgGraphElementItem const* it) {
+                   return GraphIndex{it->index}.getKind()
+                       == OrgGraphElementKind::Node;
+               })
+             | rv::transform([](OrgGraphElementItem const* it) {
+                   return GraphIndex{it->index}.getBox();
+               })
+             | rs::to<Vec>();
+    };
+
+    { // "More than one subtree can exist in cluster" -- 5 surrounding
+      // nodes, 2 links.
+        auto box  = b.store->getBox0({0, 1});
+        auto item = b.view
                         ->graphItemForIndex(
-                            b.graph->index(b.graph->getBoxIndex(box_0_1)))
+                            b.graph->index(b.graph->getBoxIndex(box)))
                         .value();
 
-    auto clusters_0_1 = getFullyOverlappingItems(
-        b.view, item_0_1->boundingRect());
+        auto clusters = getFullyOverlappingItems(
+            b.view, item->boundingRect());
 
-    QCOMPARE_EQ(clusters_0_1.size(), 2);
-    QVERIFY(clusters_0_1.at(0)->boundingRect().contains(
-        clusters_0_1.at(1)->boundingRect()));
-    auto adjacent_0_1 = getItemsInRect(
-        b.view, clusters_0_1.at(0)->boundingRect());
+
+        QCOMPARE_EQ(clusters.size(), 2);
+        QVERIFY(clusters.at(1)->boundingRect().contains(
+            clusters.at(0)->boundingRect()));
+        {
+            auto adjacent = getItemsInRect(
+                b.view, clusters.at(0)->boundingRect());
+
+            for (auto const& cl : adjacent) {
+                // qDebug().noquote() <<
+                // printIndex(cl->index).toString(false);
+            }
+
+            Vec<OrgBoxId> boxes = get_node_boxes(adjacent);
+
+            QCOMPARE_EQ(boxes.size(), 5);
+            QVERIFY(boxes.contains(b.store->getBox0({0, 1})));
+            QVERIFY(boxes.contains(b.store->getBox0({0, 1, 0})));
+            // 0.1.1 is a description list item that is used to form an
+            // edge between subtrees
+            QVERIFY(!boxes.contains(b.store->getBox0({0, 1, 1})));
+            QVERIFY(boxes.contains(b.store->getBox0({0, 1, 2})));
+            QVERIFY(boxes.contains(b.store->getBox0({0, 1, 3})));
+            QVERIFY(boxes.contains(b.store->getBox0({0, 1, 4})));
+        }
+    }
+
+    { // "Two items in a list"
+        auto box  = b.store->getBox0({1, 2, 2});
+        auto item = b.view
+                        ->graphItemForIndex(
+                            b.graph->index(b.graph->getBoxIndex(box)))
+                        .value();
+
+        auto clusters = getFullyOverlappingItems(
+            b.view, item->boundingRect());
+
+        QCOMPARE_EQ(clusters.size(), 3);
+
+        Vec<OrgBoxId> cluster_0{
+            // Subtree node
+            b.store->getBox0({1, 2, 2}),
+            // Standalone paragraph
+            b.store->getBox0({1, 2, 2, 0}),
+            // paragraphs from list items
+            b.store->getBox0({1, 2, 2, 1, 0, 0}),
+            b.store->getBox0({1, 2, 2, 1, 1, 0}),
+        };
+
+        Vec<OrgBoxId> cluster_1{
+            b.store->getBox0({1, 2}),
+            b.store->getBox0({1, 2, 0}),
+            b.store->getBox0({1, 2, 1}),
+        };
+
+        Vec<OrgBoxId> cluster_2{
+            b.store->getBox0({1}),
+            b.store->getBox0({1, 0}),
+            b.store->getBox0({1, 1}),
+        };
+
+        {
+            auto adjacent = getItemsInRect(
+                b.view, clusters.at(0)->boundingRect());
+
+            Vec<OrgBoxId> boxes = get_node_boxes(adjacent);
+
+            QCOMPARE_EQ(boxes.size(), 4);
+            for (auto const& it : cluster_0) {
+                QVERIFY(boxes.contains(it));
+            }
+        }
+
+        {
+            auto adjacent = getItemsInRect(
+                b.view, clusters.at(1)->boundingRect());
+
+            Vec<OrgBoxId> boxes = get_node_boxes(adjacent);
+
+            QCOMPARE_EQ(boxes.size(), 7);
+
+            for (auto const& it : cluster_0) {
+                QVERIFY(boxes.contains(it));
+            }
+
+            for (auto const& it : cluster_1) {
+                QVERIFY(boxes.contains(it));
+            }
+        }
+
+
+        {
+            auto adjacent = getItemsInRect(
+                b.view, clusters.at(2)->boundingRect());
+
+            Vec<OrgBoxId> boxes = get_node_boxes(adjacent);
+
+            QCOMPARE_EQ(boxes.size(), 10);
+
+            for (auto const& it : cluster_0) {
+                QVERIFY(boxes.contains(it));
+            }
+
+            for (auto const& it : cluster_1) {
+                QVERIFY(boxes.contains(it));
+            }
+
+            for (auto const& it : cluster_2) {
+                QVERIFY(boxes.contains(it));
+            }
+        }
+    }
 }
 
 void TestMindMap::testMindMapNodeAdd1() {

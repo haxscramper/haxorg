@@ -59,10 +59,15 @@ enum class SharedModelRoles
 };
 
 ColText printModelTree(
-    const QAbstractItemModel*         model,
-    const QModelIndex&                parent,
-    Func<ColText(QModelIndex const&)> toString,
-    bool                              ignoreExceptions = false);
+    const QAbstractItemModel*              model,
+    const QModelIndex&                     parent,
+    Opt<Func<ColText(QModelIndex const&)>> toString         = std::nullopt,
+    bool                                   ignoreExceptions = false,
+    Opt<int>                               maxDepth = std::nullopt);
+
+inline ColText printIndex(QModelIndex const& index) {
+    return printModelTree(index.model(), index, std::nullopt, false, 1);
+}
 
 
 Func<ColText(QModelIndex const&)> store_index_printer(
@@ -148,6 +153,10 @@ inline QDebug operator<<(QDebug debug, E const& str) {
 DECL_QDEBUG_FORMATTER(QModelIndex);
 DECL_QDEBUG_FORMATTER(QPersistentModelIndex);
 DECL_QDEBUG_FORMATTER(QObject const*);
+DECL_QDEBUG_FORMATTER(QRect);
+DECL_QDEBUG_FORMATTER(QPoint);
+DECL_QDEBUG_FORMATTER(QPointF);
+DECL_QDEBUG_FORMATTER(QSize);
 
 template <typename T>
 struct std::formatter<QList<T>> : std::formatter<std::string> {

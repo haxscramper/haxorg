@@ -77,117 +77,117 @@ inline ColText escape_literal(ColText const& in) {
     return res;
 }
 
-ColText printModelTree(
-    const QAbstractItemModel*         model,
-    const QModelIndex&                parent,
-    Func<ColText(QModelIndex const&)> toString,
-    bool                              ignoreExceptions) {
-    if (!model) { return ColText{""}; }
 
-    struct ModelProxyRecord {
-        QModelIndex index;
-    };
+namespace {
+struct ModelProxyRecord {
+    QModelIndex index;
+};
 
-    struct IndexRoleRepr {
-        Str roleName;
-        Str roleValue;
-    };
+struct IndexRoleRepr {
+    Str roleName;
+    Str roleValue;
+};
 
-    struct ModelLevelRecord {
-        int                   depth;
-        Vec<ModelProxyRecord> proxies;
-        ColText               finalRepr;
-        Vec<IndexRoleRepr>    roles;
-    };
+struct ModelLevelRecord {
+    int                   depth;
+    Vec<ModelProxyRecord> proxies;
+    ColText               finalRepr;
+    Vec<IndexRoleRepr>    roles;
+};
 
-    Vec<ModelLevelRecord> records;
+void recurse_tree(
+    CR<QModelIndex>                        index,
+    int                                    level,
+    QHash<int, QByteArray> const&          role_names,
+    Vec<ModelLevelRecord>&                 records,
+    bool                                   ignoreExceptions,
+    const QAbstractItemModel*              model,
+    Opt<Func<ColText(QModelIndex const&)>> toString,
+    Opt<int>                               maxDepth) {
+    if (maxDepth && *maxDepth < level) { return; }
 
-    QHash<int, QByteArray> role_names = model->roleNames();
+    ModelLevelRecord record{.depth = level};
 
-    for (auto const& it : role_names.keys()) {
-        if (it != Qt::DisplayRole && it < Qt::UserRole) {
-            role_names.remove(it);
+    QModelIndex currentIndex = index;
+    auto currentProxyModel   = qobject_cast<QSortFilterProxyModel const*>(
+        index.model());
+    Vec<int> roles = sorted(
+        role_names.keys() | rs::to<Vec>(), std::less_equal<int>{});
+
+
+    for (int role : roles) {
+        QByteArray    role_name = role_names[role];
+        IndexRoleRepr repr;
+        repr.roleName = role_name.toStdString();
+        auto act      = [&]() {
+            QVariant value = index.data(role);
+            if (value.isValid()) {
+                if (value.typeName() == "QString"_ss) {
+                    repr.roleValue = value.toString().toStdString();
+                } else {
+                    repr.roleValue = qdebug_to_str(value);
+                }
+                record.roles.push_back(repr);
+            }
+        };
+
+        if (ignoreExceptions) {
+            try {
+                act();
+            } catch (std::exception& ex) {
+                repr.roleValue = fmt(
+                    "Exception {} {}", typeid(ex).name(), ex.what());
+                record.roles.push_back(repr);
+            }
+        } else {
+            act();
         }
     }
 
-    Func<void(CR<QModelIndex> index, int level)> aux;
-    aux = [&](CR<QModelIndex> index, int level) -> void {
-        ModelLevelRecord record{.depth = level};
-
-        QModelIndex currentIndex      = index;
-        auto        currentProxyModel = qobject_cast<
-                   QSortFilterProxyModel const*>(index.model());
-        Vec<int> roles = sorted(
-            role_names.keys() | rs::to<Vec>(), std::less_equal<int>{});
-
-
-        for (int role : roles) {
-            QByteArray    role_name = role_names[role];
-            IndexRoleRepr repr;
-            repr.roleName = role_name.toStdString();
-            auto act      = [&]() {
-                QVariant value = index.data(role);
-                if (value.isValid()) {
-                    if (value.typeName() == "QString"_ss) {
-                        repr.roleValue = value.toString().toStdString();
-                    } else {
-                        repr.roleValue = qdebug_to_str(value);
-                    }
-                    record.roles.push_back(repr);
-                }
-            };
-
-            if (ignoreExceptions) {
-                try {
-                    act();
-                } catch (std::exception& ex) {
-                    repr.roleValue = fmt(
-                        "Exception {} {}", typeid(ex).name(), ex.what());
-                    record.roles.push_back(repr);
-                }
-            } else {
-                act();
-            }
-        }
-
-        auto add_proxy = [&](CR<QModelIndex> index) {
-            record.proxies.push_back(ModelProxyRecord{.index = index});
-        };
-
-        add_proxy(currentIndex);
-
-        while (currentProxyModel) {
-            Q_ASSERT(currentIndex.model() != nullptr);
-            Q_ASSERT(currentProxyModel->sourceModel() != nullptr);
-            if (!currentProxyModel->sourceModel()->hasIndex(
-                    currentIndex.row(), currentIndex.column())) {
-                break;
-            }
-
-            auto mapped = currentProxyModel->mapToSource(currentIndex);
-            if (mapped.isValid()) {
-                currentIndex = mapped;
-                add_proxy(currentIndex);
-                currentProxyModel = qobject_cast<
-                    QSortFilterProxyModel const*>(
-                    currentProxyModel->sourceModel());
-            } else {
-                break;
-            }
-        }
-
-        record.finalRepr = toString(index);
-        records.push_back(record);
-
-        int rowCount = model->rowCount(index);
-        for (int row = 0; row < rowCount; ++row) {
-            QModelIndex sub = model->index(row, 0, index);
-            aux(sub, level + 1);
-        }
+    auto add_proxy = [&](CR<QModelIndex> index) {
+        record.proxies.push_back(ModelProxyRecord{.index = index});
     };
 
-    aux(parent, 0);
+    add_proxy(currentIndex);
 
+    while (currentProxyModel) {
+        Q_ASSERT(currentIndex.model() != nullptr);
+        Q_ASSERT(currentProxyModel->sourceModel() != nullptr);
+        if (!currentProxyModel->sourceModel()->hasIndex(
+                currentIndex.row(), currentIndex.column())) {
+            break;
+        }
+
+        auto mapped = currentProxyModel->mapToSource(currentIndex);
+        if (mapped.isValid()) {
+            currentIndex = mapped;
+            add_proxy(currentIndex);
+            currentProxyModel = qobject_cast<QSortFilterProxyModel const*>(
+                currentProxyModel->sourceModel());
+        } else {
+            break;
+        }
+    }
+
+    if (toString) { record.finalRepr = (*toString)(index); }
+    records.push_back(record);
+
+    int rowCount = model->rowCount(index);
+    for (int row = 0; row < rowCount; ++row) {
+        QModelIndex sub = model->index(row, 0, index);
+        recurse_tree(
+            sub,
+            level + 1,
+            role_names,
+            records,
+            ignoreExceptions,
+            model,
+            toString,
+            maxDepth);
+    }
+}
+
+ColText format_records(CVec<ModelLevelRecord> records) {
     ColStream os;
 
     UnorderedMap<QAbstractItemModel const*, Str> model_names;
@@ -258,6 +258,40 @@ ColText printModelTree(
     }
 
     return os.getBuffer();
+}
+
+} // namespace
+
+ColText printModelTree(
+    const QAbstractItemModel*              model,
+    const QModelIndex&                     parent,
+    Opt<Func<ColText(QModelIndex const&)>> toString,
+    bool                                   ignoreExceptions,
+    Opt<int>                               maxDepth) {
+    if (!model) { return ColText{""}; }
+
+
+    QHash<int, QByteArray> role_names = model->roleNames();
+
+    for (auto const& it : role_names.keys()) {
+        if (it != Qt::DisplayRole && it < Qt::UserRole) {
+            role_names.remove(it);
+        }
+    }
+
+    Vec<ModelLevelRecord> records;
+
+    recurse_tree(
+        parent,
+        0,
+        role_names,
+        records,
+        ignoreExceptions,
+        model,
+        toString,
+        maxDepth);
+
+    return format_records(records);
 }
 
 Func<ColText(const QModelIndex&)> store_index_printer(
