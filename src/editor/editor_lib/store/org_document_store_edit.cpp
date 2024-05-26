@@ -61,6 +61,7 @@ Opt<OrgTreeNode::MoveParams> OrgTreeNode::getShiftParams(int offset) {
 
 void OrgTreeNode::doMove(CR<MoveParams> params) {
     emit store->beginNodeMove(params);
+    _qfmt("params:{}", params);
 
     Q_ASSERT(this->parent != nullptr);
 

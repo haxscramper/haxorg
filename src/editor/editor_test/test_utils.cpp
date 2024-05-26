@@ -44,6 +44,7 @@ void test_message_handler(
             || msg.contains("QWidget::repaint: Recursive repaint detected")
             || msg.contains("Cannot destroy paint device that is being painted")
             || (msg.contains("is different from this scene") && msg.contains("QGraphicsScene::removeItem"))
+            || (msg.contains(" Invalid index") && msg.contains("in model"))
             // clang-format on
             )) {
         qFatal("%s", msg.toStdString().data());

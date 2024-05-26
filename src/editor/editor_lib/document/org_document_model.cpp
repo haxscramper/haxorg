@@ -101,14 +101,15 @@ QModelIndex OrgDocumentModel::index(
 }
 
 QModelIndex OrgDocumentModel::getTreeIndex(CR<OrgBoxId> id) const {
-    auto        path = store->getOrgTree(id)->selfPath();
-    QModelIndex result;
+    auto        path   = store->getOrgTree(id)->selfPath();
+    QModelIndex result = index(0, 0, QModelIndex());
     for (int i : path) {
         Q_ASSERT(i < rowCount(result));
         result = index(i, 0, result);
         Q_ASSERT(result.isValid());
     }
 
+    Q_ASSERT(result.isValid());
     return result;
 }
 
@@ -255,7 +256,26 @@ int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
 }
 
 QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
-    if (index.isValid()) {
+    if (role == Qt::WhatsThisRole) {
+        if (index.isValid()) {
+            OrgTreeNode* node = static_cast<OrgTreeNode*>(
+                index.internalPointer());
+            if (node == nullptr) {
+                return QString::fromStdString(
+                    fmt("nullptr internal node:{}", qdebug_to_str(index)));
+            } else {
+                return QString::fromStdString(
+                    fmt("index:{}, self-path:{}, self-row:{}",
+                        qdebug_to_str(index),
+                        node->selfPath(),
+                        node->selfRow()));
+            }
+            return QVariant::fromValue(node->boxId);
+        } else {
+            return QString::fromStdString(
+                fmt("invalid index:{}", qdebug_to_str(index)));
+        }
+    } else if (index.isValid()) {
         Q_ASSERT(index.internalPointer() != nullptr);
         OrgTreeNode* node = static_cast<OrgTreeNode*>(
             index.internalPointer());
@@ -322,6 +342,8 @@ void OrgDocumentModel::onBeginNodeMove(OrgTreeNode::MoveParams params) {
         QModelIndex destinationParent = getTreeIndex(
             params.destinationParent);
         QModelIndex sourceParent = getTreeIndex(params.sourceParent);
+        Q_ASSERT(sourceParent.isValid());
+        Q_ASSERT(destinationParent.isValid());
         Q_ASSERT_X(
             beginMoveRows(
                 sourceParent,
@@ -332,10 +354,10 @@ void OrgDocumentModel::onBeginNodeMove(OrgTreeNode::MoveParams params) {
             "onBeginNodeMove",
             fmt("Could not execute subtree move with provided "
                 "parameters"
-                "destinationChild = {} params.sourceFirst = {} "
+                "destinationChild = {} "
+                "params.sourceFirst = {} "
                 "params.sourceLast = {} "
-                "destinationParent = "
-                "{}",
+                "destinationParent = {}",
                 params.destinationRow,
                 params.sourceFirst,
                 params.sourceLast,

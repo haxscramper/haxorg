@@ -67,7 +67,8 @@ struct OrgDocumentModel : public QAbstractItemModel {
 
     virtual QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> result;
-        result[Qt::DisplayRole] = "ItemData";
+        result[Qt::DisplayRole]   = "DisplayRole";
+        result[Qt::WhatsThisRole] = "WhatsThisRole";
         return result;
     }
 

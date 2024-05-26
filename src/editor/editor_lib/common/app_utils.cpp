@@ -274,7 +274,9 @@ ColText printModelTree(
     QHash<int, QByteArray> role_names = model->roleNames();
 
     for (auto const& it : role_names.keys()) {
-        if (it != Qt::DisplayRole && it < Qt::UserRole) {
+        if (it != Qt::DisplayRole      //
+            && it != Qt::WhatsThisRole //
+            && it < Qt::UserRole) {
             role_names.remove(it);
         }
     }
