@@ -931,6 +931,222 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
     return join("", text);
 }
 
+Str getSubtreeTestText() {
+    return R"(
+* Title
+
+** Introduction
+This document demonstrates various Org-mode elements and internal linking.
+
+** Section 1
+:PROPERTIES:
+:ID: section-1
+:END:
+
+Some introductory text for Section 1.[fn:1]
+
+*** Subsection 1.1
+:PROPERTIES:
+:ID: subsection-1.1
+:END:
+
+Detailed information for Subsection 1.1.
+
+- Item 1
+- Item 2
+- Item 3
+
+[fn:1] Footnote for Section 1.
+
+*** Subsection 1.2
+:PROPERTIES:
+:ID: subsection-1.2
+:END:
+
+Detailed information for Subsection 1.2. More details in [[id:subsection-1.1]].
+
+- Item A
+  - Subitem A1
+  - Subitem A2
+- Item B
+
+** Section 2
+:PROPERTIES:
+:ID: section-2
+:END:
+
+Text for Section 2 with a footnote reference.[fn:2]
+
+*** Subsection 2.1
+:PROPERTIES:
+:ID: subsection-2.1
+:END:
+
+Details for Subsection 2.1. See [[id:section-2]].
+
+- Task 1
+  - Subtask 1a
+  - Subtask 1b
+- Task 2
+
+[fn:2] Footnote for Section 2.
+
+*** Subsection 2.2
+:PROPERTIES:
+:ID: subsection-2.2
+:END:
+
+Information for Subsection 2.2, referring to [[id:section-1]].
+
+** Section 3
+:PROPERTIES:
+:ID: section-3
+:END:
+
+Discussion in Section 3. See notes in [[id:subsection-2.2]].[fn:3]
+
+*** Subsection 3.1
+:PROPERTIES:
+:ID: subsection-3.1
+:END:
+
+Content for Subsection 3.1. Reference to [[id:section-3]].
+
+- Point 1
+- Point 2
+- Point 3
+
+[fn:3] Footnote for Section 3.
+
+*** Subsection 3.2
+:PROPERTIES:
+:ID: subsection-3.2
+:END:
+
+Details for Subsection 3.2. Linking back to [[id:subsection-3.1]].
+
+- Item X
+  - Subitem X1
+  - Subitem X2
+- Item Y
+
+** Section 4
+:PROPERTIES:
+:ID: section-4
+:END:
+
+Text for Section 4 with a footnote.[fn:4]
+
+*** Subsection 4.1
+:PROPERTIES:
+:ID: subsection-4.1
+:END:
+
+Description for Subsection 4.1, see [[id:section-4]].
+
+- List item 1
+  - Nested item 1a
+  - Nested item 1b
+- List item 2
+
+[fn:4] Footnote for Section 4.
+
+*** Subsection 4.2
+:PROPERTIES:
+:ID: subsection-4.2
+:END:
+
+Content for Subsection 4.2. Refer to [[id:subsection-4.1]].
+
+- Element A
+  - Detail A1
+  - Detail A2
+- Element B
+
+** Section 5
+:PROPERTIES:
+:ID: section-5
+:END:
+
+Information in Section 5, referencing [[id:subsection-4.2]].[fn:5]
+
+*** Subsection 5.1
+:PROPERTIES:
+:ID: subsection-5.1
+:END:
+
+Content for Subsection 5.1. Check details in [[id:section-5]].
+
+- Task X
+  - Step X1
+  - Step X2
+- Task Y
+
+[fn:5] Footnote for Section 5.
+
+*** Subsection 5.2
+:PROPERTIES:
+:ID: subsection-5.2
+:END:
+
+Details for Subsection 5.2. Reference to [[id:subsection-5.1]].
+
+- Point A
+  - Subpoint A1
+  - Subpoint A2
+- Point B
+
+** Conclusion
+Summary and final notes. Refer to [[id:section-5]] for more information.
+)";
+}
+
+Str getNestedFootnoteText() {
+    return R"(
+* Main Title
+
+This is the main paragraph with a reference to a footnote.[fn:1]
+
+[fn:1] This is the first footnote, which itself contains another footnote reference.[fn:2]
+
+[fn:2] This is the second footnote, nested within the first footnote. It also contains a nested footnote.[fn:3]
+
+[fn:3] This is the third footnote, nested within the second footnote. It also contains yet another nested footnote.[fn:4]
+
+[fn:4] This is the fourth footnote, nested within the third footnote. It refers back to the main paragraph.
+
+This is another paragraph in the main text with a footnote reference.[fn:5]
+
+[fn:5] This is a footnote for the second paragraph, containing another nested footnote.[fn:6]
+
+[fn:6] This is a nested footnote within the second paragraph's footnote. It also has a nested footnote.[fn:7]
+
+[fn:7] This is another level of nested footnote. It contains one more nested footnote.[fn:8]
+
+[fn:8] This is the deepest nested footnote in this sequence.
+
+This is yet another paragraph in the main text with a footnote reference.[fn:9]
+
+[fn:9] This is the footnote for the third paragraph. It contains a nested footnote.[fn:10]
+
+[fn:10] This is the nested footnote within the third paragraph's footnote. It has another nested footnote.[fn:11]
+
+[fn:11] Another level of nested footnote. It contains one more nested footnote.[fn:12]
+
+[fn:12] The fourth level of nested footnote in this sequence.
+
+Final paragraph in the main text with a footnote reference.[fn:13]
+
+[fn:13] Footnote for the final paragraph. It contains a nested footnote.[fn:14]
+
+[fn:14] Nested footnote within the final paragraph's footnote. It has another nested footnote.[fn:15]
+
+[fn:15] Another level of nested footnote. It contains one more nested footnote.[fn:16]
+
+[fn:16] The deepest nested footnote in this sequence, referring back to the main text.
+)";
+}
+
 void TestMindMap::testFullMindMapGraph() {
     auto [store, graph] = build_graph(getFullMindMapText());
     auto r              = store->getRoot(0);
@@ -1232,6 +1448,23 @@ Paragraph [[id:subtree-id]]
 
     save_screenshot("/tmp/graph_screenshot.png");
 }
+
+void TestMindMap::testLargeSubtreeGraph() {
+    SceneBench b{getSubtreeTestText()};
+    save_screenshot(b.window.get(), "/tmp/testLargeSubtreeGraph.png", 2);
+    b.proxy->config.clusterSubtrees = true;
+    b.proxy->resetLayoutData();
+    b.adjustWindow();
+    save_screenshot(
+        b.window.get(), "/tmp/testLargeSubtreeGraph_clustered.png", 2);
+}
+
+void TestMindMap::testNestedFootnotesGraph() {
+    SceneBench b{getNestedFootnoteText()};
+    save_screenshot(
+        b.window.get(), "/tmp/testNestedFootnotesGraph.png", 2);
+}
+
 
 /// \brief Find list of all graphics items that have a given rectangle in
 /// their own bounding rect, and return then sorted on their area.

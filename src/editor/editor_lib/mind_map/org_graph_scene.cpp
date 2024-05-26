@@ -98,9 +98,6 @@ struct OrgSubgraphItem : public OrgGraphElementItem {
         QWidget*                        widget) override {
         updateStateFromIndex();
         painter->setPen(QPen(Qt::red, 2));
-        painter->drawText(
-            getSubgraph().bbox.topLeft(),
-            QString::fromStdString(qdebug_to_str(index)));
         painter->drawRect(getSubgraph().bbox);
     }
 };

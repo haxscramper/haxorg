@@ -25,6 +25,8 @@ class TestMindMap
     void testGraphConstructionSubtree_description_lists();
     void testGraphConstructionLoose_end_origin();
     void testFullMindMapGraph();
+    void testLargeSubtreeGraph();
+    void testNestedFootnotesGraph();
     void testQtGraphModel1();
     void testQtGraphScene1();
     void testQtGraphSceneFullMindMap();
