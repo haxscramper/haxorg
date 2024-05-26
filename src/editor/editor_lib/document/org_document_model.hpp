@@ -13,6 +13,10 @@ inline std::string to_std(QString const& value) {
 
 
 struct OrgDocumentModel : public QAbstractItemModel {
+  private:
+    Q_OBJECT
+
+  public:
     OrgTreeNode* root;
     OrgStore*    store;
 
@@ -20,8 +24,7 @@ struct OrgDocumentModel : public QAbstractItemModel {
 
     OrgTreeNode* tree(CR<QModelIndex> index) const;
 
-    explicit OrgDocumentModel(OrgStore* store, QObject* parent = nullptr)
-        : QAbstractItemModel(parent), store(store) {}
+    explicit OrgDocumentModel(OrgStore* store, QObject* parent = nullptr);
 
     ~OrgDocumentModel() override = default;
 
@@ -31,6 +34,10 @@ struct OrgDocumentModel : public QAbstractItemModel {
     QVariant    data(const QModelIndex& index, int role) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent)
         const override;
+
+    /// \brief Get model index corresponding for the element with specified
+    /// box ID.
+    QModelIndex getTreeIndex(CR<OrgBoxId> id) const;
 
 
     /// Change nesting level of the tree, promoting or demoting it.
@@ -54,12 +61,20 @@ struct OrgDocumentModel : public QAbstractItemModel {
         const QVariant&    value,
         int                role) override;
 
-  public:
+    bool isMatchingTree(CR<OrgBoxId> params) const {
+        return store->getOrgTree(params)->root() == this->root;
+    }
+
     virtual QHash<int, QByteArray> roleNames() const override {
         QHash<int, QByteArray> result;
         result[Qt::DisplayRole] = "ItemData";
         return result;
     }
+
+
+  public slots:
+    void onBeginNodeMove(OrgTreeNode::MoveParams params);
+    void onEndNodeMove(OrgTreeNode::MoveParams params);
 };
 
 

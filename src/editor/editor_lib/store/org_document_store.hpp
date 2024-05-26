@@ -126,14 +126,49 @@ struct OrgTreeNode {
         return result;
     }
 
+    OrgBoxId id() const { return this->boxId; }
     OrgBoxId id(int inx) { return at(inx)->boxId; }
     OrgBoxId id(CVec<int> idx) { return at(idx)->boxId; }
+
+    OrgTreeNode* tree(OrgBoxId id);
 
     sem::SemId<sem::Org> toNode() const;
     void                 buildTree(OrgTreeNode* parentNode);
 
     Opt<int> selfRow() const;
     Vec<int> selfPath() const;
+
+    struct MoveParams {
+        OrgBoxId sourceParent;
+        int      sourceFirst;
+        int      sourceLast;
+        OrgBoxId destinationParent;
+        int      destinationRow;
+        DESC_FIELDS(
+            MoveParams,
+            (sourceParent,
+             sourceFirst,
+             sourceLast,
+             destinationParent,
+             destinationRow));
+    };
+
+
+    /// \brief Compute move parameters to put this subtree as a subnode of
+    /// a new parent at index. Return nullopt if the move is unnecessary
+    /// (already at the position).
+    Opt<MoveParams> getMoveParams(OrgTreeNode* parent, int index);
+
+    /// \brief Compute move parameters to shift this subtree into a
+    /// position `offset` elements from the current one. `+1` will move the
+    /// node down, `-1` will move it up etc.
+    Opt<MoveParams> getShiftParams(int offset);
+
+    /// \brief Execute the move of the subtree
+    void doMove(CR<MoveParams> params);
+    void doMove(CR<Opt<MoveParams>> params) {
+        if (params) { doMove(*params); }
+    }
 };
 
 struct OrgStore : public QObject {
@@ -243,4 +278,7 @@ struct OrgStore : public QObject {
 
     void batchAddBegin();
     bool batchAddEnd();
+
+    void beginNodeMove(OrgTreeNode::MoveParams params);
+    void endNodeMove(OrgTreeNode::MoveParams params);
 };

@@ -61,6 +61,22 @@ OrgTreeNode* OrgDocumentModel::tree(CR<QModelIndex> index) const {
         mapToNestedSource(index).internalPointer());
 }
 
+OrgDocumentModel::OrgDocumentModel(OrgStore* store, QObject* parent)
+    : QAbstractItemModel(parent), store(store) {
+    Q_ASSERT(connect(
+        store,
+        &OrgStore::beginNodeMove,
+        this,
+        &OrgDocumentModel::onBeginNodeMove,
+        Qt::UniqueConnection));
+    Q_ASSERT(connect(
+        store,
+        &OrgStore::endNodeMove,
+        this,
+        &OrgDocumentModel::onEndNodeMove,
+        Qt::UniqueConnection));
+}
+
 void OrgDocumentModel::loadFile(const fs::path& path) {
     auto document = sem::parseFile(path, sem::OrgParseParameters{});
     this->root    = store->addRoot(document);
@@ -73,14 +89,27 @@ QModelIndex OrgDocumentModel::index(
     const QModelIndex& parent) const {
     if (hasIndex(row, column, parent)) {
         if (parent.isValid()) {
-            return createIndex(
-                row, column, tree(parent)->subnodes.at(row).get());
+            auto node = tree(parent)->subnodes.at(row).get();
+            Q_ASSERT(node != nullptr);
+            return createIndex(row, column, node);
         } else {
             return createIndex(row, column, root);
         }
     } else {
         return QModelIndex();
     }
+}
+
+QModelIndex OrgDocumentModel::getTreeIndex(CR<OrgBoxId> id) const {
+    auto        path = store->getOrgTree(id)->selfPath();
+    QModelIndex result;
+    for (int i : path) {
+        Q_ASSERT(i < rowCount(result));
+        result = index(i, 0, result);
+        Q_ASSERT(result.isValid());
+    }
+
+    return result;
 }
 
 void OrgDocumentModel::changeLevel(
@@ -173,91 +202,18 @@ void OrgDocumentModel::changeLevel(
 }
 
 void OrgDocumentModel::changePosition(CR<QModelIndex> index, int offset) {
-    int move_position = std::clamp<int>(
-        index.row() + offset, 0, rowCount(index.parent()) - 1);
-    Q_ASSERT(0 <= move_position);
-    moveSubtree(index, index.parent(), move_position);
+    auto moved = tree(index);
+    moved->doMove(moved->getShiftParams(offset));
 }
 
-int computeDestinationChild(
-    CR<QModelIndex> moved_index,
-    CR<QModelIndex> new_parent,
-    int             parent_position) {
-    if (!moved_index.isValid()) {
-        throw std::invalid_argument("Invalid moved_index provided");
-    }
-
-    if (new_parent == moved_index.parent()) {
-        if (parent_position <= moved_index.row()) {
-            return parent_position;
-        } else {
-            return parent_position + 1;
-        }
-    } else {
-        return parent_position;
-    }
-}
 
 void OrgDocumentModel::moveSubtree(
     CR<QModelIndex> moved_index,
     CR<QModelIndex> new_parent,
     int             parent_position) {
 
-    if ((new_parent == moved_index.parent()
-         && parent_position == moved_index.row())
-        || (moved_index == new_parent)) {
-        return;
-    }
-
-    Q_ASSERT(0 <= parent_position);
-
-    for (auto p = new_parent.parent(); p.isValid(); p = p.parent()) {
-        Q_ASSERT_X(
-            moved_index != p,
-            "moveSubtree",
-            fmt("Moved index {} is ancestor of the new parent {} -- move "
-                "is invalid",
-                qdebug_to_str(moved_index),
-                qdebug_to_str(new_parent)));
-    }
-
-    int destinationChild = computeDestinationChild(
-        moved_index, new_parent, parent_position);
-
-    if (beginMoveRows(
-            moved_index.parent(),
-            moved_index.row(),
-            moved_index.row(),
-            new_parent,
-            destinationChild)) {
-        Q_ASSERT(moved_index.isValid());
-        auto current_parent = tree(moved_index.parent());
-        Q_ASSERT(current_parent != nullptr);
-        std::unique_ptr<OrgTreeNode> moved_tree = std::move(
-            current_parent->subnodes[moved_index.row()]);
-
-        current_parent->subnodes.erase(
-            current_parent->subnodes.begin() + moved_index.row());
-
-        auto target_parent = tree(new_parent);
-        target_parent->subnodes.insert(
-            target_parent->subnodes.begin() + parent_position,
-            std::move(moved_tree));
-
-        endMoveRows();
-    } else {
-        Q_ASSERT_X(
-            false,
-            "moveSubtree",
-            fmt("Could not execute subtree move with provided parameters"
-                "destinationChild = {} moved_index.row() = {} "
-                "parent_position = {} moved_index = {} new_parent = {}",
-                destinationChild,
-                moved_index.row(),
-                parent_position,
-                qdebug_to_str(moved_index),
-                qdebug_to_str(new_parent)));
-    }
+    auto moved = tree(moved_index);
+    moved->doMove(moved->getMoveParams(tree(new_parent), parent_position));
 }
 
 QModelIndex OrgDocumentModel::parent(const QModelIndex& index) const {
@@ -300,6 +256,7 @@ int OrgDocumentModel::rowCount(const QModelIndex& parent) const {
 
 QVariant OrgDocumentModel::data(const QModelIndex& index, int role) const {
     if (index.isValid()) {
+        Q_ASSERT(index.internalPointer() != nullptr);
         OrgTreeNode* node = static_cast<OrgTreeNode*>(
             index.internalPointer());
         return QVariant::fromValue(node->boxId);
@@ -356,5 +313,43 @@ bool OrgDocumentModel::setData(
 
     } else {
         return false;
+    }
+}
+
+void OrgDocumentModel::onBeginNodeMove(OrgTreeNode::MoveParams params) {
+    if (isMatchingTree(params.sourceParent)
+        && isMatchingTree(params.destinationParent)) {
+        QModelIndex destinationParent = getTreeIndex(
+            params.destinationParent);
+        QModelIndex sourceParent = getTreeIndex(params.sourceParent);
+        Q_ASSERT_X(
+            beginMoveRows(
+                sourceParent,
+                params.sourceFirst,
+                params.sourceLast,
+                destinationParent,
+                params.destinationRow),
+            "onBeginNodeMove",
+            fmt("Could not execute subtree move with provided "
+                "parameters"
+                "destinationChild = {} params.sourceFirst = {} "
+                "params.sourceLast = {} "
+                "destinationParent = "
+                "{}",
+                params.destinationRow,
+                params.sourceFirst,
+                params.sourceLast,
+                qdebug_to_str(destinationParent)));
+    } else {
+        _qfmt("move params mismatched:{}", params);
+    }
+}
+
+void OrgDocumentModel::onEndNodeMove(OrgTreeNode::MoveParams params) {
+    if (isMatchingTree(params.sourceParent)
+        && isMatchingTree(params.destinationParent)) {
+        endMoveRows();
+    } else {
+        _qfmt("move params mismatched:{}", params);
     }
 }

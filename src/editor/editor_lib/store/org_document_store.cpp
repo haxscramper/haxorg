@@ -5,12 +5,18 @@ sem::SemId<sem::Org> OrgTreeNode::getBoxedNode() const {
     return store->getBoxedNode(this->boxId);
 }
 
+OrgTreeNode* OrgTreeNode::tree(OrgBoxId id) {
+    return store->getOrgTree(id);
+}
+
 sem::SemId<sem::Org> OrgTreeNode::toNode() const {
     auto base = store->getBoxedNode(this->boxId);
     if (NestedNodes.contains(base->getKind())) {
         auto result = copy(base);
         result->subnodes.clear();
         for (auto const& it : enumerator(subnodes)) {
+            Q_ASSERT(it.value() != nullptr);
+            Q_ASSERT(store != nullptr);
             auto it_node = store->getBoxedNode(it.value()->boxId);
             result->subnodes.push_back(it.value()->toNode());
             if (!it.is_last()) {
@@ -29,7 +35,7 @@ sem::SemId<sem::Org> OrgTreeNode::toNode() const {
 
 
 void OrgTreeNode::buildTree(OrgTreeNode* parentNode) {
-    auto const& node                     = store->getBoxedNode(parentNode->boxId);
+    auto const& node = store->getBoxedNode(parentNode->boxId);
     store->nodeLookup[parentNode->boxId] = parentNode;
     if (NestedNodes.contains(node->getKind())) {
         for (auto& sub : node->subnodes) {
@@ -69,6 +75,7 @@ Vec<int> OrgTreeNode::selfPath() const {
     rs::reverse(result);
     return result;
 }
+
 
 sem::SemId<sem::Org> OrgStore::nodeWithoutNested(CR<OrgBoxId> id) const {
     return nodeWithoutNested(getBoxedNode(id));

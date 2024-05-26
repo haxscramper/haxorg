@@ -307,7 +307,10 @@ void TestEditorModel::testParagraphMovements() {
     // debug_tree(edit->model(), edit->docModel->store);
 
     { // Move first paragraph down and back up
+        debug_tree(edit->model(), edit->docModel->store);
         edit->movePositionDown(edit->model()->index(0, 0, root), 1);
+        debug_tree(edit->model(), edit->docModel->store);
+
         QCOMPARE_EQ(format(get()), p2 + nl + p1 + nl + p3);
         QCOMPARE_EQ(par_text(0), p2);
         QCOMPARE_EQ(par_text(1), p1);
@@ -370,8 +373,8 @@ void TestEditorModel::testSubtreeDemotion() {
     edit->promoteSubtreeRecursive(api.getIndex({0, 1}), 20);
     compare_no_change();
 
+    debug_tree(edit->model(), edit->docModel->store);
     edit->demoteSubtreeRecursive(api.getIndex({0, 1}), 1);
-
     debug_tree(edit->model(), edit->docModel->store);
 
     {
