@@ -12,7 +12,7 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
     // Build IR content for edges and nodes
     for (int row = 0; row < src->rowCount(); ++row) {
         QModelIndex gi = src->index(row, 0);
-        GraphIndex index{gi};
+        GraphIndex  index{gi};
         // _qfmt(
         //     "row:{} index:{} src-row-count:{} debug:{}",
         //     row,
@@ -84,17 +84,22 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
                                 nodeToRect.at(sub_desc));
                         }
 
-                    } else if (nodeToRect.contains(sub_desc)) {
-                        // Not all subtrees for an entry are guaranted to
-                        // be represented in the cluster - nodes can be
-                        // filtered prior to layout. List and list items
-                        // are not added in the graph, handled below.
-                        result.nodes.push_back(nodeToRect.at(sub_desc));
-                    } else if (SemSet{osk::List, osk::ListItem}.contains(
-                                   sub_node->getKind())) {
-                        for (auto const& list_element :
-                             sub.getSubnodes()) {
-                            rec_nodes(list_element);
+                    } else {
+                        if (nodeToRect.contains(sub_desc)) {
+                            // Not all subtrees for an entry are guaranted
+                            // to be represented in the cluster - nodes can
+                            // be filtered prior to layout. List and list
+                            // items are not added in the graph, handled
+                            // below.
+                            result.nodes.push_back(
+                                nodeToRect.at(sub_desc));
+                        }
+                        if (SemSet{osk::List, osk::ListItem}.contains(
+                                sub_node->getKind())) {
+                            for (auto const& list_element :
+                                 sub.getSubnodes()) {
+                                rec_nodes(list_element);
+                            }
                         }
                     }
                 };
