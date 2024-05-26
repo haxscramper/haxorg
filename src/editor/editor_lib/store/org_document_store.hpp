@@ -171,6 +171,14 @@ struct OrgTreeNode {
     }
 };
 
+template <>
+struct std::formatter<OrgTreeNode*> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(OrgTreeNode const* p, FormatContext& ctx) const {
+        return fmt_ctx(fmt("{:p}", (void*)p), ctx);
+    }
+};
+
 struct OrgStore : public QObject {
   private:
     Q_OBJECT

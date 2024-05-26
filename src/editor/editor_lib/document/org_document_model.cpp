@@ -353,7 +353,7 @@ void OrgDocumentModel::onBeginNodeMove(OrgTreeNode::MoveParams params) {
                 params.destinationRow),
             "onBeginNodeMove",
             fmt("Could not execute subtree move with provided "
-                "parameters"
+                "parameters "
                 "destinationChild = {} "
                 "params.sourceFirst = {} "
                 "params.sourceLast = {} "
