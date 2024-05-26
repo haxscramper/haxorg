@@ -126,6 +126,14 @@ struct OrgTreeNode {
         return result;
     }
 
+    Opt<OrgBoxId> parentId() const {
+        if (parent == nullptr) {
+            return std::nullopt;
+        } else {
+            return parent->id();
+        }
+    }
+
     OrgBoxId id() const { return this->boxId; }
     OrgBoxId id(int inx) { return at(inx)->boxId; }
     OrgBoxId id(CVec<int> idx) { return at(idx)->boxId; }
@@ -153,6 +161,25 @@ struct OrgTreeNode {
              destinationRow));
     };
 
+    struct InsertParams {
+        OrgBoxId parent;
+        int      first;
+        int      last;
+        DESC_FIELDS(InsertParams, (parent, first, last));
+    };
+
+    /// \brief Get parameters to insert a new node directly before the
+    /// current tree
+    InsertParams getInsertAfter();
+    /// \brief Get parameters to insert a new node directly after the
+    /// current tree
+    InsertParams getInsertBefore();
+    /// \brief Get parameters to insert a new node as a first subnode of
+    /// the current tree
+    InsertParams getInsertFirstUnder();
+    /// \brief Get parameters to insert a new node as a last subnode of the
+    /// current tree
+    InsertParams getInsertLastUnder();
 
     /// \brief Compute move parameters to put this subtree as a subnode of
     /// a new parent at index. Return nullopt if the move is unnecessary
@@ -165,10 +192,22 @@ struct OrgTreeNode {
     Opt<MoveParams> getShiftParams(int offset);
 
     /// \brief Execute the move of the subtree
-    void doMove(CR<MoveParams> params);
-    void doMove(CR<Opt<MoveParams>> params) {
-        if (params) { doMove(*params); }
+    void apply(CR<MoveParams> params);
+    void apply(CR<Opt<MoveParams>> params) {
+        if (params) { apply(*params); }
     }
+
+    /// \brief Insert a new node in given position and return its new box
+    /// ID
+    void apply(CR<InsertParams> params, UPtr<OrgTreeNode>&& inserted) {
+        Vec<UPtr<OrgTreeNode>> vec;
+        vec.push_back(std::move(inserted));
+        apply(params, std::move(inserted));
+    }
+
+    /// \brief Insert multiple new nodes at a given position. Emitted
+    /// signals adjust the `last` position based on the `inserted` size.
+    void apply(CR<InsertParams> params, Vec<UPtr<OrgTreeNode>>&& inserted);
 };
 
 template <>
@@ -289,4 +328,7 @@ struct OrgStore : public QObject {
 
     void beginNodeMove(OrgTreeNode::MoveParams params);
     void endNodeMove(OrgTreeNode::MoveParams params);
+
+    void beginNodeInsert(OrgTreeNode::InsertParams params);
+    void endNodeInsert(OrgTreeNode::InsertParams params);
 };

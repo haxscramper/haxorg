@@ -52,7 +52,7 @@ Opt<OrgTreeNode::MoveParams> OrgTreeNode::getShiftParams(int offset) {
     return getMoveParams(this->parent, move_position);
 }
 
-void OrgTreeNode::doMove(CR<MoveParams> params) {
+void OrgTreeNode::apply(CR<MoveParams> params) {
     emit store->beginNodeMove(params);
 
     Q_ASSERT(this->parent != nullptr);
@@ -79,4 +79,57 @@ void OrgTreeNode::doMove(CR<MoveParams> params) {
     for (auto const& sub : parentNodes) { Q_ASSERT(sub.get() != nullptr); }
 
     emit store->endNodeMove(params);
+}
+
+void OrgTreeNode::apply(
+    CR<InsertParams>         params,
+    Vec<UPtr<OrgTreeNode>>&& inserted) {
+    InsertParams tmp = params;
+    tmp.last         = tmp.first + inserted.high();
+
+    emit store->beginNodeInsert(tmp);
+
+    OrgTreeNode* node = tree(params.parent);
+
+
+    std::copy(
+        std::make_move_iterator(inserted.begin()),
+        std::make_move_iterator(inserted.end()),
+        std::insert_iterator<Vec<UPtr<OrgTreeNode>>>(
+            node->subnodes, node->subnodes.begin() + params.first));
+
+
+    emit store->endNodeInsert(tmp);
+}
+
+OrgTreeNode::InsertParams OrgTreeNode::getInsertAfter() {
+    return InsertParams{
+        .parent = opt_value(parentId(), "cannot insert after root node"),
+        .first  = selfRow().value() + 1,
+        .last   = selfRow().value() + 1,
+    };
+}
+
+OrgTreeNode::InsertParams OrgTreeNode::getInsertBefore() {
+    return InsertParams{
+        .parent = opt_value(parentId(), "cannot insert before root node"),
+        .first  = selfRow().value(),
+        .last   = selfRow().value(),
+    };
+}
+
+OrgTreeNode::InsertParams OrgTreeNode::getInsertFirstUnder() {
+    return InsertParams{
+        .parent = id(),
+        .first  = 0,
+        .last   = 0,
+    };
+}
+
+OrgTreeNode::InsertParams OrgTreeNode::getInsertLastUnder() {
+    return InsertParams{
+        .parent = id(),
+        .first  = subnodes.size(),
+        .last   = subnodes.size(),
+    };
 }

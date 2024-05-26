@@ -204,7 +204,7 @@ void OrgDocumentModel::changeLevel(
 
 void OrgDocumentModel::changePosition(CR<QModelIndex> index, int offset) {
     auto moved = tree(index);
-    moved->doMove(moved->getShiftParams(offset));
+    moved->apply(moved->getShiftParams(offset));
 }
 
 
@@ -214,7 +214,7 @@ void OrgDocumentModel::moveSubtree(
     int             parent_position) {
 
     auto moved = tree(moved_index);
-    moved->doMove(moved->getMoveParams(tree(new_parent), parent_position));
+    moved->apply(moved->getMoveParams(tree(new_parent), parent_position));
 }
 
 QModelIndex OrgDocumentModel::parent(const QModelIndex& index) const {
