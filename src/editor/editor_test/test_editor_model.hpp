@@ -22,4 +22,5 @@ class TestEditorModel
     void testRecursiveDemoteSubtreeBlock7();
 
     void testInsertBelow();
+    void testInsertAbove();
 };

@@ -618,3 +618,30 @@ void TestEditorModel::testInsertBelow() {
             m.tree("Inserted"),
         }));
 }
+
+void TestEditorModel::testInsertAbove() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+    }));
+
+    auto tree = api.tree({0});
+
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertBefore(),
+        window->store->toRoot(sem::parseString("* Inserted")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("Inserted"),
+            m.tree("tree1"),
+        }));
+}
