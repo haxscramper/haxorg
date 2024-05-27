@@ -208,6 +208,8 @@ struct OrgTreeNode {
     /// \brief Insert multiple new nodes at a given position. Emitted
     /// signals adjust the `last` position based on the `inserted` size.
     void apply(CR<InsertParams> params, Vec<UPtr<OrgTreeNode>>&& inserted);
+
+    ColText treeRepr() const;
 };
 
 template <>

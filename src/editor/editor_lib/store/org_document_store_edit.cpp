@@ -130,6 +130,23 @@ void OrgTreeNode::apply(
     emit store->endNodeInsert(tmp);
 }
 
+ColText OrgTreeNode::treeRepr() const {
+    Func<void(OrgTreeNode const* sub, int level)> aux;
+    ColStream                                     os;
+
+    aux = [&](OrgTreeNode const* node, int level) {
+        os << os.indent(level * 2)
+           << fmt1(node->getBoxedNode()->getKind());
+        for (auto const& sub : node->subnodes) {
+            os << "\n";
+            aux(sub.get(), level + 1);
+        }
+    };
+
+    aux(this, 0);
+    return os.getBuffer();
+}
+
 OrgTreeNode::InsertParams OrgTreeNode::getInsertAfter() {
     return InsertParams{
         .parent = opt_value(parentId(), "cannot insert after root node"),

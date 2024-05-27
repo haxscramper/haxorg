@@ -2504,6 +2504,9 @@ void TestMindMap::testMultiViewGraphConstruction() {
 }
 
 void TestMindMap::testTreeEditingApiReaction() {
+    using R = AbstractItemModelSignalListener::Record;
+    using K = R::Kind;
+
     SceneBench b{R"(
 * Subtree1
   :properties:
@@ -2523,16 +2526,28 @@ void TestMindMap::testTreeEditingApiReaction() {
     auto b0 = b.store->getBox0({0});
     auto b1 = b.store->getBox0({1});
     auto t1 = b.store->getOrgTree(b0);
+    auto r  = b.store->getRoot(0);
 
     AbstractItemModelSignalListener l{b.graph.get()};
     l.printOnTrigger = true;
 
-    t1->apply(
-        t1->getInsertFirstUnder(),
-        b.store->toRoot(
-            sem::parseString("Paragraph [[id:subtree-id]]")->at(0)));
+    qDebug().noquote() << r->treeRepr().toString(false);
+    b.graph->state.debug = true;
+    b.debugModel();
+
+    QCOMPARE_EQ(l.count(K::RowsInserted), 0);
+
+    UPtr<OrgTreeNode> new_root = b.store->toRoot(
+        sem::parseString("Paragraph [[id:subtree-id2]]")->at(0));
+
+    QCOMPARE_EQ(l.count(K::RowsInserted), 2);
+
+    t1->apply(t1->getInsertFirstUnder(), std::move(new_root));
+
+    qDebug().noquote() << r->treeRepr().toString(false);
+    b.debugModel();
 
     QCOMPARE_EQ(b.graph->numNodes(), 4);
     QCOMPARE_EQ(b.graph->numEdges(), 1);
-    QVERIFY(b.graph->hasEdge(b0, b1));
+    QVERIFY(b.graph->hasEdge(b.store->getBox0({0, 0}), b1));
 }
