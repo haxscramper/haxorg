@@ -40,4 +40,6 @@ class TestMindMap
     void testGraphvizLayoutAlgorithms();
     void testMultiRootGraphConstruction();
     void testMultiViewGraphConstruction();
+
+    void testTreeEditingApiReaction();
 };

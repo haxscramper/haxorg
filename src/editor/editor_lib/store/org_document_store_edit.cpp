@@ -91,6 +91,26 @@ void OrgTreeNode::apply(
 
     OrgTreeNode* node = tree(params.parent);
 
+    auto boxed = node->getBoxedNode();
+    Q_ASSERT(node->getBoxedNode()->getKind() != osk::Document);
+
+    for (auto const& sub : inserted) {
+        if (auto added_subtree = sub->getBoxedNode()
+                                     .asOpt<sem::Subtree>()) {
+            if (auto this_subtree = this->getBoxedNode()
+                                        .asOpt<sem::Subtree>()) {
+                Q_ASSERT_X(
+                    this_subtree->level < added_subtree->level,
+                    "apply insert",
+                    fmt("Cannot insert subtree with level {} under "
+                        "subtree "
+                        "level {}",
+                        added_subtree->level,
+                        this_subtree->level));
+            }
+        }
+    }
+
 
     std::copy(
         std::make_move_iterator(inserted.begin()),

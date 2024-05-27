@@ -2502,3 +2502,37 @@ void TestMindMap::testMultiViewGraphConstruction() {
         (**idx1_dot).boundingRect().size(),
         (**idx1_neato).boundingRect().size());
 }
+
+void TestMindMap::testTreeEditingApiReaction() {
+    SceneBench b{R"(
+* Subtree1
+  :properties:
+  :id: subtree-id1
+  :end:
+
+* Subtree2
+  :properties:
+  :id: subtree-id2
+  :end:
+)"};
+
+    QCOMPARE_EQ(b.graph->numNodes(), 3);
+    QCOMPARE_EQ(b.graph->numEdges(), 0);
+
+
+    auto b0 = b.store->getBox0({0});
+    auto b1 = b.store->getBox0({1});
+    auto t1 = b.store->getOrgTree(b0);
+
+    AbstractItemModelSignalListener l{b.graph.get()};
+    l.printOnTrigger = true;
+
+    t1->apply(
+        t1->getInsertFirstUnder(),
+        b.store->toRoot(
+            sem::parseString("Paragraph [[id:subtree-id]]")->at(0)));
+
+    QCOMPARE_EQ(b.graph->numNodes(), 4);
+    QCOMPARE_EQ(b.graph->numEdges(), 1);
+    QVERIFY(b.graph->hasEdge(b0, b1));
+}
