@@ -24,4 +24,5 @@ class TestEditorModel
     void testInsertBelow();
     void testInsertAbove();
     void testInsertFirstUnder();
+    void testInsertLastUnder();
 };
