@@ -187,7 +187,7 @@ QModelIndex mapToNestedProxy(
     Vec<QSortFilterProxyModel*> proxies);
 
 
-inline QModelIndex index(
+inline QModelIndex getAtQModelPath(
     QAbstractItemModel*        model,
     Vec<Pair<int, int>> const& path) {
     QModelIndex result = model->index(path.at(0).first, path.at(0).second);
@@ -198,7 +198,7 @@ inline QModelIndex index(
     return result;
 }
 
-inline QModelIndex index(
+inline QModelIndex getAtQModelPath(
     QAbstractItemModel* model,
     Vec<int> const&     path,
     int                 alwaysColumn = 0) {

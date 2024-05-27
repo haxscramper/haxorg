@@ -657,13 +657,13 @@ struct GraphLayoutProxy
         blockSignals(true);
         Q_ASSERT(connect(
             store,
-            &OrgStore::batchAddBegin,
+            &OrgStore::beginBatchAdd,
             this,
             &GraphLayoutProxy::batchAddBegin,
             Qt::UniqueConnection));
         Q_ASSERT(connect(
             store,
-            &OrgStore::batchAddEnd,
+            &OrgStore::endBatchAdd,
             this,
             &GraphLayoutProxy::batchAddEnd,
             Qt::UniqueConnection));

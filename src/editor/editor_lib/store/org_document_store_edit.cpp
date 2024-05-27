@@ -98,6 +98,14 @@ void OrgTreeNode::apply(
         std::insert_iterator<Vec<UPtr<OrgTreeNode>>>(
             node->subnodes, node->subnodes.begin() + params.first));
 
+    for (int i = params.first; i <= params.last; ++i) {
+        node->subnodes.at(i)->parent = node;
+    }
+
+    for (auto const& sub : node->subnodes) {
+        Q_ASSERT(sub->parent == node);
+    }
+
 
     emit store->endNodeInsert(tmp);
 }

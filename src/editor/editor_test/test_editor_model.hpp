@@ -20,4 +20,6 @@ class TestEditorModel
     void testRecursiveDemoteMiddleSubtreeInDocument();
     void testRecursiveDemoteSubtreeBlock1();
     void testRecursiveDemoteSubtreeBlock7();
+
+    void testInsertBelow();
 };

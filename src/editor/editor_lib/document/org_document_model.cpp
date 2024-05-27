@@ -75,6 +75,19 @@ OrgDocumentModel::OrgDocumentModel(OrgStore* store, QObject* parent)
         this,
         &OrgDocumentModel::onEndNodeMove,
         Qt::UniqueConnection));
+
+    Q_ASSERT(connect(
+        store,
+        &OrgStore::beginNodeInsert,
+        this,
+        &OrgDocumentModel::onBeginNodeInsert,
+        Qt::UniqueConnection));
+    Q_ASSERT(connect(
+        store,
+        &OrgStore::endNodeInsert,
+        this,
+        &OrgDocumentModel::onEndNodeInsert,
+        Qt::UniqueConnection));
 }
 
 void OrgDocumentModel::loadFile(const fs::path& path) {
@@ -101,7 +114,11 @@ QModelIndex OrgDocumentModel::index(
 }
 
 QModelIndex OrgDocumentModel::getTreeIndex(CR<OrgBoxId> id) const {
-    auto        path   = store->getOrgTree(id)->selfPath();
+    auto path = store->getOrgTree(id)->selfPath();
+    return getTreeIndex(path);
+}
+
+QModelIndex OrgDocumentModel::getTreeIndex(CVec<int> path) const {
     QModelIndex result = index(0, 0, QModelIndex());
     for (int i : path) {
         Q_ASSERT(i < rowCount(result));
@@ -374,4 +391,16 @@ void OrgDocumentModel::onEndNodeMove(OrgTreeNode::MoveParams params) {
     } else {
         _qfmt("move params mismatched:{}", params);
     }
+}
+
+void OrgDocumentModel::onBeginNodeInsert(
+    OrgTreeNode::InsertParams params) {
+    if (isMatchingTree(params.parent)) {
+        beginInsertRows(
+            getTreeIndex(params.parent), params.first, params.last);
+    }
+}
+
+void OrgDocumentModel::onEndNodeInsert(OrgTreeNode::InsertParams params) {
+    if (isMatchingTree(params.parent)) { endInsertRows(); }
 }

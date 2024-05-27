@@ -202,7 +202,7 @@ struct OrgTreeNode {
     void apply(CR<InsertParams> params, UPtr<OrgTreeNode>&& inserted) {
         Vec<UPtr<OrgTreeNode>> vec;
         vec.push_back(std::move(inserted));
-        apply(params, std::move(inserted));
+        apply(params, std::move(vec));
     }
 
     /// \brief Insert multiple new nodes at a given position. Emitted
@@ -253,26 +253,49 @@ struct OrgStore : public QObject {
 
     OrgTreeNode* getRoot(int idx) { return roots.at(idx).get(); }
 
-    OrgTreeNode* addRoot(sem::OrgArg node) {
-        emit batchAddBegin();
+    UPtr<OrgTreeNode> toRoot(sem::OrgArg node) {
+        emit beginBatchAdd();
         auto box  = add(node);
         auto root = addTree(box, nullptr);
         root->buildTree(root.get());
-        this->roots.push_back(std::move(root));
+        emit endBatchAdd();
+        return root;
+    }
+
+    UPtr<OrgTreeNode> toRoot(
+        CR<fs::path>                path,
+        CR<sem::OrgParseParameters> opts = sem::OrgParseParameters{}) {
+        return toRoot(sem::parseFile(path, opts));
+    }
+
+    UPtr<OrgTreeNode> toRoot(
+        CR<Str>                     text,
+        CR<sem::OrgParseParameters> opts = sem::OrgParseParameters{}) {
+        return toRoot(sem::parseStringOpts(text, opts));
+    }
+
+    OrgTreeNode* addRoot(UPtr<OrgTreeNode>&& root) {
+        roots.push_back(std::move(root));
+        emit rootAdded(roots.high());
         return roots.back().get();
-        emit batchAddEnd();
+    }
+
+    OrgTreeNode* addRoot(sem::OrgArg node) {
+        roots.push_back(toRoot(node));
+        emit rootAdded(roots.high());
+        return roots.back().get();
     }
 
     OrgTreeNode* addRoot(
         CR<fs::path>                path,
         CR<sem::OrgParseParameters> opts = sem::OrgParseParameters{}) {
-        return addRoot(sem::parseFile(path, opts));
+        return addRoot(toRoot(path, opts));
     }
 
     OrgTreeNode* addRoot(
         CR<Str>                     text,
         CR<sem::OrgParseParameters> opts = sem::OrgParseParameters{}) {
-        return addRoot(sem::parseStringOpts(text, opts));
+        return addRoot(toRoot(text, opts));
     }
 
     OrgTreeNode* getOrgTree(CR<OrgBoxId> id) const {
@@ -323,8 +346,10 @@ struct OrgStore : public QObject {
     void boxDeleted(OrgBoxId box);
     void boxAdded(OrgBoxId box);
 
-    void batchAddBegin();
-    bool batchAddEnd();
+    void beginBatchAdd();
+    void endBatchAdd();
+
+    void rootAdded(int index);
 
     void beginNodeMove(OrgTreeNode::MoveParams params);
     void endNodeMove(OrgTreeNode::MoveParams params);

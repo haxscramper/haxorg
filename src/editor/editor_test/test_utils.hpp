@@ -22,7 +22,6 @@ inline Vec<OrgBoxId> dfs_boxes(OrgTreeNode const* node) {
 
 struct test_error : CRTP_hexception<test_error> {};
 
-
 inline void trigger_editor_of(
     QAbstractItemView* view,
     QModelIndex const& index) {
@@ -103,9 +102,12 @@ inline Str tree_repr(sem::OrgArg node) {
 inline void debug_tree(
     QAbstractItemModel const* model,
     OrgStore const*           store,
-    CR<QModelIndex>           index = QModelIndex()) {
+    CR<QModelIndex>           index    = QModelIndex(),
+    int                       line     = __builtin_LINE(),
+    char const*               function = __builtin_FUNCTION(),
+    char const*               file     = __builtin_FILE()) {
     qDebug().noquote().nospace()
-        << "\n"
+        << fmt("{}:{} {}", file, line, function) << "\n"
         << printModelTree(
                model,
                index.isValid() ? index : model->index(0, 0),
@@ -123,6 +125,19 @@ struct TestApiAccessor {
     SPtr<MainWindow> window;
     OrgDocumentEdit* edit;
 
+    void debug(
+        CR<QModelIndex> index    = QModelIndex(),
+        int             line     = __builtin_LINE(),
+        char const*     function = __builtin_FUNCTION(),
+        char const*     file     = __builtin_FILE()) {
+        ::debug_tree(
+            edit->model(),
+            edit->docModel->store,
+            index,
+            line,
+            function,
+            file);
+    }
 
     sem::SemId<sem::Org> getNode() const {
         return edit->docModel->toNode();
@@ -131,7 +146,8 @@ struct TestApiAccessor {
     sem::SemId<sem::Org> getNode(CVec<int> path) const {
         auto index = getIndex(path);
         auto t     = edit->docModel->tree(index);
-        Q_ASSERT(t != nullptr);
+        Q_ASSERT_X(
+            t != nullptr, "getNode", fmt("path:{} index:{}", path, index));
         return t->toNode();
     };
 
@@ -145,7 +161,16 @@ struct TestApiAccessor {
 
     /// Get nested node from the editor by traversing full path
     QModelIndex getIndex(CVec<int> path) const {
-        return ::index(edit->model(), path);
+        auto res = ::getAtQModelPath(edit->model(), path);
+        Q_ASSERT_X(
+            res.isValid(), "getIndex", fmt("path:{} index:{}", path, res));
+        return res;
+    }
+
+    OrgBoxId id(CVec<int> path) const { return tree(path)->id(); }
+
+    OrgTreeNode* tree(CVec<int> path) const {
+        return edit->docModel->root->at(path);
     }
 
     Str str(sem::OrgArg node) const {
@@ -220,6 +245,12 @@ struct TestDocumentModel {
         aux_compare = [&](CVec<int> path, CR<TestDocumentNode> node) {
             switch (node.kind) {
                 case K::Subtree: {
+                    if (api.getNode(path)->getKind() != osk::Subtree) {
+                        QFAIL(fmt("expected subtree at path:{} got {}",
+                                  path,
+                                  api.getNode()->getKind())
+                                  .c_str());
+                    }
                     sem::SemId<sem::Subtree>
                                 tree  = api.getNodeT<sem::Subtree>(path);
                     QModelIndex index = api.getIndex(path);

@@ -238,8 +238,9 @@ Third subtree paragraph 2
                 edit->model()->index(0, 0),
                 QAbstractItemView::PositionAtTop);
             QSignalSpy spy{edit, SIGNAL(focusedOn(QModelIndex))};
-            auto       outline_index = index(outline_model, path_outline);
-            auto       edit_index    = index(edit_model, path_edit);
+            auto       outline_index = getAtQModelPath(
+                outline_model, path_outline);
+            auto edit_index = getAtQModelPath(edit_model, path_edit);
             QVERIFY(outline_index.isValid());
             QVERIFY(edit_index.isValid());
 
@@ -560,4 +561,60 @@ void TestEditorModel::testRecursiveDemoteSubtreeBlock7() {
                                 {m.tree(
                                     "tree7",
                                     {m.tree("tree8")})})})})})})})}));
+}
+
+void TestEditorModel::testInsertBelow() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+    }));
+
+    auto tree = api.tree({0});
+
+    // debug_tree(edit->model(), edit->docModel->store);
+
+    auto em = edit->model();
+    {
+        QCOMPARE_EQ(em->rowCount(), 1);
+        auto doc = em->index(0, 0);
+        QVERIFY(doc.isValid());
+        QCOMPARE_EQ(em->rowCount(doc), 1);
+    }
+
+
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertAfter(),
+        window->store->toRoot(sem::parseString("* Inserted")->at(0)));
+
+    {
+        QCOMPARE_EQ(em->rowCount(), 1);
+        auto doc = em->index(0, 0);
+        QVERIFY(doc.isValid());
+        QCOMPARE_EQ(em->rowCount(doc), 2);
+    }
+
+    // debug_tree(edit->model(), edit->docModel->store);
+
+    auto r = window->store->getRoot(0);
+
+    QCOMPARE_EQ(r->subnodes.size(), 2);
+    QCOMPARE_NE(r->subnodes.at(0).get(), nullptr);
+    QCOMPARE_NE(r->subnodes.at(1).get(), nullptr);
+
+    QCOMPARE_EQ(r->subnodes.at(0)->parent, r);
+    QCOMPARE_EQ(r->subnodes.at(1)->parent, r);
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+            m.tree("Inserted"),
+        }));
 }

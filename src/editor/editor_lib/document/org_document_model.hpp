@@ -38,6 +38,7 @@ struct OrgDocumentModel : public QAbstractItemModel {
     /// \brief Get model index corresponding for the element with specified
     /// box ID.
     QModelIndex getTreeIndex(CR<OrgBoxId> id) const;
+    QModelIndex getTreeIndex(CVec<int> path) const;
 
 
     /// Change nesting level of the tree, promoting or demoting it.
@@ -76,6 +77,9 @@ struct OrgDocumentModel : public QAbstractItemModel {
   public slots:
     void onBeginNodeMove(OrgTreeNode::MoveParams params);
     void onEndNodeMove(OrgTreeNode::MoveParams params);
+
+    void onBeginNodeInsert(OrgTreeNode::InsertParams params);
+    void onEndNodeInsert(OrgTreeNode::InsertParams params);
 };
 
 
