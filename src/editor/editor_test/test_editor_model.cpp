@@ -644,4 +644,90 @@ void TestEditorModel::testInsertAbove() {
             m.tree("Inserted"),
             m.tree("tree1"),
         }));
+
+    tree->apply(
+        tree->getInsertBefore(),
+        window->store->toRoot(sem::parseString("* Inserted2")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("Inserted"),
+            m.tree("Inserted2"),
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertBefore(),
+        window->store->toRoot(sem::parseString("* Inserted3")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("Inserted"),
+            m.tree("Inserted2"),
+            m.tree("Inserted3"),
+            m.tree("tree1"),
+        }));
+}
+
+void TestEditorModel::testInsertFirstUnder() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+    }));
+
+    auto tree = api.tree({0});
+
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertFirstUnder(),
+        window->store->toRoot(sem::parseString("** Inserted")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted"),
+                }),
+        }));
+
+    tree->apply(
+        tree->getInsertFirstUnder(),
+        window->store->toRoot(sem::parseString("** Inserted2")->at(0)));
+
+    m.compare_structure(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted2"),
+                    m.tree("Inserted"),
+                }),
+        }));
+
+    tree->apply(
+        tree->getInsertFirstUnder(),
+        window->store->toRoot(sem::parseString("** Inserted3")->at(0)));
+
+    m.compare_structure(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted3"),
+                    m.tree("Inserted2"),
+                    m.tree("Inserted"),
+                }),
+        }));
 }
