@@ -2,16 +2,12 @@ include(ExternalProject)
 
 set(COLA_INSTALL_DIR "${CMAKE_BINARY_DIR}/libcola/install")
 set(COLA_CXX_FLAGS "-I${COLA_INSTALL_DIR} ${CMAKE_CXX_FLAGS}")
-set(COLA_CONFIGURE "CXXFLAGS=\"${COLA_CXX_FLAGS}\" CC=\"${CMAKE_C_COMPILER}\" CXX=\"${CMAKE_CXX_COMPILER}\" ${DEPS_DIR}/adaptagrams/cola/configure --prefix=${COLA_INSTALL_DIR}")
-message(STATUS "COLA_INSTALL_DIR = ${COLA_INSTALL_DIR}")
-message(STATUS "COLA_CXX_FLAGS = ${COLA_CXX_FLAGS}")
-message(STATUS "COLA_CONFIGURE = ${COLA_CONFIGURE}")
 
 ExternalProject_Add(libcola
     SOURCE_DIR "${DEPS_DIR}/adaptagrams/cola"
     PREFIX "${CMAKE_BINARY_DIR}/libcola"
     BUILD_IN_SOURCE 1
-
+    # BUILD_ALWAYS 1
     BUILD_ALWAYS 1
     UPDATE_DISCONNECTED 1
 
@@ -22,7 +18,11 @@ ExternalProject_Add(libcola
     COMMAND
         mkdir -p ${COLA_INSTALL_DIR} &&
         cd ${COLA_INSTALL_DIR} &&
-        sh -c "${COLA_CONFIGURE}"
+        ${DEPS_DIR}/adaptagrams/cola/configure
+            --prefix=${COLA_INSTALL_DIR}
+            CXXFLAGS=${COLA_CXX_FLAGS}
+            CC=${CMAKE_C_COMPILER}
+            CXX=${CMAKE_CXX_COMPILER}
     BUILD_COMMAND cd ${COLA_INSTALL_DIR} && make
     INSTALL_COMMAND cd ${COLA_INSTALL_DIR} && make install
     # Otherwise Ninja build dies on spot because muh simplicity certainly
@@ -47,7 +47,7 @@ set_property(TARGET libcola_external PROPERTY INTERFACE_LINK_LIBRARIES
 )
 
 set_property(TARGET libcola_external
-    PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DEPS_DIR}/adaptagrams/cola"
+    PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DEPS_DIR}/adaptagrams/cola" "${COLA_INSTALL_DIR}"
 )
 
 

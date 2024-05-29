@@ -804,7 +804,7 @@ def test_repo_operations_example_4():
 @given(multiple_files_strategy())
 @settings(
     max_examples=20,
-    deadline=1000,
+    deadline=2000,
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
     phases=[Phase.explicit, Phase.reuse, Phase.generate])

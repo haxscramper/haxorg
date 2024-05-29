@@ -986,7 +986,7 @@ def cxx_merge_coverage(ctx: Context):
     )
 
 
-@org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
+@org_task(pre=[cmake_all, symlink_build, python_protobuf_files], iterable=["arg"])
 def py_tests(ctx: Context, arg: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
