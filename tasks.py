@@ -596,11 +596,6 @@ def cmake_haxorg(ctx: Context):
                         env={'NINJA_FORCE_COLOR': '1'})
 
 
-LLDB_AUTO_BACKTRACE: List[str] = [
-    "--one-line-on-crash", "bt", "--one-line-on-crash", "exit"
-]
-
-
 def get_lldb_py_import() -> List[str]:
     return [
         "-o",

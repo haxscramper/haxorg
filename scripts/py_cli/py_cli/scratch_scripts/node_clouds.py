@@ -6,6 +6,7 @@ from beartype import beartype
 from beartype.typing import List
 from collections import defaultdict
 from py_haxorg.pyhaxorg_utils import getFlatTags
+from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -40,9 +41,13 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
             for tag in getFlatTags(node):
                 count[("tag", "##".join(tag))] += 1
 
+        else:
+            for sub in node:
+                visit(sub)
+
     for file in opts.infile:
         node = parseCachedFile(file, opts.cachedir)
-        org.eachSubnodeRec(node, visit)
+        visit(node)
 
     df = pd.DataFrame(
         [(key[0], key[1], val) for key, val in count.items()],

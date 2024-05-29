@@ -405,6 +405,7 @@ Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
                     result.push_back(it.asOrg());
                 }
             }
+            break;
         }
 
         case Link::Kind::Id: {
@@ -414,6 +415,7 @@ Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
                     result.push_back(it.asOrg());
                 }
             }
+            break;
         }
 
         default: {

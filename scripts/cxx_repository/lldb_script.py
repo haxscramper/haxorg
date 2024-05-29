@@ -8,6 +8,7 @@ import os
 def simplify_name(name: str) -> str:
     replacements = [
         ("std::__1::__", "std"),
+        (r"std::variant<(sem::SemId<sem::\w+>,?\s*)+\s*>", "SemIdVariant"),
         (
             "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>",
             "std::string",
@@ -33,6 +34,7 @@ def simplify_name(name: str) -> str:
             r"std::_Vector_base<(.*?), std::allocator<\1>>",
             r"std::_Vector_base<\1>",
         ),
+        (r"\(anonymous namespace\)::", ""),
     ]
     for (_from, _to) in replacements:
         name = re.sub(_from, _to, name)
@@ -56,8 +58,17 @@ def align_on_sides(debugger: lldb.SBDebugger, text1: str, text2: str) -> str:
     return f"{text1}{padding}{text2}"
 
 
-def format_frame(frame, unused):
-    start = f"\033[35m{frame.idx:>2}\033[0m: {simplify_name(frame.name)}"
+def format_frame(frame, unused, **kwargs):
+    def fmt_color(value: int):
+        if "no_color" in kwargs:
+            return ""
+
+        else:
+            return f"\033[{value}m"
+
+
+
+    start = f"{fmt_color(35)}{frame.idx:>2}{fmt_color(0)}: {simplify_name(frame.name)}"
     # 'A read only property that returns the 1 based line number for this
     # line entry, a return value of zero indicates that no line information
     # is available.' -- looks like '4294967295' also indicates something,
@@ -66,19 +77,29 @@ def format_frame(frame, unused):
     if 0 < frame.line_entry.line < 4294967295:
         loc = frame.line_entry
         text = f"{loc.file.basename}:{loc.line:<4}"
-
-        location = f"\033[34m{text}\033[0m"
+        location = f" {fmt_color(34)}{text}{fmt_color(0)}"
 
     return align_on_sides(lldb.debugger, start, location)
 
 
 def should_skip_frame(frame):
-    return ("Catch" in frame.name or "__gnu" in frame.name or "__libc" in frame.name or
-            "___lldb_unnamed" in frame.name or
-            (frame.line_entry.file.basename and
-             ("std_function" in frame.line_entry.file.basename or
-              "invoke.h" in frame.line_entry.file.basename)))
+    return any([
+        "___lldb_unnamed_symbol" in frame.name,
+        "Catch" in frame.name,
+        "__gnu" in frame.name,
+        "__libc" in frame.name,
+        "___lldb_unnamed" in frame.name,
+        (frame.line_entry.file.basename and
+         ("std_function" in frame.line_entry.file.basename or
+          "invoke.h" in frame.line_entry.file.basename)),
+    ])
 
+USE_NATIVE_TRACE = False
+DROP_NOISY_FRAMES = False
+USE_TRACE_FILE = "/tmp/stacktrace.txt"
+USE_STDOUT = False
+
+out_file = None
 
 def skip_backtrace(debugger, command, result, internal_dict):
     thread = debugger.GetSelectedTarget().GetProcess().GetSelectedThread()
@@ -95,14 +116,41 @@ def skip_backtrace(debugger, command, result, internal_dict):
     filtered_frames = reversed(filtered_frames)
 
     for index, frame in enumerate(filtered_frames):
-        print("{frame}".format(frame=frame))
+        if USE_NATIVE_TRACE:
+            if out_file:
+                print(frame, file=out_file)
+            print(frame)
+
+        else:
+            if not DROP_NOISY_FRAMES or not should_skip_frame(frame):
+                if out_file:
+                    print(format_frame(frame, None, no_color=True), file=out_file)
+
+                print(format_frame(frame, None))
+
+
 
 
 def stop_handler(frame, bp_loc, dict):
+    global out_file
+    if USE_TRACE_FILE:
+        out_file = open(USE_TRACE_FILE, "w")
+
+    else:
+        out_file = None
+
+    if out_file:
+        print("-" * 80, file=out_file)
+
     print("-" * 80)
+
     thread = frame.GetThread()
     for i in range(thread.GetNumFrames()):
-        print(thread.GetFrameAtIndex(i))
+        skip_backtrace(lldb.debugger, None, None, None)
+
+    if out_file:
+        out_file.close()
+        out_file = None
 
     return True
 

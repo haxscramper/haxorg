@@ -350,3 +350,6 @@ def test_mind_map_collection():
         graph = mind_map.getGraph(idProvider, [node])
         graph.toJsonGraph().model_dump_json(indent=2)
         graph.toGraphvizGraph()
+
+
+test_mind_map_collection()
