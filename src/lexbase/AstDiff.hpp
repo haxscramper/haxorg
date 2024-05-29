@@ -1376,6 +1376,7 @@ static void printDstChange(
         }
         case ChangeKind::Delete: {
             assert(false && "The destination tree can't have deletions.");
+            break;
         }
         case ChangeKind::Update: {
             OS << "Update ";
@@ -1383,8 +1384,8 @@ static void printDstChange(
             OS << " to " << ValoStr(DstTree.getNodeValue(Dst));
             break;
         }
-        case ChangeKind::Insert:
-        case ChangeKind::Move:
+        case ChangeKind::Insert: [[fallthrough]];
+        case ChangeKind::Move: [[fallthrough]];
         case ChangeKind::UpdateMove: {
             if (DstNode.Change == ChangeKind::Insert) {
                 OS << "Insert";

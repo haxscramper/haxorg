@@ -5,11 +5,26 @@ UserTimeBreakdown UserTime::getBreakdown() const {
     absl::CivilSecond sec = absl::TimeZone{}.At(time).cs;
 
     switch (align) {
-        case Alignment::Second: result.second = sec.second();
-        case Alignment::Minute: result.minute = sec.minute();
-        case Alignment::Hour: result.hour = sec.hour();
-        case Alignment::Day: result.day = sec.day();
-        case Alignment::Month: result.month = sec.month();
+        case Alignment::Second: {
+            result.second = sec.second();
+            [[fallthrough]];
+        }
+        case Alignment::Minute: {
+            result.minute = sec.minute();
+            [[fallthrough]];
+        }
+        case Alignment::Hour: {
+            result.hour = sec.hour();
+            [[fallthrough]];
+        }
+        case Alignment::Day: {
+            result.day = sec.day();
+            [[fallthrough]];
+        }
+        case Alignment::Month: {
+            result.month = sec.month();
+            [[fallthrough]];
+        }
         case Alignment::Year: result.year = sec.year();
     }
 

@@ -206,13 +206,13 @@ class Graphviz {
                 escaped.reserve(input.size());
                 for (char c : input) {
                     switch (c) {
-                        case '"':
-                        case '>':
-                        case '<':
-                        case '{':
-                        case '}':
-                        case '|':
-                        case '\\': escaped += '\\';
+                        case '"': [[fallthrough]];
+                        case '>': [[fallthrough]];
+                        case '<': [[fallthrough]];
+                        case '{': [[fallthrough]];
+                        case '}': [[fallthrough]];
+                        case '|': [[fallthrough]];
+                        case '\\': escaped += '\\'; [[fallthrough]];
                         default: escaped += c;
                     }
                 }
