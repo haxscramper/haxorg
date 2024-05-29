@@ -1,9 +1,10 @@
 #pragma once
 
-#include <sem/SemOrg.hpp>
-#include <hstd/stdlib/Map.hpp>
 #include <QMimeData>
 #include <QIODevice>
+
+#include <sem/SemOrg.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include <sem/SemBaseApi.hpp>
 #include <immer/box.hpp>
 #include <hstd/stdlib/Filesystem.hpp>

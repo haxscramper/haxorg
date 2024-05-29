@@ -163,7 +163,10 @@ class Graphviz {
                 setOverride(attribute, value);
             } else {
                 agsafeset(
-                    _this()->get(), attribute.data(), value.c_str(), "");
+                    _this()->get(),
+                    attribute.data(),
+                    const_cast<char*>(value.c_str()),
+                    "");
             }
         }
 

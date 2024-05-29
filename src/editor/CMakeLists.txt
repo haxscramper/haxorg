@@ -14,7 +14,7 @@ ExternalProject_Add(libcola
     CONFIGURE_COMMAND
         mkdir -p <SOURCE_DIR>/m4
     COMMAND
-        autoreconf --install --verbose
+        autoreconf --force --install --verbose
     COMMAND
         mkdir -p ${COLA_INSTALL_DIR} &&
         cd ${COLA_INSTALL_DIR} &&
@@ -57,7 +57,7 @@ pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 
 add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
 
-qt_policy(SET QTP0003 NEW)
+# qt_policy(SET QTP0003 NEW)
 
 qt_standard_project_setup()
 enable_testing(true)
@@ -118,6 +118,7 @@ execute_process(
     OUTPUT_VARIABLE jq_output
 )
 
+message(STATUS "jq_output = ${jq_output}")
 
 string(REPLACE "\n" ";" class_list ${jq_output})
 list(LENGTH class_list list_length)

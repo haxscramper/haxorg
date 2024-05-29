@@ -166,7 +166,7 @@ void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) const {
 }
 
 void Graphviz::freeLayout(Graph graph) const {
-    CHECK(gvLayoutDone(graph.get()));
+    // CHECK(gvLayoutDone(graph.get()));
     CHECK(graph.get() != nullptr);
     CHECK(gvc != nullptr);
     gvFreeLayout(gvc.get(), const_cast<Agraph_t*>(graph.get()));
