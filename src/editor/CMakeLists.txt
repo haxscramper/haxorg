@@ -1,24 +1,30 @@
 include(ExternalProject)
 
-set(COLA_CXX_FLAGS "$<$<CONFIG:Debug>:-O0 -g ${CMAKE_CXX_FLAGS}>$<$<CONFIG:Release>:-O3 -DNDEBUG ${CMAKE_CXX_FLAGS}>")
 set(COLA_INSTALL_DIR "${CMAKE_BINARY_DIR}/libcola/install")
+set(COLA_CXX_FLAGS "-I${COLA_INSTALL_DIR} ${CMAKE_CXX_FLAGS}")
+set(COLA_CONFIGURE "CXXFLAGS=\"${COLA_CXX_FLAGS}\" CC=\"${CMAKE_C_COMPILER}\" CXX=\"${CMAKE_CXX_COMPILER}\" ${DEPS_DIR}/adaptagrams/cola/configure --prefix=${COLA_INSTALL_DIR}")
+message(STATUS "COLA_INSTALL_DIR = ${COLA_INSTALL_DIR}")
+message(STATUS "COLA_CXX_FLAGS = ${COLA_CXX_FLAGS}")
+message(STATUS "COLA_CONFIGURE = ${COLA_CONFIGURE}")
 
 ExternalProject_Add(libcola
     SOURCE_DIR "${DEPS_DIR}/adaptagrams/cola"
     PREFIX "${CMAKE_BINARY_DIR}/libcola"
     BUILD_IN_SOURCE 1
-    # BUILD_ALWAYS 1
+
+    BUILD_ALWAYS 1
+    UPDATE_DISCONNECTED 1
+
     CONFIGURE_COMMAND
         mkdir -p <SOURCE_DIR>/m4
     COMMAND
         autoreconf --install --verbose
     COMMAND
-        ./configure --prefix=${COLA_INSTALL_DIR}
-        CXXFLAGS=${COLA_CXX_FLAGS}
-        CC=${CMAKE_C_COMPILER}
-        CXX=${CMAKE_CXX_COMPILER}
-    BUILD_COMMAND make
-    INSTALL_COMMAND make install
+        mkdir -p ${COLA_INSTALL_DIR} &&
+        cd ${COLA_INSTALL_DIR} &&
+        sh -c "${COLA_CONFIGURE}"
+    BUILD_COMMAND cd ${COLA_INSTALL_DIR} && make
+    INSTALL_COMMAND cd ${COLA_INSTALL_DIR} && make install
     # Otherwise Ninja build dies on spot because muh simplicity certainly
     # meant that honoring project-target dependencies written in cmake file
     # is too difficult.
