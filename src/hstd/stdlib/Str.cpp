@@ -78,9 +78,7 @@ Vec<Str> Str::split(const Str& delimiter) const {
 Str Str::repeated(int N) const {
     Str result;
     result.reserve(size() * N);
-    for (int i = 0; i < N; ++i) {
-        result += *this;
-    }
+    for (int i = 0; i < N; ++i) { result += *this; }
     return result;
 }
 

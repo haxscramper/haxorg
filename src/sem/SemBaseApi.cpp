@@ -171,6 +171,12 @@ void visitField(CR<sem::SubnodeVisitor> visitor, SemId<Org> node) {
     if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
 }
 
+template <sem::IsOrg T>
+void visitField(CR<sem::SubnodeVisitor> visitor, CR<T> node) {
+    visitField(visitor, node.asOrg());
+}
+
+
 template <typename T>
 void visitField(CR<sem::SubnodeVisitor> visitor, CVec<T> value) {
     for (const auto& it : value) { visitField(visitor, it); }
@@ -243,6 +249,15 @@ void visitFieldWithCtx(
         eachSubnodeRecWithCtxImpl(visitor, node, true, ctx);
     }
 }
+
+template <sem::IsOrg T>
+void visitFieldWithCtx(
+    CR<sem::SubnodeVisitorWithCtx>    visitor,
+    CR<T>                             node,
+    Vec<SubnodeVisitorCtxPart> const& ctx) {
+    visitFieldWithCtx(visitor, node.asOrg(), ctx);
+}
+
 
 template <typename T>
 void visitFieldWithCtx(
@@ -390,6 +405,7 @@ Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
                     result.push_back(it.asOrg());
                 }
             }
+            break;
         }
 
         case Link::Kind::Id: {
@@ -399,6 +415,7 @@ Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
                     result.push_back(it.asOrg());
                 }
             }
+            break;
         }
 
         default: {

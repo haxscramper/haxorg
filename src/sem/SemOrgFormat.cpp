@@ -285,12 +285,24 @@ auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
             break;
         }
 
+        case Link::Kind::Footnote: {
+            head = str("fn:"_ss + id->getFootnote().target);
+            break;
+        }
+
         default: {
             LOG(FATAL) << fmt1(id->getLinkKind());
         }
     }
 
-    if (id->description) {
+    if (id->getLinkKind() == Link::Kind::Footnote
+        && !id->description.has_value()) {
+        return b.line({
+            str("["),
+            head,
+            str("]"),
+        });
+    } else if (id->description) {
         return b.line({
             str("[["),
             head,

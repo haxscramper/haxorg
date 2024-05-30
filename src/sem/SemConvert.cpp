@@ -733,7 +733,8 @@ SemId<Link> OrgConverter::convertLink(__args) {
         link->data = Link::Raw{.text = get_text(a)};
 
     } else if (a.kind() == org::Footnote) {
-        link->data = Link::Footnote{.target = get_text(one(a, N::Name))};
+        link->data = Link::Footnote{
+            .target = get_text(one(a, N::Definition))};
 
     } else if (one(a, N::Protocol).kind() == org::Empty) {
         Str target = get_text(one(a, N::Link));
@@ -1208,7 +1209,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::Angle: return convertPlaceholder(a);
         case org::Empty: return Sem<Empty>(a);
         case org::Table: return convertTable(a);
-        case org::Footnote: return convertFootnote(a);
+        case org::Footnote: return convertLink(a);
         case org::CommandTblfm: return convertTblfm(a);
         case org::CommandAttr: return convertCmdAttr(a);
         case org::ColonExample: return convertColonExample(a);

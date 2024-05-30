@@ -26,16 +26,16 @@ void TestEditorModel::testSubtreeEditing() {
     QVERIFY(QTest::qWaitForWindowActive(window.get()));
     QCOMPARE_EQ(edit->model()->rowCount(), 1);
 
-    auto dfs_before = dfs_boxes(edit->docModel->root.get());
+    auto dfs_before = dfs_boxes(edit->docModel->root);
 
     { // Verify the original structure of the document read from the
       // text
-        auto r = edit->docModel->root.get();
+        auto r = edit->docModel->root;
         QCOMPARE_EQ(r->parent, nullptr);
         QCOMPARE_EQ(r->subnodes.size(), 2);
         QVERIFY(node(s, r)->is(osk::Document));
-        QVERIFY(node(s, r->subnodes.at(0).get())->is(osk::Paragraph));
-        QVERIFY(node(s, r->subnodes.at(1).get())->is(osk::Paragraph));
+        QVERIFY(node(s, r->at(0))->is(osk::Paragraph));
+        QVERIFY(node(s, r->at(1))->is(osk::Paragraph));
         auto n = node(s, index);
         QVERIFY(n->is(osk::Paragraph));
         QCOMPARE_EQ(str(n), "First paragraph in document");
@@ -63,7 +63,7 @@ void TestEditorModel::testSubtreeEditing() {
         QTest::qWait(5);
     }
 
-    auto dfs_after = dfs_boxes(edit->docModel->root.get());
+    auto dfs_after = dfs_boxes(edit->docModel->root);
 
 
     { // After editing operations only a single element in the model
@@ -79,10 +79,10 @@ void TestEditorModel::testSubtreeEditing() {
         // store. This way it is still possible to access all the
         // previous building blocks of the document.
         QCOMPARE_EQ(
-            format(s->node(dfs_before.at(1))),
+            format(s->getBoxedNode(dfs_before.at(1))),
             "First paragraph in document");
         QCOMPARE_EQ(
-            format(s->node(dfs_after.at(1))),
+            format(s->getBoxedNode(dfs_after.at(1))),
             "your text here First paragraph in document");
     }
 
@@ -238,8 +238,9 @@ Third subtree paragraph 2
                 edit->model()->index(0, 0),
                 QAbstractItemView::PositionAtTop);
             QSignalSpy spy{edit, SIGNAL(focusedOn(QModelIndex))};
-            auto       outline_index = index(outline_model, path_outline);
-            auto       edit_index    = index(edit_model, path_edit);
+            auto       outline_index = getAtQModelPath(
+                outline_model, path_outline);
+            auto edit_index = getAtQModelPath(edit_model, path_edit);
             QVERIFY(outline_index.isValid());
             QVERIFY(edit_index.isValid());
 
@@ -307,7 +308,10 @@ void TestEditorModel::testParagraphMovements() {
     // debug_tree(edit->model(), edit->docModel->store);
 
     { // Move first paragraph down and back up
+        // debug_tree(edit->model(), edit->docModel->store);
         edit->movePositionDown(edit->model()->index(0, 0, root), 1);
+        // debug_tree(edit->model(), edit->docModel->store);
+
         QCOMPARE_EQ(format(get()), p2 + nl + p1 + nl + p3);
         QCOMPARE_EQ(par_text(0), p2);
         QCOMPARE_EQ(par_text(1), p1);
@@ -370,9 +374,9 @@ void TestEditorModel::testSubtreeDemotion() {
     edit->promoteSubtreeRecursive(api.getIndex({0, 1}), 20);
     compare_no_change();
 
+    // debug_tree(edit->model(), edit->docModel->store);
     edit->demoteSubtreeRecursive(api.getIndex({0, 1}), 1);
-
-    debug_tree(edit->model(), edit->docModel->store);
+    // debug_tree(edit->model(), edit->docModel->store);
 
     {
         QCOMPARE_EQ((api.getNode({0, 0})->getKind()), osk::Subtree);
@@ -557,4 +561,234 @@ void TestEditorModel::testRecursiveDemoteSubtreeBlock7() {
                                 {m.tree(
                                     "tree7",
                                     {m.tree("tree8")})})})})})})})}));
+}
+
+void TestEditorModel::testInsertBelow() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+    }));
+
+    auto tree = api.tree({0});
+
+    // debug_tree(edit->model(), edit->docModel->store);
+
+    auto em = edit->model();
+    {
+        QCOMPARE_EQ(em->rowCount(), 1);
+        auto doc = em->index(0, 0);
+        QVERIFY(doc.isValid());
+        QCOMPARE_EQ(em->rowCount(doc), 1);
+    }
+
+
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertAfter(),
+        window->store->toRoot(sem::parseString("* Inserted")->at(0)));
+
+    {
+        QCOMPARE_EQ(em->rowCount(), 1);
+        auto doc = em->index(0, 0);
+        QVERIFY(doc.isValid());
+        QCOMPARE_EQ(em->rowCount(doc), 2);
+    }
+
+    // debug_tree(edit->model(), edit->docModel->store);
+
+    auto r = window->store->getRoot(0);
+
+    QCOMPARE_EQ(r->subnodes.size(), 2);
+    QCOMPARE_NE(r->subnodes.at(0).get(), nullptr);
+    QCOMPARE_NE(r->subnodes.at(1).get(), nullptr);
+
+    QCOMPARE_EQ(r->subnodes.at(0)->parent, r);
+    QCOMPARE_EQ(r->subnodes.at(1)->parent, r);
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+            m.tree("Inserted"),
+        }));
+}
+
+void TestEditorModel::testInsertAbove() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+    }));
+
+    auto tree = api.tree({0});
+
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertBefore(),
+        window->store->toRoot(sem::parseString("* Inserted")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("Inserted"),
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertBefore(),
+        window->store->toRoot(sem::parseString("* Inserted2")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("Inserted"),
+            m.tree("Inserted2"),
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertBefore(),
+        window->store->toRoot(sem::parseString("* Inserted3")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("Inserted"),
+            m.tree("Inserted2"),
+            m.tree("Inserted3"),
+            m.tree("tree1"),
+        }));
+}
+
+void TestEditorModel::testInsertFirstUnder() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+    }));
+
+    auto tree = api.tree({0});
+
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertFirstUnder(),
+        window->store->toRoot(sem::parseString("** Inserted")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted"),
+                }),
+        }));
+
+    tree->apply(
+        tree->getInsertFirstUnder(),
+        window->store->toRoot(sem::parseString("** Inserted2")->at(0)));
+
+    m.compare_structure(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted2"),
+                    m.tree("Inserted"),
+                }),
+        }));
+
+    tree->apply(
+        tree->getInsertFirstUnder(),
+        window->store->toRoot(sem::parseString("** Inserted3")->at(0)));
+
+    m.compare_structure(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted3"),
+                    m.tree("Inserted2"),
+                    m.tree("Inserted"),
+                }),
+        }));
+}
+
+void TestEditorModel::testInsertLastUnder() {
+    auto [window, edit, api] = init_test_for_file(getFile({
+        getSubtree(1, "tree1"),
+    }));
+
+    auto tree = api.tree({0});
+
+    TestDocumentModel m;
+
+    m.compare(
+        api,
+        m.document({
+            m.tree("tree1"),
+        }));
+
+    tree->apply(
+        tree->getInsertLastUnder(),
+        window->store->toRoot(sem::parseString("** Inserted")->at(0)));
+
+    m.compare(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted"),
+                }),
+        }));
+
+    tree->apply(
+        tree->getInsertLastUnder(),
+        window->store->toRoot(sem::parseString("** Inserted2")->at(0)));
+
+    m.compare_structure(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted"),
+                    m.tree("Inserted2"),
+                }),
+        }));
+
+    tree->apply(
+        tree->getInsertLastUnder(),
+        window->store->toRoot(sem::parseString("** Inserted3")->at(0)));
+
+    m.compare_structure(
+        api,
+        m.document({
+            m.tree(
+                "tree1",
+                {
+                    m.tree("Inserted"),
+                    m.tree("Inserted2"),
+                    m.tree("Inserted3"),
+                }),
+        }));
 }

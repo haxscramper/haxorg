@@ -12,6 +12,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     EXPORTER_USING()
 #undef __ExporterBase
 
+    bool newlineToSpace = false;
 
     using Res    = layout::BlockId;
     using LytStr = layout::LytStr;
@@ -127,6 +128,10 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         res = lineSubnodes(verb);
     }
 
+    void visitFootnote(Res& res, In<sem::Footnote> note) {
+        res = lineWrap("sup", {string("["_ss + note->tag + "]"_ss)});
+    }
+
     void visitBold(Res& res, In<sem::Bold> bold) {
         res = lineWrap("b", {lineSubnodes(bold)});
     }
@@ -147,13 +152,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         res = b.line({eval(range->from), string("--"), eval(range->to)});
     }
 
-    void visitLink(Res& res, In<sem::Link> link) {
-        if (link->description) {
-            res = eval(link->description.value());
-        } else {
-            res = string("");
-        }
-    }
+    void visitLink(Res& res, In<sem::Link> link);
 
     void visitTime(Res& res, In<sem::Time> time) {
         if (time->isStatic()) {
@@ -165,12 +164,27 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
 
     void visitDocument(Res& res, In<sem::Document> doc);
 
+    void visitNewline(Res& res, In<sem::Newline> doc) {
+        if (newlineToSpace) {
+            res = string(Str(" "));
+        } else {
+            res = string(doc->text);
+        }
+    }
+
+
 #define __leaf(__Kind)                                                    \
     void visit##__Kind(Res& res, In<sem::__Kind> word) {                  \
         res = string(word->text);                                         \
     }
 
-    EACH_SEM_ORG_LEAF_KIND(__leaf)
+
+    __leaf(Space);
+    __leaf(Word);
+    __leaf(RawText);
+    __leaf(Punctuation);
+    __leaf(Placeholder);
+    __leaf(BigIdent);
 
 #undef __leaf
 };

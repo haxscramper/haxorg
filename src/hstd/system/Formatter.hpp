@@ -42,4 +42,3 @@ FormatContext::iterator fmt_ctx(const char* t, FormatContext& ctx) {
     with_std_formatter(t);
     return std::formatter<std::string>{}.format(t, ctx);
 }
-

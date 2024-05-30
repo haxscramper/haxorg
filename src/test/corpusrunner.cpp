@@ -586,25 +586,6 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
     }
 }
 
-void filterFields(
-    json&                           j,
-    const std::vector<std::string>& fieldsToRemove) {
-    if (j.is_object()) {
-        for (auto it = j.begin(); it != j.end();) {
-            if (std::find(
-                    fieldsToRemove.begin(), fieldsToRemove.end(), it.key())
-                != fieldsToRemove.end()) {
-                it = j.erase(it);
-            } else {
-                filterFields(*it, fieldsToRemove);
-                ++it;
-            }
-        }
-    } else if (j.is_array()) {
-        for (json& el : j) { filterFields(el, fieldsToRemove); }
-    }
-}
-
 yaml toTestYaml(sem::OrgArg arg) {
     ExporterYaml exporter;
     exporter.skipNullFields  = true;

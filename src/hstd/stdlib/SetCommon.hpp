@@ -9,9 +9,7 @@ struct SetBase : public CRTP_this_method<Set> {
     Set operator&(CR<Set> other) {
         Set result;
         for (const auto& it : other) {
-            if (_this()->contains(it)) {
-                result.incl(it);
-            }
+            if (_this()->contains(it)) { result.incl(it); }
         }
         return result;
     }
@@ -19,14 +17,10 @@ struct SetBase : public CRTP_this_method<Set> {
     Set operator^(CR<Set> other) {
         Set result;
         for (const auto& it : other) {
-            if (!_this()->contains(it)) {
-                result.incl(it);
-            }
+            if (!_this()->contains(it)) { result.incl(it); }
         }
         for (const auto& it : *_this()) {
-            if (!other.contains(it)) {
-                result.incl(it);
-            }
+            if (!other.contains(it)) { result.incl(it); }
         }
 
         return result;
@@ -52,15 +46,11 @@ struct SetBase : public CRTP_this_method<Set> {
     }
 
     constexpr void incl(CR<Slice<Val>> range) {
-        for (const auto val : range) {
-            _this()->incl(val);
-        }
+        for (const auto val : range) { _this()->incl(val); }
     }
 
     constexpr void excl(CR<Slice<Val>> range) {
-        for (const auto val : range) {
-            _this()->excl(val);
-        }
+        for (const auto val : range) { _this()->excl(val); }
     }
 
     bool operator<(CR<Set> other) const {

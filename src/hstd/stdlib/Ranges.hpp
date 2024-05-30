@@ -133,16 +133,15 @@ struct collector_view
     constexpr auto           size() const { return values.size(); }
     // void                     next() { ++iter; }
     // void                     prev() { --iter; }
-    // constexpr auto&          advance(rs::iter_difference_t<iterator> n) {
+    // constexpr auto&          advance(rs::iter_difference_t<iterator> n)
+    // {
     //     // iter += n;
     //     return *this;
     // }
 
     collector_view() = default;
     collector_view(Rng&& rng) {
-        for (auto const& it : rng) {
-            values.push_back(it);
-        }
+        for (auto const& it : rng) { values.push_back(it); }
         // iter = values.begin();
     }
 };
@@ -176,7 +175,13 @@ generator<T> indexed_get_iterator(
     Func<int(In const&)>    size_get,
     Func<T(In const&, int)> getter) {
     int size = size_get(in);
-    for (int i = 0; i < size; ++i) {
-        co_yield getter(in, i);
-    }
+    for (int i = 0; i < size; ++i) { co_yield getter(in, i); }
+}
+
+inline auto drop_if_nullopt() {
+    return rv::remove_if([](auto const& it) { return !it.has_value(); });
+}
+
+inline auto unpack_optional() {
+    return rv::transform([](auto const& it) { return it.value(); });
 }

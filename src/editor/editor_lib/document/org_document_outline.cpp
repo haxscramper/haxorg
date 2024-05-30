@@ -4,14 +4,14 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QMouseEvent>
-#include "app_utils.hpp"
+#include <editor/editor_lib/common/app_utils.hpp>
 
 
 void OrgOutlineItemDelegate::paint(
     QPainter*                   painter,
     const QStyleOptionViewItem& option,
     const QModelIndex&          index) const {
-    auto node = store->node(qvariant_cast<OrgBoxId>(index.data()));
+    auto node = store->getBoxedNode(qvariant_cast<OrgBoxId>(index.data()));
     if (node->is(OrgSemKind::Subtree)) {
         auto widget = make_label(node.as<sem::Subtree>()->title);
         draw(widget.get(), painter, option, index);
@@ -46,7 +46,7 @@ QSize OrgOutlineItemDelegate::sizeHint(
     if (index.isValid()) {
         OrgBoxId box = qvariant_cast<OrgBoxId>(
             index.data(Qt::DisplayRole));
-        SPtr<QWidget> widget = make_render(store->node(box));
+        SPtr<QWidget> widget = make_render(store->getBoxedNode(box));
         return get_width_fit(widget.get(), parent());
     } else {
         return QStyledItemDelegate::sizeHint(option, index);

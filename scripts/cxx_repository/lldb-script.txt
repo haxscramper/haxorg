@@ -1,4 +1,0 @@
-settings set frame-format "${script.frame:lldb_script.format_frame}"
-settings show frame-format
-br s -E C++
-skip_backtrace

@@ -22,9 +22,7 @@ inline E to_enum(yaml const& in, E fallback) {
 
 template <typename T>
 inline void maybe_field(yaml const& in, T& out, std::string name) {
-    if (in[name]) {
-        out = in[name].as<T>();
-    }
+    if (in[name]) { out = in[name].as<T>(); }
 }
 
 template <typename E>
@@ -33,9 +31,7 @@ inline void maybe_enum_field(
     E&          out,
     std::string name,
     E           fallback) {
-    if (in[name]) {
-        out = to_enum<E>(in[name], fallback);
-    }
+    if (in[name]) { out = to_enum<E>(in[name], fallback); }
 }
 
 

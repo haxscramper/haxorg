@@ -203,6 +203,20 @@ class Vec : public std::vector<T> {
 
     T const& at(BackwardsIndex idx) const { return this->at(index(idx)); }
 
+    /// \brief Return the mutable reference to element at index, if the
+    /// vector does not have enough elements, resize it to fit.
+    T& resize_at(int idx) {
+        if (high() < idx) { this->resize(idx + 1); }
+        return at(idx);
+    }
+
+    /// \brief resize_at overload with default value to fill in
+    T& resize_at(int idx, T const& value) {
+        if (high() < idx) { this->resize(idx + 1, value); }
+        return at(idx);
+    }
+
+    /// \brief helper assertion to fail if the vector is empty.
     void failEmpty() const {
         if (empty()) {
             throw std::out_of_range(

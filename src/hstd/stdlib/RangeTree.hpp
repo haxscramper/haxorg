@@ -51,9 +51,7 @@ class RangeTree {
             } else if (curr->range.last < point) {
                 curr = curr->right.get();
             } else {
-                if (curr->range.contains(point)) {
-                    return curr->range;
-                }
+                if (curr->range.contains(point)) { return curr->range; }
             }
         }
 
@@ -69,14 +67,10 @@ std::ostream& auxPrintNode(
     std::ostream&                      os,
     typename RangeTree<T>::Node const& node) {
     os << node.range << "{ ";
-    if (node.left != nullptr) {
-        auxPrintNode<T>(os, *(node.left));
-    }
+    if (node.left != nullptr) { auxPrintNode<T>(os, *(node.left)); }
 
     os << ", ";
-    if (node.right != nullptr) {
-        auxPrintNode<T>(os, *(node.right));
-    }
+    if (node.right != nullptr) { auxPrintNode<T>(os, *(node.right)); }
     os << "}";
 
     return os;

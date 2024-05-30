@@ -173,13 +173,9 @@ struct IntSet : public SetBase<IntSet<T>, T> {
 
         iterator& operator++() {
             // If current value is ok, step over it once
-            if (index < base->size() && base->test(index)) {
-                ++index;
-            }
+            if (index < base->size() && base->test(index)) { ++index; }
             // Otherwise step over all empty values
-            while (index < base->size() && !base->test(index)) {
-                ++index;
-            }
+            while (index < base->size() && !base->test(index)) { ++index; }
             return *this;
         }
 

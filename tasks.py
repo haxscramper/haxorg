@@ -596,11 +596,6 @@ def cmake_haxorg(ctx: Context):
                         env={'NINJA_FORCE_COLOR': '1'})
 
 
-LLDB_AUTO_BACKTRACE: List[str] = [
-    "--one-line-on-crash", "bt", "--one-line-on-crash", "exit"
-]
-
-
 def get_lldb_py_import() -> List[str]:
     return [
         "-o",
@@ -991,7 +986,7 @@ def cxx_merge_coverage(ctx: Context):
     )
 
 
-@org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
+@org_task(pre=[cmake_all, symlink_build, python_protobuf_files], iterable=["arg"])
 def py_tests(ctx: Context, arg: List[str] = []):
     """
     Execute the whole python test suite or run a single test file in non-interactive
@@ -1060,7 +1055,7 @@ def py_tests_ci(ctx: Context):
 @org_task()
 def docs_doxygen(ctx: Context):
     "Build docunentation for the project using doxygen"
-    out_dir = get_script_root("docs/docs_out/doxygen")
+    out_dir = get_script_root("/tmp/doxygen")
     if not out_dir.exists():
         out_dir.mkdir(parents=True)
 

@@ -106,6 +106,15 @@ struct SemId {
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
 
     template <typename T>
+    SemId<T> asOpt() const {
+        if (isNil() || value->getKind() != T::staticKind) {
+            return SemId<T>::Nil();
+        } else {
+            return as<T>();
+        }
+    }
+
+    template <typename T>
     T* getAs() {
         return dynamic_cast<T*>(get());
     }
@@ -123,6 +132,17 @@ struct SemId {
             CHECK(value->getKind() == T::staticKind);
         }
         return SemId<T>{std::dynamic_pointer_cast<T>(value)};
+    }
+
+    template <typename T>
+    Vec<SemId<T>> subAs() const {
+        Vec<SemId<T>> result;
+        for (auto const& sub : value->subnodes) {
+            if (sub->getKind() == T::staticKind) {
+                result.push_back(sub.template as<T>());
+            }
+        }
+        return result;
     }
 
     /// \brief non-nil nodes are converter to `true`
@@ -213,7 +233,6 @@ struct [[refl]] Org {
 };
 
 
-
 }; // namespace sem
 
 #define EACH_SEM_ORG_LEAF_KIND(__IMPL)                                    \
@@ -241,6 +260,10 @@ struct std::formatter<sem::SemId<T>> : std::formatter<std::string> {
     FormatContext::iterator format(
         const sem::SemId<T>& p,
         FormatContext&       ctx) const {
-        return fmt_ctx(p->getKind(), ctx);
+        if (p.isNil()) {
+            return fmt_ctx("<nil>", ctx);
+        } else {
+            return fmt_ctx(p->getKind(), ctx);
+        }
     }
 };

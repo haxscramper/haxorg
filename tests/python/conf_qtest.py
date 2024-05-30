@@ -17,6 +17,8 @@ GUI_SCREEN_DISPLAY = ":14"
 class QTestParams():
     test_name: Optional[str]
     meth_name: str
+    binary_path: Path
+    test_scope: Optional[str] = None
 
     def class_name(self) -> Optional[str]:
         return self.test_name and self.test_name.replace(" ", "")
@@ -25,8 +27,8 @@ class QTestParams():
         return self.meth_name.replace("test_", "")
 
     def qtest_params(self):
-        if self.test_name:
-            return [f"{self.test_name}::{self.meth_name}"]
+        if self.test_scope:
+            return [f"{self.test_scope}::{self.meth_name}"]
 
         else:
             return [self.meth_name]
@@ -39,7 +41,8 @@ class QTestParams():
             return self.item_name()
 
 
-def parse_qt_tests(binary_path: str) -> list[QTestParams]:
+def parse_qt_tests(binary_path: str,
+                   in_class_name: Optional[str] = None) -> list[QTestParams]:
     dbg = open("/tmp/debug", "w")
     print("1", file=dbg)
     cmd = local[binary_path]
@@ -64,19 +67,23 @@ def parse_qt_tests(binary_path: str) -> list[QTestParams]:
         else:
             if "::" in line:
                 class_name, test_name = line.strip().split('::')
+                test_scope = class_name
 
             else:
-                class_name = None
+                class_name = in_class_name
                 test_name = line
+                test_scope = None
 
             test_name = test_name.replace("()", "")
-            tests.append(QTestParams(test_name=class_name, meth_name=test_name))
+            tests.append(
+                QTestParams(
+                    test_name=class_name,
+                    meth_name=test_name,
+                    test_scope=test_scope,
+                    binary_path=binary_path,
+                ))
 
     return tests
-
-
-binary_path: str = str(
-    get_haxorg_repo_root_path().joinpath("build/haxorg/src/editor/editor_test"))
 
 
 class QTestClass(pytest.Class):
@@ -138,7 +145,7 @@ class QTestItem(pytest.Function):
 
     def runtest(self):
         try:
-            local[binary_path].with_env(DISPLAY=GUI_SCREEN_DISPLAY)(
+            local[self.qtest.binary_path].with_env(DISPLAY=GUI_SCREEN_DISPLAY)(
                 *self.qtest.qtest_params())
 
         except ProcessExecutionError as e:
@@ -158,10 +165,19 @@ class QTestFile(pytest.Module):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        qt_test_config = json.loads(get_haxorg_repo_root_path().joinpath(
+            "src/editor/editor_test/test_config.json").read_text())
+
         self.test_classes: List[QTestClass] = []
         class_tests = {}
-        for test in parse_qt_tests(binary_path):
-            class_tests.setdefault(test.class_name(), []).append(test)
+        for binary in qt_test_config:
+            for test in parse_qt_tests(
+                    binary_path=get_haxorg_repo_root_path().joinpath(
+                        "build/haxorg/src/editor").joinpath(binary["class_name"] +
+                                                            "_test"),
+                    in_class_name=binary["class_name"],
+            ):
+                class_tests.setdefault(test.class_name(), []).append(test)
 
         for class_name, tests in class_tests.items():
             test_class: QTestClass = QTestClass.from_parent(self, name=class_name)

@@ -48,7 +48,7 @@ def test_subnode_visitor():
     node = org.parseString("Word")
     kinds = []
     org.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
-    assert kinds == [osk.Document, osk.Paragraph, osk.Word], kinds
+    assert kinds == [osk.Document, osk.Paragraph, osk.Word, osk.DocumentOptions], kinds
 
 
 def test_subnode_selector():

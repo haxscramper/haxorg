@@ -4,9 +4,7 @@
 #include <string>
 
 inline void assert_has_idx(int size, int wanted, std::string failure) {
-    if (!(wanted < size)) {
-        throw std::range_error(failure);
-    }
+    if (!(wanted < size)) { throw std::range_error(failure); }
 }
 
 struct GetterError : public std::runtime_error {

@@ -1,5 +1,5 @@
 #pragma once
-#if false
+
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
 #include <string>
@@ -11,7 +11,6 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
-#include <new>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/system/generator.hpp>
 #include <absl/log/check.h>
@@ -23,7 +22,7 @@
         setAttr(#key, value, direction);                                  \
     }                                                                     \
                                                                           \
-    Opt<Type> set##Method() {                                             \
+    Opt<Type> get##Method() const {                                       \
         Opt<Type> value;                                                  \
         getAttr(#key, value);                                             \
         return value;                                                     \
@@ -32,7 +31,7 @@
 #define _attr(Method, key, Type)                                          \
     void set##Method(Type const& value) { setAttr(#key, value); }         \
                                                                           \
-    Opt<Type> set##Method() {                                             \
+    Opt<Type> get##Method() const {                                       \
         Opt<Type> value;                                                  \
         getAttr(#key, value);                                             \
         return value;                                                     \
@@ -67,6 +66,7 @@ class Graphviz {
         switch (direction) {
             case TextAlign::Left: res.replaceAll("\n", "\\l"); break;
             case TextAlign::Right: res.replaceAll("\n", "\\r"); break;
+            case TextAlign::Center: break;
         }
 
         return res;
@@ -120,7 +120,8 @@ class Graphviz {
 
         void getAttr(Str const& attribute, Opt<Str>& value) const {
             char* found = agget(
-                (void*)(_this()->get()), strdup(attribute));
+                (void*)(_this()->get()),
+                const_cast<char*>(attribute.data()));
 
             if (found != nullptr) {
                 value = found;
@@ -132,25 +133,19 @@ class Graphviz {
         void getAttr(Str const& key, Opt<int>& value) const {
             Opt<Str> tmp;
             getAttr(key, tmp);
-            if (tmp) {
-                value = tmp->toInt();
-            }
+            if (tmp) { value = tmp->toInt(); }
         }
 
         void getAttr(Str const& key, Opt<double>& value) const {
             Opt<Str> tmp;
             getAttr(key, tmp);
-            if (tmp) {
-                value = tmp->toDouble();
-            }
+            if (tmp) { value = tmp->toDouble(); }
         }
 
         void getAttr(Str const& key, Opt<bool>& value) const {
             Opt<Str> tmp;
             getAttr(key, tmp);
-            if (tmp) {
-                value = *tmp == "true";
-            }
+            if (tmp) { value = *tmp == "true"; }
         }
 
 
@@ -163,15 +158,15 @@ class Graphviz {
             }
         }
 
-        void setAttr(Str const& attribute, Str const& value) {
+        void setAttr(Str attribute, Str const& value) {
             if (setOverride) {
                 setOverride(attribute, value);
             } else {
                 agsafeset(
                     _this()->get(),
-                    strdup(attribute),
-                    strdup(value),
-                    strdup(""));
+                    attribute.data(),
+                    const_cast<char*>(value.c_str()),
+                    "");
             }
         }
 
@@ -214,13 +209,13 @@ class Graphviz {
                 escaped.reserve(input.size());
                 for (char c : input) {
                     switch (c) {
-                        case '"':
-                        case '>':
-                        case '<':
-                        case '{':
-                        case '}':
-                        case '|':
-                        case '\\': escaped += '\\';
+                        case '"': [[fallthrough]];
+                        case '>': [[fallthrough]];
+                        case '<': [[fallthrough]];
+                        case '{': [[fallthrough]];
+                        case '}': [[fallthrough]];
+                        case '|': [[fallthrough]];
+                        case '\\': escaped += '\\'; [[fallthrough]];
                         default: escaped += c;
                     }
                 }
@@ -236,9 +231,7 @@ class Graphviz {
 
             void push_back(CR<Vec<Str>> cells) {
                 Vec<Record> row;
-                for (const auto& it : cells) {
-                    row.push_back(it);
-                }
+                for (const auto& it : cells) { row.push_back(it); }
                 getNested().push_back(Record(row));
             }
 
@@ -434,6 +427,11 @@ class Graphviz {
         /// \brief Position of the node's external label
         _attr(XLabelPosition, xlabelpos, Point);
 
+        Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
+        Agnodeinfo_t const* info() const {
+            return (Agnodeinfo_t*)AGDATA(node);
+        }
+
       public:
         Agnode_t* node;
         Agraph_t* graph;
@@ -476,6 +474,11 @@ class Graphviz {
         void setLHead(Node node) { setLHead(node.name()); }
         void setLTail(Node node) { setLTail(node.name()); }
 
+        Agedgeinfo_t*       info() { return (Agedgeinfo_t*)AGDATA(edge_); }
+        Agedgeinfo_t const* info() const {
+            return (Agedgeinfo_t*)AGDATA(edge_);
+        }
+
       public:
         Agraph_t* graph;
         Agedge_t* edge_;
@@ -487,7 +490,6 @@ class Graphviz {
       public:
         Node defaultNode;
         Edge defaultEdge;
-
 
         Graph(Str const& name, Agdesc_t desc = Agdirected);
         Graph(fs::path const& file);
@@ -516,6 +518,9 @@ class Graphviz {
         void setSplines(Splines splines);
         void eachNode(Func<void(Node)> cb);
         void eachEdge(Func<void(Edge)> cb);
+        void eachSubgraph(Func<void(Graph)> cb) const;
+
+        int nodeCount() { return agnnodes(graph); }
 
 
         /// Set default attriute value for edge
@@ -525,6 +530,12 @@ class Graphviz {
             agsubnode(graph, node.node, 1);
             return node;
         }
+
+        Agraphinfo_t*       info() { return (Agraphinfo_t*)AGDATA(graph); }
+        Agraphinfo_t const* info() const {
+            return (Agraphinfo_t*)AGDATA(graph);
+        }
+
         Node node(Str const& name) {
             CHECK(graph != nullptr);
             auto tmp = Node(graph, name);
@@ -624,14 +635,11 @@ class Graphviz {
 
 
     Graphviz() {
-        gvc = gvContext();
+        gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
         if (!gvc) {
             throw std::runtime_error("Failed to create Graphviz context");
         }
     }
-
-    ~Graphviz() { gvFreeContext(gvc); }
-
 
     enum class LayoutType
     {
@@ -642,6 +650,15 @@ class Graphviz {
         Twopi, /// Radial layout
         Circo  /// Circular layout
     };
+
+    BOOST_DESCRIBE_NESTED_ENUM(
+        LayoutType,
+        Dot,
+        Neato,
+        Fdp,
+        Sfdp,
+        Twopi,
+        Circo);
 
     enum class RenderFormat
     {
@@ -658,29 +675,24 @@ class Graphviz {
     };
 
 
-    Str layoutTypeToString(LayoutType layoutType);
+    Str  layoutTypeToString(LayoutType layoutType) const;
+    Str  renderFormatToString(RenderFormat renderFormat) const;
+    void createLayout(CR<Graph> graph, LayoutType layout = LayoutType::Dot)
+        const;
 
-    Str renderFormatToString(RenderFormat renderFormat);
-
-    void createLayout(
-        CR<Graph>  graph,
-        LayoutType layout = LayoutType::Dot);
-
-    void freeLayout(Graph graph);
+    void freeLayout(Graph graph) const;
 
     void writeFile(
         Str const&   fileName,
         CR<Graph>    graph,
-        RenderFormat format = RenderFormat::DOT);
+        RenderFormat format = RenderFormat::DOT) const;
 
     void renderToFile(
         Str const&   fileName,
         CR<Graph>    graph,
         RenderFormat format = RenderFormat::PNG,
-        LayoutType   layout = LayoutType::Dot);
+        LayoutType   layout = LayoutType::Dot) const;
 
   private:
-    GVC_t* gvc;
+    SPtr<GVC_t> gvc;
 };
-
-#endif

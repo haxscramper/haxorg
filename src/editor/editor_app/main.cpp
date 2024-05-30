@@ -1,10 +1,13 @@
-#include <editor/editor_lib/mainwindow.hpp>
+#include <editor/editor_lib/main_gui/mainwindow.hpp>
 
 #include <QApplication>
 #include <QDebug>
-#include <editor/editor_lib/app_state.hpp>
-#include <editor/editor_lib/app_init.hpp>
+#include <editor/editor_lib/common/app_state.hpp>
+#include <editor/editor_lib/common/app_init.hpp>
 #include <QDataStream>
+#include <editor/editor_lib/common/app_utils.hpp>
+
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -13,6 +16,7 @@ int main(int argc, char* argv[]) {
             "for the application init state.");
     }
 
+    qInstallMessageHandler(customMessageHandler);
     editorInitMain();
 
     AppState     state = load_app_state(argv[1]);

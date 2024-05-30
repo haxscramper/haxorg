@@ -188,9 +188,7 @@ struct ColText : Vec<ColRune> {
     }
 
     ColText& withStyle(CR<ColStyle> style) {
-        for (auto& ch : *this) {
-            ch.style = style;
-        }
+        for (auto& ch : *this) { ch.style = style; }
         return *this;
     }
 
@@ -207,27 +205,21 @@ struct ColText : Vec<ColRune> {
     inline ColText operator>>=(int n) const { return rightAligned(n); }
 
     inline void append(int repeat, ColRune c) {
-        for (int i = 0; i < repeat; ++i) {
-            push_back(c);
-        }
+        for (int i = 0; i < repeat; ++i) { push_back(c); }
     }
 
     inline void append(ColRune c) { push_back(c); }
 
     inline ColText rightAligned(int n, ColRune c = ColRune{' '}) const {
         ColText res;
-        if (size() < n) {
-            res.append(n - size(), c);
-        }
+        if (size() < n) { res.append(n - size(), c); }
         res.append(*this);
         return res;
     }
 
     inline ColText leftAligned(int n, ColRune c = ColRune{' '}) const {
         auto s = *this;
-        while (s.size() < n) {
-            s.push_back(c);
-        }
+        while (s.size() < n) { s.push_back(c); }
         return s;
     }
 };
@@ -479,9 +471,7 @@ ColText join(CR<ColText> separator, CR<T> container) {
     ColStream out;
     bool      first = true;
     for (const auto& item : container) {
-        if (!first) {
-            out << separator;
-        }
+        if (!first) { out << separator; }
         first = false;
         out << item;
     }

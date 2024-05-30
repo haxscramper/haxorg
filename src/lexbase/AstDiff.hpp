@@ -100,7 +100,8 @@ enum class ChangeKind
     Delete, ///< (Src): delete node Src.
     Update, ///< (Src, Dst): update the value of node Src to match Dst.
     Insert, ///< (Src, Dst, Pos): insert Src as child of Dst at offset Pos.
-    Move, ///< (Src, Dst, Pos): move Src to be a child of Dst at offset Pos.
+    Move,   ///< (Src, Dst, Pos): move Src to be a child of Dst at offset
+            ///< Pos.
     UpdateMove ///< Same as Move plus Update.
 };
 
@@ -307,9 +308,7 @@ class SyntaxTree {
     /// \brief Iterate over all node IDs that are present in the syntax
     /// tree
     generator<NodeId> nodeIds() {
-        for (int i = 0; i < Nodes.size(); ++i) {
-            co_yield NodeId(i);
-        }
+        for (int i = 0; i < Nodes.size(); ++i) { co_yield NodeId(i); }
     }
 
     /// \brief Check if the node ID falls in a range of nodes that is
@@ -357,9 +356,7 @@ class SyntaxTree {
     ) const {
         Vec<NodeId> result;
 
-        if (withSelf) {
-            result.push_back(id);
-        }
+        if (withSelf) { result.push_back(id); }
 
         NodeId parent = getParent(id);
         while (parent.isValid()) {
@@ -400,15 +397,11 @@ class SyntaxTree {
 
     int findPositionInParent(NodeId id, bool Shifted = false) const {
         NodeId Parent = getNode(id).Parent;
-        if (Parent.isInvalid()) {
-            return 0;
-        }
+        if (Parent.isInvalid()) { return 0; }
         const auto& Siblings = getNode(Parent).Subnodes;
         int         Position = 0;
         for (int I = 0, E = Siblings.size(); I < E; ++I) {
-            if (Shifted) {
-                Position += getNode(Siblings[I]).Shift;
-            }
+            if (Shifted) { Position += getNode(Siblings[I]).Shift; }
             if (Siblings[I] == id) {
                 Position += I;
                 return Position;
@@ -634,9 +627,7 @@ class ASTDiff {
     /// \brief Returns the ID of the node that is mapped to the given node
     /// in SourceTree.
     NodeId getMapped(const SyntaxTree<Id, Val>& Tree, NodeId id) const {
-        if (&Tree == &src) {
-            return TheMapping.getDst(id);
-        }
+        if (&Tree == &src) { return TheMapping.getDst(id); }
         assert(&Tree == &dst && "Invalid tree.");
         return TheMapping.getSrc(id);
     }
@@ -732,9 +723,7 @@ struct PreorderVisitor {
             N.RightMostDescendant >= 0
             && N.RightMostDescendant < Tree.getSize()
             && "Rightmost descendant must be a valid tree node.");
-        if (N.isLeaf()) {
-            Tree.Leaves.push_back(MyId);
-        }
+        if (N.isLeaf()) { Tree.Leaves.push_back(MyId); }
         N.Height = 1;
         for (NodeId Subnode : N.Subnodes) {
             N.Height = std::max(
@@ -772,9 +761,7 @@ static Vec<NodeId> getSubtreePostorder(
     Vec<NodeId>        Postorder;
     Func<void(NodeId)> Traverse = [&](NodeId id) {
         const Node<Id, Val>& N = Tree.getNode(id);
-        for (NodeId Subnode : N.Subnodes) {
-            Traverse(Subnode);
-        }
+        for (NodeId Subnode : N.Subnodes) { Traverse(Subnode); }
         Postorder.push_back(id);
     };
     Traverse(Root);
@@ -882,9 +869,7 @@ class Subtree {
         int                     K = Leaves - 1;
         for (SubNodeId I(getSize()); I > 0; --I) {
             SubNodeId LeftDesc = getLeftMostDescendant(I);
-            if (0 < Visited.count(LeftDesc)) {
-                continue;
-            }
+            if (0 < Visited.count(LeftDesc)) { continue; }
             assert(K >= 0 && "K should be non-negative");
             KeyRoots[K] = I;
             Visited.insert(LeftDesc);
@@ -937,9 +922,7 @@ class ZhangShashaMatcher {
             SubNodeId LastRow, LastCol, FirstRow, FirstCol, Row, Col;
             std::tie(LastRow, LastCol) = TreePairs.back();
             TreePairs.pop_back();
-            if (!RootNodePair) {
-                computeForestDist(LastRow, LastCol);
-            }
+            if (!RootNodePair) { computeForestDist(LastRow, LastCol); }
 
             RootNodePair = false;
             FirstRow     = S1.getLeftMostDescendant(LastRow);
@@ -1094,9 +1077,7 @@ class PriorityList {
     Vec<NodeId> pop() {
         int         Max = peekMax();
         Vec<NodeId> Result;
-        if (Max == 0) {
-            return Result;
-        }
+        if (Max == 0) { return Result; }
         while (peekMax() == Max) {
             Result.push_back(List.top());
             List.pop();
@@ -1108,17 +1089,13 @@ class PriorityList {
 
 
     int peekMax() const {
-        if (List.empty()) {
-            return 0;
-        }
+        if (List.empty()) { return 0; }
         return Tree.getNode(List.top()).Height;
     }
 
     /// \brief add all subnodes in the input list
     void open(NodeId id) {
-        for (NodeId Subnode : Tree.getNode(id).Subnodes) {
-            push(Subnode);
-        }
+        for (NodeId Subnode : Tree.getNode(id).Subnodes) { push(Subnode); }
     }
 };
 
@@ -1133,9 +1110,7 @@ bool ASTDiff<Id, Val>::identical(NodeId Id1, NodeId Id2) const {
         return false;
     }
     for (size_t id = 0, E = N1.Subnodes.size(); id < E; ++id) {
-        if (!identical(N1.Subnodes[id], N2.Subnodes[id])) {
-            return false;
-        }
+        if (!identical(N1.Subnodes[id], N2.Subnodes[id])) { return false; }
     }
     return true;
 }
@@ -1158,9 +1133,7 @@ void ASTDiff<Id, Val>::addOptimalMapping(
     for (const auto& Tuple : R) {
         NodeId Src = Tuple.first;
         NodeId Dst = Tuple.second;
-        if (!M.hasSrc(Src) && !M.hasDst(Dst)) {
-            M.link(Src, Dst);
-        }
+        if (!M.hasSrc(Src) && !M.hasDst(Dst)) { M.link(Src, Dst); }
     }
 }
 
@@ -1184,9 +1157,7 @@ double ASTDiff<Id, Val>::getJaccardSimilarity(
                        - CommonDescendants;
     // CommonDescendants is less than the size of one subtree.
     assert(Denominator >= 0 && "Expected non-negative denominator.");
-    if (Denominator == 0) {
-        return 0;
-    }
+    if (Denominator == 0) { return 0; }
     return CommonDescendants / Denominator;
 }
 
@@ -1197,12 +1168,8 @@ NodeId ASTDiff<Id, Val>::findCandidate(const Mapping& M, NodeId Id1)
     NodeId Candidate;
     double HighestSimilarity = 0.0;
     for (NodeId const& Id2 : dst) {
-        if (!isMatchingPossible(Id1, Id2)) {
-            continue;
-        }
-        if (M.hasDst(Id2)) {
-            continue;
-        }
+        if (!isMatchingPossible(Id1, Id2)) { continue; }
+        if (M.hasDst(Id2)) { continue; }
         double Similarity = getJaccardSimilarity(M, Id1, Id2);
         if (Similarity >= Options.MinSimilarity
             && Similarity > HighestSimilarity) {
@@ -1240,9 +1207,7 @@ void ASTDiff<Id, Val>::matchBottomUp(Mapping& M) const {
 
         //  if it is a valid candidate and matches criteria for
         // minimum number of shares subnodes
-        if (Matched || !MatchedSubnodes) {
-            continue;
-        }
+        if (Matched || !MatchedSubnodes) { continue; }
         NodeId Id2 = findCandidate(M, Id1);
         if (Id2.isValid()) {
             // add node to mapping
@@ -1268,13 +1233,9 @@ Mapping ASTDiff<Id, Val>::matchTopDown() const {
         // if two top subtrees don't have equal height
         if (Max1 > Max2) {
             // insert all nodes from tallest subforest
-            for (NodeId const& id : L1.pop()) {
-                L1.open(id);
-            }
+            for (NodeId const& id : L1.pop()) { L1.open(id); }
         } else if (Max2 > Max1) {
-            for (NodeId const& id : L2.pop()) {
-                L2.open(id);
-            }
+            for (NodeId const& id : L2.pop()) { L2.open(id); }
         } else {
             // otherwise get two subforest of equal height
             Vec<NodeId> H1, H2;
@@ -1309,9 +1270,7 @@ Mapping ASTDiff<Id, Val>::matchTopDown() const {
             }
             for (NodeId const& Id2 : H2) {
                 // do the same for other forest
-                if (!M.hasDst(Id2)) {
-                    L2.open(Id2);
-                }
+                if (!M.hasDst(Id2)) { L2.open(Id2); }
             }
         }
     }
@@ -1357,9 +1316,7 @@ void ASTDiff<Id, Val>::computeChangeKinds(Mapping& M) {
     }
     for (NodeId const& Id1 : src.NodesBfs) {
         NodeId Id2 = M.getDst(Id1);
-        if (Id2.isInvalid()) {
-            continue;
-        }
+        if (Id2.isInvalid()) { continue; }
         if (!haveSameParents(M, Id1, Id2)
             || src.findPositionInParent(Id1, true)
                    != dst.findPositionInParent(Id2, true)) {
@@ -1369,14 +1326,10 @@ void ASTDiff<Id, Val>::computeChangeKinds(Mapping& M) {
     }
     for (NodeId const& Id2 : dst.NodesBfs) {
         NodeId Id1 = M.getSrc(Id2);
-        if (Id1.isInvalid()) {
-            continue;
-        }
+        if (Id1.isInvalid()) { continue; }
         Node<Id, Val>& N1 = src.getMutableNode(Id1);
         Node<Id, Val>& N2 = dst.getMutableNode(Id2);
-        if (Id1.isInvalid()) {
-            continue;
-        }
+        if (Id1.isInvalid()) { continue; }
         if (!haveSameParents(M, Id1, Id2)
             || src.findPositionInParent(Id1, true)
                    != dst.findPositionInParent(Id2, true)) {
@@ -1423,6 +1376,7 @@ static void printDstChange(
         }
         case ChangeKind::Delete: {
             assert(false && "The destination tree can't have deletions.");
+            break;
         }
         case ChangeKind::Update: {
             OS << "Update ";
@@ -1430,8 +1384,8 @@ static void printDstChange(
             OS << " to " << ValoStr(DstTree.getNodeValue(Dst));
             break;
         }
-        case ChangeKind::Insert:
-        case ChangeKind::Move:
+        case ChangeKind::Insert: [[fallthrough]];
+        case ChangeKind::Move: [[fallthrough]];
         case ChangeKind::UpdateMove: {
             if (DstNode.Change == ChangeKind::Insert) {
                 OS << "Insert";

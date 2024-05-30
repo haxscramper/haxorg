@@ -1,5 +1,5 @@
-#include "org_document_render.hpp"
-#include "org_exporter_html.hpp"
+#include <editor/editor_lib/document/org_document_render.hpp>
+#include <editor/editor_lib/store/org_exporter_html.hpp>
 #include <QLabel>
 #include <QPainter>
 
@@ -18,12 +18,18 @@ SPtr<QWidget> make_label(sem::OrgArg node) {
     return make_label(exp.store.toString(html_tree));
 }
 
-QSize get_width_fit(QWidget* widget, const QObject* parent) {
+
+QSize get_width_fit(QWidget* widget, int width) {
     Q_ASSERT(widget);
-    widget->setFixedWidth(qobject_cast<QWidget const*>(parent)->width());
+    widget->setFixedWidth(width);
     QSize size = widget->sizeHint();
     widget->deleteLater();
     return size;
+}
+
+QSize get_width_fit(QWidget* widget, const QObject* parent) {
+    return get_width_fit(
+        widget, qobject_cast<QWidget const*>(parent)->width());
 }
 
 void draw(

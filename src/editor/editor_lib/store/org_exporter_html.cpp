@@ -37,3 +37,22 @@ void ExporterHtml::visitSubtree(Res& res, In<sem::Subtree> tree) {
         string("</section>"),
     });
 }
+
+void ExporterHtml::visitLink(Res& res, In<sem::Link> link) {
+    if (link->description) {
+        res = eval(link->description.value());
+    } else {
+        switch (link->getLinkKind()) {
+            case sem::Link::Kind::Footnote: {
+                res = lineWrap(
+                    "sup",
+                    {string(
+                        "["_ss + link->getFootnote().target + "]"_ss)});
+                break;
+            }
+            default: {
+                res = string("");
+            }
+        }
+    }
+}

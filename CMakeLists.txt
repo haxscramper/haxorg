@@ -81,6 +81,8 @@ target_include_directories(immer_lib INTERFACE "${DEPS_DIR}/immer")
 add_library(lager_lib INTERFACE)
 target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 
+set(SQLITECPP_RUN_CPPLINT OFF)
+
 add_subdirectory("${DEPS_DIR}/pybind11")
 
 add_subdirectory("${DEPS_DIR}/abseil-cpp")

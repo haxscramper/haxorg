@@ -40,7 +40,6 @@ inline std::string demangle(const char* name) { return name; }
 #endif
 
 
-
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
 inline std::string escape_literal(std::string const& in) {
@@ -66,9 +65,7 @@ std::string join(std::string const& sep, Iterable const& list) {
     std::string os;
     int         index = 0;
     for (const auto& it : list) {
-        if (0 < index) {
-            os += sep;
-        }
+        if (0 < index) { os += sep; }
         os += std::format("{}", it);
         ++index;
     }
@@ -98,4 +95,3 @@ struct is_formattable<
 
 template <typename T>
 concept StdFormattable = is_formattable<T>::value;
-

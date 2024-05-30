@@ -62,9 +62,7 @@ struct generator {
     generator(generator const&) = delete;
     generator(generator&& rhs) : p(rhs.p) { rhs.p = nullptr; }
     ~generator() {
-        if (p) {
-            p.destroy();
-        }
+        if (p) { p.destroy(); }
     }
 
   private:

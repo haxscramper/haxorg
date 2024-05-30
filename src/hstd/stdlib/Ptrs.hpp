@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <hstd/system/aux_utils.hpp>
+#include <hstd/system/Formatter.hpp>
 
 template <typename T>
 using UPtr = std::unique_ptr<T>;
@@ -51,3 +52,27 @@ struct remove_smart_pointer<std::weak_ptr<T>> {
 };
 
 extern template class std::unique_ptr<char, void (*)(void*)>;
+
+template <typename T>
+struct std::formatter<SPtr<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const SPtr<T>& p, FormatContext& ctx) const {
+        if (p.get() == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            return fmt_ctx(p.get(), ctx);
+        }
+    }
+};
+
+template <typename T>
+struct std::formatter<UPtr<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const UPtr<T>& p, FormatContext& ctx) const {
+        if (p.get() == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            return fmt_ctx(p.get(), ctx);
+        }
+    }
+};

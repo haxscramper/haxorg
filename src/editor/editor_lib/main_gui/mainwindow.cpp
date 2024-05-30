@@ -1,5 +1,5 @@
-#include <editor/editor_lib/mainwindow.hpp>
-#include <editor/editor_lib/org_document_outline.hpp>
+#include <editor/editor_lib/main_gui/mainwindow.hpp>
+#include <editor/editor_lib/document/org_document_outline.hpp>
 #include <QSplitter>
 
 void MainWindow::loadFiles() {
@@ -8,8 +8,8 @@ void MainWindow::loadFiles() {
             store.get());
         model->loadFile(file.path.toBase());
         models.emplace_back(model);
-        qInfo(editor_files) << std::format(
-            "Loded initial document from {}", file.path);
+        qInfo(editor_files)
+            << std::format("Loded initial document from {}", file.path);
     }
 
     for (auto const& [idx, model] : enumerate(models)) {

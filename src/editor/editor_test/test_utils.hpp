@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QtTest>
-#include <editor/editor_lib/mainwindow.hpp>
-#include <editor/editor_lib/app_init.hpp>
-#include <editor/editor_lib/app_utils.hpp>
+#include <editor/editor_lib/main_gui/mainwindow.hpp>
+#include <editor/editor_lib/common/app_init.hpp>
+#include <editor/editor_lib/common/app_utils.hpp>
 #include <exporters/ExporterUltraplain.hpp>
 #include <sem/SemOrgFormat.hpp>
 #include <exporters/exportertree.hpp>
@@ -11,8 +11,7 @@
 
 using osk = OrgSemKind;
 
-
-inline Vec<OrgBoxId> dfs_boxes(OrgDocumentModel::TreeNode const* node) {
+inline Vec<OrgBoxId> dfs_boxes(OrgTreeNode const* node) {
     Vec<OrgBoxId> result{node->boxId};
     for (auto const& sub : node->subnodes) {
         result.append(dfs_boxes(sub.get()));
@@ -21,6 +20,7 @@ inline Vec<OrgBoxId> dfs_boxes(OrgDocumentModel::TreeNode const* node) {
     return result;
 }
 
+struct test_error : CRTP_hexception<test_error> {};
 
 inline void trigger_editor_of(
     QAbstractItemView* view,
@@ -66,20 +66,6 @@ inline SPtr<MainWindow> init_window(AppState const& state) {
 }
 
 
-inline void save_screenshot(const QString& filePath) {
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (const QWindow* window = QApplication::focusWindow()) {
-        QPixmap pixmap = screen->grabWindow(window->winId());
-        pixmap.save(filePath);
-    }
-}
-
-inline void save_screenshot(QWidget* widget, const QString& filePath) {
-    QPixmap pixmap = widget->grab();
-    pixmap.save(filePath);
-}
-
-
 inline void add_file(
     AppState&            state,
     QTemporaryDir const& dir,
@@ -94,13 +80,13 @@ inline void add_file(
 inline sem::SemId<sem::Org> node(
     OrgStore*          store,
     QModelIndex const& index) {
-    return store->node(qvariant_cast<OrgBoxId>(index.data()));
+    return store->getBoxedNode(qvariant_cast<OrgBoxId>(index.data()));
 }
 
 inline sem::SemId<sem::Org> node(
-    OrgStore*                         store,
-    OrgDocumentModel::TreeNode const* tree) {
-    return store->node(tree->boxId);
+    OrgStore*          store,
+    OrgTreeNode const* tree) {
+    return store->getBoxedNode(tree->boxId);
 }
 
 inline Str str(sem::OrgArg node) {
@@ -116,13 +102,17 @@ inline Str tree_repr(sem::OrgArg node) {
 inline void debug_tree(
     QAbstractItemModel const* model,
     OrgStore const*           store,
-    CR<QModelIndex>           index = QModelIndex()) {
+    CR<QModelIndex>           index    = QModelIndex(),
+    int                       line     = __builtin_LINE(),
+    char const*               function = __builtin_FUNCTION(),
+    char const*               file     = __builtin_FILE()) {
     qDebug().noquote().nospace()
-        << "\n"
+        << fmt("{}:{} {}", file, line, function) << "\n"
         << printModelTree(
                model,
                index.isValid() ? index : model->index(0, 0),
-               store_index_printer(store));
+               store_index_printer(store))
+               .toString(false);
 }
 
 inline Str getSubtree(int treeLevel, CR<Str> name) {
@@ -135,6 +125,19 @@ struct TestApiAccessor {
     SPtr<MainWindow> window;
     OrgDocumentEdit* edit;
 
+    void debug(
+        CR<QModelIndex> index    = QModelIndex(),
+        int             line     = __builtin_LINE(),
+        char const*     function = __builtin_FUNCTION(),
+        char const*     file     = __builtin_FILE()) {
+        ::debug_tree(
+            edit->model(),
+            edit->docModel->store,
+            index,
+            line,
+            function,
+            file);
+    }
 
     sem::SemId<sem::Org> getNode() const {
         return edit->docModel->toNode();
@@ -143,8 +146,9 @@ struct TestApiAccessor {
     sem::SemId<sem::Org> getNode(CVec<int> path) const {
         auto index = getIndex(path);
         auto t     = edit->docModel->tree(index);
-        Q_ASSERT(t != nullptr);
-        return t->toNode(edit->docModel->store);
+        Q_ASSERT_X(
+            t != nullptr, "getNode", fmt("path:{} index:{}", path, index));
+        return t->toNode();
     };
 
     template <typename T>
@@ -157,7 +161,16 @@ struct TestApiAccessor {
 
     /// Get nested node from the editor by traversing full path
     QModelIndex getIndex(CVec<int> path) const {
-        return ::index(edit->model(), path);
+        auto res = ::getAtQModelPath(edit->model(), path);
+        Q_ASSERT_X(
+            res.isValid(), "getIndex", fmt("path:{} index:{}", path, res));
+        return res;
+    }
+
+    OrgBoxId id(CVec<int> path) const { return tree(path)->id(); }
+
+    OrgTreeNode* tree(CVec<int> path) const {
+        return edit->docModel->root->at(path);
     }
 
     Str str(sem::OrgArg node) const {
@@ -226,70 +239,13 @@ struct TestDocumentModel {
         };
     }
 
-    void compare(TestApiAccessor const& api, CR<TestDocumentNode> node) {
-        Func<void(CVec<int>, CR<TestDocumentNode>)> aux_compare;
-        using K     = TestDocumentNode::Kind;
-        aux_compare = [&](CVec<int> path, CR<TestDocumentNode> node) {
-            switch (node.kind) {
-                case K::Subtree: {
-                    sem::SemId<sem::Subtree>
-                                tree  = api.getNodeT<sem::Subtree>(path);
-                    QModelIndex index = api.getIndex(path);
-                    QCOMPARE_EQ(tree->level, path.size() - 1);
-                    QCOMPARE_EQ(api.str(tree->title), node.text);
-                    QCOMPARE_EQ(
-                        api.edit->model()->rowCount(index),
-                        node.subnodes.size());
-                    break;
-                }
-                case K::Paragraph: {
-                    sem::SemId<sem::Paragraph>
-                        par = api.getNodeT<sem::Paragraph>(path);
-                    break;
-                }
-                case K::Document: {
-                    sem::SemId<sem::Document>
-                        par = api.getNodeT<sem::Document>(path);
-                    break;
-                }
-            }
-
-            for (auto const& it : enumerator(node.subnodes)) {
-                aux_compare(path + Vec<int>{it.index()}, it.value());
-            }
-        };
-
-        aux_compare(Vec<int>{0}, node);
-
-        Func<void(Str&, CR<TestDocumentNode>, int)> aux_format;
-        aux_format = [&](Str& res, CR<TestDocumentNode> node, int level) {
-            switch (node.kind) {
-                case K::Subtree: {
-                    res += Str("*").repeated(level);
-                    res += " ";
-                    res += node.text.value();
-                    if (!node.subnodes.empty()) { res += "\n"; }
-                    break;
-                }
-                case K::Paragraph: {
-                    res += node.text.value();
-                    break;
-                }
-                default: {
-                }
-            }
-
-            for (auto const& it : enumerator(node.subnodes)) {
-                if (!it.is_first()) { res += "\n"; }
-                if (node.kind == K::Subtree) { res += "\n"; }
-                aux_format(res, it.value(), level + 1);
-            }
-        };
-
-        Str expected_format;
-        aux_format(expected_format, node, 0);
-        QCOMPARE_EQ(api.getFormat(), expected_format);
-    }
+    void compare(TestApiAccessor const& api, CR<TestDocumentNode> node);
+    void compare_structure(
+        TestApiAccessor const& api,
+        CR<TestDocumentNode>   node);
+    void compare_format(
+        TestApiAccessor const& api,
+        CR<TestDocumentNode>   node);
 };
 
 
@@ -308,6 +264,503 @@ void test_message_handler(
 
 
 struct TestBase {
+    std::unique_ptr<perfetto::TracingSession> tracing;
+
     void init_test_base();
     void cleanup_test_base();
+};
+
+
+class AbstractItemModelSignalListener : public QObject {
+    Q_OBJECT
+
+  public:
+    QAbstractItemModel* model;
+    struct Record {
+        struct DataChanged {
+            QObject const* sender;
+            QModelIndex    topLeft;
+            QModelIndex    bottomRight;
+            QList<int>     roles;
+            DESC_FIELDS(
+                DataChanged,
+                (sender, topLeft, bottomRight, roles));
+        };
+
+        struct HeaderDataChanged {
+            QObject const*  sender;
+            Qt::Orientation orientation;
+            int             first;
+            int             last;
+            DESC_FIELDS(
+                HeaderDataChanged,
+                (sender, orientation, first, last));
+        };
+
+        struct LayoutChanged {
+            QObject const*                       sender;
+            QList<QPersistentModelIndex>         parents;
+            QAbstractItemModel::LayoutChangeHint hint;
+            DESC_FIELDS(LayoutChanged, (sender, parents, hint));
+        };
+
+        struct LayoutAboutToBeChanged {
+            QObject const*                       sender;
+            QList<QPersistentModelIndex>         parents;
+            QAbstractItemModel::LayoutChangeHint hint;
+            DESC_FIELDS(LayoutAboutToBeChanged, (sender, parents, hint));
+        };
+
+        struct RowsAboutToBeInserted {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                RowsAboutToBeInserted,
+                (sender, parent, first, last));
+        };
+
+        struct RowsInserted {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(RowsInserted, (sender, parent, first, last));
+        };
+
+        struct RowsAboutToBeRemoved {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                RowsAboutToBeRemoved,
+                (sender, parent, first, last));
+        };
+
+        struct RowsRemoved {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(RowsRemoved, (sender, parent, first, last));
+        };
+
+        struct ColumnsAboutToBeInserted {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                ColumnsAboutToBeInserted,
+                (sender, parent, first, last));
+        };
+
+        struct ColumnsInserted {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(ColumnsInserted, (sender, parent, first, last));
+        };
+
+        struct ColumnsAboutToBeRemoved {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(
+                ColumnsAboutToBeRemoved,
+                (sender, parent, first, last));
+        };
+
+        struct ColumnsRemoved {
+            QObject const* sender;
+            QModelIndex    parent;
+            int            first;
+            int            last;
+            DESC_FIELDS(ColumnsRemoved, (sender, parent, first, last));
+        };
+
+        struct ModelAboutToBeReset {
+            QObject const* sender;
+            DESC_FIELDS(ModelAboutToBeReset, (sender));
+        };
+
+        struct ModelReset {
+            QObject const* sender;
+            DESC_FIELDS(ModelReset, (sender));
+        };
+
+        struct RowsAboutToBeMoved {
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationRow;
+            DESC_FIELDS(
+                RowsAboutToBeMoved,
+                (sender,
+                 sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationRow));
+        };
+
+        struct RowsMoved {
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationRow;
+            DESC_FIELDS(
+                RowsMoved,
+                (sender,
+                 sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationRow));
+        };
+
+        struct ColumnsAboutToBeMoved {
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationColumn;
+            DESC_FIELDS(
+                ColumnsAboutToBeMoved,
+                (sender,
+                 sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationColumn));
+        };
+
+        struct ColumnsMoved {
+            QObject const* sender;
+            QModelIndex    sourceParent;
+            int            sourceStart;
+            int            sourceEnd;
+            QModelIndex    destinationParent;
+            int            destinationColumn;
+            DESC_FIELDS(
+                ColumnsMoved,
+                (sender,
+                 sourceParent,
+                 sourceStart,
+                 sourceEnd,
+                 destinationParent,
+                 destinationColumn));
+        };
+
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            DataChanged,
+            HeaderDataChanged,
+            LayoutChanged,
+            LayoutAboutToBeChanged,
+            RowsAboutToBeInserted,
+            RowsInserted,
+            RowsAboutToBeRemoved,
+            RowsRemoved,
+            ColumnsAboutToBeInserted,
+            ColumnsInserted,
+            ColumnsAboutToBeRemoved,
+            ColumnsRemoved,
+            ModelAboutToBeReset,
+            ModelReset,
+            RowsAboutToBeMoved,
+            RowsMoved,
+            ColumnsAboutToBeMoved,
+            ColumnsMoved);
+
+        Data data;
+        DESC_FIELDS(Record, (data));
+
+        std::string toString() const;
+    };
+
+    template <typename T>
+    Vec<T> getRecordsT() const {
+        Vec<T> result;
+        for (auto const& it : records) {
+            if (std::holds_alternative<T>(it.data)) {
+                result.push_back(std::get<T>(it.data));
+            }
+        }
+
+        return result;
+    }
+
+    template <typename T>
+    int countT() const {
+        return getRecordsT<T>().size();
+    }
+
+    int count(Record::Kind kind) {
+        int result = 0;
+        for (auto const& it : records) {
+            if (it.getKind() == kind) { ++result; }
+        }
+
+        return result;
+    }
+
+    int indexOf(Record::Kind kind) {
+        int result = -1;
+        for (auto const& it : enumerator(records)) {
+            if (it.value().getKind() == kind) { return it.index(); }
+        }
+        return result;
+    }
+
+    template <typename T>
+    Vec<T> popRecordsT() {
+        Vec<T> result = getRecordsT<T>();
+
+        records       //
+            = records //
+            | rv::remove_if([](CR<Record> it) -> bool {
+                  return std::holds_alternative<T>(it.data);
+              })
+            | rs::to<Vec>();
+
+        return result;
+    }
+
+    void clear() { records.clear(); }
+
+    void debug() {
+        for (auto const& q : records) { _qfmt("-> {}", q.toString()); }
+    }
+
+    AbstractItemModelSignalListener(QAbstractItemModel* model);
+
+    Vec<Record> records;
+    bool        printOnTrigger = false;
+
+    void addRecord(CR<Record> record);
+
+    void assertEq(CR<AbstractItemModelSignalListener> other);
+
+  private slots:
+    void onDataChanged(
+        const QModelIndex& topLeft,
+        const QModelIndex& bottomRight,
+        const QList<int>&  roles) {
+        addRecord({Record::DataChanged{
+            .sender      = sender(),
+            .topLeft     = topLeft,
+            .bottomRight = bottomRight,
+            .roles       = roles,
+        }});
+    }
+
+    void onHeaderDataChanged(
+        Qt::Orientation orientation,
+        int             first,
+        int             last) {
+        addRecord({Record::HeaderDataChanged{
+            .sender      = sender(),
+            .orientation = orientation,
+            .first       = first,
+            .last        = last,
+        }});
+    }
+
+    void onLayoutChanged(
+        const QList<QPersistentModelIndex>&  parents,
+        QAbstractItemModel::LayoutChangeHint hint) {
+        addRecord({Record::LayoutChanged{
+            .sender  = sender(),
+            .parents = parents,
+            .hint    = hint,
+        }});
+    }
+
+    void onLayoutAboutToBeChanged(
+        const QList<QPersistentModelIndex>&  parents,
+        QAbstractItemModel::LayoutChangeHint hint) {
+        addRecord({Record::LayoutAboutToBeChanged{
+            .sender  = sender(),
+            .parents = parents,
+            .hint    = hint,
+        }});
+    }
+
+    void onRowsAboutToBeInserted(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        addRecord({Record::RowsAboutToBeInserted{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onRowsInserted(const QModelIndex& parent, int first, int last) {
+        addRecord({Record::RowsInserted{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onRowsAboutToBeRemoved(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        addRecord({Record::RowsAboutToBeRemoved{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onRowsRemoved(const QModelIndex& parent, int first, int last) {
+        addRecord({Record::RowsRemoved{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsAboutToBeInserted(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        addRecord({Record::ColumnsAboutToBeInserted{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsInserted(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        addRecord({Record::ColumnsInserted{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsAboutToBeRemoved(
+        const QModelIndex& parent,
+        int                first,
+        int                last) {
+        addRecord({Record::ColumnsAboutToBeRemoved{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onColumnsRemoved(const QModelIndex& parent, int first, int last) {
+        addRecord({Record::ColumnsRemoved{
+            .sender = sender(),
+            .parent = parent,
+            .first  = first,
+            .last   = last,
+        }});
+    }
+
+    void onModelAboutToBeReset() {
+        addRecord({Record::ModelAboutToBeReset{
+            .sender = sender(),
+        }});
+    }
+
+    void onModelReset() {
+        addRecord({Record::ModelReset{
+            .sender = sender(),
+        }});
+    }
+
+
+    void onRowsAboutToBeMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationRow) {
+        addRecord({Record::RowsAboutToBeMoved{
+            .sender            = sender(),
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationRow    = destinationRow,
+        }});
+    }
+
+    void onRowsMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationRow) {
+        addRecord({Record::RowsMoved{
+            .sender            = sender(),
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationRow    = destinationRow,
+        }});
+    }
+
+    void onColumnsAboutToBeMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationColumn) {
+        addRecord({Record::ColumnsAboutToBeMoved{
+            .sender            = sender(),
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationColumn = destinationColumn,
+        }});
+    }
+
+    void onColumnsMoved(
+        const QModelIndex& sourceParent,
+        int                sourceStart,
+        int                sourceEnd,
+        const QModelIndex& destinationParent,
+        int                destinationColumn) {
+        addRecord({Record::ColumnsMoved{
+            .sender            = sender(),
+            .sourceParent      = sourceParent,
+            .sourceStart       = sourceStart,
+            .sourceEnd         = sourceEnd,
+            .destinationParent = destinationParent,
+            .destinationColumn = destinationColumn,
+        }});
+    }
 };

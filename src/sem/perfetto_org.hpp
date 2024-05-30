@@ -8,4 +8,3 @@ PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("parsing").SetDescription("Parsing"),
     perfetto::Category("cli").SetDescription("CLI"),
     perfetto::Category("convert").SetDescription("Convert"));
-

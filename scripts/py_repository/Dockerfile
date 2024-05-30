@@ -44,3 +44,7 @@ RUN wget -q "https://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz"
 RUN tar xzf ncurses-5.9.tar.gz
 RUN cd ncurses-5.9 && export CPPFLAGS="-P" && ./configure --with-shared --prefix=/usr/local --without-cxx --without-cxx-binding && make && make install
 RUN ln -sf /usr/local/lib/libncurses.so.5 /usr/lib/libtinfo.so.5 
+
+RUN apt-get install -y libcairomm-1.0-dev
+RUN apt-get install -y jq
+RUN apt-get install -y build-essential autoconf automake libtool pkg-config

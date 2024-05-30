@@ -15,7 +15,7 @@
 #include <type_traits>
 
 template <typename T>
-concept IsEnum = std::is_enum<T>::value;    
+concept IsEnum = std::is_enum<T>::value;
 
 template <typename T>
 concept IsRecord = std::is_class<T>::value;
@@ -33,7 +33,9 @@ concept DescribedRecord = boost::describe::has_describe_members<
 
 namespace boost::describe {
 
-[[noreturn]] inline void throw_invalid_name(char const* name, char const* type) {
+[[noreturn]] inline void throw_invalid_name(
+    char const* name,
+    char const* type) {
     throw std::runtime_error(
         (std::string("Invalid enumerator name '") + name
          + "' for enum type '" + type + "'"));
@@ -148,9 +150,7 @@ template <class E>
 std::vector<std::string> enumerator_names() {
     auto                     tmp = ::describe_enumerators<E>();
     std::vector<std::string> result;
-    for (const auto& it : tmp) {
-        result.push_back(it.name);
-    }
+    for (const auto& it : tmp) { result.push_back(it.name); }
     return result;
 }
 
@@ -166,9 +166,7 @@ struct value_domain<E> {
 
     static inline long long int ord(E const& value) {
         for (int i = 0; i < sizeof(D) / sizeof(E); i++) {
-            if (D[i] == value) {
-                return i;
-            }
+            if (D[i] == value) { return i; }
         }
         return -1;
     }
@@ -189,9 +187,7 @@ std::string described_class_printer(T const& t) {
     bool first = true;
 
     boost::mp11::mp_for_each<Bd>([&](auto D) {
-        if (!first) {
-            result += ", ";
-        }
+        if (!first) { result += ", "; }
         first = false;
 
         using B = typename decltype(D)::type;
@@ -199,9 +195,7 @@ std::string described_class_printer(T const& t) {
     });
 
     boost::mp11::mp_for_each<Md>([&](auto D) {
-        if (!first) {
-            result += ", ";
-        }
+        if (!first) { result += ", "; }
         first = false;
 
         result += std::format(".{} = {}", D.name, t.*D.pointer);

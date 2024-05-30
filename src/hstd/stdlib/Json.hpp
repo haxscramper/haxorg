@@ -2,7 +2,6 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-#include <sstream>
 #include <memory>
 
 #include <hstd/stdlib/Str.hpp>
@@ -17,6 +16,20 @@ namespace ns = nlohmann;
 
 extern template class nlohmann::basic_json<>;
 
+template <typename T>
+json to_json_eval(T const& value) {
+    json result;
+    to_json(result, value);
+    return result;
+}
+
+template <typename T>
+T from_json_eval(json const& value) {
+    T result = SerdeDefaultProvider<T>::get();
+    from_json(value, result);
+    return result;
+}
+
 void to_json(json& j, int i);
 void to_json(json& j, CR<std::string> str);
 void to_json(json& j, CR<Str> str);
@@ -25,9 +38,9 @@ void from_json(const json& in, int& out);
 void from_json(const json& in, bool& out);
 
 struct JsonFormatOptions {
-    int  width       = 80;
-    int  indent      = 2;
-    int  startIndent = 0;
+    int width       = 80;
+    int indent      = 2;
+    int startIndent = 0;
 };
 
 std::string to_compact_json(
@@ -37,15 +50,20 @@ std::string to_compact_json(
 template <typename T>
 concept DescribedMembers = boost::describe::has_describe_members<T>::value;
 
-
-template <typename T>
-inline void to_json(json& res, CR<Opt<T>> str);
-
 template <typename T>
 inline void to_json(json& res, CR<Vec<T>> str);
 
 template <typename T>
 inline void to_json(json& res, std::unique_ptr<T> const& value);
+
+template <typename T>
+inline void to_json(json& res, std::shared_ptr<T> const& value) {
+    if (value) {
+        to_json(res, *value);
+    } else {
+        res = json();
+    }
+}
 
 template <DescribedEnum E>
 void from_json(json const& j, E& str) {
@@ -115,6 +133,7 @@ void from_json(const json& in, Vec<T>& out) {
 
 template <typename T>
 inline void to_json(json& res, CR<Vec<T>> str) {
+    res = json::array();
     for (const auto& it : str) {
         json tmp;
         to_json(tmp, it);
@@ -124,6 +143,7 @@ inline void to_json(json& res, CR<Vec<T>> str) {
 
 template <typename T>
 inline void to_json(json& res, CR<std::vector<T>> str) {
+    res = json::array();
     for (const auto& it : str) {
         json tmp;
         to_json(tmp, it);
@@ -131,6 +151,7 @@ inline void to_json(json& res, CR<std::vector<T>> str) {
     }
 }
 
+namespace std {
 template <typename T>
 inline void to_json(json& res, CR<Opt<T>> str) {
     if (str.has_value()) {
@@ -139,6 +160,7 @@ inline void to_json(json& res, CR<Opt<T>> str) {
         res = json();
     }
 }
+} // namespace std
 
 template <typename T>
 inline void to_json(json& res, std::unique_ptr<T> const& value) {
@@ -148,3 +170,5 @@ inline void to_json(json& res, std::unique_ptr<T> const& value) {
         res = json();
     }
 }
+
+void filterFields(json& j, const std::vector<std::string>& fieldsToRemove);

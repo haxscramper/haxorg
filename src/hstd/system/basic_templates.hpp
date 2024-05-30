@@ -83,9 +83,7 @@ template <std::integral T, std::integral Other>
 T saturating_add(T value, Other change) {
     T res = value + change;
     // Can only happen due to overflow
-    if (res < value) {
-        res = value_domain<T>::high();
-    }
+    if (res < value) { res = value_domain<T>::high(); }
     return res;
 }
 
@@ -93,9 +91,7 @@ template <std::integral T, std::integral Other>
 T saturating_sub(T value, Other change) {
     T res = value - change;
     // Can only happen due to overflow
-    if (value < res) {
-        res = value_domain<T>::low();
-    }
+    if (value < res) { res = value_domain<T>::low(); }
     return res;
 }
 

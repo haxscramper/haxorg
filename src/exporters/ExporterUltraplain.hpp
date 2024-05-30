@@ -13,10 +13,15 @@ struct ExporterUltraplain
     template <sem::NotOrg T>
     void visit(std::string& res, CR<T> value) {}
 
+    template <sem::IsOrg T>
+    void visit(std::string& res, T const& arg) {
+        visitDispatch(res, arg.asOrg());
+    }
+
     void visitTimeRange(std::string& res, In<sem::TimeRange> range) {
-        visit(res, range->from);
+        visitTime(res, range->from);
         res += "--";
-        visit(res, range->to);
+        visitTime(res, range->to);
     }
 
     void visitSubtree(std::string& res, In<sem::Subtree> tree);
