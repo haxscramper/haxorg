@@ -37,6 +37,12 @@ Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second 
 - ⬜ Automatic wrapper of the C++ API to C
 - ⬜ Machine-readable description of the C API
 
+
+** WIP 🚧 Qt/C++ Editor
+
+- 🚧 Edit text documents with a fusion of WYSIWYG and text-based approach, similar to the Jupyter markdown cells
+- 🚧 Data-driven mind map visualization powered by graphviz and [[https://www.adaptagrams.org/][adaptagrams]] automatic graph layout.
+
 * Tools
 
 ** ~haxorg~

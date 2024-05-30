@@ -59,6 +59,7 @@ add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
 
 # qt_policy(SET QTP0003 NEW)
 
+
 qt_standard_project_setup()
 enable_testing(true)
 set(EDITOR_DIR "${BASE}/src/editor")
