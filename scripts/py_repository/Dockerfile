@@ -34,12 +34,7 @@ RUN apt-get install -y mold
 RUN apt-get install -y elfutils libdw-dev
 RUN apt-get install -y libncurses5-dev doxygen graphviz
 RUN apt-get install -y libpcre3 libpcre3-dev libtbb-dev
-# For JS visualization tests -- the main part of the code does not require JS. 
-RUN apt-get install -y nodejs npm
 
-COPY package.json .
-COPY package-lock.json .
-RUN npm install
 RUN wget -q "https://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz"
 RUN tar xzf ncurses-5.9.tar.gz
 RUN cd ncurses-5.9 && export CPPFLAGS="-P" && ./configure --with-shared --prefix=/usr/local --without-cxx --without-cxx-binding && make && make install
