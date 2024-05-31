@@ -1,4 +1,4 @@
-from py_cli.scratch_scripts.mind_map import mind_map
+from py_cli.scratch_scripts import mind_map
 import py_haxorg.pyhaxorg_wrap as org
 from beartype.typing import Any, Dict, Optional, List, Union
 from beartype import beartype
