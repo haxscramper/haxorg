@@ -54,21 +54,6 @@ class SidebarRes():
     total_entries: int
     documented_entries: int
 
-
-@beartype
-def get_doc_ratio(total: int, documented: int) -> tags.b:
-    doc_coverage = tags.b(style="color:{}".format(
-        lerp_html_color(
-            float(documented) / float(total),
-            (1, 0, 0),
-            (0, 1, 0),
-        ) if total != 0 else "yellow"))
-
-    doc_coverage.add(util.text(f"{documented}/{total}"))
-
-    return doc_coverage
-
-
 @beartype
 def generate_tree_sidebar(directory: docdata.DocDirectory,
                           html_out_path: Path) -> SidebarRes:
@@ -80,11 +65,6 @@ def generate_tree_sidebar(directory: docdata.DocDirectory,
         subdir_res = generate_tree_sidebar(subdir, html_out_path)
         link = tags.a(href=docdata.get_html_path(subdir, html_out_path=html_out_path))
         link.add(subdir.RelPath.name)
-        link.add(" ")
-        link.add(get_doc_ratio(
-            subdir_res.total_entries,
-            subdir_res.documented_entries,
-        ))
         directory_list.add(tags.li(link, subdir_res.tag))
 
         directory_total_entries += subdir_res.total_entries
@@ -94,37 +74,9 @@ def generate_tree_sidebar(directory: docdata.DocDirectory,
         total_entries: int = 0
         documented_entries: int = 0
 
-        def aux_docs(entry: cxx.DocCxxEntry):
-            nonlocal total_entries
-            nonlocal documented_entries
-
-            total_entries += 1
-            if entry.Doc and entry.Doc.Text:
-                documented_entries += 1
-
-            match entry:
-                case cxx.DocCxxRecord():
-                    for sub in entry.Nested:
-                        aux_docs(sub)
-
-                case cxx.DocCxxFunction():
-                    for arg in entry.Arguments:
-                        aux_docs(arg)
-
-                case cxx.DocCxxEnum():
-                    for field in entry.Fields:
-                        aux_docs(field)
-
-        if not code_file.IsTest:
-            for entry in code_file.Content:
-                aux_docs(entry)
-
         item = tags.li(_class="sidebar-code")
         link = tags.a(href=docdata.get_html_path(code_file, html_out_path=html_out_path))
         link.add(util.text(code_file.RelPath.name))
-        if not code_file.IsTest:
-            link.add(util.text(" "))
-            link.add(get_doc_ratio(total_entries, documented_entries))
         item.add(link)
         directory_list.add(item)
 
@@ -171,9 +123,6 @@ def get_html_page_tabs(tab_order: List[str]) -> tags.div:
 css_path = get_haxorg_repo_root_path().joinpath(
     "scripts/py_repository/py_repository/gen_documentation.css")
 
-js_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.js")
-
 
 @beartype
 def generate_html_for_directory(directory: docdata.DocDirectory,
@@ -187,16 +136,12 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
 
         for code_file in directory.CodeFiles:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-            # log(CAT).info(f"HTML for Code {code_file.RelPath} -> {path}")
 
             doc = document(title=str(code_file.RelPath))
             doc.head.add(tags.link(rel="stylesheet", href=css_path))
-            doc.head.add(tags.script(src=str(js_path)))
 
             container = tags.div(_class="container")
             sidebar_div = tags.div()
-            sidebar_div.add(
-                get_doc_ratio(sidebar_res.total_entries, sidebar_res.documented_entries))
             sidebar_div.add(tags.div(sidebar, _class="sidebar"))
             container.add(sidebar_div)
             main = tags.div(_class="main")
@@ -209,13 +154,9 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
             match code_file:
                 case cxx.DocCodeCxxFile():
                     main.add(cxx.get_html_code_div(code_file))
-                    if not code_file.IsTest:
-                        main.add(cxx.get_html_docs_div(code_file))
 
                 case py.DocCodePyFile():
                     main.add(py.get_html_code_div(code_file))
-                    if not code_file.IsTest:
-                        main.add(py.get_html_docs_div(code_file))
 
                 case _:
                     raise TypeError(type(code_file))
@@ -239,87 +180,6 @@ def generate_html_for_directory(directory: docdata.DocDirectory,
             path.write_text(doc.render())
 
     aux(directory, html_out_path)
-
-
-@beartype
-def generate_html_for_tests(full_root: docdata.DocDirectory, html_out_path: Path):
-    test_entries: List[Tuple[py.DocPyFunction, cov_docpy.TestName]] = []
-    flat_files: List[py.DocCodePyFile] = []
-
-    def find_test_entries(dir: docdata.DocDirectory):
-        for file in dir.CodeFiles:
-            if file.IsTest:
-                for entry in file.Content:
-                    if isinstance(entry, (cxx.DocCxxFunction, py.DocPyFunction)):
-                        if entry.Name.startswith("test_"):
-                            test_name: str = entry.Name[5:]
-
-                            test_entries.append((
-                                entry,
-                                cov_docpy.TestName(
-                                    rel_path=str(file.RelPath),
-                                    test_name=test_name,
-                                    subname="run",
-                                ),
-                            ))
-
-            else:
-                flat_files.append(file)
-
-        for subdir in dir.Subdirs:
-            find_test_entries(subdir)
-
-    find_test_entries(full_root)
-
-    for test_entry, test_name in test_entries:
-        out_dir = html_out_path.joinpath(test_name.rel_path).with_suffix(".d")
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_file = out_dir.joinpath(test_name.test_name).with_suffix(".html")
-        doc = document()
-        covered_blocks: List[tags.div] = []
-        for code_file in flat_files:
-            if isinstance(code_file, py.DocCodePyFile):
-                covered_lines: List[py.DocCodePyLine] = []
-                for line in code_file.Lines:
-                    if line.TestCoverage and any(it.test_name == test_name.test_name and
-                                                 it.rel_path == test_name.rel_path
-                                                 for it in line.TestCoverage.CoveredBy):
-                        covered_lines.append(line)
-
-                if covered_lines:
-                    block = tags.div(_class="test-cover")
-                    block.add(tags.span(util.text(str(code_file.RelPath)),
-                                        _class="title"))
-
-                    for adj_lines in more_itertools.split_when(
-                            iterable=covered_lines,
-                            pred=lambda lhs, rhs: lhs.Index + 1 != rhs.Index,
-                    ):
-                        adj_group = tags.div(_class="adjacent-lines")
-                        for line in adj_lines:
-                            full_span = tags.span(_class="code-line")
-                            num_span, line_span = docdata.get_code_line_span(
-                                line=line,
-                                highilght_lexer=py.PythonLexer(),
-                                decl_locations={},
-                                get_docs_fragment=lambda it: "",
-                            )
-                            full_span.add(num_span)
-                            full_span.add(line_span)
-                            adj_group.add(full_span)
-
-                        block.add(adj_group)
-
-                    covered_blocks.append(block)
-
-        if covered_blocks:
-            log(CAT).info(f"{out_file}")
-            doc.add(tags.h1(util.text(test_name.test_name)))
-            doc.add(covered_blocks)
-            doc.head.add(tags.link(rel="stylesheet", href=css_path))
-            doc.head.add(tags.script(src=str(js_path)))
-            out_file.write_text(doc.render())
-
 
 class DocGenerationOptions(BaseModel, extra="forbid"):
     html_out_path: Path = Field(description="Root directory to output generated HTML to")
@@ -373,16 +233,13 @@ def parse_code_file(
     try:
         if file.suffix in [".hpp", ".cpp"]:
             code_file = cxx.convert_cxx_tree(
-                cxx.parse_cxx(file),
                 RootPath=conf.root_path,
                 AbsPath=file.absolute(),
                 coverage_session=cxx_coverage_session,
             )
 
         else:
-            tree = py.parse_py(file)
             code_file = py.convert_py_tree(
-                tree,
                 RootPath=conf.root_path,
                 AbsPath=file.absolute(),
                 py_coverage_session=py_coverage_session,
@@ -499,10 +356,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         conf.json_out_path.write_text(full_root.model_dump_json(indent=2))
 
     generate_html_for_directory(full_root, html_out_path=conf.html_out_path)
-    generate_html_for_tests(
-        full_root=full_root,
-        html_out_path=conf.html_out_path.joinpath("test_coverage"),
-    )
 
 
 if __name__ == "__main__":

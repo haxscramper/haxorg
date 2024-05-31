@@ -1080,9 +1080,12 @@ def docs_custom(ctx: Context):
         f"--test_path={get_script_root('tests')}",
     ]
 
-    # prof_params = get_cxx_profdata_params()
-    # if Path(prof_params.coverage_db).exists():
-    #     args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
+    prof_params = get_cxx_profdata_params()
+    if Path(prof_params.coverage_db).exists():
+        args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
+        log(CAT).info(f"Using coveage database from {prof_params.coverage_db}")
+    else:
+        log(CAT).info(f"No coverage database generated, {prof_params.coverage_db} does not exist")
 
     run_command(ctx, "poetry", args)
 
