@@ -193,3 +193,43 @@ TEST(RangeAlgorithmsTest, SegmentLargerThanRange) {
     ASSERT_EQ(result[0].annotations.size(), 1);
     EXPECT_TRUE(result[0].isAnnotatedWith(1, 1));
 }
+
+TEST(RangeAlgorithmsTest, SegmentSmallerThanRange) {
+    // Test case:
+    // Group1:     |--------|
+    // Range: |-------------------|
+    SequenceSegment      segment{.kind = 1, .first = 12, .last = 20};
+    SequenceSegmentGroup group{.kind = 1, .segments = {segment}};
+    auto                 result = annotateSequence({group}, 0, 30);
+    // Expected:
+    // Annotated:  |-----------|
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, 12);
+    EXPECT_EQ(result[0].last, 20);
+    ASSERT_EQ(result[0].annotations.size(), 1);
+    EXPECT_TRUE(result[0].isAnnotatedWith(1, 1));
+}
+
+TEST(RangeAlgorithmsTest, SegmentStandaloneRanges) {
+    // Test case:
+    // Group1:     |--------|   |----------|
+    // Range: |--------------------------------|
+    SequenceSegmentGroup group{
+        .kind     = 1,
+        .segments = {
+            SequenceSegment{.kind = 1, .first = 12, .last = 20},
+            SequenceSegment{.kind = 1, .first = 30, .last = 40},
+        }};
+    auto result = annotateSequence({group}, 0, 60);
+    // Expected:
+    // Annotated:  |-----------|
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0].first, 12);
+    EXPECT_EQ(result[0].last, 20);
+    ASSERT_EQ(result[0].annotations.size(), 1);
+    EXPECT_TRUE(result[0].isAnnotatedWith(1, 1));
+    EXPECT_EQ(result[1].first, 30);
+    EXPECT_EQ(result[1].last, 40);
+    ASSERT_EQ(result[1].annotations.size(), 1);
+    EXPECT_TRUE(result[1].isAnnotatedWith(1, 1));
+}

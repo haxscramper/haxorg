@@ -13,6 +13,14 @@ import enum
 from beartype import beartype
 from pathlib import Path
 from py_scriptutils.sqlalchemy_utils import open_sqlite_session
+import py_haxorg.pyhaxorg_wrap as org
+from py_scriptutils.script_logging import log
+import py_repository.gen_documentation_data as docdata
+import dominate.tags as tags
+from pygments import lex
+from pygments.lexers import CppLexer
+
+CAT = "coverage"
 
 CoverageSchema = declarative_base()
 
@@ -143,6 +151,12 @@ class CovFunctionInstantiation(CoverageSchema):
     Function = ForeignId(CovFunction.Id)
 
 
+class GenCovSegmentFlat(BaseModel, extra="forbid"):
+    OriginalId: int
+    First: int
+    Last: int
+
+
 class ProfdataCookie(BaseModel, extra="forbid"):
     test_binary: str
     test_name: str
@@ -167,6 +181,7 @@ class ProfdataParams(BaseModel, extra="forbid"):
 @beartype
 def open_coverage(path: Path) -> Session:
     return open_sqlite_session(path, CoverageSchema)
+
 
 @beartype
 def extract_text(lines: List[str], start: Tuple[int, int], end: Tuple[int, int]) -> str:
@@ -245,17 +260,118 @@ def get_coverage_of(session: Session, path: Path) -> Optional[Select[Tuple[CovSe
         select(CovFile).where(CovFile.Path == str(path))).fetchall()
 
     match len(target_id):
-        case 0: 
+        case 0:
             return None
-        
-        case 1: 
+
+        case 1:
             return select(CovSegment).where(CovSegment.File == target_id[0][0].Id)
-        
+
         case _:
             raise ValueError(
                 f"{len(target_id)} files matched for given path '{path}', expected exactly 0-1 matches"
             )
 
+
+class DocCodeCxxLine(docdata.DocCodeLine, extra="forbid"):
+    pass
+
+
+class DocCodeCxxFile(docdata.DocCodeFile, extra="forbid"):
+    Lines: List[DocCodeCxxLine] = Field(default_factory=list)
+
+
+class DocCodeRunCall(BaseModel, extra="forbid"):
+    Count: int
+    CalledBy: str
+
+
+class DocCodeCxxCoverage(BaseModel, extra="forbid"):
+    Call: List[DocCodeRunCall] = Field(default_factory=list)
+
+
+@beartype
+def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
+    return DocCodeCxxFile(
+        RelPath=AbsPath.relative_to(RootPath),
+        Lines=[
+            DocCodeCxxLine(Text=line, Index=idx)
+            for idx, line in enumerate(AbsPath.read_text().splitlines())
+        ],
+    )
+
+
+@beartype
+def convert_cxx_tree(
+    RootPath: Path,
+    AbsPath: Path,
+    coverage_session: Optional[Session],
+) -> DocCodeCxxFile:
+    outfile = read_code_file(RootPath, AbsPath)
+
+    if coverage_session:
+        query = get_coverage_of(coverage_session, AbsPath)
+        if query is not None:
+            log(CAT).info(f"Has coverage for {AbsPath}")
+            outfile.Coverage = CoverageSegmentTree(
+                it[0]
+                for it in coverage_session.execute(query.where(
+                    CovSegment.IsLeaf == True)))
+
+    return outfile
+
+
+@beartype
+def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
+    highlight_lexer = CppLexer()
+
+    def get_line_spans(line: DocCodeCxxLine) -> List[tags.span]:
+        return list(
+            docdata.get_code_line_span(
+                line=line,
+                highilght_lexer=highlight_lexer,
+            ))
+
+    return docdata.get_html_code_div_base(
+        Lines=code_file.Lines,
+        get_line_spans=get_line_spans,
+    )
+
+
+@beartype
+def get_flat_coverage(session: Session, Lines: List[DocCodeCxxLine],
+                      segments: Select[Tuple[CovSegment]]) -> List[GenCovSegmentFlat]:
+    result = []
+
+    line_starts: List[int] = []
+    current_position = 0
+    for line in Lines:
+        line_starts.append(current_position)
+        current_position += len(line.Text)
+
+    segment: CovSegment
+    for (segment,) in session.execute(segments):
+        result.append(
+            GenCovSegmentFlat(
+                OriginalId=segment.Id,
+                First=line_starts[segment.LineStart - 1] + segment.ColStart,
+                Last=line_starts[segment.LineEnd - 1] + segment.ColEnd,
+            ))
+
+    return result
+
+
+@beartype
+def get_coverage_group(segments: List[GenCovSegmentFlat]) -> org.SequenceSegmentGroup:
+    group = org.SequenceSegmentGroup()
+    for idx, segment in enumerate(segments):
+        group.segments.append(
+            org.SequenceSegment(
+                kind=idx,
+                first=segment.First,
+                last=segment.Last,
+            ))
+
+    return group
 
 
 if __name__ == "__main__":

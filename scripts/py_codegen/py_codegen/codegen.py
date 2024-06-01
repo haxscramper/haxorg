@@ -698,6 +698,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
+                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),

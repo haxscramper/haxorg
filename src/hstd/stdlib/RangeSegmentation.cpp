@@ -58,11 +58,13 @@ Vec<SequenceAnnotation> annotateSequence(
     for (int i = first; i <= last; ++i) {
         auto thisKind = getPointGroups(i);
         if (thisKind != prevKind) {
-            result.push_back(SequenceAnnotation{
-                .first       = lastStart,
-                .last        = i - 1,
-                .annotations = getAnnotations(),
-            });
+            if (!prevKind.empty()) {
+                result.push_back(SequenceAnnotation{
+                    .first       = lastStart,
+                    .last        = i - 1,
+                    .annotations = getAnnotations(),
+                });
+            }
 
             prevKind  = thisKind;
             lastStart = i;

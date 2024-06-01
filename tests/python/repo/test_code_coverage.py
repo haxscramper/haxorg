@@ -17,6 +17,9 @@ from py_scriptutils.sqlalchemy_utils import (dump_db_all, dump_flat_table, forma
                                              format_rich_query, open_sqlite_session,
                                              Session)
 from sqlalchemy import select
+from py_scriptutils.script_logging import log
+
+CAT = "test_code_coverage"
 
 profdata_merger = get_haxorg_repo_root_path().joinpath(
     "build/haxorg/scripts/cxx_codegen/profdata_merger/profdata_merger")
@@ -432,3 +435,37 @@ def test_file_segmentation_2():
                 IsLeaf=True,
             ),
         ])
+
+
+def test_coverage_grouping():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        code = """
+int main() {
+  int a = 1 + 2;
+  int b = a + 3;
+}
+"""
+        cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
+        cmd.run()
+        assert cmd.get_sqlite().exists()
+
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+        main_cov = cov.get_coverage_of(session, cmd.get_code("main.cpp"))
+        assert main_cov != None
+        file = cov.read_code_file(dir, dir.joinpath("main.cpp"))
+        flat_segments = cov.get_flat_coverage(session, file.Lines, main_cov)
+        log(CAT).info(flat_segments)
+        flat_group = cov.get_coverage_group(flat_segments)
+
+        direct_segmented = cov.org.annotateSequence(
+            groups=cov.org.VecOfSequenceSegmentGroupVec([flat_group]),
+            first=0,
+            last=len(code) - 1,
+        )
+
+        # print(format_db_all(session))
+        seg: cov.org.SequenceAnnotation
+        for seg in direct_segmented:
+            log(CAT).info(f"{seg.first}, {seg.last}")
+        assert len(direct_segmented) == 1
