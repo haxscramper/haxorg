@@ -164,18 +164,28 @@ void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
 
 template <DescribedRecord R>
 py::object py_getattr_impl(R const& obj, std::string const& attr) {
-    Opt<py::object> result;
-    for_each_field_with_bases<R>([&](auto const& field) {
-        if (field.name == attr) { result = py::cast(obj.*field.pointer); }
-    });
-
-    if (result.has_value()) {
-        return result.value();
+    if (attr == "__dict__") {
+        py::dict result;
+        for_each_field_with_bases<R>([&](auto const& field) {
+            result[field.name] = py::cast(obj.*field.pointer);
+        });
+        return result;
     } else {
-        throw py::attribute_error(
-            fmt("No attribute '{}' found for type {}",
-                attr,
-                typeid(obj).name()));
+        Opt<py::object> result;
+        for_each_field_with_bases<R>([&](auto const& field) {
+            if (field.name == attr) {
+                result = py::cast(obj.*field.pointer);
+            }
+        });
+
+        if (result.has_value()) {
+            return result.value();
+        } else {
+            throw py::attribute_error(
+                fmt("No attribute '{}' found for type {}",
+                    attr,
+                    typeid(obj).name()));
+        }
     }
 }
 
