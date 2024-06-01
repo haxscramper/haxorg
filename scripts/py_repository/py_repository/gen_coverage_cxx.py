@@ -1,5 +1,5 @@
 #!/usr/env/bin python
-from beartype.typing import Optional, Any, List, Tuple, Iterable
+from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column, select, Select
@@ -14,7 +14,7 @@ from beartype import beartype
 from pathlib import Path
 from py_scriptutils.sqlalchemy_utils import open_sqlite_session
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, to_debug_json
 import py_repository.gen_documentation_data as docdata
 import dominate.tags as tags
 from pygments import lex
@@ -156,6 +156,27 @@ class GenCovSegmentFlat(BaseModel, extra="forbid"):
     First: int
     Last: int
 
+class AnnotationSegment(BaseModel, extra="forbid"):
+    Text: str = ""
+    Annotations: Dict[int, int] = Field(default_factory=dict)
+
+    def isAnnotated(self) -> bool:
+        return 0 < len(self.Annotations)
+
+    def isGrouped(self, kind: int) -> bool:
+        "Is the segment annotated with a specific group kind?"
+        return kind in self.Annotations
+
+    def getAnnotation(self, kind: int) -> Optional[int]:
+        "Get segment annotation for a specified group"
+        if self.isGrouped(kind):
+            return self.Annotations[kind]
+
+class AnnotatedLine(BaseModel, extra="forbid"):
+    Segments: List[AnnotationSegment] = Field(default_factory=list)
+
+class AnnotatedFile(BaseModel, extra="forbid"):
+    Lines: List[AnnotatedLine] = Field(default_factory= list)
 
 class ProfdataCookie(BaseModel, extra="forbid"):
     test_binary: str
@@ -361,8 +382,28 @@ def get_flat_coverage(session: Session, Lines: List[DocCodeCxxLine],
 
 
 @beartype
-def get_coverage_group(segments: List[GenCovSegmentFlat]) -> org.SequenceSegmentGroup:
+def get_line_group(lines: List[DocCodeCxxLine], kind: int = 12) -> org.SequenceSegmentGroup:
     group = org.SequenceSegmentGroup()
+    group.kind = kind
+
+    current_position = 0
+    for index, line in enumerate(lines):
+        group.segments.append(
+            org.SequenceSegment(
+                kind=index,
+                first=current_position,
+                last=current_position + len(line.Text),
+            ))
+
+        current_position += len(line.Text)
+
+    return group
+
+
+@beartype
+def get_coverage_group(segments: List[GenCovSegmentFlat], kind: int = 13) -> org.SequenceSegmentGroup:
+    group = org.SequenceSegmentGroup()
+    group.kind = kind
     for idx, segment in enumerate(segments):
         group.segments.append(
             org.SequenceSegment(
@@ -372,6 +413,39 @@ def get_coverage_group(segments: List[GenCovSegmentFlat]) -> org.SequenceSegment
             ))
 
     return group
+
+@beartype
+def get_annotated_files(text: str, annotations: List[org.SequenceAnnotation], line_group_kind: int = 12,) -> AnnotatedFile:
+    current_line = 0
+    file = AnnotatedFile()
+    file.Lines.append(AnnotatedLine())
+
+    for item in annotations:
+        print(item.__dict__)
+        log(CAT).info(to_debug_json(item))
+        line_idx = None
+        annotation: org.SequenceAnnotationTag
+        for annotation in item.annotations:
+            if annotation.groupKind == line_group_kind:
+                line_idx = annotation.segmentKind
+
+        assert line_idx != None
+
+        if line_idx != current_line:
+            assert line_idx == len(file.Lines), f"current line:{line_idx} full line count: {len(file.Lines)}"
+            file.Lines.append(AnnotatedLine())
+            current_line = line_idx
+
+        segment = AnnotationSegment()
+
+        for annotation in item.annotations:
+            if annotation.groupKind != line_group_kind:
+                segment.Annotations[annotation.groupKind] = annotation.segmentKind
+
+        file.Lines[line_idx].Segments.append(segment)
+
+    return file
+
 
 
 if __name__ == "__main__":

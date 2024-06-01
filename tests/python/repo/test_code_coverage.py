@@ -455,7 +455,7 @@ int main() {
         assert main_cov != None
         file = cov.read_code_file(dir, dir.joinpath("main.cpp"))
         flat_segments = cov.get_flat_coverage(session, file.Lines, main_cov)
-        log(CAT).info(flat_segments)
+        # log(CAT).info(flat_segments)
         flat_group = cov.get_coverage_group(flat_segments)
 
         direct_segmented = cov.org.annotateSequence(
@@ -466,6 +466,30 @@ int main() {
 
         # print(format_db_all(session))
         seg: cov.org.SequenceAnnotation
-        for seg in direct_segmented:
-            log(CAT).info(f"{seg.first}, {seg.last}")
+        # for seg in direct_segmented:
+        # log(CAT).info(f"{seg.first}, {seg.last}")
+
         assert len(direct_segmented) == 1
+
+        line_group = cov.get_line_group(file.Lines)
+
+        line_segmented = cov.org.annotateSequence(
+            groups=cov.org.VecOfSequenceSegmentGroupVec([line_group]),
+            first=0,
+            last=len(code) - 1,
+        )
+
+        assert len(line_segmented) == 4
+
+        join_segmented = cov.org.annotateSequence(
+            groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group]),
+            first=0,
+            last=len(code) - 1,
+        )
+
+        assert len(join_segmented) == 5
+
+        annotated_file = cov.get_annotated_files(
+            "\n".join([it.Text for it in file.Lines]),
+            [it for it in join_segmented],
+        )
