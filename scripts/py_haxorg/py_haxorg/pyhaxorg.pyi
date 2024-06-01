@@ -1229,6 +1229,7 @@ class SequenceAnnotationTag:
 
 class SequenceAnnotation:
     def __init__(self, first: int, last: int, annotations: List[SequenceAnnotationTag]) -> None: ...
+    def isAnnotatedWith(self, groupKind: int, segmentKind: int) -> bool: ...
     first: int
     last: int
     annotations: List[SequenceAnnotationTag]

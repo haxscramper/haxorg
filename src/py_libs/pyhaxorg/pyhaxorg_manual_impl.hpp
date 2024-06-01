@@ -86,6 +86,11 @@ void bind_vector(py::module& m, const char* PyNameType) {
         .def(pybind11::init<int, const T&>())
         .def(pybind11::init<std::initializer_list<T>>())
         .def(pybind11::init<const Vec<T>&>())
+        .def(py::init([](py::list list) -> Vec<T> {
+            Vec<T> result;
+            for (auto const& it : list) { result.push_back(it.cast<T>()); }
+            return result;
+        }))
         .def("FromValue", &Vec<T>::FromValue)
         // .def("append", (void(Vec<T>::*)(const Vec<T>&)) &
         // Vec<T>::append)

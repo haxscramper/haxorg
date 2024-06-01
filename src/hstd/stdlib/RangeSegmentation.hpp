@@ -56,7 +56,7 @@ struct [[refl]] SequenceAnnotation {
 
     /// \brief Check if the segment is annotated with a given group kind
     /// and a segment kind.
-    bool isAnnotatedWith(int groupKind, int segmentKind) const;
+    [[refl]] bool isAnnotatedWith(int groupKind, int segmentKind) const;
 
     DESC_FIELDS(SequenceAnnotation, (first, last, annotations));
 };

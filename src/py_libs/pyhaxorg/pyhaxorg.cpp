@@ -2175,6 +2175,12 @@ to create a point segment (spans 1 element).)RAW")
     .def_readwrite("first", &SequenceAnnotation::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
     .def_readwrite("last", &SequenceAnnotation::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
     .def_readwrite("annotations", &SequenceAnnotation::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
+    .def("isAnnotatedWith",
+         static_cast<bool(SequenceAnnotation::*)(int, int) const>(&SequenceAnnotation::isAnnotatedWith),
+         pybind11::arg("groupKind"),
+         pybind11::arg("segmentKind"),
+         R"RAW(\brief Check if the segment is annotated with a given group kind
+and a segment kind.)RAW")
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
