@@ -15,13 +15,18 @@ class RangeTree {
   public:
     struct Node {
         Slice<T>   range;
+        int        rangeIndex;
         UPtr<Node> left;
         UPtr<Node> right = nullptr;
         Node(
             const Slice<T>& r,
+            int             rangeIndex,
             UPtrIn<Node>    left  = nullptr,
             UPtrIn<Node>    right = nullptr)
-            : range(r), left(std::move(left)), right(std::move(right)) {}
+            : range(r)
+            , rangeIndex(rangeIndex)
+            , left(std::move(left))
+            , right(std::move(right)) {}
     };
 
     RangeTree(const Vec<Slice<T>>& slices = Vec<Slice<T>>()) {
@@ -32,17 +37,17 @@ class RangeTree {
         if (start > end) {
             return nullptr;
         } else if (start == end) {
-            return std::make_unique<Node>(slices[start]);
+            return std::make_unique<Node>(slices[start], start);
         } else {
             int        mid   = (start + end) / 2;
             UPtr<Node> left  = build(slices, start, mid);
             UPtr<Node> right = build(slices, mid + 1, end);
             return std::make_unique<Node>(
-                slices[mid], std::move(left), std::move(right));
+                slices[mid], mid, std::move(left), std::move(right));
         }
     }
 
-    Opt<Slice<T>> query(CR<T> point) const {
+    Opt<Node*> getNode(CR<T> point) const {
         Node* curr = root.get();
 
         while (curr != nullptr) {
@@ -51,11 +56,27 @@ class RangeTree {
             } else if (curr->range.last < point) {
                 curr = curr->right.get();
             } else {
-                if (curr->range.contains(point)) { return curr->range; }
+                if (curr->range.contains(point)) { return curr; }
             }
         }
 
         return std::nullopt;
+    }
+
+    Opt<int> getRangeIndex(CR<T> point) const {
+        if (auto node = getNode(point)) {
+            return (**node).rangeIndex;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    Opt<Slice<T>> query(CR<T> point) const {
+        if (auto node = getNode(point)) {
+            return (**node).range;
+        } else {
+            return std::nullopt;
+        }
     }
 
     UPtr<Node> root;

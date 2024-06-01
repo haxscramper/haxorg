@@ -4,12 +4,13 @@
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/RangeSegmentation.hpp>
 
 bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);
 }
 
-TEST(RangeTreeTest, Queries) {
+TEST(RangeAlgorithmsTest, Queries) {
     RangeTree<int> tree{
         Vec<Slice<int>>{slice(1, 5), slice(6, 8), slice(10, 12)}};
 
@@ -50,3 +51,103 @@ TEST(RangeTreeTest, Queries) {
     EXPECT_EQ(overlapping.query(12).value(), slice(7, 12));
 }
 
+
+TEST(RangeAlgorithmsTest, EmptyGroups) {
+    // Test case: No segments provided
+    std::vector<SequenceSegmentGroup> groups;
+    auto result = annotateSequence(groups, 0, 10);
+    EXPECT_TRUE(result.empty());
+}
+
+TEST(RangeAlgorithmsTest, SingleSegmentGroupSingleSegment) {
+    // Test case:
+    // Group1:  |-----|
+    SequenceSegment      segment{1, 0, 5};
+    SequenceSegmentGroup group{1, {segment}};
+    auto                 result = annotateSequence({group}, 0, 5);
+    // Checking annotation for the segment [0, 5]
+    // Expected:
+    // Annotated:  |-----|
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, 0);
+    EXPECT_EQ(result[0].last, 5);
+    ASSERT_EQ(result[0].annotations.size(), 1);
+    EXPECT_EQ(result[0].annotations[0].groupKind, 1);
+    EXPECT_EQ(result[0].annotations[0].segmentKind, 1);
+}
+
+TEST(RangeAlgorithmsTest, MultipleSegmentGroups) {
+    // Test case:
+    // Group1:  |-----|
+    // Group2:      |-----|
+    SequenceSegment      segment1{.kind = 1, .first = 0, .last = 5};
+    SequenceSegmentGroup group1{1, {segment1}};
+    SequenceSegment      segment2{.kind = 2, .first = 3, .last = 7};
+    SequenceSegmentGroup group2{2, {segment2}};
+    auto result = annotateSequence({group1, group2}, 0, 10);
+    // Checking annotations for segments [0, 2], [3, 5], [6, 7]
+    // Expected:
+    // Annotated:  |---|  |---| |---|
+    ASSERT_EQ(result.size(), 3);
+
+    // Annotated segment [0, 2]
+    ASSERT_EQ(result[0].first, 0);
+    ASSERT_EQ(result[0].last, 2);
+    ASSERT_EQ(result[0].annotations.size(), 1);
+    EXPECT_EQ(result[0].annotations[0].groupKind, 1);
+    EXPECT_EQ(result[0].annotations[0].segmentKind, 1);
+
+    // Annotated segment [3, 5]
+    ASSERT_EQ(result[1].first, 3);
+    ASSERT_EQ(result[1].last, 5);
+    ASSERT_EQ(result[1].annotations.size(), 2);
+    EXPECT_EQ(result[1].annotations[0].groupKind, 1);
+    EXPECT_EQ(result[1].annotations[0].segmentKind, 1);
+    EXPECT_EQ(result[1].annotations[1].groupKind, 2);
+    EXPECT_EQ(result[1].annotations[1].segmentKind, 2);
+
+    // Annotated segment [6, 7]
+    ASSERT_EQ(result[2].first, 6);
+    ASSERT_EQ(result[2].last, 7);
+    ASSERT_EQ(result[2].annotations.size(), 1);
+    EXPECT_EQ(result[2].annotations[0].groupKind, 2);
+    EXPECT_EQ(result[2].annotations[0].segmentKind, 2);
+}
+
+TEST(RangeAlgorithmsTest, OverlappingSegments) {
+    // Test case:
+    // Group1:  |-----|
+    // Group2:      |---------|
+    SequenceSegment      segment1{1, 0, 5};
+    SequenceSegmentGroup group1{1, {segment1}};
+    SequenceSegment      segment2{1, 4, 9};
+    SequenceSegmentGroup group2{2, {segment2}};
+    auto                 result = annotateSequence({group1, group2}, 0, 9);
+    // Checking annotations for segments [0, 3], [4, 5], [6, 9]
+    // Expected:
+    // Annotated:  |---|  |---|  |-----|
+    ASSERT_EQ(result.size(), 3);
+
+    // Annotated segment [0, 3]
+    ASSERT_EQ(result[0].first, 0);
+    ASSERT_EQ(result[0].last, 3);
+    ASSERT_EQ(result[0].annotations.size(), 1);
+    EXPECT_EQ(result[0].annotations[0].groupKind, 1);
+    EXPECT_EQ(result[0].annotations[0].segmentKind, 1);
+
+    // Annotated segment [4, 5]
+    ASSERT_EQ(result[1].first, 4);
+    ASSERT_EQ(result[1].last, 5);
+    ASSERT_EQ(result[1].annotations.size(), 2);
+    EXPECT_EQ(result[1].annotations[0].groupKind, 1);
+    EXPECT_EQ(result[1].annotations[0].segmentKind, 1);
+    EXPECT_EQ(result[1].annotations[1].groupKind, 2);
+    EXPECT_EQ(result[1].annotations[1].segmentKind, 1);
+
+    // Annotated segment [6, 9]
+    ASSERT_EQ(result[2].first, 6);
+    ASSERT_EQ(result[2].last, 9);
+    ASSERT_EQ(result[2].annotations.size(), 1);
+    EXPECT_EQ(result[2].annotations[0].groupKind, 2);
+    EXPECT_EQ(result[2].annotations[0].segmentKind, 1);
+}

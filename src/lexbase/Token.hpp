@@ -7,11 +7,11 @@
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <format>
+#include <hstd/stdlib/Opt.hpp>
 
 #include <lexbase/Errors.hpp>
 #include <hstd/stdlib/Ranges.hpp>
