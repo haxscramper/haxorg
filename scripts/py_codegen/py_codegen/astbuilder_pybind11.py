@@ -557,20 +557,20 @@ class Py11Class:
                         ])),
                 ]))
 
-        self.Methods.append(
-            Py11Method(
-                PyName="__setattr__",
-                CxxName="",
-                ResultTy=None,
-                Args=[GenTuIdent(str_type, "name"),
-                      GenTuIdent(pyobj_type, "value")],
-                Body=[
-                    ast.XCall("py_setattr_impl", [
-                        ast.string("_self"),
-                        ast.string("name"),
-                        ast.string("value"),
-                    ], Stmt=True),
-                ]))
+        # self.Methods.append(
+        #     Py11Method(
+        #         PyName="__setattr__",
+        #         CxxName="",
+        #         ResultTy=None,
+        #         Args=[GenTuIdent(str_type, "name"),
+        #               GenTuIdent(pyobj_type, "value")],
+        #         Body=[
+        #             ast.XCall("py_setattr_impl", [
+        #                 ast.string("_self"),
+        #                 ast.string("name"),
+        #                 ast.string("value"),
+        #             ], Stmt=True),
+        #         ]))
 
     def dedup_methods(self) -> List[Py11Method]:
         res: List[Py11Method] = []

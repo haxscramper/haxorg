@@ -6,6 +6,7 @@ Vec<SequenceAnnotation> annotateSequence(
     const Vec<SequenceSegmentGroup>& groups,
     int                              first,
     int                              last) {
+
     struct GroupTree {
         RangeTree<int>       tree;
         SequenceSegmentGroup group;

@@ -157,6 +157,7 @@ class GenCovSegmentFlat(BaseModel, extra="forbid"):
     First: int
     Last: int
 
+
 class AnnotationSegment(BaseModel, extra="forbid"):
     Text: str = ""
     Annotations: Dict[int, int] = Field(default_factory=dict)
@@ -173,13 +174,13 @@ class AnnotationSegment(BaseModel, extra="forbid"):
         if self.isGrouped(kind):
             return self.Annotations[kind]
 
+
 class AnnotatedLine(BaseModel, extra="forbid"):
     Segments: List[AnnotationSegment] = Field(default_factory=list)
 
+
 class AnnotatedFile(BaseModel, extra="forbid"):
-    Lines: List[AnnotatedLine] = Field(default_factory= list)
-
-
+    Lines: List[AnnotatedLine] = Field(default_factory=list)
 
 
 @beartype
@@ -365,28 +366,39 @@ def get_flat_coverage(session: Session, Lines: List[DocCodeCxxLine],
 
 
 @beartype
-def get_line_group(lines: List[DocCodeCxxLine], kind: int = 12) -> org.SequenceSegmentGroup:
+def get_line_group(lines: List[DocCodeCxxLine],
+                   kind: int = 12) -> org.SequenceSegmentGroup:
     group = org.SequenceSegmentGroup()
     group.kind = kind
 
     current_position = 0
     for index, line in enumerate(lines):
-        group.segments.append(
-            org.SequenceSegment(
-                kind=index,
-                first=current_position,
-                last=current_position + len(line.Text),
-            ))
+        is_last = index == len(lines) - 1
+        line_end = current_position + len(line.Text)
 
-        current_position += len(line.Text)
+        seg = org.SequenceSegment(
+            kind=index,
+            first=current_position,
+            last=line_end,
+        )
+
+        group.segments.append(seg)
+
+        log(CAT).info(
+            f"index:{index}/{len(lines)} line:{line} seg:{seg} len:{len(line.Text)} position:{current_position} end:{line_end} is_last:{is_last}"
+        )
+
+        current_position = line_end + 1
 
     return group
 
 
 @beartype
-def get_coverage_group(segments: List[GenCovSegmentFlat], kind: int = 13) -> org.SequenceSegmentGroup:
+def get_coverage_group(segments: List[GenCovSegmentFlat],
+                       kind: int = 13) -> org.SequenceSegmentGroup:
     group = org.SequenceSegmentGroup()
     group.kind = kind
+
     for idx, segment in enumerate(segments):
         group.segments.append(
             org.SequenceSegment(
@@ -397,15 +409,20 @@ def get_coverage_group(segments: List[GenCovSegmentFlat], kind: int = 13) -> org
 
     return group
 
+
 @beartype
-def get_annotated_files(text: str, annotations: List[org.SequenceAnnotation], line_group_kind: int = 12,) -> AnnotatedFile:
+def get_annotated_files(text: str, annotations: List[org.SequenceAnnotation],
+                        line_group_kind: int) -> AnnotatedFile:
     current_line = 0
     file = AnnotatedFile()
     file.Lines.append(AnnotatedLine())
+    last_segment_finish = None
 
     for item in annotations:
-        print(item.__dict__)
-        log(CAT).info(to_debug_json(item))
+        if last_segment_finish and item.first != last_segment_finish + 1:
+            file.Lines[line_idx].Segments.append(
+                AnnotationSegment(Text=text[last_segment_finish + 1:item.first]))
+
         line_idx = None
         annotation: org.SequenceAnnotationTag
         for annotation in item.annotations:
@@ -415,11 +432,12 @@ def get_annotated_files(text: str, annotations: List[org.SequenceAnnotation], li
         assert line_idx != None
 
         if line_idx != current_line:
-            assert line_idx == len(file.Lines), f"current line:{line_idx} full line count: {len(file.Lines)}"
+            assert line_idx == len(
+                file.Lines), f"current line:{line_idx} full line count: {len(file.Lines)}"
             file.Lines.append(AnnotatedLine())
             current_line = line_idx
 
-        segment = AnnotationSegment()
+        segment = AnnotationSegment(Text=text[item.first:item.last + 1])
 
         for annotation in item.annotations:
             if annotation.groupKind != line_group_kind:
@@ -427,8 +445,9 @@ def get_annotated_files(text: str, annotations: List[org.SequenceAnnotation], li
 
         file.Lines[line_idx].Segments.append(segment)
 
-    return file
+        last_segment_finish = item.last
 
+    return file
 
 
 if __name__ == "__main__":

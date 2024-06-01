@@ -17,7 +17,13 @@ from py_scriptutils.sqlalchemy_utils import (dump_db_all, dump_flat_table, forma
                                              format_rich_query, open_sqlite_session,
                                              Session)
 from sqlalchemy import select
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, to_debug_json
+from py_scriptutils.rich_utils import render_rich_pprint
+
+
+def dbg(map) -> str:
+    return render_rich_pprint(map, width=200, color=False)
+
 
 CAT = "test_code_coverage"
 
@@ -440,12 +446,13 @@ def test_file_segmentation_2():
 def test_coverage_grouping():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        code = """
-int main() {
-  int a = 1 + 2;
-  int b = a + 3;
-}
-"""
+        code = "\n".join([
+            "",
+            "int main() {",
+            "  int a = 1 + 2;",
+            "  int b = a + 3;",
+            "}",
+        ])
         cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
         cmd.run()
         assert cmd.get_sqlite().exists()
@@ -473,28 +480,64 @@ int main() {
 
         line_group = cov.get_line_group(file.Lines)
 
+        print(line_group)
+
         line_segmented = cov.org.annotateSequence(
             groups=cov.org.VecOfSequenceSegmentGroupVec([line_group]),
             first=0,
-            last=len(code) - 1,
+            last=len(code),
         )
 
-        assert len(line_segmented) == 4
+        for s in line_segmented:
+            print(s)
+
+        annotated_file = cov.get_annotated_files(
+            text="\n".join([it.Text for it in file.Lines]),
+            annotations=[it for it in line_segmented],
+            line_group_kind=line_group.kind,
+        )
+
+        log(CAT).info(dbg(annotated_file))
+        # return
+
+        assert len(line_segmented) == 5
 
         join_segmented = cov.org.annotateSequence(
             groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group]),
             first=0,
-            last=len(code) - 1,
+            last=len(code),
         )
+
+        print(line_group)
+        print(flat_group)
 
         print("")
         for s in join_segmented:
             print(s)
 
-        assert len(join_segmented) == 5
+        # assert len(join_segmented) == 5
 
         annotated_file = cov.get_annotated_files(
-            "\n".join([it.Text for it in file.Lines]),
-            [it for it in join_segmented],
+            text="\n".join([it.Text for it in file.Lines]),
+            annotations=[it for it in join_segmented],
+            line_group_kind=line_group.kind,
         )
 
+        log(CAT).info(dbg(annotated_file))
+        # pprin(annotated_file)
+
+        assert len(annotated_file.Lines) == 5
+        assert len(annotated_file.Lines[0].Segments) == 1
+
+        ju.assert_subset(
+            annotated_file.model_dump(),
+            dict(Lines=[
+                dict(Segments=[dict(Text="\n")]),
+                dict(Segments=[dict(
+                    Text="int main() "), dict(Text="{\n")]),
+                dict(Segments=[dict(Text="  int a = 1 + 2;\n")]),
+                dict(Segments=[dict(Text="  int b = a + 3;"),
+                               dict(Text="\n")]),
+                dict(Segments=[dict(Text="}")]),
+            ],),
+        )
