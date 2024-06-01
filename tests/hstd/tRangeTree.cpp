@@ -81,9 +81,9 @@ TEST(RangeAlgorithmsTest, MultipleSegmentGroups) {
     // Group1:  |-----|
     // Group2:      |-----|
     SequenceSegment      segment1{.kind = 1, .first = 0, .last = 5};
-    SequenceSegmentGroup group1{1, {segment1}};
+    SequenceSegmentGroup group1{.kind = 1, .segments = {segment1}};
     SequenceSegment      segment2{.kind = 2, .first = 3, .last = 7};
-    SequenceSegmentGroup group2{2, {segment2}};
+    SequenceSegmentGroup group2{.kind = 2, .segments = {segment2}};
     auto result = annotateSequence({group1, group2}, 0, 10);
     // Checking annotations for segments [0, 2], [3, 5], [6, 7]
     // Expected:
@@ -94,24 +94,20 @@ TEST(RangeAlgorithmsTest, MultipleSegmentGroups) {
     ASSERT_EQ(result[0].first, 0);
     ASSERT_EQ(result[0].last, 2);
     ASSERT_EQ(result[0].annotations.size(), 1);
-    EXPECT_EQ(result[0].annotations[0].groupKind, 1);
-    EXPECT_EQ(result[0].annotations[0].segmentKind, 1);
+    EXPECT_TRUE(result[0].isAnnotatedWith(1, 1));
 
     // Annotated segment [3, 5]
     ASSERT_EQ(result[1].first, 3);
     ASSERT_EQ(result[1].last, 5);
     ASSERT_EQ(result[1].annotations.size(), 2);
-    EXPECT_EQ(result[1].annotations[0].groupKind, 1);
-    EXPECT_EQ(result[1].annotations[0].segmentKind, 1);
-    EXPECT_EQ(result[1].annotations[1].groupKind, 2);
-    EXPECT_EQ(result[1].annotations[1].segmentKind, 2);
+    EXPECT_TRUE(result[1].isAnnotatedWith(1, 1));
+    EXPECT_TRUE(result[1].isAnnotatedWith(2, 2));
 
     // Annotated segment [6, 7]
     ASSERT_EQ(result[2].first, 6);
     ASSERT_EQ(result[2].last, 7);
     ASSERT_EQ(result[2].annotations.size(), 1);
-    EXPECT_EQ(result[2].annotations[0].groupKind, 2);
-    EXPECT_EQ(result[2].annotations[0].segmentKind, 2);
+    EXPECT_TRUE(result[2].isAnnotatedWith(2, 2));
 }
 
 TEST(RangeAlgorithmsTest, OverlappingSegments) {
@@ -132,22 +128,68 @@ TEST(RangeAlgorithmsTest, OverlappingSegments) {
     ASSERT_EQ(result[0].first, 0);
     ASSERT_EQ(result[0].last, 3);
     ASSERT_EQ(result[0].annotations.size(), 1);
-    EXPECT_EQ(result[0].annotations[0].groupKind, 1);
-    EXPECT_EQ(result[0].annotations[0].segmentKind, 1);
+    EXPECT_EQ(result[0].isAnnotatedWith(1, 1), 1);
 
     // Annotated segment [4, 5]
     ASSERT_EQ(result[1].first, 4);
     ASSERT_EQ(result[1].last, 5);
     ASSERT_EQ(result[1].annotations.size(), 2);
-    EXPECT_EQ(result[1].annotations[0].groupKind, 1);
-    EXPECT_EQ(result[1].annotations[0].segmentKind, 1);
-    EXPECT_EQ(result[1].annotations[1].groupKind, 2);
-    EXPECT_EQ(result[1].annotations[1].segmentKind, 1);
+    EXPECT_TRUE(result[1].isAnnotatedWith(1, 1));
+    EXPECT_TRUE(result[1].isAnnotatedWith(2, 1));
 
     // Annotated segment [6, 9]
     ASSERT_EQ(result[2].first, 6);
     ASSERT_EQ(result[2].last, 9);
     ASSERT_EQ(result[2].annotations.size(), 1);
-    EXPECT_EQ(result[2].annotations[0].groupKind, 2);
-    EXPECT_EQ(result[2].annotations[0].segmentKind, 1);
+    EXPECT_TRUE(result[2].isAnnotatedWith(2, 1));
+}
+
+
+TEST(RangeAlgorithmsTest, FullyOverlappingSegments) {
+    // Test case:
+    // Group1:  |-----------|
+    // Group2:  |-----------|
+    SequenceSegment      segment1{.kind = 1, .first = 0, .last = 9};
+    SequenceSegmentGroup group1{.kind = 1, .segments = {segment1}};
+    SequenceSegment      segment2{.kind = 2, .first = 0, .last = 9};
+    SequenceSegmentGroup group2{.kind = 2, .segments = {segment2}};
+    auto                 result = annotateSequence({group1, group2}, 0, 9);
+    // Expected:
+    // Annotated:  |-----------|
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, 0);
+    EXPECT_EQ(result[0].last, 9);
+    ASSERT_EQ(result[0].annotations.size(), 2);
+    EXPECT_TRUE(result[0].isAnnotatedWith(1, 1));
+    EXPECT_TRUE(result[0].isAnnotatedWith(2, 2));
+}
+
+TEST(RangeAlgorithmsTest, SegmentSpansWholeRange) {
+    // Test case:
+    // Group1:  |-----------|
+    SequenceSegment      segment{.kind = 1, .first = 0, .last = 9};
+    SequenceSegmentGroup group{.kind = 1, .segments = {segment}};
+    auto                 result = annotateSequence({group}, 0, 9);
+    // Expected:
+    // Annotated:  |-----------|
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, 0);
+    EXPECT_EQ(result[0].last, 9);
+    ASSERT_EQ(result[0].annotations.size(), 1);
+    EXPECT_TRUE(result[0].isAnnotatedWith(1, 1));
+}
+
+TEST(RangeAlgorithmsTest, SegmentLargerThanRange) {
+    // Test case:
+    // Group1:  |-----------------|
+    SequenceSegment      segment{.kind = 1, .first = 0, .last = 15};
+    SequenceSegmentGroup group{.kind = 1, .segments = {segment}};
+    auto                 result = annotateSequence({group}, 0, 10);
+    // Expected:
+    // Annotated:  |-----------|
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, 0);
+    EXPECT_EQ(result[0].last, 10);
+    ASSERT_EQ(result[0].annotations.size(), 1);
+    EXPECT_TRUE(result[0].isAnnotatedWith(1, 1));
 }
