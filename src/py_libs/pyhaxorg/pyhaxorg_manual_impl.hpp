@@ -22,6 +22,7 @@
 
 #include <frameobject.h>
 #include <sem/SemBaseApi.hpp>
+#include <hstd/stdlib/RangeSegmentation.hpp>
 
 namespace py = pybind11;
 

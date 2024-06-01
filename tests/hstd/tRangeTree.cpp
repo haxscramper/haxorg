@@ -54,8 +54,8 @@ TEST(RangeAlgorithmsTest, Queries) {
 
 TEST(RangeAlgorithmsTest, EmptyGroups) {
     // Test case: No segments provided
-    std::vector<SequenceSegmentGroup> groups;
-    auto result = annotateSequence(groups, 0, 10);
+    Vec<SequenceSegmentGroup> groups;
+    auto                      result = annotateSequence(groups, 0, 10);
     EXPECT_TRUE(result.empty());
 }
 

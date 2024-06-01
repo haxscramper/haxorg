@@ -1211,6 +1211,28 @@ class OrgDocumentSelector:
     path: List[OrgSelectorCondition]
     debug: bool
 
+class SequenceSegment:
+    def __init__(self, kind: int, first: int, last: int) -> None: ...
+    kind: int
+    first: int
+    last: int
+
+class SequenceSegmentGroup:
+    def __init__(self, kind: int, segments: List[SequenceSegment]) -> None: ...
+    kind: int
+    segments: List[SequenceSegment]
+
+class SequenceAnnotationTag:
+    def __init__(self, groupKind: int, segmentKind: int) -> None: ...
+    groupKind: int
+    segmentKind: int
+
+class SequenceAnnotation:
+    def __init__(self, first: int, last: int, annotations: List[SequenceAnnotationTag]) -> None: ...
+    first: int
+    last: int
+    annotations: List[SequenceAnnotationTag]
+
 class ExporterPython:
     def __init__(self) -> None: ...
     def enablePyStreamTrace(self, stream: object) -> None: ...
@@ -1289,6 +1311,8 @@ def exportToProtobufFile(doc: Document, file: str) -> None: ...
 def exportToTreeString(node: Org, opts: OrgTreeExportOpts) -> str: ...
 
 def exportToTreeFile(node: Org, path: str, opts: OrgTreeExportOpts) -> None: ...
+
+def annotateSequence(groups: List[SequenceSegmentGroup], first: int, last: int) -> List[SequenceAnnotation]: ...
 
 def eachSubnodeRec(node: Org, callback: function) -> None: ...
 

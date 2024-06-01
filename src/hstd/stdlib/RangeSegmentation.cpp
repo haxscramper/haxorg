@@ -2,10 +2,10 @@
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Set.hpp>
 
-std::vector<SequenceAnnotation> annotateSequence(
-    const std::vector<SequenceSegmentGroup>& groups,
-    int                                      first,
-    int                                      last) {
+Vec<SequenceAnnotation> annotateSequence(
+    const Vec<SequenceSegmentGroup>& groups,
+    int                              first,
+    int                              last) {
     struct GroupTree {
         RangeTree<int>       tree;
         SequenceSegmentGroup group;
@@ -42,10 +42,10 @@ std::vector<SequenceAnnotation> annotateSequence(
     UnorderedSet<SegmentKind> prevKind  = getPointGroups(first);
     int                       lastStart = first;
 
-    std::vector<SequenceAnnotation> result;
+    Vec<SequenceAnnotation> result;
 
     auto getAnnotations = [&]() {
-        std::vector<SequenceAnnotationTag> annotations;
+        Vec<SequenceAnnotationTag> annotations;
         for (auto const& [group_Kind, segment_Kind] : prevKind) {
             annotations.push_back(SequenceAnnotationTag{
                 .groupKind   = group_Kind,

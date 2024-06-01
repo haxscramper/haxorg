@@ -497,6 +497,39 @@ def haxorg_base_lexer(ctx: Context):
 
 
 @org_task()
+def symlink_build(ctx: Context):
+    """
+    Create proxy symbolic links around the build directory
+    """
+
+    def link(link_path: Path, real_path: Path, is_dir: bool):
+        if link_path.exists():
+            assert link_path.is_symlink(), link_path
+            link_path.unlink()
+            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+            assert not link_path.exists(), link_path
+
+        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
+        assert not link_path.exists(), link_path
+        assert real_path.exists(), real_path
+
+        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
+
+    link(
+        real_path=get_component_build_dir(ctx, "haxorg"),
+        link_path=get_build_root("haxorg"),
+        is_dir=True,
+    )
+
+    link(
+        real_path=get_component_build_dir(ctx, "utils"),
+        link_path=get_build_root("utils"),
+        is_dir=True,
+    )
+
+
+@org_task(pre=[symlink_build])
 def python_protobuf_files(ctx: Context):
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(
@@ -712,11 +745,11 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
     log(CAT).info("Updated code definitions")
 
 
-@org_task(pre=[cmake_haxorg])
+@org_task(pre=[cmake_haxorg, symlink_build])
 def std_tests(ctx):
     """Execute standard library tests"""
     dir = get_build_root("haxorg")
-    test = dir / "tests_hstd"
+    test = dir / "src/hstd/tests_hstd"
     run_command(ctx, test, [], cwd=str(dir))
 
 
@@ -909,39 +942,6 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
     ]
 
 
-@org_task()
-def symlink_build(ctx: Context):
-    """
-    Create proxy symbolic links around the build directory
-    """
-
-    def link(link_path: Path, real_path: Path, is_dir: bool):
-        if link_path.exists():
-            assert link_path.is_symlink(), link_path
-            link_path.unlink()
-            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
-            assert not link_path.exists(), link_path
-
-        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
-
-        assert not link_path.exists(), link_path
-        assert real_path.exists(), real_path
-
-        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
-
-    link(
-        real_path=get_component_build_dir(ctx, "haxorg"),
-        link_path=get_build_root("haxorg"),
-        is_dir=True,
-    )
-
-    link(
-        real_path=get_component_build_dir(ctx, "utils"),
-        link_path=get_build_root("utils"),
-        is_dir=True,
-    )
-
-
 @org_task(pre=[haxorg_base_lexer, cmake_haxorg])
 def cmake_all(ctx: Context):
     """Build all binary artifacts"""
@@ -1085,7 +1085,8 @@ def docs_custom(ctx: Context):
         args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
         log(CAT).info(f"Using coveage database from {prof_params.coverage_db}")
     else:
-        log(CAT).info(f"No coverage database generated, {prof_params.coverage_db} does not exist")
+        log(CAT).info(
+            f"No coverage database generated, {prof_params.coverage_db} does not exist")
 
     run_command(ctx, "poetry", args)
 

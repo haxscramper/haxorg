@@ -42,6 +42,14 @@ PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgSelectorCondition>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::OrgSelectorCondition>)
 PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotationTag>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotationTag>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotation>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotation>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegmentGroup>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
@@ -63,6 +71,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree");
   bind_vector<sem::OrgSelectorCondition>(m, "VecOfOrgSelectorCondition");
   bind_int_set<OrgSemKind>(m, "IntSetOfOrgSemKind");
+  bind_vector<SequenceSegment>(m, "VecOfSequenceSegment");
+  bind_vector<SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag");
+  bind_vector<SequenceAnnotation>(m, "VecOfSequenceAnnotation");
+  bind_vector<SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("documentId", &sem::Org::documentId, R"RAW(\brief Application specific ID of the original document)RAW")
@@ -2122,6 +2134,48 @@ fields)RAW")
          pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     ;
+  pybind11::class_<SequenceSegment>(m, "SequenceSegment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegment {
+                        SequenceSegment result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &SequenceSegment::kind, R"RAW(\brief Kind of the segment, does not have to be unique for all
+segments, and different sequence segment groups can have segments
+with identical kinds.)RAW")
+    .def_readwrite("first", &SequenceSegment::first, R"RAW(\brief Inclusive left boundary of the segment. Mustnot overlap with
+other segments' boundaries,but can be identical to the `last`,
+to create a point segment (spans 1 element).)RAW")
+    .def_readwrite("last", &SequenceSegment::last, R"RAW(\brief Inclusive right boundary for the segment)RAW")
+    ;
+  pybind11::class_<SequenceSegmentGroup>(m, "SequenceSegmentGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegmentGroup {
+                        SequenceSegmentGroup result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &SequenceSegmentGroup::kind, R"RAW(\brief An kind of the segment group, does not have to be unique)RAW")
+    .def_readwrite("segments", &SequenceSegmentGroup::segments, R"RAW(\brief List of input segments for grouping)RAW")
+    ;
+  pybind11::class_<SequenceAnnotationTag>(m, "SequenceAnnotationTag")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotationTag {
+                        SequenceAnnotationTag result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("groupKind", &SequenceAnnotationTag::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
+    .def_readwrite("segmentKind", &SequenceAnnotationTag::segmentKind, R"RAW(\brief ID of the segment in this group.)RAW")
+    ;
+  pybind11::class_<SequenceAnnotation>(m, "SequenceAnnotation")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotation {
+                        SequenceAnnotation result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("first", &SequenceAnnotation::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
+    .def_readwrite("last", &SequenceAnnotation::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
+    .def_readwrite("annotations", &SequenceAnnotation::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
+    ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
                         ExporterPython result{};
@@ -2315,6 +2369,11 @@ fields)RAW")
         pybind11::arg("node"),
         pybind11::arg("path"),
         pybind11::arg("opts"));
+  m.def("annotateSequence",
+        static_cast<Vec<SequenceAnnotation>(*)(Vec<SequenceSegmentGroup> const&, int, int)>(&annotateSequence),
+        pybind11::arg("groups"),
+        pybind11::arg("first"),
+        pybind11::arg("last"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
         pybind11::arg("node"),
