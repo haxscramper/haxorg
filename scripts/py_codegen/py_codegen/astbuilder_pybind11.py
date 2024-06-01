@@ -502,7 +502,6 @@ class Py11Class:
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]):
 
-
         self.InitImpls.append(
             Py11Method(
                 "",
@@ -531,7 +530,48 @@ class Py11Class:
                 IsInit=True,
                 ExplicitClassParam=True,
             ))
-        
+
+    def InitMagicMethods(self, ast: ASTBuilder):
+        str_type = QualType.ForName("string", Spaces=[QualType.ForName("std")])
+        pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("pybind11")])
+        self.Methods.append(
+            Py11Method(
+                PyName="__repr__",
+                CxxName="",
+                ResultTy=str_type,
+                Body=[
+                    ast.Return(ast.XCall("py_repr_impl", [ast.string("_self")])),
+                ]))
+
+        self.Methods.append(
+            Py11Method(
+                PyName="__getattr__",
+                CxxName="",
+                ResultTy=pyobj_type,
+                Args=[GenTuIdent(str_type, "name")],
+                Body=[
+                    ast.Return(
+                        ast.XCall("py_getattr_impl", [
+                            ast.string("_self"),
+                            ast.string("name"),
+                        ])),
+                ]))
+
+        self.Methods.append(
+            Py11Method(
+                PyName="__setattr__",
+                CxxName="",
+                ResultTy=None,
+                Args=[GenTuIdent(str_type, "name"),
+                      GenTuIdent(pyobj_type, "value")],
+                Body=[
+                    ast.XCall("py_setattr_impl", [
+                        ast.string("_self"),
+                        ast.string("name"),
+                        ast.string("value"),
+                    ], Stmt=True),
+                ]))
+
     def dedup_methods(self) -> List[Py11Method]:
         res: List[Py11Method] = []
         for key, _group in itertools.groupby(self.Methods, lambda M: (M.CxxName, M.Args)):

@@ -487,9 +487,14 @@ int main() {
             last=len(code) - 1,
         )
 
+        print("")
+        for s in join_segmented:
+            print(s)
+
         assert len(join_segmented) == 5
 
         annotated_file = cov.get_annotated_files(
             "\n".join([it.Text for it in file.Lines]),
             [it for it in join_segmented],
         )
+

@@ -162,6 +162,46 @@ void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
     }
 }
 
+template <DescribedRecord R>
+py::object py_getattr_impl(R const& obj, std::string const& attr) {
+    Opt<py::object> result;
+    for_each_field_with_bases<R>([&](auto const& field) {
+        if (field.name == attr) { result = py::cast(obj.*field.pointer); }
+    });
+
+    if (result.has_value()) {
+        return result.value();
+    } else {
+        throw py::attribute_error(
+            fmt("No attribute '{}' found for type {}",
+                attr,
+                typeid(obj).name()));
+    }
+}
+
+template <DescribedRecord R>
+void py_setattr_impl(R& obj, std::string const& attr, py::object value) {
+    bool found_target = false;
+    for_each_field_with_bases<R>([&](auto const& field) {
+        if (field.name == attr) {
+            found_target       = true;
+            obj.*field.pointer = value.cast<
+                std::remove_cvref_t<decltype(obj.*field.pointer)>>();
+        }
+    });
+
+    if (!found_target) {
+        throw py::attribute_error(
+            fmt("No attribute '{}' found for type {}",
+                attr,
+                typeid(obj).name()));
+    }
+}
+
+template <DescribedRecord R>
+std::string py_repr_impl(R const& value) {
+    return fmt1(value);
+}
 
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
     sem::SemId<sem::Org> id,

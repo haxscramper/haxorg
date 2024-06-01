@@ -208,6 +208,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
         cb(typ)
 
         res.InitDefault(ast=ast, Fields=filter_init_fields(rec_fields))
+        res.InitMagicMethods(ast=ast)
 
     return res
 
@@ -230,6 +231,7 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
 
     if not value.IsAbstract:
         res.InitDefault(ast, filter_init_fields(res.Fields))
+        res.InitMagicMethods(ast=ast)
 
     return res
 

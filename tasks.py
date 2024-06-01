@@ -20,7 +20,7 @@ import sys
 import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
-from py_repository.gen_coverage_cxx import ProfdataParams
+from py_repository.gen_coverage_cookies import ProfdataParams
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -726,7 +726,9 @@ def update_py_haxorg_reflection(
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[cmake_haxorg, update_py_haxorg_reflection])
+@org_task(pre=[
+    # cmake_haxorg, 
+    update_py_haxorg_reflection])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR

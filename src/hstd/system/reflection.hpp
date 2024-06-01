@@ -191,7 +191,7 @@ std::string described_class_printer(T const& t) {
         first = false;
 
         using B = typename decltype(D)::type;
-        result += (B const&)t;
+        result += described_class_printer((B const&)t);
     });
 
     boost::mp11::mp_for_each<Md>([&](auto D) {
