@@ -48,6 +48,7 @@ def to_debug_json(
             return f"{obj}"
 
         else:
+
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
@@ -84,7 +85,12 @@ def pprint_to_file(value, path: str):
     # always rendered to the max column limit is the biggest problem and I could
     # not find any way to print converted translation unit safely.
     with open(path, "w") as file:
-        pprint(value, console=Console(file=file, force_terminal=True, color_system=None))
+        print("# pyright: reportUndefinedVariable=false", file=file)
+        pprint(
+            value,
+            console=Console(file=file, force_terminal=True, color_system=None),
+            indent_guides=False,
+        )
 
 
 class NoTTYFormatter(logging.Formatter):

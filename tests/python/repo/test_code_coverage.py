@@ -17,8 +17,9 @@ from py_scriptutils.sqlalchemy_utils import (dump_db_all, dump_flat_table, forma
                                              format_rich_query, open_sqlite_session,
                                              Session)
 from sqlalchemy import select
-from py_scriptutils.script_logging import log, to_debug_json
+from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
 from py_scriptutils.rich_utils import render_rich_pprint
+from collections import defaultdict
 
 
 def dbg(map) -> str:
@@ -480,7 +481,9 @@ def test_coverage_grouping():
 
         line_group = cov.get_line_group(file.Lines)
 
-        print(line_group)
+        # print(line_group)
+
+        file_text = "\n".join([it.Text for it in file.Lines])
 
         line_segmented = cov.org.annotateSequence(
             groups=cov.org.VecOfSequenceSegmentGroupVec([line_group]),
@@ -488,17 +491,22 @@ def test_coverage_grouping():
             last=len(code),
         )
 
-        for s in line_segmented:
-            print(s)
-
-        annotated_file = cov.get_annotated_files(
-            text="\n".join([it.Text for it in file.Lines]),
+        line_annotated_file = cov.get_annotated_files(
+            text=file_text,
             annotations=[it for it in line_segmented],
             line_group_kind=line_group.kind,
         )
 
-        log(CAT).info(dbg(annotated_file))
-        # return
+        ju.assert_subset(
+            line_annotated_file.model_dump(),
+            dict(Lines=[
+                dict(Segments=[dict(Text="\n")]),
+                dict(Segments=[dict(Text="int main() {\n")]),
+                dict(Segments=[dict(Text="  int a = 1 + 2;\n")]),
+                dict(Segments=[dict(Text="  int b = a + 3;\n")]),
+                dict(Segments=[dict(Text="}")]),
+            ],),
+        )
 
         assert len(line_segmented) == 5
 
@@ -508,29 +516,21 @@ def test_coverage_grouping():
             last=len(code),
         )
 
-        print(line_group)
-        print(flat_group)
+        assert len(join_segmented) == 7
 
-        print("")
-        for s in join_segmented:
-            print(s)
-
-        # assert len(join_segmented) == 5
-
-        annotated_file = cov.get_annotated_files(
-            text="\n".join([it.Text for it in file.Lines]),
+        join_annotated_file = cov.get_annotated_files(
+            text=file_text,
             annotations=[it for it in join_segmented],
             line_group_kind=line_group.kind,
         )
 
-        log(CAT).info(dbg(annotated_file))
-        # pprin(annotated_file)
+        
 
-        assert len(annotated_file.Lines) == 5
-        assert len(annotated_file.Lines[0].Segments) == 1
+        assert len(join_annotated_file.Lines) == 5
+        assert len(join_annotated_file.Lines[0].Segments) == 1
 
         ju.assert_subset(
-            annotated_file.model_dump(),
+            join_annotated_file.model_dump(),
             dict(Lines=[
                 dict(Segments=[dict(Text="\n")]),
                 dict(Segments=[dict(
@@ -541,3 +541,32 @@ def test_coverage_grouping():
                 dict(Segments=[dict(Text="}")]),
             ],),
         )
+
+        print("")
+
+        token_dict = defaultdict(lambda: len(token_dict))
+
+        token_group = cov.get_token_group(
+            file_text,
+            token_to_int=lambda it: token_dict[it],
+        )
+
+        tok: cov.org.SequenceSegment
+        for group in [line_group, flat_group, token_group]:
+            log(CAT).info("---------")
+            for tok in group.segments:
+                log(CAT).info(f"{tok} {file_text[tok.first:tok.last]}")
+
+        token_segmented = cov.org.annotateSequence(
+            groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group, token_group]),
+            first=0,
+            last=len(code),
+        )
+
+        token_annotated_file = cov.get_annotated_files(
+            text=file_text,
+            annotations=[it for it in token_segmented],
+            line_group_kind=line_group.kind,
+        )
+
+        pprint_to_file(token_annotated_file, "/tmp/annotated.py")

@@ -1,5 +1,5 @@
 #!/usr/env/bin python
-from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict
+from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column, select, Select
@@ -19,6 +19,7 @@ import py_repository.gen_documentation_data as docdata
 import dominate.tags as tags
 from pygments import lex
 from pygments.lexers import CppLexer
+from pygments.token import Token, _TokenType, Whitespace
 from py_repository.gen_coverage_cookies import *
 
 CAT = "coverage"
@@ -383,11 +384,6 @@ def get_line_group(lines: List[DocCodeCxxLine],
         )
 
         group.segments.append(seg)
-
-        log(CAT).info(
-            f"index:{index}/{len(lines)} line:{line} seg:{seg} len:{len(line.Text)} position:{current_position} end:{line_end} is_last:{is_last}"
-        )
-
         current_position = line_end + 1
 
     return group
@@ -406,6 +402,41 @@ def get_coverage_group(segments: List[GenCovSegmentFlat],
                 first=segment.First,
                 last=segment.Last,
             ))
+
+    return group
+
+
+@beartype
+def get_token_group(
+    text: str,
+    token_to_int: Callable[[_TokenType], int],
+    kind: int = 14,
+) -> org.SequenceSegmentGroup:
+    group = org.SequenceSegmentGroup()
+    group.kind = kind
+    position = 0
+
+    def esc(s):
+        return s.replace("\n", "␤")
+
+    for idx, (token_type, token_text) in enumerate(
+            lex(
+                text,
+                CppLexer(
+                    stripnl=False,  # Don't drop newlines in the input
+                    ensurenl=False,  # Don't introduce arbitrary trailing whitespaces
+                ))):
+        kind = token_to_int(token_type)
+
+        assert type(kind) is int, f"{token_type} -> {kind}, {type(kind)}"
+        last = position + len(token_text)
+        desc = f"[{idx:<2}] {kind:<3} {str(token_type):<40} '{esc(token_text)}' [{position}:{last}] -> '{esc(text[position:last])}'"
+
+        assert token_text == text[position:last], desc
+
+        group.segments.append(org.SequenceSegment(kind=kind, first=position, last=last))
+
+        position = last
 
     return group
 
