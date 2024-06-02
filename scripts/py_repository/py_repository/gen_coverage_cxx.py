@@ -1,5 +1,5 @@
 #!/usr/env/bin python
-from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping, Union
+from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping, Union, Set
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column, select, Select
@@ -256,6 +256,99 @@ def extract_text(lines: List[Union[str, DocCodeCxxLine]], start: Tuple[int, int]
         return "\n".join(extracted_lines)
 
 
+def pivot_strings(strings: List[str]) -> List[List[str]]:
+    max_len = max(len(s) for s in strings)
+    padded_strings = [s.ljust(max_len) for s in strings]
+    pivoted = [[padded_strings[row][col]
+                for row in range(len(padded_strings))]
+               for col in range(max_len)]
+    return ["".join(it) for it in pivoted]
+
+
+@beartype
+def format_sequence_segments(
+    text: str,
+    groups: List[org.SequenceSegmentGroup],
+    get_group_name: Callable[[int], Optional[str]],
+    get_segment_name: Callable[[int, int], Optional[str]],
+) -> str:
+    visible_chars = {' ': '␣', '\n': '␤'}
+    formatted_text = ''.join(visible_chars.get(c, c) for c in text)
+
+    result: List[List[str]] = []
+
+    result.append([" "] + [str(it) for it in range(len(formatted_text))])
+    result.append([" "] + ["" for _ in formatted_text])
+    result.append([" "] + [f"'{it}'" for it in formatted_text])
+
+    for group in groups:
+
+        def add_segment_group_lane(
+                segments: List[org.SequenceSegment]) -> List[org.SequenceSegment]:
+            covered_range: Set[int] = set()
+            overlapping: List[org.SequenceSegment] = []
+
+            result.append([" "] + ["" for _ in formatted_text])
+            group_lane = [" "] * len(formatted_text)
+            segment: org.SequenceSegment
+            for segment in segments:
+                segment_set = set(range(segment.first, segment.last + 1))
+                if 0 < len(covered_range.intersection(segment_set)):
+                    overlapping.append(segment)
+
+                else:
+                    segment_desc = f"{segment.kind} [{segment.first}..{segment.last}]"
+                    name = get_segment_name(group.kind, segment.kind)
+                    if name:
+                        segment_desc += f" ({name})"
+
+                    assert group_lane[segment.first] == " "
+                    if segment.first == segment.last:
+                        group_lane[segment.first] = f"⟧{segment_desc}"
+                    else:
+                        group_lane[segment.first] = f"╗{segment_desc}"
+                        if segment.last < len(group_lane):
+                            assert group_lane[segment.last] == " "
+                            group_lane[segment.last] = "╝"
+
+                        for i in range(segment.first + 1, segment.last):
+                            assert group_lane[i] == " "
+                            group_lane[i] = "║"
+
+                    covered_range = covered_range.union(segment_set)
+
+            group_desc = str(group.kind)
+            name = get_group_name(group.kind)
+            if name:
+                group_desc += f" ({name})"
+
+            group_lane = [group_desc] + group_lane
+            result.append(group_lane)
+
+            return overlapping
+
+        leftover = group.segments
+        while 0 < len(leftover):
+            leftover = add_segment_group_lane(leftover)
+
+    out_str = []
+
+    for lane in result:
+        lane_size = max(len(it) for it in lane)
+        for lane_slice in range(0, lane_size):
+            out_line = []
+            for column in range(len(formatted_text)):
+                if lane_slice < len(lane[column]):
+                    out_line.append(lane[column][lane_slice])
+
+                else:
+                    out_line.append(" ")
+
+            out_str.append("".join(out_line))
+
+    return "\n".join(pivot_strings(out_str))
+
+
 @beartype
 def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
     return DocCodeCxxFile(
@@ -489,9 +582,34 @@ def get_annotated_files_for_session(
     token_group = get_token_group(file_full_content,
                                   token_to_int=lambda it: token_dict[it])
 
+    groups = [line_group, coverage_group, token_group]
+
+    token_names = {kind: key for key, kind in token_dict.items()}
+
+    def get_group_name(it: int) -> Optional[str]:
+        if it == line_group.kind:
+            return "line"
+
+        elif it == token_group.kind:
+            return "tok"
+
+        elif it == coverage_group.kind:
+            return "cov"
+
+    def get_segment_name(group: int, segment: int) -> Optional[str]:
+        if group == token_group.kind:
+            return token_names[segment]
+
+    Path("/tmp/annotated_segments.txt").write_text(
+        format_sequence_segments(
+            file_full_content,
+            groups,
+            get_group_name=get_group_name,
+            get_segment_name=get_segment_name,
+        ))
+
     token_segmented = org.annotateSequence(
-        groups=org.VecOfSequenceSegmentGroupVec([line_group, coverage_group,
-                                                 token_group]),
+        groups=org.VecOfSequenceSegmentGroupVec(groups),
         first=0,
         last=len(file_full_content),
     )
@@ -501,9 +619,7 @@ def get_annotated_files_for_session(
         annotations=[it for it in token_segmented],
         line_group_kind=line_group.kind,
         token_group_kind=token_group.kind,
-        token_kind_mapping={
-            kind: key for key, kind in token_dict.items()
-        },
+        token_kind_mapping=token_names,
         coverage_group_kind=coverage_group.kind,
     )
 
