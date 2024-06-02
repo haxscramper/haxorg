@@ -12,7 +12,7 @@ def render_rich(it, color: bool = True) -> str:
 
 def render_rich_pprint(
     obj,
-    width: int = 80,
+    width: int = 150,
     color: bool = True,
     max_string: int | None = None,
 ) -> str:

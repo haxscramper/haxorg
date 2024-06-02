@@ -569,8 +569,6 @@ def test_coverage_annotation_single_run():
             coverage_group_kind=flat_group.kind,
         )
 
-        pprint_to_file(token_annotated_file, "/tmp/annotated.py")
-
         ju.assert_subset(
             to_debug_json(token_annotated_file.model_dump()),
             to_debug_json(
@@ -583,10 +581,11 @@ def test_coverage_annotation_single_run():
                              TokenKind='Token.Name.Function'),
                         dict(Text='()', Annotations={}, TokenKind='Token.Punctuation'),
                         dict(Text=' ', Annotations={}, TokenKind='Token.Text.Whitespace'),
-                        dict(Text='{', CoverageSegmentId=1,
+                        dict(Text='{',
+                             CoverageSegmentIdx=0,
                              TokenKind='Token.Punctuation'),
                         dict(Text='\n',
-                             CoverageSegmentId=1,
+                             CoverageSegmentIdx=0,
                              TokenKind='Token.Text.Whitespace'),
                     ]),
                     dict(),
@@ -595,23 +594,38 @@ def test_coverage_annotation_single_run():
                 ])),
         )
 
+
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_coverage_annotation_multiple_run():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
+        code = "\n".join([
+            "",
+            "int main() {",
+            "  int a = 1 + 2;",
+            "  int b = a + 3;",
+            "}",
+        ])
+
         cmd = ProfileRunParams(
             dir=dir,
             main="main.cpp",
-            files={
-                "main.cpp":
-                    corpus_base.joinpath("test_coverage_regions_1.cpp").read_text()
-            },
+            files={"main.cpp": code},
             run_contexts={
                 "function_3": [],
                 "function_1": ["2"],
                 "function_2": ["3", "3"],
-            })
+            },
+        )
 
         cmd.run()
 
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+
+        file = cov.get_annotated_files_for_session(
+            session=session,
+            root_path=dir,
+            abs_path=dir.joinpath("main.cpp"),
+        )
+
+        pprint_to_file(file, "/tmp/annotated.py")

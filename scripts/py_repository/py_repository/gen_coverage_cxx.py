@@ -14,13 +14,16 @@ from beartype import beartype
 from pathlib import Path
 from py_scriptutils.sqlalchemy_utils import open_sqlite_session
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log, to_debug_json
+from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
+from py_scriptutils.rich_utils import render_rich_pprint
 import py_repository.gen_documentation_data as docdata
 import dominate.tags as tags
 from pygments import lex
 from pygments.lexers import CppLexer
 from pygments.token import Token, _TokenType, Whitespace
 from py_repository.gen_coverage_cookies import *
+from collections import defaultdict
+from dataclasses import dataclass
 
 CAT = "coverage"
 
@@ -154,7 +157,7 @@ class CovFunctionInstantiation(CoverageSchema):
 
 
 class GenCovSegmentFlat(BaseModel, extra="forbid"):
-    OriginalId: int
+    OriginalId: List[int]
     First: int
     Last: int
 
@@ -163,7 +166,7 @@ class AnnotationSegment(BaseModel, extra="forbid"):
     Text: str = ""
     Annotations: Dict[int, int] = Field(default_factory=dict)
     TokenKind: str = ""
-    CoverageSegmentId: Optional[int] = None
+    CoverageSegmentIdx: Optional[int] = None
 
     def isAnnotated(self) -> bool:
         return 0 < len(self.Annotations)
@@ -232,6 +235,7 @@ class DocCodeCxxLine(docdata.DocCodeLine, extra="forbid"):
 class DocCodeCxxFile(docdata.DocCodeFile, extra="forbid"):
     Lines: List[DocCodeCxxLine] = Field(default_factory=list)
 
+
 @beartype
 def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
     return DocCodeCxxFile(
@@ -261,8 +265,11 @@ def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
 
 
 @beartype
-def get_flat_coverage(session: Session, Lines: List[DocCodeCxxLine],
-                      segments: Select[Tuple[CovSegment]]) -> List[GenCovSegmentFlat]:
+def get_flat_coverage(
+    session: Session,
+    Lines: List[DocCodeCxxLine],
+    segments: Select[Tuple[CovSegment]],
+) -> List[GenCovSegmentFlat]:
     result = []
 
     line_starts: List[int] = []
@@ -271,14 +278,25 @@ def get_flat_coverage(session: Session, Lines: List[DocCodeCxxLine],
         line_starts.append(current_position)
         current_position += len(line.Text)
 
+    SegmentRuns: Dict[Tuple[int, int], List[int]] = defaultdict(lambda: list())
+
     segment: CovSegment
     for (segment,) in session.execute(segments):
-        result.append(
-            GenCovSegmentFlat(
-                OriginalId=segment.Id,
-                First=line_starts[segment.LineStart - 1] + segment.ColStart,
-                Last=line_starts[segment.LineEnd - 1] + segment.ColEnd,
-            ))
+        First = line_starts[segment.LineStart - 1] + segment.ColStart
+        Last = line_starts[segment.LineEnd - 1] + segment.ColEnd
+
+        SegmentRuns[(First, Last)].append(segment.Id)
+        # print(f"{First} {Last} {segment.Id}")
+
+    # print(render_rich_pprint(to_debug_json(SegmentRuns)))
+
+    it: Tuple[Tuple[int, int], List[int]]
+    for it in sorted(SegmentRuns.items(), key=lambda it: it[0][0]):
+        result.append(GenCovSegmentFlat(
+            OriginalId=it[1],
+            First=it[0][0],
+            Last=it[0][1],
+        ))
 
     return result
 
@@ -317,7 +335,7 @@ def get_coverage_group(
     for idx, segment in enumerate(segments):
         group.segments.append(
             org.SequenceSegment(
-                kind=segment.OriginalId,
+                kind=idx,
                 first=segment.First,
                 last=segment.Last,
             ))
@@ -362,12 +380,12 @@ def get_token_group(
 
 @beartype
 def get_annotated_files(
-        text: str,
-        annotations: List[org.SequenceAnnotation],
-        line_group_kind: int,
-        token_group_kind: Optional[int] = None,
-        token_kind_mapping: Mapping[int, _TokenType] = dict(),
-        coverage_group_kind: Optional[int] = None,
+    text: str,
+    annotations: List[org.SequenceAnnotation],
+    line_group_kind: int,
+    token_group_kind: Optional[int] = None,
+    token_kind_mapping: Mapping[int, _TokenType] = dict(),
+    coverage_group_kind: Optional[int] = None,
 ) -> AnnotatedFile:
     current_line = 0
     file = AnnotatedFile()
@@ -403,7 +421,7 @@ def get_annotated_files(
                 segment.TokenKind = str(token_kind_mapping[annotation.segmentKind])
 
             elif annotation.groupKind == coverage_group_kind:
-                segment.CoverageSegmentId = annotation.segmentKind
+                segment.CoverageSegmentIdx = annotation.segmentKind
 
             else:
                 segment.Annotations[annotation.groupKind] = annotation.segmentKind
@@ -413,6 +431,44 @@ def get_annotated_files(
         last_segment_finish = item.last
 
     return file
+
+
+@beartype
+def get_annotated_files_for_session(
+    session: Session,
+    root_path: Path,
+    abs_path: Path,
+) -> AnnotatedFile:
+    file_cov = get_coverage_of(session, abs_path)
+    file = read_code_file(root_path, abs_path)
+    coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
+    pprint_to_file(coverage_segments, "/tmp/coverage_segments.py")
+    coverage_group = get_coverage_group(coverage_segments)
+    line_group = get_line_group(file.Lines)
+    file_full_content = abs_path.read_text()
+    token_dict = defaultdict(lambda: len(token_dict))
+    token_group = get_token_group(file_full_content,
+                                  token_to_int=lambda it: token_dict[it])
+
+    token_segmented = org.annotateSequence(
+        groups=org.VecOfSequenceSegmentGroupVec([line_group, coverage_group,
+                                                 token_group]),
+        first=0,
+        last=len(file_full_content),
+    )
+
+    token_annotated_file = get_annotated_files(
+        text=file_full_content,
+        annotations=[it for it in token_segmented],
+        line_group_kind=line_group.kind,
+        token_group_kind=token_group.kind,
+        token_kind_mapping={
+            kind: key for key, kind in token_dict.items()
+        },
+        coverage_group_kind=coverage_group.kind,
+    )
+
+    return token_annotated_file
 
 
 if __name__ == "__main__":
