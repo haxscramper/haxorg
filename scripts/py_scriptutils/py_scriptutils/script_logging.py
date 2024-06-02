@@ -44,7 +44,7 @@ def to_debug_json(
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
-                is_regular = not has_singl
+                is_regular = not has_single
                 return (has_double and include_double_underscore_attrs) or (
                     not has_double and has_single and
                     include_single_underscore_attrs) or is_regular

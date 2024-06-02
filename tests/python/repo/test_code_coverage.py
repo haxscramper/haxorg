@@ -20,6 +20,7 @@ from sqlalchemy import select
 from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
 from py_scriptutils.rich_utils import render_rich_pprint
 from collections import defaultdict
+import pytest
 
 
 def dbg(map) -> str:
@@ -171,7 +172,7 @@ int main() {
         assert_frame(frame, [dict(Mangled="main", Demangled="main")])
 
 
-def test_coverage_regions_1():
+def test_coverage_regions_multiple_contexts():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         cmd = ProfileRunParams(
@@ -444,7 +445,8 @@ def test_file_segmentation_2():
         ])
 
 
-def test_coverage_grouping():
+@pytest.mark.test_coverage_annotation_file_cxx
+def test_coverage_annotation_single_run():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = "\n".join([
@@ -564,6 +566,7 @@ def test_coverage_grouping():
             token_kind_mapping={
                 kind: key for key, kind in token_dict.items()
             },
+            coverage_group_kind=flat_group.kind,
         )
 
         pprint_to_file(token_annotated_file, "/tmp/annotated.py")
@@ -580,11 +583,10 @@ def test_coverage_grouping():
                              TokenKind='Token.Name.Function'),
                         dict(Text='()', Annotations={}, TokenKind='Token.Punctuation'),
                         dict(Text=' ', Annotations={}, TokenKind='Token.Text.Whitespace'),
-                        dict(Text='{',
-                             Annotations={flat_group.kind: 1},
+                        dict(Text='{', CoverageSegmentId=1,
                              TokenKind='Token.Punctuation'),
                         dict(Text='\n',
-                             Annotations={flat_group.kind: 1},
+                             CoverageSegmentId=1,
                              TokenKind='Token.Text.Whitespace'),
                     ]),
                     dict(),
@@ -592,3 +594,24 @@ def test_coverage_grouping():
                     dict(Segments=[dict(TokenKind="Token.Punctuation")]),
                 ])),
         )
+
+@pytest.mark.test_coverage_annotation_file_cxx
+def test_coverage_annotation_multiple_run():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        cmd = ProfileRunParams(
+            dir=dir,
+            main="main.cpp",
+            files={
+                "main.cpp":
+                    corpus_base.joinpath("test_coverage_regions_1.cpp").read_text()
+            },
+            run_contexts={
+                "function_3": [],
+                "function_1": ["2"],
+                "function_2": ["3", "3"],
+            })
+
+        cmd.run()
+
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)

@@ -163,6 +163,7 @@ class AnnotationSegment(BaseModel, extra="forbid"):
     Text: str = ""
     Annotations: Dict[int, int] = Field(default_factory=dict)
     TokenKind: str = ""
+    CoverageSegmentId: Optional[int] = None
 
     def isAnnotated(self) -> bool:
         return 0 < len(self.Annotations)
@@ -178,6 +179,7 @@ class AnnotationSegment(BaseModel, extra="forbid"):
 
 
 class AnnotatedLine(BaseModel, extra="forbid"):
+    Index: int
     Segments: List[AnnotationSegment] = Field(default_factory=list)
 
 
@@ -206,62 +208,6 @@ def extract_text(lines: List[str], start: Tuple[int, int], end: Tuple[int, int])
 
 
 @beartype
-class CoverageSegmentTree:
-
-    def __init__(self, segments: Iterable[CovSegment]):
-        self.root = None
-        self.segments = sorted(segments, key=lambda x: (x.LineStart, x.ColStart))
-        if self.segments:
-            self.root = self.build_tree(0, len(self.segments) - 1)
-
-    @beartype
-    class Node:
-
-        def __init__(self, start: int, end: int, segments: Iterable[CovSegment]):
-            self.start = start
-            self.end = end
-            self.segments = segments
-            self.left: Optional['CoverageSegmentTree.Node'] = None
-            self.right: Optional['CoverageSegmentTree.Node'] = None
-
-    def build_tree(self, start: int, end: int) -> Node:
-        if start > end:
-            return None
-        if start == end:
-            return self.Node(start, end, [self.segments[start]])
-
-        mid = (start + end) // 2
-        node = self.Node(start, end, self.segments[start:end + 1])
-        node.left = self.build_tree(start, mid)
-        node.right = self.build_tree(mid + 1, end)
-        return node
-
-    def query(self,
-              line: int,
-              col: int,
-              node: Optional[Node] = None) -> Iterable[CovSegment]:
-        if node is None:
-            node = self.root
-        if node is None:
-            return []
-
-        # If the point is outside the bounds of the segments in this node
-        if node.start > line or node.end < line:
-            return []
-
-        # Check for intersection with segments at this node
-        result = [seg for seg in node.segments if seg.intersects(line, col)]
-
-        # Recurse on child nodes
-        if node.left and line <= (node.left.start + node.left.end) // 2:
-            result.extend(self.query(line, col, node.left))
-        if node.right and line >= (node.right.start + node.right.end) // 2 + 1:
-            result.extend(self.query(line, col, node.right))
-
-        return result
-
-
-@beartype
 def get_coverage_of(session: Session, path: Path) -> Optional[Select[Tuple[CovSegment]]]:
     target_id = session.execute(
         select(CovFile).where(CovFile.Path == str(path))).fetchall()
@@ -286,16 +232,6 @@ class DocCodeCxxLine(docdata.DocCodeLine, extra="forbid"):
 class DocCodeCxxFile(docdata.DocCodeFile, extra="forbid"):
     Lines: List[DocCodeCxxLine] = Field(default_factory=list)
 
-
-class DocCodeRunCall(BaseModel, extra="forbid"):
-    Count: int
-    CalledBy: str
-
-
-class DocCodeCxxCoverage(BaseModel, extra="forbid"):
-    Call: List[DocCodeRunCall] = Field(default_factory=list)
-
-
 @beartype
 def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
     return DocCodeCxxFile(
@@ -305,26 +241,6 @@ def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
             for idx, line in enumerate(AbsPath.read_text().splitlines())
         ],
     )
-
-
-@beartype
-def convert_cxx_tree(
-    RootPath: Path,
-    AbsPath: Path,
-    coverage_session: Optional[Session],
-) -> DocCodeCxxFile:
-    outfile = read_code_file(RootPath, AbsPath)
-
-    if coverage_session:
-        query = get_coverage_of(coverage_session, AbsPath)
-        if query is not None:
-            log(CAT).info(f"Has coverage for {AbsPath}")
-            outfile.Coverage = CoverageSegmentTree(
-                it[0]
-                for it in coverage_session.execute(query.where(
-                    CovSegment.IsLeaf == True)))
-
-    return outfile
 
 
 @beartype
@@ -451,10 +367,11 @@ def get_annotated_files(
         line_group_kind: int,
         token_group_kind: Optional[int] = None,
         token_kind_mapping: Mapping[int, _TokenType] = dict(),
+        coverage_group_kind: Optional[int] = None,
 ) -> AnnotatedFile:
     current_line = 0
     file = AnnotatedFile()
-    file.Lines.append(AnnotatedLine())
+    file.Lines.append(AnnotatedLine(Index=0))
     last_segment_finish = None
 
     for item in annotations:
@@ -473,7 +390,7 @@ def get_annotated_files(
         if line_idx != current_line:
             assert line_idx == len(
                 file.Lines), f"current line:{line_idx} full line count: {len(file.Lines)}"
-            file.Lines.append(AnnotatedLine())
+            file.Lines.append(AnnotatedLine(Index=line_idx))
             current_line = line_idx
 
         segment = AnnotationSegment(Text=text[item.first:item.last + 1])
@@ -484,6 +401,9 @@ def get_annotated_files(
 
             elif annotation.groupKind == token_group_kind:
                 segment.TokenKind = str(token_kind_mapping[annotation.segmentKind])
+
+            elif annotation.groupKind == coverage_group_kind:
+                segment.CoverageSegmentId = annotation.segmentKind
 
             else:
                 segment.Annotations[annotation.groupKind] = annotation.segmentKind
