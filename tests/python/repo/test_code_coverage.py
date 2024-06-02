@@ -524,8 +524,6 @@ def test_coverage_grouping():
             line_group_kind=line_group.kind,
         )
 
-        
-
         assert len(join_annotated_file.Lines) == 5
         assert len(join_annotated_file.Lines[0].Segments) == 1
 
@@ -551,14 +549,9 @@ def test_coverage_grouping():
             token_to_int=lambda it: token_dict[it],
         )
 
-        tok: cov.org.SequenceSegment
-        for group in [line_group, flat_group, token_group]:
-            log(CAT).info("---------")
-            for tok in group.segments:
-                log(CAT).info(f"{tok} {file_text[tok.first:tok.last]}")
-
         token_segmented = cov.org.annotateSequence(
-            groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group, token_group]),
+            groups=cov.org.VecOfSequenceSegmentGroupVec(
+                [line_group, flat_group, token_group]),
             first=0,
             last=len(code),
         )
@@ -567,6 +560,35 @@ def test_coverage_grouping():
             text=file_text,
             annotations=[it for it in token_segmented],
             line_group_kind=line_group.kind,
+            token_group_kind=token_group.kind,
+            token_kind_mapping={
+                kind: key for key, kind in token_dict.items()
+            },
         )
 
         pprint_to_file(token_annotated_file, "/tmp/annotated.py")
+
+        ju.assert_subset(
+            to_debug_json(token_annotated_file.model_dump()),
+            to_debug_json(
+                dict(Lines=[
+                    dict(Segments=[dict(TokenKind="Token.Text.Whitespace")]),
+                    dict(Segments=[
+                        dict(Text='int', Annotations={}, TokenKind='Token.Keyword.Type'),
+                        dict(Text=' ', Annotations={}, TokenKind='Token.Text.Whitespace'),
+                        dict(Text='main', Annotations={},
+                             TokenKind='Token.Name.Function'),
+                        dict(Text='()', Annotations={}, TokenKind='Token.Punctuation'),
+                        dict(Text=' ', Annotations={}, TokenKind='Token.Text.Whitespace'),
+                        dict(Text='{',
+                             Annotations={flat_group.kind: 1},
+                             TokenKind='Token.Punctuation'),
+                        dict(Text='\n',
+                             Annotations={flat_group.kind: 1},
+                             TokenKind='Token.Text.Whitespace'),
+                    ]),
+                    dict(),
+                    dict(),
+                    dict(Segments=[dict(TokenKind="Token.Punctuation")]),
+                ])),
+        )

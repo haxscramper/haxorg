@@ -1,5 +1,5 @@
 #!/usr/env/bin python
-from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator
+from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column, select, Select
@@ -162,6 +162,7 @@ class GenCovSegmentFlat(BaseModel, extra="forbid"):
 class AnnotationSegment(BaseModel, extra="forbid"):
     Text: str = ""
     Annotations: Dict[int, int] = Field(default_factory=dict)
+    TokenKind: str = ""
 
     def isAnnotated(self) -> bool:
         return 0 < len(self.Annotations)
@@ -390,15 +391,17 @@ def get_line_group(lines: List[DocCodeCxxLine],
 
 
 @beartype
-def get_coverage_group(segments: List[GenCovSegmentFlat],
-                       kind: int = 13) -> org.SequenceSegmentGroup:
+def get_coverage_group(
+    segments: List[GenCovSegmentFlat],
+    kind: int = 13,
+) -> org.SequenceSegmentGroup:
     group = org.SequenceSegmentGroup()
     group.kind = kind
 
     for idx, segment in enumerate(segments):
         group.segments.append(
             org.SequenceSegment(
-                kind=idx,
+                kind=segment.OriginalId,
                 first=segment.First,
                 last=segment.Last,
             ))
@@ -429,21 +432,26 @@ def get_token_group(
         kind = token_to_int(token_type)
 
         assert type(kind) is int, f"{token_type} -> {kind}, {type(kind)}"
-        last = position + len(token_text)
-        desc = f"[{idx:<2}] {kind:<3} {str(token_type):<40} '{esc(token_text)}' [{position}:{last}] -> '{esc(text[position:last])}'"
+        last = position + len(token_text) - 1
+        desc = f"[{idx:<2}] {kind:<3} {str(token_type):<40} '{esc(token_text)}' [{position}:{last}] -> '{esc(text[position:last+1])}'"
 
-        assert token_text == text[position:last], desc
+        assert token_text == text[position:last + 1], desc
 
         group.segments.append(org.SequenceSegment(kind=kind, first=position, last=last))
 
-        position = last
+        position = last + 1
 
     return group
 
 
 @beartype
-def get_annotated_files(text: str, annotations: List[org.SequenceAnnotation],
-                        line_group_kind: int) -> AnnotatedFile:
+def get_annotated_files(
+        text: str,
+        annotations: List[org.SequenceAnnotation],
+        line_group_kind: int,
+        token_group_kind: Optional[int] = None,
+        token_kind_mapping: Mapping[int, _TokenType] = dict(),
+) -> AnnotatedFile:
     current_line = 0
     file = AnnotatedFile()
     file.Lines.append(AnnotatedLine())
@@ -471,7 +479,13 @@ def get_annotated_files(text: str, annotations: List[org.SequenceAnnotation],
         segment = AnnotationSegment(Text=text[item.first:item.last + 1])
 
         for annotation in item.annotations:
-            if annotation.groupKind != line_group_kind:
+            if annotation.groupKind == line_group_kind:
+                pass
+
+            elif annotation.groupKind == token_group_kind:
+                segment.TokenKind = str(token_kind_mapping[annotation.segmentKind])
+
+            else:
                 segment.Annotations[annotation.groupKind] = annotation.segmentKind
 
         file.Lines[line_idx].Segments.append(segment)

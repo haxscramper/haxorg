@@ -25,10 +25,12 @@ class DiffItem:
 
 
 @beartype
-def json_diff(source: Json,
-              target: Json,
-              path: jsonpath.JSONPath = jsonpath.Root(),
-              ignore: Callable[[Json], bool] = lambda x: False) -> List[DiffItem]:
+def json_diff(
+    source: Json,
+    target: Json,
+    path: jsonpath.JSONPath = jsonpath.Root(),
+    ignore: Callable[[Json], bool] = lambda x: False,
+) -> List[DiffItem]:
     result = []
 
     if ignore(target):
@@ -43,16 +45,19 @@ def json_diff(source: Json,
     if isinstance(source, (list, tuple)):
         i = 0
         while i < len(source) and i < len(target):
+            assert isinstance(i, int), f"{type(i)} {i}"
             temp_diff = json_diff(source[i], target[i], path.child(Index(i)), ignore)
             result.extend(temp_diff)
             i += 1
 
         end_index = len(result)
         while i < len(source):
+            assert isinstance(i, int), f"{type(i)} {i}"
             result.insert(end_index, DiffItem(Op.Remove, path.child(Index(i))))
             i += 1
 
         while i < len(target):
+            assert isinstance(i, int), f"{type(i)} {i}"
             result.append(DiffItem(Op.AppendItem, path.child(Index(i)), target[i]))
             i += 1
 
@@ -60,6 +65,7 @@ def json_diff(source: Json,
 
     elif isinstance(source, dict):
         for key in source:
+            assert isinstance(key, str), f"{type(key)} {key}"
             if key in target:
                 temp_diff = json_diff(source[key], target[key], path.child(Fields(key)),
                                       ignore)
@@ -70,6 +76,7 @@ def json_diff(source: Json,
 
         for key in target:
             if key not in source:
+                assert isinstance(key, str), f"{type(key)} {key}"
                 result.append(DiffItem(Op.AddField, path.child(Fields(key)), target[key]))
 
     else:
