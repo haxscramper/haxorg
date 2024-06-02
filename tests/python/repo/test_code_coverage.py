@@ -534,10 +534,10 @@ def test_coverage_annotation_single_run():
             dict(Lines=[
                 dict(Segments=[dict(Text="\n")]),
                 dict(Segments=[dict(
-                    Text="int main() "), dict(Text="{\n")]),
+                    Text="int main()"), dict(Text=" {\n")]),
                 dict(Segments=[dict(Text="  int a = 1 + 2;\n")]),
-                dict(Segments=[dict(Text="  int b = a + 3;"),
-                               dict(Text="\n")]),
+                dict(Segments=[dict(Text="  int b = a + 3"),
+                               dict(Text=";\n")]),
                 dict(Segments=[dict(Text="}")]),
             ],),
         )

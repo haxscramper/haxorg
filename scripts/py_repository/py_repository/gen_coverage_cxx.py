@@ -400,22 +400,26 @@ def get_flat_coverage(
             First = line_starts[segment.LineStart - 1] + segment.ColStart - 1
             Last = line_starts[segment.LineEnd - 1] + segment.ColEnd - 1
 
-            SegmentRuns[(First, Last)].append((segment.Id, (
-                "Start:{}:{} End:{}:{} [{}..{}]".format(
-                    segment.LineStart,
-                    segment.ColStart,
-                    segment.LineEnd,
-                    segment.ColEnd,
-                    First,
-                    Last,
-                ),
-                '{}'.format(
-                    extract_text(
-                        Lines,
-                        start=(segment.LineStart, segment.ColStart),
-                        end=(segment.LineEnd, segment.ColEnd),
-                    )),
-            )))
+            DbgLines = "[{}:{} {}:{}]".format(
+                segment.LineStart,
+                segment.ColStart,
+                segment.LineEnd,
+                segment.ColEnd,
+            )
+
+            DbgRange = "[{}..{}]".format(
+                First,
+                Last,
+            )
+
+            DbgText = '{}'.format(
+                extract_text(
+                    Lines,
+                    start=(segment.LineStart, segment.ColStart),
+                    end=(segment.LineEnd, segment.ColEnd),
+                ))
+
+            SegmentRuns[(First, Last)].append((segment.Id, DbgLines))
         # print(f"{First} {Last} {segment.Id}")
 
     # print(render_rich_pprint(to_debug_json(SegmentRuns)))
@@ -599,6 +603,9 @@ def get_annotated_files_for_session(
     def get_segment_name(group: int, segment: int) -> Optional[str]:
         if group == token_group.kind:
             return token_names[segment]
+
+        elif group == coverage_group.kind:
+            return str(coverage_segments[segment].Dbg)
 
     Path("/tmp/annotated_segments.txt").write_text(
         format_sequence_segments(
