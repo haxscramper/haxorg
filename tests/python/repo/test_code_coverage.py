@@ -594,9 +594,16 @@ def test_coverage_annotation_single_run():
                 ])),
         )
 
+        recombine = ""
+        for line in token_annotated_file.Lines:
+            for segment in line.Segments:
+                recombine += segment.Text
+
+        assert recombine == file_text
+
 
 @pytest.mark.test_coverage_annotation_file_cxx
-def test_coverage_annotation_multiple_run():
+def test_coverage_annotation_multiple_run_single_segment():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         code = "\n".join([
@@ -628,4 +635,73 @@ def test_coverage_annotation_multiple_run():
             abs_path=dir.joinpath("main.cpp"),
         )
 
-        pprint_to_file(file, "/tmp/annotated.py")
+        pprint_to_file(file,
+                       "/tmp/test_coverage_annotation_multiple_run_single_segment.py")
+
+        recombine = ""
+        for line in file.Lines:
+            for segment in line.Segments:
+                recombine += segment.Text
+
+        assert recombine == code
+
+
+@pytest.mark.test_coverage_annotation_file_cxx
+def test_coverage_annotation_multiple_run_multiple_segment():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        code = corpus_base.joinpath("test_coverage_regions_1.cpp").read_text()
+
+        cmd = ProfileRunParams(
+            dir=dir,
+            main="main.cpp",
+            files={"main.cpp": code},
+            run_contexts={
+                "function_3": [],
+                "function_1": ["2"],
+                "function_2": ["3", "3"],
+            },
+        )
+
+        cmd.run()
+
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+
+        file = cov.get_annotated_files_for_session(
+            session=session,
+            root_path=dir,
+            abs_path=dir.joinpath("main.cpp"),
+        )
+
+        pprint_to_file(file, "/tmp/annotated.py", width=200)
+
+        ranges = list()
+        position = 0
+        for line_idx, line_text in enumerate(code.splitlines()):
+            line_info = dict(
+                line_idx=line_idx,
+                line_text=line_text,
+                pos_first=position,
+                columns=[],
+                line_len=len(line_text),
+            )
+
+            for col_idx, col_text in enumerate(line_text):
+                col_info = dict(col_idx=col_idx, col_text=col_text, position=position)
+                position += 1
+                line_info["columns"].append(col_info)
+
+            line_info["pos_last"] = position
+            position += 1
+
+            ranges.append(line_info)
+
+        pprint_to_file(ranges, "/tmp/char_ranges.py")
+        Path("/tmp/test_coverage_annotation_multiple_run_multiple_segment.txt").write_text(format_db_all(session, style=False))
+
+        recombine = ""
+        for line in file.Lines:
+            for segment in line.Segments:
+                recombine += segment.Text
+
+        assert recombine == code

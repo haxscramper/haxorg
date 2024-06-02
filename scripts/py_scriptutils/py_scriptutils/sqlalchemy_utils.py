@@ -54,9 +54,12 @@ class MillisecondsUnixTimestamp(TypeDecorator):
 
 
 @beartype
-def format_rich_table(engine: Engine,
-                      table_name: str,
-                      excluded_columns: List[str] = []) -> Table:
+def format_rich_table(
+    engine: Engine,
+    table_name: str,
+    excluded_columns: List[str] = [],
+    style: bool = True,
+) -> Table:
     """
     Fetches a table from the database and returns a rich Table object.
 
@@ -74,7 +77,10 @@ def format_rich_table(engine: Engine,
     with engine.connect() as connection:
         result = connection.execute(select(*columns_to_fetch))
 
-    rich_table = Table(show_header=True, header_style="bold blue")
+    rich_table = Table(
+        show_header=True,
+        header_style="bold blue" if style else None,
+    )
 
     for column in columns_to_fetch:
         rich_table.add_column(str(column.name))
@@ -91,7 +97,7 @@ def format_rich_query(
     query: Executable,
     column_labels: List[str] = [],
 ) -> Table:
-    
+
     if isinstance(engine, Session):
         engine = engine.get_bind()
 
@@ -132,24 +138,46 @@ def format_db_all(
     if isinstance(engine, Session):
         engine = engine.get_bind()
 
+    def st(text: str, wrap: str):
+        if style:
+            return f"[{wrap}]{text}[/{wrap}]"
+
+        else:
+            return text
+
     ignored_columns = ignored_columns or {}
-    console = Console(no_color=not style)
+    console = Console(
+        no_color=not style,
+        force_terminal=style,
+    )
     with console.capture() as capture:
         tables = get_table_names(engine, excluded_tables)
         for table_name in tables:
 
-            table_content = format_rich_table(engine, table_name,
-                                              ignored_columns.get(table_name, []))
+            table_content = format_rich_table(
+                engine,
+                table_name,
+                ignored_columns.get(table_name, []),
+                style=style,
+            )
 
             if table_content.row_count == 0:
                 console.print(
-                    f"Table: [bold magenta]{table_name}[/bold magenta] [white]Size:[/white][red]empty[/red]",
+                    "Table: {table_name} {size}{empty}".format(
+                        table_name=st(str(table_name), "bold magenta"),
+                        size=st("Size:", "white"),
+                        empty=st("empty", "red"),
+                    ),
                     style="bold underline" if style else None,
                 )
 
             else:
                 console.print(
-                    f"Table: [bold magenta]{table_name}[/bold magenta] [white]Size:[/white]{table_content.row_count}",
+                    "Table: {table_name} {size}{count}".format(
+                        table_name=st(str(table_name), "bold magenta"),
+                        size=st("Size:", "white"),
+                        count=table_content.row_count,
+                    ),
                     style="bold underline" if style else None,
                 )
 

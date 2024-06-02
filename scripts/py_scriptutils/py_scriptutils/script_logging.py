@@ -72,17 +72,14 @@ def to_debug_json(
     return aux(obj)
 
 
-def pprint_to_file(value, path: str):
+def pprint_to_file(value, path: str, width: int = 120):
     # Built-in python pprint is too broken for regular uses -- output is not
     # always rendered to the max column limit is the biggest problem and I could
     # not find any way to print converted translation unit safely.
     with open(path, "w") as file:
         print("# pyright: reportUndefinedVariable=false", file=file)
-        pprint(
-            value,
-            console=Console(file=file, force_terminal=True, color_system=None),
-            indent_guides=False,
-        )
+        from py_scriptutils.rich_utils import render_rich_pprint
+        print(render_rich_pprint(value, width=width, color=False), file=file)
 
 
 class NoTTYFormatter(logging.Formatter):

@@ -1,5 +1,5 @@
 #!/usr/env/bin python
-from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping
+from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping, Union
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column, select, Select
@@ -160,6 +160,7 @@ class GenCovSegmentFlat(BaseModel, extra="forbid"):
     OriginalId: List[int]
     First: int
     Last: int
+    Dbg: Any = None
 
 
 class AnnotationSegment(BaseModel, extra="forbid"):
@@ -196,21 +197,6 @@ def open_coverage(path: Path) -> Session:
 
 
 @beartype
-def extract_text(lines: List[str], start: Tuple[int, int], end: Tuple[int, int]) -> str:
-    start_line, start_column = start
-    end_line, end_column = end
-
-    if start_line == end_line:
-        return lines[start_line - 1][start_column - 1:end_column - 1]
-
-    else:
-        extracted_lines = [
-            lines[start_line - 1][start_column - 1:]
-        ] + lines[start_line:end_line - 1] + [lines[end_line - 1][:end_column - 1]]
-        return "\n".join(extracted_lines)
-
-
-@beartype
 def get_coverage_of(session: Session, path: Path) -> Optional[Select[Tuple[CovSegment]]]:
     target_id = session.execute(
         select(CovFile).where(CovFile.Path == str(path))).fetchall()
@@ -234,6 +220,40 @@ class DocCodeCxxLine(docdata.DocCodeLine, extra="forbid"):
 
 class DocCodeCxxFile(docdata.DocCodeFile, extra="forbid"):
     Lines: List[DocCodeCxxLine] = Field(default_factory=list)
+
+
+@beartype
+def extract_text(lines: List[Union[str, DocCodeCxxLine]], start: Tuple[int, int],
+                 end: Tuple[int, int]) -> str:
+    start_line, start_column = start
+    end_line, end_column = end
+
+    def line_at(idx: int, end: Optional[int] = None) -> str:
+        if end != None:
+            result = []
+            for i in range(idx, end):
+                result.append(line_at(i))
+
+            return result
+
+        else:
+            if isinstance(lines[idx], str):
+                return lines[idx]
+
+            else:
+                return lines[idx].Text
+
+    if start_line == end_line:
+        return line_at(start_line - 1)[start_column - 1:end_column - 1]
+
+    else:
+        extracted_lines = [
+            line_at(start_line - 1)[start_column - 1:],
+            *line_at(start_line, end_line - 1),
+            line_at(end_line - 1)[:end_column - 1],
+        ]
+
+        return "\n".join(extracted_lines)
 
 
 @beartype
@@ -278,25 +298,44 @@ def get_flat_coverage(
         line_starts.append(current_position)
         current_position += len(line.Text)
 
-    SegmentRuns: Dict[Tuple[int, int], List[int]] = defaultdict(lambda: list())
+    SegmentRuns: Dict[Tuple[int, int], List[Tuple[int,
+                                                  str]]] = defaultdict(lambda: list())
 
     segment: CovSegment
     for (segment,) in session.execute(segments):
-        First = line_starts[segment.LineStart - 1] + segment.ColStart
-        Last = line_starts[segment.LineEnd - 1] + segment.ColEnd
+        if segment.IsLeaf:
+            First = line_starts[segment.LineStart - 1] + segment.ColStart - 1
+            Last = line_starts[segment.LineEnd - 1] + segment.ColEnd - 1
 
-        SegmentRuns[(First, Last)].append(segment.Id)
+            SegmentRuns[(First, Last)].append((segment.Id, (
+                "Start:{}:{} End:{}:{} [{}..{}]".format(
+                    segment.LineStart,
+                    segment.ColStart,
+                    segment.LineEnd,
+                    segment.ColEnd,
+                    First,
+                    Last,
+                ),
+                '{}'.format(
+                    extract_text(
+                        Lines,
+                        start=(segment.LineStart, segment.ColStart),
+                        end=(segment.LineEnd, segment.ColEnd),
+                    )),
+            )))
         # print(f"{First} {Last} {segment.Id}")
 
     # print(render_rich_pprint(to_debug_json(SegmentRuns)))
 
-    it: Tuple[Tuple[int, int], List[int]]
+    it: Tuple[Tuple[int, int], List[Tuple[int, str]]]
     for it in sorted(SegmentRuns.items(), key=lambda it: it[0][0]):
-        result.append(GenCovSegmentFlat(
-            OriginalId=it[1],
-            First=it[0][0],
-            Last=it[0][1],
-        ))
+        result.append(
+            GenCovSegmentFlat(
+                OriginalId=[s[0] for s in it[1]],
+                First=it[0][0],
+                Last=it[0][1],
+                Dbg=[s[1] for s in it[1]],
+            ))
 
     return result
 
