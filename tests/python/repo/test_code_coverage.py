@@ -21,7 +21,7 @@ from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
 from py_scriptutils.rich_utils import render_rich_pprint
 from collections import defaultdict
 import pytest
-
+from dominate import document
 
 def dbg(map) -> str:
     return render_rich_pprint(map, width=200, color=False)
@@ -705,3 +705,9 @@ def test_coverage_annotation_multiple_run_multiple_segment():
                 recombine += segment.Text
 
         assert recombine == code
+
+        html = cov.get_file_annotation_html(file)
+        doc = document()
+        doc.add(html)
+
+        Path("/tmp/test_coverage_annotation_multiple_run_multiple_segment.html").write_text(doc.render())

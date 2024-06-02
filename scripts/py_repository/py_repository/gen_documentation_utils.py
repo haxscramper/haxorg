@@ -8,7 +8,7 @@ from pygments.token import _TokenType
 
 
 @beartype
-def abbreviate_token_name(token: _TokenType) -> str:
+def abbreviate_token_name(token: str) -> str:
     # Remove the base "Token" from the token type
     token_path = str(token).split('.')[1:]
 

@@ -157,6 +157,9 @@ class CovFunctionInstantiation(CoverageSchema):
 
 
 class GenCovSegmentFlat(BaseModel, extra="forbid"):
+    # List of coverage segments for the `First, Last` range. The coverage database
+    # stores multiple identically-located segments (one for each run), so each run
+    # for a given segment is stored as one ID.
     OriginalId: List[int]
     First: int
     Last: int
@@ -189,6 +192,21 @@ class AnnotatedLine(BaseModel, extra="forbid"):
 
 class AnnotatedFile(BaseModel, extra="forbid"):
     Lines: List[AnnotatedLine] = Field(default_factory=list)
+    # Mapping from execution segment ID to the coverage context for the execution
+    SegmentRunContexts: Dict[int, CovContext] = Field(default_factory=dict, exclude=True)
+    SegmentList: List[GenCovSegmentFlat] = Field(default_factory=list)
+
+    class Config:
+        orm_mode = True
+        arbitrary_types_allowed = True
+
+    def getExecutionContextList(self, segment_idx: int) -> List[CovContext]:
+        result = []
+        for original in self.SegmentList[segment_idx].OriginalId:
+            if original in self.SegmentRunContexts:
+                result.append(self.SegmentRunContexts[original])
+
+        return result
 
 
 @beartype
@@ -357,23 +375,6 @@ def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
             DocCodeCxxLine(Text=line, Index=idx)
             for idx, line in enumerate(AbsPath.read_text().splitlines())
         ],
-    )
-
-
-@beartype
-def get_html_code_div(code_file: DocCodeCxxFile) -> tags.div:
-    highlight_lexer = CppLexer()
-
-    def get_line_spans(line: DocCodeCxxLine) -> List[tags.span]:
-        return list(
-            docdata.get_code_line_span(
-                line=line,
-                highilght_lexer=highlight_lexer,
-            ))
-
-    return docdata.get_html_code_div_base(
-        Lines=code_file.Lines,
-        get_line_spans=get_line_spans,
     )
 
 
@@ -580,6 +581,21 @@ def get_annotated_files_for_session(
     coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
     pprint_to_file(coverage_segments, "/tmp/coverage_segments.py")
     coverage_group = get_coverage_group(coverage_segments)
+
+    run_contexts: Dict[int, CovContext] = dict()
+    for seg in coverage_segments:
+        for seg_id in seg.OriginalId:
+            original_seg = session.execute(
+                select(CovSegment).where(CovSegment.Id == seg_id)).fetchall()
+            assert len(original_seg) == 1
+            assert len(original_seg[0]) == 1
+            original_seg: CovSegment = original_seg[0][0]
+            assert isinstance(original_seg, CovSegment)
+            context = session.execute(
+                select(CovContext).where(
+                    CovContext.Id == original_seg.Context)).fetchall()
+            run_contexts[seg_id] = context[0]
+
     line_group = get_line_group(file.Lines)
     file_full_content = abs_path.read_text()
     token_dict = defaultdict(lambda: len(token_dict))
@@ -630,7 +646,39 @@ def get_annotated_files_for_session(
         coverage_group_kind=coverage_group.kind,
     )
 
+    token_annotated_file.SegmentRunContexts = run_contexts
+    token_annotated_file.SegmentList = coverage_segments
+
     return token_annotated_file
+
+
+@beartype
+def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
+    div = tags.div(_class="page-tab-content", id="page-code")
+    for line in file.Lines:
+        hline = tags.div(_class="code-line")
+        tokens = tags.span(_class="code-line-text")
+
+        for span in line.Segments:
+            if span.Text == "\n":
+                continue
+
+            hspan = tags.span(
+                span.Text,
+                _class=docdata.abbreviate_token_name(span.TokenKind),
+            )
+
+            if span.CoverageSegmentIdx:
+                for run in file.getExecutionContextList(span.CoverageSegmentIdx):
+                    hspan["covered"] = "run"
+
+            tokens.add(hspan)
+
+        hline.add(tokens)
+
+        div.add(hline)
+
+    return div
 
 
 if __name__ == "__main__":
