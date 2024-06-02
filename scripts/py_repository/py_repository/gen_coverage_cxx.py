@@ -204,7 +204,9 @@ class AnnotatedFile(BaseModel, extra="forbid"):
         result = []
         for original in self.SegmentList[segment_idx].OriginalId:
             if original in self.SegmentRunContexts:
-                result.append(self.SegmentRunContexts[original])
+                ctx = self.SegmentRunContexts[original]
+                assert isinstance(ctx, CovContext), f"{type(ctx)}"
+                result.append(ctx)
 
         return result
 
@@ -594,7 +596,8 @@ def get_annotated_files_for_session(
             context = session.execute(
                 select(CovContext).where(
                     CovContext.Id == original_seg.Context)).fetchall()
-            run_contexts[seg_id] = context[0]
+            assert isinstance(context[0][0], CovContext)
+            run_contexts[seg_id] = context[0][0]
 
     line_group = get_line_group(file.Lines)
     file_full_content = abs_path.read_text()
@@ -654,22 +657,34 @@ def get_annotated_files_for_session(
 
 @beartype
 def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
-    div = tags.div(_class="page-tab-content", id="page-code")
+    div = tags.div()
+    coverage_indices: Set[int] = set()
+
     for line in file.Lines:
         hline = tags.div(_class="code-line")
         tokens = tags.span(_class="code-line-text")
 
-        for span in line.Segments:
-            if span.Text == "\n":
+        for segment in line.Segments:
+            if segment.Text == "\n":
                 continue
 
             hspan = tags.span(
-                span.Text,
-                _class=docdata.abbreviate_token_name(span.TokenKind),
+                segment.Text,
+                _class=docdata.abbreviate_token_name(segment.TokenKind),
             )
 
-            if span.CoverageSegmentIdx:
-                for run in file.getExecutionContextList(span.CoverageSegmentIdx):
+            if segment.CoverageSegmentIdx:
+                executions = file.getExecutionContextList(segment.CoverageSegmentIdx)
+                if executions:
+                    coverage_indices.add(segment.CoverageSegmentIdx)
+                    hspan["class"] += " segment-cov-executed"
+
+                else:
+                    hspan["class"] += " segment-cov-skipped"
+
+                hspan["data-cov-idx"] = str(segment.CoverageSegmentIdx)
+
+                for run in executions:
                     hspan["covered"] = "run"
 
             tokens.add(hspan)
@@ -678,7 +693,23 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
 
         div.add(hline)
 
-    return div
+    result = tags.div(_class="page-tab-content", id="page-code")
+    coverage_data_div = tags.div(_class="coverage-data", style="display:none;")
+    for idx in coverage_indices:
+        context_div = tags.div(_class="cov-context", id=f"cov-context-{idx}")
+        executions = file.getExecutionContextList(idx)
+
+        for run in executions:
+            context_div.add(
+                tags.div(
+                    f"Name: {run.Name}, Profile: {run.Profile}, Params: {run.Params}"))
+
+        coverage_data_div.add(context_div)
+
+    result.add(coverage_data_div)
+    result.add(div)
+
+    return result
 
 
 if __name__ == "__main__":

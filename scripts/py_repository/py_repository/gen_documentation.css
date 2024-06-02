@@ -40,13 +40,11 @@ html {
   border: 0;
 }
 
-.code-line-text.cov-visited {
-  border-left: 0.2em solid green;
+.segment-cov-executed {
   background-color: rgba(0, 255, 0, 0.3); /* Green with 50% opacity */
 }
 
-.code-line-text.cov-skipped {
-  border-left: 0.2em solid red;
+.segment-cov-skipped {
   background: rgba(255, 0, 0, 0.2);
 }
 
