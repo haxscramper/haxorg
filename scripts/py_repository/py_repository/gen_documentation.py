@@ -54,6 +54,7 @@ class SidebarRes():
     total_entries: int
     documented_entries: int
 
+
 @beartype
 def generate_tree_sidebar(directory: docdata.DocDirectory,
                           html_out_path: Path) -> SidebarRes:
@@ -124,63 +125,6 @@ css_path = get_haxorg_repo_root_path().joinpath(
     "scripts/py_repository/py_repository/gen_documentation.css")
 
 
-@beartype
-def generate_html_for_directory(directory: docdata.DocDirectory,
-                                html_out_path: Path) -> None:
-    sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
-    sidebar = tags.div(sidebar_res.tag, _class="sidebar-directory-root")
-
-    def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
-        for subdir in directory.Subdirs:
-            aux(subdir, html_out_path)
-
-        for code_file in directory.CodeFiles:
-            path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-
-            doc = document(title=str(code_file.RelPath))
-            doc.head.add(tags.link(rel="stylesheet", href=css_path))
-
-            container = tags.div(_class="container")
-            sidebar_div = tags.div()
-            sidebar_div.add(tags.div(sidebar, _class="sidebar"))
-            container.add(sidebar_div)
-            main = tags.div(_class="main")
-
-            if code_file.IsTest:
-                main.add(get_html_page_tabs(["code"]))
-            else:
-                main.add(get_html_page_tabs(["docs", "code"]))
-
-            match code_file:
-                case cxx.DocCodeCxxFile():
-                    main.add(cxx.get_html_code_div(code_file))
-
-                case py.DocCodePyFile():
-                    main.add(py.get_html_code_div(code_file))
-
-                case _:
-                    raise TypeError(type(code_file))
-
-            container.add(main)
-            doc.add(container)
-
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(doc.render())
-            path.with_suffix(".json").write_text(code_file.model_dump_json(indent=2))
-
-        for text_file in directory.TextFiles:
-            path = docdata.get_html_path(text_file, html_out_path=html_out_path)
-            doc = document(title=str(text_file.RelPath))
-            doc.head.add(tags.link(rel="stylesheet", href=css_path))
-            doc.add(tags.div(sidebar, _class="sidebar"))
-            main = tags.div(_class="main")
-            main.add(tags.pre(text_file.Text))
-
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(doc.render())
-
-    aux(directory, html_out_path)
-
 class DocGenerationOptions(BaseModel, extra="forbid"):
     html_out_path: Path = Field(description="Root directory to output generated HTML to")
 
@@ -211,7 +155,7 @@ class DocGenerationOptions(BaseModel, extra="forbid"):
         default=None,
     )
 
-    cxx_coverage_path: Optional[Path] = Field(
+    cxx_coverage_path: Path = Field(
         description="Merged coverage data sqlite",
         default=None,
     )
@@ -222,32 +166,53 @@ def cli_options(f):
 
 
 @beartype
+def generate_html_for_directory(
+    directory: docdata.DocDirectory,
+    html_out_path: Path,
+    cxx_coverage_session: Session,
+    opts: DocGenerationOptions,
+) -> None:
+    sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
+    sidebar = tags.div(sidebar_res.tag, _class="sidebar-directory-root")
+
+    def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
+        for subdir in directory.Subdirs:
+            aux(subdir, html_out_path)
+
+        for code_file in directory.CodeFiles[:1]:
+            path = docdata.get_html_path(code_file, html_out_path=html_out_path)
+            doc = cov_docxx.get_file_annotation_document(
+                session=cxx_coverage_session,
+                root_path=opts.root_path,
+                abs_path=opts.root_path.joinpath(code_file.RelPath),
+            )
+            doc = document(title=str(code_file.RelPath))
+
+            path.write_text(doc.render())
+            log(CAT).info(f"Wrote {path}")
+
+        for text_file in directory.TextFiles:
+            path = docdata.get_html_path(text_file, html_out_path=html_out_path)
+            doc = document(title=str(text_file.RelPath))
+            doc.head.add(tags.link(rel="stylesheet", href=css_path))
+            doc.add(tags.div(sidebar, _class="sidebar"))
+            main = tags.div(_class="main")
+            main.add(tags.pre(text_file.Text))
+
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(doc.render())
+
+    aux(directory, html_out_path)
+
+
+@beartype
 def parse_code_file(
     file: Path,
     conf: DocGenerationOptions,
-    rel_path_to_code_file: Dict[Path, cxx.DocCodeCxxFile],
-    py_coverage_session: Optional[Session],
-    cxx_coverage_session: Optional[Session],
+    rel_path_to_code_file: Dict[Path, docdata.DocCodeFile],
     is_test: bool,
 ) -> docdata.DocCodeFile:
-    try:
-        if file.suffix in [".hpp", ".cpp"]:
-            code_file = cxx.convert_cxx_tree(
-                RootPath=conf.root_path,
-                AbsPath=file.absolute(),
-                coverage_session=cxx_coverage_session,
-            )
-
-        else:
-            code_file = py.convert_py_tree(
-                RootPath=conf.root_path,
-                AbsPath=file.absolute(),
-                py_coverage_session=py_coverage_session,
-            )
-
-    except Exception as e:
-        e.add_note(str(file))
-        raise e from None
+    code_file = docdata.DocCodeFile(RelPath=file.relative_to(conf.root_path))
 
     rel_path_to_code_file[code_file.RelPath] = code_file
     code_file.IsTest = is_test
@@ -263,7 +228,7 @@ def parse_text_file(file: Path) -> docdata.DocTextFile:
 def parse_dir(
     dir: Path,
     conf: DocGenerationOptions,
-    rel_path_to_code_file: Dict[Path, cxx.DocCodeCxxFile],
+    rel_path_to_code_file: Dict[Path, docdata.DocCodeFile],
     py_coverage_session: Optional[Session],
     cxx_coverage_session: Optional[Session],
     is_test: bool,
@@ -286,9 +251,8 @@ def parse_dir(
                         file,
                         conf,
                         rel_path_to_code_file=rel_path_to_code_file,
-                        py_coverage_session=py_coverage_session,
-                        cxx_coverage_session=cxx_coverage_session,
-                        is_test=is_test or file.suffix == ".cpp", # FIXME replace `is_test` with `is_impl`
+                        is_test=is_test or
+                        file.suffix == ".cpp",  # FIXME replace `is_test` with `is_impl`
                     ))
 
             case "*.org":
@@ -319,15 +283,13 @@ def parse_dir(
 @click.pass_context
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
     conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)
-    rel_path_to_code_file: Dict[Path, cxx.DocCodeCxxFile] = {}
+    rel_path_to_code_file: Dict[Path, docdata.DocCodeFile] = {}
 
     py_coverage_session: Optional[Session] = None
     if conf.py_coverage_path:
         py_coverage_session = cov_docpy.open_coverage(conf.py_coverage_path)
 
-    cxx_coverage_session: Optional[Session] = None
-    if conf.cxx_coverage_path:
-        cxx_coverage_session = cov_docxx.open_coverage(conf.cxx_coverage_path)
+    cxx_coverage_session = cov_docxx.open_coverage(conf.cxx_coverage_path)
 
     full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
     for subdir in conf.test_path:
@@ -355,7 +317,12 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     if conf.json_out_path:
         conf.json_out_path.write_text(full_root.model_dump_json(indent=2))
 
-    generate_html_for_directory(full_root, html_out_path=conf.html_out_path)
+    generate_html_for_directory(
+        full_root,
+        html_out_path=conf.html_out_path,
+        cxx_coverage_session=cxx_coverage_session,
+        opts=conf,
+    )
 
 
 if __name__ == "__main__":

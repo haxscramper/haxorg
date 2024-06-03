@@ -24,6 +24,7 @@ from pygments.token import Token, _TokenType, Whitespace
 from py_repository.gen_coverage_cookies import *
 from collections import defaultdict
 from dataclasses import dataclass
+from dominate import document
 
 CAT = "coverage"
 
@@ -586,35 +587,56 @@ def get_annotated_files_for_session(
     root_path: Path,
     abs_path: Path,
     debug_format_segments: Optional[Path] = None,
+    use_highlight: bool = True,
 ) -> AnnotatedFile:
-    file_cov = get_coverage_of(session, abs_path)
     file = read_code_file(root_path, abs_path)
-    coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
-    pprint_to_file(coverage_segments, "/tmp/coverage_segments.py")
-    coverage_group = get_coverage_group(coverage_segments)
-
+    file_cov = get_coverage_of(session, abs_path)
     run_contexts: Dict[int, CovContext] = dict()
-    for seg in coverage_segments:
-        for seg_id in seg.OriginalId:
-            original_seg = session.execute(
-                select(CovSegment).where(CovSegment.Id == seg_id)).fetchall()
-            assert len(original_seg) == 1
-            assert len(original_seg[0]) == 1
-            original_seg: CovSegment = original_seg[0][0]
-            assert isinstance(original_seg, CovSegment)
-            context = session.execute(
-                select(CovContext).where(
-                    CovContext.Id == original_seg.Context)).fetchall()
-            assert isinstance(context[0][0], CovContext)
-            run_contexts[seg_id] = context[0][0]
+
+    if file_cov != None:
+        coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
+        log(CAT).info(f"{len(coverage_segments)} segments")
+        # pprint_to_file(coverage_segments, "/tmp/coverage_segments.py")
+        coverage_group = get_coverage_group(coverage_segments)
+
+        for seg in coverage_segments:
+            for seg_id in seg.OriginalId:
+                original_seg = session.execute(
+                    select(CovSegment).where(CovSegment.Id == seg_id)).fetchall()
+                assert len(original_seg) == 1
+                assert len(original_seg[0]) == 1
+                original_seg: CovSegment = original_seg[0][0]
+                assert isinstance(original_seg, CovSegment)
+                context = session.execute(
+                    select(CovContext).where(
+                        CovContext.Id == original_seg.Context)).fetchall()
+                assert isinstance(context[0][0], CovContext)
+                run_contexts[seg_id] = context[0][0]
+
+    else:
+        coverage_group = None
+        coverage_segments = None
+
+
 
     line_group = get_line_group(file.Lines)
     file_full_content = abs_path.read_text()
-    token_dict = defaultdict(lambda: len(token_dict))
-    token_group = get_token_group(file_full_content,
+    if use_highlight:
+        token_dict = defaultdict(lambda: len(token_dict))
+        token_group = get_token_group(file_full_content,
                                   token_to_int=lambda it: token_dict[it])
 
-    groups = [line_group, coverage_group, token_group]
+    else:
+        token_dict = dict()
+        token_group = None
+
+    groups = [line_group]
+
+    if token_group:
+        groups.append(token_group)
+
+    if coverage_group:
+        groups.append(coverage_group)
 
     token_names = {kind: key for key, kind in token_dict.items()}
 
@@ -622,17 +644,17 @@ def get_annotated_files_for_session(
         if it == line_group.kind:
             return "line"
 
-        elif it == token_group.kind:
+        elif token_group and it == token_group.kind:
             return "tok"
 
-        elif it == coverage_group.kind:
+        elif coverage_group and it == coverage_group.kind:
             return "cov"
 
     def get_segment_name(group: int, segment: int) -> Optional[str]:
-        if group == token_group.kind:
+        if token_group and group == token_group.kind:
             return token_names[segment]
 
-        elif group == coverage_group.kind:
+        elif coverage_group and group == coverage_group.kind:
             return str(coverage_segments[segment].Dbg)
 
     if debug_format_segments:
@@ -654,13 +676,14 @@ def get_annotated_files_for_session(
         text=file_full_content,
         annotations=[it for it in token_segmented],
         line_group_kind=line_group.kind,
-        token_group_kind=token_group.kind,
+        token_group_kind=token_group and token_group.kind,
         token_kind_mapping=token_names,
-        coverage_group_kind=coverage_group.kind,
+        coverage_group_kind=coverage_group and coverage_group.kind,
     )
 
     token_annotated_file.SegmentRunContexts = run_contexts
-    token_annotated_file.SegmentList = coverage_segments
+    if coverage_segments:
+        token_annotated_file.SegmentList = coverage_segments
 
     return token_annotated_file
 
@@ -720,6 +743,29 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
     result.add(div)
 
     return result
+
+css_path = get_haxorg_repo_root_path().joinpath(
+    "scripts/py_repository/py_repository/gen_documentation.css")
+
+js_path = get_haxorg_repo_root_path().joinpath(
+    "scripts/py_repository/py_repository/gen_documentation.js")
+
+
+@beartype
+def get_file_annotation_document(session: Session, root_path: Path, abs_path: Path) -> document:
+    file = get_annotated_files_for_session(
+        session=session,
+        root_path=root_path,
+        abs_path=abs_path,
+    )
+
+    html = get_file_annotation_html(file)
+    doc = document()
+    doc.head.add(tags.link(rel="stylesheet", href=css_path))
+    doc.head.add(tags.script(src=str(js_path)))
+    doc.add(html)
+
+    return doc
 
 
 if __name__ == "__main__":

@@ -716,11 +716,10 @@ def test_coverage_annotation_multiple_run_multiple_segment():
 
         assert recombine == code
 
-        html = cov.get_file_annotation_html(file)
-        doc = document()
-        doc.head.add(tags.link(rel="stylesheet", href=css_path))
-        doc.head.add(tags.script(src=str(js_path)))
-        doc.add(html)
-
         Path("/tmp/test_coverage_annotation_multiple_run_multiple_segment.html"
-            ).write_text(doc.render())
+            ).write_text(
+                cov.get_file_annotation_document(
+                    session=session,
+                    root_path=dir,
+                    abs_path=dir.joinpath("main.cpp"),
+                ).render())
