@@ -40,12 +40,26 @@ html {
   border: 0;
 }
 
+.cov-context {
+  display: none;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 1000;
+  overflow: auto;
+}
+
 .segment-cov-executed {
-  background-color: rgba(0, 255, 0, 0.3); /* Green with 50% opacity */
+  background-color: rgba(0, 255, 0, 0.3); 
+  cursor: pointer;
 }
 
 .segment-cov-skipped {
   background: rgba(255, 0, 0, 0.2);
+  cursor: pointer;
 }
 
 

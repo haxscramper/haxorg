@@ -746,7 +746,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 else:
                     hspan["class"] += " segment-cov-skipped"
 
-                hspan["data-cov-idx"] = str(segment.CoverageSegmentIdx)
+                hspan["onclick"] = f"show_coverage_segment_idx({segment.CoverageSegmentIdx})"
 
                 for run in executions:
                     hspan["covered"] = "run"
@@ -760,9 +760,9 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
     assert len(div) == len(file.Lines)
 
     result = tags.div(_class="page-tab-content", id="page-code")
-    coverage_data_div = tags.div(_class="coverage-data", style="display:none;")
+    coverage_data_div = tags.div(_class="coverage-data")
     for idx in coverage_indices:
-        context_div = tags.div(_class="cov-context", id=f"cov-context-{idx}")
+        context_div = tags.div(_class="cov-context", id=f"cov-context-{idx}", style="display:none;")
         executions = file.getExecutionContextList(idx)
 
         for run in executions:
