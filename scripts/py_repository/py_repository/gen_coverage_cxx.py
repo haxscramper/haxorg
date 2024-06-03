@@ -195,6 +195,10 @@ class AnnotatedLine(BaseModel, extra="forbid"):
 @beartype
 @dataclass
 class GenCovSegmentContext():
+    # Coverage context entry can be associated with multiple segments in the database. 
+    # This class bundles together information to identify the context *when* the segment 
+    # might've been executed together with the segment itself to check *if* it has 
+    # actually been executed (execution count)
     Context: CovContext
     Segment: CovSegment
 
