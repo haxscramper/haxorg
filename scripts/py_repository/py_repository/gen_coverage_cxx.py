@@ -608,25 +608,25 @@ def get_annotated_files_for_session(
             coverage_group = get_coverage_group(coverage_segments)
 
         with GlobCompleteEvent("Find original segments", "cov"):
+            this_file_segments = set()
             for seg in coverage_segments:
                 for seg_id in seg.OriginalId:
-                    original_seg = session.execute(
-                        select(CovSegment).where(CovSegment.Id == seg_id)).fetchall()
-                    assert len(original_seg) == 1
-                    assert len(original_seg[0]) == 1
-                    original_seg: CovSegment = original_seg[0][0]
-                    assert isinstance(original_seg, CovSegment)
-                    context = session.execute(
-                        select(CovContext).where(
-                            CovContext.Id == original_seg.Context)).fetchall()
-                    assert isinstance(context[0][0], CovContext)
-                    run_contexts[seg_id] = context[0][0]
+                    this_file_segments.add(seg_id)
+
+            for (original_seg, context) in session.execute(
+                    select(CovSegment,
+                           CovContext).where(CovSegment.Id.in_(this_file_segments)).join(
+                               CovContext,
+                               CovSegment.Context == CovContext.Id,
+                           )):
+                           
+                assert isinstance(context, CovContext)
+                assert isinstance(original_seg, CovSegment)
+                run_contexts[original_seg.Id] = context
 
     else:
         coverage_group = None
         coverage_segments = None
-
-
 
     with GlobCompleteEvent("Get line group", "cov"):
         line_group = get_line_group(file.Lines)
@@ -636,7 +636,7 @@ def get_annotated_files_for_session(
     if use_highlight:
         token_dict = defaultdict(lambda: len(token_dict))
         token_group = get_token_group(file_full_content,
-                                  token_to_int=lambda it: token_dict[it])
+                                      token_to_int=lambda it: token_dict[it])
 
     else:
         token_dict = dict()
@@ -749,9 +749,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         executions = file.getExecutionContextList(idx)
 
         for run in executions:
-            context_div.add(
-                tags.div(
-                    f"Name: {run.Name} Params: {run.Params}"))
+            context_div.add(tags.div(f"Name: {run.Name} Params: {run.Params}"))
 
         coverage_data_div.add(context_div)
 
@@ -761,6 +759,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
 
     return result
 
+
 css_path = get_haxorg_repo_root_path().joinpath(
     "scripts/py_repository/py_repository/gen_documentation.css")
 
@@ -769,7 +768,8 @@ js_path = get_haxorg_repo_root_path().joinpath(
 
 
 @beartype
-def get_file_annotation_document(session: Session, root_path: Path, abs_path: Path) -> document:
+def get_file_annotation_document(session: Session, root_path: Path,
+                                 abs_path: Path) -> document:
     file = get_annotated_files_for_session(
         session=session,
         root_path=root_path,
