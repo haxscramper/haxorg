@@ -181,7 +181,7 @@ def generate_html_for_directory(
             with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(subdir.RelPath))):
                 aux(subdir, html_out_path)
 
-        for code_file in directory.CodeFiles[:1]:
+        for code_file in directory.CodeFiles:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
             with GlobCompleteEvent("Get annotated files", "cov", args=dict(path=str(code_file.RelPath))):
                 file = cov_docxx.get_annotated_files_for_session(
@@ -204,7 +204,7 @@ def generate_html_for_directory(
 
                 with GlobCompleteEvent("Dump JSON", "cov"):
                     path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
-                    
+
                 log(CAT).info(f"Wrote {path}")
 
         for text_file in directory.TextFiles:

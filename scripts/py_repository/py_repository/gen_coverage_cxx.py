@@ -192,22 +192,30 @@ class AnnotatedLine(BaseModel, extra="forbid"):
     Segments: List[AnnotationSegment] = Field(default_factory=list)
 
 
+@beartype
+@dataclass
+class GenCovSegmentContext():
+    Context: CovContext
+    Segment: CovSegment
+
+
 class AnnotatedFile(BaseModel, extra="forbid"):
     Lines: List[AnnotatedLine] = Field(default_factory=list)
     # Mapping from execution segment ID to the coverage context for the execution
-    SegmentRunContexts: Dict[int, CovContext] = Field(default_factory=dict, exclude=True)
+    SegmentRunContexts: Dict[int, GenCovSegmentContext] = Field(default_factory=dict,
+                                                                exclude=True)
     SegmentList: List[GenCovSegmentFlat] = Field(default_factory=list)
 
     class Config:
         orm_mode = True
         arbitrary_types_allowed = True
 
-    def getExecutionContextList(self, segment_idx: int) -> List[CovContext]:
+    def getExecutionContextList(self, segment_idx: int) -> List[GenCovSegmentContext]:
         result = []
         for original in self.SegmentList[segment_idx].OriginalId:
             if original in self.SegmentRunContexts:
                 ctx = self.SegmentRunContexts[original]
-                assert isinstance(ctx, CovContext), f"{type(ctx)}"
+                assert isinstance(ctx, GenCovSegmentContext), f"{type(ctx)}"
                 result.append(ctx)
 
         return result
@@ -442,12 +450,13 @@ def get_flat_coverage(
 
     it: Tuple[Tuple[int, int], List[Tuple[int, str]]]
     for it in sorted(SegmentRuns.items(), key=lambda it: it[0][0]):
+        DbgAnnotations = [s[1] for s in it[1] if s[1]]
         result.append(
             GenCovSegmentFlat(
                 OriginalId=[s[0] for s in it[1]],
                 First=it[0][0],
                 Last=it[0][1],
-                Dbg=[s[1] for s in it[1]],
+                Dbg=DbgAnnotations if 0 < len(DbgAnnotations) else None,
             ))
 
     return result
@@ -602,7 +611,6 @@ def get_annotated_files_for_session(
         with GlobCompleteEvent("Get flat coverage", "cov"):
             coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
 
-        log(CAT).info(f"{len(coverage_segments)} segments")
         # pprint_to_file(coverage_segments, "/tmp/coverage_segments.py")
         with GlobCompleteEvent("Get coverage group", "cov"):
             coverage_group = get_coverage_group(coverage_segments)
@@ -619,10 +627,13 @@ def get_annotated_files_for_session(
                                CovContext,
                                CovSegment.Context == CovContext.Id,
                            )):
-                           
+
                 assert isinstance(context, CovContext)
                 assert isinstance(original_seg, CovSegment)
-                run_contexts[original_seg.Id] = context
+                run_contexts[original_seg.Id] = GenCovSegmentContext(
+                    Context=context,
+                    Segment=original_seg,
+                )
 
     else:
         coverage_group = None
@@ -634,9 +645,10 @@ def get_annotated_files_for_session(
     file_full_content = abs_path.read_text()
 
     if use_highlight:
-        token_dict = defaultdict(lambda: len(token_dict))
-        token_group = get_token_group(file_full_content,
-                                      token_to_int=lambda it: token_dict[it])
+        with GlobCompleteEvent("Get token group", "cov"):
+            token_dict = defaultdict(lambda: len(token_dict))
+            token_group = get_token_group(file_full_content,
+                                          token_to_int=lambda it: token_dict[it])
 
     else:
         token_dict = dict()
@@ -667,7 +679,8 @@ def get_annotated_files_for_session(
             return token_names[segment]
 
         elif coverage_group and group == coverage_group.kind:
-            return str(coverage_segments[segment].Dbg)
+            if coverage_segments[segment].Dbg:
+                return str(coverage_segments[segment].Dbg)
 
     if debug_format_segments:
         debug_format_segments.write_text(
@@ -720,9 +733,9 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 _class=docdata.abbreviate_token_name(segment.TokenKind),
             )
 
-            if segment.CoverageSegmentIdx:
+            if segment.CoverageSegmentIdx != None:
                 executions = file.getExecutionContextList(segment.CoverageSegmentIdx)
-                if executions:
+                if any((0 < it.Segment.StartCount or 0 < it.Segment.EndCount) for it in executions):
                     coverage_indices.add(segment.CoverageSegmentIdx)
                     hspan["class"] += " segment-cov-executed"
 
@@ -749,7 +762,9 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         executions = file.getExecutionContextList(idx)
 
         for run in executions:
-            context_div.add(tags.div(f"Name: {run.Name} Params: {run.Params}"))
+            Ctx: CovContext = run.Context
+            Seg: CovSegment = run.Segment
+            context_div.add(tags.div(f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.StartCount}"))
 
         coverage_data_div.add(context_div)
 

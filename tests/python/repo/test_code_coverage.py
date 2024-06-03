@@ -543,8 +543,6 @@ def test_coverage_annotation_single_run():
             ],),
         )
 
-        print("")
-
         token_dict = defaultdict(lambda: len(token_dict))
 
         token_group = cov.get_token_group(
@@ -636,9 +634,6 @@ def test_coverage_annotation_multiple_run_single_segment():
             abs_path=dir.joinpath("main.cpp"),
         )
 
-        pprint_to_file(file,
-                       "/tmp/test_coverage_annotation_multiple_run_single_segment.py")
-
         recombine = ""
         for line in file.Lines:
             for segment in line.Segments:
@@ -658,7 +653,7 @@ js_path = get_haxorg_repo_root_path().joinpath(
 def test_coverage_annotation_multiple_run_multiple_segment():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        code = corpus_base.joinpath("test_coverage_regions_1.cpp").read_text()
+        code = corpus_base.joinpath("test_coverage_regions_2.cpp").read_text()
 
         cmd = ProfileRunParams(
             dir=dir,
@@ -679,6 +674,7 @@ def test_coverage_annotation_multiple_run_multiple_segment():
             session=session,
             root_path=dir,
             abs_path=dir.joinpath("main.cpp"),
+            debug_format_segments=Path("/tmp/annotated_segments.txt"),
         )
 
         pprint_to_file(file, "/tmp/annotated.py", width=200)
