@@ -24,6 +24,7 @@ import pytest
 from dominate import document
 import dominate.tags as tags
 
+
 def dbg(map) -> str:
     return render_rich_pprint(map, width=200, color=False)
 
@@ -519,7 +520,7 @@ def test_coverage_annotation_single_run():
             last=len(code),
         )
 
-        assert len(join_segmented) == 7
+        assert len(join_segmented) == 6
 
         join_annotated_file = cov.get_annotated_files(
             text=file_text,
@@ -535,10 +536,9 @@ def test_coverage_annotation_single_run():
             dict(Lines=[
                 dict(Segments=[dict(Text="\n")]),
                 dict(Segments=[dict(
-                    Text="int main()"), dict(Text=" {\n")]),
+                    Text="int main() "), dict(Text="{\n")]),
                 dict(Segments=[dict(Text="  int a = 1 + 2;\n")]),
-                dict(Segments=[dict(Text="  int b = a + 3"),
-                               dict(Text=";\n")]),
+                dict(Segments=[dict(Text="  int b = a + 3;\n")]),
                 dict(Segments=[dict(Text="}")]),
             ],),
         )
@@ -653,6 +653,7 @@ css_path = get_haxorg_repo_root_path().joinpath(
 js_path = get_haxorg_repo_root_path().joinpath(
     "scripts/py_repository/py_repository/gen_documentation.js")
 
+
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_coverage_annotation_multiple_run_multiple_segment():
     with TemporaryDirectory() as tmp:
@@ -704,7 +705,9 @@ def test_coverage_annotation_multiple_run_multiple_segment():
             ranges.append(line_info)
 
         pprint_to_file(ranges, "/tmp/char_ranges.py")
-        Path("/tmp/test_coverage_annotation_multiple_run_multiple_segment.txt").write_text(format_db_all(session, style=False))
+        Path(
+            "/tmp/test_coverage_annotation_multiple_run_multiple_segment.txt").write_text(
+                format_db_all(session, style=False))
 
         recombine = ""
         for line in file.Lines:
@@ -719,4 +722,5 @@ def test_coverage_annotation_multiple_run_multiple_segment():
         doc.head.add(tags.script(src=str(js_path)))
         doc.add(html)
 
-        Path("/tmp/test_coverage_annotation_multiple_run_multiple_segment.html").write_text(doc.render())
+        Path("/tmp/test_coverage_annotation_multiple_run_multiple_segment.html"
+            ).write_text(doc.render())

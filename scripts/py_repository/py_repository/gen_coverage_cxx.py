@@ -380,6 +380,10 @@ def read_code_file(RootPath: Path, AbsPath: Path) -> DocCodeCxxFile:
     )
 
 
+def esc(s):
+    return s.replace("\n", "␤")
+
+
 @beartype
 def get_flat_coverage(
     session: Session,
@@ -392,10 +396,12 @@ def get_flat_coverage(
     current_position = 0
     for line in Lines:
         line_starts.append(current_position)
-        current_position += len(line.Text)
+        current_position += len(line.Text) + 1
 
     SegmentRuns: Dict[Tuple[int, int], List[Tuple[int,
                                                   str]]] = defaultdict(lambda: list())
+
+    # FlatLines = "\n".join(it.Text for it in Lines)
 
     segment: CovSegment
     for (segment,) in session.execute(segments):
@@ -403,26 +409,31 @@ def get_flat_coverage(
             First = line_starts[segment.LineStart - 1] + segment.ColStart - 1
             Last = line_starts[segment.LineEnd - 1] + segment.ColEnd - 1
 
-            DbgLines = "[{}:{} {}:{}]".format(
-                segment.LineStart,
-                segment.ColStart,
-                segment.LineEnd,
-                segment.ColEnd,
-            )
+            if False:
+                DbgLines = "[{}:{} {}:{}]".format(
+                    segment.LineStart,
+                    segment.ColStart,
+                    segment.LineEnd,
+                    segment.ColEnd,
+                )
 
-            DbgRange = "[{}..{}]".format(
-                First,
-                Last,
-            )
+                DbgRange = "[{}..{}]".format(
+                    First,
+                    Last,
+                )
 
-            DbgText = '{}'.format(
-                extract_text(
-                    Lines,
-                    start=(segment.LineStart, segment.ColStart),
-                    end=(segment.LineEnd, segment.ColEnd),
-                ))
+                DbgText = '{}'.format(
+                    extract_text(
+                        Lines,
+                        start=(segment.LineStart, segment.ColStart),
+                        end=(segment.LineEnd, segment.ColEnd),
+                    ))
 
-            SegmentRuns[(First, Last)].append((segment.Id, DbgLines))
+                DbgFlatText = FlatLines[First:Last + 1]
+
+                print(f"{DbgLines} {DbgRange} -> '{esc(DbgText)}' / '{esc(DbgFlatText)}'")
+
+            SegmentRuns[(First, Last)].append((segment.Id, None))
         # print(f"{First} {Last} {segment.Id}")
 
     # print(render_rich_pprint(to_debug_json(SegmentRuns)))
@@ -491,9 +502,6 @@ def get_token_group(
     group = org.SequenceSegmentGroup()
     group.kind = kind
     position = 0
-
-    def esc(s):
-        return s.replace("\n", "␤")
 
     for idx, (token_type, token_text) in enumerate(
             lex(
@@ -577,6 +585,7 @@ def get_annotated_files_for_session(
     session: Session,
     root_path: Path,
     abs_path: Path,
+    debug_format_segments: Optional[Path] = None,
 ) -> AnnotatedFile:
     file_cov = get_coverage_of(session, abs_path)
     file = read_code_file(root_path, abs_path)
@@ -626,13 +635,14 @@ def get_annotated_files_for_session(
         elif group == coverage_group.kind:
             return str(coverage_segments[segment].Dbg)
 
-    Path("/tmp/annotated_segments.txt").write_text(
-        format_sequence_segments(
-            file_full_content,
-            groups,
-            get_group_name=get_group_name,
-            get_segment_name=get_segment_name,
-        ))
+    if debug_format_segments:
+        debug_format_segments.write_text(
+            format_sequence_segments(
+                file_full_content,
+                groups,
+                get_group_name=get_group_name,
+                get_segment_name=get_segment_name,
+            ))
 
     token_segmented = org.annotateSequence(
         groups=org.VecOfSequenceSegmentGroupVec(groups),
