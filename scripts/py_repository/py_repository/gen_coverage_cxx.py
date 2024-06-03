@@ -726,6 +726,8 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
 
         div.add(hline)
 
+    assert len(div) == len(file.Lines)
+
     result = tags.div(_class="page-tab-content", id="page-code")
     coverage_data_div = tags.div(_class="coverage-data", style="display:none;")
     for idx in coverage_indices:
@@ -740,6 +742,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         coverage_data_div.add(context_div)
 
     result.add(coverage_data_div)
+    assert len(div) == len(file.Lines)
     result.add(div)
 
     return result

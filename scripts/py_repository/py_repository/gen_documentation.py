@@ -181,14 +181,22 @@ def generate_html_for_directory(
 
         for code_file in directory.CodeFiles[:1]:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-            doc = cov_docxx.get_file_annotation_document(
+            file = cov_docxx.get_annotated_files_for_session(
                 session=cxx_coverage_session,
                 root_path=opts.root_path,
                 abs_path=opts.root_path.joinpath(code_file.RelPath),
+                use_highlight=False,
             )
+
+            html = cov_docxx.get_file_annotation_html(file)
             doc = document(title=str(code_file.RelPath))
+            doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
+            doc.head.add(tags.script(src=str(cov_docxx.js_path)))
+            doc.add(html)
+
 
             path.write_text(doc.render())
+            path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
             log(CAT).info(f"Wrote {path}")
 
         for text_file in directory.TextFiles:
