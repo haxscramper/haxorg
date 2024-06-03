@@ -23,6 +23,7 @@ from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_c
                                                  options_from_model)
 from pydantic import BaseModel, Field, SerializeAsAny
 import more_itertools
+from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
 
 T = TypeVar("T")
 
@@ -128,9 +129,9 @@ css_path = get_haxorg_repo_root_path().joinpath(
 class DocGenerationOptions(BaseModel, extra="forbid"):
     html_out_path: Path = Field(description="Root directory to output generated HTML to")
 
-    json_out_path: Optional[Path] = Field(
-        description="Path to write JSON data for the documentation model",
+    profile_out_path: Optional[Path] = Field(
         default=None,
+        description="Write performance profiline to the output path",
     )
 
     root_path: Path = Field(description="Root directory for the whole code")
@@ -177,27 +178,34 @@ def generate_html_for_directory(
 
     def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
         for subdir in directory.Subdirs:
-            aux(subdir, html_out_path)
+            with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(subdir.RelPath))):
+                aux(subdir, html_out_path)
 
         for code_file in directory.CodeFiles[:1]:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-            file = cov_docxx.get_annotated_files_for_session(
-                session=cxx_coverage_session,
-                root_path=opts.root_path,
-                abs_path=opts.root_path.joinpath(code_file.RelPath),
-                use_highlight=False,
-            )
+            with GlobCompleteEvent("Get annotated files", "cov", args=dict(path=str(code_file.RelPath))):
+                file = cov_docxx.get_annotated_files_for_session(
+                    session=cxx_coverage_session,
+                    root_path=opts.root_path,
+                    abs_path=opts.root_path.joinpath(code_file.RelPath),
+                    use_highlight=False,
+                )
 
-            html = cov_docxx.get_file_annotation_html(file)
-            doc = document(title=str(code_file.RelPath))
-            doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
-            doc.head.add(tags.script(src=str(cov_docxx.js_path)))
-            doc.add(html)
+            with GlobCompleteEvent("Generate annotated file", "cov", args=dict(path=str(code_file.RelPath))):
+                html = cov_docxx.get_file_annotation_html(file)
+                doc = document(title=str(code_file.RelPath))
+                doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
+                doc.head.add(tags.script(src=str(cov_docxx.js_path)))
+                doc.add(html)
 
+                path.parent.mkdir(exist_ok=True, parents=True)
+                with GlobCompleteEvent("Render HTML", "cov"):
+                    path.write_text(doc.render())
 
-            path.write_text(doc.render())
-            path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
-            log(CAT).info(f"Wrote {path}")
+                with GlobCompleteEvent("Dump JSON", "cov"):
+                    path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
+                    
+                log(CAT).info(f"Wrote {path}")
 
         for text_file in directory.TextFiles:
             path = docdata.get_html_path(text_file, html_out_path=html_out_path)
@@ -299,38 +307,41 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     cxx_coverage_session = cov_docxx.open_coverage(conf.cxx_coverage_path)
 
-    full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
-    for subdir in conf.test_path:
-        full_root.Subdirs.append(
-            parse_dir(
-                subdir,
-                conf,
-                rel_path_to_code_file=rel_path_to_code_file,
-                py_coverage_session=None,
-                cxx_coverage_session=None,
-                is_test=True,
-            ))
+    with GlobCompleteEvent("Get file tree", "cov"):
+        full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
+        for subdir in conf.test_path:
+            full_root.Subdirs.append(
+                parse_dir(
+                    subdir,
+                    conf,
+                    rel_path_to_code_file=rel_path_to_code_file,
+                    py_coverage_session=None,
+                    cxx_coverage_session=None,
+                    is_test=True,
+                ))
 
-    for subdir in conf.src_path:
-        full_root.Subdirs.append(
-            parse_dir(
-                subdir,
-                conf,
-                rel_path_to_code_file=rel_path_to_code_file,
-                py_coverage_session=py_coverage_session,
-                cxx_coverage_session=cxx_coverage_session,
-                is_test=False,
-            ))
+        for subdir in conf.src_path:
+            full_root.Subdirs.append(
+                parse_dir(
+                    subdir,
+                    conf,
+                    rel_path_to_code_file=rel_path_to_code_file,
+                    py_coverage_session=py_coverage_session,
+                    cxx_coverage_session=cxx_coverage_session,
+                    is_test=False,
+                ))
 
-    if conf.json_out_path:
-        conf.json_out_path.write_text(full_root.model_dump_json(indent=2))
+    with GlobCompleteEvent("Generate HTML for root", "cov"):
+        generate_html_for_directory(
+            full_root,
+            html_out_path=conf.html_out_path,
+            cxx_coverage_session=cxx_coverage_session,
+            opts=conf,
+        )
 
-    generate_html_for_directory(
-        full_root,
-        html_out_path=conf.html_out_path,
-        cxx_coverage_session=cxx_coverage_session,
-        opts=conf,
-    )
+    if conf.profile_out_path:
+        GlobExportJson(Path(conf.profile_out_path))
+        log(CAT).info(f"Wrote profile to {conf.profile_out_path}")
 
 
 if __name__ == "__main__":

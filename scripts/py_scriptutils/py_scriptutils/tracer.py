@@ -8,6 +8,14 @@ from contextlib import contextmanager
 import json
 from pathlib import Path
 
+import inspect
+
+
+def get_callsite_info():
+    frame = inspect.currentframe().f_back
+    info = inspect.getframeinfo(frame)
+    return info.filename, info.lineno, info.function
+
 
 class EventType(str, Enum):
     COMPLETE = "X"
@@ -72,10 +80,21 @@ class TraceCollector:
         return new_event
 
     @contextmanager
-    def complete_event(self,
-                       name: str,
-                       category: str,
-                       args: Optional[Dict[str, Any]] = None) -> Iterator[TraceEvent]:
+    def complete_event(
+        self,
+        name: str,
+        category: str,
+        args: Optional[Dict[str, Any]] = None,
+        file: Optional[str] = None,
+        line: Optional[int] = None,
+        function: Optional[str] = None,
+    ) -> Iterator[TraceEvent]:
+
+        if file or line or function:
+            args = args or dict()
+            args["file"] = file
+            args["line"] = line
+            args["function"] = function
 
         new_event = self.push_complete_event(name, category, args)
         try:
@@ -92,7 +111,7 @@ class TraceCollector:
             "traceEvents": [event.__dict__ for event in self.traceEvents],
             "otherData": self.metadata
         }
-        
+
         if not filename.parent.exists():
             filename.parent.mkdir(parents=True)
 
@@ -112,10 +131,24 @@ def getGlobalTraceCollector():
 
 
 @contextmanager
-def GlobCompleteEvent(name: str,
-                      category: str,
-                      args: Optional[Dict[str, Any]] = None) -> Iterator[TraceEvent]:
-    with getGlobalTraceCollector().complete_event(name, category, args) as new_event:
+def GlobCompleteEvent(
+    name: str,
+    category: str,
+    args: Optional[Dict[str, Any]] = None,
+    file: Optional[str] = None,
+    line: Optional[int] = None,
+    function: Optional[str] = None,
+) -> Iterator[TraceEvent]:
+    call_file, call_line, call_function = get_callsite_info()
+
+    with getGlobalTraceCollector().complete_event(
+            name,
+            category,
+            args,
+            file=file or call_file,
+            line=line or call_line,
+            function=function or call_function,
+    ) as new_event:
         yield new_event
 
 

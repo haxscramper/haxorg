@@ -1068,7 +1068,7 @@ def docs_doxygen(ctx: Context):
 @org_task()
 def docs_custom(ctx: Context):
     """Build documentation for the project using custom script"""
-    out_dir = get_script_root("docs/custom_html")
+    out_dir = Path("/tmp/docs_out")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     args = [
@@ -1080,6 +1080,7 @@ def docs_custom(ctx: Context):
         f"--src_path={get_script_root('scripts')}",
         f"--py_coverage_path={get_script_root('.coverage')}",
         f"--test_path={get_script_root('tests')}",
+        f"--profile_out_path={out_dir.joinpath('profile.json')}",
     ]
 
     prof_params = get_cxx_profdata_params()

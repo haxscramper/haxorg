@@ -25,6 +25,7 @@ from py_repository.gen_coverage_cookies import *
 from collections import defaultdict
 from dataclasses import dataclass
 from dominate import document
+from py_scriptutils.tracer import GlobCompleteEvent
 
 CAT = "coverage"
 
@@ -589,29 +590,37 @@ def get_annotated_files_for_session(
     debug_format_segments: Optional[Path] = None,
     use_highlight: bool = True,
 ) -> AnnotatedFile:
-    file = read_code_file(root_path, abs_path)
-    file_cov = get_coverage_of(session, abs_path)
+    with GlobCompleteEvent("Read file", "cov"):
+        file = read_code_file(root_path, abs_path)
+
+    with GlobCompleteEvent("Get coverage for file", "cov"):
+        file_cov = get_coverage_of(session, abs_path)
+
     run_contexts: Dict[int, CovContext] = dict()
 
     if file_cov != None:
-        coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
+        with GlobCompleteEvent("Get flat coverage", "cov"):
+            coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
+
         log(CAT).info(f"{len(coverage_segments)} segments")
         # pprint_to_file(coverage_segments, "/tmp/coverage_segments.py")
-        coverage_group = get_coverage_group(coverage_segments)
+        with GlobCompleteEvent("Get coverage group", "cov"):
+            coverage_group = get_coverage_group(coverage_segments)
 
-        for seg in coverage_segments:
-            for seg_id in seg.OriginalId:
-                original_seg = session.execute(
-                    select(CovSegment).where(CovSegment.Id == seg_id)).fetchall()
-                assert len(original_seg) == 1
-                assert len(original_seg[0]) == 1
-                original_seg: CovSegment = original_seg[0][0]
-                assert isinstance(original_seg, CovSegment)
-                context = session.execute(
-                    select(CovContext).where(
-                        CovContext.Id == original_seg.Context)).fetchall()
-                assert isinstance(context[0][0], CovContext)
-                run_contexts[seg_id] = context[0][0]
+        with GlobCompleteEvent("Find original segments", "cov"):
+            for seg in coverage_segments:
+                for seg_id in seg.OriginalId:
+                    original_seg = session.execute(
+                        select(CovSegment).where(CovSegment.Id == seg_id)).fetchall()
+                    assert len(original_seg) == 1
+                    assert len(original_seg[0]) == 1
+                    original_seg: CovSegment = original_seg[0][0]
+                    assert isinstance(original_seg, CovSegment)
+                    context = session.execute(
+                        select(CovContext).where(
+                            CovContext.Id == original_seg.Context)).fetchall()
+                    assert isinstance(context[0][0], CovContext)
+                    run_contexts[seg_id] = context[0][0]
 
     else:
         coverage_group = None
@@ -619,8 +628,11 @@ def get_annotated_files_for_session(
 
 
 
-    line_group = get_line_group(file.Lines)
+    with GlobCompleteEvent("Get line group", "cov"):
+        line_group = get_line_group(file.Lines)
+
     file_full_content = abs_path.read_text()
+
     if use_highlight:
         token_dict = defaultdict(lambda: len(token_dict))
         token_group = get_token_group(file_full_content,
@@ -666,20 +678,22 @@ def get_annotated_files_for_session(
                 get_segment_name=get_segment_name,
             ))
 
-    token_segmented = org.annotateSequence(
-        groups=org.VecOfSequenceSegmentGroupVec(groups),
-        first=0,
-        last=len(file_full_content),
-    )
+    with GlobCompleteEvent("Annotate sequence", "cov"):
+        token_segmented = org.annotateSequence(
+            groups=org.VecOfSequenceSegmentGroupVec(groups),
+            first=0,
+            last=len(file_full_content),
+        )
 
-    token_annotated_file = get_annotated_files(
-        text=file_full_content,
-        annotations=[it for it in token_segmented],
-        line_group_kind=line_group.kind,
-        token_group_kind=token_group and token_group.kind,
-        token_kind_mapping=token_names,
-        coverage_group_kind=coverage_group and coverage_group.kind,
-    )
+    with GlobCompleteEvent("Get annotated file", "cov"):
+        token_annotated_file = get_annotated_files(
+            text=file_full_content,
+            annotations=[it for it in token_segmented],
+            line_group_kind=line_group.kind,
+            token_group_kind=token_group and token_group.kind,
+            token_kind_mapping=token_names,
+            coverage_group_kind=coverage_group and coverage_group.kind,
+        )
 
     token_annotated_file.SegmentRunContexts = run_contexts
     if coverage_segments:
@@ -737,7 +751,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         for run in executions:
             context_div.add(
                 tags.div(
-                    f"Name: {run.Name}, Profile: {run.Profile}, Params: {run.Params}"))
+                    f"Name: {run.Name} Params: {run.Params}"))
 
         coverage_data_div.add(context_div)
 
