@@ -79,6 +79,7 @@ html {
 .code-line-number {
   margin-right: 12px;
   user-select: none;
+  min-width: 20px;
 }
 
 .code-line-text {

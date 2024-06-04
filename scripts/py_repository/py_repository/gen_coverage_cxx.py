@@ -728,6 +728,8 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         hline = tags.div(_class="code-line")
         tokens = tags.span(_class="code-line-text")
 
+        hline.add(tags.span(str(line.Index), _class="code-line-number", id=f"line-{line.Index}"),)
+
         for segment in line.Segments:
             if segment.Text == "\n":
                 continue
@@ -739,7 +741,8 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
 
             if segment.CoverageSegmentIdx != None:
                 executions = file.getExecutionContextList(segment.CoverageSegmentIdx)
-                if any((0 < it.Segment.StartCount or 0 < it.Segment.EndCount) for it in executions):
+                triggered_executions = [it for it in executions if (0 < it.Segment.StartCount or 0 < it.Segment.EndCount)]
+                if 0 < len(triggered_executions):
                     coverage_indices.add(segment.CoverageSegmentIdx)
                     hspan["class"] += " segment-cov-executed"
 

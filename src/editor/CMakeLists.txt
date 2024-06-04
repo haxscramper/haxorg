@@ -7,8 +7,8 @@ ExternalProject_Add(libcola
     SOURCE_DIR "${DEPS_DIR}/adaptagrams/cola"
     PREFIX "${CMAKE_BINARY_DIR}/libcola"
     BUILD_IN_SOURCE 1
-    BUILD_ALWAYS 1
-    UPDATE_DISCONNECTED 1
+    # BUILD_ALWAYS 1
+    # UPDATE_DISCONNECTED 1
 
     CONFIGURE_COMMAND
         mkdir -p <SOURCE_DIR>/m4

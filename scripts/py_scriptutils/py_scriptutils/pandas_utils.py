@@ -8,8 +8,16 @@ from py_scriptutils.rich_utils import render_rich
 
 
 @beartype
-def dataframe_to_rich_table(df: pd.DataFrame, exclude_columns: List[str] = []) -> Table:
-    table = Table(show_header=True, header_style="bold magenta")
+def dataframe_to_rich_table(
+    df: pd.DataFrame,
+    exclude_columns: List[str] = [],
+    show_lines: bool = False,
+) -> Table:
+    table = Table(
+        show_header=True,
+        header_style="bold magenta",
+        show_lines=show_lines,
+    )
     add_index = "index" not in exclude_columns
     if add_index:
         table.add_column("index")

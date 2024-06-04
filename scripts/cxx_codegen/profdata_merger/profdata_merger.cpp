@@ -60,6 +60,41 @@ BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 #include <llvm/Demangle/ItaniumNodes.def>
 BOOST_DESCRIBE_ENUM_END()
 
+BOOST_DESCRIBE_STRUCT(
+    CoverageSegment,
+    (),
+    (Line, Col, Count, HasCount, IsRegionEntry, IsGapRegion));
+BOOST_DESCRIBE_STRUCT(ExpansionRecord, (), (FileID));
+BOOST_DESCRIBE_STRUCT(
+    FunctionRecord,
+    (),
+    (Name,
+     Filenames,
+     CountedRegions,
+     CountedBranchRegions,
+     MCDCRecords,
+     ExecutionCount));
+
+BOOST_DESCRIBE_STRUCT(
+    CounterMappingRegion,
+    (),
+    (Count,
+     FalseCount,
+     MCDCParams,
+     FileID,
+     ExpandedFileID,
+     LineStart,
+     ColumnStart,
+     LineEnd,
+     ColumnEnd,
+     Kind));
+
+BOOST_DESCRIBE_STRUCT(
+    CountedRegion,
+    (CounterMappingRegion),
+    (ExecutionCount, FalseExecutionCount, Folded));
+
+
 std::string read_file(fs::path const& path) {
     std::ifstream     file{path.native()};
     std::stringstream buffer;
@@ -1177,7 +1212,12 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
     for (auto it : enumerate(file)) {
         CoverageSegment const& s = it.value();
         std::string prefix = std::string(segment_stack.size() * 2, ' ');
+        if (s.IsGapRegion) {
+            // Ignore gap regions in the stacking
+            LOG(fmt("== {} Ignore gap region {}", prefix, s));
+        }
         if (s.IsRegionEntry) {
+            LOG(fmt("++ {} Region enter {}", prefix, s));
             ++ctx.segment_counter;
             if (!segment_stack.empty()) {
                 segment_stack.top().is_leaf = false;
@@ -1189,7 +1229,10 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
                 .is_leaf = true,
             });
         } else {
-            if (!segment_stack.empty()) {
+            if (segment_stack.empty()) {
+                LOG(fmt("?? {} No stack for close {}", prefix, s));
+            } else {
+                LOG(fmt("-- {} Has stack for close {}", prefix, s));
                 segment_pairs.push_back({segment_stack.top(), s});
                 segment_stack.pop();
                 if (!segment_stack.empty()) {

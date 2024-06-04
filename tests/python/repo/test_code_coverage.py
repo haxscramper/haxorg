@@ -80,6 +80,7 @@ class ProfileRunParams():
     run_results: Dict[str, Tuple[int, str, str]] = field(default_factory=dict)
     file_whitelist: List[str] = field(default_factory=lambda: [".*"])
     file_blacklist: List[str] = field(default_factory=lambda: [])
+    show_merger_run: Union[bool, Path] = False
 
     def get_code(self, name: str) -> Path:
         return self.dir.joinpath(name)
@@ -144,7 +145,25 @@ class ProfileRunParams():
                 file_blacklist=self.file_blacklist,
             ).model_dump_json(indent=2))
 
-        cmd.run([str(self.get_params())])
+        code, stdout, stderr = cmd.run([str(self.get_params())])
+        if self.show_merger_run:
+            if isinstance(self.show_merger_run, bool):
+                outfile = stdout
+
+            else:
+                self.show_merger_run.parent.mkdir(parents=True, exist_ok=True)
+                outfile = open(self.show_merger_run, "w")
+
+            if stdout:
+                print("stdout", file=outfile)
+                print(stdout, file=outfile)
+            
+            if stderr:
+                print("stderr", file=outfile)
+                print(stderr, file=outfile)
+
+            if isinstance(self.show_merger_run, Path):
+                outfile.close()
 
     def run(self):
         self.dir.mkdir(exist_ok=True, parents=True)
@@ -316,16 +335,21 @@ def cleanup_test_code(code: str) -> str:
 
 
 @beartype
-def add_cov_segment_text(df: pd.DataFrame, lines: List[str]):
-    df["Text"] = df.apply(
-        lambda row: cleanup_test_code(
-            cov.extract_text(
-                lines,
-                start=(row["LineStart"], row["ColStart"]),
-                end=(row["LineEnd"], row["ColEnd"]),
-            )),
-        axis=1,
-    )
+def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = True):
+
+    def get_row(row):
+        code = cov.extract_text(
+            lines,
+            start=(row["LineStart"], row["ColStart"]),
+            end=(row["LineEnd"], row["ColEnd"]),
+        )
+        if for_test:
+            return cleanup_test_code(code)
+
+        else:
+            return code
+
+    df["Text"] = df.apply(get_row, axis=1)
 
 
 def test_file_segmentation_1():
@@ -661,10 +685,12 @@ def test_coverage_annotation_multiple_run_multiple_segment():
             files={"main.cpp": code},
             run_contexts={
                 "function_3": [],
-                "function_1": ["2"],
-                "function_2": ["3", "3"],
+                # "function_1": ["2"],
+                # "function_2": ["3", "3"],
             },
         )
+
+        cmd.show_merger_run = Path("/tmp/show_merger_run.txt")
 
         cmd.run()
 
@@ -719,3 +745,43 @@ def test_coverage_annotation_multiple_run_multiple_segment():
                     root_path=dir,
                     abs_path=dir.joinpath("main.cpp"),
                 ).render())
+
+        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+        main_cov = cov.get_coverage_of(session, cmd.get_code("main.cpp"))
+        lines = code.split("\n")
+
+        df = pd.read_sql(main_cov, session.get_bind())
+        add_cov_segment_text(df, lines, for_test=False)
+
+        Path("/tmp/coverage_segments.txt").write_text(
+            render_rich(
+                dataframe_to_rich_table(
+                    df,
+                    show_lines=True,
+                ),
+                color=False,
+            ))
+
+        flat_df = pd.read_sql(select(cov.CovSegmentFlat), session.get_bind())
+
+        with open("/tmp/flat_debug.txt", "w") as file:
+            for run in flat_df["Context"].unique():
+                indent = 0
+                print(f"run={run}", file=file)
+                for row in flat_df[flat_df["Context"] == run].to_dict("records"):
+                    print("  " * indent,
+                        "[{}:{}] entry={} gap={} context={} id={}".format(
+                            row["Line"],
+                            row["Col"],
+                            row["IsRegionEntry"],
+                            row["IsGapRegion"],
+                            row["Context"],
+                            row["Id"],
+                        ),
+                        file=file)
+
+                    if row["IsRegionEntry"]:
+                        indent += 1
+
+                    else:
+                        indent -= 1
