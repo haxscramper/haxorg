@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
 #include <algorithm>
 
 #include <hstd/stdlib/Opt.hpp>
@@ -27,6 +26,24 @@ class RangeTree {
             , rangeIndex(rangeIndex)
             , left(std::move(left))
             , right(std::move(right)) {}
+
+        Vec<Node*> getAllNodes(CR<T> point) const {
+            Vec<Node*> result;
+
+            if (range.contains(point)) {
+                result.push_back(const_cast<Node*>(this));
+            }
+
+            if (left != nullptr) {
+                result.append(left->getAllNodes(point));
+            }
+
+            if (right != nullptr) {
+                result.append(right->getAllNodes(point));
+            }
+
+            return result;
+        }
     };
 
     RangeTree(const Vec<Slice<T>>& slices = Vec<Slice<T>>()) {
@@ -65,6 +82,10 @@ class RangeTree {
                 }
             });
         return buildRec(slices, 0, slices.size() - 1);
+    }
+
+    Vec<Node*> getAllNodes(CR<T> point) const {
+        return root->getAllNodes(point);
     }
 
     Opt<Node*> getNode(CR<T> point) const {
@@ -107,11 +128,18 @@ template <typename T>
 std::ostream& auxPrintNode(
     std::ostream&                      os,
     typename RangeTree<T>::Node const& node) {
-    os << node.range << "{ ";
-    if (node.left != nullptr) { auxPrintNode<T>(os, *(node.left)); }
+    os << fmt1(node.range) << "{";
 
-    os << ", ";
-    if (node.right != nullptr) { auxPrintNode<T>(os, *(node.right)); }
+    if (node.left != nullptr) {
+        os << " left = ";
+        auxPrintNode<T>(os, *(node.left));
+    }
+
+    if (node.right != nullptr) {
+        os << " right = ";
+        auxPrintNode<T>(os, *(node.right));
+    }
+
     os << "}";
 
     return os;
@@ -120,14 +148,14 @@ std::ostream& auxPrintNode(
 template <typename T>
 struct std::formatter<RangeTree<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const RangeTree<T>& p, FormatContext& ctx) {
+    auto format(const RangeTree<T>& p, FormatContext& ctx) const {
         if (p.root == nullptr) {
-            return "nil";
+            return fmt_ctx("nil", ctx);
         } else {
             typename RangeTree<T>::Node& node = *(p.root.get());
             std::stringstream            os;
             auxPrintNode<T>(os, node);
-            return os.str();
+            return fmt_ctx(os.str(), ctx);
         }
     }
 };

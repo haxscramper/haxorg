@@ -57,6 +57,50 @@ TEST(RangeAlgorithmsTest, Queries) {
 }
 
 
+TEST(RangeAlgorithmsTest, NestedTreeSegments) {
+    RangeTree<int> tree{Vec<Slice<int>>{
+        /* */ slice(0, 1),
+        /* */ slice(2, 13),
+        /*    */ slice(3, 6),
+        /*       */ slice(4, 5),
+        /*    */ slice(7, 12),
+        /*       */ slice(8, 9),
+        /*       */ slice(10, 11),
+        /* */ slice(14, 15),
+    }};
+
+    LOG(INFO) << fmt1(tree);
+
+    {
+        auto it = tree.getAllNodes(0);
+        EXPECT_EQ(it.size(), 1);
+    }
+    {
+        auto it = tree.getAllNodes(-1);
+        EXPECT_EQ(it.size(), 0);
+    }
+    {
+        auto it = tree.getAllNodes(2);
+        EXPECT_EQ(it.size(), 1);
+    }
+    {
+        auto it = tree.getAllNodes(3);
+        EXPECT_EQ(it.size(), 2);
+    }
+    {
+        auto it = tree.getAllNodes(4);
+        EXPECT_EQ(it.size(), 3);
+    }
+    {
+        auto it = tree.getAllNodes(5);
+        EXPECT_EQ(it.size(), 3);
+    }
+    {
+        auto it = tree.getAllNodes(6);
+        EXPECT_EQ(it.size(), 2);
+    }
+}
+
 TEST(RangeAlgorithmsTest, EmptyGroups) {
     // Test case: No segments provided
     Vec<SequenceSegmentGroup> groups;
