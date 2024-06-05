@@ -3,7 +3,6 @@ from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable
 from pydantic import Field, BaseModel
 
 from sqlalchemy import create_engine, Column, select, Select
-from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.schema import CreateTable
 from sqlalchemy.orm import declarative_base, Session
 from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, BoolColumn
@@ -12,7 +11,7 @@ from sqlalchemy.types import JSON
 import enum
 from beartype import beartype
 from pathlib import Path
-from py_scriptutils.sqlalchemy_utils import open_sqlite_session
+from py_scriptutils.sqlalchemy_utils import open_sqlite_session, NumericEnum
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
 from py_scriptutils.rich_utils import render_rich_pprint
@@ -62,6 +61,8 @@ class CovRegionKind(enum.Enum):
     SkippedRegion = 2
     GapRegion = 3
     BranchRegion = 4
+    MCDCDecisionRegion = 5
+    MCDCBranchRegion = 6
 
 
 class CovFunctionRegion(CoverageSchema):
@@ -81,11 +82,11 @@ class CovFunctionRegion(CoverageSchema):
     ColumnStart = IntColumn()
     LineEnd = IntColumn()
     ColumnEnd = IntColumn()
-    RegionKind = Column(SqlEnum(CovRegionKind))
+    RegionKind = Column(NumericEnum(CovRegionKind))
 
 
-class CovFileBranch(CoverageSchema):
-    __tablename__ = "CovFileBranch"
+class CovFileRegion(CoverageSchema):
+    __tablename__ = "CovFileRegion"
     Id = IdColumn()
     Context = ForeignId(CovContext.Id)
     ExecutionCount = IntColumn()
@@ -97,29 +98,8 @@ class CovFileBranch(CoverageSchema):
     ColumnStart = IntColumn()
     LineEnd = IntColumn()
     ColumnEnd = IntColumn()
-    RegionKind = Column(SqlEnum(CovRegionKind))
-
-
-class CovSegment(CoverageSchema):
-    __tablename__ = "CovSegment"
-    Id = IdColumn()
-    LineStart = IntColumn()
-    ColStart = IntColumn()
-    LineEnd = IntColumn()
-    ColEnd = IntColumn()
-    StartCount = IntColumn()
-    EndCount = IntColumn()
-    HasCount = BoolColumn()
+    RegionKind = Column(NumericEnum(CovRegionKind))
     File = ForeignId(CovFile.Id)
-    Context = ForeignId(CovContext.Id)
-    SegmentIndex = IntColumn()
-    NestedIn = ForeignId("CovSegment.Id", nullable=True)
-    IsLeaf = BoolColumn()
-    IsBranch = BoolColumn()
-
-    def intersects(self, line: int, col: int) -> bool:
-        return (self.LineStart <= line <= self.LineEnd) and (self.ColStart <= col <=
-                                                             self.ColEnd)
 
 
 class CovInstantiationGroup(CoverageSchema):
@@ -127,14 +107,6 @@ class CovInstantiationGroup(CoverageSchema):
     Id = IdColumn()
     Line = IntColumn()
     Col = IntColumn()
-
-
-class CovExpansionRegion(CoverageSchema):
-    __tablename__ = "CovExpansionRegion"
-    Id = IdColumn()
-    FileId = ForeignId(CovFile.Id)
-    Region = ForeignId(CovFunctionRegion.Id)
-    Function = ForeignId(CovFunction.Id)
 
 
 class CovFunctionInstantiation(CoverageSchema):
@@ -181,12 +153,12 @@ class AnnotatedLine(BaseModel, extra="forbid"):
 @beartype
 @dataclass
 class GenCovSegmentContext():
-    # Coverage context entry can be associated with multiple segments in the database. 
-    # This class bundles together information to identify the context *when* the segment 
-    # might've been executed together with the segment itself to check *if* it has 
+    # Coverage context entry can be associated with multiple segments in the database.
+    # This class bundles together information to identify the context *when* the segment
+    # might've been executed together with the segment itself to check *if* it has
     # actually been executed (execution count)
     Context: CovContext
-    Segment: CovSegment
+    Segment: CovFileRegion
 
 
 class AnnotatedFile(BaseModel, extra="forbid"):
@@ -217,7 +189,8 @@ def open_coverage(path: Path) -> Session:
 
 
 @beartype
-def get_coverage_of(session: Session, path: Path) -> Optional[Select[Tuple[CovSegment]]]:
+def get_coverage_of(session: Session,
+                    path: Path) -> Optional[Select[Tuple[CovFileRegion]]]:
     target_id = session.execute(
         select(CovFile).where(CovFile.Path == str(path))).fetchall()
 
@@ -226,7 +199,7 @@ def get_coverage_of(session: Session, path: Path) -> Optional[Select[Tuple[CovSe
             return None
 
         case 1:
-            return select(CovSegment).where(CovSegment.File == target_id[0][0].Id)
+            return select(CovFileRegion).where(CovFileRegion.File == target_id[0][0].Id)
 
         case _:
             raise ValueError(
@@ -388,7 +361,7 @@ def esc(s):
 def get_flat_coverage(
     session: Session,
     Lines: List[DocCodeCxxLine],
-    segments: Select[Tuple[CovSegment]],
+    segments: Select[Tuple[CovFileRegion]],
 ) -> List[GenCovSegmentFlat]:
     result = []
 
@@ -403,37 +376,36 @@ def get_flat_coverage(
 
     # FlatLines = "\n".join(it.Text for it in Lines)
 
-    segment: CovSegment
+    segment: CovFileRegion
     for (segment,) in session.execute(segments):
-        if segment.IsLeaf:
-            First = line_starts[segment.LineStart - 1] + segment.ColStart - 1
-            Last = line_starts[segment.LineEnd - 1] + segment.ColEnd - 1
+        First = line_starts[segment.LineStart - 1] + segment.ColumnStart - 1
+        Last = line_starts[segment.LineEnd - 1] + segment.ColumnEnd - 1
 
-            if False:
-                DbgLines = "[{}:{} {}:{}]".format(
-                    segment.LineStart,
-                    segment.ColStart,
-                    segment.LineEnd,
-                    segment.ColEnd,
-                )
+        if False:
+            DbgLines = "[{}:{} {}:{}]".format(
+                segment.LineStart,
+                segment.ColumnStart,
+                segment.LineEnd,
+                segment.ColumnEnd,
+            )
 
-                DbgRange = "[{}..{}]".format(
-                    First,
-                    Last,
-                )
+            DbgRange = "[{}..{}]".format(
+                First,
+                Last,
+            )
 
-                DbgText = '{}'.format(
-                    extract_text(
-                        Lines,
-                        start=(segment.LineStart, segment.ColStart),
-                        end=(segment.LineEnd, segment.ColEnd),
-                    ))
+            DbgText = '{}'.format(
+                extract_text(
+                    Lines,
+                    start=(segment.LineStart, segment.ColumnStart),
+                    end=(segment.LineEnd, segment.ColumnEnd),
+                ))
 
-                DbgFlatText = FlatLines[First:Last + 1]
+            DbgFlatText = FlatLines[First:Last + 1]
 
-                print(f"{DbgLines} {DbgRange} -> '{esc(DbgText)}' / '{esc(DbgFlatText)}'")
+            print(f"{DbgLines} {DbgRange} -> '{esc(DbgText)}' / '{esc(DbgFlatText)}'")
 
-            SegmentRuns[(First, Last)].append((segment.Id, None))
+        SegmentRuns[(First, Last)].append((segment.Id, None))
         # print(f"{First} {Last} {segment.Id}")
 
     # print(render_rich_pprint(to_debug_json(SegmentRuns)))
@@ -612,14 +584,14 @@ def get_annotated_files_for_session(
                     this_file_segments.add(seg_id)
 
             for (original_seg, context) in session.execute(
-                    select(CovSegment,
-                           CovContext).where(CovSegment.Id.in_(this_file_segments)).join(
-                               CovContext,
-                               CovSegment.Context == CovContext.Id,
-                           )):
+                    select(CovFileRegion, CovContext).where(
+                        CovFileRegion.Id.in_(this_file_segments)).join(
+                            CovContext,
+                            CovFileRegion.Context == CovContext.Id,
+                        )):
 
                 assert isinstance(context, CovContext)
-                assert isinstance(original_seg, CovSegment)
+                assert isinstance(original_seg, CovFileRegion)
                 run_contexts[original_seg.Id] = GenCovSegmentContext(
                     Context=context,
                     Segment=original_seg,
@@ -714,7 +686,9 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         hline = tags.div(_class="code-line")
         tokens = tags.span(_class="code-line-text")
 
-        hline.add(tags.span(str(line.Index), _class="code-line-number", id=f"line-{line.Index}"),)
+        hline.add(
+            tags.span(str(line.Index), _class="code-line-number",
+                      id=f"line-{line.Index}"),)
 
         for segment in line.Segments:
             if segment.Text == "\n":
@@ -727,7 +701,9 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
 
             if segment.CoverageSegmentIdx != None:
                 executions = file.getExecutionContextList(segment.CoverageSegmentIdx)
-                triggered_executions = [it for it in executions if (0 < it.Segment.StartCount or 0 < it.Segment.EndCount)]
+                triggered_executions = [
+                    it for it in executions if 0 < it.Segment.ExecutionCount
+                ]
                 if 0 < len(triggered_executions):
                     coverage_indices.add(segment.CoverageSegmentIdx)
                     hspan["class"] += " segment-cov-executed"
@@ -735,7 +711,8 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 else:
                     hspan["class"] += " segment-cov-skipped"
 
-                hspan["onclick"] = f"show_coverage_segment_idx({segment.CoverageSegmentIdx})"
+                hspan[
+                    "onclick"] = f"show_coverage_segment_idx({segment.CoverageSegmentIdx})"
 
                 for run in executions:
                     hspan["covered"] = "run"
@@ -751,13 +728,17 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
     result = tags.div(_class="page-tab-content", id="page-code")
     coverage_data_div = tags.div(_class="coverage-data")
     for idx in coverage_indices:
-        context_div = tags.div(_class="cov-context", id=f"cov-context-{idx}", style="display:none;")
+        context_div = tags.div(_class="cov-context",
+                               id=f"cov-context-{idx}",
+                               style="display:none;")
         executions = file.getExecutionContextList(idx)
 
         for run in executions:
             Ctx: CovContext = run.Context
-            Seg: CovSegment = run.Segment
-            context_div.add(tags.div(f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.StartCount}"))
+            Seg: CovFileRegion = run.Segment
+            context_div.add(
+                tags.div(
+                    f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.ExecutionCount}"))
 
         coverage_data_div.add(context_div)
 
@@ -803,12 +784,10 @@ if __name__ == "__main__":
             CovFunction,
             CovContext,
             CovFunctionRegion,
-            CovFileBranch,
             CovFile,
             CovInstantiationGroup,
             CovFunctionInstantiation,
-            CovSegment,
-            CovExpansionRegion,
+            CovFileRegion,
     ]:
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 

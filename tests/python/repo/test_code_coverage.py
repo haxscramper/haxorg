@@ -340,8 +340,8 @@ def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = Tr
     def get_row(row):
         code = cov.extract_text(
             lines,
-            start=(row["LineStart"], row["ColStart"]),
-            end=(row["LineEnd"], row["ColEnd"]),
+            start=(row["LineStart"], row["ColumnStart"]),
+            end=(row["LineEnd"], row["ColumnEnd"]),
         )
         if for_test:
             return cleanup_test_code(code)
@@ -696,6 +696,10 @@ def test_coverage_annotation_multiple_run_multiple_segment():
 
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
+        Path(
+            "/tmp/test_coverage_annotation_multiple_run_multiple_segment.txt").write_text(
+                format_db_all(session, style=False))
+
         file = cov.get_annotated_files_for_session(
             session=session,
             root_path=dir,
@@ -727,9 +731,7 @@ def test_coverage_annotation_multiple_run_multiple_segment():
             ranges.append(line_info)
 
         pprint_to_file(ranges, "/tmp/char_ranges.py")
-        Path(
-            "/tmp/test_coverage_annotation_multiple_run_multiple_segment.txt").write_text(
-                format_db_all(session, style=False))
+
 
         recombine = ""
         for line in file.Lines:

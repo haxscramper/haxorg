@@ -28,6 +28,7 @@
 #include <fstream>
 #include <hstd/system/aux_utils.hpp>
 #include <execution>
+#include <llvm/ADT/SmallBitVector.h>
 
 #include <perfetto.h>
 
@@ -778,6 +779,107 @@ static void loadInput(
     Writer->addBinaryIds(BinaryIds);
 }
 
+struct CoverageMappingLyt {
+    DenseMap<size_t, DenseSet<size_t>>         RecordProvenance;
+    std::vector<FunctionRecord>                Functions;
+    DenseMap<size_t, SmallVector<unsigned, 0>> FilenameHash2RecordIndices;
+    std::vector<std::pair<std::string, uint64_t>> FuncHashMismatches;
+};
+
+static_assert(sizeof(CoverageMappingLyt) == sizeof(CoverageMapping));
+
+CoverageMappingLyt const* toCoverageMappingLyt(
+    CoverageMapping const* Mapping) {
+    return reinterpret_cast<CoverageMappingLyt const*>(Mapping);
+}
+
+ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
+    CoverageMapping const& Mapping,
+    StringRef              Filename) {
+    size_t FilenameHash = hash_value(Filename);
+    auto   RecordIt     = toCoverageMappingLyt(&Mapping)
+                        ->FilenameHash2RecordIndices.find(FilenameHash);
+    if (RecordIt
+        == toCoverageMappingLyt(&Mapping)
+               ->FilenameHash2RecordIndices.end()) {
+        return {};
+    }
+    return RecordIt->second;
+}
+
+static std::optional<unsigned> findMainViewFileID(
+    const FunctionRecord& Function) {
+    SmallBitVector IsNotExpandedFile(Function.Filenames.size(), true);
+    for (const auto& CR : Function.CountedRegions) {
+        if (CR.Kind == CounterMappingRegion::ExpansionRegion) {
+            IsNotExpandedFile[CR.ExpandedFileID] = false;
+        }
+    }
+    int I = IsNotExpandedFile.find_first();
+    if (I == -1) { return std::nullopt; }
+    return I;
+}
+
+static std::optional<unsigned> findMainViewFileID(
+    StringRef             SourceFile,
+    const FunctionRecord& Function) {
+    std::optional<unsigned> I = findMainViewFileID(Function);
+    if (I && SourceFile == Function.Filenames[*I]) { return I; }
+    return std::nullopt;
+}
+
+static SmallBitVector gatherFileIDs(
+    StringRef             SourceFile,
+    const FunctionRecord& Function) {
+    SmallBitVector FilenameEquivalence(Function.Filenames.size(), false);
+    for (unsigned I = 0, E = Function.Filenames.size(); I < E; ++I) {
+        if (SourceFile == Function.Filenames[I]) {
+            FilenameEquivalence[I] = true;
+        }
+    }
+    return FilenameEquivalence;
+}
+
+
+std::vector<CountedRegion> getRegionsForFile(
+    CoverageMapping const& Mapping,
+    std::string const&     Filename) {
+    std::vector<CountedRegion> Regions;
+
+    // Look up the function records in the given file. Due to hash
+    // collisions on the filename, we may get back some records that are
+    // not in the file.
+    ArrayRef<unsigned>
+        RecordIndices = getImpreciseRecordIndicesForFilename(
+            Mapping, Filename);
+    auto Access = toCoverageMappingLyt(&Mapping);
+    for (unsigned RecordIndex : RecordIndices) {
+        const FunctionRecord& Function = Access->Functions[RecordIndex];
+        auto MainFileID = findMainViewFileID(Filename, Function);
+        auto FileIDs    = gatherFileIDs(Filename, Function);
+        for (const auto& CR : Function.CountedRegions) {
+            if (FileIDs.test(CR.FileID)) {
+                Regions.push_back(CR);
+                // TODO Integrate expansion regions
+                // if (MainFileID && isExpansion(CR, *MainFileID)) {
+                //     FileCoverage.Expansions.emplace_back(CR, Function);
+                // }
+            }
+        }
+        // Capture branch regions specific to the function (excluding
+        // expansions).
+        for (const auto& CR : Function.CountedBranchRegions) {
+            // TODO integrate branch regions
+            // if (FileIDs.test(CR.FileID)
+            //     && (CR.FileID == CR.ExpandedFileID)) {
+            //     FileCoverage.BranchRegions.push_back(CR);
+            // }
+        }
+    }
+
+    return Regions;
+}
+
 std::string SqlInsert(
     std::string const&              Table,
     std::vector<std::string> const& Columns) {
@@ -800,14 +902,12 @@ std::string SqlInsert(
 
 struct queries {
     SQLite::Statement func_region;
-    SQLite::Statement file_branch;
+    SQLite::Statement file_region;
     SQLite::Statement context;
     SQLite::Statement func;
     SQLite::Statement file;
-    SQLite::Statement segment;
     SQLite::Statement instantiation_group;
     SQLite::Statement function_instantiation;
-    SQLite::Statement expansion;
 
     queries(SQLite::Database& db)
         : // ---
@@ -821,17 +921,6 @@ struct queries {
                 }))
         ,
         // ---
-        expansion(
-            db,
-            SqlInsert(
-                "CovExpansionRegion",
-                {
-                    "FileId",
-                    "Region",
-                    "Function",
-                }))
-        ,
-        // ---
         instantiation_group(
             db,
             SqlInsert(
@@ -840,28 +929,6 @@ struct queries {
                     "Id",   // 1
                     "Line", // 2
                     "Col",  // 3
-                }))
-        ,
-        // ---
-        segment(
-            db,
-            SqlInsert(
-                "CovSegment",
-                {
-                    "Id",           // 1
-                    "LineStart",    // 2
-                    "ColStart",     // 3
-                    "LineEnd",      // 4
-                    "ColEnd",       // 5
-                    "StartCount",   // 6
-                    "EndCount",     // 7
-                    "HasCount",     // 8
-                    "File",         // 9
-                    "Context",      // 10
-                    "SegmentIndex", // 11
-                    "NestedIn",     // 12
-                    "IsLeaf",       // 13
-                    "IsBranch",     // 14
                 }))
         ,
         // ---
@@ -885,21 +952,25 @@ struct queries {
                     "ColumnEnd",           // 13
                     "RegionKind",          // 14
                 }))
-        , file_branch(
-              db,
-              SqlInsert(
-                  "CovFileBranch",
-                  {
-                      "Context",             // 1
-                      "ExecutionCount",      // 2
-                      "FalseExecutionCount", // 3
-                      "Folded",              // 4
-                      "LineStart",           // 5
-                      "ColumnStart",         // 6
-                      "LineEnd",             // 7
-                      "ColumnEnd",           // 8
-                      "RegionKind",          // 9
-                  }))
+        ,
+        // ---
+        file_region(
+            db,
+            SqlInsert(
+                "CovFileRegion",
+                {
+                    "Id",                  // 1
+                    "Context",             // 2
+                    "ExecutionCount",      // 3
+                    "FalseExecutionCount", // 4
+                    "Folded",              // 5
+                    "LineStart",           // 6
+                    "ColumnStart",         // 7
+                    "LineEnd",             // 8
+                    "ColumnEnd",           // 9
+                    "RegionKind",          // 10
+                    "File",                // 11
+                }))
         ,
         // ---
         context(
@@ -999,7 +1070,7 @@ struct db_build_ctx {
     int                                  instantiation_id{};
     std::unordered_map<std::string, int> function_ids{};
     std::unordered_map<std::string, int> file_ids{};
-    int                                  segment_counter{};
+    int                                  region_counter{};
     int                                  function_region_counter{};
 
     std::vector<Regex> file_blacklist;
@@ -1176,134 +1247,31 @@ std::string format_range(T begin, T end) {
     return result;
 }
 
-void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
+void add_file(
+    CoverageMapping const* mapping,
+    StringRef              file,
+    queries&               q,
+    db_build_ctx&          ctx) {
     TRACE_EVENT("sql", "File coverage data");
-    int file_id = ctx.get_file_id(file.getFilename().str(), q);
+    int file_id = ctx.get_file_id(file.str(), q);
 
-
-    struct NestingData {
-        CoverageSegment    segment;
-        int                self_id;
-        std::optional<int> parent;
-        bool               is_leaf;
-    };
-
-    std::vector<std::pair<NestingData, CoverageSegment>> segment_pairs;
-    std::stack<NestingData>                              segment_stack;
-
-    for (auto it : enumerate(file)) {
-        CoverageSegment const& s = it.value();
-        std::string prefix = std::string(segment_stack.size() * 2, ' ');
-        if (s.IsGapRegion) {
-            // Ignore gap regions in the stacking
-            LOG(fmt("== {} Ignore gap region {}", prefix, s));
-        }
-        if (s.IsRegionEntry) {
-            LOG(fmt("++ {} Region enter {}", prefix, s));
-            ++ctx.segment_counter;
-            if (!segment_stack.empty()) {
-                segment_stack.top().is_leaf = false;
-            }
-            segment_stack.push({
-                .segment = s,
-                .self_id = ctx.segment_counter,
-                .parent  = std::nullopt,
-                .is_leaf = true,
-            });
-        } else {
-            if (segment_stack.empty()) {
-                LOG(fmt("?? {} No stack for close {}", prefix, s));
-            } else {
-                LOG(fmt("-- {} Has stack for close {}", prefix, s));
-                segment_pairs.push_back({segment_stack.top(), s});
-                segment_stack.pop();
-                if (!segment_stack.empty()) {
-                    segment_pairs.back().first.parent = segment_stack.top()
-                                                            .self_id;
-                }
-            }
-        }
-    }
-
-    std::sort(
-        segment_pairs.begin(),
-        segment_pairs.end(),
-        [](std::pair<NestingData, CoverageSegment> const& lhs,
-           std::pair<NestingData, CoverageSegment> const& rhs) -> bool {
-            return lhs.first.self_id < rhs.first.self_id;
-        });
-
-    std::unordered_map<FileSpan, bool, FileSpanHasher, FileSpanComparator>
-        branch_cache{};
-
-    for (auto it : enumerate(file.getBranches())) {
+    auto regions = getRegionsForFile(*mapping, file.str());
+    for (auto const& it : enumerate(regions)) {
+        ++ctx.region_counter;
         CountedRegion const& r = it.value();
-        branch_cache.insert_or_assign(
-            FileSpan{
-                .LineStart = r.LineStart,
-                .LineEnd   = r.LineEnd,
-                .ColStart  = r.ColumnStart,
-                .ColEnd    = r.ColumnEnd,
-            },
-            true);
-        q.file_branch.bind(1, ctx.context_id);
-        q.file_branch.bind(2, (int64_t)r.ExecutionCount);
-        q.file_branch.bind(3, (int64_t)r.FalseExecutionCount);
-        q.file_branch.bind(4, r.Folded);
-        q.file_branch.bind(5, (int64_t)r.LineStart);
-        q.file_branch.bind(6, (int64_t)r.ColumnStart);
-        q.file_branch.bind(7, (int64_t)r.LineEnd);
-        q.file_branch.bind(8, (int64_t)r.ColumnEnd);
-        q.func_region.bind(9, r.Kind);
-        q.file_branch.exec();
-        q.file_branch.reset();
-    }
-
-    for (auto it : enumerate(segment_pairs)) {
-        auto const& [nesting, end] = it.value();
-        auto const& start          = nesting.segment;
-
-        q.segment.bind(1, nesting.self_id);
-        q.segment.bind(2, start.Line);
-        q.segment.bind(3, start.Col);
-        q.segment.bind(4, end.Line);
-        q.segment.bind(5, end.Col);
-        q.segment.bind(6, (int64_t)start.Count);
-        q.segment.bind(7, (int64_t)end.Count);
-        q.segment.bind(8, start.HasCount || end.HasCount);
-        q.segment.bind(9, file_id);
-        q.segment.bind(10, ctx.context_id);
-        q.segment.bind(11, (int)it.index());
-        if (nesting.parent) {
-            q.segment.bind(12, *nesting.parent);
-        } else {
-            q.segment.bind(12, nullptr);
-        }
-        q.segment.bind(13, nesting.is_leaf);
-
-        FileSpan span{
-            .LineStart = start.Line,
-            .LineEnd   = end.Line,
-            .ColStart  = start.Col,
-            .ColEnd    = end.Col,
-        };
-
-        q.segment.bind(14, branch_cache.contains(span));
-        q.segment.exec();
-        q.segment.reset();
-    }
-
-
-    for (ExpansionRecord const& e : file.getExpansions()) {
-        int function_id = get_function_id(e.Function, q, ctx);
-        q.expansion.bind(1, e.FileID);
-        q.expansion.bind(
-            2,
-            get_region_id(
-                e.Function, e.Region, false, q, function_id, ctx));
-        q.expansion.bind(3, function_id);
-        q.expansion.exec();
-        q.expansion.reset();
+        q.file_region.bind(1, ctx.region_counter);
+        q.file_region.bind(2, ctx.context_id);
+        q.file_region.bind(3, (int64_t)r.ExecutionCount);
+        q.file_region.bind(4, (int64_t)r.FalseExecutionCount);
+        q.file_region.bind(5, r.Folded);
+        q.file_region.bind(6, (int64_t)r.LineStart);
+        q.file_region.bind(7, (int64_t)r.ColumnStart);
+        q.file_region.bind(8, (int64_t)r.LineEnd);
+        q.file_region.bind(9, (int64_t)r.ColumnEnd);
+        q.file_region.bind(10, r.Kind);
+        q.file_region.bind(11, file_id);
+        q.file_region.exec();
+        q.file_region.reset();
     }
 }
 
@@ -1638,7 +1606,7 @@ int main(int argc, char** argv) {
                     TRACE_EVENT_BEGIN("llvm", "Get coverage for file");
                     CoverageData cover = mapping->getCoverageForFile(file);
                     TRACE_EVENT_END("llvm");
-                    add_file(cover, q, ctx);
+                    add_file(mapping.get(), file, q, ctx);
                     add_instantiations(mapping, file.str(), q, ctx);
                 }
             }

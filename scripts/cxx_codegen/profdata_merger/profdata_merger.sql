@@ -35,29 +35,12 @@ CREATE TABLE "CovFunctionRegion" (
 	"ColumnStart" INTEGER NOT NULL, 
 	"LineEnd" INTEGER NOT NULL, 
 	"ColumnEnd" INTEGER NOT NULL, 
-	"RegionKind" VARCHAR(15), 
+	"RegionKind" INTEGER, 
 	PRIMARY KEY ("Id"), 
 	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id"), 
 	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id"), 
 	FOREIGN KEY("FileId") REFERENCES "CovFile" ("Id"), 
 	FOREIGN KEY("ExpandedFileId") REFERENCES "CovFile" ("Id")
-)
-
-;
-
-CREATE TABLE "CovFileBranch" (
-	"Id" INTEGER NOT NULL, 
-	"Context" INTEGER NOT NULL, 
-	"ExecutionCount" INTEGER NOT NULL, 
-	"FalseExecutionCount" INTEGER NOT NULL, 
-	"Folded" BOOLEAN NOT NULL, 
-	"LineStart" INTEGER NOT NULL, 
-	"ColumnStart" INTEGER NOT NULL, 
-	"LineEnd" INTEGER NOT NULL, 
-	"ColumnEnd" INTEGER NOT NULL, 
-	"RegionKind" VARCHAR(15), 
-	PRIMARY KEY ("Id"), 
-	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id")
 )
 
 ;
@@ -90,38 +73,21 @@ CREATE TABLE "CovFunctionInstantiation" (
 
 ;
 
-CREATE TABLE "CovSegment" (
+CREATE TABLE "CovFileRegion" (
 	"Id" INTEGER NOT NULL, 
-	"LineStart" INTEGER NOT NULL, 
-	"ColStart" INTEGER NOT NULL, 
-	"LineEnd" INTEGER NOT NULL, 
-	"ColEnd" INTEGER NOT NULL, 
-	"StartCount" INTEGER NOT NULL, 
-	"EndCount" INTEGER NOT NULL, 
-	"HasCount" BOOLEAN NOT NULL, 
-	"File" INTEGER NOT NULL, 
 	"Context" INTEGER NOT NULL, 
-	"SegmentIndex" INTEGER NOT NULL, 
-	"NestedIn" INTEGER, 
-	"IsLeaf" BOOLEAN NOT NULL, 
-	"IsBranch" BOOLEAN NOT NULL, 
+	"ExecutionCount" INTEGER NOT NULL, 
+	"FalseExecutionCount" INTEGER NOT NULL, 
+	"Folded" BOOLEAN NOT NULL, 
+	"LineStart" INTEGER NOT NULL, 
+	"ColumnStart" INTEGER NOT NULL, 
+	"LineEnd" INTEGER NOT NULL, 
+	"ColumnEnd" INTEGER NOT NULL, 
+	"RegionKind" INTEGER, 
+	"File" INTEGER NOT NULL, 
 	PRIMARY KEY ("Id"), 
-	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
 	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id"), 
-	FOREIGN KEY("NestedIn") REFERENCES "CovSegment" ("Id")
-)
-
-;
-
-CREATE TABLE "CovExpansionRegion" (
-	"Id" INTEGER NOT NULL, 
-	"FileId" INTEGER NOT NULL, 
-	"Region" INTEGER NOT NULL, 
-	"Function" INTEGER NOT NULL, 
-	PRIMARY KEY ("Id"), 
-	FOREIGN KEY("FileId") REFERENCES "CovFile" ("Id"), 
-	FOREIGN KEY("Region") REFERENCES "CovFunctionRegion" ("Id"), 
-	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id")
+	FOREIGN KEY("File") REFERENCES "CovFile" ("Id")
 )
 
 ;
