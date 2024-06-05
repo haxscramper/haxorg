@@ -805,7 +805,6 @@ struct queries {
     SQLite::Statement func;
     SQLite::Statement file;
     SQLite::Statement segment;
-    SQLite::Statement segment_flat;
     SQLite::Statement instantiation_group;
     SQLite::Statement function_instantiation;
     SQLite::Statement expansion;
@@ -863,23 +862,6 @@ struct queries {
                     "NestedIn",     // 12
                     "IsLeaf",       // 13
                     "IsBranch",     // 14
-                }))
-        ,
-        // ---
-        segment_flat(
-            db,
-            SqlInsert(
-                "CovSegmentFlat",
-                {
-                    "Line",          // 1
-                    "Col",           // 2
-                    "Count",         // 3
-                    "HasCount",      // 4
-                    "IsRegionEntry", // 5
-                    "IsGapRegion",   // 6
-                    "File",          // 7
-                    "Context",       // 8
-                    "SegmentIndex",  // 9
                 }))
         ,
         // ---
@@ -1241,18 +1223,6 @@ void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
                 }
             }
         }
-
-        q.segment_flat.bind(1, s.Line);
-        q.segment_flat.bind(2, s.Col);
-        q.segment_flat.bind(3, (int64_t)s.Count);
-        q.segment_flat.bind(4, s.HasCount);
-        q.segment_flat.bind(5, s.IsRegionEntry);
-        q.segment_flat.bind(6, s.IsGapRegion);
-        q.segment_flat.bind(7, file_id);
-        q.segment_flat.bind(8, ctx.context_id);
-        q.segment_flat.bind(9, (int)it.index());
-        q.segment_flat.exec();
-        q.segment_flat.reset();
     }
 
     std::sort(

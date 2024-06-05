@@ -761,27 +761,3 @@ def test_coverage_annotation_multiple_run_multiple_segment():
                 ),
                 color=False,
             ))
-
-        flat_df = pd.read_sql(select(cov.CovSegmentFlat), session.get_bind())
-
-        with open("/tmp/flat_debug.txt", "w") as file:
-            for run in flat_df["Context"].unique():
-                indent = 0
-                print(f"run={run}", file=file)
-                for row in flat_df[flat_df["Context"] == run].to_dict("records"):
-                    print("  " * indent,
-                        "[{}:{}] entry={} gap={} context={} id={}".format(
-                            row["Line"],
-                            row["Col"],
-                            row["IsRegionEntry"],
-                            row["IsGapRegion"],
-                            row["Context"],
-                            row["Id"],
-                        ),
-                        file=file)
-
-                    if row["IsRegionEntry"]:
-                        indent += 1
-
-                    else:
-                        indent -= 1

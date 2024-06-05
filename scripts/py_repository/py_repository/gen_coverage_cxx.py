@@ -100,20 +100,6 @@ class CovFileBranch(CoverageSchema):
     RegionKind = Column(SqlEnum(CovRegionKind))
 
 
-class CovSegmentFlat(CoverageSchema):
-    __tablename__ = "CovSegmentFlat"
-    Id = IdColumn()
-    Line = IntColumn()
-    Col = IntColumn()
-    Count = IntColumn()
-    HasCount = BoolColumn()
-    IsRegionEntry = BoolColumn()
-    IsGapRegion = BoolColumn()
-    File = ForeignId(CovFile.Id)
-    Context = ForeignId(CovContext.Id)
-    SegmentIndex = IntColumn()
-
-
 class CovSegment(CoverageSchema):
     __tablename__ = "CovSegment"
     Id = IdColumn()
@@ -823,7 +809,6 @@ if __name__ == "__main__":
             CovFunctionInstantiation,
             CovSegment,
             CovExpansionRegion,
-            CovSegmentFlat,
     ]:
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")
 

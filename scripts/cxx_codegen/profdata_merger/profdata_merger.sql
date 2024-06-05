@@ -125,21 +125,3 @@ CREATE TABLE "CovExpansionRegion" (
 )
 
 ;
-
-CREATE TABLE "CovSegmentFlat" (
-	"Id" INTEGER NOT NULL, 
-	"Line" INTEGER NOT NULL, 
-	"Col" INTEGER NOT NULL, 
-	"Count" INTEGER NOT NULL, 
-	"HasCount" BOOLEAN NOT NULL, 
-	"IsRegionEntry" BOOLEAN NOT NULL, 
-	"IsGapRegion" BOOLEAN NOT NULL, 
-	"File" INTEGER NOT NULL, 
-	"Context" INTEGER NOT NULL, 
-	"SegmentIndex" INTEGER NOT NULL, 
-	PRIMARY KEY ("Id"), 
-	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
-	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id")
-)
-
-;
