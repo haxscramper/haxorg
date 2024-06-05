@@ -30,21 +30,41 @@ class RangeTree {
     };
 
     RangeTree(const Vec<Slice<T>>& slices = Vec<Slice<T>>()) {
-        root = build(slices, 0, slices.size() - 1);
+        root = build(slices);
     }
 
-    UPtr<Node> build(const Vec<Slice<T>>& slices, int start, int end) {
+
+    UPtr<Node> buildRec(const Vec<Slice<T>>& slices, int start, int end) {
+
         if (start > end) {
             return nullptr;
         } else if (start == end) {
             return std::make_unique<Node>(slices[start], start);
         } else {
             int        mid   = (start + end) / 2;
-            UPtr<Node> left  = build(slices, start, mid);
-            UPtr<Node> right = build(slices, mid + 1, end);
+            UPtr<Node> left  = buildRec(slices, start, mid);
+            UPtr<Node> right = buildRec(slices, mid + 1, end);
             return std::make_unique<Node>(
                 slices[mid], mid, std::move(left), std::move(right));
         }
+    }
+
+
+    UPtr<Node> build(Vec<Slice<T>> slices) {
+        std::sort(
+            slices.begin(),
+            slices.end(),
+            [](CR<Slice<T>> lhs, CR<Slice<T>> rhs) {
+                if (lhs.first != rhs.first) {
+                    return lhs.first < rhs.first;
+                } else if (lhs.last != rhs.last) {
+                    // When lhs completely contains rhs, sort lhs first.
+                    return rhs.last < lhs.last;
+                } else {
+                    return true;
+                }
+            });
+        return buildRec(slices, 0, slices.size() - 1);
     }
 
     Opt<Node*> getNode(CR<T> point) const {
