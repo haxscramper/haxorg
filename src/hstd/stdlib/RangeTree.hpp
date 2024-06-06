@@ -11,22 +11,24 @@
 #include <hstd/stdlib/Ranges.hpp>
 
 template <typename T>
+struct RangeTreeRange {
+    Slice<T> range;
+    int      index;
+
+    bool contains(CR<T> point) const { return range.contains(point); }
+
+    CR<T> first() const { return range.first; }
+    CR<T> last() const { return range.last; }
+};
+
+
+template <typename T>
 class RangeTree {
   public:
-    struct Range {
-        Slice<T> range;
-        int      index;
-
-        bool contains(CR<T> point) const { return range.contains(point); }
-
-        CR<T> first() const { return range.first; }
-        CR<T> last() const { return range.last; }
-    };
-
+    using Range = RangeTreeRange<T>;
     struct Node {
         T          center;
-        Vec<Range> leftRanges;
-        Vec<Range> rightRanges;
+        Vec<Range> overlapping;
         UPtr<Node> left  = nullptr;
         UPtr<Node> right = nullptr;
         Node(T center) : center(center) {}
@@ -34,14 +36,9 @@ class RangeTree {
         Vec<Node*> getAllNodes(CR<T> point) const {
             Vec<Node*> result;
 
-            if (rs::any_of(
-                    leftRanges,
-                    [&](CR<Range> r) { return r.contains(point); })
-                || rs::any_of(
-                    rightRanges,
-                    [&](CR<Range> r) { return r.contains(point); })
-                //
-            ) {
+            if (rs::any_of(overlapping, [&](CR<Range> r) {
+                    return r.contains(point);
+                })) {
                 result.push_back(const_cast<Node*>(this));
             }
 
@@ -77,34 +74,16 @@ class RangeTree {
 
         Vec<Range> leftRanges;
         Vec<Range> rightRanges;
-        Vec<Range> overlappingRanges;
 
         for (const auto& range : ranges) {
             if (range.last() < center) {
                 leftRanges.push_back(range);
-            } else if (range.first() > center) {
+            } else if (center < range.first()) {
                 rightRanges.push_back(range);
             } else {
-                overlappingRanges.push_back(range);
+                node->overlapping.push_back(range);
             }
         }
-
-        node->leftRanges  = overlappingRanges;
-        node->rightRanges = overlappingRanges;
-
-        std::sort(
-            node->leftRanges.begin(),
-            node->leftRanges.end(),
-            [](const Range& a, const Range& b) {
-                return a.first() < b.first();
-            });
-
-        std::sort(
-            node->rightRanges.begin(),
-            node->rightRanges.end(),
-            [](const Range& a, const Range& b) {
-                return a.last() < b.last();
-            });
 
         node->left  = buildRec(leftRanges);
         node->right = buildRec(rightRanges);
@@ -149,12 +128,8 @@ class RangeTree {
     Vec<Range> getRanges(CR<T> point) const {
         Vec<Range> res;
         for (auto const& node : getNodes(point)) {
-            for (auto const& left : node->leftRanges) {
-                res.push_back(left);
-            }
-
-            for (auto const& right : node->rightRanges) {
-                res.push_back(right);
+            for (auto const& left : node->overlapping) {
+                if (left.contains(point)) { res.push_back(left); }
             }
         }
 
@@ -164,27 +139,20 @@ class RangeTree {
     UPtr<Node> root;
 };
 
-
 template <typename T>
-std::ostream& auxPrintNode(
-    std::ostream&                      os,
-    typename RangeTree<T>::Node const& node) {
-    os << fmt1(node.range) << "{";
-
-    if (node.left != nullptr) {
-        os << " left = ";
-        auxPrintNode<T>(os, *(node.left));
+struct std::formatter<RangeTreeRange<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const RangeTreeRange<T>& p, FormatContext& ctx) const {
+        fmt_ctx("[", ctx);
+        fmt_ctx(p.range.first, ctx);
+        fmt_ctx("..", ctx);
+        fmt_ctx(p.range.last, ctx);
+        fmt_ctx("[", ctx);
+        fmt_ctx(p.index, ctx);
+        return fmt_ctx("]]", ctx);
     }
+};
 
-    if (node.right != nullptr) {
-        os << " right = ";
-        auxPrintNode<T>(os, *(node.right));
-    }
-
-    os << "}";
-
-    return os;
-}
 
 template <typename T>
 struct std::formatter<RangeTree<T>> : std::formatter<std::string> {
@@ -195,7 +163,29 @@ struct std::formatter<RangeTree<T>> : std::formatter<std::string> {
         } else {
             typename RangeTree<T>::Node& node = *(p.root.get());
             std::stringstream            os;
-            auxPrintNode<T>(os, node);
+            Func<void(typename RangeTree<T>::Node const&, int)> aux;
+
+            aux = [&](typename RangeTree<T>::Node const& node, int level) {
+                auto indent = Str("  ").repeated(level);
+                os << indent;
+                os << fmt(
+                    "center = {} overlapping = {}",
+                    node.center,
+                    node.overlapping);
+
+                if (node.left != nullptr) {
+                    os << "\n" << indent << "  left = \n";
+                    aux(*(node.left), level + 2);
+                }
+
+                if (node.right != nullptr) {
+                    os << "\n" << indent << "  right = \n";
+                    aux(*(node.right), level + 2);
+                }
+            };
+
+            aux(*p.root, 0);
+
             return fmt_ctx(os.str(), ctx);
         }
     }

@@ -3245,7 +3245,7 @@ to create a point segment (spans 1 element).)RAW")
                         return result;
                         }))
     .def_readwrite("groupKind", &SequenceAnnotationTag::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
-    .def_readwrite("segmentKind", &SequenceAnnotationTag::segmentKind, R"RAW(\brief ID of the segment in this group.)RAW")
+    .def_readwrite("segmentKind", &SequenceAnnotationTag::segmentKinds, R"RAW(\brief ID of the segment in this group.)RAW")
     .def("__repr__", [](SequenceAnnotationTag _self) -> std::string {
                      return py_repr_impl(_self);
                      })

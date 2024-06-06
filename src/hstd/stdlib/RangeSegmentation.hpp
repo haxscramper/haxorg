@@ -40,9 +40,28 @@ struct [[refl]] SequenceAnnotationTag {
     /// \brief ID of the original group this segment came from
     [[refl]] int groupKind;
     /// \brief ID of the segment in this group.
-    [[refl]] int segmentKind;
+    ///
+    /// Segment kinds are constructed from all ranges
+    /// that overlap points in the segment.
+    ///
+    /// In the example below, there are 3 separate slices, `[2,3]`, `[1,4]`
+    /// and finally `[6,7]`. The resulting segmentation will have 4
+    /// different sequence segments from these ranges. The first one is
+    /// `[1,1]`, then `[2,3]`, `[4]`, and `[6,7]`.
+    ///
+    /// ```
+    /// 0
+    /// 1   |
+    /// 2 | |
+    /// 3 | |
+    /// 4   |
+    /// 5
+    /// 6   |
+    /// 7   |
+    /// ```
+    [[refl]] Vec<int> segmentKinds;
 
-    DESC_FIELDS(SequenceAnnotationTag, (groupKind, segmentKind));
+    DESC_FIELDS(SequenceAnnotationTag, (groupKind, segmentKinds));
 };
 
 /// \brief Annotated chunk of the original sequence

@@ -26,15 +26,21 @@ Vec<SequenceAnnotation> annotateSequence(
         });
     }
 
-    using SegmentKind = Pair<int, int>; // group kind, segment Kind
+    using SegmentKind = Pair<int, Vec<int>>; // group kind,
+                                             // segment Kinds
 
     auto getPointGroups = [&](int point) -> UnorderedSet<SegmentKind> {
         UnorderedSet<SegmentKind> groups;
         for (auto const& tree : trees) {
-            if (auto sliceIndex = tree.tree.getRangeIndex(point)) {
-                groups.incl(std::make_pair(
-                    tree.group.kind,
-                    tree.group.segments.at(sliceIndex.value()).kind));
+            auto ranges = tree.tree.getRanges(point);
+            if (!ranges.empty()) {
+                Vec<int> kinds;
+                for (auto const& range : ranges) {
+                    kinds.push_back(
+                        tree.group.segments.at(range.index).kind);
+                }
+                ranges::actions::sort(kinds.begin(), kinds.end());
+                groups.incl(std::make_pair(tree.group.kind, kinds));
             }
         }
         return groups;
@@ -49,8 +55,8 @@ Vec<SequenceAnnotation> annotateSequence(
         Vec<SequenceAnnotationTag> annotations;
         for (auto const& [group_Kind, segment_Kind] : prevKind) {
             annotations.push_back(SequenceAnnotationTag{
-                .groupKind   = group_Kind,
-                .segmentKind = segment_Kind,
+                .groupKind    = group_Kind,
+                .segmentKinds = segment_Kind,
             });
         }
         return annotations;
@@ -86,7 +92,8 @@ Vec<SequenceAnnotation> annotateSequence(
 bool SequenceAnnotation::isAnnotatedWith(int groupKind, int segmentKind)
     const {
     for (auto const& a : annotations) {
-        if (a.groupKind == groupKind && a.segmentKind == segmentKind) {
+        if (a.groupKind == groupKind
+            && a.segmentKinds.indexOf(segmentKind) != -1) {
             return true;
         }
     }

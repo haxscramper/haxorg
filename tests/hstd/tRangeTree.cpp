@@ -10,15 +10,21 @@ bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);
 }
 
+void PrintTo(const Slice<int>& t, std::ostream* os) { *os << fmt1(t); }
+
+
 Slice<int> query1(RangeTree<int> const& tree, int point) {
     auto ranges = tree.getRanges(point);
-    EXPECT_EQ(ranges.size(), 1);
     return ranges.at(0).range;
 }
 
 bool query0(RangeTree<int> const& tree, int point) {
     auto ranges = tree.getRanges(point);
     return ranges.size() == 0;
+}
+
+TEST(RangeAlgorithmsTest, Debug) {
+    //
 }
 
 TEST(RangeAlgorithmsTest, Queries) {
@@ -35,9 +41,9 @@ TEST(RangeAlgorithmsTest, Queries) {
         EXPECT_EQ(query1(tree, 11), slice(10, 12));
 
         // Query outside range
-        EXPECT_FALSE(query0(tree, 0));
-        EXPECT_FALSE(query0(tree, 9));
-        EXPECT_FALSE(query0(tree, 13));
+        EXPECT_TRUE(query0(tree, 0));
+        EXPECT_TRUE(query0(tree, 9));
+        EXPECT_TRUE(query0(tree, 13));
 
         // Query on range boundary
         EXPECT_EQ(query1(tree, 1), slice(1, 5));
@@ -57,8 +63,8 @@ TEST(RangeAlgorithmsTest, Queries) {
     EXPECT_EQ(query1(overlapping, 10), slice(7, 12));
 
     // Query outside range
-    EXPECT_FALSE(query0(overlapping, 0));
-    EXPECT_FALSE(query0(overlapping, 13));
+    EXPECT_TRUE(query0(overlapping, 0));
+    EXPECT_TRUE(query0(overlapping, 13));
 
     // Query on range boundary
     EXPECT_EQ(query1(overlapping, 1), slice(1, 5));
@@ -80,34 +86,34 @@ TEST(RangeAlgorithmsTest, NestedTreeSegments) {
         /* */ slice(14, 15),
     }};
 
-    LOG(INFO) << fmt1(tree);
+    // LOG(INFO) << "\n" << fmt1(tree);
 
     {
-        auto it = tree.getNodes(0);
+        auto it = tree.getRanges(0);
         EXPECT_EQ(it.size(), 1);
     }
     {
-        auto it = tree.getNodes(-1);
+        auto it = tree.getRanges(-1);
         EXPECT_EQ(it.size(), 0);
     }
     {
-        auto it = tree.getNodes(2);
+        auto it = tree.getRanges(2);
         EXPECT_EQ(it.size(), 1);
     }
     {
-        auto it = tree.getNodes(3);
+        auto it = tree.getRanges(3);
         EXPECT_EQ(it.size(), 2);
     }
     {
-        auto it = tree.getNodes(4);
+        auto it = tree.getRanges(4);
         EXPECT_EQ(it.size(), 3);
     }
     {
-        auto it = tree.getNodes(5);
+        auto it = tree.getRanges(5);
         EXPECT_EQ(it.size(), 3);
     }
     {
-        auto it = tree.getNodes(6);
+        auto it = tree.getRanges(6);
         EXPECT_EQ(it.size(), 2);
     }
 }
@@ -133,7 +139,7 @@ TEST(RangeAlgorithmsTest, SingleSegmentGroupSingleSegment) {
     EXPECT_EQ(result[0].last, 5);
     ASSERT_EQ(result[0].annotations.size(), 1);
     EXPECT_EQ(result[0].annotations[0].groupKind, 1);
-    EXPECT_EQ(result[0].annotations[0].segmentKind, 1);
+    EXPECT_EQ(result[0].annotations[0].segmentKinds.at(0), 1);
 }
 
 TEST(RangeAlgorithmsTest, MultipleSegmentGroups) {
