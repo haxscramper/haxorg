@@ -78,6 +78,8 @@ struct [[refl]] SequenceAnnotation {
     [[refl]] bool isAnnotatedWith(int groupKind, int segmentKind) const;
 
     DESC_FIELDS(SequenceAnnotation, (first, last, annotations));
+
+    Slice<int> slice() const { return ::slice(first, last); }
 };
 
 
