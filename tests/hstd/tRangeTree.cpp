@@ -10,6 +10,17 @@ bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);
 }
 
+Slice<int> query1(RangeTree<int> const& tree, int point) {
+    auto ranges = tree.getRanges(point);
+    EXPECT_EQ(ranges.size(), 1);
+    return ranges.at(0).range;
+}
+
+bool query0(RangeTree<int> const& tree, int point) {
+    auto ranges = tree.getRanges(point);
+    return ranges.size() == 0;
+}
+
 TEST(RangeAlgorithmsTest, Queries) {
     for (auto const& list : Vec<Vec<Slice<int>>>{
              Vec<Slice<int>>{slice(1, 5), slice(6, 8), slice(10, 12)},
@@ -19,41 +30,41 @@ TEST(RangeAlgorithmsTest, Queries) {
         RangeTree<int> tree{list};
 
         // Query within range
-        EXPECT_EQ(tree.query(3).value(), slice(1, 5));
-        EXPECT_EQ(tree.query(7).value(), slice(6, 8));
-        EXPECT_EQ(tree.query(11).value(), slice(10, 12));
+        EXPECT_EQ(query1(tree, 3), slice(1, 5));
+        EXPECT_EQ(query1(tree, 7), slice(6, 8));
+        EXPECT_EQ(query1(tree, 11), slice(10, 12));
 
         // Query outside range
-        EXPECT_FALSE(tree.query(0).has_value());
-        EXPECT_FALSE(tree.query(9).has_value());
-        EXPECT_FALSE(tree.query(13).has_value());
+        EXPECT_FALSE(query0(tree, 0));
+        EXPECT_FALSE(query0(tree, 9));
+        EXPECT_FALSE(query0(tree, 13));
 
         // Query on range boundary
-        EXPECT_EQ(tree.query(1).value(), slice(1, 5));
-        EXPECT_EQ(tree.query(5).value(), slice(1, 5));
-        EXPECT_EQ(tree.query(6).value(), slice(6, 8));
-        EXPECT_EQ(tree.query(8).value(), slice(6, 8));
-        EXPECT_EQ(tree.query(10).value(), slice(10, 12));
-        EXPECT_EQ(tree.query(12).value(), slice(10, 12));
+        EXPECT_EQ(query1(tree, 1), slice(1, 5));
+        EXPECT_EQ(query1(tree, 5), slice(1, 5));
+        EXPECT_EQ(query1(tree, 6), slice(6, 8));
+        EXPECT_EQ(query1(tree, 8), slice(6, 8));
+        EXPECT_EQ(query1(tree, 10), slice(10, 12));
+        EXPECT_EQ(query1(tree, 12), slice(10, 12));
     }
 
     RangeTree<int> overlapping(
         Vec<Slice<int>>{slice(1, 5), slice(3, 8), slice(7, 12)});
 
     // Query within range
-    EXPECT_EQ(overlapping.query(3).value(), slice(3, 8));
-    EXPECT_EQ(overlapping.query(7).value(), slice(3, 8));
-    EXPECT_EQ(overlapping.query(10).value(), slice(7, 12));
+    EXPECT_EQ(query1(overlapping, 3), slice(3, 8));
+    EXPECT_EQ(query1(overlapping, 7), slice(3, 8));
+    EXPECT_EQ(query1(overlapping, 10), slice(7, 12));
 
     // Query outside range
-    EXPECT_FALSE(overlapping.query(0).has_value());
-    EXPECT_FALSE(overlapping.query(13).has_value());
+    EXPECT_FALSE(query0(overlapping, 0));
+    EXPECT_FALSE(query0(overlapping, 13));
 
     // Query on range boundary
-    EXPECT_EQ(overlapping.query(1).value(), slice(1, 5));
-    EXPECT_EQ(overlapping.query(5).value(), slice(3, 8));
-    EXPECT_EQ(overlapping.query(7).value(), slice(3, 8));
-    EXPECT_EQ(overlapping.query(12).value(), slice(7, 12));
+    EXPECT_EQ(query1(overlapping, 1), slice(1, 5));
+    EXPECT_EQ(query1(overlapping, 5), slice(3, 8));
+    EXPECT_EQ(query1(overlapping, 7), slice(3, 8));
+    EXPECT_EQ(query1(overlapping, 12), slice(7, 12));
 }
 
 
@@ -72,31 +83,31 @@ TEST(RangeAlgorithmsTest, NestedTreeSegments) {
     LOG(INFO) << fmt1(tree);
 
     {
-        auto it = tree.getAllNodes(0);
+        auto it = tree.getNodes(0);
         EXPECT_EQ(it.size(), 1);
     }
     {
-        auto it = tree.getAllNodes(-1);
+        auto it = tree.getNodes(-1);
         EXPECT_EQ(it.size(), 0);
     }
     {
-        auto it = tree.getAllNodes(2);
+        auto it = tree.getNodes(2);
         EXPECT_EQ(it.size(), 1);
     }
     {
-        auto it = tree.getAllNodes(3);
+        auto it = tree.getNodes(3);
         EXPECT_EQ(it.size(), 2);
     }
     {
-        auto it = tree.getAllNodes(4);
+        auto it = tree.getNodes(4);
         EXPECT_EQ(it.size(), 3);
     }
     {
-        auto it = tree.getAllNodes(5);
+        auto it = tree.getNodes(5);
         EXPECT_EQ(it.size(), 3);
     }
     {
-        auto it = tree.getAllNodes(6);
+        auto it = tree.getNodes(6);
         EXPECT_EQ(it.size(), 2);
     }
 }
