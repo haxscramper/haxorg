@@ -101,6 +101,12 @@ class CovFileRegion(CoverageSchema):
     RegionKind = Column(NumericEnum(CovRegionKind))
     File = ForeignId(CovFile.Id)
 
+    def startLoc(self) -> Tuple[int, int]:
+        return (self.LineStart, self.ColumnStart)
+
+    def endLoc(self) -> Tuple[int, int]:
+        return (self.LineEnd, self.ColumnEnd)
+
 
 class CovInstantiationGroup(CoverageSchema):
     __tablename__ = "CovInstantiationGroup"
@@ -130,7 +136,7 @@ class AnnotationSegment(BaseModel, extra="forbid"):
     Text: str = ""
     Annotations: Dict[int, int] = Field(default_factory=dict)
     TokenKind: str = ""
-    CoverageSegmentIdx: Optional[int] = None
+    CoverageSegmentIdx: List[int] = Field(default_factory=list)
 
     def isAnnotated(self) -> bool:
         return 0 < len(self.Annotations)
@@ -172,9 +178,42 @@ class AnnotatedFile(BaseModel, extra="forbid"):
         orm_mode = True
         arbitrary_types_allowed = True
 
-    def getExecutionContextList(self, segment_idx: int) -> List[GenCovSegmentContext]:
+    @beartype
+    def getExecutionContextList(self, segment_idx: List[int]) -> List[GenCovSegmentContext]:
+        @beartype
+        def get1(original_id: int) -> Optional[GenCovSegmentContext]:
+            return self.SegmentRunContexts.at(original_id, None)
+
+        @beartype
+        def getN(original_id: List[int]) -> List[GenCovSegmentContext]:
+            return [get1(id) for id in original_id]
+
+        @beartype
+        def cmpSegment(lhs_id: List[int], rhs_id: List[int]) -> bool:
+            lhs = get1(lhs_id[0])
+            rhs = get1(rhs_id[1])
+
+            if lhs == None:
+                return True
+
+            elif rhs == None:
+                return False
+
+            elif lhs.Segment.startLoc() != rhs.Segment.startLoc():
+                return lhs.Segment.startLoc() < rhs.Segment.startLoc()
+
+            elif lhs.Segment.endLoc() != rhs.Segment.endLoc():
+                return rhs.Segment.endLoc() < lhs.Segment.endLoc()
+
+            else:
+                return True
+
+        log(CAT).info(f"segment_idx = {segment_idx}")
+        segment_pack = [self.SegmentList[idx].OriginalId for idx in segment_idx]
+        segment_pack = sorted(segment_pack, key=cmpSegment)
         result = []
-        for original in self.SegmentList[segment_idx].OriginalId:
+
+        for original in segment_pack[0]:
             if original in self.SegmentRunContexts:
                 ctx = self.SegmentRunContexts[original]
                 assert isinstance(ctx, GenCovSegmentContext), f"{type(ctx)}"
@@ -540,10 +579,10 @@ def get_annotated_files(
                 pass
 
             elif annotation.groupKind == token_group_kind:
-                segment.TokenKind = str(token_kind_mapping[annotation.segmentKinds])
+                segment.TokenKind = str(token_kind_mapping[annotation.segmentKinds[0]])
 
             elif annotation.groupKind == coverage_group_kind:
-                segment.CoverageSegmentIdx = annotation.segmentKinds
+                segment.CoverageSegmentIdx = list(annotation.segmentKinds)
 
             else:
                 segment.Annotations[annotation.groupKind] = annotation.segmentKinds
