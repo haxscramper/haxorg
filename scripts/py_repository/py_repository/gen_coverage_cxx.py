@@ -517,11 +517,13 @@ def get_annotated_files(
             file.Lines[line_idx].Segments.append(
                 AnnotationSegment(Text=text[last_segment_finish + 1:item.first]))
 
-        line_idx = None
+        line_idx: int = None
         annotation: org.SequenceAnnotationTag
         for annotation in item.annotations:
             if annotation.groupKind == line_group_kind:
-                line_idx = annotation.segmentKind
+                # Line annotation segments don't overlap by construction
+                assert len(annotation.segmentKinds) == 1
+                line_idx = annotation.segmentKinds[0]
 
         assert line_idx != None
 
@@ -538,13 +540,13 @@ def get_annotated_files(
                 pass
 
             elif annotation.groupKind == token_group_kind:
-                segment.TokenKind = str(token_kind_mapping[annotation.segmentKind])
+                segment.TokenKind = str(token_kind_mapping[annotation.segmentKinds])
 
             elif annotation.groupKind == coverage_group_kind:
-                segment.CoverageSegmentIdx = annotation.segmentKind
+                segment.CoverageSegmentIdx = annotation.segmentKinds
 
             else:
-                segment.Annotations[annotation.groupKind] = annotation.segmentKind
+                segment.Annotations[annotation.groupKind] = annotation.segmentKinds
 
         file.Lines[line_idx].Segments.append(segment)
 

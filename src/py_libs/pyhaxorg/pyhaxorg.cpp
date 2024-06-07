@@ -3245,7 +3245,24 @@ to create a point segment (spans 1 element).)RAW")
                         return result;
                         }))
     .def_readwrite("groupKind", &SequenceAnnotationTag::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
-    .def_readwrite("segmentKind", &SequenceAnnotationTag::segmentKinds, R"RAW(\brief ID of the segment in this group.)RAW")
+    .def_readwrite("segmentKinds", &SequenceAnnotationTag::segmentKinds, R"RAW(\brief ID of the segment in this group.
+
+Segment kinds are constructed from all ranges
+that overlap points in the segment.
+In the example below, there are 3 separate slices, `[2,3]`, `[1,4]`
+and finally `[6,7]`. The resulting segmentation will have 4
+different sequence segments from these ranges. The first one is
+`[1,1]`, then `[2,3]`, `[4]`, and `[6,7]`.
+```
+0
+1   |
+2 | |
+3 | |
+4   |
+5
+6   |
+7   |
+```)RAW")
     .def("__repr__", [](SequenceAnnotationTag _self) -> std::string {
                      return py_repr_impl(_self);
                      })
