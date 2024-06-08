@@ -786,15 +786,16 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         executions = file.getExecutionContextList(idx)
 
         if 0 < len(executions):
-            context_div.add(tags.div("no-executions"))
-
-        else:
             for run in executions:
                 Ctx: CovContext = run.Context
                 Seg: CovFileRegion = run.Segment
                 context_div.add(
                     tags.div(
                         f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.ExecutionCount}"))
+
+        else:
+            context_div.add(tags.div("no-executions"))
+
 
         coverage_data_div.add(context_div)
 
