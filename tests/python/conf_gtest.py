@@ -10,6 +10,7 @@ import subprocess
 from pydantic import BaseModel, Field
 import json
 from py_repository.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
+import plumbum
 
 COOKIE_SUFFIX = ".profdata-cookie"
 
@@ -89,15 +90,17 @@ class GTestParams():
 
 @beartype
 def parse_google_tests(binary_path: Path) -> list[GTestParams]:
-    result = subprocess.run(
-        [binary_path, "--gtest_list_tests"],
-        capture_output=True,
-        text=True,
-    )
+    assert binary_path.exists(), binary_path
+    cmd = plumbum.local[binary_path]
+    code, stdout, stderr = cmd.run(["--gtest_list_tests"])
+
+    print("----")
+    # print(result.stdout)
+    print(binary_path)
     tests = []
     current_suite = None
 
-    for line in result.stdout.splitlines():
+    for line in stdout.splitlines():
         if line.endswith('.'):
             current_suite = line[:-1]
         else:
@@ -188,7 +191,7 @@ class GTestItem(pytest.Function):
                 cmd.run(self.gtest.gtest_params())
 
             except ProcessExecutionError as e:
-                raise GTestRunError(e, self) from None
+                raise GTestRunError(e, self) 
 
         if self.coverage_out_dir:
             uniq_name = self.gtest.fullname()

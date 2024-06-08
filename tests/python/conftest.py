@@ -144,7 +144,9 @@ def pytest_collect_file(parent: Module, path: str):
             binary_path=binary_path,
         )
 
-        debug(result, "/tmp/google_tests")
+        if test.name.endswith("_cxx_hstd.py"):
+            debug(result, "/tmp/google_tests_cxx_hstd")
+            
         return result
 
     elif test.name == "test_integrate_qt.py":
