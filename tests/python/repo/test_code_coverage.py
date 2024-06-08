@@ -157,7 +157,7 @@ class ProfileRunParams():
             if stdout:
                 print("stdout", file=outfile)
                 print(stdout, file=outfile)
-            
+
             if stderr:
                 print("stderr", file=outfile)
                 print(stderr, file=outfile)
@@ -605,10 +605,10 @@ def test_coverage_annotation_single_run():
                         dict(Text='()', Annotations={}, TokenKind='Token.Punctuation'),
                         dict(Text=' ', Annotations={}, TokenKind='Token.Text.Whitespace'),
                         dict(Text='{',
-                             CoverageSegmentIdx=0,
+                             CoverageSegmentIdx=[0],
                              TokenKind='Token.Punctuation'),
                         dict(Text='\n',
-                             CoverageSegmentIdx=0,
+                             CoverageSegmentIdx=[0],
                              TokenKind='Token.Text.Whitespace'),
                     ]),
                     dict(),
@@ -731,7 +731,6 @@ def test_coverage_annotation_multiple_run_multiple_segment():
             ranges.append(line_info)
 
         pprint_to_file(ranges, "/tmp/char_ranges.py")
-
 
         recombine = ""
         for line in file.Lines:
