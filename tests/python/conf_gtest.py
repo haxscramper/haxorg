@@ -37,6 +37,7 @@ def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
 class GTestParams():
     class_name: str
     test_name: str
+    binary_path: Path
     parameter_name: Optional[str] = None
     parameter_desc: Optional[dict] = None
     coverage_out_dir: Optional[Path] = None
@@ -86,7 +87,8 @@ class GTestParams():
             return f"{self.class_name}.{self.test_name}"
 
 
-def parse_google_tests(binary_path: str) -> list[GTestParams]:
+@beartype
+def parse_google_tests(binary_path: Path) -> list[GTestParams]:
     result = subprocess.run(
         [binary_path, "--gtest_list_tests"],
         capture_output=True,
@@ -106,18 +108,21 @@ def parse_google_tests(binary_path: str) -> list[GTestParams]:
                     GTestParams(
                         class_name=current_suite,
                         test_name=main_name,
+                        binary_path=binary_path,
                         parameter_name=parameter_name,
                         parameter_desc=json.loads(
                             line.strip().split('# GetParam() = ')[1]),
                     ))
 
             else:
-                tests.append(GTestParams(class_name=current_suite, test_name=test_name))
+                tests.append(
+                    GTestParams(
+                        class_name=current_suite,
+                        test_name=test_name,
+                        binary_path=binary_path,
+                    ))
 
     return tests
-
-
-binary_path: str = str(get_haxorg_repo_root_path().joinpath("build/haxorg/tests_org"))
 
 
 class GTestClass(pytest.Class):
@@ -172,7 +177,7 @@ class GTestItem(pytest.Function):
         self.add_marker(pytest.mark.test_gtest_function(gtest.item_name, []))
 
     def runtest(self):
-        test = Path(binary_path)
+        test = Path(self.gtest.binary_path)
 
         def run(env: Optional[dict] = None):
             try:
@@ -217,7 +222,7 @@ class GTestItem(pytest.Function):
 
 class GTestFile(pytest.Module):
 
-    def __init__(self, coverage_out_dir: Path, *args, **kwargs):
+    def __init__(self, binary_path: Path, coverage_out_dir: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.test_classes: List[GTestClass] = []
         class_tests = {}

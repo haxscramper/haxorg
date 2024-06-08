@@ -22,9 +22,18 @@ from beartype.typing import List
 from asteval import Interpreter
 import logging
 import ast
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+import warnings
 
 trace_collector: TraceCollector = None
 
+
+
+def pytest_configure(config):
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic._internal._config")
+    warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
+    warnings.filterwarnings("ignore", category=pytest.PytestRemovedIn9Warning, module="tests.python.conftest")
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="dominate.dom_tag")
 
 def get_trace_collector():
     global trace_collector
@@ -116,12 +125,23 @@ def pytest_collect_file(parent: Module, path: str):
     def debug(it, file):
         pprint_to_file(to_debug_json(it), file + ".json")
 
-    if test.name == "test_integrate_cxx_org.py":
+    if test.name.startswith("test_integrate_cxx"):
+        if test.name.endswith("_cxx_org.py"):
+            binary_path = "build/haxorg/tests_org"
+
+        else:
+            binary_path = "build/haxorg/src/hstd/tests_hstd"
+
+        binary_path = get_haxorg_repo_root_path().joinpath(binary_path)
+
+        assert binary_path.exists(), f"{binary_path} {test.name}"
+
         coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
         result = GTestFile.from_parent(
             parent,
             path=test,
             coverage_out_dir=coverage and Path(coverage),
+            binary_path=binary_path,
         )
 
         debug(result, "/tmp/google_tests")
@@ -179,8 +199,8 @@ def pytest_collection_modifyitems(config: pytest.Config,
         aeval = Interpreter()
 
         for item in items:
+
             def has_params(mark: pytest.Mark, *args: list, **kwargs: dict) -> bool:
-                print(f"{mark.name} {args} {kwargs} // {mark.args} {mark.kwargs}")
                 if len(mark.args) < len(args):
                     return False
 
@@ -205,6 +225,7 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
             names = get_function_names(filter)
             for name in names:
+
                 def impl(*args, **kwargs):
                     return has_marker(name, *args, **kwargs)
 
