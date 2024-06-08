@@ -19,6 +19,8 @@ from plumbum import local
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 from py_scriptutils.tracer import TraceCollector
 from beartype.typing import List
+from asteval import Interpreter
+
 
 trace_collector: TraceCollector = None
 
@@ -143,3 +145,33 @@ def pytest_runtest_makereport(item: Item, call: CallInfo) -> pytest.TestReport:
             rep.outcome = "xfailed"
             rep.wasxfail = "reason: This test is known to be unstable"
             return rep
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item]) -> None:
+    filter = config.getoption("--markfilter")
+    
+    if filter:
+        selected_items: List[pytest.Item] = []
+        deselected_items: List[pytest.Item] = []
+        
+        aeval = Interpreter()
+        
+        for item in items:
+            def has_marker(marker_name: str, **kwargs: dict) -> bool:
+                return any(
+                    mark.name == marker_name and all(mark.kwargs.get(k) == v for k, v in kwargs.items())
+                    for mark in item.iter_markers()
+                )
+
+            aeval.symtable['has_marker'] = has_marker
+
+            keep: bool = aeval(filter)
+
+            if keep:
+                selected_items.append(item)
+            else:
+                deselected_items.append(item)
+
+        if deselected_items:
+            config.hook.pytest_deselected(items=deselected_items)
+        items[:] = selected_items

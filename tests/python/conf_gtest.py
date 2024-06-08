@@ -126,6 +126,7 @@ class GTestClass(pytest.Class):
         super().__init__(name, parent)
         self.tests: list[GTestParams] = []
         self.coverage_out_dir = coverage_out_dir
+        self.add_marker(pytest.mark.test_gtest_class(name, []))
 
     def add_test(self, test: GTestParams):
         self.tests.append(test)
@@ -157,7 +158,7 @@ class GTestRunError(Exception):
             result.append(self.shell_error.stdout)
 
         if self.shell_error.stderr:
-            result.append(self.shell_error.stderr)
+            result.append(self.shell_error.stderr())
 
         return "\n".join(result)
 
@@ -168,6 +169,7 @@ class GTestItem(pytest.Function):
         super().__init__(*args, **kwargs)
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
+        self.add_marker(pytest.mark.test_gtest_function(gtest.item_name, []))
 
     def runtest(self):
         test = Path(binary_path)
