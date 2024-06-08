@@ -20,7 +20,8 @@ from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 from py_scriptutils.tracer import TraceCollector
 from beartype.typing import List
 from asteval import Interpreter
-
+import logging
+import ast
 
 trace_collector: TraceCollector = None
 
@@ -61,13 +62,15 @@ STDERR: {stderr.decode()}
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
 
+
 @pytest.fixture(scope="session", autouse=True)
 def trace_session():
     get_trace_collector().push_complete_event("session", "test-session")
 
     if not is_ci():
         xvfb = local["Xvfb"]
-        xvfb_process = xvfb.popen(args=[GUI_SCREEN_DISPLAY, "-srceen", "0", "1280x1024x24"])
+        xvfb_process = xvfb.popen(
+            args=[GUI_SCREEN_DISPLAY, "-srceen", "0", "1280x1024x24"])
 
         if xvfb_process.poll() is not None:  # None means still running
             output, errors = xvfb_process.communicate()
@@ -147,23 +150,65 @@ def pytest_runtest_makereport(item: Item, call: CallInfo) -> pytest.TestReport:
             return rep
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item]) -> None:
+class FunctionNameExtractor(ast.NodeVisitor):
+
+    def __init__(self):
+        self.function_names = []
+
+    def visit_Call(self, node: ast.Call):
+        if isinstance(node.func, ast.Name):
+            self.function_names.append(node.func.id)
+        self.generic_visit(node)
+
+
+def get_function_names(expression: str) -> List[str]:
+    parsed_ast = ast.parse(expression, mode='eval')
+    extractor = FunctionNameExtractor()
+    extractor.visit(parsed_ast)
+    return extractor.function_names
+
+
+def pytest_collection_modifyitems(config: pytest.Config,
+                                  items: List[pytest.Item]) -> None:
     filter = config.getoption("--markfilter")
-    
+
     if filter:
         selected_items: List[pytest.Item] = []
         deselected_items: List[pytest.Item] = []
-        
-        aeval = Interpreter()
-        
-        for item in items:
-            def has_marker(marker_name: str, **kwargs: dict) -> bool:
-                return any(
-                    mark.name == marker_name and all(mark.kwargs.get(k) == v for k, v in kwargs.items())
-                    for mark in item.iter_markers()
-                )
 
-            aeval.symtable['has_marker'] = has_marker
+        aeval = Interpreter()
+
+        for item in items:
+            def has_params(mark: pytest.Mark, *args: list, **kwargs: dict) -> bool:
+                print(f"{mark.name} {args} {kwargs} // {mark.args} {mark.kwargs}")
+                if len(mark.args) < len(args):
+                    return False
+
+                if len(mark.kwargs) < len(mark.kwargs):
+                    return False
+
+                for idx, positional in enumerate(args):
+                    if positional != mark.args[idx]:
+                        return False
+
+                for key, value in kwargs.items():
+                    if key not in mark.kwargs or mark.kwargs[key] != value:
+                        return False
+
+                return True
+
+            def has_marker(name: str, *args: list, **kwargs: dict) -> bool:
+                return any(
+                    has_params(mark, *args, **kwargs)
+                    for mark in item.iter_markers()
+                    if mark.name == name)
+
+            names = get_function_names(filter)
+            for name in names:
+                def impl(*args, **kwargs):
+                    return has_marker(name, *args, **kwargs)
+
+                aeval.symtable[name] = impl
 
             keep: bool = aeval(filter)
 
