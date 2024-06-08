@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from dominate import document
 import functools
 from py_scriptutils.tracer import GlobCompleteEvent
+import more_itertools
 
 CAT = "coverage"
 
@@ -214,14 +215,12 @@ class AnnotatedFile(BaseModel, extra="forbid"):
             else:
                 return True
 
-        # Taking first original ID index because all runs for a given segment will have the same size. 
+        # Taking first original ID index because all runs for a given segment will have the same size.
         segment_pack = [self.SegmentList[idx].OriginalId[0] for idx in segment_idx]
         return sorted(segment_pack, key=functools.cmp_to_key(cmpSegment))
 
-
     @beartype
-    def getExecutionContextList(self,
-                                segment_idx: int) -> List[GenCovSegmentContext]:
+    def getExecutionContextList(self, segment_idx: int) -> List[GenCovSegmentContext]:
         result = []
 
         if segment_idx in self.SegmentRunContexts:
@@ -634,19 +633,20 @@ def get_annotated_files_for_session(
                 for seg_id in seg.OriginalId:
                     this_file_segments.add(seg_id)
 
-            for (original_seg, context) in session.execute(
-                    select(CovFileRegion, CovContext).where(
-                        CovFileRegion.Id.in_(this_file_segments)).join(
-                            CovContext,
-                            CovFileRegion.Context == CovContext.Id,
-                        )):
+            for segments in more_itertools.chunked(this_file_segments, 256):
+                for (original_seg, context) in session.execute(
+                        select(CovFileRegion,
+                               CovContext).where(CovFileRegion.Id.in_(segments)).join(
+                                   CovContext,
+                                   CovFileRegion.Context == CovContext.Id,
+                               )):
 
-                assert isinstance(context, CovContext)
-                assert isinstance(original_seg, CovFileRegion)
-                run_contexts[original_seg.Id] = GenCovSegmentContext(
-                    Context=context,
-                    Segment=original_seg,
-                )
+                    assert isinstance(context, CovContext)
+                    assert isinstance(original_seg, CovFileRegion)
+                    run_contexts[original_seg.Id] = GenCovSegmentContext(
+                        Context=context,
+                        Segment=original_seg,
+                    )
 
     else:
         coverage_group = None
@@ -751,7 +751,8 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
             )
 
             if 0 < len(segment.CoverageSegmentIdx):
-                closest_segment: int = file.getSortedSegmentIndices(segment.CoverageSegmentIdx)[-1]
+                closest_segment: int = file.getSortedSegmentIndices(
+                    segment.CoverageSegmentIdx)[-1]
                 executions = file.getExecutionContextList(closest_segment)
                 triggered_executions = [
                     it for it in executions if 0 < it.Segment.ExecutionCount
@@ -763,8 +764,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 else:
                     hspan["class"] += " segment-cov-skipped"
 
-                hspan[
-                    "onclick"] = f"show_coverage_segment_idx({closest_segment})"
+                hspan["onclick"] = f"show_coverage_segment_idx({closest_segment})"
 
                 for run in executions:
                     hspan["covered"] = "run"
@@ -791,11 +791,11 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 Seg: CovFileRegion = run.Segment
                 context_div.add(
                     tags.div(
-                        f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.ExecutionCount}"))
+                        f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.ExecutionCount}"
+                    ))
 
         else:
             context_div.add(tags.div("no-executions"))
-
 
         coverage_data_div.add(context_div)
 

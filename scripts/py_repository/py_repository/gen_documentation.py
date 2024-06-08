@@ -183,6 +183,7 @@ def generate_html_for_directory(
 
         for code_file in directory.CodeFiles:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
+            log(CAT).info(f"Building HTML for {code_file.RelPath} -> {path}")
             with GlobCompleteEvent("Get annotated files", "cov", args=dict(path=str(code_file.RelPath))):
                 file = cov_docxx.get_annotated_files_for_session(
                     session=cxx_coverage_session,
@@ -205,7 +206,6 @@ def generate_html_for_directory(
                 with GlobCompleteEvent("Dump JSON", "cov"):
                     path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
 
-                log(CAT).info(f"Wrote {path}")
 
         for text_file in directory.TextFiles:
             path = docdata.get_html_path(text_file, html_out_path=html_out_path)
@@ -306,6 +306,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         py_coverage_session = cov_docpy.open_coverage(conf.py_coverage_path)
 
     cxx_coverage_session = cov_docxx.open_coverage(conf.cxx_coverage_path)
+    log(CAT).info(f"Loading code coverage from {conf.cxx_coverage_path}")
 
     with GlobCompleteEvent("Get file tree", "cov"):
         full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))

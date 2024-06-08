@@ -55,7 +55,11 @@ class RangeTree {
     };
 
     RangeTree(const Vec<Slice<T>>& slices = Vec<Slice<T>>()) {
-        root = build(slices);
+        if (slices.empty()) {
+            root = std::make_unique<Node>(T{});
+        } else {
+            root = build(slices);
+        }
     }
 
 
@@ -122,6 +126,7 @@ class RangeTree {
     }
 
     Vec<Node*> getNodes(CR<T> point) const {
+        CHECK(root.get() != nullptr);
         return root->getAllNodes(point);
     }
 
