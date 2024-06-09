@@ -144,7 +144,8 @@ class ProfileRunParams():
                 perf_trace=str(self.get_perf()),
                 file_whitelist=self.file_whitelist,
                 file_blacklist=self.file_blacklist,
-                coverage_mapping_dump=self.coverage_mapping_dump and str(self.coverage_mapping_dump),
+                coverage_mapping_dump=self.coverage_mapping_dump and
+                str(self.coverage_mapping_dump),
             ).model_dump_json(indent=2))
 
         code, stdout, stderr = cmd.run([str(self.get_params())])
@@ -765,6 +766,7 @@ def test_coverage_annotation_multiple_run_multiple_segment():
                 color=False,
             ))
 
+
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_template_coverage_annotations():
     with TemporaryDirectory() as tmp:
@@ -775,9 +777,7 @@ def test_template_coverage_annotations():
             dir=dir,
             main="main.cpp",
             files={"main.cpp": code},
-            run_contexts={
-                "function_3": [],
-            },
+            run_contexts={f"branch_{it}": ["arg"] * it for it in [1, 2, 9]},
         )
 
         cmd.show_merger_run = Path("/tmp/show_merger_run.txt")
@@ -786,9 +786,8 @@ def test_template_coverage_annotations():
 
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
-        Path(
-            "/tmp/test_template_coverage_annotations.txt").write_text(
-                format_db_all(session, style=False))
+        Path("/tmp/test_template_coverage_annotations.txt").write_text(
+            format_db_all(session, style=False))
 
         file = cov.get_annotated_files_for_session(
             session=session,
@@ -799,10 +798,9 @@ def test_template_coverage_annotations():
 
         pprint_to_file(file, "/tmp/annotated.py", width=200)
 
-        Path("/tmp/test_template_coverage_annotations.html"
-            ).write_text(
-                cov.get_file_annotation_document(
-                    session=session,
-                    root_path=dir,
-                    abs_path=dir.joinpath("main.cpp"),
-                ).render())
+        Path("/tmp/test_template_coverage_annotations.html").write_text(
+            cov.get_file_annotation_document(
+                session=session,
+                root_path=dir,
+                abs_path=dir.joinpath("main.cpp"),
+            ).render())

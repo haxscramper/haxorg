@@ -764,6 +764,56 @@ struct JsonSerde<CountedRegion::MCDCParameters> {
     }
 };
 
+template <>
+struct JsonSerde<llvm::json::Object> {
+    static json to_json(llvm::json::Object const& obj);
+};
+
+
+template <>
+struct JsonSerde<llvm::json::Array> {
+    static json to_json(llvm::json::Array const& obj);
+};
+
+template <>
+struct JsonSerde<llvm::json::Value> {
+    static json to_json(llvm::json::Value const& value) {
+        using K = llvm::json::Value::Kind;
+        switch (value.kind()) {
+            case K::Null: return json();
+            case K::Number: return value.getAsNumber().value();
+            case K::String: return value.getAsString().value();
+            case K::Boolean: return value.getAsBoolean().value();
+            case K::Array:
+                return JsonSerde<llvm::json::Array>::to_json(
+                    *value.getAsArray());
+            case K::Object:
+                return JsonSerde<llvm::json::Object>::to_json(
+                    *value.getAsObject());
+        }
+    }
+};
+
+
+json JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
+    json result = json::array();
+    for (auto const& it : obj) {
+        result.push_back(JsonSerde<llvm::json::Value>::to_json(it));
+    }
+    return result;
+}
+
+
+json JsonSerde<llvm::json::Object>::to_json(
+    const llvm::json::Object& obj) {
+    json result = json::object();
+    for (auto const& field : obj) {
+        result[field.first.str()] = JsonSerde<llvm::json::Value>::to_json(
+            field.second);
+    }
+    return result;
+}
+
 
 template <>
 struct JsonSerde<FunctionRecord> {
@@ -778,8 +828,7 @@ struct JsonSerde<FunctionRecord> {
 
         Node*             AST  = Parser.parse();
         llvm::json::Value repr = treeRepr(AST);
-        // result["ParsedName"] =
-        // JsonSerde<llvm::json::Value>::to_json(repr);
+        result["ParsedName"] = JsonSerde<llvm::json::Value>::to_json(repr);
 
         return result;
     }
@@ -1656,7 +1705,7 @@ int main(int argc, char** argv) {
             config.coverage_mapping_dump.value());
     }
 
-    for (auto const& run : summary.runs) {
+    for (auto const& [run_idx, run] : enumerate(summary.runs)) {
         TRACE_EVENT("main", "Insert run data");
         finally{flush_debug};
 
@@ -1679,11 +1728,7 @@ int main(int argc, char** argv) {
             auto j = to_json_eval(*mapping);
             auto path //
                 = fs::path{*config.coverage_mapping_dump}
-                / (getMD5Digest(run.test_profile, run.test_binary)
-                       .digest()
-                       .str()
-                       .str()
-                   + ".json");
+                / fmt("coverage_mapping_{}.json", run_idx);
 
             LOG(INFO) << fmt(
                 "profile={} binary={} coverage-mapping-dump={}",
