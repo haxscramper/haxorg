@@ -235,7 +235,7 @@ struct JsonSerde<std::optional<T>> {
 };
 
 template <DescribedRecord T>
-struct JsonSerde<T> {
+struct JsonSerdeDescribedRecordBase {
     static json to_json(T const& obj) {
         json result = json::object();
 
@@ -261,6 +261,9 @@ struct JsonSerde<T> {
         return result;
     }
 };
+
+template <DescribedRecord T>
+struct JsonSerde<T> : JsonSerdeDescribedRecordBase<T> {};
 
 
 template <DescribedEnum E>

@@ -1470,7 +1470,8 @@ struct ProfdataCLIConfig {
          perf_trace,
          file_whitelist,
          file_blacklist,
-         debug_file));
+         debug_file,
+         coverage_mapping_dump));
 };
 
 struct ProfdataFullProfile {
@@ -1492,9 +1493,35 @@ struct JsonSerde<CountedRegion::MCDCParameters> {
 
 
 template <>
+struct JsonSerde<FunctionRecord> {
+    static json to_json(FunctionRecord const& func) {
+        json result = JsonSerdeDescribedRecordBase<
+            FunctionRecord>::to_json(func);
+
+        result["DemangledName"] = llvm::demangle(func.Name);
+
+        Demangler Parser(
+            func.Name.data(), func.Name.data() + func.Name.length());
+
+        Node*             AST  = Parser.parse();
+        llvm::json::Value repr = treeRepr(AST);
+        // result["ParsedName"] =
+        // JsonSerde<llvm::json::Value>::to_json(repr);
+
+        return result;
+    }
+
+    // static FunctionRecord from_json(json const& func) {
+    //     return JsonSerdeDescribedRecordBase<FunctionRecord>::from_json(
+    //         func);
+    // }
+};
+
+template <>
 struct JsonSerde<MCDCRecord> {
     static json to_json(MCDCRecord const& cnt) { return json(); }
 };
+
 
 template <>
 struct JsonSerde<CoverageMapping> {
@@ -1621,6 +1648,12 @@ int main(int argc, char** argv) {
             });
     }
 
+    if (config.coverage_mapping_dump) {
+        LOG(INFO) << fmt(
+            "Coverage mapping dump to {}",
+            config.coverage_mapping_dump.value());
+    }
+
     for (auto const& run : summary.runs) {
         TRACE_EVENT("main", "Insert run data");
         finally{flush_debug};
@@ -1641,12 +1674,14 @@ int main(int argc, char** argv) {
         }
 
         if (config.coverage_mapping_dump) {
-            auto j    = to_json_eval(*mapping);
-            auto path = fs::path{*config.coverage_mapping_dump}
-                      / getMD5Digest(run.test_profile, run.test_binary)
-                            .digest()
-                            .str()
-                            .str();
+            auto j = to_json_eval(*mapping);
+            auto path //
+                = fs::path{*config.coverage_mapping_dump}
+                / (getMD5Digest(run.test_profile, run.test_binary)
+                       .digest()
+                       .str()
+                       .str()
+                   + ".json");
 
             LOG(INFO) << fmt(
                 "profile={} binary={} coverage-mapping-dump={}",

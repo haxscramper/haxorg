@@ -20,3 +20,4 @@ class ProfdataParams(BaseModel, extra="forbid"):
     file_whitelist: List[str]
     file_blacklist: List[str]
     debug_file: Optional[str] = None
+    coverage_mapping_dump: Optional[str] = None

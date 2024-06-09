@@ -727,8 +727,9 @@ def update_py_haxorg_reflection(
 
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[
-    # cmake_haxorg, 
-    update_py_haxorg_reflection])
+    # cmake_haxorg,
+    update_py_haxorg_reflection
+])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR
@@ -1005,7 +1006,11 @@ def py_tests(ctx: Context, arg: List[str] = []):
         profile_path = get_cxx_profdata_params_path()
         log(CAT).info(f"Profile collect options: {profile_path}")
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-        profile_path.write_text(get_cxx_profdata_params().model_dump_json(indent=2))
+        debug = "/tmp/coverage_mapping_dump"
+        Path(debug).mkdir(exist_ok=True)
+        model = get_cxx_profdata_params()
+        model.coverage_mapping_dump = debug
+        profile_path.write_text(model.model_dump_json(indent=2))
 
     run_command(ctx, "poetry", [
         "run",
