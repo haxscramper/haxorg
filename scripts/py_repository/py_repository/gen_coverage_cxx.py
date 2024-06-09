@@ -754,15 +754,21 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 triggered_executions = [
                     it for it in executions if 0 < it.Segment.ExecutionCount
                 ]
-                if 0 < len(triggered_executions):
-                    coverage_indices.add(closest_segment)
-                    hspan["class"] += " segment-cov-executed"
 
-                else:
-                    hspan["class"] += " segment-cov-skipped"
+                kind = file.SegmentRunContexts[
+                    file.SegmentList[closest_segment].OriginalId[0]].Segment.RegionKind
+
+                if kind in [CovRegionKind.CodeRegion, CovRegionKind.ExpansionRegion]:
+                    if 0 < len(triggered_executions):
+                        coverage_indices.add(closest_segment)
+                        hspan["class"] += " segment-cov-executed"
+
+                    else:
+                        hspan["class"] += " segment-cov-skipped"
 
                 hspan["onclick"] = f"show_coverage_segment_idx({closest_segment})"
-                hspan["dbg"] = f"exec-count:{[e.Segment.ExecutionCount for e in executions]}"
+                hspan[
+                    "dbg"] = f"exec-count:{[e.Segment.ExecutionCount for e in executions]} kind:{kind}"
 
                 for run in executions:
                     hspan["covered"] = "run"
