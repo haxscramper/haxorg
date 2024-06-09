@@ -116,6 +116,50 @@ struct JsonSerde<std::vector<T>> {
     }
 };
 
+
+template <typename K, typename V>
+struct JsonSerde<std::unordered_map<K, V>> {
+    static json to_json(std::unordered_map<K, V> const& it) {
+        auto result = json::array();
+        for (auto const& [key, val] : it) {
+            result.push_back(json::object({
+                {"key", JsonSerde<K>::to_json(key)},
+                {"value", JsonSerde<V>::to_json(val)},
+            }));
+        }
+
+        return result;
+    }
+    static std::unordered_map<K, V> from_json(json const& j) {
+        std::unordered_map<K, V> result;
+        for (auto const& i : j) {
+            result[JsonSerde<K>::from_json(i["key"])] = JsonSerde<
+                V>::from_json(i["value"]);
+        }
+        return result;
+    }
+};
+
+template <typename V>
+struct JsonSerde<std::unordered_map<std::string, V>> {
+    static json to_json(std::unordered_map<std::string, V> const& it) {
+        auto result = json::object();
+        for (auto const& [key, val] : it) {
+            result[key] = JsonSerde<V>::to_json(val);
+        }
+
+        return result;
+    }
+    static std::unordered_map<std::string, V> from_json(json const& j) {
+        std::unordered_map<std::string, V> result;
+        for (auto const& [key, value] : j.items()) {
+            result[key] = JsonSerde<V>::from_json(value);
+        }
+        return result;
+    }
+};
+
+
 template <typename T>
 struct JsonSerde<Vec<T>> {
     static json to_json(Vec<T> const& it) {

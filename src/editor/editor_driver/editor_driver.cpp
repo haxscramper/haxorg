@@ -45,6 +45,10 @@ json to_json_variant(CR<Str> variantField, Var const& in, E const& kind) {
 }
 
 
+template <typename K, typename V>
+struct JsonSerde<UnorderedMap<K, V>>
+    : JsonSerde<std::unordered_map<K, V>> {};
+
 struct Action {
     struct MindMap {
         Opt<std::string> screenshotPath;
