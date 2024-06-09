@@ -57,7 +57,14 @@ E string_to_enum(char const* name) {
     if (found) {
         return r;
     } else {
-        throw_invalid_name(name, typeid(E).name());
+        throw_invalid_name(
+            name,
+#ifdef __cpp_rtti
+            typeid(E).name()
+#else
+            ""
+#endif
+        );
     }
 }
 }; // namespace boost::describe

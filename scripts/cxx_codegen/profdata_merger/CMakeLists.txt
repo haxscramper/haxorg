@@ -9,6 +9,10 @@ target_link_libraries(profdata_merger
     sqlite3
     perfetto
     tbb
+    absl::base
+    absl::log
+    nlohmann_json
+    hstd
 )
 
 target_include_directories(profdata_merger PUBLIC "${BASE}/src" "${BASE}/thirdparty/abseil-cpp")

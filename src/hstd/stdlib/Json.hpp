@@ -74,7 +74,13 @@ void from_json(json const& j, E& str) {
         throw json::type_error::create(
             302,
             "Could not convert json value <" + j.dump()
-                + "> to enum for type " + typeid(E).name(),
+                + "> to enum for type " +
+#ifdef __cpp_rtti
+                typeid(E).name()
+#else
+                ""
+#endif
+                ,
             nullptr);
     }
 }

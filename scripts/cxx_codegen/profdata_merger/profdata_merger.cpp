@@ -30,6 +30,7 @@
 #include <execution>
 #include <llvm/ADT/SmallBitVector.h>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/system/macros.hpp>
 
 #include <perfetto.h>
 
@@ -61,6 +62,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 #include <llvm/Demangle/ItaniumNodes.def>
 BOOST_DESCRIBE_ENUM_END()
 
+namespace llvm::coverage {
 BOOST_DESCRIBE_STRUCT(
     CoverageSegment,
     (),
@@ -95,6 +97,19 @@ BOOST_DESCRIBE_STRUCT(
     (CounterMappingRegion),
     (ExecutionCount, FalseExecutionCount, Folded));
 
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+    CountedRegion,
+    ExecutionCount,
+    FalseExecutionCount,
+    Folded);
+
+void to_json(nlohmann::json& j, MCDCRecord const& rec) {
+    j = nlohmann::json::object({
+        //
+    });
+}
+}
 
 std::string read_file(fs::path const& path) {
     std::ifstream     file{path.native()};
@@ -1421,16 +1436,37 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
     }
 }
 
-// struct hash_pair {
-//     template <class T1, class T2>
-//     std::size_t operator() (const std::pair<T1, T2> &pair) const {
-//         auto hash1 = std::hash<T1>{}(pair.first);
-//         auto hash2 = std::hash<T2>{}(pair.second);
-//         return hash1 ^ hash2;
-//     }
-// };
+void to_json(json& j, CoverageMapping const& cov) {
+    j              = json::object();
+    auto functions = json::array();
+    for (auto const& func : cov.getCoveredFunctions()) {
+        json r;
+        to_json(r, func);
+        functions.push_back(r);
+    }
 
-// void to_json()
+    j["functions"] = functions;
+}
+
+struct ProfdataCLIConfig {
+    std::string                coverage;
+    std::string                coverage_db;
+    std::optional<std::string> perf_trace     = std::nullopt;
+    std::vector<std::string>   file_whitelist = {".*"};
+    std::vector<std::string>   file_blacklist;
+    std::optional<std::string> debug_file            = std::nullopt;
+    std::optional<std::string> coverage_mapping_dump = std::nullopt;
+
+    DESC_FIELDS(
+        ProfdataCLIConfig,
+        (coverage,
+         coverage_db,
+         perf_trace,
+         file_whitelist,
+         file_blacklist,
+         debug_file,
+         coverage_mapping_dump));
+};
 
 int main(int argc, char** argv) {
     llvm::json::Value debug_value = llvm::json::Object();
@@ -1452,21 +1488,13 @@ int main(int argc, char** argv) {
         json_parameters = std::string{argv[1]};
     }
 
-    llvm::Expected<llvm::json::Value> config_value = llvm::json::parse(
-        json_parameters);
+    auto config = from_json_eval<ProfdataCLIConfig>(
+        json::parse(json_parameters));
 
-    if (!config_value) {
-        throw std::domain_error(std::format(
-            "Failed to parse JSON: {}\n{}",
-            toString(config_value.takeError()),
-            json_parameters));
-    }
-
-    auto config = config_value->getAsObject();
 
     auto flush_debug = [&]() {
-        if (config->getString("debug_file")) {
-            fs::path      out_path{config->getString("debug_file")->str()};
+        if (config.debug_file) {
+            fs::path      out_path{config.debug_file.value()};
             std::ofstream os{out_path};
             os << llvm::formatv("{0:2}", debug_value).str();
         }
@@ -1476,21 +1504,19 @@ int main(int argc, char** argv) {
 
 
     LOG(INFO) << std::format(
-        "Using test summary file {}",
-        config->getString("coverage")->str());
+        "Using test summary file {}", config.coverage);
 
-    if (config->getString("debug_file")) {
+    if (config.debug_file) {
         LOG(INFO) << std::format(
-            "Debug file enabled {}",
-            config->getString("debug_file")->str());
+            "Debug file enabled {}", config.debug_file);
     }
     llvm::Expected<llvm::json::Value> summary = llvm::json::parse(
-        read_file(config->getString("coverage")->str()));
+        read_file(config.coverage));
 
-    fs::path db_file{config->getString("coverage_db")->str()};
+    fs::path db_file{config.coverage_db};
 
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
-    if (config->getString("perf_trace")) {
+    if (config.perf_trace) {
         perfetto_session = StartProcessTracing("profdata_merger");
     }
 
@@ -1506,34 +1532,27 @@ int main(int argc, char** argv) {
     auto         FS = llvm::vfs::getRealFileSystem();
 
 
-    auto get_regex_list =
-        [&](std::string const& list_name) -> std::vector<llvm::Regex> {
+    auto get_regex_list = [](std::vector<std::string> const& list)
+        -> std::vector<llvm::Regex> {
         std::vector<llvm::Regex> result;
-        if (config->getArray(list_name) == nullptr) {
-            throw std::domain_error(std::format(
-                "{} was not supplied in CLI config, cannot get regex "
-                "filters",
-                list_name));
-        }
 
-        for (auto const& filter : *config->getArray(list_name)) {
-            llvm::Regex r{*filter.getAsString()};
+        for (auto const& filter : list) {
+            llvm::Regex r{filter};
             std::string error;
             if (r.isValid(error)) {
                 result.push_back(std::move(r));
             } else {
-                throw std::domain_error(std::format(
-                    "Failed to compile regex for {}: {}",
-                    list_name,
-                    error));
+                throw std::domain_error(
+                    "Failed to compile regex for " + filter + ": "
+                    + error);
             }
         }
 
         return result;
     };
 
-    ctx.file_blacklist = get_regex_list("file_blacklist");
-    ctx.file_whitelist = get_regex_list("file_whitelist");
+    ctx.file_blacklist = get_regex_list(config.file_blacklist);
+    ctx.file_whitelist = get_regex_list(config.file_whitelist);
 
 
     std::unordered_map<
@@ -1632,8 +1651,8 @@ int main(int argc, char** argv) {
         add_array_field(debug, "runs", std::move(j_run));
     }
 
-    if (config->getString("perf_trace")) {
-        fs::path out_path{config->getString("perf_trace")->str()};
+    if (config.perf_trace) {
+        fs::path out_path{config.perf_trace.value()};
         StopTracing(std::move(perfetto_session), out_path);
     }
 }
