@@ -31,6 +31,7 @@
 #include <llvm/ADT/SmallBitVector.h>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 #include <perfetto.h>
 
@@ -97,18 +98,6 @@ BOOST_DESCRIBE_STRUCT(
     (CounterMappingRegion),
     (ExecutionCount, FalseExecutionCount, Folded));
 
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
-    CountedRegion,
-    ExecutionCount,
-    FalseExecutionCount,
-    Folded);
-
-void to_json(nlohmann::json& j, MCDCRecord const& rec) {
-    j = nlohmann::json::object({
-        //
-    });
-}
 }
 
 std::string read_file(fs::path const& path) {
@@ -1454,16 +1443,18 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
     }
 }
 
-void to_json(json& j, CoverageMapping const& cov) {
-    j              = json::object();
-    auto functions = json::array();
+namespace llvm::coverage {
+void to_json(nlohmann::json& j, CoverageMapping const& cov) {
+    j              = nlohmann::json::object();
+    auto functions = nlohmann::json::array();
     for (auto const& func : cov.getCoveredFunctions()) {
-        json r;
+        nlohmann::json r;
         to_json(r, func);
         functions.push_back(r);
     }
 
     j["functions"] = functions;
+}
 }
 
 namespace nlohmann {
@@ -1486,14 +1477,15 @@ struct ProfdataCLIConfig {
          perf_trace,
          file_whitelist,
          file_blacklist,
-         debug_file,
-         coverage_mapping_dump));
+         debug_file));
 };
 
 struct ProfdataFullProfile {
     std::vector<ProfdataCookie> runs;
     DESC_FIELDS(ProfdataFullProfile, (runs));
 };
+
+const char* __asan_default_options() { return "detect_leaks=0"; }
 
 int main(int argc, char** argv) {
     json debug = json::object();
@@ -1620,7 +1612,26 @@ int main(int argc, char** argv) {
 
 
         if (mapping.get() == nullptr) {
-            throw std::logic_error("Failed to load coverage mapping");
+            throw std::logic_error(
+                fmt("Failed to load coverage mapping profile={} binary={}",
+                    run.test_profile,
+                    run.test_binary));
+        }
+
+        if (config.coverage_mapping_dump) {
+            auto j    = to_json_eval(*mapping);
+            auto path = fs::path{*config.coverage_mapping_dump}
+                      / getMD5Digest(run.test_profile, run.test_binary)
+                            .digest()
+                            .str()
+                            .str();
+
+            LOG(INFO) << fmt(
+                "profile={} binary={} coverage-mapping-dump={}",
+                run.test_profile,
+                run.test_binary,
+                path);
+            writeFile(path, j.dump(2));
         }
 
         json j_run = json::object();
@@ -1638,7 +1649,7 @@ int main(int argc, char** argv) {
 
             {
                 TRACE_EVENT("sql", "Covered files");
-                json j_files = json::array();
+                json j_files = json::object();
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
                     if (!ctx.file_matches(file.str(), debug)) {
@@ -1649,9 +1660,6 @@ int main(int argc, char** argv) {
                         continue;
                     }
                     TRACE_EVENT("sql", "Add file", "File", file.str());
-                    TRACE_EVENT_BEGIN("llvm", "Get coverage for file");
-                    CoverageData cover = mapping->getCoverageForFile(file);
-                    TRACE_EVENT_END("llvm");
                     add_file(mapping.get(), file, q, ctx);
                     add_instantiations(mapping, file.str(), q, ctx);
                 }
