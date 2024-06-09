@@ -216,10 +216,7 @@ class LinePrinterLogSink : public absl::LogSink {
 int main(int argc, char** argv) {
     auto config = UPtr<walker_config>(new walker_config{});
 
-    {
-        json in_config = json::parse(argv[1]);
-        from_json(in_config, config->cli);
-    }
+    config->cli = JsonSerde<cli_config>::from_json(json::parse(argv[1]));
 
     SPtr<LinePrinterLogSink> Sink;
     if (config->cli.out.log_file) {

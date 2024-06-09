@@ -98,7 +98,18 @@ BOOST_DESCRIBE_STRUCT(
     (CounterMappingRegion),
     (ExecutionCount, FalseExecutionCount, Folded));
 
+BOOST_DESCRIBE_ENUM(
+    CounterMappingRegion::RegionKind,
+    CodeRegion,
+    ExpansionRegion,
+    SkippedRegion,
+    GapRegion,
+    BranchRegion,
+    MCDCDecisionRegion,
+    MCDCBranchRegion);
+
 }
+
 
 std::string read_file(fs::path const& path) {
     std::ifstream     file{path.native()};
@@ -1443,24 +1454,6 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
     }
 }
 
-namespace llvm::coverage {
-void to_json(nlohmann::json& j, CoverageMapping const& cov) {
-    j              = nlohmann::json::object();
-    auto functions = nlohmann::json::array();
-    for (auto const& func : cov.getCoveredFunctions()) {
-        nlohmann::json r;
-        to_json(r, func);
-        functions.push_back(r);
-    }
-
-    j["functions"] = functions;
-}
-}
-
-namespace nlohmann {
-void from_json(const json& in, json& out) { out = in; }
-}
-
 struct ProfdataCLIConfig {
     std::string                coverage;
     std::string                coverage_db;
@@ -1485,6 +1478,35 @@ struct ProfdataFullProfile {
     DESC_FIELDS(ProfdataFullProfile, (runs));
 };
 
+template <>
+struct JsonSerde<Counter> {
+    static json to_json(Counter const& cnt) { return json(); }
+};
+
+template <>
+struct JsonSerde<CountedRegion::MCDCParameters> {
+    static json to_json(CountedRegion::MCDCParameters const& cnt) {
+        return json();
+    }
+};
+
+
+template <>
+struct JsonSerde<MCDCRecord> {
+    static json to_json(MCDCRecord const& cnt) { return json(); }
+};
+
+template <>
+struct JsonSerde<CoverageMapping> {
+    static json to_json(CoverageMapping const& map) {
+        json result = json::object();
+        for (auto const& it : map.getCoveredFunctions()) {
+            result["functions"].push_back(to_json_eval(it));
+        }
+        return result;
+    }
+};
+
 const char* __asan_default_options() { return "detect_leaks=0"; }
 
 int main(int argc, char** argv) {
@@ -1504,7 +1526,7 @@ int main(int argc, char** argv) {
         json_parameters = std::string{argv[1]};
     }
 
-    auto config = from_json_eval<ProfdataCLIConfig>(
+    auto config = JsonSerde<ProfdataCLIConfig>::from_json(
         json::parse(json_parameters));
 
 
@@ -1527,8 +1549,8 @@ int main(int argc, char** argv) {
             "Debug file enabled {}", config.debug_file);
     }
 
-    ProfdataFullProfile summary;
-    from_json(json::parse(read_file(config.coverage)), summary);
+    auto summary = JsonSerde<ProfdataFullProfile>::from_json(
+        json::parse(read_file(config.coverage)));
 
     fs::path db_file{config.coverage_db};
 

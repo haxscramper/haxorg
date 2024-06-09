@@ -22,8 +22,7 @@ AppState load_app_state(CR<Str> path) {
     }();
 
     AppStartOptions start;
-    AppState        state;
-    from_json(start_json, start);
+    auto            state = JsonSerde<AppState>::from_json(start_json);
 
     std::string state_file = start.saved_state
                                ? *start.saved_state
@@ -62,7 +61,8 @@ AppState load_app_state(CR<Str> path) {
         }
     }();
 
-    from_json(state_json, state);
+    state = JsonSerde<AppState>::from_json(state_json);
+
     if (start.saved_state) {
         qInfo() << fmt(
             "Initial app startup loaded from {}", *start.saved_state);
