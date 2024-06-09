@@ -184,21 +184,18 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     def getSortedSegmentIndices(self, segment_idx: List[int]) -> List[int]:
         """
         Sort list of segment indices based on their nesting levels.
-        Outermost elements are placed first, innermost are placed latest
+        Outermost elements are placed first, innermost are placed latest.
         """
 
         @beartype
-        def get1(original_id: int) -> Optional[GenCovSegmentContext]:
-            return self.SegmentRunContexts.get(original_id, None)
+        def get1(original_idx: int) -> Optional[GenCovSegmentContext]:
+            return self.SegmentRunContexts.get(original_idx, None)
 
         @beartype
-        def getN(original_id: List[int]) -> List[GenCovSegmentContext]:
-            return [get1(id) for id in original_id]
-
-        @beartype
-        def cmpSegment(lhs_id: int, rhs_id: int) -> bool:
-            lhs = get1(lhs_id)
-            rhs = get1(rhs_id)
+        def cmpSegment(lhs_idx: int, rhs_idx: int) -> bool:
+            # Taking first original ID index because all runs for a given segment will have the same size.
+            lhs = get1(self.SegmentList[lhs_idx].OriginalId[0])
+            rhs = get1(self.SegmentList[rhs_idx].OriginalId[0])
 
             if lhs == None:
                 return True
@@ -215,18 +212,17 @@ class AnnotatedFile(BaseModel, extra="forbid"):
             else:
                 return True
 
-        # Taking first original ID index because all runs for a given segment will have the same size.
-        segment_pack = [self.SegmentList[idx].OriginalId[0] for idx in segment_idx]
-        return sorted(segment_pack, key=functools.cmp_to_key(cmpSegment))
+        return sorted(segment_idx, key=functools.cmp_to_key(cmpSegment))
 
     @beartype
-    def getExecutionContextList(self, segment_idx: int) -> List[GenCovSegmentContext]:
+    def getExecutionsForSegmnet(self, segment_idx: int) -> List[GenCovSegmentContext]:
         result = []
 
-        if segment_idx in self.SegmentRunContexts:
-            ctx = self.SegmentRunContexts[segment_idx]
-            assert isinstance(ctx, GenCovSegmentContext), f"{type(ctx)}"
-            result.append(ctx)
+        for original in self.SegmentList[segment_idx].OriginalId:
+            if original in self.SegmentRunContexts:
+                ctx = self.SegmentRunContexts[original]
+                assert isinstance(ctx, GenCovSegmentContext), f"{type(ctx)}"
+                result.append(ctx)
 
         return result
 
@@ -751,9 +747,10 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
             )
 
             if 0 < len(segment.CoverageSegmentIdx):
+                # Pick index of the closest segment
                 closest_segment: int = file.getSortedSegmentIndices(
                     segment.CoverageSegmentIdx)[-1]
-                executions = file.getExecutionContextList(closest_segment)
+                executions = file.getExecutionsForSegmnet(closest_segment)
                 triggered_executions = [
                     it for it in executions if 0 < it.Segment.ExecutionCount
                 ]
@@ -765,6 +762,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                     hspan["class"] += " segment-cov-skipped"
 
                 hspan["onclick"] = f"show_coverage_segment_idx({closest_segment})"
+                hspan["dbg"] = f"exec-count:{[e.Segment.ExecutionCount for e in executions]}"
 
                 for run in executions:
                     hspan["covered"] = "run"
@@ -783,16 +781,17 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         context_div = tags.div(_class="cov-context",
                                id=f"cov-context-{idx}",
                                style="display:none;")
-        executions = file.getExecutionContextList(idx)
+        executions = file.getExecutionsForSegmnet(idx)
 
         if 0 < len(executions):
             for run in executions:
-                Ctx: CovContext = run.Context
-                Seg: CovFileRegion = run.Segment
-                context_div.add(
-                    tags.div(
-                        f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.ExecutionCount}"
-                    ))
+                if 0 < run.Segment.ExecutionCount:
+                    Ctx: CovContext = run.Context
+                    Seg: CovFileRegion = run.Segment
+                    context_div.add(
+                        tags.div(
+                            f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.ExecutionCount}"
+                        ))
 
         else:
             context_div.add(tags.div("no-executions"))

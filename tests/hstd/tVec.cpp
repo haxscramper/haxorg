@@ -99,3 +99,17 @@ TEST(VectorTest, BackIndex) {
     EXPECT_EQ(Vec<int>{1}.back(), 1);
     EXPECT_EQ((Vec<int>{2, 1}.back()), 1);
 }
+
+TEST(VectorTest, ResizeAt) {
+    Vec<int> vec;
+    EXPECT_EQ(vec.size(), 0);
+    vec.resize_at(0) = 12;
+    EXPECT_EQ(vec.size(), 1);
+    EXPECT_EQ(vec.at(0), 12);
+    vec.resize_at(4) = 89;
+    EXPECT_EQ(vec.size(), 5);
+    EXPECT_EQ(vec.at(0), 12);
+    EXPECT_EQ(vec.at(1), 0);
+    EXPECT_EQ(vec.at(2), 0);
+    EXPECT_EQ(vec.at(4), 89);
+}

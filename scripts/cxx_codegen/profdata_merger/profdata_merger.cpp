@@ -752,6 +752,62 @@ class DefaultAllocator {
 using Demangler = llvm::itanium_demangle::ManglingParser<DefaultAllocator>;
 
 
+template <>
+struct JsonSerde<Counter> {
+    static json to_json(Counter const& cnt) { return json(); }
+};
+
+template <>
+struct JsonSerde<CountedRegion::MCDCParameters> {
+    static json to_json(CountedRegion::MCDCParameters const& cnt) {
+        return json();
+    }
+};
+
+
+template <>
+struct JsonSerde<FunctionRecord> {
+    static json to_json(FunctionRecord const& func) {
+        json result = JsonSerdeDescribedRecordBase<
+            FunctionRecord>::to_json(func);
+
+        result["DemangledName"] = llvm::demangle(func.Name);
+
+        Demangler Parser(
+            func.Name.data(), func.Name.data() + func.Name.length());
+
+        Node*             AST  = Parser.parse();
+        llvm::json::Value repr = treeRepr(AST);
+        // result["ParsedName"] =
+        // JsonSerde<llvm::json::Value>::to_json(repr);
+
+        return result;
+    }
+
+    // static FunctionRecord from_json(json const& func) {
+    //     return JsonSerdeDescribedRecordBase<FunctionRecord>::from_json(
+    //         func);
+    // }
+};
+
+template <>
+struct JsonSerde<MCDCRecord> {
+    static json to_json(MCDCRecord const& cnt) { return json(); }
+};
+
+
+template <>
+struct JsonSerde<CoverageMapping> {
+    static json to_json(CoverageMapping const& map) {
+        json result = json::object();
+        for (auto const& it : map.getCoveredFunctions()) {
+            result["functions"].push_back(to_json_eval(it));
+        }
+        return result;
+    }
+};
+
+
 static void loadInput(
     std::string const&     Filename,
     std::string const&     ProfiledBinary,
@@ -1210,8 +1266,8 @@ int get_region_id(
         q.func_region.bind(2, function_id);
         q.func_region.bind(3, ctx.context_id);
         q.func_region.bind(4, IsBranch);
-        q.func_region.bind(5, (int64_t)r.ExecutionCount);
-        q.func_region.bind(6, (int64_t)r.FalseExecutionCount);
+        q.func_region.bind(5, static_cast<int>(r.ExecutionCount));
+        q.func_region.bind(6, static_cast<int>(r.FalseExecutionCount));
         q.func_region.bind(7, r.Folded);
         q.func_region.bind(8, get_file_id(r.FileID));
         q.func_region.bind(9, get_file_id(r.ExpandedFileID));
@@ -1287,13 +1343,13 @@ void add_file(
         CountedRegion const& r = it.value();
         q.file_region.bind(1, ctx.region_counter);
         q.file_region.bind(2, ctx.context_id);
-        q.file_region.bind(3, (int64_t)r.ExecutionCount);
-        q.file_region.bind(4, (int64_t)r.FalseExecutionCount);
+        q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
+        q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
         q.file_region.bind(5, r.Folded);
-        q.file_region.bind(6, (int64_t)r.LineStart);
-        q.file_region.bind(7, (int64_t)r.ColumnStart);
-        q.file_region.bind(8, (int64_t)r.LineEnd);
-        q.file_region.bind(9, (int64_t)r.ColumnEnd);
+        q.file_region.bind(6, static_cast<int>(r.LineStart));
+        q.file_region.bind(7, static_cast<int>(r.ColumnStart));
+        q.file_region.bind(8, static_cast<int>(r.LineEnd));
+        q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
         q.file_region.bind(10, r.Kind);
         q.file_region.bind(11, file_id);
         q.file_region.exec();
@@ -1479,60 +1535,6 @@ struct ProfdataFullProfile {
     DESC_FIELDS(ProfdataFullProfile, (runs));
 };
 
-template <>
-struct JsonSerde<Counter> {
-    static json to_json(Counter const& cnt) { return json(); }
-};
-
-template <>
-struct JsonSerde<CountedRegion::MCDCParameters> {
-    static json to_json(CountedRegion::MCDCParameters const& cnt) {
-        return json();
-    }
-};
-
-
-template <>
-struct JsonSerde<FunctionRecord> {
-    static json to_json(FunctionRecord const& func) {
-        json result = JsonSerdeDescribedRecordBase<
-            FunctionRecord>::to_json(func);
-
-        result["DemangledName"] = llvm::demangle(func.Name);
-
-        Demangler Parser(
-            func.Name.data(), func.Name.data() + func.Name.length());
-
-        Node*             AST  = Parser.parse();
-        llvm::json::Value repr = treeRepr(AST);
-        // result["ParsedName"] =
-        // JsonSerde<llvm::json::Value>::to_json(repr);
-
-        return result;
-    }
-
-    // static FunctionRecord from_json(json const& func) {
-    //     return JsonSerdeDescribedRecordBase<FunctionRecord>::from_json(
-    //         func);
-    // }
-};
-
-template <>
-struct JsonSerde<MCDCRecord> {
-    static json to_json(MCDCRecord const& cnt) { return json(); }
-};
-
-
-template <>
-struct JsonSerde<CoverageMapping> {
-    static json to_json(CoverageMapping const& map) {
-        json result = json::object();
-        for (auto const& it : map.getCoveredFunctions()) {
-            result["functions"].push_back(to_json_eval(it));
-        }
-        return result;
-    }
-};
 
 const char* __asan_default_options() { return "detect_leaks=0"; }
 
