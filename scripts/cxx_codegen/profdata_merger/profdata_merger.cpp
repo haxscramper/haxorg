@@ -29,6 +29,7 @@
 #include <hstd/system/aux_utils.hpp>
 #include <execution>
 #include <llvm/ADT/SmallBitVector.h>
+#include <hstd/stdlib/Json.hpp>
 
 #include <perfetto.h>
 
@@ -46,9 +47,8 @@ PERFETTO_DEFINE_CATEGORIES(
 #include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
-using namespace llvm;
 using namespace llvm::coverage;
-using namespace itanium_demangle;
+using namespace llvm::itanium_demangle;
 
 enum class KindProxy
 {
@@ -114,21 +114,27 @@ void CreateTables(SQLite::Database& db) {
     db.exec(sql);
 }
 
-std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
-    return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
-}
+// std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
+//     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
+// }
 
-json::Array& add_array_field(
-    json::Object&      obj,
-    std::string const& field,
-    json::Value const& value) {
-    if (obj.getArray(field) == nullptr) { obj[field] = json::Array(); }
+llvm::json::Array& add_array_field(
+    llvm::json::Object&      obj,
+    std::string const&       field,
+    llvm::json::Value const& value) {
+    if (obj.getArray(field) == nullptr) {
+        obj[field] = llvm::json::Array();
+    }
     obj.getArray(field)->push_back(value);
     return *obj.getArray(field);
 }
 
-json::Object& add_obj_field(json::Object& obj, std::string const& field) {
-    if (obj.getObject(field) == nullptr) { obj[field] = json::Object(); }
+llvm::json::Object& add_obj_field(
+    llvm::json::Object& obj,
+    std::string const&  field) {
+    if (obj.getObject(field) == nullptr) {
+        obj[field] = llvm::json::Object();
+    }
     return *obj.getObject(field);
 }
 
@@ -151,8 +157,8 @@ T match(TNode const* node) {
 }
 
 
-json::Value treeRepr(Node const* node) {
-    json::Object result;
+llvm::json::Value treeRepr(Node const* node) {
+    llvm::json::Object result;
     if (node == nullptr) { return nullptr; }
 
     std::string Kind = std::string{boost::describe::enum_to_string(
@@ -161,7 +167,7 @@ json::Value treeRepr(Node const* node) {
     result["NodeKind"] = Kind;
 
     auto sub = overloaded{
-        [&result](std::string const& field, json::Value value) {
+        [&result](std::string const& field, llvm::json::Value value) {
             result[field] = value;
         },
         [&result](std::string const& field, std::string_view value) {
@@ -174,12 +180,12 @@ json::Value treeRepr(Node const* node) {
             result[field] = treeRepr(value);
         },
         [&result](std::string const& field, NodeArray const& value) {
-            json::Array array;
+            llvm::json::Array array;
             for (auto const& it : value) { array.push_back(treeRepr(it)); }
             if (!array.empty()) { result[field] = std::move(array); }
         },
         [&result](std::string const& field, Qualifiers const& value) {
-            json::Array array;
+            llvm::json::Array array;
             if (value & Qualifiers::QualConst) {
                 array.push_back("QualConst");
             }
@@ -260,7 +266,7 @@ json::Value treeRepr(Node const* node) {
         },
     };
 
-    using K = itanium_demangle::Node::Kind;
+    using K = llvm::itanium_demangle::Node::Kind;
 
 #define K_CAST(Name)                                                      \
     break;                                                                \
@@ -728,19 +734,19 @@ class DefaultAllocator {
 };
 } // unnamed namespace
 
-using Demangler = itanium_demangle::ManglingParser<DefaultAllocator>;
+using Demangler = llvm::itanium_demangle::ManglingParser<DefaultAllocator>;
 
 
 static void loadInput(
-    std::string const& Filename,
-    std::string const& ProfiledBinary,
-    InstrProfWriter*   Writer) {
+    std::string const&     Filename,
+    std::string const&     ProfiledBinary,
+    llvm::InstrProfWriter* Writer) {
 
-    auto FS          = vfs::getRealFileSystem();
-    auto ReaderOrErr = InstrProfReader::create(Filename, *FS);
-    if (Error E = ReaderOrErr.takeError()) {
-        auto [ErrCode, Msg] = InstrProfError::take(std::move(E));
-        if (ErrCode != instrprof_error::empty_raw_profile) {
+    auto FS          = llvm::vfs::getRealFileSystem();
+    auto ReaderOrErr = llvm::InstrProfReader::create(Filename, *FS);
+    if (llvm::Error E = ReaderOrErr.takeError()) {
+        auto [ErrCode, Msg] = llvm::InstrProfError::take(std::move(E));
+        if (ErrCode != llvm::instrprof_error::empty_raw_profile) {
             assert(false);
         }
         return;
@@ -748,10 +754,10 @@ static void loadInput(
 
     auto Reader = std::move(ReaderOrErr.get());
     for (auto& I : *Reader) {
-        const StringRef FuncName = I.Name;
-        bool            Reported = false;
-        Writer->addRecord(std::move(I), 1, [&](Error E) {
-            LOG(std::format("{}", toString(std::move(E))));
+        const llvm::StringRef FuncName = I.Name;
+        bool                  Reported = false;
+        Writer->addRecord(std::move(I), 1, [&](llvm::Error E) {
+            LOG(INFO) << std::format("{}", toString(std::move(E)));
         });
     }
 
@@ -764,15 +770,17 @@ static void loadInput(
     }
 
     if (Reader->hasError()) {
-        if (Error E = Reader->getError()) {
-            LOG(std::format("{} {}", toString(std::move(E)), Filename));
+        if (llvm::Error E = Reader->getError()) {
+            LOG(INFO) << std::format(
+                "{} {}", toString(std::move(E)), Filename);
             return;
         }
     }
 
-    std::vector<object::BuildID> BinaryIds;
-    if (Error E = Reader->readBinaryIds(BinaryIds)) {
-        LOG(std::format("{} {}", toString(std::move(E)), Filename));
+    std::vector<llvm::object::BuildID> BinaryIds;
+    if (llvm::Error E = Reader->readBinaryIds(BinaryIds)) {
+        LOG(INFO) << std::format(
+            "{} {}", toString(std::move(E)), Filename);
         return;
     }
 
@@ -780,9 +788,10 @@ static void loadInput(
 }
 
 struct CoverageMappingLyt {
-    DenseMap<size_t, DenseSet<size_t>>         RecordProvenance;
-    std::vector<FunctionRecord>                Functions;
-    DenseMap<size_t, SmallVector<unsigned, 0>> FilenameHash2RecordIndices;
+    llvm::DenseMap<size_t, llvm::DenseSet<size_t>> RecordProvenance;
+    std::vector<FunctionRecord>                    Functions;
+    llvm::DenseMap<size_t, llvm::SmallVector<unsigned, 0>>
+        FilenameHash2RecordIndices;
     std::vector<std::pair<std::string, uint64_t>> FuncHashMismatches;
 };
 
@@ -793,9 +802,9 @@ CoverageMappingLyt const* toCoverageMappingLyt(
     return reinterpret_cast<CoverageMappingLyt const*>(Mapping);
 }
 
-ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
+llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
     CoverageMapping const& Mapping,
-    StringRef              Filename) {
+    llvm::StringRef        Filename) {
     size_t FilenameHash = hash_value(Filename);
     auto   RecordIt     = toCoverageMappingLyt(&Mapping)
                         ->FilenameHash2RecordIndices.find(FilenameHash);
@@ -809,7 +818,8 @@ ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
 
 static std::optional<unsigned> findMainViewFileID(
     const FunctionRecord& Function) {
-    SmallBitVector IsNotExpandedFile(Function.Filenames.size(), true);
+    llvm::SmallBitVector IsNotExpandedFile(
+        Function.Filenames.size(), true);
     for (const auto& CR : Function.CountedRegions) {
         if (CR.Kind == CounterMappingRegion::ExpansionRegion) {
             IsNotExpandedFile[CR.ExpandedFileID] = false;
@@ -821,17 +831,18 @@ static std::optional<unsigned> findMainViewFileID(
 }
 
 static std::optional<unsigned> findMainViewFileID(
-    StringRef             SourceFile,
+    llvm::StringRef       SourceFile,
     const FunctionRecord& Function) {
     std::optional<unsigned> I = findMainViewFileID(Function);
     if (I && SourceFile == Function.Filenames[*I]) { return I; }
     return std::nullopt;
 }
 
-static SmallBitVector gatherFileIDs(
-    StringRef             SourceFile,
+static llvm::SmallBitVector gatherFileIDs(
+    llvm::StringRef       SourceFile,
     const FunctionRecord& Function) {
-    SmallBitVector FilenameEquivalence(Function.Filenames.size(), false);
+    llvm::SmallBitVector FilenameEquivalence(
+        Function.Filenames.size(), false);
     for (unsigned I = 0, E = Function.Filenames.size(); I < E; ++I) {
         if (SourceFile == Function.Filenames[I]) {
             FilenameEquivalence[I] = true;
@@ -849,7 +860,7 @@ std::vector<CountedRegion> getRegionsForFile(
     // Look up the function records in the given file. Due to hash
     // collisions on the filename, we may get back some records that are
     // not in the file.
-    ArrayRef<unsigned>
+    llvm::ArrayRef<unsigned>
         RecordIndices = getImpreciseRecordIndicesForFilename(
             Mapping, Filename);
     auto Access = toCoverageMappingLyt(&Mapping);
@@ -1011,7 +1022,7 @@ struct queries {
 
 struct CountedRegionHasher {
     size_t operator()(const CounterMappingRegion& region) const {
-        return hash_combine(
+        return llvm::hash_combine(
             std::hash<unsigned>()(region.FileID),
             std::hash<unsigned>()(region.ExpandedFileID),
             std::hash<unsigned>()(region.LineStart),
@@ -1046,7 +1057,7 @@ struct FileSpan {
 
 struct FileSpanHasher {
     size_t operator()(const FileSpan& region) const {
-        return hash_combine(
+        return llvm::hash_combine(
             region.LineStart,
             region.LineEnd,
             region.ColStart,
@@ -1073,8 +1084,8 @@ struct db_build_ctx {
     int                                  region_counter{};
     int                                  function_region_counter{};
 
-    std::vector<Regex> file_blacklist;
-    std::vector<Regex> file_whitelist;
+    std::vector<llvm::Regex> file_blacklist;
+    std::vector<llvm::Regex> file_whitelist;
 
     bool file_matches(std::string const& path, std::string& debug) const {
         bool result = false;
@@ -1132,12 +1143,12 @@ int get_function_id(
     FunctionRecord const& f,
     queries&              q,
     db_build_ctx&         ctx) {
-    std::string readeable = demangle(f.Name);
+    std::string readeable = llvm::demangle(f.Name);
 
     Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
 
-    Node*       AST  = Parser.parse();
-    json::Value repr = treeRepr(AST);
+    Node*             AST  = Parser.parse();
+    llvm::json::Value repr = treeRepr(AST);
 
 
     int function_id = -1;
@@ -1249,14 +1260,14 @@ std::string format_range(T begin, T end) {
 
 void add_file(
     CoverageMapping const* mapping,
-    StringRef              file,
+    llvm::StringRef        file,
     queries&               q,
     db_build_ctx&          ctx) {
     TRACE_EVENT("sql", "File coverage data");
     int file_id = ctx.get_file_id(file.str(), q);
 
     auto regions = getRegionsForFile(*mapping, file.str());
-    for (auto const& it : enumerate(regions)) {
+    for (auto const& it : llvm::enumerate(regions)) {
         ++ctx.region_counter;
         CountedRegion const& r = it.value();
         q.file_region.bind(1, ctx.region_counter);
@@ -1322,7 +1333,10 @@ void add_regions(
 }
 
 
-void add_context(json::Object const* run, queries& q, db_build_ctx& ctx) {
+void add_context(
+    llvm::json::Object const* run,
+    queries&                  q,
+    db_build_ctx&             ctx) {
     ++ctx.context_id;
 
     q.context.bind(1, ctx.context_id);
@@ -1360,31 +1374,31 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
         "binary_path",
         binary_path);
 
-    InstrProfWriter Writer;
+    llvm::InstrProfWriter Writer;
     {
         TRACE_EVENT("llvm", "Load raw profile coverage");
         loadInput(coverage_path, binary_path, &Writer);
-        LOG(std::format(
-            "Loaded {} binary {}", coverage_path, binary_path));
+        LOG(INFO) << std::format(
+            "Loaded {} binary {}", coverage_path, binary_path);
     }
 
     std::string tmp_path = std::format(
         "/tmp/{}.profdata",
         getMD5Digest(coverage_path, binary_path).digest().str().str());
 
-    std::vector<StringRef> ObjectFilenames;
+    std::vector<llvm::StringRef> ObjectFilenames;
     ObjectFilenames.push_back(binary_path);
     {
         TRACE_EVENT("llvm", "Write converted profile data");
-        std::error_code EC;
-        raw_fd_ostream  Output(tmp_path, EC, sys::fs::OF_None);
+        std::error_code      EC;
+        llvm::raw_fd_ostream Output(tmp_path, EC, llvm::sys::fs::OF_None);
 
         if (EC) {
             throw std::domain_error(std::format(
                 "Error while creating output stream {}", EC.message()));
         }
 
-        if (Error E = Writer.write(Output)) {
+        if (llvm::Error E = Writer.write(Output)) {
             throw std::domain_error(
                 std::format("Failed write: {}", toString(std::move(E))));
         }
@@ -1393,12 +1407,12 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
 
     {
         TRACE_EVENT("llvm", "Load coverage profile data");
-        auto FS = vfs::getRealFileSystem();
-        Expected<std::shared_ptr<CoverageMapping>>
+        auto FS = llvm::vfs::getRealFileSystem();
+        llvm::Expected<std::shared_ptr<CoverageMapping>>
             mapping_or_err = CoverageMapping::load(
                 ObjectFilenames, tmp_path, *FS);
 
-        if (Error E = mapping_or_err.takeError()) {
+        if (llvm::Error E = mapping_or_err.takeError()) {
             throw std::domain_error(std::format(
                 "Failed to load profdata {}", toString(std::move(E))));
         }
@@ -1416,11 +1430,12 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
 //     }
 // };
 
+// void to_json()
 
 int main(int argc, char** argv) {
-    json::Value debug_value = json::Object();
+    llvm::json::Value debug_value = llvm::json::Object();
     assert(debug_value.getAsObject() != nullptr);
-    json::Object& debug = *debug_value.getAsObject();
+    llvm::json::Object& debug = *debug_value.getAsObject();
 
 
     if (argc != 2) {
@@ -1437,7 +1452,8 @@ int main(int argc, char** argv) {
         json_parameters = std::string{argv[1]};
     }
 
-    Expected<json::Value> config_value = json::parse(json_parameters);
+    llvm::Expected<llvm::json::Value> config_value = llvm::json::parse(
+        json_parameters);
 
     if (!config_value) {
         throw std::domain_error(std::format(
@@ -1459,17 +1475,16 @@ int main(int argc, char** argv) {
     finally{flush_debug};
 
 
-    LOG(std::format(
+    LOG(INFO) << std::format(
         "Using test summary file {}",
-        config->getString("coverage")->str()));
+        config->getString("coverage")->str());
 
     if (config->getString("debug_file")) {
-        LOG(std::format(
+        LOG(INFO) << std::format(
             "Debug file enabled {}",
-            config->getString("debug_file")->str()));
+            config->getString("debug_file")->str());
     }
-
-    Expected<json::Value> summary = json::parse(
+    llvm::Expected<llvm::json::Value> summary = llvm::json::parse(
         read_file(config->getString("coverage")->str()));
 
     fs::path db_file{config->getString("coverage_db")->str()};
@@ -1488,12 +1503,12 @@ int main(int argc, char** argv) {
     queries q{db};
 
     db_build_ctx ctx;
-    auto         FS = vfs::getRealFileSystem();
+    auto         FS = llvm::vfs::getRealFileSystem();
 
 
     auto get_regex_list =
-        [&](std::string const& list_name) -> std::vector<Regex> {
-        std::vector<Regex> result;
+        [&](std::string const& list_name) -> std::vector<llvm::Regex> {
+        std::vector<llvm::Regex> result;
         if (config->getArray(list_name) == nullptr) {
             throw std::domain_error(std::format(
                 "{} was not supplied in CLI config, cannot get regex "
@@ -1502,7 +1517,7 @@ int main(int argc, char** argv) {
         }
 
         for (auto const& filter : *config->getArray(list_name)) {
-            Regex       r{*filter.getAsString()};
+            llvm::Regex r{*filter.getAsString()};
             std::string error;
             if (r.isValid(error)) {
                 result.push_back(std::move(r));
@@ -1524,7 +1539,7 @@ int main(int argc, char** argv) {
     std::unordered_map<
         std::pair<std::string, std::string>,
         std::shared_ptr<CoverageMapping>,
-        pair_hash<std::string, std::string>>
+        llvm::pair_hash<std::string, std::string>>
         coverage_map;
 
     {
@@ -1558,10 +1573,10 @@ int main(int argc, char** argv) {
         TRACE_EVENT("main", "Insert run data");
         finally{flush_debug};
 
-        json::Object j_run;
-        auto         run           = run_value.getAsObject();
-        std::string  coverage_path = run->getString("test_profile")->str();
-        std::string  binary_path   = run->getString("test_binary")->str();
+        llvm::json::Object j_run;
+        auto               run    = run_value.getAsObject();
+        std::string coverage_path = run->getString("test_profile")->str();
+        std::string binary_path   = run->getString("test_binary")->str();
         ctx.function_region_ids.clear();
 
         add_context(run, q, ctx);
@@ -1588,7 +1603,7 @@ int main(int argc, char** argv) {
 
             {
                 TRACE_EVENT("sql", "Covered files");
-                json::Object& j_files = add_obj_field(
+                llvm::json::Object& j_files = add_obj_field(
                     j_run, "covered_files");
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
@@ -1596,7 +1611,7 @@ int main(int argc, char** argv) {
                         add_array_field(
                             j_files,
                             "skipped",
-                            json::Object({
+                            llvm::json::Object({
                                 {"file", file.str()},
                                 {"reason", debug},
                             }));

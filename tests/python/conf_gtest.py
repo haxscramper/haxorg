@@ -212,11 +212,11 @@ class GTestItem(pytest.Function):
         else:
             run()
 
-    @property
-    def location(self) -> Tuple[str, Optional[int], str]:
-        # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
-        return (self.gtest.get_source_file(), self.gtest.get_source_line(),
-                self.gtest.fullname())
+    # @property
+    # def location(self) -> Tuple[str, Optional[int], str]:
+    #     # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
+    #     return (self.gtest.get_source_file(), self.gtest.get_source_line(),
+    #             self.gtest.fullname())
 
     def _getobj(self):
         # Return a dummy function
