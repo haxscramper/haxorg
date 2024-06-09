@@ -3,6 +3,7 @@ llvm_map_components_to_libnames(profdata_merger_llvm_libs support core irreader 
 
 message(STATUS ${profdata_merger_llvm_libs})
 
+haxorg_target_setup(profdata_merger)
 target_link_libraries(profdata_merger
     ${profdata_merger_llvm_libs}
     SQLiteCpp
@@ -16,4 +17,3 @@ target_link_libraries(profdata_merger
 )
 
 target_include_directories(profdata_merger PUBLIC "${BASE}/src" "${BASE}/thirdparty/abseil-cpp")
-set_target_properties(profdata_merger PROPERTIES CXX_STANDARD 20)

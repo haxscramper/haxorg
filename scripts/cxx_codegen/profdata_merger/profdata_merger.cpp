@@ -1348,18 +1348,36 @@ void add_regions(
 }
 
 
+struct ProfdataCookie {
+    std::string                test_binary;
+    std::string                test_name;
+    std::optional<std::string> test_class = std::nullopt;
+    std::string                test_profile;
+    json                       test_params;
+
+    DESC_FIELDS(
+        ProfdataCookie,
+        (test_binary, test_name, test_class, test_profile, test_params));
+};
+
+static_assert(DescribedRecord<ProfdataCookie>, "dbg");
+
 void add_context(
-    llvm::json::Object const* run,
-    queries&                  q,
-    db_build_ctx&             ctx) {
+    ProfdataCookie const& run,
+    queries&              q,
+    db_build_ctx&         ctx) {
     ++ctx.context_id;
 
     q.context.bind(1, ctx.context_id);
-    q.context.bind(2, run->getString("test_name")->str());
-    q.context.bind(3, run->getString("test_class")->str());
-    q.context.bind(4, run->getString("test_profile")->str());
-    q.context.bind(5, llvm::formatv("{0}", *run->get("test_params")));
-    q.context.bind(6, run->getString("test_binary")->str());
+    q.context.bind(2, run.test_name);
+    if (run.test_class) {
+        q.context.bind(3, run.test_class.value());
+    } else {
+        q.context.bind(3, nullptr);
+    }
+    q.context.bind(4, run.test_profile);
+    q.context.bind(5, run.test_params.dump());
+    q.context.bind(6, run.test_binary);
 
     q.context.exec();
     q.context.reset();
@@ -1448,6 +1466,10 @@ void to_json(json& j, CoverageMapping const& cov) {
     j["functions"] = functions;
 }
 
+namespace nlohmann {
+void from_json(const json& in, json& out) { out = in; }
+}
+
 struct ProfdataCLIConfig {
     std::string                coverage;
     std::string                coverage_db;
@@ -1468,11 +1490,13 @@ struct ProfdataCLIConfig {
          coverage_mapping_dump));
 };
 
-int main(int argc, char** argv) {
-    llvm::json::Value debug_value = llvm::json::Object();
-    assert(debug_value.getAsObject() != nullptr);
-    llvm::json::Object& debug = *debug_value.getAsObject();
+struct ProfdataFullProfile {
+    std::vector<ProfdataCookie> runs;
+    DESC_FIELDS(ProfdataFullProfile, (runs));
+};
 
+int main(int argc, char** argv) {
+    json debug = json::object();
 
     if (argc != 2) {
         throw std::logic_error(
@@ -1496,7 +1520,7 @@ int main(int argc, char** argv) {
         if (config.debug_file) {
             fs::path      out_path{config.debug_file.value()};
             std::ofstream os{out_path};
-            os << llvm::formatv("{0:2}", debug_value).str();
+            os << debug.dump();
         }
     };
 
@@ -1510,8 +1534,9 @@ int main(int argc, char** argv) {
         LOG(INFO) << std::format(
             "Debug file enabled {}", config.debug_file);
     }
-    llvm::Expected<llvm::json::Value> summary = llvm::json::parse(
-        read_file(config.coverage));
+
+    ProfdataFullProfile summary;
+    from_json(json::parse(read_file(config.coverage)), summary);
 
     fs::path db_file{config.coverage_db};
 
@@ -1565,13 +1590,8 @@ int main(int argc, char** argv) {
         TRACE_EVENT("llvm", "Parallel convert of coverage data");
         std::vector<std::pair<std::string, std::string>> paths{};
 
-        for (auto const& run_value :
-             *summary->getAsObject()->getArray("runs")) {
-            auto        run           = run_value.getAsObject();
-            std::string coverage_path = run->getString("test_profile")
-                                            ->str();
-            std::string binary_path = run->getString("test_binary")->str();
-            paths.push_back({coverage_path, binary_path});
+        for (auto const& run : summary.runs) {
+            paths.push_back({run.test_profile, run.test_binary});
         }
 
         std::mutex coverage_mutex;
@@ -1587,27 +1607,23 @@ int main(int argc, char** argv) {
             });
     }
 
-    for (auto const& run_value :
-         *summary->getAsObject()->getArray("runs")) {
+    for (auto const& run : summary.runs) {
         TRACE_EVENT("main", "Insert run data");
         finally{flush_debug};
 
-        llvm::json::Object j_run;
-        auto               run    = run_value.getAsObject();
-        std::string coverage_path = run->getString("test_profile")->str();
-        std::string binary_path   = run->getString("test_binary")->str();
         ctx.function_region_ids.clear();
 
         add_context(run, q, ctx);
 
         std::shared_ptr<CoverageMapping> mapping = coverage_map.at(
-            {coverage_path, binary_path});
+            {run.test_profile, run.test_binary});
 
 
         if (mapping.get() == nullptr) {
             throw std::logic_error("Failed to load coverage mapping");
         }
 
+        json j_run = json::object();
         {
             TRACE_EVENT("sql", "Full coverage run info");
             db.exec("BEGIN");
@@ -1622,18 +1638,14 @@ int main(int argc, char** argv) {
 
             {
                 TRACE_EVENT("sql", "Covered files");
-                llvm::json::Object& j_files = add_obj_field(
-                    j_run, "covered_files");
+                json j_files = json::array();
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
                     if (!ctx.file_matches(file.str(), debug)) {
-                        add_array_field(
-                            j_files,
-                            "skipped",
-                            llvm::json::Object({
-                                {"file", file.str()},
-                                {"reason", debug},
-                            }));
+                        j_files["skipped"].push_back(json::object({
+                            {"file", file.str()},
+                            {"reason", debug},
+                        }));
                         continue;
                     }
                     TRACE_EVENT("sql", "Add file", "File", file.str());
@@ -1643,12 +1655,15 @@ int main(int argc, char** argv) {
                     add_file(mapping.get(), file, q, ctx);
                     add_instantiations(mapping, file.str(), q, ctx);
                 }
+
+                j_run["covered_files"] = j_files;
             }
 
             db.exec("COMMIT");
         }
 
-        add_array_field(debug, "runs", std::move(j_run));
+
+        debug["runs"].push_back(j_run);
     }
 
     if (config.perf_trace) {
