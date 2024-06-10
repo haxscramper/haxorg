@@ -152,6 +152,7 @@ def test_unexpected_field_passed():
     except RuntimeError as err:
         pass
 
+
 def test_sem_parser_expected():
     corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
     corpus_files = corpus_root.rglob("*.yaml")
@@ -200,3 +201,21 @@ def test_sem_parser_expected():
                                 util.text("Parse disabled")
 
     Path("/tmp/result.html").write_text(str(doc))
+
+
+def test_segment_tree():
+    segments = [
+        org.SequenceSegmentGroup(
+            kind=1,
+            segments=org.VecOfSequenceSegmentVec(
+                [org.SequenceSegment(kind=2, first=0, last=2)]),
+        )
+    ]
+
+    annotations: List[org.SequenceAnnotation] = org.annotateSequence(org.VecOfSequenceSegmentGroupVec(segments), 0, 2)
+
+    assert len(annotations) == 1
+    assert annotations[0].first == 0
+    assert annotations[0].last == 2
+    assert len(annotations[0].annotations) == 1
+    assert annotations[0].isAnnotatedWith(1, 2)

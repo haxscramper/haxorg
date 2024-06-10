@@ -15,16 +15,18 @@
 #include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 template <typename E, IsVariant Var>
-void from_json_variant(CR<Str> variantField, json const& in, Var& out) {
+Var from_json_variant(CR<Str> variantField, json const& in) {
     if (!in.is_object() || !in.contains(variantField)) {
         throw std::domain_error(
             fmt("Input JSON must be an object and have '{}' field",
                 variantField));
     }
     if (auto parsed = enum_serde<E>::from_string(in[variantField])) {
-        out = variant_from_index<Var>(
+        Var out = variant_from_index<Var>(
             value_domain<E>::ord(parsed.value()));
-        std::visit([&](auto& var_item) { from_json(in, var_item); }, out);
+        std::visit(
+            [&](auto& var_item) { from_json_eval(in, var_item); }, out);
+        return out;
     } else {
         throw std::domain_error(
             fmt("'kind' field must be one of {} but got {}",
@@ -34,16 +36,18 @@ void from_json_variant(CR<Str> variantField, json const& in, Var& out) {
 }
 
 template <typename E, IsVariant Var>
-void to_json_variant(
-    CR<Str>    variantField,
-    json&      out,
-    Var const& in,
-    E const&   kind) {
-
-    std::visit([&](auto const& in_item) { to_json(out, in_item); }, in);
+json to_json_variant(CR<Str> variantField, Var const& in, E const& kind) {
+    json out;
+    std::visit(
+        [&](auto const& in_item) { out = to_json_eval(in_item); }, in);
     out[variantField] = enum_serde<E>::to_string(kind);
+    return out;
 }
 
+
+template <typename K, typename V>
+struct JsonSerde<UnorderedMap<K, V>>
+    : JsonSerde<std::unordered_map<K, V>> {};
 
 struct Action {
     struct MindMap {
@@ -129,23 +133,28 @@ struct DriverResult {
     DESC_FIELDS(DriverResult, (action, document_dumps, mind_map_dump));
 };
 
+template <>
+struct JsonSerde<Action> {
+    static Action from_json(json const& j) {
+        return Action{
+            .data = from_json_variant<Action::Kind, Action::Data>(
+                "kind", j)};
+    }
 
-void from_json(json const& j, Action& out) {
-    from_json_variant<Action::Kind>("kind", j, out.data);
-}
+    static json to_json(Action const& in) {
+        return to_json_variant("kind", in.data, in.getKind());
+    }
+};
 
-void to_json(json& j, Action const& in) {
-    to_json_variant("kind", j, in.data, in.getKind());
-}
+template <>
+struct JsonSerde<org::mind_map::EDesc> {
+    static json to_json(org::mind_map::EDesc const& d) { return fmt1(d); }
+};
 
-
-void to_json(json& j, org::mind_map::EDesc const& d) {
-    to_json(j, fmt1(d));
-}
-
-void to_json(json& j, org::mind_map::VDesc const& d) {
-    to_json(j, fmt1(d));
-}
+template <>
+struct JsonSerde<org::mind_map::VDesc> {
+    static json to_json(org::mind_map::VDesc const& d) { return fmt1(d); }
+};
 
 ModelDumpIr dumpModelTree(
     QAbstractItemModel*         model,

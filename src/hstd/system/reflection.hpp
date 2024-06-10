@@ -57,7 +57,14 @@ E string_to_enum(char const* name) {
     if (found) {
         return r;
     } else {
-        throw_invalid_name(name, typeid(E).name());
+        throw_invalid_name(
+            name,
+#ifdef __cpp_rtti
+            typeid(E).name()
+#else
+            ""
+#endif
+        );
     }
 }
 }; // namespace boost::describe
@@ -191,7 +198,7 @@ std::string described_class_printer(T const& t) {
         first = false;
 
         using B = typename decltype(D)::type;
-        result += (B const&)t;
+        result += described_class_printer((B const&)t);
     });
 
     boost::mp11::mp_for_each<Md>([&](auto D) {

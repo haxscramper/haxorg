@@ -20,7 +20,7 @@ import sys
 import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
-from py_repository.gen_coverage_cxx import ProfdataParams
+from py_repository.gen_coverage_cookies import ProfdataParams
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -497,6 +497,39 @@ def haxorg_base_lexer(ctx: Context):
 
 
 @org_task()
+def symlink_build(ctx: Context):
+    """
+    Create proxy symbolic links around the build directory
+    """
+
+    def link(link_path: Path, real_path: Path, is_dir: bool):
+        if link_path.exists():
+            assert link_path.is_symlink(), link_path
+            link_path.unlink()
+            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+            assert not link_path.exists(), link_path
+
+        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+
+        assert not link_path.exists(), link_path
+        assert real_path.exists(), real_path
+
+        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
+
+    link(
+        real_path=get_component_build_dir(ctx, "haxorg"),
+        link_path=get_build_root("haxorg"),
+        is_dir=True,
+    )
+
+    link(
+        real_path=get_component_build_dir(ctx, "utils"),
+        link_path=get_build_root("utils"),
+        is_dir=True,
+    )
+
+
+@org_task(pre=[symlink_build])
 def python_protobuf_files(ctx: Context):
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(
@@ -693,7 +726,10 @@ def update_py_haxorg_reflection(
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[cmake_haxorg, update_py_haxorg_reflection])
+@org_task(pre=[
+    # cmake_haxorg,
+    update_py_haxorg_reflection
+])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR
@@ -712,11 +748,11 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
     log(CAT).info("Updated code definitions")
 
 
-@org_task(pre=[cmake_haxorg])
+@org_task(pre=[cmake_haxorg, symlink_build])
 def std_tests(ctx):
     """Execute standard library tests"""
     dir = get_build_root("haxorg")
-    test = dir / "tests_hstd"
+    test = dir / "src/hstd/tests_hstd"
     run_command(ctx, test, [], cwd=str(dir))
 
 
@@ -909,39 +945,6 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
     ]
 
 
-@org_task()
-def symlink_build(ctx: Context):
-    """
-    Create proxy symbolic links around the build directory
-    """
-
-    def link(link_path: Path, real_path: Path, is_dir: bool):
-        if link_path.exists():
-            assert link_path.is_symlink(), link_path
-            link_path.unlink()
-            log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
-            assert not link_path.exists(), link_path
-
-        log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
-
-        assert not link_path.exists(), link_path
-        assert real_path.exists(), real_path
-
-        link_path.symlink_to(target=real_path, target_is_directory=is_dir)
-
-    link(
-        real_path=get_component_build_dir(ctx, "haxorg"),
-        link_path=get_build_root("haxorg"),
-        is_dir=True,
-    )
-
-    link(
-        real_path=get_component_build_dir(ctx, "utils"),
-        link_path=get_build_root("utils"),
-        is_dir=True,
-    )
-
-
 @org_task(pre=[haxorg_base_lexer, cmake_haxorg])
 def cmake_all(ctx: Context):
     """Build all binary artifacts"""
@@ -1003,7 +1006,12 @@ def py_tests(ctx: Context, arg: List[str] = []):
         profile_path = get_cxx_profdata_params_path()
         log(CAT).info(f"Profile collect options: {profile_path}")
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-        profile_path.write_text(get_cxx_profdata_params().model_dump_json(indent=2))
+        model = get_cxx_profdata_params()
+        if False:
+            debug = "/tmp/coverage_mapping_dump"
+            Path(debug).mkdir(exist_ok=True)
+            model.coverage_mapping_dump = debug
+        profile_path.write_text(model.model_dump_json(indent=2))
 
     run_command(ctx, "poetry", [
         "run",
@@ -1024,6 +1032,7 @@ def py_tests(ctx: Context, arg: List[str] = []):
             "--cov=scripts",
             "--cov-report=html",
             "--cov-context=test",
+            "--disable-warnings",
             # "--cov-branch",
             *args,
         ],
@@ -1066,7 +1075,7 @@ def docs_doxygen(ctx: Context):
 @org_task()
 def docs_custom(ctx: Context):
     """Build documentation for the project using custom script"""
-    out_dir = get_script_root("docs/custom_html")
+    out_dir = Path("/tmp/docs_out")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     args = [
@@ -1078,6 +1087,7 @@ def docs_custom(ctx: Context):
         f"--src_path={get_script_root('scripts')}",
         f"--py_coverage_path={get_script_root('.coverage')}",
         f"--test_path={get_script_root('tests')}",
+        f"--profile_out_path={out_dir.joinpath('profile.json')}",
     ]
 
     prof_params = get_cxx_profdata_params()
@@ -1085,7 +1095,8 @@ def docs_custom(ctx: Context):
         args.append(f"--cxx_coverage_path={prof_params.coverage_db}")
         log(CAT).info(f"Using coveage database from {prof_params.coverage_db}")
     else:
-        log(CAT).info(f"No coverage database generated, {prof_params.coverage_db} does not exist")
+        log(CAT).info(
+            f"No coverage database generated, {prof_params.coverage_db} does not exist")
 
     run_command(ctx, "poetry", args)
 

@@ -28,6 +28,10 @@
 #include <fstream>
 #include <hstd/system/aux_utils.hpp>
 #include <execution>
+#include <llvm/ADT/SmallBitVector.h>
+#include <hstd/stdlib/Json.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 #include <perfetto.h>
 
@@ -45,9 +49,8 @@ PERFETTO_DEFINE_CATEGORIES(
 #include <hstd/wrappers/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
-using namespace llvm;
 using namespace llvm::coverage;
-using namespace itanium_demangle;
+using namespace llvm::itanium_demangle;
 
 enum class KindProxy
 {
@@ -59,6 +62,54 @@ BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 #define NODE(NodeKind) BOOST_DESCRIBE_ENUM_ENTRY(KindProxy, NodeKind)
 #include <llvm/Demangle/ItaniumNodes.def>
 BOOST_DESCRIBE_ENUM_END()
+
+namespace llvm::coverage {
+BOOST_DESCRIBE_STRUCT(
+    CoverageSegment,
+    (),
+    (Line, Col, Count, HasCount, IsRegionEntry, IsGapRegion));
+BOOST_DESCRIBE_STRUCT(ExpansionRecord, (), (FileID));
+BOOST_DESCRIBE_STRUCT(
+    FunctionRecord,
+    (),
+    (Name,
+     Filenames,
+     CountedRegions,
+     CountedBranchRegions,
+     MCDCRecords,
+     ExecutionCount));
+
+BOOST_DESCRIBE_STRUCT(
+    CounterMappingRegion,
+    (),
+    (Count,
+     FalseCount,
+     MCDCParams,
+     FileID,
+     ExpandedFileID,
+     LineStart,
+     ColumnStart,
+     LineEnd,
+     ColumnEnd,
+     Kind));
+
+BOOST_DESCRIBE_STRUCT(
+    CountedRegion,
+    (CounterMappingRegion),
+    (ExecutionCount, FalseExecutionCount, Folded));
+
+BOOST_DESCRIBE_ENUM(
+    CounterMappingRegion::RegionKind,
+    CodeRegion,
+    ExpansionRegion,
+    SkippedRegion,
+    GapRegion,
+    BranchRegion,
+    MCDCDecisionRegion,
+    MCDCBranchRegion);
+
+}
+
 
 std::string read_file(fs::path const& path) {
     std::ifstream     file{path.native()};
@@ -78,21 +129,27 @@ void CreateTables(SQLite::Database& db) {
     db.exec(sql);
 }
 
-std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
-    return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
-}
+// std::ostream& LOG(std::string const& msg, int line = __builtin_LINE()) {
+//     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
+// }
 
-json::Array& add_array_field(
-    json::Object&      obj,
-    std::string const& field,
-    json::Value const& value) {
-    if (obj.getArray(field) == nullptr) { obj[field] = json::Array(); }
+llvm::json::Array& add_array_field(
+    llvm::json::Object&      obj,
+    std::string const&       field,
+    llvm::json::Value const& value) {
+    if (obj.getArray(field) == nullptr) {
+        obj[field] = llvm::json::Array();
+    }
     obj.getArray(field)->push_back(value);
     return *obj.getArray(field);
 }
 
-json::Object& add_obj_field(json::Object& obj, std::string const& field) {
-    if (obj.getObject(field) == nullptr) { obj[field] = json::Object(); }
+llvm::json::Object& add_obj_field(
+    llvm::json::Object& obj,
+    std::string const&  field) {
+    if (obj.getObject(field) == nullptr) {
+        obj[field] = llvm::json::Object();
+    }
     return *obj.getObject(field);
 }
 
@@ -115,8 +172,8 @@ T match(TNode const* node) {
 }
 
 
-json::Value treeRepr(Node const* node) {
-    json::Object result;
+llvm::json::Value treeRepr(Node const* node) {
+    llvm::json::Object result;
     if (node == nullptr) { return nullptr; }
 
     std::string Kind = std::string{boost::describe::enum_to_string(
@@ -125,7 +182,7 @@ json::Value treeRepr(Node const* node) {
     result["NodeKind"] = Kind;
 
     auto sub = overloaded{
-        [&result](std::string const& field, json::Value value) {
+        [&result](std::string const& field, llvm::json::Value value) {
             result[field] = value;
         },
         [&result](std::string const& field, std::string_view value) {
@@ -138,12 +195,12 @@ json::Value treeRepr(Node const* node) {
             result[field] = treeRepr(value);
         },
         [&result](std::string const& field, NodeArray const& value) {
-            json::Array array;
+            llvm::json::Array array;
             for (auto const& it : value) { array.push_back(treeRepr(it)); }
             if (!array.empty()) { result[field] = std::move(array); }
         },
         [&result](std::string const& field, Qualifiers const& value) {
-            json::Array array;
+            llvm::json::Array array;
             if (value & Qualifiers::QualConst) {
                 array.push_back("QualConst");
             }
@@ -224,7 +281,7 @@ json::Value treeRepr(Node const* node) {
         },
     };
 
-    using K = itanium_demangle::Node::Kind;
+    using K = llvm::itanium_demangle::Node::Kind;
 
 #define K_CAST(Name)                                                      \
     break;                                                                \
@@ -692,19 +749,124 @@ class DefaultAllocator {
 };
 } // unnamed namespace
 
-using Demangler = itanium_demangle::ManglingParser<DefaultAllocator>;
+using Demangler = llvm::itanium_demangle::ManglingParser<DefaultAllocator>;
+
+
+template <>
+struct JsonSerde<Counter> {
+    static json to_json(Counter const& cnt) { return json(); }
+};
+
+template <>
+struct JsonSerde<CountedRegion::MCDCParameters> {
+    static json to_json(CountedRegion::MCDCParameters const& cnt) {
+        return json();
+    }
+};
+
+template <>
+struct JsonSerde<llvm::json::Object> {
+    static json to_json(llvm::json::Object const& obj);
+};
+
+
+template <>
+struct JsonSerde<llvm::json::Array> {
+    static json to_json(llvm::json::Array const& obj);
+};
+
+template <>
+struct JsonSerde<llvm::json::Value> {
+    static json to_json(llvm::json::Value const& value) {
+        using K = llvm::json::Value::Kind;
+        switch (value.kind()) {
+            case K::Null: return json();
+            case K::Number: return value.getAsNumber().value();
+            case K::String: return value.getAsString().value();
+            case K::Boolean: return value.getAsBoolean().value();
+            case K::Array:
+                return JsonSerde<llvm::json::Array>::to_json(
+                    *value.getAsArray());
+            case K::Object:
+                return JsonSerde<llvm::json::Object>::to_json(
+                    *value.getAsObject());
+        }
+    }
+};
+
+
+json JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
+    json result = json::array();
+    for (auto const& it : obj) {
+        result.push_back(JsonSerde<llvm::json::Value>::to_json(it));
+    }
+    return result;
+}
+
+
+json JsonSerde<llvm::json::Object>::to_json(
+    const llvm::json::Object& obj) {
+    json result = json::object();
+    for (auto const& field : obj) {
+        result[field.first.str()] = JsonSerde<llvm::json::Value>::to_json(
+            field.second);
+    }
+    return result;
+}
+
+
+template <>
+struct JsonSerde<FunctionRecord> {
+    static json to_json(FunctionRecord const& func) {
+        json result = JsonSerdeDescribedRecordBase<
+            FunctionRecord>::to_json(func);
+
+        result["DemangledName"] = llvm::demangle(func.Name);
+
+        Demangler Parser(
+            func.Name.data(), func.Name.data() + func.Name.length());
+
+        Node*             AST  = Parser.parse();
+        llvm::json::Value repr = treeRepr(AST);
+        result["ParsedName"] = JsonSerde<llvm::json::Value>::to_json(repr);
+
+        return result;
+    }
+
+    // static FunctionRecord from_json(json const& func) {
+    //     return JsonSerdeDescribedRecordBase<FunctionRecord>::from_json(
+    //         func);
+    // }
+};
+
+template <>
+struct JsonSerde<MCDCRecord> {
+    static json to_json(MCDCRecord const& cnt) { return json(); }
+};
+
+
+template <>
+struct JsonSerde<CoverageMapping> {
+    static json to_json(CoverageMapping const& map) {
+        json result = json::object();
+        for (auto const& it : map.getCoveredFunctions()) {
+            result["functions"].push_back(to_json_eval(it));
+        }
+        return result;
+    }
+};
 
 
 static void loadInput(
-    std::string const& Filename,
-    std::string const& ProfiledBinary,
-    InstrProfWriter*   Writer) {
+    std::string const&     Filename,
+    std::string const&     ProfiledBinary,
+    llvm::InstrProfWriter* Writer) {
 
-    auto FS          = vfs::getRealFileSystem();
-    auto ReaderOrErr = InstrProfReader::create(Filename, *FS);
-    if (Error E = ReaderOrErr.takeError()) {
-        auto [ErrCode, Msg] = InstrProfError::take(std::move(E));
-        if (ErrCode != instrprof_error::empty_raw_profile) {
+    auto FS          = llvm::vfs::getRealFileSystem();
+    auto ReaderOrErr = llvm::InstrProfReader::create(Filename, *FS);
+    if (llvm::Error E = ReaderOrErr.takeError()) {
+        auto [ErrCode, Msg] = llvm::InstrProfError::take(std::move(E));
+        if (ErrCode != llvm::instrprof_error::empty_raw_profile) {
             assert(false);
         }
         return;
@@ -712,10 +874,10 @@ static void loadInput(
 
     auto Reader = std::move(ReaderOrErr.get());
     for (auto& I : *Reader) {
-        const StringRef FuncName = I.Name;
-        bool            Reported = false;
-        Writer->addRecord(std::move(I), 1, [&](Error E) {
-            LOG(std::format("{}", toString(std::move(E))));
+        const llvm::StringRef FuncName = I.Name;
+        bool                  Reported = false;
+        Writer->addRecord(std::move(I), 1, [&](llvm::Error E) {
+            LOG(INFO) << std::format("{}", toString(std::move(E)));
         });
     }
 
@@ -728,19 +890,125 @@ static void loadInput(
     }
 
     if (Reader->hasError()) {
-        if (Error E = Reader->getError()) {
-            LOG(std::format("{} {}", toString(std::move(E)), Filename));
+        if (llvm::Error E = Reader->getError()) {
+            LOG(INFO) << std::format(
+                "{} {}", toString(std::move(E)), Filename);
             return;
         }
     }
 
-    std::vector<object::BuildID> BinaryIds;
-    if (Error E = Reader->readBinaryIds(BinaryIds)) {
-        LOG(std::format("{} {}", toString(std::move(E)), Filename));
+    std::vector<llvm::object::BuildID> BinaryIds;
+    if (llvm::Error E = Reader->readBinaryIds(BinaryIds)) {
+        LOG(INFO) << std::format(
+            "{} {}", toString(std::move(E)), Filename);
         return;
     }
 
     Writer->addBinaryIds(BinaryIds);
+}
+
+struct CoverageMappingLyt {
+    llvm::DenseMap<size_t, llvm::DenseSet<size_t>> RecordProvenance;
+    std::vector<FunctionRecord>                    Functions;
+    llvm::DenseMap<size_t, llvm::SmallVector<unsigned, 0>>
+        FilenameHash2RecordIndices;
+    std::vector<std::pair<std::string, uint64_t>> FuncHashMismatches;
+};
+
+static_assert(sizeof(CoverageMappingLyt) == sizeof(CoverageMapping));
+
+CoverageMappingLyt const* toCoverageMappingLyt(
+    CoverageMapping const* Mapping) {
+    return reinterpret_cast<CoverageMappingLyt const*>(Mapping);
+}
+
+llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
+    CoverageMapping const& Mapping,
+    llvm::StringRef        Filename) {
+    size_t FilenameHash = hash_value(Filename);
+    auto   RecordIt     = toCoverageMappingLyt(&Mapping)
+                        ->FilenameHash2RecordIndices.find(FilenameHash);
+    if (RecordIt
+        == toCoverageMappingLyt(&Mapping)
+               ->FilenameHash2RecordIndices.end()) {
+        return {};
+    }
+    return RecordIt->second;
+}
+
+static std::optional<unsigned> findMainViewFileID(
+    const FunctionRecord& Function) {
+    llvm::SmallBitVector IsNotExpandedFile(
+        Function.Filenames.size(), true);
+    for (const auto& CR : Function.CountedRegions) {
+        if (CR.Kind == CounterMappingRegion::ExpansionRegion) {
+            IsNotExpandedFile[CR.ExpandedFileID] = false;
+        }
+    }
+    int I = IsNotExpandedFile.find_first();
+    if (I == -1) { return std::nullopt; }
+    return I;
+}
+
+static std::optional<unsigned> findMainViewFileID(
+    llvm::StringRef       SourceFile,
+    const FunctionRecord& Function) {
+    std::optional<unsigned> I = findMainViewFileID(Function);
+    if (I && SourceFile == Function.Filenames[*I]) { return I; }
+    return std::nullopt;
+}
+
+static llvm::SmallBitVector gatherFileIDs(
+    llvm::StringRef       SourceFile,
+    const FunctionRecord& Function) {
+    llvm::SmallBitVector FilenameEquivalence(
+        Function.Filenames.size(), false);
+    for (unsigned I = 0, E = Function.Filenames.size(); I < E; ++I) {
+        if (SourceFile == Function.Filenames[I]) {
+            FilenameEquivalence[I] = true;
+        }
+    }
+    return FilenameEquivalence;
+}
+
+
+std::vector<CountedRegion> getRegionsForFile(
+    CoverageMapping const& Mapping,
+    std::string const&     Filename) {
+    std::vector<CountedRegion> Regions;
+
+    // Look up the function records in the given file. Due to hash
+    // collisions on the filename, we may get back some records that are
+    // not in the file.
+    llvm::ArrayRef<unsigned>
+        RecordIndices = getImpreciseRecordIndicesForFilename(
+            Mapping, Filename);
+    auto Access = toCoverageMappingLyt(&Mapping);
+    for (unsigned RecordIndex : RecordIndices) {
+        const FunctionRecord& Function = Access->Functions[RecordIndex];
+        auto MainFileID = findMainViewFileID(Filename, Function);
+        auto FileIDs    = gatherFileIDs(Filename, Function);
+        for (const auto& CR : Function.CountedRegions) {
+            if (FileIDs.test(CR.FileID)) {
+                Regions.push_back(CR);
+                // TODO Integrate expansion regions
+                // if (MainFileID && isExpansion(CR, *MainFileID)) {
+                //     FileCoverage.Expansions.emplace_back(CR, Function);
+                // }
+            }
+        }
+        // Capture branch regions specific to the function (excluding
+        // expansions).
+        for (const auto& CR : Function.CountedBranchRegions) {
+            // TODO integrate branch regions
+            // if (FileIDs.test(CR.FileID)
+            //     && (CR.FileID == CR.ExpandedFileID)) {
+            //     FileCoverage.BranchRegions.push_back(CR);
+            // }
+        }
+    }
+
+    return Regions;
 }
 
 std::string SqlInsert(
@@ -765,15 +1033,12 @@ std::string SqlInsert(
 
 struct queries {
     SQLite::Statement func_region;
-    SQLite::Statement file_branch;
+    SQLite::Statement file_region;
     SQLite::Statement context;
     SQLite::Statement func;
     SQLite::Statement file;
-    SQLite::Statement segment;
-    SQLite::Statement segment_flat;
     SQLite::Statement instantiation_group;
     SQLite::Statement function_instantiation;
-    SQLite::Statement expansion;
 
     queries(SQLite::Database& db)
         : // ---
@@ -787,17 +1052,6 @@ struct queries {
                 }))
         ,
         // ---
-        expansion(
-            db,
-            SqlInsert(
-                "CovExpansionRegion",
-                {
-                    "FileId",
-                    "Region",
-                    "Function",
-                }))
-        ,
-        // ---
         instantiation_group(
             db,
             SqlInsert(
@@ -806,45 +1060,6 @@ struct queries {
                     "Id",   // 1
                     "Line", // 2
                     "Col",  // 3
-                }))
-        ,
-        // ---
-        segment(
-            db,
-            SqlInsert(
-                "CovSegment",
-                {
-                    "Id",           // 1
-                    "LineStart",    // 2
-                    "ColStart",     // 3
-                    "LineEnd",      // 4
-                    "ColEnd",       // 5
-                    "StartCount",   // 6
-                    "EndCount",     // 7
-                    "HasCount",     // 8
-                    "File",         // 9
-                    "Context",      // 10
-                    "SegmentIndex", // 11
-                    "NestedIn",     // 12
-                    "IsLeaf",       // 13
-                    "IsBranch",     // 14
-                }))
-        ,
-        // ---
-        segment_flat(
-            db,
-            SqlInsert(
-                "CovSegmentFlat",
-                {
-                    "Line",          // 1
-                    "Col",           // 2
-                    "Count",         // 3
-                    "HasCount",      // 4
-                    "IsRegionEntry", // 5
-                    "IsGapRegion",   // 6
-                    "File",          // 7
-                    "Context",       // 8
-                    "SegmentIndex",  // 9
                 }))
         ,
         // ---
@@ -868,21 +1083,25 @@ struct queries {
                     "ColumnEnd",           // 13
                     "RegionKind",          // 14
                 }))
-        , file_branch(
-              db,
-              SqlInsert(
-                  "CovFileBranch",
-                  {
-                      "Context",             // 1
-                      "ExecutionCount",      // 2
-                      "FalseExecutionCount", // 3
-                      "Folded",              // 4
-                      "LineStart",           // 5
-                      "ColumnStart",         // 6
-                      "LineEnd",             // 7
-                      "ColumnEnd",           // 8
-                      "RegionKind",          // 9
-                  }))
+        ,
+        // ---
+        file_region(
+            db,
+            SqlInsert(
+                "CovFileRegion",
+                {
+                    "Id",                  // 1
+                    "Context",             // 2
+                    "ExecutionCount",      // 3
+                    "FalseExecutionCount", // 4
+                    "Folded",              // 5
+                    "LineStart",           // 6
+                    "ColumnStart",         // 7
+                    "LineEnd",             // 8
+                    "ColumnEnd",           // 9
+                    "RegionKind",          // 10
+                    "File",                // 11
+                }))
         ,
         // ---
         context(
@@ -923,7 +1142,7 @@ struct queries {
 
 struct CountedRegionHasher {
     size_t operator()(const CounterMappingRegion& region) const {
-        return hash_combine(
+        return llvm::hash_combine(
             std::hash<unsigned>()(region.FileID),
             std::hash<unsigned>()(region.ExpandedFileID),
             std::hash<unsigned>()(region.LineStart),
@@ -958,7 +1177,7 @@ struct FileSpan {
 
 struct FileSpanHasher {
     size_t operator()(const FileSpan& region) const {
-        return hash_combine(
+        return llvm::hash_combine(
             region.LineStart,
             region.LineEnd,
             region.ColStart,
@@ -982,11 +1201,11 @@ struct db_build_ctx {
     int                                  instantiation_id{};
     std::unordered_map<std::string, int> function_ids{};
     std::unordered_map<std::string, int> file_ids{};
-    int                                  segment_counter{};
+    int                                  region_counter{};
     int                                  function_region_counter{};
 
-    std::vector<Regex> file_blacklist;
-    std::vector<Regex> file_whitelist;
+    std::vector<llvm::Regex> file_blacklist;
+    std::vector<llvm::Regex> file_whitelist;
 
     bool file_matches(std::string const& path, std::string& debug) const {
         bool result = false;
@@ -1044,12 +1263,12 @@ int get_function_id(
     FunctionRecord const& f,
     queries&              q,
     db_build_ctx&         ctx) {
-    std::string readeable = demangle(f.Name);
+    std::string readeable = llvm::demangle(f.Name);
 
     Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
 
-    Node*       AST  = Parser.parse();
-    json::Value repr = treeRepr(AST);
+    Node*             AST  = Parser.parse();
+    llvm::json::Value repr = treeRepr(AST);
 
 
     int function_id = -1;
@@ -1096,8 +1315,8 @@ int get_region_id(
         q.func_region.bind(2, function_id);
         q.func_region.bind(3, ctx.context_id);
         q.func_region.bind(4, IsBranch);
-        q.func_region.bind(5, (int64_t)r.ExecutionCount);
-        q.func_region.bind(6, (int64_t)r.FalseExecutionCount);
+        q.func_region.bind(5, static_cast<int>(r.ExecutionCount));
+        q.func_region.bind(6, static_cast<int>(r.FalseExecutionCount));
         q.func_region.bind(7, r.Folded);
         q.func_region.bind(8, get_file_id(r.FileID));
         q.func_region.bind(9, get_file_id(r.ExpandedFileID));
@@ -1159,138 +1378,31 @@ std::string format_range(T begin, T end) {
     return result;
 }
 
-void add_file(CoverageData const& file, queries& q, db_build_ctx& ctx) {
+void add_file(
+    CoverageMapping const* mapping,
+    llvm::StringRef        file,
+    queries&               q,
+    db_build_ctx&          ctx) {
     TRACE_EVENT("sql", "File coverage data");
-    int file_id = ctx.get_file_id(file.getFilename().str(), q);
+    int file_id = ctx.get_file_id(file.str(), q);
 
-
-    struct NestingData {
-        CoverageSegment    segment;
-        int                self_id;
-        std::optional<int> parent;
-        bool               is_leaf;
-    };
-
-    std::vector<std::pair<NestingData, CoverageSegment>> segment_pairs;
-    std::stack<NestingData>                              segment_stack;
-
-    for (auto it : enumerate(file)) {
-        CoverageSegment const& s = it.value();
-        std::string prefix = std::string(segment_stack.size() * 2, ' ');
-        if (s.IsRegionEntry) {
-            ++ctx.segment_counter;
-            if (!segment_stack.empty()) {
-                segment_stack.top().is_leaf = false;
-            }
-            segment_stack.push({
-                .segment = s,
-                .self_id = ctx.segment_counter,
-                .parent  = std::nullopt,
-                .is_leaf = true,
-            });
-        } else {
-            if (!segment_stack.empty()) {
-                segment_pairs.push_back({segment_stack.top(), s});
-                segment_stack.pop();
-                if (!segment_stack.empty()) {
-                    segment_pairs.back().first.parent = segment_stack.top()
-                                                            .self_id;
-                }
-            }
-        }
-
-        q.segment_flat.bind(1, s.Line);
-        q.segment_flat.bind(2, s.Col);
-        q.segment_flat.bind(3, (int64_t)s.Count);
-        q.segment_flat.bind(4, s.HasCount);
-        q.segment_flat.bind(5, s.IsRegionEntry);
-        q.segment_flat.bind(6, s.IsGapRegion);
-        q.segment_flat.bind(7, file_id);
-        q.segment_flat.bind(8, ctx.context_id);
-        q.segment_flat.bind(9, (int)it.index());
-        q.segment_flat.exec();
-        q.segment_flat.reset();
-    }
-
-    std::sort(
-        segment_pairs.begin(),
-        segment_pairs.end(),
-        [](std::pair<NestingData, CoverageSegment> const& lhs,
-           std::pair<NestingData, CoverageSegment> const& rhs) -> bool {
-            return lhs.first.self_id < rhs.first.self_id;
-        });
-
-    std::unordered_map<FileSpan, bool, FileSpanHasher, FileSpanComparator>
-        branch_cache{};
-
-    for (auto it : enumerate(file.getBranches())) {
+    auto regions = getRegionsForFile(*mapping, file.str());
+    for (auto const& it : llvm::enumerate(regions)) {
+        ++ctx.region_counter;
         CountedRegion const& r = it.value();
-        branch_cache.insert_or_assign(
-            FileSpan{
-                .LineStart = r.LineStart,
-                .LineEnd   = r.LineEnd,
-                .ColStart  = r.ColumnStart,
-                .ColEnd    = r.ColumnEnd,
-            },
-            true);
-        q.file_branch.bind(1, ctx.context_id);
-        q.file_branch.bind(2, (int64_t)r.ExecutionCount);
-        q.file_branch.bind(3, (int64_t)r.FalseExecutionCount);
-        q.file_branch.bind(4, r.Folded);
-        q.file_branch.bind(5, (int64_t)r.LineStart);
-        q.file_branch.bind(6, (int64_t)r.ColumnStart);
-        q.file_branch.bind(7, (int64_t)r.LineEnd);
-        q.file_branch.bind(8, (int64_t)r.ColumnEnd);
-        q.func_region.bind(9, r.Kind);
-        q.file_branch.exec();
-        q.file_branch.reset();
-    }
-
-    for (auto it : enumerate(segment_pairs)) {
-        auto const& [nesting, end] = it.value();
-        auto const& start          = nesting.segment;
-
-        q.segment.bind(1, nesting.self_id);
-        q.segment.bind(2, start.Line);
-        q.segment.bind(3, start.Col);
-        q.segment.bind(4, end.Line);
-        q.segment.bind(5, end.Col);
-        q.segment.bind(6, (int64_t)start.Count);
-        q.segment.bind(7, (int64_t)end.Count);
-        q.segment.bind(8, start.HasCount || end.HasCount);
-        q.segment.bind(9, file_id);
-        q.segment.bind(10, ctx.context_id);
-        q.segment.bind(11, (int)it.index());
-        if (nesting.parent) {
-            q.segment.bind(12, *nesting.parent);
-        } else {
-            q.segment.bind(12, nullptr);
-        }
-        q.segment.bind(13, nesting.is_leaf);
-
-        FileSpan span{
-            .LineStart = start.Line,
-            .LineEnd   = end.Line,
-            .ColStart  = start.Col,
-            .ColEnd    = end.Col,
-        };
-
-        q.segment.bind(14, branch_cache.contains(span));
-        q.segment.exec();
-        q.segment.reset();
-    }
-
-
-    for (ExpansionRecord const& e : file.getExpansions()) {
-        int function_id = get_function_id(e.Function, q, ctx);
-        q.expansion.bind(1, e.FileID);
-        q.expansion.bind(
-            2,
-            get_region_id(
-                e.Function, e.Region, false, q, function_id, ctx));
-        q.expansion.bind(3, function_id);
-        q.expansion.exec();
-        q.expansion.reset();
+        q.file_region.bind(1, ctx.region_counter);
+        q.file_region.bind(2, ctx.context_id);
+        q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
+        q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
+        q.file_region.bind(5, r.Folded);
+        q.file_region.bind(6, static_cast<int>(r.LineStart));
+        q.file_region.bind(7, static_cast<int>(r.ColumnStart));
+        q.file_region.bind(8, static_cast<int>(r.LineEnd));
+        q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
+        q.file_region.bind(10, r.Kind);
+        q.file_region.bind(11, file_id);
+        q.file_region.exec();
+        q.file_region.reset();
     }
 }
 
@@ -1341,15 +1453,36 @@ void add_regions(
 }
 
 
-void add_context(json::Object const* run, queries& q, db_build_ctx& ctx) {
+struct ProfdataCookie {
+    std::string                test_binary;
+    std::string                test_name;
+    std::optional<std::string> test_class = std::nullopt;
+    std::string                test_profile;
+    json                       test_params;
+
+    DESC_FIELDS(
+        ProfdataCookie,
+        (test_binary, test_name, test_class, test_profile, test_params));
+};
+
+static_assert(DescribedRecord<ProfdataCookie>, "dbg");
+
+void add_context(
+    ProfdataCookie const& run,
+    queries&              q,
+    db_build_ctx&         ctx) {
     ++ctx.context_id;
 
     q.context.bind(1, ctx.context_id);
-    q.context.bind(2, run->getString("test_name")->str());
-    q.context.bind(3, run->getString("test_class")->str());
-    q.context.bind(4, run->getString("test_profile")->str());
-    q.context.bind(5, llvm::formatv("{0}", *run->get("test_params")));
-    q.context.bind(6, run->getString("test_binary")->str());
+    q.context.bind(2, run.test_name);
+    if (run.test_class) {
+        q.context.bind(3, run.test_class.value());
+    } else {
+        q.context.bind(3, nullptr);
+    }
+    q.context.bind(4, run.test_profile);
+    q.context.bind(5, run.test_params.dump());
+    q.context.bind(6, run.test_binary);
 
     q.context.exec();
     q.context.reset();
@@ -1379,31 +1512,31 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
         "binary_path",
         binary_path);
 
-    InstrProfWriter Writer;
+    llvm::InstrProfWriter Writer;
     {
         TRACE_EVENT("llvm", "Load raw profile coverage");
         loadInput(coverage_path, binary_path, &Writer);
-        LOG(std::format(
-            "Loaded {} binary {}", coverage_path, binary_path));
+        LOG(INFO) << std::format(
+            "Loaded {} binary {}", coverage_path, binary_path);
     }
 
     std::string tmp_path = std::format(
         "/tmp/{}.profdata",
         getMD5Digest(coverage_path, binary_path).digest().str().str());
 
-    std::vector<StringRef> ObjectFilenames;
+    std::vector<llvm::StringRef> ObjectFilenames;
     ObjectFilenames.push_back(binary_path);
     {
         TRACE_EVENT("llvm", "Write converted profile data");
-        std::error_code EC;
-        raw_fd_ostream  Output(tmp_path, EC, sys::fs::OF_None);
+        std::error_code      EC;
+        llvm::raw_fd_ostream Output(tmp_path, EC, llvm::sys::fs::OF_None);
 
         if (EC) {
             throw std::domain_error(std::format(
                 "Error while creating output stream {}", EC.message()));
         }
 
-        if (Error E = Writer.write(Output)) {
+        if (llvm::Error E = Writer.write(Output)) {
             throw std::domain_error(
                 std::format("Failed write: {}", toString(std::move(E))));
         }
@@ -1412,12 +1545,12 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
 
     {
         TRACE_EVENT("llvm", "Load coverage profile data");
-        auto FS = vfs::getRealFileSystem();
-        Expected<std::shared_ptr<CoverageMapping>>
+        auto FS = llvm::vfs::getRealFileSystem();
+        llvm::Expected<std::shared_ptr<CoverageMapping>>
             mapping_or_err = CoverageMapping::load(
                 ObjectFilenames, tmp_path, *FS);
 
-        if (Error E = mapping_or_err.takeError()) {
+        if (llvm::Error E = mapping_or_err.takeError()) {
             throw std::domain_error(std::format(
                 "Failed to load profdata {}", toString(std::move(E))));
         }
@@ -1426,21 +1559,36 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
     }
 }
 
-// struct hash_pair {
-//     template <class T1, class T2>
-//     std::size_t operator() (const std::pair<T1, T2> &pair) const {
-//         auto hash1 = std::hash<T1>{}(pair.first);
-//         auto hash2 = std::hash<T2>{}(pair.second);
-//         return hash1 ^ hash2;
-//     }
-// };
+struct ProfdataCLIConfig {
+    std::string                coverage;
+    std::string                coverage_db;
+    std::optional<std::string> perf_trace     = std::nullopt;
+    std::vector<std::string>   file_whitelist = {".*"};
+    std::vector<std::string>   file_blacklist;
+    std::optional<std::string> debug_file            = std::nullopt;
+    std::optional<std::string> coverage_mapping_dump = std::nullopt;
 
+    DESC_FIELDS(
+        ProfdataCLIConfig,
+        (coverage,
+         coverage_db,
+         perf_trace,
+         file_whitelist,
+         file_blacklist,
+         debug_file,
+         coverage_mapping_dump));
+};
+
+struct ProfdataFullProfile {
+    std::vector<ProfdataCookie> runs;
+    DESC_FIELDS(ProfdataFullProfile, (runs));
+};
+
+
+const char* __asan_default_options() { return "detect_leaks=0"; }
 
 int main(int argc, char** argv) {
-    json::Value debug_value = json::Object();
-    assert(debug_value.getAsObject() != nullptr);
-    json::Object& debug = *debug_value.getAsObject();
-
+    json debug = json::object();
 
     if (argc != 2) {
         throw std::logic_error(
@@ -1456,45 +1604,36 @@ int main(int argc, char** argv) {
         json_parameters = std::string{argv[1]};
     }
 
-    Expected<json::Value> config_value = json::parse(json_parameters);
+    auto config = JsonSerde<ProfdataCLIConfig>::from_json(
+        json::parse(json_parameters));
 
-    if (!config_value) {
-        throw std::domain_error(std::format(
-            "Failed to parse JSON: {}\n{}",
-            toString(config_value.takeError()),
-            json_parameters));
-    }
-
-    auto config = config_value->getAsObject();
 
     auto flush_debug = [&]() {
-        if (config->getString("debug_file")) {
-            fs::path      out_path{config->getString("debug_file")->str()};
+        if (config.debug_file) {
+            fs::path      out_path{config.debug_file.value()};
             std::ofstream os{out_path};
-            os << llvm::formatv("{0:2}", debug_value).str();
+            os << debug.dump();
         }
     };
 
     finally{flush_debug};
 
 
-    LOG(std::format(
-        "Using test summary file {}",
-        config->getString("coverage")->str()));
+    LOG(INFO) << std::format(
+        "Using test summary file {}", config.coverage);
 
-    if (config->getString("debug_file")) {
-        LOG(std::format(
-            "Debug file enabled {}",
-            config->getString("debug_file")->str()));
+    if (config.debug_file) {
+        LOG(INFO) << std::format(
+            "Debug file enabled {}", config.debug_file);
     }
 
-    Expected<json::Value> summary = json::parse(
-        read_file(config->getString("coverage")->str()));
+    auto summary = JsonSerde<ProfdataFullProfile>::from_json(
+        json::parse(read_file(config.coverage)));
 
-    fs::path db_file{config->getString("coverage_db")->str()};
+    fs::path db_file{config.coverage_db};
 
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
-    if (config->getString("perf_trace")) {
+    if (config.perf_trace) {
         perfetto_session = StartProcessTracing("profdata_merger");
     }
 
@@ -1507,56 +1646,44 @@ int main(int argc, char** argv) {
     queries q{db};
 
     db_build_ctx ctx;
-    auto         FS = vfs::getRealFileSystem();
+    auto         FS = llvm::vfs::getRealFileSystem();
 
 
-    auto get_regex_list =
-        [&](std::string const& list_name) -> std::vector<Regex> {
-        std::vector<Regex> result;
-        if (config->getArray(list_name) == nullptr) {
-            throw std::domain_error(std::format(
-                "{} was not supplied in CLI config, cannot get regex "
-                "filters",
-                list_name));
-        }
+    auto get_regex_list = [](std::vector<std::string> const& list)
+        -> std::vector<llvm::Regex> {
+        std::vector<llvm::Regex> result;
 
-        for (auto const& filter : *config->getArray(list_name)) {
-            Regex       r{*filter.getAsString()};
+        for (auto const& filter : list) {
+            llvm::Regex r{filter};
             std::string error;
             if (r.isValid(error)) {
                 result.push_back(std::move(r));
             } else {
-                throw std::domain_error(std::format(
-                    "Failed to compile regex for {}: {}",
-                    list_name,
-                    error));
+                throw std::domain_error(
+                    "Failed to compile regex for " + filter + ": "
+                    + error);
             }
         }
 
         return result;
     };
 
-    ctx.file_blacklist = get_regex_list("file_blacklist");
-    ctx.file_whitelist = get_regex_list("file_whitelist");
+    ctx.file_blacklist = get_regex_list(config.file_blacklist);
+    ctx.file_whitelist = get_regex_list(config.file_whitelist);
 
 
     std::unordered_map<
         std::pair<std::string, std::string>,
         std::shared_ptr<CoverageMapping>,
-        pair_hash<std::string, std::string>>
+        llvm::pair_hash<std::string, std::string>>
         coverage_map;
 
     {
         TRACE_EVENT("llvm", "Parallel convert of coverage data");
         std::vector<std::pair<std::string, std::string>> paths{};
 
-        for (auto const& run_value :
-             *summary->getAsObject()->getArray("runs")) {
-            auto        run           = run_value.getAsObject();
-            std::string coverage_path = run->getString("test_profile")
-                                            ->str();
-            std::string binary_path = run->getString("test_binary")->str();
-            paths.push_back({coverage_path, binary_path});
+        for (auto const& run : summary.runs) {
+            paths.push_back({run.test_profile, run.test_binary});
         }
 
         std::mutex coverage_mutex;
@@ -1572,27 +1699,46 @@ int main(int argc, char** argv) {
             });
     }
 
-    for (auto const& run_value :
-         *summary->getAsObject()->getArray("runs")) {
+    if (config.coverage_mapping_dump) {
+        LOG(INFO) << fmt(
+            "Coverage mapping dump to {}",
+            config.coverage_mapping_dump.value());
+    }
+
+    for (auto const& [run_idx, run] : enumerate(summary.runs)) {
         TRACE_EVENT("main", "Insert run data");
         finally{flush_debug};
 
-        json::Object j_run;
-        auto         run           = run_value.getAsObject();
-        std::string  coverage_path = run->getString("test_profile")->str();
-        std::string  binary_path   = run->getString("test_binary")->str();
         ctx.function_region_ids.clear();
 
         add_context(run, q, ctx);
 
         std::shared_ptr<CoverageMapping> mapping = coverage_map.at(
-            {coverage_path, binary_path});
+            {run.test_profile, run.test_binary});
 
 
         if (mapping.get() == nullptr) {
-            throw std::logic_error("Failed to load coverage mapping");
+            throw std::logic_error(
+                fmt("Failed to load coverage mapping profile={} binary={}",
+                    run.test_profile,
+                    run.test_binary));
         }
 
+        if (config.coverage_mapping_dump) {
+            auto j = to_json_eval(*mapping);
+            auto path //
+                = fs::path{*config.coverage_mapping_dump}
+                / fmt("coverage_mapping_{}.json", run_idx);
+
+            LOG(INFO) << fmt(
+                "profile={} binary={} coverage-mapping-dump={}",
+                run.test_profile,
+                run.test_binary,
+                path);
+            writeFile(path, j.dump(2));
+        }
+
+        json j_run = json::object();
         {
             TRACE_EVENT("sql", "Full coverage run info");
             db.exec("BEGIN");
@@ -1607,37 +1753,33 @@ int main(int argc, char** argv) {
 
             {
                 TRACE_EVENT("sql", "Covered files");
-                json::Object& j_files = add_obj_field(
-                    j_run, "covered_files");
+                json j_files = json::object();
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
                     if (!ctx.file_matches(file.str(), debug)) {
-                        add_array_field(
-                            j_files,
-                            "skipped",
-                            json::Object({
-                                {"file", file.str()},
-                                {"reason", debug},
-                            }));
+                        j_files["skipped"].push_back(json::object({
+                            {"file", file.str()},
+                            {"reason", debug},
+                        }));
                         continue;
                     }
                     TRACE_EVENT("sql", "Add file", "File", file.str());
-                    TRACE_EVENT_BEGIN("llvm", "Get coverage for file");
-                    CoverageData cover = mapping->getCoverageForFile(file);
-                    TRACE_EVENT_END("llvm");
-                    add_file(cover, q, ctx);
+                    add_file(mapping.get(), file, q, ctx);
                     add_instantiations(mapping, file.str(), q, ctx);
                 }
+
+                j_run["covered_files"] = j_files;
             }
 
             db.exec("COMMIT");
         }
 
-        add_array_field(debug, "runs", std::move(j_run));
+
+        debug["runs"].push_back(j_run);
     }
 
-    if (config->getString("perf_trace")) {
-        fs::path out_path{config->getString("perf_trace")->str()};
+    if (config.perf_trace) {
+        fs::path out_path{config.perf_trace.value()};
         StopTracing(std::move(perfetto_session), out_path);
     }
 }

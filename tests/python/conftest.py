@@ -19,9 +19,21 @@ from plumbum import local
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 from py_scriptutils.tracer import TraceCollector
 from beartype.typing import List
+from asteval import Interpreter
+import logging
+import ast
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+import warnings
 
 trace_collector: TraceCollector = None
 
+
+
+def pytest_configure(config):
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic._internal._config")
+    warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
+    warnings.filterwarnings("ignore", category=pytest.PytestRemovedIn9Warning, module="tests.python.conftest")
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="dominate.dom_tag")
 
 def get_trace_collector():
     global trace_collector
@@ -59,13 +71,15 @@ STDERR: {stderr.decode()}
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
 
+
 @pytest.fixture(scope="session", autouse=True)
 def trace_session():
     get_trace_collector().push_complete_event("session", "test-session")
 
     if not is_ci():
         xvfb = local["Xvfb"]
-        xvfb_process = xvfb.popen(args=[GUI_SCREEN_DISPLAY, "-srceen", "0", "1280x1024x24"])
+        xvfb_process = xvfb.popen(
+            args=[GUI_SCREEN_DISPLAY, "-srceen", "0", "1280x1024x24"])
 
         if xvfb_process.poll() is not None:  # None means still running
             output, errors = xvfb_process.communicate()
@@ -111,15 +125,28 @@ def pytest_collect_file(parent: Module, path: str):
     def debug(it, file):
         pprint_to_file(to_debug_json(it), file + ".json")
 
-    if test.name == "test_integrate_cxx_org.py":
+    if test.name.startswith("test_integrate_cxx"):
+        if test.name.endswith("_cxx_org.py"):
+            binary_path = "build/haxorg/tests_org"
+
+        else:
+            binary_path = "build/haxorg/src/hstd/tests_hstd"
+
+        binary_path = get_haxorg_repo_root_path().joinpath(binary_path)
+
+        assert binary_path.exists(), f"{binary_path} {test.name}"
+
         coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
         result = GTestFile.from_parent(
             parent,
             path=test,
             coverage_out_dir=coverage and Path(coverage),
+            binary_path=binary_path,
         )
 
-        debug(result, "/tmp/google_tests")
+        if test.name.endswith("_cxx_hstd.py"):
+            debug(result, "/tmp/google_tests_cxx_hstd")
+            
         return result
 
     elif test.name == "test_integrate_qt.py":
@@ -143,3 +170,76 @@ def pytest_runtest_makereport(item: Item, call: CallInfo) -> pytest.TestReport:
             rep.outcome = "xfailed"
             rep.wasxfail = "reason: This test is known to be unstable"
             return rep
+
+
+class FunctionNameExtractor(ast.NodeVisitor):
+
+    def __init__(self):
+        self.function_names = []
+
+    def visit_Call(self, node: ast.Call):
+        if isinstance(node.func, ast.Name):
+            self.function_names.append(node.func.id)
+        self.generic_visit(node)
+
+
+def get_function_names(expression: str) -> List[str]:
+    parsed_ast = ast.parse(expression, mode='eval')
+    extractor = FunctionNameExtractor()
+    extractor.visit(parsed_ast)
+    return extractor.function_names
+
+
+def pytest_collection_modifyitems(config: pytest.Config,
+                                  items: List[pytest.Item]) -> None:
+    filter = config.getoption("--markfilter")
+
+    if filter:
+        selected_items: List[pytest.Item] = []
+        deselected_items: List[pytest.Item] = []
+
+        aeval = Interpreter()
+
+        for item in items:
+
+            def has_params(mark: pytest.Mark, *args: list, **kwargs: dict) -> bool:
+                if len(mark.args) < len(args):
+                    return False
+
+                if len(mark.kwargs) < len(mark.kwargs):
+                    return False
+
+                for idx, positional in enumerate(args):
+                    if positional != mark.args[idx]:
+                        return False
+
+                for key, value in kwargs.items():
+                    if key not in mark.kwargs or mark.kwargs[key] != value:
+                        return False
+
+                return True
+
+            def has_marker(name: str, *args: list, **kwargs: dict) -> bool:
+                return any(
+                    has_params(mark, *args, **kwargs)
+                    for mark in item.iter_markers()
+                    if mark.name == name)
+
+            names = get_function_names(filter)
+            for name in names:
+
+                def impl(*args, **kwargs):
+                    return has_marker(name, *args, **kwargs)
+
+                aeval.symtable[name] = impl
+
+            keep: bool = aeval(filter)
+
+            if keep:
+                selected_items.append(item)
+            else:
+                deselected_items.append(item)
+
+        if deselected_items:
+            config.hook.pytest_deselected(items=deselected_items)
+        items[:] = selected_items

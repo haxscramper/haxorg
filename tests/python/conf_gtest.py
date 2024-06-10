@@ -10,6 +10,7 @@ import subprocess
 from pydantic import BaseModel, Field
 import json
 from py_repository.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
+import plumbum
 
 COOKIE_SUFFIX = ".profdata-cookie"
 
@@ -37,6 +38,7 @@ def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
 class GTestParams():
     class_name: str
     test_name: str
+    binary_path: Path
     parameter_name: Optional[str] = None
     parameter_desc: Optional[dict] = None
     coverage_out_dir: Optional[Path] = None
@@ -86,16 +88,19 @@ class GTestParams():
             return f"{self.class_name}.{self.test_name}"
 
 
-def parse_google_tests(binary_path: str) -> list[GTestParams]:
-    result = subprocess.run(
-        [binary_path, "--gtest_list_tests"],
-        capture_output=True,
-        text=True,
-    )
+@beartype
+def parse_google_tests(binary_path: Path) -> list[GTestParams]:
+    assert binary_path.exists(), binary_path
+    cmd = plumbum.local[binary_path]
+    code, stdout, stderr = cmd.run(["--gtest_list_tests"])
+
+    print("----")
+    # print(result.stdout)
+    print(binary_path)
     tests = []
     current_suite = None
 
-    for line in result.stdout.splitlines():
+    for line in stdout.splitlines():
         if line.endswith('.'):
             current_suite = line[:-1]
         else:
@@ -106,18 +111,21 @@ def parse_google_tests(binary_path: str) -> list[GTestParams]:
                     GTestParams(
                         class_name=current_suite,
                         test_name=main_name,
+                        binary_path=binary_path,
                         parameter_name=parameter_name,
                         parameter_desc=json.loads(
                             line.strip().split('# GetParam() = ')[1]),
                     ))
 
             else:
-                tests.append(GTestParams(class_name=current_suite, test_name=test_name))
+                tests.append(
+                    GTestParams(
+                        class_name=current_suite,
+                        test_name=test_name,
+                        binary_path=binary_path,
+                    ))
 
     return tests
-
-
-binary_path: str = str(get_haxorg_repo_root_path().joinpath("build/haxorg/tests_org"))
 
 
 class GTestClass(pytest.Class):
@@ -126,6 +134,7 @@ class GTestClass(pytest.Class):
         super().__init__(name, parent)
         self.tests: list[GTestParams] = []
         self.coverage_out_dir = coverage_out_dir
+        self.add_marker(pytest.mark.test_gtest_class(name, []))
 
     def add_test(self, test: GTestParams):
         self.tests.append(test)
@@ -157,7 +166,7 @@ class GTestRunError(Exception):
             result.append(self.shell_error.stdout)
 
         if self.shell_error.stderr:
-            result.append(self.shell_error.stderr)
+            result.append(self.shell_error.stderr())
 
         return "\n".join(result)
 
@@ -168,9 +177,10 @@ class GTestItem(pytest.Function):
         super().__init__(*args, **kwargs)
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
+        self.add_marker(pytest.mark.test_gtest_function(gtest.item_name, []))
 
     def runtest(self):
-        test = Path(binary_path)
+        test = Path(self.gtest.binary_path)
 
         def run(env: Optional[dict] = None):
             try:
@@ -181,7 +191,7 @@ class GTestItem(pytest.Function):
                 cmd.run(self.gtest.gtest_params())
 
             except ProcessExecutionError as e:
-                raise GTestRunError(e, self) from None
+                raise GTestRunError(e, self) 
 
         if self.coverage_out_dir:
             uniq_name = self.gtest.fullname()
@@ -202,11 +212,11 @@ class GTestItem(pytest.Function):
         else:
             run()
 
-    @property
-    def location(self) -> Tuple[str, Optional[int], str]:
-        # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
-        return (self.gtest.get_source_file(), self.gtest.get_source_line(),
-                self.gtest.fullname())
+    # @property
+    # def location(self) -> Tuple[str, Optional[int], str]:
+    #     # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
+    #     return (self.gtest.get_source_file(), self.gtest.get_source_line(),
+    #             self.gtest.fullname())
 
     def _getobj(self):
         # Return a dummy function
@@ -215,7 +225,7 @@ class GTestItem(pytest.Function):
 
 class GTestFile(pytest.Module):
 
-    def __init__(self, coverage_out_dir: Path, *args, **kwargs):
+    def __init__(self, binary_path: Path, coverage_out_dir: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.test_classes: List[GTestClass] = []
         class_tests = {}

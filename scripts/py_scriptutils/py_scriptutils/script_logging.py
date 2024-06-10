@@ -7,6 +7,7 @@ import sys
 from types import MethodType
 from rich.text import Text
 from rich.console import Console
+import enum
 
 
 def to_debug_json(
@@ -20,6 +21,9 @@ def to_debug_json(
         if isinstance(obj, (int, float, str, bool, type(None))):
             return obj
 
+        elif isinstance(obj, (enum.Enum, enum.IntEnum, enum.StrEnum)):
+            return str(obj)
+
         if id(obj) in visited:
             return f"cycle {type(obj)} {id(obj)}"
 
@@ -27,17 +31,9 @@ def to_debug_json(
 
         # Handle different data types
         if isinstance(obj, dict):
-            safe_keys: dict[int | float | str | bool | None, any] = {}
-            for key, value in obj.items():
-                if isinstance(key, (int, float, str, bool, type(None))):
-                    safe_keys[key] = value
-
-                else:
-                    safe_keys[str(key)] = value
-
             result = {}
-            for key, value in safe_keys.items():
-                result[key] = aux(value)
+            for key, value in obj.items():
+                result[str(key)] = aux(value)
 
             return result
 
@@ -48,6 +44,7 @@ def to_debug_json(
             return f"{obj}"
 
         else:
+
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
@@ -79,12 +76,14 @@ def to_debug_json(
     return aux(obj)
 
 
-def pprint_to_file(value, path: str):
+def pprint_to_file(value, path: str, width: int = 120):
     # Built-in python pprint is too broken for regular uses -- output is not
     # always rendered to the max column limit is the biggest problem and I could
     # not find any way to print converted translation unit safely.
     with open(path, "w") as file:
-        pprint(value, console=Console(file=file, force_terminal=True, color_system=None))
+        print("# pyright: reportUndefinedVariable=false", file=file)
+        from py_scriptutils.rich_utils import render_rich_pprint
+        print(render_rich_pprint(value, width=width, color=False), file=file)
 
 
 class NoTTYFormatter(logging.Formatter):

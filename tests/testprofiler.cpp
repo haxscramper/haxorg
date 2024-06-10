@@ -19,9 +19,7 @@ extern "C" int  __llvm_profile_write_file(void);
 Vec<TestProfiler::RunRecord> TestProfiler::runRecords;
 
 json TestProfiler::getJsonRecords() {
-    json res;
-    to_json(res, TestProfiler::runRecords);
-    return res;
+    return to_json_eval(TestProfiler::runRecords);
 }
 
 std::string get_current_program_name() {
@@ -101,9 +99,7 @@ void TestProfiler::SetUp() {
     __perf_trace("cli", "Setup test");
 
 #ifdef ORG_USE_PGO
-    if (fs::exists(pgo_path)) {
-        fs::remove(pgo_path);
-    }
+    if (fs::exists(pgo_path)) { fs::remove(pgo_path); }
     __llvm_profile_set_filename(pgo_path.data());
 #endif
 
@@ -227,9 +223,7 @@ void TestProfiler::TearDown() {
     rec.metadata   = metadata;
 
 #ifdef ORG_USE_XRAY
-    if (hasXray) {
-        rec.xray_path = xray_path;
-    }
+    if (hasXray) { rec.xray_path = xray_path; }
 #endif
 
 #ifdef ORG_USE_PGO

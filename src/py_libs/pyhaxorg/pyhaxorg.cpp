@@ -1,5 +1,6 @@
 /* clang-format off */
 #undef slots
+#define PYBIND11_DETAILED_ERROR_MESSAGES
 #include <pybind11/pybind11.h>
 #include <sem/SemOrg.hpp>
 #include <pybind11/stl.h>
@@ -42,6 +43,14 @@ PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgSelectorCondition>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::OrgSelectorCondition>)
 PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotationTag>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotationTag>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotation>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotation>)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegmentGroup>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
@@ -63,6 +72,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree");
   bind_vector<sem::OrgSelectorCondition>(m, "VecOfOrgSelectorCondition");
   bind_int_set<OrgSemKind>(m, "IntSetOfOrgSemKind");
+  bind_vector<SequenceSegment>(m, "VecOfSequenceSegment");
+  bind_vector<SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag");
+  bind_vector<SequenceAnnotation>(m, "VecOfSequenceAnnotation");
+  bind_vector<SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup");
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("documentId", &sem::Org::documentId, R"RAW(\brief Application specific ID of the original document)RAW")
@@ -106,6 +119,14 @@ node can have subnodes.)RAW")
     .def_readwrite("line", &LineCol::line)
     .def_readwrite("column", &LineCol::column)
     .def_readwrite("pos", &LineCol::pos)
+    .def("__repr__", [](LineCol _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](LineCol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Stmt, sem::SemId<sem::Stmt>, sem::Org>(m, "Stmt")
     .def_readwrite("attached", &sem::Stmt::attached)
@@ -121,6 +142,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::StmtList _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::StmtList _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Empty, sem::SemId<sem::Empty>, sem::Org>(m, "Empty")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Empty {
@@ -128,6 +157,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Empty _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Empty _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Cell, sem::SemId<sem::Cell>, sem::Org>(m, "Cell")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Cell {
@@ -135,6 +172,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Cell _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Cell _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Row, sem::SemId<sem::Row>, sem::Org>(m, "Row")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Row {
@@ -143,6 +188,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("cells", &sem::Row::cells, R"RAW(List of cells on the row)RAW")
+    .def("__repr__", [](sem::Row _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Row _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Table, sem::SemId<sem::Table>, sem::Stmt>(m, "Table")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Table {
@@ -155,6 +208,14 @@ node can have subnodes.)RAW")
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::Table::*)(OrgSemKind)>(&sem::Table::getAttached),
          pybind11::arg("kind"))
+    .def("__repr__", [](sem::Table _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Table _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::HashTag, sem::SemId<sem::HashTag>, sem::Inline>(m, "HashTag")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::HashTag {
@@ -168,6 +229,14 @@ node can have subnodes.)RAW")
          static_cast<bool(sem::HashTag::*)(Vec<Str> const&) const>(&sem::HashTag::prefixMatch),
          pybind11::arg("prefix"),
          R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
+    .def("__repr__", [](sem::HashTag _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::HashTag _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Footnote, sem::SemId<sem::Footnote>, sem::Inline>(m, "Footnote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Footnote {
@@ -177,6 +246,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("tag", &sem::Footnote::tag, R"RAW(Footnote text target name)RAW")
     .def_readwrite("definition", &sem::Footnote::definition, R"RAW(Link to possibly resolved definition)RAW")
+    .def("__repr__", [](sem::Footnote _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Footnote _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Completion, sem::SemId<sem::Completion>, sem::Inline>(m, "Completion")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Completion {
@@ -187,6 +264,14 @@ node can have subnodes.)RAW")
     .def_readwrite("done", &sem::Completion::done, R"RAW(Number of completed tasks)RAW")
     .def_readwrite("full", &sem::Completion::full, R"RAW(Full number of tasks)RAW")
     .def_readwrite("isPercent", &sem::Completion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
+    .def("__repr__", [](sem::Completion _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Completion _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Paragraph, sem::SemId<sem::Paragraph>, sem::Stmt>(m, "Paragraph")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Paragraph {
@@ -198,6 +283,14 @@ node can have subnodes.)RAW")
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::Paragraph::*)(OrgSemKind)>(&sem::Paragraph::getAttached),
          pybind11::arg("kind"))
+    .def("__repr__", [](sem::Paragraph _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Paragraph _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::AnnotatedParagraph::None>(m, "AnnotatedParagraphNone")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::None {
@@ -205,6 +298,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::AnnotatedParagraph::None _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AnnotatedParagraph::None _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::AnnotatedParagraph::Footnote>(m, "AnnotatedParagraphFootnote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Footnote {
@@ -213,6 +314,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::AnnotatedParagraph::Footnote::name)
+    .def("__repr__", [](sem::AnnotatedParagraph::Footnote _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AnnotatedParagraph::Footnote _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::AnnotatedParagraph::Admonition>(m, "AnnotatedParagraphAdmonition")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Admonition {
@@ -221,6 +330,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::AnnotatedParagraph::Admonition::name, R"RAW(Prefix admonition for the paragraph)RAW")
+    .def("__repr__", [](sem::AnnotatedParagraph::Admonition _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AnnotatedParagraph::Admonition _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::AnnotatedParagraph::Timestamp>(m, "AnnotatedParagraphTimestamp")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Timestamp {
@@ -229,6 +346,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("time", &sem::AnnotatedParagraph::Timestamp::time, R"RAW(Leading timestamp for the paragraph)RAW")
+    .def("__repr__", [](sem::AnnotatedParagraph::Timestamp _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AnnotatedParagraph::Timestamp _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::AnnotatedParagraph::AnnotationKind>(m, "AnnotatedParagraphAnnotationKind");
   pybind11::enum_<sem::AnnotatedParagraph::AnnotationKind>(m, "AnnotatedParagraphAnnotationKind")
@@ -261,6 +386,14 @@ node can have subnodes.)RAW")
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::AnnotatedParagraph::*)(OrgSemKind)>(&sem::AnnotatedParagraph::getAttached),
          pybind11::arg("kind"))
+    .def("__repr__", [](sem::AnnotatedParagraph _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AnnotatedParagraph _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Format, sem::SemId<sem::Format>, sem::Org>(m, "Format")
     ;
@@ -270,6 +403,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Center _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Center _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Command, sem::SemId<sem::Command>, sem::Org>(m, "Command")
     ;
@@ -286,6 +427,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Caption::text, R"RAW(Content description)RAW")
+    .def("__repr__", [](sem::Caption _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Caption _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::CmdName, sem::SemId<sem::CmdName>, sem::Attached>(m, "CmdName")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdName {
@@ -293,6 +442,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::CmdName _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdName _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::CmdResults, sem::SemId<sem::CmdResults>, sem::Attached>(m, "CmdResults")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdResults {
@@ -300,6 +457,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::CmdResults _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdResults _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::CommandGroup, sem::SemId<sem::CommandGroup>, sem::Stmt>(m, "CommandGroup")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CommandGroup {
@@ -311,6 +476,14 @@ node can have subnodes.)RAW")
     .def("getAttached",
          static_cast<Opt<sem::SemId<sem::Org>>(sem::CommandGroup::*)(OrgSemKind)>(&sem::CommandGroup::getAttached),
          pybind11::arg("kind"))
+    .def("__repr__", [](sem::CommandGroup _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CommandGroup _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Block, sem::SemId<sem::Block>, sem::Command>(m, "Block")
     .def_readwrite("parameters", &sem::Block::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
@@ -324,6 +497,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Tblfm _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Quote, sem::SemId<sem::Quote>, sem::Org>(m, "Quote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Quote {
@@ -331,6 +512,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Quote _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Quote _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::CommentBlock, sem::SemId<sem::CommentBlock>, sem::Org>(m, "CommentBlock")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CommentBlock {
@@ -338,6 +527,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::CommentBlock _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CommentBlock _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Verse, sem::SemId<sem::Verse>, sem::Block>(m, "Verse")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Verse {
@@ -349,6 +546,14 @@ node can have subnodes.)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Verse::*)(Str const&) const>(&sem::Verse::getParameter),
          pybind11::arg("key"))
+    .def("__repr__", [](sem::Verse _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Verse _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Example, sem::SemId<sem::Example>, sem::Block>(m, "Example")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Example {
@@ -360,6 +565,14 @@ node can have subnodes.)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Example::*)(Str const&) const>(&sem::Example::getParameter),
          pybind11::arg("key"))
+    .def("__repr__", [](sem::Example _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Example _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::ColonExample, sem::SemId<sem::ColonExample>, sem::Org>(m, "ColonExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColonExample {
@@ -367,6 +580,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::ColonExample _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColonExample _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::CmdArguments, sem::SemId<sem::CmdArguments>, sem::Org>(m, "CmdArguments")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdArguments {
@@ -379,6 +600,14 @@ node can have subnodes.)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdArguments::*)(Str const&) const>(&sem::CmdArguments::getParameter),
          pybind11::arg("key"))
+    .def("__repr__", [](sem::CmdArguments _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdArguments _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::CmdAttr, sem::SemId<sem::CmdAttr>, sem::Attached>(m, "CmdAttr")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdAttr {
@@ -388,6 +617,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("target", &sem::CmdAttr::target)
     .def_readwrite("parameters", &sem::CmdAttr::parameters, R"RAW(HTML attributes)RAW")
+    .def("__repr__", [](sem::CmdAttr _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdAttr _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::CmdArgument, sem::SemId<sem::CmdArgument>, sem::Org>(m, "CmdArgument")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdArgument {
@@ -400,6 +637,14 @@ node can have subnodes.)RAW")
     .def("getInt", static_cast<Opt<int>(sem::CmdArgument::*)() const>(&sem::CmdArgument::getInt), R"RAW(Parse argument as integer value)RAW")
     .def("getBool", static_cast<Opt<bool>(sem::CmdArgument::*)() const>(&sem::CmdArgument::getBool), R"RAW(Get argument as bool)RAW")
     .def("getString", static_cast<Str(sem::CmdArgument::*)() const>(&sem::CmdArgument::getString), R"RAW(Get original string)RAW")
+    .def("__repr__", [](sem::CmdArgument _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdArgument _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Export::Format>(m, "ExportFormat");
   pybind11::enum_<sem::Export::Format>(m, "ExportFormat")
@@ -426,6 +671,14 @@ node can have subnodes.)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Export::*)(Str const&) const>(&sem::Export::getParameter),
          pybind11::arg("key"))
+    .def("__repr__", [](sem::Export _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Export _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::AdmonitionBlock, sem::SemId<sem::AdmonitionBlock>, sem::Block>(m, "AdmonitionBlock")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AdmonitionBlock {
@@ -437,6 +690,14 @@ node can have subnodes.)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::AdmonitionBlock::*)(Str const&) const>(&sem::AdmonitionBlock::getParameter),
          pybind11::arg("key"))
+    .def("__repr__", [](sem::AdmonitionBlock _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AdmonitionBlock _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Call, sem::SemId<sem::Call>, sem::Org>(m, "Call")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Call {
@@ -445,6 +706,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::Call::name, R"RAW(Call target name)RAW")
+    .def("__repr__", [](sem::Call _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Call _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Line::Part::Raw>(m, "CodeLinePartRaw")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Line::Part::Raw {
@@ -453,6 +722,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("code", &sem::Code::Line::Part::Raw::code)
+    .def("__repr__", [](sem::Code::Line::Part::Raw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Line::Part::Raw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Line::Part::Callout>(m, "CodeLinePartCallout")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Line::Part::Callout {
@@ -461,6 +738,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::Code::Line::Part::Callout::name)
+    .def("__repr__", [](sem::Code::Line::Part::Callout _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Line::Part::Callout _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Line::Part::Tangle>(m, "CodeLinePartTangle")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Line::Part::Tangle {
@@ -469,6 +754,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &sem::Code::Line::Part::Tangle::target)
+    .def("__repr__", [](sem::Code::Line::Part::Tangle _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Line::Part::Tangle _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Code::Line::Part::Kind>(m, "CodeLinePartKind");
   pybind11::enum_<sem::Code::Line::Part::Kind>(m, "CodeLinePartKind")
@@ -495,6 +788,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::Code::Line::Part::Kind(*)(sem::Code::Line::Part::Data const&)>(&sem::Code::Line::Part::getKind),
                 pybind11::arg("__input"))
     .def("getKind", static_cast<sem::Code::Line::Part::Kind(sem::Code::Line::Part::*)() const>(&sem::Code::Line::Part::getKind))
+    .def("__repr__", [](sem::Code::Line::Part _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Line::Part _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Line>(m, "CodeLine")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Line {
@@ -503,6 +804,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("parts", &sem::Code::Line::parts, R"RAW(parts of the single line)RAW")
+    .def("__repr__", [](sem::Code::Line _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Line _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Switch::LineStart>(m, "CodeSwitchLineStart")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Switch::LineStart {
@@ -512,6 +821,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("start", &sem::Code::Switch::LineStart::start, R"RAW(First line number)RAW")
     .def_readwrite("extendLast", &sem::Code::Switch::LineStart::extendLast, R"RAW(Continue numbering from the previous block nstead of starting anew)RAW")
+    .def("__repr__", [](sem::Code::Switch::LineStart _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Switch::LineStart _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Switch::CalloutFormat>(m, "CodeSwitchCalloutFormat")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Switch::CalloutFormat {
@@ -520,6 +837,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("format", &sem::Code::Switch::CalloutFormat::format)
+    .def("__repr__", [](sem::Code::Switch::CalloutFormat _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Switch::CalloutFormat _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Switch::RemoveCallout>(m, "CodeSwitchRemoveCallout")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Switch::RemoveCallout {
@@ -528,6 +853,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("remove", &sem::Code::Switch::RemoveCallout::remove)
+    .def("__repr__", [](sem::Code::Switch::RemoveCallout _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Switch::RemoveCallout _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Switch::EmphasizeLine>(m, "CodeSwitchEmphasizeLine")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Switch::EmphasizeLine {
@@ -536,6 +869,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("line", &sem::Code::Switch::EmphasizeLine::line)
+    .def("__repr__", [](sem::Code::Switch::EmphasizeLine _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Switch::EmphasizeLine _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Code::Switch::Dedent>(m, "CodeSwitchDedent")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::Switch::Dedent {
@@ -544,6 +885,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("value", &sem::Code::Switch::Dedent::value)
+    .def("__repr__", [](sem::Code::Switch::Dedent _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Switch::Dedent _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Code::Switch::Kind>(m, "CodeSwitchKind");
   pybind11::enum_<sem::Code::Switch::Kind>(m, "CodeSwitchKind")
@@ -574,6 +923,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::Code::Switch::Kind(*)(sem::Code::Switch::Data const&)>(&sem::Code::Switch::getKind),
                 pybind11::arg("__input"))
     .def("getKind", static_cast<sem::Code::Switch::Kind(sem::Code::Switch::*)() const>(&sem::Code::Switch::getKind))
+    .def("__repr__", [](sem::Code::Switch _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::Switch _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Code::Results>(m, "CodeResults");
   pybind11::enum_<sem::Code::Results>(m, "CodeResults")
@@ -615,6 +972,14 @@ node can have subnodes.)RAW")
     .def("getParameter",
          static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Code::*)(Str const&) const>(&sem::Code::getParameter),
          pybind11::arg("key"))
+    .def("__repr__", [](sem::Code _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Time::Repeat::Mode>(m, "TimeRepeatMode");
   pybind11::enum_<sem::Time::Repeat::Mode>(m, "TimeRepeatMode")
@@ -651,6 +1016,14 @@ node can have subnodes.)RAW")
     .def_readwrite("mode", &sem::Time::Repeat::mode, R"RAW(mode)RAW")
     .def_readwrite("period", &sem::Time::Repeat::period, R"RAW(period)RAW")
     .def_readwrite("count", &sem::Time::Repeat::count, R"RAW(count)RAW")
+    .def("__repr__", [](sem::Time::Repeat _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Time::Repeat _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Time::Static>(m, "TimeStatic")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Time::Static {
@@ -660,6 +1033,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("repeat", &sem::Time::Static::repeat)
     .def_readwrite("time", &sem::Time::Static::time)
+    .def("__repr__", [](sem::Time::Static _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Time::Static _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Time::Dynamic>(m, "TimeDynamic")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Time::Dynamic {
@@ -668,6 +1049,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("expr", &sem::Time::Dynamic::expr)
+    .def("__repr__", [](sem::Time::Dynamic _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Time::Dynamic _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Time::TimeKind>(m, "TimeTimeKind");
   pybind11::enum_<sem::Time::TimeKind>(m, "TimeTimeKind")
@@ -693,6 +1082,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::Time::TimeKind(*)(sem::Time::TimeVariant const&)>(&sem::Time::getTimeKind),
                 pybind11::arg("__input"))
     .def("getTimeKind", static_cast<sem::Time::TimeKind(sem::Time::*)() const>(&sem::Time::getTimeKind))
+    .def("__repr__", [](sem::Time _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Time _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::TimeRange, sem::SemId<sem::TimeRange>, sem::Org>(m, "TimeRange")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::TimeRange {
@@ -702,6 +1099,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("from_", &sem::TimeRange::from, R"RAW(Starting time)RAW")
     .def_readwrite("to", &sem::TimeRange::to, R"RAW(Finishing time)RAW")
+    .def("__repr__", [](sem::TimeRange _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::TimeRange _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Macro, sem::SemId<sem::Macro>, sem::Org>(m, "Macro")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Macro {
@@ -711,6 +1116,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &sem::Macro::name, R"RAW(Macro name)RAW")
     .def_readwrite("arguments", &sem::Macro::arguments, R"RAW(Raw uninterpreted macro arguments)RAW")
+    .def("__repr__", [](sem::Macro _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Macro _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Symbol::Param>(m, "SymbolParam")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Symbol::Param {
@@ -720,6 +1133,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("key", &sem::Symbol::Param::key, R"RAW(Key -- for non-positional)RAW")
     .def_readwrite("value", &sem::Symbol::Param::value, R"RAW(Uninterpreted value)RAW")
+    .def("__repr__", [](sem::Symbol::Param _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Symbol::Param _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Symbol, sem::SemId<sem::Symbol>, sem::Org>(m, "Symbol")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Symbol {
@@ -730,6 +1151,14 @@ node can have subnodes.)RAW")
     .def_readwrite("name", &sem::Symbol::name, R"RAW(Name of the symbol)RAW")
     .def_readwrite("parameters", &sem::Symbol::parameters, R"RAW(Optional list of parameters)RAW")
     .def_readwrite("positional", &sem::Symbol::positional, R"RAW(Positional parameters)RAW")
+    .def("__repr__", [](sem::Symbol _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Symbol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::DescribedLog {
@@ -738,6 +1167,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("desc", &sem::SubtreeLog::DescribedLog::desc, R"RAW(Optional description of the log entry)RAW")
+    .def("__repr__", [](sem::SubtreeLog::DescribedLog _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::DescribedLog _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction");
   pybind11::enum_<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction")
@@ -760,6 +1197,14 @@ node can have subnodes.)RAW")
     .def_readwrite("newPriority", &sem::SubtreeLog::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
     .def_readwrite("on", &sem::SubtreeLog::Priority::on, R"RAW(When priority was changed)RAW")
     .def_readwrite("action", &sem::SubtreeLog::Priority::action, R"RAW(Which action taken)RAW")
+    .def("__repr__", [](sem::SubtreeLog::Priority _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Priority _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogNote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Note {
@@ -768,6 +1213,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("on", &sem::SubtreeLog::Note::on, R"RAW(Where log was taken)RAW")
+    .def("__repr__", [](sem::SubtreeLog::Note _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Note _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogRefile")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Refile {
@@ -777,6 +1230,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("on", &sem::SubtreeLog::Refile::on, R"RAW(When the refiling happened)RAW")
     .def_readwrite("from_", &sem::SubtreeLog::Refile::from, R"RAW(Link to the original subtree)RAW")
+    .def("__repr__", [](sem::SubtreeLog::Refile _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Refile _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogClock")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Clock {
@@ -786,6 +1247,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("from_", &sem::SubtreeLog::Clock::from, R"RAW(Clock start time)RAW")
     .def_readwrite("to", &sem::SubtreeLog::Clock::to, R"RAW(Optional end of the clock)RAW")
+    .def("__repr__", [](sem::SubtreeLog::Clock _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Clock _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubtreeLog::State, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogState")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::State {
@@ -796,6 +1265,14 @@ node can have subnodes.)RAW")
     .def_readwrite("from_", &sem::SubtreeLog::State::from)
     .def_readwrite("to", &sem::SubtreeLog::State::to)
     .def_readwrite("on", &sem::SubtreeLog::State::on)
+    .def("__repr__", [](sem::SubtreeLog::State _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::State _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogTag")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Tag {
@@ -806,6 +1283,14 @@ node can have subnodes.)RAW")
     .def_readwrite("on", &sem::SubtreeLog::Tag::on, R"RAW(When the log was assigned)RAW")
     .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, R"RAW(Tag in question)RAW")
     .def_readwrite("added", &sem::SubtreeLog::Tag::added, R"RAW(Added/removed?)RAW")
+    .def("__repr__", [](sem::SubtreeLog::Tag _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Tag _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubtreeLog::Unknown, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogUnknown")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Unknown {
@@ -813,6 +1298,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::SubtreeLog::Unknown _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Unknown _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::SubtreeLog::Kind>(m, "SubtreeLogKind");
   pybind11::enum_<sem::SubtreeLog::Kind>(m, "SubtreeLogKind")
@@ -850,6 +1343,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::SubtreeLog::Kind(*)(sem::SubtreeLog::LogEntry const&)>(&sem::SubtreeLog::getLogKind),
                 pybind11::arg("__input"))
     .def("getLogKind", static_cast<sem::SubtreeLog::Kind(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::getLogKind))
+    .def("__repr__", [](sem::SubtreeLog _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
   pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
@@ -875,6 +1376,14 @@ node can have subnodes.)RAW")
     .def_readwrite("kind", &sem::Subtree::Period::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
     .def_readwrite("from_", &sem::Subtree::Period::from, R"RAW(Clock start time)RAW")
     .def_readwrite("to", &sem::Subtree::Period::to, R"RAW(Optional end of the clock)RAW")
+    .def("__repr__", [](sem::Subtree::Period _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Period _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode");
   pybind11::enum_<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode")
@@ -905,6 +1414,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("isBlocking", &sem::Subtree::Property::Nonblocking::isBlocking)
+    .def("__repr__", [](sem::Subtree::Property::Nonblocking _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Nonblocking _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Trigger>(m, "SubtreePropertyTrigger")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Trigger {
@@ -912,6 +1429,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Subtree::Property::Trigger _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Trigger _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Origin>(m, "SubtreePropertyOrigin")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Origin {
@@ -920,6 +1445,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Subtree::Property::Origin::text)
+    .def("__repr__", [](sem::Subtree::Property::Origin _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Origin _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexClass>(m, "SubtreePropertyExportLatexClass")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexClass {
@@ -928,6 +1461,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("latexClass", &sem::Subtree::Property::ExportLatexClass::latexClass)
+    .def("__repr__", [](sem::Subtree::Property::ExportLatexClass _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::ExportLatexClass _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexClassOptions>(m, "SubtreePropertyExportLatexClassOptions")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexClassOptions {
@@ -936,6 +1477,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("options", &sem::Subtree::Property::ExportLatexClassOptions::options)
+    .def("__repr__", [](sem::Subtree::Property::ExportLatexClassOptions _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::ExportLatexClassOptions _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexHeader>(m, "SubtreePropertyExportLatexHeader")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexHeader {
@@ -944,6 +1493,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("header", &sem::Subtree::Property::ExportLatexHeader::header)
+    .def("__repr__", [](sem::Subtree::Property::ExportLatexHeader _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::ExportLatexHeader _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::ExportLatexCompiler>(m, "SubtreePropertyExportLatexCompiler")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexCompiler {
@@ -952,6 +1509,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("compiler", &sem::Subtree::Property::ExportLatexCompiler::compiler)
+    .def("__repr__", [](sem::Subtree::Property::ExportLatexCompiler _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::ExportLatexCompiler _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Ordered>(m, "SubtreePropertyOrdered")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Ordered {
@@ -960,6 +1525,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("isOrdered", &sem::Subtree::Property::Ordered::isOrdered)
+    .def("__repr__", [](sem::Subtree::Property::Ordered _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Ordered _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Effort>(m, "SubtreePropertyEffort")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Effort {
@@ -969,6 +1542,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("hours", &sem::Subtree::Property::Effort::hours)
     .def_readwrite("minutes", &sem::Subtree::Property::Effort::minutes)
+    .def("__repr__", [](sem::Subtree::Property::Effort _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Effort _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel");
   pybind11::enum_<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel")
@@ -989,6 +1570,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("level", &sem::Subtree::Property::Visibility::level)
+    .def("__repr__", [](sem::Subtree::Property::Visibility _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Visibility _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::ExportOptions>(m, "SubtreePropertyExportOptions")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportOptions {
@@ -998,6 +1587,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("backend", &sem::Subtree::Property::ExportOptions::backend)
     .def_readwrite("values", &sem::Subtree::Property::ExportOptions::values)
+    .def("__repr__", [](sem::Subtree::Property::ExportOptions _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::ExportOptions _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Blocker>(m, "SubtreePropertyBlocker")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Blocker {
@@ -1006,6 +1603,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("blockers", &sem::Subtree::Property::Blocker::blockers)
+    .def("__repr__", [](sem::Subtree::Property::Blocker _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Blocker _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Unnumbered>(m, "SubtreePropertyUnnumbered")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Unnumbered {
@@ -1013,6 +1618,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Subtree::Property::Unnumbered _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Unnumbered _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Created>(m, "SubtreePropertyCreated")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Created {
@@ -1021,6 +1634,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("time", &sem::Subtree::Property::Created::time)
+    .def("__repr__", [](sem::Subtree::Property::Created _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Created _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree::Property::Unknown>(m, "SubtreePropertyUnknown")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Unknown {
@@ -1030,6 +1651,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("value", &sem::Subtree::Property::Unknown::value, R"RAW(Converted value of the property)RAW")
     .def_readwrite("name", &sem::Subtree::Property::Unknown::name, R"RAW(Original name of the property)RAW")
+    .def("__repr__", [](sem::Subtree::Property::Unknown _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::Unknown _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind");
   pybind11::enum_<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind")
@@ -1090,6 +1719,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::Subtree::Property::Kind(*)(sem::Subtree::Property::Data const&)>(&sem::Subtree::Property::getKind),
                 pybind11::arg("__input"))
     .def("getKind", static_cast<sem::Subtree::Property::Kind(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getKind))
+    .def("__repr__", [](sem::Subtree::Property _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>, sem::Org>(m, "Subtree")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree {
@@ -1135,6 +1772,14 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Assign a raw string literal to a property.)RAW")
+    .def("__repr__", [](sem::Subtree _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::LatexBody, sem::SemId<sem::LatexBody>, sem::Org>(m, "LatexBody")
     ;
@@ -1144,6 +1789,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::InlineMath _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::InlineMath _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Leaf, sem::SemId<sem::Leaf>, sem::Org>(m, "Leaf")
     .def_readwrite("text", &sem::Leaf::text, R"RAW(Final leaf value)RAW")
@@ -1155,6 +1808,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Escaped::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::Escaped _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Escaped _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Newline, sem::SemId<sem::Newline>, sem::Leaf>(m, "Newline")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Newline {
@@ -1163,6 +1824,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Newline::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::Newline _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Newline _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Space, sem::SemId<sem::Space>, sem::Leaf>(m, "Space")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Space {
@@ -1171,6 +1840,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Space::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::Space _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Space _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Word, sem::SemId<sem::Word>, sem::Leaf>(m, "Word")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Word {
@@ -1179,6 +1856,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Word::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::Word _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Word _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::AtMention, sem::SemId<sem::AtMention>, sem::Leaf>(m, "AtMention")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AtMention {
@@ -1187,6 +1872,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::AtMention::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::AtMention _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AtMention _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::RawText, sem::SemId<sem::RawText>, sem::Leaf>(m, "RawText")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::RawText {
@@ -1195,6 +1888,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::RawText::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::RawText _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::RawText _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Punctuation, sem::SemId<sem::Punctuation>, sem::Leaf>(m, "Punctuation")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Punctuation {
@@ -1203,6 +1904,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Punctuation::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::Punctuation _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Punctuation _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Placeholder, sem::SemId<sem::Placeholder>, sem::Leaf>(m, "Placeholder")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Placeholder {
@@ -1211,6 +1920,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Placeholder::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::Placeholder _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Placeholder _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::BigIdent, sem::SemId<sem::BigIdent>, sem::Leaf>(m, "BigIdent")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BigIdent {
@@ -1219,6 +1936,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::BigIdent::text, R"RAW(Final leaf value)RAW")
+    .def("__repr__", [](sem::BigIdent _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BigIdent _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Markup, sem::SemId<sem::Markup>, sem::Org>(m, "Markup")
     ;
@@ -1228,6 +1953,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Bold _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Bold _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Underline, sem::SemId<sem::Underline>, sem::Markup>(m, "Underline")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Underline {
@@ -1235,6 +1968,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Underline _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Underline _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Monospace, sem::SemId<sem::Monospace>, sem::Markup>(m, "Monospace")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Monospace {
@@ -1242,6 +1983,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Monospace _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Monospace _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::MarkQuote, sem::SemId<sem::MarkQuote>, sem::Markup>(m, "MarkQuote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::MarkQuote {
@@ -1249,6 +1998,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::MarkQuote _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::MarkQuote _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Verbatim, sem::SemId<sem::Verbatim>, sem::Markup>(m, "Verbatim")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Verbatim {
@@ -1256,6 +2013,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Verbatim _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Verbatim _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Italic, sem::SemId<sem::Italic>, sem::Markup>(m, "Italic")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Italic {
@@ -1263,6 +2028,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Italic _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Italic _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Strike, sem::SemId<sem::Strike>, sem::Markup>(m, "Strike")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Strike {
@@ -1270,6 +2043,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Strike _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Strike _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Par, sem::SemId<sem::Par>, sem::Markup>(m, "Par")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Par {
@@ -1277,6 +2058,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Par _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Par _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::List, sem::SemId<sem::List>, sem::Org>(m, "List")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::List {
@@ -1285,6 +2074,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList))
+    .def("__repr__", [](sem::List _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::List _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::ListItem::Checkbox>(m, "ListItemCheckbox");
   pybind11::enum_<sem::ListItem::Checkbox>(m, "ListItemCheckbox")
@@ -1307,6 +2104,14 @@ node can have subnodes.)RAW")
     .def_readwrite("checkbox", &sem::ListItem::checkbox)
     .def_readwrite("header", &sem::ListItem::header)
     .def("isDescriptionItem", static_cast<bool(sem::ListItem::*)() const>(&sem::ListItem::isDescriptionItem))
+    .def("__repr__", [](sem::ListItem _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ListItem _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Link::Raw>(m, "LinkRaw")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Raw {
@@ -1315,6 +2120,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Link::Raw::text)
+    .def("__repr__", [](sem::Link::Raw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::Raw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Link::Id>(m, "LinkId")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Id {
@@ -1323,6 +2136,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Link::Id::text)
+    .def("__repr__", [](sem::Link::Id _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::Id _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Link::Person>(m, "LinkPerson")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Person {
@@ -1331,6 +2152,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::Link::Person::name)
+    .def("__repr__", [](sem::Link::Person _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::Person _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Link::UserProtocol>(m, "LinkUserProtocol")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::UserProtocol {
@@ -1340,6 +2169,14 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("protocol", &sem::Link::UserProtocol::protocol)
     .def_readwrite("target", &sem::Link::UserProtocol::target)
+    .def("__repr__", [](sem::Link::UserProtocol _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::UserProtocol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Link::Internal>(m, "LinkInternal")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Internal {
@@ -1348,6 +2185,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &sem::Link::Internal::target)
+    .def("__repr__", [](sem::Link::Internal _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::Internal _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Link::Footnote>(m, "LinkFootnote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Footnote {
@@ -1356,6 +2201,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &sem::Link::Footnote::target)
+    .def("__repr__", [](sem::Link::Footnote _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::Footnote _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Link::File>(m, "LinkFile")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::File {
@@ -1364,6 +2217,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("file", &sem::Link::File::file)
+    .def("__repr__", [](sem::Link::File _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::File _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Link::Kind>(m, "LinkKind");
   pybind11::enum_<sem::Link::Kind>(m, "LinkKind")
@@ -1399,6 +2260,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::Link::Kind(*)(sem::Link::Data const&)>(&sem::Link::getLinkKind),
                 pybind11::arg("__input"))
     .def("getLinkKind", static_cast<sem::Link::Kind(sem::Link::*)() const>(&sem::Link::getLinkKind))
+    .def("__repr__", [](sem::Link _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::DocumentOptions::DoExport>(m, "DocumentOptionsDoExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions::DoExport {
@@ -1407,6 +2276,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exportToc", &sem::DocumentOptions::DoExport::exportToc)
+    .def("__repr__", [](sem::DocumentOptions::DoExport _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentOptions::DoExport _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::DocumentOptions::ExportFixed>(m, "DocumentOptionsExportFixed")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions::ExportFixed {
@@ -1415,6 +2292,14 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("exportLevels", &sem::DocumentOptions::ExportFixed::exportLevels)
+    .def("__repr__", [](sem::DocumentOptions::ExportFixed _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentOptions::ExportFixed _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::DocumentOptions::TocExportKind>(m, "DocumentOptionsTocExportKind");
   pybind11::enum_<sem::DocumentOptions::TocExportKind>(m, "DocumentOptionsTocExportKind")
@@ -1490,6 +2375,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::DocumentOptions::TocExportKind(*)(sem::DocumentOptions::TocExport const&)>(&sem::DocumentOptions::getTocExportKind),
                 pybind11::arg("__input"))
     .def("getTocExportKind", static_cast<sem::DocumentOptions::TocExportKind(sem::DocumentOptions::*)() const>(&sem::DocumentOptions::getTocExportKind))
+    .def("__repr__", [](sem::DocumentOptions _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentOptions _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Document, sem::SemId<sem::Document>, sem::Org>(m, "Document")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Document {
@@ -1513,6 +2406,14 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::Subtree::Property>(sem::Document::*)(Str const&, Opt<Str> const&) const>(&sem::Document::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
+    .def("__repr__", [](sem::Document _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Document _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::ParseError, sem::SemId<sem::ParseError>, sem::Org>(m, "ParseError")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ParseError {
@@ -1520,6 +2421,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::ParseError _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ParseError _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::FileTarget, sem::SemId<sem::FileTarget>, sem::Org>(m, "FileTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::FileTarget {
@@ -1533,6 +2442,14 @@ node can have subnodes.)RAW")
     .def_readwrite("restrictToHeadlines", &sem::FileTarget::restrictToHeadlines)
     .def_readwrite("targetId", &sem::FileTarget::targetId)
     .def_readwrite("regexp", &sem::FileTarget::regexp)
+    .def("__repr__", [](sem::FileTarget _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::FileTarget _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::TextSeparator, sem::SemId<sem::TextSeparator>, sem::Org>(m, "TextSeparator")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::TextSeparator {
@@ -1540,6 +2457,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::TextSeparator _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::TextSeparator _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Include::Example>(m, "IncludeExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::Example {
@@ -1547,6 +2472,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Include::Example _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Include::Example _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Include::Export>(m, "IncludeExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::Export {
@@ -1554,6 +2487,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Include::Export _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Include::Export _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Include::Src>(m, "IncludeSrc")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::Src {
@@ -1561,6 +2502,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Include::Src _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Include::Src _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::Include::OrgDocument>(m, "IncludeOrgDocument")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::OrgDocument {
@@ -1568,6 +2517,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::Include::OrgDocument _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Include::OrgDocument _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::Include::Kind>(m, "IncludeKind");
   pybind11::enum_<sem::Include::Kind>(m, "IncludeKind")
@@ -1596,6 +2553,14 @@ node can have subnodes.)RAW")
                 static_cast<sem::Include::Kind(*)(sem::Include::Data const&)>(&sem::Include::getIncludeKind),
                 pybind11::arg("__input"))
     .def("getIncludeKind", static_cast<sem::Include::Kind(sem::Include::*)() const>(&sem::Include::getIncludeKind))
+    .def("__repr__", [](sem::Include _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Include _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>, sem::Org>(m, "DocumentGroup")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentGroup {
@@ -1603,6 +2568,14 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::DocumentGroup _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentGroup _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<OrgSpecName>(m, "OrgSpecName");
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")
@@ -1956,6 +2929,14 @@ node can have subnodes.)RAW")
     .def_readwrite("minute", &UserTimeBreakdown::minute)
     .def_readwrite("second", &UserTimeBreakdown::second)
     .def_readwrite("zone", &UserTimeBreakdown::zone)
+    .def("__repr__", [](UserTimeBreakdown _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](UserTimeBreakdown _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<UserTime>(m, "UserTime")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> UserTime {
@@ -1965,6 +2946,14 @@ node can have subnodes.)RAW")
                         }))
     .def("getBreakdown", static_cast<UserTimeBreakdown(UserTime::*)() const>(&UserTime::getBreakdown))
     .def("format", static_cast<std::string(UserTime::*)() const>(&UserTime::format))
+    .def("__repr__", [](UserTime _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](UserTime _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgParseParameters>(m, "OrgParseParameters")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgParseParameters {
@@ -1976,6 +2965,14 @@ node can have subnodes.)RAW")
     .def_readwrite("tokenTracePath", &sem::OrgParseParameters::tokenTracePath)
     .def_readwrite("parseTracePath", &sem::OrgParseParameters::parseTracePath)
     .def_readwrite("semTracePath", &sem::OrgParseParameters::semTracePath)
+    .def("__repr__", [](sem::OrgParseParameters _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgParseParameters _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgYamlExportOpts {
@@ -1988,6 +2985,14 @@ node can have subnodes.)RAW")
     .def_readwrite("skipZeroFields", &sem::OrgYamlExportOpts::skipZeroFields)
     .def_readwrite("skipLocation", &sem::OrgYamlExportOpts::skipLocation)
     .def_readwrite("skipId", &sem::OrgYamlExportOpts::skipId)
+    .def("__repr__", [](sem::OrgYamlExportOpts _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgYamlExportOpts _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgTreeExportOpts {
@@ -2001,6 +3006,14 @@ node can have subnodes.)RAW")
     .def_readwrite("skipEmptyFields", &sem::OrgTreeExportOpts::skipEmptyFields)
     .def_readwrite("startLevel", &sem::OrgTreeExportOpts::startLevel)
     .def_readwrite("withColor", &sem::OrgTreeExportOpts::withColor)
+    .def("__repr__", [](sem::OrgTreeExportOpts _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgTreeExportOpts _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubnodeVisitorCtxPart>(m, "SubnodeVisitorCtxPart")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorCtxPart {
@@ -2021,6 +3034,14 @@ the node in parent list.)RAW")
     .def_readwrite("field", &sem::SubnodeVisitorCtxPart::field, R"RAW(\brief If the current visit is in the dedicated field (`.title` for
 example),)RAW")
     .def_readwrite("kind", &sem::SubnodeVisitorCtxPart::kind)
+    .def("__repr__", [](sem::SubnodeVisitorCtxPart _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubnodeVisitorCtxPart _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubnodeVisitorOpts>(m, "SubnodeVisitorOpts")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorOpts {
@@ -2028,6 +3049,14 @@ example),)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::SubnodeVisitorOpts _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubnodeVisitorOpts _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::SubnodeVisitorResult>(m, "SubnodeVisitorResult")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorResult {
@@ -2039,6 +3068,14 @@ example),)RAW")
 fields)RAW")
     .def_readwrite("visitNextSubnodes", &sem::SubnodeVisitorResult::visitNextSubnodes, R"RAW(\brief)RAW")
     .def_readwrite("visitNextBases", &sem::SubnodeVisitorResult::visitNextBases)
+    .def("__repr__", [](sem::SubnodeVisitorResult _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubnodeVisitorResult _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgDocumentContext>(m, "OrgDocumentContext")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentContext {
@@ -2059,6 +3096,14 @@ fields)RAW")
          static_cast<void(sem::OrgDocumentContext::*)(sem::SemId<sem::Org> const&)>(&sem::OrgDocumentContext::addNodes),
          pybind11::arg("node"),
          R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
+    .def("__repr__", [](sem::OrgDocumentContext _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgDocumentContext _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgSelectorLink>(m, "OrgSelectorLink")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorLink {
@@ -2066,6 +3111,14 @@ fields)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::OrgSelectorLink _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgSelectorLink _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgSelectorResult>(m, "OrgSelectorResult")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorResult {
@@ -2073,6 +3126,14 @@ fields)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("__repr__", [](sem::OrgSelectorResult _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgSelectorResult _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgSelectorCondition>(m, "OrgSelectorCondition")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorCondition {
@@ -2083,6 +3144,14 @@ fields)RAW")
     .def_readwrite("isTarget", &sem::OrgSelectorCondition::isTarget, R"RAW(\brief Matched node should be added to the full match set)RAW")
     .def_readwrite("debug", &sem::OrgSelectorCondition::debug)
     .def_readwrite("link", &sem::OrgSelectorCondition::link)
+    .def("__repr__", [](sem::OrgSelectorCondition _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgSelectorCondition _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<sem::OrgDocumentSelector>(m, "OrgDocumentSelector")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentSelector {
@@ -2121,6 +3190,111 @@ fields)RAW")
          pybind11::arg("predicate"),
          pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
+    .def("__repr__", [](sem::OrgDocumentSelector _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgDocumentSelector _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<SequenceSegment>(m, "SequenceSegment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegment {
+                        SequenceSegment result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &SequenceSegment::kind, R"RAW(\brief Kind of the segment, does not have to be unique for all
+segments, and different sequence segment groups can have segments
+with identical kinds.)RAW")
+    .def_readwrite("first", &SequenceSegment::first, R"RAW(\brief Inclusive left boundary of the segment. Mustnot overlap with
+other segments' boundaries,but can be identical to the `last`,
+to create a point segment (spans 1 element).)RAW")
+    .def_readwrite("last", &SequenceSegment::last, R"RAW(\brief Inclusive right boundary for the segment)RAW")
+    .def("__repr__", [](SequenceSegment _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](SequenceSegment _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<SequenceSegmentGroup>(m, "SequenceSegmentGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegmentGroup {
+                        SequenceSegmentGroup result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &SequenceSegmentGroup::kind, R"RAW(\brief An kind of the segment group, does not have to be unique)RAW")
+    .def_readwrite("segments", &SequenceSegmentGroup::segments, R"RAW(\brief List of input segments for grouping)RAW")
+    .def("__repr__", [](SequenceSegmentGroup _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](SequenceSegmentGroup _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<SequenceAnnotationTag>(m, "SequenceAnnotationTag")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotationTag {
+                        SequenceAnnotationTag result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("groupKind", &SequenceAnnotationTag::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
+    .def_readwrite("segmentKinds", &SequenceAnnotationTag::segmentKinds, R"RAW(\brief ID of the segment in this group.
+
+Segment kinds are constructed from all ranges
+that overlap points in the segment.
+In the example below, there are 3 separate slices, `[2,3]`, `[1,4]`
+and finally `[6,7]`. The resulting segmentation will have 4
+different sequence segments from these ranges. The first one is
+`[1,1]`, then `[2,3]`, `[4]`, and `[6,7]`.
+```
+0
+1   |
+2 | |
+3 | |
+4   |
+5
+6   |
+7   |
+```)RAW")
+    .def("__repr__", [](SequenceAnnotationTag _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](SequenceAnnotationTag _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<SequenceAnnotation>(m, "SequenceAnnotation")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotation {
+                        SequenceAnnotation result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("first", &SequenceAnnotation::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
+    .def_readwrite("last", &SequenceAnnotation::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
+    .def_readwrite("annotations", &SequenceAnnotation::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
+    .def("isAnnotatedWith",
+         static_cast<bool(SequenceAnnotation::*)(int, int) const>(&SequenceAnnotation::isAnnotatedWith),
+         pybind11::arg("groupKind"),
+         pybind11::arg("segmentKind"),
+         R"RAW(\brief Check if the segment is annotated with a given group kind
+and a segment kind.)RAW")
+    .def("__repr__", [](SequenceAnnotation _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](SequenceAnnotation _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
@@ -2225,6 +3399,14 @@ fields)RAW")
     .def("eval",
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::eval),
          pybind11::arg("org"))
+    .def("__repr__", [](ExporterPython _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](ExporterPython _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   bind_enum_iterator<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind");
   pybind11::enum_<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind")
@@ -2315,6 +3497,11 @@ fields)RAW")
         pybind11::arg("node"),
         pybind11::arg("path"),
         pybind11::arg("opts"));
+  m.def("annotateSequence",
+        static_cast<Vec<SequenceAnnotation>(*)(Vec<SequenceSegmentGroup> const&, int, int)>(&annotateSequence),
+        pybind11::arg("groups"),
+        pybind11::arg("first"),
+        pybind11::arg("last"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
         pybind11::arg("node"),

@@ -27,8 +27,7 @@ int main(int argc, char* argv[]) {
     w.show();
     int result = a.exec();
 
-    json saved_state;
-    to_json(saved_state, state);
+    json saved_state = to_json_eval(state);
     writeFile(state.saved_state.toBase(), saved_state.dump(2));
     qInfo() << fmt(
         "Saved current application state in {}", state.saved_state);

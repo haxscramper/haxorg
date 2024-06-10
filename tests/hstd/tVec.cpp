@@ -27,16 +27,12 @@ TEST(VectorTest, SliceAndIndexingOperators) {
     // Test slice operator with positive indices
     std::span<int> slice1 = v[slice(3, 5)];
     ASSERT_EQ(slice1.size(), 3);
-    for (int i = 0; i < 3; ++i) {
-        EXPECT_EQ(slice1[i], v[i + 3]);
-    }
+    for (int i = 0; i < 3; ++i) { EXPECT_EQ(slice1[i], v[i + 3]); }
 
     // Test slice operator with backwards indices
     std::span<int> slice2 = v[slice(3, 3_B)];
     ASSERT_EQ(slice2.size(), 5);
-    for (int i = 0; i < 3; ++i) {
-        EXPECT_EQ(slice2[i], v[i + 3]);
-    }
+    for (int i = 0; i < 3; ++i) { EXPECT_EQ(slice2[i], v[i + 3]); }
 
     // Test slice operator with out-of-bounds indices, raise is
     // guaranteed
@@ -79,9 +75,7 @@ TEST(VectorTest, SpanViews) {
         // Test modification using slice operator
         std::span<int> span = v[slice(1, 3)];
         CHECK(span.data() != nullptr);
-        for (int& x : span) {
-            x = 42;
-        }
+        for (int& x : span) { x = 42; }
         EXPECT_EQ(v[0], 0);
         EXPECT_EQ(v[1], 42);
         EXPECT_EQ(v[2], 42);
@@ -104,4 +98,18 @@ TEST(VectorTest, BackIndex) {
     EXPECT_THROW(Vec<int>{}.back(), std::out_of_range);
     EXPECT_EQ(Vec<int>{1}.back(), 1);
     EXPECT_EQ((Vec<int>{2, 1}.back()), 1);
+}
+
+TEST(VectorTest, ResizeAt) {
+    Vec<int> vec;
+    EXPECT_EQ(vec.size(), 0);
+    vec.resize_at(0) = 12;
+    EXPECT_EQ(vec.size(), 1);
+    EXPECT_EQ(vec.at(0), 12);
+    vec.resize_at(4) = 89;
+    EXPECT_EQ(vec.size(), 5);
+    EXPECT_EQ(vec.at(0), 12);
+    EXPECT_EQ(vec.at(1), 0);
+    EXPECT_EQ(vec.at(2), 0);
+    EXPECT_EQ(vec.at(4), 89);
 }

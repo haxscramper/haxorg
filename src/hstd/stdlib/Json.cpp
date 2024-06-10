@@ -6,10 +6,6 @@
 
 template class nlohmann::basic_json<>;
 
-void to_json(json& j, CR<Str> str) { to_json(j, str.toBase()); }
-void to_json(json& j, CR<std::string> str) { ns::to_json(j, str); }
-void to_json(json& j, int i) { ns::to_json(j, i); }
-
 std::string to_compact_json(
     const json&              j,
     const JsonFormatOptions& options) {
@@ -96,12 +92,6 @@ std::string to_compact_json(
 
 
     return format(options.startIndent, j);
-}
-
-void from_json(const json& in, int& out) { out = in.get<int>(); }
-void from_json(const json& in, bool& out) { out = in.get<bool>(); }
-void from_json(const json& in, std::string& out) {
-    out = in.get<std::string>();
 }
 
 void filterFields(

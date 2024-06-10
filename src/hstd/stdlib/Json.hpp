@@ -17,25 +17,72 @@ namespace ns = nlohmann;
 extern template class nlohmann::basic_json<>;
 
 template <typename T>
-json to_json_eval(T const& value) {
-    json result;
-    to_json(result, value);
-    return result;
-}
+struct JsonSerde;
 
-template <typename T>
-T from_json_eval(json const& value) {
-    T result = SerdeDefaultProvider<T>::get();
-    from_json(value, result);
-    return result;
-}
+template <>
+struct JsonSerde<int> {
+    static json to_json(int const& it) { return json(it); }
+    static int  from_json(json const& j) { return j.get<int>(); }
+};
 
-void to_json(json& j, int i);
-void to_json(json& j, CR<std::string> str);
-void to_json(json& j, CR<Str> str);
-void from_json(const json& in, std::string& out);
-void from_json(const json& in, int& out);
-void from_json(const json& in, bool& out);
+template <>
+struct JsonSerde<unsigned int> {
+    static json to_json(unsigned int const& it) { return json(it); }
+    static unsigned int from_json(json const& j) {
+        return j.get<unsigned int>();
+    }
+};
+
+template <>
+struct JsonSerde<unsigned long> {
+    static json to_json(unsigned long const& it) { return json(it); }
+    static unsigned long from_json(json const& j) {
+        return j.get<unsigned long>();
+    }
+};
+
+template <>
+struct JsonSerde<unsigned long long> {
+    static json to_json(unsigned long long const& it) { return json(it); }
+    static unsigned long long from_json(json const& j) {
+        return j.get<unsigned long long>();
+    }
+};
+
+template <>
+struct JsonSerde<float> {
+    static json  to_json(float const& it) { return json(it); }
+    static float from_json(json const& j) { return j.get<float>(); }
+};
+
+template <>
+struct JsonSerde<std::string> {
+    static json        to_json(std::string const& it) { return json(it); }
+    static std::string from_json(json const& j) {
+        return j.get<std::string>();
+    }
+};
+
+
+template <>
+struct JsonSerde<Str> {
+    static json to_json(Str const& it) { return json(it.toBase()); }
+    static Str  from_json(json const& j) { return j.get<std::string>(); }
+};
+
+
+template <>
+struct JsonSerde<bool> {
+    static json to_json(bool const& it) { return json(it); }
+    static bool from_json(json const& j) { return j.get<bool>(); }
+};
+
+template <>
+struct JsonSerde<json> {
+    static json to_json(json const& it) { return it; }
+    static json from_json(json const& j) { return j; }
+};
+
 
 struct JsonFormatOptions {
     int width       = 80;
@@ -51,124 +98,214 @@ template <typename T>
 concept DescribedMembers = boost::describe::has_describe_members<T>::value;
 
 template <typename T>
-inline void to_json(json& res, CR<Vec<T>> str);
+struct JsonSerde<std::vector<T>> {
+    static json to_json(std::vector<T> const& it) {
+        auto result = json::array();
+        for (auto const& i : it) {
+            result.push_back(JsonSerde<T>::to_json(i));
+        }
 
-template <typename T>
-inline void to_json(json& res, std::unique_ptr<T> const& value);
-
-template <typename T>
-inline void to_json(json& res, std::shared_ptr<T> const& value) {
-    if (value) {
-        to_json(res, *value);
-    } else {
-        res = json();
+        return result;
     }
-}
+    static std::vector<T> from_json(json const& j) {
+        std::vector<T> result;
+        for (auto const& i : j) {
+            result.push_back(JsonSerde<T>::from_json(i));
+        }
+        return result;
+    }
+};
+
+
+template <typename K, typename V>
+struct JsonSerde<std::unordered_map<K, V>> {
+    static json to_json(std::unordered_map<K, V> const& it) {
+        auto result = json::array();
+        for (auto const& [key, val] : it) {
+            result.push_back(json::object({
+                {"key", JsonSerde<K>::to_json(key)},
+                {"value", JsonSerde<V>::to_json(val)},
+            }));
+        }
+
+        return result;
+    }
+    static std::unordered_map<K, V> from_json(json const& j) {
+        std::unordered_map<K, V> result;
+        for (auto const& i : j) {
+            result[JsonSerde<K>::from_json(i["key"])] = JsonSerde<
+                V>::from_json(i["value"]);
+        }
+        return result;
+    }
+};
+
+template <typename V>
+struct JsonSerde<std::unordered_map<std::string, V>> {
+    static json to_json(std::unordered_map<std::string, V> const& it) {
+        auto result = json::object();
+        for (auto const& [key, val] : it) {
+            result[key] = JsonSerde<V>::to_json(val);
+        }
+
+        return result;
+    }
+    static std::unordered_map<std::string, V> from_json(json const& j) {
+        std::unordered_map<std::string, V> result;
+        for (auto const& [key, value] : j.items()) {
+            result[key] = JsonSerde<V>::from_json(value);
+        }
+        return result;
+    }
+};
+
+
+template <typename T>
+struct JsonSerde<Vec<T>> {
+    static json to_json(Vec<T> const& it) {
+        auto result = json::array();
+        for (auto const& i : it) {
+            result.push_back(JsonSerde<T>::to_json(i));
+        }
+
+        return result;
+    }
+    static Vec<T> from_json(json const& j) {
+        Vec<T> result;
+        for (auto const& i : j) {
+            result.push_back(JsonSerde<T>::from_json(i));
+        }
+        return result;
+    }
+};
+
+template <typename T>
+struct JsonSerde<std::unique_ptr<T>> {
+    static json to_json(std::unique_ptr<T> const& it) {
+        if (it.get() == nullptr) {
+            return json();
+        } else {
+            return JsonSerde<T>::to_json(*it);
+        }
+    }
+    static std::unique_ptr<T> from_json(json const& j) {
+        if (j.is_null()) {
+            return nullptr;
+        } else {
+            return std::make_unique<T>(JsonSerde<T>::from_json(j));
+        }
+    }
+};
+
+template <typename T>
+struct JsonSerde<std::shared_ptr<T>> {
+    static json to_json(std::shared_ptr<T> const& it) {
+        if (it.get() == nullptr) {
+            return json();
+        } else {
+            return JsonSerde<T>::to_json(*it);
+        }
+    }
+    static std::shared_ptr<T> from_json(json const& j) {
+        if (j.is_null()) {
+            return nullptr;
+        } else {
+            return std::make_shared<T>(JsonSerde<T>::from_json(j));
+        }
+    }
+};
+
+
+template <typename T>
+struct JsonSerde<std::optional<T>> {
+    static json to_json(std::optional<T> const& it) {
+        if (it) {
+            return JsonSerde<T>::to_json(*it);
+        } else {
+            return json();
+        }
+    }
+    static std::optional<T> from_json(json const& j) {
+        if (j.is_null()) {
+            return std::nullopt;
+        } else {
+            return std::make_optional<T>(JsonSerde<T>::from_json(j));
+        }
+    }
+};
+
+template <DescribedRecord T>
+struct JsonSerdeDescribedRecordBase {
+    static json to_json(T const& obj) {
+        json result = json::object();
+
+        for_each_field_with_bases<T>([&](auto const& field) {
+            result[field.name] = JsonSerde<
+                std::remove_cvref_t<decltype(obj.*field.pointer)>>::
+                to_json(obj.*field.pointer);
+        });
+
+        return result;
+    }
+
+    static T from_json(json const& j) {
+        T result = SerdeDefaultProvider<T>::get();
+        for_each_field_with_bases<T>([&](auto const& field) {
+            if (j.contains(field.name)) {
+                result.*field.pointer = JsonSerde<
+                    std::remove_cvref_t<decltype(result.*field.pointer)>>::
+                    from_json(j[field.name]);
+            }
+        });
+
+        return result;
+    }
+};
+
+template <DescribedRecord T>
+struct JsonSerde<T> : JsonSerdeDescribedRecordBase<T> {};
+
 
 template <DescribedEnum E>
-void from_json(json const& j, E& str) {
-    Opt<E> value = enum_serde<E>::from_string(j.get<std::string>());
-    if (value) {
-        str = value.value();
-    } else {
-        throw json::type_error::create(
-            302,
-            "Could not convert json value <" + j.dump()
-                + "> to enum for type " + typeid(E).name(),
-            nullptr);
-    }
-}
-
-template <typename T>
-void from_json(json const& json, Opt<T>& value) {
-    value = SerdeDefaultProvider<T>::get();
-    from_json(json, *value);
-}
-
-
-template <DescribedRecord T>
-static void to_json(json& j, const T& str) {
-    using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
-    using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
-
-    if (!j.is_object()) { j = json::object(); }
-
-    boost::mp11::mp_for_each<Md>(
-        [&](auto const& field) { j[field.name] = str.*field.pointer; });
-
-    boost::mp11::mp_for_each<Bd>([&](auto Base) {
-        to_json<typename decltype(Base)::type>(j, str);
-    });
-}
-
-template <DescribedRecord T>
-void from_json(const json& in, T& out) {
-    using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
-    using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
-    boost::mp11::mp_for_each<Md>([&](auto const& field) {
-        if (in.contains(field.name)) {
-            from_json(in[field.name], out.*field.pointer);
+struct JsonSerde<E> {
+    static E from_json(json const& j) {
+        Opt<E> value = enum_serde<E>::from_string(j.get<std::string>());
+        if (value) {
+            return value.value();
+        } else {
+            throw json::type_error::create(
+                302,
+                "Could not convert json value <" + j.dump()
+                    + "> to enum for type " +
+#ifdef __cpp_rtti
+                    typeid(E).name()
+#else
+                    ""
+#endif
+                    ,
+                nullptr);
         }
-    });
-
-    boost::mp11::mp_for_each<Bd>([&](auto Base) {
-        from_json<std::remove_cvref_t<typename decltype(Base)::type>>(
-            in, out);
-    });
-}
-
-template <typename T>
-void from_json(const json& in, Vec<T>& out) {
-    for (auto const& j : in) {
-        T tmp;
-        from_json(j, tmp);
-        out.push_back(tmp);
     }
-}
 
-
-template <typename T>
-inline void to_json(json& res, CR<Vec<T>> str) {
-    res = json::array();
-    for (const auto& it : str) {
-        json tmp;
-        to_json(tmp, it);
-        res.push_back(tmp);
+    static json to_json(E value) {
+        return enum_serde<E>::to_string(value);
     }
-}
-
-template <typename T>
-inline void to_json(json& res, CR<std::vector<T>> str) {
-    res = json::array();
-    for (const auto& it : str) {
-        json tmp;
-        to_json(tmp, it);
-        res.push_back(tmp);
-    }
-}
-
-namespace std {
-template <typename T>
-inline void to_json(json& res, CR<Opt<T>> str) {
-    if (str.has_value()) {
-        to_json(res, str.value());
-    } else {
-        res = json();
-    }
-}
-} // namespace std
-
-template <typename T>
-inline void to_json(json& res, std::unique_ptr<T> const& value) {
-    if (value.get() != nullptr) {
-        to_json(res, *value);
-    } else {
-        res = json();
-    }
-}
+};
 
 void filterFields(json& j, const std::vector<std::string>& fieldsToRemove);
+
+template <typename T>
+json to_json_eval(T const& val) {
+    return JsonSerde<T>::to_json(val);
+}
+
+template <typename T>
+void from_json_eval(json const& j, T& out_value) {
+    out_value = JsonSerde<T>::from_json(j);
+}
+
+
+template <typename T>
+T from_json_eval(json const& j) {
+    return JsonSerde<T>::from_json(j);
+}

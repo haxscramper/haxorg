@@ -4,6 +4,7 @@
 #include <sem/SemOrgFormat.hpp>
 #include <exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/RangeSegmentation.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exportertree.hpp>
 #include <datetime.h>

@@ -208,6 +208,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
         cb(typ)
 
         res.InitDefault(ast=ast, Fields=filter_init_fields(rec_fields))
+        res.InitMagicMethods(ast=ast)
 
     return res
 
@@ -230,6 +231,7 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct) -> Py11Class:
 
     if not value.IsAbstract:
         res.InitDefault(ast, filter_init_fields(res.Fields))
+        res.InitMagicMethods(ast=ast)
 
     return res
 
@@ -698,6 +700,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
+                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),
