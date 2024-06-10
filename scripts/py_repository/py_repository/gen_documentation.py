@@ -183,8 +183,8 @@ def generate_html_for_directory(
 
         for code_file in directory.CodeFiles:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-            if "Vec" not in str(code_file.RelPath):
-                continue
+            # if "Vec" not in str(code_file.RelPath):
+            #     continue
 
             log(CAT).info(f"Building HTML for {code_file.RelPath} -> {path}")
             with GlobCompleteEvent("Get annotated files", "cov", args=dict(path=str(code_file.RelPath))):

@@ -1006,10 +1006,11 @@ def py_tests(ctx: Context, arg: List[str] = []):
         profile_path = get_cxx_profdata_params_path()
         log(CAT).info(f"Profile collect options: {profile_path}")
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-        debug = "/tmp/coverage_mapping_dump"
-        Path(debug).mkdir(exist_ok=True)
         model = get_cxx_profdata_params()
-        model.coverage_mapping_dump = debug
+        if False:
+            debug = "/tmp/coverage_mapping_dump"
+            Path(debug).mkdir(exist_ok=True)
+            model.coverage_mapping_dump = debug
         profile_path.write_text(model.model_dump_json(indent=2))
 
     run_command(ctx, "poetry", [
