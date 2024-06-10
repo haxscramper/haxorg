@@ -7,6 +7,7 @@ import sys
 from types import MethodType
 from rich.text import Text
 from rich.console import Console
+import enum
 
 
 def to_debug_json(
@@ -19,6 +20,9 @@ def to_debug_json(
     def aux(obj):
         if isinstance(obj, (int, float, str, bool, type(None))):
             return obj
+
+        elif isinstance(obj, (enum.Enum, enum.IntEnum, enum.StrEnum)):
+            return str(obj)
 
         if id(obj) in visited:
             return f"cycle {type(obj)} {id(obj)}"

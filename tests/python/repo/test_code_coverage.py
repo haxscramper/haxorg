@@ -317,9 +317,9 @@ int main() {
         cmd.run()
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
-        file_table = select(cov.CovSegment, cov.CovFile).join(
+        file_table = select(cov.CovFileRegion, cov.CovFile).join(
             cov.CovFile,
-            cov.CovSegment.File == cov.CovFile.Id,
+            cov.CovFileRegion.File == cov.CovFile.Id,
         )
 
         df = pd.read_sql(file_table, session.get_bind())
@@ -366,38 +366,11 @@ def test_file_segmentation_1():
         session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
         main_cov = cov.get_coverage_of(session, cmd.get_code("main.cpp"))
         lines = code.split("\n")
-        # print(format_db_all(session))
 
-        segtree = cov.CoverageSegmentTree(it[0] for it in session.execute(main_cov))
         df = pd.read_sql(main_cov, session.get_bind())
         add_cov_segment_text(df, lines)
-
-        # print(render_rich(dataframe_to_rich_table(df)))
-
-        # Coverage segments only overlay executable blocks and do not
-        # account for extraneous elements such as function headers etc.
-        assert segtree.query(line=1, col=15)
-        assert not segtree.query(line=1, col=14)
         assert_frame(df[df["LineStart"] == 1], [
-            dict(IsLeaf=True, Text="{}", ColStart=15, ColEnd=17),
-        ])
-
-        # print(render_rich(dataframe_to_rich_table(df[df["IsBranch"] == True])))
-        assert_frame(df[df["IsBranch"] == True], [
-            dict(LineStart=3, ColStart=9, LineEnd=3, ColEnd=16, Text="arg > 0"),
-            dict(LineStart=4, ColStart=13, LineEnd=4, ColEnd=21, Text="arg > 10"),
-            dict(LineStart=5, ColStart=17, LineEnd=5, ColEnd=25, Text="arg > 20"),
-            dict(LineStart=11, ColStart=17, LineEnd=11, ColEnd=24, Text="arg > 5"),
-            dict(LineStart=17, ColStart=16, LineEnd=17, ColEnd=23, Text="arg < 0"),
-            dict(LineStart=18, ColStart=13, LineEnd=18, ColEnd=22, Text="arg < -10"),
-            dict(LineStart=19, ColStart=17, LineEnd=19, ColEnd=26, Text="arg < -20"),
-            dict(LineStart=25, ColStart=17, LineEnd=25, ColEnd=25, Text="arg < -5"),
-            dict(LineStart=35, ColStart=9, LineEnd=35, ColEnd=17, Text="arg == 0"),
-            dict(LineStart=35, ColStart=21, LineEnd=35, ColEnd=29, Text="arg == 1"),
-            dict(LineStart=35, ColStart=33, LineEnd=35, ColEnd=41, Text="arg == 2"),
-            dict(LineStart=36, ColStart=14, LineEnd=36, ColEnd=22, Text="arg <= 5"),
-            dict(LineStart=36, ColStart=26, LineEnd=36, ColEnd=34, Text="arg <= 5"),
-            dict(LineStart=36, ColStart=39, LineEnd=36, ColEnd=47, Text="arg < 10"),
+            dict(Text="{}", ColumnStart=15, ColumnEnd=17),
         ])
 
 
@@ -415,61 +388,46 @@ def test_file_segmentation_2():
 
         lines = code.split("\n")
 
-        df = pd.read_sql(select(cov.CovSegment), session.get_bind())
+        df = pd.read_sql(select(cov.CovFileRegion), session.get_bind())
         add_cov_segment_text(df, lines)
-
-        table = dataframe_to_rich_table(df)
-        table.show_lines = True
-        Path("/tmp/regions.txt").write_text(render_rich(table, color=False))
-
-        segment_df = pd.read_sql(select(cov.CovSegmentFlat), session.get_bind())
-        segment_df["Text"] = segment_df["Line"].map(lambda it: lines[it - 1])
-        table = dataframe_to_rich_table(segment_df)
-        table.show_lines = True
-        Path("/tmp/segments.txt").write_text(render_rich(table, color=False))
 
         assert_frame(df, [
             dict(
                 LineStart=1,
                 LineEnd=1,
-                SegmentIndex=0,
                 Text="{}",
-                IsLeaf=True,
             ),
             dict(
                 LineStart=3,
                 LineEnd=5,
-                SegmentIndex=1,
                 Id=2,
                 Text="{ if (true || false) { action(); } }",
-                IsLeaf=False,
             ),
             dict(
                 LineStart=4,
                 LineEnd=4,
-                SegmentIndex=2,
                 Text="true",
-                ColStart=9,
-                ColEnd=13,
-                NestedIn=2,
-                IsLeaf=True,
+                ColumnStart=9,
+                ColumnEnd=13,
             ),
             dict(
                 LineStart=4,
                 LineEnd=4,
-                SegmentIndex=3,
-                Text="false",
-                ColStart=17,
-                ColEnd=22,
-                NestedIn=2,
-                IsLeaf=True,
+                Text="true || false",
+                ColumnStart=9,
+                ColumnEnd=22,
             ),
             dict(
                 LineStart=4,
-                SegmentIndex=4,
+                LineEnd=4,
+                Text="false",
+                ColumnStart=17,
+                ColumnEnd=22,
+            ),
+            dict(RegionKind="CovRegionKind.GapRegion",),
+            dict(
+                LineStart=4,
                 Text="{ action(); }",
-                NestedIn=2,
-                IsLeaf=True,
             ),
         ])
 

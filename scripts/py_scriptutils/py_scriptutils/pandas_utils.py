@@ -5,6 +5,7 @@ import rich.box
 from beartype import beartype
 import py_scriptutils.json_utils as ju
 from py_scriptutils.rich_utils import render_rich
+from py_scriptutils.script_logging import to_debug_json
 
 
 @beartype
@@ -60,7 +61,7 @@ def assert_frame(df: pd.DataFrame, subset: ju.Json):
     expected_dataframe = dataframe_to_rich_table(df2)
     expected_dataframe.box = rich.box.ASCII
     ju.assert_subset(
-        df.to_dict("records"),
+        to_debug_json(df.to_dict("records")),
         subset,
         message="\nGiven dataframe:\n{}\nExpected dataframe:\n{}".format(
             render_rich(given_dataframe, color=False),
