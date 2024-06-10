@@ -24,6 +24,7 @@ from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_c
 from pydantic import BaseModel, Field, SerializeAsAny
 import more_itertools
 from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
+import re
 
 T = TypeVar("T")
 
@@ -161,6 +162,18 @@ class DocGenerationOptions(BaseModel, extra="forbid"):
         default=None,
     )
 
+    coverage_file_whitelist: List[str] = Field(
+        description=
+        "List of regular expressions to whitelist absolute file paths for coverage",
+        default_factory=lambda: [".*"],
+    )
+
+    coverage_file_blacklist: List[str] = Field(
+        description=
+        "List of regular expressions to blacklist absolute file paths for coverage",
+        default_factory=list,
+    )
+
 
 def cli_options(f):
     return apply_options(f, options_from_model(DocGenerationOptions))
@@ -175,6 +188,18 @@ def generate_html_for_directory(
 ) -> None:
     sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
     sidebar = tags.div(sidebar_res.tag, _class="sidebar-directory-root")
+    coverage_whitelist: List[re.Pattern] = [
+        re.compile(it) for it in opts.coverage_file_whitelist
+    ]
+    coverage_blacklist: List[re.Pattern] = [
+        re.compile(it) for it in opts.coverage_file_blacklist
+    ]
+
+    @beartype
+    def is_path_allowed(path: Path) -> bool:
+        path = str(path)
+        return any(it.match(path) for it in coverage_whitelist) and not any(
+            it.match(path) for it in coverage_blacklist)
 
     def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
         for subdir in directory.Subdirs:
@@ -183,11 +208,13 @@ def generate_html_for_directory(
 
         for code_file in directory.CodeFiles:
             path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-            # if "Vec" not in str(code_file.RelPath):
-            #     continue
+            if not is_path_allowed(path):
+                continue
 
             log(CAT).info(f"Building HTML for {code_file.RelPath} -> {path}")
-            with GlobCompleteEvent("Get annotated files", "cov", args=dict(path=str(code_file.RelPath))):
+            with GlobCompleteEvent("Get annotated files",
+                                   "cov",
+                                   args=dict(path=str(code_file.RelPath))):
                 file = cov_docxx.get_annotated_files_for_session(
                     session=cxx_coverage_session,
                     root_path=opts.root_path,
@@ -195,7 +222,9 @@ def generate_html_for_directory(
                     use_highlight=False,
                 )
 
-            with GlobCompleteEvent("Generate annotated file", "cov", args=dict(path=str(code_file.RelPath))):
+            with GlobCompleteEvent("Generate annotated file",
+                                   "cov",
+                                   args=dict(path=str(code_file.RelPath))):
                 html = cov_docxx.get_file_annotation_html(file)
                 doc = document(title=str(code_file.RelPath))
                 doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
@@ -208,7 +237,6 @@ def generate_html_for_directory(
 
                 with GlobCompleteEvent("Dump JSON", "cov"):
                     path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
-
 
         for text_file in directory.TextFiles:
             path = docdata.get_html_path(text_file, html_out_path=html_out_path)
@@ -312,7 +340,8 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     log(CAT).info(f"Loading code coverage from {conf.cxx_coverage_path}")
 
     with GlobCompleteEvent("Get file tree", "cov"):
-        full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
+        full_root = docdata.DocDirectory(
+            RelPath=conf.root_path.relative_to(conf.root_path))
         for subdir in conf.test_path:
             full_root.Subdirs.append(
                 parse_dir(

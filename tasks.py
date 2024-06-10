@@ -218,6 +218,26 @@ def run_command(
 
 
 @beartype
+def run_self(
+    ctx: Context,
+    args: List[str],
+    capture: bool = False,
+    allow_fail: bool = False,
+    env: dict[str, str] = {},
+    cwd: Optional[str] = None,
+) -> tuple[int, str, str]:
+    return run_command(
+        ctx,
+        "invoke",
+        args,
+        capture=capture,
+        allow_fail=allow_fail,
+        env=env,
+        cwd=cwd,
+    )
+
+
+@beartype
 def ui_notify(message: str, is_ok: bool = True):
     try:
         cmd = local["notify-send"]
@@ -977,7 +997,24 @@ def get_cxx_profdata_params() -> ProfdataParams:
     )
 
 
-@org_task(pre=[cmake_haxorg])
+@org_task()
+def cxx_merge_configure(
+    ctx: Context,
+    coverage_mapping_dump: Optional[str] = None,
+):
+    if is_instrumented_coverage(ctx):
+        profile_path = get_cxx_profdata_params_path()
+        log(CAT).info(f"Profile collect options: {profile_path}")
+        profile_path.parent.mkdir(parents=True, exist_ok=True)
+        model = get_cxx_profdata_params()
+        if coverage_mapping_dump:
+            Path(coverage_mapping_dump).mkdir(exist_ok=True)
+            model.coverage_mapping_dump = coverage_mapping_dump
+
+        profile_path.write_text(model.model_dump_json(indent=2))
+
+
+@org_task(pre=[cmake_haxorg, cxx_merge_configure])
 def cxx_merge_coverage(ctx: Context):
     profile_path = get_cxx_profdata_params_path()
     run_command(
@@ -999,19 +1036,9 @@ def py_tests(ctx: Context, arg: List[str] = []):
     args = arg
 
     env = get_py_env(ctx)
-
     if is_instrumented_coverage(ctx):
         coverage_dir = get_cxx_coverage_dir()
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
-        profile_path = get_cxx_profdata_params_path()
-        log(CAT).info(f"Profile collect options: {profile_path}")
-        profile_path.parent.mkdir(parents=True, exist_ok=True)
-        model = get_cxx_profdata_params()
-        if False:
-            debug = "/tmp/coverage_mapping_dump"
-            Path(debug).mkdir(exist_ok=True)
-            model.coverage_mapping_dump = debug
-        profile_path.write_text(model.model_dump_json(indent=2))
 
     run_command(ctx, "poetry", [
         "run",
@@ -1072,10 +1099,20 @@ def docs_doxygen(ctx: Context):
     log(CAT).info("Completed CXX docs build")
 
 
-@org_task()
-def docs_custom(ctx: Context):
+@beartype
+def get_list_cli_pass(list_name: str, args: List[str]) -> List[str]:
+    return [f"--{list_name}={arg}" for arg in args]
+
+
+@org_task(iterable=["file_blacklist", "file_whitelist"])
+def docs_custom(
+    ctx: Context,
+    coverage_file_whitelist: List[str] = [".*"],
+    coverage_file_blacklist: List[str] = [],
+    out_dir: str = "/tmp/docs_out",
+):
     """Build documentation for the project using custom script"""
-    out_dir = Path("/tmp/docs_out")
+    out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     args = [
@@ -1088,6 +1125,8 @@ def docs_custom(ctx: Context):
         f"--py_coverage_path={get_script_root('.coverage')}",
         f"--test_path={get_script_root('tests')}",
         f"--profile_out_path={out_dir.joinpath('profile.json')}",
+        *get_list_cli_pass("coverage_file_whitelist", coverage_file_whitelist),
+        *get_list_cli_pass("coverage_file_blacklist", coverage_file_blacklist),
     ]
 
     prof_params = get_cxx_profdata_params()
@@ -1099,6 +1138,28 @@ def docs_custom(ctx: Context):
             f"No coverage database generated, {prof_params.coverage_db} does not exist")
 
     run_command(ctx, "poetry", args)
+
+
+@org_task(iterable=["file_whitelist", "file_blacklist"])
+def cxx_target_coverage(
+    ctx: Context,
+    pytest_filter: str,
+    coverage_file_whitelist: List[str] = [".*"],
+    coverage_file_blacklist: List[str] = [],
+    out_dir: str = "/tmp/docs_out_targeted",
+):
+    """
+    Run full cycle of the code coverage generation. 
+    """
+
+    run_self(ctx, ["py-tests", f"--arg=--markfilter", f"--arg={pytest_filter}"])
+    run_self(ctx, ["cxx-merge-coverage"])
+    run_self(ctx, [
+        "docs-custom",
+        *get_list_cli_pass("coverage-file-whitelist", coverage_file_whitelist),
+        *get_list_cli_pass("coverage-file-blacklist", coverage_file_blacklist),
+        f"--out-dir={out_dir}",
+    ])
 
 
 @org_task()
