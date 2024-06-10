@@ -1555,6 +1555,8 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
                 "Failed to load profdata {}", toString(std::move(E))));
         }
 
+        fs::remove(tmp_path);
+
         return std::move(mapping_or_err.get());
     }
 }
