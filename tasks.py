@@ -1152,7 +1152,12 @@ def cxx_target_coverage(
     Run full cycle of the code coverage generation. 
     """
 
-    run_self(ctx, ["py-tests", f"--arg=--markfilter", f"--arg={pytest_filter}"])
+    run_self(ctx, [
+        "py-tests",
+        f"--arg=--markfilter",
+        f"--arg={pytest_filter}",
+        "--arg=--markfilter-debug=True",
+    ])
     run_self(ctx, ["cxx-merge-coverage"])
     run_self(ctx, [
         "docs-custom",

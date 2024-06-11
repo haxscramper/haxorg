@@ -177,7 +177,7 @@ class GTestItem(pytest.Function):
         super().__init__(*args, **kwargs)
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
-        self.add_marker(pytest.mark.test_gtest_function(gtest.item_name, []))
+        self.add_marker(pytest.mark.test_gtest_function(gtest.item_name(), []))
 
     def runtest(self):
         test = Path(self.gtest.binary_path)
