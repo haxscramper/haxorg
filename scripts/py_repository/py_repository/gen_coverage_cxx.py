@@ -28,6 +28,7 @@ import functools
 from py_scriptutils.tracer import GlobCompleteEvent
 import more_itertools
 import itertools
+import json
 
 CAT = "coverage"
 
@@ -212,6 +213,19 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     class Config:
         orm_mode = True
         arbitrary_types_allowed = True
+
+    @beartype
+    def get_debug(self) -> str:
+        result = ""
+        for func in self.SegmentFunctions.values():
+            result += "\n{}\n{}\n{}\n{}".format(
+                func.Mangled,
+                func.Demangled,
+                get_simple_function_name(func),
+                json.dumps(func.Parsed, indent=2),
+            )
+
+        return result
 
     @beartype
     def getSortedSegmentIndices(self, segment_idx: List[int]) -> List[int]:
@@ -788,6 +802,69 @@ def get_annotated_files_for_session(
 
     return token_annotated_file
 
+@beartype
+def try_get(j: dict, path: List[str]) -> Optional[Any]:
+    result = j
+    for step in path:
+        if isinstance(result, dict) and step in result:
+            result = result[step]
+
+        else:
+            return None
+
+    return result
+
+
+@beartype
+def get_simple_function_name(func: CovFunction) -> str:
+
+    def aux(j: dict) -> Optional[str]:
+        match j["NodeKind"]:
+            case "NestedName":
+                Qual = aux(j["Qual"])
+                Name = aux(j["Name"])
+                
+                if Qual and Name:
+                    return f"{Qual}::{Name}"
+
+                else:
+                    return Name
+
+            case "NameType":
+                if j["Name"] in ["__cxx11"]:
+                    return None
+
+                else:
+                    return j["Name"]
+
+            case "FunctionEncoding":
+                return aux(j["Name"])
+
+            case "NameWithTemplateArgs":
+                if try_get(j, ["Name", "Name", "Name"]) == "basic_string":
+                    return "std::string"
+
+                else:
+                    return "{}<{}>".format(aux(j["Name"]), aux(j["TemplateArgs"]))  
+
+            case "TemplateArgs":
+                args = []
+                for arg in j["Params"]:
+                    res = aux(arg)
+                    if res:
+                        args.append(res)
+
+                return ", ".join(args)
+
+            case _:
+                return j["NodeKind"]
+
+    if func.Parsed is None:
+        return func.Demangled
+
+    else:
+        return aux(func.Parsed)
+
 
 @beartype
 def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
@@ -853,16 +930,25 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
         for run in executions.Grouped:
             if any(0 < it.Segment.ExecutionCount for it in run.FunctionSegments):
                 Ctx: CovContext = run.Context
-                head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.Params}")
 
-                Seg: CovSegmentInstantiation
-                listed = tags.ul()
-                for Seg in run.FunctionSegments:
-                    listed.add(tags.li(f"Count: {Seg.Segment.ExecutionCount} Func: {Seg.Function.Demangled}"))
+                if 1 < len(run.FunctionSegments):
+                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.Params}")
 
-                context_div.add(tags.div(head, *listed))
-        else:
-            context_div.add(tags.div("no-executions"))
+                    Seg: CovSegmentInstantiation
+                    listed = tags.ul()
+
+                    for Seg in run.FunctionSegments:
+                        listed.add(
+                            tags.
+                            li(f"Count: {Seg.Segment.ExecutionCount} Func: {get_simple_function_name(Seg.Function)}"
+                            ))
+                    context_div.add(tags.div(head, *listed))
+
+                else:
+                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {run.FunctionSegments[0].Segment.ExecutionCount}")
+
+                    context_div.add(tags.div(head))
+
 
         coverage_data_div.add(context_div)
 

@@ -238,6 +238,9 @@ def generate_html_for_directory(
                 with GlobCompleteEvent("Dump JSON", "cov"):
                     path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
 
+                with GlobCompleteEvent("Dump Debug", "cov"):
+                    path.with_suffix(".txt").write_text(file.get_debug())
+
         for text_file in directory.TextFiles:
             path = docdata.get_html_path(text_file, html_out_path=html_out_path)
             doc = document(title=str(text_file.RelPath))
