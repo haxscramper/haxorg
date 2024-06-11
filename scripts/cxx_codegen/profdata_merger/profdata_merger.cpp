@@ -972,44 +972,11 @@ static llvm::SmallBitVector gatherFileIDs(
 }
 
 
-std::vector<CountedRegion> getRegionsForFile(
-    CoverageMapping const& Mapping,
-    std::string const&     Filename) {
-    std::vector<CountedRegion> Regions;
+struct RegionInfo {
+    CountedRegion region;
+    int           FunctionId;
+};
 
-    // Look up the function records in the given file. Due to hash
-    // collisions on the filename, we may get back some records that are
-    // not in the file.
-    llvm::ArrayRef<unsigned>
-        RecordIndices = getImpreciseRecordIndicesForFilename(
-            Mapping, Filename);
-    auto Access = toCoverageMappingLyt(&Mapping);
-    for (unsigned RecordIndex : RecordIndices) {
-        const FunctionRecord& Function = Access->Functions[RecordIndex];
-        auto MainFileID = findMainViewFileID(Filename, Function);
-        auto FileIDs    = gatherFileIDs(Filename, Function);
-        for (const auto& CR : Function.CountedRegions) {
-            if (FileIDs.test(CR.FileID)) {
-                Regions.push_back(CR);
-                // TODO Integrate expansion regions
-                // if (MainFileID && isExpansion(CR, *MainFileID)) {
-                //     FileCoverage.Expansions.emplace_back(CR, Function);
-                // }
-            }
-        }
-        // Capture branch regions specific to the function (excluding
-        // expansions).
-        for (const auto& CR : Function.CountedBranchRegions) {
-            // TODO integrate branch regions
-            // if (FileIDs.test(CR.FileID)
-            //     && (CR.FileID == CR.ExpandedFileID)) {
-            //     FileCoverage.BranchRegions.push_back(CR);
-            // }
-        }
-    }
-
-    return Regions;
-}
 
 std::string SqlInsert(
     std::string const&              Table,
@@ -1101,6 +1068,7 @@ struct queries {
                     "ColumnEnd",           // 9
                     "RegionKind",          // 10
                     "File",                // 11
+                    "Function",            // 12
                 }))
         ,
         // ---
@@ -1295,6 +1263,50 @@ int get_function_id(
     return function_id;
 }
 
+std::vector<RegionInfo> getRegionsForFile(
+    CoverageMapping const& Mapping,
+    std::string const&     Filename,
+    queries&               q,
+    db_build_ctx&          ctx) {
+    std::vector<RegionInfo> Regions;
+
+    // Look up the function records in the given file. Due to hash
+    // collisions on the filename, we may get back some records that are
+    // not in the file.
+    llvm::ArrayRef<unsigned>
+        RecordIndices = getImpreciseRecordIndicesForFilename(
+            Mapping, Filename);
+    auto Access = toCoverageMappingLyt(&Mapping);
+    for (unsigned RecordIndex : RecordIndices) {
+        const FunctionRecord& Function = Access->Functions[RecordIndex];
+        auto MainFileID = findMainViewFileID(Filename, Function);
+        auto FileIDs    = gatherFileIDs(Filename, Function);
+        for (const auto& CR : Function.CountedRegions) {
+            if (FileIDs.test(CR.FileID)) {
+                Regions.push_back({
+                    .region     = CR,
+                    .FunctionId = get_function_id(Function, q, ctx),
+                });
+                // TODO Integrate expansion regions
+                // if (MainFileID && isExpansion(CR, *MainFileID)) {
+                //     FileCoverage.Expansions.emplace_back(CR, Function);
+                // }
+            }
+        }
+        // Capture branch regions specific to the function (excluding
+        // expansions).
+        for (const auto& CR : Function.CountedBranchRegions) {
+            // TODO integrate branch regions
+            // if (FileIDs.test(CR.FileID)
+            //     && (CR.FileID == CR.ExpandedFileID)) {
+            //     FileCoverage.BranchRegions.push_back(CR);
+            // }
+        }
+    }
+
+    return Regions;
+}
+
 int get_region_id(
     FunctionRecord const& f,
     CountedRegion const&  r,
@@ -1386,10 +1398,10 @@ void add_file(
     TRACE_EVENT("sql", "File coverage data");
     int file_id = ctx.get_file_id(file.str(), q);
 
-    auto regions = getRegionsForFile(*mapping, file.str());
+    auto regions = getRegionsForFile(*mapping, file.str(), q, ctx);
     for (auto const& it : llvm::enumerate(regions)) {
         ++ctx.region_counter;
-        CountedRegion const& r = it.value();
+        CountedRegion const& r = it.value().region;
         q.file_region.bind(1, ctx.region_counter);
         q.file_region.bind(2, ctx.context_id);
         q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
@@ -1401,6 +1413,7 @@ void add_file(
         q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
         q.file_region.bind(10, r.Kind);
         q.file_region.bind(11, file_id);
+        q.file_region.bind(12, it.value().FunctionId);
         q.file_region.exec();
         q.file_region.reset();
     }

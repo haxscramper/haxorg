@@ -27,6 +27,7 @@ from dominate import document
 import functools
 from py_scriptutils.tracer import GlobCompleteEvent
 import more_itertools
+import itertools
 
 CAT = "coverage"
 
@@ -102,6 +103,7 @@ class CovFileRegion(CoverageSchema):
     ColumnEnd = IntColumn()
     RegionKind = Column(NumericEnum(CovRegionKind))
     File = ForeignId(CovFile.Id)
+    Function = ForeignId(CovFunction.Id, nullable=True)
 
     def startLoc(self) -> Tuple[int, int]:
         return (self.LineStart, self.ColumnStart)
@@ -169,11 +171,42 @@ class GenCovSegmentContext():
     Segment: CovFileRegion
 
 
+@beartype
+@dataclass
+class CovSegmentInstantiation():
+    Segment: CovFileRegion
+    Function: Optional[CovFunction] = None
+
+
+@beartype
+@dataclass
+class CovSegmentFunctionGroup():
+    # Parent coverage context for all individual file region executions
+    Context: CovContext
+    # Coverage context and a corresponding coverage function
+    FunctionSegments: List[CovSegmentInstantiation]
+
+
+@beartype
+@dataclass
+class CovSegmentContextGroup():
+    # Segment executions grouped by the coverage context
+    Grouped: List[CovSegmentFunctionGroup]
+
+
 class AnnotatedFile(BaseModel, extra="forbid"):
     Lines: List[AnnotatedLine] = Field(default_factory=list)
     # Mapping from execution segment ID to the coverage context for the execution
-    SegmentRunContexts: Dict[int, GenCovSegmentContext] = Field(default_factory=dict,
-                                                                exclude=True)
+    SegmentRunContexts: Dict[int, GenCovSegmentContext] = Field(
+        default_factory=dict,
+        exclude=True,
+    )
+
+    SegmentFunctions: Dict[int, CovFunction] = Field(
+        default_factory=dict,
+        exclude=True,
+    )
+
     SegmentList: List[GenCovSegmentFlat] = Field(default_factory=list)
 
     class Config:
@@ -215,14 +248,36 @@ class AnnotatedFile(BaseModel, extra="forbid"):
         return sorted(segment_idx, key=functools.cmp_to_key(cmpSegment))
 
     @beartype
-    def getExecutionsForSegmnet(self, segment_idx: int) -> List[GenCovSegmentContext]:
-        result = []
+    def getExecutionsForSegmnet(self, segment_idx: int) -> CovSegmentContextGroup:
+        contexts: List[GenCovSegmentContext] = []
 
         for original in self.SegmentList[segment_idx].OriginalId:
             if original in self.SegmentRunContexts:
                 ctx = self.SegmentRunContexts[original]
                 assert isinstance(ctx, GenCovSegmentContext), f"{type(ctx)}"
-                result.append(ctx)
+                contexts.append(ctx)
+
+        @beartype
+        def key_func(ctx: GenCovSegmentContext) -> int:
+            return ctx.Context.Id
+
+        result = CovSegmentContextGroup(Grouped=[])
+        for key, context_group in itertools.groupby(
+                sorted(contexts, key=key_func),
+                key=key_func,
+        ):
+            context_group = list(context_group)
+            group = CovSegmentFunctionGroup(
+                Context=context_group[0].Context,
+                FunctionSegments=[
+                    CovSegmentInstantiation(
+                        Segment=seg.Segment,
+                        Function=self.SegmentFunctions[seg.Segment.Function]
+                        if seg.Segment.Function else None) for seg in context_group
+                ],
+            )
+
+            result.Grouped.append(group)
 
         return result
 
@@ -614,6 +669,7 @@ def get_annotated_files_for_session(
         file_cov = get_coverage_of(session, abs_path)
 
     run_contexts: Dict[int, CovContext] = dict()
+    run_functions: Dict[int, CovFunction] = dict()
 
     if file_cov != None:
         with GlobCompleteEvent("Get flat coverage", "cov"):
@@ -643,6 +699,14 @@ def get_annotated_files_for_session(
                         Context=context,
                         Segment=original_seg,
                     )
+
+                    if original_seg.Function is not None and original_seg.Function not in run_functions:
+                        executed_in = session.execute(
+                            select(CovFunction).where(
+                                CovFunction.Id == original_seg.Function)).fetchall()[0][0]
+                        assert isinstance(executed_in,
+                                          CovFunction), f"{type(executed_in)}"
+                        run_functions[original_seg.Function] = executed_in
 
     else:
         coverage_group = None
@@ -718,6 +782,7 @@ def get_annotated_files_for_session(
         )
 
     token_annotated_file.SegmentRunContexts = run_contexts
+    token_annotated_file.SegmentFunctions = run_functions
     if coverage_segments:
         token_annotated_file.SegmentList = coverage_segments
 
@@ -752,7 +817,8 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                     segment.CoverageSegmentIdx)[-1]
                 executions = file.getExecutionsForSegmnet(closest_segment)
                 triggered_executions = [
-                    it for it in executions if 0 < it.Segment.ExecutionCount
+                    it for it in executions.Grouped
+                    if any(0 < gr.Segment.ExecutionCount for gr in it.FunctionSegments)
                 ]
 
                 kind = file.SegmentRunContexts[
@@ -767,11 +833,6 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                         hspan["class"] += " segment-cov-skipped"
 
                 hspan["onclick"] = f"show_coverage_segment_idx({closest_segment})"
-                hspan[
-                    "dbg"] = f"exec-count:{[e.Segment.ExecutionCount for e in executions]} kind:{kind}"
-
-                for run in executions:
-                    hspan["covered"] = "run"
 
             tokens.add(hspan)
 
@@ -789,16 +850,17 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                                style="display:none;")
         executions = file.getExecutionsForSegmnet(idx)
 
-        if 0 < len(executions):
-            for run in executions:
-                if 0 < run.Segment.ExecutionCount:
-                    Ctx: CovContext = run.Context
-                    Seg: CovFileRegion = run.Segment
-                    context_div.add(
-                        tags.div(
-                            f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {Seg.ExecutionCount}"
-                        ))
+        for run in executions.Grouped:
+            if any(0 < it.Segment.ExecutionCount for it in run.FunctionSegments):
+                Ctx: CovContext = run.Context
+                head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.Params}")
 
+                Seg: CovSegmentInstantiation
+                listed = tags.ul()
+                for Seg in run.FunctionSegments:
+                    listed.add(tags.li(f"Count: {Seg.Segment.ExecutionCount} Func: {Seg.Function.Demangled}"))
+
+                context_div.add(tags.div(head, *listed))
         else:
             context_div.add(tags.div("no-executions"))
 

@@ -85,9 +85,11 @@ CREATE TABLE "CovFileRegion" (
 	"ColumnEnd" INTEGER NOT NULL, 
 	"RegionKind" INTEGER, 
 	"File" INTEGER NOT NULL, 
+	"Function" INTEGER, 
 	PRIMARY KEY ("Id"), 
 	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id"), 
-	FOREIGN KEY("File") REFERENCES "CovFile" ("Id")
+	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
+	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id")
 )
 
 ;
