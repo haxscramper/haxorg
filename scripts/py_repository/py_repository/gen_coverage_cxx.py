@@ -42,6 +42,10 @@ class CovFunction(CoverageSchema):
     Demangled = StrColumn()
     Parsed = Column(JSON)
 
+class CovContextKind(enum.Enum):
+    GTest = "GTest"
+    OrgCorpus = "OrgCorpus"
+
 
 class CovContext(CoverageSchema):
     __tablename__ = "CovContext"
@@ -51,6 +55,35 @@ class CovContext(CoverageSchema):
     Profile = StrColumn()
     Params = Column(JSON)
     Binary = StrColumn()
+
+    def getKind(self) -> CovContextKind:
+        if "kind" in self.Params:
+            return CovContextKind(self.Params["kind"])
+
+        else:
+            return CovContextKind.GTest
+
+    @beartype
+    def getContextRunLine(self) -> Optional[int]:
+        if "loc" in self.Params:
+            return int(self.Params["loc"]["line"])
+
+    @beartype
+    def getContextRunCol(self) -> Optional[int]:
+        if "loc" in self.Params:
+            return int(self.Params["loc"]["col"])
+
+    @beartype
+    def getContextRunFile(self) -> Optional[str]:
+        if "loc" in self.Params:
+            return self.Params["loc"]["path"]
+
+    @beartype
+    def getContextRunArgs(self) -> Optional[List[Any]]:
+        if "args" in self.Params:
+            return [it for it in self.Params["args"]]
+
+        
 
 
 class CovFile(CoverageSchema):
@@ -932,7 +965,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 Ctx: CovContext = run.Context
 
                 if 1 < len(run.FunctionSegments):
-                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.Params}")
+                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.getContextRunArgs()}")
 
                     Seg: CovSegmentInstantiation
                     listed = tags.ul()
@@ -945,7 +978,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                     context_div.add(tags.div(head, *listed))
 
                 else:
-                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.Params} Count: {run.FunctionSegments[0].Segment.ExecutionCount}")
+                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.getContextRunArgs()} Count: {run.FunctionSegments[0].Segment.ExecutionCount}")
 
                     context_div.add(tags.div(head))
 

@@ -191,7 +191,7 @@ class GTestItem(pytest.Function):
                 cmd.run(self.gtest.gtest_params())
 
             except ProcessExecutionError as e:
-                raise GTestRunError(e, self) 
+                raise GTestRunError(e, self)
 
         if self.coverage_out_dir:
             uniq_name = self.gtest.fullname()
@@ -201,6 +201,7 @@ class GTestItem(pytest.Function):
                 test_class=self.gtest.class_name,
                 test_name=self.gtest.test_name,
                 test_profile=str(profraw),
+                test_params=self.gtest.parameter_desc,
             )
 
             if profraw.exists():
