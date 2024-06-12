@@ -1226,7 +1226,7 @@ void TestParams::PrintToImpl(std::ostream* os) const {
     loc["line"] = spec.specLocation.line;
     loc["col"]  = spec.specLocation.column;
     json dump;
-    dump["loc"]  = loc;
+    dump["kwargs"]["loc"] = loc;
     dump["name"] = spec.name ? json{std::string{*spec.name}} : json{};
     if (spec.name) { dump["args"] = json::array({spec.name.value()}); }
     dump["kind"] = "OrgCorpus";

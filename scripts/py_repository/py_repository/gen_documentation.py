@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field, SerializeAsAny
 import more_itertools
 from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
 import re
+import json
 
 T = TypeVar("T")
 
@@ -225,11 +226,27 @@ def generate_html_for_directory(
             with GlobCompleteEvent("Generate annotated file",
                                    "cov",
                                    args=dict(path=str(code_file.RelPath))):
-                html = cov_docxx.get_file_annotation_html(file)
+                data = cov_docxx.get_file_annotation_html(file)
                 doc = document(title=str(code_file.RelPath))
                 doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
                 doc.head.add(tags.script(src=str(cov_docxx.js_path)))
-                doc.add(html)
+                json_dump = tags.script(
+                    type="application/json",
+                    id="segment-coverage",
+                )
+                
+                json_dump.add_raw_string(
+                    json.dumps(
+                        {
+                            k: v.model_dump()
+                            for k, v in file.getExecutionsModelForAllSegments(
+                                data.coverage_indices).items()
+                        },
+                        indent=2,
+                    ))
+                doc.head.add(json_dump)
+
+                doc.add(data.body)
 
                 path.parent.mkdir(exist_ok=True, parents=True)
                 with GlobCompleteEvent("Render HTML", "cov"):

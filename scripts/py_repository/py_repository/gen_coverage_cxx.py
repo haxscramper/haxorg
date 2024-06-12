@@ -42,6 +42,7 @@ class CovFunction(CoverageSchema):
     Demangled = StrColumn()
     Parsed = Column(JSON)
 
+
 class CovContextKind(enum.Enum):
     GTest = "GTest"
     OrgCorpus = "OrgCorpus"
@@ -57,7 +58,7 @@ class CovContext(CoverageSchema):
     Binary = StrColumn()
 
     def getKind(self) -> CovContextKind:
-        if "kind" in self.Params:
+        if self.Params and "kind" in self.Params:
             return CovContextKind(self.Params["kind"])
 
         else:
@@ -65,25 +66,23 @@ class CovContext(CoverageSchema):
 
     @beartype
     def getContextRunLine(self) -> Optional[int]:
-        if "loc" in self.Params:
+        if self.Params and "loc" in self.Params:
             return int(self.Params["loc"]["line"])
 
     @beartype
     def getContextRunCol(self) -> Optional[int]:
-        if "loc" in self.Params:
+        if self.Params and "loc" in self.Params:
             return int(self.Params["loc"]["col"])
 
     @beartype
     def getContextRunFile(self) -> Optional[str]:
-        if "loc" in self.Params:
+        if self.Params and "loc" in self.Params:
             return self.Params["loc"]["path"]
 
     @beartype
     def getContextRunArgs(self) -> Optional[List[Any]]:
-        if "args" in self.Params:
+        if self.Params and "args" in self.Params:
             return [it for it in self.Params["args"]]
-
-        
 
 
 class CovFile(CoverageSchema):
@@ -228,6 +227,31 @@ class CovSegmentContextGroup():
     Grouped: List[CovSegmentFunctionGroup]
 
 
+class CovContextModel(BaseModel, extra="forbid"):
+    Name: str
+    Parent: Optional[str] = None
+    RunLine: Optional[int] = None
+    RunCol: Optional[int] = None
+    RunFile: Optional[int] = None
+    RunArgs: Optional[List[Any]] = None
+
+
+class CovSegmentModel(BaseModel, extra="forbid"):
+    Mangled: str
+    Demangled: str
+    SimplifiedDemangled: str
+    ExecutionCount: int
+
+
+class CovSegmentFunctionGroupModel(BaseModel, extra="forbid"):
+    Context: CovContextModel
+    FunctionSegments: List[CovSegmentModel]
+
+
+class CovSegmentContextGroupModel(BaseModel, extra="forbid"):
+    Grouped: List[CovSegmentFunctionGroupModel]
+
+
 class AnnotatedFile(BaseModel, extra="forbid"):
     Lines: List[AnnotatedLine] = Field(default_factory=list)
     # Mapping from execution segment ID to the coverage context for the execution
@@ -295,7 +319,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
         return sorted(segment_idx, key=functools.cmp_to_key(cmpSegment))
 
     @beartype
-    def getExecutionsForSegmnet(self, segment_idx: int) -> CovSegmentContextGroup:
+    def getExecutionsForSegment(self, segment_idx: int) -> CovSegmentContextGroup:
         contexts: List[GenCovSegmentContext] = []
 
         for original in self.SegmentList[segment_idx].OriginalId:
@@ -327,6 +351,43 @@ class AnnotatedFile(BaseModel, extra="forbid"):
             result.Grouped.append(group)
 
         return result
+
+    @beartype
+    def getExecutionsModelForSegment(self,
+                                     segment_idx: int) -> CovSegmentContextGroupModel:
+        group = self.getExecutionsForSegment(segment_idx=segment_idx)
+
+        def conv_segment(seg: CovSegmentInstantiation) -> CovSegmentModel:
+            return CovSegmentModel(
+                Mangled=seg.Function.Mangled,
+                Demangled=seg.Function.Demangled,
+                ExecutionCount=seg.Segment.ExecutionCount,
+                SimplifiedDemangled=get_simple_function_name(seg.Function),
+            )
+
+        def conv_context(context: CovContext) -> CovContextModel:
+            return CovContextModel(
+                Name=context.Name,
+                Parent=context.Parent,
+                RunLine=context.getContextRunLine(),
+                RunCol=context.getContextRunCol(),
+                RunFile=context.getContextRunFile(),
+                RunArgs=context.getContextRunArgs(),
+            )
+
+        def conv_group(group: CovSegmentFunctionGroup) -> CovSegmentFunctionGroupModel:
+            return CovSegmentFunctionGroupModel(
+                Context=conv_context(group.Context),
+                FunctionSegments=[conv_segment(it) for it in group.FunctionSegments],
+            )
+
+        return CovSegmentContextGroupModel(
+            Grouped=[conv_group(it) for it in group.Grouped])
+
+    @beartype
+    def getExecutionsModelForAllSegments(
+            self, segments: Iterable[int]) -> Dict[int, CovSegmentContextGroupModel]:
+        return {idx: self.getExecutionsModelForSegment(idx) for idx in sorted(segments)}
 
 
 @beartype
@@ -835,6 +896,7 @@ def get_annotated_files_for_session(
 
     return token_annotated_file
 
+
 @beartype
 def try_get(j: dict, path: List[str]) -> Optional[Any]:
     result = j
@@ -856,7 +918,7 @@ def get_simple_function_name(func: CovFunction) -> str:
             case "NestedName":
                 Qual = aux(j["Qual"])
                 Name = aux(j["Name"])
-                
+
                 if Qual and Name:
                     return f"{Qual}::{Name}"
 
@@ -878,7 +940,7 @@ def get_simple_function_name(func: CovFunction) -> str:
                     return "std::string"
 
                 else:
-                    return "{}<{}>".format(aux(j["Name"]), aux(j["TemplateArgs"]))  
+                    return "{}<{}>".format(aux(j["Name"]), aux(j["TemplateArgs"]))
 
             case "TemplateArgs":
                 args = []
@@ -900,7 +962,14 @@ def get_simple_function_name(func: CovFunction) -> str:
 
 
 @beartype
-def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
+@dataclass
+class FileAnnotationData():
+    body: tags.div
+    coverage_indices: Set[int]
+
+
+@beartype
+def get_file_annotation_html(file: AnnotatedFile) -> FileAnnotationData:
     div = tags.div()
     coverage_indices: Set[int] = set()
 
@@ -925,7 +994,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
                 # Pick index of the closest segment
                 closest_segment: int = file.getSortedSegmentIndices(
                     segment.CoverageSegmentIdx)[-1]
-                executions = file.getExecutionsForSegmnet(closest_segment)
+                executions = file.getExecutionsForSegment(closest_segment)
                 triggered_executions = [
                     it for it in executions.Grouped
                     if any(0 < gr.Segment.ExecutionCount for gr in it.FunctionSegments)
@@ -953,43 +1022,14 @@ def get_file_annotation_html(file: AnnotatedFile) -> tags.div:
     assert len(div) == len(file.Lines)
 
     result = tags.div(_class="page-tab-content", id="page-code")
-    coverage_data_div = tags.div(_class="coverage-data")
-    for idx in coverage_indices:
-        context_div = tags.div(_class="cov-context",
-                               id=f"cov-context-{idx}",
-                               style="display:none;")
-        executions = file.getExecutionsForSegmnet(idx)
 
-        for run in executions.Grouped:
-            if any(0 < it.Segment.ExecutionCount for it in run.FunctionSegments):
-                Ctx: CovContext = run.Context
-
-                if 1 < len(run.FunctionSegments):
-                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.getContextRunArgs()}")
-
-                    Seg: CovSegmentInstantiation
-                    listed = tags.ul()
-
-                    for Seg in run.FunctionSegments:
-                        listed.add(
-                            tags.
-                            li(f"Count: {Seg.Segment.ExecutionCount} Func: {get_simple_function_name(Seg.Function)}"
-                            ))
-                    context_div.add(tags.div(head, *listed))
-
-                else:
-                    head = tags.p(f"Name: {Ctx.Name} Params: {Ctx.getContextRunArgs()} Count: {run.FunctionSegments[0].Segment.ExecutionCount}")
-
-                    context_div.add(tags.div(head))
-
-
-        coverage_data_div.add(context_div)
-
-    result.add(coverage_data_div)
     assert len(div) == len(file.Lines)
     result.add(div)
 
-    return result
+    return FileAnnotationData(
+        body=result,
+        coverage_indices=coverage_indices,
+    )
 
 
 css_path = get_haxorg_repo_root_path().joinpath(

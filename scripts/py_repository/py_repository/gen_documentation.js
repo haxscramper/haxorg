@@ -1,4 +1,4 @@
-
+var data = {};
 
 function show_coverage_segment_idx(index) {
   console.log(`show_coverage_segment_idx = ${index}`);
@@ -12,5 +12,5 @@ function show_coverage_segment_idx(index) {
 }
 
 window.onload = function() {
-  //
+  data = JSON.parse(document.getElementById("segment-coverage").textContent);
 }
