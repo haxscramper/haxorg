@@ -22,7 +22,7 @@ from pygments.lexers import CppLexer
 from pygments.token import Token, _TokenType, Whitespace
 from py_repository.gen_coverage_cookies import *
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dominate import document
 import functools
 from py_scriptutils.tracer import GlobCompleteEvent
@@ -216,40 +216,98 @@ class CovSegmentInstantiation():
 class CovSegmentFunctionGroup():
     # Parent coverage context for all individual file region executions
     Context: CovContext
+
     # Coverage context and a corresponding coverage function
-    FunctionSegments: List[CovSegmentInstantiation]
+    FunctionSegments: List[CovSegmentInstantiation] = field(default_factory=list)
 
 
 @beartype
 @dataclass
 class CovSegmentContextGroup():
-    # Segment executions grouped by the coverage context
-    Grouped: List[CovSegmentFunctionGroup]
+    # Segment executions grouped by the coverage context. All coverage contexts related to a specific region in the code file
+    Grouped: List[CovSegmentFunctionGroup] = field(default_factory=list)
 
 
 class CovContextModel(BaseModel, extra="forbid"):
-    Name: str
-    Parent: Optional[str] = None
-    RunLine: Optional[int] = None
-    RunCol: Optional[int] = None
-    RunFile: Optional[int] = None
-    RunArgs: Optional[List[Any]] = None
+    Name: str = Field(description="Direct name of the execution context")
+    Parent: Optional[str] = Field(description="Parent name for the execution context",
+                                  default=None)
+    RunLine: Optional[int] = Field(
+        description="Where the test is executed. Set for tests that are generated "
+        "from external configuration files, mainly the org parse corpus",
+        default=None,
+    )
+    RunCol: Optional[int] = Field(
+        description="Where test is executed, see run line",
+        default=None,
+    )
+    RunFile: Optional[int] = Field(
+        description="Where test is executed, see run line",
+        default=None,
+    )
+
+    RunArgs: Optional[List[Any]] = Field(
+        description="Optional list of the execution arguments. `None` and `[]` have"
+        "a different meanings. Not all tests properly communicate the list of arguments, "
+        "ones that do not have a `None`.",
+        default=None,
+    )
 
 
 class CovSegmentModel(BaseModel, extra="forbid"):
-    Mangled: str
-    Demangled: str
-    SimplifiedDemangled: str
-    ExecutionCount: int
+    Function: int = Field(
+        description="ID of the function which contains this segment. "
+        "Mainly for differentiating template function instantiations. Value for a function is stored in the "
+        "coverage segment context group model",)
+    ExecutionCount: int = Field(
+        description="Number of execution times for this segment under a parent context "
+        "(full number of execution counts over all segments can be computed by "
+        "summing up all the coverage context groups)")
+
+
+class CovSegmentFunctionModel(BaseModel, extra="forbid"):
+    Mangled: str = Field(description="Full mangled name of the function")
+    Demangled: str = Field(
+        description=
+        "Full demangled name of the function, if demangle failed, then is set to the same value as mangled"
+    )
+    SimplifiedDemangled: str = Field(
+        description="Simplified representation of the demangled function name")
 
 
 class CovSegmentFunctionGroupModel(BaseModel, extra="forbid"):
+    """
+    Grouping of segments under a coverage context. Each function group model stores information 
+    """
     Context: CovContextModel
-    FunctionSegments: List[CovSegmentModel]
+    FunctionSegments: List[CovSegmentModel] = Field(
+        default_factory=list,
+        description="Full list of segment instantiations for a given point. "
+        "If a segment is located inside of a template function, it will have a separate count "
+        "for each individual instantiation",
+    )
 
 
 class CovSegmentContextGroupModel(BaseModel, extra="forbid"):
+    """
+    Full data on execution of a specific segment in the code. Information on execution is grouped by coverage contexts 
+    and then by a function. The data model here is poised to answer a question, "for a given segment, who ran it?"
+    and give the answer in form of "here are the contexts (tests) that run this piece of code, and here is a more 
+    detailed breakdown on which specific instantiations of a function were in this run". 
+    """
     Grouped: List[CovSegmentFunctionGroupModel]
+
+
+class CovFileContextModel(BaseModel, extra="forbid"):
+    """
+    Full information on executing each individual segment in an annotated file
+    """
+    SegmentContexts: Dict[int, CovSegmentContextGroupModel] = Field(
+        description="Segment ID to a coverage information for this segment",
+        default_factory=dict,
+    )
+    Functions: Dict[int, CovSegmentFunctionModel] = Field(
+        default_factory=dict, description="Function ID to the function description data")
 
 
 class AnnotatedFile(BaseModel, extra="forbid"):
@@ -357,14 +415,14 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                                      segment_idx: int) -> CovSegmentContextGroupModel:
         group = self.getExecutionsForSegment(segment_idx=segment_idx)
 
+        @beartype
         def conv_segment(seg: CovSegmentInstantiation) -> CovSegmentModel:
             return CovSegmentModel(
-                Mangled=seg.Function.Mangled,
-                Demangled=seg.Function.Demangled,
                 ExecutionCount=seg.Segment.ExecutionCount,
-                SimplifiedDemangled=get_simple_function_name(seg.Function),
+                Function=seg.Function.Id,
             )
 
+        @beartype
         def conv_context(context: CovContext) -> CovContextModel:
             return CovContextModel(
                 Name=context.Name,
@@ -375,6 +433,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                 RunArgs=context.getContextRunArgs(),
             )
 
+        @beartype
         def conv_group(group: CovSegmentFunctionGroup) -> CovSegmentFunctionGroupModel:
             return CovSegmentFunctionGroupModel(
                 Context=conv_context(group.Context),
@@ -382,12 +441,32 @@ class AnnotatedFile(BaseModel, extra="forbid"):
             )
 
         return CovSegmentContextGroupModel(
-            Grouped=[conv_group(it) for it in group.Grouped])
+            Grouped=[conv_group(it) for it in group.Grouped],)
 
     @beartype
-    def getExecutionsModelForAllSegments(
-            self, segments: Iterable[int]) -> Dict[int, CovSegmentContextGroupModel]:
-        return {idx: self.getExecutionsModelForSegment(idx) for idx in sorted(segments)}
+    def getExecutionsModelForAllSegments(self,
+                                         segments: Iterable[int]) -> CovFileContextModel:
+        result = CovFileContextModel()
+
+        @beartype
+        def conv_function(group: CovFunction) -> CovSegmentFunctionModel:
+            return CovSegmentFunctionModel(
+                Mangled=group.Mangled,
+                Demangled=group.Demangled,
+                SimplifiedDemangled=get_simple_function_name(group),
+            )
+
+        for idx in sorted(segments):
+            contexts = self.getExecutionsModelForSegment(idx)
+            result.SegmentContexts[idx] = contexts
+
+            for it in contexts.Grouped:
+                for segment in it.FunctionSegments:
+                    if segment.Function not in result:
+                        result.Functions[segment.Function] = conv_function(
+                            self.SegmentFunctions[segment.Function])
+
+        return result
 
 
 @beartype

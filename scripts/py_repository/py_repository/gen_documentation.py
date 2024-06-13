@@ -234,16 +234,10 @@ def generate_html_for_directory(
                     type="application/json",
                     id="segment-coverage",
                 )
-                
+
                 json_dump.add_raw_string(
-                    json.dumps(
-                        {
-                            k: v.model_dump()
-                            for k, v in file.getExecutionsModelForAllSegments(
-                                data.coverage_indices).items()
-                        },
-                        indent=2,
-                    ))
+                    file.getExecutionsModelForAllSegments(
+                        data.coverage_indices).model_dump_json(indent=2))
                 doc.head.add(json_dump)
 
                 doc.add(data.body)
