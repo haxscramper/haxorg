@@ -1143,7 +1143,7 @@ def docs_custom(
 @org_task(iterable=["file_whitelist", "file_blacklist"])
 def cxx_target_coverage(
     ctx: Context,
-    pytest_filter: str,
+    pytest_filter: Optional[str] = None,
     coverage_file_whitelist: List[str] = [".*"],
     coverage_file_blacklist: List[str] = [],
     out_dir: str = "/tmp/docs_out_targeted",
@@ -1152,12 +1152,17 @@ def cxx_target_coverage(
     Run full cycle of the code coverage generation. 
     """
 
-    run_self(ctx, [
-        "py-tests",
-        f"--arg=--markfilter",
-        f"--arg={pytest_filter}",
-        "--arg=--markfilter-debug=True",
-    ])
+    if pytest_filter:
+        run_self(ctx, [
+            "py-tests",
+            f"--arg=--markfilter",
+            f"--arg={pytest_filter}",
+            "--arg=--markfilter-debug=True",
+        ])
+
+    else:
+        run_self(ctx, ["py-tests"])
+        
     run_self(ctx, ["cxx-merge-coverage"])
     run_self(ctx, [
         "docs-custom",

@@ -30,7 +30,7 @@ function show_coverage_segment_idx(index) {
     const contextHeader = document.createElement("div");
     const functionHeader =
         validSegments.length === 1
-            ? `${contextName}, Count: ${validSegments[0].ExecutionCount}`
+            ? `${contextName}, #${validSegments[0].ExecutionCount}`
             : `${contextName}:`;
     contextHeader.textContent = functionHeader;
     container.appendChild(contextHeader);
@@ -41,7 +41,7 @@ function show_coverage_segment_idx(index) {
         const li = document.createElement("li");
         const functionName = data.Functions[seg.Function].SimplifiedDemangled;
         li.textContent =
-            `ExecutionCount: ${seg.ExecutionCount}, ${functionName}`;
+            `#${seg.ExecutionCount}, ${functionName}`;
         ul.appendChild(li);
       });
       container.appendChild(ul);

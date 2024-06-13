@@ -292,21 +292,36 @@ void OrgParser::textFold(OrgLexer& lex) {
     aux = [&]() {
         auto __trace = trace(lex, std::nullopt, __LINE__, "aux");
 
-#define CASE_SINGLE(Kind)                                                 \
-    case otk::Kind: {                                                     \
-        token(org::Kind, pop(lex, otk::Kind));                            \
-        break;                                                            \
-    }
-
         while (!lex.finished()) {
             switch (lex.kind()) {
-                CASE_SINGLE(Escaped);
-                CASE_SINGLE(RawText);
-                CASE_SINGLE(Newline);
-                CASE_SINGLE(Word);
-                CASE_SINGLE(BigIdent);
-                CASE_SINGLE(Punctuation);
-                CASE_SINGLE(Colon);
+                case otk::Escaped: {
+                    token(org::Escaped, pop(lex, otk::Escaped));
+                    break;
+                }
+                case otk::RawText: {
+                    token(org::RawText, pop(lex, otk::RawText));
+                    break;
+                }
+                case otk::Newline: {
+                    token(org::Newline, pop(lex, otk::Newline));
+                    break;
+                }
+                case otk::Word: {
+                    token(org::Word, pop(lex, otk::Word));
+                    break;
+                }
+                case otk::BigIdent: {
+                    token(org::BigIdent, pop(lex, otk::BigIdent));
+                    break;
+                }
+                case otk::Punctuation: {
+                    token(org::Punctuation, pop(lex, otk::Punctuation));
+                    break;
+                }
+                case otk::Colon: {
+                    token(org::Colon, pop(lex, otk::Colon));
+                    break;
+                }
 
 
                 case otk::BoldBegin: _begin(org::Bold); break;
