@@ -255,10 +255,12 @@ class CovContextModel(BaseModel, extra="forbid"):
 
 
 class CovSegmentModel(BaseModel, extra="forbid"):
-    Function: int = Field(
+    Function: Optional[int] = Field(
         description="ID of the function which contains this segment. "
         "Mainly for differentiating template function instantiations. Value for a function is stored in the "
-        "coverage segment context group model",)
+        "coverage segment context group model",
+        default=None,
+    )
     ExecutionCount: int = Field(
         description="Number of execution times for this segment under a parent context "
         "(full number of execution counts over all segments can be computed by "
@@ -419,7 +421,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
         def conv_segment(seg: CovSegmentInstantiation) -> CovSegmentModel:
             return CovSegmentModel(
                 ExecutionCount=seg.Segment.ExecutionCount,
-                Function=seg.Function.Id,
+                Function=seg.Function.Id if seg.Function else None,
             )
 
         @beartype
@@ -462,7 +464,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
 
             for it in contexts.Grouped:
                 for segment in it.FunctionSegments:
-                    if segment.Function not in result:
+                    if segment.Function and segment.Function not in result:
                         result.Functions[segment.Function] = conv_function(
                             self.SegmentFunctions[segment.Function])
 
@@ -1131,7 +1133,17 @@ def get_file_annotation_document(session: Session, root_path: Path,
     doc = document()
     doc.head.add(tags.link(rel="stylesheet", href=css_path))
     doc.head.add(tags.script(src=str(js_path)))
-    doc.add(html)
+    json_dump = tags.script(
+        type="application/json",
+        id="segment-coverage",
+    )
+
+    json_dump.add_raw_string(
+        file.getExecutionsModelForAllSegments(
+            html.coverage_indices).model_dump_json(indent=2))
+    doc.head.add(json_dump)
+
+    doc.add(html.body)
 
     return doc
 

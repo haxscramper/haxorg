@@ -1153,16 +1153,22 @@ def cxx_target_coverage(
     """
 
     if pytest_filter:
-        run_self(ctx, [
-            "py-tests",
-            f"--arg=--markfilter",
-            f"--arg={pytest_filter}",
-            "--arg=--markfilter-debug=True",
-        ])
+        run_self(
+            ctx,
+            [
+                "py-tests",
+                f"--arg=--markfilter",
+                f"--arg={pytest_filter}",
+                "--arg=--markfilter-debug=True",
+            ],
+        )
 
     else:
-        run_self(ctx, ["py-tests"])
-        
+        run_self(
+            ctx,
+            ["py-tests"],
+        )
+
     run_self(ctx, ["cxx-merge-coverage"])
     run_self(ctx, [
         "docs-custom",

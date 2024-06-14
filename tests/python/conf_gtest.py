@@ -62,11 +62,7 @@ class GTestParams():
             return None
 
     def group_name(self):
-        if self.parameter_name:
-            return f"{self.class_name}/{self.test_name}"
-
-        else:
-            return self.class_name
+        return self.class_name
 
     def item_name(self):
         return self.parameter_name or self.test_name

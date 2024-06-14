@@ -222,6 +222,8 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
         dbg("Running custom filter")
 
+        test_limit_counter = 0
+
         for item in items:
 
             def has_params(mark: pytest.Mark, *args: list, **kwargs: dict) -> bool:
@@ -263,10 +265,17 @@ def pytest_collection_modifyitems(config: pytest.Config,
                     dbg(f"  >> {self.name} -> {result}")
                     return result
 
+            def test_first_n(max_count):
+                nonlocal test_limit_counter
+                result = test_limit_counter < max_count
+                test_limit_counter += 1
+                return result
 
             names = get_function_names(filter)
             for name in names:
                 aeval.symtable[name] = HasMarker(name)
+
+            aeval.symtable["test_first_n"] = test_first_n
 
             dbg(f"running eval on names {names}")
             keep: bool = aeval(filter)

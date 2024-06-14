@@ -43,6 +43,8 @@ PERFETTO_DEFINE_CATEGORIES(
     //
 );
 
+#define NO_COVERAGE __attribute__((no_sanitize("coverage")))
+
 
 #pragma clang diagnostic error "-Wswitch"
 
@@ -111,19 +113,19 @@ BOOST_DESCRIBE_ENUM(
 }
 
 
-std::string read_file(fs::path const& path) {
+NO_COVERAGE std::string read_file(fs::path const& path) {
     std::ifstream     file{path.native()};
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
 }
 
-void llvm_unreachable_f(std::string const& msg) {
+NO_COVERAGE void llvm_unreachable_f(std::string const& msg) {
     llvm_unreachable(msg.c_str());
 }
 
 
-void CreateTables(SQLite::Database& db) {
+NO_COVERAGE void CreateTables(SQLite::Database& db) {
     auto path = fs::path{__FILE__}.parent_path() / "profdata_merger.sql";
     std::string sql = read_file(path);
     db.exec(sql);
@@ -133,7 +135,7 @@ void CreateTables(SQLite::Database& db) {
 //     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
 // }
 
-llvm::json::Array& add_array_field(
+NO_COVERAGE llvm::json::Array& add_array_field(
     llvm::json::Object&      obj,
     std::string const&       field,
     llvm::json::Value const& value) {
@@ -144,7 +146,7 @@ llvm::json::Array& add_array_field(
     return *obj.getArray(field);
 }
 
-llvm::json::Object& add_obj_field(
+NO_COVERAGE llvm::json::Object& add_obj_field(
     llvm::json::Object& obj,
     std::string const&  field) {
     if (obj.getObject(field) == nullptr) {
@@ -165,14 +167,14 @@ struct ForwardNth {
 };
 
 template <int N, typename T, typename TNode>
-T match(TNode const* node) {
+NO_COVERAGE T match(TNode const* node) {
     T result;
     node->match(ForwardNth<N, T>{&result});
     return result;
 }
 
 
-llvm::json::Value treeRepr(Node const* node) {
+NO_COVERAGE llvm::json::Value treeRepr(Node const* node) {
     llvm::json::Object result;
     if (node == nullptr) { return nullptr; }
 
@@ -686,13 +688,13 @@ class BumpPointerAllocator {
     alignas(long double) char InitialBuffer[AllocSize];
     BlockMeta* BlockList = nullptr;
 
-    void grow() {
+    NO_COVERAGE void grow() {
         char* NewMeta = static_cast<char*>(std::malloc(AllocSize));
         if (NewMeta == nullptr) { std::terminate(); }
         BlockList = new (NewMeta) BlockMeta{BlockList, 0};
     }
 
-    void* allocateMassive(size_t NBytes) {
+    NO_COVERAGE void* allocateMassive(size_t NBytes) {
         NBytes += sizeof(BlockMeta);
         BlockMeta* NewMeta = reinterpret_cast<BlockMeta*>(
             std::malloc(NBytes));
@@ -702,10 +704,10 @@ class BumpPointerAllocator {
     }
 
   public:
-    BumpPointerAllocator()
+    NO_COVERAGE BumpPointerAllocator()
         : BlockList(new(InitialBuffer) BlockMeta{nullptr, 0}) {}
 
-    void* allocate(size_t N) {
+    NO_COVERAGE void* allocate(size_t N) {
         N = (N + 15u) & ~15u;
         if (N + BlockList->Current >= UsableAllocSize) {
             if (N > UsableAllocSize) { return allocateMassive(N); }
@@ -717,7 +719,7 @@ class BumpPointerAllocator {
             - N);
     }
 
-    void reset() {
+    NO_COVERAGE void reset() {
         while (BlockList) {
             BlockMeta* Tmp = BlockList;
             BlockList      = BlockList->Next;
@@ -728,22 +730,22 @@ class BumpPointerAllocator {
         BlockList = new (InitialBuffer) BlockMeta{nullptr, 0};
     }
 
-    ~BumpPointerAllocator() { reset(); }
+    NO_COVERAGE ~BumpPointerAllocator() { reset(); }
 };
 
 class DefaultAllocator {
     BumpPointerAllocator Alloc;
 
   public:
-    void reset() { Alloc.reset(); }
+    NO_COVERAGE void reset() { Alloc.reset(); }
 
     template <typename T, typename... Args>
-    T* makeNode(Args&&... args) {
+    NO_COVERAGE T* makeNode(Args&&... args) {
         return new (Alloc.allocate(sizeof(T)))
             T(std::forward<Args>(args)...);
     }
 
-    void* allocateNodeArray(size_t sz) {
+    NO_COVERAGE void* allocateNodeArray(size_t sz) {
         return Alloc.allocate(sizeof(Node*) * sz);
     }
 };
@@ -754,30 +756,31 @@ using Demangler = llvm::itanium_demangle::ManglingParser<DefaultAllocator>;
 
 template <>
 struct JsonSerde<Counter> {
-    static json to_json(Counter const& cnt) { return json(); }
+    NO_COVERAGE static json to_json(Counter const& cnt) { return json(); }
 };
 
 template <>
 struct JsonSerde<CountedRegion::MCDCParameters> {
-    static json to_json(CountedRegion::MCDCParameters const& cnt) {
+    NO_COVERAGE static json to_json(
+        CountedRegion::MCDCParameters const& cnt) {
         return json();
     }
 };
 
 template <>
 struct JsonSerde<llvm::json::Object> {
-    static json to_json(llvm::json::Object const& obj);
+    NO_COVERAGE static json to_json(llvm::json::Object const& obj);
 };
 
 
 template <>
 struct JsonSerde<llvm::json::Array> {
-    static json to_json(llvm::json::Array const& obj);
+    NO_COVERAGE static json to_json(llvm::json::Array const& obj);
 };
 
 template <>
 struct JsonSerde<llvm::json::Value> {
-    static json to_json(llvm::json::Value const& value) {
+    NO_COVERAGE static json to_json(llvm::json::Value const& value) {
         using K = llvm::json::Value::Kind;
         switch (value.kind()) {
             case K::Null: return json();
@@ -795,7 +798,8 @@ struct JsonSerde<llvm::json::Value> {
 };
 
 
-json JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
+NO_COVERAGE json
+    JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
     json result = json::array();
     for (auto const& it : obj) {
         result.push_back(JsonSerde<llvm::json::Value>::to_json(it));
@@ -804,8 +808,8 @@ json JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
 }
 
 
-json JsonSerde<llvm::json::Object>::to_json(
-    const llvm::json::Object& obj) {
+NO_COVERAGE json
+    JsonSerde<llvm::json::Object>::to_json(const llvm::json::Object& obj) {
     json result = json::object();
     for (auto const& field : obj) {
         result[field.first.str()] = JsonSerde<llvm::json::Value>::to_json(
@@ -847,7 +851,7 @@ struct JsonSerde<MCDCRecord> {
 
 template <>
 struct JsonSerde<CoverageMapping> {
-    static json to_json(CoverageMapping const& map) {
+    NO_COVERAGE static json to_json(CoverageMapping const& map) {
         json result = json::object();
         for (auto const& it : map.getCoveredFunctions()) {
             result["functions"].push_back(to_json_eval(it));
@@ -857,7 +861,7 @@ struct JsonSerde<CoverageMapping> {
 };
 
 
-static void loadInput(
+NO_COVERAGE static void loadInput(
     std::string const&     Filename,
     std::string const&     ProfiledBinary,
     llvm::InstrProfWriter* Writer) {
@@ -922,7 +926,7 @@ CoverageMappingLyt const* toCoverageMappingLyt(
     return reinterpret_cast<CoverageMappingLyt const*>(Mapping);
 }
 
-llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
+NO_COVERAGE llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
     CoverageMapping const& Mapping,
     llvm::StringRef        Filename) {
     size_t FilenameHash = hash_value(Filename);
@@ -936,7 +940,7 @@ llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
     return RecordIt->second;
 }
 
-static std::optional<unsigned> findMainViewFileID(
+NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
     const FunctionRecord& Function) {
     llvm::SmallBitVector IsNotExpandedFile(
         Function.Filenames.size(), true);
@@ -950,7 +954,7 @@ static std::optional<unsigned> findMainViewFileID(
     return I;
 }
 
-static std::optional<unsigned> findMainViewFileID(
+NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
     llvm::StringRef       SourceFile,
     const FunctionRecord& Function) {
     std::optional<unsigned> I = findMainViewFileID(Function);
@@ -958,7 +962,7 @@ static std::optional<unsigned> findMainViewFileID(
     return std::nullopt;
 }
 
-static llvm::SmallBitVector gatherFileIDs(
+NO_COVERAGE static llvm::SmallBitVector gatherFileIDs(
     llvm::StringRef       SourceFile,
     const FunctionRecord& Function) {
     llvm::SmallBitVector FilenameEquivalence(
@@ -978,7 +982,7 @@ struct RegionInfo {
 };
 
 
-std::string SqlInsert(
+NO_COVERAGE std::string SqlInsert(
     std::string const&              Table,
     std::vector<std::string> const& Columns) {
     std::string result = std::format("INSERT INTO {} (", Table);
@@ -1175,7 +1179,9 @@ struct db_build_ctx {
     std::vector<llvm::Regex> file_blacklist;
     std::vector<llvm::Regex> file_whitelist;
 
-    bool file_matches(std::string const& path, std::string& debug) const {
+    NO_COVERAGE bool file_matches(
+        std::string const& path,
+        std::string&       debug) const {
         bool result = false;
         if (file_whitelist.empty()) {
             throw std::logic_error(
@@ -1213,7 +1219,7 @@ struct db_build_ctx {
         function_region_ids{};
 
 
-    int get_file_id(std::string const& path, queries& q) {
+    NO_COVERAGE int get_file_id(std::string const& path, queries& q) {
         if (!file_ids.contains(path)) {
             int id         = file_ids.size();
             file_ids[path] = id;
@@ -1227,7 +1233,7 @@ struct db_build_ctx {
     }
 };
 
-int get_function_id(
+NO_COVERAGE int get_function_id(
     FunctionRecord const& f,
     queries&              q,
     db_build_ctx&         ctx) {
@@ -1263,7 +1269,7 @@ int get_function_id(
     return function_id;
 }
 
-std::vector<RegionInfo> getRegionsForFile(
+NO_COVERAGE std::vector<RegionInfo> getRegionsForFile(
     CoverageMapping const& Mapping,
     std::string const&     Filename,
     queries&               q,
@@ -1307,7 +1313,7 @@ std::vector<RegionInfo> getRegionsForFile(
     return Regions;
 }
 
-int get_region_id(
+NO_COVERAGE int get_region_id(
     FunctionRecord const& f,
     CountedRegion const&  r,
     bool                  IsBranch,
@@ -1347,7 +1353,7 @@ int get_region_id(
 
 
 template <typename T, typename FormatContext>
-auto fmt_ctx_field(
+NO_COVERAGE auto fmt_ctx_field(
     std::string const& field_name,
     T const&           field_value,
     FormatContext&     ctx) {
@@ -1360,7 +1366,8 @@ auto fmt_ctx_field(
 template <>
 struct std::formatter<CoverageSegment> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const CoverageSegment& p, FormatContext& ctx) const {
+    NO_COVERAGE auto format(const CoverageSegment& p, FormatContext& ctx)
+        const {
         fmt_ctx("{", ctx);
         fmt_ctx_field("Line", p.Line, ctx);
         fmt_ctx_field("Col", p.Col, ctx);
@@ -1373,7 +1380,7 @@ struct std::formatter<CoverageSegment> : std::formatter<std::string> {
 };
 
 template <typename T>
-std::string format_range(T begin, T end) {
+NO_COVERAGE std::string format_range(T begin, T end) {
     bool        isFirst = true;
     std::string result  = "[";
     while (begin != end) {
@@ -1390,7 +1397,7 @@ std::string format_range(T begin, T end) {
     return result;
 }
 
-void add_file(
+NO_COVERAGE void add_file(
     CoverageMapping const* mapping,
     llvm::StringRef        file,
     queries&               q,
@@ -1420,7 +1427,7 @@ void add_file(
 }
 
 
-void add_instantiations(
+NO_COVERAGE void add_instantiations(
     std::shared_ptr<CoverageMapping> const& mapping,
     std::string const&                      file,
     queries&                                q,
@@ -1447,7 +1454,7 @@ void add_instantiations(
 }
 
 
-void add_regions(
+NO_COVERAGE void add_regions(
     FunctionRecord const& f,
     queries&              q,
     int                   function_id,
@@ -1480,7 +1487,7 @@ struct ProfdataCookie {
 
 static_assert(DescribedRecord<ProfdataCookie>, "dbg");
 
-void add_context(
+NO_COVERAGE void add_context(
     ProfdataCookie const& run,
     queries&              q,
     db_build_ctx&         ctx) {
@@ -1501,7 +1508,7 @@ void add_context(
     q.context.reset();
 }
 
-llvm::MD5::MD5Result getMD5Digest(
+NO_COVERAGE llvm::MD5::MD5Result getMD5Digest(
     const std::string& str1,
     const std::string& str2) {
     llvm::MD5 hash;
@@ -1514,7 +1521,7 @@ llvm::MD5::MD5Result getMD5Digest(
     return result;
 }
 
-std::shared_ptr<CoverageMapping> get_coverage_mapping(
+NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
     std::string const& coverage_path,
     std::string const& binary_path) {
     TRACE_EVENT(
@@ -1602,7 +1609,7 @@ struct ProfdataFullProfile {
 
 const char* __asan_default_options() { return "detect_leaks=0"; }
 
-int main(int argc, char** argv) {
+NO_COVERAGE int main(int argc, char** argv) {
     json debug = json::object();
 
     if (argc != 2) {
@@ -1708,6 +1715,7 @@ int main(int argc, char** argv) {
             paths.begin(),
             paths.end(),
             [&](const std::pair<std::string, std::string>& p) {
+                TRACE_EVENT("llvm", "Get coverage mapping task");
                 auto coverage = get_coverage_mapping(p.first, p.second);
                 std::scoped_lock lock{coverage_mutex};
                 coverage_map.emplace(p, std::move(coverage));
@@ -1723,6 +1731,12 @@ int main(int argc, char** argv) {
     for (auto const& [run_idx, run] : enumerate(summary.runs)) {
         TRACE_EVENT("main", "Insert run data");
         finally{flush_debug};
+        LOG(INFO) << fmt(
+            "[{}/{}] Insert run data profile={} binary={}",
+            run_idx,
+            summary.runs.size(),
+            run.test_profile,
+            run.test_binary);
 
         ctx.function_region_ids.clear();
 
@@ -1745,18 +1759,14 @@ int main(int argc, char** argv) {
                 = fs::path{*config.coverage_mapping_dump}
                 / fmt("coverage_mapping_{}.json", run_idx);
 
-            LOG(INFO) << fmt(
-                "profile={} binary={} coverage-mapping-dump={}",
-                run.test_profile,
-                run.test_binary,
-                path);
+            LOG(INFO) << fmt("coverage-mapping-dump={}", path);
             writeFile(path, j.dump(2));
         }
 
         json j_run = json::object();
         {
             TRACE_EVENT("sql", "Full coverage run info");
-            db.exec("BEGIN");
+            SQLite::Transaction transaction(db);
             {
                 TRACE_EVENT("sql", "Covered functions");
                 for (auto const& f : mapping->getCoveredFunctions()) {
@@ -1786,7 +1796,7 @@ int main(int argc, char** argv) {
                 j_run["covered_files"] = j_files;
             }
 
-            db.exec("COMMIT");
+            transaction.commit();
         }
 
 
