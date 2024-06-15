@@ -12,12 +12,6 @@ import threading
 import inspect
 
 
-def get_callsite_info():
-    frame = inspect.currentframe().f_back
-    info = inspect.getframeinfo(frame)
-    return info.filename, info.lineno, info.function
-
-
 class EventType(str, Enum):
     COMPLETE = "X"
 
@@ -25,13 +19,13 @@ class EventType(str, Enum):
 @beartype
 @dataclass
 class TraceEvent:
-    name: str # The name of the event, as displayed in Trace Viewer
-    cat: str # The event categories. This is a comma separated list of categories for the event. The categories can be used to hide events in the Trace Viewer UI.
+    name: str  # The name of the event, as displayed in Trace Viewer
+    cat: str  # The event categories. This is a comma separated list of categories for the event. The categories can be used to hide events in the Trace Viewer UI.
     ph: EventType
-    ts: int # The tracing clock timestamp of the event. The timestamps are provided at microsecond granularity.
+    ts: int  # The tracing clock timestamp of the event. The timestamps are provided at microsecond granularity.
     dur: int
-    pid: int # The process ID for the process that output this event.
-    tid: int # The thread ID for the thread that output this event.
+    pid: int  # The process ID for the process that output this event.
+    tid: int  # The thread ID for the thread that output this event.
     args: Dict[str, Any]
     sf: Optional[str] = None
     stack: Optional[List[str]] = None
@@ -50,6 +44,10 @@ class TraceCollector:
 
     def get_last_event(self) -> Optional[TraceEvent]:
         return self.traceEvents and self.traceEvents[-1]
+
+    def addEvents(self, events: List[TraceEvent]):
+        with self.lock:
+            self.traceEvents += events
 
     def push_complete_event(self,
                             name: str,
@@ -74,12 +72,12 @@ class TraceCollector:
             if tid not in self.eventStacks:
                 self.eventStacks[tid] = []
             self.eventStacks[tid].append(new_event)
-        
+
         return new_event
 
     def pop_complete_event(self) -> TraceEvent:
         tid = threading.get_ident()
-        
+
         with self.lock:
             new_event = self.eventStacks[tid].pop()
             end_time = int(time.time() * 1e6)
@@ -101,9 +99,9 @@ class TraceCollector:
 
         if file or line or function:
             args = args or dict()
-            args["file"] = file
-            args["line"] = line
-            args["function"] = function
+            args["call_file"] = file
+            args["call_line"] = line
+            args["call_function"] = function
 
         new_event = self.push_complete_event(name, category, args)
         try:
@@ -131,7 +129,8 @@ class TraceCollector:
 __global_trace_collector: Optional[TraceCollector] = None
 
 
-def getGlobalTraceCollector():
+@beartype
+def getGlobalTraceCollector() -> TraceCollector:
     global __global_trace_collector
     if not __global_trace_collector:
         __global_trace_collector = TraceCollector()
@@ -148,18 +147,33 @@ def GlobCompleteEvent(
     line: Optional[int] = None,
     function: Optional[str] = None,
 ) -> Iterator[TraceEvent]:
-    call_file, call_line, call_function = get_callsite_info()
+    frame = inspect.currentframe().f_back.f_back
+    info = inspect.getframeinfo(frame)
 
     with getGlobalTraceCollector().complete_event(
             name,
             category,
             args,
-            file=file or call_file,
-            line=line or call_line,
-            function=function or call_function,
+            file=file or info.filename,
+            line=line or info.lineno,
+            function=function or info.function,
     ) as new_event:
         yield new_event
 
 
+def GlobGetEvents() -> List[TraceEvent]:
+    return getGlobalTraceCollector().traceEvents
+
+
+@beartype
+def GlobAddEvents(events: List[TraceEvent]):
+    getGlobalTraceCollector().addEvents(events)
+
+@beartype
+def GlobRestart():
+    getGlobalTraceCollector().traceEvents = []
+
+
+@beartype
 def GlobExportJson(file: Path):
     return getGlobalTraceCollector().export_to_json(file)

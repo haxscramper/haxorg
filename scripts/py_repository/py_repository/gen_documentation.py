@@ -24,6 +24,7 @@ from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_c
 from pydantic import BaseModel, Field, SerializeAsAny
 import more_itertools
 from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
+import py_scriptutils.tracer
 import re
 import json
 import concurrent.futures
@@ -189,11 +190,19 @@ class FileGenParams():
     html_out_path: Path
 
 
+@beartype
+@dataclass
+class FileGenResult():
+    trace: List[py_scriptutils.tracer.TraceEvent]
+
+
+@beartype
 def generate_code_file(
-    cxx_coverage_session: Session,
-    opts: DocGenerationOptions,
     gen: FileGenParams,
-):
+    opts: DocGenerationOptions,
+) -> FileGenResult:
+    py_scriptutils.tracer.GlobRestart()
+    cxx_coverage_session = cov_docxx.open_coverage(opts.cxx_coverage_path)
     path = docdata.get_html_path(gen.file, html_out_path=gen.html_out_path)
     log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
     with GlobCompleteEvent("Get annotated files",
@@ -238,12 +247,13 @@ def generate_code_file(
         with GlobCompleteEvent("Dump Debug", "cov"):
             path.with_suffix(".txt").write_text(file.get_debug())
 
+    return FileGenResult(trace=py_scriptutils.tracer.GlobGetEvents())
+
 
 @beartype
 def generate_html_for_directory(
     directory: docdata.DocDirectory,
     html_out_path: Path,
-    cxx_coverage_session: Session,
     opts: DocGenerationOptions,
 ) -> None:
     sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
@@ -264,41 +274,45 @@ def generate_html_for_directory(
     target_code_files: List[FileGenParams] = []
 
     def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
-        for subdir in directory.Subdirs:
-            with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(subdir.RelPath))):
+        print(directory.RelPath)
+        with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(directory.RelPath))):
+            for subdir in directory.Subdirs:
                 aux(subdir, html_out_path)
 
-        for code_file in directory.CodeFiles:
-            path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-            if not is_path_allowed(path):
-                continue
+            for code_file in directory.CodeFiles:
+                path = docdata.get_html_path(code_file, html_out_path=html_out_path)
+                if not is_path_allowed(path):
+                    continue
 
-            target_code_files.append(
-                FileGenParams(html_out_path=html_out_path, file=code_file))
+                target_code_files.append(
+                    FileGenParams(html_out_path=html_out_path, file=code_file))
 
-        for text_file in directory.TextFiles:
-            path = docdata.get_html_path(text_file, html_out_path=html_out_path)
-            doc = document(title=str(text_file.RelPath))
-            doc.head.add(tags.link(rel="stylesheet", href=css_path))
-            doc.add(tags.div(sidebar, _class="sidebar"))
-            main = tags.div(_class="main")
-            main.add(tags.pre(text_file.Text))
+            for text_file in directory.TextFiles:
+                path = docdata.get_html_path(text_file, html_out_path=html_out_path)
+                doc = document(title=str(text_file.RelPath))
+                doc.head.add(tags.link(rel="stylesheet", href=css_path))
+                doc.add(tags.div(sidebar, _class="sidebar"))
+                main = tags.div(_class="main")
+                main.add(tags.pre(text_file.Text))
 
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(doc.render())
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(doc.render())
 
     aux(directory, html_out_path)
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        list(
-            executor.map(
+        futures = [
+            executor.submit(
                 functools.partial(
                     generate_code_file,
                     opts=opts,
-                    cxx_coverage_session=cxx_coverage_session,
                 ),
-                target_code_files,
-            ))
+                item,
+            ) for item in target_code_files
+        ]
+
+        for future in futures:
+            py_scriptutils.tracer.GlobAddEvents(future.result().trace)
 
 
 @beartype
@@ -326,7 +340,6 @@ def parse_dir(
     conf: DocGenerationOptions,
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile],
     py_coverage_session: Optional[Session],
-    cxx_coverage_session: Optional[Session],
     is_test: bool,
 ) -> docdata.DocDirectory:
     result = docdata.DocDirectory(RelPath=dir.relative_to(conf.root_path))
@@ -360,7 +373,6 @@ def parse_dir(
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
                     py_coverage_session=py_coverage_session,
-                    cxx_coverage_session=cxx_coverage_session,
                     is_test=is_test,
                 )
 
@@ -385,7 +397,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     if conf.py_coverage_path:
         py_coverage_session = cov_docpy.open_coverage(conf.py_coverage_path)
 
-    cxx_coverage_session = cov_docxx.open_coverage(conf.cxx_coverage_path)
     log(CAT).info(f"Loading code coverage from {conf.cxx_coverage_path}")
 
     with GlobCompleteEvent("Get file tree", "cov"):
@@ -398,7 +409,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
                     py_coverage_session=None,
-                    cxx_coverage_session=None,
                     is_test=True,
                 ))
 
@@ -409,7 +419,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
                     py_coverage_session=py_coverage_session,
-                    cxx_coverage_session=cxx_coverage_session,
                     is_test=False,
                 ))
 
@@ -417,7 +426,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         generate_html_for_directory(
             full_root,
             html_out_path=conf.html_out_path,
-            cxx_coverage_session=cxx_coverage_session,
             opts=conf,
         )
 
