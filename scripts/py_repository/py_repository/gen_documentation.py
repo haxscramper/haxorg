@@ -274,7 +274,6 @@ def generate_html_for_directory(
     target_code_files: List[FileGenParams] = []
 
     def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
-        print(directory.RelPath)
         with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(directory.RelPath))):
             for subdir in directory.Subdirs:
                 aux(subdir, html_out_path)
@@ -390,6 +389,8 @@ def parse_dir(
 @cli_options
 @click.pass_context
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
+    py_scriptutils.tracer.GlobNameThisProcess("Main")
+    py_scriptutils.tracer.GlobIndexThisProcess(0)
     conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile] = {}
 

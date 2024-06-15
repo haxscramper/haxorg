@@ -14,19 +14,20 @@ import inspect
 
 class EventType(str, Enum):
     COMPLETE = "X"
+    METADATA = "M"
 
 
 @beartype
 @dataclass
 class TraceEvent:
-    name: str  # The name of the event, as displayed in Trace Viewer
-    cat: str  # The event categories. This is a comma separated list of categories for the event. The categories can be used to hide events in the Trace Viewer UI.
+    name: str
     ph: EventType
-    ts: int  # The tracing clock timestamp of the event. The timestamps are provided at microsecond granularity.
-    dur: int
-    pid: int  # The process ID for the process that output this event.
-    tid: int  # The thread ID for the thread that output this event.
+    pid: int
+    tid: int
     args: Dict[str, Any]
+    dur: Optional[int] = None
+    cat: Optional[str] = None
+    ts: Optional[int] = None
     sf: Optional[str] = None
     stack: Optional[List[str]] = None
     esf: Optional[str] = None
@@ -49,19 +50,52 @@ class TraceCollector:
         with self.lock:
             self.traceEvents += events
 
+    def add_instant_event(self, event: TraceEvent) -> TraceEvent:
+        with self.lock:
+            self.traceEvents.append(event)
+
+        return event
+
+    def add_metadata_event(self, name: str, args: dict) -> TraceEvent:
+        return self.add_instant_event(
+            TraceEvent(
+                name=name,
+                pid=os.getpid(),
+                tid=threading.get_ident(),
+                ph=EventType.METADATA,
+                args=args,
+                dur=0,
+                ts=self.get_time(),
+                cat="metadata",
+            ))
+
+    def add_process_name_event(self, name: str) -> TraceEvent:
+        return self.add_metadata_event("process_name", dict(name=name))
+
+    def add_thread_name_event(self, name: str) -> TraceEvent:
+        return self.add_metadata_event("thread_name", dict(name=name))
+
+    def add_process_index_event(self, index: int) -> TraceEvent:
+        return self.add_metadata_event("process_sort_index", dict(sort_index=index))
+
+    def add_thread_index_event(self, index: int) -> TraceEvent:
+        return self.add_metadata_event("thread_sort_index", dict(sort_index=index))
+
+    def get_time(self) -> int:
+        return int(time.time() * 1e6)
+
     def push_complete_event(self,
                             name: str,
                             category: str,
                             args: Optional[Dict[str, Any]] = None) -> TraceEvent:
         pid = os.getpid()
         tid = threading.get_ident()
-        start_time = int(time.time() * 1e6)  # Convert to microseconds
 
         new_event = TraceEvent(
             name=name,
             cat=category,
             ph=EventType.COMPLETE,
-            ts=start_time,
+            ts=self.get_time(),
             dur=0,
             pid=pid,
             tid=tid,
@@ -169,9 +203,30 @@ def GlobGetEvents() -> List[TraceEvent]:
 def GlobAddEvents(events: List[TraceEvent]):
     getGlobalTraceCollector().addEvents(events)
 
+
 @beartype
 def GlobRestart():
     getGlobalTraceCollector().traceEvents = []
+
+
+@beartype
+def GlobNameThisProcess(name: str):
+    getGlobalTraceCollector().add_process_name_event(name)
+
+
+@beartype
+def GlobNameThisThread(name: str):
+    getGlobalTraceCollector().add_thread_name_event(name)
+
+
+@beartype
+def GlobIndexThisProcess(index: int):
+    getGlobalTraceCollector().add_process_index_event(index)
+
+
+@beartype
+def GlobIndexThisThread(index: int):
+    getGlobalTraceCollector().add_thread_index_event(index)
 
 
 @beartype
