@@ -29,6 +29,9 @@ import re
 import json
 import concurrent.futures
 import functools
+import traceback
+import multiprocessing
+import sys
 
 T = TypeVar("T")
 
@@ -196,7 +199,24 @@ class FileGenResult():
     trace: List[py_scriptutils.tracer.TraceEvent]
 
 
+def worker_decorator(func):
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(
+                f"Exception in worker process {multiprocessing.current_process().name}: {e}"
+            )
+            sys.excepthook(*sys.exc_info())
+            raise
+
+    return wrapper
+
+
 @beartype
+@worker_decorator
 def generate_code_file(
     gen: FileGenParams,
     opts: DocGenerationOptions,

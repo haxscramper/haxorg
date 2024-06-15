@@ -403,6 +403,11 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                 key=key_func,
         ):
             context_group = list(context_group)
+            function_instantiations = [seq.Segment.Function for seq in context_group]
+            # assert len(function_instantiations) == len(
+            #     set(function_instantiations)
+            # ), f"segment_idx = {segment_idx} function_instantiations = {function_instantiations}"
+
             group = CovSegmentFunctionGroup(
                 Context=context_group[0].Context,
                 FunctionSegments=[
@@ -493,8 +498,7 @@ def open_coverage(path: Path) -> Session:
 
 
 @beartype
-def get_coverage_of(session: Session,
-                    path: Path) -> Optional[Select[Tuple[CovFileRegion]]]:
+def get_file_coverage_id(session: Session, path: Path) -> Optional[int]:
     target_id = session.execute(
         select(CovFile).where(CovFile.Path == str(path))).fetchall()
 
@@ -503,12 +507,21 @@ def get_coverage_of(session: Session,
             return None
 
         case 1:
-            return select(CovFileRegion).where(CovFileRegion.File == target_id[0][0].Id)
+            return target_id[0][0].Id
 
         case _:
             raise ValueError(
                 f"{len(target_id)} files matched for given path '{path}', expected exactly 0-1 matches"
             )
+
+
+@beartype
+def get_coverage_of(session: Session,
+                    path: Path) -> Optional[Select[Tuple[CovFileRegion]]]:
+
+    target_id = get_file_coverage_id(session, path)
+    if target_id:
+        return select(CovFileRegion).where(CovFileRegion.File == target_id)
 
 
 class DocCodeCxxLine(docdata.DocCodeLine, extra="forbid"):
@@ -667,21 +680,27 @@ def get_flat_coverage(
     Lines: List[DocCodeCxxLine],
     segments: Select[Tuple[CovFileRegion]],
 ) -> List[GenCovSegmentFlat]:
+    """
+    Group all segments returned by the SQL selector. Grouping is done using `(<first position>, <last position>)` 
+    as a key. List of lines is used to know the exact sizes of a each individual line. First and last positions
+    for each segment go to the `GenCovSegmentFlat.First` and `GenCovSegmentFlat.Last` fields. 
+    """
     result = []
 
     line_starts: List[int] = []
     current_position = 0
     for line in Lines:
         line_starts.append(current_position)
-        current_position += len(line.Text) + 1
+        current_position += len(
+            line.Text) + 1  # +1 to account for removed newline character
 
-    SegmentRuns: Dict[Tuple[int, int], List[Tuple[int,
-                                                  str]]] = defaultdict(lambda: list())
-
-    # FlatLines = "\n".join(it.Text for it in Lines)
+    SegmentRuns: Dict[  #
+        Tuple[int, int], List[Tuple[int, str]]] = defaultdict(lambda: list())
 
     segment: CovFileRegion
     for (segment,) in session.execute(segments):
+        # LLVM uses 1-based indexing for both lines and columns, the conversion is only
+        # done at this staage, the rest of python code uses 0-based indexing.
         First = line_starts[segment.LineStart - 1] + segment.ColumnStart - 1
         Last = line_starts[segment.LineEnd - 1] + segment.ColumnEnd - 1
 
@@ -709,21 +728,20 @@ def get_flat_coverage(
 
             print(f"{DbgLines} {DbgRange} -> '{esc(DbgText)}' / '{esc(DbgFlatText)}'")
 
+        # Selection of segments for one file will return multiple identically-placed segments
+        # from different coverage runs. This place effectively does `GROUP BY <location>`
         SegmentRuns[(First, Last)].append((segment.Id, None))
-        # print(f"{First} {Last} {segment.Id}")
-
-    # print(render_rich_pprint(to_debug_json(SegmentRuns)))
 
     it: Tuple[Tuple[int, int], List[Tuple[int, str]]]
     for it in sorted(SegmentRuns.items(), key=lambda it: it[0][0]):
         DbgAnnotations = [s[1] for s in it[1] if s[1]]
-        result.append(
-            GenCovSegmentFlat(
-                OriginalId=[s[0] for s in it[1]],
-                First=it[0][0],
-                Last=it[0][1],
-                Dbg=DbgAnnotations if 0 < len(DbgAnnotations) else None,
-            ))
+        flat = GenCovSegmentFlat(
+            OriginalId=[s[0] for s in it[1]],
+            First=it[0][0],
+            Last=it[0][1],
+            Dbg=DbgAnnotations if 0 < len(DbgAnnotations) else None,
+        )
+        result.append(flat)
 
     return result
 
@@ -878,40 +896,36 @@ def get_annotated_files_for_session(
 
     if file_cov != None:
         with GlobCompleteEvent("Get flat coverage", "cov"):
+            # Get all segments applicable for this file and group them into `(First, Last) -> Data`
+            # format
             coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
 
-        # pprint_to_file(coverage_segments, "/tmp/coverage_segments.py")
         with GlobCompleteEvent("Get coverage group", "cov"):
+            # Arrange all coverage segments into the segment tree over the file for later segmentation
             coverage_group = get_coverage_group(coverage_segments)
 
         with GlobCompleteEvent("Find original segments", "cov"):
-            this_file_segments = set()
-            for seg in coverage_segments:
-                for seg_id in seg.OriginalId:
-                    this_file_segments.add(seg_id)
+            target_id = get_file_coverage_id(session, abs_path)
+            for (original_seg, context) in session.execute(
+                    select(CovFileRegion,
+                           CovContext).where(CovFileRegion.File == target_id).join(
+                               CovContext,
+                               CovFileRegion.Context == CovContext.Id,
+                           )):
 
-            for segments in more_itertools.chunked(this_file_segments, 256):
-                for (original_seg, context) in session.execute(
-                        select(CovFileRegion,
-                               CovContext).where(CovFileRegion.Id.in_(segments)).join(
-                                   CovContext,
-                                   CovFileRegion.Context == CovContext.Id,
-                               )):
+                assert isinstance(context, CovContext)
+                assert isinstance(original_seg, CovFileRegion)
+                run_contexts[original_seg.Id] = GenCovSegmentContext(
+                    Context=context,
+                    Segment=original_seg,
+                )
 
-                    assert isinstance(context, CovContext)
-                    assert isinstance(original_seg, CovFileRegion)
-                    run_contexts[original_seg.Id] = GenCovSegmentContext(
-                        Context=context,
-                        Segment=original_seg,
-                    )
-
-                    if original_seg.Function is not None and original_seg.Function not in run_functions:
-                        executed_in = session.execute(
-                            select(CovFunction).where(
-                                CovFunction.Id == original_seg.Function)).fetchall()[0][0]
-                        assert isinstance(executed_in,
-                                          CovFunction), f"{type(executed_in)}"
-                        run_functions[original_seg.Function] = executed_in
+                if original_seg.Function is not None and original_seg.Function not in run_functions:
+                    executed_in = session.execute(
+                        select(CovFunction).where(
+                            CovFunction.Id == original_seg.Function)).fetchall()[0][0]
+                    assert isinstance(executed_in, CovFunction), f"{type(executed_in)}"
+                    run_functions[original_seg.Function] = executed_in
 
     else:
         coverage_group = None

@@ -37,10 +37,12 @@ function show_coverage_segment_idx(index) {
     contextHeader.textContent = functionHeader;
     container.appendChild(contextHeader);
 
-    if (validSegments.length > 1) {
+    console.log("?????");
+    if (1 < validSegments.length) {
       const ul = document.createElement("ul");
       validSegments.forEach(seg => {
         const li = document.createElement("li");
+        console.log(seg, seg.Function, data.Functions[seg.Function]);
         const functionName = data.Functions[seg.Function].SimplifiedDemangled;
         li.textContent = `#${seg.ExecutionCount}, ${functionName}`;
         ul.appendChild(li);
