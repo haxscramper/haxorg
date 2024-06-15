@@ -26,6 +26,8 @@ import more_itertools
 from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
 import re
 import json
+import concurrent.futures
+import functools
 
 T = TypeVar("T")
 
@@ -181,6 +183,63 @@ def cli_options(f):
 
 
 @beartype
+@dataclass
+class FileGenParams():
+    file: docdata.DocCodeFile
+    html_out_path: Path
+
+
+def generate_code_file(
+    cxx_coverage_session: Session,
+    opts: DocGenerationOptions,
+    gen: FileGenParams,
+):
+    path = docdata.get_html_path(gen.file, html_out_path=gen.html_out_path)
+    log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
+    with GlobCompleteEvent("Get annotated files",
+                           "cov",
+                           args=dict(path=str(gen.file.RelPath))):
+        file = cov_docxx.get_annotated_files_for_session(
+            session=cxx_coverage_session,
+            root_path=opts.root_path,
+            abs_path=opts.root_path.joinpath(gen.file.RelPath),
+            use_highlight=False,
+        )
+
+    with GlobCompleteEvent("Generate annotated file",
+                           "cov",
+                           args=dict(path=str(gen.file.RelPath))):
+        data = cov_docxx.get_file_annotation_html(file)
+        doc = document(title=str(gen.file.RelPath))
+        doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
+        doc.head.add(tags.script(src=str(cov_docxx.js_path)))
+        json_dump = tags.script(
+            type="application/json",
+            id="segment-coverage",
+        )
+
+        with GlobCompleteEvent("Get execution for all segments", "cov"):
+            executions = file.getExecutionsModelForAllSegments(data.coverage_indices)
+
+        with GlobCompleteEvent("Dump execution model", "cov"):
+            json_dump.add_raw_string(executions.model_dump_json(indent=2))
+
+        doc.head.add(json_dump)
+
+        doc.add(data.body)
+
+        path.parent.mkdir(exist_ok=True, parents=True)
+        with GlobCompleteEvent("Render HTML", "cov"):
+            path.write_text(doc.render())
+
+        with GlobCompleteEvent("Dump JSON", "cov"):
+            path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
+
+        with GlobCompleteEvent("Dump Debug", "cov"):
+            path.with_suffix(".txt").write_text(file.get_debug())
+
+
+@beartype
 def generate_html_for_directory(
     directory: docdata.DocDirectory,
     html_out_path: Path,
@@ -202,6 +261,8 @@ def generate_html_for_directory(
         return any(it.match(path) for it in coverage_whitelist) and not any(
             it.match(path) for it in coverage_blacklist)
 
+    target_code_files: List[FileGenParams] = []
+
     def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
         for subdir in directory.Subdirs:
             with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(subdir.RelPath))):
@@ -212,48 +273,8 @@ def generate_html_for_directory(
             if not is_path_allowed(path):
                 continue
 
-            log(CAT).info(f"Building HTML for {code_file.RelPath} -> {path}")
-            with GlobCompleteEvent("Get annotated files",
-                                   "cov",
-                                   args=dict(path=str(code_file.RelPath))):
-                file = cov_docxx.get_annotated_files_for_session(
-                    session=cxx_coverage_session,
-                    root_path=opts.root_path,
-                    abs_path=opts.root_path.joinpath(code_file.RelPath),
-                    use_highlight=False,
-                )
-
-            with GlobCompleteEvent("Generate annotated file",
-                                   "cov",
-                                   args=dict(path=str(code_file.RelPath))):
-                data = cov_docxx.get_file_annotation_html(file)
-                doc = document(title=str(code_file.RelPath))
-                doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
-                doc.head.add(tags.script(src=str(cov_docxx.js_path)))
-                json_dump = tags.script(
-                    type="application/json",
-                    id="segment-coverage",
-                )
-
-                with GlobCompleteEvent("Get execution for all segments", "cov"):
-                    executions = file.getExecutionsModelForAllSegments(data.coverage_indices)
-
-                with GlobCompleteEvent("Dump execution model", "cov"):
-                    json_dump.add_raw_string(executions.model_dump_json(indent=2))
-
-                doc.head.add(json_dump)
-
-                doc.add(data.body)
-
-                path.parent.mkdir(exist_ok=True, parents=True)
-                with GlobCompleteEvent("Render HTML", "cov"):
-                    path.write_text(doc.render())
-
-                with GlobCompleteEvent("Dump JSON", "cov"):
-                    path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
-
-                with GlobCompleteEvent("Dump Debug", "cov"):
-                    path.with_suffix(".txt").write_text(file.get_debug())
+            target_code_files.append(
+                FileGenParams(html_out_path=html_out_path, file=code_file))
 
         for text_file in directory.TextFiles:
             path = docdata.get_html_path(text_file, html_out_path=html_out_path)
@@ -267,6 +288,17 @@ def generate_html_for_directory(
             path.write_text(doc.render())
 
     aux(directory, html_out_path)
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        list(
+            executor.map(
+                functools.partial(
+                    generate_code_file,
+                    opts=opts,
+                    cxx_coverage_session=cxx_coverage_session,
+                ),
+                target_code_files,
+            ))
 
 
 @beartype

@@ -7,6 +7,7 @@ import os
 from contextlib import contextmanager
 import json
 from pathlib import Path
+import threading
 
 import inspect
 
@@ -24,13 +25,13 @@ class EventType(str, Enum):
 @beartype
 @dataclass
 class TraceEvent:
-    name: str
-    cat: str
+    name: str # The name of the event, as displayed in Trace Viewer
+    cat: str # The event categories. This is a comma separated list of categories for the event. The categories can be used to hide events in the Trace Viewer UI.
     ph: EventType
-    ts: int
+    ts: int # The tracing clock timestamp of the event. The timestamps are provided at microsecond granularity.
     dur: int
-    pid: int
-    tid: int
+    pid: int # The process ID for the process that output this event.
+    tid: int # The thread ID for the thread that output this event.
     args: Dict[str, Any]
     sf: Optional[str] = None
     stack: Optional[List[str]] = None
@@ -44,7 +45,8 @@ class TraceCollector:
     def __init__(self) -> None:
         self.traceEvents: List[TraceEvent] = []
         self.metadata: Dict[str, Any] = {}
-        self.eventStack: List[TraceEvent] = []
+        self.eventStacks: Dict[int, List[TraceEvent]] = {}
+        self.lock = threading.Lock()
 
     def get_last_event(self) -> Optional[TraceEvent]:
         return self.traceEvents and self.traceEvents[-1]
@@ -54,7 +56,7 @@ class TraceCollector:
                             category: str,
                             args: Optional[Dict[str, Any]] = None) -> TraceEvent:
         pid = os.getpid()
-        tid = id(self)
+        tid = threading.get_ident()
         start_time = int(time.time() * 1e6)  # Convert to microseconds
 
         new_event = TraceEvent(
@@ -68,14 +70,21 @@ class TraceCollector:
             args=args or {},
         )
 
-        self.eventStack.append(new_event)
+        with self.lock:
+            if tid not in self.eventStacks:
+                self.eventStacks[tid] = []
+            self.eventStacks[tid].append(new_event)
+        
         return new_event
 
     def pop_complete_event(self) -> TraceEvent:
-        new_event = self.eventStack.pop()
-        end_time = int(time.time() * 1e6)
-        new_event.dur = end_time - new_event.ts
-        self.traceEvents.append(new_event)
+        tid = threading.get_ident()
+        
+        with self.lock:
+            new_event = self.eventStacks[tid].pop()
+            end_time = int(time.time() * 1e6)
+            new_event.dur = end_time - new_event.ts
+            self.traceEvents.append(new_event)
 
         return new_event
 
