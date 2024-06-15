@@ -43,7 +43,8 @@ PERFETTO_DEFINE_CATEGORIES(
     //
 );
 
-#define NO_COVERAGE __attribute__((no_sanitize("coverage")))
+#define NO_COVERAGE                                                       \
+    __attribute__((no_sanitize("coverage", "address", "thread")))
 
 
 #pragma clang diagnostic error "-Wswitch"
@@ -1176,8 +1177,26 @@ struct db_build_ctx {
     int                                  region_counter{};
     int                                  function_region_counter{};
 
+    std::unordered_map<std::string, llvm::json::Value>
+        demangled_json_dumps{};
+
     std::vector<llvm::Regex> file_blacklist;
     std::vector<llvm::Regex> file_whitelist;
+
+    NO_COVERAGE std::string getDemangledJson(FunctionRecord const& f) {
+        if (demangled_json_dumps.contains(f.Name)) {
+            return llvm::formatv("{0}", demangled_json_dumps.at(f.Name));
+        } else {
+            Demangler Parser(
+                f.Name.data(), f.Name.data() + f.Name.length());
+
+            Node*             AST  = Parser.parse();
+            llvm::json::Value repr = treeRepr(AST);
+            demangled_json_dumps.insert({f.Name, repr});
+            return llvm::formatv("{0}", repr);
+        }
+    }
+
 
     NO_COVERAGE bool file_matches(
         std::string const& path,
@@ -1239,11 +1258,6 @@ NO_COVERAGE int get_function_id(
     db_build_ctx&         ctx) {
     std::string readeable = llvm::demangle(f.Name);
 
-    Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
-
-    Node*             AST  = Parser.parse();
-    llvm::json::Value repr = treeRepr(AST);
-
 
     int function_id = -1;
 
@@ -1261,7 +1275,7 @@ NO_COVERAGE int get_function_id(
         } else {
             q.func.bind(3, demangled);
         }
-        q.func.bind(4, llvm::formatv("{0}", repr));
+        q.func.bind(4, ctx.getDemangledJson(f));
         q.func.exec();
         q.func.reset();
     }

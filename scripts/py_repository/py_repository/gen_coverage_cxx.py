@@ -281,7 +281,7 @@ class CovSegmentFunctionGroupModel(BaseModel, extra="forbid"):
     """
     Grouping of segments under a coverage context. Each function group model stores information 
     """
-    Context: CovContextModel
+    Context: int
     FunctionSegments: List[CovSegmentModel] = Field(
         default_factory=list,
         description="Full list of segment instantiations for a given point. "
@@ -310,6 +310,10 @@ class CovFileContextModel(BaseModel, extra="forbid"):
     )
     Functions: Dict[int, CovSegmentFunctionModel] = Field(
         default_factory=dict, description="Function ID to the function description data")
+
+    Contexts: Dict[int, CovContextModel] = Field(
+        default_factory=dict,
+        description="Segment ID to the coverage segment information")
 
 
 class AnnotatedFile(BaseModel, extra="forbid"):
@@ -376,7 +380,8 @@ class AnnotatedFile(BaseModel, extra="forbid"):
             else:
                 return True
 
-        return sorted(segment_idx, key=functools.cmp_to_key(cmpSegment))
+        with GlobCompleteEvent("Get sorted segment indices", "cov"):
+            return sorted(segment_idx, key=functools.cmp_to_key(cmpSegment))
 
     @beartype
     def getExecutionsForSegment(self, segment_idx: int) -> CovSegmentContextGroup:
@@ -415,60 +420,70 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     @beartype
     def getExecutionsModelForSegment(self,
                                      segment_idx: int) -> CovSegmentContextGroupModel:
-        group = self.getExecutionsForSegment(segment_idx=segment_idx)
+        with GlobCompleteEvent("Get executions model for segment", "cov"):
+            group = self.getExecutionsForSegment(segment_idx=segment_idx)
 
-        @beartype
-        def conv_segment(seg: CovSegmentInstantiation) -> CovSegmentModel:
-            return CovSegmentModel(
-                ExecutionCount=seg.Segment.ExecutionCount,
-                Function=seg.Function.Id if seg.Function else None,
-            )
+            @beartype
+            def conv_segment(seg: CovSegmentInstantiation) -> CovSegmentModel:
+                return CovSegmentModel(
+                    ExecutionCount=seg.Segment.ExecutionCount,
+                    Function=seg.Function.Id if seg.Function else None,
+                )
 
-        @beartype
-        def conv_context(context: CovContext) -> CovContextModel:
-            return CovContextModel(
-                Name=context.Name,
-                Parent=context.Parent,
-                RunLine=context.getContextRunLine(),
-                RunCol=context.getContextRunCol(),
-                RunFile=context.getContextRunFile(),
-                RunArgs=context.getContextRunArgs(),
-            )
+            @beartype
+            def conv_group(group: CovSegmentFunctionGroup) -> CovSegmentFunctionGroupModel:
+                return CovSegmentFunctionGroupModel(
+                    Context=group.Context.Id,
+                    FunctionSegments=[
+                        conv_segment(it)
+                        for it in group.FunctionSegments
+                        if 0 < it.Segment.ExecutionCount
+                    ],
+                )
 
-        @beartype
-        def conv_group(group: CovSegmentFunctionGroup) -> CovSegmentFunctionGroupModel:
-            return CovSegmentFunctionGroupModel(
-                Context=conv_context(group.Context),
-                FunctionSegments=[conv_segment(it) for it in group.FunctionSegments],
-            )
-
-        return CovSegmentContextGroupModel(
-            Grouped=[conv_group(it) for it in group.Grouped],)
+            return CovSegmentContextGroupModel(
+                Grouped=[conv_group(it) for it in group.Grouped],)
 
     @beartype
     def getExecutionsModelForAllSegments(self,
                                          segments: Iterable[int]) -> CovFileContextModel:
-        result = CovFileContextModel()
+        with GlobCompleteEvent("Get execution model for all segments", "cov"):
+            result = CovFileContextModel()
 
-        @beartype
-        def conv_function(group: CovFunction) -> CovSegmentFunctionModel:
-            return CovSegmentFunctionModel(
-                Mangled=group.Mangled,
-                Demangled=group.Demangled,
-                SimplifiedDemangled=get_simple_function_name(group),
-            )
+            @beartype
+            def conv_function(group: CovFunction) -> CovSegmentFunctionModel:
+                return CovSegmentFunctionModel(
+                    Mangled=group.Mangled,
+                    Demangled=group.Demangled,
+                    SimplifiedDemangled=get_simple_function_name(group),
+                )
+            
+            @beartype
+            def conv_context(context: CovContext) -> CovContextModel:
+                return CovContextModel(
+                    Name=context.Name,
+                    Parent=context.Parent,
+                    RunLine=context.getContextRunLine(),
+                    RunCol=context.getContextRunCol(),
+                    RunFile=context.getContextRunFile(),
+                    RunArgs=context.getContextRunArgs(),
+                )
 
-        for idx in sorted(segments):
-            contexts = self.getExecutionsModelForSegment(idx)
-            result.SegmentContexts[idx] = contexts
+            for ctx in self.SegmentRunContexts.values():
+                if ctx.Context.Id not in result.Contexts:
+                    result.Contexts[ctx.Context.Id] = conv_context(ctx.Context)
 
-            for it in contexts.Grouped:
-                for segment in it.FunctionSegments:
-                    if segment.Function and segment.Function not in result:
-                        result.Functions[segment.Function] = conv_function(
-                            self.SegmentFunctions[segment.Function])
+            for idx in sorted(segments):
+                contexts = self.getExecutionsModelForSegment(idx)
+                result.SegmentContexts[idx] = contexts
 
-        return result
+                for it in contexts.Grouped:
+                    for segment in it.FunctionSegments:
+                        if segment.Function and segment.Function not in result:
+                            result.Functions[segment.Function] = conv_function(
+                                self.SegmentFunctions[segment.Function])
+
+            return result
 
 
 @beartype
@@ -857,7 +872,7 @@ def get_annotated_files_for_session(
     with GlobCompleteEvent("Get coverage for file", "cov"):
         file_cov = get_coverage_of(session, abs_path)
 
-    run_contexts: Dict[int, CovContext] = dict()
+    run_contexts: Dict[int, GenCovSegmentContext] = dict()
     run_functions: Dict[int, CovFunction] = dict()
 
     if file_cov != None:

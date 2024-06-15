@@ -235,9 +235,12 @@ def generate_html_for_directory(
                     id="segment-coverage",
                 )
 
-                json_dump.add_raw_string(
-                    file.getExecutionsModelForAllSegments(
-                        data.coverage_indices).model_dump_json(indent=2))
+                with GlobCompleteEvent("Get execution for all segments", "cov"):
+                    executions = file.getExecutionsModelForAllSegments(data.coverage_indices)
+
+                with GlobCompleteEvent("Dump execution model", "cov"):
+                    json_dump.add_raw_string(executions.model_dump_json(indent=2))
+
                 doc.head.add(json_dump)
 
                 doc.add(data.body)
