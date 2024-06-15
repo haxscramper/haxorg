@@ -1168,6 +1168,40 @@ struct FileSpanComparator {
     }
 };
 
+static std::vector<std::string> CompiledFileExtensions = {
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".cc",
+    ".cxx",
+    ".c",
+    ".C",
+    ".java",
+    ".js",
+    ".ts",
+    ".go",
+    ".py",
+    ".rs",
+    ".swift",
+    ".m",
+    ".mm",
+};
+
+int findSymbolNamePosition(const std::string& input) {
+    int pos = input.find(':');
+    while (pos != std::string::npos) {
+        for (const auto& ext : CompiledFileExtensions) {
+            int extPos = input.rfind(ext, pos);
+            if (extPos != std::string::npos
+                && extPos + ext.length() == pos) {
+                return pos + 1;
+            }
+        }
+        pos = input.find(':', pos + 1);
+    }
+
+    return 0;
+}
 
 struct db_build_ctx {
     int                                  context_id{};
@@ -1187,10 +1221,11 @@ struct db_build_ctx {
         if (demangled_json_dumps.contains(f.Name)) {
             return llvm::formatv("{0}", demangled_json_dumps.at(f.Name));
         } else {
-            Demangler Parser(
-                f.Name.data(), f.Name.data() + f.Name.length());
+            int         offset = findSymbolNamePosition(f.Name);
+            std::string name   = f.Name.substr(offset);
+            Demangler   Parser(name.data(), name.data() + name.length());
 
-            Node*             AST  = Parser.parse();
+            Node* AST = Parser.parse();
             llvm::json::Value repr = treeRepr(AST);
             demangled_json_dumps.insert({f.Name, repr});
             return llvm::formatv("{0}", repr);
