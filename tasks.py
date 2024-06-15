@@ -1147,35 +1147,42 @@ def cxx_target_coverage(
     coverage_file_whitelist: List[str] = [".*"],
     coverage_file_blacklist: List[str] = [],
     out_dir: str = "/tmp/docs_out_targeted",
+    run_tests: bool = True,
+    run_merge: bool = True,
+    run_docgen: bool = True,
 ):
     """
     Run full cycle of the code coverage generation. 
     """
 
-    if pytest_filter:
-        run_self(
-            ctx,
-            [
-                "py-tests",
-                f"--arg=--markfilter",
-                f"--arg={pytest_filter}",
-                "--arg=--markfilter-debug=True",
-            ],
-        )
+    if run_tests:
+        if pytest_filter:
+            run_self(
+                ctx,
+                [
+                    "py-tests",
+                    f"--arg=--markfilter",
+                    f"--arg={pytest_filter}",
+                    "--arg=--markfilter-debug=True",
+                ],
+            )
 
-    else:
-        run_self(
-            ctx,
-            ["py-tests"],
-        )
+        else:
+            run_self(
+                ctx,
+                ["py-tests"],
+            )
 
-    run_self(ctx, ["cxx-merge-coverage"])
-    run_self(ctx, [
-        "docs-custom",
-        *get_list_cli_pass("coverage-file-whitelist", coverage_file_whitelist),
-        *get_list_cli_pass("coverage-file-blacklist", coverage_file_blacklist),
-        f"--out-dir={out_dir}",
-    ])
+    if run_merge:
+        run_self(ctx, ["cxx-merge-coverage"])
+
+    if run_docgen:
+        run_self(ctx, [
+            "docs-custom",
+            *get_list_cli_pass("coverage-file-whitelist", coverage_file_whitelist),
+            *get_list_cli_pass("coverage-file-blacklist", coverage_file_blacklist),
+            f"--out-dir={out_dir}",
+        ])
 
 
 @org_task()

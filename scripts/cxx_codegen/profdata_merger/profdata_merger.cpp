@@ -1226,9 +1226,18 @@ struct db_build_ctx {
             Demangler   Parser(name.data(), name.data() + name.length());
 
             Node* AST = Parser.parse();
-            llvm::json::Value repr = treeRepr(AST);
-            demangled_json_dumps.insert({f.Name, repr});
-            return llvm::formatv("{0}", repr);
+
+            if (AST == nullptr && name.contains("$_")
+                && name.contains("cl") && name.contains('K')) {
+                llvm::json::Object repr;
+                repr["NodeKind"] = "LambdaDemangleFail";
+                return llvm::formatv(
+                    "{0}", llvm::json::Value{std::move(repr)});
+            } else {
+                llvm::json::Value repr = treeRepr(AST);
+                demangled_json_dumps.insert({f.Name, repr});
+                return llvm::formatv("{0}", repr);
+            }
         }
     }
 

@@ -431,7 +431,8 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                 )
 
             @beartype
-            def conv_group(group: CovSegmentFunctionGroup) -> CovSegmentFunctionGroupModel:
+            def conv_group(
+                    group: CovSegmentFunctionGroup) -> CovSegmentFunctionGroupModel:
                 return CovSegmentFunctionGroupModel(
                     Context=group.Context.Id,
                     FunctionSegments=[
@@ -457,7 +458,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                     Demangled=group.Demangled,
                     SimplifiedDemangled=get_simple_function_name(group),
                 )
-            
+
             @beartype
             def conv_context(context: CovContext) -> CovContextModel:
                 return CovContextModel(
@@ -1009,6 +1010,7 @@ def try_get(j: dict, path: List[str]) -> Optional[Any]:
 @beartype
 def get_simple_function_name(func: CovFunction) -> str:
 
+    @beartype
     def aux(j: dict) -> Optional[str]:
         match j["NodeKind"]:
             case "NestedName":
@@ -1021,19 +1023,71 @@ def get_simple_function_name(func: CovFunction) -> str:
                 else:
                     return Name
 
-            case "NameType":
-                if j["Name"] in ["__cxx11"]:
-                    return None
+            case "LocalName":
+                name = try_get(j, ["Entity", "Qual", "Name"])
+                if name and name.startswith("$_"):
+                    return "lambda"
 
                 else:
-                    return j["Name"]
+                    return aux(j["Encoding"]) + "::" + aux(j["Entity"])
+
+            case "NameType":
+                match j["Name"]:
+                    case "__cxx11":
+                        return None
+
+                    case "unsigned long long":
+                        return "u64"
+
+                    case "unsigned long":
+                        return "u32"
+
+                    case "int":
+                        return "i32"
+
+                    case "long long":
+                        return "i64"
+
+                    case "short":
+                        return "i8"
+
+                    case "unsigned short":
+                        return "u8"
+
+                    case _:
+                        return j["Name"]
+
+            case "PointerType":
+                return aux(j["Pointee"])
+
+            case "ReferenceType":
+                result = aux(j["Pointee"])
+                match j["RK"]:
+                    case "LValue":
+                        return result + "&"
+
+                    case "RValue":
+                        return result + "&&"
+
+                    case _:
+                        assert False, str(j)
 
             case "FunctionEncoding":
-                return aux(j["Name"])
+                if "Params" in j:
+                    return "{}({})".format(
+                        aux(j["Name"]),
+                        ", ".join(aux(it) for it in j["Params"]),
+                    )
+
+                else:
+                    return aux(j["Name"])
 
             case "NameWithTemplateArgs":
                 if try_get(j, ["Name", "Name", "Name"]) == "basic_string":
                     return "std::string"
+
+                elif try_get(j, ["Name", "Name"]) == "NodeId":
+                    return "OrgId"
 
                 else:
                     return "{}<{}>".format(aux(j["Name"]), aux(j["TemplateArgs"]))
