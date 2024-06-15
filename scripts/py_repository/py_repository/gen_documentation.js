@@ -19,19 +19,21 @@ function show_coverage_segment_idx(index) {
   let hasContent = false;
 
   contextGroup.Grouped.forEach(group => {
-    const contextName = group.Context.Name;
+    const contextObj = data.Contexts[group.Context];
+    const contextName = contextObj.Name;
     const functionSegments = group.FunctionSegments;
 
     const validSegments =
         functionSegments.filter(seg => seg.ExecutionCount > 0);
-    if (validSegments.length === 0)
+    if (validSegments.length === 0) {
       return;
+    }
 
     const contextHeader = document.createElement("div");
-    const functionHeader =
-        validSegments.length === 1
-            ? `${contextName}, #${validSegments[0].ExecutionCount}`
-            : `${contextName}:`;
+    const functionHeader = validSegments.length === 1
+                               ? `${contextName} ${contextObj.RunArgs}, #${
+                                     validSegments[0].ExecutionCount}`
+                               : `${contextName} ${contextObj.RunArgs}:`;
     contextHeader.textContent = functionHeader;
     container.appendChild(contextHeader);
 
@@ -40,8 +42,7 @@ function show_coverage_segment_idx(index) {
       validSegments.forEach(seg => {
         const li = document.createElement("li");
         const functionName = data.Functions[seg.Function].SimplifiedDemangled;
-        li.textContent =
-            `#${seg.ExecutionCount}, ${functionName}`;
+        li.textContent = `#${seg.ExecutionCount}, ${functionName}`;
         ul.appendChild(li);
       });
       container.appendChild(ul);

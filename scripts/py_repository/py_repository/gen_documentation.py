@@ -204,7 +204,6 @@ def generate_code_file(
     py_scriptutils.tracer.GlobRestart()
     cxx_coverage_session = cov_docxx.open_coverage(opts.cxx_coverage_path)
     path = docdata.get_html_path(gen.file, html_out_path=gen.html_out_path)
-    log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
     with GlobCompleteEvent("Get annotated files",
                            "cov",
                            args=dict(path=str(gen.file.RelPath))):
@@ -247,6 +246,7 @@ def generate_code_file(
         with GlobCompleteEvent("Dump Debug", "cov"):
             path.with_suffix(".txt").write_text(file.get_debug())
 
+    log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
     return FileGenResult(trace=py_scriptutils.tracer.GlobGetEvents())
 
 
