@@ -1980,84 +1980,84 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
 }
 
 
+namespace {
+OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
+    OrgId const start = id;
+    // Iterate over all nodes until the end of the group or until exit
+    // condition is met. This assumes non-restructured tree that has
+    // subnodes positioned flatlyl on the top level
+    auto& g = *parser->group;
+    while (id <= g.nodes.back()) {
+        // NOTE: 'back' returns the last node, not one-past-last
+        OrgNode node = g.at(id);
+        if (node.kind == org::Subtree) {
+            parser->print(
+                "Found subtree on the lower level " + id.format());
+            OrgId const tree = id;
+            if (g.size(tree) == 0) { LOG(INFO) << g.treeRepr(tree); }
+
+            OrgId subId = g.subnode(tree, 0);
+            int   sub   = g.val(subId).text.size();
+            if (level < sub) {
+                OrgId stmt = g.subnode(tree, 8);
+                CHECK(g.at(stmt).kind == org::StmtList);
+                id = extendSubtreeTrailsImpl(parser, stmt + 1, sub);
+                CHECK(stmt + 1 <= id);
+                // AUX returns next position to start looping from, so
+                // the tree size is 'end - start - 1' to account for
+                // the offset.
+
+                // Extend the tree itself and nested statement list
+                int stmt_extend = (id - stmt) - 1;
+                int tree_extend = (id - tree) - 1;
+                g.at(stmt).extend(stmt_extend);
+                g.at(tree).extend(tree_extend);
+
+                parser->print(
+                    fmt("Found nested subtree tree={} stmt={} "
+                        "tree-extend={} stmt-extend={}",
+                        tree.format(),
+                        stmt.format(),
+                        tree_extend,
+                        stmt_extend));
+
+                auto treeSlice = g.allSubnodesOf(tree).value();
+                auto stmtSlice = g.allSubnodesOf(tree).value();
+
+                // Structural correctness checks -- mostly for
+                // debugging of the implementation, malformed incoming
+                // data is not expected.
+                assertValidStructure(parser->group, tree);
+                CHECK(treeSlice.last <= g.nodes.back());
+                CHECK(stmtSlice.last <= g.nodes.back());
+                CHECK(treeSlice.last == stmtSlice.last)
+                    << "extend tree"
+                    << "$# -- $#" % to_string_vec(treeSlice, stmtSlice);
+                CHECK(treeSlice.contains(stmtSlice))
+                    << "statement containment"
+                    << "$# -- $#" % to_string_vec(treeSlice, stmtSlice);
+
+
+            } else {
+                parser->print(
+                    "Found subtree on the same level or above "
+                    + id.format());
+                // Found subtree on the same level or above
+                break;
+            }
+        } else {
+            // Node is not a subtree, skipping.
+            ++id;
+        }
+    }
+
+    // Return next starting position for the caller start
+    return id;
+}
+} // namespace
+
 void OrgParser::extendSubtreeTrails(OrgId position) {
     __perf_trace("extendSubtreeTrails");
-    Func<OrgId(OrgId, int)> aux;
-    aux = [&](OrgId id, int level) -> OrgId {
-        OrgId const start = id;
-        // Iterate over all nodes until the end of the group or until exit
-        // condition is met. This assumes non-restructured tree that has
-        // subnodes positioned flatlyl on the top level
-        auto& g = *group;
-        while (id <= g.nodes.back()) {
-            // NOTE: 'back' returns the last node, not one-past-last
-            OrgNode node = g.at(id);
-            if (node.kind == org::Subtree) {
-                print("Found subtree on the lower level " + id.format());
-                OrgId const tree = id;
-                if (g.size(tree) == 0) { LOG(INFO) << g.treeRepr(tree); }
-
-                OrgId subId = g.subnode(tree, 0);
-                int   sub   = g.val(subId).text.size();
-                if (level < sub) {
-                    OrgId stmt = g.subnode(tree, 8);
-                    CHECK(g.at(stmt).kind == org::StmtList);
-                    id = aux(stmt + 1, sub);
-                    CHECK(stmt + 1 <= id);
-                    // AUX returns next position to start looping from, so
-                    // the tree size is 'end - start - 1' to account for
-                    // the offset.
-
-                    // Extend the tree itself and nested statement list
-                    int stmt_extend = (id - stmt) - 1;
-                    int tree_extend = (id - tree) - 1;
-                    g.at(stmt).extend(stmt_extend);
-                    g.at(tree).extend(tree_extend);
-
-                    print(
-                        fmt("Found nested subtree tree={} stmt={} "
-                            "tree-extend={} stmt-extend={}",
-                            tree.format(),
-                            stmt.format(),
-                            tree_extend,
-                            stmt_extend));
-
-                    auto treeSlice = g.allSubnodesOf(tree).value();
-                    auto stmtSlice = g.allSubnodesOf(tree).value();
-
-                    // Structural correctness checks -- mostly for
-                    // debugging of the implementation, malformed incoming
-                    // data is not expected.
-                    assertValidStructure(group, tree);
-                    CHECK(treeSlice.last <= g.nodes.back());
-                    CHECK(stmtSlice.last <= g.nodes.back());
-                    CHECK(treeSlice.last == stmtSlice.last)
-                        << "extend tree"
-                        << "$# -- $#"
-                               % to_string_vec(treeSlice, stmtSlice);
-                    CHECK(treeSlice.contains(stmtSlice))
-                        << "statement containment"
-                        << "$# -- $#"
-                               % to_string_vec(treeSlice, stmtSlice);
-
-
-                } else {
-                    print(
-                        "Found subtree on the same level or above "
-                        + id.format());
-                    // Found subtree on the same level or above
-                    break;
-                }
-            } else {
-                // Node is not a subtree, skipping.
-                ++id;
-            }
-        }
-
-        // Return next starting position for the caller start
-        return id;
-    };
-
-    aux(position, 0);
+    extendSubtreeTrailsImpl(this, position, 0);
     assertValidStructure(group, position);
 }

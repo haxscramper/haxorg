@@ -144,6 +144,9 @@ class CovFileRegion(CoverageSchema):
     def endLoc(self) -> Tuple[int, int]:
         return (self.LineEnd, self.ColumnEnd)
 
+    def __repr__(self) -> str:
+        return f"{self.LineStart}:{self.ColumnStart}..{self.LineEnd}:{self.ColumnEnd} #{self.ExecutionCount} FN:{self.Function}"
+
 
 class CovInstantiationGroup(CoverageSchema):
     __tablename__ = "CovInstantiationGroup"
@@ -403,20 +406,31 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                 key=key_func,
         ):
             context_group = list(context_group)
-            function_instantiations = [seq.Segment.Function for seq in context_group]
-            # assert len(function_instantiations) == len(
-            #     set(function_instantiations)
-            # ), f"segment_idx = {segment_idx} function_instantiations = {function_instantiations}"
+
+            context: CovContext = context_group[0].Context
 
             group = CovSegmentFunctionGroup(
                 Context=context_group[0].Context,
-                FunctionSegments=[
+                FunctionSegments=[],
+            )
+
+            function_instantiations = defaultdict(list)
+            for seg in context_group:
+                # function_instantiations[seg.Segment.Function].append(seg.Segment)
+                group.FunctionSegments.append(
                     CovSegmentInstantiation(
                         Segment=seg.Segment,
                         Function=self.SegmentFunctions[seg.Segment.Function]
-                        if seg.Segment.Function else None) for seg in context_group
-                ],
-            )
+                        if seg.Segment.Function else None,
+                    ))
+
+            # if 1 < len(function_instantiations) or any(
+            #         1 < len(v) for v in function_instantiations.values()):
+            #     seg = self.SegmentList[segment_idx]
+            #     log(CAT).info(f"{context.Name}, {list(function_instantiations.items())} {seg.First}..{seg.Last} {seg.Dbg}")
+            #     for it in function_instantiations.keys():
+            #         func = self.SegmentFunctions[it]
+            #         log(CAT).info(f"{func.Demangled}")
 
             result.Grouped.append(group)
 
@@ -724,19 +738,22 @@ def get_flat_coverage(
                     end=(segment.LineEnd, segment.ColumnEnd),
                 ))
 
-            DbgFlatText = FlatLines[First:Last + 1]
+            # DbgFlatText = FlatLines[First:Last + 1]
 
-            print(f"{DbgLines} {DbgRange} -> '{esc(DbgText)}' / '{esc(DbgFlatText)}'")
+            DbgAnnotations = (f"{DbgLines} {DbgRange}")
+
+        else:
+            DbgAnnotations = None
 
         # Selection of segments for one file will return multiple identically-placed segments
         # from different coverage runs. This place effectively does `GROUP BY <location>`
-        SegmentRuns[(First, Last)].append((segment.Id, None))
+        SegmentRuns[(First, Last)].append((segment.Id, DbgAnnotations))
 
     it: Tuple[Tuple[int, int], List[Tuple[int, str]]]
-    for it in sorted(SegmentRuns.items(), key=lambda it: it[0][0]):
+    for it in SegmentRuns.items():
         DbgAnnotations = [s[1] for s in it[1] if s[1]]
         flat = GenCovSegmentFlat(
-            OriginalId=[s[0] for s in it[1]],
+            OriginalId=sorted(set([s[0] for s in it[1]])),
             First=it[0][0],
             Last=it[0][1],
             Dbg=DbgAnnotations if 0 < len(DbgAnnotations) else None,
