@@ -238,6 +238,13 @@ class CovContextModel(BaseModel, extra="forbid"):
     )
 
 
+class CovLocationModel(BaseModel, extra="forbid"):
+    LineStart: int
+    LineEnd: int
+    ColumnStart: int
+    ColumnEnd: int
+
+
 class CovSegmentModel(BaseModel, extra="forbid"):
     Function: Optional[int] = Field(
         description="ID of the function which contains this segment. "
@@ -245,10 +252,17 @@ class CovSegmentModel(BaseModel, extra="forbid"):
         "coverage segment context group model",
         default=None,
     )
+
     ExecutionCount: int = Field(
         description="Number of execution times for this segment under a parent context "
         "(full number of execution counts over all segments can be computed by "
         "summing up all the coverage context groups)")
+
+    ExpandedFrom: Optional[CovLocationModel] = Field(
+        default=None,
+        description=
+        "For macro-expanded segments, where was the original macro call location?",
+    )
 
 
 class CovSegmentFunctionModel(BaseModel, extra="forbid"):
@@ -425,10 +439,22 @@ class AnnotatedFile(BaseModel, extra="forbid"):
 
             @beartype
             def conv_segment(seg: CovSegmentInstantiation) -> CovSegmentModel:
-                return CovSegmentModel(
+                model = CovSegmentModel(
                     ExecutionCount=seg.Segment.ExecutionCount,
                     Function=seg.Function.Id if seg.Function else None,
                 )
+
+                if seg.Segment.ExpandedFrom is not None:
+                    Original: CovFileRegion = self.SegmentRunContexts[
+                        seg.Segment.ExpandedFrom].Segment
+                    model.ExpandedFrom = CovLocationModel(
+                        LineStart=Original.LineStart,
+                        LineEnd=Original.LineEnd,
+                        ColumnStart=Original.ColumnStart,
+                        ColumnEnd=Original.ColumnEnd,
+                    )
+
+                return model
 
             @beartype
             def conv_group(

@@ -45,6 +45,11 @@ function show_coverage_segment_idx(index) {
         const li = document.createElement("li");
         const functionName = data.Functions[seg.Function].SimplifiedDemangled;
         li.textContent = `#${seg.ExecutionCount}, ${functionName}`;
+        if (seg.ExpandedFrom) {
+          Loc = seg.ExpandedFrom;
+          li.textContent += ` ${Loc.LineStart}:${Loc.ColumnStart}..${
+              Loc.LineEnd}:${Loc.ColumnEnd}`;
+        }
         ul.appendChild(li);
       });
       container.appendChild(ul);
