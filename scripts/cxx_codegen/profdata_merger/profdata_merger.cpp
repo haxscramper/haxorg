@@ -1005,7 +1005,6 @@ NO_COVERAGE std::string SqlInsert(
 }
 
 struct queries {
-    SQLite::Statement func_region;
     SQLite::Statement file_region;
     SQLite::Statement context;
     SQLite::Statement func;
@@ -1033,28 +1032,6 @@ struct queries {
                     "Id",   // 1
                     "Line", // 2
                     "Col",  // 3
-                }))
-        ,
-        // ---
-        func_region(
-            db,
-            SqlInsert(
-                "CovFunctionRegion",
-                {
-                    "Id",                  // 1
-                    "Function",            // 2
-                    "Context",             // 3
-                    "IsBranch",            // 4
-                    "ExecutionCount",      // 5
-                    "FalseExecutionCount", // 6
-                    "Folded",              // 7
-                    "FileId",              // 8
-                    "ExpandedFileId",      // 9
-                    "LineStart",           // 10
-                    "ColumnStart",         // 11
-                    "LineEnd",             // 12
-                    "ColumnEnd",           // 13
-                    "RegionKind",          // 14
                 }))
         ,
         // ---
@@ -1328,7 +1305,7 @@ NO_COVERAGE int get_function_id(
     return function_id;
 }
 
-NO_COVERAGE std::vector<RegionInfo> getRegionsForFile(
+NO_COVERAGE std::vector<RegionInfo> add_file_regions(
     CoverageMapping const& Mapping,
     std::string const&     Filename,
     queries&               q,
@@ -1366,71 +1343,38 @@ NO_COVERAGE std::vector<RegionInfo> getRegionsForFile(
             }
         };
 
+        auto addRegion = [&](int region_index) -> int {
+            ++ctx.region_counter;
+            int region_id = ctx.region_counter;
+
+            CountedRegion const& r = Function.CountedRegions[region_index];
+
+            q.file_region.bind(1, region_id);
+            q.file_region.bind(2, ctx.context_id);
+            q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
+            q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
+            q.file_region.bind(5, r.Folded);
+            q.file_region.bind(6, static_cast<int>(r.LineStart));
+            q.file_region.bind(7, static_cast<int>(r.ColumnStart));
+            q.file_region.bind(8, static_cast<int>(r.LineEnd));
+            q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
+            q.file_region.bind(10, r.Kind);
+            q.file_region.bind(11, ctx.get_file_id(Filename, q));
+            q.file_region.bind(12, get_function_id(Function, q, ctx));
+            q.file_region.exec();
+            q.file_region.reset();
+
+            return region_id;
+        };
+
 
         for (const auto& it : llvm::enumerate(Function.CountedRegions)) {
-            if (FileIDs.test(it.value().FileID)) {
-                Regions.push_back({
-                    .region     = it.value(),
-                    .FunctionId = get_function_id(Function, q, ctx),
-                });
-                // TODO Integrate expansion regions
-                // if (MainFileID && isExpansion(CR, *MainFileID)) {
-                //     FileCoverage.Expansions.emplace_back(CR, Function);
-                // }
-            }
-        }
-        // Capture branch regions specific to the function (excluding
-        // expansions).
-        for (const auto& CR : Function.CountedBranchRegions) {
-            // TODO integrate branch regions
-            // if (FileIDs.test(CR.FileID)
-            //     && (CR.FileID == CR.ExpandedFileID)) {
-            //     FileCoverage.BranchRegions.push_back(CR);
-            // }
+            if (FileIDs.test(it.value().FileID)) { addRegion(it.index()); }
         }
     }
 
     return Regions;
 }
-
-NO_COVERAGE int get_region_id(
-    FunctionRecord const& f,
-    CountedRegion const&  r,
-    bool                  IsBranch,
-    queries&              q,
-    int                   function_id,
-    db_build_ctx&         ctx) {
-    if (!ctx.function_region_ids.contains(r)) {
-        auto get_file_id = [&](int in_function_id) {
-            std::string const& full_path = f.Filenames.at(in_function_id);
-            return ctx.get_file_id(full_path, q);
-        };
-
-        int id                     = ++ctx.function_region_counter;
-        ctx.function_region_ids[r] = id;
-
-        q.func_region.bind(1, id);
-        q.func_region.bind(2, function_id);
-        q.func_region.bind(3, ctx.context_id);
-        q.func_region.bind(4, IsBranch);
-        q.func_region.bind(5, static_cast<int>(r.ExecutionCount));
-        q.func_region.bind(6, static_cast<int>(r.FalseExecutionCount));
-        q.func_region.bind(7, r.Folded);
-        q.func_region.bind(8, get_file_id(r.FileID));
-        q.func_region.bind(9, get_file_id(r.ExpandedFileID));
-        q.func_region.bind(10, r.LineStart);
-        q.func_region.bind(11, r.ColumnStart);
-        q.func_region.bind(12, r.LineEnd);
-        q.func_region.bind(13, r.ColumnEnd);
-        q.func_region.bind(14, r.Kind);
-        q.func_region.exec();
-        q.func_region.reset();
-    }
-
-
-    return ctx.function_region_ids.at(r);
-}
-
 
 template <typename T, typename FormatContext>
 NO_COVERAGE auto fmt_ctx_field(
@@ -1485,25 +1429,7 @@ NO_COVERAGE void add_file(
     TRACE_EVENT("sql", "File coverage data");
     int file_id = ctx.get_file_id(file.str(), q);
 
-    auto regions = getRegionsForFile(*mapping, file.str(), q, ctx);
-    for (auto const& it : llvm::enumerate(regions)) {
-        ++ctx.region_counter;
-        CountedRegion const& r = it.value().region;
-        q.file_region.bind(1, ctx.region_counter);
-        q.file_region.bind(2, ctx.context_id);
-        q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
-        q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
-        q.file_region.bind(5, r.Folded);
-        q.file_region.bind(6, static_cast<int>(r.LineStart));
-        q.file_region.bind(7, static_cast<int>(r.ColumnStart));
-        q.file_region.bind(8, static_cast<int>(r.LineEnd));
-        q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
-        q.file_region.bind(10, r.Kind);
-        q.file_region.bind(11, file_id);
-        q.file_region.bind(12, it.value().FunctionId);
-        q.file_region.exec();
-        q.file_region.reset();
-    }
+    add_file_regions(*mapping, file.str(), q, ctx);
 }
 
 
@@ -1532,26 +1458,6 @@ NO_COVERAGE void add_instantiations(
         }
     }
 }
-
-
-NO_COVERAGE void add_regions(
-    FunctionRecord const& f,
-    queries&              q,
-    int                   function_id,
-    db_build_ctx&         ctx) {
-    TRACE_EVENT("sql", "Function record", "Mangled", f.Name);
-
-
-    auto add_region = [&](CountedRegion const& r, bool IsBranch) {
-        if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
-            get_region_id(f, r, IsBranch, q, function_id, ctx);
-        }
-    };
-
-    for (auto const& r : f.CountedRegions) { add_region(r, false); }
-    for (auto const& r : f.CountedBranchRegions) { add_region(r, true); }
-}
-
 
 struct ProfdataCookie {
     std::string                test_binary;
@@ -1847,15 +1753,6 @@ NO_COVERAGE int main(int argc, char** argv) {
         {
             TRACE_EVENT("sql", "Full coverage run info");
             SQLite::Transaction transaction(db);
-            {
-                TRACE_EVENT("sql", "Covered functions");
-                for (auto const& f : mapping->getCoveredFunctions()) {
-                    if (f.ExecutionCount == 0) { continue; }
-                    int function_id = get_function_id(f, q, ctx);
-                    add_regions(f, q, function_id, ctx);
-                }
-            }
-
             {
                 TRACE_EVENT("sql", "Covered files");
                 json j_files = json::object();
