@@ -534,7 +534,7 @@ def get_coverage_of(session: Session,
                     path: Path) -> Optional[Select[Tuple[CovFileRegion]]]:
 
     target_id = get_file_coverage_id(session, path)
-    if target_id:
+    if target_id != None:
         return select(CovFileRegion).where(CovFileRegion.File == target_id)
 
 
@@ -945,6 +945,7 @@ def get_annotated_files_for_session(
                     run_functions[original_seg.Function] = executed_in
 
     else:
+        log(CAT).info(f"No file coverage for {abs_path}")
         coverage_group = None
         coverage_segments = None
 
@@ -1221,8 +1222,11 @@ js_path = get_haxorg_repo_root_path().joinpath(
 
 
 @beartype
-def get_file_annotation_document(session: Session, root_path: Path,
-                                 abs_path: Path) -> document:
+def get_file_annotation_document(
+    session: Session,
+    root_path: Path,
+    abs_path: Path,
+) -> document:
     file = get_annotated_files_for_session(
         session=session,
         root_path=root_path,
@@ -1230,7 +1234,7 @@ def get_file_annotation_document(session: Session, root_path: Path,
     )
 
     html = get_file_annotation_html(file)
-    doc = document()
+    doc = document(title=str(abs_path))
     doc.head.add(tags.link(rel="stylesheet", href=css_path))
     doc.head.add(tags.script(src=str(js_path)))
     json_dump = tags.script(
