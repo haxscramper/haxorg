@@ -1004,7 +1004,9 @@ def cxx_merge_configure(
 ):
     if is_instrumented_coverage(ctx):
         profile_path = get_cxx_profdata_params_path()
-        log(CAT).info(f"Profile collect options: {profile_path}")
+        log(CAT).info(
+            f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
+        )
         profile_path.parent.mkdir(parents=True, exist_ok=True)
         model = get_cxx_profdata_params()
         if coverage_mapping_dump:
@@ -1014,8 +1016,12 @@ def cxx_merge_configure(
         profile_path.write_text(model.model_dump_json(indent=2))
 
 
-@org_task(pre=[cmake_haxorg, cxx_merge_configure])
-def cxx_merge_coverage(ctx: Context):
+@org_task(pre=[cmake_haxorg])
+def cxx_merge_coverage(
+    ctx: Context,
+    coverage_mapping_dump: Optional[str] = None,
+):
+    cxx_merge_configure(ctx, coverage_mapping_dump)
     profile_path = get_cxx_profdata_params_path()
     run_command(
         ctx,
@@ -1150,6 +1156,7 @@ def cxx_target_coverage(
     run_tests: bool = True,
     run_merge: bool = True,
     run_docgen: bool = True,
+    coverage_mapping_dump: Optional[str] = None,
 ):
     """
     Run full cycle of the code coverage generation. 
@@ -1174,7 +1181,13 @@ def cxx_target_coverage(
             )
 
     if run_merge:
-        run_self(ctx, ["cxx-merge-coverage"])
+        if coverage_mapping_dump:
+            run_self(ctx, [
+                "cxx-merge-coverage",
+                f"--coverage-mapping-dump={coverage_mapping_dump}",
+            ])
+        else:
+            run_self(ctx, ["cxx-merge-coverage"])
 
     if run_docgen:
         run_self(ctx, [

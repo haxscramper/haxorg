@@ -102,6 +102,11 @@ BOOST_DESCRIBE_STRUCT(
     (CounterMappingRegion),
     (ExecutionCount, FalseExecutionCount, Folded));
 
+BOOST_DESCRIBE_STRUCT(
+    CounterMappingRegion::MCDCParameters,
+    (),
+    (BitmapIdx, NumConditions, ID, TrueID, FalseID));
+
 BOOST_DESCRIBE_ENUM(
     CounterMappingRegion::RegionKind,
     CodeRegion,
@@ -111,6 +116,7 @@ BOOST_DESCRIBE_ENUM(
     BranchRegion,
     MCDCDecisionRegion,
     MCDCBranchRegion);
+
 
 }
 
@@ -1254,14 +1260,6 @@ struct db_build_ctx {
         return result;
     }
 
-    std::unordered_map<
-        CountedRegion,
-        int,
-        CountedRegionHasher,
-        CountedRegionComparator>
-        file_region_ids{};
-
-
     NO_COVERAGE int get_file_id(std::string const& path, queries& q) {
         if (!file_ids.contains(path)) {
             int id         = file_ids.size();
@@ -1307,6 +1305,57 @@ NO_COVERAGE int get_function_id(
     return function_id;
 }
 
+
+template <typename T, typename FormatContext>
+NO_COVERAGE auto fmt_ctx_field(
+    std::string const& field_name,
+    T const&           field_value,
+    FormatContext&     ctx) {
+    fmt_ctx(" ", ctx);
+    fmt_ctx(field_name, ctx);
+    fmt_ctx(" = ", ctx);
+    return fmt_ctx(field_value, ctx);
+}
+
+template <>
+struct std::formatter<CountedRegion> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const CountedRegion& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx_field("ExecutionCount", p.ExecutionCount, ctx);
+        fmt_ctx_field("FalseExecutionCount", p.FalseExecutionCount, ctx);
+        fmt_ctx_field(
+            "Loc",
+            fmt("[{}:{}..{}:{}]",
+                p.LineStart,
+                p.ColumnStart,
+                p.LineEnd,
+                p.ColumnEnd),
+            ctx);
+        fmt_ctx_field("FileId", p.FileID, ctx);
+        fmt_ctx_field("ExpandedFileID", p.ExpandedFileID, ctx);
+        fmt_ctx_field("Kind", p.Kind, ctx);
+        return fmt_ctx("}", ctx);
+    }
+};
+
+template <>
+struct std::formatter<CoverageSegment> : std::formatter<std::string> {
+    template <typename FormatContext>
+    NO_COVERAGE auto format(const CoverageSegment& p, FormatContext& ctx)
+        const {
+        fmt_ctx("{", ctx);
+        fmt_ctx_field("Line", p.Line, ctx);
+        fmt_ctx_field("Col", p.Col, ctx);
+        fmt_ctx_field("Count", p.Count, ctx);
+        fmt_ctx_field("HasCount", p.HasCount, ctx);
+        fmt_ctx_field("IsRegionEntry", p.IsRegionEntry, ctx);
+        fmt_ctx_field("IsGapRegion", p.IsGapRegion, ctx);
+        return fmt_ctx(" }", ctx);
+    }
+};
+
+
 NO_COVERAGE std::vector<RegionInfo> add_file_regions(
     CoverageMapping const& Mapping,
     std::string const&     Filename,
@@ -1327,6 +1376,17 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
         auto FileIDs    = gatherFileIDs(Filename, Function);
         UnorderedMap<int, int> expanded_from;
 
+        bool dbg = false && Function.Name.contains("parseSubtree")
+                && !(Function.Name.contains("parseSubtreeLogbook")
+                     || Function.Name.contains("parseSubtreeProperties")
+                     || Function.Name.contains("parseSubtreeTodo")
+                     || Function.Name.contains("parseSubtreeTitle")
+                     || Function.Name.contains("parseSubtreeUrgency")
+                     || Function.Name.contains("parseSubtreeDrawer")
+                     || Function.Name.contains("parseSubtreeTags")
+                     || Function.Name.contains("parseSubtreeTimes")
+                     || Function.Name.contains("parseSubtreeCompletion"));
+
         auto reg = [&](int region_index) -> CountedRegion const& {
             return Function.CountedRegions.at(region_index);
         };
@@ -1338,97 +1398,95 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
             }
         }
 
-        LOG(INFO) << fmt1(expanded_from);
-
         auto getOriginalIndex = [&](int region) -> Opt<int> {
             if (expanded_from.contains(reg(region).FileID)) {
-                while (expanded_from.contains(reg(region).FileID)) {
-                    region = expanded_from.at(reg(region).FileID);
-                }
+                // while (expanded_from.contains(reg(region).FileID)) {
+                region = expanded_from.at(reg(region).FileID);
+                // }
                 return region;
             } else {
                 return std::nullopt;
             }
         };
 
+        UnorderedMap<int, int> file_region_ids;
+
         std::function<int(int)> addRegion;
         addRegion = [&](int region_index) -> int {
             CountedRegion const& r = reg(region_index);
 
-            if (!ctx.file_region_ids.contains(r)) {
-                ++ctx.region_counter;
-                int region_id = ctx.region_counter;
+            ++ctx.region_counter;
+            int region_id = ctx.region_counter;
 
-                Opt<int> expanded_from_id = std::nullopt;
-                if (expanded_from.contains(r.FileID)) {
-                    auto original_index = getOriginalIndex(region_index);
-                    if (original_index.has_value()) {
-                        expanded_from_id = addRegion(
-                            original_index.value());
+            Opt<int> expanded_from_id = std::nullopt;
+            if (expanded_from.contains(r.FileID)) {
+                auto original_index = getOriginalIndex(region_index);
+                if (original_index.has_value()) {
+                    auto id = *original_index;
+                    if (file_region_ids.contains(id)) {
+                        expanded_from_id = file_region_ids.at(id);
+                    } else {
+                        if (dbg) {
+                            LOG(INFO)
+                                << fmt("recursively adding region {} {} "
+                                       ".contains({}) -> {}",
+                                       id,
+                                       file_region_ids,
+                                       id,
+                                       file_region_ids.contains(id));
+                        }
+
+                        expanded_from_id = addRegion(id);
                     }
                 }
-
-                q.file_region.bind(1, region_id);
-                q.file_region.bind(2, ctx.context_id);
-                q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
-                q.file_region.bind(
-                    4, static_cast<int>(r.FalseExecutionCount));
-                q.file_region.bind(5, r.Folded);
-                q.file_region.bind(6, static_cast<int>(r.LineStart));
-                q.file_region.bind(7, static_cast<int>(r.ColumnStart));
-                q.file_region.bind(8, static_cast<int>(r.LineEnd));
-                q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
-                q.file_region.bind(10, r.Kind);
-                q.file_region.bind(11, ctx.get_file_id(Filename, q));
-                q.file_region.bind(12, get_function_id(Function, q, ctx));
-                if (expanded_from_id) {
-                    q.file_region.bind(13, *expanded_from_id);
-                }
-
-                q.file_region.exec();
-                q.file_region.reset();
-
-                ctx.file_region_ids[r] = region_id;
             }
 
-            return ctx.file_region_ids.at(r);
+            q.file_region.bind(1, region_id);
+            q.file_region.bind(2, ctx.context_id);
+            q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
+            q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
+            q.file_region.bind(5, r.Folded);
+            q.file_region.bind(6, static_cast<int>(r.LineStart));
+            q.file_region.bind(7, static_cast<int>(r.ColumnStart));
+            q.file_region.bind(8, static_cast<int>(r.LineEnd));
+            q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
+            q.file_region.bind(10, r.Kind);
+            q.file_region.bind(11, ctx.get_file_id(Filename, q));
+            q.file_region.bind(12, get_function_id(Function, q, ctx));
+            if (expanded_from_id) {
+                q.file_region.bind(13, *expanded_from_id);
+            }
+
+            q.file_region.exec();
+            q.file_region.reset();
+
+            if (dbg) {
+                LOG(INFO) << fmt(
+                    "add region [{} -> {}] {} ",
+                    region_index,
+                    region_id,
+                    r);
+            }
+
+            file_region_ids[region_index] = region_id;
+            return region_id;
         };
 
 
         for (const auto& it : llvm::enumerate(Function.CountedRegions)) {
-            if (FileIDs.test(it.value().FileID)) { addRegion(it.index()); }
+            if (FileIDs.test(it.value().FileID)) {
+                addRegion(it.index());
+            } else {
+                if (dbg) {
+                    LOG(INFO) << fmt(
+                        "skip region [{}] {}", it.index(), it.value());
+                }
+            }
         }
     }
 
     return Regions;
 }
-
-template <typename T, typename FormatContext>
-NO_COVERAGE auto fmt_ctx_field(
-    std::string const& field_name,
-    T const&           field_value,
-    FormatContext&     ctx) {
-    fmt_ctx(" ", ctx);
-    fmt_ctx(field_name, ctx);
-    fmt_ctx(" = ", ctx);
-    return fmt_ctx(field_value, ctx);
-}
-
-template <>
-struct std::formatter<CoverageSegment> : std::formatter<std::string> {
-    template <typename FormatContext>
-    NO_COVERAGE auto format(const CoverageSegment& p, FormatContext& ctx)
-        const {
-        fmt_ctx("{", ctx);
-        fmt_ctx_field("Line", p.Line, ctx);
-        fmt_ctx_field("Col", p.Col, ctx);
-        fmt_ctx_field("Count", p.Count, ctx);
-        fmt_ctx_field("HasCount", p.HasCount, ctx);
-        fmt_ctx_field("IsRegionEntry", p.IsRegionEntry, ctx);
-        fmt_ctx_field("IsGapRegion", p.IsGapRegion, ctx);
-        return fmt_ctx(" }", ctx);
-    }
-};
 
 template <typename T>
 NO_COVERAGE std::string format_range(T begin, T end) {
@@ -1750,8 +1808,6 @@ NO_COVERAGE int main(int argc, char** argv) {
             summary.runs.size(),
             run.test_profile,
             run.test_binary);
-
-        ctx.file_region_ids.clear();
 
         add_context(run, q, ctx);
 

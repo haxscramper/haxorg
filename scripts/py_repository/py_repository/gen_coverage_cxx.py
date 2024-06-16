@@ -444,7 +444,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                     Function=seg.Function.Id if seg.Function else None,
                 )
 
-                if seg.Segment.ExpandedFrom is not None:
+                if seg.Segment.ExpandedFrom in self.SegmentRunContexts:
                     Original: CovFileRegion = self.SegmentRunContexts[
                         seg.Segment.ExpandedFrom].Segment
                     model.ExpandedFrom = CovLocationModel(
