@@ -117,6 +117,7 @@ class CovFileRegion(CoverageSchema):
     RegionKind = Column(NumericEnum(CovRegionKind))
     File = ForeignId(CovFile.Id)
     Function = ForeignId(CovFunction.Id, nullable=True)
+    ExpandedFrom = ForeignId("CovFileRegion.Id", nullable=True)
 
     def startLoc(self) -> Tuple[int, int]:
         return (self.LineStart, self.ColumnStart)

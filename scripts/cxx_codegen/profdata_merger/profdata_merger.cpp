@@ -32,6 +32,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 #include <perfetto.h>
 
@@ -1052,6 +1053,7 @@ struct queries {
                     "RegionKind",          // 10
                     "File",                // 11
                     "Function",            // 12
+                    "ExpandedFrom",        // 13
                 }))
         ,
         // ---
@@ -1257,7 +1259,7 @@ struct db_build_ctx {
         int,
         CountedRegionHasher,
         CountedRegionComparator>
-        function_region_ids{};
+        file_region_ids{};
 
 
     NO_COVERAGE int get_file_id(std::string const& path, queries& q) {
@@ -1323,7 +1325,11 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
         const FunctionRecord& Function = Access->Functions[RecordIndex];
         auto MainFileID = findMainViewFileID(Filename, Function);
         auto FileIDs    = gatherFileIDs(Filename, Function);
-        std::unordered_map<int, int> expanded_from;
+        UnorderedMap<int, int> expanded_from;
+
+        auto reg = [&](int region_index) -> CountedRegion const& {
+            return Function.CountedRegions.at(region_index);
+        };
 
         for (const auto& it : llvm::enumerate(Function.CountedRegions)) {
             if (it.value().Kind
@@ -1332,10 +1338,12 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
             }
         }
 
+        LOG(INFO) << fmt1(expanded_from);
+
         auto getOriginalIndex = [&](int region) -> Opt<int> {
-            if (expanded_from.contains(region)) {
-                while (expanded_from.contains(region)) {
-                    region = expanded_from.at(region);
+            if (expanded_from.contains(reg(region).FileID)) {
+                while (expanded_from.contains(reg(region).FileID)) {
+                    region = expanded_from.at(reg(region).FileID);
                 }
                 return region;
             } else {
@@ -1343,28 +1351,47 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
             }
         };
 
-        auto addRegion = [&](int region_index) -> int {
-            ++ctx.region_counter;
-            int region_id = ctx.region_counter;
+        std::function<int(int)> addRegion;
+        addRegion = [&](int region_index) -> int {
+            CountedRegion const& r = reg(region_index);
 
-            CountedRegion const& r = Function.CountedRegions[region_index];
+            if (!ctx.file_region_ids.contains(r)) {
+                ++ctx.region_counter;
+                int region_id = ctx.region_counter;
 
-            q.file_region.bind(1, region_id);
-            q.file_region.bind(2, ctx.context_id);
-            q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
-            q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
-            q.file_region.bind(5, r.Folded);
-            q.file_region.bind(6, static_cast<int>(r.LineStart));
-            q.file_region.bind(7, static_cast<int>(r.ColumnStart));
-            q.file_region.bind(8, static_cast<int>(r.LineEnd));
-            q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
-            q.file_region.bind(10, r.Kind);
-            q.file_region.bind(11, ctx.get_file_id(Filename, q));
-            q.file_region.bind(12, get_function_id(Function, q, ctx));
-            q.file_region.exec();
-            q.file_region.reset();
+                Opt<int> expanded_from_id = std::nullopt;
+                if (expanded_from.contains(r.FileID)) {
+                    auto original_index = getOriginalIndex(region_index);
+                    if (original_index.has_value()) {
+                        expanded_from_id = addRegion(
+                            original_index.value());
+                    }
+                }
 
-            return region_id;
+                q.file_region.bind(1, region_id);
+                q.file_region.bind(2, ctx.context_id);
+                q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
+                q.file_region.bind(
+                    4, static_cast<int>(r.FalseExecutionCount));
+                q.file_region.bind(5, r.Folded);
+                q.file_region.bind(6, static_cast<int>(r.LineStart));
+                q.file_region.bind(7, static_cast<int>(r.ColumnStart));
+                q.file_region.bind(8, static_cast<int>(r.LineEnd));
+                q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
+                q.file_region.bind(10, r.Kind);
+                q.file_region.bind(11, ctx.get_file_id(Filename, q));
+                q.file_region.bind(12, get_function_id(Function, q, ctx));
+                if (expanded_from_id) {
+                    q.file_region.bind(13, *expanded_from_id);
+                }
+
+                q.file_region.exec();
+                q.file_region.reset();
+
+                ctx.file_region_ids[r] = region_id;
+            }
+
+            return ctx.file_region_ids.at(r);
         };
 
 
@@ -1680,7 +1707,7 @@ NO_COVERAGE int main(int argc, char** argv) {
     ctx.file_whitelist = get_regex_list(config.file_whitelist);
 
 
-    std::unordered_map<
+    UnorderedMap<
         std::pair<std::string, std::string>,
         std::shared_ptr<CoverageMapping>,
         llvm::pair_hash<std::string, std::string>>
@@ -1724,7 +1751,7 @@ NO_COVERAGE int main(int argc, char** argv) {
             run.test_profile,
             run.test_binary);
 
-        ctx.function_region_ids.clear();
+        ctx.file_region_ids.clear();
 
         add_context(run, q, ctx);
 

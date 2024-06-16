@@ -62,10 +62,12 @@ CREATE TABLE "CovFileRegion" (
 	"RegionKind" INTEGER, 
 	"File" INTEGER NOT NULL, 
 	"Function" INTEGER, 
+	"ExpandedFrom" INTEGER, 
 	PRIMARY KEY ("Id"), 
 	FOREIGN KEY("Context") REFERENCES "CovContext" ("Id"), 
 	FOREIGN KEY("File") REFERENCES "CovFile" ("Id"), 
-	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id")
+	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id"), 
+	FOREIGN KEY("ExpandedFrom") REFERENCES "CovFileRegion" ("Id")
 )
 
 ;

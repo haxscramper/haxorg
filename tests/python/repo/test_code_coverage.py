@@ -812,7 +812,7 @@ def test_macro_coverage1():
             dir=dir,
             main="main.cpp",
             files={"main.cpp": code},
-            run_contexts={"macro": [], "macro2":[],},
+            run_contexts={"macro": []},
         )
 
         run_common(cmd, dir)
