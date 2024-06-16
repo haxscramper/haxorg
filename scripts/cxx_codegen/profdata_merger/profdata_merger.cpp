@@ -980,6 +980,7 @@ NO_COVERAGE static llvm::SmallBitVector gatherFileIDs(
 struct RegionInfo {
     CountedRegion region;
     int           FunctionId;
+    Opt<int>      ExpandedFrom;
 };
 
 
@@ -1345,10 +1346,31 @@ NO_COVERAGE std::vector<RegionInfo> getRegionsForFile(
         const FunctionRecord& Function = Access->Functions[RecordIndex];
         auto MainFileID = findMainViewFileID(Filename, Function);
         auto FileIDs    = gatherFileIDs(Filename, Function);
-        for (const auto& CR : Function.CountedRegions) {
-            if (FileIDs.test(CR.FileID)) {
+        std::unordered_map<int, int> expanded_from;
+
+        for (const auto& it : llvm::enumerate(Function.CountedRegions)) {
+            if (it.value().Kind
+                == CounterMappingRegion::RegionKind::ExpansionRegion) {
+                expanded_from[it.value().ExpandedFileID] = it.index();
+            }
+        }
+
+        auto getOriginalIndex = [&](int region) -> Opt<int> {
+            if (expanded_from.contains(region)) {
+                while (expanded_from.contains(region)) {
+                    region = expanded_from.at(region);
+                }
+                return region;
+            } else {
+                return std::nullopt;
+            }
+        };
+
+
+        for (const auto& it : llvm::enumerate(Function.CountedRegions)) {
+            if (FileIDs.test(it.value().FileID)) {
                 Regions.push_back({
-                    .region     = CR,
+                    .region     = it.value(),
                     .FunctionId = get_function_id(Function, q, ctx),
                 });
                 // TODO Integrate expansion regions
