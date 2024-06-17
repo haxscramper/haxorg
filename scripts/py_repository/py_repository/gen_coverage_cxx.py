@@ -143,10 +143,13 @@ class CovFunctionInstantiation(CoverageSchema):
     Function = ForeignId(CovFunction.Id)
 
 
+## Grouping of the DB coverage segments that apply to a specified `First`, `Last` range
+##
+## @var OriginalId
+##     List of coverage segments for the `First, Last` range. The coverage database
+##     stores multiple identically-located segments (one for each run), so each run
+##     for a given segment is stored as one ID.
 class GenCovSegmentFlat(BaseModel, extra="forbid"):
-    # List of coverage segments for the `First, Last` range. The coverage database
-    # stores multiple identically-located segments (one for each run), so each run
-    # for a given segment is stored as one ID.
     OriginalId: List[int]
     First: int
     Last: int
@@ -180,10 +183,15 @@ class AnnotatedLine(BaseModel, extra="forbid"):
 @beartype
 @dataclass
 class GenCovSegmentContext():
-    # Coverage context entry can be associated with multiple segments in the database.
-    # This class bundles together information to identify the context *when* the segment
-    # might've been executed together with the segment itself to check *if* it has
-    # actually been executed (execution count)
+    """
+    Coverage context entry can be associated with multiple segments in the database.
+    This class bundles together information to identify the context *when* the segment
+    might've been executed together with the segment itself to check *if* it has
+    actually been executed (execution count)
+    
+    @var Context 1:1 mapping of context for each segment
+    @var Segment Individual instantiation of the coverage for the location in file
+    """
     Context: CovContext
     Segment: CovFileRegion
 
@@ -383,6 +391,13 @@ class AnnotatedFile(BaseModel, extra="forbid"):
 
     @beartype
     def getExecutionsForSegment(self, segment_idx: int) -> CovSegmentContextGroup:
+        """
+        Get all execution contexts for a segment and return them as grouped data. 
+        This function is called for every "leaf" file segment in the annotated file
+        and is the main driver for fetching the contextual information for the cover. 
+
+        :arg: segment_idx index to the main list of file segments.
+        """
         contexts: List[GenCovSegmentContext] = []
 
         for original in self.SegmentList[segment_idx].OriginalId:
@@ -396,36 +411,27 @@ class AnnotatedFile(BaseModel, extra="forbid"):
             return ctx.Context.Id
 
         result = CovSegmentContextGroup(Grouped=[])
-        for key, context_group in itertools.groupby(
+        for _, context_group in itertools.groupby(
                 sorted(contexts, key=key_func),
                 key=key_func,
         ):
             context_group = list(context_group)
 
-            context: CovContext = context_group[0].Context
-
             group = CovSegmentFunctionGroup(
+                # <<get_grouped_context>> grouping by segment ID and then de-duplicating
+                # the content brings the 1:N (1 context)->(N segments) that is displayed
+                # in the HTML visualization and in the JSON dump.
                 Context=context_group[0].Context,
                 FunctionSegments=[],
             )
 
-            function_instantiations = defaultdict(list)
             for seg in context_group:
-                # function_instantiations[seg.Segment.Function].append(seg.Segment)
                 group.FunctionSegments.append(
                     CovSegmentInstantiation(
                         Segment=seg.Segment,
                         Function=self.SegmentFunctions[seg.Segment.Function]
                         if seg.Segment.Function else None,
                     ))
-
-            # if 1 < len(function_instantiations) or any(
-            #         1 < len(v) for v in function_instantiations.values()):
-            #     seg = self.SegmentList[segment_idx]
-            #     log(CAT).info(f"{context.Name}, {list(function_instantiations.items())} {seg.First}..{seg.Last} {seg.Dbg}")
-            #     for it in function_instantiations.keys():
-            #         func = self.SegmentFunctions[it]
-            #         log(CAT).info(f"{func.Demangled}")
 
             result.Grouped.append(group)
 
@@ -434,6 +440,9 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     @beartype
     def getExecutionsModelForSegment(self,
                                      segment_idx: int) -> CovSegmentContextGroupModel:
+        """
+        Wrapper around `getExecutionsForSegment` that returns coverage model dump directly. 
+        """
         with GlobCompleteEvent("Get executions model for segment", "cov"):
             group = self.getExecutionsForSegment(segment_idx=segment_idx)
 
@@ -444,6 +453,10 @@ class AnnotatedFile(BaseModel, extra="forbid"):
                     Function=seg.Function.Id if seg.Function else None,
                 )
 
+                # Each macro body expansion is recorded as an individual
+                # segment in the database, and profdata merger tries to
+                # find the original context. For C++ implementation see
+                # [[file:profdata_merger.cpp::<<expanded_from>>]]
                 if seg.Segment.ExpandedFrom in self.SegmentRunContexts:
                     Original: CovFileRegion = self.SegmentRunContexts[
                         seg.Segment.ExpandedFrom].Segment
@@ -474,6 +487,12 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     @beartype
     def getExecutionsModelForAllSegments(self,
                                          segments: Iterable[int]) -> CovFileContextModel:
+        """
+        Get pydantic model dump for the code coverage information on all segment indices. 
+
+        :arg: segments List of segment indices in the current context to include in 
+          the final model.
+        """
         with GlobCompleteEvent("Get execution model for all segments", "cov"):
             result = CovFileContextModel()
 
@@ -554,8 +573,14 @@ class DocCodeCxxFile(docdata.DocCodeFile, extra="forbid"):
 
 
 @beartype
-def extract_text(lines: List[Union[str, DocCodeCxxLine]], start: Tuple[int, int],
-                 end: Tuple[int, int]) -> str:
+def extract_text(
+    lines: List[Union[str, DocCodeCxxLine]],
+    start: Tuple[int, int],
+    end: Tuple[int, int],
+) -> str:
+    """
+    Get text in the `[start, end]` inclusive range. Range indexing uses 1-based LLVM numbering.
+    """
     start_line, start_column = start
     end_line, end_column = end
 
@@ -603,13 +628,27 @@ def format_sequence_segments(
     get_group_name: Callable[[int], Optional[str]],
     get_segment_name: Callable[[int, int], Optional[str]],
 ) -> str:
+    """
+    Get debug formatting for all coverage segment groups 
+    @param text full text that sequence segment group indexes into 
+    @param groups groups to overlay on the result. Can have overlapping segments
+    @param get_group_name callback to append optional name for individual group. CB argument is the group index
+    @param get_segment_name callback to append optional name to each segment. CB arguments are group index 
+        and segment index within this group.
+    """
     visible_chars = {' ': '␣', '\n': '␤'}
     formatted_text = ''.join(visible_chars.get(c, c) for c in text)
 
+    # Text render data is represented as a list of 'rows' with each cell optionally having any string size.
+    # the data build is done by appending new rows to the final list, then the whole thing is transposed
+    # to get a vertical visualization
     result: List[List[str]] = []
 
+    # Indexing for all characters. Alignment will be done during transpose
     result.append([" "] + [str(it) for it in range(len(formatted_text))])
+    # Separator block
     result.append([" "] + ["" for _ in formatted_text])
+    # Base characters from the text
     result.append([" "] + [f"'{it}'" for it in formatted_text])
 
     for group in groups:
@@ -659,11 +698,13 @@ def format_sequence_segments(
             return overlapping
 
         leftover = group.segments
+        # Repeatedy append leftover segments until there are no more overlapping elements.
         while 0 < len(leftover):
             leftover = add_segment_group_lane(leftover)
 
     out_str = []
 
+    # Transpose the data for vertical rendering
     for lane in result:
         lane_size = max(len(it) for it in lane)
         for lane_slice in range(0, lane_size):
@@ -725,6 +766,7 @@ def get_flat_coverage(
         First = line_starts[segment.LineStart - 1] + segment.ColumnStart - 1
         Last = line_starts[segment.LineEnd - 1] + segment.ColumnEnd - 1
 
+        # Development debug switch
         if False:
             DbgLines = "[{}:{} {}:{}]".format(
                 segment.LineStart,
@@ -853,6 +895,12 @@ def get_annotated_files(
     token_kind_mapping: Mapping[int, _TokenType] = dict(),
     coverage_group_kind: Optional[int] = None,
 ) -> AnnotatedFile:
+    """
+    Apply segment annotations to the text and return an annotated file with full lines
+    and coverage segment indices annotated. This function coverts result of the 
+    range segmentation and joins it with the underlying string to create segments that
+    main HTML generation will iterate over later. 
+    """
     current_line = 0
     file = AnnotatedFile()
     file.Lines.append(AnnotatedLine(Index=0))
@@ -889,6 +937,8 @@ def get_annotated_files(
                 segment.TokenKind = str(token_kind_mapping[annotation.segmentKinds[0]])
 
             elif annotation.groupKind == coverage_group_kind:
+                # Each individual point in file can belong to any number of nested coverage
+                # segments.
                 segment.CoverageSegmentIdx = list(annotation.segmentKinds)
 
             else:
@@ -909,6 +959,14 @@ def get_annotated_files_for_session(
     debug_format_segments: Optional[Path] = None,
     use_highlight: bool = True,
 ) -> AnnotatedFile:
+    """
+    Main entry point for getting fully annotated file content
+
+    :arg: use_highlight Skip token segmentation for a file. Not doing tokenization
+      speeds up coverage HTML generation by ~5x times
+    :arg: debug_format_segments Dump content of the segment overlay into the 
+      specified path. 
+    """
     with GlobCompleteEvent("Read file", "cov"):
         file = read_code_file(root_path, abs_path)
 
@@ -929,6 +987,7 @@ def get_annotated_files_for_session(
             coverage_group = get_coverage_group(coverage_segments)
 
         with GlobCompleteEvent("Find original segments", "cov"):
+            # Find contexts and segments associated with this specific file
             target_id = get_file_coverage_id(session, abs_path)
             for (original_seg, context) in session.execute(
                     select(CovFileRegion,
@@ -939,6 +998,9 @@ def get_annotated_files_for_session(
 
                 assert isinstance(context, CovContext)
                 assert isinstance(original_seg, CovFileRegion)
+                # Turn 1:N relation between (1 context)->(N segments) into a flattened
+                # mapping for later processing. See [[get_grouped_context]] for place
+                # where un-grouping happens for the final representation dump.
                 run_contexts[original_seg.Id] = GenCovSegmentContext(
                     Context=context,
                     Segment=original_seg,

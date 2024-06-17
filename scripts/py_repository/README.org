@@ -1,0 +1,36 @@
+#+title: Repository scripts
+
+* Code coverage generator
+
+Aggregate code coverage across all pytest runs and present them as a single static HTML render. Each segment in the render stores information on (1) which specific test triggered execution, (2) execution count, (3) specific template instantiation that triggered (if applicable), (4) where macro body expanded from (if applicable).
+
+Coverage collection is a data processing pipeline that starts with the pytest runner around the google test (coverage data producer) and ends up in the HTML result (final consumer).
+
+- pytest runs cxx tests with enabled coverage. Test runner stores information about each test in the [[code:gen_coverage_cookies.py:ProfdataCookie]] object. Pytest run generates a list of the objects in the [[code:gen_coverage_cookies.py:ProfdataFullProfile]] object. At the end of the execution session pytest dumps the object ([[code:tests/python/conftest.py:trace_session]]) in a test summary file.
+  - Profile cookie object is constructed in the [[file:conf_gtest.py]], for both regular and parametrized tests. For parametrized tests it also contains additional information for the test parameters.
+  - If google test has parameters, JSON dump contains the string representation of the parameter. [[code:corpusrunner.cpp:TestParams::PrintToImpl]] renders the coverage test parameter as a JSON string dump. This information is later used for the visualization.
+- Test summary file has a full list of all coverage blocks and binary paths. [[file:profdata_merger.cpp]] is a CLI application using LLVM API to parse all the coverage information blocks and aggregate them into an SQLite database for later consumption.
+  - LLVM coverage model is centered around functions. Coverage mapping is stored as a list of functions, and each function is built from coverage segment information. Each function can belong to more than one file (macro expansion in body, or some abomination with bits  of definition included from different places).
+  - Resulting SQL Database has a file-centric data model, with each file split into a list of coverage segments. For details on the transform logic see the comments in source code and [[id:537a99ae-f6c9-404d-8852-3f04d7749ddc][LLVM Data model to SQL Transform]]
+- [[file:gen_documentation.py]] converts SQL database into the HTML render of the file.
+  - Group all segments for a file based on the ~[First, Last]~ absolute location in the file. This step ([[code:gen_coverage_cxx.py:get_flat_coverage]]) packs all the segments into a data model where a single pair of first-last delimiters corresponds to a single object ([[code:gen_coverage_cxx.py:GenCovSegmentFlat]]).
+  - Flattened list of coverage segments in a file is then converted to a file segmentation sequences from [[file:RangeSegmentation.hpp]]. More file segmentation criterion are added to the list (split on tokens, split on the line separations).
+  - Segmentation sequence is implemented in C++ for performance reasons. It returns a flat list of inclusive ranges where the segment property does not change. These segments directly correspond to the ~span~ elements in a final file.
+
+    #+caption: Example source
+    #+begin_src cpp
+    if (cond) { // {} content is a full segment
+        action();  // but because it overlaps with the line separation it is now split into 3 segments, `{`, `action();` and `}`
+    } else {
+        action(); // same for this segment
+        action();
+    }
+    #+end_src
+  - After file is segmented and the structure is certain, the [[code:gen_coverage_cxx.py:get_file_annotations]] iterates over all segments in all lines for a file and queries for a "closest" segment in each file. ~[First, Last]~ range uniquely identifies the full segment, but any random point in the file might have more than one coverage segments overlapping it, because of scope nesting etc. After the closest (smallest in size that still wraps the requested range) segment is found, [[code:gen_coverage_cxx.py:getExecutionsForSegment]] is called to find the full list of all executions this segment participated in.
+
+
+
+** LLVM Data model to SQL Transform
+:PROPERTIES:
+:ID:       537a99ae-f6c9-404d-8852-3f04d7749ddc
+:END:

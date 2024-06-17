@@ -983,14 +983,8 @@ NO_COVERAGE static llvm::SmallBitVector gatherFileIDs(
     return FilenameEquivalence;
 }
 
-
-struct RegionInfo {
-    CountedRegion region;
-    int           FunctionId;
-    Opt<int>      ExpandedFrom;
-};
-
-
+/// \brief Create a text for a `INSERT` statement with a given list of
+/// column names and identical number of coverage instantiation
 NO_COVERAGE std::string SqlInsert(
     std::string const&              Table,
     std::vector<std::string> const& Columns) {
@@ -1190,19 +1184,38 @@ int findSymbolNamePosition(const std::string& input) {
 }
 
 struct db_build_ctx {
+    /// \brief DB ID generator for individual coverage contexts from the
+    /// coverage configuration file.
     int                                  context_id{};
     int                                  instantiation_id{};
     std::unordered_map<std::string, int> function_ids{};
+    /// \brief Absolute file path to the file ID.
+    ///
+    /// LLVM coverage contains `FileID` and `ExpandedFileID` fields in the
+    /// counted regions. These fields are local to individual function
+    /// records and are used for both real files and for macro expansion
+    /// IDs pointing to the same file. A function with macro expansion
+    /// might have multiple duplicate file names with different IDs.
+    ///
+    /// DB build uses absolute path to the file as a unique identifier for
+    /// the file and is not directly mapped to the LLVM coverage file ID.
     std::unordered_map<std::string, int> file_ids{};
-    int                                  region_counter{};
-    int                                  function_region_counter{};
+    /// \brief DB ID generator for coverage file regions
+    int region_counter{};
 
+    /// \brief Cache for the JSON value demangling.
     std::unordered_map<std::string, llvm::json::Value>
         demangled_json_dumps{};
 
+    /// \brief List of regexps to filter out from the input file coverage.
+    /// Has secondary check order compared to blacklist. For a file to pass
+    /// it must match the whitelist and then not fail on the blacklist.
     std::vector<llvm::Regex> file_blacklist;
+    /// \brief List of regexps to allow for for the coverage extractor. Has
+    /// first check order compared to blacklist.
     std::vector<llvm::Regex> file_whitelist;
 
+    /// \brief Get JSON dump of the demangled function record name.
     NO_COVERAGE std::string getDemangledJson(FunctionRecord const& f) {
         if (demangled_json_dumps.contains(f.Name)) {
             return llvm::formatv("{0}", demangled_json_dumps.at(f.Name));
@@ -1213,6 +1226,12 @@ struct db_build_ctx {
 
             Node* AST = Parser.parse();
 
+            // In some cases LLVM fails to demangle itanium names for
+            // lambdas and some other symbols, like
+            // `SemOrgApi.cpp:_ZZNK3sem7Subtree14getTimePeriodsE6IntSetINS0_6Period4KindEEENK3$_0clINS0_8Property17ExportLatexHeaderEEEDaRKT_`
+            // so this heuristics is used to give more information on the
+            // failure -- `cxx-filt` also fails to process this, so it
+            // seems to be a LLVM issue.
             if (AST == nullptr && name.contains("$_")
                 && name.contains("cl") && name.contains('K')) {
                 llvm::json::Object repr;
@@ -1228,6 +1247,8 @@ struct db_build_ctx {
     }
 
 
+    /// \brief Check the file against provided white/black list of
+    /// mappings.
     NO_COVERAGE bool file_matches(
         std::string const& path,
         std::string&       debug) const {
@@ -1274,6 +1295,11 @@ struct db_build_ctx {
     }
 };
 
+/// \brief Get an ID for the function from a database, insert a new entry
+/// in DB if needed.
+///
+/// Functions are mapped based on their mangled names and are shared across
+/// all execution contexts and all executed files.
 NO_COVERAGE int get_function_id(
     FunctionRecord const& f,
     queries&              q,
@@ -1356,12 +1382,11 @@ struct std::formatter<CoverageSegment> : std::formatter<std::string> {
 };
 
 
-NO_COVERAGE std::vector<RegionInfo> add_file_regions(
+NO_COVERAGE void add_file_regions(
     CoverageMapping const& Mapping,
     std::string const&     Filename,
     queries&               q,
     db_build_ctx&          ctx) {
-    std::vector<RegionInfo> Regions;
 
     // Look up the function records in the given file. Due to hash
     // collisions on the filename, we may get back some records that are
@@ -1374,6 +1399,9 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
         const FunctionRecord& Function = Access->Functions[RecordIndex];
         auto MainFileID = findMainViewFileID(Filename, Function);
         auto FileIDs    = gatherFileIDs(Filename, Function);
+        // `ExpandedFileID` in the expansion regions points to the file ID
+        // of the macro body region. This map retains information on which
+        // segment index introduced a new expanded file ID.
         UnorderedMap<int, int> expanded_from;
 
         bool dbg = false && Function.Name.contains("parseSubtree")
@@ -1409,6 +1437,9 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
             }
         };
 
+        // Map region indices for the function to the generated IDs. Each
+        // function has its own, separate set of counted regions, so this
+        // mapping is local for each function processing.
         UnorderedMap<int, int> file_region_ids;
 
         std::function<int(int)> addRegion;
@@ -1419,10 +1450,14 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
             int region_id = ctx.region_counter;
 
             Opt<int> expanded_from_id = std::nullopt;
+            // <<expanded_from>>
             if (expanded_from.contains(r.FileID)) {
                 auto original_index = getOriginalIndex(region_index);
                 if (original_index.has_value()) {
                     auto id = *original_index;
+                    // Protection against segments arriving out of order
+                    // due to macro expansion magicks. If the region
+                    // already mapped, existing ID must be reused.
                     if (file_region_ids.contains(id)) {
                         expanded_from_id = file_region_ids.at(id);
                     } else {
@@ -1441,6 +1476,7 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
                 }
             }
 
+            // Passing LLVM information directly
             q.file_region.bind(1, region_id);
             q.file_region.bind(2, ctx.context_id);
             q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
@@ -1452,7 +1488,11 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
             q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
             q.file_region.bind(10, r.Kind);
             q.file_region.bind(11, ctx.get_file_id(Filename, q));
+            // Addition to the LLVM info -- the function which contains the
+            // segment
             q.file_region.bind(12, get_function_id(Function, q, ctx));
+            // And optionally a location that was expanded to this segment
+            // (for macro body).
             if (expanded_from_id) {
                 q.file_region.bind(13, *expanded_from_id);
             }
@@ -1484,8 +1524,6 @@ NO_COVERAGE std::vector<RegionInfo> add_file_regions(
             }
         }
     }
-
-    return Regions;
 }
 
 template <typename T>
