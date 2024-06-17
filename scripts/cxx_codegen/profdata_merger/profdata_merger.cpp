@@ -1010,32 +1010,9 @@ struct queries {
     SQLite::Statement context;
     SQLite::Statement func;
     SQLite::Statement file;
-    SQLite::Statement instantiation_group;
-    SQLite::Statement function_instantiation;
 
     queries(SQLite::Database& db)
         : // ---
-        function_instantiation(
-            db,
-            SqlInsert(
-                "CovFunctionInstantiation",
-                {
-                    "Instantiation", // 1
-                    "Function",      // 2
-                }))
-        ,
-        // ---
-        instantiation_group(
-            db,
-            SqlInsert(
-                "CovInstantiationGroup",
-                {
-                    "Id",   // 1
-                    "Line", // 2
-                    "Col",  // 3
-                }))
-        ,
-        // ---
         file_region(
             db,
             SqlInsert(
@@ -1555,33 +1532,6 @@ NO_COVERAGE void add_file(
     add_file_regions(*mapping, file.str(), q, ctx);
 }
 
-
-NO_COVERAGE void add_instantiations(
-    std::shared_ptr<CoverageMapping> const& mapping,
-    std::string const&                      file,
-    queries&                                q,
-    db_build_ctx&                           ctx) {
-    TRACE_EVENT("sql", "Add instantiations");
-    for (InstantiationGroup const& group :
-         mapping->getInstantiationGroups(file)) {
-        if (group.getTotalExecutionCount() == 0) { continue; }
-        int inst_id = ++ctx.instantiation_id;
-        q.instantiation_group.bind(1, inst_id);
-        q.instantiation_group.bind(2, group.getLine());
-        q.instantiation_group.bind(3, group.getColumn());
-        q.instantiation_group.exec();
-        q.instantiation_group.reset();
-
-        for (FunctionRecord const* func : group.getInstantiations()) {
-            int func_id = get_function_id(*func, q, ctx);
-            q.function_instantiation.bind(1, inst_id);
-            q.function_instantiation.bind(2, func_id);
-            q.function_instantiation.exec();
-            q.function_instantiation.reset();
-        }
-    }
-}
-
 struct ProfdataCookie {
     std::string                test_binary;
     std::string                test_name;
@@ -1888,7 +1838,6 @@ NO_COVERAGE int main(int argc, char** argv) {
                     }
                     TRACE_EVENT("sql", "Add file", "File", file.str());
                     add_file(mapping.get(), file, q, ctx);
-                    add_instantiations(mapping, file.str(), q, ctx);
                 }
 
                 j_run["covered_files"] = j_files;

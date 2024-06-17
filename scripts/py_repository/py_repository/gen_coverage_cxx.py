@@ -129,20 +129,6 @@ class CovFileRegion(CoverageSchema):
         return f"{self.LineStart}:{self.ColumnStart}..{self.LineEnd}:{self.ColumnEnd} #{self.ExecutionCount} FN:{self.Function}"
 
 
-class CovInstantiationGroup(CoverageSchema):
-    __tablename__ = "CovInstantiationGroup"
-    Id = IdColumn()
-    Line = IntColumn()
-    Col = IntColumn()
-
-
-class CovFunctionInstantiation(CoverageSchema):
-    __tablename__ = "CovFunctionInstantiation"
-    Id = IdColumn()
-    Instantiation = ForeignId(CovInstantiationGroup.Id)
-    Function = ForeignId(CovFunction.Id)
-
-
 ## Grouping of the DB coverage segments that apply to a specified `First`, `Last` range
 ##
 ## @var OriginalId
@@ -1331,8 +1317,6 @@ if __name__ == "__main__":
             CovFunction,
             CovContext,
             CovFile,
-            CovInstantiationGroup,
-            CovFunctionInstantiation,
             CovFileRegion,
     ]:
         full_code.append(str(CreateTable(table.__table__).compile(db_engine)) + ";")

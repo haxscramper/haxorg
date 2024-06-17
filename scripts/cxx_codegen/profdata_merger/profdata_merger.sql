@@ -29,26 +29,6 @@ CREATE TABLE "CovFile" (
 
 ;
 
-CREATE TABLE "CovInstantiationGroup" (
-	"Id" INTEGER NOT NULL, 
-	"Line" INTEGER NOT NULL, 
-	"Col" INTEGER NOT NULL, 
-	PRIMARY KEY ("Id")
-)
-
-;
-
-CREATE TABLE "CovFunctionInstantiation" (
-	"Id" INTEGER NOT NULL, 
-	"Instantiation" INTEGER NOT NULL, 
-	"Function" INTEGER NOT NULL, 
-	PRIMARY KEY ("Id"), 
-	FOREIGN KEY("Instantiation") REFERENCES "CovInstantiationGroup" ("Id"), 
-	FOREIGN KEY("Function") REFERENCES "CovFunction" ("Id")
-)
-
-;
-
 CREATE TABLE "CovFileRegion" (
 	"Id" INTEGER NOT NULL, 
 	"Context" INTEGER NOT NULL, 
