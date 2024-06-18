@@ -13,7 +13,7 @@ from beartype import beartype
 from pathlib import Path
 from py_scriptutils.sqlalchemy_utils import open_sqlite_session, NumericEnum
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
+from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file, ExceptionContextNote
 from py_scriptutils.rich_utils import render_rich_pprint
 import py_repository.gen_documentation_data as docdata
 import dominate.tags as tags
@@ -29,6 +29,7 @@ from py_scriptutils.tracer import GlobCompleteEvent
 import more_itertools
 import itertools
 import json
+import weakref
 
 CAT = "coverage"
 
@@ -126,7 +127,7 @@ class CovFileRegion(CoverageSchema):
         return (self.LineEnd, self.ColumnEnd)
 
     def __repr__(self) -> str:
-        return f"{self.LineStart}:{self.ColumnStart}..{self.LineEnd}:{self.ColumnEnd} #{self.ExecutionCount} FN:{self.Function}"
+        return f"{self.LineStart}:{self.ColumnStart}..{self.LineEnd}:{self.ColumnEnd} #{self.ExecutionCount} FN:{self.Function} File:{self.File}"
 
 
 ## Grouping of the DB coverage segments that apply to a specified `First`, `Last` range
@@ -323,6 +324,11 @@ class AnnotatedFile(BaseModel, extra="forbid"):
 
     SegmentList: List[GenCovSegmentFlat] = Field(default_factory=list)
 
+    SegmentCoverageCache: Dict[int, CovSegmentContextGroup] = Field(
+        default_factory=dict,
+        exclude=True,
+    )
+
     class Config:
         orm_mode = True
         arbitrary_types_allowed = True
@@ -384,44 +390,47 @@ class AnnotatedFile(BaseModel, extra="forbid"):
 
         :arg: segment_idx index to the main list of file segments.
         """
-        contexts: List[GenCovSegmentContext] = []
+        if segment_idx not in self.SegmentCoverageCache:
+            contexts: List[GenCovSegmentContext] = []
 
-        for original in self.SegmentList[segment_idx].OriginalId:
-            if original in self.SegmentRunContexts:
-                ctx = self.SegmentRunContexts[original]
-                assert isinstance(ctx, GenCovSegmentContext), f"{type(ctx)}"
-                contexts.append(ctx)
+            for original in self.SegmentList[segment_idx].OriginalId:
+                if original in self.SegmentRunContexts:
+                    ctx = self.SegmentRunContexts[original]
+                    assert isinstance(ctx, GenCovSegmentContext), f"{type(ctx)}"
+                    contexts.append(ctx)
 
-        @beartype
-        def key_func(ctx: GenCovSegmentContext) -> int:
-            return ctx.Context.Id
+            @beartype
+            def key_func(ctx: GenCovSegmentContext) -> int:
+                return ctx.Context.Id
 
-        result = CovSegmentContextGroup(Grouped=[])
-        for _, context_group in itertools.groupby(
-                sorted(contexts, key=key_func),
-                key=key_func,
-        ):
-            context_group = list(context_group)
+            result = CovSegmentContextGroup(Grouped=[])
+            for _, context_group in itertools.groupby(
+                    sorted(contexts, key=key_func),
+                    key=key_func,
+            ):
+                context_group = list(context_group)
 
-            group = CovSegmentFunctionGroup(
-                # <<get_grouped_context>> grouping by segment ID and then de-duplicating
-                # the content brings the 1:N (1 context)->(N segments) that is displayed
-                # in the HTML visualization and in the JSON dump.
-                Context=context_group[0].Context,
-                FunctionSegments=[],
-            )
+                group = CovSegmentFunctionGroup(
+                    # <<get_grouped_context>> grouping by segment ID and then de-duplicating
+                    # the content brings the 1:N (1 context)->(N segments) that is displayed
+                    # in the HTML visualization and in the JSON dump.
+                    Context=context_group[0].Context,
+                    FunctionSegments=[],
+                )
 
-            for seg in context_group:
-                group.FunctionSegments.append(
-                    CovSegmentInstantiation(
-                        Segment=seg.Segment,
-                        Function=self.SegmentFunctions[seg.Segment.Function]
-                        if seg.Segment.Function else None,
-                    ))
+                for seg in context_group:
+                    group.FunctionSegments.append(
+                        CovSegmentInstantiation(
+                            Segment=seg.Segment,
+                            Function=self.SegmentFunctions[seg.Segment.Function]
+                            if seg.Segment.Function else None,
+                        ))
 
-            result.Grouped.append(group)
+                result.Grouped.append(group)
 
-        return result
+            self.SegmentCoverageCache[segment_idx] = result
+
+        return self.SegmentCoverageCache[segment_idx]
 
     @beartype
     def getExecutionsModelForSegment(self,
@@ -963,41 +972,42 @@ def get_annotated_files_for_session(
     run_functions: Dict[int, CovFunction] = dict()
 
     if file_cov != None:
-        with GlobCompleteEvent("Get flat coverage", "cov"):
-            # Get all segments applicable for this file and group them into `(First, Last) -> Data`
-            # format
-            coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
+        with ExceptionContextNote(f"root_path={root_path} abs_path={abs_path}"):
+            with GlobCompleteEvent("Get flat coverage", "cov"):
+                # Get all segments applicable for this file and group them into `(First, Last) -> Data`
+                # format
+                coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
 
-        with GlobCompleteEvent("Get coverage group", "cov"):
-            # Arrange all coverage segments into the segment tree over the file for later segmentation
-            coverage_group = get_coverage_group(coverage_segments)
+            with GlobCompleteEvent("Get coverage group", "cov"):
+                # Arrange all coverage segments into the segment tree over the file for later segmentation
+                coverage_group = get_coverage_group(coverage_segments)
 
-        with GlobCompleteEvent("Find original segments", "cov"):
-            # Find contexts and segments associated with this specific file
-            target_id = get_file_coverage_id(session, abs_path)
-            for (original_seg, context) in session.execute(
-                    select(CovFileRegion,
-                           CovContext).where(CovFileRegion.File == target_id).join(
-                               CovContext,
-                               CovFileRegion.Context == CovContext.Id,
-                           )):
+            with GlobCompleteEvent("Find original segments", "cov"):
+                # Find contexts and segments associated with this specific file
+                target_id = get_file_coverage_id(session, abs_path)
+                for (original_seg, context) in session.execute(
+                        select(CovFileRegion,
+                            CovContext).where(CovFileRegion.File == target_id).join(
+                                CovContext,
+                                CovFileRegion.Context == CovContext.Id,
+                            )):
 
-                assert isinstance(context, CovContext)
-                assert isinstance(original_seg, CovFileRegion)
-                # Turn 1:N relation between (1 context)->(N segments) into a flattened
-                # mapping for later processing. See [[get_grouped_context]] for place
-                # where un-grouping happens for the final representation dump.
-                run_contexts[original_seg.Id] = GenCovSegmentContext(
-                    Context=context,
-                    Segment=original_seg,
-                )
+                    assert isinstance(context, CovContext)
+                    assert isinstance(original_seg, CovFileRegion)
+                    # Turn 1:N relation between (1 context)->(N segments) into a flattened
+                    # mapping for later processing. See [[get_grouped_context]] for place
+                    # where un-grouping happens for the final representation dump.
+                    run_contexts[original_seg.Id] = GenCovSegmentContext(
+                        Context=context,
+                        Segment=original_seg,
+                    )
 
-                if original_seg.Function is not None and original_seg.Function not in run_functions:
-                    executed_in = session.execute(
-                        select(CovFunction).where(
-                            CovFunction.Id == original_seg.Function)).fetchall()[0][0]
-                    assert isinstance(executed_in, CovFunction), f"{type(executed_in)}"
-                    run_functions[original_seg.Function] = executed_in
+                    if original_seg.Function is not None and original_seg.Function not in run_functions:
+                        executed_in = session.execute(
+                            select(CovFunction).where(
+                                CovFunction.Id == original_seg.Function)).fetchall()[0][0]
+                        assert isinstance(executed_in, CovFunction), f"{type(executed_in)}"
+                        run_functions[original_seg.Function] = executed_in
 
     else:
         log(CAT).info(f"No file coverage for {abs_path}")
@@ -1195,7 +1205,11 @@ def get_simple_function_name(func: CovFunction) -> str:
         return func.Demangled
 
     else:
-        return aux(func.Parsed)
+        if isinstance(func.Parsed, dict):
+            return aux(func.Parsed)
+
+        else:
+            return func.Demangled
 
 
 @beartype
