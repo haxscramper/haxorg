@@ -21,6 +21,9 @@ import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
 from py_repository.gen_coverage_cookies import ProfdataParams
+import typing
+import inspect
+import copy
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -257,14 +260,60 @@ TASK_DEPS: Dict[Callable, List[Callable]] = {}
 
 @beartype
 def org_task(
-    task_name: Optional[str] = None,
-    pre: List[Callable] = [],
-    force_notify: bool = False,
-    **kwargs,
+        task_name: Optional[str] = None,
+        pre: List[Callable] = [],
+        force_notify: bool = False,
+        help=dict(),
+        **kwargs,
 ) -> Callable:
+
+    help_base = copy.copy(help)
 
     def org_inner(func: Callable) -> Callable:
         TASK_DEPS[func] = pre
+
+        signature = inspect.signature(func)
+        params = signature.parameters
+        arg_names = [param.name for param in params.values()]
+        default_values = {
+            param.name: param.default
+            for param in params.values()
+            if param.default is not param.empty
+        }
+
+        type_annotations = typing.get_type_hints(func)
+
+        updated_help = dict()
+
+        for arg in arg_names:
+            if arg in ["ctx"]:
+                continue
+
+            cli = arg.replace("_", "-")
+            if arg in type_annotations:
+                T = type_annotations[arg]
+                if isinstance(T, (type(bool), type(int), type(float))):
+                    description = ""
+
+                else:
+                    description = f"{str(T)}"
+
+            else:
+                description = ""
+
+            if cli in help_base:
+                if description:
+                    description += " "
+
+                description += f"{help_base[cli]}"
+
+            if arg in default_values:
+                if description:
+                    description += " "
+
+                description += f"(default: {default_values[arg]})"
+
+            updated_help[cli] = description
 
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -294,7 +343,7 @@ def org_task(
 
             return result
 
-        return task(wrapper, pre=pre, **kwargs)
+        return task(wrapper, pre=pre, help=copy.copy(updated_help), **kwargs)
 
     return org_inner
 
@@ -981,26 +1030,53 @@ def get_cxx_profdata_params_path() -> Path:
     return get_cxx_coverage_dir().joinpath("profile-collect.json")
 
 
+PROFDATA_FILE_WHITELIST_DEFAULT = [".*"]
+PROFDATA_FILE_BLACKLIST_DEFAULT = [
+    "thirdparty",
+    r"base_lexer_gen\.cpp",
+]
+
+HELP_profdata_file = {
+    "profdata-file-whitelist":
+        f"List of blacklist regexps to allow in the coverage database.",
+    "profdata-file-blacklist":
+        f"List of regexps to disallow in the coverage database."
+}
+
+HELP_coverage_file = {
+    "coverage-file-whitelist": "List of regexps to allow in the final HTML output.",
+    "coverage-file-blacklist": "List of regexps to filter out fo the final HTML output",
+}
+
+
 @beartype
-def get_cxx_profdata_params() -> ProfdataParams:
+def get_cxx_profdata_params(
+    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
+) -> ProfdataParams:
     coverage_dir = get_cxx_coverage_dir()
     return ProfdataParams(
         coverage=str(coverage_dir.joinpath("test-summary.json")),
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
         perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
         debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
-        file_whitelist=[".*"],
-        file_blacklist=[
-            "thirdparty",
-            r"base_lexer_gen\.cpp",
-        ],
+        file_whitelist=profdata_file_whitelist,
+        file_blacklist=profdata_file_blacklist,
     )
 
 
-@org_task()
+HELP_coverage_mapping_dump = {
+    "coverage_mapping_dump":
+        "Directory to dump JSON information for every processed coverage mapping object"
+}
+
+
+@beartype
 def cxx_merge_configure(
     ctx: Context,
     coverage_mapping_dump: Optional[str] = None,
+    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
     if is_instrumented_coverage(ctx):
         profile_path = get_cxx_profdata_params_path()
@@ -1008,7 +1084,10 @@ def cxx_merge_configure(
             f"Profile collect options: {profile_path} coverage_mapping_dump = {coverage_mapping_dump}"
         )
         profile_path.parent.mkdir(parents=True, exist_ok=True)
-        model = get_cxx_profdata_params()
+        model = get_cxx_profdata_params(
+            profdata_file_blacklist=profdata_file_blacklist,
+            profdata_file_whitelist=profdata_file_whitelist,
+        )
         if coverage_mapping_dump:
             Path(coverage_mapping_dump).mkdir(exist_ok=True)
             model.coverage_mapping_dump = coverage_mapping_dump
@@ -1016,12 +1095,28 @@ def cxx_merge_configure(
         profile_path.write_text(model.model_dump_json(indent=2))
 
 
-@org_task(pre=[cmake_haxorg])
+@org_task(
+    pre=[cmake_haxorg],
+    iterable=["profdata_file_whitelist", "profdata_file_blacklist"],
+    help={
+        **HELP_profdata_file,
+        **HELP_coverage_mapping_dump,
+    },
+)
 def cxx_merge_coverage(
     ctx: Context,
     coverage_mapping_dump: Optional[str] = None,
+    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
-    cxx_merge_configure(ctx, coverage_mapping_dump)
+
+    cxx_merge_configure(
+        ctx,
+        coverage_mapping_dump,
+        profdata_file_whitelist=profdata_file_whitelist,
+        profdata_file_blacklist=profdata_file_blacklist,
+    )
+
     profile_path = get_cxx_profdata_params_path()
     run_command(
         ctx,
@@ -1110,7 +1205,12 @@ def get_list_cli_pass(list_name: str, args: List[str]) -> List[str]:
     return [f"--{list_name}={arg}" for arg in args]
 
 
-@org_task(iterable=["file_blacklist", "file_whitelist"])
+@org_task(
+    iterable=["file_blacklist", "file_whitelist"],
+    help={
+        **HELP_coverage_file,
+    },
+)
 def docs_custom(
     ctx: Context,
     coverage_file_whitelist: List[str] = [".*"],
@@ -1146,7 +1246,19 @@ def docs_custom(
     run_command(ctx, "poetry", args)
 
 
-@org_task(iterable=["file_whitelist", "file_blacklist"])
+@org_task(
+    iterable=[
+        "file_whitelist",
+        "file_blacklist",
+        "profdata_file_whitelist",
+        "profdata_file_blacklist",
+    ],
+    help={
+        **HELP_profdata_file,
+        **HELP_coverage_mapping_dump,
+        **HELP_coverage_file,
+    },
+)
 def cxx_target_coverage(
     ctx: Context,
     pytest_filter: Optional[str] = None,
@@ -1157,6 +1269,8 @@ def cxx_target_coverage(
     run_merge: bool = True,
     run_docgen: bool = True,
     coverage_mapping_dump: Optional[str] = None,
+    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
     """
     Run full cycle of the code coverage generation. 
@@ -1194,6 +1308,8 @@ def cxx_target_coverage(
             "docs-custom",
             *get_list_cli_pass("coverage-file-whitelist", coverage_file_whitelist),
             *get_list_cli_pass("coverage-file-blacklist", coverage_file_blacklist),
+            *get_list_cli_pass("profdata-file-blacklist", profdata_file_blacklist),
+            *get_list_cli_pass("profdata-file-whitelist", profdata_file_whitelist),
             f"--out-dir={out_dir}",
         ])
 
