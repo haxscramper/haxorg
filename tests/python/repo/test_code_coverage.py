@@ -110,7 +110,7 @@ class ProfileRunParams():
             self.get_code(name).write_text(text)
 
         cmd.run([
-            *[self.get_code(it) for it in self.files.keys()],
+            *[self.get_code(it) for it in self.files.keys() if it.endswith(".cpp")],
             "-fprofile-instr-generate",
             "-fcoverage-mapping",
             "-o",
@@ -732,7 +732,7 @@ def run_common(
         cmd: ProfileRunParams,
         dir: Path,
         path_pprint: Optional[Path] = Path("annotated.py"),
-        path_genhtml: Optional[Path] = Path("result.html"),
+        path_genhtml: Optional[Path] = Path(""),
         path_dbdump: Optional[Path] = Path("dbdump.txt"),
         path_format_segments: Optional[Path] = Path("annotated_segments.txt"),
         path_merger_run: Optional[Path] = Path("show_merger_run.txt"),
@@ -772,23 +772,26 @@ def run_common(
 
     log(CAT).info(pass_path(path_genhtml))
     if path_genhtml:
-        pass_path(path_genhtml).write_text(
-            cov.get_file_annotation_document(
-                session=session,
-                root_path=dir,
-                abs_path=dir.joinpath(filename),
-            ).render())
+        html_out_dir = pass_path(path_genhtml)
+        for code_in in cmd.files.keys():
+            html_out = html_out_dir.joinpath(code_in)
+            pass_path(html_out).write_text(
+                cov.get_file_annotation_document(
+                    session=session,
+                    root_path=dir,
+                    abs_path=dir.joinpath(code_in),
+                ).render())
 
-        pass_path(path_genhtml).with_suffix(".json").write_text(
-            file.model_dump_json(indent=2))
-        pass_path(path_genhtml).with_suffix(".txt").write_text(file.get_debug())
+            pass_path(path_genhtml).with_suffix(".json").write_text(
+                file.model_dump_json(indent=2))
+            pass_path(path_genhtml).with_suffix(".txt").write_text(file.get_debug())
 
 
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_template_coverage_annotations():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        dir = Path("/tmp/test_template_coverage_annotations")
+        # dir = Path("/tmp/test_template_coverage_annotations")
         code = corpus_base.joinpath("test_template_coverage1.hpp").read_text()
 
         cmd = ProfileRunParams(
@@ -805,7 +808,7 @@ def test_template_coverage_annotations():
 def test_macro_coverage1():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        dir = Path("/tmp/test_macro_coverage")
+        # dir = Path("/tmp/test_macro_coverage")
         code = corpus_base.joinpath("test_macro_coverage.hpp").read_text()
 
         cmd = ProfileRunParams(
@@ -816,3 +819,53 @@ def test_macro_coverage1():
         )
 
         run_common(cmd, dir)
+
+@pytest.mark.test_coverage_annotation_file_cxx
+def test_exporter_tcc_coverage():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        dir = Path("/tmp/test_exporter_tcc_coverage")
+
+        cmd = ProfileRunParams(
+            dir=dir,
+            main="main.cpp",
+            files= {
+                "exporter.hpp": """
+#pragma once
+template <typename T>
+struct Exporter {
+    void impl_1();
+    void impl_2();
+};             
+                """,
+                "exporter.tcc": """
+#include "exporter.hpp"
+
+template <typename T>
+void Exporter<T>::impl_1() {}
+
+template <typename T>
+void Exporter<T>::impl_2() {}
+
+                """,
+                "exporter.cpp": """
+#include "exporter.hpp"                
+#include "exporter.tcc"
+
+template class Exporter<int>;
+                """,
+                "main.cpp": """
+#include "exporter.hpp"
+
+int main() {
+    Exporter<int> exp;
+
+    exp.impl_1();
+    exp.impl_2();
+}
+                """,
+            },
+            run_contexts={"1":[]}
+        )
+
+    run_common(cmd, dir)

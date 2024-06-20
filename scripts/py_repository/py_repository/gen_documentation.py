@@ -373,7 +373,7 @@ def parse_dir(
             continue
 
         match file.suffix:
-            case ".hpp" | ".py" | ".cpp":
+            case ".hpp" | ".py" | ".cpp" | ".tcc":
                 result.CodeFiles.append(
                     parse_code_file(
                         file,

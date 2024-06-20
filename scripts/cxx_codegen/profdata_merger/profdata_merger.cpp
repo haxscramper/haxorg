@@ -1464,7 +1464,8 @@ NO_COVERAGE void add_file_regions(
             q.file_region.bind(8, static_cast<int>(r.LineEnd));
             q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
             q.file_region.bind(10, r.Kind);
-            q.file_region.bind(11, ctx.get_file_id(Filename, q));
+            q.file_region.bind(
+                11, ctx.get_file_id(Function.Filenames.at(r.FileID), q));
             // Addition to the LLVM info -- the function which contains the
             // segment
             q.file_region.bind(12, get_function_id(Function, q, ctx));
@@ -1780,6 +1781,7 @@ NO_COVERAGE int main(int argc, char** argv) {
                 coverage_map.emplace(p, std::move(coverage));
             });
     }
+
 
     if (config.coverage_mapping_dump) {
         LOG(INFO) << fmt(

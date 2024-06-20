@@ -1298,8 +1298,8 @@ def cxx_target_coverage(
     if run_docgen:
         run_self(ctx, [
             "docs-custom",
-            f"--coverage-file-whitelist={coverage_file_whitelist}",
-            f"--coverage-file-blacklist={coverage_file_blacklist}",
+            *get_list_cli_pass("coverage-file-whitelist", coverage_file_whitelist),
+            *get_list_cli_pass("coverage-file-blacklist", coverage_file_blacklist),
             f"--out-dir={out_dir}",
         ])
 
