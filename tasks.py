@@ -11,7 +11,7 @@ from py_scriptutils.files import FileOperation
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTraceCollector
 from functools import wraps
 from beartype import beartype
-from beartype.typing import Dict, List, Callable
+from beartype.typing import Dict, List, Callable, Iterable
 import logging
 from pprint import pprint
 import textwrap
@@ -275,12 +275,6 @@ def org_task(
         signature = inspect.signature(func)
         params = signature.parameters
         arg_names = [param.name for param in params.values()]
-        default_values = {
-            param.name: param.default
-            for param in params.values()
-            if param.default is not param.empty
-        }
-
         type_annotations = typing.get_type_hints(func)
 
         updated_help = dict()
@@ -306,12 +300,6 @@ def org_task(
                     description += " "
 
                 description += f"{help_base[cli]}"
-
-            if arg in default_values:
-                if description:
-                    description += " "
-
-                description += f"(default: {default_values[arg]})"
 
             updated_help[cli] = description
 
@@ -1030,11 +1018,8 @@ def get_cxx_profdata_params_path() -> Path:
     return get_cxx_coverage_dir().joinpath("profile-collect.json")
 
 
-PROFDATA_FILE_WHITELIST_DEFAULT = [".*"]
-PROFDATA_FILE_BLACKLIST_DEFAULT = [
-    "thirdparty",
-    r"base_lexer_gen\.cpp",
-]
+PROFDATA_FILE_WHITELIST_DEFAULT = ".*"
+PROFDATA_FILE_BLACKLIST_DEFAULT = r"base_lexer_gen.cpp;thirdparty"
 
 HELP_profdata_file = {
     "profdata-file-whitelist":
@@ -1051,17 +1036,18 @@ HELP_coverage_file = {
 
 @beartype
 def get_cxx_profdata_params(
-    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
+    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ) -> ProfdataParams:
     coverage_dir = get_cxx_coverage_dir()
+    assert len(profdata_file_whitelist) != 0, "profdata_file_whitelist cannot be empty"
     return ProfdataParams(
         coverage=str(coverage_dir.joinpath("test-summary.json")),
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
         perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
         debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
-        file_whitelist=profdata_file_whitelist,
-        file_blacklist=profdata_file_blacklist,
+        file_whitelist=profdata_file_whitelist.split(";"),
+        file_blacklist=profdata_file_blacklist.split(";"),
     )
 
 
@@ -1075,8 +1061,8 @@ HELP_coverage_mapping_dump = {
 def cxx_merge_configure(
     ctx: Context,
     coverage_mapping_dump: Optional[str] = None,
-    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
+    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
     if is_instrumented_coverage(ctx):
         profile_path = get_cxx_profdata_params_path()
@@ -1097,7 +1083,6 @@ def cxx_merge_configure(
 
 @org_task(
     pre=[cmake_haxorg],
-    iterable=["profdata_file_whitelist", "profdata_file_blacklist"],
     help={
         **HELP_profdata_file,
         **HELP_coverage_mapping_dump,
@@ -1106,10 +1091,11 @@ def cxx_merge_configure(
 def cxx_merge_coverage(
     ctx: Context,
     coverage_mapping_dump: Optional[str] = None,
-    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
+    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
 
+    assert len(profdata_file_whitelist) != 0, "profdata_file_whitelist cannot be empty"
     cxx_merge_configure(
         ctx,
         coverage_mapping_dump,
@@ -1201,7 +1187,7 @@ def docs_doxygen(ctx: Context):
 
 
 @beartype
-def get_list_cli_pass(list_name: str, args: List[str]) -> List[str]:
+def get_list_cli_pass(list_name: str, args: Iterable[str]) -> List[str]:
     return [f"--{list_name}={arg}" for arg in args]
 
 
@@ -1250,8 +1236,6 @@ def docs_custom(
     iterable=[
         "file_whitelist",
         "file_blacklist",
-        "profdata_file_whitelist",
-        "profdata_file_blacklist",
     ],
     help={
         **HELP_profdata_file,
@@ -1269,12 +1253,14 @@ def cxx_target_coverage(
     run_merge: bool = True,
     run_docgen: bool = True,
     coverage_mapping_dump: Optional[str] = None,
-    profdata_file_whitelist: List[str] = PROFDATA_FILE_WHITELIST_DEFAULT,
-    profdata_file_blacklist: List[str] = PROFDATA_FILE_BLACKLIST_DEFAULT,
+    profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
+    profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
 ):
     """
     Run full cycle of the code coverage generation. 
     """
+
+    assert len(profdata_file_whitelist) != 0, "profdata_file_whitelist cannot be empty"
 
     if run_tests:
         if pytest_filter:
@@ -1299,17 +1285,21 @@ def cxx_target_coverage(
             run_self(ctx, [
                 "cxx-merge-coverage",
                 f"--coverage-mapping-dump={coverage_mapping_dump}",
+                f"--profdata-file-whitelist={profdata_file_whitelist}",
+                f"--profdata-file-blacklist={profdata_file_blacklist}",
             ])
         else:
-            run_self(ctx, ["cxx-merge-coverage"])
+            run_self(ctx, [
+                "cxx-merge-coverage",
+                f"--profdata-file-whitelist={profdata_file_whitelist}",
+                f"--profdata-file-blacklist={profdata_file_blacklist}",
+            ])
 
     if run_docgen:
         run_self(ctx, [
             "docs-custom",
-            *get_list_cli_pass("coverage-file-whitelist", coverage_file_whitelist),
-            *get_list_cli_pass("coverage-file-blacklist", coverage_file_blacklist),
-            *get_list_cli_pass("profdata-file-blacklist", profdata_file_blacklist),
-            *get_list_cli_pass("profdata-file-whitelist", profdata_file_whitelist),
+            f"--coverage-file-whitelist={coverage_file_whitelist}",
+            f"--coverage-file-blacklist={coverage_file_blacklist}",
             f"--out-dir={out_dir}",
         ])
 
