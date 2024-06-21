@@ -662,6 +662,26 @@ def cmake_configure_haxorg(ctx: Context):
             run_command(ctx, "cmake", tuple(pass_flags))
 
 
+@org_task()
+def cmake_haxorg_clean(ctx: Context):
+    """Clean build directory for the current configuration"""
+    build_dir = get_component_build_dir(ctx, "haxorg")
+    run_command(ctx, "cmake", [
+        "--build",
+        build_dir,
+        "--target",
+        "clean",
+    ])
+    adaptagrams_dir = build_dir.joinpath("libcola")
+    import shutil
+    if adaptagrams_dir.exists():
+        shutil.rmtree(str(adaptagrams_dir))
+
+    stamp_path = get_task_stamp("cmake_haxorg")
+    if stamp_path.exists():
+        stamp_path.unlink()
+
+
 @org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx: Context):
     """Compile main set of libraries and binaries for org-mode parser"""
@@ -681,9 +701,15 @@ def cmake_haxorg(ctx: Context):
     ) as op:
         if is_forced(ctx, "cmake_haxorg") or op.should_run():
             log(CAT).info(op.explain("Main C++"))
-            run_command(ctx,
-                        "cmake", ["--build", build_dir],
-                        env={'NINJA_FORCE_COLOR': '1'})
+            run_command(
+                ctx,
+                "cmake",
+                ["--build", build_dir],
+                env={'NINJA_FORCE_COLOR': '1'},
+            )
+
+        elif not op.should_run():
+            log(CAT).info(f"Not running build {op.explain('cmake_haxorg')}")
 
 
 def get_lldb_py_import() -> List[str]:
