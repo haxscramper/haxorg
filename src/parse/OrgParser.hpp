@@ -104,7 +104,7 @@ struct OrgParser : public OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-  protected:
+  public:
     CR<OrgNode> pending() const {
         CHECK(0 <= group->treeDepth());
         return group->lastPending();

@@ -24,6 +24,14 @@ from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_c
 from pydantic import BaseModel, Field, SerializeAsAny
 import more_itertools
 from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
+import py_scriptutils.tracer
+import re
+import json
+import concurrent.futures
+import functools
+import traceback
+import multiprocessing
+import sys
 
 T = TypeVar("T")
 
@@ -161,67 +169,169 @@ class DocGenerationOptions(BaseModel, extra="forbid"):
         default=None,
     )
 
+    coverage_file_whitelist: List[str] = Field(
+        description=
+        "List of regular expressions to whitelist absolute file paths for coverage",
+        default_factory=lambda: [".*"],
+    )
+
+    coverage_file_blacklist: List[str] = Field(
+        description=
+        "List of regular expressions to blacklist absolute file paths for coverage",
+        default_factory=list,
+    )
+
 
 def cli_options(f):
     return apply_options(f, options_from_model(DocGenerationOptions))
 
 
 @beartype
+@dataclass
+class FileGenParams():
+    file: docdata.DocCodeFile
+    html_out_path: Path
+
+
+@beartype
+@dataclass
+class FileGenResult():
+    trace: List[py_scriptutils.tracer.TraceEvent]
+
+
+def worker_decorator(func):
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(
+                f"Exception in worker process {multiprocessing.current_process().name}: {e}"
+            )
+            sys.excepthook(*sys.exc_info())
+            raise
+
+    return wrapper
+
+
+@beartype
+@worker_decorator
+def generate_code_file(
+    gen: FileGenParams,
+    opts: DocGenerationOptions,
+) -> FileGenResult:
+    py_scriptutils.tracer.GlobRestart()
+    cxx_coverage_session = cov_docxx.open_coverage(opts.cxx_coverage_path)
+    path = docdata.get_html_path(gen.file, html_out_path=gen.html_out_path)
+    with GlobCompleteEvent("Get annotated files",
+                           "cov",
+                           args=dict(path=str(gen.file.RelPath))):
+        file = cov_docxx.get_annotated_files_for_session(
+            session=cxx_coverage_session,
+            root_path=opts.root_path,
+            abs_path=opts.root_path.joinpath(gen.file.RelPath),
+            use_highlight=False,
+        )
+
+    with GlobCompleteEvent("Generate annotated file",
+                           "cov",
+                           args=dict(path=str(gen.file.RelPath))):
+        data = cov_docxx.get_file_annotation_html(file)
+        doc = document(title=str(gen.file.RelPath))
+        doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
+        doc.head.add(tags.script(src=str(cov_docxx.js_path)))
+        json_dump = tags.script(
+            type="application/json",
+            id="segment-coverage",
+        )
+
+        with GlobCompleteEvent("Get execution for all segments", "cov"):
+            executions = file.getExecutionsModelForAllSegments(data.coverage_indices)
+
+        with GlobCompleteEvent("Dump execution model", "cov"):
+            json_dump.add_raw_string(executions.model_dump_json(indent=2))
+
+        doc.head.add(json_dump)
+
+        doc.add(data.body)
+
+        path.parent.mkdir(exist_ok=True, parents=True)
+        with GlobCompleteEvent("Render HTML", "cov"):
+            path.write_text(doc.render())
+
+        with GlobCompleteEvent("Dump JSON", "cov"):
+            path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
+
+        with GlobCompleteEvent("Dump Debug", "cov"):
+            path.with_suffix(".txt").write_text(file.get_debug())
+
+    log(CAT).info(f"Building HTML for {gen.file.RelPath} -> {path}")
+    return FileGenResult(trace=py_scriptutils.tracer.GlobGetEvents())
+
+
+@beartype
 def generate_html_for_directory(
     directory: docdata.DocDirectory,
     html_out_path: Path,
-    cxx_coverage_session: Session,
     opts: DocGenerationOptions,
 ) -> None:
     sidebar_res = generate_tree_sidebar(directory, html_out_path=html_out_path)
     sidebar = tags.div(sidebar_res.tag, _class="sidebar-directory-root")
+    coverage_whitelist: List[re.Pattern] = [
+        re.compile(it) for it in opts.coverage_file_whitelist
+    ]
+    coverage_blacklist: List[re.Pattern] = [
+        re.compile(it) for it in opts.coverage_file_blacklist
+    ]
+
+    @beartype
+    def is_path_allowed(path: Path) -> bool:
+        path = str(path)
+        return any(it.match(path) for it in coverage_whitelist) and not any(
+            it.match(path) for it in coverage_blacklist)
+
+    target_code_files: List[FileGenParams] = []
 
     def aux(directory: docdata.DocDirectory, html_out_path: Path) -> None:
-        for subdir in directory.Subdirs:
-            with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(subdir.RelPath))):
+        with GlobCompleteEvent("Subdir", "cov", args=dict(path=str(directory.RelPath))):
+            for subdir in directory.Subdirs:
                 aux(subdir, html_out_path)
 
-        for code_file in directory.CodeFiles:
-            path = docdata.get_html_path(code_file, html_out_path=html_out_path)
-            # if "Vec" not in str(code_file.RelPath):
-            #     continue
+            for code_file in directory.CodeFiles:
+                path = docdata.get_html_path(code_file, html_out_path=html_out_path)
+                if not is_path_allowed(path):
+                    continue
 
-            log(CAT).info(f"Building HTML for {code_file.RelPath} -> {path}")
-            with GlobCompleteEvent("Get annotated files", "cov", args=dict(path=str(code_file.RelPath))):
-                file = cov_docxx.get_annotated_files_for_session(
-                    session=cxx_coverage_session,
-                    root_path=opts.root_path,
-                    abs_path=opts.root_path.joinpath(code_file.RelPath),
-                    use_highlight=False,
-                )
+                target_code_files.append(
+                    FileGenParams(html_out_path=html_out_path, file=code_file))
 
-            with GlobCompleteEvent("Generate annotated file", "cov", args=dict(path=str(code_file.RelPath))):
-                html = cov_docxx.get_file_annotation_html(file)
-                doc = document(title=str(code_file.RelPath))
-                doc.head.add(tags.link(rel="stylesheet", href=cov_docxx.css_path))
-                doc.head.add(tags.script(src=str(cov_docxx.js_path)))
-                doc.add(html)
+            for text_file in directory.TextFiles:
+                path = docdata.get_html_path(text_file, html_out_path=html_out_path)
+                doc = document(title=str(text_file.RelPath))
+                doc.head.add(tags.link(rel="stylesheet", href=css_path))
+                doc.add(tags.div(sidebar, _class="sidebar"))
+                main = tags.div(_class="main")
+                main.add(tags.pre(text_file.Text))
 
-                path.parent.mkdir(exist_ok=True, parents=True)
-                with GlobCompleteEvent("Render HTML", "cov"):
-                    path.write_text(doc.render())
-
-                with GlobCompleteEvent("Dump JSON", "cov"):
-                    path.with_suffix(".json").write_text(file.model_dump_json(indent=2))
-
-
-        for text_file in directory.TextFiles:
-            path = docdata.get_html_path(text_file, html_out_path=html_out_path)
-            doc = document(title=str(text_file.RelPath))
-            doc.head.add(tags.link(rel="stylesheet", href=css_path))
-            doc.add(tags.div(sidebar, _class="sidebar"))
-            main = tags.div(_class="main")
-            main.add(tags.pre(text_file.Text))
-
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(doc.render())
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(doc.render())
 
     aux(directory, html_out_path)
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = [
+            executor.submit(
+                functools.partial(
+                    generate_code_file,
+                    opts=opts,
+                ),
+                item,
+            ) for item in target_code_files
+        ]
+
+        for future in futures:
+            py_scriptutils.tracer.GlobAddEvents(future.result().trace)
 
 
 @beartype
@@ -249,7 +359,6 @@ def parse_dir(
     conf: DocGenerationOptions,
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile],
     py_coverage_session: Optional[Session],
-    cxx_coverage_session: Optional[Session],
     is_test: bool,
 ) -> docdata.DocDirectory:
     result = docdata.DocDirectory(RelPath=dir.relative_to(conf.root_path))
@@ -264,7 +373,7 @@ def parse_dir(
             continue
 
         match file.suffix:
-            case ".hpp" | ".py" | ".cpp":
+            case ".hpp" | ".py" | ".cpp" | ".tcc":
                 result.CodeFiles.append(
                     parse_code_file(
                         file,
@@ -283,7 +392,6 @@ def parse_dir(
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
                     py_coverage_session=py_coverage_session,
-                    cxx_coverage_session=cxx_coverage_session,
                     is_test=is_test,
                 )
 
@@ -301,6 +409,8 @@ def parse_dir(
 @cli_options
 @click.pass_context
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
+    py_scriptutils.tracer.GlobNameThisProcess("Main")
+    py_scriptutils.tracer.GlobIndexThisProcess(0)
     conf = get_cli_model(ctx, DocGenerationOptions, kwargs=kwargs, config=config)
     rel_path_to_code_file: Dict[Path, docdata.DocCodeFile] = {}
 
@@ -308,11 +418,11 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     if conf.py_coverage_path:
         py_coverage_session = cov_docpy.open_coverage(conf.py_coverage_path)
 
-    cxx_coverage_session = cov_docxx.open_coverage(conf.cxx_coverage_path)
     log(CAT).info(f"Loading code coverage from {conf.cxx_coverage_path}")
 
     with GlobCompleteEvent("Get file tree", "cov"):
-        full_root = docdata.DocDirectory(RelPath=conf.root_path.relative_to(conf.root_path))
+        full_root = docdata.DocDirectory(
+            RelPath=conf.root_path.relative_to(conf.root_path))
         for subdir in conf.test_path:
             full_root.Subdirs.append(
                 parse_dir(
@@ -320,7 +430,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
                     py_coverage_session=None,
-                    cxx_coverage_session=None,
                     is_test=True,
                 ))
 
@@ -331,7 +440,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                     conf,
                     rel_path_to_code_file=rel_path_to_code_file,
                     py_coverage_session=py_coverage_session,
-                    cxx_coverage_session=cxx_coverage_session,
                     is_test=False,
                 ))
 
@@ -339,7 +447,6 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         generate_html_for_directory(
             full_root,
             html_out_path=conf.html_out_path,
-            cxx_coverage_session=cxx_coverage_session,
             opts=conf,
         )
 

@@ -41,15 +41,19 @@ html {
 }
 
 .cov-context {
-  display: none;
   position: fixed;
   top: 10px;
   right: 10px;
+  max-height: 90vh;
+  overflow-y: auto;
   background-color: white;
   border: 1px solid #ccc;
   padding: 10px;
   z-index: 1000;
-  overflow: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
 }
 
 .segment-cov-executed {

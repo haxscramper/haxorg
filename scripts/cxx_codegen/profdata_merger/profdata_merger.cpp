@@ -32,6 +32,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 #include <perfetto.h>
 
@@ -42,6 +43,9 @@ PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("main").SetDescription("Top execution steps")
     //
 );
+
+#define NO_COVERAGE                                                       \
+    __attribute__((no_sanitize("coverage", "address", "thread")))
 
 
 #pragma clang diagnostic error "-Wswitch"
@@ -98,6 +102,11 @@ BOOST_DESCRIBE_STRUCT(
     (CounterMappingRegion),
     (ExecutionCount, FalseExecutionCount, Folded));
 
+BOOST_DESCRIBE_STRUCT(
+    CounterMappingRegion::MCDCParameters,
+    (),
+    (BitmapIdx, NumConditions, ID, TrueID, FalseID));
+
 BOOST_DESCRIBE_ENUM(
     CounterMappingRegion::RegionKind,
     CodeRegion,
@@ -108,22 +117,23 @@ BOOST_DESCRIBE_ENUM(
     MCDCDecisionRegion,
     MCDCBranchRegion);
 
+
 }
 
 
-std::string read_file(fs::path const& path) {
+NO_COVERAGE std::string read_file(fs::path const& path) {
     std::ifstream     file{path.native()};
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
 }
 
-void llvm_unreachable_f(std::string const& msg) {
+NO_COVERAGE void llvm_unreachable_f(std::string const& msg) {
     llvm_unreachable(msg.c_str());
 }
 
 
-void CreateTables(SQLite::Database& db) {
+NO_COVERAGE void CreateTables(SQLite::Database& db) {
     auto path = fs::path{__FILE__}.parent_path() / "profdata_merger.sql";
     std::string sql = read_file(path);
     db.exec(sql);
@@ -133,7 +143,7 @@ void CreateTables(SQLite::Database& db) {
 //     return std::cerr << std::format("[profmerge:{}] {}\n", line, msg);
 // }
 
-llvm::json::Array& add_array_field(
+NO_COVERAGE llvm::json::Array& add_array_field(
     llvm::json::Object&      obj,
     std::string const&       field,
     llvm::json::Value const& value) {
@@ -144,7 +154,7 @@ llvm::json::Array& add_array_field(
     return *obj.getArray(field);
 }
 
-llvm::json::Object& add_obj_field(
+NO_COVERAGE llvm::json::Object& add_obj_field(
     llvm::json::Object& obj,
     std::string const&  field) {
     if (obj.getObject(field) == nullptr) {
@@ -165,14 +175,14 @@ struct ForwardNth {
 };
 
 template <int N, typename T, typename TNode>
-T match(TNode const* node) {
+NO_COVERAGE T match(TNode const* node) {
     T result;
     node->match(ForwardNth<N, T>{&result});
     return result;
 }
 
 
-llvm::json::Value treeRepr(Node const* node) {
+NO_COVERAGE llvm::json::Value treeRepr(Node const* node) {
     llvm::json::Object result;
     if (node == nullptr) { return nullptr; }
 
@@ -686,13 +696,13 @@ class BumpPointerAllocator {
     alignas(long double) char InitialBuffer[AllocSize];
     BlockMeta* BlockList = nullptr;
 
-    void grow() {
+    NO_COVERAGE void grow() {
         char* NewMeta = static_cast<char*>(std::malloc(AllocSize));
         if (NewMeta == nullptr) { std::terminate(); }
         BlockList = new (NewMeta) BlockMeta{BlockList, 0};
     }
 
-    void* allocateMassive(size_t NBytes) {
+    NO_COVERAGE void* allocateMassive(size_t NBytes) {
         NBytes += sizeof(BlockMeta);
         BlockMeta* NewMeta = reinterpret_cast<BlockMeta*>(
             std::malloc(NBytes));
@@ -702,10 +712,10 @@ class BumpPointerAllocator {
     }
 
   public:
-    BumpPointerAllocator()
+    NO_COVERAGE BumpPointerAllocator()
         : BlockList(new(InitialBuffer) BlockMeta{nullptr, 0}) {}
 
-    void* allocate(size_t N) {
+    NO_COVERAGE void* allocate(size_t N) {
         N = (N + 15u) & ~15u;
         if (N + BlockList->Current >= UsableAllocSize) {
             if (N > UsableAllocSize) { return allocateMassive(N); }
@@ -717,7 +727,7 @@ class BumpPointerAllocator {
             - N);
     }
 
-    void reset() {
+    NO_COVERAGE void reset() {
         while (BlockList) {
             BlockMeta* Tmp = BlockList;
             BlockList      = BlockList->Next;
@@ -728,22 +738,22 @@ class BumpPointerAllocator {
         BlockList = new (InitialBuffer) BlockMeta{nullptr, 0};
     }
 
-    ~BumpPointerAllocator() { reset(); }
+    NO_COVERAGE ~BumpPointerAllocator() { reset(); }
 };
 
 class DefaultAllocator {
     BumpPointerAllocator Alloc;
 
   public:
-    void reset() { Alloc.reset(); }
+    NO_COVERAGE void reset() { Alloc.reset(); }
 
     template <typename T, typename... Args>
-    T* makeNode(Args&&... args) {
+    NO_COVERAGE T* makeNode(Args&&... args) {
         return new (Alloc.allocate(sizeof(T)))
             T(std::forward<Args>(args)...);
     }
 
-    void* allocateNodeArray(size_t sz) {
+    NO_COVERAGE void* allocateNodeArray(size_t sz) {
         return Alloc.allocate(sizeof(Node*) * sz);
     }
 };
@@ -754,30 +764,31 @@ using Demangler = llvm::itanium_demangle::ManglingParser<DefaultAllocator>;
 
 template <>
 struct JsonSerde<Counter> {
-    static json to_json(Counter const& cnt) { return json(); }
+    NO_COVERAGE static json to_json(Counter const& cnt) { return json(); }
 };
 
 template <>
 struct JsonSerde<CountedRegion::MCDCParameters> {
-    static json to_json(CountedRegion::MCDCParameters const& cnt) {
+    NO_COVERAGE static json to_json(
+        CountedRegion::MCDCParameters const& cnt) {
         return json();
     }
 };
 
 template <>
 struct JsonSerde<llvm::json::Object> {
-    static json to_json(llvm::json::Object const& obj);
+    NO_COVERAGE static json to_json(llvm::json::Object const& obj);
 };
 
 
 template <>
 struct JsonSerde<llvm::json::Array> {
-    static json to_json(llvm::json::Array const& obj);
+    NO_COVERAGE static json to_json(llvm::json::Array const& obj);
 };
 
 template <>
 struct JsonSerde<llvm::json::Value> {
-    static json to_json(llvm::json::Value const& value) {
+    NO_COVERAGE static json to_json(llvm::json::Value const& value) {
         using K = llvm::json::Value::Kind;
         switch (value.kind()) {
             case K::Null: return json();
@@ -795,7 +806,8 @@ struct JsonSerde<llvm::json::Value> {
 };
 
 
-json JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
+NO_COVERAGE json
+    JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
     json result = json::array();
     for (auto const& it : obj) {
         result.push_back(JsonSerde<llvm::json::Value>::to_json(it));
@@ -804,8 +816,8 @@ json JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
 }
 
 
-json JsonSerde<llvm::json::Object>::to_json(
-    const llvm::json::Object& obj) {
+NO_COVERAGE json
+    JsonSerde<llvm::json::Object>::to_json(const llvm::json::Object& obj) {
     json result = json::object();
     for (auto const& field : obj) {
         result[field.first.str()] = JsonSerde<llvm::json::Value>::to_json(
@@ -847,7 +859,7 @@ struct JsonSerde<MCDCRecord> {
 
 template <>
 struct JsonSerde<CoverageMapping> {
-    static json to_json(CoverageMapping const& map) {
+    NO_COVERAGE static json to_json(CoverageMapping const& map) {
         json result = json::object();
         for (auto const& it : map.getCoveredFunctions()) {
             result["functions"].push_back(to_json_eval(it));
@@ -857,7 +869,7 @@ struct JsonSerde<CoverageMapping> {
 };
 
 
-static void loadInput(
+NO_COVERAGE static void loadInput(
     std::string const&     Filename,
     std::string const&     ProfiledBinary,
     llvm::InstrProfWriter* Writer) {
@@ -922,7 +934,7 @@ CoverageMappingLyt const* toCoverageMappingLyt(
     return reinterpret_cast<CoverageMappingLyt const*>(Mapping);
 }
 
-llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
+NO_COVERAGE llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
     CoverageMapping const& Mapping,
     llvm::StringRef        Filename) {
     size_t FilenameHash = hash_value(Filename);
@@ -936,7 +948,7 @@ llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
     return RecordIt->second;
 }
 
-static std::optional<unsigned> findMainViewFileID(
+NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
     const FunctionRecord& Function) {
     llvm::SmallBitVector IsNotExpandedFile(
         Function.Filenames.size(), true);
@@ -950,7 +962,7 @@ static std::optional<unsigned> findMainViewFileID(
     return I;
 }
 
-static std::optional<unsigned> findMainViewFileID(
+NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
     llvm::StringRef       SourceFile,
     const FunctionRecord& Function) {
     std::optional<unsigned> I = findMainViewFileID(Function);
@@ -958,7 +970,7 @@ static std::optional<unsigned> findMainViewFileID(
     return std::nullopt;
 }
 
-static llvm::SmallBitVector gatherFileIDs(
+NO_COVERAGE static llvm::SmallBitVector gatherFileIDs(
     llvm::StringRef       SourceFile,
     const FunctionRecord& Function) {
     llvm::SmallBitVector FilenameEquivalence(
@@ -971,47 +983,9 @@ static llvm::SmallBitVector gatherFileIDs(
     return FilenameEquivalence;
 }
 
-
-std::vector<CountedRegion> getRegionsForFile(
-    CoverageMapping const& Mapping,
-    std::string const&     Filename) {
-    std::vector<CountedRegion> Regions;
-
-    // Look up the function records in the given file. Due to hash
-    // collisions on the filename, we may get back some records that are
-    // not in the file.
-    llvm::ArrayRef<unsigned>
-        RecordIndices = getImpreciseRecordIndicesForFilename(
-            Mapping, Filename);
-    auto Access = toCoverageMappingLyt(&Mapping);
-    for (unsigned RecordIndex : RecordIndices) {
-        const FunctionRecord& Function = Access->Functions[RecordIndex];
-        auto MainFileID = findMainViewFileID(Filename, Function);
-        auto FileIDs    = gatherFileIDs(Filename, Function);
-        for (const auto& CR : Function.CountedRegions) {
-            if (FileIDs.test(CR.FileID)) {
-                Regions.push_back(CR);
-                // TODO Integrate expansion regions
-                // if (MainFileID && isExpansion(CR, *MainFileID)) {
-                //     FileCoverage.Expansions.emplace_back(CR, Function);
-                // }
-            }
-        }
-        // Capture branch regions specific to the function (excluding
-        // expansions).
-        for (const auto& CR : Function.CountedBranchRegions) {
-            // TODO integrate branch regions
-            // if (FileIDs.test(CR.FileID)
-            //     && (CR.FileID == CR.ExpandedFileID)) {
-            //     FileCoverage.BranchRegions.push_back(CR);
-            // }
-        }
-    }
-
-    return Regions;
-}
-
-std::string SqlInsert(
+/// \brief Create a text for a `INSERT` statement with a given list of
+/// column names and identical number of coverage instantiation
+NO_COVERAGE std::string SqlInsert(
     std::string const&              Table,
     std::vector<std::string> const& Columns) {
     std::string result = std::format("INSERT INTO {} (", Table);
@@ -1032,59 +1006,13 @@ std::string SqlInsert(
 }
 
 struct queries {
-    SQLite::Statement func_region;
     SQLite::Statement file_region;
     SQLite::Statement context;
     SQLite::Statement func;
     SQLite::Statement file;
-    SQLite::Statement instantiation_group;
-    SQLite::Statement function_instantiation;
 
     queries(SQLite::Database& db)
         : // ---
-        function_instantiation(
-            db,
-            SqlInsert(
-                "CovFunctionInstantiation",
-                {
-                    "Instantiation", // 1
-                    "Function",      // 2
-                }))
-        ,
-        // ---
-        instantiation_group(
-            db,
-            SqlInsert(
-                "CovInstantiationGroup",
-                {
-                    "Id",   // 1
-                    "Line", // 2
-                    "Col",  // 3
-                }))
-        ,
-        // ---
-        func_region(
-            db,
-            SqlInsert(
-                "CovFunctionRegion",
-                {
-                    "Id",                  // 1
-                    "Function",            // 2
-                    "Context",             // 3
-                    "IsBranch",            // 4
-                    "ExecutionCount",      // 5
-                    "FalseExecutionCount", // 6
-                    "Folded",              // 7
-                    "FileId",              // 8
-                    "ExpandedFileId",      // 9
-                    "LineStart",           // 10
-                    "ColumnStart",         // 11
-                    "LineEnd",             // 12
-                    "ColumnEnd",           // 13
-                    "RegionKind",          // 14
-                }))
-        ,
-        // ---
         file_region(
             db,
             SqlInsert(
@@ -1101,6 +1029,8 @@ struct queries {
                     "ColumnEnd",           // 9
                     "RegionKind",          // 10
                     "File",                // 11
+                    "Function",            // 12
+                    "ExpandedFrom",        // 13
                 }))
         ,
         // ---
@@ -1195,19 +1125,110 @@ struct FileSpanComparator {
     }
 };
 
+static std::vector<std::string> CompiledFileExtensions = {
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".cc",
+    ".cxx",
+    ".c",
+    ".C",
+    ".java",
+    ".js",
+    ".ts",
+    ".go",
+    ".py",
+    ".rs",
+    ".swift",
+    ".m",
+    ".mm",
+};
+
+int findSymbolNamePosition(const std::string& input) {
+    int pos = input.find(':');
+    while (pos != std::string::npos) {
+        for (const auto& ext : CompiledFileExtensions) {
+            int extPos = input.rfind(ext, pos);
+            if (extPos != std::string::npos
+                && extPos + ext.length() == pos) {
+                return pos + 1;
+            }
+        }
+        pos = input.find(':', pos + 1);
+    }
+
+    return 0;
+}
 
 struct db_build_ctx {
+    /// \brief DB ID generator for individual coverage contexts from the
+    /// coverage configuration file.
     int                                  context_id{};
     int                                  instantiation_id{};
     std::unordered_map<std::string, int> function_ids{};
+    /// \brief Absolute file path to the file ID.
+    ///
+    /// LLVM coverage contains `FileID` and `ExpandedFileID` fields in the
+    /// counted regions. These fields are local to individual function
+    /// records and are used for both real files and for macro expansion
+    /// IDs pointing to the same file. A function with macro expansion
+    /// might have multiple duplicate file names with different IDs.
+    ///
+    /// DB build uses absolute path to the file as a unique identifier for
+    /// the file and is not directly mapped to the LLVM coverage file ID.
     std::unordered_map<std::string, int> file_ids{};
-    int                                  region_counter{};
-    int                                  function_region_counter{};
+    /// \brief DB ID generator for coverage file regions
+    int region_counter{};
 
+    /// \brief Cache for the JSON value demangling.
+    std::unordered_map<std::string, llvm::json::Value>
+        demangled_json_dumps{};
+
+    /// \brief List of regexps to filter out from the input file coverage.
+    /// Has secondary check order compared to blacklist. For a file to pass
+    /// it must match the whitelist and then not fail on the blacklist.
     std::vector<llvm::Regex> file_blacklist;
+    /// \brief List of regexps to allow for for the coverage extractor. Has
+    /// first check order compared to blacklist.
     std::vector<llvm::Regex> file_whitelist;
 
-    bool file_matches(std::string const& path, std::string& debug) const {
+    /// \brief Get JSON dump of the demangled function record name.
+    NO_COVERAGE std::string getDemangledJson(FunctionRecord const& f) {
+        if (demangled_json_dumps.contains(f.Name)) {
+            return llvm::formatv("{0}", demangled_json_dumps.at(f.Name));
+        } else {
+            int         offset = findSymbolNamePosition(f.Name);
+            std::string name   = f.Name.substr(offset);
+            Demangler   Parser(name.data(), name.data() + name.length());
+
+            Node* AST = Parser.parse();
+
+            // In some cases LLVM fails to demangle itanium names for
+            // lambdas and some other symbols, like
+            // `SemOrgApi.cpp:_ZZNK3sem7Subtree14getTimePeriodsE6IntSetINS0_6Period4KindEEENK3$_0clINS0_8Property17ExportLatexHeaderEEEDaRKT_`
+            // so this heuristics is used to give more information on the
+            // failure -- `cxx-filt` also fails to process this, so it
+            // seems to be a LLVM issue.
+            if (AST == nullptr && name.contains("$_")
+                && name.contains("cl") && name.contains('K')) {
+                llvm::json::Object repr;
+                repr["NodeKind"] = "LambdaDemangleFail";
+                return llvm::formatv(
+                    "{0}", llvm::json::Value{std::move(repr)});
+            } else {
+                llvm::json::Value repr = treeRepr(AST);
+                demangled_json_dumps.insert({f.Name, repr});
+                return llvm::formatv("{0}", repr);
+            }
+        }
+    }
+
+
+    /// \brief Check the file against provided white/black list of
+    /// mappings.
+    NO_COVERAGE bool file_matches(
+        std::string const& path,
+        std::string&       debug) const {
         bool result = false;
         if (file_whitelist.empty()) {
             throw std::logic_error(
@@ -1237,15 +1258,7 @@ struct db_build_ctx {
         return result;
     }
 
-    std::unordered_map<
-        CountedRegion,
-        int,
-        CountedRegionHasher,
-        CountedRegionComparator>
-        function_region_ids{};
-
-
-    int get_file_id(std::string const& path, queries& q) {
+    NO_COVERAGE int get_file_id(std::string const& path, queries& q) {
         if (!file_ids.contains(path)) {
             int id         = file_ids.size();
             file_ids[path] = id;
@@ -1259,16 +1272,16 @@ struct db_build_ctx {
     }
 };
 
-int get_function_id(
+/// \brief Get an ID for the function from a database, insert a new entry
+/// in DB if needed.
+///
+/// Functions are mapped based on their mangled names and are shared across
+/// all execution contexts and all executed files.
+NO_COVERAGE int get_function_id(
     FunctionRecord const& f,
     queries&              q,
     db_build_ctx&         ctx) {
     std::string readeable = llvm::demangle(f.Name);
-
-    Demangler Parser(f.Name.data(), f.Name.data() + f.Name.length());
-
-    Node*             AST  = Parser.parse();
-    llvm::json::Value repr = treeRepr(AST);
 
 
     int function_id = -1;
@@ -1287,7 +1300,7 @@ int get_function_id(
         } else {
             q.func.bind(3, demangled);
         }
-        q.func.bind(4, llvm::formatv("{0}", repr));
+        q.func.bind(4, ctx.getDemangledJson(f));
         q.func.exec();
         q.func.reset();
     }
@@ -1295,47 +1308,9 @@ int get_function_id(
     return function_id;
 }
 
-int get_region_id(
-    FunctionRecord const& f,
-    CountedRegion const&  r,
-    bool                  IsBranch,
-    queries&              q,
-    int                   function_id,
-    db_build_ctx&         ctx) {
-    if (!ctx.function_region_ids.contains(r)) {
-        auto get_file_id = [&](int in_function_id) {
-            std::string const& full_path = f.Filenames.at(in_function_id);
-            return ctx.get_file_id(full_path, q);
-        };
-
-        int id                     = ++ctx.function_region_counter;
-        ctx.function_region_ids[r] = id;
-
-        q.func_region.bind(1, id);
-        q.func_region.bind(2, function_id);
-        q.func_region.bind(3, ctx.context_id);
-        q.func_region.bind(4, IsBranch);
-        q.func_region.bind(5, static_cast<int>(r.ExecutionCount));
-        q.func_region.bind(6, static_cast<int>(r.FalseExecutionCount));
-        q.func_region.bind(7, r.Folded);
-        q.func_region.bind(8, get_file_id(r.FileID));
-        q.func_region.bind(9, get_file_id(r.ExpandedFileID));
-        q.func_region.bind(10, r.LineStart);
-        q.func_region.bind(11, r.ColumnStart);
-        q.func_region.bind(12, r.LineEnd);
-        q.func_region.bind(13, r.ColumnEnd);
-        q.func_region.bind(14, r.Kind);
-        q.func_region.exec();
-        q.func_region.reset();
-    }
-
-
-    return ctx.function_region_ids.at(r);
-}
-
 
 template <typename T, typename FormatContext>
-auto fmt_ctx_field(
+NO_COVERAGE auto fmt_ctx_field(
     std::string const& field_name,
     T const&           field_value,
     FormatContext&     ctx) {
@@ -1346,9 +1321,32 @@ auto fmt_ctx_field(
 }
 
 template <>
+struct std::formatter<CountedRegion> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const CountedRegion& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx_field("ExecutionCount", p.ExecutionCount, ctx);
+        fmt_ctx_field("FalseExecutionCount", p.FalseExecutionCount, ctx);
+        fmt_ctx_field(
+            "Loc",
+            fmt("[{}:{}..{}:{}]",
+                p.LineStart,
+                p.ColumnStart,
+                p.LineEnd,
+                p.ColumnEnd),
+            ctx);
+        fmt_ctx_field("FileId", p.FileID, ctx);
+        fmt_ctx_field("ExpandedFileID", p.ExpandedFileID, ctx);
+        fmt_ctx_field("Kind", p.Kind, ctx);
+        return fmt_ctx("}", ctx);
+    }
+};
+
+template <>
 struct std::formatter<CoverageSegment> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const CoverageSegment& p, FormatContext& ctx) const {
+    NO_COVERAGE auto format(const CoverageSegment& p, FormatContext& ctx)
+        const {
         fmt_ctx("{", ctx);
         fmt_ctx_field("Line", p.Line, ctx);
         fmt_ctx_field("Col", p.Col, ctx);
@@ -1360,8 +1358,154 @@ struct std::formatter<CoverageSegment> : std::formatter<std::string> {
     }
 };
 
+
+NO_COVERAGE void add_file_regions(
+    CoverageMapping const& Mapping,
+    std::string const&     Filename,
+    queries&               q,
+    db_build_ctx&          ctx) {
+
+    // Look up the function records in the given file. Due to hash
+    // collisions on the filename, we may get back some records that are
+    // not in the file.
+    llvm::ArrayRef<unsigned>
+        RecordIndices = getImpreciseRecordIndicesForFilename(
+            Mapping, Filename);
+    auto Access = toCoverageMappingLyt(&Mapping);
+    for (unsigned RecordIndex : RecordIndices) {
+        const FunctionRecord& Function = Access->Functions[RecordIndex];
+        auto MainFileID = findMainViewFileID(Filename, Function);
+        auto FileIDs    = gatherFileIDs(Filename, Function);
+        // `ExpandedFileID` in the expansion regions points to the file ID
+        // of the macro body region. This map retains information on which
+        // segment index introduced a new expanded file ID.
+        UnorderedMap<int, int> expanded_from;
+
+        bool dbg = false && Function.Name.contains("parseSubtree")
+                && !(Function.Name.contains("parseSubtreeLogbook")
+                     || Function.Name.contains("parseSubtreeProperties")
+                     || Function.Name.contains("parseSubtreeTodo")
+                     || Function.Name.contains("parseSubtreeTitle")
+                     || Function.Name.contains("parseSubtreeUrgency")
+                     || Function.Name.contains("parseSubtreeDrawer")
+                     || Function.Name.contains("parseSubtreeTags")
+                     || Function.Name.contains("parseSubtreeTimes")
+                     || Function.Name.contains("parseSubtreeCompletion"));
+
+        auto reg = [&](int region_index) -> CountedRegion const& {
+            return Function.CountedRegions.at(region_index);
+        };
+
+        for (const auto& it : llvm::enumerate(Function.CountedRegions)) {
+            if (it.value().Kind
+                == CounterMappingRegion::RegionKind::ExpansionRegion) {
+                expanded_from[it.value().ExpandedFileID] = it.index();
+            }
+        }
+
+        auto getOriginalIndex = [&](int region) -> Opt<int> {
+            if (expanded_from.contains(reg(region).FileID)) {
+                // while (expanded_from.contains(reg(region).FileID)) {
+                region = expanded_from.at(reg(region).FileID);
+                // }
+                return region;
+            } else {
+                return std::nullopt;
+            }
+        };
+
+        // Map region indices for the function to the generated IDs. Each
+        // function has its own, separate set of counted regions, so this
+        // mapping is local for each function processing.
+        UnorderedMap<int, int> file_region_ids;
+
+        std::function<int(int)> addRegion;
+        addRegion = [&](int region_index) -> int {
+            CountedRegion const& r = reg(region_index);
+
+            ++ctx.region_counter;
+            int region_id = ctx.region_counter;
+
+            Opt<int> expanded_from_id = std::nullopt;
+            // <<expanded_from>>
+            if (expanded_from.contains(r.FileID)) {
+                auto original_index = getOriginalIndex(region_index);
+                if (original_index.has_value()) {
+                    auto id = *original_index;
+                    // Protection against segments arriving out of order
+                    // due to macro expansion magicks. If the region
+                    // already mapped, existing ID must be reused.
+                    if (file_region_ids.contains(id)) {
+                        expanded_from_id = file_region_ids.at(id);
+                    } else {
+                        if (dbg) {
+                            LOG(INFO)
+                                << fmt("recursively adding region {} {} "
+                                       ".contains({}) -> {}",
+                                       id,
+                                       file_region_ids,
+                                       id,
+                                       file_region_ids.contains(id));
+                        }
+
+                        expanded_from_id = addRegion(id);
+                    }
+                }
+            }
+
+            // Passing LLVM information directly
+            q.file_region.bind(1, region_id);
+            q.file_region.bind(2, ctx.context_id);
+            q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
+            q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
+            q.file_region.bind(5, r.Folded);
+            q.file_region.bind(6, static_cast<int>(r.LineStart));
+            q.file_region.bind(7, static_cast<int>(r.ColumnStart));
+            q.file_region.bind(8, static_cast<int>(r.LineEnd));
+            q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
+            q.file_region.bind(10, r.Kind);
+            q.file_region.bind(
+                11, ctx.get_file_id(Function.Filenames.at(r.FileID), q));
+            // Addition to the LLVM info -- the function which contains the
+            // segment
+            q.file_region.bind(12, get_function_id(Function, q, ctx));
+            // And optionally a location that was expanded to this segment
+            // (for macro body).
+            if (expanded_from_id) {
+                q.file_region.bind(13, *expanded_from_id);
+            }
+
+            q.file_region.exec();
+            q.file_region.reset();
+
+            if (dbg) {
+                LOG(INFO) << fmt(
+                    "add region [{} -> {}] {} ",
+                    region_index,
+                    region_id,
+                    r);
+            }
+
+            file_region_ids[region_index] = region_id;
+            return region_id;
+        };
+
+
+        for (const auto& it : llvm::enumerate(Function.CountedRegions)) {
+            if (FileIDs.test(it.value().FileID)) {
+                addRegion(it.index());
+            } else {
+                if (dbg) {
+                    LOG(INFO) << fmt(
+                        "skip region [{}] {}", it.index(), it.value());
+                }
+            }
+        }
+    }
+}
+
 template <typename T>
-std::string format_range(T begin, T end) {
+NO_COVERAGE std::string format_range(T begin, T end) {
     bool        isFirst = true;
     std::string result  = "[";
     while (begin != end) {
@@ -1378,7 +1522,7 @@ std::string format_range(T begin, T end) {
     return result;
 }
 
-void add_file(
+NO_COVERAGE void add_file(
     CoverageMapping const* mapping,
     llvm::StringRef        file,
     queries&               q,
@@ -1386,72 +1530,8 @@ void add_file(
     TRACE_EVENT("sql", "File coverage data");
     int file_id = ctx.get_file_id(file.str(), q);
 
-    auto regions = getRegionsForFile(*mapping, file.str());
-    for (auto const& it : llvm::enumerate(regions)) {
-        ++ctx.region_counter;
-        CountedRegion const& r = it.value();
-        q.file_region.bind(1, ctx.region_counter);
-        q.file_region.bind(2, ctx.context_id);
-        q.file_region.bind(3, static_cast<int>(r.ExecutionCount));
-        q.file_region.bind(4, static_cast<int>(r.FalseExecutionCount));
-        q.file_region.bind(5, r.Folded);
-        q.file_region.bind(6, static_cast<int>(r.LineStart));
-        q.file_region.bind(7, static_cast<int>(r.ColumnStart));
-        q.file_region.bind(8, static_cast<int>(r.LineEnd));
-        q.file_region.bind(9, static_cast<int>(r.ColumnEnd));
-        q.file_region.bind(10, r.Kind);
-        q.file_region.bind(11, file_id);
-        q.file_region.exec();
-        q.file_region.reset();
-    }
+    add_file_regions(*mapping, file.str(), q, ctx);
 }
-
-
-void add_instantiations(
-    std::shared_ptr<CoverageMapping> const& mapping,
-    std::string const&                      file,
-    queries&                                q,
-    db_build_ctx&                           ctx) {
-    TRACE_EVENT("sql", "Add instantiations");
-    for (InstantiationGroup const& group :
-         mapping->getInstantiationGroups(file)) {
-        if (group.getTotalExecutionCount() == 0) { continue; }
-        int inst_id = ++ctx.instantiation_id;
-        q.instantiation_group.bind(1, inst_id);
-        q.instantiation_group.bind(2, group.getLine());
-        q.instantiation_group.bind(3, group.getColumn());
-        q.instantiation_group.exec();
-        q.instantiation_group.reset();
-
-        for (FunctionRecord const* func : group.getInstantiations()) {
-            int func_id = get_function_id(*func, q, ctx);
-            q.function_instantiation.bind(1, inst_id);
-            q.function_instantiation.bind(2, func_id);
-            q.function_instantiation.exec();
-            q.function_instantiation.reset();
-        }
-    }
-}
-
-
-void add_regions(
-    FunctionRecord const& f,
-    queries&              q,
-    int                   function_id,
-    db_build_ctx&         ctx) {
-    TRACE_EVENT("sql", "Function record", "Mangled", f.Name);
-
-
-    auto add_region = [&](CountedRegion const& r, bool IsBranch) {
-        if (0 < r.ExecutionCount || 0 < r.FalseExecutionCount) {
-            get_region_id(f, r, IsBranch, q, function_id, ctx);
-        }
-    };
-
-    for (auto const& r : f.CountedRegions) { add_region(r, false); }
-    for (auto const& r : f.CountedBranchRegions) { add_region(r, true); }
-}
-
 
 struct ProfdataCookie {
     std::string                test_binary;
@@ -1467,7 +1547,7 @@ struct ProfdataCookie {
 
 static_assert(DescribedRecord<ProfdataCookie>, "dbg");
 
-void add_context(
+NO_COVERAGE void add_context(
     ProfdataCookie const& run,
     queries&              q,
     db_build_ctx&         ctx) {
@@ -1488,7 +1568,7 @@ void add_context(
     q.context.reset();
 }
 
-llvm::MD5::MD5Result getMD5Digest(
+NO_COVERAGE llvm::MD5::MD5Result getMD5Digest(
     const std::string& str1,
     const std::string& str2) {
     llvm::MD5 hash;
@@ -1501,7 +1581,7 @@ llvm::MD5::MD5Result getMD5Digest(
     return result;
 }
 
-std::shared_ptr<CoverageMapping> get_coverage_mapping(
+NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
     std::string const& coverage_path,
     std::string const& binary_path) {
     TRACE_EVENT(
@@ -1555,6 +1635,8 @@ std::shared_ptr<CoverageMapping> get_coverage_mapping(
                 "Failed to load profdata {}", toString(std::move(E))));
         }
 
+        fs::remove(tmp_path);
+
         return std::move(mapping_or_err.get());
     }
 }
@@ -1587,7 +1669,7 @@ struct ProfdataFullProfile {
 
 const char* __asan_default_options() { return "detect_leaks=0"; }
 
-int main(int argc, char** argv) {
+NO_COVERAGE int main(int argc, char** argv) {
     json debug = json::object();
 
     if (argc != 2) {
@@ -1672,7 +1754,7 @@ int main(int argc, char** argv) {
     ctx.file_whitelist = get_regex_list(config.file_whitelist);
 
 
-    std::unordered_map<
+    UnorderedMap<
         std::pair<std::string, std::string>,
         std::shared_ptr<CoverageMapping>,
         llvm::pair_hash<std::string, std::string>>
@@ -1693,11 +1775,13 @@ int main(int argc, char** argv) {
             paths.begin(),
             paths.end(),
             [&](const std::pair<std::string, std::string>& p) {
+                TRACE_EVENT("llvm", "Get coverage mapping task");
                 auto coverage = get_coverage_mapping(p.first, p.second);
                 std::scoped_lock lock{coverage_mutex};
                 coverage_map.emplace(p, std::move(coverage));
             });
     }
+
 
     if (config.coverage_mapping_dump) {
         LOG(INFO) << fmt(
@@ -1708,8 +1792,12 @@ int main(int argc, char** argv) {
     for (auto const& [run_idx, run] : enumerate(summary.runs)) {
         TRACE_EVENT("main", "Insert run data");
         finally{flush_debug};
-
-        ctx.function_region_ids.clear();
+        LOG(INFO) << fmt(
+            "[{}/{}] Insert run data profile={} binary={}",
+            run_idx,
+            summary.runs.size(),
+            run.test_profile,
+            run.test_binary);
 
         add_context(run, q, ctx);
 
@@ -1730,27 +1818,14 @@ int main(int argc, char** argv) {
                 = fs::path{*config.coverage_mapping_dump}
                 / fmt("coverage_mapping_{}.json", run_idx);
 
-            LOG(INFO) << fmt(
-                "profile={} binary={} coverage-mapping-dump={}",
-                run.test_profile,
-                run.test_binary,
-                path);
+            LOG(INFO) << fmt("coverage-mapping-dump={}", path);
             writeFile(path, j.dump(2));
         }
 
         json j_run = json::object();
         {
             TRACE_EVENT("sql", "Full coverage run info");
-            db.exec("BEGIN");
-            {
-                TRACE_EVENT("sql", "Covered functions");
-                for (auto const& f : mapping->getCoveredFunctions()) {
-                    if (f.ExecutionCount == 0) { continue; }
-                    int function_id = get_function_id(f, q, ctx);
-                    add_regions(f, q, function_id, ctx);
-                }
-            }
-
+            SQLite::Transaction transaction(db);
             {
                 TRACE_EVENT("sql", "Covered files");
                 json j_files = json::object();
@@ -1765,13 +1840,12 @@ int main(int argc, char** argv) {
                     }
                     TRACE_EVENT("sql", "Add file", "File", file.str());
                     add_file(mapping.get(), file, q, ctx);
-                    add_instantiations(mapping, file.str(), q, ctx);
                 }
 
                 j_run["covered_files"] = j_files;
             }
 
-            db.exec("COMMIT");
+            transaction.commit();
         }
 
 

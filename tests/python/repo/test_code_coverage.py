@@ -110,7 +110,7 @@ class ProfileRunParams():
             self.get_code(name).write_text(text)
 
         cmd.run([
-            *[self.get_code(it) for it in self.files.keys()],
+            *[self.get_code(it) for it in self.files.keys() if it.endswith(".cpp")],
             "-fprofile-instr-generate",
             "-fcoverage-mapping",
             "-o",
@@ -137,6 +137,9 @@ class ProfileRunParams():
             ]).model_dump_json(indent=2))
 
         cmd = local[profdata_merger]
+        if self.coverage_mapping_dump:
+            self.coverage_mapping_dump.mkdir(exist_ok=True, parents=True)
+
         self.get_params().write_text(
             cov.ProfdataParams(
                 coverage=str(self.get_summary()),
@@ -725,10 +728,70 @@ def test_coverage_annotation_multiple_run_multiple_segment():
             ))
 
 
+def run_common(
+        cmd: ProfileRunParams,
+        dir: Path,
+        path_pprint: Optional[Path] = Path("annotated.py"),
+        path_genhtml: Optional[Path] = Path(""),
+        path_dbdump: Optional[Path] = Path("dbdump.txt"),
+        path_format_segments: Optional[Path] = Path("annotated_segments.txt"),
+        path_merger_run: Optional[Path] = Path("show_merger_run.txt"),
+        path_coverage_mapping_dump: Optional[Path] = Path("mapping_dump"),
+        filename: Path = Path("main.cpp"),
+):
+
+    def pass_path(path: Path) -> Path:
+        if path.is_absolute():
+            return path
+
+        else:
+            return dir.joinpath(path)
+
+    if path_merger_run:
+        cmd.show_merger_run = pass_path(path_merger_run)
+
+    if path_coverage_mapping_dump:
+        cmd.coverage_mapping_dump = pass_path(path_coverage_mapping_dump)
+
+    cmd.run()
+    assert cmd.get_sqlite().exists(), cmd.get_sqlite()
+    session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
+
+    if path_dbdump:
+        pass_path(path_dbdump).write_text(format_db_all(session, style=False))
+
+    file = cov.get_annotated_files_for_session(
+        session=session,
+        root_path=dir,
+        abs_path=dir.joinpath(filename),
+        debug_format_segments=pass_path(path_format_segments),
+    )
+
+    if path_pprint:
+        pprint_to_file(file, pass_path(path_pprint), width=200)
+
+    log(CAT).info(pass_path(path_genhtml))
+    if path_genhtml:
+        html_out_dir = pass_path(path_genhtml)
+        for code_in in cmd.files.keys():
+            html_out = html_out_dir.joinpath(code_in)
+            pass_path(html_out).write_text(
+                cov.get_file_annotation_document(
+                    session=session,
+                    root_path=dir,
+                    abs_path=dir.joinpath(code_in),
+                ).render())
+
+            pass_path(path_genhtml).with_suffix(".json").write_text(
+                file.model_dump_json(indent=2))
+            pass_path(path_genhtml).with_suffix(".txt").write_text(file.get_debug())
+
+
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_template_coverage_annotations():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
+        # dir = Path("/tmp/test_template_coverage_annotations")
         code = corpus_base.joinpath("test_template_coverage1.hpp").read_text()
 
         cmd = ProfileRunParams(
@@ -738,27 +801,71 @@ def test_template_coverage_annotations():
             run_contexts={f"branch_{it}": ["arg"] * it for it in [1, 2, 9]},
         )
 
-        cmd.show_merger_run = Path("/tmp/show_merger_run.txt")
-        cmd.coverage_mapping_dump = Path("/tmp/")
-        cmd.run()
+        run_common(cmd, dir)
 
-        session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
-        Path("/tmp/test_template_coverage_annotations.txt").write_text(
-            format_db_all(session, style=False))
+@pytest.mark.test_coverage_annotation_file_cxx
+def test_macro_coverage1():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        # dir = Path("/tmp/test_macro_coverage")
+        code = corpus_base.joinpath("test_macro_coverage.hpp").read_text()
 
-        file = cov.get_annotated_files_for_session(
-            session=session,
-            root_path=dir,
-            abs_path=dir.joinpath("main.cpp"),
-            debug_format_segments=Path("/tmp/annotated_segments.txt"),
+        cmd = ProfileRunParams(
+            dir=dir,
+            main="main.cpp",
+            files={"main.cpp": code},
+            run_contexts={"macro": []},
         )
 
-        pprint_to_file(file, "/tmp/annotated.py", width=200)
+        run_common(cmd, dir)
 
-        Path("/tmp/test_template_coverage_annotations.html").write_text(
-            cov.get_file_annotation_document(
-                session=session,
-                root_path=dir,
-                abs_path=dir.joinpath("main.cpp"),
-            ).render())
+@pytest.mark.test_coverage_annotation_file_cxx
+def test_exporter_tcc_coverage():
+    with TemporaryDirectory() as tmp:
+        dir = Path(tmp)
+        dir = Path("/tmp/test_exporter_tcc_coverage")
+
+        cmd = ProfileRunParams(
+            dir=dir,
+            main="main.cpp",
+            files= {
+                "exporter.hpp": """
+#pragma once
+template <typename T>
+struct Exporter {
+    void impl_1();
+    void impl_2();
+};             
+                """,
+                "exporter.tcc": """
+#include "exporter.hpp"
+
+template <typename T>
+void Exporter<T>::impl_1() {}
+
+template <typename T>
+void Exporter<T>::impl_2() {}
+
+                """,
+                "exporter.cpp": """
+#include "exporter.hpp"                
+#include "exporter.tcc"
+
+template class Exporter<int>;
+                """,
+                "main.cpp": """
+#include "exporter.hpp"
+
+int main() {
+    Exporter<int> exp;
+
+    exp.impl_1();
+    exp.impl_2();
+}
+                """,
+            },
+            run_contexts={"1":[]}
+        )
+
+    run_common(cmd, dir)

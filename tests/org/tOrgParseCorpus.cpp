@@ -82,7 +82,7 @@ Vec<TestParams> generateTestRuns() {
     return results;
 }
 
-class ParseFile : public ::testing::TestWithParam<TestParams> {
+class TestOrgParseCorpus : public ::testing::TestWithParam<TestParams> {
   protected:
     Opt<TestProfiler> profiler;
 
@@ -101,7 +101,7 @@ class ParseFile : public ::testing::TestWithParam<TestParams> {
 
 
 std::string getTestName(
-    const testing::TestParamInfo<ParseFile::ParamType>& info) {
+    const testing::TestParamInfo<TestOrgParseCorpus::ParamType>& info) {
     return info.param.testName();
 }
 
@@ -206,7 +206,7 @@ TEST(ParseFileAux, GenerateYamlSchema) {
     writeFile(root / "corpus_schema.yaml", ss.str());
 }
 
-TEST_P(ParseFile, CorpusAll) {
+TEST_P(TestOrgParseCorpus, CorpusAll) {
     TestParams params = GetParam();
     if (enableFullTraceOnCli) { params.spec.debug.traceAll = true; }
     TestResult result = gtest_run_spec(params);
@@ -230,6 +230,6 @@ TEST_P(ParseFile, CorpusAll) {
 
 INSTANTIATE_TEST_SUITE_P(
     CorpusAllParametrized,
-    ParseFile,
+    TestOrgParseCorpus,
     ::testing::ValuesIn(generateTestRuns()),
     getTestName);

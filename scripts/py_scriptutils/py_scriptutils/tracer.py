@@ -7,31 +7,27 @@ import os
 from contextlib import contextmanager
 import json
 from pathlib import Path
+import threading
 
 import inspect
 
 
-def get_callsite_info():
-    frame = inspect.currentframe().f_back
-    info = inspect.getframeinfo(frame)
-    return info.filename, info.lineno, info.function
-
-
 class EventType(str, Enum):
     COMPLETE = "X"
+    METADATA = "M"
 
 
 @beartype
 @dataclass
 class TraceEvent:
     name: str
-    cat: str
     ph: EventType
-    ts: int
-    dur: int
     pid: int
     tid: int
     args: Dict[str, Any]
+    dur: Optional[int] = None
+    cat: Optional[str] = None
+    ts: Optional[int] = None
     sf: Optional[str] = None
     stack: Optional[List[str]] = None
     esf: Optional[str] = None
@@ -44,38 +40,83 @@ class TraceCollector:
     def __init__(self) -> None:
         self.traceEvents: List[TraceEvent] = []
         self.metadata: Dict[str, Any] = {}
-        self.eventStack: List[TraceEvent] = []
+        self.eventStacks: Dict[int, List[TraceEvent]] = {}
+        self.lock = threading.Lock()
 
     def get_last_event(self) -> Optional[TraceEvent]:
         return self.traceEvents and self.traceEvents[-1]
+
+    def addEvents(self, events: List[TraceEvent]):
+        with self.lock:
+            self.traceEvents += events
+
+    def add_instant_event(self, event: TraceEvent) -> TraceEvent:
+        with self.lock:
+            self.traceEvents.append(event)
+
+        return event
+
+    def add_metadata_event(self, name: str, args: dict) -> TraceEvent:
+        return self.add_instant_event(
+            TraceEvent(
+                name=name,
+                pid=os.getpid(),
+                tid=threading.get_ident(),
+                ph=EventType.METADATA,
+                args=args,
+                dur=0,
+                ts=self.get_time(),
+                cat="metadata",
+            ))
+
+    def add_process_name_event(self, name: str) -> TraceEvent:
+        return self.add_metadata_event("process_name", dict(name=name))
+
+    def add_thread_name_event(self, name: str) -> TraceEvent:
+        return self.add_metadata_event("thread_name", dict(name=name))
+
+    def add_process_index_event(self, index: int) -> TraceEvent:
+        return self.add_metadata_event("process_sort_index", dict(sort_index=index))
+
+    def add_thread_index_event(self, index: int) -> TraceEvent:
+        return self.add_metadata_event("thread_sort_index", dict(sort_index=index))
+
+    def get_time(self) -> int:
+        return int(time.time() * 1e6)
 
     def push_complete_event(self,
                             name: str,
                             category: str,
                             args: Optional[Dict[str, Any]] = None) -> TraceEvent:
         pid = os.getpid()
-        tid = id(self)
-        start_time = int(time.time() * 1e6)  # Convert to microseconds
+        tid = threading.get_ident()
 
         new_event = TraceEvent(
             name=name,
             cat=category,
             ph=EventType.COMPLETE,
-            ts=start_time,
+            ts=self.get_time(),
             dur=0,
             pid=pid,
             tid=tid,
             args=args or {},
         )
 
-        self.eventStack.append(new_event)
+        with self.lock:
+            if tid not in self.eventStacks:
+                self.eventStacks[tid] = []
+            self.eventStacks[tid].append(new_event)
+
         return new_event
 
     def pop_complete_event(self) -> TraceEvent:
-        new_event = self.eventStack.pop()
-        end_time = int(time.time() * 1e6)
-        new_event.dur = end_time - new_event.ts
-        self.traceEvents.append(new_event)
+        tid = threading.get_ident()
+
+        with self.lock:
+            new_event = self.eventStacks[tid].pop()
+            end_time = int(time.time() * 1e6)
+            new_event.dur = end_time - new_event.ts
+            self.traceEvents.append(new_event)
 
         return new_event
 
@@ -92,9 +133,9 @@ class TraceCollector:
 
         if file or line or function:
             args = args or dict()
-            args["file"] = file
-            args["line"] = line
-            args["function"] = function
+            args["call_file"] = file
+            args["call_line"] = line
+            args["call_function"] = function
 
         new_event = self.push_complete_event(name, category, args)
         try:
@@ -122,7 +163,8 @@ class TraceCollector:
 __global_trace_collector: Optional[TraceCollector] = None
 
 
-def getGlobalTraceCollector():
+@beartype
+def getGlobalTraceCollector() -> TraceCollector:
     global __global_trace_collector
     if not __global_trace_collector:
         __global_trace_collector = TraceCollector()
@@ -139,18 +181,54 @@ def GlobCompleteEvent(
     line: Optional[int] = None,
     function: Optional[str] = None,
 ) -> Iterator[TraceEvent]:
-    call_file, call_line, call_function = get_callsite_info()
+    frame = inspect.currentframe().f_back.f_back
+    info = inspect.getframeinfo(frame)
 
     with getGlobalTraceCollector().complete_event(
             name,
             category,
             args,
-            file=file or call_file,
-            line=line or call_line,
-            function=function or call_function,
+            file=file or info.filename,
+            line=line or info.lineno,
+            function=function or info.function,
     ) as new_event:
         yield new_event
 
 
+def GlobGetEvents() -> List[TraceEvent]:
+    return getGlobalTraceCollector().traceEvents
+
+
+@beartype
+def GlobAddEvents(events: List[TraceEvent]):
+    getGlobalTraceCollector().addEvents(events)
+
+
+@beartype
+def GlobRestart():
+    getGlobalTraceCollector().traceEvents = []
+
+
+@beartype
+def GlobNameThisProcess(name: str):
+    getGlobalTraceCollector().add_process_name_event(name)
+
+
+@beartype
+def GlobNameThisThread(name: str):
+    getGlobalTraceCollector().add_thread_name_event(name)
+
+
+@beartype
+def GlobIndexThisProcess(index: int):
+    getGlobalTraceCollector().add_process_index_event(index)
+
+
+@beartype
+def GlobIndexThisThread(index: int):
+    getGlobalTraceCollector().add_thread_index_event(index)
+
+
+@beartype
 def GlobExportJson(file: Path):
     return getGlobalTraceCollector().export_to_json(file)

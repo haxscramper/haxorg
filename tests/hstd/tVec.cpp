@@ -1,5 +1,6 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <gtest/gtest.h>
+#include <hstd/stdlib/Ranges.hpp>
 
 TEST(BackwardsIndexTest, BackwardsIndexFormat) {
     std::string f1 = std::format("{}", 1_B);
@@ -112,4 +113,57 @@ TEST(VectorTest, ResizeAt) {
     EXPECT_EQ(vec.at(1), 0);
     EXPECT_EQ(vec.at(2), 0);
     EXPECT_EQ(vec.at(4), 89);
+}
+
+TEST(VectorTest, FindElement) {
+    {
+        Vec<int> vec{0, 1, 2, 3, 9};
+        EXPECT_EQ(vec.indexOf(0), 0);
+        EXPECT_EQ(vec.indexOf(90), -1);
+        EXPECT_EQ(vec.indexOf(9), 4);
+        EXPECT_TRUE(vec.contains(0));
+        EXPECT_TRUE(vec.contains(1));
+        EXPECT_FALSE(vec.contains(99));
+    }
+
+    {
+        Vec<std::string> vec{"zero", "one", "two", "three", "nine"};
+        EXPECT_EQ(vec.indexOf("zero"), 0);
+        EXPECT_EQ(vec.indexOf("one"), 1);
+        EXPECT_EQ(vec.indexOf("missing"), -1);
+        EXPECT_TRUE(vec.contains("zero"));
+        EXPECT_TRUE(vec.contains("nine"));
+        EXPECT_FALSE(vec.contains("missing"));
+    }
+}
+
+TEST(VectorTest, VectorSplicing) {
+    using V = Vec<int>;
+
+    {
+        auto v = V::Splice(1, 2, 3);
+        EXPECT_EQ(v.size(), 3);
+        EXPECT_EQ(v.at(0), 1);
+        EXPECT_EQ(v.at(2), 3);
+    }
+
+    {
+        auto v = V::Splice(1, V{2, 3, 4});
+        EXPECT_EQ(v.size(), 4);
+        EXPECT_EQ(v.at(0), 1);
+        EXPECT_EQ(v.at(1), 2);
+        EXPECT_EQ(v.at(3), 4);
+    }
+
+    {
+        auto tmp = V{1, 2, 3};
+        auto v   = V::Splice(1, tmp | rv::transform([](int arg) -> int {
+                                  return arg + 1;
+                              }));
+
+        EXPECT_EQ(v.size(), 4);
+        EXPECT_EQ(v.at(0), 1);
+        EXPECT_EQ(v.at(1), 2);
+        EXPECT_EQ(v.at(3), 4);
+    }
 }

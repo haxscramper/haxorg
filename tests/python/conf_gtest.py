@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 import json
 from py_repository.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
 import plumbum
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
 COOKIE_SUFFIX = ".profdata-cookie"
 
@@ -39,6 +40,8 @@ class GTestParams():
     class_name: str
     test_name: str
     binary_path: Path
+    gtest_run_name: str
+    gsuite_name: Optional[str] = None
     parameter_name: Optional[str] = None
     parameter_desc: Optional[dict] = None
     coverage_out_dir: Optional[Path] = None
@@ -59,23 +62,13 @@ class GTestParams():
             return None
 
     def group_name(self):
-        if self.parameter_name:
-            return f"{self.class_name}/{self.test_name}"
-
-        else:
-            return self.class_name
+        return self.class_name
 
     def item_name(self):
         return self.parameter_name or self.test_name
 
     def gtest_params(self):
-        if self.parameter_name:
-            result = [
-                f"--gtest_filter={self.class_name}.{self.test_name}/{self.parameter_name}"
-            ]
-        else:
-            result = [f"--gtest_filter={self.class_name}.{self.test_name}"]
-
+        result = [f"--gtest_filter={self.gtest_run_name}"]
         result.append("--gtest_brief=1")
         result.append("--hax_vscode_run")
 
@@ -88,42 +81,68 @@ class GTestParams():
             return f"{self.class_name}.{self.test_name}"
 
 
+class GTestClassMethod(BaseModel, extra="forbid"):
+    name: str
+    file: str
+    line: int
+    value_param: Optional[str] = None
+
+
+class GTestClassModel(BaseModel, extra="forbid"):
+    name: str
+    tests: int
+    testsuite: List[GTestClassMethod]
+
+
+class GTestsuiteModel(BaseModel, extra="forbid"):
+    tests: int
+    name: str
+    testsuites: List[GTestClassModel]
+
+
 @beartype
 def parse_google_tests(binary_path: Path) -> list[GTestParams]:
     assert binary_path.exists(), binary_path
     cmd = plumbum.local[binary_path]
-    code, stdout, stderr = cmd.run(["--gtest_list_tests"])
+    report_file = Path(f"/tmp/report_{binary_path.name}.json")
+    cmd.run([
+        "--gtest_list_tests",
+        f"--gtest_output=json:{report_file}",
+    ])
+
+    model = GTestsuiteModel.model_validate(json.loads(report_file.read_text()))
 
     print("----")
     # print(result.stdout)
     print(binary_path)
     tests = []
-    current_suite = None
 
-    for line in stdout.splitlines():
-        if line.endswith('.'):
-            current_suite = line[:-1]
-        else:
-            test_name = line.strip().split(' ')[0]
-            if "/" in test_name:
-                main_name, parameter_name = test_name.split("/")
+    for suite in model.testsuites:
+        for method in suite.testsuite:
+            if method.value_param:
+                gsuite_name, gclass_name = suite.name.split("/")
+                gtest_name, gparam_name = method.name.split("/")
                 tests.append(
                     GTestParams(
-                        class_name=current_suite,
-                        test_name=main_name,
+                        class_name=gclass_name,
+                        test_name=gtest_name,
                         binary_path=binary_path,
-                        parameter_name=parameter_name,
-                        parameter_desc=json.loads(
-                            line.strip().split('# GetParam() = ')[1]),
+                        parameter_desc=json.loads(method.value_param),
+                        parameter_name=gparam_name,
+                        gtest_run_name=f"{gsuite_name}/{gclass_name}.{gtest_name}/{gparam_name}",
+                        gsuite_name=gsuite_name,
                     ))
 
             else:
                 tests.append(
                     GTestParams(
-                        class_name=current_suite,
-                        test_name=test_name,
+                        gtest_run_name=f"{suite.name}.{method.name}",
+                        class_name=suite.name,
+                        test_name=method.name,
                         binary_path=binary_path,
                     ))
+
+    pprint_to_file(to_debug_json(tests), f"/tmp/gtest_parse_{binary_path.name}.py")
 
     return tests
 
@@ -177,7 +196,7 @@ class GTestItem(pytest.Function):
         super().__init__(*args, **kwargs)
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
-        self.add_marker(pytest.mark.test_gtest_function(gtest.item_name, []))
+        self.add_marker(pytest.mark.test_gtest_function(gtest.item_name(), []))
 
     def runtest(self):
         test = Path(self.gtest.binary_path)
@@ -191,7 +210,7 @@ class GTestItem(pytest.Function):
                 cmd.run(self.gtest.gtest_params())
 
             except ProcessExecutionError as e:
-                raise GTestRunError(e, self) 
+                raise GTestRunError(e, self)
 
         if self.coverage_out_dir:
             uniq_name = self.gtest.fullname()
@@ -201,6 +220,7 @@ class GTestItem(pytest.Function):
                 test_class=self.gtest.class_name,
                 test_name=self.gtest.test_name,
                 test_profile=str(profraw),
+                test_params=self.gtest.parameter_desc,
             )
 
             if profraw.exists():
@@ -211,12 +231,6 @@ class GTestItem(pytest.Function):
 
         else:
             run()
-
-    # @property
-    # def location(self) -> Tuple[str, Optional[int], str]:
-    #     # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
-    #     return (self.gtest.get_source_file(), self.gtest.get_source_line(),
-    #             self.gtest.fullname())
 
     def _getobj(self):
         # Return a dummy function

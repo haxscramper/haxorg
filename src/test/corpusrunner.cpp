@@ -343,9 +343,7 @@ json CorpusRunner::toTextLyt(
 
     return std::visit(
         overloaded{
-            [&](B::Empty const&) -> json {
-                return {{"kind", "empty"}};
-            },
+            [&](B::Empty const&) -> json { return {{"kind", "empty"}}; },
             [&](B::Line const& l) -> json {
                 return {
                     {"kind", "line"},
@@ -562,20 +560,22 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                     "{} {} {}({})",
                     id,
                     node.kind,
-                    node.isTerminal() ? escape_literal(
-                        hshow(
-                            group->tokens->tokens.content
-                                .get_copy(node.getToken().getIndex())
-                                .value_or(OrgToken{})
-                                ->text,
-                            HDisplayOpts().excl(HDisplayFlag::UseQuotes))
-                            .toString(false))
-                                      : std::string(""),
-                    node.isTerminal() ? fmt(
-                        "id={} kind={}",
-                        node.getToken().getIndex(),
-                        group->tokens->at(node.getToken()).kind)
-                                      : fmt("ext={}", node.getExtent()));
+                    node.isTerminal()
+                        ? escape_literal(
+                              hshow(
+                                  group->tokens->tokens.content
+                                      .get_copy(node.getToken().getIndex())
+                                      .value_or(OrgToken{})
+                                      ->text,
+                                  HDisplayOpts().excl(
+                                      HDisplayFlag::UseQuotes))
+                                  .toString(false))
+                        : std::string(""),
+                    node.isTerminal()
+                        ? fmt("id={} kind={}",
+                              node.getToken().getIndex(),
+                              group->tokens->at(node.getToken()).kind)
+                        : fmt("ext={}", node.getExtent()));
             },
             48,
             16,
@@ -1191,4 +1191,44 @@ TestResult gtest_run_spec(CR<TestParams> params) {
     }
 
     return test;
+}
+
+std::string TestParams::testName() const {
+    std::string final;
+    for (char const& ch :
+         fmt("{} at {}",
+             spec.name.has_value() ? spec.name.value()
+                                   : std::string("<spec>"),
+             file.stem())) {
+        if (std::isalnum(ch) || ch == '_') {
+            final.push_back(ch);
+        } else {
+            final.push_back('_');
+        }
+    }
+
+    return final;
+}
+
+std::string TestParams::fullName() const {
+    return "$# at $#:$#:$#"
+         % to_string_vec(
+               spec.name.has_value() ? spec.name.value()
+                                     : std::string("<spec>"),
+               file.stem(),
+               spec.specLocation.line,
+               spec.specLocation.column);
+}
+
+void TestParams::PrintToImpl(std::ostream* os) const {
+    json loc;
+    loc["path"] = file.native();
+    loc["line"] = spec.specLocation.line;
+    loc["col"]  = spec.specLocation.column;
+    json dump;
+    dump["kwargs"]["loc"] = loc;
+    dump["name"] = spec.name ? json{std::string{*spec.name}} : json{};
+    if (spec.name) { dump["args"] = json::array({spec.name.value()}); }
+    dump["kind"] = "OrgCorpus";
+    *os << dump.dump();
 }

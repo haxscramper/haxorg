@@ -24,16 +24,29 @@ import logging
 import ast
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import warnings
+from py_scriptutils.script_logging import log
+import functools
+import copy
+
+CAT = "conftest"
 
 trace_collector: TraceCollector = None
 
 
-
 def pytest_configure(config):
-    warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic._internal._config")
-    warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
-    warnings.filterwarnings("ignore", category=pytest.PytestRemovedIn9Warning, module="tests.python.conftest")
-    warnings.filterwarnings("ignore", category=DeprecationWarning, module="dominate.dom_tag")
+    warnings.filterwarnings("ignore",
+                            category=DeprecationWarning,
+                            module="pydantic._internal._config")
+    warnings.filterwarnings("ignore",
+                            category=UserWarning,
+                            module="pydantic._internal._config")
+    warnings.filterwarnings("ignore",
+                            category=pytest.PytestRemovedIn9Warning,
+                            module="tests.python.conftest")
+    warnings.filterwarnings("ignore",
+                            category=DeprecationWarning,
+                            module="dominate.dom_tag")
+
 
 def get_trace_collector():
     global trace_collector
@@ -146,7 +159,7 @@ def pytest_collect_file(parent: Module, path: str):
 
         if test.name.endswith("_cxx_hstd.py"):
             debug(result, "/tmp/google_tests_cxx_hstd")
-            
+
         return result
 
     elif test.name == "test_integrate_qt.py":
@@ -193,6 +206,9 @@ def get_function_names(expression: str) -> List[str]:
 def pytest_collection_modifyitems(config: pytest.Config,
                                   items: List[pytest.Item]) -> None:
     filter = config.getoption("--markfilter")
+    debug = config.getoption("--markfilter-debug")
+    if debug:
+        dbg_file = open("/tmp/pytest_debug.txt", "w")
 
     if filter:
         selected_items: List[pytest.Item] = []
@@ -200,40 +216,71 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
         aeval = Interpreter()
 
+        def dbg(msg: str):
+            if debug:
+                print(msg, file=dbg_file)
+
+        dbg("Running custom filter")
+
+        test_limit_counter = 0
+
         for item in items:
 
             def has_params(mark: pytest.Mark, *args: list, **kwargs: dict) -> bool:
+                dbg(f"    > has_params {mark.name}({mark.args}, {mark.kwargs})")
                 if len(mark.args) < len(args):
+                    dbg(f"    > len(mark.args = {len(mark.args)}) < len(args = {len(args)})")
                     return False
 
                 if len(mark.kwargs) < len(mark.kwargs):
+                    dbg(f"    > len(mark.kwargs = {len(mark.kwargs)}) < len(kwargs = {len(kwargs)})")
                     return False
 
                 for idx, positional in enumerate(args):
                     if positional != mark.args[idx]:
+                        dbg(f"    > (args[{idx}] = {positional}) != (mark.args[{idx}] = {mark.args[idx]})")
                         return False
 
                 for key, value in kwargs.items():
                     if key not in mark.kwargs or mark.kwargs[key] != value:
+                        dbg(f"    > (kwargs[{key}] = {value}) != (mark.kwargs[{key}] = {mark.kwargs[key]})")
                         return False
 
                 return True
 
-            def has_marker(name: str, *args: list, **kwargs: dict) -> bool:
+            def has_marker_impl(name: str, *args: list, **kwargs: dict) -> bool:
+                dbg(f"    > has_marker_name({name}) in {[mark.name for mark in item.iter_markers()]}")
                 return any(
                     has_params(mark, *args, **kwargs)
                     for mark in item.iter_markers()
                     if mark.name == name)
 
+            class HasMarker():
+                def __init__(self, name: str) -> None:
+                    self.name = copy.deepcopy(name)
+
+                def __call__(self, *args, **kwargs):
+                    dbg(f"  >> {self.name}({args}, {kwargs}) has marker ...")
+                    result = has_marker_impl(self.name, *args, **kwargs)
+                    dbg(f"  >> {self.name} -> {result}")
+                    return result
+
+            def test_first_n(max_count):
+                nonlocal test_limit_counter
+                result = test_limit_counter < max_count
+                test_limit_counter += 1
+                return result
+
             names = get_function_names(filter)
             for name in names:
+                aeval.symtable[name] = HasMarker(name)
 
-                def impl(*args, **kwargs):
-                    return has_marker(name, *args, **kwargs)
+            aeval.symtable["test_first_n"] = test_first_n
 
-                aeval.symtable[name] = impl
-
+            dbg(f"running eval on names {names}")
             keep: bool = aeval(filter)
+            dbg(f"{filter} -> {keep}")
+            dbg("")
 
             if keep:
                 selected_items.append(item)
@@ -243,3 +290,6 @@ def pytest_collection_modifyitems(config: pytest.Config,
         if deselected_items:
             config.hook.pytest_deselected(items=deselected_items)
         items[:] = selected_items
+
+    if debug:
+        dbg_file.close()

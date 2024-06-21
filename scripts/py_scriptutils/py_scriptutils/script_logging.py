@@ -127,6 +127,23 @@ def log(category="rich") -> logging.Logger:
     return log
 
 
+class ExceptionContextNote:
+    """
+    If context body raises an exception, add a note to it.
+    """
+    def __init__(self, note: str):
+        self.note = note
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_value is not None:
+            if not hasattr(exc_value, '__notes__'):
+                exc_value.__notes__ = []
+            exc_value.__notes__.append(self.note)
+        return False
+
 def custom_traceback_handler(exc_type, exc_value, exc_traceback):
     """
     Custom traceback handler that filters out frames with '<@beartype' and formats
