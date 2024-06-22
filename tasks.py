@@ -1285,6 +1285,7 @@ def cxx_target_coverage(
     coverage_mapping_dump: Optional[str] = None,
     profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
     profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
+    allow_test_fail: bool = False,
 ):
     """
     Run full cycle of the code coverage generation. 
@@ -1302,12 +1303,14 @@ def cxx_target_coverage(
                     f"--arg={pytest_filter}",
                     "--arg=--markfilter-debug=True",
                 ],
+                allow_fail=allow_test_fail,
             )
 
         else:
             run_self(
                 ctx,
                 ["py-tests"],
+                allow_fail=allow_test_fail,
             )
 
     if run_merge:

@@ -128,6 +128,8 @@ TEST(StringFormatting, BasicInterpolationFragmentParsing) {
         EXPECT_EQ(f[0].kind, AddfFragmentKind::Expr);
         EXPECT_EQ(f[0].text, "A");
     }
+
+    {}
 }
 
 #define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)                \
@@ -151,6 +153,9 @@ TEST(StringFormatting, InterpolateValuesByIndex) {
     EXPECT_EQ("${1A}" % to_string_vec("1A", "VALUE"), "VALUE");
     EXPECT_EQ("$$" % to_string_vec("1"), "$");
     EXPECT_EQ("$1" % to_string_vec("1", "9"), "1");
+    EXPECT_EQ("${1}" % to_string_vec("1", "9"), "1");
+    EXPECT_EQ("${-1}" % to_string_vec("1", "9"), "9");
+    EXPECT_THROW("$-1" % to_string_vec("1", "9"), FormatStringError);
     EXPECT_EQ("$2" % to_string_vec("1", "9"), "9");
     EXPECT_EQ("$#" % to_string_vec("1", "9"), "1");
     EXPECT_THROW("$9" % to_string_vec("1"), FormatStringError);
@@ -159,6 +164,9 @@ TEST(StringFormatting, InterpolateValuesByIndex) {
 TEST(StringFormatting, InterpolateValuesByNames) {
     EXPECT_EQ("$name" % to_string_vec("name", "VALUE"), "VALUE");
     EXPECT_EQ("${name}" % to_string_vec("name", "VALUE"), "VALUE");
+    EXPECT_THROW(
+        "${missing}" % to_string_vec("provided", "VALUE"),
+        FormatStringError);
 }
 
 
