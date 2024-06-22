@@ -2,6 +2,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/Formatter.hpp>
+#include <hstd/system/aux_utils.hpp>
 
 
 enum class TestEnum_EnumToString
@@ -171,5 +172,49 @@ TEST(Reflection, FieldIterator) {
         EXPECT_EQ(visits.at(1), "b");
         EXPECT_EQ(visits.at(2), "c");
         EXPECT_EQ(visits.at(3), "base_field");
+    }
+}
+
+struct Type_SubVariants {
+    struct First {
+        int f;
+    };
+    struct Second {
+        int f;
+    };
+    struct Third {
+        int f;
+    };
+    SUB_VARIANTS(Kind, Data, data, getKind, First, Second, Third);
+    Data data;
+};
+
+TEST(Reflection, SubVariants) {
+    using T = Type_SubVariants;
+    {
+        T it{};
+        EXPECT_EQ(it.getKind(), T::Kind::First);
+        EXPECT_EQ(it.getFirst().f, T::First{}.f);
+        EXPECT_THROW(it.getSecond(), std::bad_variant_access);
+    }
+
+    {
+        T it{T::Second{}};
+        EXPECT_EQ(it.getKind(), T::Kind::Second);
+        EXPECT_EQ(it.getSecond().f, T::Second{}.f);
+        EXPECT_THROW(it.getFirst(), std::bad_variant_access);
+    }
+
+    {
+        T it{T::Second{.f = 12}};
+        EXPECT_EQ(it.getKind(), T::Kind::Second);
+        EXPECT_EQ(it.getSecond().f, 12);
+        EXPECT_THROW(it.getFirst(), std::bad_variant_access);
+
+        it.data = T::First{.f = 24};
+
+        EXPECT_EQ(it.getKind(), T::Kind::First);
+        EXPECT_EQ(it.getFirst().f, 24);
+        EXPECT_THROW(it.getSecond(), std::bad_variant_access);
     }
 }
