@@ -90,6 +90,7 @@ TEST(Algorithms, SortedCopy) {
     ASSERT_EQ(vec, (Vec<int>{3, 1, 2}));
 }
 
+
 TEST(Algorithms, SortedBy) {
     struct Person {
         std::string name;
@@ -114,4 +115,39 @@ TEST(Algorithms, MapVector) {
     Vec<int> vec    = {1, 2, 3};
     auto     result = map(vec, [](int x) { return x * 2; });
     ASSERT_EQ(result, (Vec<int>{2, 4, 6}));
+}
+
+TEST(Algorithms, RangeAuxAlgorithms) {
+    {
+        Vec<Opt<int>> v1{1, std::nullopt, 2, std::nullopt};
+        Vec<Opt<int>> v2 = v1 | drop_if_nullopt() | rs::to<Vec>();
+        EXPECT_EQ(v2.size(), 2);
+        EXPECT_EQ(v2.at(0), std::make_optional(1));
+        EXPECT_EQ(v2.at(1), std::make_optional(2));
+        Vec<int> v3 = v2 | unpack_optional() | rs::to<Vec>();
+    }
+
+    {
+        auto tmp1 = own_view(Vec<int>{1})
+                  | rv::transform([](int const& value) { return value; })
+                  | rs::to<Vec>();
+
+        EXPECT_EQ(tmp1, Vec<int>{1});
+    }
+
+    {
+        int  call_count = 0;
+        auto gen_func   = [&]() {
+            ++call_count;
+            return Vec<int>{1, 2, 3};
+        };
+
+        auto tmp1 = own_view(gen_func())
+                  | rv::transform(
+                        [](int const& value) { return value * 2; })
+                  | rs::to<Vec>();
+        EXPECT_EQ(call_count, 1);
+        EXPECT_EQ(tmp1.size(), 3);
+        EXPECT_EQ(tmp1, (Vec<int>{2, 4, 6}));
+    }
 }
