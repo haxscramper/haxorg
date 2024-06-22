@@ -225,8 +225,17 @@ def pytest_collection_modifyitems(config: pytest.Config,
         test_limit_counter = 0
 
         for item in items:
+            dbg(f"name:{item.name}")
+            for mark in item.iter_markers():
+                dbg(f"  > {mark.name}({mark.args}, {mark.kwargs})")
+
+        for item in items:
 
             def has_params(mark: pytest.Mark, *args: list, **kwargs: dict) -> bool:
+                """
+                Check if a specified marker has all parameters listed in the `args` and `kwargs`. 
+                It might have more parameters, these will be ignored. 
+                """
                 dbg(f"    > has_params {mark.name}({mark.args}, {mark.kwargs})")
                 if len(mark.args) < len(args):
                     dbg(f"    > len(mark.args = {len(mark.args)}) < len(args = {len(args)})")
@@ -256,6 +265,10 @@ def pytest_collection_modifyitems(config: pytest.Config,
                     if mark.name == name)
 
             class HasMarker():
+                """
+                Implementation function wrapper to hold the copy of `name` context
+                from the for loop. 
+                """
                 def __init__(self, name: str) -> None:
                     self.name = copy.deepcopy(name)
 
@@ -266,6 +279,11 @@ def pytest_collection_modifyitems(config: pytest.Config,
                     return result
 
             def test_first_n(max_count):
+                """
+                Limit the number of filtered tests to N max. All calls after N calls to this function
+                will return `False`, so it is best put as `cond() and cond() and test_first_n()` as
+                it would clamp down on the number of otherwise accepted elements. 
+                """
                 nonlocal test_limit_counter
                 result = test_limit_counter < max_count
                 test_limit_counter += 1

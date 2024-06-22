@@ -33,6 +33,7 @@ items:
       [17:21] Moving
 
   - name: "Long newline after the command block end"
+    tags: ["org_src"]
     debug:
       doFlatReparseCompare: false
       doFormatReparse: false

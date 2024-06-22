@@ -46,6 +46,19 @@ class GTestParams():
     parameter_desc: Optional[dict] = None
     coverage_out_dir: Optional[Path] = None
 
+    def get_test_kwargs(self) -> dict:
+        """
+        Return optional 'kwargs' field from the JSON dump of the parameter description. GTest test dump
+        can have an optional field `value_params` with string dump of the parametrized value, which in case
+        of the parametric google tests for the org corpus is used for JSON representation of the parameter.
+        See [[code:corpusrunner.cpp:TestParams::PrintToImpl]]
+        """
+        if self.parameter_desc and "kwargs" in self.parameter_desc:
+            return self.parameter_desc["kwargs"]
+
+        else:
+            return dict()
+
     def get_source_file(self) -> str:
         if self.parameter_desc and "loc" in self.parameter_desc:
             test_absolute = Path(self.parameter_desc["loc"]["path"])
@@ -197,6 +210,9 @@ class GTestItem(pytest.Function):
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
         self.add_marker(pytest.mark.test_gtest_function(gtest.item_name(), []))
+        if "tags" in gtest.get_test_kwargs():
+            for tag in gtest.get_test_kwargs()["tags"]:
+                self.add_marker(pytest.mark.test_gtest_tag(tag))
 
     def runtest(self):
         test = Path(self.gtest.binary_path)
