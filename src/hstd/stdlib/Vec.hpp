@@ -35,8 +35,6 @@ class Vec : public std::vector<T> {
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
     Vec(Vec<T> const& init) : std::vector<T>(init) {}
 
-    using Base::at;
-    using Base::operator[];
     using Base::begin;
     using Base::end;
     using Base::insert;
@@ -113,6 +111,27 @@ class Vec : public std::vector<T> {
     /// \brief Check if vector has enough elements to access index \arg idx
     bool has(int idx) const { return 0 <= idx && idx < size(); }
     bool has(BackwardsIndex idx) const { return has(size() - idx.value); }
+
+    T const& at(int idx) const {
+        checkIdx(idx);
+        return Base::at(idx);
+    }
+
+    T& at(int idx) {
+        checkIdx(idx);
+        return Base::at(idx);
+    }
+
+    T const& operator[](int idx) const {
+        checkIdx(idx);
+        return Base::operator[](idx);
+    }
+
+    T& operator[](int idx) {
+        checkIdx(idx);
+        return Base::operator[](idx);
+    }
+
 
     /// \brief Access span of elements in mutable vector
     template <typename A, typename B>
@@ -221,6 +240,13 @@ class Vec : public std::vector<T> {
         if (empty()) {
             throw std::out_of_range(
                 "Operation does not work with an empty vector");
+        }
+    }
+
+    void checkIdx(int idx) const {
+        if (idx < 0) {
+            throw std::out_of_range(
+                "Operation does not support negative indices");
         }
     }
 

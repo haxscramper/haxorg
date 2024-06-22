@@ -98,7 +98,7 @@ Vec<SeqEdit> myersDiff(
 
     Vec<Pair<int, Vec<SeqEdit>>> front(lhsSize + rhsSize + 3);
 
-    front[1].first = 0;
+    front.at(1).first = 0;
 
     for (int fullIdx = 0; fullIdx <= lhsSize + rhsSize; fullIdx++) {
         for (int backIdx = -fullIdx; backIdx <= fullIdx; backIdx += 2) {
@@ -108,15 +108,16 @@ Vec<SeqEdit> myersDiff(
                        && front[backIdx - 1].first
                               < front[backIdx + 1].first));
 
-            int          lhsIdx, rhsIdx;
-            Vec<SeqEdit> history;
+            int          lhsIdx = 0;
+            int          rhsIdx = 0;
+            Vec<SeqEdit> history{};
 
             if (goDown) {
-                lhsIdx  = front[backIdx + 1].first;
-                history = front[backIdx + 1].second;
+                lhsIdx  = front.at(backIdx + 1).first;
+                history = front.at(backIdx + 1).second;
             } else {
-                lhsIdx  = front[backIdx - 1].first + 1;
-                history = front[backIdx - 1].second;
+                lhsIdx  = front.at(backIdx - 1).first + 1;
+                history = front.at(backIdx - 1).second;
             }
 
             rhsIdx = lhsIdx - backIdx;
@@ -138,8 +139,8 @@ Vec<SeqEdit> myersDiff(
             if (lhsSize <= lhsIdx && rhsSize <= rhsIdx) {
                 return history;
             } else {
-                front[backIdx].first  = lhsIdx;
-                front[backIdx].second = history;
+                front.at(backIdx).first  = lhsIdx;
+                front.at(backIdx).second = history;
             }
         }
     }

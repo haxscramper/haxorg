@@ -31,6 +31,16 @@ enum class SeqEditKind : u8
     Transpose ///< Transpose two elements
 };
 
+struct SeqEdit {
+    SeqEditKind kind;      /// Sequence edit operation kind
+    int         sourcePos; /// Position in the original sequence
+    int         targetPos; /// Position in the target sequence
+
+    SeqEdit(SeqEditKind kind, int sourcePos = -1, int targetPos = -1)
+        : kind(kind), sourcePos(sourcePos), targetPos(targetPos) {}
+};
+
+
 template <>
 struct value_domain<SeqEditKind>
     : value_domain_ungapped<
@@ -59,16 +69,6 @@ inline ColStyle toStyle(SeqEditKind kind) {
         case SeqEditKind::Transpose: return TermColorFg8Bit::Yellow;
     }
 }
-
-struct SeqEdit {
-    SeqEditKind kind;      /// Sequence edit operation kind
-    int         sourcePos; /// Position in the original sequence
-    int         targetPos; /// Position in the target sequence
-
-    SeqEdit(SeqEditKind kind, int sourcePos = -1, int targetPos = -1)
-        : kind(kind), sourcePos(sourcePos), targetPos(targetPos) {}
-};
-
 
 /// Diff formatting configuration
 struct DiffFormatConf {
