@@ -677,7 +677,7 @@ def cmake_configure_haxorg(ctx: Context):
                 *get_cmake_defines(ctx),
             ]
 
-            run_command(ctx, "cmake", tuple(pass_flags))
+            run_command(ctx, "cmake", pass_flags)
 
 
 @org_task()
