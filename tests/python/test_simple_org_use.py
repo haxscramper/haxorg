@@ -121,6 +121,7 @@ class CorpusEntry(BaseModel, extra="forbid"):
     sem: Optional[Dict] = None
     conf: Optional[Dict] = None
     subnodes: Optional[List[Any]] = None
+    tags: List[str] = Field(default_factory=list)
 
 
 class CorpusFile(BaseModel, extra="forbid"):

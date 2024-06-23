@@ -13,8 +13,9 @@ from _pytest.nodes import Item
 from _pytest.python import Module
 from _pytest.runner import CallInfo
 from beartype import beartype
-from conf_gtest import GTestFile, summarize_cookies
+from conf_gtest import GTestFile
 from conf_qtest import GUI_SCREEN_DISPLAY, QTestFile
+from conf_test_common import summarize_cookies
 from plumbum import local
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 from py_scriptutils.tracer import TraceCollector
@@ -138,6 +139,8 @@ def pytest_collect_file(parent: Module, path: str):
     def debug(it, file):
         pprint_to_file(to_debug_json(it), file + ".json")
 
+    coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
+
     if test.name.startswith("test_integrate_cxx"):
         if test.name.endswith("_cxx_org.py"):
             binary_path = "build/haxorg/tests_org"
@@ -149,7 +152,6 @@ def pytest_collect_file(parent: Module, path: str):
 
         assert binary_path.exists(), f"{binary_path} {test.name}"
 
-        coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
         result = GTestFile.from_parent(
             parent,
             path=test,
@@ -164,7 +166,11 @@ def pytest_collect_file(parent: Module, path: str):
 
     elif test.name == "test_integrate_qt.py":
         if not is_ci():
-            result = QTestFile.from_parent(parent, path=test)
+            result = QTestFile.from_parent(
+                parent,
+                path=test,
+                coverage_out_dir=coverage and Path(coverage),
+            )
             debug(result, "/tmp/qt_tests")
             return result
 
@@ -238,27 +244,32 @@ def pytest_collection_modifyitems(config: pytest.Config,
                 """
                 dbg(f"    > has_params {mark.name}({mark.args}, {mark.kwargs})")
                 if len(mark.args) < len(args):
-                    dbg(f"    > len(mark.args = {len(mark.args)}) < len(args = {len(args)})")
+                    dbg(f"    > len(mark.args = {len(mark.args)}) < len(args = {len(args)})"
+                       )
                     return False
 
                 if len(mark.kwargs) < len(mark.kwargs):
-                    dbg(f"    > len(mark.kwargs = {len(mark.kwargs)}) < len(kwargs = {len(kwargs)})")
+                    dbg(f"    > len(mark.kwargs = {len(mark.kwargs)}) < len(kwargs = {len(kwargs)})"
+                       )
                     return False
 
                 for idx, positional in enumerate(args):
                     if positional != mark.args[idx]:
-                        dbg(f"    > (args[{idx}] = {positional}) != (mark.args[{idx}] = {mark.args[idx]})")
+                        dbg(f"    > (args[{idx}] = {positional}) != (mark.args[{idx}] = {mark.args[idx]})"
+                           )
                         return False
 
                 for key, value in kwargs.items():
                     if key not in mark.kwargs or mark.kwargs[key] != value:
-                        dbg(f"    > (kwargs[{key}] = {value}) != (mark.kwargs[{key}] = {mark.kwargs[key]})")
+                        dbg(f"    > (kwargs[{key}] = {value}) != (mark.kwargs[{key}] = {mark.kwargs[key]})"
+                           )
                         return False
 
                 return True
 
             def has_marker_impl(name: str, *args: list, **kwargs: dict) -> bool:
-                dbg(f"    > has_marker_name({name}) in {[mark.name for mark in item.iter_markers()]}")
+                dbg(f"    > has_marker_name({name}) in {[mark.name for mark in item.iter_markers()]}"
+                   )
                 return any(
                     has_params(mark, *args, **kwargs)
                     for mark in item.iter_markers()
@@ -269,6 +280,7 @@ def pytest_collection_modifyitems(config: pytest.Config,
                 Implementation function wrapper to hold the copy of `name` context
                 from the for loop. 
                 """
+
                 def __init__(self, name: str) -> None:
                     self.name = copy.deepcopy(name)
 
