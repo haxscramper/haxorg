@@ -822,6 +822,18 @@ class BigIdent(Leaf):
     def __getattr__(self, name: str) -> object: ...
     text: str
 
+class RadioTarget(Leaf):
+    def __init__(self, text: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: str
+
+class TextTarget(Leaf):
+    def __init__(self, text: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    text: str
+
 class Markup(Org):
     def __init__(self) -> None: ...
 
@@ -1345,24 +1357,26 @@ class OrgSemKind(Enum):
     Punctuation = 42
     Placeholder = 43
     BigIdent = 44
-    Bold = 45
-    Underline = 46
-    Monospace = 47
-    MarkQuote = 48
-    Verbatim = 49
-    Italic = 50
-    Strike = 51
-    Par = 52
-    List = 53
-    ListItem = 54
-    Link = 55
-    DocumentOptions = 56
-    Document = 57
-    ParseError = 58
-    FileTarget = 59
-    TextSeparator = 60
-    Include = 61
-    DocumentGroup = 62
+    RadioTarget = 45
+    TextTarget = 46
+    Bold = 47
+    Underline = 48
+    Monospace = 49
+    MarkQuote = 50
+    Verbatim = 51
+    Italic = 52
+    Strike = 53
+    Par = 54
+    List = 55
+    ListItem = 56
+    Link = 57
+    DocumentOptions = 58
+    Document = 59
+    ParseError = 60
+    FileTarget = 61
+    TextSeparator = 62
+    Include = 63
+    DocumentGroup = 64
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

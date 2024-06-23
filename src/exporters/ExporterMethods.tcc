@@ -103,6 +103,8 @@ void visitRawText(R& res, In<sem::RawText> object);
 void visitPunctuation(R& res, In<sem::Punctuation> object);
 void visitPlaceholder(R& res, In<sem::Placeholder> object);
 void visitBigIdent(R& res, In<sem::BigIdent> object);
+void visitRadioTarget(R& res, In<sem::RadioTarget> object);
+void visitTextTarget(R& res, In<sem::TextTarget> object);
 void visitMarkup(R& res, In<sem::Markup> object);
 void visitBold(R& res, In<sem::Bold> object);
 void visitUnderline(R& res, In<sem::Underline> object);

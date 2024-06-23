@@ -252,24 +252,26 @@ enum OrgSemKind {
   OrgSemKind_Punctuation_f                                                          = 41;
   OrgSemKind_Placeholder_f                                                          = 42;
   OrgSemKind_BigIdent_f                                                             = 43;
-  OrgSemKind_Bold_f                                                                 = 44;
-  OrgSemKind_Underline_f                                                            = 45;
-  OrgSemKind_Monospace_f                                                            = 46;
-  OrgSemKind_MarkQuote_f                                                            = 47;
-  OrgSemKind_Verbatim_f                                                             = 48;
-  OrgSemKind_Italic_f                                                               = 49;
-  OrgSemKind_Strike_f                                                               = 50;
-  OrgSemKind_Par_f                                                                  = 51;
-  OrgSemKind_List_f                                                                 = 52;
-  OrgSemKind_ListItem_f                                                             = 53;
-  OrgSemKind_Link_f                                                                 = 54;
-  OrgSemKind_DocumentOptions_f                                                      = 55;
-  OrgSemKind_Document_f                                                             = 56;
-  OrgSemKind_ParseError_f                                                           = 57;
-  OrgSemKind_FileTarget_f                                                           = 58;
-  OrgSemKind_TextSeparator_f                                                        = 59;
-  OrgSemKind_Include_f                                                              = 60;
-  OrgSemKind_DocumentGroup_f                                                        = 61;
+  OrgSemKind_RadioTarget_f                                                          = 44;
+  OrgSemKind_TextTarget_f                                                           = 45;
+  OrgSemKind_Bold_f                                                                 = 46;
+  OrgSemKind_Underline_f                                                            = 47;
+  OrgSemKind_Monospace_f                                                            = 48;
+  OrgSemKind_MarkQuote_f                                                            = 49;
+  OrgSemKind_Verbatim_f                                                             = 50;
+  OrgSemKind_Italic_f                                                               = 51;
+  OrgSemKind_Strike_f                                                               = 52;
+  OrgSemKind_Par_f                                                                  = 53;
+  OrgSemKind_List_f                                                                 = 54;
+  OrgSemKind_ListItem_f                                                             = 55;
+  OrgSemKind_Link_f                                                                 = 56;
+  OrgSemKind_DocumentOptions_f                                                      = 57;
+  OrgSemKind_Document_f                                                             = 58;
+  OrgSemKind_ParseError_f                                                           = 59;
+  OrgSemKind_FileTarget_f                                                           = 60;
+  OrgSemKind_TextSeparator_f                                                        = 61;
+  OrgSemKind_Include_f                                                              = 62;
+  OrgSemKind_DocumentGroup_f                                                        = 63;
 }
 
 message Stmt {
@@ -1027,6 +1029,20 @@ message BigIdent {
   string                                           debug                            = 1000;
 }
 
+message RadioTarget {
+  string                                           text                             = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           debug                            = 1000;
+}
+
+message TextTarget {
+  string                                           text                             = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  string                                           debug                            = 1000;
+}
+
 message Markup {
   repeated AnyNode                                 subnodes                         = 1;
   string                                           debug                            = 1000;
@@ -1336,24 +1352,26 @@ message AnyNode {
     Punctuation                                      punctuation                      = 42;
     Placeholder                                      placeholder                      = 43;
     BigIdent                                         bigident                         = 44;
-    Bold                                             bold                             = 45;
-    Underline                                        underline                        = 46;
-    Monospace                                        monospace                        = 47;
-    MarkQuote                                        markquote                        = 48;
-    Verbatim                                         verbatim                         = 49;
-    Italic                                           italic                           = 50;
-    Strike                                           strike                           = 51;
-    Par                                              par                              = 52;
-    List                                             list                             = 53;
-    ListItem                                         listitem                         = 54;
-    Link                                             link                             = 55;
-    DocumentOptions                                  documentoptions                  = 56;
-    Document                                         document                         = 57;
-    ParseError                                       parseerror                       = 58;
-    FileTarget                                       filetarget                       = 59;
-    TextSeparator                                    textseparator                    = 60;
-    Include                                          include                          = 61;
-    DocumentGroup                                    documentgroup                    = 62;
+    RadioTarget                                      radiotarget                      = 45;
+    TextTarget                                       texttarget                       = 46;
+    Bold                                             bold                             = 47;
+    Underline                                        underline                        = 48;
+    Monospace                                        monospace                        = 49;
+    MarkQuote                                        markquote                        = 50;
+    Verbatim                                         verbatim                         = 51;
+    Italic                                           italic                           = 52;
+    Strike                                           strike                           = 53;
+    Par                                              par                              = 54;
+    List                                             list                             = 55;
+    ListItem                                         listitem                         = 56;
+    Link                                             link                             = 57;
+    DocumentOptions                                  documentoptions                  = 58;
+    Document                                         document                         = 59;
+    ParseError                                       parseerror                       = 60;
+    FileTarget                                       filetarget                       = 61;
+    TextSeparator                                    textseparator                    = 62;
+    Include                                          include                          = 63;
+    DocumentGroup                                    documentgroup                    = 64;
   }
 }
 /* clang-format on */

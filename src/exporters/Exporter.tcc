@@ -606,6 +606,20 @@ void Exporter<V, R>::visitBigIdent(R& res, In<sem::BigIdent> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitRadioTarget(R& res, In<sem::RadioTarget> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, text);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitTextTarget(R& res, In<sem::TextTarget> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, text);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitMarkup(R& res, In<sem::Markup> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, subnodes);

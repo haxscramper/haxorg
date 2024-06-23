@@ -462,6 +462,8 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Punctuation") { return OrgSemKind::Punctuation; } else
   if (value == "Placeholder") { return OrgSemKind::Placeholder; } else
   if (value == "BigIdent") { return OrgSemKind::BigIdent; } else
+  if (value == "RadioTarget") { return OrgSemKind::RadioTarget; } else
+  if (value == "TextTarget") { return OrgSemKind::TextTarget; } else
   if (value == "Bold") { return OrgSemKind::Bold; } else
   if (value == "Underline") { return OrgSemKind::Underline; } else
   if (value == "Monospace") { return OrgSemKind::Monospace; } else
@@ -528,6 +530,8 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Punctuation: return "Punctuation";
     case OrgSemKind::Placeholder: return "Placeholder";
     case OrgSemKind::BigIdent: return "BigIdent";
+    case OrgSemKind::RadioTarget: return "RadioTarget";
+    case OrgSemKind::TextTarget: return "TextTarget";
     case OrgSemKind::Bold: return "Bold";
     case OrgSemKind::Underline: return "Underline";
     case OrgSemKind::Monospace: return "Monospace";

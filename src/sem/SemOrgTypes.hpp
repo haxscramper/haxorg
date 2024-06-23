@@ -1459,6 +1459,32 @@ struct BigIdent : public sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
 };
 
+/// \brief ~<<<target>>>~
+struct RadioTarget : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~RadioTarget() = default;
+  BOOST_DESCRIBE_CLASS(RadioTarget,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
+};
+
+/// \brief ~<<target>>~
+struct TextTarget : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~TextTarget() = default;
+  BOOST_DESCRIBE_CLASS(TextTarget,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
+};
+
 struct Markup : public sem::Org {
   using Org::Org;
   virtual ~Markup() = default;

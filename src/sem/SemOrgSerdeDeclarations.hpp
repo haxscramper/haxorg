@@ -46,6 +46,8 @@
         __MAP(kPunctuation, punctuation, Punctuation)  \
         __MAP(kPlaceholder, placeholder, Placeholder)  \
         __MAP(kBigident, bigident, BigIdent)  \
+        __MAP(kRadiotarget, radiotarget, RadioTarget)  \
+        __MAP(kTexttarget, texttarget, TextTarget)  \
         __MAP(kBold, bold, Bold)  \
         __MAP(kUnderline, underline, Underline)  \
         __MAP(kMonospace, monospace, Monospace)  \
@@ -678,6 +680,20 @@ template <>
 struct proto_serde<::orgproto::BigIdent, sem::BigIdent> {
   static void write(::orgproto::BigIdent* out, sem::BigIdent const& in);
   static void read(::orgproto::BigIdent const& out, proto_write_accessor<sem::BigIdent> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::RadioTarget, sem::RadioTarget> {
+  static void write(::orgproto::RadioTarget* out, sem::RadioTarget const& in);
+  static void read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::TextTarget, sem::TextTarget> {
+  static void write(::orgproto::TextTarget* out, sem::TextTarget const& in);
+  static void read(::orgproto::TextTarget const& out, proto_write_accessor<sem::TextTarget> in);
 };
 
 
