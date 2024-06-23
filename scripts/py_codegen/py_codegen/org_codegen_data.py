@@ -1292,6 +1292,8 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org("Punctuation", GenTuDoc(""), bases=[t_org("Leaf")]),
         d_org("Placeholder", GenTuDoc(""), bases=[t_org("Leaf")]),
         d_org("BigIdent", GenTuDoc(""), bases=[t_org("Leaf")]),
+        d_org("RadioTarget", GenTuDoc("~<<<target>>>~"), bases=[t_org("Leaf")]),
+        d_org("TextTarget", GenTuDoc("~<<target>>~"), bases=[t_org("Leaf")]),
         d_org(
             "Markup",
             GenTuDoc(""),

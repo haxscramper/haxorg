@@ -157,14 +157,17 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
         return {}
 
 
+@beartype
 def run_command(
     ctx: Context,
     cmd: Union[str, Path],
-    args: List[str],
+    args: List[Union[str, Path]],
     capture: bool = False,
     allow_fail: bool = False,
     env: dict[str, str] = {},
     cwd: Optional[str] = None,
+    stderr_debug: Optional[Path] = None,
+    stdout_debug: Optional[Path] = None,
 ) -> tuple[int, str, str]:
     if isinstance(cmd, Path):
         assert cmd.exists(), cmd
@@ -200,24 +203,28 @@ def run_command(
     if cwd is not None:
         run = run.with_cwd(cwd)
 
-    try:
-        if capture or get_config(ctx).quiet:
-            retcode, stdout, stderr = run.run(
-                tuple(args),
-                retcode=None if allow_fail else 0,
-            )
-            return (retcode, stdout, stderr)
+    log(CAT).info(" asdfsd")
+    if get_config(ctx).quiet:
+        retcode, stdout, stderr = run.run(list(args), retcode=None)
 
-        else:
-            run[*args] & FG
-            return (0, "", "")
+    else:
+        retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
 
-    except ProcessExecutionError as e:
-        if allow_fail:
-            return (1, "", "")
+    if stdout_debug and stdout:
+        stdout_debug.write_text(stdout)
 
-        else:
-            raise Failure(f"Failed to execute the command {cmd}") from None
+    if stderr_debug and stderr:
+        stderr_debug.write_text(stderr)
+
+    if allow_fail or retcode == 0:
+        return (retcode, stdout, stderr)
+
+    else:
+        raise Failure("Failed to execute the command {}{}{}".format(
+            cmd,
+            f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
+            f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
+        )) from None
 
 
 @beartype
@@ -630,6 +637,7 @@ def python_protobuf_files(ctx: Context):
                     "--python_betterproto_out=" + str(proto_lib),
                     proto_config,
                 ],
+                env=dict(LD_PRELOAD=""),
             )
         else:
             log(CAT).info("Skipping protoc run " + explain)
@@ -710,6 +718,8 @@ def cmake_haxorg(ctx: Context):
                 "cmake",
                 ["--build", build_dir],
                 env={'NINJA_FORCE_COLOR': '1'},
+                stderr_debug=Path("/tmp/cmake_haxorg_stderr.txt"),
+                stdout_debug=Path("/tmp/cmake_haxorg_stdout.txt"),
             )
 
         elif not op.should_run():
@@ -802,7 +812,7 @@ def update_py_haxorg_reflection(
             Path("/tmp/debug_reflection_stderr.txt").write_text(stderr)
 
             if exitcode != 0:
-                log(CAT).error("Reflection tool failed: %s")
+                log(CAT).error("Reflection tool failed")
                 raise
 
             log(CAT).info("Updated reflection")

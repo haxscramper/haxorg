@@ -60,13 +60,17 @@ option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adapt
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
+
+
 if (${ORG_USE_SANITIZER})
     # Enable the sanitizer options. They are set globally primarity for the
     # in-source dependencies like google fuzztest, ABSL and so on -- if there
     # is a way to set them in a more focused manner they should be moved to the
     # respective consumers of these flags.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined,address")
+    set(VAR_ORG_SANITIZER_LINK_FLAGS "-fsanitize=undefined,address -L${ASAN_RT_PATH} -Wl,-rpath,${ASAN_RT_PATH}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${VAR_ORG_SANITIZER_LINK_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${VAR_ORG_SANITIZER_LINK_FLAGS}")
 endif()
 
 
