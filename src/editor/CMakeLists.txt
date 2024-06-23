@@ -3,6 +3,10 @@ include(ExternalProject)
 set(COLA_INSTALL_DIR "${CMAKE_BINARY_DIR}/libcola/install")
 set(COLA_CXX_FLAGS "-I${COLA_INSTALL_DIR} ${CMAKE_CXX_FLAGS}")
 
+if(${ORG_USE_SANITIZER})
+    string(REPLACE "-fsanitize=undefined,address" "" COLA_CXX_FLAGS "${COLA_CXX_FLAGS}")
+endif()
+
 if(ORG_FORCE_ADAPTAGRAMS_BUILD)
     set(_IMPL_FORCE_ADAPTAGRAMS_BUILD 1)
 else()
@@ -63,10 +67,7 @@ find_package(Qt6 6.2 REQUIRED COMPONENTS Core Test Widgets)
 find_package(PkgConfig)
 pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 
-add_subdirectory("${DEPS_DIR}/lexbor" "${CMAKE_BINARY_DIR}/lexbor_build")
-
 # qt_policy(SET QTP0003 NEW)
-
 
 qt_standard_project_setup()
 enable_testing(true)

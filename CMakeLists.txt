@@ -29,7 +29,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 # Directory with clang-related runtime libraries such as asan that are shipped 
 # with LLVM
-set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/17/lib/x86_64-unknown-linux-gnu")
+set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/18/lib/x86_64-unknown-linux-gnu")
 # Declare variable for the asan library path, it is used in target setups, this
 # is not some specific variable that is implicitly consumed, just declared it here
 set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
