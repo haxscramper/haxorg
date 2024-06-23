@@ -156,6 +156,9 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
     else:
         return {}
 
+@beartype
+def get_cmd_debug_file(kind: str):
+    return get_build_root().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
 
 @beartype
 def run_command(
@@ -169,6 +172,9 @@ def run_command(
     stderr_debug: Optional[Path] = None,
     stdout_debug: Optional[Path] = None,
 ) -> tuple[int, str, str]:
+    stderr_debug = stderr_debug or get_cmd_debug_file("stderr")
+    stdout_debug = stdout_debug or get_cmd_debug_file("stdout")
+
     if isinstance(cmd, Path):
         assert cmd.exists(), cmd
         cmd = str(cmd.resolve())
@@ -263,7 +269,7 @@ def ui_notify(message: str, is_ok: bool = True):
 
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
-
+TASK_STACK: List[str] = []
 
 @beartype
 def org_task(
@@ -317,7 +323,9 @@ def org_task(
             run_ok = False
             try:
                 with GlobCompleteEvent(f"task {name}", "build") as last:
+                    TASK_STACK.append(name)
                     result = func(*args, **kwargs)
+                    TASK_STACK.pop()
 
                 run_ok = True
 
@@ -718,8 +726,6 @@ def cmake_haxorg(ctx: Context):
                 "cmake",
                 ["--build", build_dir],
                 env={'NINJA_FORCE_COLOR': '1'},
-                stderr_debug=Path("/tmp/cmake_haxorg_stderr.txt"),
-                stdout_debug=Path("/tmp/cmake_haxorg_stdout.txt"),
             )
 
         elif not op.should_run():
