@@ -47,7 +47,7 @@ TEST(VectorTest, SliceAndIndexingOperators) {
     EXPECT_EQ(v[3_B], 7);
     EXPECT_EQ(v[v.size() - 3], 7);
 
-    EXPECT_THROW(v.at(10), std::out_of_range);
+    EXPECT_THROW((void)v.at(10), std::out_of_range);
     EXPECT_THROW(v.at(11_B), std::out_of_range);
 }
 
@@ -95,10 +95,33 @@ TEST(VectorTest, SpanViews) {
     }
 }
 
-TEST(VectorTest, BackIndex) {
-    EXPECT_THROW(Vec<int>{}.back(), std::out_of_range);
-    EXPECT_EQ(Vec<int>{1}.back(), 1);
-    EXPECT_EQ((Vec<int>{2, 1}.back()), 1);
+TEST(VectorTest, Indexing) {
+    using V = Vec<int>;
+    {
+        EXPECT_THROW(Vec<int>{}.back(), std::out_of_range);
+        EXPECT_EQ(Vec<int>{1}.back(), 1);
+        EXPECT_EQ((Vec<int>{2, 1}.back()), 1);
+
+        EXPECT_THROW(Vec<int>{}.pop_back(), std::out_of_range);
+        EXPECT_THROW(Vec<int>{}.pop_back_v(), std::out_of_range);
+    }
+
+    auto v = V{1, 2};
+    EXPECT_TRUE(v.has(0));
+    EXPECT_FALSE(v.has(90));
+    EXPECT_TRUE(v.has(1_B));
+    EXPECT_FALSE(v.has(19_B));
+
+    EXPECT_TRUE(v.get(0).has_value());
+    EXPECT_FALSE(v.get(90).has_value());
+    EXPECT_TRUE(v.get(1_B).has_value());
+    EXPECT_FALSE(v.get(19_B).has_value());
+
+    EXPECT_EQ(v.get(0).value(), 1);
+    EXPECT_EQ(v.get(1_B).value(), 2);
+
+    EXPECT_EQ(v.index(1_B), 1);
+    EXPECT_EQ(v.index(2_B), 0);
 }
 
 TEST(VectorTest, ResizeAt) {
@@ -113,6 +136,18 @@ TEST(VectorTest, ResizeAt) {
     EXPECT_EQ(vec.at(1), 0);
     EXPECT_EQ(vec.at(2), 0);
     EXPECT_EQ(vec.at(4), 89);
+
+
+    vec.resize_at(8, 19) = 189;
+    EXPECT_EQ(vec.size(), 9);
+    EXPECT_EQ(vec.at(0), 12);
+    EXPECT_EQ(vec.at(1), 0);
+    EXPECT_EQ(vec.at(2), 0);
+    EXPECT_EQ(vec.at(4), 89);
+    EXPECT_EQ(vec.at(5), 19);
+    EXPECT_EQ(vec.at(6), 19);
+    EXPECT_EQ(vec.at(7), 19);
+    EXPECT_EQ(vec.at(8), 189);
 }
 
 TEST(VectorTest, FindElement) {
@@ -166,4 +201,20 @@ TEST(VectorTest, VectorSplicing) {
         EXPECT_EQ(v.at(1), 2);
         EXPECT_EQ(v.at(3), 4);
     }
+}
+
+
+TEST(VectorTest, VectorCompare) {
+    using V = Vec<int>;
+    EXPECT_EQ((V{1, 2}), (V{1, 2}));
+    EXPECT_NE((V{1, 2}), (V{1, 4}));
+    EXPECT_NE((V{1, 2}), (V{1}));
+    EXPECT_EQ((Vec<char>{'1', '2'}), std::string{"12"});
+}
+
+TEST(VectorTest, VectorFormatting) {
+    EXPECT_EQ(fmt1(Vec<int>{1, 2}), std::string{"[1, 2]"});
+    EXPECT_EQ(fmt1(Vec<int>{}), std::string{"[]"});
+    EXPECT_EQ(fmt1(std::vector<int>{1, 2}), std::string{"[1, 2]"});
+    EXPECT_EQ(fmt1(std::vector<int>{}), std::string{"[]"});
 }

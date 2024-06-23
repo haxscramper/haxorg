@@ -128,25 +128,43 @@ struct ParseSpec {
     }
 
   public:
-    DECL_FIELDS(
+    ExpectedMode expectedMode = ExpectedMode::Nested;
+    /// Name of the method to call for lexing or parsing. Pointer to
+    /// implementation is resolved externally, spec file just contains
+    /// the required name.
+    Opt<std::string> file           = std::nullopt;
+    Dbg              debug          = Dbg{};
+    Conf             conf           = Conf{};
+    Opt<yaml>        subnodes       = std::nullopt;
+    Opt<yaml>        base_tokens    = std::nullopt;
+    Opt<yaml>        tokens         = std::nullopt;
+    Opt<json>        sem            = std::nullopt;
+    Str              source         = "";
+    Opt<std::string> name           = std::nullopt;
+    YAML::Mark       specLocation   = YAML::Mark();
+    YAML::Mark       sourceLocation = YAML::Mark();
+    std::string      specFile       = "";
+    /// \brief Spec tags for filtering the groups of tests in pytest. In
+    /// the `.yaml` file they are specified as `["tag"]`, when rendered for
+    /// pytest they can be checked for as `test_gtest_tag("tag")`
+    Vec<std::string> tags = {};
+
+    DESC_FIELDS(
         ParseSpec,
-        (),
-        ((ExpectedMode), expectedMode, ExpectedMode::Nested),
-        /// Name of the method to call for lexing or parsing. Pointer to
-        /// implementation is resolved externally, spec file just contains
-        /// the required name.
-        ((Opt<std::string>), file, std::nullopt),
-        ((Dbg), debug, Dbg{}),
-        ((Conf), conf, Conf{}),
-        ((Opt<yaml>), subnodes, std::nullopt),
-        ((Opt<yaml>), base_tokens, std::nullopt),
-        ((Opt<yaml>), tokens, std::nullopt),
-        ((Opt<json>), sem, std::nullopt),
-        ((Str), source, ""),
-        ((Opt<std::string>), name, std::nullopt),
-        ((YAML::Mark), specLocation, YAML::Mark()),
-        ((YAML::Mark), sourceLocation, YAML::Mark()),
-        ((std::string), specFile, ""), );
+        (expectedMode,
+         file,
+         debug,
+         conf,
+         subnodes,
+         base_tokens,
+         tokens,
+         sem,
+         source,
+         name,
+         specLocation,
+         sourceLocation,
+         tags,
+         specFile));
 };
 
 struct ParseSpecGroup {

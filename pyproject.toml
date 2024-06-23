@@ -69,6 +69,9 @@ markers = [
     "test_coverage_annotation_file_cxx: C++ test coverage annotation extraction for a file",
     "test_gtest_class(name, params): C++ Google test class runner",
     "test_gtest_function(name, params): C++ Google test individual test instance",
+    "test_gtest_tag(tag): Additional metadata tagging for the google test annotations",
+    "test_gtest: C++ google test wrapped as pytest-runnable",
+    "test_qtest: Qtest wrapped as pytest-runnable",
 ]
 
 [tool.ruff]

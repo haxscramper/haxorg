@@ -33,6 +33,7 @@ items:
       [17:21] Moving
 
   - name: "Long newline after the command block end"
+    tags: ["org_src"]
     debug:
       doFlatReparseCompare: false
       doFormatReparse: false
@@ -45,6 +46,7 @@ items:
       #+end_src
 
   - name: "Subtree state transitions"
+    tags: ["org_subtree", "org_properties", "org_clocking", "org_timestamp"]
     debug:
       doFlatReparseCompare: false
     source: |
@@ -64,14 +66,17 @@ items:
         :END:
 
   - name: "Non-DSL link"
+    tags: ["org_link"]
     source: |
       [[person:Random User]]
 
   - name: "Semicolon Punctuation"
+    tags: ["org_paragraph"]
     source: |
       ;
 
   - name: "Irregular source block in the list"
+    tags: ["org_list", "org_paragraph", "org_src", "org_timestamp"]
     debug:
       doFlatReparseCompare: false
     source: |
@@ -86,6 +91,7 @@ items:
         Another graph of dependencies
 
   - name: "Quote block with broken indentation"
+    tags: ["org_quote", "org_list"]
     source: |
       - Item 1
       - Item 2
@@ -95,18 +101,22 @@ items:
         #+end_quote
 
   - name: "Unicode 1"
+    tags: ["org_paragraph"]
     source: |
       №: 1000
 
   - name: "Unicode 2"
+    tags: ["org_paragraph"]
     source: |
       ილმწ საფო
 
   - name: "Multiple bold folds"
+    tags: ["org_paragraph", "org_markup"]
     source: |
       *discussions*, information  *material*,
 
   - name: "Internal assertion on the verbatim parsing"
+    tags: ["org_list", "org_paragraph", "org_subtree", "org_quote", "org_markup"]
     debug:
       doFlatReparseCompare: false
     source: |
@@ -121,6 +131,7 @@ items:
       **** COMPLETED =A=
 
   - name: "Incomplete italic-looking quote content"
+    tags: ["org_quote", "org_subtree", "org_markup"]
     debug:
       doFlatReparseCompare: false
     source: |
@@ -132,16 +143,19 @@ items:
       **** COMPLETED =A=
 
   - name: "Link content"
+    tags: ["org_link"]
     source: |
       [[adf][TSDFS-1232]]
 
   - name: "Broken standalone content"
+    tags: ["org_paragraph", "defcon2"]
     debug:
       doFlatReparseCompare: false
     source: |
       scp -r $E:AWS_ACCESS':'$E:AWS_HOME'/build/binary.snap' ~/tmp/wip_snaps
 
   - name: "Numbered list"
+    tags: ["org_list"]
     debug:
       doFlatReparseCompare: false
     source: |
@@ -150,15 +164,18 @@ items:
         3. Item 3
 
   - name: "Monospace text"
+    tags: ["org_paragraph"]
     source: |
       with ~libc++~. This
 
   - name: "Link with description"
+    tags: ["org_list"]
     source: |
       [[person:Test Test]]
       [[person:Test Test][*description*]]
 
   - name: "Standalone caption"
+    tags: ["org_paragraph", "defcon3"]
     debug:
       doFlatReparseCompare: false
       doFormatReparse: false
@@ -167,6 +184,7 @@ items:
         #+caption:
 
   - name: "Source block with broken indentation"
+    tags: ["org_paragraph", "defcon2"]
     source: |
       - Some Content
         #+caption:
@@ -175,6 +193,7 @@ items:
           -P 10 --bar --files ^
         #+end_src
   - name: "DSL link with description"
+    tags: ["org_list", "org_link", "org_paragraph"]
     source: |
       - [[id:16cb0d5f-1e66-47ef-bc29-9f41ecb81f73][Descriuption]]  is not
         reproducible
@@ -191,6 +210,7 @@ items:
 
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
+    tags: ["org_list", "org_src", "org_block", "defcon1"]
     debug:
       doFlatReparseCompare: false
     # Double nested quote does not work though 
@@ -214,6 +234,7 @@ items:
   - name: "Logbook without properties"
     debug:
       doFlatReparseCompare: false
+    tags: ["org_subtree", "org_logbook"]
     source: |
       ****** XX
             :LOGBOOK:
@@ -224,6 +245,7 @@ items:
     debug:
       doFlatReparseCompare: false
       doFormatReparse: false
+    tags: ["org_table"]
     source: |
 
       | language | profiling            | tools              | etc. |

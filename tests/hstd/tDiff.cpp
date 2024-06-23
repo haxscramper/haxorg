@@ -157,6 +157,35 @@ TEST_F(DiffTest, AlllDifferentShiftedDiff) {
     EXPECT_EQ(s.oldShifted.size(), 8) << fmt1(s);
 }
 
+TEST_F(DiffTest, EmptySequences) {
+    Vec<int> lhsSeq;
+    Vec<int> rhsSeq;
+    auto     result = myersDiff<int>(
+        lhsSeq, rhsSeq, [](const int&, const int&) { return true; });
+    ASSERT_TRUE(result.empty());
+}
+
+TEST_F(DiffTest, IdenticalSequences) {
+    Vec<int> lhsSeq = {1, 2, 3};
+    Vec<int> rhsSeq = {1, 2, 3};
+    auto     result = myersDiff<int>(
+        lhsSeq, rhsSeq, [](const int& a, const int& b) { return a == b; });
+    ASSERT_EQ(result.size(), 3);
+    EXPECT_EQ(result[0].kind, SeqEditKind::Keep);
+    EXPECT_EQ(result[1].kind, SeqEditKind::Keep);
+    EXPECT_EQ(result[2].kind, SeqEditKind::Keep);
+}
+
+TEST_F(DiffTest, Insertion) {
+    Vec<int> lhsSeq = {1, 2, 3};
+    Vec<int> rhsSeq = {1, 2, 3, 4};
+    auto     result = myersDiff<int>(
+        lhsSeq, rhsSeq, [](const int& a, const int& b) { return a == b; });
+    ASSERT_EQ(result.size(), 4);
+    EXPECT_EQ(result[3].kind, SeqEditKind::Insert);
+    EXPECT_EQ(result[3].targetPos, 3);
+}
+
 class FuzzyMatchConfigurableTest : public ::testing::Test {
   protected:
     void SetUp() override {

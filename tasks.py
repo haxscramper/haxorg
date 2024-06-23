@@ -348,6 +348,8 @@ def get_cmake_defines(ctx: Context) -> List[str]:
 
     result.append(cmake_opt("SQLITECPP_RUN_CPPLINT", False))
 
+    result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
+
     return result
 
 
@@ -666,12 +668,14 @@ def cmake_configure_haxorg(ctx: Context):
 def cmake_haxorg_clean(ctx: Context):
     """Clean build directory for the current configuration"""
     build_dir = get_component_build_dir(ctx, "haxorg")
-    run_command(ctx, "cmake", [
-        "--build",
-        build_dir,
-        "--target",
-        "clean",
-    ])
+    if build_dir.joinpath("CMakeCache.txt").exists():
+        run_command(ctx, "cmake", [
+            "--build",
+            build_dir,
+            "--target",
+            "clean",
+        ])
+
     adaptagrams_dir = build_dir.joinpath("libcola")
     import shutil
     if adaptagrams_dir.exists():
@@ -1281,6 +1285,7 @@ def cxx_target_coverage(
     coverage_mapping_dump: Optional[str] = None,
     profdata_file_whitelist: str = PROFDATA_FILE_WHITELIST_DEFAULT,
     profdata_file_blacklist: str = PROFDATA_FILE_BLACKLIST_DEFAULT,
+    allow_test_fail: bool = False,
 ):
     """
     Run full cycle of the code coverage generation. 
@@ -1298,12 +1303,14 @@ def cxx_target_coverage(
                     f"--arg={pytest_filter}",
                     "--arg=--markfilter-debug=True",
                 ],
+                allow_fail=allow_test_fail,
             )
 
         else:
             run_self(
                 ctx,
                 ["py-tests"],
+                allow_fail=allow_test_fail,
             )
 
     if run_merge:

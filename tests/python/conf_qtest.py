@@ -8,6 +8,7 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pathlib import Path
 import subprocess
 import os
+import conf_test_common as tconf
 
 GUI_SCREEN_DISPLAY = ":14"
 
@@ -88,9 +89,11 @@ def parse_qt_tests(binary_path: str,
 
 class QTestClass(pytest.Class):
 
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, coverage_out_dir: Path):
         super().__init__(name or "QtGui", parent)
         self.tests: list[QTestParams] = []
+        self.add_marker(pytest.mark.test_qtest_class(name, []))
+        self.coverage_out_dir = coverage_out_dir
 
     def add_test(self, test: QTestParams):
         self.tests.append(test)
@@ -102,6 +105,7 @@ class QTestClass(pytest.Class):
                 qtest=test,
                 name=test.item_name(),
                 callobj=lambda: None,
+                coverage_out_dir=self.coverage_out_dir,
             )
 
             test_item.add_marker("x11")
@@ -139,14 +143,24 @@ class QTestRunError(Exception):
 
 class QTestItem(pytest.Function):
 
-    def __init__(self, qtest: QTestParams, *args, **kwargs):
+    def __init__(self, qtest: QTestParams, coverage_out_dir: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.qtest = qtest
+        self.coverage_out_dir = coverage_out_dir
+        self.add_marker(pytest.mark.test_qtest_function(qtest.test_name))
+        self.add_marker(pytest.mark.test_qtest())
 
     def runtest(self):
         try:
-            local[self.qtest.binary_path].with_env(DISPLAY=GUI_SCREEN_DISPLAY)(
-                *self.qtest.qtest_params())
+            tconf.runtest(
+                self.qtest.binary_path,
+                test_name=self.qtest.meth_name,
+                class_name=self.qtest.class_name(),
+                run_env=dict(DISPLAY=GUI_SCREEN_DISPLAY),
+                args=self.qtest.qtest_params(),
+                uniq_name=self.qtest.fullname(),
+                coverage_out_dir=self.coverage_out_dir,
+            )
 
         except ProcessExecutionError as e:
             raise QTestRunError(e, self) from None
@@ -163,7 +177,7 @@ class QTestItem(pytest.Function):
 
 class QTestFile(pytest.Module):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, coverage_out_dir: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         qt_test_config = json.loads(get_haxorg_repo_root_path().joinpath(
             "src/editor/editor_test/test_config.json").read_text())
@@ -180,7 +194,11 @@ class QTestFile(pytest.Module):
                 class_tests.setdefault(test.class_name(), []).append(test)
 
         for class_name, tests in class_tests.items():
-            test_class: QTestClass = QTestClass.from_parent(self, name=class_name)
+            test_class: QTestClass = QTestClass.from_parent(
+                self,
+                name=class_name,
+                coverage_out_dir=coverage_out_dir,
+            )
             for test in tests:
                 test_class.add_test(test)
 

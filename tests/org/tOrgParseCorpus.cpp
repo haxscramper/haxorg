@@ -27,15 +27,11 @@ Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
 
     auto addSpecs = [&](fs::path const& path) {
-        try {
-            YAML::Node     group = YAML::LoadFile(path.native());
-            ParseSpecGroup parsed{
-                group, path.native(), __CURRENT_FILE_DIR__ / "corpus"};
-            for (const auto& spec : parsed.specs) {
-                results.push_back({spec, path});
-            }
-        } catch (YAML::Exception& ex) {
-            LOG(ERROR) << ex.what() << "at" << path.native();
+        YAML::Node     group = YAML::LoadFile(path.native());
+        ParseSpecGroup parsed{
+            group, path.native(), __CURRENT_FILE_DIR__ / "corpus"};
+        for (const auto& spec : parsed.specs) {
+            results.push_back({spec, path});
         }
     };
 

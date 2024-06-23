@@ -9,29 +9,9 @@ from pathlib import Path
 import subprocess
 from pydantic import BaseModel, Field
 import json
-from py_repository.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
 import plumbum
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
-
-COOKIE_SUFFIX = ".profdata-cookie"
-
-
-@beartype
-def get_profile_base(coverage: Path, test_name: str) -> Path:
-    return coverage.joinpath(test_name.replace("/", "_").replace(".", "_"))
-
-
-@beartype
-def get_profraw_path(coverage: Path, test_name: str) -> Path:
-    return get_profile_base(coverage, test_name).with_suffix(".profraw")
-
-
-cookie_list: List[ProfdataCookie] = []
-
-
-def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    result = ProfdataFullProfile(runs=cookie_list)
-    return result
+import conf_test_common as tconf
 
 
 @beartype
@@ -43,20 +23,33 @@ class GTestParams():
     gtest_run_name: str
     gsuite_name: Optional[str] = None
     parameter_name: Optional[str] = None
-    parameter_desc: Optional[dict] = None
+    test_params: Optional[dict] = None
     coverage_out_dir: Optional[Path] = None
 
+    def get_test_kwargs(self) -> dict:
+        """
+        Return optional 'kwargs' field from the JSON dump of the parameter description. GTest test dump
+        can have an optional field `value_params` with string dump of the parametrized value, which in case
+        of the parametric google tests for the org corpus is used for JSON representation of the parameter.
+        See [[code:corpusrunner.cpp:TestParams::PrintToImpl]]
+        """
+        if self.test_params and "kwargs" in self.test_params:
+            return self.test_params["kwargs"]
+
+        else:
+            return dict()
+
     def get_source_file(self) -> str:
-        if self.parameter_desc and "loc" in self.parameter_desc:
-            test_absolute = Path(self.parameter_desc["loc"]["path"])
+        if self.test_params and "loc" in self.test_params:
+            test_absolute = Path(self.test_params["loc"]["path"])
             return str(test_absolute.relative_to(get_haxorg_repo_root_path()))
 
         else:
             return ""
 
     def get_source_line(self) -> Optional[int]:
-        if self.parameter_desc and "loc" in self.parameter_desc:
-            return self.parameter_desc["loc"]["line"]
+        if self.test_params and "loc" in self.test_params:
+            return self.test_params["loc"]["line"]
 
         else:
             return None
@@ -127,9 +120,10 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
                         class_name=gclass_name,
                         test_name=gtest_name,
                         binary_path=binary_path,
-                        parameter_desc=json.loads(method.value_param),
+                        test_params=json.loads(method.value_param),
                         parameter_name=gparam_name,
-                        gtest_run_name=f"{gsuite_name}/{gclass_name}.{gtest_name}/{gparam_name}",
+                        gtest_run_name=
+                        f"{gsuite_name}/{gclass_name}.{gtest_name}/{gparam_name}",
                         gsuite_name=gsuite_name,
                     ))
 
@@ -196,41 +190,28 @@ class GTestItem(pytest.Function):
         super().__init__(*args, **kwargs)
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
+        self.add_marker(pytest.mark.test_gtest())
         self.add_marker(pytest.mark.test_gtest_function(gtest.item_name(), []))
+        if "tags" in gtest.get_test_kwargs():
+            for tag in gtest.get_test_kwargs()["tags"]:
+                self.add_marker(pytest.mark.test_gtest_tag(tag))
 
     def runtest(self):
         test = Path(self.gtest.binary_path)
 
-        def run(env: Optional[dict] = None):
-            try:
-                cmd = local[test]
-                if env:
-                    cmd = cmd.with_env(**env)
-
-                cmd.run(self.gtest.gtest_params())
-
-            except ProcessExecutionError as e:
-                raise GTestRunError(e, self)
-
-        if self.coverage_out_dir:
-            uniq_name = self.gtest.fullname()
-            profraw = get_profraw_path(self.coverage_out_dir, test_name=uniq_name)
-            cookie = ProfdataCookie(
-                test_binary=str(test),
-                test_class=self.gtest.class_name,
+        try:
+            tconf.runtest(
+                test,
+                self.gtest.gtest_params(),
+                coverage_out_dir=self.coverage_out_dir,
+                uniq_name=self.gtest.fullname(),
+                class_name=self.gtest.class_name,
                 test_name=self.gtest.test_name,
-                test_profile=str(profraw),
-                test_params=self.gtest.parameter_desc,
+                parameter_desc=self.gtest.test_params,
             )
 
-            if profraw.exists():
-                profraw.unlink()
-
-            run({"LLVM_PROFILE_FILE": str(profraw)})
-            cookie_list.append(cookie)
-
-        else:
-            run()
+        except plumbum.ProcessExecutionError as e:
+            raise GTestRunError(e, self)
 
     def _getobj(self):
         # Return a dummy function
