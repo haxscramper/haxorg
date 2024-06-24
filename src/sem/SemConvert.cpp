@@ -868,6 +868,13 @@ SemId<RawText> OrgConverter::convertRawText(__args) {
     return SemLeaf<RawText>(a);
 }
 
+SemId<RadioTarget> OrgConverter::convertRadioTarget(__args) {
+    auto result = Sem<RadioTarget>(a);
+    for (auto const& sub : a) { result->text += get_text(sub); }
+    return result;
+}
+
+
 SemId<Punctuation> OrgConverter::convertPunctuation(__args) {
     auto __trace = trace(a);
     return SemLeaf<Punctuation>(a);
@@ -1181,6 +1188,7 @@ SemId<Org> OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::RadioTarget: return convertRadioTarget(a);
         case org::InlineStmtList: return convertStmtList(a);
         case org::SrcInlineCode:
         case org::SrcCode: return convertCode(a);

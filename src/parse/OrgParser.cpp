@@ -445,9 +445,19 @@ void OrgParser::textFold(OrgLexer& lex) {
                 }
 
                 case otk::TripleAngleBegin: {
-                    if (lex.at(otk::RawText, +1)) {
+                    if (lex.ahead(
+                            OrgTokSet{
+                                otk::Whitespace,
+                                otk::Word,
+                                otk::TripleAngleBegin},
+                            otk::TripleAngleEnd)) {
                         skip(lex, otk::TripleAngleBegin);
-                        token(org::RadioTarget, pop(lex, otk::RawText));
+                        start(org::RadioTarget);
+                        while (lex.can_search(otk::TripleAngleEnd)) {
+                            token(
+                                org::RadioTarget, pop(lex, otk::RawText));
+                        }
+                        end();
                         skip(lex, otk::TripleAngleEnd);
                     } else {
                         token(org::Punctuation, pop(lex, lex.kind()));
