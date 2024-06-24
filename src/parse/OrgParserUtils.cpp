@@ -159,7 +159,7 @@ void OrgParser::expect(
                     .report);
         }
 
-        fatalError(lex, msg, line, function);
+        throw fatalError(lex, msg, line, function);
     }
 }
 

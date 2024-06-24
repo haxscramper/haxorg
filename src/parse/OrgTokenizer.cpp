@@ -585,6 +585,9 @@ struct LineToken {
         otk::CmdExportEnd,
         otk::CmdVerseEnd,
         otk::CmdCommentEnd,
+        otk::CmdTableEnd,
+        otk::CmdRowEnd,
+        otk::CmdCellEnd,
     };
 
     IntSet<OrgTokenKind> CmdBlockOpen{
@@ -595,6 +598,9 @@ struct LineToken {
         otk::CmdQuoteBegin,
         otk::CmdVerseBegin,
         otk::CmdCommentBegin,
+        otk::CmdTableBegin,
+        otk::CmdRowBegin,
+        otk::CmdCellBegin,
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{
@@ -608,6 +614,7 @@ struct LineToken {
         otk::CmdTblfm,         otk::CmdLatexClass,
         otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
         otk::CmdLatexHeader,   otk::CmdStartup,
+        otk::CmdRow,           otk::CmdCell,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {

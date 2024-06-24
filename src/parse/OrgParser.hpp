@@ -9,7 +9,6 @@
 #include <lexbase/TraceBase.hpp>
 
 struct parse_error : CRTP_hexception<parse_error> {};
-struct parse_context_error : CRTP_hexception<parse_error> {};
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 

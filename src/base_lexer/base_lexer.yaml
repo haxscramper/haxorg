@@ -156,6 +156,37 @@ rules:
     token: CmdQuoteEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
+  #tag begin_table
+  - re: "begin_table"
+    states: [COMMAND]
+    token: CmdTableBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_table"
+    states: [COMMAND]
+    token: CmdTableEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  - re: "begin_cell"
+    states: [COMMAND]
+    token: CmdCellBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_cell"
+    states: [COMMAND]
+    token: CmdCellEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  - re: "begin_row"
+    states: [COMMAND]
+    token: CmdRowBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_row"
+    states: [COMMAND]
+    token: CmdRowEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
   #tag begin_comment
   - re: "begin_comment"
     states: [COMMAND]
@@ -420,6 +451,16 @@ rules:
   - re: "include{prop_colon}"
     states: [COMMAND]
     token: CmdInclude
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "row{prop_colon}"
+    states: [COMMAND]
+    token: CmdRow
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "cell{prop_colon}"
+    states: [COMMAND]
+    token: CmdCell
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "latex_class{prop_colon}"
