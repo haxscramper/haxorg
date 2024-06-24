@@ -1680,15 +1680,26 @@ void proto_serde<::orgproto::Include::Src, sem::Include::Src>::read(::orgproto::
 }
 
 void proto_serde<::orgproto::Include::OrgDocument, sem::Include::OrgDocument>::write(::orgproto::Include::OrgDocument* out, sem::Include::OrgDocument const& in) {
-
+  if (in.minLevel) {
+    out->set_minlevel(*in.minLevel);
+  }
 }
 
 void proto_serde<::orgproto::Include::OrgDocument, sem::Include::OrgDocument>::read(::orgproto::Include::OrgDocument const& out, proto_write_accessor<sem::Include::OrgDocument> in) {
-
+  if (out.has_minlevel()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.minlevel(), in.for_field(&sem::Include::OrgDocument::minLevel));
+  }
 }
 
 void proto_serde<::orgproto::Include, sem::Include>::write(::orgproto::Include* out, sem::Include const& in) {
   proto_serde<::orgproto::Include, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_path(), in.path);
+  if (in.firstLine) {
+    out->set_firstline(*in.firstLine);
+  }
+  if (in.lastLine) {
+    out->set_lastline(*in.lastLine);
+  }
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::Include::Example, sem::Include::Example>::write(out->mutable_data()->mutable_example(), std::get<0>(in.data));
@@ -1707,6 +1718,13 @@ void proto_serde<::orgproto::Include, sem::Include>::write(::orgproto::Include* 
 
 void proto_serde<::orgproto::Include, sem::Include>::read(::orgproto::Include const& out, proto_write_accessor<sem::Include> in) {
   proto_serde<::orgproto::Include, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.path(), in.for_field(&sem::Include::path));
+  if (out.has_firstline()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.firstline(), in.for_field(&sem::Include::firstLine));
+  }
+  if (out.has_lastline()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.lastline(), in.for_field(&sem::Include::lastLine));
+  }
   switch (out.data().kind_case()) {
     case ::orgproto::Include::Data::kExample:
       proto_serde<orgproto::Include::Example, sem::Include::Example>::read(out.data().example(), in.for_field_variant<0>(&sem::Include::data));

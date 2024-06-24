@@ -1893,7 +1893,9 @@ struct Include : public sem::Org {
   };
 
   struct OrgDocument {
-    BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), ())
+    BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), (minLevel))
+    /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
+    Opt<int> minLevel = std::nullopt;
   };
 
   using Data = std::variant<sem::Include::Example, sem::Include::Export, sem::Include::Src, sem::Include::OrgDocument>;
@@ -1906,6 +1908,9 @@ struct Include : public sem::Org {
                        (),
                        (),
                        (staticKind,
+                        path,
+                        firstLine,
+                        lastLine,
                         data,
                         (OrgSemKind() const) getKind,
                         (sem::Include::Example const&() const) getExample,
@@ -1919,6 +1924,12 @@ struct Include : public sem::Org {
                         (sem::Include::Kind(sem::Include::Data const&)) getIncludeKind,
                         (sem::Include::Kind() const) getIncludeKind))
   static OrgSemKind const staticKind;
+  /// \brief Path to include
+  Str path;
+  /// \brief 0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text
+  Opt<int> firstLine = std::nullopt;
+  /// \brief 0-based index of the last line to include
+  Opt<int> lastLine = std::nullopt;
   sem::Include::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
   sem::Include::Example const& getExample() const { return std::get<0>(data); }

@@ -336,11 +336,6 @@ rules:
     token: CmdPropertyRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
-  - re: "include{prop_colon}"
-    states: [COMMAND]
-    token: CmdInclude
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
   - re: ".*"
     states: [COMMAND_RAW]
     token: RawText
@@ -420,6 +415,11 @@ rules:
   - re: "attr_\\w+{prop_colon}"
     states: [COMMAND]
     token: CmdAttr
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "include{prop_colon}"
+    states: [COMMAND]
+    token: CmdInclude
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "latex_class{prop_colon}"

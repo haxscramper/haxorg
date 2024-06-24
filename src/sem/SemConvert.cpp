@@ -1039,6 +1039,43 @@ SemId<LatexBody> OrgConverter::convertMath(__args) {
 
 SemId<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
+    auto           args    = convertCmdArguments(one(a, N::Args));
+    include->path          = args->positional.at(0)->getString();
+
+    if (auto kind = args->positional.get(1)) {
+        Str ks = kind.value().get()->value;
+        if (ks == "src"_ss) {
+            auto src      = sem::Include::Src{};
+            include->data = src;
+
+        } else {
+            LOG(FATAL) << fmt("Unhandled org include kind {}", ks);
+        }
+
+    } else {
+        include->data = sem::Include::OrgDocument{};
+    }
+
+    if (args->named.contains("minlevel")) {
+        include->getOrgDocument().minLevel = args->named.at("minlevel")
+                                                 ->getInt();
+    }
+
+    if (args->named.contains("lines")) {
+        Str lines = strip(
+            args->named.at("lines")->value, CharSet{'"'}, CharSet{'"'});
+        Vec<Str> split = lines.split("-");
+        if (lines.starts_with("-")) {
+            include->lastLine = split.at(1).toInt() - 1;
+        } else if (lines.ends_with("-")) {
+            include->firstLine = split.at(0).toInt() - 1;
+        } else {
+            include->firstLine = split.at(0).toInt() - 1;
+            include->lastLine  = split.at(1).toInt() - 1;
+        }
+    }
+
+
     return include;
 }
 

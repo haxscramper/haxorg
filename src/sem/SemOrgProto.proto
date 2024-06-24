@@ -1278,6 +1278,7 @@ message Include {
     string                                         debug                            = 1000;
   }
   message OrgDocument {
+    optional int32                                 minLevel                         = 1;
     string                                         debug                            = 1000;
   }
   message Data {
@@ -1296,7 +1297,10 @@ message Include {
   }
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
-  Include.Data                                     data                             = 3;
+  string                                           path                             = 3;
+  optional int32                                   firstLine                        = 4;
+  optional int32                                   lastLine                         = 5;
+  Include.Data                                     data                             = 6;
   string                                           debug                            = 1000;
 }
 

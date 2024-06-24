@@ -1559,10 +1559,17 @@ def get_types() -> Sequence[GenTuStruct]:
                         GenTuStruct(t("Example"), GenTuDoc("")),
                         GenTuStruct(t("Export"), GenTuDoc("")),
                         GenTuStruct(t("Src"), GenTuDoc("")),
-                        GenTuStruct(t("OrgDocument"), GenTuDoc("")),
+                        GenTuStruct(t("OrgDocument"), GenTuDoc(""), fields=[
+                            opt_field(t_int(), "minLevel", GenTuDoc("The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level."))
+                        ]),
                     ],
                     kindGetter="getIncludeKind",
                 )
+            ],
+            fields=[
+                GenTuField(t_str(), "path", GenTuDoc("Path to include")),
+                opt_field(t_int(), "firstLine", GenTuDoc("0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text")),
+                opt_field(t_int(), "lastLine", GenTuDoc("0-based index of the last line to include")),
             ],
         ),
         d_org(

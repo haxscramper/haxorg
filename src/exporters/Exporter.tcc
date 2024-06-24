@@ -798,6 +798,9 @@ void Exporter<V, R>::visit(R& res, sem::Include::Data const& object) { visitVari
 template <typename V, typename R>
 void Exporter<V, R>::visitInclude(R& res, In<sem::Include> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, path);
+  __org_field(res, object, firstLine);
+  __org_field(res, object, lastLine);
   __org_field(res, object, data);
   __org_field(res, object, subnodes);
 }
@@ -812,7 +815,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Include::Src const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Include::OrgDocument const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::Include::OrgDocument const& object) { __obj_field(res, object, minLevel); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {

@@ -1670,7 +1670,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case otk::CmdInclude:
         case otk::CmdCreator:
         case otk::CmdAuthor:
         case otk::CmdLatexHeader:
@@ -1754,6 +1753,14 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             token(org::RawText, pop(lex, otk::CmdRawArg));
             subParse(CommandArguments, lex);
             subParse(Paragraph, lex);
+            break;
+        }
+
+        case otk::CmdInclude: {
+            start(org::CommandInclude);
+            skip(lex);
+            skip(lex, otk::CmdInclude);
+            subParse(CommandArguments, lex);
             break;
         }
 
