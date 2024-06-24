@@ -145,6 +145,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<Bold>               convertBold(In);
     SemId<RawText>            convertRawText(In);
     SemId<RadioTarget>        convertRadioTarget(In);
+    SemId<TextTarget>         convertTextTarget(In);
     SemId<List>               convertList(In);
     SemId<ListItem>           convertListItem(In);
     SemId<Tblfm>              convertTblfm(In);

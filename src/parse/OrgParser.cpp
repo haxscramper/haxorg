@@ -427,15 +427,17 @@ void OrgParser::textFold(OrgLexer& lex) {
 
                 case otk::DoubleAngleBegin: {
                     if (lex.ahead(
-                            {otk::Word, otk::Whitespace, otk::Punctuation},
+                            OrgTokSet{
+                                otk::Whitespace,
+                                otk::Word,
+                                otk::DoubleAngleBegin},
                             otk::DoubleAngleEnd)) {
                         skip(lex, otk::DoubleAngleBegin);
-                        SubLexer sub{lex};
+                        start(org::Target);
                         while (lex.can_search(otk::DoubleAngleEnd)) {
-                            sub.add(lex.pop());
+                            token(org::Target, pop(lex, otk::RawText));
                         }
-                        sub.start();
-                        parseParagraph(sub);
+                        end();
                         skip(lex, otk::DoubleAngleEnd);
                     } else {
                         token(org::Punctuation, pop(lex, lex.kind()));
