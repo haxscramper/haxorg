@@ -956,35 +956,61 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
                 case otk::CmdPrefix: {
                     skip(lex, otk::CmdPrefix);
                     skip(lex, otk::CmdRow);
+                    start(org::TableRow);
                     parseCommandArguments(lex);
+                    empty();
+                    newline(lex);
 
+                    start(org::StmtList);
                     if (lex.at(otk::LeadingPipe)) {
                         while (lex.at(otk::LeadingPipe)) {
+                            skip(lex, otk::LeadingPipe);
+                            space(lex);
                             start(org::TableCell);
-                            auto sub = subToEol(lex);
-                            if (sub.empty()) {
+                            {
                                 empty();
-                            } else {
-                                parseParagraph(sub);
+                                start(org::StmtList);
+                                {
+                                    auto sub = subToEol(lex);
+                                    if (sub.empty()) {
+                                        empty();
+                                    } else {
+                                        parseParagraph(sub);
+                                    }
+                                }
+                                end();
                             }
                             end();
+                            newline(lex);
                         }
                     } else {
-                        while (lex.at(otk::CmdCell)) {
+                        while (lex.at(Vec{otk::CmdPrefix, otk::CmdCell})) {
+                            skip(lex, otk::CmdPrefix);
+                            skip(lex, otk::CmdCell);
                             start(org::TableCell);
-                            while (
-                                !(lex.at(otk::CmdPrefix)
-                                  && lex.at(
-                                      OrgTokSet{
-                                          otk::CmdCell,
-                                          otk::CmdRow,
-                                          otk::CmdTableEnd},
-                                      +1))) {
-                                parseStmtListItem(lex);
+                            {
+                                empty();
+                                start(org::StmtList);
+                                {
+                                    while (
+                                        !(lex.at(otk::CmdPrefix)
+                                          && lex.at(
+                                              OrgTokSet{
+                                                  otk::CmdCell,
+                                                  otk::CmdRow,
+                                                  otk::CmdTableEnd},
+                                              +1))) {
+                                        parseStmtListItem(lex);
+                                    }
+                                }
+                                end();
                             }
                             end();
                         }
                     }
+
+                    end();
+                    end();
 
                     break;
                 }
@@ -998,6 +1024,7 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
         }
 
 
+        skip(lex, otk::CmdPrefix);
         skip(lex, otk::CmdTableEnd);
     }
 

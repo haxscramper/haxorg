@@ -197,9 +197,9 @@ struct OrgParser : public OperationsTracer {
 
     void print(
         std::string const& msg,
+        OrgLexer*          lexer    = nullptr,
         int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        OrgLexer*          lexer    = nullptr);
+        char const*        function = __builtin_FUNCTION());
 
 
   public:

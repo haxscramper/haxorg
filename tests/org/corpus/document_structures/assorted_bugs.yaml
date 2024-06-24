@@ -770,7 +770,36 @@ items:
           CLOSED: [2023-05-08 Mon 15:14:06]
 
   - name: "Text target parsing"
-    tags: ["active"]
+    tags: ["org_link"]
     source: |
       <<<radio target>>>
       <<text target>>
+
+  - name: "Block table"
+    tags: ["org_table", "org_block"]
+    source: |
+      #+begin_table
+      | col1 | col2 | col3 |
+      #+row: :color red 
+      | column1 
+      | column2 
+      | column3 
+
+      #+row:
+      #+cell:
+
+      Tadc
+      Cell
+
+      #+cell: :name named-cell
+
+      Line31
+      Linsdfe
+
+      #+begin_table
+      | nest1 | nest2 |
+      | nest1 | nest2 |
+      #+end_table
+
+      #+end_table
+

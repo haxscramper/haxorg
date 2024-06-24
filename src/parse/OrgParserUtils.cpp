@@ -170,7 +170,7 @@ OrgTokenId OrgParser::pop(
     char const*        function) {
     if (tok) { expect(lex, *tok, line, function); }
     if (TraceState) {
-        print(fmt("pop {}", lex.tok()), line, function, &lex);
+        print(fmt("pop {}", lex.tok()), &lex, line, function);
     }
     return lex.pop();
 }
@@ -185,7 +185,7 @@ void OrgParser::skip(
     if (item) { expect(lex, *item, line, function); }
 
     if (TraceState) {
-        print(fmt("skip {}", lex.tok()), line, function, &lex);
+        print(fmt("skip {}", lex.tok()), &lex, line, function);
     }
 
     lex.next();
@@ -220,9 +220,9 @@ finally OrgParser::trace(
 
 void OrgParser::print(
     const std::string& msg,
+    OrgLexer*          lexer,
     int                line,
-    const char*        function,
-    OrgLexer*          lexer) {
+    const char*        function) {
     if (TraceState) {
         auto build = Builder(
                          OrgParser::ReportKind::Print,
