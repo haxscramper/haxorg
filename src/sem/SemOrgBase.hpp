@@ -107,10 +107,21 @@ struct SemId {
 
     template <typename T>
     SemId<T> asOpt() const {
-        if (isNil() || value->getKind() != T::staticKind) {
-            return SemId<T>::Nil();
+        if constexpr (std::is_abstract_v<T>) {
+            auto dyna = getAs<T>();
+            if (dyna == nullptr) {
+                return SemId<T>::Nil();
+            } else {
+                return as<T>();
+            }
+
         } else {
-            return as<T>();
+
+            if (isNil() || value->getKind() != T::staticKind) {
+                return SemId<T>::Nil();
+            } else {
+                return as<T>();
+            }
         }
     }
 

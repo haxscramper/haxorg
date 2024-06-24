@@ -70,9 +70,11 @@ void OrgParser::newline(OrgLexer& lex, int line, char const* function) {
     while (lex.at(Newline)) { skip(lex, std::nullopt, line, function); }
 }
 
-SubLexer<OrgTokenKind, OrgFill> subToEol(OrgLexer& lex) {
+SubLexer<OrgTokenKind, OrgFill> subToEol(
+    OrgLexer& lex,
+    OrgTokSet Terminator = ParagraphTerminator) {
     SubLexer sub{lex};
-    while (lex.can_search(ParagraphTerminator)) { sub.add(lex.pop()); }
+    while (lex.can_search(Terminator)) { sub.add(lex.pop()); }
     if (!sub.tokens.empty()) { sub.start(); }
     return sub;
 }
@@ -1747,7 +1749,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 start(org::CommandCaption);
             }
             start(org::CommandArguments);
-            auto sub = subToEol(lex);
+            auto sub = subToEol(
+                lex, ParagraphTerminator + OrgTokSet{otk::Newline});
             if (sub.empty()) {
                 empty();
             } else {

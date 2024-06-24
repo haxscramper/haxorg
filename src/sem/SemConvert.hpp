@@ -174,7 +174,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<Code>               convertCode(In);
     SemId<CmdAttr>            convertCmdAttr(In);
 
-    Vec<SemId<Org>> flatConvertAttached(In);
+    Vec<SemId<Org>> flatConvertAttached(Vec<In> items);
 
 
     template <typename T>

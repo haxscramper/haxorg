@@ -134,7 +134,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         case ReportKind::Print: {
             os << "  " << (in.function ? in.function : "")
                << fmt(" @{}", in.line);
-            if (in.msg) { os << *in.msg; }
+            if (in.msg) { os << " " << *in.msg; }
         }
     }
 
