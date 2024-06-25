@@ -156,9 +156,11 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
     else:
         return {}
 
+
 @beartype
 def get_cmd_debug_file(kind: str):
     return get_build_root().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
+
 
 @beartype
 def run_command(
@@ -174,7 +176,6 @@ def run_command(
 ) -> tuple[int, str, str]:
     stderr_debug = stderr_debug or get_cmd_debug_file("stderr")
     stdout_debug = stdout_debug or get_cmd_debug_file("stdout")
-
     if isinstance(cmd, Path):
         assert cmd.exists(), cmd
         cmd = str(cmd.resolve())
@@ -209,7 +210,6 @@ def run_command(
     if cwd is not None:
         run = run.with_cwd(cwd)
 
-    log(CAT).info(" asdfsd")
     if get_config(ctx).quiet:
         retcode, stdout, stderr = run.run(list(args), retcode=None)
 
@@ -270,6 +270,7 @@ def ui_notify(message: str, is_ok: bool = True):
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
 TASK_STACK: List[str] = []
+
 
 @beartype
 def org_task(
@@ -1173,11 +1174,16 @@ def py_tests(ctx: Context, arg: List[str] = []):
         coverage_dir = get_cxx_coverage_dir()
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
 
-    run_command(ctx, "poetry", [
-        "run",
-        "python",
-        "scripts/py_repository/py_repository/gen_coverage_cxx.py",
-    ])
+    run_command(
+        ctx,
+        "poetry",
+        [
+            "run",
+            "python",
+            "scripts/py_repository/py_repository/gen_coverage_cxx.py",
+        ],
+        env=get_py_env(ctx),
+    )
 
     retcode, _, _ = run_command(
         ctx,
