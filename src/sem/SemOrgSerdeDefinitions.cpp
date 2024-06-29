@@ -1115,6 +1115,8 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::write(::orgproto::Subtree* 
   if (in.scheduled) {
     proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_scheduled(), *in.scheduled);
   }
+  out->set_iscomment(in.isComment);
+  out->set_isarchived(in.isArchived);
 }
 
 void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree const& out, proto_write_accessor<sem::Subtree> in) {
@@ -1145,6 +1147,8 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
   if (out.has_scheduled()) {
     proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.scheduled(), in.for_field(&sem::Subtree::scheduled));
   }
+  in.for_field(&sem::Subtree::isComment).get() = out.iscomment();
+  in.for_field(&sem::Subtree::isArchived).get() = out.isarchived();
 }
 
 void proto_serde<::orgproto::InlineMath, sem::InlineMath>::write(::orgproto::InlineMath* out, sem::InlineMath const& in) {

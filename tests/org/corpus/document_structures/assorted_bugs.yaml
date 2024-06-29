@@ -803,3 +803,12 @@ items:
 
       #+end_table
 
+  - name: "Subtree comment and archive"
+    tags: ["org_subtree", "org_tag"]
+    source: |
+      **** COMPLETED COMMENT Laptop organization :ARCHIVE:
+      **** COMMENT Laptop organization :ARCHIVE:
+      **** COMMENT 
+      **** :ARCHIVE:
+      **** :ARCHIVE:tag1:
+      **** COMMENT :ARCHIVE:tag1:

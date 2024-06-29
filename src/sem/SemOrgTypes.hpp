@@ -1272,6 +1272,8 @@ struct Subtree : public sem::Org {
                         closed,
                         deadline,
                         scheduled,
+                        isComment,
+                        isArchived,
                         (OrgSemKind() const) getKind,
                         (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
                         (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
@@ -1303,6 +1305,10 @@ struct Subtree : public sem::Org {
   Opt<sem::SemId<sem::Time>> deadline = std::nullopt;
   /// \brief When the event is scheduled
   Opt<sem::SemId<sem::Time>> scheduled = std::nullopt;
+  /// \brief Subtree is annotated with the COMMENT keyword
+  bool isComment = false;
+  /// \brief Subtree is tagged with `:ARCHIVE:` tag
+  bool isArchived = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
   Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;

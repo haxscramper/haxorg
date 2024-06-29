@@ -946,6 +946,8 @@ message Subtree {
   optional Time                                    closed                           = 12;
   optional Time                                    deadline                         = 13;
   optional Time                                    scheduled                        = 14;
+  bool                                             isComment                        = 15;
+  bool                                             isArchived                       = 16;
   string                                           debug                            = 1000;
 }
 

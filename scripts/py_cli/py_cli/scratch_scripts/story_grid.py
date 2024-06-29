@@ -50,6 +50,7 @@ class Header():
     duration: Optional[str] = None
     pov: Optional[List[org.Org]] = None
     location: Optional[List[org.Org]] = None
+    value: Optional[List[org.Org]] = None
     note: Optional[List[org.Org]] = None
     event: Optional[List[org.Org]] = None
     turning_point: Optional[List[org.Org]] = None
@@ -82,7 +83,7 @@ def rec_node(node: org.Org) -> List[Header]:
         case org.Subtree():
             title = [sub for sub in node.title]
             time = None
-            if isinstance(title[0], (org.Time, org.TimeRange)):
+            if title and isinstance(title[0], (org.Time, org.TimeRange)):
                 time = title.pop(0)
                 if isinstance(title[0], org.Space):
                     title.pop(0)
@@ -162,6 +163,14 @@ def rec_node(node: org.Org) -> List[Header]:
 
                                     case "story_note":
                                         header.note = list(item.subnodes)
+
+                                    case "story_value":
+                                        header.value = list(item.subnodes)
+
+                                    case "story_time":
+                                        it = item.subnodes[0][0]
+                                        assert isinstance(it, org.Time)
+                                        header.time = evalDateTime(it.getStatic().time)
 
                                     case _:
                                         assert not tag[0].startswith("story_"), tag

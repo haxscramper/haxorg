@@ -1212,11 +1212,16 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
 @org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
 def py_script(ctx: Context, script: str, arg: List[str] = []):
-    run_command(ctx, "poetry", [
-        "run",
-        script,
-        *arg,
-    ])
+    run_command(
+        ctx,
+        "poetry",
+        [
+            "run",
+            script,
+            *arg,
+        ],
+        env=get_py_env(ctx),
+    )
 
 
 @org_task(pre=[py_tests])

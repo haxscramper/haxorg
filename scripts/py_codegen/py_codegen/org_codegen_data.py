@@ -79,6 +79,9 @@ def vec_field(typ, name, doc):
 def opt_field(typ, name, doc):
     return GenTuField(t_opt(typ), name, doc, value="std::nullopt")
 
+def bool_field(name: str, doc: GenTuDoc, default: str = "false") -> GenTuField:
+    return GenTuField(t("bool"), name, doc=doc, value=default)
+
 
 def d_org(name: str, *args, **kwargs) -> GenTuStruct:
     res = GenTuStruct(QualType(name=name), *args, **kwargs)
@@ -963,6 +966,8 @@ def get_types() -> Sequence[GenTuStruct]:
                 opt_field(t_id("Time"), "deadline", GenTuDoc("When is the deadline")),
                 opt_field(t_id("Time"), "scheduled",
                           GenTuDoc("When the event is scheduled")),
+                bool_field("isComment", GenTuDoc("Subtree is annotated with the COMMENT keyword")),
+                bool_field("isArchived", GenTuDoc("Subtree is tagged with `:ARCHIVE:` tag")),
             ],
             methods=[
                 GenTuFunction(

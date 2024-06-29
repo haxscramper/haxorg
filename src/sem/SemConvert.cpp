@@ -429,18 +429,40 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Title, a);
         tree->title  = convertParagraph(one(a, N::Title));
+        auto& sn     = tree->title->subnodes;
+        if (Opt<sem::SemId<sem::Org>> first = sn.get(0); first) {
+            if (auto ident = first.value().asOpt<sem::BigIdent>();
+                ident && ident->text == "COMMENT") {
+                tree->isComment = true;
+                int offset      = 1;
+                while (sn.has(offset) && sn.at(offset)->is(osk::Space)) {
+                    ++offset;
+                }
+
+                sn.erase(sn.begin(), sn.begin() + offset);
+            }
+        }
     }
 
     {
         auto __field = field(N::Todo, a);
         auto todo    = one(a, N::Todo);
         if (todo.getKind() != org::Empty) { tree->todo = get_text(todo); }
+        if (tree->todo && tree->todo.value() == "COMMENT") {
+            tree->todo.reset();
+            tree->isComment = true;
+        }
     }
 
     {
         auto __field = field(N::Tags, a);
         for (const auto& hash : one(a, N::Tags)) {
-            tree->tags.push_back(convertHashTag(hash));
+            auto tag = convertHashTag(hash);
+            if (tag->head == "ARCHIVE") {
+                tree->isArchived = true;
+            } else {
+                tree->tags.push_back(tag);
+            }
         }
     }
 
@@ -705,10 +727,8 @@ SemId<StmtList> OrgConverter::convertStmtList(__args) {
     auto __trace = trace(a);
     auto stmt    = Sem<StmtList>(a);
 
-
     Vec<OrgAdapter> items;
-    for (auto const& it : a) { items.push_back(a); }
-
+    for (auto const& it : a) { items.push_back(it); }
     for (auto const& it : flatConvertAttached(items)) {
         stmt->push_back(it);
     }
@@ -1187,7 +1207,8 @@ Vec<SemId<Org>> OrgConverter::flatConvertAttached(Vec<OrgAdapter> items) {
 
     Vec<sem::SemId<sem::Org>> buffer;
     for (int i = 0; i < items.size(); ++i) {
-        auto res = convert(items.at(i));
+        auto it  = items.at(i);
+        auto res = convert(it);
         if (Attached.contains(res->getKind())) {
             buffer.push_back(res);
         } else {
