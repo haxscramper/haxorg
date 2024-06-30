@@ -439,6 +439,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Verse") { return OrgSemKind::Verse; } else
   if (value == "Example") { return OrgSemKind::Example; } else
   if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
+  if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
   if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
@@ -507,6 +508,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Verse: return "Verse";
     case OrgSemKind::Example: return "Example";
     case OrgSemKind::ColonExample: return "ColonExample";
+    case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
     case OrgSemKind::CmdArguments: return "CmdArguments";
     case OrgSemKind::CmdAttr: return "CmdAttr";
     case OrgSemKind::CmdArgument: return "CmdArgument";

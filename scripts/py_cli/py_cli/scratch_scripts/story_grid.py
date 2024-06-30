@@ -81,6 +81,9 @@ def rec_node(node: org.Org) -> List[Header]:
     result = []
     match node:
         case org.Subtree():
+            if node.isComment or node.isArchived:
+                return result
+
             title = [sub for sub in node.title]
             time = None
             if title and isinstance(title[0], (org.Time, org.TimeRange)):
@@ -169,8 +172,15 @@ def rec_node(node: org.Org) -> List[Header]:
 
                                     case "story_time":
                                         it = item.subnodes[0][0]
-                                        assert isinstance(it, org.Time)
-                                        header.time = evalDateTime(it.getStatic().time)
+                                        match it:
+                                            case org.Time():
+                                                header.time = evalDateTime(it.getStatic().time)
+
+                                            case org.TimeRange():
+                                                header.time = (
+                                                    evalDateTime(it.from_.getStatic().time),
+                                                    evalDateTime(it.to.getStatic().time),
+                                                )
 
                                     case _:
                                         assert not tag[0].startswith("story_"), tag
@@ -341,6 +351,14 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
                 else:
                     opt("")
+                    opt("")
+
+            elif field.name == "shift":
+                value = getattr(h, field.name)
+                if value:
+                    opt("/".join(value))
+
+                else:
                     opt("")
 
             else:

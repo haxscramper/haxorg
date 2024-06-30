@@ -23,9 +23,9 @@ struct Stmt : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (attached, (Opt<sem::SemId<sem::Org>>(OrgSemKind)) getAttached))
+                       (attached, (Vec<sem::SemId<sem::Org>>(Str const&)) getAttached))
   Vec<sem::SemId<sem::Org>> attached;
-  Opt<sem::SemId<sem::Org>> getAttached(OrgSemKind kind);
+  Vec<sem::SemId<sem::Org>> getAttached(Str const& kind);
 };
 
 /// \brief Base class for all inline elements
@@ -348,10 +348,11 @@ struct Block : public sem::Command {
                        (Command),
                        (),
                        (),
-                       (parameters, (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getParameter))
+                       (parameters, (Opt<sem::SemId<sem::CmdArgumentList>>(Str const&) const) getArguments))
   /// \brief Additional parameters aside from 'exporter',
   Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
-  virtual Opt<sem::SemId<sem::CmdArgument>> getParameter(Str const& key) const;
+  /// \brief Return all parameters with keys matching name
+  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Str const& key) const;
 };
 
 /// \brief Tblfm command type
@@ -432,6 +433,21 @@ struct ColonExample : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::ColonExample; }
 };
 
+/// \brief Data type to wrap list of identical command arguments
+struct CmdArgumentList : public sem::Org {
+  using Org::Org;
+  virtual ~CmdArgumentList() = default;
+  BOOST_DESCRIBE_CLASS(CmdArgumentList,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, args, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief List of arguments
+  Vec<sem::SemId<sem::CmdArgument>> args = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgumentList; }
+};
+
 /// \brief Additional arguments for command blocks
 struct CmdArguments : public sem::Org {
   using Org::Org;
@@ -444,14 +460,14 @@ struct CmdArguments : public sem::Org {
                         positional,
                         named,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getParameter))
+                        (Opt<sem::SemId<sem::CmdArgumentList>>(Str const&) const) getArguments))
   static OrgSemKind const staticKind;
-  /// \brief Positional arguments that had no keys
-  Vec<sem::SemId<sem::CmdArgument>> positional = {};
+  /// \brief Positional arguments with no keys
+  sem::SemId<sem::CmdArgumentList> positional = sem::SemId<sem::CmdArgumentList>::Nil();
   /// \brief Stored key-value mapping
-  UnorderedMap<Str, sem::SemId<sem::CmdArgument>> named;
+  UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>> named;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  Opt<sem::SemId<sem::CmdArgument>> getParameter(Str const& key) const;
+  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Str const& key) const;
 };
 
 /// \brief Caption annotation for any subsequent node

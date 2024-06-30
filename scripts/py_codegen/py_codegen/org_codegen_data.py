@@ -141,10 +141,10 @@ def get_types() -> Sequence[GenTuStruct]:
             fields=[GenTuField(t_vec(t_id()), "attached", GenTuDoc(""))],
             methods=[
                 GenTuFunction(
-                    t_opt(t_id()),
+                    t_vec(t_id()),
                     "getAttached",
                     GenTuDoc(""),
-                    arguments=[GenTuIdent(t_osk(), "kind")],
+                    arguments=[GenTuIdent(t_cr(t_str()), "kind")],
                 )
             ],
             nested=[
@@ -362,13 +362,13 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
             methods=[
                 GenTuFunction(
-                    t_opt(t_id("CmdArgument")),
-                    "getParameter",
-                    GenTuDoc(""),
+                    t_opt(t_id("CmdArgumentList")),
+                    "getArguments",
+                    GenTuDoc("Return all parameters with keys matching name"),
                     arguments=[GenTuIdent(t_cr(t_str()), "key")],
                     isConst=True,
                     isVirtual=True,
-                )
+                ),
             ],
         ),
         d_org(
@@ -396,26 +396,34 @@ def get_types() -> Sequence[GenTuStruct]:
               GenTuDoc("Shortened colon example block"),
               bases=[t_org("Org")]),
         d_org(
+            "CmdArgumentList",
+            GenTuDoc("Data type to wrap list of identical command arguments"),
+            bases=[t_org("Org")],
+            fields=[
+                vec_field(
+                    t_id("CmdArgument"),
+                    "args",
+                    GenTuDoc("List of arguments"),
+                ),
+            ]
+        ),
+        d_org(
             "CmdArguments",
             GenTuDoc("Additional arguments for command blocks"),
             bases=[t_org("Org")],
             methods=[
                 GenTuFunction(
-                    t_opt(t_id("CmdArgument")),
-                    "getParameter",
+                    t_opt(t_id("CmdArgumentList")),
+                    "getArguments",
                     GenTuDoc(""),
                     arguments=[GenTuIdent(t_cr(t_str()), "key")],
                     isConst=True,
                 )
             ],
             fields=[
-                vec_field(
-                    t_id("CmdArgument"),
-                    "positional",
-                    GenTuDoc("Positional arguments that had no keys"),
-                ),
+                id_field("CmdArgumentList", "positional", GenTuDoc("Positional arguments with no keys")),
                 GenTuField(
-                    t_map(t_str(), t_id("CmdArgument")),
+                    t_map(t_str(), t_id("CmdArgumentList")),
                     "named",
                     GenTuDoc("Stored key-value mapping"),
                 ),

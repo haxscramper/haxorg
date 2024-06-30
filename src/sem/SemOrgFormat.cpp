@@ -570,11 +570,26 @@ auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));
 }
 
+auto Formatter::toString(SemId<CmdArgumentList> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+
+    Vec<Res> result;
+    for (auto const& it : id->args) {
+        result.push_back(toString(it, ctx));
+    }
+
+    return b.join(result, str(" "));
+}
+
+
 auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> result;
-    for (auto const& pos : id->positional) {
-        result.push_back(toString(pos, ctx));
+    if (!id->positional.isNil()) {
+        for (auto const& pos : id->positional->args) {
+            result.push_back(toString(pos, ctx));
+        }
     }
 
     Vec<Str> its;

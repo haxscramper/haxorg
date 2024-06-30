@@ -1003,8 +1003,8 @@ SemId<Export> OrgConverter::convertExport(__args) {
     }
 
     auto values = convertCmdArguments(one(a, N::Args));
-    if (auto place = values->getParameter("placement"); place) {
-        eexport->placement = (*place)->getString();
+    if (auto place = values->getArguments("placement"); place) {
+        eexport->placement = place->value->args.at(0)->getString();
         values->named.erase("placement");
     }
 
@@ -1066,9 +1066,9 @@ SemId<LatexBody> OrgConverter::convertMath(__args) {
 SemId<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
     auto           args    = convertCmdArguments(one(a, N::Args));
-    include->path          = args->positional.at(0)->getString();
+    include->path          = args->positional->args.at(0)->getString();
 
-    if (auto kind = args->positional.get(1)) {
+    if (auto kind = args->positional->args.get(1)) {
         Str ks = kind.value().get()->value;
         if (ks == "src"_ss) {
             auto src      = sem::Include::Src{};
@@ -1084,12 +1084,15 @@ SemId<Include> OrgConverter::convertInclude(__args) {
 
     if (args->named.contains("minlevel")) {
         include->getOrgDocument().minLevel = args->named.at("minlevel")
+                                                 ->args.at(0)
                                                  ->getInt();
     }
 
     if (args->named.contains("lines")) {
         Str lines = strip(
-            args->named.at("lines")->value, CharSet{'"'}, CharSet{'"'});
+            (**args->getArguments("lines")).args.at(0)->getString(),
+            CharSet{'"'},
+            CharSet{'"'});
         Vec<Str> split = lines.split("-");
         if (lines.starts_with("-")) {
             include->lastLine = split.at(1).toInt() - 1;
@@ -1129,10 +1132,15 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 
     auto add_arg = [&](SemId<CmdArgument> arg) {
         if (arg->key) {
-            bool ok = result->named.insert({arg->key.value(), arg}).second;
-            CHECK(ok); // TODO generate proper error message
+            if (result->named.contains(*arg->key)) {
+                result->named[*arg->key]->args.push_back(arg);
+            } else {
+                auto args = SemId<CmdArgumentList>::New();
+                args->args.push_back(arg);
+                result->named.insert({arg->key.value(), args});
+            }
         } else {
-            result->positional.push_back(arg);
+            result->positional->push_back(arg);
         }
     };
 
@@ -1209,7 +1217,7 @@ Vec<SemId<Org>> OrgConverter::flatConvertAttached(Vec<OrgAdapter> items) {
     for (int i = 0; i < items.size(); ++i) {
         auto it  = items.at(i);
         auto res = convert(it);
-        if (Attached.contains(res->getKind())) {
+        if (auto it = res->dyn_cast<sem::Attached>(); it != nullptr) {
             buffer.push_back(res);
         } else {
             if (auto res_stmt = res.asOpt<sem::Stmt>()) {

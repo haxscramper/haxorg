@@ -208,6 +208,13 @@ void Exporter<V, R>::visitColonExample(R& res, In<sem::ColonExample> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCmdArgumentList(R& res, In<sem::CmdArgumentList> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, args);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCmdArguments(R& res, In<sem::CmdArguments> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, positional);

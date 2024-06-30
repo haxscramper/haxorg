@@ -103,6 +103,8 @@ struct SemId {
     O const*        get() const { return value.get(); }
     O*              operator->() { return get(); }
     O const*        operator->() const { return get(); }
+    O&              operator*() { return *value; }
+    O const&        operator*() const { return *value; }
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
 
     template <typename T>

@@ -23,6 +23,7 @@
         __MAP(kVerse, verse, Verse)  \
         __MAP(kExample, example, Example)  \
         __MAP(kColonexample, colonexample, ColonExample)  \
+        __MAP(kCmdargumentlist, cmdargumentlist, CmdArgumentList)  \
         __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
         __MAP(kCmdattr, cmdattr, CmdAttr)  \
         __MAP(kCmdargument, cmdargument, CmdArgument)  \
@@ -239,6 +240,13 @@ template <>
 struct proto_serde<::orgproto::ColonExample, sem::ColonExample> {
   static void write(::orgproto::ColonExample* out, sem::ColonExample const& in);
   static void read(::orgproto::ColonExample const& out, proto_write_accessor<sem::ColonExample> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList> {
+  static void write(::orgproto::CmdArgumentList* out, sem::CmdArgumentList const& in);
+  static void read(::orgproto::CmdArgumentList const& out, proto_write_accessor<sem::CmdArgumentList> in);
 };
 
 
