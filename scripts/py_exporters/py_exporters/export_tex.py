@@ -239,6 +239,11 @@ class ExporterLatex(ExporterBase):
             if isinstance(it, org.Export) and it.placement == "header":
                 continue
 
+            elif isinstance(it, org.Stmt):
+                prop = it.getArguments("export")
+                if prop and 0 < len(prop.args) and prop.args[0] and prop.args[0].getBool() == False:
+                    continue
+
             self.t.add_at(res, self.exp.eval(it))
 
         self.t.add_at(res, self.command("end", [self.string("document")]))
