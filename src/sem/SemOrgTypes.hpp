@@ -13,6 +13,50 @@
 #include <sem/SemOrgBase.hpp>
 #include <sem/SemOrgEnums.hpp>
 namespace sem{
+/// \brief Single key-value (or positional)
+struct CmdArgument : public sem::Org {
+  using Org::Org;
+  virtual ~CmdArgument() = default;
+  BOOST_DESCRIBE_CLASS(CmdArgument,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind,
+                        key,
+                        value,
+                        (OrgSemKind() const) getKind,
+                        (Opt<int>() const) getInt,
+                        (Opt<bool>() const) getBool,
+                        (Str() const) getString))
+  static OrgSemKind const staticKind;
+  /// \brief Key
+  Opt<Str> key = std::nullopt;
+  /// \brief Value
+  Str value;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
+  /// \brief Parse argument as integer value
+  Opt<int> getInt() const;
+  /// \brief Get argument as bool
+  Opt<bool> getBool() const;
+  /// \brief Get original string
+  Str getString() const;
+};
+
+/// \brief Data type to wrap list of identical command arguments
+struct CmdArgumentList : public sem::Org {
+  using Org::Org;
+  virtual ~CmdArgumentList() = default;
+  BOOST_DESCRIBE_CLASS(CmdArgumentList,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, args, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief List of arguments
+  Vec<sem::SemId<sem::CmdArgument>> args = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgumentList; }
+};
+
 /// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
 struct Stmt : public sem::Org {
   using Org::Org;
@@ -23,9 +67,14 @@ struct Stmt : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (attached, (Vec<sem::SemId<sem::Org>>(Str const&)) getAttached))
+                       (attached,
+                        (Vec<sem::SemId<sem::Org>>(Opt<Str> const&) const) getAttached,
+                        (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
   Vec<sem::SemId<sem::Org>> attached;
-  Vec<sem::SemId<sem::Org>> getAttached(Str const& kind);
+  /// \brief Return attached nodes of a specific kinds or all attached (if kind is nullopt)
+  Vec<sem::SemId<sem::Org>> getAttached(Opt<Str> const& kind = std::nullopt) const;
+  /// \brief Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.
+  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& kind = std::nullopt) const;
 };
 
 /// \brief Base class for all inline elements
@@ -348,11 +397,11 @@ struct Block : public sem::Command {
                        (Command),
                        (),
                        (),
-                       (parameters, (Opt<sem::SemId<sem::CmdArgumentList>>(Str const&) const) getArguments))
+                       (parameters, (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
   /// \brief Additional parameters aside from 'exporter',
   Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Return all parameters with keys matching name
-  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Str const& key) const;
+  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const;
 };
 
 /// \brief Tblfm command type
@@ -433,21 +482,6 @@ struct ColonExample : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::ColonExample; }
 };
 
-/// \brief Data type to wrap list of identical command arguments
-struct CmdArgumentList : public sem::Org {
-  using Org::Org;
-  virtual ~CmdArgumentList() = default;
-  BOOST_DESCRIBE_CLASS(CmdArgumentList,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, args, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief List of arguments
-  Vec<sem::SemId<sem::CmdArgument>> args = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgumentList; }
-};
-
 /// \brief Additional arguments for command blocks
 struct CmdArguments : public sem::Org {
   using Org::Org;
@@ -460,14 +494,14 @@ struct CmdArguments : public sem::Org {
                         positional,
                         named,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId<sem::CmdArgumentList>>(Str const&) const) getArguments))
+                        (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
   static OrgSemKind const staticKind;
   /// \brief Positional arguments with no keys
   sem::SemId<sem::CmdArgumentList> positional = sem::SemId<sem::CmdArgumentList>::Nil();
   /// \brief Stored key-value mapping
   UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>> named;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Str const& key) const;
+  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const;
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -484,35 +518,6 @@ struct CmdAttr : public sem::Attached {
   /// \brief HTML attributes
   sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
-};
-
-/// \brief Single key-value (or positional)
-struct CmdArgument : public sem::Org {
-  using Org::Org;
-  virtual ~CmdArgument() = default;
-  BOOST_DESCRIBE_CLASS(CmdArgument,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind,
-                        key,
-                        value,
-                        (OrgSemKind() const) getKind,
-                        (Opt<int>() const) getInt,
-                        (Opt<bool>() const) getBool,
-                        (Str() const) getString))
-  static OrgSemKind const staticKind;
-  /// \brief Key
-  Opt<Str> key = std::nullopt;
-  /// \brief Value
-  Str value;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
-  /// \brief Parse argument as integer value
-  Opt<int> getInt() const;
-  /// \brief Get argument as bool
-  Opt<bool> getBool() const;
-  /// \brief Get original string
-  Str getString() const;
 };
 
 /// \brief Direct export passthrough
@@ -1609,11 +1614,11 @@ struct Par : public sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
 };
 
-struct List : public sem::Org {
-  using Org::Org;
+struct List : public sem::Stmt {
+  using Stmt::Stmt;
   virtual ~List() = default;
   BOOST_DESCRIBE_CLASS(List,
-                       (Org),
+                       (Stmt),
                        (),
                        (),
                        (staticKind,

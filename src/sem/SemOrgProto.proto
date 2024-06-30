@@ -208,31 +208,31 @@ enum OrgNodeKind {
 }
 
 enum OrgSemKind {
-  OrgSemKind_StmtList_f                                                             = 0;
-  OrgSemKind_Empty_f                                                                = 1;
-  OrgSemKind_Cell_f                                                                 = 2;
-  OrgSemKind_Row_f                                                                  = 3;
-  OrgSemKind_Table_f                                                                = 4;
-  OrgSemKind_HashTag_f                                                              = 5;
-  OrgSemKind_Footnote_f                                                             = 6;
-  OrgSemKind_Completion_f                                                           = 7;
-  OrgSemKind_Paragraph_f                                                            = 8;
-  OrgSemKind_AnnotatedParagraph_f                                                   = 9;
-  OrgSemKind_Center_f                                                               = 10;
-  OrgSemKind_Caption_f                                                              = 11;
-  OrgSemKind_CmdName_f                                                              = 12;
-  OrgSemKind_CmdResults_f                                                           = 13;
-  OrgSemKind_CommandGroup_f                                                         = 14;
-  OrgSemKind_Tblfm_f                                                                = 15;
-  OrgSemKind_Quote_f                                                                = 16;
-  OrgSemKind_CommentBlock_f                                                         = 17;
-  OrgSemKind_Verse_f                                                                = 18;
-  OrgSemKind_Example_f                                                              = 19;
-  OrgSemKind_ColonExample_f                                                         = 20;
-  OrgSemKind_CmdArgumentList_f                                                      = 21;
-  OrgSemKind_CmdArguments_f                                                         = 22;
-  OrgSemKind_CmdAttr_f                                                              = 23;
-  OrgSemKind_CmdArgument_f                                                          = 24;
+  OrgSemKind_CmdArgument_f                                                          = 0;
+  OrgSemKind_CmdArgumentList_f                                                      = 1;
+  OrgSemKind_StmtList_f                                                             = 2;
+  OrgSemKind_Empty_f                                                                = 3;
+  OrgSemKind_Cell_f                                                                 = 4;
+  OrgSemKind_Row_f                                                                  = 5;
+  OrgSemKind_Table_f                                                                = 6;
+  OrgSemKind_HashTag_f                                                              = 7;
+  OrgSemKind_Footnote_f                                                             = 8;
+  OrgSemKind_Completion_f                                                           = 9;
+  OrgSemKind_Paragraph_f                                                            = 10;
+  OrgSemKind_AnnotatedParagraph_f                                                   = 11;
+  OrgSemKind_Center_f                                                               = 12;
+  OrgSemKind_Caption_f                                                              = 13;
+  OrgSemKind_CmdName_f                                                              = 14;
+  OrgSemKind_CmdResults_f                                                           = 15;
+  OrgSemKind_CommandGroup_f                                                         = 16;
+  OrgSemKind_Tblfm_f                                                                = 17;
+  OrgSemKind_Quote_f                                                                = 18;
+  OrgSemKind_CommentBlock_f                                                         = 19;
+  OrgSemKind_Verse_f                                                                = 20;
+  OrgSemKind_Example_f                                                              = 21;
+  OrgSemKind_ColonExample_f                                                         = 22;
+  OrgSemKind_CmdArguments_f                                                         = 23;
+  OrgSemKind_CmdAttr_f                                                              = 24;
   OrgSemKind_Export_f                                                               = 25;
   OrgSemKind_AdmonitionBlock_f                                                      = 26;
   OrgSemKind_Call_f                                                                 = 27;
@@ -273,6 +273,21 @@ enum OrgSemKind {
   OrgSemKind_TextSeparator_f                                                        = 62;
   OrgSemKind_Include_f                                                              = 63;
   OrgSemKind_DocumentGroup_f                                                        = 64;
+}
+
+message CmdArgument {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  optional string                                  key                              = 3;
+  string                                           value                            = 4;
+  string                                           debug                            = 1000;
+}
+
+message CmdArgumentList {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  repeated CmdArgument                             args                             = 3;
+  string                                           debug                            = 1000;
 }
 
 message Stmt {
@@ -489,13 +504,6 @@ message ColonExample {
   string                                           debug                            = 1000;
 }
 
-message CmdArgumentList {
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
-  repeated CmdArgument                             args                             = 3;
-  string                                           debug                            = 1000;
-}
-
 message CmdArguments {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
@@ -509,14 +517,6 @@ message CmdAttr {
   OrgSemKind                                       staticKind                       = 2;
   string                                           target                           = 3;
   CmdArguments                                     parameters                       = 4;
-  string                                           debug                            = 1000;
-}
-
-message CmdArgument {
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
-  optional string                                  key                              = 3;
-  string                                           value                            = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1107,8 +1107,9 @@ message Par {
 }
 
 message List {
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
+  repeated AnyNode                                 attached                         = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
@@ -1322,31 +1323,31 @@ message DocumentGroup {
 
 message AnyNode {
   oneof kind {
-    StmtList                                         stmtlist                         = 1;
-    Empty                                            empty                            = 2;
-    Cell                                             cell                             = 3;
-    Row                                              row                              = 4;
-    Table                                            table                            = 5;
-    HashTag                                          hashtag                          = 6;
-    Footnote                                         footnote                         = 7;
-    Completion                                       completion                       = 8;
-    Paragraph                                        paragraph                        = 9;
-    AnnotatedParagraph                               annotatedparagraph               = 10;
-    Center                                           center                           = 11;
-    Caption                                          caption                          = 12;
-    CmdName                                          cmdname                          = 13;
-    CmdResults                                       cmdresults                       = 14;
-    CommandGroup                                     commandgroup                     = 15;
-    Tblfm                                            tblfm                            = 16;
-    Quote                                            quote                            = 17;
-    CommentBlock                                     commentblock                     = 18;
-    Verse                                            verse                            = 19;
-    Example                                          example                          = 20;
-    ColonExample                                     colonexample                     = 21;
-    CmdArgumentList                                  cmdargumentlist                  = 22;
-    CmdArguments                                     cmdarguments                     = 23;
-    CmdAttr                                          cmdattr                          = 24;
-    CmdArgument                                      cmdargument                      = 25;
+    CmdArgument                                      cmdargument                      = 1;
+    CmdArgumentList                                  cmdargumentlist                  = 2;
+    StmtList                                         stmtlist                         = 3;
+    Empty                                            empty                            = 4;
+    Cell                                             cell                             = 5;
+    Row                                              row                              = 6;
+    Table                                            table                            = 7;
+    HashTag                                          hashtag                          = 8;
+    Footnote                                         footnote                         = 9;
+    Completion                                       completion                       = 10;
+    Paragraph                                        paragraph                        = 11;
+    AnnotatedParagraph                               annotatedparagraph               = 12;
+    Center                                           center                           = 13;
+    Caption                                          caption                          = 14;
+    CmdName                                          cmdname                          = 15;
+    CmdResults                                       cmdresults                       = 16;
+    CommandGroup                                     commandgroup                     = 17;
+    Tblfm                                            tblfm                            = 18;
+    Quote                                            quote                            = 19;
+    CommentBlock                                     commentblock                     = 20;
+    Verse                                            verse                            = 21;
+    Example                                          example                          = 22;
+    ColonExample                                     colonexample                     = 23;
+    CmdArguments                                     cmdarguments                     = 24;
+    CmdAttr                                          cmdattr                          = 25;
     Export                                           export                           = 26;
     AdmonitionBlock                                  admonitionblock                  = 27;
     Call                                             call                             = 28;

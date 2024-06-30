@@ -1211,13 +1211,11 @@ Vec<SemId<Org>> OrgConverter::flatConvertAttached(Vec<OrgAdapter> items) {
     print("flat convert attached");
     Vec<SemId<Org>> result;
 
-    SemSet Attached{osk::CmdAttr, osk::Caption};
-
     Vec<sem::SemId<sem::Org>> buffer;
     for (int i = 0; i < items.size(); ++i) {
         auto it  = items.at(i);
         auto res = convert(it);
-        if (auto it = res->dyn_cast<sem::Attached>(); it != nullptr) {
+        if (res->dyn_cast<sem::Attached>()) {
             buffer.push_back(res);
         } else {
             if (auto res_stmt = res.asOpt<sem::Stmt>()) {

@@ -77,7 +77,16 @@ def vec_field(typ, name, doc):
 
 
 def opt_field(typ, name, doc):
-    return GenTuField(t_opt(typ), name, doc, value="std::nullopt")
+    return GenTuField(type=t_opt(typ), name=name, doc=doc, value="std::nullopt")
+
+
+@beartype
+def opt_ident(typ: QualType,
+              name: str,
+              doc: GenTuDoc = GenTuDoc(""),
+              value: str = "std::nullopt") -> GenTuIdent:
+    return GenTuIdent(type=t_cr(t_opt(typ)), name=name, value=value)
+
 
 def bool_field(name: str, doc: GenTuDoc, default: str = "false") -> GenTuField:
     return GenTuField(t("bool"), name, doc=doc, value=default)
@@ -132,6 +141,47 @@ def d_simple_enum(name: str, doc: GenTuDoc, *args):
 def get_types() -> Sequence[GenTuStruct]:
     return [
         d_org(
+            "CmdArgument",
+            GenTuDoc("Single key-value (or positional)"),
+            bases=[t_org("Org")],
+            fields=[
+                opt_field(t_str(), "key", GenTuDoc("Key")),
+                GenTuField(t_str(), "value", GenTuDoc("Value")),
+            ],
+            methods=[
+                GenTuFunction(
+                    t_opt(t_int()),
+                    "getInt",
+                    GenTuDoc("Parse argument as integer value"),
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_bool()),
+                    "getBool",
+                    GenTuDoc("Get argument as bool"),
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_str(),
+                    "getString",
+                    GenTuDoc("Get original string"),
+                    isConst=True,
+                ),
+            ],
+        ),
+        d_org(
+            "CmdArgumentList",
+            GenTuDoc("Data type to wrap list of identical command arguments"),
+            bases=[t_org("Org")],
+            fields=[
+                vec_field(
+                    t_id("CmdArgument"),
+                    "args",
+                    GenTuDoc("List of arguments"),
+                ),
+            ],
+        ),
+        d_org(
             "Stmt",
             GenTuDoc(
                 "Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)"
@@ -143,9 +193,20 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuFunction(
                     t_vec(t_id()),
                     "getAttached",
-                    GenTuDoc(""),
-                    arguments=[GenTuIdent(t_cr(t_str()), "kind")],
-                )
+                    GenTuDoc("Return attached nodes of a specific kinds or all attached (if kind is nullopt)"),
+                    arguments=[opt_ident(t_str(), "kind", GenTuDoc(""))],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_id("CmdArgumentList")),
+                    "getArguments",
+                    GenTuDoc(
+                        "Get all named arguments for the command, across all attached properties. "
+                        "If kind is nullopt returns all attached arguments for all properties."
+                    ),
+                    arguments=[opt_ident(t_str(), "kind", GenTuDoc(""))],
+                    isConst=True,
+                ),
             ],
             nested=[
                 GenTuPass("Stmt() {}"),
@@ -365,7 +426,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     t_opt(t_id("CmdArgumentList")),
                     "getArguments",
                     GenTuDoc("Return all parameters with keys matching name"),
-                    arguments=[GenTuIdent(t_cr(t_str()), "key")],
+                    arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
                     isConst=True,
                     isVirtual=True,
                 ),
@@ -392,20 +453,10 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Block")],
         ),
         d_org("Example", GenTuDoc("Example block"), bases=[t_org("Block")]),
-        d_org("ColonExample",
-              GenTuDoc("Shortened colon example block"),
-              bases=[t_org("Org")]),
         d_org(
-            "CmdArgumentList",
-            GenTuDoc("Data type to wrap list of identical command arguments"),
+            "ColonExample",
+            GenTuDoc("Shortened colon example block"),
             bases=[t_org("Org")],
-            fields=[
-                vec_field(
-                    t_id("CmdArgument"),
-                    "args",
-                    GenTuDoc("List of arguments"),
-                ),
-            ]
         ),
         d_org(
             "CmdArguments",
@@ -416,12 +467,13 @@ def get_types() -> Sequence[GenTuStruct]:
                     t_opt(t_id("CmdArgumentList")),
                     "getArguments",
                     GenTuDoc(""),
-                    arguments=[GenTuIdent(t_cr(t_str()), "key")],
+                    arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
                     isConst=True,
                 )
             ],
             fields=[
-                id_field("CmdArgumentList", "positional", GenTuDoc("Positional arguments with no keys")),
+                id_field("CmdArgumentList", "positional",
+                         GenTuDoc("Positional arguments with no keys")),
                 GenTuField(
                     t_map(t_str(), t_id("CmdArgumentList")),
                     "named",
@@ -436,31 +488,6 @@ def get_types() -> Sequence[GenTuStruct]:
             fields=[
                 GenTuField(t_str(), "target", GenTuDoc("")),
                 id_field("CmdArguments", "parameters", GenTuDoc("HTML attributes"))
-            ],
-        ),
-        d_org(
-            "CmdArgument",
-            GenTuDoc("Single key-value (or positional)"),
-            bases=[t_org("Org")],
-            fields=[
-                opt_field(t_str(), "key", GenTuDoc("Key")),
-                GenTuField(t_str(), "value", GenTuDoc("Value")),
-            ],
-            methods=[
-                GenTuFunction(
-                    t_opt(t_int()),
-                    "getInt",
-                    GenTuDoc("Parse argument as integer value"),
-                    isConst=True,
-                ),
-                GenTuFunction(t_opt(t_bool()),
-                              "getBool",
-                              GenTuDoc("Get argument as bool"),
-                              isConst=True),
-                GenTuFunction(t_str(),
-                              "getString",
-                              GenTuDoc("Get original string"),
-                              isConst=True),
             ],
         ),
         d_org(
@@ -974,8 +1001,10 @@ def get_types() -> Sequence[GenTuStruct]:
                 opt_field(t_id("Time"), "deadline", GenTuDoc("When is the deadline")),
                 opt_field(t_id("Time"), "scheduled",
                           GenTuDoc("When the event is scheduled")),
-                bool_field("isComment", GenTuDoc("Subtree is annotated with the COMMENT keyword")),
-                bool_field("isArchived", GenTuDoc("Subtree is tagged with `:ARCHIVE:` tag")),
+                bool_field("isComment",
+                           GenTuDoc("Subtree is annotated with the COMMENT keyword")),
+                bool_field("isArchived",
+                           GenTuDoc("Subtree is tagged with `:ARCHIVE:` tag")),
             ],
             methods=[
                 GenTuFunction(
@@ -1324,7 +1353,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "List",
             GenTuDoc(""),
-            bases=[t_org("Org")],
+            bases=[t_org("Stmt")],
             methods=[
                 GenTuFunction(t_bool(), "isDescriptionList", GenTuDoc(""), isConst=True)
             ],
@@ -1572,17 +1601,29 @@ def get_types() -> Sequence[GenTuStruct]:
                         GenTuStruct(t("Example"), GenTuDoc("")),
                         GenTuStruct(t("Export"), GenTuDoc("")),
                         GenTuStruct(t("Src"), GenTuDoc("")),
-                        GenTuStruct(t("OrgDocument"), GenTuDoc(""), fields=[
-                            opt_field(t_int(), "minLevel", GenTuDoc("The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level."))
-                        ]),
+                        GenTuStruct(
+                            t("OrgDocument"),
+                            GenTuDoc(""),
+                            fields=[
+                                opt_field(
+                                    t_int(), "minLevel",
+                                    GenTuDoc(
+                                        "The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level."
+                                    ))
+                            ]),
                     ],
                     kindGetter="getIncludeKind",
                 )
             ],
             fields=[
                 GenTuField(t_str(), "path", GenTuDoc("Path to include")),
-                opt_field(t_int(), "firstLine", GenTuDoc("0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text")),
-                opt_field(t_int(), "lastLine", GenTuDoc("0-based index of the last line to include")),
+                opt_field(
+                    t_int(), "firstLine",
+                    GenTuDoc(
+                        "0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text"
+                    )),
+                opt_field(t_int(), "lastLine",
+                          GenTuDoc("0-based index of the last line to include")),
             ],
         ),
         d_org(

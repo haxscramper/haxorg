@@ -418,6 +418,8 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 }
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
+  if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
+  if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
   if (value == "Cell") { return OrgSemKind::Cell; } else
@@ -439,10 +441,8 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Verse") { return OrgSemKind::Verse; } else
   if (value == "Example") { return OrgSemKind::Example; } else
   if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
-  if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
-  if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
   if (value == "Export") { return OrgSemKind::Export; } else
   if (value == "AdmonitionBlock") { return OrgSemKind::AdmonitionBlock; } else
   if (value == "Call") { return OrgSemKind::Call; } else
@@ -487,6 +487,8 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 }
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
+    case OrgSemKind::CmdArgument: return "CmdArgument";
+    case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
     case OrgSemKind::StmtList: return "StmtList";
     case OrgSemKind::Empty: return "Empty";
     case OrgSemKind::Cell: return "Cell";
@@ -508,10 +510,8 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Verse: return "Verse";
     case OrgSemKind::Example: return "Example";
     case OrgSemKind::ColonExample: return "ColonExample";
-    case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
     case OrgSemKind::CmdArguments: return "CmdArguments";
     case OrgSemKind::CmdAttr: return "CmdAttr";
-    case OrgSemKind::CmdArgument: return "CmdArgument";
     case OrgSemKind::Export: return "Export";
     case OrgSemKind::AdmonitionBlock: return "AdmonitionBlock";
     case OrgSemKind::Call: return "Call";

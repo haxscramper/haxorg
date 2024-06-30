@@ -31,6 +31,20 @@ def test_word() -> None:
     assert node[0][0][0].getKind() == org.OrgSemKind.Word
 
 
+def test_attached_property():
+    node = org.parseString("""#+attr_list: :export nil
+- =some_property= :: Value
+    """)
+
+    l: org.List = node[0]
+    assert l.getKind() == org.OrgSemKind.List
+    exp: org.CmdArgumentList = l.getArguments("export")
+    assert exp
+    exp0 = exp.args[0]
+    assert exp0
+    assert exp0.getString() == "nil"
+    assert exp0.getBool() == False
+
 def test_link_resolution():
     resolve = org.OrgDocumentContext()
     node = org.parseString("""
@@ -220,3 +234,4 @@ def test_segment_tree():
     assert annotations[0].last == 2
     assert len(annotations[0].annotations) == 1
     assert annotations[0].isAnnotatedWith(1, 2)
+

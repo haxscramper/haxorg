@@ -51,16 +51,31 @@ Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 
 Opt<SemId<CmdArgumentList>> CmdArguments::getArguments(
-    CR<Str> param) const {
-    auto norm = normalize(param);
-    if (named.contains(norm)) {
-        return named.at(norm);
+    CR<Opt<Str>> param) const {
+    if (param) {
+        auto norm = normalize(*param);
+        if (named.contains(norm)) {
+            return named.at(norm);
+        } else {
+            return std::nullopt;
+        }
     } else {
-        return {};
+        auto result = SemId<CmdArgumentList>::New();
+        for (auto const& it : positional->args) {
+            result->args.push_back(it);
+        }
+
+        for (auto const& it : named.keys()) {
+            for (auto const& val : named.at(it)->args) {
+                result->args.push_back(val);
+            }
+        }
+
+        return result;
     }
 }
 
-Opt<SemId<CmdArgumentList>> Block::getArguments(CR<Str> param) const {
+Opt<SemId<CmdArgumentList>> Block::getArguments(CR<Opt<Str>> param) const {
     if (parameters) {
         return (*parameters)->getArguments(param);
     } else {
@@ -284,20 +299,51 @@ bool List::isDescriptionList() const {
     return false;
 }
 
-Vec<SemId<Org>> Stmt::getAttached(CR<Str> kind) {
+Vec<sem::SemId<sem::Org>> Stmt::getAttached(CR<Opt<Str>> kind) const {
     Vec<SemId<Org>> result;
     for (const auto& sub : attached) {
-        if (auto attr = sub.getAs<sem::CmdAttr>()) {
-            if (normalize("attr_" + attr->target) == kind) {
+        if (kind) {
+            auto k = *kind;
+            if (auto attr = sub.getAs<sem::CmdAttr>()) {
+                if (normalize("attr_" + attr->target) == k) {
+                    result.push_back(sub);
+                }
+            } else if (auto cap = sub.getAs<sem::Caption>();
+                       cap && normalize(k) == "caption") {
                 result.push_back(sub);
             }
-        } else if (auto cap = sub.getAs<sem::Caption>();
-                   cap && normalize(kind) == "caption") {
+        } else {
             result.push_back(sub);
         }
     }
 
     return result;
+}
+
+Opt<sem::SemId<CmdArgumentList>> Stmt::getArguments(
+    const Opt<Str>& kind) const {
+    auto result      = SemId<CmdArgumentList>::New();
+    auto expect_kind = [&](CR<Str> key) -> bool {
+        return !kind || normalize(*kind) == key;
+    };
+
+    for (auto const& sub : attached) {
+        if (auto cap = sub.getAs<Caption>(); expect_kind("caption")) {
+            // pass
+        } else if (auto attr = sub.getAs<sem::CmdAttr>()) {
+            if (auto arguments = attr->parameters->getArguments(kind)) {
+                for (auto const& arg : (**arguments).args) {
+                    result->args.push_back(arg);
+                }
+            }
+        }
+    }
+
+    if (result->args.empty()) {
+        return std::nullopt;
+    } else {
+        return result;
+    }
 }
 
 void Org::push_back(SemId<Org> sub) {
