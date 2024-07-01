@@ -200,10 +200,8 @@ OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
 OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
     __perf_trace("parsePlaceholder");
     auto __trace = trace(lex);
-    if (lex.at(otk::RawText, 1)) {
-        skip(lex, otk::AngleBegin);
-        auto tok = token(org::Placeholder, pop(lex, otk::RawText));
-        skip(lex, otk::AngleEnd);
+    if (lex.at(otk::Placeholder)) {
+        auto tok = token(org::Placeholder, pop(lex, otk::Placeholder));
         return tok;
     } else {
         return token(org::Punctuation, pop(lex, lex.kind()));
@@ -364,6 +362,11 @@ void OrgParser::textFold(OrgLexer& lex) {
                 case otk::SubtreePriority:
                 case otk::Number: {
                     token(org::Word, pop(lex, lex.kind()));
+                    break;
+                }
+
+                case otk::Placeholder: {
+                    parsePlaceholder(lex);
                     break;
                 }
 

@@ -175,6 +175,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::ParEnd: return "ParEnd";
         case OrgTokenKind::Percent: return "Percent";
         case OrgTokenKind::Pipe: return "Pipe";
+        case OrgTokenKind::Placeholder: return "Placeholder";
         case OrgTokenKind::Plus: return "Plus";
         case OrgTokenKind::Punctuation: return "Punctuation";
         case OrgTokenKind::RawText: return "RawText";
@@ -367,6 +368,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "ParEnd") { return OrgTokenKind::ParEnd; } else
   if (value == "Percent") { return OrgTokenKind::Percent; } else
   if (value == "Pipe") { return OrgTokenKind::Pipe; } else
+  if (value == "Placeholder") { return OrgTokenKind::Placeholder; } else
   if (value == "Plus") { return OrgTokenKind::Plus; } else
   if (value == "Punctuation") { return OrgTokenKind::Punctuation; } else
   if (value == "RawText") { return OrgTokenKind::RawText; } else

@@ -874,7 +874,7 @@ SemId<Word> OrgConverter::convertWord(__args) {
 SemId<Placeholder> OrgConverter::convertPlaceholder(__args) {
     __perf_trace("convert", "convertPlaceholder");
     auto __trace = trace(a);
-    return SemLeaf<Placeholder>(one(a, N::Body));
+    return SemLeaf<Placeholder>(a);
 }
 
 SemId<Newline> OrgConverter::convertNewline(__args) {

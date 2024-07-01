@@ -486,6 +486,15 @@ struct RecombineState {
                 break;
             }
 
+            case otk::Placeholder: {
+                add_fake(
+                    otk::Placeholder,
+                    loc_fill(lex.val().text.substr(
+                        1, lex.val().text.size() - 2)));
+                lex.next();
+                break;
+            }
+
             case otk::TextSrcBegin: {
                 add_fake(
                     otk::TextSrcBegin, loc_fill(lex.val().text.substr(4)));

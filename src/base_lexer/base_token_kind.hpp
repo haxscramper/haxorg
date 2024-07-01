@@ -147,6 +147,7 @@ enum class OrgTokenKind : unsigned short int {
   ParEnd,
   Percent,
   Pipe,
+  Placeholder,
   Plus,
   Punctuation,
   RawText,

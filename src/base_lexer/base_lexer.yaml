@@ -616,6 +616,7 @@ rules:
   - { lit: ";", token: Semicolon }
   - { lit: "*", token: Asterisk }
   - { lit: ",", token: Comma }
+  - { re: "<(\\w|\\s)+>", token: "Placeholder" }
   - { lit: "<<<", token: TripleAngleBegin }
   - { lit: ">>>", token: TripleAngleEnd }
   - { lit: "<<", token: DoubleAngleBegin }

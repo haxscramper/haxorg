@@ -67,3 +67,11 @@ example
 
 - key :: Value
 - key :: Value
+
+
+#+attr_list: :export nil
+- =some_property= :: Must skip list on export
+
+Text
+
+- =some_property= :: Value

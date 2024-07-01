@@ -67,6 +67,15 @@ class ExporterTypst(ExporterBase):
             ]) for idx in range(len(body))
         ])
 
+
+    def wrapStmt(self, node: org.Stmt, result: BlockId) -> BlockId:
+        args = node.getArguments("export")
+        if args and 0 < len(args.args) and args.args[0].getBool() == False:
+            return self.string("")
+
+        else:
+            return result
+
     def lineSubnodes(self, node: org.Org) -> BlockId:
         return self.t.line([self.exp.eval(it) for it in node])
 
@@ -168,7 +177,7 @@ class ExporterTypst(ExporterBase):
              self.exp.eval(node.to)])
 
     def evalList(self, node: org.List) -> BlockId:
-        return self.stackSubnodes(node)
+        return self.wrapStmt(node, self.stackSubnodes(node))
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         if node.isDescriptionItem():
