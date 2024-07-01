@@ -144,6 +144,8 @@ struct OrgConverter : public OperationsTracer {
     SemId<Par>                convertPar(In);
     SemId<Bold>               convertBold(In);
     SemId<RawText>            convertRawText(In);
+    SemId<RadioTarget>        convertRadioTarget(In);
+    SemId<TextTarget>         convertTextTarget(In);
     SemId<List>               convertList(In);
     SemId<ListItem>           convertListItem(In);
     SemId<Tblfm>              convertTblfm(In);
@@ -172,7 +174,8 @@ struct OrgConverter : public OperationsTracer {
     SemId<Code>               convertCode(In);
     SemId<CmdAttr>            convertCmdAttr(In);
 
-    Vec<SemId<Org>> flatConvertAttached(In);
+    Vec<SemId<Org>> flatConvertAttached(Vec<In> items);
+    Vec<SemId<Org>> flatConvertAttachedSubnodes(In item);
 
 
     template <typename T>
@@ -206,7 +209,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<Document> toDocument(OrgAdapter tree);
 
     finally trace(
-        In          adapter,
+        Opt<In>     adapter,
         Opt<Str>    subname  = std::nullopt,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());

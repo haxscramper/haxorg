@@ -486,6 +486,15 @@ struct RecombineState {
                 break;
             }
 
+            case otk::Placeholder: {
+                add_fake(
+                    otk::Placeholder,
+                    loc_fill(lex.val().text.substr(
+                        1, lex.val().text.size() - 2)));
+                lex.next();
+                break;
+            }
+
             case otk::TextSrcBegin: {
                 add_fake(
                     otk::TextSrcBegin, loc_fill(lex.val().text.substr(4)));
@@ -585,6 +594,9 @@ struct LineToken {
         otk::CmdExportEnd,
         otk::CmdVerseEnd,
         otk::CmdCommentEnd,
+        otk::CmdTableEnd,
+        otk::CmdRowEnd,
+        otk::CmdCellEnd,
     };
 
     IntSet<OrgTokenKind> CmdBlockOpen{
@@ -595,6 +607,9 @@ struct LineToken {
         otk::CmdQuoteBegin,
         otk::CmdVerseBegin,
         otk::CmdCommentBegin,
+        otk::CmdTableBegin,
+        otk::CmdRowBegin,
+        otk::CmdCellBegin,
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{
@@ -608,6 +623,7 @@ struct LineToken {
         otk::CmdTblfm,         otk::CmdLatexClass,
         otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
         otk::CmdLatexHeader,   otk::CmdStartup,
+        otk::CmdRow,           otk::CmdCell,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {

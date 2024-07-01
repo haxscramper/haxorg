@@ -4,6 +4,8 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SEM_ORG_KIND(__IMPL) \
+    __IMPL(CmdArgument) \
+    __IMPL(CmdArgumentList) \
     __IMPL(StmtList) \
     __IMPL(Empty) \
     __IMPL(Cell) \
@@ -27,7 +29,6 @@
     __IMPL(ColonExample) \
     __IMPL(CmdArguments) \
     __IMPL(CmdAttr) \
-    __IMPL(CmdArgument) \
     __IMPL(Export) \
     __IMPL(AdmonitionBlock) \
     __IMPL(Call) \
@@ -48,6 +49,8 @@
     __IMPL(Punctuation) \
     __IMPL(Placeholder) \
     __IMPL(BigIdent) \
+    __IMPL(RadioTarget) \
+    __IMPL(TextTarget) \
     __IMPL(Bold) \
     __IMPL(Underline) \
     __IMPL(Monospace) \
@@ -384,7 +387,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgSemKind : short int { StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, CommentBlock, Verse, Example, ColonExample, CmdArguments, CmdAttr, CmdArgument, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { CmdArgument, CmdArgumentList, StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, Center, Caption, CmdName, CmdResults, CommandGroup, Tblfm, Quote, CommentBlock, Verse, Example, ColonExample, CmdArguments, CmdAttr, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);
@@ -393,7 +396,7 @@ struct enum_serde<OrgSemKind> {
 
 template <>
 struct value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
-                                                               OrgSemKind::StmtList,
+                                                               OrgSemKind::CmdArgument,
                                                                OrgSemKind::DocumentGroup> {};
 
 

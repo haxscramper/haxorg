@@ -28,7 +28,10 @@ target_include_directories(
     ${PYTHON_INCLUDE_DIRS}
 )
 
+
 target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto)
+
+
 target_compile_options(pyhaxorg PRIVATE -shared-libasan)
 
 add_executable(

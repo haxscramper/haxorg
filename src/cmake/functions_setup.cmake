@@ -51,7 +51,8 @@ function(set_target_flags TARGET)
       add_target_property(${TARGET} LINK_OPTIONS
                           "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
       add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
-      add_target_property(${TARGET} LINK_OPTIONS "-shared-libasan")
+      add_target_property(${TARGET} LINK_OPTIONS "-L${LLVM_GNU_CLANG_DIR}")
+      add_target_property(${TARGET} LINK_OPTIONS "-Wl,-rpath,${LLVM_ASAN_LIBRARY}")
       target_link_libraries(${TARGET} PRIVATE ${ASAN_LIBRARY})
     endif()
 

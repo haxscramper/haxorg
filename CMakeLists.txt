@@ -29,7 +29,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 # Directory with clang-related runtime libraries such as asan that are shipped 
 # with LLVM
-set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/17/lib/x86_64-unknown-linux-gnu")
+set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/18/lib/x86_64-unknown-linux-gnu")
 # Declare variable for the asan library path, it is used in target setups, this
 # is not some specific variable that is implicitly consumed, just declared it here
 set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
@@ -60,14 +60,18 @@ option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adapt
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
-if (${ORG_USE_SANITIZER})
-    # Enable the sanitizer options. They are set globally primarity for the
-    # in-source dependencies like google fuzztest, ABSL and so on -- if there
-    # is a way to set them in a more focused manner they should be moved to the
-    # respective consumers of these flags.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined,address")
-endif()
+
+
+# if (${ORG_USE_SANITIZER})
+#     # Enable the sanitizer options. They are set globally primarity for the
+#     # in-source dependencies like google fuzztest, ABSL and so on -- if there
+#     # is a way to set them in a more focused manner they should be moved to the
+#     # respective consumers of these flags.
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address")
+#     set(VAR_ORG_SANITIZER_LINK_FLAGS "-fsanitize=undefined,address -L${ASAN_RT_PATH} -Wl,-rpath,${ASAN_RT_PATH}")
+#     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${VAR_ORG_SANITIZER_LINK_FLAGS}")
+#     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${VAR_ORG_SANITIZER_LINK_FLAGS}")
+# endif()
 
 
 

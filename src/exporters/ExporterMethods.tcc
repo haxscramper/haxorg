@@ -1,4 +1,6 @@
 /* clang-format off */
+void visitCmdArgument(R& res, In<sem::CmdArgument> object);
+void visitCmdArgumentList(R& res, In<sem::CmdArgumentList> object);
 void visitStmt(R& res, In<sem::Stmt> object);
 void visitInline(R& res, In<sem::Inline> object);
 void visitStmtList(R& res, In<sem::StmtList> object);
@@ -35,7 +37,6 @@ void visitExample(R& res, In<sem::Example> object);
 void visitColonExample(R& res, In<sem::ColonExample> object);
 void visitCmdArguments(R& res, In<sem::CmdArguments> object);
 void visitCmdAttr(R& res, In<sem::CmdAttr> object);
-void visitCmdArgument(R& res, In<sem::CmdArgument> object);
 void visitExport(R& res, In<sem::Export> object);
 void visitAdmonitionBlock(R& res, In<sem::AdmonitionBlock> object);
 void visitCall(R& res, In<sem::Call> object);
@@ -103,6 +104,8 @@ void visitRawText(R& res, In<sem::RawText> object);
 void visitPunctuation(R& res, In<sem::Punctuation> object);
 void visitPlaceholder(R& res, In<sem::Placeholder> object);
 void visitBigIdent(R& res, In<sem::BigIdent> object);
+void visitRadioTarget(R& res, In<sem::RadioTarget> object);
+void visitTextTarget(R& res, In<sem::TextTarget> object);
 void visitMarkup(R& res, In<sem::Markup> object);
 void visitBold(R& res, In<sem::Bold> object);
 void visitUnderline(R& res, In<sem::Underline> object);

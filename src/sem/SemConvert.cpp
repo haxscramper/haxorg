@@ -429,18 +429,40 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Title, a);
         tree->title  = convertParagraph(one(a, N::Title));
+        auto& sn     = tree->title->subnodes;
+        if (Opt<sem::SemId<sem::Org>> first = sn.get(0); first) {
+            if (auto ident = first.value().asOpt<sem::BigIdent>();
+                ident && ident->text == "COMMENT") {
+                tree->isComment = true;
+                int offset      = 1;
+                while (sn.has(offset) && sn.at(offset)->is(osk::Space)) {
+                    ++offset;
+                }
+
+                sn.erase(sn.begin(), sn.begin() + offset);
+            }
+        }
     }
 
     {
         auto __field = field(N::Todo, a);
         auto todo    = one(a, N::Todo);
         if (todo.getKind() != org::Empty) { tree->todo = get_text(todo); }
+        if (tree->todo && tree->todo.value() == "COMMENT") {
+            tree->todo.reset();
+            tree->isComment = true;
+        }
     }
 
     {
         auto __field = field(N::Tags, a);
         for (const auto& hash : one(a, N::Tags)) {
-            tree->tags.push_back(convertHashTag(hash));
+            auto tag = convertHashTag(hash);
+            if (tag->head == "ARCHIVE") {
+                tree->isArchived = true;
+            } else {
+                tree->tags.push_back(tag);
+            }
         }
     }
 
@@ -451,9 +473,9 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         auto __field = field(N::Body, a);
-        for (auto const& sub : one(a, N::Body)) {
-            auto subres = convert(sub);
-            tree->push_back(subres);
+        for (auto const& it :
+             flatConvertAttachedSubnodes(one(a, N::Body))) {
+            tree->push_back(it);
         }
     }
 
@@ -702,11 +724,9 @@ SemId<AnnotatedParagraph> OrgConverter::convertAnnotatedParagraph(__args) {
 
 SemId<StmtList> OrgConverter::convertStmtList(__args) {
     __perf_trace("convert", "convertStmtList");
-    auto __trace = trace(a);
-    auto stmt    = Sem<StmtList>(a);
-
-    for (OrgAdapter const& sub : a) { stmt->push_back(convert(sub)); }
-
+    auto __trace   = trace(a);
+    auto stmt      = Sem<StmtList>(a);
+    stmt->subnodes = flatConvertAttachedSubnodes(a);
     return stmt;
 }
 
@@ -848,7 +868,7 @@ SemId<Word> OrgConverter::convertWord(__args) {
 SemId<Placeholder> OrgConverter::convertPlaceholder(__args) {
     __perf_trace("convert", "convertPlaceholder");
     auto __trace = trace(a);
-    return SemLeaf<Placeholder>(one(a, N::Body));
+    return SemLeaf<Placeholder>(a);
 }
 
 SemId<Newline> OrgConverter::convertNewline(__args) {
@@ -867,6 +887,19 @@ SemId<Escaped> OrgConverter::convertEscaped(__args) {
 SemId<RawText> OrgConverter::convertRawText(__args) {
     return SemLeaf<RawText>(a);
 }
+
+SemId<RadioTarget> OrgConverter::convertRadioTarget(__args) {
+    auto result = Sem<RadioTarget>(a);
+    for (auto const& sub : a) { result->text += get_text(sub); }
+    return result;
+}
+
+SemId<TextTarget> OrgConverter::convertTextTarget(__args) {
+    auto result = Sem<TextTarget>(a);
+    for (auto const& sub : a) { result->text += get_text(sub); }
+    return result;
+}
+
 
 SemId<Punctuation> OrgConverter::convertPunctuation(__args) {
     auto __trace = trace(a);
@@ -964,8 +997,8 @@ SemId<Export> OrgConverter::convertExport(__args) {
     }
 
     auto values = convertCmdArguments(one(a, N::Args));
-    if (auto place = values->getParameter("placement"); place) {
-        eexport->placement = (*place)->getString();
+    if (auto place = values->getArguments("placement"); place) {
+        eexport->placement = place->value->args.at(0)->getString();
         values->named.erase("placement");
     }
 
@@ -1000,18 +1033,16 @@ SemId<AdmonitionBlock> OrgConverter::convertAdmonitionBlock(__args) {
 
 SemId<Quote> OrgConverter::convertQuote(__args) {
     SemId<Quote> quote = Sem<Quote>(a);
-    for (const auto& sub : many(a, N::Body)) {
-        auto aux = convert(sub);
-        quote->push_back(aux);
+    for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
+        quote->push_back(sub);
     }
     return quote;
 }
 
 SemId<CommentBlock> OrgConverter::convertCommentBlock(__args) {
     SemId<CommentBlock> result = Sem<CommentBlock>(a);
-    for (const auto& sub : many(a, N::Body)) {
-        auto aux = convert(sub);
-        result->push_back(aux);
+    for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
+        result->push_back(sub);
     }
     return result;
 }
@@ -1026,6 +1057,46 @@ SemId<LatexBody> OrgConverter::convertMath(__args) {
 
 SemId<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
+    auto           args    = convertCmdArguments(one(a, N::Args));
+    include->path          = args->positional->args.at(0)->getString();
+
+    if (auto kind = args->positional->args.get(1)) {
+        Str ks = kind.value().get()->value;
+        if (ks == "src"_ss) {
+            auto src      = sem::Include::Src{};
+            include->data = src;
+
+        } else {
+            LOG(FATAL) << fmt("Unhandled org include kind {}", ks);
+        }
+
+    } else {
+        include->data = sem::Include::OrgDocument{};
+    }
+
+    if (args->named.contains("minlevel")) {
+        include->getOrgDocument().minLevel = args->named.at("minlevel")
+                                                 ->args.at(0)
+                                                 ->getInt();
+    }
+
+    if (args->named.contains("lines")) {
+        Str lines = strip(
+            (**args->getArguments("lines")).args.at(0)->getString(),
+            CharSet{'"'},
+            CharSet{'"'});
+        Vec<Str> split = lines.split("-");
+        if (lines.starts_with("-")) {
+            include->lastLine = split.at(1).toInt() - 1;
+        } else if (lines.ends_with("-")) {
+            include->firstLine = split.at(0).toInt() - 1;
+        } else {
+            include->firstLine = split.at(0).toInt() - 1;
+            include->lastLine  = split.at(1).toInt() - 1;
+        }
+    }
+
+
     return include;
 }
 
@@ -1053,10 +1124,15 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 
     auto add_arg = [&](SemId<CmdArgument> arg) {
         if (arg->key) {
-            bool ok = result->named.insert({arg->key.value(), arg}).second;
-            CHECK(ok); // TODO generate proper error message
+            if (result->named.contains(*arg->key)) {
+                result->named[*arg->key]->args.push_back(arg);
+            } else {
+                auto args = SemId<CmdArgumentList>::New();
+                args->args.push_back(arg);
+                result->named.insert({arg->key.value(), args});
+            }
         } else {
-            result->positional.push_back(arg);
+            result->positional->push_back(arg);
         }
     };
 
@@ -1123,28 +1199,53 @@ SemId<Code> OrgConverter::convertCode(__args) {
 }
 
 
-Vec<SemId<Org>> OrgConverter::flatConvertAttached(__args) {
-    Vec<SemId<Org>>        result;
-    Func<void(OrgAdapter)> aux;
-    aux = [&](OrgAdapter a) {
-        SemId res = SemId<Org>::Nil();
-        switch (a.kind()) {
-            case org::CommandCaption: res = convertCaption(a); break;
-            default:
-                LOG(FATAL)
-                    << "TODO unhandled kind $#" % to_string_vec(a.kind());
+Vec<SemId<Org>> OrgConverter::flatConvertAttached(Vec<OrgAdapter> items) {
+    auto            __trace = trace(std::nullopt);
+    Vec<SemId<Org>> result;
+
+    Vec<sem::SemId<sem::Org>> buffer;
+    for (int i = 0; i < items.size(); ++i) {
+        auto it  = items.at(i);
+        auto res = convert(it);
+        if (res->dyn_cast<sem::Attached>()) {
+            print(fmt("{} is attached", res->getKind()));
+            buffer.push_back(res);
+        } else {
+            if (auto res_stmt = res.asOpt<sem::Stmt>()) {
+                print(fmt(
+                    "{} is a statement, adding attached", res->getKind()));
+                res_stmt->attached = buffer;
+            } else {
+                print(
+                    fmt("{} is not a statement, releasing attached",
+                        res->getKind()));
+                for (auto const& buf : buffer) { result.push_back(buf); }
+            }
+            buffer.clear();
+            result.push_back(res);
         }
 
-        CHECK(!res.isNil());
-        result.push_back(res);
-        if (OrgTrailableCommands.contains(a.kind())) {
-            aux(one(a, N::Body));
-        }
-    };
+        int offset = 0;
+        for (auto next_opt = items.get(i + offset + 1);
+             next_opt && next_opt->get().getKind() == org::CommandTblfm;
+             ++offset) {
 
-    aux(a);
+            auto tblfm = convertTblfm(next_opt->get());
+            LOG(FATAL) << "TODO";
+        }
+
+        i += offset;
+    }
+
+    for (auto const& buf : buffer) { result.push_back(buf); }
 
     return result;
+}
+
+Vec<SemId<Org>> OrgConverter::flatConvertAttachedSubnodes(In item) {
+    Vec<OrgAdapter> items;
+    for (auto const& sub : item) { items.push_back(sub); }
+    return flatConvertAttached(items);
 }
 
 
@@ -1181,6 +1282,8 @@ SemId<Org> OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::Target: return convertTextTarget(a);
+        case org::RadioTarget: return convertRadioTarget(a);
         case org::InlineStmtList: return convertStmtList(a);
         case org::SrcInlineCode:
         case org::SrcCode: return convertCode(a);
@@ -1213,6 +1316,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::CommandTblfm: return convertTblfm(a);
         case org::CommandAttr: return convertCmdAttr(a);
         case org::ColonExample: return convertColonExample(a);
+        case org::CommandCaption: return convertCaption(a); break;
         case org::Paragraph: {
             if (2 < a.size()
                 && AnnotatedParagraphStarts.contains(a.at(0).kind())) {
@@ -1228,38 +1332,6 @@ SemId<Org> OrgConverter::convert(__args) {
                 }
             } else {
                 return convertParagraph(a);
-            }
-        }
-        case org::CommandCaption: {
-            // TODO update parent nodes after restructuring
-            Vec<SemId<Org>> nested = flatConvertAttached(a);
-            for (const auto& it : nested) { CHECK(!it.isNil()); }
-
-            CHECK(!nested.empty()) << "nested command wrap"
-                                   << "Nested command result had size 0";
-
-            if (nested.size() == 1) {
-                return nested[0];
-            } else if (SemSet{
-                           osk::Code,
-                           osk::Quote,
-                       }
-                           .contains(nested.back()->getKind())) {
-                // Get last wrapped statement
-                SemId lastNested = nested.back();
-                Stmt* trailed = dynamic_cast<sem::Stmt*>(lastNested.get());
-                CHECK(trailed != nullptr);
-                for (const auto& it : nested[slice(0, 2_B)]) {
-                    trailed->attached.push_back(it);
-                }
-                return lastNested;
-
-            } else {
-                SemId<CommandGroup> group = Sem<CommandGroup>(a);
-                for (const auto& it : nested) {
-                    group->attached.push_back(it);
-                }
-                return group;
             }
         }
 
@@ -1315,6 +1387,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
     SemId<Document> doc = Sem<Document>(adapter);
     doc->options        = Sem<DocumentOptions>(adapter);
     using Prop          = Subtree::Property;
+    Vec<OrgAdapter> buffer;
 
     if (adapter.kind() == org::StmtList) {
         for (const auto& sub : adapter) {
@@ -1400,13 +1473,17 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 }
 
                 default: {
-                    doc->subnodes.push_back(convert(sub));
+                    buffer.push_back(sub);
                     break;
                 }
             }
         }
     } else {
-        doc->subnodes.push_back(convert(adapter));
+        buffer.push_back(adapter);
+    }
+
+    for (auto const& it : flatConvertAttached(buffer)) {
+        doc->subnodes.push_back(it);
     }
 
     return doc;

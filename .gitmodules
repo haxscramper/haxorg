@@ -43,9 +43,6 @@
 [submodule "thirdparty/abseil-cpp"]
 	path = thirdparty/abseil-cpp
 	url = https://github.com/abseil/abseil-cpp.git
-[submodule "thirdparty/lexbor"]
-	path = thirdparty/lexbor
-	url = https://github.com/lexbor/lexbor.git
 [submodule "thirdparty/adaptagrams"]
 	path = thirdparty/adaptagrams
 	url = https://github.com/mjwybrow/adaptagrams.git

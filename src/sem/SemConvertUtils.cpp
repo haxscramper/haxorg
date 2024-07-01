@@ -134,7 +134,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         case ReportKind::Print: {
             os << "  " << (in.function ? in.function : "")
                << fmt(" @{}", in.line);
-            if (in.msg) { os << *in.msg; }
+            if (in.msg) { os << " " << *in.msg; }
         }
     }
 
@@ -156,7 +156,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgConverter::Report> {
         return *this;
     }
 
-    Builder& with_node(OrgAdapter node) {
+    Builder& with_node(CR<Opt<OrgAdapter>> node) {
         report.node = node;
         return *this;
     }
@@ -183,7 +183,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgConverter::Report> {
 };
 
 finally OrgConverter::trace(
-    In          adapter,
+    Opt<In>     adapter,
     Opt<Str>    subname,
     int         line,
     const char* function) {

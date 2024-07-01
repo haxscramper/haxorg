@@ -418,6 +418,8 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 }
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
+  if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
+  if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
   if (value == "Cell") { return OrgSemKind::Cell; } else
@@ -441,7 +443,6 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
-  if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
   if (value == "Export") { return OrgSemKind::Export; } else
   if (value == "AdmonitionBlock") { return OrgSemKind::AdmonitionBlock; } else
   if (value == "Call") { return OrgSemKind::Call; } else
@@ -462,6 +463,8 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Punctuation") { return OrgSemKind::Punctuation; } else
   if (value == "Placeholder") { return OrgSemKind::Placeholder; } else
   if (value == "BigIdent") { return OrgSemKind::BigIdent; } else
+  if (value == "RadioTarget") { return OrgSemKind::RadioTarget; } else
+  if (value == "TextTarget") { return OrgSemKind::TextTarget; } else
   if (value == "Bold") { return OrgSemKind::Bold; } else
   if (value == "Underline") { return OrgSemKind::Underline; } else
   if (value == "Monospace") { return OrgSemKind::Monospace; } else
@@ -484,6 +487,8 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 }
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
+    case OrgSemKind::CmdArgument: return "CmdArgument";
+    case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
     case OrgSemKind::StmtList: return "StmtList";
     case OrgSemKind::Empty: return "Empty";
     case OrgSemKind::Cell: return "Cell";
@@ -507,7 +512,6 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::ColonExample: return "ColonExample";
     case OrgSemKind::CmdArguments: return "CmdArguments";
     case OrgSemKind::CmdAttr: return "CmdAttr";
-    case OrgSemKind::CmdArgument: return "CmdArgument";
     case OrgSemKind::Export: return "Export";
     case OrgSemKind::AdmonitionBlock: return "AdmonitionBlock";
     case OrgSemKind::Call: return "Call";
@@ -528,6 +532,8 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Punctuation: return "Punctuation";
     case OrgSemKind::Placeholder: return "Placeholder";
     case OrgSemKind::BigIdent: return "BigIdent";
+    case OrgSemKind::RadioTarget: return "RadioTarget";
+    case OrgSemKind::TextTarget: return "TextTarget";
     case OrgSemKind::Bold: return "Bold";
     case OrgSemKind::Underline: return "Underline";
     case OrgSemKind::Monospace: return "Monospace";

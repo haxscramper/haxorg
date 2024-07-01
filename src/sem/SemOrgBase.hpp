@@ -103,14 +103,27 @@ struct SemId {
     O const*        get() const { return value.get(); }
     O*              operator->() { return get(); }
     O const*        operator->() const { return get(); }
+    O&              operator*() { return *value; }
+    O const&        operator*() const { return *value; }
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
 
     template <typename T>
     SemId<T> asOpt() const {
-        if (isNil() || value->getKind() != T::staticKind) {
-            return SemId<T>::Nil();
+        if constexpr (std::is_abstract_v<T>) {
+            auto dyna = getAs<T>();
+            if (dyna == nullptr) {
+                return SemId<T>::Nil();
+            } else {
+                return as<T>();
+            }
+
         } else {
-            return as<T>();
+
+            if (isNil() || value->getKind() != T::staticKind) {
+                return SemId<T>::Nil();
+            } else {
+                return as<T>();
+            }
         }
     }
 
