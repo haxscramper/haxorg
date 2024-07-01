@@ -175,6 +175,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<CmdAttr>            convertCmdAttr(In);
 
     Vec<SemId<Org>> flatConvertAttached(Vec<In> items);
+    Vec<SemId<Org>> flatConvertAttachedSubnodes(In item);
 
 
     template <typename T>
@@ -208,7 +209,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<Document> toDocument(OrgAdapter tree);
 
     finally trace(
-        In          adapter,
+        Opt<In>     adapter,
         Opt<Str>    subname  = std::nullopt,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());

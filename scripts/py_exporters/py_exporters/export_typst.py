@@ -108,6 +108,9 @@ class ExporterTypst(ExporterBase):
     def evalSpace(self, node: org.Space) -> BlockId:
         return self.string(node.text)
 
+    def evalPlaceholder(self, node: org.Placeholder) -> BlockId:
+        return self.surround("*", [self.string(self.escape(node.text))])
+
     def evalBold(self, node: org.Bold) -> BlockId:
         return self.surround("*", [self.lineSubnodes(node)])
 
