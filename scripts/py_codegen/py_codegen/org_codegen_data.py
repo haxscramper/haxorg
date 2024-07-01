@@ -362,7 +362,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Command",
             GenTuDoc("Base class for block or line commands"),
-            bases=[t_org("Org")],
+            bases=[t_org("Stmt")],
             concreteKind=False,
         ),
         d_org(
@@ -440,12 +440,12 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Quote",
             GenTuDoc("Quotation block"),
-            bases=[t_org("Org")],
+            bases=[t_org("Stmt")],
         ),
         d_org(
             "CommentBlock",
             GenTuDoc("Comment block"),
-            bases=[t_org("Org")],
+            bases=[t_org("Stmt")],
         ),
         d_org(
             "Verse",

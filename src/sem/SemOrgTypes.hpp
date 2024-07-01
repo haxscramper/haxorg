@@ -310,10 +310,10 @@ struct Center : public sem::Format {
 };
 
 /// \brief Base class for block or line commands
-struct Command : public sem::Org {
-  using Org::Org;
+struct Command : public sem::Stmt {
+  using Stmt::Stmt;
   virtual ~Command() = default;
-  BOOST_DESCRIBE_CLASS(Command, (Org), (), (), ())
+  BOOST_DESCRIBE_CLASS(Command, (Stmt), (), (), ())
 };
 
 /// \brief Line commands
@@ -418,11 +418,11 @@ struct Tblfm : public sem::Command {
 };
 
 /// \brief Quotation block
-struct Quote : public sem::Org {
-  using Org::Org;
+struct Quote : public sem::Stmt {
+  using Stmt::Stmt;
   virtual ~Quote() = default;
   BOOST_DESCRIBE_CLASS(Quote,
-                       (Org),
+                       (Stmt),
                        (),
                        (),
                        (staticKind, (OrgSemKind() const) getKind))
@@ -431,11 +431,11 @@ struct Quote : public sem::Org {
 };
 
 /// \brief Comment block
-struct CommentBlock : public sem::Org {
-  using Org::Org;
+struct CommentBlock : public sem::Stmt {
+  using Stmt::Stmt;
   virtual ~CommentBlock() = default;
   BOOST_DESCRIBE_CLASS(CommentBlock,
-                       (Org),
+                       (Stmt),
                        (),
                        (),
                        (staticKind, (OrgSemKind() const) getKind))

@@ -468,13 +468,49 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Command, sem::SemId<sem::Command>, sem::Org>(m, "Command")
+  pybind11::class_<sem::Command, sem::SemId<sem::Command>, sem::Stmt>(m, "Command")
+    .def_readwrite("attached", &sem::Command::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Command::*)(Opt<Str> const&) const>(&sem::Command::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Command::*)(Opt<Str> const&) const>(&sem::Command::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     ;
   pybind11::class_<sem::LineCommand, sem::SemId<sem::LineCommand>, sem::Command>(m, "LineCommand")
+    .def_readwrite("attached", &sem::LineCommand::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     ;
   pybind11::class_<sem::Standalone, sem::SemId<sem::Standalone>, sem::LineCommand>(m, "Standalone")
+    .def_readwrite("attached", &sem::Standalone::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Standalone::*)(Opt<Str> const&) const>(&sem::Standalone::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Standalone::*)(Opt<Str> const&) const>(&sem::Standalone::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     ;
   pybind11::class_<sem::Attached, sem::SemId<sem::Attached>, sem::LineCommand>(m, "Attached")
+    .def_readwrite("attached", &sem::Attached::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     ;
   pybind11::class_<sem::Caption, sem::SemId<sem::Caption>, sem::Attached>(m, "Caption")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Caption {
@@ -483,6 +519,15 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Caption::text, R"RAW(Content description)RAW")
+    .def_readwrite("attached", &sem::Caption::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Caption::*)(Opt<Str> const&) const>(&sem::Caption::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Caption::*)(Opt<Str> const&) const>(&sem::Caption::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Caption _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -498,6 +543,15 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("attached", &sem::CmdName::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::CmdName _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -513,6 +567,15 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("attached", &sem::CmdResults::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::CmdResults _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -548,10 +611,19 @@ node can have subnodes.)RAW")
     ;
   pybind11::class_<sem::Block, sem::SemId<sem::Block>, sem::Command>(m, "Block")
     .def_readwrite("parameters", &sem::Block::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::Block::attached)
     .def("getArguments",
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     ;
   pybind11::class_<sem::Tblfm, sem::SemId<sem::Tblfm>, sem::Command>(m, "Tblfm")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm {
@@ -559,6 +631,15 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("attached", &sem::Tblfm::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Tblfm::*)(Opt<Str> const&) const>(&sem::Tblfm::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Tblfm::*)(Opt<Str> const&) const>(&sem::Tblfm::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Tblfm _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -568,12 +649,21 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Quote, sem::SemId<sem::Quote>, sem::Org>(m, "Quote")
+  pybind11::class_<sem::Quote, sem::SemId<sem::Quote>, sem::Stmt>(m, "Quote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Quote {
                         sem::Quote result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("attached", &sem::Quote::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Quote::*)(Opt<Str> const&) const>(&sem::Quote::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Quote::*)(Opt<Str> const&) const>(&sem::Quote::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Quote _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -583,12 +673,21 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CommentBlock, sem::SemId<sem::CommentBlock>, sem::Org>(m, "CommentBlock")
+  pybind11::class_<sem::CommentBlock, sem::SemId<sem::CommentBlock>, sem::Stmt>(m, "CommentBlock")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CommentBlock {
                         sem::CommentBlock result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("attached", &sem::CommentBlock::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CommentBlock::*)(Opt<Str> const&) const>(&sem::CommentBlock::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CommentBlock::*)(Opt<Str> const&) const>(&sem::CommentBlock::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::CommentBlock _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -605,10 +704,19 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("parameters", &sem::Verse::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::Verse::attached)
     .def("getArguments",
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Verse::*)(Opt<Str> const&) const>(&sem::Verse::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Verse::*)(Opt<Str> const&) const>(&sem::Verse::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Verse::*)(Opt<Str> const&) const>(&sem::Verse::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Verse _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -625,10 +733,19 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("parameters", &sem::Example::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::Example::attached)
     .def("getArguments",
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Example::*)(Opt<Str> const&) const>(&sem::Example::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Example::*)(Opt<Str> const&) const>(&sem::Example::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Example::*)(Opt<Str> const&) const>(&sem::Example::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Example _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -681,6 +798,15 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("target", &sem::CmdAttr::target)
     .def_readwrite("parameters", &sem::CmdAttr::parameters, R"RAW(HTML attributes)RAW")
+    .def_readwrite("attached", &sem::CmdAttr::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::CmdAttr _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -712,10 +838,19 @@ node can have subnodes.)RAW")
     .def_readwrite("placement", &sem::Export::placement, R"RAW(Customized position of the text in the final exporting document.)RAW")
     .def_readwrite("content", &sem::Export::content, R"RAW(Raw exporter content string)RAW")
     .def_readwrite("parameters", &sem::Export::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::Export::attached)
     .def("getArguments",
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Export::*)(Opt<Str> const&) const>(&sem::Export::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Export::*)(Opt<Str> const&) const>(&sem::Export::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Export::*)(Opt<Str> const&) const>(&sem::Export::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Export _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -732,10 +867,19 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("parameters", &sem::AdmonitionBlock::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::AdmonitionBlock::attached)
     .def("getArguments",
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::AdmonitionBlock::*)(Opt<Str> const&) const>(&sem::AdmonitionBlock::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::AdmonitionBlock::*)(Opt<Str> const&) const>(&sem::AdmonitionBlock::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::AdmonitionBlock::*)(Opt<Str> const&) const>(&sem::AdmonitionBlock::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::AdmonitionBlock _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1015,10 +1159,19 @@ node can have subnodes.)RAW")
     .def_readwrite("hlines", &sem::Code::hlines, R"RAW(?)RAW")
     .def_readwrite("tangle", &sem::Code::tangle, R"RAW(?)RAW")
     .def_readwrite("parameters", &sem::Code::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::Code::attached)
     .def("getArguments",
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Code::*)(Opt<Str> const&) const>(&sem::Code::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Code::*)(Opt<Str> const&) const>(&sem::Code::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Code::*)(Opt<Str> const&) const>(&sem::Code::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Code _self) -> std::string {
                      return py_repr_impl(_self);
                      })
