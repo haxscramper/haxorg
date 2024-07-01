@@ -44,10 +44,10 @@ class ExporterTypst(ExporterBase):
         return res
 
     def call(
-        self,
-        name: str,
-        kwargs: Dict[str, BlockId | str] = dict(),
-        body: List[BlockId] = list(),
+            self,
+            name: str,
+            kwargs: Dict[str, BlockId | str] = dict(),
+            body: List[BlockId] = list(),
     ) -> BlockId:
         return self.t.stack([
             self.string(f"#{name}("),
@@ -75,6 +75,11 @@ class ExporterTypst(ExporterBase):
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
         return self.lineSubnodes(node)
+
+    def evalAnnotatedParagraph(self, node: org.AnnotatedParagraph) -> BlockId:
+        result = self.lineSubnodes(node)
+
+        return result
 
     def evalNewline(self, node: org.Newline) -> BlockId:
         return self.string(node.text)
@@ -128,7 +133,7 @@ class ExporterTypst(ExporterBase):
     def evalSubtree(self, node: org.Subtree) -> BlockId:
         if node.isComment or node.isArchived:
             return self.string("")
-            
+
         res = self.t.stack([])
 
         self.t.add_at(
@@ -150,6 +155,9 @@ class ExporterTypst(ExporterBase):
 
         return res
 
+    def evalMacro(self, node: org.Macro) -> BlockId:
+        return self.string("")
+
     def evalTime(self, node: org.Time) -> BlockId:
         return self.string(formatDateTime(node.getStatic().time))
 
@@ -158,3 +166,21 @@ class ExporterTypst(ExporterBase):
             [self.exp.eval(node.from_),
              self.string("--"),
              self.exp.eval(node.to)])
+
+    def evalList(self, node: org.List) -> BlockId:
+        return self.stackSubnodes(node)
+
+    def evalListItem(self, node: org.ListItem) -> BlockId:
+        if node.isDescriptionItem():
+            return self.t.line([
+                self.string("/ "),
+                self.exp.eval(node.header),
+                self.string(": "),
+                self.stackSubnodes(node),
+            ])
+            
+        else:
+            return self.t.line([
+                self.string("- "),
+                self.stackSubnodes(node),
+            ])

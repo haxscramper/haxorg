@@ -800,9 +800,8 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
         subParse(TimeStamp, lex);
         skip(lex, otk::DoubleDash);
         subParse(TimeStamp, lex);
-        print("?)");
-        space(lex);
-        if (lex.at(otk::TimeArrow)) {
+        if (lex.ahead({otk::Whitespace}, {otk::TimeArrow})) {
+            space(lex);
             skip(lex, otk::TimeArrow);
             space(lex);
             token(org::SimpleTime, pop(lex, otk::Time));
