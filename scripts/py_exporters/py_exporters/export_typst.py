@@ -8,8 +8,11 @@ from beartype import beartype
 
 from py_exporters.export_base import ExporterBase
 from py_exporters.export_ultraplain import ExporterUltraplain
-from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
+from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
 from py_scriptutils.script_logging import log
+import itertools
+from py_scriptutils.json_utils import Json
+import copy
 
 CAT = "typst"
 
@@ -25,6 +28,20 @@ typst_typ = this_dir.joinpath("export_typst_base.typ")
 
 assert typst_toml.exists(), typst_toml
 assert typst_typ.exists(), typst_typ
+
+
+@beartype
+class RawStr():
+
+    def __init__(self, value: str) -> None:
+        self.value = value
+
+
+@beartype
+class RawBlock():
+
+    def __init__(self, value: BlockId) -> None:
+        self.value = value
 
 
 class TypstPackageFields(BaseModel):
@@ -96,6 +113,42 @@ class ExporterTypst(ExporterBase):
     def content(self, content: BlockId) -> BlockId:
         return self.t.line([self.string("["), content, self.string("]")])
 
+    def expr(self, value) -> BlockId:
+        match value:
+            case int() | float():
+                return self.string(str(value))
+
+            case RawStr():
+                return self.string(value.value)
+
+            case RawBlock():
+                return self.string(value.value)
+
+            case str():
+                return self.t.wrap_quote(value)
+
+            case list():
+                return self.t.pars(self.t.csv([self.expr(it) for it in value]))
+
+            case None:
+                return self.string("null")
+
+            case org.Org():
+                return self.content(self.exp.eval(value))
+
+            case dict():
+                return self.t.pars(
+                    self.t.csv([
+                        self.t.line(
+                            [self.string(key),
+                             self.string(": "),
+                             self.expr(value[key])]) for key in sorted(value.keys())
+                    ]))
+
+            case _:
+                raise ValueError(
+                    f"Unexpected type for `expr()` conversion: {type(value)}")
+
     def escape(self, text: str) -> str:
         res = ""
         for ch in text:
@@ -111,7 +164,7 @@ class ExporterTypst(ExporterBase):
     def call(
             self,
             name: str,
-            kwargs: Dict[str, BlockId | str] = dict(),
+            args: Dict[str, BlockId | str] = dict(),
             body: List[BlockId] | BlockId = list(),
     ) -> BlockId:
         b = body if isinstance(body, list) else [body]
@@ -123,9 +176,9 @@ class ExporterTypst(ExporterBase):
                     self.t.line([
                         self.string(key),
                         self.string(": "),
-                        self.string(kwargs[key]),
+                        self.expr(args[key]),
                         self.string(","),
-                    ]) for key in sorted(kwargs.keys())
+                    ]) for key in sorted(args.keys())
                 ]),
             ),
             self.string(")[") if b else self.string(")"),
@@ -195,7 +248,7 @@ class ExporterTypst(ExporterBase):
         return self.string(self.escape("@" + node.text))
 
     def evalTextSeparator(self, node: org.TextSeparator) -> BlockId:
-        return self.call("line", dict(length="100%"))
+        return self.call("line", dict(length=RawStr("100%")))
 
     def evalHashTag(self, node: org.HashTag) -> BlockId:
         return self.string(self.escape(formatHashTag(node)))
@@ -216,12 +269,22 @@ class ExporterTypst(ExporterBase):
 
         res = self.t.stack([])
 
+        tags = []
+        for tag in node.tags:
+            for it in getFlatTags(tag):
+                tags.append("##".join(it))
+
         self.t.add_at(
             res,
             self.t.line([
                 self.call(
                     self.c.tags.subtree,
-                    dict(level=str(node.level)),
+                    dict(
+                        level=node.level,
+                        tags=RawBlock(
+                            self.t.pars(
+                                self.t.csv([self.t.wrap_quote(tag) for tag in tags]))),
+                    ),
                     self.exp.eval(node.title),
                 ),
             ]))
