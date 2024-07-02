@@ -104,6 +104,9 @@ class ExporterTypstConfigTags(BaseModel):
     list: str = "orgList"
     listItem: str = "orgListItem"
     paragraph: str = "orgParagraph"
+    bigIdent: str = "orgBigIdent"
+    placeholder: str = "orgPlaceholder"
+    mention: str = "orgMention"
 
 
 class ExporterTypstConfig(BaseModel):
@@ -203,31 +206,35 @@ class ExporterTypst(ExporterBase):
 
     @beartype
     def call(
-            self,
-            name: str,
-            args: Dict[str, BlockId | str] = dict(),
-            body: List[BlockId] | BlockId = list(),
-            isContent: bool = False,
+        self,
+        name: str,
+        args: Dict[str, BlockId | str] = dict(),
+        body: List[BlockId] | BlockId = list(),
+        isContent: bool = False,
+        isLine: bool = False,
     ) -> BlockId:
         b = body if isinstance(body, list) else [body]
-        result = self.t.stack([
-            self.string(cond([
-                (args, f"#{name}("),
-                (b, f"#{name}["),
-                (True, f"#{name}"),
-            ])),
+        arglist = [
+            self.t.line([
+                self.string(key),
+                self.string(": "),
+                self.expr(args[key]),
+                self.string(","),
+            ]) for key in sorted(args.keys())
+        ]
+        
+        result = cond(isLine, self.t.line, self.t.stack)([
+            self.string(
+                cond([
+                    (args, f"#{name}("),
+                    (b and not isLine, f"#{name}["),
+                    (True, f"#{name}"),
+                ])),
             *maybe_splice(
                 args,
-                self.t.indent(
+                self.t.line(arglist) if isLine else self.t.indent(
                     2,
-                    self.t.stack([
-                        self.t.line([
-                            self.string(key),
-                            self.string(": "),
-                            self.expr(args[key]),
-                            self.string(","),
-                        ]) for key in sorted(args.keys())
-                    ]),
+                    self.t.stack(arglist),
                 )),
             *maybe_splice(
                 args, self.string(cond([
@@ -236,7 +243,8 @@ class ExporterTypst(ExporterBase):
                     (True, ""),
                 ]))),
         ] + [
-            self.t.stack([
+            cond(isLine, self.t.line, self.t.stack)([
+                *maybe_splice(isLine, self.string("[")),
                 self.t.indent(2, b[idx]),
                 self.string("]") if idx == len(b) - 1 else self.string("]["),
             ]) for idx in range(len(b))
@@ -282,7 +290,11 @@ class ExporterTypst(ExporterBase):
         return self.string(self.escape(node.text))
 
     def evalBigIdent(self, node: org.BigIdent) -> BlockId:
-        return self.string(self.escape(node.text))
+        return self.call(
+            self.c.tags.bigIdent,
+            args=dict(text=node.text),
+            isLine=True,
+        )
 
     def evalRawText(self, node: org.RawText) -> BlockId:
         return self.string(self.escape(node.text))
@@ -294,7 +306,11 @@ class ExporterTypst(ExporterBase):
         return self.string(node.text)
 
     def evalPlaceholder(self, node: org.Placeholder) -> BlockId:
-        return self.surround("*", [self.string(self.escape(node.text))])
+        return self.call(
+            self.c.tags.placeholder,
+            args=dict(text=node.text),
+            isLine=True,
+        )
 
     def evalBold(self, node: org.Bold) -> BlockId:
         return self.surround("*", [self.lineSubnodes(node)])
@@ -309,7 +325,11 @@ class ExporterTypst(ExporterBase):
         return self.surround("_", [self.lineSubnodes(node)])
 
     def evalAtMention(self, node: org.AtMention) -> BlockId:
-        return self.string(self.escape("@" + node.text))
+        return self.call(
+            self.c.tags.mention,
+            args=dict(text=node.text),
+            isLine=True,
+        )
 
     def evalTextSeparator(self, node: org.TextSeparator) -> BlockId:
         return self.call("line", dict(length=RawStr("100%")))

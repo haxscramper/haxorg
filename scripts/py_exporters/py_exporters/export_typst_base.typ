@@ -28,3 +28,16 @@
 ) = {
   body
 }
+
+
+#let orgPlaceholder(text: "") = {
+  [#text]
+}
+
+#let orgBigIdent(text: "") = {
+  [#text]
+}
+
+#let orgMention(text: "") = {
+  [#text]
+}
