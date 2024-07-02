@@ -1,6 +1,8 @@
 from beartype.typing import List, Any, TypeVar, Iterable, Callable, Optional
 import itertools
 from beartype import beartype
+from itertools import dropwhile, takewhile
+import more_itertools as mit
 
 T = TypeVar('T')
 
@@ -92,3 +94,19 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
     context.pop()
     if post_visit:
         post_visit(tree)
+
+
+@beartype
+def trim_left(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
+    return list(dropwhile(predicate, lst))
+
+
+@beartype
+def trim_right(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
+    return list(dropwhile(predicate, lst[::-1]))[::-1]
+
+
+@beartype
+def trim_both(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
+    trimmed_left = list(dropwhile(predicate, lst))
+    return list(dropwhile(predicate, trimmed_left[::-1]))[::-1]

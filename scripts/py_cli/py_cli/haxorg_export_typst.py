@@ -23,6 +23,7 @@ class TypstExportOptions(BaseModel, extra="forbid"):
         alias="export_trace_file")
 
 
+
 CAT = "haxorg.export.typst"
 
 
@@ -50,7 +51,11 @@ def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
 
     res = typst.exp.evalTop(node)
     with open(opts.outfile, "w") as out:
-        out.write(typst.t.toString(res, TextOptions()))
+        if False:
+            out.write(typst.t.toTreeRepr(res))
+
+        else:
+            out.write(typst.t.toString(res, TextOptions()))
 
     if opts.do_compile:
         refresh_typst_export_package()
