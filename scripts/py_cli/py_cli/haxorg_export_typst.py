@@ -30,7 +30,7 @@ def export_typst_options(f):
     return apply_options(f, options_from_model(TypstExportOptions))
 
 
-from py_exporters.export_typst import ExporterTypst
+from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
 from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
 
 
@@ -53,6 +53,7 @@ def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
         out.write(typst.t.toString(res, TextOptions()))
 
     if opts.do_compile:
+        refresh_typst_export_package()
         cmd = local["typst"].with_cwd(str(opts.infile.parent))
         pdf = opts.outfile.with_suffix(".pdf")
         cmd.run(["compile", str(opts.outfile), str(pdf)])

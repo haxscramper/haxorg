@@ -1,0 +1,7 @@
+[package]
+name = "export_typst_base"
+version = "0.1.0"
+entrypoint = "export_typst_base.typ"
+authors = ["haxscramper"]
+license = "MIT"
+description = "Base functions for the org-mode typst exporter."
