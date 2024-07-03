@@ -193,7 +193,9 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuFunction(
                     t_vec(t_id()),
                     "getAttached",
-                    GenTuDoc("Return attached nodes of a specific kinds or all attached (if kind is nullopt)"),
+                    GenTuDoc(
+                        "Return attached nodes of a specific kinds or all attached (if kind is nullopt)"
+                    ),
                     arguments=[opt_ident(t_str(), "kind", GenTuDoc(""))],
                     isConst=True,
                 ),
@@ -1391,7 +1393,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Link",
             GenTuDoc(""),
-            bases=[t_org("Org")],
+            bases=[t_org("Stmt")],
             fields=[
                 GenTuField(t_opt(t_id("Paragraph")),
                            "description",
@@ -1436,6 +1438,11 @@ def get_types() -> Sequence[GenTuStruct]:
                         ),
                         GenTuStruct(
                             t("File"),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
+                        ),
+                        GenTuStruct(
+                            t("Attachment"),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
                         ),

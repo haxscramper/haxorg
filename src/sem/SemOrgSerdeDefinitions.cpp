@@ -1453,7 +1453,16 @@ void proto_serde<::orgproto::Link::File, sem::Link::File>::read(::orgproto::Link
   proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::File::file));
 }
 
+void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::write(::orgproto::Link::Attachment* out, sem::Link::Attachment const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
+}
+
+void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::read(::orgproto::Link::Attachment const& out, proto_write_accessor<sem::Link::Attachment> in) {
+  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::Attachment::file));
+}
+
 void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem::Link const& in) {
+  proto_serde<::orgproto::Link, sem::Stmt>::write(out, in);
   proto_serde<::orgproto::Link, sem::Org>::write(out, in);
   if (in.description) {
     proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_description(), *in.description);
@@ -1480,10 +1489,14 @@ void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem:
     case 6:
       proto_serde<orgproto::Link::File, sem::Link::File>::write(out->mutable_data()->mutable_file(), std::get<6>(in.data));
       break;
+    case 7:
+      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::write(out->mutable_data()->mutable_attachment(), std::get<7>(in.data));
+      break;
   }
 }
 
 void proto_serde<::orgproto::Link, sem::Link>::read(::orgproto::Link const& out, proto_write_accessor<sem::Link> in) {
+  proto_serde<::orgproto::Link, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::Link, sem::Org>::read(out, in.as<sem::Org>());
   if (out.has_description()) {
     proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.description(), in.for_field(&sem::Link::description));
@@ -1509,6 +1522,9 @@ void proto_serde<::orgproto::Link, sem::Link>::read(::orgproto::Link const& out,
       break;
     case ::orgproto::Link::Data::kFile:
       proto_serde<orgproto::Link::File, sem::Link::File>::read(out.data().file(), in.for_field_variant<6>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kAttachment:
+      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::read(out.data().attachment(), in.for_field_variant<7>(&sem::Link::data));
       break;
   }
 }

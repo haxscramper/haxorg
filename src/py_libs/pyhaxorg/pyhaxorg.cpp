@@ -2469,6 +2469,22 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::Link::Attachment>(m, "LinkAttachment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Attachment {
+                        sem::Link::Attachment result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("file", &sem::Link::Attachment::file)
+    .def("__repr__", [](sem::Link::Attachment _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Link::Attachment _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   bind_enum_iterator<sem::Link::Kind>(m, "LinkKind");
   pybind11::enum_<sem::Link::Kind>(m, "LinkKind")
     .value("Raw", sem::Link::Kind::Raw)
@@ -2478,13 +2494,14 @@ node can have subnodes.)RAW")
     .value("Internal", sem::Link::Kind::Internal)
     .value("Footnote", sem::Link::Kind::Footnote)
     .value("File", sem::Link::Kind::File)
+    .value("Attachment", sem::Link::Kind::Attachment)
     .def("__iter__", [](sem::Link::Kind _self) -> PyEnumIterator<sem::Link::Kind> {
                      return
                      PyEnumIterator<sem::Link::Kind>
                      ();
                      })
     ;
-  pybind11::class_<sem::Link, sem::SemId<sem::Link>, sem::Org>(m, "Link")
+  pybind11::class_<sem::Link, sem::SemId<sem::Link>, sem::Stmt>(m, "Link")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link {
                         sem::Link result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2492,6 +2509,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("description", &sem::Link::description)
     .def_readwrite("data", &sem::Link::data)
+    .def_readwrite("attached", &sem::Link::attached)
     .def("getRaw", static_cast<sem::Link::Raw&(sem::Link::*)()>(&sem::Link::getRaw))
     .def("getId", static_cast<sem::Link::Id&(sem::Link::*)()>(&sem::Link::getId))
     .def("getPerson", static_cast<sem::Link::Person&(sem::Link::*)()>(&sem::Link::getPerson))
@@ -2499,10 +2517,19 @@ node can have subnodes.)RAW")
     .def("getInternal", static_cast<sem::Link::Internal&(sem::Link::*)()>(&sem::Link::getInternal))
     .def("getFootnote", static_cast<sem::Link::Footnote&(sem::Link::*)()>(&sem::Link::getFootnote))
     .def("getFile", static_cast<sem::Link::File&(sem::Link::*)()>(&sem::Link::getFile))
+    .def("getAttachment", static_cast<sem::Link::Attachment&(sem::Link::*)()>(&sem::Link::getAttachment))
     .def_static("getLinkKindStatic",
                 static_cast<sem::Link::Kind(*)(sem::Link::Data const&)>(&sem::Link::getLinkKind),
                 pybind11::arg("__input"))
     .def("getLinkKind", static_cast<sem::Link::Kind(sem::Link::*)() const>(&sem::Link::getLinkKind))
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::Link::*)(Opt<Str> const&) const>(&sem::Link::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Link::*)(Opt<Str> const&) const>(&sem::Link::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("__repr__", [](sem::Link _self) -> std::string {
                      return py_repr_impl(_self);
                      })

@@ -722,6 +722,7 @@ void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, description);
   __org_field(res, object, data);
+  __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
 
@@ -748,6 +749,9 @@ void Exporter<V, R>::visit(R& res, sem::Link::Footnote const& object) { __obj_fi
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Link::File const& object) { __obj_field(res, object, file); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Link::Attachment const& object) { __obj_field(res, object, file); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::DocumentOptions::TocExport const& object) { visitVariants(res, sem::DocumentOptions::getTocExportKind(object), object); }

@@ -548,6 +548,11 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
                 token(org::RawText, pop(lex, otk::LinkTarget));
                 break;
             }
+            case otk::LinkProtocolAttachment: {
+                token(org::Ident, pop(lex, otk::LinkProtocolAttachment));
+                token(org::RawText, pop(lex, otk::LinkTarget));
+                break;
+            }
             case otk::LinkProtocolFile: {
                 token(org::Ident, pop(lex, otk::LinkProtocolFile));
                 token(org::RawText, pop(lex, otk::LinkTarget));

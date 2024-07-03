@@ -782,6 +782,10 @@ SemId<Link> OrgConverter::convertLink(__args) {
         } else if (protocol == "file") {
             link->data = Link::File{.file = get_text(one(a, N::Link))};
 
+        } else if (protocol == "attachment") {
+            link->data = Link::Attachment{
+                .file = get_text(one(a, N::Link))};
+
         } else {
             link->data = Link::UserProtocol{.protocol = protocol};
         }
@@ -1214,7 +1218,17 @@ Vec<SemId<Org>> OrgConverter::flatConvertAttached(Vec<OrgAdapter> items) {
             if (auto res_stmt = res.asOpt<sem::Stmt>()) {
                 print(fmt(
                     "{} is a statement, adding attached", res->getKind()));
-                res_stmt->attached = buffer;
+                if (auto par = res_stmt.asOpt<sem::Paragraph>();
+                    par && par->subnodes.size() == 1) {
+                    if (auto link = par->subnodes.at(0)
+                                        .asOpt<sem::Link>()) {
+                        link->attached = buffer;
+                    } else {
+                        res_stmt->attached = buffer;
+                    }
+                } else {
+                    res_stmt->attached = buffer;
+                }
             } else {
                 print(
                     fmt("{} is not a statement, releasing attached",

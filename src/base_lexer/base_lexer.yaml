@@ -52,6 +52,9 @@ sub_lexers:
     - re: "file"
       token: LinkProtocolFile
 
+    - re: "attachment"
+      token: LinkProtocolAttachment
+
     - re: https?
       token: LinkProtocolHttp
 
@@ -300,7 +303,7 @@ rules:
 
   #region Command-parameters
   - {
-      re: ":\\w+",
+      re: ":(\\w|-)+",
       states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
       token: CmdColonIdent,
     }

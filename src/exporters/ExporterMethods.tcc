@@ -126,6 +126,7 @@ void visit(R& res, sem::Link::UserProtocol const& object);
 void visit(R& res, sem::Link::Internal const& object);
 void visit(R& res, sem::Link::Footnote const& object);
 void visit(R& res, sem::Link::File const& object);
+void visit(R& res, sem::Link::Attachment const& object);
 void visit(R& res, sem::DocumentOptions::TocExport const& object);
 void visitDocumentOptions(R& res, In<sem::DocumentOptions> object);
 void visit(R& res, sem::DocumentOptions::DoExport const& object);

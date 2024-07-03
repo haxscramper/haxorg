@@ -825,6 +825,13 @@ struct proto_serde<::orgproto::Link::File, sem::Link::File> {
 
 
 template <>
+struct proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment> {
+  static void write(::orgproto::Link::Attachment* out, sem::Link::Attachment const& in);
+  static void read(::orgproto::Link::Attachment const& out, proto_write_accessor<sem::Link::Attachment> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Link, sem::Link> {
   static void write(::orgproto::Link* out, sem::Link const& in);
   static void read(::orgproto::Link const& out, proto_write_accessor<sem::Link> in);

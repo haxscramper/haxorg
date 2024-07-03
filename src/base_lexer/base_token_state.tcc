@@ -149,6 +149,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::LinkEnd: return "LinkEnd";
         case OrgTokenKind::LinkFull: return "LinkFull";
         case OrgTokenKind::LinkProtocol: return "LinkProtocol";
+        case OrgTokenKind::LinkProtocolAttachment: return "LinkProtocolAttachment";
         case OrgTokenKind::LinkProtocolFile: return "LinkProtocolFile";
         case OrgTokenKind::LinkProtocolHttp: return "LinkProtocolHttp";
         case OrgTokenKind::LinkProtocolId: return "LinkProtocolId";
@@ -342,6 +343,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "LinkEnd") { return OrgTokenKind::LinkEnd; } else
   if (value == "LinkFull") { return OrgTokenKind::LinkFull; } else
   if (value == "LinkProtocol") { return OrgTokenKind::LinkProtocol; } else
+  if (value == "LinkProtocolAttachment") { return OrgTokenKind::LinkProtocolAttachment; } else
   if (value == "LinkProtocolFile") { return OrgTokenKind::LinkProtocolFile; } else
   if (value == "LinkProtocolHttp") { return OrgTokenKind::LinkProtocolHttp; } else
   if (value == "LinkProtocolId") { return OrgTokenKind::LinkProtocolId; } else

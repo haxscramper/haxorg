@@ -1174,6 +1174,10 @@ message Link {
     string                                         file                             = 1;
     string                                         debug                            = 1000;
   }
+  message Attachment {
+    string                                         file                             = 1;
+    string                                         debug                            = 1000;
+  }
   message Data {
     oneof kind {
       Link.Raw                                     raw                              = 1;
@@ -1183,6 +1187,7 @@ message Link {
       Link.Internal                                internal                         = 5;
       Link.Footnote                                footnote                         = 6;
       Link.File                                    file                             = 7;
+      Link.Attachment                              attachment                       = 8;
     }
   }
   enum Kind {
@@ -1193,11 +1198,13 @@ message Link {
     Kind_Internal_f                                                                 = 4;
     Kind_Footnote_f                                                                 = 5;
     Kind_File_f                                                                     = 6;
+    Kind_Attachment_f                                                               = 7;
   }
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
-  optional Paragraph                               description                      = 3;
-  Link.Data                                        data                             = 4;
+  repeated AnyNode                                 attached                         = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  OrgSemKind                                       staticKind                       = 3;
+  optional Paragraph                               description                      = 4;
+  Link.Data                                        data                             = 5;
   string                                           debug                            = 1000;
 }
 

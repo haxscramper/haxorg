@@ -1650,8 +1650,8 @@ struct ListItem : public sem::Org {
   bool isDescriptionItem() const { return header.has_value(); }
 };
 
-struct Link : public sem::Org {
-  using Org::Org;
+struct Link : public sem::Stmt {
+  using Stmt::Stmt;
   virtual ~Link() = default;
   struct Raw {
     BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
@@ -1689,13 +1689,18 @@ struct Link : public sem::Org {
     Str file;
   };
 
-  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::UserProtocol, sem::Link::Internal, sem::Link::Footnote, sem::Link::File>;
-  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File)
+  struct Attachment {
+    BOOST_DESCRIBE_CLASS(Attachment, (), (), (), (file))
+    Str file;
+  };
+
+  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::UserProtocol, sem::Link::Internal, sem::Link::Footnote, sem::Link::File, sem::Link::Attachment>;
+  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment)
   using variant_enum_type = sem::Link::Kind;
   using variant_data_type = sem::Link::Data;
   BOOST_DESCRIBE_CLASS(Link,
-                       (Org),
+                       (Stmt),
                        (),
                        (),
                        (staticKind,
@@ -1716,6 +1721,8 @@ struct Link : public sem::Org {
                         (sem::Link::Footnote&()) getFootnote,
                         (sem::Link::File const&() const) getFile,
                         (sem::Link::File&()) getFile,
+                        (sem::Link::Attachment const&() const) getAttachment,
+                        (sem::Link::Attachment&()) getAttachment,
                         (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
                         (sem::Link::Kind() const) getLinkKind))
   static OrgSemKind const staticKind;
@@ -1736,6 +1743,8 @@ struct Link : public sem::Org {
   sem::Link::Footnote& getFootnote() { return std::get<5>(data); }
   sem::Link::File const& getFile() const { return std::get<6>(data); }
   sem::Link::File& getFile() { return std::get<6>(data); }
+  sem::Link::Attachment const& getAttachment() const { return std::get<7>(data); }
+  sem::Link::Attachment& getAttachment() { return std::get<7>(data); }
   static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
   sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
 };

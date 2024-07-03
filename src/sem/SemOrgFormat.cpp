@@ -275,6 +275,11 @@ auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
             break;
         }
 
+        case Link::Kind::Attachment: {
+            head = str("attachment:" + id->getAttachment().file);
+            break;
+        }
+
         case Link::Kind::File: {
             head = str("file:" + id->getFile().file);
             break;
