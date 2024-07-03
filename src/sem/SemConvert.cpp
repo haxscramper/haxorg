@@ -1128,12 +1128,13 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 
     auto add_arg = [&](SemId<CmdArgument> arg) {
         if (arg->key) {
-            if (result->named.contains(*arg->key)) {
-                result->named[*arg->key]->args.push_back(arg);
+            auto key = normalize(*arg->key);
+            if (result->named.contains(key)) {
+                result->named[key]->args.push_back(arg);
             } else {
                 auto args = SemId<CmdArgumentList>::New();
                 args->args.push_back(arg);
-                result->named.insert({arg->key.value(), args});
+                result->named.insert({key, args});
             }
         } else {
             result->positional->push_back(arg);

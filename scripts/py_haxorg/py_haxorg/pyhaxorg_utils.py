@@ -112,6 +112,7 @@ def doExportAttachments(base: Path, destination: Path, attachments: List[org.Lin
         path = item.getAttachment().file
         do_attach = item.getArguments("attach-on-export")
         print(org.treeRepr(item))
+        print(do_attach)
         if do_attach and 0 < len(do_attach.args) and do_attach.args[0].getBool() == True:
             method = item.getArguments("attach-method")
             match method.args[0].getString():

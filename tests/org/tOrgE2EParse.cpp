@@ -627,6 +627,22 @@ sem::SemId<T> getFirstNode(sem::SemId<sem::Org> node) {
     return selector.getMatches(node).at(0).as<T>();
 }
 
+#define EXPECT_EQ2(lhs, rhs)                                              \
+    {                                                                     \
+        auto lhs_val = lhs;                                               \
+        auto rhs_val = rhs;                                               \
+        if (lhs != rhs) {                                                 \
+            FAIL() << fmt(                                                \
+                "Expected equality of these values:\n  {}\n    {}\n  "    \
+                "{}\n "                                                   \
+                "   {}",                                                  \
+                #lhs,                                                     \
+                lhs,                                                      \
+                #rhs,                                                     \
+                rhs);                                                     \
+        }                                                                 \
+    }
+
 TEST(OrgApi, SubtreePropertyModification) {
     auto doc = parseNode(R"(
 * Subtree
@@ -641,6 +657,29 @@ TEST(OrgApi, SubtreePropertyModification) {
     tree->removeProperty("bookmark_pos");
     formatted = sem::formatToString(doc);
     EXPECT_EQ(formatted.find(":bookmark_pos: 123"), -1) << formatted;
+}
+
+TEST(OrgApi, LinkAttachedGet1) {
+    auto doc = parseNode(
+        R"(#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:image 1.jpg]]
+)");
+
+    EXPECT_EQ2(doc->getKind(), OrgSemKind::Document);
+    auto par = doc->subnodes.at(0);
+    EXPECT_EQ2(par->getKind(), OrgSemKind::Paragraph);
+    auto link = par->subnodes.at(0);
+    EXPECT_EQ2(link->getKind(), OrgSemKind::Link);
+
+    auto link1 = link.getAs<sem::Link>();
+    ASSERT_TRUE(link1 != nullptr);
+
+    auto args = link1->getArguments("attach-on-export");
+    EXPECT_TRUE(args.has_value());
+    EXPECT_EQ(args.value()->args.size(), 1);
+    auto arg0 = args.value()->args.at(0);
+    EXPECT_EQ(arg0->getBool(), true);
+    EXPECT_EQ(arg0->getString(), "t");
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {
@@ -668,4 +707,3 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
     });
     // You may want to add test conditions to check the results.
 }
-

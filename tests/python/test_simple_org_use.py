@@ -31,7 +31,7 @@ def test_word() -> None:
     assert node[0][0][0].getKind() == org.OrgSemKind.Word
 
 
-def test_attached_property():
+def test_attached_property_list():
     node = org.parseString("""#+attr_list: :export nil
 - =some_property= :: Value
     """)
@@ -44,6 +44,25 @@ def test_attached_property():
     assert exp0
     assert exp0.getString() == "nil"
     assert exp0.getBool() == False
+
+
+def test_attached_property_link():
+    node = org.parseString("""#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:image 1.jpg]]
+    """)
+
+
+    p: org.Paragraph = node[0]
+    assert p.getKind() == org.OrgSemKind.Paragraph
+    l: org.Link = p[0]
+    assert l.getKind() == org.OrgSemKind.Link
+    # log(CAT).info(org.treeRepr(l))
+    onExport: org.CmdArgumentList = l.getArguments("attach-on-export")
+    assert onExport
+    onExport0 = onExport.args[0]
+    assert onExport0
+    assert onExport0.getString() == "t"
+    assert onExport0.getBool() == True
 
 def test_link_resolution():
     resolve = org.OrgDocumentContext()
