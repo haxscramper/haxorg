@@ -77,3 +77,11 @@ example
 Text
 
 - =some_property= :: Value
+
+NOTE: Annotated paragraph
+
+[2024-02-12] Timestamp paragraph
+
+paragraph [fn:1]
+
+[fn:1] footnote par

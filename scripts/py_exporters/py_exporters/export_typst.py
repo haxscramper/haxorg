@@ -32,6 +32,30 @@ assert typst_typ.exists(), typst_typ
 
 
 def cond(expr, ifTrue=None, ifFalse=None):
+    """
+    Alternative for inline if expression for simpler syntax and better formatting. Also supports 
+    multiple conditions, similar to the `cond` and `pcond` macro from lisp. Note: will evaluate
+    all arguments irrespective of the truth value, so use it only in case where compute cost is
+    small and there are no side effects. 
+
+    If the `expr` is not a list or a tuple other type -- based on the value of `expr`, return the `ifTrue` or `ifFalse. 
+
+    ```
+    value = cond(expr, "true", "false")
+    ```
+
+    If the `expr` is a list is a list or a tuple return the first item where the expression is true. If no elements
+    have true values, will return `None`. To get a default branch, use `True` as an expression. 
+
+    ```
+    value = cond([
+        (expr1, value1),
+        (expr2, value2),
+        (True, default)
+    ])
+    ```
+
+    """
     if isinstance(expr, (list, tuple)):
         for key, value in expr:
             if key:
@@ -46,6 +70,12 @@ def cond(expr, ifTrue=None, ifFalse=None):
 
 
 def maybe_splice(expr, item):
+    """
+    Return `[item]` if the expression evaluates to true, otherwise return an empty list. 
+    
+    Use this for splicing optional values into the list `[it1, *maybe_splice(cond, it2)]` --
+    depending on the `cond` value, the resulting list might have one or two elements. 
+    """
     if expr:
         return [item]
 
@@ -107,6 +137,10 @@ class ExporterTypstConfigTags(BaseModel):
     bigIdent: str = "orgBigIdent"
     placeholder: str = "orgPlaceholder"
     mention: str = "orgMention"
+    center: str = "orgCenter"
+    quote: str = "orgQuote"
+    example: str = "orgExample"
+    code: str = "orgCode"
 
 
 class ExporterTypstConfig(BaseModel):
@@ -222,7 +256,7 @@ class ExporterTypst(ExporterBase):
                 self.string(","),
             ]) for key in sorted(args.keys())
         ]
-        
+
         result = cond(isLine, self.t.line, self.t.stack)([
             self.string(
                 cond([
@@ -237,15 +271,17 @@ class ExporterTypst(ExporterBase):
                     self.t.stack(arglist),
                 )),
             *maybe_splice(
-                args, self.string(cond([
-                    (b and args, ")["),
-                    (args, ")"),
-                    (True, ""),
-                ]))),
+                args,
+                self.string(
+                    cond([
+                        (b and args and not isLine, ")["),
+                        (args, ")"),
+                        (True, ""),
+                    ]))),
         ] + [
             cond(isLine, self.t.line, self.t.stack)([
                 *maybe_splice(isLine, self.string("[")),
-                self.t.indent(2, b[idx]),
+                self.t.indent(cond(isLine, 0, 2), b[idx]),
                 self.string("]") if idx == len(b) - 1 else self.string("]["),
             ]) for idx in range(len(b))
         ])
@@ -275,13 +311,34 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        return self.call(self.c.tags.paragraph,
-                         body=[self.lineSubnodes(self.trimSub(node))])
+        return self.call(
+            self.c.tags.paragraph,
+            body=[self.lineSubnodes(self.trimSub(node))],
+            isLine=True,
+        )
 
     def evalAnnotatedParagraph(self, node: org.AnnotatedParagraph) -> BlockId:
-        result = self.lineSubnodes(node)
-        result = self.call(self.c.tags.paragraph, body=[result])
+        result = self.lineSubnodes(self.trimSub(node))
+        args = dict()
+        match node.getAnnotationKind():
+            case org.AnnotatedParagraphAnnotationKind.Footnote:
+                args["kind"] = "footnote"
+                args["footnote"] = node.getFootnote().name
+
+            case org.AnnotatedParagraphAnnotationKind.Admonition:
+                args["kind"] = "admonition"
+                args["admonition"] = node.getAdmonition().name.text
+
+            case org.AnnotatedParagraphAnnotationKind.Timestamp:
+                args["kind"] = "timestamp"
+                args["timestamp"] = formatDateTime(
+                    node.getTimestamp().time.getStatic().time)
+
+        result = self.call(self.c.tags.paragraph, args=args, body=[result], isLine=True)
         return result
+
+    def evalCenter(self, node: org.Center) -> BlockId:
+        return self.call(self.c.tags.center, body=[self.stackSubnodes(node)])
 
     def evalNewline(self, node: org.Newline) -> BlockId:
         return self.string(node.text)
@@ -338,7 +395,29 @@ class ExporterTypst(ExporterBase):
         return self.string(self.escape(formatHashTag(node)))
 
     def evalQuote(self, node: org.Quote) -> BlockId:
-        return self.call("quote", body=[self.stackSubnodes(node)])
+        return self.call(self.c.tags.quote, body=[self.stackSubnodes(node)])
+
+    def evalCode(self, node: org.Code) -> BlockId:
+        text =  ""
+        line: org.CodeLine
+        for idx, line in enumerate(node.lines):
+            item: org.CodeLinePart
+            if idx != 0:
+                text += "\\n"
+                
+            for item in line.parts:
+                match item.getKind():
+                    case org.CodeLinePartKind.Raw:
+                        text += item.getRaw().code
+
+
+        return self.call(
+            self.c.tags.code,
+            args=dict(lang=node.lang, text=text),
+        )
+
+    def evalExample(self, node: org.Example) -> BlockId:
+        return self.call(self.c.tags.example, body=[self.stackSubnodes(node)])
 
     def evalExport(self, node: org.Export) -> BlockId:
         if node.exporter == "typst":
@@ -412,11 +491,12 @@ class ExporterTypst(ExporterBase):
     def evalList(self, node: org.List) -> BlockId:
         return self.wrapStmt(
             node,
-            self.call(
-                self.c.tags.list,
-                args=dict(
-                    items=RawBlock(self.expr([RawBlock(self.exp.eval(it))
-                                              for it in node])))))
+            self.call(self.c.tags.list,
+                      args=dict(
+                          isDescription=node.isDescriptionList(),
+                          items=RawBlock(
+                              self.expr([RawBlock(self.exp.eval(it)) for it in node])),
+                      )))
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         args = dict(

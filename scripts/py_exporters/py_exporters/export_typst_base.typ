@@ -9,7 +9,8 @@
 }
 
 #let orgList(
-  items: ()
+  items: (),
+  isDescription: false,
 ) = {
   list(..items)
 }
@@ -24,9 +25,17 @@
 
 #let orgParagraph(
   admonition: "",
+  timestamp: "",
+  footnote: "",
+  kind: "none",
   body
 ) = {
-  body
+  if kind == "none" {
+    body
+  } else if kind == "admonition" {
+    [#box(radius: 2pt, stroke: red, inset: 4pt)[#admonition]]
+    body
+  }
 }
 
 
@@ -40,4 +49,22 @@
 
 #let orgMention(text: "") = {
   [#text]
+}
+
+#let orgQuote(body) = {
+  quote(body, block: true)
+}
+
+#let orgExample(body) = {
+  body
+}
+
+#let orgCenter(body) = {
+  align(center)[
+    body
+  ]
+}
+
+#let orgCode(lang: "", text: "") = {
+  raw(lang: lang, block: true, text)
 }
