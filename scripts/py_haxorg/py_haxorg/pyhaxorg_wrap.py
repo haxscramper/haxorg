@@ -2,6 +2,7 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import sys 
 from typing import TYPE_CHECKING
 import os
+from beartype import beartype
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")   
 if str(build_dir) not in sys.path:
@@ -16,5 +17,6 @@ else:
 
 SemSet = set[OrgSemKind]
 
+@beartype
 def treeRepr(node: Org, colored: bool = True) -> str:
     return exportToTreeString(node, OrgTreeExportOpts(withColor=colored))

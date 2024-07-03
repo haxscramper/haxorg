@@ -85,3 +85,6 @@ NOTE: Annotated paragraph
 paragraph [fn:1]
 
 [fn:1] footnote par
+
+#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:attach_text.txt]]

@@ -14,8 +14,7 @@ void ExporterTree::visitField(
 
     __scope();
     indent();
-    os << name << ":"
-       << "\n";
+    os << name << ":" << "\n";
     Base::visitField(arg, name, org);
 }
 
@@ -172,5 +171,13 @@ void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
             visit(arg, it);
             ++idx;
         }
+    }
+}
+
+template <typename V>
+void ExporterTree::visit(int& arg, CR<UnorderedMap<Str, V>> opt) {
+    __scope();
+    for (auto const& [key, value] : opt) {
+        visitField(arg, key.c_str(), value);
     }
 }

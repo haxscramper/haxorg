@@ -120,6 +120,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         // TODO
     }
 
+    template <typename V>
+    void visit(int& arg, CR<UnorderedMap<Str, V>> opt);
+
     void visitField(
         int&                       i,
         const char*                name,

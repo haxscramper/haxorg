@@ -6,6 +6,8 @@ from beartype.typing import List
 from py_exporters.export_ultraplain import ExporterUltraplain
 from beartype.typing import Dict
 from dataclasses import dataclass, field
+from pathlib import Path
+import shutil
 
 
 @beartype
@@ -90,6 +92,40 @@ def formatOrgWithoutTime(node: org.Org) -> str:
 
 
 @beartype
+def getAttachments(node: org.Org) -> List[org.Link]:
+    result = []
+
+    def visit(it: org.Org):
+        if isinstance(it, org.Link) and it.getLinkKind() == org.LinkKind.Attachment:
+            result.append(it)
+
+    org.eachSubnodeRec(node, visit)
+
+    return result
+
+
+@beartype
+def doExportAttachments(base: Path, destination: Path, attachments: List[org.Link]):
+    assert base.exists() and base.is_file(), base
+    assert destination.exists() and destination.is_dir(), destination
+    for item in attachments:
+        path = item.getAttachment().file
+        do_attach = item.getArguments("attach-on-export")
+        print(org.treeRepr(item))
+        if do_attach and 0 < len(do_attach.args) and do_attach.args[0].getBool() == True:
+            method = item.getArguments("attach-method")
+            match method.args[0].getString():
+                case "copy":
+                    shutil.copy(
+                        src=base.parent.joinpath(path),
+                        dst=destination.joinpath(path),
+                    )
+
+                case _:
+                    assert False
+
+
+@beartype
 @dataclass
 class NodeIdProvider():
     nodeIdCounter: Dict[org.Org, int] = field(default_factory=dict)
@@ -97,7 +133,7 @@ class NodeIdProvider():
     def getNodeId(self, value: org.Org) -> str:
         if isinstance(value, org.Subtree) and value.treeId:
             return value.treeId
-        
+
         else:
             if value not in self.nodeIdCounter:
                 self.nodeIdCounter[value] = len(self.nodeIdCounter)

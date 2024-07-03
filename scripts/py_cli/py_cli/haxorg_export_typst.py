@@ -3,6 +3,7 @@ from py_cli.haxorg_cli import *
 from plumbum import local, FG, ProcessExecutionError, colors
 import re
 import py_haxorg.pyhaxorg_wrap as org
+from py_haxorg import pyhaxorg_utils
 import itertools
 
 
@@ -10,7 +11,8 @@ class TypstExportOptions(BaseModel, extra="forbid"):
     infile: Path
     outfile: Path
     do_compile: bool = Field(
-        description="Compile the typst document if the export was successful", default=True)
+        description="Compile the typst document if the export was successful",
+        default=True)
 
     backend: str = Field(
         description="TeX backend to use",
@@ -21,7 +23,6 @@ class TypstExportOptions(BaseModel, extra="forbid"):
         description="Write python export trace to this file",
         default=None,
         alias="export_trace_file")
-
 
 
 CAT = "haxorg.export.typst"
@@ -56,6 +57,12 @@ def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
 
         else:
             out.write(typst.t.toString(res, TextOptions()))
+
+    pyhaxorg_utils.doExportAttachments(
+        base=opts.infile,
+        destination=opts.outfile.parent,
+        attachments=pyhaxorg_utils.getAttachments(node),
+    )
 
     if opts.do_compile:
         refresh_typst_export_package()
