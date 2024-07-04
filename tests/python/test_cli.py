@@ -14,7 +14,8 @@ def test_help():
     click_run_test(cli, ["--help"])
 
 
-all_org_file = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org/all.org")
+org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
+all_org_file = org_corpus_dir.joinpath("all.org")
 all_org = all_org_file.read_text()
 
 
@@ -59,18 +60,16 @@ def test_sqlite_export():
             f"--outfile={out_file}",
         ])
 
-def has_pandoc() -> bool:
+def has_cmd(cmd: str) -> bool:
     try:
-        local["pandoc"]
+        local[cmd]
         return True
     except CommandNotFound:
         return False
 
-@pytest.mark.skipif(not has_pandoc(), reason="`pandoc` binary is not installed, skipping tests")
 def test_pandoc_export():
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
-        dir = Path("/tmp")
         out_file = dir.joinpath("out_file.json")
         click_run_test(cli, [
             "export",
@@ -79,13 +78,51 @@ def test_pandoc_export():
             f"--outfile={out_file}",
         ])
 
-        pandoc = local["pandoc"]
-        pandoc.run([
-            "-f",
-            "json",
-            "-t",
-            "markdown",
-            str(out_file),
-            "-o",
-            out_file.with_suffix(".md"),
+        if has_cmd("pandoc"):
+            pandoc = local["pandoc"]
+            pandoc.run([
+                "-f",
+                "json",
+                "-t",
+                "markdown",
+                str(out_file),
+                "-o",
+                out_file.with_suffix(".md"),
+            ])
+
+def test_typst_export_1():
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        dir = Path("/tmp/test_typst_export_1")
+        dir.mkdir(exist_ok=True)
+
+        outfile = dir.joinpath("result.typ")
+        infile = dir.joinpath("file.org")
+        attach = dir.joinpath("attach.typ")
+        attach.write_text("")
+        infile.write_text("""
+#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:attach.typ]]
+
+#+begin_export typst
+#include "attach.typ"
+#+end_export
+
+* Subtree1 :tag:
+
+        """)
+        click_run_test(cli, [
+            "export",
+            "typst",
+            f"--infile={infile}",
+            f"--outfile={outfile}",
+            "--do_compile={}".format(has_cmd("typst"))
         ])
+
+        text = outfile.read_text()
+        assert "#include \"attach.typ\"" in text
+        assert "[[attachment" not in text
+        assert "#orgParagraph[Subtree1]" in text
+        assert "tags: (\"tag\")" in text
+        assert "#orgSubtree" in text
+

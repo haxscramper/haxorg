@@ -51,6 +51,7 @@ def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
         typst.exp.enableFileTrace(opts.exportTraceFile, True)
 
     res = typst.exp.evalTop(node)
+    opts.outfile.parent.mkdir(exist_ok=True, parents=True)
     with open(opts.outfile, "w") as out:
         if False:
             out.write(typst.t.toTreeRepr(res))

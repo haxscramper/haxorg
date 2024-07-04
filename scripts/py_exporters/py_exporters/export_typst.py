@@ -325,6 +325,9 @@ class ExporterTypst(ExporterBase):
                 node[0], org.Link) and node[0].getLinkKind() in [org.LinkKind.Attachment]:
             return self.string("")
 
+        elif len(node.subnodes) == 0:
+            return self.string("")
+
         else:
             return self.call(
                 self.c.tags.paragraph,

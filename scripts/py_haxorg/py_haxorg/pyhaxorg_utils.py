@@ -144,11 +144,11 @@ def doExportAttachments(
                     )):
                 match method.args[0].getString():
                     case "copy":
-                        log(CAT).info(f"Copied {path}")
-                        shutil.copy(
-                            src=base.parent.joinpath(path),
-                            dst=destination.joinpath(path),
-                        )
+                        src = base.parent.joinpath(path)
+                        dst = destination.joinpath(path)
+                        if src != dst:
+                            shutil.copy(src=src, dst=dst)
+                            log(CAT).info(f"Copied {path}")
 
                     case _:
                         assert False
