@@ -14,6 +14,8 @@ import itertools
 from py_scriptutils.json_utils import Json
 import copy
 from py_scriptutils import algorithm
+import toml
+from py_scriptutils import toml_config_profiler
 
 CAT = "typst"
 
@@ -154,6 +156,12 @@ class ExporterTypstConfig(BaseModel):
 class ExporterTypst(ExporterBase):
     t: TextLayout
     c: ExporterTypstConfig
+
+    def applyExportConfig(self, config: org.Export):
+        new_config = toml.loads(config.content)
+        old_config = self.c.model_dump()
+        mix_config = toml_config_profiler.merge_dicts([old_config, new_config])
+        self.c = ExporterTypstConfig.model_validate(mix_config)
 
     def __init__(self, CRTP_derived=None):
         super().__init__(CRTP_derived or self)
@@ -438,7 +446,18 @@ class ExporterTypst(ExporterBase):
 
     def evalExport(self, node: org.Export) -> BlockId:
         if node.exporter == "typst":
-            return self.string(node.content)
+            edit_config = node.getArguments("edit-config")
+            if edit_config and 0 < len(edit_config.args):
+                match edit_config.args[0].getString():
+                    case "pre-visit":
+                        return self.string("")
+
+                    case "in-visit":
+                        self.applyExportConfig(node)
+                        return self.string("")
+
+            else:
+                return self.string(node.content)
 
         else:
             return self.string("")
@@ -486,6 +505,14 @@ class ExporterTypst(ExporterBase):
                     version=module.package.version,
                 )),
             )
+
+        for it in node:
+            if isinstance(it, org.Export):
+                log(CAT).info(org.treeRepr(it))
+                edit_config = it.getArguments("edit-config")
+                if edit_config and 0 < len(edit_config.args):
+                    if edit_config.args[0].getString() == "pre-visit":
+                        self.applyExportConfig(it)
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))

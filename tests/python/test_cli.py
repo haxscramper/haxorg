@@ -60,12 +60,14 @@ def test_sqlite_export():
             f"--outfile={out_file}",
         ])
 
+
 def has_cmd(cmd: str) -> bool:
     try:
         local[cmd]
         return True
     except CommandNotFound:
         return False
+
 
 def test_pandoc_export():
     with TemporaryDirectory() as tmp_dir:
@@ -90,10 +92,10 @@ def test_pandoc_export():
                 out_file.with_suffix(".md"),
             ])
 
+
 def test_typst_export_1():
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
-        dir = Path("/tmp/test_typst_export_1")
         dir.mkdir(exist_ok=True)
 
         outfile = dir.joinpath("result.typ")
@@ -112,10 +114,7 @@ def test_typst_export_1():
 
         """)
         click_run_test(cli, [
-            "export",
-            "typst",
-            f"--infile={infile}",
-            f"--outfile={outfile}",
+            "export", "typst", f"--infile={infile}", f"--outfile={outfile}",
             "--do_compile={}".format(has_cmd("typst"))
         ])
 
@@ -126,3 +125,31 @@ def test_typst_export_1():
         assert "tags: (\"tag\")" in text
         assert "#orgSubtree" in text
 
+
+def test_typst_export_2():
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        dir = Path("/tmp/test_typst_export_2")
+        dir.mkdir(exist_ok=True)
+        outfile = dir.joinpath("result.typ")
+        infile = dir.joinpath("file.org")
+
+        infile.write_text("""
+#+begin_export typst :edit-config pre-visit
+[tags]
+subtree = "customSubtree"
+#+end_export
+
+* Subtree
+        """)
+
+        click_run_test(cli, [
+            "export",
+            "typst",
+            f"--infile={infile}",
+            f"--outfile={outfile}",
+            "--do_compile=False",
+        ])
+
+        text = outfile.read_text()
+        assert "customSubtree" in text
