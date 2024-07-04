@@ -8,6 +8,9 @@ from beartype.typing import Dict
 from dataclasses import dataclass, field
 from pathlib import Path
 import shutil
+from py_scriptutils.script_logging import log, ExceptionContextNote
+
+CAT = "org"
 
 
 @beartype
@@ -29,6 +32,16 @@ def evalDateTime(time: UserTime) -> datetime:
         kwargs["second"] = brk.second
 
     return datetime(**kwargs)
+
+
+@beartype
+def normalize(it: str) -> str:
+    result = ""
+    for ch in it:
+        if ch not in ["_", "-"]:
+            result += ch.lower()
+
+    return result
 
 
 @beartype
@@ -105,25 +118,40 @@ def getAttachments(node: org.Org) -> List[org.Link]:
 
 
 @beartype
-def doExportAttachments(base: Path, destination: Path, attachments: List[org.Link]):
+def doExportAttachments(
+    base: Path,
+    destination: Path,
+    attachments: List[org.Link],
+    backends: List[str],
+):
     assert base.exists() and base.is_file(), base
     assert destination.exists() and destination.is_dir(), destination
     for item in attachments:
         path = item.getAttachment().file
         do_attach = item.getArguments("attach-on-export")
-        print(org.treeRepr(item))
-        print(do_attach)
-        if do_attach and 0 < len(do_attach.args) and do_attach.args[0].getBool() == True:
-            method = item.getArguments("attach-method")
-            match method.args[0].getString():
-                case "copy":
-                    shutil.copy(
-                        src=base.parent.joinpath(path),
-                        dst=destination.joinpath(path),
-                    )
+        if do_attach and 0 < len(
+                do_attach.args) and (do_attach.args[0].getString() == "t" or normalize(
+                    do_attach.args[0].getString()) in [normalize(it) for it in backends]):
 
-                case _:
-                    assert False
+            method = item.getArguments("attach-method")
+            with ExceptionContextNote(
+                    "Attachment operation {}, for base path '{}', destination '{}', relative '{}'"
+                    .format(
+                        method.args[0].getString(),
+                        base.parent,
+                        destination,
+                        path,
+                    )):
+                match method.args[0].getString():
+                    case "copy":
+                        log(CAT).info(f"Copied {path}")
+                        shutil.copy(
+                            src=base.parent.joinpath(path),
+                            dst=destination.joinpath(path),
+                        )
+
+                    case _:
+                        assert False
 
 
 @beartype

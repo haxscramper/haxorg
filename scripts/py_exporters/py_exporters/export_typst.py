@@ -244,38 +244,48 @@ class ExporterTypst(ExporterBase):
         name: str,
         args: Dict[str, BlockId | str] = dict(),
         body: List[BlockId] | BlockId = list(),
+        positional: List[BlockId] | BlockId = list(),
         isContent: bool = False,
         isLine: bool = False,
     ) -> BlockId:
         b = body if isinstance(body, list) else [body]
-        arglist = [
-            self.t.line([
-                self.string(key),
-                self.string(": "),
-                self.expr(args[key]),
-                self.string(","),
-            ]) for key in sorted(args.keys())
-        ]
+        arglist = []
+
+        if isinstance(positional, list):
+            for it in positional:
+                arglist.append(self.t.line([it, self.string(cond(isLine, ", ", ","))]))
+
+        else:
+            arglist.append(positional)
+
+        for key in sorted(args.keys()):
+            arglist.append(
+                self.t.line([
+                    self.string(key),
+                    self.string(": "),
+                    self.expr(args[key]),
+                    self.string(cond(isLine, ", ", ",")),
+                ]))
 
         result = cond(isLine, self.t.line, self.t.stack)([
             self.string(
                 cond([
-                    (args, f"#{name}("),
+                    (arglist, f"#{name}("),
                     (b and not isLine, f"#{name}["),
                     (True, f"#{name}"),
                 ])),
             *maybe_splice(
-                args,
+                arglist,
                 self.t.line(arglist) if isLine else self.t.indent(
                     2,
                     self.t.stack(arglist),
                 )),
             *maybe_splice(
-                args,
+                arglist,
                 self.string(
                     cond([
-                        (b and args and not isLine, ")["),
-                        (args, ")"),
+                        (b and arglist and not isLine, ")["),
+                        (arglist, ")"),
                         (True, ""),
                     ]))),
         ] + [
@@ -311,11 +321,16 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        return self.call(
-            self.c.tags.paragraph,
-            body=[self.lineSubnodes(self.trimSub(node))],
-            isLine=True,
-        )
+        if len(node.subnodes) == 1 and isinstance(
+                node[0], org.Link) and node[0].getLinkKind() in [org.LinkKind.Attachment]:
+            return self.string("")
+
+        else:
+            return self.call(
+                self.c.tags.paragraph,
+                body=[self.lineSubnodes(self.trimSub(node))],
+                isLine=True,
+            )
 
     def evalAnnotatedParagraph(self, node: org.AnnotatedParagraph) -> BlockId:
         result = self.lineSubnodes(self.trimSub(node))
@@ -398,18 +413,17 @@ class ExporterTypst(ExporterBase):
         return self.call(self.c.tags.quote, body=[self.stackSubnodes(node)])
 
     def evalCode(self, node: org.Code) -> BlockId:
-        text =  ""
+        text = ""
         line: org.CodeLine
         for idx, line in enumerate(node.lines):
             item: org.CodeLinePart
             if idx != 0:
                 text += "\\n"
-                
+
             for item in line.parts:
                 match item.getKind():
                     case org.CodeLinePartKind.Raw:
                         text += item.getRaw().code
-
 
         return self.call(
             self.c.tags.code,
@@ -480,6 +494,18 @@ class ExporterTypst(ExporterBase):
 
     def evalTime(self, node: org.Time) -> BlockId:
         return self.string(formatDateTime(node.getStatic().time))
+
+    def evalLink(self, node: org.Link) -> BlockId:
+        match node.getLinkKind():
+            case org.LinkKind.Attachment:
+                return self.string("")
+
+            case org.LinkKind.Raw:
+                return self.call(
+                    "link",
+                    positional=[self.string(node.getRaw().text)],
+                    body=[self.exp.eval(node.description)] if node.description else [],
+                )
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line([

@@ -114,7 +114,7 @@ if sys.stdout.isatty():
 
 else:
     handler = logging.StreamHandler()
-    handler.setFormatter(NoTTYFormatter("[%(name)s %(pathname)s:%(lineno)s] %(message)s"))
+    handler.setFormatter(NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s"))
     logging.basicConfig(level="NOTSET", handlers=[handler])
 
 for name in logging.root.manager.loggerDict:

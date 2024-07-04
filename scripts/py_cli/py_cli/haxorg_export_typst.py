@@ -62,6 +62,7 @@ def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
         base=opts.infile,
         destination=opts.outfile.parent,
         attachments=pyhaxorg_utils.getAttachments(node),
+        backends=["typst"],
     )
 
     if opts.do_compile:

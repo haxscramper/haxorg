@@ -1,0 +1,6 @@
+#+attr_link: :attach-method copy :attach-on-export typst
+[[attachment:export_test.typ]]
+
+#+begin_export typst
+#include "export_test.typ"
+#+end_export
