@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import shutil
 from py_scriptutils.script_logging import log, ExceptionContextNote
+import os
 
 CAT = "org"
 
@@ -134,21 +135,36 @@ def doExportAttachments(
                     do_attach.args[0].getString()) in [normalize(it) for it in backends]):
 
             method = item.getArguments("attach-method")
+            op = method.args[0].getString()
             with ExceptionContextNote(
                     "Attachment operation {}, for base path '{}', destination '{}', relative '{}'"
                     .format(
-                        method.args[0].getString(),
+                        op,
                         base.parent,
                         destination,
                         path,
                     )):
-                match method.args[0].getString():
-                    case "copy":
+                match op:
+                    case "copy" | "symlink":
                         src = base.parent.joinpath(path)
+                        if not src.exists():
+                            raise SystemError(f"Attachment source '{src}' does not exist")
+
                         dst = destination.joinpath(path)
                         if src != dst:
-                            shutil.copy(src=src, dst=dst)
-                            log(CAT).info(f"Copied {path}")
+                            if op == "copy":
+                                shutil.copy(src=src, dst=dst)
+                                log(CAT).info(f"Copied {path}")
+
+                            elif op == "symlink":
+                                if dst.exists() or dst.is_symlink():
+                                    os.unlink(dst)
+
+                                assert not dst.exists()
+                                assert src.exists()
+
+                                dst.symlink_to(src)
+                                log(CAT).info(f"Symlinked {path}")
 
                     case _:
                         assert False

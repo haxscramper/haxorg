@@ -203,7 +203,7 @@ class ExporterTypst(ExporterBase):
 
             case list():
                 if all(isinstance(it, (int, str, float)) for it in value):
-                    return self.t.pars(self.t.csv([self.expr(it) for it in value]))
+                    return self.t.pars(self.t.csv([self.expr(it) for it in value] + [self.string("")]))
 
                 else:
                     return self.t.stack([
@@ -225,10 +225,11 @@ class ExporterTypst(ExporterBase):
             case dict():
                 return self.t.pars(
                     self.t.csv([
-                        self.t.line(
-                            [self.string(key),
-                             self.string(": "),
-                             self.expr(value[key])]) for key in sorted(value.keys())
+                        self.t.line([
+                            self.string(key),
+                            self.string(": "),
+                            self.expr(value[key]),
+                        ]) for key in sorted(value.keys())
                     ]))
 
             case _:
@@ -252,7 +253,7 @@ class ExporterTypst(ExporterBase):
         name: str,
         args: Dict[str, BlockId | str] = dict(),
         body: List[BlockId] | BlockId = list(),
-        positional: List[BlockId] | BlockId = list(),
+        positional: List[BlockId | str] | BlockId | str = list(),
         isContent: bool = False,
         isLine: bool = False,
     ) -> BlockId:
@@ -261,7 +262,11 @@ class ExporterTypst(ExporterBase):
 
         if isinstance(positional, list):
             for it in positional:
-                arglist.append(self.t.line([it, self.string(cond(isLine, ", ", ","))]))
+                arglist.append(
+                    self.t.line([
+                        self.expr(it),
+                        self.string(cond(isLine, ", ", ",")),
+                    ]))
 
         else:
             arglist.append(positional)
@@ -478,12 +483,7 @@ class ExporterTypst(ExporterBase):
             self.t.line([
                 self.call(
                     self.c.tags.subtree,
-                    dict(
-                        level=node.level,
-                        tags=RawBlock(
-                            self.t.pars(
-                                self.t.csv([self.t.wrap_quote(tag) for tag in tags]))),
-                    ),
+                    dict(level=node.level, tags=tags),
                     self.exp.eval(node.title),
                 ),
             ]))
@@ -508,7 +508,6 @@ class ExporterTypst(ExporterBase):
 
         for it in node:
             if isinstance(it, org.Export):
-                log(CAT).info(org.treeRepr(it))
                 edit_config = it.getArguments("edit-config")
                 if edit_config and 0 < len(edit_config.args):
                     if edit_config.args[0].getString() == "pre-visit":
@@ -533,9 +532,13 @@ class ExporterTypst(ExporterBase):
             case org.LinkKind.Raw:
                 return self.call(
                     "link",
-                    positional=[self.string(node.getRaw().text)],
+                    positional=[node.getRaw().text],
                     body=[self.exp.eval(node.description)] if node.description else [],
+                    isLine=True,
                 )
+
+            case _:
+                return self.string(f"TODO {node.getLinkKind()}")
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line([

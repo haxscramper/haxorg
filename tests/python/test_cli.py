@@ -94,36 +94,80 @@ def test_pandoc_export():
 
 
 def test_typst_export_1():
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        dir.mkdir(exist_ok=True)
+    with TemporaryDirectory() as dst_dir_tmp, TemporaryDirectory() as src_dir_tmp:
+        dst_dir = Path(dst_dir_tmp)
+        dst_dir = Path("/tmp/test_typst_export_1")
+        dst_dir.mkdir(exist_ok=True)
 
-        outfile = dir.joinpath("result.typ")
-        infile = dir.joinpath("file.org")
-        attach = dir.joinpath("attach.typ")
-        attach.write_text("")
+        src_dir = Path(src_dir_tmp)
+
+        outfile = dst_dir.joinpath("result.typ")
+        infile = src_dir.joinpath("file.org")
+        attach_src = src_dir.joinpath("attach.typ")
+        attach2_src = src_dir.joinpath("attach2.typ")
+        attach_src.write_text("attach")
+        attach2_src.write_text("attach2")
+
+        attach_dst = dst_dir.joinpath("attach.typ")
+        attach2_dst = dst_dir.joinpath("attach2.typ")
+
+        if attach_dst.exists():
+            attach_dst.unlink()
+
+        if attach2_dst.exists():
+            attach2_dst.unlink()
+
         infile.write_text("""
 #+attr_link: :attach-method copy :attach-on-export t
 [[attachment:attach.typ]]
 
+#+attr_link: :attach-method symlink :attach-on-export t
+[[attachment:attach2.typ]]
+
 #+begin_export typst
 #include "attach.typ"
+#include "attach2.typ"
 #+end_export
 
 * Subtree1 :tag:
 
         """)
-        click_run_test(cli, [
-            "export", "typst", f"--infile={infile}", f"--outfile={outfile}",
-            "--do_compile={}".format(has_cmd("typst"))
-        ])
+
+        args = [
+            "export",
+            "typst",
+            f"--infile={infile}",
+            f"--outfile={outfile}",
+            "--do_compile=False",
+        ]
+
+        click_run_test(cli, args)
+
+        assert attach_dst.exists()
+        assert attach2_dst.exists()
+
+        assert attach2_dst.read_text() == attach2_src.read_text()
+        assert attach_dst.read_text() == attach_src.read_text()
+
+        attach2_src.write_text("changed attach2 text")
+        assert attach2_dst.read_text() == attach2_src.read_text()
+
+        attach_src.write_text("changed attach text")
+        assert attach_dst.read_text() != attach_src.read_text()
 
         text = outfile.read_text()
         assert "#include \"attach.typ\"" in text
         assert "[[attachment" not in text
         assert "#orgParagraph[Subtree1]" in text
-        assert "tags: (\"tag\")" in text
+        assert "tags: (\"tag\"," in text
         assert "#orgSubtree" in text
+        
+        click_run_test(cli, args)
+
+        assert attach2_dst.read_text() == attach2_src.read_text()
+        assert attach_dst.read_text() == attach_src.read_text()
+
+
 
 
 def test_typst_export_2():
@@ -141,6 +185,14 @@ subtree = "customSubtree"
 #+end_export
 
 * Subtree
+
+#+begin_export typst :edit-config in-visit
+[tags]
+subtree = "changeSubtree"
+#+end_export
+
+* Subtree2
+
         """)
 
         click_run_test(cli, [
@@ -153,3 +205,4 @@ subtree = "customSubtree"
 
         text = outfile.read_text()
         assert "customSubtree" in text
+        assert "changeSubtree" in text
