@@ -203,7 +203,8 @@ class ExporterTypst(ExporterBase):
 
             case list():
                 if all(isinstance(it, (int, str, float)) for it in value):
-                    return self.t.pars(self.t.csv([self.expr(it) for it in value] + [self.string("")]))
+                    return self.t.pars(
+                        self.t.csv([self.expr(it) for it in value] + [self.string("")]))
 
                 else:
                     return self.t.stack([
@@ -548,6 +549,18 @@ class ExporterTypst(ExporterBase):
         ])
 
     def evalList(self, node: org.List) -> BlockId:
+        desc_status = [it.isDescriptionItem() for it in node.subnodes]
+        if any(desc_status) and not all(desc_status):
+            raise ValueError(
+                "Typst export does not support mixed description list items, list starting at {} "
+                "has a mix of description and non-description items. First non-description item is at {}. List parsed as {}"
+                .format(
+                    node.loc,
+                    list(filter(lambda it: not it.isDescriptionItem(),
+                                node.subnodes))[0].loc,
+                    org.treeRepr(node, maxDepth=1),
+                ))
+
         return self.wrapStmt(
             node,
             self.call(self.c.tags.list,

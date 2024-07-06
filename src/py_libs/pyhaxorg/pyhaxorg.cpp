@@ -3283,6 +3283,7 @@ node can have subnodes.)RAW")
     .def_readwrite("skipEmptyFields", &sem::OrgTreeExportOpts::skipEmptyFields)
     .def_readwrite("startLevel", &sem::OrgTreeExportOpts::startLevel)
     .def_readwrite("withColor", &sem::OrgTreeExportOpts::withColor)
+    .def_readwrite("maxDepth", &sem::OrgTreeExportOpts::maxDepth)
     .def("__repr__", [](sem::OrgTreeExportOpts _self) -> std::string {
                      return py_repr_impl(_self);
                      })

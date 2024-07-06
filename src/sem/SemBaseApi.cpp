@@ -53,18 +53,27 @@ void sem::exportToYamlFile(
     writeFile(fs::path{path}, exportToYamlString(node, opts));
 }
 
-
-std::string sem::exportToTreeString(
+namespace {
+void treeExportImpl(
+    ColStream&                    os,
     sem::SemId<sem::Org> const&   node,
     sem::OrgTreeExportOpts const& opts) {
-    ColStream    os{};
     ExporterTree tree{os};
 
     tree.conf.withLineCol     = opts.withLineCol;
     tree.conf.withOriginalId  = opts.withOriginalId;
     tree.conf.skipEmptyFields = opts.skipEmptyFields;
     tree.conf.startLevel      = opts.startLevel;
+    tree.conf.maxTreeDepth    = opts.maxDepth;
     tree.evalTop(node);
+}
+} // namespace
+
+std::string sem::exportToTreeString(
+    sem::SemId<sem::Org> const&   node,
+    sem::OrgTreeExportOpts const& opts) {
+    ColStream os{};
+    treeExportImpl(os, node, opts);
 
     std::string result = os.toString(opts.withColor);
     return result;
@@ -74,16 +83,8 @@ void sem::exportToTreeFile(
     sem::SemId<sem::Org> const&   node,
     std::string                   path,
     sem::OrgTreeExportOpts const& opts) {
-
-    ColStream    os{};
-    ExporterTree tree{os};
-
-    tree.conf.withLineCol     = opts.withLineCol;
-    tree.conf.withOriginalId  = opts.withOriginalId;
-    tree.conf.skipEmptyFields = opts.skipEmptyFields;
-    tree.conf.startLevel      = opts.startLevel;
-    tree.evalTop(node);
-
+    ColStream os{};
+    treeExportImpl(os, node, opts);
     std::ofstream file{path};
     file << os.toString(opts.withColor);
 }

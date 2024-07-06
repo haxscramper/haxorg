@@ -1500,7 +1500,7 @@ class OrgYamlExportOpts:
     skipId: bool
 
 class OrgTreeExportOpts:
-    def __init__(self, withLineCol: bool, withOriginalId: bool, withSubnodeIdx: bool, skipEmptyFields: bool, startLevel: int, withColor: bool) -> None: ...
+    def __init__(self, withLineCol: bool, withOriginalId: bool, withSubnodeIdx: bool, skipEmptyFields: bool, startLevel: int, withColor: bool, maxDepth: bool) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     withLineCol: bool
@@ -1509,6 +1509,7 @@ class OrgTreeExportOpts:
     skipEmptyFields: bool
     startLevel: int
     withColor: bool
+    maxDepth: bool
 
 class SubnodeVisitorCtxPart:
     def __init__(self, node: Optional[Org], index: Optional[int], field: Optional[str], kind: Kind) -> None: ...

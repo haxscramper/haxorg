@@ -197,8 +197,6 @@ struct [[refl]] Org {
     /// will be missing for all generated node kinds.
     OrgAdapter original;
 
-    using Id = SemId<Org>;
-
     Org(CVec<SemId<Org>> subnodes);
     Org();
     Org(OrgAdapter original);
@@ -220,18 +218,18 @@ struct [[refl]] Org {
     /// (word, punctuation etc), but it was left on the top level of the
     /// hierarchy for conveinience purposes. It is not expected that 'any'
     /// node can have subnodes.
-    [[refl]] Vec<Id> subnodes;
+    [[refl]] Vec<SemId<Org>> subnodes;
 
-    [[refl]] void push_back(Id sub);
+    [[refl]] void push_back(SemId<Org> sub);
 
-    using SubnodeVec = Vec<Id>;
+    using SubnodeVec = Vec<SemId<Org>>;
 
     SubnodeVec::iterator       begin() { return subnodes.begin(); }
     SubnodeVec::iterator       end() { return subnodes.end(); }
     SubnodeVec::const_iterator begin() const { return subnodes.begin(); }
     SubnodeVec::const_iterator end() const { return subnodes.end(); }
 
-    [[refl]] void insert(int pos, Id node) {
+    [[refl]] void insert(int pos, SemId<Org> node) {
         subnodes.insert(begin() + pos, node);
     }
 
@@ -246,11 +244,15 @@ struct [[refl]] Org {
     }
 
     /// \brief Get subnode at specified index
-    [[refl]] inline Id at(int idx) const { return subnodes.at(idx); }
+    [[refl]] inline SemId<Org> at(int idx) const {
+        return subnodes.at(idx);
+    }
 
-    Id      at(BackwardsIndex idx) const { return subnodes.at(idx); }
-    Opt<Id> get(int idx) const { return subnodes.get(idx); }
-    Opt<Id> get(BackwardsIndex idx) const { return subnodes.get(idx); }
+    SemId<Org> at(BackwardsIndex idx) const { return subnodes.at(idx); }
+    Opt<SemId<Org>> get(int idx) const { return subnodes.get(idx); }
+    Opt<SemId<Org>> get(BackwardsIndex idx) const {
+        return subnodes.get(idx);
+    }
 
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
     bool          is(CR<IntSet<OrgSemKind>> kinds) const {
