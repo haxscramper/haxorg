@@ -12,7 +12,11 @@
   items: (),
   isDescription: false,
 ) = {
-  list(..items)
+  if isDescription {
+    terms(..items);
+  } else {
+    list(..items)
+  }
 }
 
 #let orgListItem(
@@ -20,7 +24,11 @@
   content: [],
   isDescription: false,
 ) = {
-  list.item(content)
+  if isDescription {
+    terms.item(header, content)
+  } else {
+    list.item(content)
+  }
 }
 
 #let orgParagraph(

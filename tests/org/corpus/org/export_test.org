@@ -4,3 +4,11 @@
 #+begin_export typst
 #include "export_test.typ"
 #+end_export
+
+- header :: asdf
+- heade2 :: 222
+
+
+
+- asdfasdf
+- awereeee dd

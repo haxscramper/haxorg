@@ -90,14 +90,6 @@ struct SemId {
 
     /// \name Get pointer to the associated sem org node from ID
     ///
-    /// \warning Resulting pointers are *not* stable -- underlying store
-    /// content is subject to relocation and as such pointers are bound to
-    /// be invalidated if the new nodes are added. The pattern of `ptr =
-    /// node.get() ... add nodes ... ptr->something` will lead to subtle
-    /// bugs with dangling pointers and should be avoided. Instead
-    /// `node->whatever ... add nodes ... node->whatever` must be used. For
-    /// the same reason storing pointers in containers is discouraged.
-    ///
     /// {@
     O*              get() { return value.get(); }
     O const*        get() const { return value.get(); }
@@ -106,6 +98,25 @@ struct SemId {
     O&              operator*() { return *value; }
     O const&        operator*() const { return *value; }
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
+
+    SemId<sem::Org> at(int idx) { return value->at(idx); }
+    SemId<sem::Org> at(BackwardsIndex idx) { return value->at(idx); }
+
+    SemId<sem::Org> get(int idx) { return value->get(idx); }
+    SemId<sem::Org> get(BackwardsIndex idx) { return value->get(idx); }
+
+    using SubnodeVec = Vec<SemId<sem::Org>>;
+
+    SubnodeVec::iterator       begin() { return value->subnodes.begin(); }
+    SubnodeVec::iterator       end() { return value->subnodes.end(); }
+    SubnodeVec::const_iterator begin() const {
+        return value->subnodes.begin();
+    }
+    SubnodeVec::const_iterator end() const {
+        return value->subnodes.end();
+    }
+
+    int size() const { return value->subnodes.size(); }
 
     template <typename T>
     SemId<T> asOpt() const {
@@ -186,6 +197,8 @@ struct [[refl]] Org {
     /// will be missing for all generated node kinds.
     OrgAdapter original;
 
+    using Id = SemId<Org>;
+
     Org(CVec<SemId<Org>> subnodes);
     Org();
     Org(OrgAdapter original);
@@ -207,18 +220,18 @@ struct [[refl]] Org {
     /// (word, punctuation etc), but it was left on the top level of the
     /// hierarchy for conveinience purposes. It is not expected that 'any'
     /// node can have subnodes.
-    [[refl]] Vec<SemId<Org>> subnodes;
+    [[refl]] Vec<Id> subnodes;
 
-    [[refl]] void push_back(SemId<Org> sub);
+    [[refl]] void push_back(Id sub);
 
-    using SubnodeVec = Vec<SemId<Org>>;
+    using SubnodeVec = Vec<Id>;
 
     SubnodeVec::iterator       begin() { return subnodes.begin(); }
     SubnodeVec::iterator       end() { return subnodes.end(); }
     SubnodeVec::const_iterator begin() const { return subnodes.begin(); }
     SubnodeVec::const_iterator end() const { return subnodes.end(); }
 
-    [[refl]] void insert(int pos, SemId<Org> node) {
+    [[refl]] void insert(int pos, Id node) {
         subnodes.insert(begin() + pos, node);
     }
 
@@ -233,9 +246,11 @@ struct [[refl]] Org {
     }
 
     /// \brief Get subnode at specified index
-    [[refl]] inline SemId<Org> at(int idx) const {
-        return subnodes.at(idx);
-    }
+    [[refl]] inline Id at(int idx) const { return subnodes.at(idx); }
+
+    Id      at(BackwardsIndex idx) const { return subnodes.at(idx); }
+    Opt<Id> get(int idx) const { return subnodes.get(idx); }
+    Opt<Id> get(BackwardsIndex idx) const { return subnodes.get(idx); }
 
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
     bool          is(CR<IntSet<OrgSemKind>> kinds) const {
