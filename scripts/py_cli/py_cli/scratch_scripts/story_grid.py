@@ -272,8 +272,12 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     table = tags.table(border=1, style='border-collapse: collapse; width: 100%;')
     thead = tags.thead(style='position: sticky; top: 0; background-color: #ddd;')
     header_row = tags.tr()
+    skipped = ["level", "pov", "tags"]
     for field in fields(Header([], 0)):
-        if field.name == "time":
+        if field.name in skipped:
+            continue
+
+        elif field.name == "time":
             header_row.add(tags.th("delta"))
 
         header_row.add(tags.th(field.name))
@@ -304,8 +308,11 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 row.add(tags.td())
 
         for field in fields(h):
-            if field.name == "title":
-                prefix = "*" * h.level + "  "
+            if field.name in skipped:
+                continue
+
+            elif field.name == "title":
+                prefix = f"#{idx} " + "*" * h.level + " "
                 opacity = (max_level - h.level) / max_level * 0.75
                 row.add(
                     add_new(
