@@ -544,7 +544,10 @@ SemId<Time> OrgConverter::convertTime(__args) {
             Spec{.pattern = "%Y/%m/%d %H:%M:%S"},
             Spec{.pattern = "%d-%m-%Y %H:%M:%S"},
             Spec{.pattern = "%d/%m/%Y %H:%M:%S"},
-            Spec{.pattern = "%Y-%m-%d %H:%M"},
+            Spec{
+                .pattern = "%Y-%m-%d %H:%M",
+                .align   = UserTime::Alignment::Minute,
+            },
             Spec{.pattern = "%Y-%m-%d", .align = UserTime::Alignment::Day},
             // Add other formats as needed
         };

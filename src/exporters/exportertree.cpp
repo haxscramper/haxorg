@@ -92,6 +92,7 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
     os << "\n";
 }
 
+
 template <typename T>
 void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
     if (skipAsEmpty(value)) { return; }
@@ -110,6 +111,12 @@ void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
         os << " = " << os.green() << fmt1(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
         os << " = " << os.yellow() << escape_literal(value) << os.end()
+           << "\n";
+    } else if constexpr (std::is_same_v<T, UserTime>) {
+        os << " = "
+           << fmt("align:{} breakdown:{}",
+                  value.align,
+                  value.getBreakdown())
            << "\n";
     } else {
         os << "\n";

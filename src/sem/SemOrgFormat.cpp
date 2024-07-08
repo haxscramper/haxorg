@@ -402,8 +402,7 @@ auto Formatter::toString(SemId<Par> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Placeholder> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line(
-        Vec<Res>::Splice(str("<"), toSubnodes(id, ctx), str(">")));
+    return b.line(Vec<Res>::Splice(str("<"), str(id->text), str(">")));
 }
 
 auto Formatter::toString(SemId<BigIdent> id, CR<Context> ctx) -> Res {

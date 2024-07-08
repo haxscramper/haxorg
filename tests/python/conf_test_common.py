@@ -45,7 +45,10 @@ def runtest(
     def run(env: Optional[dict] = None) -> tuple[int, str, str]:
         cmd = plumbum.local[test]
         if env:
-            cmd = cmd.with_env(**env)
+            cmd = cmd.with_env(**env, LD_PRELOAD="")
+
+        else:
+            cmd = cmd.with_env(LD_PRELOAD="")
 
         return cmd.run(args)
 

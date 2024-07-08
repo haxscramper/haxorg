@@ -812,3 +812,35 @@ items:
       **** :ARCHIVE:
       **** :ARCHIVE:tag1:
       **** COMMENT :ARCHIVE:tag1:
+
+  - name: "Broken list indentation"
+    tags: ["org_list", "defcon2"]
+    source: |
+      - List
+        - Item
+      Broken
+        - Item
+      - Dedented
+
+  - name: "Single list item without spacing"
+    tags: ["org_list", "defcon1"]
+    source: |
+      - asf
+
+        - [15:14]
+          =terminating=
+            - asdfasdf
+          an
+
+        - [17:13] There
+
+      - asdfasdf
+
+  - name: "Indented text in regular paragraph"
+    tags: ["org_paragraph"]
+    source: |
+      haxscramper, [2023-10-14 01:14]
+      #recall gpt based research for features of profiling and llvm
+
+
+

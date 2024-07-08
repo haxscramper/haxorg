@@ -45,9 +45,9 @@ std::string UserTime::format() const {
 
     if (zone) { format += " %z"; }
 
-    if (zone) {
-        return absl::FormatTime(format, time, *zone);
-    } else {
-        return absl::FormatTime(format, time, absl::TimeZone{});
-    }
+    std::string result = zone ? absl::FormatTime(format, time, *zone)
+                              : absl::FormatTime(
+                                    format, time, absl::TimeZone{});
+
+    return result;
 }

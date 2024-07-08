@@ -80,6 +80,4 @@ items:
       - {kind: Punctuation, str: /}
       - {kind: Word, str: Another}
       - {kind: Punctuation, str: /}
-      - {kind: AngleBegin, str: <}
-      - {kind: Word, str: Placeholder}
-      - {kind: AngleEnd, str: ">"}
+      - {kind: Placeholder, str: Placeholder}
