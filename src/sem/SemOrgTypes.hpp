@@ -74,7 +74,7 @@ struct Stmt : public sem::Org {
   /// \brief Return attached nodes of a specific kinds or all attached (if kind is nullopt)
   Vec<sem::SemId<sem::Org>> getAttached(Opt<Str> const& kind = std::nullopt) const;
   /// \brief Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.
-  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& kind = std::nullopt) const;
+  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& kind = std::nullopt) const;
 };
 
 /// \brief Base class for all inline elements
@@ -110,12 +110,34 @@ struct Empty : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Empty; }
 };
 
+/// \brief Base class for block or line commands
+struct Command : public sem::Stmt {
+  using Stmt::Stmt;
+  virtual ~Command() = default;
+  BOOST_DESCRIBE_CLASS(Command,
+                       (Stmt),
+                       (),
+                       (),
+                       (parameters, (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
+  /// \brief Additional parameters aside from 'exporter',
+  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
+  /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
+  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const override;
+};
+
+/// \brief Block command type
+struct Block : public sem::Command {
+  using Command::Command;
+  virtual ~Block() = default;
+  BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ())
+};
+
 /// \brief Table cell
-struct Cell : public sem::Org {
-  using Org::Org;
+struct Cell : public sem::Command {
+  using Command::Command;
   virtual ~Cell() = default;
   BOOST_DESCRIBE_CLASS(Cell,
-                       (Org),
+                       (Command),
                        (),
                        (),
                        (staticKind, isBlock, (OrgSemKind() const) getKind))
@@ -126,11 +148,11 @@ struct Cell : public sem::Org {
 };
 
 /// \brief Table row
-struct Row : public sem::Org {
-  using Org::Org;
+struct Row : public sem::Command {
+  using Command::Command;
   virtual ~Row() = default;
   BOOST_DESCRIBE_CLASS(Row,
-                       (Org),
+                       (Command),
                        (),
                        (),
                        (staticKind, cells, isBlock, (OrgSemKind() const) getKind))
@@ -143,11 +165,11 @@ struct Row : public sem::Org {
 };
 
 /// \brief Table
-struct Table : public sem::Stmt {
-  using Stmt::Stmt;
+struct Table : public sem::Block {
+  using Block::Block;
   virtual ~Table() = default;
   BOOST_DESCRIBE_CLASS(Table,
-                       (Stmt),
+                       (Block),
                        (),
                        (),
                        (staticKind, rows, isBlock, (OrgSemKind() const) getKind))
@@ -315,13 +337,6 @@ struct Center : public sem::Format {
   virtual OrgSemKind getKind() const { return OrgSemKind::Center; }
 };
 
-/// \brief Base class for block or line commands
-struct Command : public sem::Stmt {
-  using Stmt::Stmt;
-  virtual ~Command() = default;
-  BOOST_DESCRIBE_CLASS(Command, (Stmt), (), (), ())
-};
-
 /// \brief Line commands
 struct LineCommand : public sem::Command {
   using Command::Command;
@@ -393,21 +408,6 @@ struct CommandGroup : public sem::Stmt {
                        (staticKind, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::CommandGroup; }
-};
-
-/// \brief Block command type
-struct Block : public sem::Command {
-  using Command::Command;
-  virtual ~Block() = default;
-  BOOST_DESCRIBE_CLASS(Block,
-                       (Command),
-                       (),
-                       (),
-                       (parameters, (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
-  /// \brief Additional parameters aside from 'exporter',
-  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
-  /// \brief Return all parameters with keys matching name
-  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const;
 };
 
 /// \brief Tblfm command type
@@ -518,11 +518,9 @@ struct CmdAttr : public sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind, target, parameters, (OrgSemKind() const) getKind))
+                       (staticKind, target, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   Str target;
-  /// \brief HTML attributes
-  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
 };
 

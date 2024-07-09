@@ -313,27 +313,46 @@ message Empty {
   string                                           debug                            = 1000;
 }
 
+message Command {
+  repeated AnyNode                                 attached                         = 1;
+  repeated AnyNode                                 subnodes                         = 2;
+  optional CmdArguments                            parameters                       = 3;
+  string                                           debug                            = 1000;
+}
+
+message Block {
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  string                                           debug                            = 1000;
+}
+
 message Cell {
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
-  bool                                             isBlock                          = 3;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  bool                                             isBlock                          = 5;
   string                                           debug                            = 1000;
 }
 
 message Row {
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
-  repeated Cell                                    cells                            = 3;
-  bool                                             isBlock                          = 4;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  repeated Cell                                    cells                            = 5;
+  bool                                             isBlock                          = 6;
   string                                           debug                            = 1000;
 }
 
 message Table {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  repeated Row                                     rows                             = 4;
-  bool                                             isBlock                          = 5;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  repeated Row                                     rows                             = 5;
+  bool                                             isBlock                          = 6;
   string                                           debug                            = 1000;
 }
 
@@ -417,49 +436,49 @@ message Center {
   string                                           debug                            = 1000;
 }
 
-message Command {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  string                                           debug                            = 1000;
-}
-
 message LineCommand {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
   string                                           debug                            = 1000;
 }
 
 message Standalone {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
   string                                           debug                            = 1000;
 }
 
 message Attached {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
   string                                           debug                            = 1000;
 }
 
 message Caption {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  Paragraph                                        text                             = 4;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  Paragraph                                        text                             = 5;
   string                                           debug                            = 1000;
 }
 
 message CmdName {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
 message CmdResults {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
@@ -470,17 +489,11 @@ message CommandGroup {
   string                                           debug                            = 1000;
 }
 
-message Block {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  optional CmdArguments                            parameters                       = 3;
-  string                                           debug                            = 1000;
-}
-
 message Tblfm {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
   string                                           debug                            = 1000;
 }
 
@@ -529,11 +542,11 @@ message CmdArguments {
 }
 
 message CmdAttr {
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           target                           = 4;
-  CmdArguments                                     parameters                       = 5;
+  optional CmdArguments                            parameters                       = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  string                                           target                           = 5;
   string                                           debug                            = 1000;
 }
 

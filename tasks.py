@@ -832,7 +832,7 @@ def update_py_haxorg_reflection(
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[
     # cmake_haxorg,
-    update_py_haxorg_reflection
+    # update_py_haxorg_reflection
 ])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""

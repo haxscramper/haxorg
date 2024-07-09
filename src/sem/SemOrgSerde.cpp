@@ -54,9 +54,9 @@ void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
 }
 
 template <typename Proto>
-void proto_serde<Proto, sem::Block>::write(
-    Proto*            out,
-    const sem::Block& in) {
+void proto_serde<Proto, sem::Command>::write(
+    Proto*              out,
+    const sem::Command& in) {
     if (in.parameters) {
         if (in.parameters) {
             proto_serde<
@@ -68,9 +68,9 @@ void proto_serde<Proto, sem::Block>::write(
 }
 
 template <typename Proto>
-void proto_serde<Proto, sem::Block>::read(
-    const Proto&                     out,
-    proto_write_accessor<sem::Block> in) {
+void proto_serde<Proto, sem::Command>::read(
+    const Proto&                       out,
+    proto_write_accessor<sem::Command> in) {
     if (out.has_parameters()) {
         proto_serde<
             Opt<orgproto::CmdArguments>,
@@ -79,9 +79,33 @@ void proto_serde<Proto, sem::Block>::read(
     }
 }
 
+template <typename Proto>
+void proto_serde<Proto, sem::Block>::write(
+    Proto*            out,
+    const sem::Block& in) {}
+
+template <typename Proto>
+void proto_serde<Proto, sem::Block>::read(
+    const Proto&                     out,
+    proto_write_accessor<sem::Block> in) {}
+
 
 template class proto_serde<::orgproto::Verse, sem::Block>;
 template class proto_serde<::orgproto::Export, sem::Block>;
 template class proto_serde<::orgproto::AdmonitionBlock, sem::Block>;
 template class proto_serde<::orgproto::Code, sem::Block>;
 template class proto_serde<::orgproto::Example, sem::Block>;
+
+template class proto_serde<orgproto::AdmonitionBlock, sem::Command>;
+template class proto_serde<orgproto::Caption, sem::Command>;
+template class proto_serde<orgproto::Cell, sem::Command>;
+template class proto_serde<orgproto::CmdAttr, sem::Command>;
+template class proto_serde<orgproto::CmdName, sem::Command>;
+template class proto_serde<orgproto::CmdResults, sem::Command>;
+template class proto_serde<orgproto::Code, sem::Command>;
+template class proto_serde<orgproto::Example, sem::Command>;
+template class proto_serde<orgproto::Export, sem::Command>;
+template class proto_serde<orgproto::Row, sem::Command>;
+template class proto_serde<orgproto::Table, sem::Command>;
+template class proto_serde<orgproto::Tblfm, sem::Command>;
+template class proto_serde<orgproto::Verse, sem::Command>;

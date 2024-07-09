@@ -341,6 +341,7 @@ class MethodDeclParams:
     isStatic: bool = False
     isVirtual: bool = False
     isPureVirtual: bool = False
+    isOverride: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
     def asMethodDef(self, Class: QualType) -> MethodDefParams:
@@ -1006,6 +1007,7 @@ class ASTBuilder(base.AstbuilderBase):
             self.string(method.Params.Name),
             self.Arguments(method.Params),
             self.string(" const" if method.isConst else ""),
+            self.string(" override" if method.isOverride else ""),
             self.string(" = 0" if method.isPureVirtual else "")
         ])
 

@@ -587,9 +587,14 @@ auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
 
 auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line(
-        {str("#+attr_"_ss + id->target + ": "_ss),
-         toString(id->parameters, ctx)});
+    auto result = b.line({str("#+attr_"_ss + id->target + ":"_ss)});
+
+    if (id->parameters) {
+        b.add_at(result, str(" "));
+        b.add_at(result, toString(id->parameters.value(), ctx));
+    }
+
+    return result;
 }
 
 auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {

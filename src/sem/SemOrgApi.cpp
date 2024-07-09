@@ -75,11 +75,23 @@ Opt<SemId<CmdArgumentList>> CmdArguments::getArguments(
     }
 }
 
-Opt<SemId<CmdArgumentList>> Block::getArguments(CR<Opt<Str>> param) const {
+Opt<SemId<CmdArgumentList>> Command::getArguments(
+    CR<Opt<Str>> param) const {
+    Opt<SemId<CmdArgumentList>> paramArguments;
     if (parameters) {
-        return (*parameters)->getArguments(param);
+        paramArguments = (*parameters)->getArguments(param);
+    }
+
+    auto stmtArguments = Stmt::getArguments(param);
+
+    auto res = SemId<CmdArgumentList>::New();
+    if (paramArguments) { res->args.append((**paramArguments).args); }
+    if (stmtArguments) { res->args.append((**stmtArguments).args); }
+
+    if (res->args.empty()) {
+        return std::nullopt;
     } else {
-        return {};
+        return res;
     }
 }
 
@@ -331,7 +343,7 @@ Opt<sem::SemId<CmdArgumentList>> Stmt::getArguments(
         if (auto cap = sub.getAs<Caption>(); expect_kind("caption")) {
             // pass
         } else if (auto attr = sub.getAs<sem::CmdAttr>()) {
-            if (auto arguments = attr->parameters->getArguments(kind)) {
+            if (auto arguments = (**attr->parameters).getArguments(kind)) {
                 for (auto const& arg : (**arguments).args) {
                     result->args.push_back(arg);
                 }

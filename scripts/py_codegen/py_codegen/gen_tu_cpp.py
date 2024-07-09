@@ -75,6 +75,7 @@ class GenTuFunction:
     isConst: bool = False
     isStatic: bool = False
     isPureVirtual: bool = False
+    isOverride: bool = False
     parentClass: Optional['GenTuStruct'] = None
     original: Optional[Path] = None
     spaces: List[QualType] = field(default_factory=list)
@@ -260,6 +261,7 @@ class GenConverter:
             isStatic=method.isStatic,
             isConst=method.isConst,
             isVirtual=method.isVirtual,
+            isOverride=method.isOverride,
         )
 
 

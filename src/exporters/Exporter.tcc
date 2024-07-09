@@ -40,9 +40,27 @@ void Exporter<V, R>::visitEmpty(R& res, In<sem::Empty> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCommand(R& res, In<sem::Command> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitBlock(R& res, In<sem::Block> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCell(R& res, In<sem::Cell> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, isBlock);
+  __org_field(res, object, parameters);
+  __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
 
@@ -51,6 +69,8 @@ void Exporter<V, R>::visitRow(R& res, In<sem::Row> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, cells);
   __org_field(res, object, isBlock);
+  __org_field(res, object, parameters);
+  __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
 
@@ -59,6 +79,7 @@ void Exporter<V, R>::visitTable(R& res, In<sem::Table> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, rows);
   __org_field(res, object, isBlock);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
@@ -131,15 +152,9 @@ void Exporter<V, R>::visitCenter(R& res, In<sem::Center> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCommand(R& res, In<sem::Command> object) {
-  __visit_specific_kind(res, object);
-  __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
 void Exporter<V, R>::visitLineCommand(R& res, In<sem::LineCommand> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
@@ -147,6 +162,7 @@ void Exporter<V, R>::visitLineCommand(R& res, In<sem::LineCommand> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitStandalone(R& res, In<sem::Standalone> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
@@ -154,6 +170,7 @@ void Exporter<V, R>::visitStandalone(R& res, In<sem::Standalone> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitAttached(R& res, In<sem::Attached> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
@@ -162,6 +179,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visitCaption(R& res, In<sem::Caption> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, text);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
@@ -169,6 +187,7 @@ void Exporter<V, R>::visitCaption(R& res, In<sem::Caption> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitCmdName(R& res, In<sem::CmdName> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
@@ -176,6 +195,7 @@ void Exporter<V, R>::visitCmdName(R& res, In<sem::CmdName> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitCmdResults(R& res, In<sem::CmdResults> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
@@ -188,16 +208,9 @@ void Exporter<V, R>::visitCommandGroup(R& res, In<sem::CommandGroup> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitBlock(R& res, In<sem::Block> object) {
-  __visit_specific_kind(res, object);
-  __org_field(res, object, parameters);
-  __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
 void Exporter<V, R>::visitTblfm(R& res, In<sem::Tblfm> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }

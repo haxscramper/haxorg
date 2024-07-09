@@ -208,6 +208,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ),
                     arguments=[opt_ident(t_str(), "kind", GenTuDoc(""))],
                     isConst=True,
+                    isVirtual=True,
                 ),
             ],
             nested=[
@@ -233,9 +234,42 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc("Node without content"),
             bases=[t_org("Org")],
         ),
+        d_org(
+            "Command",
+            GenTuDoc("Base class for block or line commands"),
+            bases=[t_org("Stmt")],
+            concreteKind=False,
+            fields=[
+                opt_field(
+                    t_id("CmdArguments"),
+                    "parameters",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+            ],
+            methods=[
+                GenTuFunction(
+                    t_opt(t_id("CmdArgumentList")),
+                    "getArguments",
+                    GenTuDoc(
+                        "Return all parameters with keys matching name. "
+                        "This is an override implementation that accounts for the explicit command parameters if any."
+                    ),
+                    arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
+                    isConst=True,
+                    isVirtual=True,
+                    isOverride=True,
+                ),
+            ],
+        ),
+        d_org(
+            "Block",
+            GenTuDoc("Block command type"),
+            bases=[t_org("Command")],
+            concreteKind=False,
+        ),
         d_org("Cell",
               GenTuDoc("Table cell"),
-              bases=[t_org("Org")],
+              bases=[t_org("Command")],
               fields=[
                   bool_field(
                       "isBlock",
@@ -244,7 +278,7 @@ def get_types() -> Sequence[GenTuStruct]:
               ]),
         d_org("Row",
               GenTuDoc("Table row"),
-              bases=[t_org("Org")],
+              bases=[t_org("Command")],
               fields=[
                   vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
                   bool_field(
@@ -255,7 +289,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Table",
             GenTuDoc("Table"),
-            bases=[t_org("Stmt")],
+            bases=[t_org("Block")],
             fields=[
                 vec_field(
                     t_id("Row"),
@@ -373,12 +407,6 @@ def get_types() -> Sequence[GenTuStruct]:
               GenTuDoc("Center nested content in export"),
               bases=[t_org("Format")]),
         d_org(
-            "Command",
-            GenTuDoc("Base class for block or line commands"),
-            bases=[t_org("Stmt")],
-            concreteKind=False,
-        ),
-        d_org(
             "LineCommand",
             GenTuDoc("Line commands"),
             bases=[t_org("Command")],
@@ -421,29 +449,6 @@ def get_types() -> Sequence[GenTuStruct]:
                 "Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command"
             ),
             bases=[t_org("Stmt")],
-        ),
-        d_org(
-            "Block",
-            GenTuDoc("Block command type"),
-            bases=[t_org("Command")],
-            concreteKind=False,
-            fields=[
-                opt_field(
-                    t_id("CmdArguments"),
-                    "parameters",
-                    GenTuDoc("Additional parameters aside from 'exporter',"),
-                ),
-            ],
-            methods=[
-                GenTuFunction(
-                    t_opt(t_id("CmdArgumentList")),
-                    "getArguments",
-                    GenTuDoc("Return all parameters with keys matching name"),
-                    arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
-                    isConst=True,
-                    isVirtual=True,
-                ),
-            ],
         ),
         d_org(
             "Tblfm",
@@ -500,7 +505,6 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Attached")],
             fields=[
                 GenTuField(t_str(), "target", GenTuDoc("")),
-                id_field("CmdArguments", "parameters", GenTuDoc("HTML attributes"))
             ],
         ),
         d_org(
