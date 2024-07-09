@@ -213,6 +213,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("isBlock", &sem::Cell::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
     .def("__repr__", [](sem::Cell _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -229,6 +230,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("cells", &sem::Row::cells, R"RAW(List of cells on the row)RAW")
+    .def_readwrite("isBlock", &sem::Row::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
     .def("__repr__", [](sem::Row _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -245,6 +247,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("rows", &sem::Table::rows, R"RAW(List of rows for the table)RAW")
+    .def_readwrite("isBlock", &sem::Table::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
     .def_readwrite("attached", &sem::Table::attached)
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Table::*)(Opt<Str> const&) const>(&sem::Table::getAttached),

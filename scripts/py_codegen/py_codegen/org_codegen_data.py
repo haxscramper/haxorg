@@ -233,28 +233,39 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc("Node without content"),
             bases=[t_org("Org")],
         ),
-        d_org(
-            "Cell",
-            GenTuDoc("Table cell"),
-            bases=[t_org("Org")],
-        ),
+        d_org("Cell",
+              GenTuDoc("Table cell"),
+              bases=[t_org("Org")],
+              fields=[
+                  bool_field(
+                      "isBlock",
+                      GenTuDoc("Single-line pipe cell or `#+cell:` command"),
+                  ),
+              ]),
         d_org("Row",
               GenTuDoc("Table row"),
               bases=[t_org("Org")],
               fields=[
                   vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
+                  bool_field(
+                      "isBlock",
+                      GenTuDoc("Single-line pipe cell or `#+cell:` command"),
+                  ),
               ]),
         d_org(
             "Table",
             GenTuDoc("Table"),
             bases=[t_org("Stmt")],
             fields=[
-                GenTuField(
-                    t_vec(t_id("Row")),
+                vec_field(
+                    t_id("Row"),
                     "rows",
                     GenTuDoc("List of rows for the table"),
-                    value="{}",
-                )
+                ),
+                bool_field(
+                    "isBlock",
+                    GenTuDoc("Single-line pipe cell or `#+cell:` command"),
+                ),
             ],
         ),
         d_org(

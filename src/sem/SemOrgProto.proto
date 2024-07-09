@@ -316,6 +316,7 @@ message Empty {
 message Cell {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
+  bool                                             isBlock                          = 3;
   string                                           debug                            = 1000;
 }
 
@@ -323,6 +324,7 @@ message Row {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   repeated Cell                                    cells                            = 3;
+  bool                                             isBlock                          = 4;
   string                                           debug                            = 1000;
 }
 
@@ -331,6 +333,7 @@ message Table {
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   repeated Row                                     rows                             = 4;
+  bool                                             isBlock                          = 5;
   string                                           debug                            = 1000;
 }
 

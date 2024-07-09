@@ -45,32 +45,38 @@ void proto_serde<::orgproto::Empty, sem::Empty>::read(::orgproto::Empty const& o
 
 void proto_serde<::orgproto::Cell, sem::Cell>::write(::orgproto::Cell* out, sem::Cell const& in) {
   proto_serde<::orgproto::Cell, sem::Org>::write(out, in);
+  out->set_isblock(in.isBlock);
 }
 
 void proto_serde<::orgproto::Cell, sem::Cell>::read(::orgproto::Cell const& out, proto_write_accessor<sem::Cell> in) {
   proto_serde<::orgproto::Cell, sem::Org>::read(out, in.as<sem::Org>());
+  in.for_field(&sem::Cell::isBlock).get() = out.isblock();
 }
 
 void proto_serde<::orgproto::Row, sem::Row>::write(::orgproto::Row* out, sem::Row const& in) {
   proto_serde<::orgproto::Row, sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::write(out->mutable_cells(), in.cells);
+  out->set_isblock(in.isBlock);
 }
 
 void proto_serde<::orgproto::Row, sem::Row>::read(::orgproto::Row const& out, proto_write_accessor<sem::Row> in) {
   proto_serde<::orgproto::Row, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::read(out.cells(), in.for_field(&sem::Row::cells));
+  in.for_field(&sem::Row::isBlock).get() = out.isblock();
 }
 
 void proto_serde<::orgproto::Table, sem::Table>::write(::orgproto::Table* out, sem::Table const& in) {
   proto_serde<::orgproto::Table, sem::Stmt>::write(out, in);
   proto_serde<::orgproto::Table, sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, Vec<sem::SemId<sem::Row>>>::write(out->mutable_rows(), in.rows);
+  out->set_isblock(in.isBlock);
 }
 
 void proto_serde<::orgproto::Table, sem::Table>::read(::orgproto::Table const& out, proto_write_accessor<sem::Table> in) {
   proto_serde<::orgproto::Table, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::Table, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, Vec<sem::SemId<sem::Row>>>::read(out.rows(), in.for_field(&sem::Table::rows));
+  in.for_field(&sem::Table::isBlock).get() = out.isblock();
 }
 
 void proto_serde<::orgproto::HashTag, sem::HashTag>::write(::orgproto::HashTag* out, sem::HashTag const& in) {

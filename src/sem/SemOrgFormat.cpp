@@ -534,23 +534,47 @@ auto Formatter::toString(SemId<Italic> id, CR<Context> ctx) -> Res {
 auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
+    if (id->isBlock) { b.add_at(result, str("#+begin_table")); }
+
     for (auto const& in_row : id->rows) {
-        Res row = b.line({str("| ")});
-        for (auto const& in_cell : in_row->cells) {
-            Res cell = b.line();
-            for (auto const& item : in_cell->subnodes) {
-                b.add_at(cell, str(" "));
-                b.add_at(cell, toString(item, ctx));
-                b.add_at(cell, str(" "));
+        if (in_row->isBlock) {
+            Res row = b.stack({str("#+row:")});
+            for (auto const& in_cell : in_row->cells) {
+                if (in_cell->isBlock) {
+                    Res cell = b.stack({str("#+cell:")});
+                    for (auto const& item : in_cell) {
+                        b.add_at(cell, toString(item, ctx));
+                    }
+                    b.add_at(row, cell);
+                } else {
+                    Res cell = b.line({str("| ")});
+                    for (auto const& item : in_cell) {
+                        b.add_at(cell, toString(item, ctx));
+                    }
+                    b.add_at(row, cell);
+                }
+            }
+            b.add_at(result, row);
+        } else {
+            Res row = b.line({str("| ")});
+            for (auto const& in_cell : in_row->cells) {
+                Res cell = b.line();
+                for (auto const& item : in_cell->subnodes) {
+                    b.add_at(cell, str(" "));
+                    b.add_at(cell, toString(item, ctx));
+                    b.add_at(cell, str(" "));
+                }
+
+                b.add_at(row, cell);
+                b.add_at(row, str("|"));
             }
 
-            b.add_at(row, cell);
-            b.add_at(row, str("|"));
+
+            b.add_at(result, row);
         }
-
-
-        b.add_at(result, row);
     }
+
+    if (id->isBlock) { b.add_at(result, str("#+end_table")); }
 
     return result;
 }

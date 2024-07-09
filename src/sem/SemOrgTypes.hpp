@@ -118,8 +118,10 @@ struct Cell : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind, isBlock, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
+  /// \brief Single-line pipe cell or `#+cell:` command
+  bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Cell; }
 };
 
@@ -131,10 +133,12 @@ struct Row : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, cells, (OrgSemKind() const) getKind))
+                       (staticKind, cells, isBlock, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   /// \brief List of cells on the row
   Vec<sem::SemId<sem::Cell>> cells = {};
+  /// \brief Single-line pipe cell or `#+cell:` command
+  bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
 };
 
@@ -146,10 +150,12 @@ struct Table : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind, rows, (OrgSemKind() const) getKind))
+                       (staticKind, rows, isBlock, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   /// \brief List of rows for the table
   Vec<sem::SemId<sem::Row>> rows = {};
+  /// \brief Single-line pipe cell or `#+cell:` command
+  bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Table; }
 };
 
