@@ -79,7 +79,7 @@ Opt<SemId<CmdArgumentList>> Command::getArguments(
     CR<Opt<Str>> param) const {
     Opt<SemId<CmdArgumentList>> paramArguments;
     if (parameters) {
-        paramArguments = (*parameters)->getArguments(param);
+        paramArguments = parameters.value()->getArguments(param);
     }
 
     auto stmtArguments = Stmt::getArguments(param);
@@ -93,6 +93,16 @@ Opt<SemId<CmdArgumentList>> Command::getArguments(
     } else {
         return res;
     }
+}
+
+Opt<sem::SemId<CmdArgument>> Command::getFirstArgument(
+    CR<Str> kind) const {
+    if (parameters) {
+        auto res = parameters.value()->getArguments(kind);
+        if (res) { return (**res).args.front(); }
+    }
+
+    return Stmt::getFirstArgument(kind);
 }
 
 Vec<Subtree::Period> Subtree::getTimePeriods(
@@ -355,6 +365,16 @@ Opt<sem::SemId<CmdArgumentList>> Stmt::getArguments(
         return std::nullopt;
     } else {
         return result;
+    }
+}
+
+Opt<sem::SemId<CmdArgument>> Stmt::getFirstArgument(CR<Str> kind) const {
+    auto res = getArguments(kind);
+
+    if (res) {
+        return (**res).args.front();
+    } else {
+        return std::nullopt;
     }
 }
 

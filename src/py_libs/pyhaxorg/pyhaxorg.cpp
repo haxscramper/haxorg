@@ -174,6 +174,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Stmt::*)(Opt<Str> const&) const>(&sem::Stmt::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Stmt::*)(Str const&) const>(&sem::Stmt::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Inline, sem::SemId<sem::Inline>, sem::Org>(m, "Inline")
     ;
@@ -214,6 +218,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Command::*)(Opt<Str> const&) const>(&sem::Command::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Command::*)(Str const&) const>(&sem::Command::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Command::*)(Opt<Str> const&) const>(&sem::Command::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -222,6 +230,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Command::*)(Opt<Str> const&) const>(&sem::Command::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Command::*)(Str const&) const>(&sem::Command::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Block, sem::SemId<sem::Block>, sem::Command>(m, "Block")
     .def_readwrite("parameters", &sem::Block::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
@@ -230,6 +242,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Block::*)(Str const&) const>(&sem::Block::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -238,6 +254,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Block::*)(Str const&) const>(&sem::Block::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Cell, sem::SemId<sem::Cell>, sem::Command>(m, "Cell")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Cell {
@@ -252,6 +272,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Cell::*)(Opt<Str> const&) const>(&sem::Cell::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Cell::*)(Str const&) const>(&sem::Cell::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Cell::*)(Opt<Str> const&) const>(&sem::Cell::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -260,6 +284,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Cell::*)(Opt<Str> const&) const>(&sem::Cell::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Cell::*)(Str const&) const>(&sem::Cell::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Cell _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -283,6 +311,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Row::*)(Opt<Str> const&) const>(&sem::Row::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Row::*)(Str const&) const>(&sem::Row::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Row::*)(Opt<Str> const&) const>(&sem::Row::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -291,6 +323,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Row::*)(Opt<Str> const&) const>(&sem::Row::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Row::*)(Str const&) const>(&sem::Row::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Row _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -314,6 +350,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Table::*)(Opt<Str> const&) const>(&sem::Table::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Table::*)(Str const&) const>(&sem::Table::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Table::*)(Opt<Str> const&) const>(&sem::Table::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -322,6 +362,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Table::*)(Opt<Str> const&) const>(&sem::Table::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Table::*)(Str const&) const>(&sem::Table::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Table _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -402,6 +446,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Paragraph::*)(Opt<Str> const&) const>(&sem::Paragraph::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Paragraph::*)(Str const&) const>(&sem::Paragraph::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Paragraph _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -510,6 +558,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::AnnotatedParagraph::*)(Opt<Str> const&) const>(&sem::AnnotatedParagraph::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::AnnotatedParagraph::*)(Str const&) const>(&sem::AnnotatedParagraph::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::AnnotatedParagraph _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -543,6 +595,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::LineCommand::*)(Str const&) const>(&sem::LineCommand::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -551,6 +607,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::LineCommand::*)(Str const&) const>(&sem::LineCommand::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Standalone, sem::SemId<sem::Standalone>, sem::LineCommand>(m, "Standalone")
     .def_readwrite("parameters", &sem::Standalone::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
@@ -559,6 +619,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Standalone::*)(Opt<Str> const&) const>(&sem::Standalone::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Standalone::*)(Str const&) const>(&sem::Standalone::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Standalone::*)(Opt<Str> const&) const>(&sem::Standalone::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -567,6 +631,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Standalone::*)(Opt<Str> const&) const>(&sem::Standalone::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Standalone::*)(Str const&) const>(&sem::Standalone::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Attached, sem::SemId<sem::Attached>, sem::LineCommand>(m, "Attached")
     .def_readwrite("parameters", &sem::Attached::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
@@ -575,6 +643,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Attached::*)(Str const&) const>(&sem::Attached::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -583,6 +655,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Attached::*)(Str const&) const>(&sem::Attached::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Caption, sem::SemId<sem::Caption>, sem::Attached>(m, "Caption")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Caption {
@@ -597,6 +673,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Caption::*)(Opt<Str> const&) const>(&sem::Caption::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Caption::*)(Str const&) const>(&sem::Caption::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Caption::*)(Opt<Str> const&) const>(&sem::Caption::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -605,6 +685,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Caption::*)(Opt<Str> const&) const>(&sem::Caption::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Caption::*)(Str const&) const>(&sem::Caption::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Caption _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -626,6 +710,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdName::*)(Str const&) const>(&sem::CmdName::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -634,6 +722,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdName::*)(Str const&) const>(&sem::CmdName::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::CmdName _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -655,6 +747,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdResults::*)(Str const&) const>(&sem::CmdResults::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -663,6 +759,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdResults::*)(Str const&) const>(&sem::CmdResults::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::CmdResults _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -687,6 +787,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CommandGroup::*)(Opt<Str> const&) const>(&sem::CommandGroup::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CommandGroup::*)(Str const&) const>(&sem::CommandGroup::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::CommandGroup _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -708,6 +812,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Tblfm::*)(Opt<Str> const&) const>(&sem::Tblfm::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Tblfm::*)(Str const&) const>(&sem::Tblfm::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Tblfm::*)(Opt<Str> const&) const>(&sem::Tblfm::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -716,6 +824,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Tblfm::*)(Opt<Str> const&) const>(&sem::Tblfm::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Tblfm::*)(Str const&) const>(&sem::Tblfm::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Tblfm _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -740,6 +852,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Quote::*)(Opt<Str> const&) const>(&sem::Quote::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Quote::*)(Str const&) const>(&sem::Quote::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Quote _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -764,6 +880,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CommentBlock::*)(Opt<Str> const&) const>(&sem::CommentBlock::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CommentBlock::*)(Str const&) const>(&sem::CommentBlock::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::CommentBlock _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -785,6 +905,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Verse::*)(Opt<Str> const&) const>(&sem::Verse::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Verse::*)(Str const&) const>(&sem::Verse::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Verse::*)(Opt<Str> const&) const>(&sem::Verse::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -793,6 +917,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Verse::*)(Opt<Str> const&) const>(&sem::Verse::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Verse::*)(Str const&) const>(&sem::Verse::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Verse _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -814,6 +942,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Example::*)(Opt<Str> const&) const>(&sem::Example::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Example::*)(Str const&) const>(&sem::Example::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Example::*)(Opt<Str> const&) const>(&sem::Example::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -822,6 +954,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Example::*)(Opt<Str> const&) const>(&sem::Example::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Example::*)(Str const&) const>(&sem::Example::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Example _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -879,6 +1015,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdAttr::*)(Str const&) const>(&sem::CmdAttr::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -887,6 +1027,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdAttr::*)(Str const&) const>(&sem::CmdAttr::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::CmdAttr _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -923,6 +1067,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Export::*)(Opt<Str> const&) const>(&sem::Export::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Export::*)(Str const&) const>(&sem::Export::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Export::*)(Opt<Str> const&) const>(&sem::Export::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -931,6 +1079,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Export::*)(Opt<Str> const&) const>(&sem::Export::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Export::*)(Str const&) const>(&sem::Export::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Export _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -952,6 +1104,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::AdmonitionBlock::*)(Opt<Str> const&) const>(&sem::AdmonitionBlock::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::AdmonitionBlock::*)(Str const&) const>(&sem::AdmonitionBlock::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::AdmonitionBlock::*)(Opt<Str> const&) const>(&sem::AdmonitionBlock::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -960,6 +1116,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::AdmonitionBlock::*)(Opt<Str> const&) const>(&sem::AdmonitionBlock::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::AdmonitionBlock::*)(Str const&) const>(&sem::AdmonitionBlock::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::AdmonitionBlock _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1244,6 +1404,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Code::*)(Opt<Str> const&) const>(&sem::Code::getArguments),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Code::*)(Str const&) const>(&sem::Code::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Code::*)(Opt<Str> const&) const>(&sem::Code::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -1252,6 +1416,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Code::*)(Opt<Str> const&) const>(&sem::Code::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Code::*)(Str const&) const>(&sem::Code::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Code _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -2397,6 +2565,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::List::*)(Opt<Str> const&) const>(&sem::List::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::List::*)(Str const&) const>(&sem::List::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::List _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -2610,6 +2782,10 @@ node can have subnodes.)RAW")
          static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Link::*)(Opt<Str> const&) const>(&sem::Link::getArguments),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Link::*)(Str const&) const>(&sem::Link::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("__repr__", [](sem::Link _self) -> std::string {
                      return py_repr_impl(_self);
                      })

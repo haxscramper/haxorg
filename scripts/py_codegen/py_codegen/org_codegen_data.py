@@ -81,6 +81,16 @@ def opt_field(typ, name, doc):
 
 
 @beartype
+def arg_ident(
+        typ: QualType,
+        name: str,
+        doc: GenTuDoc = GenTuDoc(""),
+        value: Optional[str] = None,
+) -> GenTuIdent:
+    return GenTuIdent(type=t_cr(typ), name=name, value=value)
+
+
+@beartype
 def opt_ident(typ: QualType,
               name: str,
               doc: GenTuDoc = GenTuDoc(""),
@@ -210,6 +220,17 @@ def get_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                     isVirtual=True,
                 ),
+                GenTuFunction(
+                    t_opt(t_id("CmdArgument")),
+                    "getFirstArgument",
+                    GenTuDoc(
+                        "Get the first parameter for the statement. "
+                        "In case there is a longer list of values matching given kind"
+                        "different node kinds can implement different priorities "),
+                    arguments=[arg_ident(t_str(), "kind")],
+                    isConst=True,
+                    isVirtual=True,
+                ),
             ],
             nested=[
                 GenTuPass("Stmt() {}"),
@@ -255,6 +276,17 @@ def get_types() -> Sequence[GenTuStruct]:
                         "This is an override implementation that accounts for the explicit command parameters if any."
                     ),
                     arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
+                    isConst=True,
+                    isVirtual=True,
+                    isOverride=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_id("CmdArgument")),
+                    "getFirstArgument",
+                    GenTuDoc(
+                        "Override of the base statement argument get, prioritizing the explicit command parameters"
+                    ),
+                    arguments=[arg_ident(t_str(), "kind")],
                     isConst=True,
                     isVirtual=True,
                     isOverride=True,
