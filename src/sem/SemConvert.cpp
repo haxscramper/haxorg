@@ -64,21 +64,24 @@ SemId<Table> OrgConverter::convertTable(__args) {
 
     if (auto args = one(a, N::Args);
         args.getKind() == org::InlineStmtList) {
-        result->isBlock = true;
+        result->isBlock    = true;
+        result->parameters = convertCmdArguments(args);
     }
 
     for (auto const& in_row : many(a, N::Rows)) {
         SemId<Row> row = Sem<Row>(in_row);
         if (auto args = one(in_row, N::Args);
             args.getKind() == org::InlineStmtList) {
-            row->isBlock = true;
+            row->isBlock    = true;
+            row->parameters = convertCmdArguments(args);
         }
 
         for (auto const& in_cell : one(in_row, N::Body)) {
             SemId<Cell> cell = Sem<Cell>(in_cell);
             if (auto args = one(in_cell, N::Args);
                 args.getKind() == org::InlineStmtList) {
-                cell->isBlock = true;
+                cell->isBlock    = true;
+                cell->parameters = convertCmdArguments(args);
             }
 
             for (auto const& sub : one(in_cell, N::Body)) {

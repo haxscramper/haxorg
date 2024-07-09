@@ -20,6 +20,8 @@ struct Formatter {
     Res newRes(CR<sem::SemId<Org>> id) { return Res::Nil(); }
     Res str(std::string const& str) { return b.text(store.str(str)); }
 
+    Res toString(Opt<SemId<CmdArguments>> args, CR<Context> ctx);
+
     static Str format(OrgArg id) { return format(id, Context{}); }
 
     static Str format(OrgArg id, CR<Context> ctx) {

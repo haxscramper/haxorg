@@ -17,6 +17,16 @@ auto Formatter::toString(SemId<Org> id, CR<Context> ctx) -> Res {
     }
 }
 
+Formatter::Res Formatter::toString(
+    Opt<SemId<CmdArguments>> args,
+    CR<Context>              ctx) {
+    if (args) {
+        return b.line({str(" "), toString(args.value(), ctx)});
+    } else {
+        return str("");
+    }
+}
+
 
 void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
     for (auto const& it : id->subnodes) {
@@ -535,13 +545,21 @@ auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
     if (id->isBlock) { b.add_at(result, str("#+begin_table")); }
+    b.add_at(result, toString(id->parameters, ctx));
 
     for (auto const& in_row : id->rows) {
         if (in_row->isBlock) {
-            Res row = b.stack({str("#+row:")});
+            Res row = b.stack({b.line({
+                str("#+row:"),
+                toString(in_row->parameters, ctx),
+            })});
+
             for (auto const& in_cell : in_row->cells) {
                 if (in_cell->isBlock) {
-                    Res cell = b.stack({str("#+cell:")});
+                    Res cell = b.stack({b.line({
+                        str("#+cell:"),
+                        toString(in_cell->parameters, ctx),
+                    })});
                     for (auto const& item : in_cell) {
                         b.add_at(cell, toString(item, ctx));
                     }
@@ -587,14 +605,10 @@ auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
 
 auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    auto result = b.line({str("#+attr_"_ss + id->target + ":"_ss)});
-
-    if (id->parameters) {
-        b.add_at(result, str(" "));
-        b.add_at(result, toString(id->parameters.value(), ctx));
-    }
-
-    return result;
+    return b.line({
+        str("#+attr_"_ss + id->target + ":"_ss),
+        toString(id->parameters, ctx),
+    });
 }
 
 auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
