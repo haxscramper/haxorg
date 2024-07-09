@@ -812,6 +812,7 @@ items:
       **** :ARCHIVE:
       **** :ARCHIVE:tag1:
       **** COMMENT :ARCHIVE:tag1:
+      **** Nothing
 
   - name: "Broken list indentation"
     tags: ["org_list", "defcon2"]
@@ -843,6 +844,11 @@ items:
     source: |
       haxscramper, [2023-10-14 01:14]
       #recall gpt based research for features of profiling and llvm
+
+  - name: "Broken tags in the subtree"
+    tags: ["org_subtree"]
+    source: | 
+      ** Text :broken
 
 
 

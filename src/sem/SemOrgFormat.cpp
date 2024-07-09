@@ -621,15 +621,32 @@ auto Formatter::toString(SemId<InlineMath> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    Res title = b.line({
-        id->todo ? str(id->todo.value() + Str(" ")) : str(""),
-        toString(id->title, ctx),
-    });
+    Res title = b.line({});
+    {
+        Vec<Res> lead;
+        Vec<Res> tags;
 
-    if (!id->tags.empty()) {
-        b.add_at(title, str(" :"));
-        b.add_at(title, colonHashtags(this, id->tags));
-        b.add_at(title, str(":"));
+        if (id->todo) { lead.push_back(str(id->todo.value())); }
+        if (id->isComment) { lead.push_back(str("COMMENT")); }
+        if (id->isArchived) { tags.push_back(str("ARCHIVE")); }
+
+        if (!id->title->subnodes.empty()) {
+            lead.push_back(toString(id->title, ctx));
+        }
+
+        if (!id->tags.empty()) {
+            tags.push_back(colonHashtags(this, id->tags));
+        }
+
+        if (!tags.empty()) {
+            lead.push_back(b.line({
+                str(":"),
+                b.join(tags, str(":")),
+                str(":"),
+            }));
+        }
+
+        b.add_at(title, b.join(lead, str(" ")));
     }
 
     Res head = b.stack({title});

@@ -1551,7 +1551,7 @@ void tokenFormat(ColStream& os, OrgToken const& t) { os << t->text; }
 OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
     __perf_trace("parseSubtreeCompletion");
     auto __trace = trace(lex);
-    if (lex.at(Newline) || lex.at(otk::Colon)) {
+    if (lex.finished() || lex.at(Newline) || lex.at(otk::Colon)) {
         return empty();
 
     } else {
