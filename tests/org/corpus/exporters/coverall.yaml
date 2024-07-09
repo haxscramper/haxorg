@@ -1,5 +1,5 @@
 items:
   - name: "Process all nodes"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     file: org/all.org

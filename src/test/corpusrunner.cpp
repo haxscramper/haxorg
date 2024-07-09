@@ -723,9 +723,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     auto sem_result = runSpecSem(p, spec);
     if (!parse_result.isOk) { return RunResult{sem_result}; }
 
-    if (!(spec.debug.doFormatReparse || spec.debug.doFlatReparseCompare)) {
-        return skip;
-    }
+    if (!spec.debug.doFormatReparse) { return skip; }
 
     inRerun              = true;
     ParseSpec      rerun = spec;
@@ -733,7 +731,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     sem::Formatter formatter;
     auto           fmt_result = formatter.toString(
         p.node, sem::Formatter::Context{});
-    rerun.source      = formatter.store.toString(fmt_result);
+    rerun.source = formatter.store.toString(fmt_result);
+    // reset all expected tokens of the copied parse spec so `runSpecBase`
+    // did not try to run the validation.
     rerun.base_tokens = std::nullopt;
     rerun.subnodes    = std::nullopt;
     rerun.tokens      = std::nullopt;
@@ -754,12 +754,18 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     runSpecParse(p2, rerun);
 
 
-    if (spec.debug.doFlatReparseCompare) {
+    // Compare flat formatted nodes, clean easily broken elements from the
+    // list
+    if (spec.debug.doFlatParseCompare) {
         auto filterBrittleNodes =
             [](OrgNodeGroup const& nodes) -> Vec<OrgNode> {
             return nodes.nodes.content
                  | rv::filter([](OrgNode const& it) -> bool {
-                       return !OrgSet{org::Newline, org::Empty, org::Space}
+                       return !OrgSet{
+                           org::Newline,
+                           org::Empty,
+                           org::Space,
+                       }
                                    .contains(it.kind);
                    })
                  | rv::transform([](OrgNode const& it) -> OrgNode {
@@ -857,7 +863,7 @@ ${split}
     // flat reparse and compare does not prevent the full test execution,
     // but it *is* skipping parts of the check, so the example is
     // considered skipped.
-    if (spec.debug.doFlatReparseCompare) {
+    if (spec.debug.doFlatParseCompare) {
         return skip;
     } else {
         return RunResult();

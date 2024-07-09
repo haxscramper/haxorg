@@ -11,7 +11,7 @@ items:
     source: "#test##[a, b]"
   - name: "Single hashtag"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: "#test"
     subnodes:
       - {kind: StmtList, extent: 3}
