@@ -219,6 +219,8 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
             }
         }
 
+        if (it.parts.empty()) { b.add_at(line, str("")); }
+
         b.add_at(result, line);
     }
 

@@ -28,9 +28,6 @@ items:
 
   - name: "Long newline after the command block end"
     tags: ["org_src"]
-    debug:
-      doFlatParseCompare: false
-      doFormatReparse: false
     source: |
       #+begin_src 
 
