@@ -22,6 +22,8 @@ struct Formatter {
 
     Res toString(Opt<SemId<CmdArguments>> args, CR<Context> ctx);
 
+    Res stackAttached(Res prev, SemId<sem::Stmt> stmt, CR<Context> ctx);
+
     static Str format(OrgArg id) { return format(id, Context{}); }
 
     static Str format(OrgArg id, CR<Context> ctx) {

@@ -284,6 +284,13 @@ void OrgParser::textFold(OrgLexer& lex) {
         }
     };
 
+    const OrgTokSet AngleTargetContent{
+        otk::RawText,
+        otk::Whitespace,
+        otk::Word,
+        otk::BigIdent,
+    };
+
     aux = [&]() {
         auto __trace = trace(lex, std::nullopt, __LINE__, "aux");
 
@@ -451,7 +458,8 @@ void OrgParser::textFold(OrgLexer& lex) {
                         skip(lex, otk::DoubleAngleBegin);
                         start(org::Target);
                         while (lex.can_search(otk::DoubleAngleEnd)) {
-                            token(org::Target, pop(lex, otk::RawText));
+                            token(
+                                org::Target, pop(lex, AngleTargetContent));
                         }
                         end();
                         skip(lex, otk::DoubleAngleEnd);
@@ -473,7 +481,8 @@ void OrgParser::textFold(OrgLexer& lex) {
                         start(org::RadioTarget);
                         while (lex.can_search(otk::TripleAngleEnd)) {
                             token(
-                                org::RadioTarget, pop(lex, otk::RawText));
+                                org::RadioTarget,
+                                pop(lex, AngleTargetContent));
                         }
                         end();
                         skip(lex, otk::TripleAngleEnd);
@@ -1652,7 +1661,7 @@ OrgId OrgParser::parseSubtreeTags(OrgLexer& lex) {
             skip(lex, otk::Colon);
             subParse(HashTag, lex);
         }
-        skip(lex, otk::Colon);
+        skip(lex, OrgTokSet{otk::Colon} + Newline);
         return end();
     } else {
         return empty();

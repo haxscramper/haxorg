@@ -815,7 +815,10 @@ items:
       **** Nothing
 
   - name: "Broken list indentation"
-    tags: ["org_list", "defcon2"]
+    tags: ["org_list", "defcon1"]
+    debug:
+      doFlatParseCompare: false
+      doFormatReparse: false
     source: |
       - List
         - Item

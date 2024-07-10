@@ -544,8 +544,14 @@ auto Formatter::toString(SemId<Italic> id, CR<Context> ctx) -> Res {
 auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
-    if (id->isBlock) { b.add_at(result, str("#+begin_table")); }
-    b.add_at(result, toString(id->parameters, ctx));
+    if (id->isBlock) {
+        b.add_at(
+            result,
+            b.line({
+                str("#+begin_table"),
+                toString(id->parameters, ctx),
+            }));
+    }
 
     for (auto const& in_row : id->rows) {
         if (in_row->isBlock) {
@@ -935,8 +941,13 @@ auto Formatter::toString(SemId<Verbatim> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Quote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_quote"), toSubnodes(id, ctx), str("#+end_quote")));
+    return stackAttached(
+        b.stack(Vec<Res>::Splice(
+            str("#+begin_quote"),
+            toSubnodes(id, ctx),
+            str("#+end_quote"))),
+        id.as<sem::Stmt>(),
+        ctx);
 }
 
 auto Formatter::toString(SemId<CommentBlock> id, CR<Context> ctx) -> Res {
@@ -1091,4 +1102,20 @@ auto Formatter::toString(SemId<Underline> id, CR<Context> ctx) -> Res {
 auto Formatter::toString(SemId<ParseError> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
+}
+
+Formatter::Res Formatter::stackAttached(
+    Res         prev,
+    SemId<Stmt> stmt,
+    CR<Context> ctx) {
+    if (stmt->attached.empty()) {
+        return prev;
+    } else {
+        auto res = b.stack();
+        for (auto const& attach : stmt->attached) {
+            b.add_at(res, toString(attach, ctx));
+        }
+        b.add_at(res, prev);
+        return res;
+    }
 }
