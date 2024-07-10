@@ -242,7 +242,8 @@ auto Formatter::toString(SemId<List> id, CR<Context> ctx) -> Res {
     for (auto const& it : id->subnodes) {
         b.add_at(result, toString(it, ctx));
     }
-    return result;
+
+    return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
 auto Formatter::toString(SemId<SubtreeLog> id, CR<Context> ctx) -> Res {
@@ -500,7 +501,7 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res body = b.stack();
     if (id->header) {
-        Res head = b.stack();
+        Res head = b.line();
         b.add_at(head, toString(*id->header, ctx));
         b.add_at(head, str(" :: "));
         if (id->subnodes.has(0)) {
@@ -1038,7 +1039,12 @@ auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
         }
         b.add_at(result, line_out);
     }
-    return result;
+
+    if (id.size() == 1 && id.at(0)->is(OrgSemKind::Link)) {
+        return stackAttached(result, id.at(0).as<sem::Stmt>(), ctx);
+    } else {
+        return stackAttached(result, id.as<sem::Stmt>(), ctx);
+    }
 }
 
 auto Formatter::toString(SemId<AnnotatedParagraph> id, CR<Context> ctx)
@@ -1057,7 +1063,8 @@ auto Formatter::toString(SemId<AnnotatedParagraph> id, CR<Context> ctx)
             switch (id->getAnnotationKind()) {
                 case sem::AnnotatedParagraph::AnnotationKind::Admonition: {
                     b.add_at(
-                        line_out, toString(id->getAdmonition().name, ctx));
+                        line_out,
+                        str(id->getAdmonition().name->text + ":"_ss));
                     break;
                 }
                 case sem::AnnotatedParagraph::AnnotationKind::Timestamp: {

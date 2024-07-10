@@ -506,26 +506,26 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
         [&](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
             if (lhs.kind != rhs.kind) {
                 return false;
-            } else {
-                if (lhs.isTerminal()) {
-                    if (parsed.tokens != nullptr
-                        && expected.tokens != nullptr
-                        && lhs.getToken().getIndex()
-                               < parsed.tokens->size()
-                        && rhs.getToken().getIndex()
-                               < expected.tokens->size()) {
-                        auto const& lhsTok = parsed.tokens->at(
-                            lhs.getToken());
-                        auto const& rhsTok = expected.tokens->at(
-                            rhs.getToken());
-                        return lhsTok.kind == rhsTok.kind
-                            && lhsTok.value.text == rhsTok.value.text;
-                    } else {
-                        return lhs.getToken() == rhs.getToken();
-                    }
+            } else if (OrgSet{
+                           org::TextSeparator,
+                       }
+                           .contains(lhs.kind)) {
+                return true;
+            } else if (lhs.isTerminal()) {
+                if (parsed.tokens != nullptr && expected.tokens != nullptr
+                    && lhs.getToken().getIndex() < parsed.tokens->size()
+                    && rhs.getToken().getIndex()
+                           < expected.tokens->size()) {
+                    auto const& lhsTok = parsed.tokens->at(lhs.getToken());
+                    auto const& rhsTok = expected.tokens->at(
+                        rhs.getToken());
+                    return lhsTok.kind == rhsTok.kind
+                        && lhsTok.value.text == rhsTok.value.text;
                 } else {
-                    return lhs.getExtent() == rhs.getExtent();
+                    return lhs.getToken() == rhs.getToken();
                 }
+            } else {
+                return lhs.getExtent() == rhs.getExtent();
             }
         });
 
