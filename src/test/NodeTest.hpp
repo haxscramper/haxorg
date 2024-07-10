@@ -106,7 +106,10 @@ struct ParseSpec {
              debugOutDir));
     };
 
-    fs::path debugFile(std::string relativePath, bool create = true) const;
+    fs::path debugFile(
+        std::string     relativePath,
+        CR<std::string> relDebug,
+        bool            create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const std::string& message)

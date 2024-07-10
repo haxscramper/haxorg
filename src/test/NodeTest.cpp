@@ -121,14 +121,16 @@ struct convert<ParseSpec> : verbose_convert<ParseSpec> {};
 } // namespace YAML
 
 
-fs::path ParseSpec::debugFile(std::string relativePath, bool create)
-    const {
+fs::path ParseSpec::debugFile(
+    std::string     relativePath,
+    CR<std::string> relDebug,
+    bool            create) const {
     if (debug.debugOutDir.empty()) {
         throw FilesystemError(
             "Cannot get relative path for the spec configuration that "
             "does not provide debug output directory path");
     } else {
-        auto dir = fs::path{debug.debugOutDir};
+        auto dir = fs::path{debug.debugOutDir} / fs::path{relDebug};
         if (!fs::exists(dir)) {
             if (!fs::create_directories(dir)) {
                 throw FilesystemError(

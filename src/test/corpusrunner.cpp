@@ -697,30 +697,31 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 
 CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
-    CR<std::string> from) {
+    CR<std::string> from,
+    CR<Str>         relDebug) {
     __perf_trace("run spec");
     MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
     if (spec.debug.traceAll || spec.debug.printSource) {
-        writeFile(spec, "source.org", spec.source);
+        writeFile(spec, "source.org", spec.source, relDebug);
     }
 
     auto skip = RunResult{RunResult::Skip{}};
 
     if (!spec.debug.doLexBase) { return skip; }
-    auto base_lex_result = runSpecBaseLex(p, spec);
+    auto base_lex_result = runSpecBaseLex(p, spec, relDebug);
     if (!base_lex_result.isOk) { return RunResult{base_lex_result}; }
 
     if (!spec.debug.doLex) { return skip; }
-    auto lex_result = runSpecLex(p, spec);
+    auto lex_result = runSpecLex(p, spec, relDebug);
     if (!lex_result.isOk) { return RunResult{lex_result}; }
 
     if (!spec.debug.doParse) { return skip; }
-    auto parse_result = runSpecParse(p, spec);
+    auto parse_result = runSpecParse(p, spec, relDebug);
     if (!parse_result.isOk) { return RunResult{parse_result}; }
 
     if (!spec.debug.doSem) { return skip; }
-    auto sem_result = runSpecSem(p, spec);
+    auto sem_result = runSpecSem(p, spec, relDebug);
     if (!parse_result.isOk) { return RunResult{sem_result}; }
 
     if (!spec.debug.doFormatReparse) { return skip; }
@@ -738,20 +739,21 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     rerun.subnodes    = std::nullopt;
     rerun.tokens      = std::nullopt;
     rerun.sem         = toTestJson(p.node);
-    rerun.debug.debugOutDir.append("_reformat");
+    Str dbg           = relDebug + "_reformat";
 
     if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(
             rerun,
             "org2_format_tree.org",
-            formatter.store.toTreeRepr(fmt_result));
-        writeFile(rerun, "org2_format.org", rerun.source);
-        writeFile(rerun, "org2_source.org", spec.source);
+            formatter.store.toTreeRepr(fmt_result),
+            dbg);
+        writeFile(rerun, "org2_format.org", rerun.source, dbg);
+        writeFile(rerun, "org2_source.org", spec.source, dbg);
     }
 
-    runSpecBaseLex(p2, rerun);
-    runSpecLex(p2, rerun);
-    runSpecParse(p2, rerun);
+    runSpecBaseLex(p2, rerun, dbg);
+    runSpecLex(p2, rerun, dbg);
+    runSpecParse(p2, rerun, dbg);
 
 
     // Compare flat formatted nodes, clean easily broken elements from the
@@ -792,18 +794,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     if (!spec.debug.doFormatReparse) { return skip; }
 
-    auto reformat_result = runSpecSem(p2, rerun);
+    auto reformat_result = runSpecSem(p2, rerun, dbg);
     if (!reformat_result.isOk || spec.debug.traceAll
         || spec.debug.printSem) {
 
         auto read = [](char c) { return visibleName(c).first; };
 
-        writeFile(rerun, "sem2_expected.yaml", fmt1(toTestYaml(p.node)));
-        writeFile(rerun, "sem2_parsed.yaml", fmt1(toTestYaml(p2.node)));
-        writeFile(
-            rerun,
-            "sem2_reformat_fail.txt",
-            R"(
+        auto reformatFail = R"(
 
 source:
 
@@ -841,21 +838,30 @@ ${split}
 ${fail}
 ${split}
 )"
-                % fold_format_pairs({
-                    {"split", Str("-").repeated(60)},
-                    {"blocks", formatter.store.toTreeRepr(fmt_result)},
-                    {"source", spec.source},
-                    {"formatted", rerun.source},
-                    {"formattedarray",
-                     fmt1(
-                         rerun.source | rv::transform(read)
-                         | rs::to<std::vector>())},
-                    {"sourcearray",
-                     fmt1(
-                         spec.source | rv::transform(read)
-                         | rs::to<std::vector>())},
-                    {"fail", reformat_result.failDescribe.toString(false)},
-                }));
+                          % fold_format_pairs({
+                              {"split", Str("-").repeated(60)},
+                              {"blocks",
+                               formatter.store.toTreeRepr(fmt_result)},
+                              {"source", spec.source},
+                              {"formatted", rerun.source},
+                              {"formattedarray",
+                               fmt1(
+                                   rerun.source | rv::transform(read)
+                                   | rs::to<std::vector>())},
+                              {"sourcearray",
+                               fmt1(
+                                   spec.source | rv::transform(read)
+                                   | rs::to<std::vector>())},
+                              {"fail",
+                               reformat_result.failDescribe.toString(
+                                   false)},
+                          });
+
+        writeFile(
+            rerun, "sem2_expected.yaml", fmt1(toTestYaml(p.node)), dbg);
+        writeFile(
+            rerun, "sem2_parsed.yaml", fmt1(toTestYaml(p2.node)), dbg);
+        writeFile(rerun, "sem2_reformat_fail.txt", reformatFail, dbg);
     }
 
     if (!reformat_result.isOk) { return RunResult{reformat_result}; }
@@ -872,13 +878,14 @@ ${split}
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     MockFull&     p,
-    CR<ParseSpec> spec) {
+    CR<ParseSpec> spec,
+    CR<Str>       relDebug) {
     __perf_trace("lex base");
 
     SPtr<std::ofstream> fileTrace;
     if (spec.debug.traceAll || spec.debug.traceLexBase) {
         fileTrace = std::make_shared<std::ofstream>(
-            spec.debugFile("trace_lex_base.log"));
+            spec.debugFile("trace_lex_base.log", relDebug));
     }
 
     LexerParams params;
@@ -892,7 +899,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
         auto content = std::format("{}", yamlRepr(p.baseTokens));
 
         if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
-            writeFile(spec, "base_lexed.yaml", content + "\n");
+            writeFile(spec, "base_lexed.yaml", content + "\n", relDebug);
         } else {
             std::cout << content << std::endl;
         }
@@ -924,12 +931,14 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     MockFull&     p,
-    CR<ParseSpec> spec) {
+    CR<ParseSpec> spec,
+    CR<Str>       relDebug) {
     __perf_trace("lex");
 
     p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
     if (p.tokenizer->TraceState) {
-        p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
+        p.tokenizer->setTraceFile(
+            spec.debugFile("trace_lex.log", relDebug));
     }
 
     __perf_trace("tokenize convert");
@@ -941,7 +950,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
 
         __perf_trace("write lexer yaml file");
         if (spec.debug.traceAll || spec.debug.printLexedToFile) {
-            writeFile(spec, "lexed.yaml", content + "\n");
+            writeFile(spec, "lexed.yaml", content + "\n", relDebug);
         } else {
             std::cout << content << std::endl;
         }
@@ -978,7 +987,8 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
 
 CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
     MockFull&     p,
-    CR<ParseSpec> spec) {
+    CR<ParseSpec> spec,
+    CR<Str>       relDebug) {
 
     __perf_trace("parse");
     using Pos = OrgNodeGroup::TreeReprConf::WritePos;
@@ -1024,7 +1034,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
     p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
     if (p.parser->TraceState) {
-        p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
+        p.parser->setTraceFile(
+            spec.debugFile("trace_parse.log", relDebug));
     }
 
     p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
@@ -1041,7 +1052,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         writeFile(
             spec,
             "parsed_non_extended.yaml",
-            std::format("{}", yamlRepr(p.nodes)) + "\n");
+            std::format("{}", yamlRepr(p.nodes)) + "\n",
+            relDebug);
     }
 
     p.parser->extendSubtreeTrails(OrgId(0));
@@ -1051,7 +1063,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         writeFile(
             spec,
             "parsed.yaml",
-            std::format("{}", yamlRepr(p.nodes)) + "\n");
+            std::format("{}", yamlRepr(p.nodes)) + "\n",
+            relDebug);
 
         for (auto const& [colored, path] : Vec<Pair<bool, Str>>{
                  {false, "parsed.txt"}, {true, "parsed_colored.ansi"}}) {
@@ -1065,7 +1078,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
                     0,
                     OrgNodeGroup::TreeReprConf{.customWrite = writeImpl});
 
-            writeFile(spec, path, buffer.str() + "\n");
+            writeFile(spec, path, buffer.str() + "\n", relDebug);
         }
     }
 
@@ -1095,13 +1108,14 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
 CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     MockFull&     p,
-    CR<ParseSpec> spec) {
+    CR<ParseSpec> spec,
+    CR<Str>       relDebug) {
     __perf_trace("sem convert");
     sem::OrgConverter converter{};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
     if (converter.TraceState) {
-        converter.setTraceFile(spec.debugFile("trace_sem.log"));
+        converter.setTraceFile(spec.debugFile("trace_sem.log", relDebug));
     }
 
     auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
@@ -1111,12 +1125,12 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
         || spec.debug.printSemToFile) {
 
         writeFileOrStdout(
-            spec.debugFile("sem.yaml"),
+            spec.debugFile("sem.yaml", relDebug),
             std::format("{}", toTestYaml(document)) + "\n",
             spec.debug.traceAll || spec.debug.printSemToFile);
 
         {
-            std::ofstream file{spec.debugFile("sem.txt")};
+            std::ofstream file{spec.debugFile("sem.txt", relDebug)};
             ColStream     os{file};
             os.colored = false;
             ExporterTree tree{os};
@@ -1124,8 +1138,9 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
         }
 
         {
-            std::ofstream file{spec.debugFile("sem_colored.ansi")};
-            ColStream     os{file};
+            std::ofstream file{
+                spec.debugFile("sem_colored.ansi", relDebug)};
+            ColStream os{file};
             os.colored = true;
             ExporterTree tree{os};
             tree.evalTop(document);
@@ -1143,8 +1158,9 @@ TestResult gtest_run_spec(CR<TestParams> params) {
     auto spec              = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
-    using RunResult   = CorpusRunner::RunResult;
-    RunResult  result = runner.runSpec(spec, params.file.native());
+    using RunResult  = CorpusRunner::RunResult;
+    RunResult result = runner.runSpec(
+        spec, params.file.native(), "initial");
     TestResult test;
 
     if (result.isOk() && result.isSkip()) {
@@ -1173,8 +1189,9 @@ TestResult gtest_run_spec(CR<TestParams> params) {
             .printSemToFile       = true,
         };
 
-        RunResult fail = runner.runSpec(spec, params.file.native());
-        ColText   os;
+        RunResult fail = runner.runSpec(
+            spec, params.file.native(), "fail");
+        ColText os;
 
         std::visit(
             overloaded{
@@ -1186,7 +1203,7 @@ TestResult gtest_run_spec(CR<TestParams> params) {
             },
             fail.data);
 
-        runner.writeFile(spec, "failure.txt", os.toString(false));
+        runner.writeFile(spec, "failure.txt", os.toString(false), "fail");
 
         test.data = TestResult::Fail{
             .msg = fmt(

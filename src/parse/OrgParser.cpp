@@ -406,7 +406,15 @@ void OrgParser::textFold(OrgLexer& lex) {
                     start(org::Monospace);
                     skip(lex, otk::MonospaceBegin);
                     while (!lex.finished() && !lex.at(otk::MonospaceEnd)) {
-                        token(org::RawText, pop(lex, lex.kind()));
+                        switch (lex.kind()) {
+                            case otk::Placeholder: {
+                                subParse(Placeholder, lex);
+                                break;
+                            }
+                            default: {
+                                token(org::RawText, pop(lex, lex.kind()));
+                            }
+                        }
                     }
                     if (!lex.finished()) { skip(lex, otk::MonospaceEnd); }
                     end();
@@ -417,7 +425,15 @@ void OrgParser::textFold(OrgLexer& lex) {
                     start(org::Verbatim);
                     skip(lex, otk::VerbatimBegin);
                     while (!lex.finished() && !lex.at(otk::VerbatimEnd)) {
-                        token(org::RawText, pop(lex, lex.kind()));
+                        switch (lex.kind()) {
+                            case otk::Placeholder: {
+                                subParse(Placeholder, lex);
+                                break;
+                            }
+                            default: {
+                                token(org::RawText, pop(lex, lex.kind()));
+                            }
+                        }
                     }
                     if (!lex.finished()) { skip(lex, otk::VerbatimEnd); }
                     end();

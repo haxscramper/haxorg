@@ -50,12 +50,16 @@ class CorpusRunner {
     Vec<TestResult::File> files;
     bool                  inRerun = false;
 
-    void writeFile(CR<ParseSpec> spec, CR<Str> name, CR<Str> content) {
+    void writeFile(
+        CR<ParseSpec> spec,
+        CR<Str>       name,
+        CR<Str>       content,
+        CR<Str>       relDebug) {
         files.push_back(TestResult::File{
             .path  = name,
             .rerun = inRerun,
         });
-        ::writeFile(spec.debugFile(name), content);
+        ::writeFile(spec.debugFile(name, relDebug), content);
     }
 
     json toTextLyt(
@@ -115,11 +119,26 @@ class CorpusRunner {
         sem::SemId<sem::Org> node,
         json                 expected);
 
-    RunResult runSpec(CR<ParseSpec> spec, CR<std::string> from);
-    RunResult::LexCompare  runSpecBaseLex(MockFull& p, CR<ParseSpec> spec);
-    RunResult::LexCompare  runSpecLex(MockFull& p, CR<ParseSpec> spec);
-    RunResult::NodeCompare runSpecParse(MockFull& p, CR<ParseSpec> spec);
-    RunResult::SemCompare  runSpecSem(MockFull& p, CR<ParseSpec> spec);
+    RunResult runSpec(
+        CR<ParseSpec>   spec,
+        CR<std::string> from,
+        CR<Str>         relDebug);
+    RunResult::LexCompare runSpecBaseLex(
+        MockFull&     p,
+        CR<ParseSpec> spec,
+        CR<Str>       relDebug);
+    RunResult::LexCompare runSpecLex(
+        MockFull&     p,
+        CR<ParseSpec> spec,
+        CR<Str>       relDebug);
+    RunResult::NodeCompare runSpecParse(
+        MockFull&     p,
+        CR<ParseSpec> spec,
+        CR<Str>       relDebug);
+    RunResult::SemCompare runSpecSem(
+        MockFull&     p,
+        CR<ParseSpec> spec,
+        CR<Str>       relDebug);
 };
 
 struct TestParams {
