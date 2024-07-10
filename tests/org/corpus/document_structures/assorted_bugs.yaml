@@ -38,8 +38,6 @@ items:
 
   - name: "Subtree state transitions"
     tags: ["org_subtree", "org_properties", "org_clocking", "org_timestamp"]
-    debug:
-      doFlatParseCompare: false
     source: |
       **** COMPLETED Subtree title
         CLOSED: [2023-11-08 Wed 14:53:12 +04]

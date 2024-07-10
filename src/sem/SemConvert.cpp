@@ -515,6 +515,21 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
     }
 
     {
+        auto __field = field(N::Times, a);
+        for (auto const& it : one(a, N::Times)) {
+            auto kind = convertWord(it.at(0));
+            auto time = convertTime(it.at(1));
+            if (org_streq(kind->text, "closed")) {
+                tree->closed = time;
+            } else if (org_streq(kind->text, "deadline")) {
+                tree->deadline = time;
+            } else if (org_streq(kind->text, "scheduled")) {
+                tree->deadline = time;
+            }
+        }
+    }
+
+    {
         auto __field = field(N::Drawer, a);
         convertSubtreeDrawer(tree, one(a, N::Drawer));
     }

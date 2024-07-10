@@ -3,6 +3,24 @@
 
 using namespace sem;
 
+namespace {
+long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
+    auto from_utc = absl::ToCivilSecond(
+        from.time, from.zone ? *from.zone : absl::TimeZone{});
+    auto to_utc = absl::ToCivilSecond(
+        to.time, to.zone ? *to.zone : absl::TimeZone{});
+    return to_utc - from_utc;
+}
+
+std::string FormatTimeDelta(long delta_seconds) {
+    long delta   = delta_seconds / 60;
+    long hours   = delta / 60;
+    long minutes = delta % 60;
+    return std::format("{}:{:02}", hours, minutes);
+}
+
+} // namespace
+
 auto Formatter::toString(SemId<Org> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id.isNil()) {
@@ -845,6 +863,11 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                             toString(clock.from, ctx),
                             str("--"),
                             toString(clock.to.value(), ctx),
+                            str(fmt(
+                                " => {}",
+                                FormatTimeDelta(GetTimeDelta(
+                                    clock.from->getStatic().time,
+                                    clock.to.value()->getStatic().time)))),
                         });
                     } else {
                         log_head = b.line({
