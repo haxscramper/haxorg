@@ -1,7 +1,5 @@
 items:
   - name: "1"
-    debug:
-      doFlatParseCompare: false
     source: |
       haxscramper, [2023-10-14 01:20]
       #recall impossible to fully clarify the requirements, but even 70% were not reached
@@ -10,8 +8,6 @@ items:
       don't think I've done
 
   - name: Long newline unhandled
-    debug:
-      doFlatParseCompare: false
     source: |
       *** 2023-10-14 Saturday
 
@@ -20,8 +16,6 @@ items:
         LLVM XRay
 
   - name: "Timestamp with timezone"
-    debug:
-      doFlatParseCompare: false
     source: |
       **** [2023-10-17 Tue 06:42:00 +04] :from_tg:work:
           :PROPERTIES:

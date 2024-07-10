@@ -27,6 +27,7 @@ struct [[refl]] UserTimeBreakdown {
 
 struct [[refl]] UserTime {
     DECL_DESCRIBED_ENUM(Alignment, Year, Month, Day, Hour, Minute, Second);
+    DECL_DESCRIBED_ENUM(Format, ISO8601, OrgFormat);
 
     absl::Time          time;
     Opt<absl::TimeZone> zone;
@@ -35,6 +36,7 @@ struct [[refl]] UserTime {
 
     [[refl]] UserTimeBreakdown getBreakdown() const;
     [[refl]] std::string       format() const;
+    std::string                format(Format kind) const;
 };
 
 

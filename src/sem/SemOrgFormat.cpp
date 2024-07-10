@@ -444,7 +444,7 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
     b.add_at(result, str(id->isActive ? "<" : "["));
     if (id->isStatic()) {
         UserTime const& time = id->getStatic().time;
-        b.add_at(result, str(time.format()));
+        b.add_at(result, str(time.format(UserTime::Format::OrgFormat)));
     } else {
         b.add_at(result, str(id->getDynamic().expr));
     }

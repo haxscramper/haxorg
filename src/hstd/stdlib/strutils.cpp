@@ -1136,7 +1136,7 @@ Str normalize(CR<Str> in) {
     Str res;
     for (char c : in) {
         if (!(c == '_' || c == '-')) {
-            if (islower(c)) {
+            if (islower(c) || isdigit(c)) {
                 res += c;
             } else if (isupper(c)) {
                 res += tolower(c);

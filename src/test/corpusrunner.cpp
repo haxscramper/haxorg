@@ -519,8 +519,15 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                     auto const& lhsTok = parsed.tokens->at(lhs.getToken());
                     auto const& rhsTok = expected.tokens->at(
                         rhs.getToken());
-                    return lhsTok.kind == rhsTok.kind
-                        && lhsTok.value.text == rhsTok.value.text;
+                    if (lhsTok.kind != rhsTok.kind) { return false; }
+
+                    if (lhs.kind == org::RawText) {
+                        CharSet s{' '};
+                        return strip(lhsTok.value.text, s, s)
+                            == strip(rhsTok.value.text, s, s);
+                    } else {
+                        return lhsTok.value.text == rhsTok.value.text;
+                    }
                 } else {
                     return lhs.getToken() == rhs.getToken();
                 }

@@ -113,10 +113,7 @@ void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
         os << " = " << os.yellow() << escape_literal(value) << os.end()
            << "\n";
     } else if constexpr (std::is_same_v<T, UserTime>) {
-        os << " = "
-           << fmt("align:{} breakdown:{}",
-                  value.align,
-                  value.getBreakdown())
+        os << " = " << fmt("align:{} time:{}", value.align, value.format())
            << "\n";
     } else {
         os << "\n";

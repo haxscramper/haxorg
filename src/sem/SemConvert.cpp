@@ -18,6 +18,36 @@ using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
 using Property = sem::Subtree::Property;
 
+namespace {
+bool org_streq(CR<Str> str1, CR<Str> str2) {
+    return normalize(str1) == normalize(str2);
+}
+
+absl::TimeZone ConvertToTimeZone(std::string z) {
+    int  hours    = 0;
+    int  minutes  = 0;
+    bool positive = true;
+
+    if (z[0] == '+' || z[0] == '-') {
+        positive = (z[0] == '+');
+        z        = z.substr(1);
+    }
+
+    if (z.size() == 2) {
+        hours = std::stoi(z);
+    } else if (z.size() == 4) {
+        hours   = std::stoi(z.substr(0, 2));
+        minutes = std::stoi(z.substr(2, 2));
+    }
+
+    int offset = hours * 3600 + minutes * 60;
+    if (!positive) { offset = -offset; }
+
+    return absl::FixedTimeZone(offset);
+}
+
+} // namespace
+
 Str get_text(
     OrgAdapter  a,
     int         line     = __builtin_LINE(),
@@ -525,23 +555,6 @@ SemId<Time> OrgConverter::convertTime(__args) {
         a.kind() == org::StaticActiveTime
         || a.kind() == org::StaticInactiveTime) {
 
-        // using Mode      = Time::Repeat::Mode;
-        // Mode repeatMode = Mode::None;
-
-        // if (one(a, N::Repeater).kind() != org::Empty) {
-        //     Str repeat = get_text(one(a, N::Repeater));
-        //     if (repeat.starts_with("++")) {
-        //         repeatMode = Mode::FirstMatch;
-        //         repeat     = repeat.dropPrefix("++");
-        //     } else if (repeat.starts_with(".+")) {
-        //         repeatMode = Mode::SameDay;
-        //         repeat     = repeat.dropPrefix(".+");
-        //     } else if (repeat.starts_with("+")) {
-        //         repeatMode = Mode::Exact;
-        //         repeat     = repeat.dropPrefix("+");
-        //     }
-        // }
-
         std::string datetime;
         if (one(a, N::Year).kind() != org::Empty) {
             datetime += get_text(one(a, N::Year));
@@ -570,6 +583,13 @@ SemId<Time> OrgConverter::convertTime(__args) {
             // Add other formats as needed
         };
 
+
+        Opt<absl::TimeZone> zone;
+
+        if (auto z = one(a, N::Zone); z.kind() != org::Empty) {
+            zone = ConvertToTimeZone(get_text(z));
+        }
+
         absl::Time parsedDateTime;
         bool       foundTime = false;
         Spec       matching;
@@ -578,7 +598,7 @@ SemId<Time> OrgConverter::convertTime(__args) {
             if (absl::ParseTime(
                     format.pattern,
                     datetime,
-                    absl::TimeZone(),
+                    zone ? zone.value() : absl::TimeZone(),
                     &parsedDateTime,
                     &error)) {
                 matching  = format;
@@ -595,15 +615,13 @@ SemId<Time> OrgConverter::convertTime(__args) {
                     % to_string_vec(datetime, getLocMsg(a)));
         }
 
+
         time->time = Time::Static{
             .time = UserTime{
-                .time = parsedDateTime, .align = matching.align}};
-
-        // if (repeatMode != Mode::None) {
-        //     time->getStatic().repeat = Time::Repeat{
-        //         .mode = repeatMode,
-        //     };
-        // }
+                .time  = parsedDateTime,
+                .align = matching.align,
+                .zone  = zone,
+            }};
     }
 
     print_json(time);
@@ -1396,17 +1414,17 @@ void fillDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a) {
             auto split = value.split(':');
             auto head  = split[0];
             auto tail  = split[1];
-            if (head == "broken-links") {
-                if (tail == "mark") {
+            if (org_streq(head, "broken-links")) {
+                if (org_streq(tail, "mark")) {
                     opts->brokenLinks = DocumentOptions::BrokenLinks::Mark;
-                } else if (tail == "t") {
+                } else if (org_streq(tail, "t")) {
                     opts->brokenLinks = DocumentOptions::BrokenLinks::
                         Ignore;
                 }
-            } else if (head == "toc") {
-                if (tail == "t") {
+            } else if (org_streq(head, "toc")) {
+                if (org_streq(tail, "t")) {
                     opts->tocExport = DocumentOptions::DoExport{true};
-                } else if (tail == "nil") {
+                } else if (org_streq(tail, "nil")) {
                     opts->tocExport = DocumentOptions::DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
                     opts->tocExport = DocumentOptions::ExportFixed{
@@ -1414,11 +1432,11 @@ void fillDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a) {
                 }
             }
 
-        } else if (value == ":") {
+        } else if (org_streq(value, ":")) {
             opts->fixedWidthSections = true;
-        } else if (value == "<") {
+        } else if (org_streq(value, "<")) {
             opts->includeTimestamps = true;
-        } else if (value == "^") {
+        } else if (org_streq(value, "^")) {
             opts->plaintextSubscripts = true;
         } else {
             LOG(ERROR) << "Unexpected document option value" << value;
