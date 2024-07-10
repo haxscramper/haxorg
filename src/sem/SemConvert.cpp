@@ -1134,18 +1134,23 @@ SemId<AtMention> OrgConverter::convertAtMention(__args) {
 }
 
 SemId<CmdArgument> OrgConverter::convertCmdArgument(__args) {
-    SemId<CmdArgument> result = Sem<CmdArgument>(a);
-    Str                key    = get_text(one(a, N::Name));
-    result->value             = get_text(one(a, N::Value));
+    auto               __trace = trace(a);
+    SemId<CmdArgument> result  = Sem<CmdArgument>(a);
+    Str                key     = get_text(one(a, N::Name));
+    result->value              = get_text(one(a, N::Value));
 
     if (!key.empty()) { result->key = key.substr(1); }
 
+    if (TraceState) {
+        print(fmt("key:{} value:{}", result->key, result->value));
+    }
 
     return result;
 }
 
 SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
-    SemId<CmdArguments> result = Sem<CmdArguments>(a);
+    auto                __trace = trace(a);
+    SemId<CmdArguments> result  = Sem<CmdArguments>(a);
 
     auto add_arg = [&](SemId<CmdArgument> arg) {
         if (arg->key) {
@@ -1158,7 +1163,10 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
                 result->named.insert({key, args});
             }
         } else {
-            result->positional->push_back(arg);
+            if (result->positional.isNil()) {
+                result->positional = SemId<CmdArgumentList>::New();
+            }
+            result->positional->args.push_back(arg);
         }
     };
 
@@ -1176,9 +1184,10 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 }
 
 SemId<CmdAttr> OrgConverter::convertCmdAttr(__args) {
-    SemId<CmdAttr> result = Sem<CmdAttr>(a);
-    result->target        = normalize(get_text(one(a, N::Name)));
-    result->parameters    = convertCmdArguments(one(a, N::Args));
+    auto           __trace = trace(a);
+    SemId<CmdAttr> result  = Sem<CmdAttr>(a);
+    result->target         = normalize(get_text(one(a, N::Name)));
+    result->parameters     = convertCmdArguments(one(a, N::Args));
 
     return result;
 }

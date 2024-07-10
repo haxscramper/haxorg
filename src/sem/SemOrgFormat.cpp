@@ -601,7 +601,7 @@ auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
 
     if (id->isBlock) { b.add_at(result, str("#+end_table")); }
 
-    return result;
+    return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
 auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
