@@ -727,6 +727,7 @@ void Exporter<V, R>::visitListItem(R& res, In<sem::ListItem> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, checkbox);
   __org_field(res, object, header);
+  __org_field(res, object, bullet);
   __org_field(res, object, subnodes);
 }
 

@@ -2556,7 +2556,8 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("attached", &sem::List::attached)
-    .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList))
+    .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList), R"RAW(List is marked as description if any list item has a header)RAW")
+    .def("isNumberedList", static_cast<bool(sem::List::*)() const>(&sem::List::isNumberedList), R"RAW(List is marked as numbered if any list item has bullet text set)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::List::*)(Opt<Str> const&) const>(&sem::List::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -2597,7 +2598,8 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("checkbox", &sem::ListItem::checkbox)
-    .def_readwrite("header", &sem::ListItem::header)
+    .def_readwrite("header", &sem::ListItem::header, R"RAW(Description list item header)RAW")
+    .def_readwrite("bullet", &sem::ListItem::bullet, R"RAW(Full text of the numbered list item, e.g. `a)`, `a.`)RAW")
     .def("isDescriptionItem", static_cast<bool(sem::ListItem::*)() const>(&sem::ListItem::isDescriptionItem))
     .def("__repr__", [](sem::ListItem _self) -> std::string {
                      return py_repr_impl(_self);

@@ -548,7 +548,10 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
     }
 
 
-    return b.line({str("- " + checkbox), body});
+    return b.line({
+        str((id->bullet ? id->bullet.value() + " "_ss : "- ") + checkbox),
+        body,
+    });
 }
 
 auto Formatter::toString(SemId<AtMention> id, CR<Context> ctx) -> Res {

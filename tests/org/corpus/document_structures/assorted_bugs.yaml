@@ -137,8 +137,6 @@ items:
 
   - name: "Numbered list"
     tags: ["org_list"]
-    debug:
-      doFlatParseCompare: false
     source: |
       1. Item 1
       2. Item 2

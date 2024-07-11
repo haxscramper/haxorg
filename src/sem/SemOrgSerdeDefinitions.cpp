@@ -1407,6 +1407,9 @@ void proto_serde<::orgproto::ListItem, sem::ListItem>::write(::orgproto::ListIte
   if (in.header) {
     proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_header(), *in.header);
   }
+  if (in.bullet) {
+    proto_serde<std::string, Str>::write(out->mutable_bullet(), *in.bullet);
+  }
 }
 
 void proto_serde<::orgproto::ListItem, sem::ListItem>::read(::orgproto::ListItem const& out, proto_write_accessor<sem::ListItem> in) {
@@ -1414,6 +1417,9 @@ void proto_serde<::orgproto::ListItem, sem::ListItem>::read(::orgproto::ListItem
   in.for_field(&sem::ListItem::checkbox).get() = static_cast<sem::ListItem::Checkbox>(out.checkbox());
   if (out.has_header()) {
     proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.header(), in.for_field(&sem::ListItem::header));
+  }
+  if (out.has_bullet()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.bullet(), in.for_field(&sem::ListItem::bullet));
   }
 }
 

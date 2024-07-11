@@ -160,13 +160,7 @@ struct SemId {
 
     template <typename T>
     Vec<SemId<T>> subAs() const {
-        Vec<SemId<T>> result;
-        for (auto const& sub : value->subnodes) {
-            if (sub->getKind() == T::staticKind) {
-                result.push_back(sub.template as<T>());
-            }
-        }
-        return result;
+        return value->template subAs<T>();
     }
 
     /// \brief non-nil nodes are converter to `true`
@@ -257,6 +251,17 @@ struct [[refl]] Org {
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
     bool          is(CR<IntSet<OrgSemKind>> kinds) const {
         return kinds.contains(getKind());
+    }
+
+    template <typename T>
+    Vec<SemId<T>> subAs() const {
+        Vec<SemId<T>> result;
+        for (auto const& sub : subnodes) {
+            if (sub->getKind() == T::staticKind) {
+                result.push_back(sub.template as<T>());
+            }
+        }
+        return result;
     }
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());

@@ -871,6 +871,10 @@ SemId<ListItem> OrgConverter::convertListItem(__args) {
         item->header = convertParagraph(one(a, N::Header));
     }
 
+    if (auto bullet = one(a, N::Bullet); bullet.kind() != org::Empty) {
+        item->bullet = strip(get_text(bullet), CharSet{' '}, CharSet{' '});
+    }
+
     if (one(a, N::Checkbox).kind() != org::Empty) {
         Str text = strip(
             get_text(one(a, N::Checkbox)),

@@ -1157,6 +1157,7 @@ message ListItem {
   OrgSemKind                                       staticKind                       = 2;
   ListItem.Checkbox                                checkbox                         = 3;
   optional Paragraph                               header                           = 4;
+  optional string                                  bullet                           = 5;
   string                                           debug                            = 1000;
 }
 

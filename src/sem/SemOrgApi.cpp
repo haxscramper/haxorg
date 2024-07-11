@@ -321,6 +321,14 @@ bool List::isDescriptionList() const {
     return false;
 }
 
+bool List::isNumberedList() const {
+    for (const auto& sub : subAs<sem::ListItem>()) {
+        if (sub->bullet.has_value()) { return true; }
+    }
+
+    return false;
+}
+
 Vec<sem::SemId<sem::Org>> Stmt::getAttached(CR<Opt<Str>> kind) const {
     Vec<SemId<Org>> result;
     for (const auto& sub : attached) {

@@ -1404,7 +1404,21 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc(""),
             bases=[t_org("Stmt")],
             methods=[
-                GenTuFunction(t_bool(), "isDescriptionList", GenTuDoc(""), isConst=True)
+                GenTuFunction(
+                    t_bool(),
+                    "isDescriptionList",
+                    GenTuDoc(
+                        "List is marked as description if any list item has a header"),
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_bool(),
+                    "isNumberedList",
+                    GenTuDoc(
+                        "List is marked as numbered if any list item has bullet text set"
+                    ),
+                    isConst=True,
+                )
             ],
         ),
         d_org(
@@ -1416,10 +1430,14 @@ def get_types() -> Sequence[GenTuStruct]:
                            "checkbox",
                            GenTuDoc(""),
                            value="sem::ListItem::Checkbox::None"),
-                GenTuField(t_opt(t_id("Paragraph")),
-                           "header",
-                           GenTuDoc(""),
-                           value="std::nullopt"),
+                opt_field(
+                    t_id("Paragraph"),
+                    "header",
+                    GenTuDoc("Description list item header"),
+                ),
+                opt_field(
+                    t_str(), "bullet",
+                    GenTuDoc("Full text of the numbered list item, e.g. `a)`, `a.`",))
             ],
             nested=[
                 d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty",

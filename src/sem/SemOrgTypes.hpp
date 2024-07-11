@@ -1634,10 +1634,14 @@ struct List : public sem::Stmt {
                        (),
                        (staticKind,
                         (OrgSemKind() const) getKind,
-                        (bool() const) isDescriptionList))
+                        (bool() const) isDescriptionList,
+                        (bool() const) isNumberedList))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::List; }
+  /// \brief List is marked as description if any list item has a header
   bool isDescriptionList() const;
+  /// \brief List is marked as numbered if any list item has bullet text set
+  bool isNumberedList() const;
 };
 
 struct ListItem : public sem::Org {
@@ -1652,11 +1656,15 @@ struct ListItem : public sem::Org {
                        (staticKind,
                         checkbox,
                         header,
+                        bullet,
                         (OrgSemKind() const) getKind,
                         (bool() const) isDescriptionItem))
   static OrgSemKind const staticKind;
   sem::ListItem::Checkbox checkbox = sem::ListItem::Checkbox::None;
+  /// \brief Description list item header
   Opt<sem::SemId<sem::Paragraph>> header = std::nullopt;
+  /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
+  Opt<Str> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
   bool isDescriptionItem() const { return header.has_value(); }
 };
