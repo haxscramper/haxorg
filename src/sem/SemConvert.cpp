@@ -1095,6 +1095,11 @@ SemId<AdmonitionBlock> OrgConverter::convertAdmonitionBlock(__args) {
 
 SemId<Quote> OrgConverter::convertQuote(__args) {
     SemId<Quote> quote = Sem<Quote>(a);
+
+    if (auto args = one(a, N::Args); args.kind() != org::Empty) {
+        quote->parameters = convertCmdArguments(args);
+    }
+
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
         quote->push_back(sub);
     }

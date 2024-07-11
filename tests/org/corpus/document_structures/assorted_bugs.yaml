@@ -204,8 +204,6 @@ items:
           - DF
 
   - name: "Logbook without properties"
-    debug:
-      doFlatParseCompare: false
     tags: ["org_subtree", "org_logbook"]
     source: |
       ****** XX
@@ -214,12 +212,8 @@ items:
             :END:
 
   - name: "Table with trailing medium newline"
-    debug:
-      doFlatParseCompare: false
-      doFormatReparse: false
     tags: ["org_table"]
     source: |
-
       | language | profiling            | tools              | etc. |
       |----------+----------------------+--------------------+------|
       | cxx      | gprof, perfetto, ... | vscode, conan, ... |      |
@@ -234,8 +228,6 @@ items:
       #+end_src
 
   - name: "Quote block parameters"
-    debug:
-      doFlatParseCompare: false
     source: |
       #+begin_quote :cc @user
       Text

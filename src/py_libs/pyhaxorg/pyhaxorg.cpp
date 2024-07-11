@@ -837,13 +837,22 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Quote, sem::SemId<sem::Quote>, sem::Stmt>(m, "Quote")
+  pybind11::class_<sem::Quote, sem::SemId<sem::Quote>, sem::Block>(m, "Quote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Quote {
                         sem::Quote result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("parameters", &sem::Quote::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::Quote::attached)
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::Quote::*)(Opt<Str> const&) const>(&sem::Quote::getArguments),
+         pybind11::arg_v("key", std::nullopt),
+         R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::Quote::*)(Str const&) const>(&sem::Quote::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Quote::*)(Opt<Str> const&) const>(&sem::Quote::getAttached),
          pybind11::arg_v("kind", std::nullopt),

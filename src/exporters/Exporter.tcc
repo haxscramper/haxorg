@@ -218,6 +218,7 @@ void Exporter<V, R>::visitTblfm(R& res, In<sem::Tblfm> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitQuote(R& res, In<sem::Quote> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }

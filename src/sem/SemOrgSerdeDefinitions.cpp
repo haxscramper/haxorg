@@ -286,11 +286,13 @@ void proto_serde<::orgproto::Tblfm, sem::Tblfm>::read(::orgproto::Tblfm const& o
 }
 
 void proto_serde<::orgproto::Quote, sem::Quote>::write(::orgproto::Quote* out, sem::Quote const& in) {
+  proto_serde<::orgproto::Quote, sem::Command>::write(out, in);
   proto_serde<::orgproto::Quote, sem::Stmt>::write(out, in);
   proto_serde<::orgproto::Quote, sem::Org>::write(out, in);
 }
 
 void proto_serde<::orgproto::Quote, sem::Quote>::read(::orgproto::Quote const& out, proto_write_accessor<sem::Quote> in) {
+  proto_serde<::orgproto::Quote, sem::Command>::read(out, in.as<sem::Command>());
   proto_serde<::orgproto::Quote, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::Quote, sem::Org>::read(out, in.as<sem::Org>());
 }

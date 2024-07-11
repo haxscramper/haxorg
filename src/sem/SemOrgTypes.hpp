@@ -431,11 +431,11 @@ struct Tblfm : public sem::Command {
 };
 
 /// \brief Quotation block
-struct Quote : public sem::Stmt {
-  using Stmt::Stmt;
+struct Quote : public sem::Block {
+  using Block::Block;
   virtual ~Quote() = default;
   BOOST_DESCRIBE_CLASS(Quote,
-                       (Stmt),
+                       (Block),
                        (),
                        (),
                        (staticKind, (OrgSemKind() const) getKind))

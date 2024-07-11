@@ -490,7 +490,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Quote",
             GenTuDoc("Quotation block"),
-            bases=[t_org("Stmt")],
+            bases=[t_org("Block")],
         ),
         d_org(
             "CommentBlock",
