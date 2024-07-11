@@ -96,6 +96,23 @@ OrgId OrgParser::end(int line, const char* function) {
     return res;
 }
 
+void OrgParser::fail(
+    CR<OrgLexer> lex,
+    CR<OrgNode>  replace,
+    int          line,
+    const char*  function) {
+    CHECK(0 <= group->treeDepth());
+    auto res = group->failTree(replace);
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::FailTree, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+}
+
+
 OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
     auto res = group->token(
         kind, group->tokens->add(OrgToken(OrgTokenKind::Unknown)));
@@ -108,6 +125,7 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
     }
     return res;
 }
+
 
 OrgId OrgParser::token(CR<OrgNode> node, int line, const char* function) {
     auto res = group->token(node);

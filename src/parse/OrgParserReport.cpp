@@ -41,6 +41,16 @@ void OrgParser::report(CR<Report> in) {
         os << fmt(":{}", in.line);
     };
 
+    auto printNode = [&]() {
+        auto id = in.node.value();
+        os << std::format(
+            "{} {} ID:{} @{}",
+            (in.kind == ReportKind::StartNode ? "+" : "-"),
+            group->at(id).kind,
+            id.getUnmasked(),
+            in.line);
+    };
+
     CHECK(0 <= treeDepth()) << "Negative tree depth";
 
     switch (in.kind) {
@@ -49,6 +59,20 @@ void OrgParser::report(CR<Report> in) {
             printSourceLoc();
             if (in.lex) { os << " " << getLoc(); }
             if (in.msg) { os << " " << *in.msg; }
+            if (in.node) { printNode(); }
+            printTokens();
+            break;
+        }
+
+        case ReportKind::FailTree: {
+            os << "  FAIL ";
+            printSourceLoc();
+            if (in.lex) { os << " " << getLoc(); }
+            if (in.msg) { os << " " << *in.msg; }
+            if (in.node) {
+                os << "Reverting to ";
+                printNode();
+            }
             printTokens();
             break;
         }
@@ -76,13 +100,6 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::StartNode:
         case ReportKind::EndNode: {
             auto id = in.node.value();
-            os << std::format(
-                "{} {} ID:{} @{}",
-                (in.kind == ReportKind::StartNode ? "+" : "-"),
-                group->at(id).kind,
-                id.getUnmasked(),
-                in.line);
-
             if (in.kind == ReportKind::EndNode) {
                 os << " ext="
                    << std::format("{}", group->at(id).getExtent());

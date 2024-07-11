@@ -284,12 +284,6 @@ void OrgParser::textFold(OrgLexer& lex) {
         }
     };
 
-    const OrgTokSet AngleTargetContent{
-        otk::RawText,
-        otk::Whitespace,
-        otk::Word,
-        otk::BigIdent,
-    };
 
     aux = [&]() {
         auto __trace = trace(lex, std::nullopt, __LINE__, "aux");
@@ -409,87 +403,40 @@ void OrgParser::textFold(OrgLexer& lex) {
                     break;
                 }
 
+                case otk::VerbatimBegin:
                 case otk::MonospaceBegin: {
-                    start(org::Monospace);
-                    skip(lex, otk::MonospaceBegin);
-                    while (!lex.finished() && !lex.at(otk::MonospaceEnd)) {
-                        switch (lex.kind()) {
-                            case otk::Placeholder: {
-                                subParse(Placeholder, lex);
-                                break;
-                            }
-                            default: {
-                                token(org::RawText, pop(lex, lex.kind()));
-                            }
-                        }
-                    }
-                    if (!lex.finished()) { skip(lex, otk::MonospaceEnd); }
-                    end();
+                    parseVerbatimOrMonospace(lex);
                     break;
                 }
 
-                case otk::VerbatimBegin: {
-                    start(org::Verbatim);
-                    skip(lex, otk::VerbatimBegin);
-                    while (!lex.finished() && !lex.at(otk::VerbatimEnd)) {
-                        switch (lex.kind()) {
-                            case otk::Placeholder: {
-                                subParse(Placeholder, lex);
-                                break;
-                            }
-                            default: {
-                                token(org::RawText, pop(lex, lex.kind()));
-                            }
-                        }
-                    }
-                    if (!lex.finished()) { skip(lex, otk::VerbatimEnd); }
-                    end();
-                    break;
-                }
+                    // case otk::DoubleAngleBegin: {
+                    //     if (lex.ahead(
+                    //             OrgTokSet{
+                    //                 otk::Whitespace,
+                    //                 otk::Word,
+                    //                 otk::DoubleAngleBegin},
+                    //             otk::DoubleAngleEnd)) {
+                    //         skip(lex, otk::DoubleAngleBegin);
+                    //         start(org::Target);
+                    //         while (lex.can_search(otk::DoubleAngleEnd))
+                    //         {
+                    //             token(
+                    //                 org::Target, pop(lex,
+                    //                 AngleTargetContent));
+                    //         }
+                    //         end();
+                    //         skip(lex, otk::DoubleAngleEnd);
+                    //     } else {
+                    //         token(org::Punctuation, pop(lex,
+                    //         lex.kind()));
+                    //     }
 
+                    //     break;
+                    // }
 
-                case otk::DoubleAngleBegin: {
-                    if (lex.ahead(
-                            OrgTokSet{
-                                otk::Whitespace,
-                                otk::Word,
-                                otk::DoubleAngleBegin},
-                            otk::DoubleAngleEnd)) {
-                        skip(lex, otk::DoubleAngleBegin);
-                        start(org::Target);
-                        while (lex.can_search(otk::DoubleAngleEnd)) {
-                            token(
-                                org::Target, pop(lex, AngleTargetContent));
-                        }
-                        end();
-                        skip(lex, otk::DoubleAngleEnd);
-                    } else {
-                        token(org::Punctuation, pop(lex, lex.kind()));
-                    }
-
-                    break;
-                }
-
+                case otk::DoubleAngleBegin:
                 case otk::TripleAngleBegin: {
-                    if (lex.ahead(
-                            OrgTokSet{
-                                otk::Whitespace,
-                                otk::Word,
-                                otk::TripleAngleBegin},
-                            otk::TripleAngleEnd)) {
-                        skip(lex, otk::TripleAngleBegin);
-                        start(org::RadioTarget);
-                        while (lex.can_search(otk::TripleAngleEnd)) {
-                            token(
-                                org::RadioTarget,
-                                pop(lex, AngleTargetContent));
-                        }
-                        end();
-                        skip(lex, otk::TripleAngleEnd);
-                    } else {
-                        token(org::Punctuation, pop(lex, lex.kind()));
-                    }
-
+                    parseAngleTarget(lex);
                     break;
                 }
 
@@ -538,11 +485,17 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
         "Trace levels after text fold start:$#, end:$#"
         % to_string_vec(treeStart, treeEnd));
 
-    CHECK(treeStart == treeEnd)
-        << "parseText"
-        << ("Text fold created unbalanced tree - starting with depth $# "
-            "ended up on depth $# on position $# (starting from $#)"
-            % to_string_vec(treeStart, treeEnd, getLocMsg(lex), forMsg));
+    if (treeStart != treeEnd) {
+        auto msg = fmt(
+            "Text fold created unbalanced tree - starting with depth {} "
+            "ended up on depth {} on position {} (starting from {})",
+            treeStart,
+            treeEnd,
+            getLocMsg(lex),
+            forMsg);
+
+        throw fatalError(lex, msg);
+    }
 
     OrgId last = back();
     return slice(first, last);
@@ -909,6 +862,90 @@ OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
         end();
     }
     return end();
+}
+
+OrgId OrgParser::parseVerbatimOrMonospace(OrgLexer& lex) {
+    __perf_trace("parseVerbatimOrMonospace");
+    auto __trace = trace(lex);
+    bool m       = lex.kind() == otk::MonospaceBegin;
+
+    auto start_node  = start(m ? org::Monospace : org::Verbatim);
+    auto begin_token = pop(
+        lex, m ? otk::MonospaceBegin : otk::VerbatimBegin);
+
+    int  newlineCount = 0;
+    bool foundEnd     = false;
+
+    while (!lex.finished() && !foundEnd) {
+        switch (lex.kind()) {
+            case otk::VerbatimBegin:
+            case otk::MonospaceBegin: {
+                if (lex.at(m ? otk::MonospaceBegin : otk::VerbatimBegin)) {
+                    foundEnd = true;
+                } else {
+                    token(org::RawText, pop(lex, lex.kind()));
+                }
+
+                break;
+            }
+            case otk::Newline: {
+                if (2 < newlineCount) {
+                    foundEnd = true;
+                } else {
+                    ++newlineCount;
+                    token(org::RawText, pop(lex, lex.kind()));
+                }
+                break;
+            }
+
+            case otk::Placeholder: {
+                subParse(Placeholder, lex);
+                break;
+            }
+            default: {
+                token(org::RawText, pop(lex, lex.kind()));
+            }
+        }
+    }
+
+    if (lex.at(m ? otk::MonospaceEnd : otk::VerbatimEnd)) {
+        skip(lex);
+        return end();
+    } else {
+        fail(lex, OrgNode(org::Punctuation, begin_token));
+        return start_node;
+    }
+}
+
+OrgId OrgParser::parseAngleTarget(OrgLexer& lex) {
+    bool            radio = lex.kind() == otk::TripleAngleBegin;
+    const OrgTokSet AngleTargetContent{
+        otk::RawText,
+        otk::Whitespace,
+        otk::Word,
+        otk::BigIdent,
+    };
+
+    auto end   = radio ? otk::TripleAngleEnd : otk::DoubleAngleEnd;
+    auto begin = radio ? otk::TripleAngleBegin : otk::DoubleAngleBegin;
+
+    if (lex.ahead(OrgTokSet{otk::Whitespace, otk::Word, begin}, end)) {
+        skip(lex, begin);
+        start(org::RadioTarget);
+        while (lex.can_search(end)) {
+            switch (lex.kind()) {
+                case otk::RawText: token(org::RawText, pop(lex)); break;
+                case otk::Whitespace: token(org::Space, pop(lex)); break;
+                case otk::Word: token(org::Word, pop(lex)); break;
+                case otk::BigIdent: token(org::BigIdent, pop(lex)); break;
+                default:
+            }
+        }
+        skip(lex, end);
+        return this->end();
+    } else {
+        return token(org::Punctuation, pop(lex, lex.kind()));
+    }
 }
 
 

@@ -66,8 +66,6 @@ items:
 
   - name: "Irregular source block in the list"
     tags: ["org_list", "org_paragraph", "org_src", "org_timestamp"]
-    debug:
-      doFlatParseCompare: false
     source: |
       - [2023-11-11  Sat 00:10:50  +04]  IDEA  #project##hcparse union  of  fields  can also  be
 
@@ -106,8 +104,6 @@ items:
 
   - name: "Internal assertion on the verbatim parsing"
     tags: ["org_list", "org_paragraph", "org_subtree", "org_quote", "org_markup"]
-    debug:
-      doFlatParseCompare: false
     source: |
       - F
         =MFC= X
@@ -121,8 +117,6 @@ items:
 
   - name: "Incomplete italic-looking quote content"
     tags: ["org_quote", "org_subtree", "org_markup"]
-    debug:
-      doFlatParseCompare: false
     source: |
       #+begin_quote
       i <If /> 
@@ -138,8 +132,6 @@ items:
 
   - name: "Broken standalone content"
     tags: ["org_paragraph", "defcon2"]
-    debug:
-      doFlatParseCompare: false
     source: |
       scp -r $E:AWS_ACCESS':'$E:AWS_HOME'/build/binary.snap' ~/tmp/wip_snaps
 
@@ -842,5 +834,25 @@ items:
     source: | 
       ** Text :broken
 
+  - name: "Multiline monospace in paragraph"
+    tags: ["org_paragraph", "org_monospace", "org_markup"]
+    source: |
+      ~Monospace text
+      Multiple lines of 
+      Max 2 newlines~
+
+  - name: "Unterminated multiline monospace in paragraph"
+    tags: ["org_paragraph", "org_monospace", "org_markup", "defcon4"]
+    source: |
+      ~Monospace text
+      Multiple lines of 
+      Max 2 newlines
+
+  - name: "Unterminated monospace with structure"
+    tags: ["org_paragraph", "org_list", "org_markup", "defcon3"]
+    source: |
+      ~Monospace in text
+      - Item1
+      - Item2
 
 

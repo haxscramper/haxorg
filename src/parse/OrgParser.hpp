@@ -35,7 +35,8 @@ struct OrgParser : public OperationsTracer {
         EndNode,
         AddToken,
         Error,
-        Print
+        Print,
+        FailTree,
     };
 
     struct Report : OperationsMsg {
@@ -59,6 +60,8 @@ struct OrgParser : public OperationsTracer {
     OrgId parseTimeStamp(OrgLexer& lex);
     OrgId parseIdent(OrgLexer& lex);
     OrgId parseSrcInline(OrgLexer& lex);
+    OrgId parseVerbatimOrMonospace(OrgLexer& lex);
+    OrgId parseAngleTarget(OrgLexer& lex);
     OrgId parseTable(OrgLexer& lex);
     OrgId parsePlaceholder(OrgLexer& lex);
     OrgId parseTopParagraph(OrgLexer& lex);
@@ -160,6 +163,12 @@ struct OrgParser : public OperationsTracer {
         OrgNodeKind kind,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
+
+    void fail(
+        CR<OrgLexer> lex,
+        CR<OrgNode>  replace,
+        int          line     = __builtin_LINE(),
+        char const*  function = __builtin_FUNCTION());
 
     void expect(
         CR<OrgLexer>                 lex,
