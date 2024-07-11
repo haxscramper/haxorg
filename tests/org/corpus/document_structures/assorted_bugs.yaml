@@ -155,9 +155,6 @@ items:
 
   - name: "Standalone caption"
     tags: ["org_paragraph", "defcon3"]
-    debug:
-      doFlatParseCompare: false
-      doFormatReparse: false
     source: |
       - [2023-11-09 Thu 18:33:38 +04]
         #+caption:
@@ -177,8 +174,6 @@ items:
       - [[id:16cb0d5f-1e66-47ef-bc29-9f41ecb81f73][Descriuption]]  is not
         reproducible
   - name: "Interleaving monospace and verbatim"
-    debug:
-      doFlatParseCompare: false
     source: |
       - If ~A~ is
         passes ~set(QWE OFF)~, but =11=  =cc= in
@@ -190,8 +185,6 @@ items:
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
     tags: ["org_list", "org_src", "org_block", "defcon1"]
-    debug:
-      doFlatParseCompare: false
     # Double nested quote does not work though 
     source: |
       - Some text
