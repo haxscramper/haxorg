@@ -456,14 +456,7 @@ struct RecombineState {
             }
 
             case otk::LinkTarget: {
-                if (lex.tok().value.text.starts_with(':')) {
-                    add_fake(
-                        otk::LinkTarget,
-                        loc_fill(lex.tok().value.text.substr(1)));
-                    lex.next();
-                } else {
-                    pop_as(otk::LinkTarget);
-                }
+                pop_as(otk::LinkTarget);
                 break;
             }
 

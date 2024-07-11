@@ -1241,3 +1241,11 @@ std::vector<std::string> rune_chunks(const std::string& str) {
     }
     return runes;
 }
+
+Str lstrip(CR<Str> string, CR<CharSet> chars) {
+    return strip(string, chars, {});
+}
+
+Str rstrip(CR<Str> string, CR<CharSet> chars) {
+    return strip(string, {}, chars);
+}

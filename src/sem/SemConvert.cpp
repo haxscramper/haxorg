@@ -801,8 +801,11 @@ SemId<Footnote> OrgConverter::convertFootnote(__args) {
 
 SemId<Link> OrgConverter::convertLink(__args) {
     __perf_trace("convert", "convertLink");
-    auto __trace = trace(a);
-    auto link    = Sem<Link>(a);
+    auto __trace   = trace(a);
+    auto link      = Sem<Link>(a);
+    auto getTarget = [&]() {
+        return lstrip(get_text(one(a, N::Link)), CharSet{':'});
+    };
     if (a.kind() == org::RawLink) {
         link->data = Link::Raw{.text = get_text(a)};
 
@@ -811,7 +814,7 @@ SemId<Link> OrgConverter::convertLink(__args) {
             .target = get_text(one(a, N::Definition))};
 
     } else if (one(a, N::Protocol).kind() == org::Empty) {
-        Str target = get_text(one(a, N::Link));
+        Str target = getTarget();
         if (target.starts_with(".") || target.starts_with("/")) {
             link->data = Link::File{.file = target};
         } else {
@@ -822,10 +825,10 @@ SemId<Link> OrgConverter::convertLink(__args) {
         Str protocol = normalize(get_text(one(a, N::Protocol)));
         if (protocol == "http" || protocol == "https") {
             link->data = Link::Raw{
-                .text = protocol + ":"_ss + get_text(one(a, N::Link))};
+                .text = protocol + ":"_ss + getTarget()};
         } else if (protocol == "id") {
             link->data = Link::Id{
-                .text = strip(get_text(one(a, N::Link)), {' '}, {' '})};
+                .text = strip(getTarget(), {' '}, {' '})};
 
         } else if (protocol == "person") {
             link->data = Link::Person{};
@@ -834,11 +837,10 @@ SemId<Link> OrgConverter::convertLink(__args) {
             }
 
         } else if (protocol == "file") {
-            link->data = Link::File{.file = get_text(one(a, N::Link))};
+            link->data = Link::File{.file = getTarget()};
 
         } else if (protocol == "attachment") {
-            link->data = Link::Attachment{
-                .file = get_text(one(a, N::Link))};
+            link->data = Link::Attachment{.file = getTarget()};
 
         } else {
             link->data = Link::UserProtocol{.protocol = protocol};

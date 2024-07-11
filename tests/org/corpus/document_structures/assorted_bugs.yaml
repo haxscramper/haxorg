@@ -276,9 +276,6 @@ items:
       #+end_quote
 
   - name: "Closing curly in link"
-    debug:
-      doFlatParseCompare: false
-      doFormatReparse: false
     source: |
       src_sh{ping
         https://google.com},

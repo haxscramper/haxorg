@@ -33,6 +33,8 @@ Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 Vec<Str> visibleUnicodeName(Str str, bool useUnicode = true);
 Vec<Str> split_keep_separator(const Str& str, CharSet sep = {' '});
 Str      strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing);
+Str      lstrip(CR<Str> string, CR<CharSet> chars);
+Str      rstrip(CR<Str> string, CR<CharSet> chars);
 Vec<Str> split(CR<Str> str, char ch);
 Str      right_aligned(CR<Str> str, int n, char c = ' ');
 Str      left_aligned(CR<Str> str, int n, char c = ' ');
