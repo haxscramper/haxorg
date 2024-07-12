@@ -459,10 +459,8 @@ items:
       [[file:imgs/sch_1.tmp.png]]
 
   - name: "Attr HTML"
-    debug:
-      doFlatParseCompare: false
     source: |
-      #+ATTR_HTML: :width 300px border="2" rules="all" frame="border"
+      #+attr_html: border="2" rules="all" frame="border" :width 300px 
       | test num | image                   |   |
       |----------+-------------------------+---|
       | test 1   | [[file:sch_1.tmp.png]]  |   |
@@ -491,8 +489,6 @@ items:
       <<no-end
 
   - name: "Double brace end at the hashtag"
-    debug:
-      doParse: false
     source: |
       #fanfiction##[character##[image,description,new]] 
 

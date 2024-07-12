@@ -43,12 +43,14 @@ void OrgParser::report(CR<Report> in) {
 
     auto printNode = [&]() {
         auto id = in.node.value();
-        os << std::format(
-            "{} {} ID:{} @{}",
-            (in.kind == ReportKind::StartNode ? "+" : "-"),
-            group->at(id).kind,
-            id.getUnmasked(),
-            in.line);
+        if (in.node && !in.node.value().isNil()) {
+            os << std::format(
+                "{} {} ID:{} @{}",
+                (in.kind == ReportKind::StartNode ? "+" : "-"),
+                group->at(id).kind,
+                id.getUnmasked(),
+                in.line);
+        }
     };
 
     CHECK(0 <= treeDepth()) << "Negative tree depth";

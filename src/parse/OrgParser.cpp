@@ -629,33 +629,71 @@ OrgId OrgParser::parseSymbol(OrgLexer& lex) {
 OrgId OrgParser::parseHashTag(OrgLexer& lex) {
     __perf_trace("parseHashTag");
     auto __trace = trace(lex);
-    start(org::HashTag);
-    space(lex);
-    if (lex.at(otk::At)) {
-        // Org-mode suppors tags like '@work' etc.
-        token(org::RawText, pop(lex, otk::At));
-    } else {
-        token(
-            org::RawText,
-            pop(lex, OrgTokSet{otk::HashIdent, otk::Word, otk::BigIdent}));
-    }
 
-    if (lex.at(otk::DoubleHash)) {
-        skip(lex, otk::DoubleHash);
-        if (lex.at(OrgTokSet{otk::HashIdent, otk::Word, otk::BigIdent})) {
-            subParse(HashTag, lex);
+    struct HashState {
+        OrgId result;
+        bool  doubleSkip;
+    };
 
+    Func<HashState(OrgLexer & lex)> aux;
+
+
+    aux = [&](OrgLexer& lex) -> HashState {
+        auto __trace = trace(lex, "aux", __LINE__, "aux");
+        start(org::HashTag);
+        space(lex);
+        if (lex.at(otk::At)) {
+            // Org-mode suppors tags like '@work' etc.
+            token(org::RawText, pop(lex, otk::At));
         } else {
-            skip(lex, otk::BraceBegin);
-            while (!lex.finished() && !lex.at(otk::BraceEnd)) {
-                subParse(HashTag, lex);
-                if (lex.at(otk::Comma)) { skip(lex); }
-                space(lex);
-            }
-            skip(lex, otk::BraceEnd);
+            token(
+                org::RawText,
+                pop(lex,
+                    OrgTokSet{otk::HashIdent, otk::Word, otk::BigIdent}));
         }
-    }
-    return end();
+
+        bool doubleSkip = false;
+
+        if (lex.at(otk::DoubleHash)) {
+            skip(lex, otk::DoubleHash);
+            if (lex.at(
+                    OrgTokSet{otk::HashIdent, otk::Word, otk::BigIdent})) {
+                auto sub = aux(lex);
+                if (sub.doubleSkip) {
+                    print("double skip");
+                    return HashState{.result = end()};
+                }
+
+            } else {
+                skip(lex, otk::BraceBegin);
+                while (
+                    !lex.finished()
+                    && !lex.at(OrgTokSet{otk::BraceEnd, otk::LinkEnd})) {
+                    auto result = aux(lex);
+                    if (result.doubleSkip) {
+                        print("double skip");
+                        return HashState{.result = end()};
+                    }
+                    if (lex.at(otk::Comma)) { skip(lex); }
+                    space(lex);
+                }
+
+                if (lex.at(otk::LinkEnd)) {
+                    doubleSkip = true;
+                    skip(lex, otk::LinkEnd);
+                } else {
+                    skip(lex, otk::BraceEnd);
+                }
+            }
+        }
+
+        return HashState{
+            .result     = end(),
+            .doubleSkip = doubleSkip,
+        };
+    };
+
+    return aux(lex).result;
 }
 
 
