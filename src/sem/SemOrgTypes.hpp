@@ -1306,6 +1306,7 @@ struct Subtree : public sem::Org {
                         scheduled,
                         isComment,
                         isArchived,
+                        priority,
                         (OrgSemKind() const) getKind,
                         (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
                         (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
@@ -1341,6 +1342,7 @@ struct Subtree : public sem::Org {
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag
   bool isArchived = false;
+  Opt<Str> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
   Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;

@@ -290,7 +290,7 @@ items:
     debug:
       doFlatParseCompare: false
     source: |
-      **** COMPLETED Store vscode configuration in dotfiles :@config:software##vscode:
+      **** COMPLETED Store vscode configuration in dotfiles :@config:softwaqtre##vscode:
 
   - name: "Colon-looking content"
     source: |
@@ -312,10 +312,8 @@ items:
       OrgTokenKind> const&)}
 
   - name: "Uppercase subtree tag content"
-    debug:
-      doFlatParseCompare: false
     source: |
-      **** CANCELED [#C] User qweq :complexity##intricate_13:ARCHIVE:
+      **** CANCELED [#C] User qweq :ARCHIVE:complexity##intricate_13:
 
   - name: "Empty paragraph"
     debug:

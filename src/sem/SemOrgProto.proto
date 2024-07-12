@@ -990,6 +990,7 @@ message Subtree {
   optional Time                                    scheduled                        = 14;
   bool                                             isComment                        = 15;
   bool                                             isArchived                       = 16;
+  optional string                                  priority                         = 17;
   string                                           debug                            = 1000;
 }
 

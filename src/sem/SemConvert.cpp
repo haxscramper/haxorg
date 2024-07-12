@@ -493,6 +493,15 @@ SemId<Subtree> OrgConverter::convertSubtree(__args) {
     }
 
     {
+        auto __field = field(N::Urgency, a);
+        auto urgency = one(a, N::Urgency);
+        if (urgency.kind() != org::Empty) {
+            tree->priority = strip(
+                get_text(urgency), CharSet{'[', '#'}, CharSet{']'});
+        }
+    }
+
+    {
         auto __field = field(N::Todo, a);
         auto todo    = one(a, N::Todo);
         if (todo.getKind() != org::Empty) { tree->todo = get_text(todo); }

@@ -1054,6 +1054,7 @@ def get_types() -> Sequence[GenTuStruct]:
                            GenTuDoc("Subtree is annotated with the COMMENT keyword")),
                 bool_field("isArchived",
                            GenTuDoc("Subtree is tagged with `:ARCHIVE:` tag")),
+                opt_field(t_str(), "priority", GenTuDoc("")),
             ],
             methods=[
                 GenTuFunction(

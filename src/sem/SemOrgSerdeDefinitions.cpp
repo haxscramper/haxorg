@@ -1177,6 +1177,9 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::write(::orgproto::Subtree* 
   }
   out->set_iscomment(in.isComment);
   out->set_isarchived(in.isArchived);
+  if (in.priority) {
+    proto_serde<std::string, Str>::write(out->mutable_priority(), *in.priority);
+  }
 }
 
 void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree const& out, proto_write_accessor<sem::Subtree> in) {
@@ -1209,6 +1212,9 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
   }
   in.for_field(&sem::Subtree::isComment).get() = out.iscomment();
   in.for_field(&sem::Subtree::isArchived).get() = out.isarchived();
+  if (out.has_priority()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.priority(), in.for_field(&sem::Subtree::priority));
+  }
 }
 
 void proto_serde<::orgproto::InlineMath, sem::InlineMath>::write(::orgproto::InlineMath* out, sem::InlineMath const& in) {

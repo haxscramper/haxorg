@@ -491,6 +491,7 @@ void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
   __org_field(res, object, scheduled);
   __org_field(res, object, isComment);
   __org_field(res, object, isArchived);
+  __org_field(res, object, priority);
   __org_field(res, object, subnodes);
 }
 
