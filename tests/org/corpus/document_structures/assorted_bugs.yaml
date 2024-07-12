@@ -448,7 +448,7 @@ items:
   - name: "Name and results"
     source: |
       #+name: xxx
-      #+BEGIN_SRC sch :file imgs/sch_1.tmp.png :exports none
+      #+BEGIN_SRC sch :exports none :file imgs/sch_1.tmp.png
       R 1 2; right
       C 2 3; down
       L 3 4; left

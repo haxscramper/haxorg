@@ -561,6 +561,74 @@ void proto_serde<::orgproto::Code::Switch, sem::Code::Switch>::read(::orgproto::
   }
 }
 
+void proto_serde<::orgproto::Code::EvalResult::None, sem::Code::EvalResult::None>::write(::orgproto::Code::EvalResult::None* out, sem::Code::EvalResult::None const& in) {
+
+}
+
+void proto_serde<::orgproto::Code::EvalResult::None, sem::Code::EvalResult::None>::read(::orgproto::Code::EvalResult::None const& out, proto_write_accessor<sem::Code::EvalResult::None> in) {
+
+}
+
+void proto_serde<::orgproto::Code::EvalResult::OrgValue, sem::Code::EvalResult::OrgValue>::write(::orgproto::Code::EvalResult::OrgValue* out, sem::Code::EvalResult::OrgValue const& in) {
+  if (!in.value.isNil()) {
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(out->mutable_value(), in.value);
+  }
+}
+
+void proto_serde<::orgproto::Code::EvalResult::OrgValue, sem::Code::EvalResult::OrgValue>::read(::orgproto::Code::EvalResult::OrgValue const& out, proto_write_accessor<sem::Code::EvalResult::OrgValue> in) {
+  proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(out.value(), in.for_field(&sem::Code::EvalResult::OrgValue::value));
+}
+
+void proto_serde<::orgproto::Code::EvalResult::File, sem::Code::EvalResult::File>::write(::orgproto::Code::EvalResult::File* out, sem::Code::EvalResult::File const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_path(), in.path);
+}
+
+void proto_serde<::orgproto::Code::EvalResult::File, sem::Code::EvalResult::File>::read(::orgproto::Code::EvalResult::File const& out, proto_write_accessor<sem::Code::EvalResult::File> in) {
+  proto_serde<std::string, Str>::read(out.path(), in.for_field(&sem::Code::EvalResult::File::path));
+}
+
+void proto_serde<::orgproto::Code::EvalResult::Raw, sem::Code::EvalResult::Raw>::write(::orgproto::Code::EvalResult::Raw* out, sem::Code::EvalResult::Raw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::Code::EvalResult::Raw, sem::Code::EvalResult::Raw>::read(::orgproto::Code::EvalResult::Raw const& out, proto_write_accessor<sem::Code::EvalResult::Raw> in) {
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::Code::EvalResult::Raw::text));
+}
+
+void proto_serde<::orgproto::Code::EvalResult, sem::Code::EvalResult>::write(::orgproto::Code::EvalResult* out, sem::Code::EvalResult const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::Code::EvalResult::None, sem::Code::EvalResult::None>::write(out->mutable_data()->mutable_none(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::Code::EvalResult::OrgValue, sem::Code::EvalResult::OrgValue>::write(out->mutable_data()->mutable_orgvalue(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::Code::EvalResult::File, sem::Code::EvalResult::File>::write(out->mutable_data()->mutable_file(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::Code::EvalResult::Raw, sem::Code::EvalResult::Raw>::write(out->mutable_data()->mutable_raw(), std::get<3>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::Code::EvalResult, sem::Code::EvalResult>::read(::orgproto::Code::EvalResult const& out, proto_write_accessor<sem::Code::EvalResult> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::Code::EvalResult::Data::kNone:
+      proto_serde<orgproto::Code::EvalResult::None, sem::Code::EvalResult::None>::read(out.data().none(), in.for_field_variant<0>(&sem::Code::EvalResult::data));
+      break;
+    case ::orgproto::Code::EvalResult::Data::kOrgvalue:
+      proto_serde<orgproto::Code::EvalResult::OrgValue, sem::Code::EvalResult::OrgValue>::read(out.data().orgvalue(), in.for_field_variant<1>(&sem::Code::EvalResult::data));
+      break;
+    case ::orgproto::Code::EvalResult::Data::kFile:
+      proto_serde<orgproto::Code::EvalResult::File, sem::Code::EvalResult::File>::read(out.data().file(), in.for_field_variant<2>(&sem::Code::EvalResult::data));
+      break;
+    case ::orgproto::Code::EvalResult::Data::kRaw:
+      proto_serde<orgproto::Code::EvalResult::Raw, sem::Code::EvalResult::Raw>::read(out.data().raw(), in.for_field_variant<3>(&sem::Code::EvalResult::data));
+      break;
+  }
+}
+
 void proto_serde<::orgproto::Code, sem::Code>::write(::orgproto::Code* out, sem::Code const& in) {
   proto_serde<::orgproto::Code, sem::Command>::write(out, in);
   proto_serde<::orgproto::Code, sem::Stmt>::write(out, in);
@@ -570,6 +638,9 @@ void proto_serde<::orgproto::Code, sem::Code>::write(::orgproto::Code* out, sem:
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::write(out->mutable_switches(), in.switches);
   out->set_exports(static_cast<orgproto::Code_Exports>(in.exports));
+  if (in.result) {
+    proto_serde<orgproto::Code::EvalResult, sem::Code::EvalResult>::write(out->mutable_result(), *in.result);
+  }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Line>, Vec<sem::Code::Line>>::write(out->mutable_lines(), in.lines);
   out->set_cache(in.cache);
   out->set_eval(in.eval);
@@ -587,6 +658,9 @@ void proto_serde<::orgproto::Code, sem::Code>::read(::orgproto::Code const& out,
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Switch>, Vec<sem::Code::Switch>>::read(out.switches(), in.for_field(&sem::Code::switches));
   in.for_field(&sem::Code::exports).get() = static_cast<sem::Code::Exports>(out.exports());
+  if (out.has_result()) {
+    proto_serde<Opt<orgproto::Code::EvalResult>, Opt<sem::Code::EvalResult>>::read(out.result(), in.for_field(&sem::Code::result));
+  }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Code::Line>, Vec<sem::Code::Line>>::read(out.lines(), in.for_field(&sem::Code::lines));
   in.for_field(&sem::Code::cache).get() = out.cache();
   in.for_field(&sem::Code::eval).get() = out.eval();

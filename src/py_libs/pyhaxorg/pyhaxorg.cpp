@@ -1393,6 +1393,105 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
+  pybind11::class_<sem::Code::EvalResult::None>(m, "CodeEvalResultNone")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::EvalResult::None {
+                        sem::Code::EvalResult::None result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::Code::EvalResult::None _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::EvalResult::None _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Code::EvalResult::OrgValue>(m, "CodeEvalResultOrgValue")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::EvalResult::OrgValue {
+                        sem::Code::EvalResult::OrgValue result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &sem::Code::EvalResult::OrgValue::value, R"RAW(Parsed value of the evaluation result)RAW")
+    .def("__repr__", [](sem::Code::EvalResult::OrgValue _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::EvalResult::OrgValue _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Code::EvalResult::File>(m, "CodeEvalResultFile")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::EvalResult::File {
+                        sem::Code::EvalResult::File result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("path", &sem::Code::EvalResult::File::path)
+    .def("__repr__", [](sem::Code::EvalResult::File _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::EvalResult::File _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Code::EvalResult::Raw>(m, "CodeEvalResultRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::EvalResult::Raw {
+                        sem::Code::EvalResult::Raw result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &sem::Code::EvalResult::Raw::text)
+    .def("__repr__", [](sem::Code::EvalResult::Raw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::EvalResult::Raw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::Code::EvalResult::Kind>(m, "CodeEvalResultKind");
+  pybind11::enum_<sem::Code::EvalResult::Kind>(m, "CodeEvalResultKind")
+    .value("None", sem::Code::EvalResult::Kind::None)
+    .value("OrgValue", sem::Code::EvalResult::Kind::OrgValue)
+    .value("File", sem::Code::EvalResult::Kind::File)
+    .value("Raw", sem::Code::EvalResult::Kind::Raw)
+    .def("__iter__", [](sem::Code::EvalResult::Kind _self) -> PyEnumIterator<sem::Code::EvalResult::Kind> {
+                     return
+                     PyEnumIterator<sem::Code::EvalResult::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::Code::EvalResult>(m, "CodeEvalResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code::EvalResult {
+                        sem::Code::EvalResult result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::Code::EvalResult::data)
+    .def("getNone", static_cast<sem::Code::EvalResult::None&(sem::Code::EvalResult::*)()>(&sem::Code::EvalResult::getNone))
+    .def("getOrgValue", static_cast<sem::Code::EvalResult::OrgValue&(sem::Code::EvalResult::*)()>(&sem::Code::EvalResult::getOrgValue))
+    .def("getFile", static_cast<sem::Code::EvalResult::File&(sem::Code::EvalResult::*)()>(&sem::Code::EvalResult::getFile))
+    .def("getRaw", static_cast<sem::Code::EvalResult::Raw&(sem::Code::EvalResult::*)()>(&sem::Code::EvalResult::getRaw))
+    .def_static("getKindStatic",
+                static_cast<sem::Code::EvalResult::Kind(*)(sem::Code::EvalResult::Data const&)>(&sem::Code::EvalResult::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::Code::EvalResult::Kind(sem::Code::EvalResult::*)() const>(&sem::Code::EvalResult::getKind))
+    .def("__repr__", [](sem::Code::EvalResult _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Code::EvalResult _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::Code, sem::SemId<sem::Code>, sem::Block>(m, "Code")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Code {
                         sem::Code result{};
@@ -1402,6 +1501,7 @@ node can have subnodes.)RAW")
     .def_readwrite("lang", &sem::Code::lang, R"RAW(Code block language name)RAW")
     .def_readwrite("switches", &sem::Code::switches, R"RAW(Switch options for block)RAW")
     .def_readwrite("exports", &sem::Code::exports, R"RAW(What to export)RAW")
+    .def_readwrite("result", &sem::Code::result, R"RAW(Code evaluation results)RAW")
     .def_readwrite("lines", &sem::Code::lines, R"RAW(Collected code lines)RAW")
     .def_readwrite("cache", &sem::Code::cache, R"RAW(Do cache values?)RAW")
     .def_readwrite("eval", &sem::Code::eval, R"RAW(Eval on export?)RAW")

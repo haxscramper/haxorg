@@ -23,6 +23,15 @@ Field field1(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
 }
 
 template <typename Idx>
+Field field1(
+    Idx           idx,
+    N             name,
+    OrgSet const& pattern = OrgSet{},
+    Str           doc     = "") {
+    return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
+}
+
+template <typename Idx>
 Field fieldN(
     Idx           idx,
     N             name,
@@ -428,6 +437,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 Field(
                     Range(3, N::Result),
                     OrgPattern({org::RawText, org::Empty})),
+            })},
+        SpecPair{
+            org::CommandResults,
+            OrgPattern({
+                field1(0, N::Args, {org::Empty, org::CmdArguments}),
+                fieldN(1, N::Body),
             })},
         SpecPair{
             org::CommandArguments,

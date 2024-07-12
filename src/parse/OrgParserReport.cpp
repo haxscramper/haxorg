@@ -99,6 +99,7 @@ void OrgParser::report(CR<Report> in) {
 
         case ReportKind::StartNode:
         case ReportKind::EndNode: {
+            printNode();
             auto id = in.node.value();
             if (in.kind == ReportKind::EndNode) {
                 os << " ext="

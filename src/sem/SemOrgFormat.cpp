@@ -197,22 +197,28 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     bool isInline = ctx.isInline;
 
-    auto result = isInline ? b.line() : b.stack();
-    auto head   = isInline ? b.line({str("src_")})
-                           : b.line({str("#+begin_src")});
+    auto     result = isInline ? b.line() : b.stack();
+    Vec<Res> parameters;
+    if (id->parameters) {
+        parameters.push_back(toString(id->parameters.value(), ctx));
+    }
+
+    auto head = isInline ? b.line({str("src_")})
+                         : b.line({str("#+begin_src")});
 
     if (id->lang) {
         b.add_at(head, str((isInline ? "" : " ") + *id->lang));
     }
 
-    if (id->parameters) {
+    if (!parameters.empty()) {
         if (isInline) {
             b.add_at(head, str("["));
         } else {
             b.add_at(head, str(" "));
         }
 
-        b.add_at(head, toString(id->parameters.value(), ctx));
+        b.add_at(head, b.join(parameters, str(" ")));
+
         if (isInline) { b.add_at(head, str("]")); }
     }
 
@@ -246,6 +252,36 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
         b.add_at(result, str("}"));
     } else {
         b.add_at(result, str("#+end_src"));
+    }
+
+    if (id->result) {
+        b.add_at(result, str(""));
+        b.add_at(result, b.line({str("#+results:")}));
+        switch (id->result->getKind()) {
+            case Code::EvalResult::Kind::OrgValue: {
+                b.add_at(
+                    result,
+                    toString(id->result->getOrgValue().value, ctx));
+                break;
+            }
+
+            case Code::EvalResult::Kind::Raw: {
+                b.add_at(result, str(id->result->getRaw().text));
+                break;
+            }
+
+
+            case Code::EvalResult::Kind::None: {
+                break;
+            }
+
+            case Code::EvalResult::Kind::File: {
+                b.add_at(
+                    result,
+                    str(fmt("[file:{}]", id->result->getFile().path)));
+                break;
+            }
+        }
     }
 
     return stackAttached(result, id.as<sem::Stmt>(), ctx);

@@ -1405,15 +1405,12 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
         }
         skip(lex, otk::CmdPrefix);
         skip(lex, otk::CmdResults);
+        start(org::CommandResults);
+        space(lex);
+        parseCommandArguments(lex);
         newline(lex);
-        if (lex.at(otk::ColonExampleLine)) {
-            start(org::StmtList);
-            while (lex.at(otk::ColonExampleLine)) {
-                token(org::RawText, lex.pop(otk::ColonExampleLine));
-                token(org::Newline, lex.pop(Newline));
-            }
-            end();
-        }
+        parseStmtListItem(lex);
+        end();
     }
 
     return end();

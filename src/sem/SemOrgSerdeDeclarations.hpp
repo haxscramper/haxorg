@@ -370,6 +370,41 @@ struct proto_serde<::orgproto::Code::Switch, sem::Code::Switch> {
 
 
 template <>
+struct proto_serde<::orgproto::Code::EvalResult::None, sem::Code::EvalResult::None> {
+  static void write(::orgproto::Code::EvalResult::None* out, sem::Code::EvalResult::None const& in);
+  static void read(::orgproto::Code::EvalResult::None const& out, proto_write_accessor<sem::Code::EvalResult::None> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::EvalResult::OrgValue, sem::Code::EvalResult::OrgValue> {
+  static void write(::orgproto::Code::EvalResult::OrgValue* out, sem::Code::EvalResult::OrgValue const& in);
+  static void read(::orgproto::Code::EvalResult::OrgValue const& out, proto_write_accessor<sem::Code::EvalResult::OrgValue> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::EvalResult::File, sem::Code::EvalResult::File> {
+  static void write(::orgproto::Code::EvalResult::File* out, sem::Code::EvalResult::File const& in);
+  static void read(::orgproto::Code::EvalResult::File const& out, proto_write_accessor<sem::Code::EvalResult::File> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::EvalResult::Raw, sem::Code::EvalResult::Raw> {
+  static void write(::orgproto::Code::EvalResult::Raw* out, sem::Code::EvalResult::Raw const& in);
+  static void read(::orgproto::Code::EvalResult::Raw const& out, proto_write_accessor<sem::Code::EvalResult::Raw> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Code::EvalResult, sem::Code::EvalResult> {
+  static void write(::orgproto::Code::EvalResult* out, sem::Code::EvalResult const& in);
+  static void read(::orgproto::Code::EvalResult const& out, proto_write_accessor<sem::Code::EvalResult> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Code, sem::Code> {
   static void write(::orgproto::Code* out, sem::Code const& in);
   static void read(::orgproto::Code const& out, proto_write_accessor<sem::Code> in);

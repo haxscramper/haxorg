@@ -1260,7 +1260,9 @@ SemId<Code> OrgConverter::convertCode(__args) {
     }
 
     if (one(a, N::HeaderArgs).kind() != org::Empty) {
-        result->parameters = convertCmdArguments(one(a, N::HeaderArgs));
+        auto args = convertCmdArguments(one(a, N::HeaderArgs));
+
+        result->parameters = args;
     }
 
     if (a.kind() == org::SrcInlineCode) {
@@ -1288,6 +1290,12 @@ SemId<Code> OrgConverter::convertCode(__args) {
                 }
             }
         }
+    }
+
+    if (auto res = one(a, N::Result); res.kind() != org::Empty) {
+        auto body      = one(res, N::Body);
+        result->result = sem::Code::EvalResult{
+            sem::Code::EvalResult::OrgValue{.value = convert(body)}};
     }
 
     return result;

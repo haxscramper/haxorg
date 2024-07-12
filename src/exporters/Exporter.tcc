@@ -303,6 +303,7 @@ void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
   __org_field(res, object, lang);
   __org_field(res, object, switches);
   __org_field(res, object, exports);
+  __org_field(res, object, result);
   __org_field(res, object, lines);
   __org_field(res, object, cache);
   __org_field(res, object, eval);
@@ -355,6 +356,24 @@ void Exporter<V, R>::visit(R& res, sem::Code::Switch::EmphasizeLine const& objec
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Code::Switch::Dedent const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::Data const& object) { visitVariants(res, sem::Code::EvalResult::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::EvalResult const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::None const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::OrgValue const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::File const& object) { __obj_field(res, object, path); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::Raw const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Time::TimeVariant const& object) { visitVariants(res, sem::Time::getTimeKind(object), object); }

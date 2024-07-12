@@ -667,6 +667,39 @@ message Code {
     Exports_Code_f                                                                  = 2;
     Exports_Results_f                                                               = 3;
   }
+  message EvalResult {
+    message None {
+      string                                       debug                            = 1000;
+    }
+    message OrgValue {
+      AnyNode                                      value                            = 1;
+      string                                       debug                            = 1000;
+    }
+    message File {
+      string                                       path                             = 1;
+      string                                       debug                            = 1000;
+    }
+    message Raw {
+      string                                       text                             = 1;
+      string                                       debug                            = 1000;
+    }
+    message Data {
+      oneof kind {
+        Code.EvalResult.None                       none                             = 1;
+        Code.EvalResult.OrgValue                   orgvalue                         = 2;
+        Code.EvalResult.File                       file                             = 3;
+        Code.EvalResult.Raw                        raw                              = 4;
+      }
+    }
+    enum Kind {
+      Kind_None_f                                                                   = 0;
+      Kind_OrgValue_f                                                               = 1;
+      Kind_File_f                                                                   = 2;
+      Kind_Raw_f                                                                    = 3;
+    }
+    Code.EvalResult.Data                           data                             = 1;
+    string                                         debug                            = 1000;
+  }
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -674,12 +707,13 @@ message Code {
   optional string                                  lang                             = 5;
   repeated Code.Switch                             switches                         = 6;
   Code.Exports                                     exports                          = 7;
-  repeated Code.Line                               lines                            = 8;
-  bool                                             cache                            = 9;
-  bool                                             eval                             = 10;
-  bool                                             noweb                            = 11;
-  bool                                             hlines                           = 12;
-  bool                                             tangle                           = 13;
+  optional Code.EvalResult                         result                           = 8;
+  repeated Code.Line                               lines                            = 9;
+  bool                                             cache                            = 10;
+  bool                                             eval                             = 11;
+  bool                                             noweb                            = 12;
+  bool                                             hlines                           = 13;
+  bool                                             tangle                           = 14;
   string                                           debug                            = 1000;
 }
 

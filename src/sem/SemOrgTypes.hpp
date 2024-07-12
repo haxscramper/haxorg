@@ -740,6 +740,64 @@ struct Code : public sem::Block {
     Results,
   };
   BOOST_DESCRIBE_NESTED_ENUM(Exports, None, Both, Code, Results)
+  struct EvalResult {
+    /// \brief Default value
+    struct None {
+      BOOST_DESCRIBE_CLASS(None, (), (), (), ())
+    };
+
+    /// \brief Source code block evaluated to an org-mode node element
+    struct OrgValue {
+      BOOST_DESCRIBE_CLASS(OrgValue, (), (), (), (value))
+      /// \brief Parsed value of the evaluation result
+      sem::SemId<sem::Org> value = sem::SemId<sem::Org>::Nil();
+    };
+
+    /// \brief Output evaluation results to a file
+    struct File {
+      BOOST_DESCRIBE_CLASS(File, (), (), (), (path))
+      Str path;
+    };
+
+    /// \brief Evaluation output is a raw text
+    struct Raw {
+      BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
+      Str text;
+    };
+
+    using Data = std::variant<sem::Code::EvalResult::None, sem::Code::EvalResult::OrgValue, sem::Code::EvalResult::File, sem::Code::EvalResult::Raw>;
+    enum class Kind : short int { None, OrgValue, File, Raw, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
+    using variant_enum_type = sem::Code::EvalResult::Kind;
+    using variant_data_type = sem::Code::EvalResult::Data;
+    BOOST_DESCRIBE_CLASS(EvalResult,
+                         (),
+                         (),
+                         (),
+                         (data,
+                          (sem::Code::EvalResult::None const&() const) getNone,
+                          (sem::Code::EvalResult::None&()) getNone,
+                          (sem::Code::EvalResult::OrgValue const&() const) getOrgValue,
+                          (sem::Code::EvalResult::OrgValue&()) getOrgValue,
+                          (sem::Code::EvalResult::File const&() const) getFile,
+                          (sem::Code::EvalResult::File&()) getFile,
+                          (sem::Code::EvalResult::Raw const&() const) getRaw,
+                          (sem::Code::EvalResult::Raw&()) getRaw,
+                          (sem::Code::EvalResult::Kind(sem::Code::EvalResult::Data const&)) getKind,
+                          (sem::Code::EvalResult::Kind() const) getKind))
+    sem::Code::EvalResult::Data data;
+    sem::Code::EvalResult::None const& getNone() const { return std::get<0>(data); }
+    sem::Code::EvalResult::None& getNone() { return std::get<0>(data); }
+    sem::Code::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
+    sem::Code::EvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
+    sem::Code::EvalResult::File const& getFile() const { return std::get<2>(data); }
+    sem::Code::EvalResult::File& getFile() { return std::get<2>(data); }
+    sem::Code::EvalResult::Raw const& getRaw() const { return std::get<3>(data); }
+    sem::Code::EvalResult::Raw& getRaw() { return std::get<3>(data); }
+    static sem::Code::EvalResult::Kind getKind(sem::Code::EvalResult::Data const& __input) { return static_cast<sem::Code::EvalResult::Kind>(__input.index()); }
+    sem::Code::EvalResult::Kind getKind() const { return getKind(data); }
+  };
+
   BOOST_DESCRIBE_CLASS(Code,
                        (Block),
                        (),
@@ -748,6 +806,7 @@ struct Code : public sem::Block {
                         lang,
                         switches,
                         exports,
+                        result,
                         lines,
                         cache,
                         eval,
@@ -762,6 +821,8 @@ struct Code : public sem::Block {
   Vec<sem::Code::Switch> switches = {};
   /// \brief What to export
   sem::Code::Exports exports = sem::Code::Exports::Both;
+  /// \brief Code evaluation results
+  Opt<sem::Code::EvalResult> result = std::nullopt;
   /// \brief Collected code lines
   Vec<sem::Code::Line> lines = {};
   /// \brief Do cache values?

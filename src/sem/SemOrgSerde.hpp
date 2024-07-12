@@ -108,6 +108,22 @@ struct proto_write_accessor<T>
     }
 };
 
+template <>
+struct SerdeDefaultProvider<sem::Code::EvalResult::OrgValue> {
+    static sem::Code::EvalResult::OrgValue get() {
+        return sem::Code::EvalResult::OrgValue{
+            .value = sem::SemId<sem::Org>::Nil()};
+    }
+};
+
+template <>
+struct SerdeDefaultProvider<sem::Code::EvalResult> {
+    static sem::Code::EvalResult get() {
+        return sem::Code::EvalResult{sem::Code::EvalResult::OrgValue{
+            .value = sem::SemId<sem::Org>::Nil()}};
+    }
+};
+
 template <typename T>
 struct proto_init {
     static void init_default(T& value) {}

@@ -717,6 +717,39 @@ def get_types() -> Sequence[GenTuStruct]:
                                        GenTuDoc("Show only evaluation results")),
                     ],
                 ),
+                GenTuStruct(
+                    t("EvalResult"),
+                    nested=[
+                        GenTuTypeGroup([
+                            GenTuStruct(
+                                t("None"),
+                                GenTuDoc("Default value"),
+                            ),
+                            GenTuStruct(
+                                t("OrgValue"),
+                                GenTuDoc(
+                                    "Source code block evaluated to an org-mode node element"
+                                ),
+                                fields=[
+                                    id_field(
+                                        "Org", "value",
+                                        GenTuDoc("Parsed value of the evaluation result"))
+                                ],
+                            ),
+                            GenTuStruct(
+                                t("File"),
+                                GenTuDoc("Output evaluation results to a file"),
+                                fields=[
+                                    GenTuField(t_str(), "path"),
+                                ],
+                            ),
+                            GenTuStruct(
+                                t("Raw"),
+                                GenTuDoc("Evaluation output is a raw text"),
+                                fields=[GenTuField(t_str(), "text")],
+                            ),
+                        ]),
+                    ])
             ],
             fields=[
                 GenTuField(
@@ -735,6 +768,8 @@ def get_types() -> Sequence[GenTuStruct]:
                            "exports",
                            GenTuDoc("What to export"),
                            value="sem::Code::Exports::Both"),
+                opt_field(t_nest("EvalResult", ["Code"]), "result",
+                          GenTuDoc("Code evaluation results")),
                 vec_field(t_nest("Line", ["Code"]), "lines",
                           GenTuDoc("Collected code lines")),
                 GenTuField(t_bool(), "cache", GenTuDoc("Do cache values?"),
