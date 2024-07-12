@@ -187,6 +187,7 @@ void Exporter<V, R>::visitCaption(R& res, In<sem::Caption> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitCmdName(R& res, In<sem::CmdName> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, name);
   __org_field(res, object, parameters);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);

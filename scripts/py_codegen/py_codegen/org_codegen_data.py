@@ -467,8 +467,11 @@ def get_types() -> Sequence[GenTuStruct]:
         ),
         d_org(
             "CmdName",
-            GenTuDoc(""),
+            GenTuDoc("Name identifier for the statement elements."),
             bases=[t_org("Attached")],
+            fields=[
+                GenTuField(t_str(), "name", GenTuDoc("")),
+            ],
         ),
         d_org(
             "CmdResults",

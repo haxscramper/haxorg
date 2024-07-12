@@ -1245,6 +1245,13 @@ SemId<CmdAttr> OrgConverter::convertCmdAttr(__args) {
     return result;
 }
 
+SemId<CmdName> OrgConverter::convertCmdName(__args) {
+    auto           __trace = trace(a);
+    SemId<CmdName> result  = Sem<CmdName>(a);
+    result->name = convertCmdArgument(a.at(0).at(0)).value->getString();
+    return result;
+}
+
 SemId<Code> OrgConverter::convertCode(__args) {
     SemId<Code> result = Sem<Code>(a);
 
@@ -1414,7 +1421,8 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::CommandTblfm: return convertTblfm(a);
         case org::CommandAttr: return convertCmdAttr(a);
         case org::ColonExample: return convertColonExample(a);
-        case org::CommandCaption: return convertCaption(a); break;
+        case org::CommandCaption: return convertCaption(a);
+        case org::CommandName: return convertCmdName(a);
         case org::Paragraph: {
             if (2 < a.size()
                 && AnnotatedParagraphStarts.contains(a.at(0).kind())) {

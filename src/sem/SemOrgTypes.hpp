@@ -380,6 +380,7 @@ struct Caption : public sem::Attached {
   virtual OrgSemKind getKind() const { return OrgSemKind::Caption; }
 };
 
+/// \brief Name identifier for the statement elements.
 struct CmdName : public sem::Attached {
   using Attached::Attached;
   virtual ~CmdName() = default;
@@ -387,8 +388,9 @@ struct CmdName : public sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind, name, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
+  Str name;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdName; }
 };
 

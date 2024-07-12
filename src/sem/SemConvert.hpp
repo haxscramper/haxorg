@@ -173,6 +173,7 @@ struct OrgConverter : public OperationsTracer {
     SemId<CmdArguments>       convertCmdArguments(In);
     SemId<Code>               convertCode(In);
     SemId<CmdAttr>            convertCmdAttr(In);
+    SemId<CmdName>            convertCmdName(In);
 
     Vec<SemId<Org>> flatConvertAttached(Vec<In> items);
     Vec<SemId<Org>> flatConvertAttachedSubnodes(In item);

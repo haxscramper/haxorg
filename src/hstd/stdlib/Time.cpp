@@ -53,14 +53,16 @@ std::string UserTime::format(Format kind) const {
     }
 
     if (kind == Format::OrgFormat) {
-        int offset  = zone->At(absl::UnixEpoch()).offset / 60;
-        int hours   = offset / 60;
-        int minutes = offset % 60;
+        if (zone) {
+            int offset  = zone->At(absl::UnixEpoch()).offset / 60;
+            int hours   = offset / 60;
+            int minutes = offset % 60;
 
-        if (minutes == 0) {
-            format += fmt(" {:+03}", hours);
-        } else {
-            format += fmt(" {:+05}", offset);
+            if (minutes == 0) {
+                format += fmt(" {:+03}", hours);
+            } else {
+                format += fmt(" {:+05}", offset);
+            }
         }
     } else {
         if (zone) { format += " %z"; }

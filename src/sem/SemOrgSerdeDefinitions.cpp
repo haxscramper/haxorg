@@ -243,12 +243,14 @@ void proto_serde<::orgproto::CmdName, sem::CmdName>::write(::orgproto::CmdName* 
   proto_serde<::orgproto::CmdName, sem::Command>::write(out, in);
   proto_serde<::orgproto::CmdName, sem::Stmt>::write(out, in);
   proto_serde<::orgproto::CmdName, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
 }
 
 void proto_serde<::orgproto::CmdName, sem::CmdName>::read(::orgproto::CmdName const& out, proto_write_accessor<sem::CmdName> in) {
   proto_serde<::orgproto::CmdName, sem::Command>::read(out, in.as<sem::Command>());
   proto_serde<::orgproto::CmdName, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::CmdName, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::CmdName::name));
 }
 
 void proto_serde<::orgproto::CmdResults, sem::CmdResults>::write(::orgproto::CmdResults* out, sem::CmdResults const& in) {

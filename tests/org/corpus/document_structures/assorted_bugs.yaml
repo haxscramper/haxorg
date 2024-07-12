@@ -316,8 +316,6 @@ items:
       **** CANCELED [#C] User qweq :ARCHIVE:complexity##intricate_13:
 
   - name: "Empty paragraph"
-    debug:
-      doFlatParseCompare: false
     source: |
       ****** AAA
 
@@ -338,8 +336,6 @@ items:
       [[file:notes.images/2023-03-30_17-27.png]]
 
   - name: "Not a time range"
-    debug:
-      doFlatParseCompare: false
     source: |
       [2023-08-02 Wed 13:39:46 +04] -- [2023-08-02 Wed 13:39:46 +04]
 
@@ -356,10 +352,8 @@ items:
         haxconf:desktop/awesome_wm.lua:679  (B370DD3E)]]
 
   - name: "Relative links"
-    debug:
-      doFlatParseCompare: false
     source: |
-       [[./notes.images/file.png]],
+       [[file:./notes.images/file.png]],
 
   - name: "Inline latex expression"
     debug:
@@ -405,8 +399,6 @@ items:
     # Missing `:` after the deadline annotations causes the parser to treat 
     # property list as a standalone block of text, not attached to the subtree
     # and fail because of that 
-    debug:
-      doFlatParseCompare: false
     source: |
       **** COMPLETED Зачет АПО ЭВМ
           CLOSED: [2022-04-08 Fri 21:45:09] DEADLINE <2022-04-08 Fri 12:40:00>
@@ -421,8 +413,6 @@ items:
       <%%(and (diary-block-d 2022 7 4 17) (diary-day '(1 3 5)))>
 
   - name: "Subtree with complex logbook notes"
-    debug:
-      doFlatParseCompare: false
     source: |
       *** COMPLETED adfasdf
           :PROPERTIES:
@@ -448,8 +438,6 @@ items:
           :END:
 
   - name: "Leading plus in list"
-    debug:
-      doFlatParseCompare: false
     source: |
       - A
       - B
@@ -458,9 +446,6 @@ items:
       + B
 
   - name: "Name and results"
-    debug:
-      doFlatParseCompare: false
-      doFormatReparse: false
     source: |
       #+name: xxx
       #+BEGIN_SRC sch :file imgs/sch_1.tmp.png :exports none

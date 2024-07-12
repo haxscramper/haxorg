@@ -471,6 +471,7 @@ message CmdName {
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
+  string                                           name                             = 5;
   string                                           debug                            = 1000;
 }
 

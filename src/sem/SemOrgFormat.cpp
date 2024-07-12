@@ -248,7 +248,7 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
         b.add_at(result, str("#+end_src"));
     }
 
-    return result;
+    return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
 auto Formatter::toString(SemId<Tblfm> id, CR<Context> ctx) -> Res {
@@ -403,7 +403,7 @@ auto Formatter::toString(SemId<CmdResults> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<CmdName> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str("#+name: ")});
+    return b.line({str("#+name: " + id->name)});
 }
 
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
