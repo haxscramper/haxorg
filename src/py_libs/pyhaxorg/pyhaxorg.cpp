@@ -135,6 +135,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("key", &sem::CmdArgument::key, R"RAW(Key)RAW")
+    .def_readwrite("varname", &sem::CmdArgument::varname, R"RAW(When used in the `:var` assignment, this stores variable name)RAW")
     .def_readwrite("value", &sem::CmdArgument::value, R"RAW(Value)RAW")
     .def("getInt", static_cast<Opt<int>(sem::CmdArgument::*)() const>(&sem::CmdArgument::getInt), R"RAW(Parse argument as integer value)RAW")
     .def("getBool", static_cast<Opt<bool>(sem::CmdArgument::*)() const>(&sem::CmdArgument::getBool), R"RAW(Get argument as bool)RAW")
@@ -1673,7 +1674,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::Macro::name, R"RAW(Macro name)RAW")
-    .def_readwrite("arguments", &sem::Macro::arguments, R"RAW(Raw uninterpreted macro arguments)RAW")
+    .def_readwrite("parameters", &sem::Macro::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def("__repr__", [](sem::Macro _self) -> std::string {
                      return py_repr_impl(_self);
                      })

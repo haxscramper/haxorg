@@ -32,6 +32,11 @@ Field field1(
 }
 
 template <typename Idx>
+Field fieldN(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
+    return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
+}
+
+template <typename Idx>
 Field fieldN(
     Idx           idx,
     N             name,
@@ -523,12 +528,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::Macro,
             OrgPattern({
                 fieldN(0, N::Name),
-                // fieldN(
-                //     1,
-                //     N::Args,
-                //     OrgPattern(
-                //         {field1(slice(0, 1_B), N::Args,
-                //         org::RawText)})),
+                fieldN(slice(1, 1_B), N::Args, org::InlineStmtList),
                 // fieldN(
                 //     2,
                 //     N::Body,

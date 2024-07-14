@@ -6,6 +6,9 @@ void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::C
   if (in.key) {
     proto_serde<std::string, Str>::write(out->mutable_key(), *in.key);
   }
+  if (in.varname) {
+    proto_serde<std::string, Str>::write(out->mutable_varname(), *in.varname);
+  }
   proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
 }
 
@@ -13,6 +16,9 @@ void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::read(::orgproto::Cm
   proto_serde<::orgproto::CmdArgument, sem::Org>::read(out, in.as<sem::Org>());
   if (out.has_key()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.key(), in.for_field(&sem::CmdArgument::key));
+  }
+  if (out.has_varname()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.varname(), in.for_field(&sem::CmdArgument::varname));
   }
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::CmdArgument::value));
 }
@@ -748,13 +754,15 @@ void proto_serde<::orgproto::TimeRange, sem::TimeRange>::read(::orgproto::TimeRa
 void proto_serde<::orgproto::Macro, sem::Macro>::write(::orgproto::Macro* out, sem::Macro const& in) {
   proto_serde<::orgproto::Macro, sem::Org>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_arguments(), in.arguments);
+  if (!in.parameters.isNil()) {
+    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
+  }
 }
 
 void proto_serde<::orgproto::Macro, sem::Macro>::read(::orgproto::Macro const& out, proto_write_accessor<sem::Macro> in) {
   proto_serde<::orgproto::Macro, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Macro::name));
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.arguments(), in.for_field(&sem::Macro::arguments));
+  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Macro::parameters));
 }
 
 void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::write(::orgproto::Symbol::Param* out, sem::Symbol::Param const& in) {

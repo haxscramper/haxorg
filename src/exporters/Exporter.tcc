@@ -3,6 +3,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visitCmdArgument(R& res, In<sem::CmdArgument> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, key);
+  __org_field(res, object, varname);
   __org_field(res, object, value);
   __org_field(res, object, subnodes);
 }
@@ -414,7 +415,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visitMacro(R& res, In<sem::Macro> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, name);
-  __org_field(res, object, arguments);
+  __org_field(res, object, parameters);
   __org_field(res, object, subnodes);
 }
 

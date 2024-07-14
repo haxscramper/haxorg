@@ -858,7 +858,10 @@ void Block::add(CVec<BlockId> others) {
 
 void BlockStore::add_at(const BlockId& id, const BlockId& next) {
     if (at(next).isLine() || at(next).isStack()) {
-        CHECK(at(next).size() != 0);
+        if (at(next).size() == 0) {
+            throw std::range_error(
+                "Cannot add empty stack/line element to the layout");
+        }
     }
     at(id).add(next);
 }
@@ -866,7 +869,10 @@ void BlockStore::add_at(const BlockId& id, const BlockId& next) {
 void BlockStore::add_at(const BlockId& id, const Vec<BlockId>& next) {
     for (auto const& it : next) {
         if (at(it).isLine() || at(it).isStack()) {
-            CHECK(at(it).size() != 0);
+            if (at(it).size() == 0) {
+                throw std::range_error(
+                    "Cannot add empty stack/line element to the layout");
+            }
         }
     }
 

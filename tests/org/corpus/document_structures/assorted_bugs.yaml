@@ -510,13 +510,13 @@ items:
       : ee [41mwefae[49m 123
 
   - name: "Macro with arguments"
-    debug:
-      doFlatParseCompare: false
     source: |
       {{{results(hello 12)}}}
       {{{keyword(NAME)}}}
       {{{modification-time(FORMAT, VC)}}}
       {{{property(PROPERTY-NAME, SEARCH OPTION)}}}
+      {{{named-var(key=value)}}}
+      {{{named-xxx(test=12)}}}
 
 
   - name: "More list bugs"

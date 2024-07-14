@@ -152,6 +152,13 @@ class AstbuilderBase:
             items: Union[List[str], List[BlockId]],
             isLine=True,
             isTrailing=False) -> BlockId:
-        return self.b.join(
-            [self.string(Base) if isinstance(Base, str) else Base for Base in items],
-            self.string(", "), isLine, isTrailing)
+        if 0 < len(items):
+            return self.b.join(
+                [self.string(Base) if isinstance(Base, str) else Base for Base in items],
+                self.string(", "),
+                isLine,
+                isTrailing,
+            )
+
+        else:
+            return self.string("")

@@ -23,6 +23,7 @@ struct CmdArgument : public sem::Org {
                        (),
                        (staticKind,
                         key,
+                        varname,
                         value,
                         (OrgSemKind() const) getKind,
                         (Opt<int>() const) getInt,
@@ -31,6 +32,8 @@ struct CmdArgument : public sem::Org {
   static OrgSemKind const staticKind;
   /// \brief Key
   Opt<Str> key = std::nullopt;
+  /// \brief When used in the `:var` assignment, this stores variable name
+  Opt<Str> varname = std::nullopt;
   /// \brief Value
   Str value;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
@@ -937,12 +940,12 @@ struct Macro : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, name, arguments, (OrgSemKind() const) getKind))
+                       (staticKind, name, parameters, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   /// \brief Macro name
   Str name = "";
-  /// \brief Raw uninterpreted macro arguments
-  Vec<Str> arguments = {};
+  /// \brief Additional parameters aside from 'exporter',
+  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
 };
 

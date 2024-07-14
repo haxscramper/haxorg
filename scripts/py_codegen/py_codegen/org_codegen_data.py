@@ -156,6 +156,7 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             fields=[
                 opt_field(t_str(), "key", GenTuDoc("Key")),
+                opt_field(t_str(), "varname", GenTuDoc("When used in the `:var` assignment, this stores variable name")),
                 GenTuField(t_str(), "value", GenTuDoc("Value")),
             ],
             methods=[
@@ -889,11 +890,10 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             fields=[
                 GenTuField(t_str(), "name", GenTuDoc("Macro name"), value='""'),
-                GenTuField(
-                    t_vec(t_str()),
-                    "arguments",
-                    GenTuDoc("Raw uninterpreted macro arguments"),
-                    value="{}",
+                id_field(
+                    "CmdArguments",
+                    "parameters",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
             ],
         ),

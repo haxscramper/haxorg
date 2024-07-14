@@ -667,11 +667,46 @@ SemId<TimeRange> OrgConverter::convertTimeRange(__args) {
     return range;
 }
 
+void addArgument(SemId<CmdArguments>& result, SemId<CmdArgument> arg) {
+    if (arg->key) {
+        auto key = normalize(*arg->key);
+        if (result->named.contains(key)) {
+            result->named[key]->args.push_back(arg);
+        } else {
+            auto args = SemId<CmdArgumentList>::New();
+            args->args.push_back(arg);
+            result->named.insert({key, args});
+        }
+    } else {
+        if (result->positional.isNil()) {
+            result->positional = SemId<CmdArgumentList>::New();
+        }
+        result->positional->args.push_back(arg);
+    }
+}
+
 SemId<Macro> OrgConverter::convertMacro(__args) {
     __perf_trace("convert", "convertMacro");
-    auto __trace = trace(a);
-    auto macro   = Sem<Macro>(a);
-    macro->name  = get_text(one(a, N::Name));
+    auto __trace      = trace(a);
+    auto macro        = Sem<Macro>(a);
+    macro->name       = get_text(one(a, N::Name));
+    macro->parameters = Sem<CmdArguments>(a);
+
+    for (auto const& arg : many(a, N::Args)) {
+        auto conv = Sem<CmdArgument>(arg);
+        if (2 < arg.size() && get_text(arg.at(1)) == "=") {
+            conv->key = get_text(arg.at(0));
+            for (int i = 2; i < arg.size(); ++i) {
+                conv->value += get_text(arg.at(i));
+            }
+        } else {
+            for (int i = 0; i < arg.size(); ++i) {
+                conv->value += get_text(arg.at(i));
+            }
+        }
+
+        addArgument(macro->parameters, conv);
+    }
 
     return macro;
 }
@@ -1205,30 +1240,14 @@ SemId<CmdArguments> OrgConverter::convertCmdArguments(__args) {
     auto                __trace = trace(a);
     SemId<CmdArguments> result  = Sem<CmdArguments>(a);
 
-    auto add_arg = [&](SemId<CmdArgument> arg) {
-        if (arg->key) {
-            auto key = normalize(*arg->key);
-            if (result->named.contains(key)) {
-                result->named[key]->args.push_back(arg);
-            } else {
-                auto args = SemId<CmdArgumentList>::New();
-                args->args.push_back(arg);
-                result->named.insert({key, args});
-            }
-        } else {
-            if (result->positional.isNil()) {
-                result->positional = SemId<CmdArgumentList>::New();
-            }
-            result->positional->args.push_back(arg);
-        }
-    };
-
     if (a.getKind() == org::CmdArguments) {
         for (auto const& item : one(a, N::Values)) {
-            add_arg(convertCmdArgument(item));
+            addArgument(result, convertCmdArgument(item));
         }
     } else if (a.getKind() == org::InlineStmtList) {
-        for (auto const& it : a) { add_arg(convertCmdArgument(it)); }
+        for (auto const& it : a) {
+            addArgument(result, convertCmdArgument(it));
+        }
     } else {
         CHECK(a.getKind() == org::Empty) << a.treeRepr();
     }

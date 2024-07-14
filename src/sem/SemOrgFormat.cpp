@@ -69,13 +69,29 @@ auto Formatter::toString(SemId<Word> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    if (id->arguments.empty()) {
+    Vec<Res> parameters;
+
+    if (id->parameters) {
+        if (id->parameters->positional) {
+            for (auto const& it : id->parameters->positional->args) {
+                parameters.push_back(str(it->value));
+            }
+        }
+
+        for (auto const& key : sorted(id->parameters->named.keys())) {
+            for (auto const& it : id->parameters->named.at(key)->args) {
+                parameters.push_back(
+                    str(fmt("{}={}", it->key.value(), it->value)));
+            }
+        }
+    }
+
+    if (parameters.empty()) {
         return str(Str("{{{") + id->name + Str("}}}"));
     } else {
         return b.line(Vec<Res>::Splice(
             str(Str("{{{") + id->name + Str("(")),
-            id->arguments //
-                | rv::transform([&](CR<Str> s) { return str(s); }),
+            b.join(parameters, str(", ")),
             str(")}}}") //
             ));
     }
