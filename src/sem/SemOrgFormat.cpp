@@ -474,6 +474,20 @@ auto Formatter::toString(SemId<CmdName> id, CR<Context> ctx) -> Res {
     return b.line({str("#+name: " + id->name)});
 }
 
+auto Formatter::toString(SemId<ErrorGroup> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    auto result = b.line({});
+    for (auto const& sub : id->diagnostics) {
+        b.add_at(result, toString(sub, ctx));
+    }
+    return result;
+}
+
+auto Formatter::toString(SemId<ErrorItem> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str(id->message)});
+}
+
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+call: ")});

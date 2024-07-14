@@ -351,7 +351,7 @@ rules:
   - re: "startup{prop_colon}"
     states: [COMMAND]
     token: CmdStartup
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "options{prop_colon}"
     states: [COMMAND]

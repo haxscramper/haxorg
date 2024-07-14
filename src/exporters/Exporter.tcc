@@ -1,5 +1,19 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visitErrorItem(R& res, In<sem::ErrorItem> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, message);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitErrorGroup(R& res, In<sem::ErrorGroup> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, diagnostics);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCmdArgument(R& res, In<sem::CmdArgument> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, key);

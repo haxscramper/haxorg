@@ -1,4 +1,6 @@
 /* clang-format off */
+void visitErrorItem(R& res, In<sem::ErrorItem> object);
+void visitErrorGroup(R& res, In<sem::ErrorGroup> object);
 void visitCmdArgument(R& res, In<sem::CmdArgument> object);
 void visitCmdArgumentList(R& res, In<sem::CmdArgumentList> object);
 void visitStmt(R& res, In<sem::Stmt> object);

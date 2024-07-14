@@ -204,6 +204,18 @@ def d_simple_enum(name: str, doc: GenTuDoc, *args):
 def get_types() -> Sequence[GenTuStruct]:
     return [
         d_org(
+            "ErrorItem",
+            doc=org_doc(""),
+            bases=[t_org("Org")],
+            fields=[org_field(t_str(), "message")],
+        ),
+        d_org(
+            "ErrorGroup",
+            doc=org_doc("Group of value conversion errors"),
+            bases=[t_org("Org")],
+            fields=[vec_field(t_id("ErrorItem"), "diagnostics")],
+        ),
+        d_org(
             "CmdArgument",
             GenTuDoc("Single key-value (or positional)"),
             bases=[t_org("Org")],

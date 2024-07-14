@@ -24,6 +24,18 @@ class LineCol:
     column: int
     pos: int
 
+class ErrorItem(Org):
+    def __init__(self, message: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    message: str
+
+class ErrorGroup(Org):
+    def __init__(self, diagnostics: List[ErrorItem]) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    diagnostics: List[ErrorItem]
+
 class CmdArgument(Org):
     def __init__(self, key: Optional[str], varname: Optional[str], value: str) -> None: ...
     def getInt(self) -> Optional[int]: ...
@@ -1566,74 +1578,76 @@ class OrgNodeKind(Enum):
     Target = 140
 
 class OrgSemKind(Enum):
-    CmdArgument = 1
-    CmdArgumentList = 2
-    StmtList = 3
-    Empty = 4
-    Cell = 5
-    Row = 6
-    Table = 7
-    HashTag = 8
-    Footnote = 9
-    Completion = 10
-    Paragraph = 11
-    AnnotatedParagraph = 12
-    Center = 13
-    Caption = 14
-    CmdName = 15
-    CmdCustomArgs = 16
-    CmdCustomRaw = 17
-    CmdCustomText = 18
-    CmdResults = 19
-    CommandGroup = 20
-    Tblfm = 21
-    Quote = 22
-    CommentBlock = 23
-    Verse = 24
-    Example = 25
-    ColonExample = 26
-    CmdArguments = 27
-    CmdAttr = 28
-    Export = 29
-    AdmonitionBlock = 30
-    Call = 31
-    Code = 32
-    Time = 33
-    TimeRange = 34
-    Macro = 35
-    Symbol = 36
-    SubtreeLog = 37
-    Subtree = 38
-    InlineMath = 39
-    Escaped = 40
-    Newline = 41
-    Space = 42
-    Word = 43
-    AtMention = 44
-    RawText = 45
-    Punctuation = 46
-    Placeholder = 47
-    BigIdent = 48
-    RadioTarget = 49
-    TextTarget = 50
-    Bold = 51
-    Underline = 52
-    Monospace = 53
-    MarkQuote = 54
-    Verbatim = 55
-    Italic = 56
-    Strike = 57
-    Par = 58
-    List = 59
-    ListItem = 60
-    Link = 61
-    DocumentOptions = 62
-    Document = 63
-    ParseError = 64
-    FileTarget = 65
-    TextSeparator = 66
-    Include = 67
-    DocumentGroup = 68
+    ErrorItem = 1
+    ErrorGroup = 2
+    CmdArgument = 3
+    CmdArgumentList = 4
+    StmtList = 5
+    Empty = 6
+    Cell = 7
+    Row = 8
+    Table = 9
+    HashTag = 10
+    Footnote = 11
+    Completion = 12
+    Paragraph = 13
+    AnnotatedParagraph = 14
+    Center = 15
+    Caption = 16
+    CmdName = 17
+    CmdCustomArgs = 18
+    CmdCustomRaw = 19
+    CmdCustomText = 20
+    CmdResults = 21
+    CommandGroup = 22
+    Tblfm = 23
+    Quote = 24
+    CommentBlock = 25
+    Verse = 26
+    Example = 27
+    ColonExample = 28
+    CmdArguments = 29
+    CmdAttr = 30
+    Export = 31
+    AdmonitionBlock = 32
+    Call = 33
+    Code = 34
+    Time = 35
+    TimeRange = 36
+    Macro = 37
+    Symbol = 38
+    SubtreeLog = 39
+    Subtree = 40
+    InlineMath = 41
+    Escaped = 42
+    Newline = 43
+    Space = 44
+    Word = 45
+    AtMention = 46
+    RawText = 47
+    Punctuation = 48
+    Placeholder = 49
+    BigIdent = 50
+    RadioTarget = 51
+    TextTarget = 52
+    Bold = 53
+    Underline = 54
+    Monospace = 55
+    MarkQuote = 56
+    Verbatim = 57
+    Italic = 58
+    Strike = 59
+    Par = 60
+    List = 61
+    ListItem = 62
+    Link = 63
+    DocumentOptions = 64
+    Document = 65
+    ParseError = 66
+    FileTarget = 67
+    TextSeparator = 68
+    Include = 69
+    DocumentGroup = 70
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

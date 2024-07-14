@@ -7,6 +7,8 @@
 #include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::ErrorItem>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Cell>>)
@@ -53,6 +55,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegmentGroup>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
+  bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem");
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument");
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell");
   bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow");
@@ -124,6 +127,38 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](LineCol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::ErrorItem, sem::SemId<sem::ErrorItem>, sem::Org>(m, "ErrorItem")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ErrorItem {
+                        sem::ErrorItem result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("message", &sem::ErrorItem::message)
+    .def("__repr__", [](sem::ErrorItem _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ErrorItem _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::ErrorGroup, sem::SemId<sem::ErrorGroup>, sem::Org>(m, "ErrorGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ErrorGroup {
+                        sem::ErrorGroup result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("diagnostics", &sem::ErrorGroup::diagnostics)
+    .def("__repr__", [](sem::ErrorGroup _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ErrorGroup _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -3598,6 +3633,8 @@ node can have subnodes.)RAW")
     ;
   bind_enum_iterator<OrgSemKind>(m, "OrgSemKind");
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
+    .value("ErrorItem", OrgSemKind::ErrorItem)
+    .value("ErrorGroup", OrgSemKind::ErrorGroup)
     .value("CmdArgument", OrgSemKind::CmdArgument)
     .value("CmdArgumentList", OrgSemKind::CmdArgumentList)
     .value("StmtList", OrgSemKind::StmtList)

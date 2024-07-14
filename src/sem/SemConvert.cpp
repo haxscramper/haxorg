@@ -1495,6 +1495,8 @@ void fillDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a) {
                     opts->tocExport = DocumentOptions::ExportFixed{
                         tail.toInt()};
                 }
+            } else {
+                LOG(ERROR) << "Unexpected document option value" << value;
             }
 
         } else if (org_streq(value, ":")) {
@@ -1542,8 +1544,9 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 }
 
                 case org::CommandStartup: {
-                    Str text = normalize(get_text(sub.at(0)));
-                    using K  = DocumentOptions::Visibility;
+                    Vec<Str> args = get_text(sub.at(0)).split(" ");
+                    Str      text = normalize(args.at(0));
+                    using K       = DocumentOptions::Visibility;
                     if (text == "content") {
                         doc->options->initialVisibility = K::Content;
                     } else if (text == "overview") {
@@ -1564,6 +1567,13 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     } else {
                         LOG(FATAL) << text;
                     }
+
+                    if (auto it = args.get(1); it.has_value()) {
+                        if (org_streq(*it, "indent")) {
+                            doc->options->startupIndented = true;
+                        }
+                    }
+
                     break;
                 }
 

@@ -1850,6 +1850,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdExcludeTagsRaw:
         case otk::CmdSelectTagsRaw:
         case otk::CmdDrawersRaw:
+        case otk::CmdConstants:
         case otk::CmdCustomRaw: {
             start(org::CmdCustomRawCommand);
             skip(lex, otk::CmdPrefix);
@@ -1926,9 +1927,9 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
             skip(lex, otk::CmdPrefix);
             skip(lex);
-            while (lex.at(otk::RawText)) {
-                token(org::RawText, pop(lex, otk::RawText));
-                if (lex.at(otk::Whitespace)) { space(lex); }
+            while (lex.at(OrgTokSet{otk::RawText, otk::CmdRawArg})) {
+                token(org::RawText, pop(lex));
+                space(lex);
             }
             break;
         }
@@ -1937,12 +1938,11 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdFiletags);
             start(org::Filetags);
-            while (lex.at(otk::Colon)
-                   && lex.at(OrgTokSet{otk::Word, otk::BigIdent}, +1)) {
-                skip(lex, otk::Colon);
+            while (lex.at(OrgTokSet{otk::Word, otk::BigIdent}, +1)) {
+                space(lex);
                 subParse(HashTag, lex);
+                space(lex);
             }
-            skip(lex, otk::Colon);
             break;
         }
 

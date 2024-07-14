@@ -1,6 +1,26 @@
 /* clang-format off */
 #include <sem/SemOrgSerde.hpp>
 #include <sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::ErrorItem, sem::ErrorItem>::write(::orgproto::ErrorItem* out, sem::ErrorItem const& in) {
+  proto_serde<::orgproto::ErrorItem, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_message(), in.message);
+}
+
+void proto_serde<::orgproto::ErrorItem, sem::ErrorItem>::read(::orgproto::ErrorItem const& out, proto_write_accessor<sem::ErrorItem> in) {
+  proto_serde<::orgproto::ErrorItem, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.message(), in.for_field(&sem::ErrorItem::message));
+}
+
+void proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup>::write(::orgproto::ErrorGroup* out, sem::ErrorGroup const& in) {
+  proto_serde<::orgproto::ErrorGroup, sem::Org>::write(out, in);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, Vec<sem::SemId<sem::ErrorItem>>>::write(out->mutable_diagnostics(), in.diagnostics);
+}
+
+void proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup>::read(::orgproto::ErrorGroup const& out, proto_write_accessor<sem::ErrorGroup> in) {
+  proto_serde<::orgproto::ErrorGroup, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, Vec<sem::SemId<sem::ErrorItem>>>::read(out.diagnostics(), in.for_field(&sem::ErrorGroup::diagnostics));
+}
+
 void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::CmdArgument* out, sem::CmdArgument const& in) {
   proto_serde<::orgproto::CmdArgument, sem::Org>::write(out, in);
   if (in.key) {

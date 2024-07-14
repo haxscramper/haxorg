@@ -13,6 +13,33 @@
 #include <sem/SemOrgBase.hpp>
 #include <sem/SemOrgEnums.hpp>
 namespace sem{
+struct ErrorItem : public sem::Org {
+  using Org::Org;
+  virtual ~ErrorItem() = default;
+  BOOST_DESCRIBE_CLASS(ErrorItem,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, message, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Str message;
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
+};
+
+/// \brief Group of value conversion errors
+struct ErrorGroup : public sem::Org {
+  using Org::Org;
+  virtual ~ErrorGroup() = default;
+  BOOST_DESCRIBE_CLASS(ErrorGroup,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, diagnostics, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Vec<sem::SemId<sem::ErrorItem>> diagnostics = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
+};
+
 /// \brief Single key-value (or positional)
 struct CmdArgument : public sem::Org {
   using Org::Org;

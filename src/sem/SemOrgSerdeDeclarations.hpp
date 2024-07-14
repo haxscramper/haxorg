@@ -2,6 +2,8 @@
 #pragma once
 #include <sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
+        __MAP(kErroritem, erroritem, ErrorItem)  \
+        __MAP(kErrorgroup, errorgroup, ErrorGroup)  \
         __MAP(kCmdargument, cmdargument, CmdArgument)  \
         __MAP(kCmdargumentlist, cmdargumentlist, CmdArgumentList)  \
         __MAP(kStmtlist, stmtlist, StmtList)  \
@@ -70,6 +72,20 @@
         __MAP(kTextseparator, textseparator, TextSeparator)  \
         __MAP(kInclude, include, Include)  \
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
+
+template <>
+struct proto_serde<::orgproto::ErrorItem, sem::ErrorItem> {
+  static void write(::orgproto::ErrorItem* out, sem::ErrorItem const& in);
+  static void read(::orgproto::ErrorItem const& out, proto_write_accessor<sem::ErrorItem> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup> {
+  static void write(::orgproto::ErrorGroup* out, sem::ErrorGroup const& in);
+  static void read(::orgproto::ErrorGroup const& out, proto_write_accessor<sem::ErrorGroup> in);
+};
+
 
 template <>
 struct proto_serde<::orgproto::CmdArgument, sem::CmdArgument> {
