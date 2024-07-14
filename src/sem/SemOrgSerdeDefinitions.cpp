@@ -1678,18 +1678,51 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::org
       break;
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::write(out->mutable_properties(), in.properties);
-  out->set_smartquotes(in.smartQuotes);
-  out->set_emphasizedtext(in.emphasizedText);
-  out->set_specialstrings(in.specialStrings);
-  out->set_fixedwidthsections(in.fixedWidthSections);
-  out->set_includetimestamps(in.includeTimestamps);
-  out->set_preservelinebreaks(in.preserveLineBreaks);
-  out->set_plaintextsubscripts(in.plaintextSubscripts);
-  out->set_exportarchived(in.exportArchived);
-  out->set_exportwithauthor(in.exportWithAuthor);
-  out->set_exportbrokenlinks(in.exportBrokenLinks);
-  out->set_exportwithclock(in.exportWithClock);
-  out->set_exportwithcreator(in.exportWithCreator);
+  if (in.smartQuotes) {
+    out->set_smartquotes(*in.smartQuotes);
+  }
+  if (in.emphasizedText) {
+    out->set_emphasizedtext(*in.emphasizedText);
+  }
+  if (in.specialStrings) {
+    out->set_specialstrings(*in.specialStrings);
+  }
+  if (in.fixedWidthSections) {
+    out->set_fixedwidthsections(*in.fixedWidthSections);
+  }
+  if (in.includeTimestamps) {
+    out->set_includetimestamps(*in.includeTimestamps);
+  }
+  if (in.preserveLineBreaks) {
+    out->set_preservelinebreaks(*in.preserveLineBreaks);
+  }
+  if (in.plaintextSubscripts) {
+    out->set_plaintextsubscripts(*in.plaintextSubscripts);
+  }
+  if (in.exportArchived) {
+    out->set_exportarchived(*in.exportArchived);
+  }
+  if (in.exportWithAuthor) {
+    out->set_exportwithauthor(*in.exportWithAuthor);
+  }
+  if (in.exportBrokenLinks) {
+    out->set_exportbrokenlinks(*in.exportBrokenLinks);
+  }
+  if (in.exportWithClock) {
+    out->set_exportwithclock(*in.exportWithClock);
+  }
+  if (in.exportWithCreator) {
+    out->set_exportwithcreator(*in.exportWithCreator);
+  }
+  if (in.startupIndented) {
+    out->set_startupindented(*in.startupIndented);
+  }
+  if (in.category) {
+    proto_serde<std::string, Str>::write(out->mutable_category(), *in.category);
+  }
+  if (in.setupfile) {
+    proto_serde<std::string, Str>::write(out->mutable_setupfile(), *in.setupfile);
+  }
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport>::write(out->mutable_data()->mutable_doexport(), std::get<0>(in.data));
@@ -1713,18 +1746,51 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(::orgp
       break;
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::read(out.properties(), in.for_field(&sem::DocumentOptions::properties));
-  in.for_field(&sem::DocumentOptions::smartQuotes).get() = out.smartquotes();
-  in.for_field(&sem::DocumentOptions::emphasizedText).get() = out.emphasizedtext();
-  in.for_field(&sem::DocumentOptions::specialStrings).get() = out.specialstrings();
-  in.for_field(&sem::DocumentOptions::fixedWidthSections).get() = out.fixedwidthsections();
-  in.for_field(&sem::DocumentOptions::includeTimestamps).get() = out.includetimestamps();
-  in.for_field(&sem::DocumentOptions::preserveLineBreaks).get() = out.preservelinebreaks();
-  in.for_field(&sem::DocumentOptions::plaintextSubscripts).get() = out.plaintextsubscripts();
-  in.for_field(&sem::DocumentOptions::exportArchived).get() = out.exportarchived();
-  in.for_field(&sem::DocumentOptions::exportWithAuthor).get() = out.exportwithauthor();
-  in.for_field(&sem::DocumentOptions::exportBrokenLinks).get() = out.exportbrokenlinks();
-  in.for_field(&sem::DocumentOptions::exportWithClock).get() = out.exportwithclock();
-  in.for_field(&sem::DocumentOptions::exportWithCreator).get() = out.exportwithcreator();
+  if (out.has_smartquotes()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.smartquotes(), in.for_field(&sem::DocumentOptions::smartQuotes));
+  }
+  if (out.has_emphasizedtext()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.emphasizedtext(), in.for_field(&sem::DocumentOptions::emphasizedText));
+  }
+  if (out.has_specialstrings()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.specialstrings(), in.for_field(&sem::DocumentOptions::specialStrings));
+  }
+  if (out.has_fixedwidthsections()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.fixedwidthsections(), in.for_field(&sem::DocumentOptions::fixedWidthSections));
+  }
+  if (out.has_includetimestamps()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.includetimestamps(), in.for_field(&sem::DocumentOptions::includeTimestamps));
+  }
+  if (out.has_preservelinebreaks()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.preservelinebreaks(), in.for_field(&sem::DocumentOptions::preserveLineBreaks));
+  }
+  if (out.has_plaintextsubscripts()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.plaintextsubscripts(), in.for_field(&sem::DocumentOptions::plaintextSubscripts));
+  }
+  if (out.has_exportarchived()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.exportarchived(), in.for_field(&sem::DocumentOptions::exportArchived));
+  }
+  if (out.has_exportwithauthor()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.exportwithauthor(), in.for_field(&sem::DocumentOptions::exportWithAuthor));
+  }
+  if (out.has_exportbrokenlinks()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.exportbrokenlinks(), in.for_field(&sem::DocumentOptions::exportBrokenLinks));
+  }
+  if (out.has_exportwithclock()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.exportwithclock(), in.for_field(&sem::DocumentOptions::exportWithClock));
+  }
+  if (out.has_exportwithcreator()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.exportwithcreator(), in.for_field(&sem::DocumentOptions::exportWithCreator));
+  }
+  if (out.has_startupindented()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.startupindented(), in.for_field(&sem::DocumentOptions::startupIndented));
+  }
+  if (out.has_category()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.category(), in.for_field(&sem::DocumentOptions::category));
+  }
+  if (out.has_setupfile()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.setupfile(), in.for_field(&sem::DocumentOptions::setupfile));
+  }
   switch (out.data().kind_case()) {
     case ::orgproto::DocumentOptions::TocExport::kDoexport:
       proto_serde<orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport>::read(out.data().doexport(), in.for_field_variant<0>(&sem::DocumentOptions::data));

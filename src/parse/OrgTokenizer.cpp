@@ -626,6 +626,17 @@ struct LineToken {
         otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
         otk::CmdLatexHeader,   otk::CmdStartup,
         otk::CmdRow,           otk::CmdCell,
+        otk::CmdAuthor,        otk::CmdCustomRaw,
+        otk::CmdDescription,   otk::CmdLinkRaw,
+        otk::CmdEmailRaw,      otk::CmdLatexHeaderExtraRaw,
+        otk::CmdDateRaw,       otk::CmdLanguage,
+        otk::CmdBindRaw,       otk::CmdCategoryRaw,
+        otk::CmdSeqTodoRaw,    otk::CmdTagsRaw,
+        otk::CmdPrioritiesRaw, otk::CmdMacroRaw,
+        otk::CmdSetupfileRaw,  otk::CmdExcludeTagsRaw,
+        otk::CmdHtmlHeadRaw,   otk::CmdSelectTagsRaw,
+        otk::CmdDrawersRaw,    otk::CmdConstants,
+        otk::CmdCreator,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {

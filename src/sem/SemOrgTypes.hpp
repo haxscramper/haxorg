@@ -1879,6 +1879,9 @@ struct DocumentOptions : public sem::Org {
                         exportBrokenLinks,
                         exportWithClock,
                         exportWithCreator,
+                        startupIndented,
+                        category,
+                        setupfile,
                         data,
                         (OrgSemKind() const) getKind,
                         (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
@@ -1893,19 +1896,22 @@ struct DocumentOptions : public sem::Org {
   sem::DocumentOptions::BrokenLinks brokenLinks = sem::DocumentOptions::BrokenLinks::Mark;
   sem::DocumentOptions::Visibility initialVisibility = sem::DocumentOptions::Visibility::ShowEverything;
   sem::DocumentOptions::TocExport tocExport = sem::DocumentOptions::DoExport{false};
-  Vec<sem::Subtree::Property> properties;
-  bool smartQuotes = false;
-  bool emphasizedText = false;
-  bool specialStrings = false;
-  bool fixedWidthSections = false;
-  bool includeTimestamps = false;
-  bool preserveLineBreaks = false;
-  bool plaintextSubscripts = false;
-  bool exportArchived = false;
-  bool exportWithAuthor = false;
-  bool exportBrokenLinks = false;
-  bool exportWithClock = false;
-  bool exportWithCreator = false;
+  Vec<sem::Subtree::Property> properties = {};
+  Opt<bool> smartQuotes = std::nullopt;
+  Opt<bool> emphasizedText = std::nullopt;
+  Opt<bool> specialStrings = std::nullopt;
+  Opt<bool> fixedWidthSections = std::nullopt;
+  Opt<bool> includeTimestamps = std::nullopt;
+  Opt<bool> preserveLineBreaks = std::nullopt;
+  Opt<bool> plaintextSubscripts = std::nullopt;
+  Opt<bool> exportArchived = std::nullopt;
+  Opt<bool> exportWithAuthor = std::nullopt;
+  Opt<bool> exportBrokenLinks = std::nullopt;
+  Opt<bool> exportWithClock = std::nullopt;
+  Opt<bool> exportWithCreator = std::nullopt;
+  Opt<bool> startupIndented = std::nullopt;
+  Opt<Str> category = std::nullopt;
+  Opt<Str> setupfile = std::nullopt;
   sem::DocumentOptions::TocExport data;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
@@ -1943,7 +1949,7 @@ struct Document : public sem::Org {
   Opt<sem::SemId<sem::Paragraph>> creator = std::nullopt;
   Vec<sem::SemId<sem::HashTag>> filetags = {};
   Opt<sem::SemId<sem::RawText>> email = std::nullopt;
-  Vec<Str> language;
+  Vec<Str> language = {};
   sem::SemId<sem::DocumentOptions> options = sem::SemId<sem::DocumentOptions>::Nil();
   Opt<Str> exportFileName = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }

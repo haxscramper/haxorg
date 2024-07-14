@@ -205,8 +205,8 @@ enum class OrgNodeKind : short int {
   QuoteBlock,
   /// \brief `#+begin_comment:` block in code
   CommentBlock,
-  AdmonitionBlock,
   /// \brief '
+  AdmonitionBlock,
   CenterBlock,
   VerseBlock,
   /// \brief Verbatim example text block

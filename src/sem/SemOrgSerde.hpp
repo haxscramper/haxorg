@@ -509,6 +509,14 @@ struct proto_serde<std::string, std::string> {
 
 
 template <>
+struct proto_serde<bool, bool> {
+    static void read(bool const& out, proto_write_accessor<bool> in) {
+        in.get() = out;
+    }
+};
+
+
+template <>
 struct proto_serde<int, int> {
     static void read(int const& out, proto_write_accessor<int> in) {
         in.get() = out;

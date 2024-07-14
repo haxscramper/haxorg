@@ -1303,19 +1303,22 @@ message DocumentOptions {
   DocumentOptions.Visibility                       initialVisibility                = 4;
   DocumentOptions.TocExport                        tocExport                        = 5;
   repeated Subtree.Property                        properties                       = 6;
-  bool                                             smartQuotes                      = 7;
-  bool                                             emphasizedText                   = 8;
-  bool                                             specialStrings                   = 9;
-  bool                                             fixedWidthSections               = 10;
-  bool                                             includeTimestamps                = 11;
-  bool                                             preserveLineBreaks               = 12;
-  bool                                             plaintextSubscripts              = 13;
-  bool                                             exportArchived                   = 14;
-  bool                                             exportWithAuthor                 = 15;
-  bool                                             exportBrokenLinks                = 16;
-  bool                                             exportWithClock                  = 17;
-  bool                                             exportWithCreator                = 18;
-  DocumentOptions.TocExport                        data                             = 19;
+  optional bool                                    smartQuotes                      = 7;
+  optional bool                                    emphasizedText                   = 8;
+  optional bool                                    specialStrings                   = 9;
+  optional bool                                    fixedWidthSections               = 10;
+  optional bool                                    includeTimestamps                = 11;
+  optional bool                                    preserveLineBreaks               = 12;
+  optional bool                                    plaintextSubscripts              = 13;
+  optional bool                                    exportArchived                   = 14;
+  optional bool                                    exportWithAuthor                 = 15;
+  optional bool                                    exportBrokenLinks                = 16;
+  optional bool                                    exportWithClock                  = 17;
+  optional bool                                    exportWithCreator                = 18;
+  optional bool                                    startupIndented                  = 19;
+  optional string                                  category                         = 20;
+  optional string                                  setupfile                        = 21;
+  DocumentOptions.TocExport                        data                             = 22;
   string                                           debug                            = 1000;
 }
 

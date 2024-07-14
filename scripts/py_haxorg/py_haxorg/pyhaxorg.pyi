@@ -1206,7 +1206,7 @@ class DocumentOptionsVisibility(Enum):
     ShowEverything = 8
 
 class DocumentOptions(Org):
-    def __init__(self, brokenLinks: DocumentOptionsBrokenLinks, initialVisibility: DocumentOptionsVisibility, tocExport: DocumentOptionsTocExport, properties: List[SubtreeProperty], smartQuotes: bool, emphasizedText: bool, specialStrings: bool, fixedWidthSections: bool, includeTimestamps: bool, preserveLineBreaks: bool, plaintextSubscripts: bool, exportArchived: bool, exportWithAuthor: bool, exportBrokenLinks: bool, exportWithClock: bool, exportWithCreator: bool, data: DocumentOptionsTocExport) -> None: ...
+    def __init__(self, brokenLinks: DocumentOptionsBrokenLinks, initialVisibility: DocumentOptionsVisibility, tocExport: DocumentOptionsTocExport, properties: List[SubtreeProperty], smartQuotes: Optional[bool], emphasizedText: Optional[bool], specialStrings: Optional[bool], fixedWidthSections: Optional[bool], includeTimestamps: Optional[bool], preserveLineBreaks: Optional[bool], plaintextSubscripts: Optional[bool], exportArchived: Optional[bool], exportWithAuthor: Optional[bool], exportBrokenLinks: Optional[bool], exportWithClock: Optional[bool], exportWithCreator: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], data: DocumentOptionsTocExport) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
     def getDoExport(self) -> DocumentOptionsDoExport: ...
@@ -1220,18 +1220,21 @@ class DocumentOptions(Org):
     initialVisibility: DocumentOptionsVisibility
     tocExport: DocumentOptionsTocExport
     properties: List[SubtreeProperty]
-    smartQuotes: bool
-    emphasizedText: bool
-    specialStrings: bool
-    fixedWidthSections: bool
-    includeTimestamps: bool
-    preserveLineBreaks: bool
-    plaintextSubscripts: bool
-    exportArchived: bool
-    exportWithAuthor: bool
-    exportBrokenLinks: bool
-    exportWithClock: bool
-    exportWithCreator: bool
+    smartQuotes: Optional[bool]
+    emphasizedText: Optional[bool]
+    specialStrings: Optional[bool]
+    fixedWidthSections: Optional[bool]
+    includeTimestamps: Optional[bool]
+    preserveLineBreaks: Optional[bool]
+    plaintextSubscripts: Optional[bool]
+    exportArchived: Optional[bool]
+    exportWithAuthor: Optional[bool]
+    exportBrokenLinks: Optional[bool]
+    exportWithClock: Optional[bool]
+    exportWithCreator: Optional[bool]
+    startupIndented: Optional[bool]
+    category: Optional[str]
+    setupfile: Optional[str]
     data: DocumentOptionsTocExport
 
 class Document(Org):

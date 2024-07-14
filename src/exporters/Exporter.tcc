@@ -815,6 +815,9 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, exportBrokenLinks);
   __org_field(res, object, exportWithClock);
   __org_field(res, object, exportWithCreator);
+  __org_field(res, object, startupIndented);
+  __org_field(res, object, category);
+  __org_field(res, object, setupfile);
   __org_field(res, object, data);
   __org_field(res, object, subnodes);
 }
