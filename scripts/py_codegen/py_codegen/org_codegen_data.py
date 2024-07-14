@@ -213,7 +213,19 @@ def get_types() -> Sequence[GenTuStruct]:
             "ErrorGroup",
             doc=org_doc("Group of value conversion errors"),
             bases=[t_org("Org")],
-            fields=[vec_field(t_id("ErrorItem"), "diagnostics")],
+            fields=[
+                vec_field(t_id("ErrorItem"), "diagnostics"),
+                opt_field(
+                    t_str(),
+                    "function",
+                    "Conversion function name where the error was created",
+                ),
+                opt_field(
+                    t_str(),
+                    "line",
+                    "Line number for the conversion where the error was created",
+                ),
+            ],
         ),
         d_org(
             "CmdArgument",

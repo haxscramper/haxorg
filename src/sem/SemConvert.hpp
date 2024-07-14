@@ -119,64 +119,100 @@ struct OrgConverter : public OperationsTracer {
         return spec->getMultipleSubnode(node, name);
     }
 
-  public:
-    SemId<Table>              convertTable(In);
-    SemId<HashTag>            convertHashTag(In);
-    void                      convertSubtreeDrawer(SemId<Subtree>&, In);
-    void                      convertPropertyList(SemId<Subtree>&, In);
-    SemId<SubtreeLog>         convertSubtreeLog(In);
-    SemId<Subtree>            convertSubtree(In);
-    SemId<StmtList>           convertStmtList(In);
-    SemId<Newline>            convertNewline(In);
-    SemId<Word>               convertWord(In);
-    SemId<Space>              convertSpace(In);
-    SemId<Paragraph>          convertParagraph(In);
-    SemId<AnnotatedParagraph> convertAnnotatedParagraph(In);
-    SemId<TimeRange>          convertTimeRange(In);
-    SemId<Time>               convertTime(In);
-    SemId<Punctuation>        convertPunctuation(In);
-    SemId<Link>               convertLink(In);
-    SemId<BigIdent>           convertBigIdent(In);
-    SemId<MarkQuote>          convertMarkQuote(In);
-    SemId<Strike>             convertStrike(In);
-    SemId<Verbatim>           convertVerbatim(In);
-    SemId<Italic>             convertItalic(In);
-    SemId<Par>                convertPar(In);
-    SemId<Bold>               convertBold(In);
-    SemId<RawText>            convertRawText(In);
-    SemId<RadioTarget>        convertRadioTarget(In);
-    SemId<TextTarget>         convertTextTarget(In);
-    SemId<List>               convertList(In);
-    SemId<ListItem>           convertListItem(In);
-    SemId<Tblfm>              convertTblfm(In);
-    SemId<Caption>            convertCaption(In);
-    SemId<Quote>              convertQuote(In);
-    SemId<CommentBlock>       convertCommentBlock(In);
-    SemId<Placeholder>        convertPlaceholder(In);
-    SemId<LatexBody>          convertMath(In);
-    SemId<Footnote>           convertFootnote(In);
-    SemId<Include>            convertInclude(In);
-    SemId<Escaped>            convertEscaped(In);
-    SemId<TextSeparator>      convertTextSeparator(In);
-    SemId<ParseError>         convertParseError(In);
-    SemId<AtMention>          convertAtMention(In);
-    SemId<Underline>          convertUnderline(In);
-    SemId<AdmonitionBlock>    convertAdmonitionBlock(In);
-    SemId<Example>            convertExample(In);
-    SemId<ColonExample>       convertColonExample(In);
-    SemId<Center>             convertCenter(In);
-    SemId<Monospace>          convertMonospace(In);
-    SemId<Symbol>             convertSymbol(In);
-    SemId<Macro>              convertMacro(In);
-    SemId<Export>             convertExport(In);
-    SemId<CmdArgument>        convertCmdArgument(In);
-    SemId<CmdArguments>       convertCmdArguments(In);
-    SemId<Code>               convertCode(In);
-    SemId<CmdAttr>            convertCmdAttr(In);
-    SemId<CmdName>            convertCmdName(In);
+    template <typename T>
+    struct ConvResult {
+        struct Node {
+            SemId<T> node;
+        };
 
-    Vec<SemId<Org>> flatConvertAttached(Vec<In> items);
-    Vec<SemId<Org>> flatConvertAttachedSubnodes(In item);
+        struct Error {
+            SemId<ErrorGroup> error;
+        };
+
+        SUB_VARIANTS(Kind, Data, data, getKind, Node, Error);
+        Data data;
+        bool isNode() const { return getKind() == Kind::Node; }
+        bool isError() const { return getKind() == Kind::Error; }
+
+        Opt<SemId<ErrorGroup>> optError() const {
+            return isError() ? std::make_optional(error()) : std::nullopt;
+        }
+
+        Opt<SemId<T>> optNode() const {
+            return isNode() ? std::make_optional(value()) : std::nullopt;
+        }
+
+        ConvResult(SemId<T> value) : data{Node{.node = value}} {}
+
+        ConvResult(SemId<ErrorGroup> error)
+            : data{Error{.error = error}} {}
+
+        SemId<Org> unwrap() const {
+            return isNode() ? value().asOrg() : error().asOrg();
+        }
+
+        SemId<T>          value() const { return getNode().node; }
+        SemId<ErrorGroup> error() const { return getError().error; }
+    };
+
+  public:
+    Opt<SemId<ErrorGroup>> convertPropertyList(SemId<Subtree>&, In);
+    Opt<SemId<ErrorGroup>> convertSubtreeDrawer(SemId<Subtree>&, In);
+    ConvResult<AnnotatedParagraph> convertAnnotatedParagraph(In);
+    Vec<ConvResult<Org>>           flatConvertAttached(Vec<In> items);
+    Vec<ConvResult<Org>>           flatConvertAttachedSubnodes(In item);
+
+    ConvResult<Table>           convertTable(In);
+    ConvResult<HashTag>         convertHashTag(In);
+    ConvResult<SubtreeLog>      convertSubtreeLog(In);
+    ConvResult<Subtree>         convertSubtree(In);
+    ConvResult<StmtList>        convertStmtList(In);
+    ConvResult<Newline>         convertNewline(In);
+    ConvResult<Word>            convertWord(In);
+    ConvResult<Space>           convertSpace(In);
+    ConvResult<Paragraph>       convertParagraph(In);
+    ConvResult<TimeRange>       convertTimeRange(In);
+    ConvResult<Time>            convertTime(In);
+    ConvResult<Punctuation>     convertPunctuation(In);
+    ConvResult<Link>            convertLink(In);
+    ConvResult<BigIdent>        convertBigIdent(In);
+    ConvResult<MarkQuote>       convertMarkQuote(In);
+    ConvResult<Strike>          convertStrike(In);
+    ConvResult<Verbatim>        convertVerbatim(In);
+    ConvResult<Italic>          convertItalic(In);
+    ConvResult<Par>             convertPar(In);
+    ConvResult<Bold>            convertBold(In);
+    ConvResult<RawText>         convertRawText(In);
+    ConvResult<RadioTarget>     convertRadioTarget(In);
+    ConvResult<TextTarget>      convertTextTarget(In);
+    ConvResult<List>            convertList(In);
+    ConvResult<ListItem>        convertListItem(In);
+    ConvResult<Tblfm>           convertTblfm(In);
+    ConvResult<Caption>         convertCaption(In);
+    ConvResult<Quote>           convertQuote(In);
+    ConvResult<CommentBlock>    convertCommentBlock(In);
+    ConvResult<Placeholder>     convertPlaceholder(In);
+    ConvResult<LatexBody>       convertMath(In);
+    ConvResult<Footnote>        convertFootnote(In);
+    ConvResult<Include>         convertInclude(In);
+    ConvResult<Escaped>         convertEscaped(In);
+    ConvResult<TextSeparator>   convertTextSeparator(In);
+    ConvResult<ParseError>      convertParseError(In);
+    ConvResult<AtMention>       convertAtMention(In);
+    ConvResult<Underline>       convertUnderline(In);
+    ConvResult<AdmonitionBlock> convertAdmonitionBlock(In);
+    ConvResult<Example>         convertExample(In);
+    ConvResult<ColonExample>    convertColonExample(In);
+    ConvResult<Center>          convertCenter(In);
+    ConvResult<Monospace>       convertMonospace(In);
+    ConvResult<Symbol>          convertSymbol(In);
+    ConvResult<Macro>           convertMacro(In);
+    ConvResult<Export>          convertExport(In);
+    ConvResult<CmdArgument>     convertCmdArgument(In);
+    ConvResult<CmdArguments>    convertCmdArguments(In);
+    ConvResult<Code>            convertCode(In);
+    ConvResult<CmdAttr>         convertCmdAttr(In);
+    ConvResult<CmdName>         convertCmdName(In);
 
 
     template <typename T>
@@ -203,6 +239,26 @@ struct OrgConverter : public OperationsTracer {
     SemId<T> SemLeaf(In adapter) {
         auto res  = Sem<T>(adapter);
         res->text = adapter.val().text;
+        return res;
+    }
+
+    SemId<ErrorItem> SemErrorItem(In adapter, CR<Str> message) {
+        auto res     = Sem<ErrorItem>(adapter);
+        res->message = message;
+        return res;
+    }
+
+    SemId<ErrorGroup> SemError(In adapter, CR<Str> message) {
+        auto res = Sem<ErrorGroup>(adapter);
+        res->diagnostics.push_back(SemErrorItem(adapter, message));
+        return res;
+    }
+
+    SemId<ErrorGroup> SemError(
+        In                    adapter,
+        Vec<SemId<ErrorItem>> errors = {}) {
+        auto res         = Sem<ErrorGroup>(adapter);
+        res->diagnostics = errors;
         return res;
     }
 
