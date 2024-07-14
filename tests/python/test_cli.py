@@ -206,3 +206,17 @@ subtree = "changeSubtree"
         text = outfile.read_text()
         assert "customSubtree" in text
         assert "changeSubtree" in text
+
+def test_typst_export_doc1():
+    file = Path("~/tmp/doc1.org").expanduser()
+    if not file.exists():
+        return 
+
+    click_run_test(cli, [
+        "export",
+        "typst",
+        f"--infile={file}",
+        "--outfile=/tmp/doc1.typ",
+    ])
+
+    

@@ -916,9 +916,9 @@ OrgId OrgParser::parseVerbatimOrMonospace(OrgLexer& lex) {
 
     while (!lex.finished() && !foundEnd) {
         switch (lex.kind()) {
-            case otk::VerbatimBegin:
-            case otk::MonospaceBegin: {
-                if (lex.at(m ? otk::MonospaceBegin : otk::VerbatimBegin)) {
+            case otk::VerbatimEnd:
+            case otk::MonospaceEnd: {
+                if (lex.at(m ? otk::MonospaceEnd : otk::VerbatimEnd)) {
                     foundEnd = true;
                 } else {
                     token(org::RawText, pop(lex, lex.kind()));

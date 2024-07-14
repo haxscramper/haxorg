@@ -493,8 +493,6 @@ items:
       #fanfiction##[character##[image,description,new]] 
 
   - name: "Call named command"
-    debug:
-      doLex: false
     source: |
       #+call: sh_example(arg=133)
 
@@ -503,8 +501,6 @@ items:
       computed as x×(1−a)+y×a.
 
   - name: "ANSI escape"
-    debug:
-      doFlatParseCompare: false
     source: |
       #+begin_src bash
       echo -e "ee \e[41mwefae\e[49m 123"

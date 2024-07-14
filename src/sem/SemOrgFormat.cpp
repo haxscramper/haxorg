@@ -716,7 +716,11 @@ auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
         result.push_back(toString(id->named.at(key), ctx));
     }
 
-    return b.join(result, str(" "));
+    if (result.empty()) {
+        return str("");
+    } else {
+        return b.join(result, str(" "));
+    }
 }
 
 auto Formatter::toString(SemId<InlineMath> id, CR<Context> ctx) -> Res {

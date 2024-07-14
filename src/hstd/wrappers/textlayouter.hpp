@@ -347,23 +347,21 @@ struct Block {
 struct BlockStore {
     dod::Store<BlockId, Block> store;
 
-    Block& at(BlockId const& id) { return store.at(id); }
-    void   add_at(BlockId const& id, BlockId const& next) {
-        at(id).add(next);
-    }
-
-    void add_at(BlockId const& id, Vec<BlockId> const& next) {
-        at(id).add(next);
-    }
-
+    Block&  at(BlockId const& id) { return store.at(id); }
+    void    add_at(BlockId const& id, BlockId const& next);
+    void    add_at(BlockId const& id, Vec<BlockId> const& next);
     BlockId text(CR<LytStrSpan> t);
     BlockId line(CR<Vec<BlockId>> l = {});
     BlockId stack(CR<Vec<BlockId>> l = {});
     BlockId choice(CR<Vec<BlockId>> l = {});
     BlockId space(int count);
     BlockId empty() { return store.add(Block(Block::Empty{})); }
-
     BlockId spatial(bool isVertical, CR<Vec<BlockId>> l = {});
+    BlockId wrap(CR<Vec<BlockId>> elems, LytStr sep, int breakMult = 1);
+    BlockId indent(int indent, CR<BlockId> block, int breakMult = 1);
+    BlockId vertical(const Vec<BlockId>& blocks, const BlockId& sep);
+    BlockId horizontal(const Vec<BlockId>& blocks, const BlockId& sep);
+
     BlockId surround_non_empty(
         BlockId content,
         BlockId before,
@@ -393,10 +391,6 @@ struct BlockStore {
         bool          isLine     = true,
         bool          isTrailing = false);
 
-    BlockId wrap(CR<Vec<BlockId>> elems, LytStr sep, int breakMult = 1);
-    BlockId indent(int indent, CR<BlockId> block, int breakMult = 1);
-    BlockId vertical(const Vec<BlockId>& blocks, const BlockId& sep);
-    BlockId horizontal(const Vec<BlockId>& blocks, const BlockId& sep);
 
     /// Return all possible formatting layouts for a given block with
     /// provided options. The best layout will be the first in the returned
