@@ -259,6 +259,56 @@ void proto_serde<::orgproto::CmdName, sem::CmdName>::read(::orgproto::CmdName co
   proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::CmdName::name));
 }
 
+void proto_serde<::orgproto::CmdCustomArgs, sem::CmdCustomArgs>::write(::orgproto::CmdCustomArgs* out, sem::CmdCustomArgs const& in) {
+  proto_serde<::orgproto::CmdCustomArgs, sem::Command>::write(out, in);
+  proto_serde<::orgproto::CmdCustomArgs, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::CmdCustomArgs, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  out->set_isattached(in.isAttached);
+}
+
+void proto_serde<::orgproto::CmdCustomArgs, sem::CmdCustomArgs>::read(::orgproto::CmdCustomArgs const& out, proto_write_accessor<sem::CmdCustomArgs> in) {
+  proto_serde<::orgproto::CmdCustomArgs, sem::Command>::read(out, in.as<sem::Command>());
+  proto_serde<::orgproto::CmdCustomArgs, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::CmdCustomArgs, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::CmdCustomArgs::name));
+  in.for_field(&sem::CmdCustomArgs::isAttached).get() = out.isattached();
+}
+
+void proto_serde<::orgproto::CmdCustomRaw, sem::CmdCustomRaw>::write(::orgproto::CmdCustomRaw* out, sem::CmdCustomRaw const& in) {
+  proto_serde<::orgproto::CmdCustomRaw, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::CmdCustomRaw, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  out->set_isattached(in.isAttached);
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::CmdCustomRaw, sem::CmdCustomRaw>::read(::orgproto::CmdCustomRaw const& out, proto_write_accessor<sem::CmdCustomRaw> in) {
+  proto_serde<::orgproto::CmdCustomRaw, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::CmdCustomRaw, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::CmdCustomRaw::name));
+  in.for_field(&sem::CmdCustomRaw::isAttached).get() = out.isattached();
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::CmdCustomRaw::text));
+}
+
+void proto_serde<::orgproto::CmdCustomText, sem::CmdCustomText>::write(::orgproto::CmdCustomText* out, sem::CmdCustomText const& in) {
+  proto_serde<::orgproto::CmdCustomText, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::CmdCustomText, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  out->set_isattached(in.isAttached);
+  if (!in.text.isNil()) {
+    proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_text(), in.text);
+  }
+}
+
+void proto_serde<::orgproto::CmdCustomText, sem::CmdCustomText>::read(::orgproto::CmdCustomText const& out, proto_write_accessor<sem::CmdCustomText> in) {
+  proto_serde<::orgproto::CmdCustomText, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::CmdCustomText, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::CmdCustomText::name));
+  in.for_field(&sem::CmdCustomText::isAttached).get() = out.isattached();
+  proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::read(out.text(), in.for_field(&sem::CmdCustomText::text));
+}
+
 void proto_serde<::orgproto::CmdResults, sem::CmdResults>::write(::orgproto::CmdResults* out, sem::CmdResults const& in) {
   proto_serde<::orgproto::CmdResults, sem::Command>::write(out, in);
   proto_serde<::orgproto::CmdResults, sem::Stmt>::write(out, in);

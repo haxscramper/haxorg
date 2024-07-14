@@ -453,6 +453,22 @@ auto Formatter::toString(SemId<CmdResults> id, CR<Context> ctx) -> Res {
     return b.line({str("#+results: ")});
 }
 
+auto Formatter::toString(SemId<CmdCustomRaw> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str(fmt("#+{}: {}", id->name, id->text))});
+}
+
+auto Formatter::toString(SemId<CmdCustomArgs> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line(
+        {str(fmt("#+{}:", id->name)), toString(id->parameters, ctx)});
+}
+
+auto Formatter::toString(SemId<CmdCustomText> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str(fmt("#+{}: ", id->name)), toString(id->text, ctx)});
+}
+
 auto Formatter::toString(SemId<CmdName> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+name: " + id->name)});

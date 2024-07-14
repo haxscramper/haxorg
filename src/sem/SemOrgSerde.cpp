@@ -110,3 +110,4 @@ template class proto_serde<orgproto::Table, sem::Command>;
 template class proto_serde<orgproto::Tblfm, sem::Command>;
 template class proto_serde<orgproto::Verse, sem::Command>;
 template class proto_serde<orgproto::Quote, sem::Command>;
+template class proto_serde<orgproto::CmdCustomArgs, sem::Command>;

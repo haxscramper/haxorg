@@ -737,6 +737,107 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::CmdCustomArgs, sem::SemId<sem::CmdCustomArgs>, sem::Command>(m, "CmdCustomArgs")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCustomArgs {
+                        sem::CmdCustomArgs result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::CmdCustomArgs::name)
+    .def_readwrite("isAttached", &sem::CmdCustomArgs::isAttached)
+    .def_readwrite("parameters", &sem::CmdCustomArgs::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::CmdCustomArgs::attached)
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdCustomArgs::*)(Opt<Str> const&) const>(&sem::CmdCustomArgs::getArguments),
+         pybind11::arg_v("key", std::nullopt),
+         R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdCustomArgs::*)(Str const&) const>(&sem::CmdCustomArgs::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomArgs::*)(Opt<Str> const&) const>(&sem::CmdCustomArgs::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdCustomArgs::*)(Opt<Str> const&) const>(&sem::CmdCustomArgs::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdCustomArgs::*)(Str const&) const>(&sem::CmdCustomArgs::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("__repr__", [](sem::CmdCustomArgs _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdCustomArgs _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdCustomRaw, sem::SemId<sem::CmdCustomRaw>, sem::Stmt>(m, "CmdCustomRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCustomRaw {
+                        sem::CmdCustomRaw result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::CmdCustomRaw::name)
+    .def_readwrite("isAttached", &sem::CmdCustomRaw::isAttached)
+    .def_readwrite("text", &sem::CmdCustomRaw::text)
+    .def_readwrite("attached", &sem::CmdCustomRaw::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomRaw::*)(Opt<Str> const&) const>(&sem::CmdCustomRaw::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdCustomRaw::*)(Opt<Str> const&) const>(&sem::CmdCustomRaw::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdCustomRaw::*)(Str const&) const>(&sem::CmdCustomRaw::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("__repr__", [](sem::CmdCustomRaw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdCustomRaw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdCustomText, sem::SemId<sem::CmdCustomText>, sem::Stmt>(m, "CmdCustomText")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCustomText {
+                        sem::CmdCustomText result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::CmdCustomText::name)
+    .def_readwrite("isAttached", &sem::CmdCustomText::isAttached)
+    .def_readwrite("text", &sem::CmdCustomText::text)
+    .def_readwrite("attached", &sem::CmdCustomText::attached)
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomText::*)(Opt<Str> const&) const>(&sem::CmdCustomText::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getArguments",
+         static_cast<Opt<sem::SemId<sem::CmdArgumentList>>(sem::CmdCustomText::*)(Opt<Str> const&) const>(&sem::CmdCustomText::getArguments),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstArgument",
+         static_cast<Opt<sem::SemId<sem::CmdArgument>>(sem::CmdCustomText::*)(Str const&) const>(&sem::CmdCustomText::getFirstArgument),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("__repr__", [](sem::CmdCustomText _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdCustomText _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::CmdResults, sem::SemId<sem::CmdResults>, sem::Attached>(m, "CmdResults")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdResults {
                         sem::CmdResults result{};
@@ -3349,6 +3450,9 @@ node can have subnodes.)RAW")
     .value("CommandAttr", OrgNodeKind::CommandAttr, R"RAW(`#+attr_html:`, `#+attr_image` etc.)RAW")
     .value("CommandStartup", OrgNodeKind::CommandStartup, R"RAW(`#+startup:`)RAW")
     .value("CommandName", OrgNodeKind::CommandName, R"RAW(`#+name:` - name of the associated entry)RAW")
+    .value("CmdCustomTextCommand", OrgNodeKind::CmdCustomTextCommand, R"RAW(Line command with parsed text value)RAW")
+    .value("CmdCustomArgsCommand", OrgNodeKind::CmdCustomArgsCommand, R"RAW(Line command with parsed argument list)RAW")
+    .value("CmdCustomRawCommand", OrgNodeKind::CmdCustomRawCommand, R"RAW(Line command with raw text argument)RAW")
     .value("CommandResults", OrgNodeKind::CommandResults, R"RAW(`#+results:` - source code block evaluation results)RAW")
     .value("CommandHeader", OrgNodeKind::CommandHeader, R"RAW(`#+header:` - extended list of parameters passed to associated block)RAW")
     .value("CommandOptions", OrgNodeKind::CommandOptions, R"RAW(`#+options:` - document-wide formatting options)RAW")
@@ -3509,6 +3613,9 @@ node can have subnodes.)RAW")
     .value("Center", OrgSemKind::Center)
     .value("Caption", OrgSemKind::Caption)
     .value("CmdName", OrgSemKind::CmdName)
+    .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)
+    .value("CmdCustomRaw", OrgSemKind::CmdCustomRaw)
+    .value("CmdCustomText", OrgSemKind::CmdCustomText)
     .value("CmdResults", OrgSemKind::CmdResults)
     .value("CommandGroup", OrgSemKind::CommandGroup)
     .value("Tblfm", OrgSemKind::Tblfm)

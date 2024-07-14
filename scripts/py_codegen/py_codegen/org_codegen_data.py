@@ -148,8 +148,11 @@ def opt_ident(typ: QualType,
     return GenTuIdent(type=t_cr(t_opt(typ)), name=name, value=value)
 
 
-def bool_field(name: str, doc: GenTuDoc, default: str = "false") -> GenTuField:
-    return GenTuField(t("bool"), name, doc=doc, value=default)
+@beartype
+def bool_field(name: str,
+               doc: AnyDoc = GenTuDoc(""),
+               default: str = "false") -> GenTuField:
+    return GenTuField(t("bool"), name, doc=org_doc(doc), value=default)
 
 
 def d_org(name: str, *args, **kwargs) -> GenTuStruct:
@@ -525,6 +528,35 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Attached")],
             fields=[
                 GenTuField(t_str(), "name", GenTuDoc("")),
+            ],
+        ),
+        d_org(
+            "CmdCustomArgs",
+            doc=org_doc("Custom line command with list of parsed arguments"),
+            bases=[t_org("Command")],
+            fields=[
+                org_field(t_str(), "name"),
+                bool_field("isAttached"),
+            ],
+        ),
+        d_org(
+            "CmdCustomRaw",
+            doc=org_doc("Custom command with raw unparsed string value"),
+            bases=[t_org("Stmt")],
+            fields=[
+                org_field(t_str(), "name"),
+                bool_field("isAttached"),
+                org_field(t_str(), "text"),
+            ],
+        ),
+        d_org(
+            "CmdCustomText",
+            doc=org_doc("Custom line command with text paragraph value"),
+            bases=[t_org("Stmt")],
+            fields=[
+                org_field(t_str(), "name"),
+                bool_field("isAttached"),
+                id_field("Paragraph", "text"),
             ],
         ),
         d_org(
@@ -1968,6 +2000,9 @@ def get_enums():
                 efield("CommandAttr", "`#+attr_html:`, `#+attr_image` etc."),
                 efield("CommandStartup", "`#+startup:`"),
                 efield("CommandName", "`#+name:` - name of the associated entry"),
+                efield("CmdCustomTextCommand", "Line command with parsed text value"),
+                efield("CmdCustomArgsCommand", "Line command with parsed argument list"),
+                efield("CmdCustomRawCommand", "Line command with raw text argument"),
                 efield("CommandResults",
                        "`#+results:` - source code block evaluation results"),
                 efield(

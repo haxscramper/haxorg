@@ -17,6 +17,9 @@
         __MAP(kCenter, center, Center)  \
         __MAP(kCaption, caption, Caption)  \
         __MAP(kCmdname, cmdname, CmdName)  \
+        __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
+        __MAP(kCmdcustomraw, cmdcustomraw, CmdCustomRaw)  \
+        __MAP(kCmdcustomtext, cmdcustomtext, CmdCustomText)  \
         __MAP(kCmdresults, cmdresults, CmdResults)  \
         __MAP(kCommandgroup, commandgroup, CommandGroup)  \
         __MAP(kTblfm, tblfm, Tblfm)  \
@@ -198,6 +201,27 @@ template <>
 struct proto_serde<::orgproto::CmdName, sem::CmdName> {
   static void write(::orgproto::CmdName* out, sem::CmdName const& in);
   static void read(::orgproto::CmdName const& out, proto_write_accessor<sem::CmdName> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdCustomArgs, sem::CmdCustomArgs> {
+  static void write(::orgproto::CmdCustomArgs* out, sem::CmdCustomArgs const& in);
+  static void read(::orgproto::CmdCustomArgs const& out, proto_write_accessor<sem::CmdCustomArgs> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdCustomRaw, sem::CmdCustomRaw> {
+  static void write(::orgproto::CmdCustomRaw* out, sem::CmdCustomRaw const& in);
+  static void read(::orgproto::CmdCustomRaw const& out, proto_write_accessor<sem::CmdCustomRaw> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdCustomText, sem::CmdCustomText> {
+  static void write(::orgproto::CmdCustomText* out, sem::CmdCustomText const& in);
+  static void read(::orgproto::CmdCustomText const& out, proto_write_accessor<sem::CmdCustomText> in);
 };
 
 

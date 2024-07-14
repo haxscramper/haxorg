@@ -195,6 +195,36 @@ void Exporter<V, R>::visitCmdName(R& res, In<sem::CmdName> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitCmdCustomArgs(R& res, In<sem::CmdCustomArgs> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, name);
+  __org_field(res, object, isAttached);
+  __org_field(res, object, parameters);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdCustomRaw(R& res, In<sem::CmdCustomRaw> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, name);
+  __org_field(res, object, isAttached);
+  __org_field(res, object, text);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdCustomText(R& res, In<sem::CmdCustomText> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, name);
+  __org_field(res, object, isAttached);
+  __org_field(res, object, text);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCmdResults(R& res, In<sem::CmdResults> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, parameters);

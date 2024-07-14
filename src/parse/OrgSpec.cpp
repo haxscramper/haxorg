@@ -450,6 +450,24 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(1, N::Body),
             })},
         SpecPair{
+            org::CmdCustomArgsCommand,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Args, org::CmdArguments),
+            })},
+        SpecPair{
+            org::CmdCustomTextCommand,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Args, org::Paragraph),
+            })},
+        SpecPair{
+            org::CmdCustomRawCommand,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Args, org::RawText),
+            })},
+        SpecPair{
             org::CommandArguments,
             OrgPattern({
                 fieldN(

@@ -166,6 +166,9 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CommandAttr") { return OrgNodeKind::CommandAttr; } else
   if (value == "CommandStartup") { return OrgNodeKind::CommandStartup; } else
   if (value == "CommandName") { return OrgNodeKind::CommandName; } else
+  if (value == "CmdCustomTextCommand") { return OrgNodeKind::CmdCustomTextCommand; } else
+  if (value == "CmdCustomArgsCommand") { return OrgNodeKind::CmdCustomArgsCommand; } else
+  if (value == "CmdCustomRawCommand") { return OrgNodeKind::CmdCustomRawCommand; } else
   if (value == "CommandResults") { return OrgNodeKind::CommandResults; } else
   if (value == "CommandHeader") { return OrgNodeKind::CommandHeader; } else
   if (value == "CommandOptions") { return OrgNodeKind::CommandOptions; } else
@@ -307,6 +310,9 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CommandAttr: return "CommandAttr";
     case OrgNodeKind::CommandStartup: return "CommandStartup";
     case OrgNodeKind::CommandName: return "CommandName";
+    case OrgNodeKind::CmdCustomTextCommand: return "CmdCustomTextCommand";
+    case OrgNodeKind::CmdCustomArgsCommand: return "CmdCustomArgsCommand";
+    case OrgNodeKind::CmdCustomRawCommand: return "CmdCustomRawCommand";
     case OrgNodeKind::CommandResults: return "CommandResults";
     case OrgNodeKind::CommandHeader: return "CommandHeader";
     case OrgNodeKind::CommandOptions: return "CommandOptions";
@@ -431,6 +437,9 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Center") { return OrgSemKind::Center; } else
   if (value == "Caption") { return OrgSemKind::Caption; } else
   if (value == "CmdName") { return OrgSemKind::CmdName; } else
+  if (value == "CmdCustomArgs") { return OrgSemKind::CmdCustomArgs; } else
+  if (value == "CmdCustomRaw") { return OrgSemKind::CmdCustomRaw; } else
+  if (value == "CmdCustomText") { return OrgSemKind::CmdCustomText; } else
   if (value == "CmdResults") { return OrgSemKind::CmdResults; } else
   if (value == "CommandGroup") { return OrgSemKind::CommandGroup; } else
   if (value == "Tblfm") { return OrgSemKind::Tblfm; } else
@@ -500,6 +509,9 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Center: return "Center";
     case OrgSemKind::Caption: return "Caption";
     case OrgSemKind::CmdName: return "CmdName";
+    case OrgSemKind::CmdCustomArgs: return "CmdCustomArgs";
+    case OrgSemKind::CmdCustomRaw: return "CmdCustomRaw";
+    case OrgSemKind::CmdCustomText: return "CmdCustomText";
     case OrgSemKind::CmdResults: return "CmdResults";
     case OrgSemKind::CommandGroup: return "CommandGroup";
     case OrgSemKind::Tblfm: return "Tblfm";

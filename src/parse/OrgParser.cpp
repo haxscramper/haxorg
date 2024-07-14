@@ -1837,6 +1837,55 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
     auto __trace  = trace(lex);
     auto cmd_kind = lex.kind(+1);
     switch (cmd_kind) {
+        case otk::CmdEmailRaw:
+        case otk::CmdBindRaw:
+        case otk::CmdCategoryRaw:
+        case otk::CmdSetupfileRaw:
+        case otk::CmdPrioritiesRaw:
+        case otk::CmdSeqTodoRaw:
+        case otk::CmdTagsRaw:
+        case otk::CmdMacroRaw:
+        case otk::CmdLinkRaw:
+        case otk::CmdLatexHeaderExtraRaw:
+        case otk::CmdExcludeTagsRaw:
+        case otk::CmdSelectTagsRaw:
+        case otk::CmdDrawersRaw:
+        case otk::CmdCustomRaw: {
+            start(org::CmdCustomRawCommand);
+            skip(lex, otk::CmdPrefix);
+            token(org::RawText, pop(lex));
+            while (lex.at(otk::RawText)) {
+                token(org::RawText, pop(lex, otk::RawText));
+                if (lex.at(otk::Whitespace)) { space(lex); }
+            }
+            break;
+        }
+
+        case otk::CmdDateRaw:
+        case otk::CmdDescription: {
+            skip(lex, otk::CmdPrefix);
+            start(org::CmdCustomTextCommand);
+            token(org::RawText, pop(lex));
+            start(org::CommandArguments);
+            auto sub = subToEol(
+                lex, ParagraphTerminator + OrgTokSet{otk::Newline});
+            if (sub.empty()) {
+                empty();
+            } else {
+                parseParagraph(sub);
+            }
+            end();
+            break;
+        }
+
+        case otk::CmdHtmlHeadRaw: {
+            skip(lex, otk::CmdPrefix);
+            start(org::CmdCustomArgsCommand);
+            token(org::RawText, pop(lex));
+            parseCommandArguments(lex);
+            break;
+        }
+
         case otk::CmdTitle:
         case otk::CmdCaption: {
             skip(lex, otk::CmdPrefix);

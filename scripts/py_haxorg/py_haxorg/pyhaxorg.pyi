@@ -265,6 +265,44 @@ class CmdName(Attached):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
+class CmdCustomArgs(Command):
+    def __init__(self, name: str, isAttached: bool, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
+    def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
+    def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
+    def getAttached(self, kind: Optional[str]) -> List[Org]: ...
+    def getArguments(self, kind: Optional[str]) -> Optional[CmdArgumentList]: ...
+    def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    isAttached: bool
+    parameters: Optional[CmdArguments]
+    attached: List[Org]
+
+class CmdCustomRaw(Stmt):
+    def __init__(self, name: str, isAttached: bool, text: str, attached: List[Org]) -> None: ...
+    def getAttached(self, kind: Optional[str]) -> List[Org]: ...
+    def getArguments(self, kind: Optional[str]) -> Optional[CmdArgumentList]: ...
+    def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    isAttached: bool
+    text: str
+    attached: List[Org]
+
+class CmdCustomText(Stmt):
+    def __init__(self, name: str, isAttached: bool, text: Paragraph, attached: List[Org]) -> None: ...
+    def getAttached(self, kind: Optional[str]) -> List[Org]: ...
+    def getArguments(self, kind: Optional[str]) -> Optional[CmdArgumentList]: ...
+    def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    isAttached: bool
+    text: Paragraph
+    attached: List[Org]
+
 class CmdResults(Attached):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
@@ -1419,110 +1457,113 @@ class OrgNodeKind(Enum):
     CommandAttr = 31
     CommandStartup = 32
     CommandName = 33
-    CommandResults = 34
-    CommandHeader = 35
-    CommandOptions = 36
-    CommandTblfm = 37
-    CommandBackendOptions = 38
-    AttrImg = 39
-    CommandCaption = 40
-    File = 41
-    BlockExport = 42
-    InlineExport = 43
-    MultilineCommand = 44
-    Result = 45
-    Ident = 46
-    BareIdent = 47
-    AdmonitionTag = 48
-    BigIdent = 49
-    VerbatimMultilineBlock = 50
-    CodeLine = 51
-    CodeText = 52
-    CodeTangle = 53
-    CodeCallout = 54
-    QuoteBlock = 55
-    CommentBlock = 56
-    CenterBlock = 57
-    VerseBlock = 58
-    Example = 59
-    ColonExample = 60
-    SrcCode = 61
-    SrcInlineCode = 62
-    InlineCallCode = 63
-    CmdCallCode = 64
-    PassCode = 65
-    CmdArguments = 66
-    CmdFlag = 67
-    CmdKey = 68
-    CmdValue = 69
-    CmdNamedValue = 70
-    UrgencyStatus = 71
-    TextSeparator = 72
-    Paragraph = 73
-    AnnotatedParagraph = 74
-    Bold = 75
-    Italic = 76
-    Verbatim = 77
-    Backtick = 78
-    Underline = 79
-    Strike = 80
-    Quote = 81
-    Angle = 82
-    Monospace = 83
-    Par = 84
-    InlineMath = 85
-    DisplayMath = 86
-    Space = 87
-    Punctuation = 88
-    Colon = 89
-    Word = 90
-    Escaped = 91
-    Newline = 92
-    RawLink = 93
-    Link = 94
-    Macro = 95
-    BackendRaw = 96
-    Symbol = 97
-    TimeAssoc = 98
-    StaticActiveTime = 99
-    StaticInactiveTime = 100
-    DynamicActiveTime = 101
-    DynamicInactiveTime = 102
-    TimeRange = 103
-    SimpleTime = 104
-    Details = 105
-    Summary = 106
-    Table = 107
-    TableRow = 108
-    TableCell = 109
-    InlineFootnote = 110
-    Footnote = 111
-    Horizontal = 112
-    Filetags = 113
-    OrgTag = 114
-    HashTag = 115
-    MetaSymbol = 116
-    AtMention = 117
-    BracTag = 118
-    Drawer = 119
-    LatexClass = 120
-    LatexHeader = 121
-    LatexCompiler = 122
-    LatexClassOptions = 123
-    HtmlHead = 124
-    Columns = 125
-    CmdPropertyArgs = 126
-    CmdPropertyText = 127
-    CmdPropertyRaw = 128
-    PropertyList = 129
-    Property = 130
-    Placeholder = 131
-    SubtreeDescription = 132
-    SubtreeUrgency = 133
-    Logbook = 134
-    LogbookStateChange = 135
-    RadioTarget = 136
-    Target = 137
+    CmdCustomTextCommand = 34
+    CmdCustomArgsCommand = 35
+    CmdCustomRawCommand = 36
+    CommandResults = 37
+    CommandHeader = 38
+    CommandOptions = 39
+    CommandTblfm = 40
+    CommandBackendOptions = 41
+    AttrImg = 42
+    CommandCaption = 43
+    File = 44
+    BlockExport = 45
+    InlineExport = 46
+    MultilineCommand = 47
+    Result = 48
+    Ident = 49
+    BareIdent = 50
+    AdmonitionTag = 51
+    BigIdent = 52
+    VerbatimMultilineBlock = 53
+    CodeLine = 54
+    CodeText = 55
+    CodeTangle = 56
+    CodeCallout = 57
+    QuoteBlock = 58
+    CommentBlock = 59
+    CenterBlock = 60
+    VerseBlock = 61
+    Example = 62
+    ColonExample = 63
+    SrcCode = 64
+    SrcInlineCode = 65
+    InlineCallCode = 66
+    CmdCallCode = 67
+    PassCode = 68
+    CmdArguments = 69
+    CmdFlag = 70
+    CmdKey = 71
+    CmdValue = 72
+    CmdNamedValue = 73
+    UrgencyStatus = 74
+    TextSeparator = 75
+    Paragraph = 76
+    AnnotatedParagraph = 77
+    Bold = 78
+    Italic = 79
+    Verbatim = 80
+    Backtick = 81
+    Underline = 82
+    Strike = 83
+    Quote = 84
+    Angle = 85
+    Monospace = 86
+    Par = 87
+    InlineMath = 88
+    DisplayMath = 89
+    Space = 90
+    Punctuation = 91
+    Colon = 92
+    Word = 93
+    Escaped = 94
+    Newline = 95
+    RawLink = 96
+    Link = 97
+    Macro = 98
+    BackendRaw = 99
+    Symbol = 100
+    TimeAssoc = 101
+    StaticActiveTime = 102
+    StaticInactiveTime = 103
+    DynamicActiveTime = 104
+    DynamicInactiveTime = 105
+    TimeRange = 106
+    SimpleTime = 107
+    Details = 108
+    Summary = 109
+    Table = 110
+    TableRow = 111
+    TableCell = 112
+    InlineFootnote = 113
+    Footnote = 114
+    Horizontal = 115
+    Filetags = 116
+    OrgTag = 117
+    HashTag = 118
+    MetaSymbol = 119
+    AtMention = 120
+    BracTag = 121
+    Drawer = 122
+    LatexClass = 123
+    LatexHeader = 124
+    LatexCompiler = 125
+    LatexClassOptions = 126
+    HtmlHead = 127
+    Columns = 128
+    CmdPropertyArgs = 129
+    CmdPropertyText = 130
+    CmdPropertyRaw = 131
+    PropertyList = 132
+    Property = 133
+    Placeholder = 134
+    SubtreeDescription = 135
+    SubtreeUrgency = 136
+    Logbook = 137
+    LogbookStateChange = 138
+    RadioTarget = 139
+    Target = 140
 
 class OrgSemKind(Enum):
     CmdArgument = 1
@@ -1540,56 +1581,59 @@ class OrgSemKind(Enum):
     Center = 13
     Caption = 14
     CmdName = 15
-    CmdResults = 16
-    CommandGroup = 17
-    Tblfm = 18
-    Quote = 19
-    CommentBlock = 20
-    Verse = 21
-    Example = 22
-    ColonExample = 23
-    CmdArguments = 24
-    CmdAttr = 25
-    Export = 26
-    AdmonitionBlock = 27
-    Call = 28
-    Code = 29
-    Time = 30
-    TimeRange = 31
-    Macro = 32
-    Symbol = 33
-    SubtreeLog = 34
-    Subtree = 35
-    InlineMath = 36
-    Escaped = 37
-    Newline = 38
-    Space = 39
-    Word = 40
-    AtMention = 41
-    RawText = 42
-    Punctuation = 43
-    Placeholder = 44
-    BigIdent = 45
-    RadioTarget = 46
-    TextTarget = 47
-    Bold = 48
-    Underline = 49
-    Monospace = 50
-    MarkQuote = 51
-    Verbatim = 52
-    Italic = 53
-    Strike = 54
-    Par = 55
-    List = 56
-    ListItem = 57
-    Link = 58
-    DocumentOptions = 59
-    Document = 60
-    ParseError = 61
-    FileTarget = 62
-    TextSeparator = 63
-    Include = 64
-    DocumentGroup = 65
+    CmdCustomArgs = 16
+    CmdCustomRaw = 17
+    CmdCustomText = 18
+    CmdResults = 19
+    CommandGroup = 20
+    Tblfm = 21
+    Quote = 22
+    CommentBlock = 23
+    Verse = 24
+    Example = 25
+    ColonExample = 26
+    CmdArguments = 27
+    CmdAttr = 28
+    Export = 29
+    AdmonitionBlock = 30
+    Call = 31
+    Code = 32
+    Time = 33
+    TimeRange = 34
+    Macro = 35
+    Symbol = 36
+    SubtreeLog = 37
+    Subtree = 38
+    InlineMath = 39
+    Escaped = 40
+    Newline = 41
+    Space = 42
+    Word = 43
+    AtMention = 44
+    RawText = 45
+    Punctuation = 46
+    Placeholder = 47
+    BigIdent = 48
+    RadioTarget = 49
+    TextTarget = 50
+    Bold = 51
+    Underline = 52
+    Monospace = 53
+    MarkQuote = 54
+    Verbatim = 55
+    Italic = 56
+    Strike = 57
+    Par = 58
+    List = 59
+    ListItem = 60
+    Link = 61
+    DocumentOptions = 62
+    Document = 63
+    ParseError = 64
+    FileTarget = 65
+    TextSeparator = 66
+    Include = 67
+    DocumentGroup = 68
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

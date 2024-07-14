@@ -397,6 +397,53 @@ struct CmdName : public sem::Attached {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdName; }
 };
 
+/// \brief Custom line command with list of parsed arguments
+struct CmdCustomArgs : public sem::Command {
+  using Command::Command;
+  virtual ~CmdCustomArgs() = default;
+  BOOST_DESCRIBE_CLASS(CmdCustomArgs,
+                       (Command),
+                       (),
+                       (),
+                       (staticKind, name, isAttached, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Str name;
+  bool isAttached = false;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomArgs; }
+};
+
+/// \brief Custom command with raw unparsed string value
+struct CmdCustomRaw : public sem::Stmt {
+  using Stmt::Stmt;
+  virtual ~CmdCustomRaw() = default;
+  BOOST_DESCRIBE_CLASS(CmdCustomRaw,
+                       (Stmt),
+                       (),
+                       (),
+                       (staticKind, name, isAttached, text, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Str name;
+  bool isAttached = false;
+  Str text;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomRaw; }
+};
+
+/// \brief Custom line command with text paragraph value
+struct CmdCustomText : public sem::Stmt {
+  using Stmt::Stmt;
+  virtual ~CmdCustomText() = default;
+  BOOST_DESCRIBE_CLASS(CmdCustomText,
+                       (Stmt),
+                       (),
+                       (),
+                       (staticKind, name, isAttached, text, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Str name;
+  bool isAttached = false;
+  sem::SemId<sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomText; }
+};
+
 struct CmdResults : public sem::Attached {
   using Attached::Attached;
   virtual ~CmdResults() = default;
