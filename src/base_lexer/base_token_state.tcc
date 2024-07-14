@@ -43,7 +43,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::BraceEnd: return "BraceEnd";
         case OrgTokenKind::Checkbox: return "Checkbox";
         case OrgTokenKind::Circumflex: return "Circumflex";
-        case OrgTokenKind::CmdAdmonitionBegin: return "CmdAdmonitionBegin";
         case OrgTokenKind::CmdAdmonitionEnd: return "CmdAdmonitionEnd";
         case OrgTokenKind::CmdAttr: return "CmdAttr";
         case OrgTokenKind::CmdAuthor: return "CmdAuthor";
@@ -255,7 +254,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "BraceEnd") { return OrgTokenKind::BraceEnd; } else
   if (value == "Checkbox") { return OrgTokenKind::Checkbox; } else
   if (value == "Circumflex") { return OrgTokenKind::Circumflex; } else
-  if (value == "CmdAdmonitionBegin") { return OrgTokenKind::CmdAdmonitionBegin; } else
   if (value == "CmdAdmonitionEnd") { return OrgTokenKind::CmdAdmonitionEnd; } else
   if (value == "CmdAttr") { return OrgTokenKind::CmdAttr; } else
   if (value == "CmdAuthor") { return OrgTokenKind::CmdAuthor; } else

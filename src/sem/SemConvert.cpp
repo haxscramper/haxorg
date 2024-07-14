@@ -1135,10 +1135,6 @@ SemId<Center> OrgConverter::convertCenter(__args) {
     return res;
 }
 
-SemId<AdmonitionBlock> OrgConverter::convertAdmonitionBlock(__args) {
-    return convertAllSubnodes<AdmonitionBlock>(a);
-}
-
 SemId<Quote> OrgConverter::convertQuote(__args) {
     SemId<Quote> quote = Sem<Quote>(a);
 
@@ -1425,7 +1421,6 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::Monospace: return convertMonospace(a);
         case org::CenterBlock: return convertCenter(a);
         case org::Example: return convertExample(a);
-        case org::AdmonitionBlock: return convertAdmonitionBlock(a);
         case org::HashTag: return convertHashTag(a);
         case org::Error: return convertParseError(a);
         case org::ListTag: return convert(a[0]);

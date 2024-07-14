@@ -128,7 +128,6 @@ tokens:
   - name: LatexInlineRaw
   - name: UnderlineBegin
   - name: UnderlineEnd
-  - name: CmdAdmonitionBegin
   - name: CmdFlag
   - name: CmdContentEnd
   - name: LinkFull

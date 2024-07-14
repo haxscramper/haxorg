@@ -2011,7 +2011,6 @@ def get_enums():
                 efield("CodeCallout", "`(refs:` callout in the source code"),
                 efield("QuoteBlock", "`#+begin_quote:` block in code"),
                 efield("CommentBlock", "`#+begin_comment:` block in code"),
-                efield("AdmonitionBlock", "'"),
                 efield("CenterBlock"),
                 efield("VerseBlock"),
                 efield("Example", "Verbatim example text block"),

@@ -1241,10 +1241,6 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             start(org::QuoteBlock);
             endTok = otk::CmdQuoteEnd;
             break;
-        case otk::CmdAdmonitionBegin:
-            start(org::AdmonitionBlock);
-            endTok = otk::CmdAdmonitionEnd;
-            break;
         case otk::CmdCommentBegin:
             start(org::CommentBlock);
             endTok = otk::CmdCommentEnd;

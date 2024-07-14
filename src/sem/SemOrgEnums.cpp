@@ -189,7 +189,6 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CodeCallout") { return OrgNodeKind::CodeCallout; } else
   if (value == "QuoteBlock") { return OrgNodeKind::QuoteBlock; } else
   if (value == "CommentBlock") { return OrgNodeKind::CommentBlock; } else
-  if (value == "AdmonitionBlock") { return OrgNodeKind::AdmonitionBlock; } else
   if (value == "CenterBlock") { return OrgNodeKind::CenterBlock; } else
   if (value == "VerseBlock") { return OrgNodeKind::VerseBlock; } else
   if (value == "Example") { return OrgNodeKind::Example; } else
@@ -331,7 +330,6 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CodeCallout: return "CodeCallout";
     case OrgNodeKind::QuoteBlock: return "QuoteBlock";
     case OrgNodeKind::CommentBlock: return "CommentBlock";
-    case OrgNodeKind::AdmonitionBlock: return "AdmonitionBlock";
     case OrgNodeKind::CenterBlock: return "CenterBlock";
     case OrgNodeKind::VerseBlock: return "VerseBlock";
     case OrgNodeKind::Example: return "Example";

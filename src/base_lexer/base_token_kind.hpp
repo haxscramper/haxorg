@@ -15,7 +15,6 @@ enum class OrgTokenKind : unsigned short int {
   BraceEnd,
   Checkbox,
   Circumflex,
-  CmdAdmonitionBegin,
   CmdAdmonitionEnd,
   CmdAttr,
   CmdAuthor,
