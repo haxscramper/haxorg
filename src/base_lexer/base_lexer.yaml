@@ -370,6 +370,81 @@ rules:
     token: CmdPropertyRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
+  - re: "email{prop_colon}"
+    states: [COMMAND]
+    token: CmdEmailRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "macro{prop_colon}"
+    states: [COMMAND]
+    token: CmdMacroRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "seq_todo{prop_colon}"
+    states: [COMMAND]
+    token: CmdSeqTodoRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "bind{prop_colon}"
+    states: [COMMAND]
+    token: CmdBindRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "tags{prop_colon}"
+    states: [COMMAND]
+    token: CmdTagsRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "exclude_tags{prop_colon}"
+    states: [COMMAND]
+    token: CmdExcludeTagsRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "select_tags{prop_colon}"
+    states: [COMMAND]
+    token: CmdSelectTagsRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "drawers{prop_colon}"
+    states: [COMMAND]
+    token: CmdDrawersRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "keywords{prop_colon}"
+    states: [COMMAND]
+    token: CmdDateRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "category{prop_colon}"
+    states: [COMMAND]
+    token: CmdCategoryRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "priorities{prop_colon}"
+    states: [COMMAND]
+    token: CmdPrioritiesRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "setupfile{prop_colon}"
+    states: [COMMAND]
+    token: CmdSetupfileRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "html_head{prop_colon}"
+    states: [COMMAND]
+    token: CmdHtmlHeadRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "latex_header_extra{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexHeaderExtraRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: ".*?{prop_colon}"
+    states: [COMMAND]
+    token: CmdCustomRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
   - re: ".*"
     states: [COMMAND_RAW]
     token: RawText
@@ -390,6 +465,21 @@ rules:
   - re: "caption{prop_colon}"
     states: [COMMAND]
     token: CmdCaption
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "description{prop_colon}"
+    states: [COMMAND]
+    token: CmdDescription
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "date{prop_colon}"
+    states: [COMMAND]
+    token: CmdDateRaw
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "link{prop_colon}"
+    states: [COMMAND]
+    token: CmdLinkRaw
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   - re: "property{prop_colon}({text_properties})"
@@ -434,18 +524,28 @@ rules:
     states: [COMMAND]
     token: CmdPropertyArgs
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
   - re: "header{prop_colon}"
     states: [COMMAND]
     token: CmdHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
   - re: "results{prop_colon}"
     states: [COMMAND]
     token: CmdResults
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
   - re: "name{prop_colon}"
     states: [COMMAND]
     token: CmdName
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "constants{prop_colon}"
+    states: [COMMAND]
+    token: CmdConstants
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+
   - re: "attr_\\w+{prop_colon}"
     states: [COMMAND]
     token: CmdAttr

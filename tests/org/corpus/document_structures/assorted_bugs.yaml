@@ -527,8 +527,6 @@ items:
       - Disabled 
 
   - name: "Angle"
-    debug:
-      doFlatParseCompare: false
     source: |
       #+begin_src nim
       dumpTree:
@@ -545,8 +543,6 @@ items:
       :         IntLit 1
 
   - name: "Property exports"
-    debug:
-      doFlatParseCompare: false
     source: |
       #+property: header-args    :exports code
 

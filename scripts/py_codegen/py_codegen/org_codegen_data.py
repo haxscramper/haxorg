@@ -71,12 +71,13 @@ def t_map(key: QualType, val: QualType) -> QualType:
 def id_field(id: str, name: str, doc: GenTuDoc) -> GenTuField:
     return GenTuField(t_id(id), name, doc, value=f"sem::SemId<sem::{id}>::Nil()")
 
-
-def vec_field(typ, name, doc):
+@beartype
+def vec_field(typ: QualType, name: str, doc: GenTuDoc = GenTuDoc("")):
     return GenTuField(t_vec(typ), name, doc, value="{}")
 
 
-def opt_field(typ, name, doc):
+@beartype
+def opt_field(typ: QualType, name: str, doc: GenTuDoc = GenTuDoc("")):
     return GenTuField(type=t_opt(typ), name=name, doc=doc, value="std::nullopt")
 
 
@@ -1626,20 +1627,23 @@ def get_types() -> Sequence[GenTuStruct]:
                            "tocExport",
                            GenTuDoc(""),
                            value="sem::DocumentOptions::DoExport{false}"),
-                GenTuField(t_vec(t_nest("Property", ["Subtree"])), "properties",
+                vec_field(t_nest("Property", ["Subtree"]), "properties",
                            GenTuDoc("")),
-                GenTuField(t_bool(), "smartQuotes", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "emphasizedText", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "specialStrings", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "fixedWidthSections", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "includeTimestamps", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "preserveLineBreaks", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "plaintextSubscripts", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "exportArchived", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "exportWithAuthor", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "exportBrokenLinks", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "exportWithClock", GenTuDoc(""), value="false"),
-                GenTuField(t_bool(), "exportWithCreator", GenTuDoc(""), value="false"),
+                opt_field(t_bool(), "smartQuotes"),
+                opt_field(t_bool(), "emphasizedText"),
+                opt_field(t_bool(), "specialStrings"),
+                opt_field(t_bool(), "fixedWidthSections"),
+                opt_field(t_bool(), "includeTimestamps"),
+                opt_field(t_bool(), "preserveLineBreaks"),
+                opt_field(t_bool(), "plaintextSubscripts"),
+                opt_field(t_bool(), "exportArchived"),
+                opt_field(t_bool(), "exportWithAuthor"),
+                opt_field(t_bool(), "exportBrokenLinks"),
+                opt_field(t_bool(), "exportWithClock"),
+                opt_field(t_bool(), "exportWithCreator"),
+                opt_field(t_bool(), "startupIndented"),
+                opt_field(t_str(), "category"),
+                opt_field(t_str(), "setupfile"), 
             ],
         ),
         d_org(
