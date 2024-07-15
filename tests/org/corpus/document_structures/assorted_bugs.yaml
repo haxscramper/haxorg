@@ -789,14 +789,14 @@ items:
     tags: ["org_paragraph", "org_monospace", "org_markup"]
     source: |
       ~Monospace text
-      Multiple lines of 
+      Multiple lines of
       Max 2 newlines~
 
   - name: "Unterminated multiline monospace in paragraph"
     tags: ["org_paragraph", "org_monospace", "org_markup", "defcon4"]
     source: |
       ~Monospace text
-      Multiple lines of 
+      Multiple lines of
       Max 2 newlines
 
   - name: "Unterminated monospace with structure"
@@ -806,4 +806,7 @@ items:
       - Item1
       - Item2
 
+  - name: "Unterminated monospace in markup"
+    source: |
+      _*~Content*_
 

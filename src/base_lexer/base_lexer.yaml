@@ -439,11 +439,6 @@ rules:
     token: CmdLatexHeaderExtraRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
-  - re: ".*?{prop_colon}"
-    states: [COMMAND]
-    token: CmdCustomRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
   - re: ".*"
     states: [COMMAND_RAW]
     token: RawText
@@ -585,6 +580,11 @@ rules:
     token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
+
+  - re: ".*?{prop_colon}"
+    states: [COMMAND]
+    token: CmdCustomRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   #endregion
 
