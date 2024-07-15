@@ -1445,6 +1445,8 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
         newline(lex);
         parseStmtListItem(lex);
         end();
+    } else {
+        empty();
     }
 
     return end();

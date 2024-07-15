@@ -860,23 +860,17 @@ void BlockStore::add_at(const BlockId& id, const BlockId& next) {
     if (at(next).isLine() || at(next).isStack()) {
         if (at(next).size() == 0) {
             throw std::range_error(
-                "Cannot add empty stack/line element to the layout");
+                fmt("Cannot add empty stack/line element to the layout. "
+                    "\ntarget is:\n{}\nadding:\n{}",
+                    this->toTreeRepr(id, TreeReprConf{.maxDepth = 1}),
+                    this->toTreeRepr(next, TreeReprConf{.maxDepth = 1})));
         }
     }
     at(id).add(next);
 }
 
 void BlockStore::add_at(const BlockId& id, const Vec<BlockId>& next) {
-    for (auto const& it : next) {
-        if (at(it).isLine() || at(it).isStack()) {
-            if (at(it).size() == 0) {
-                throw std::range_error(
-                    "Cannot add empty stack/line element to the layout");
-            }
-        }
-    }
-
-    at(id).add(next);
+    for (auto const& it : next) { at(id).add(it); }
 }
 
 BlockId BlockStore::text(CR<LytStrSpan> t) {
@@ -983,15 +977,16 @@ Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
     return sln.value()->layouts;
 }
 
-std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
+std::string BlockStore::toTreeRepr(BlockId root, CR<TreeReprConf> conf) {
     std::stringstream               os;
     UnorderedSet<BlockId>           visited;
     Func<void(const BlockId&, int)> aux;
 
     aux = [&](const BlockId& blId, int level) -> void {
-        std::string  pref2 = repeat(" ", level * 2 + 2);
+        bool         doRecurse = level < conf.maxDepth;
+        std::string  pref2     = repeat(" ", level * 2 + 2);
         std::string  name;
-        Block const& bl = store->at(blId);
+        Block const& bl = at(blId);
         switch (bl.getKind()) {
             case Block::Kind::Line: name = "Ln"; break;
             case Block::Kind::Choice: name = "Ch"; break;
@@ -1002,8 +997,8 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             case Block::Kind::Empty: name = "Em"; break;
         }
 
-        os << fmt1(pref2) << name << ": ";
-        if (id.isNil()) {
+        os << fmt("{}{} {}: ", pref2, name, blId.format(""));
+        if (blId.isNil()) {
             os << "<nil>";
             return;
         } else if (visited.contains(blId)) {
@@ -1070,20 +1065,11 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 break;
             }
             case Block::Kind::Text: {
-                std::string text;
-                int         size = 0;
-                auto const& strs = bl.getText().text.strs;
-
-
-                for (auto const& it : strs) {
-                    size += str(it).size();
-                    if (strs.size() == 1) {
-                        text += str(it);
-                    } else {
-                        text += "〚"_ss + str(it) + "〛"_ss;
-                    }
+                if (conf.idText) {
+                    os << conf.idText(blId);
+                } else {
+                    os << fmt1(blId);
                 }
-                os << " " << escape_literal(text) << fmt(" size={}", size);
                 break;
             }
 
@@ -1093,19 +1079,60 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             }
 
             case Block::Kind::Verb: {
-                os << "\n";
-                for (const auto& line : bl.getVerb().textLines) {
-                    os << pref2
-                       << repeat("  ", std::clamp(level - 1, 0, INT_MAX))
-                       << "  〚" << fmt("'{}'", line) << "〛\n";
+                if (conf.idText) {
+                    os << "\n";
+                    os << ::indent(conf.idText(blId), pref2.size());
+                } else {
+                    os << fmt1(blId);
                 }
                 break;
             }
         }
     };
 
-    aux(id, 0);
+    aux(root, 0);
     return os.str();
+}
+
+std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
+    return store->toTreeRepr(
+        id,
+        BlockStore::TreeReprConf{
+            .maxDepth = doRecurse ? 120 : 1,
+            .idText   = [&](BlockId id) -> std::string {
+                Block const& bl = store->at(id);
+                switch (bl.getKind()) {
+                    case Block::Kind::Verb: {
+                        std::string result;
+                        for (const auto& line : bl.getVerb().textLines) {
+                            result += fmt("'{}'〛\n", line);
+                        }
+
+                        return result;
+                    }
+                    case Block::Kind::Text: {
+                        std::string text;
+                        int         size = 0;
+                        auto const& strs = bl.getText().text.strs;
+
+
+                        for (auto const& it : strs) {
+                            size += str(it).size();
+                            if (strs.size() == 1) {
+                                text += str(it);
+                            } else {
+                                text += "〚"_ss + str(it) + "〛"_ss;
+                            }
+                        }
+                        return fmt(
+                            "{} size={}", escape_literal(text), size);
+                    }
+                    default: {
+                        return "";
+                    }
+                }
+            },
+        });
 }
 
 Vec<Vec<BlockId>> Options::defaultFormatPolicy(

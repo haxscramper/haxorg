@@ -405,6 +405,13 @@ struct BlockStore {
         CHECK(!layouts.empty());
         return layouts[0];
     }
+
+    struct TreeReprConf {
+        int                           maxDepth = 120;
+        Func<std::string(BlockId id)> idText;
+    };
+
+    std::string toTreeRepr(BlockId root, CR<TreeReprConf> conf);
 };
 
 struct Options {
