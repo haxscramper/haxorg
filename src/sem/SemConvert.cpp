@@ -751,10 +751,6 @@ OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
 
 OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(
     __args) {
-    // TODO detect admonition paragraphs during conversion and store
-    // information about this -- right now `NOTE:` is represented using
-    // first two starting elements for paragraph subnodes.
-
     __perf_trace("convert", "convertParagraph");
     auto __trace = trace(a);
     auto par     = Sem<Paragraph>(a);

@@ -907,8 +907,9 @@ OrgId OrgParser::parseVerbatimOrMonospace(OrgLexer& lex) {
     auto __trace = trace(lex);
     bool m       = lex.kind() == otk::MonospaceBegin;
 
-    auto start_node  = start(m ? org::Monospace : org::Verbatim);
-    auto begin_token = pop(
+    auto postBeginLex = lex.getPos();
+    auto start_node   = start(m ? org::Monospace : org::Verbatim);
+    auto begin_token  = pop(
         lex, m ? otk::MonospaceBegin : otk::VerbatimBegin);
 
     int  newlineCount = 0;
@@ -950,8 +951,19 @@ OrgId OrgParser::parseVerbatimOrMonospace(OrgLexer& lex) {
         skip(lex);
         return end();
     } else {
-        fail(lex, OrgNode(org::Punctuation, begin_token));
-        return start_node;
+        if (TraceState) {
+            print(
+                fmt("Reset monospace parse position. Removing tail at {}, "
+                    "moving lexer from {} to {}",
+                    start_node,
+                    lex.getPos(),
+                    postBeginLex));
+        }
+
+        end();
+        group->removeTail(start_node);
+        lex.setPos(postBeginLex);
+        return token(org::Punctuation, pop(lex));
     }
 }
 

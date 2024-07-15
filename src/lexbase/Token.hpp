@@ -43,7 +43,7 @@ struct TokenId
 
     explicit TokenId(IdBase arg)
         : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>(
-            arg) {}
+              arg) {}
 };
 
 template <typename K, typename V>
@@ -523,6 +523,9 @@ struct LexerCommon {
     /// \brief Advance by \arg offset tokens
     virtual void next(int offset = 1) = 0;
 
+    virtual TokenId<K, V> getPos() const { return pos; }
+    virtual void          setPos(TokenId<K, V> id) { this->pos = id; }
+
     int find(K kind) {
         int offset = 0;
         while (hasNext(offset)) {
@@ -603,6 +606,17 @@ struct SubLexer : public LexerCommon<K, V> {
     void add(CR<TokenId<K, V>> tok) { tokens.push_back(tok); }
     void start() { pos = tokens.at(0); }
 
+    void setPos(TokenId<K, V> id) override {
+        int foundPos = tokens.indexOf(id);
+        if (foundPos == -1) {
+            throw std::range_error(
+                "Sub-lexer does have a token with a specified token id");
+        }
+
+        subPos = foundPos;
+        pos    = tokens.at(subPos);
+    }
+
     void next(int offset = 1) override {
         // TODO boundary checking
         if (hasNext(offset)) {
@@ -618,8 +632,8 @@ struct SubLexer : public LexerCommon<K, V> {
 
     SubLexer(TokenGroup<K, V>* in, Vec<TokenId<K, V>> _tokens)
         : LexerCommon<K, V>(
-            in,
-            _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
+              in,
+              _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
         , tokens(_tokens) {}
 };
 
