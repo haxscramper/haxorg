@@ -158,9 +158,11 @@ struct OrgConverter : public OperationsTracer {
   public:
     Opt<SemId<ErrorGroup>> convertPropertyList(SemId<Subtree>&, In);
     Opt<SemId<ErrorGroup>> convertSubtreeDrawer(SemId<Subtree>&, In);
+    Vec<ConvResult<Org>>   flatConvertAttached(Vec<In> items);
+    Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
+
     ConvResult<AnnotatedParagraph> convertAnnotatedParagraph(In);
-    Vec<ConvResult<Org>>           flatConvertAttached(Vec<In> items);
-    Vec<ConvResult<Org>>           flatConvertAttachedSubnodes(In item);
+    void convertDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a);
 
     ConvResult<Table>           convertTable(In);
     ConvResult<HashTag>         convertHashTag(In);
@@ -242,25 +244,23 @@ struct OrgConverter : public OperationsTracer {
         return res;
     }
 
-    SemId<ErrorItem> SemErrorItem(In adapter, CR<Str> message) {
-        auto res     = Sem<ErrorItem>(adapter);
-        res->message = message;
-        return res;
-    }
+    SemId<ErrorItem> SemErrorItem(
+        In          adapter,
+        CR<Str>     message,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
-    SemId<ErrorGroup> SemError(In adapter, CR<Str> message) {
-        auto res = Sem<ErrorGroup>(adapter);
-        res->diagnostics.push_back(SemErrorItem(adapter, message));
-        return res;
-    }
+    SemId<ErrorGroup> SemError(
+        In          adapter,
+        CR<Str>     message,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     SemId<ErrorGroup> SemError(
         In                    adapter,
-        Vec<SemId<ErrorItem>> errors = {}) {
-        auto res         = Sem<ErrorGroup>(adapter);
-        res->diagnostics = errors;
-        return res;
-    }
+        Vec<SemId<ErrorItem>> errors   = {},
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
 
     SemId<Org>      convert(In);
     SemId<Document> toDocument(OrgAdapter tree);

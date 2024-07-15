@@ -639,11 +639,12 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
         }
 
         if (!foundTime) {
-            // TODO implement proper, non-fatal error reporting
-            LOG(ERROR)
-                << ("Could not parse date time entry in format: '$#' at "
-                    "'$#'"
-                    % to_string_vec(datetime, getLocMsg(a)));
+            return SemError(
+                a,
+                fmt("Could not parse date time entry in format: '{}' at "
+                    "'{}'",
+                    datetime,
+                    getLocMsg(a)));
         }
 
 
@@ -808,7 +809,10 @@ OrgConverter::ConvResult<AnnotatedParagraph> OrgConverter::
         }
 
         default: {
-            LOG(FATAL) << fmt1(a.at(0).getKind());
+            return SemError(
+                a,
+                fmt("Unhanled annotated paragraph start node {}",
+                    a.at(0).getKind()));
         }
     }
 
@@ -949,7 +953,8 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
         } else if (text == "-") {
             item->checkbox = ListItem::Checkbox::Partial;
         } else {
-            LOG(FATAL) << text;
+            return SemError(
+                a, fmt("Unexpected list item checkbox {}", text));
         }
     }
 
@@ -1199,7 +1204,7 @@ OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
             include->data = src;
 
         } else {
-            LOG(FATAL) << fmt("Unhandled org include kind {}", ks);
+            return SemError(a, fmt("Unhandled org include kind {}", ks));
         }
 
     } else {
@@ -1299,6 +1304,46 @@ OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     }
 
     return result;
+}
+
+SemId<ErrorItem> OrgConverter::SemErrorItem(
+    In          adapter,
+    CR<Str>     message,
+    int         line,
+    const char* function) {
+    auto res      = Sem<ErrorItem>(adapter);
+    res->message  = message;
+    res->line     = line;
+    res->function = function;
+    if (TraceState) {
+        print(fmt("{} {}", message, getLocMsg(adapter)), line, function);
+    }
+    return res;
+}
+
+SemId<ErrorGroup> OrgConverter::SemError(
+    In          adapter,
+    CR<Str>     message,
+    int         line,
+    const char* function) {
+    auto res = Sem<ErrorGroup>(adapter);
+    res->diagnostics.push_back(
+        SemErrorItem(adapter, message, line, function));
+    res->line     = line;
+    res->function = function;
+    return res;
+}
+
+SemId<ErrorGroup> OrgConverter::SemError(
+    In                    adapter,
+    Vec<SemId<ErrorItem>> errors,
+    int                   line,
+    const char*           function) {
+    auto res         = Sem<ErrorGroup>(adapter);
+    res->diagnostics = errors;
+    res->line        = line;
+    res->function    = function;
+    return res;
 }
 
 OrgConverter::ConvResult<Code> OrgConverter::convertCode(__args) {
@@ -1506,9 +1551,14 @@ SemId<Org> OrgConverter::convert(__args) {
 #undef CASE
 }
 
-void fillDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a) {
+void OrgConverter::convertDocumentOptions(
+    SemId<DocumentOptions> opts,
+    OrgAdapter             a) {
     if (opts->isGenerated()) { opts->original = a; }
-    auto item = a.at(0);
+    auto item      = a.at(0);
+    auto parseBool = [](CR<Str> value) {
+        return value == "t" || value == "T";
+    };
     for (auto const& value : get_text(item).split(' ')) {
         if (value.contains(':')) {
             auto split = value.split(':');
@@ -1516,32 +1566,52 @@ void fillDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a) {
             auto tail  = split[1];
             if (org_streq(head, "broken-links")) {
                 if (org_streq(tail, "mark")) {
-                    opts->brokenLinks = DocumentOptions::BrokenLinks::Mark;
+                    opts->exportConfig.brokenLinks = DocumentOptions::
+                        ExportConfig::BrokenLinks::Mark;
                 } else if (org_streq(tail, "t")) {
-                    opts->brokenLinks = DocumentOptions::BrokenLinks::
-                        Ignore;
+                    opts->exportConfig.brokenLinks = DocumentOptions::
+                        ExportConfig::BrokenLinks::Ignore;
                 }
             } else if (org_streq(head, "toc")) {
                 if (org_streq(tail, "t")) {
-                    opts->tocExport = DocumentOptions::DoExport{true};
+                    opts->exportConfig.tocExport = DocumentOptions::
+                        ExportConfig::DoExport{true};
                 } else if (org_streq(tail, "nil")) {
-                    opts->tocExport = DocumentOptions::DoExport{false};
+                    opts->exportConfig.tocExport = DocumentOptions::
+                        ExportConfig::DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->tocExport = DocumentOptions::ExportFixed{
-                        tail.toInt()};
+                    opts->exportConfig.tocExport = DocumentOptions::
+                        ExportConfig::ExportFixed{tail.toInt()};
                 }
+            } else if (org_streq(head, "<")) {
+                opts->exportConfig.inlinetasks = parseBool(tail);
+            } else if (org_streq(head, "f")) {
+                opts->exportConfig.footnotes = parseBool(tail);
+            } else if (org_streq(head, "c")) {
+                opts->exportConfig.clock = parseBool(tail);
+            } else if (org_streq(head, "author")) {
+                opts->exportConfig.author = parseBool(tail);
+            } else if (org_streq(head, "todo")) {
+                opts->exportConfig.todoText = parseBool(tail);
+            } else if (org_streq(head, "*")) {
+                opts->exportConfig.emphasis = parseBool(tail);
+            } else if (org_streq(head, "-")) {
+                opts->exportConfig.specialStrings = parseBool(tail);
             } else {
-                LOG(ERROR) << "Unexpected document option value" << value;
+                opts->push_back(SemError(
+                    a,
+                    fmt("Unexpected document option value {}, head:'{}', "
+                        "tail:'{}'",
+                        value,
+                        head,
+                        tail)));
             }
 
         } else if (org_streq(value, ":")) {
             opts->fixedWidthSections = true;
-        } else if (org_streq(value, "<")) {
-            opts->includeTimestamps = true;
-        } else if (org_streq(value, "^")) {
-            opts->plaintextSubscripts = true;
         } else {
-            LOG(ERROR) << "Unexpected document option value" << value;
+            opts->push_back(SemError(
+                a, fmt("Unexpected document option value {}", value)));
         }
     }
 }
@@ -1566,15 +1636,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
                 case org::CommandOptions: {
-                    fillDocumentOptions(doc->options, sub);
-                    break;
-                }
-
-                case org::CmdPropertyRaw:
-                case org::CmdPropertyText:
-                case org::CmdPropertyArgs: {
-                    LOG(WARNING)
-                        << "TODO handle property conversion for options";
+                    convertDocumentOptions(doc->options, sub);
                     break;
                 }
 

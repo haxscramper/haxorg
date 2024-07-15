@@ -914,16 +914,30 @@ struct proto_serde<::orgproto::Link, sem::Link> {
 
 
 template <>
-struct proto_serde<::orgproto::DocumentOptions::DoExport, sem::DocumentOptions::DoExport> {
-  static void write(::orgproto::DocumentOptions::DoExport* out, sem::DocumentOptions::DoExport const& in);
-  static void read(::orgproto::DocumentOptions::DoExport const& out, proto_write_accessor<sem::DocumentOptions::DoExport> in);
+struct proto_serde<::orgproto::DocumentOptions::ExportConfig::TaskExport, sem::DocumentOptions::ExportConfig::TaskExport> {
+  static void write(::orgproto::DocumentOptions::ExportConfig::TaskExport* out, sem::DocumentOptions::ExportConfig::TaskExport const& in);
+  static void read(::orgproto::DocumentOptions::ExportConfig::TaskExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::TaskExport> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportFixed, sem::DocumentOptions::ExportFixed> {
-  static void write(::orgproto::DocumentOptions::ExportFixed* out, sem::DocumentOptions::ExportFixed const& in);
-  static void read(::orgproto::DocumentOptions::ExportFixed const& out, proto_write_accessor<sem::DocumentOptions::ExportFixed> in);
+struct proto_serde<::orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport> {
+  static void write(::orgproto::DocumentOptions::ExportConfig::DoExport* out, sem::DocumentOptions::ExportConfig::DoExport const& in);
+  static void read(::orgproto::DocumentOptions::ExportConfig::DoExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::DoExport> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed> {
+  static void write(::orgproto::DocumentOptions::ExportConfig::ExportFixed* out, sem::DocumentOptions::ExportConfig::ExportFixed const& in);
+  static void read(::orgproto::DocumentOptions::ExportConfig::ExportFixed const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::ExportFixed> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig> {
+  static void write(::orgproto::DocumentOptions::ExportConfig* out, sem::DocumentOptions::ExportConfig const& in);
+  static void read(::orgproto::DocumentOptions::ExportConfig const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig> in);
 };
 
 

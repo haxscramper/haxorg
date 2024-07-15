@@ -20,9 +20,13 @@ struct ErrorItem : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, message, (OrgSemKind() const) getKind))
+                       (staticKind, message, function, line, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   Str message;
+  /// \brief Conversion function name where the error was created
+  Opt<Str> function = std::nullopt;
+  /// \brief Line number for the conversion where the error was created
+  Opt<int> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
 };
 
@@ -34,9 +38,13 @@ struct ErrorGroup : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, diagnostics, (OrgSemKind() const) getKind))
+                       (staticKind, diagnostics, function, line, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   Vec<sem::SemId<sem::ErrorItem>> diagnostics = {};
+  /// \brief Conversion function name where the error was created
+  Opt<Str> function = std::nullopt;
+  /// \brief Line number for the conversion where the error was created
+  Opt<Str> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
 };
 
@@ -1913,23 +1921,92 @@ struct Link : public sem::Stmt {
 struct DocumentOptions : public sem::Org {
   using Org::Org;
   virtual ~DocumentOptions() = default;
-  struct DoExport {
-    BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc))
-    bool exportToc;
+  struct ExportConfig {
+    struct TaskExport {
+      BOOST_DESCRIBE_CLASS(TaskExport, (), (), (), (taskWhitelist))
+      Vec<Str> taskWhitelist = {};
+    };
+
+    enum class TagExport : short int {
+      None,
+      All,
+      /// \brief Expot tags in subtree titles but not in the table of content
+      NotInToc,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(TagExport, None, All, NotInToc)
+    enum class TaskFiltering : short int {
+      /// \brief Include tasks from the whitelist
+      Whitelist,
+      /// \brief Include tasks marked as done
+      Done,
+      /// \brief Exclude all task subtrees from export
+      None,
+      /// \brief Add all task subtrees to export
+      All,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
+    enum class BrokenLinks : short int { Raise, Ignore, Mark, };
+    BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
+    struct DoExport {
+      BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc))
+      bool exportToc;
+    };
+
+    struct ExportFixed {
+      BOOST_DESCRIBE_CLASS(ExportFixed, (), (), (), (exportLevels))
+      int exportLevels;
+    };
+
+    using TocExport = std::variant<sem::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::ExportFixed>;
+    enum class TocExportKind : short int { DoExport, ExportFixed, };
+    BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
+    using variant_enum_type = sem::DocumentOptions::ExportConfig::TocExportKind;
+    using variant_data_type = sem::DocumentOptions::ExportConfig::TocExport;
+    BOOST_DESCRIBE_CLASS(ExportConfig,
+                         (),
+                         (),
+                         (),
+                         (inlinetasks,
+                          footnotes,
+                          clock,
+                          author,
+                          emphasis,
+                          specialStrings,
+                          propertyDrawers,
+                          statisticsCookies,
+                          todoText,
+                          brokenLinks,
+                          tocExport,
+                          tagExport,
+                          data,
+                          (sem::DocumentOptions::ExportConfig::DoExport const&() const) getDoExport,
+                          (sem::DocumentOptions::ExportConfig::DoExport&()) getDoExport,
+                          (sem::DocumentOptions::ExportConfig::ExportFixed const&() const) getExportFixed,
+                          (sem::DocumentOptions::ExportConfig::ExportFixed&()) getExportFixed,
+                          (sem::DocumentOptions::ExportConfig::TocExportKind(sem::DocumentOptions::ExportConfig::TocExport const&)) getTocExportKind,
+                          (sem::DocumentOptions::ExportConfig::TocExportKind() const) getTocExportKind))
+    Opt<bool> inlinetasks = std::nullopt;
+    Opt<bool> footnotes = std::nullopt;
+    Opt<bool> clock = std::nullopt;
+    Opt<bool> author = std::nullopt;
+    Opt<bool> emphasis = std::nullopt;
+    Opt<bool> specialStrings = std::nullopt;
+    Opt<bool> propertyDrawers = std::nullopt;
+    Opt<bool> statisticsCookies = std::nullopt;
+    /// \brief Include todo keywords in export
+    Opt<bool> todoText = std::nullopt;
+    sem::DocumentOptions::ExportConfig::BrokenLinks brokenLinks = sem::DocumentOptions::ExportConfig::BrokenLinks::Mark;
+    sem::DocumentOptions::ExportConfig::TocExport tocExport = sem::DocumentOptions::ExportConfig::DoExport{false};
+    sem::DocumentOptions::ExportConfig::TagExport tagExport = sem::DocumentOptions::ExportConfig::TagExport::All;
+    sem::DocumentOptions::ExportConfig::TocExport data;
+    sem::DocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
+    sem::DocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
+    sem::DocumentOptions::ExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
+    sem::DocumentOptions::ExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
+    static sem::DocumentOptions::ExportConfig::TocExportKind getTocExportKind(sem::DocumentOptions::ExportConfig::TocExport const& __input) { return static_cast<sem::DocumentOptions::ExportConfig::TocExportKind>(__input.index()); }
+    sem::DocumentOptions::ExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
   };
 
-  struct ExportFixed {
-    BOOST_DESCRIBE_CLASS(ExportFixed, (), (), (), (exportLevels))
-    int exportLevels;
-  };
-
-  using TocExport = std::variant<sem::DocumentOptions::DoExport, sem::DocumentOptions::ExportFixed>;
-  enum class TocExportKind : short int { DoExport, ExportFixed, };
-  BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
-  using variant_enum_type = sem::DocumentOptions::TocExportKind;
-  using variant_data_type = sem::DocumentOptions::TocExport;
-  enum class BrokenLinks : short int { Raise, Ignore, Mark, };
-  BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
   enum class Visibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
   BOOST_DESCRIBE_NESTED_ENUM(Visibility, Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything)
   BOOST_DESCRIBE_CLASS(DocumentOptions,
@@ -1937,65 +2014,29 @@ struct DocumentOptions : public sem::Org {
                        (),
                        (),
                        (staticKind,
-                        brokenLinks,
                         initialVisibility,
-                        tocExport,
                         properties,
-                        smartQuotes,
-                        emphasizedText,
-                        specialStrings,
+                        exportConfig,
                         fixedWidthSections,
-                        includeTimestamps,
-                        preserveLineBreaks,
-                        plaintextSubscripts,
-                        exportArchived,
-                        exportWithAuthor,
-                        exportBrokenLinks,
-                        exportWithClock,
-                        exportWithCreator,
                         startupIndented,
                         category,
                         setupfile,
-                        data,
+                        maxSubtreeLevelExport,
                         (OrgSemKind() const) getKind,
                         (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty,
-                        (sem::DocumentOptions::DoExport const&() const) getDoExport,
-                        (sem::DocumentOptions::DoExport&()) getDoExport,
-                        (sem::DocumentOptions::ExportFixed const&() const) getExportFixed,
-                        (sem::DocumentOptions::ExportFixed&()) getExportFixed,
-                        (sem::DocumentOptions::TocExportKind(sem::DocumentOptions::TocExport const&)) getTocExportKind,
-                        (sem::DocumentOptions::TocExportKind() const) getTocExportKind))
+                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
   static OrgSemKind const staticKind;
-  sem::DocumentOptions::BrokenLinks brokenLinks = sem::DocumentOptions::BrokenLinks::Mark;
   sem::DocumentOptions::Visibility initialVisibility = sem::DocumentOptions::Visibility::ShowEverything;
-  sem::DocumentOptions::TocExport tocExport = sem::DocumentOptions::DoExport{false};
   Vec<sem::Subtree::Property> properties = {};
-  Opt<bool> smartQuotes = std::nullopt;
-  Opt<bool> emphasizedText = std::nullopt;
-  Opt<bool> specialStrings = std::nullopt;
+  sem::DocumentOptions::ExportConfig exportConfig;
   Opt<bool> fixedWidthSections = std::nullopt;
-  Opt<bool> includeTimestamps = std::nullopt;
-  Opt<bool> preserveLineBreaks = std::nullopt;
-  Opt<bool> plaintextSubscripts = std::nullopt;
-  Opt<bool> exportArchived = std::nullopt;
-  Opt<bool> exportWithAuthor = std::nullopt;
-  Opt<bool> exportBrokenLinks = std::nullopt;
-  Opt<bool> exportWithClock = std::nullopt;
-  Opt<bool> exportWithCreator = std::nullopt;
   Opt<bool> startupIndented = std::nullopt;
   Opt<Str> category = std::nullopt;
   Opt<Str> setupfile = std::nullopt;
-  sem::DocumentOptions::TocExport data;
+  Opt<int> maxSubtreeLevelExport = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
   Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
-  sem::DocumentOptions::DoExport const& getDoExport() const { return std::get<0>(data); }
-  sem::DocumentOptions::DoExport& getDoExport() { return std::get<0>(data); }
-  sem::DocumentOptions::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
-  sem::DocumentOptions::ExportFixed& getExportFixed() { return std::get<1>(data); }
-  static sem::DocumentOptions::TocExportKind getTocExportKind(sem::DocumentOptions::TocExport const& __input) { return static_cast<sem::DocumentOptions::TocExportKind>(__input.index()); }
-  sem::DocumentOptions::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
 };
 
 struct Document : public sem::Org {

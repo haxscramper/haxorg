@@ -109,14 +109,16 @@ def opt_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")):
 
 @beartype
 def org_struct(
-        typ: QualType,
-        doc: AnyDoc = GenTuDoc(""),
-        fields: List[GenTuField] = [],
+    typ: QualType,
+    doc: AnyDoc = GenTuDoc(""),
+    fields: List[GenTuField] = [],
+    nested: List[GenTuEntry] = [],
 ) -> GenTuStruct:
     return GenTuStruct(
         name=typ,
         doc=org_doc(doc),
         fields=fields,
+        nested=nested,
     )
 
 
@@ -196,9 +198,14 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
 
 @beartype
 def d_simple_enum(name: str, doc: GenTuDoc, *args):
-    return GenTuEnum(t(name),
-                     doc,
-                     fields=[GenTuEnumField(arg, GenTuDoc("")) for arg in args])
+    return GenTuEnum(
+        t(name),
+        doc,
+        fields=[
+            GenTuEnumField(arg, GenTuDoc("")) if isinstance(arg, str) else arg
+            for arg in args
+        ],
+    )
 
 
 def get_types() -> Sequence[GenTuStruct]:
@@ -207,7 +214,19 @@ def get_types() -> Sequence[GenTuStruct]:
             "ErrorItem",
             doc=org_doc(""),
             bases=[t_org("Org")],
-            fields=[org_field(t_str(), "message")],
+            fields=[
+                org_field(t_str(), "message"),
+                opt_field(
+                    t_str(),
+                    "function",
+                    "Conversion function name where the error was created",
+                ),
+                opt_field(
+                    t_int(),
+                    "line",
+                    "Line number for the conversion where the error was created",
+                ),
+            ],
         ),
         d_org(
             "ErrorGroup",
@@ -1691,22 +1710,79 @@ def get_types() -> Sequence[GenTuStruct]:
                 ),
             ],
             nested=[
-                GenTuTypeGroup(
-                    [
-                        org_struct(
-                            t("DoExport"),
-                            fields=[org_field(t_bool(), "exportToc")],
+                org_struct(
+                    t("ExportConfig"),
+                    fields=[
+                        opt_field(t_bool(), "inlinetasks"),
+                        opt_field(t_bool(), "footnotes"),
+                        opt_field(t_bool(), "clock"),
+                        opt_field(t_bool(), "author"),
+                        opt_field(t_bool(), "emphasis"),
+                        opt_field(t_bool(), "specialStrings"),
+                        opt_field(t_bool(), "propertyDrawers"),
+                        opt_field(t_bool(), "statisticsCookies"),
+                        opt_field(t_bool(), "todoText",
+                                  "Include todo keywords in export"),
+                        org_field(
+                            t_nest("BrokenLinks", ["DocumentOptions", "ExportConfig"]),
+                            "brokenLinks",
+                            value="sem::DocumentOptions::ExportConfig::BrokenLinks::Mark",
                         ),
-                        org_struct(
-                            t("ExportFixed"),
-                            fields=[org_field(t_int(), "exportLevels")],
+                        org_field(
+                            t_nest("TocExport", ["DocumentOptions", "ExportConfig"]),
+                            "tocExport",
+                            value="sem::DocumentOptions::ExportConfig::DoExport{false}",
+                        ),
+                        org_field(
+                            t_nest("TagExport", ["DocumentOptions", "ExportConfig"]),
+                            "tagExport",
+                            value="sem::DocumentOptions::ExportConfig::TagExport::All",
                         ),
                     ],
-                    variantName="TocExport",
-                    enumName="TocExportKind",
-                    kindGetter="getTocExportKind",
-                ),
-                d_simple_enum("BrokenLinks", GenTuDoc(""), "Raise", "Ignore", "Mark"),
+                    nested=[
+                        org_struct(
+                            t("TaskExport"),
+                            org_doc(),
+                            [
+                                vec_field(t_str(), "taskWhitelist"),
+                            ],
+                        ),
+                        d_simple_enum(
+                            "TagExport",
+                            org_doc(""),
+                            "None",
+                            "All",
+                            efield(
+                                "NotInToc",
+                                "Expot tags in subtree titles but not in the table of content",
+                            ),
+                        ),
+                        d_simple_enum(
+                            "TaskFiltering",
+                            GenTuDoc(""),
+                            efield("Whitelist", "Include tasks from the whitelist"),
+                            efield("Done", "Include tasks marked as done"),
+                            efield("None", "Exclude all task subtrees from export"),
+                            efield("All", "Add all task subtrees to export"),
+                        ),
+                        d_simple_enum("BrokenLinks", GenTuDoc(""), "Raise", "Ignore",
+                                      "Mark"),
+                        GenTuTypeGroup(
+                            [
+                                org_struct(
+                                    t("DoExport"),
+                                    fields=[org_field(t_bool(), "exportToc")],
+                                ),
+                                org_struct(
+                                    t("ExportFixed"),
+                                    fields=[org_field(t_int(), "exportLevels")],
+                                ),
+                            ],
+                            variantName="TocExport",
+                            enumName="TocExportKind",
+                            kindGetter="getTocExportKind",
+                        ),
+                    ]),
                 d_simple_enum(
                     "Visibility",
                     GenTuDoc(""),
@@ -1722,36 +1798,17 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
             fields=[
                 org_field(
-                    t_nest("BrokenLinks", ["DocumentOptions"]),
-                    "brokenLinks",
-                    value="sem::DocumentOptions::BrokenLinks::Mark",
-                ),
-                org_field(
                     t_nest("Visibility", ["DocumentOptions"]),
                     "initialVisibility",
                     value="sem::DocumentOptions::Visibility::ShowEverything",
                 ),
-                org_field(
-                    t_nest("TocExport", ["DocumentOptions"]),
-                    "tocExport",
-                    value="sem::DocumentOptions::DoExport{false}",
-                ),
                 vec_field(t_nest("Property", ["Subtree"]), "properties", GenTuDoc("")),
-                opt_field(t_bool(), "smartQuotes"),
-                opt_field(t_bool(), "emphasizedText"),
-                opt_field(t_bool(), "specialStrings"),
+                org_field(t_nest("ExportConfig", ["DocumentOptions"]), "exportConfig"),
                 opt_field(t_bool(), "fixedWidthSections"),
-                opt_field(t_bool(), "includeTimestamps"),
-                opt_field(t_bool(), "preserveLineBreaks"),
-                opt_field(t_bool(), "plaintextSubscripts"),
-                opt_field(t_bool(), "exportArchived"),
-                opt_field(t_bool(), "exportWithAuthor"),
-                opt_field(t_bool(), "exportBrokenLinks"),
-                opt_field(t_bool(), "exportWithClock"),
-                opt_field(t_bool(), "exportWithCreator"),
                 opt_field(t_bool(), "startupIndented"),
                 opt_field(t_str(), "category"),
                 opt_field(t_str(), "setupfile"),
+                opt_field(t_int(), "maxSubtreeLevelExport"),
             ],
         ),
         d_org(

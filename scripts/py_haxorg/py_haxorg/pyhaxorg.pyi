@@ -25,16 +25,20 @@ class LineCol:
     pos: int
 
 class ErrorItem(Org):
-    def __init__(self, message: str) -> None: ...
+    def __init__(self, message: str, function: Optional[str], line: Optional[int]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     message: str
+    function: Optional[str]
+    line: Optional[int]
 
 class ErrorGroup(Org):
-    def __init__(self, diagnostics: List[ErrorItem]) -> None: ...
+    def __init__(self, diagnostics: List[ErrorItem], function: Optional[str], line: Optional[str]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     diagnostics: List[ErrorItem]
+    function: Optional[str]
+    line: Optional[str]
 
 class CmdArgument(Org):
     def __init__(self, key: Optional[str], varname: Optional[str], value: str) -> None: ...
@@ -1223,27 +1227,67 @@ class Link(Stmt):
     data: LinkData
     attached: List[Org]
 
-class DocumentOptionsDoExport:
+class DocumentOptionsExportConfigTaskExport:
+    def __init__(self, taskWhitelist: List[str]) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    taskWhitelist: List[str]
+
+class DocumentOptionsExportConfigTagExport(Enum):
+    _None = 1
+    All = 2
+    NotInToc = 3
+
+class DocumentOptionsExportConfigTaskFiltering(Enum):
+    Whitelist = 1
+    Done = 2
+    _None = 3
+    All = 4
+
+class DocumentOptionsExportConfigBrokenLinks(Enum):
+    Raise = 1
+    Ignore = 2
+    Mark = 3
+
+class DocumentOptionsExportConfigDoExport:
     def __init__(self, exportToc: bool) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     exportToc: bool
 
-class DocumentOptionsExportFixed:
+class DocumentOptionsExportConfigExportFixed:
     def __init__(self, exportLevels: int) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     exportLevels: int
 
-DocumentOptionsTocExport = Union[DocumentOptionsDoExport, DocumentOptionsExportFixed]
-class DocumentOptionsTocExportKind(Enum):
+DocumentOptionsExportConfigTocExport = Union[DocumentOptionsExportConfigDoExport, DocumentOptionsExportConfigExportFixed]
+class DocumentOptionsExportConfigTocExportKind(Enum):
     DoExport = 1
     ExportFixed = 2
 
-class DocumentOptionsBrokenLinks(Enum):
-    Raise = 1
-    Ignore = 2
-    Mark = 3
+class DocumentOptionsExportConfig:
+    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], brokenLinks: DocumentOptionsExportConfigBrokenLinks, tocExport: DocumentOptionsExportConfigTocExport, tagExport: DocumentOptionsExportConfigTagExport, data: DocumentOptionsExportConfigTocExport) -> None: ...
+    def getDoExport(self) -> DocumentOptionsExportConfigDoExport: ...
+    def getExportFixed(self) -> DocumentOptionsExportConfigExportFixed: ...
+    @staticmethod
+    def getTocExportKindStatic(self, __input: DocumentOptionsExportConfigTocExport) -> DocumentOptionsExportConfigTocExportKind: ...
+    def getTocExportKind(self) -> DocumentOptionsExportConfigTocExportKind: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    inlinetasks: Optional[bool]
+    footnotes: Optional[bool]
+    clock: Optional[bool]
+    author: Optional[bool]
+    emphasis: Optional[bool]
+    specialStrings: Optional[bool]
+    propertyDrawers: Optional[bool]
+    statisticsCookies: Optional[bool]
+    todoText: Optional[bool]
+    brokenLinks: DocumentOptionsExportConfigBrokenLinks
+    tocExport: DocumentOptionsExportConfigTocExport
+    tagExport: DocumentOptionsExportConfigTagExport
+    data: DocumentOptionsExportConfigTocExport
 
 class DocumentOptionsVisibility(Enum):
     Overview = 1
@@ -1256,36 +1300,19 @@ class DocumentOptionsVisibility(Enum):
     ShowEverything = 8
 
 class DocumentOptions(Org):
-    def __init__(self, brokenLinks: DocumentOptionsBrokenLinks, initialVisibility: DocumentOptionsVisibility, tocExport: DocumentOptionsTocExport, properties: List[SubtreeProperty], smartQuotes: Optional[bool], emphasizedText: Optional[bool], specialStrings: Optional[bool], fixedWidthSections: Optional[bool], includeTimestamps: Optional[bool], preserveLineBreaks: Optional[bool], plaintextSubscripts: Optional[bool], exportArchived: Optional[bool], exportWithAuthor: Optional[bool], exportBrokenLinks: Optional[bool], exportWithClock: Optional[bool], exportWithCreator: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], data: DocumentOptionsTocExport) -> None: ...
+    def __init__(self, initialVisibility: DocumentOptionsVisibility, properties: List[SubtreeProperty], exportConfig: DocumentOptionsExportConfig, fixedWidthSections: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int]) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> List[SubtreeProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[SubtreeProperty]: ...
-    def getDoExport(self) -> DocumentOptionsDoExport: ...
-    def getExportFixed(self) -> DocumentOptionsExportFixed: ...
-    @staticmethod
-    def getTocExportKindStatic(self, __input: DocumentOptionsTocExport) -> DocumentOptionsTocExportKind: ...
-    def getTocExportKind(self) -> DocumentOptionsTocExportKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    brokenLinks: DocumentOptionsBrokenLinks
     initialVisibility: DocumentOptionsVisibility
-    tocExport: DocumentOptionsTocExport
     properties: List[SubtreeProperty]
-    smartQuotes: Optional[bool]
-    emphasizedText: Optional[bool]
-    specialStrings: Optional[bool]
+    exportConfig: DocumentOptionsExportConfig
     fixedWidthSections: Optional[bool]
-    includeTimestamps: Optional[bool]
-    preserveLineBreaks: Optional[bool]
-    plaintextSubscripts: Optional[bool]
-    exportArchived: Optional[bool]
-    exportWithAuthor: Optional[bool]
-    exportBrokenLinks: Optional[bool]
-    exportWithClock: Optional[bool]
-    exportWithCreator: Optional[bool]
     startupIndented: Optional[bool]
     category: Optional[str]
     setupfile: Optional[str]
-    data: DocumentOptionsTocExport
+    maxSubtreeLevelExport: Optional[int]
 
 class Document(Org):
     def __init__(self, title: Optional[Paragraph], author: Optional[Paragraph], creator: Optional[Paragraph], filetags: List[HashTag], email: Optional[RawText], language: List[str], options: DocumentOptions, exportFileName: Optional[str]) -> None: ...

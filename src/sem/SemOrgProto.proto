@@ -286,6 +286,8 @@ message ErrorItem {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   string                                           message                          = 3;
+  optional string                                  function                         = 4;
+  optional int32                                   line                             = 5;
   string                                           debug                            = 1000;
 }
 
@@ -293,6 +295,8 @@ message ErrorGroup {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   repeated ErrorItem                               diagnostics                      = 3;
+  optional string                                  function                         = 4;
+  optional string                                  line                             = 5;
   string                                           debug                            = 1000;
 }
 
@@ -1315,28 +1319,59 @@ message Link {
 }
 
 message DocumentOptions {
-  message DoExport {
-    bool                                           exportToc                        = 1;
-    string                                         debug                            = 1000;
-  }
-  message ExportFixed {
-    int32                                          exportLevels                     = 1;
-    string                                         debug                            = 1000;
-  }
-  message TocExport {
-    oneof kind {
-      DocumentOptions.DoExport                     doexport                         = 1;
-      DocumentOptions.ExportFixed                  exportfixed                      = 2;
+  message ExportConfig {
+    message TaskExport {
+      repeated string                              taskWhitelist                    = 1;
+      string                                       debug                            = 1000;
     }
-  }
-  enum TocExportKind {
-    TocExportKind_DoExport_f                                                        = 0;
-    TocExportKind_ExportFixed_f                                                     = 1;
-  }
-  enum BrokenLinks {
-    BrokenLinks_Raise_f                                                             = 0;
-    BrokenLinks_Ignore_f                                                            = 1;
-    BrokenLinks_Mark_f                                                              = 2;
+    enum TagExport {
+      TagExport_None_f                                                              = 0;
+      TagExport_All_f                                                               = 1;
+      TagExport_NotInToc_f                                                          = 2;
+    }
+    enum TaskFiltering {
+      TaskFiltering_Whitelist_f                                                     = 0;
+      TaskFiltering_Done_f                                                          = 1;
+      TaskFiltering_None_f                                                          = 2;
+      TaskFiltering_All_f                                                           = 3;
+    }
+    enum BrokenLinks {
+      BrokenLinks_Raise_f                                                           = 0;
+      BrokenLinks_Ignore_f                                                          = 1;
+      BrokenLinks_Mark_f                                                            = 2;
+    }
+    message DoExport {
+      bool                                         exportToc                        = 1;
+      string                                       debug                            = 1000;
+    }
+    message ExportFixed {
+      int32                                        exportLevels                     = 1;
+      string                                       debug                            = 1000;
+    }
+    message TocExport {
+      oneof kind {
+        DocumentOptions.ExportConfig.DoExport      doexport                         = 1;
+        DocumentOptions.ExportConfig.ExportFixed   exportfixed                      = 2;
+      }
+    }
+    enum TocExportKind {
+      TocExportKind_DoExport_f                                                      = 0;
+      TocExportKind_ExportFixed_f                                                   = 1;
+    }
+    optional bool                                  inlinetasks                      = 1;
+    optional bool                                  footnotes                        = 2;
+    optional bool                                  clock                            = 3;
+    optional bool                                  author                           = 4;
+    optional bool                                  emphasis                         = 5;
+    optional bool                                  specialStrings                   = 6;
+    optional bool                                  propertyDrawers                  = 7;
+    optional bool                                  statisticsCookies                = 8;
+    optional bool                                  todoText                         = 9;
+    DocumentOptions.ExportConfig.BrokenLinks       brokenLinks                      = 10;
+    DocumentOptions.ExportConfig.TocExport         tocExport                        = 11;
+    DocumentOptions.ExportConfig.TagExport         tagExport                        = 12;
+    DocumentOptions.ExportConfig.TocExport         data                             = 13;
+    string                                         debug                            = 1000;
   }
   enum Visibility {
     Visibility_Overview_f                                                           = 0;
@@ -1350,26 +1385,14 @@ message DocumentOptions {
   }
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
-  DocumentOptions.BrokenLinks                      brokenLinks                      = 3;
-  DocumentOptions.Visibility                       initialVisibility                = 4;
-  DocumentOptions.TocExport                        tocExport                        = 5;
-  repeated Subtree.Property                        properties                       = 6;
-  optional bool                                    smartQuotes                      = 7;
-  optional bool                                    emphasizedText                   = 8;
-  optional bool                                    specialStrings                   = 9;
-  optional bool                                    fixedWidthSections               = 10;
-  optional bool                                    includeTimestamps                = 11;
-  optional bool                                    preserveLineBreaks               = 12;
-  optional bool                                    plaintextSubscripts              = 13;
-  optional bool                                    exportArchived                   = 14;
-  optional bool                                    exportWithAuthor                 = 15;
-  optional bool                                    exportBrokenLinks                = 16;
-  optional bool                                    exportWithClock                  = 17;
-  optional bool                                    exportWithCreator                = 18;
-  optional bool                                    startupIndented                  = 19;
-  optional string                                  category                         = 20;
-  optional string                                  setupfile                        = 21;
-  DocumentOptions.TocExport                        data                             = 22;
+  DocumentOptions.Visibility                       initialVisibility                = 3;
+  repeated Subtree.Property                        properties                       = 4;
+  DocumentOptions.ExportConfig                     exportConfig                     = 5;
+  optional bool                                    fixedWidthSections               = 6;
+  optional bool                                    startupIndented                  = 7;
+  optional string                                  category                         = 8;
+  optional string                                  setupfile                        = 9;
+  optional int32                                   maxSubtreeLevelExport            = 10;
   string                                           debug                            = 1000;
 }
 
