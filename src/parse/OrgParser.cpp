@@ -899,6 +899,7 @@ OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
         }
         end();
     }
+    empty(); // TODO Parse result call
     return end();
 }
 

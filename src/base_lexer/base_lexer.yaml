@@ -581,7 +581,7 @@ rules:
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
 
-  - re: ".*?{prop_colon}"
+  - re: "(\\w|_)+?{prop_colon}"
     states: [COMMAND]
     token: CmdCustomRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]

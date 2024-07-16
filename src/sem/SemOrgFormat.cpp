@@ -301,7 +301,6 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
     }
 
     auto out = stackAttached(result, id.as<sem::Stmt>(), ctx);
-    LOG(INFO) << "\n" << store.toTreeRepr(out);
     return out;
 }
 
