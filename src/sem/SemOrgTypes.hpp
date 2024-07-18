@@ -670,10 +670,13 @@ struct Call : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, name, (OrgSemKind() const) getKind))
+                       (staticKind, name, parameters, isCommand, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   /// \brief Call target name
-  Opt<Str> name = std::nullopt;
+  Str name;
+  /// \brief Additional parameters aside from 'exporter',
+  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
+  bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };
 

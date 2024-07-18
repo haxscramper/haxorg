@@ -51,6 +51,7 @@ struct OrgParser : public OperationsTracer {
 
     OrgId parseFootnote(OrgLexer& lex);
     OrgId parseMacro(OrgLexer& lex);
+    void  parseCallArguments(OrgLexer& lex);
     OrgId parseRawUrl(OrgLexer& lex);
     OrgId parseLink(OrgLexer& lex);
     OrgId parseInlineMath(OrgLexer& lex);

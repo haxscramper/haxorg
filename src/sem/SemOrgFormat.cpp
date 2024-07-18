@@ -74,6 +74,7 @@ auto Formatter::toString(SemId<Word> id, CR<Context> ctx) -> Res {
     return str(id->text);
 }
 
+
 auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> parameters;
@@ -486,7 +487,38 @@ auto Formatter::toString(SemId<ErrorItem> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str("#+call: ")});
+    auto result = b.line({
+        str("#+call: "),
+        str(id->name),
+    });
+
+    Vec<Res> parameters;
+
+
+    if (id->parameters->positional) {
+        for (auto const& it : id->parameters->positional->args) {
+            if (it->value.contains(",")) {
+                parameters.push_back(str(fmt("={}=", it->value)));
+            } else {
+                parameters.push_back(str(it->value));
+            }
+        }
+    }
+
+    for (auto const& key : sorted(id->parameters->named.keys())) {
+        for (auto const& it : id->parameters->named.at(key)->args) {
+            parameters.push_back(
+                str(fmt("{}={}", it->key.value(), it->value)));
+        }
+    }
+
+    add(result, str("("));
+    if (!parameters.empty()) {
+        add(result, b.join(parameters, str(", ")));
+    }
+    add(result, str(")"));
+
+    return result;
 }
 
 auto Formatter::toString(SemId<DocumentGroup> id, CR<Context> ctx) -> Res {

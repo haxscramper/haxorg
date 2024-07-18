@@ -1287,6 +1287,8 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::Call::name, R"RAW(Call target name)RAW")
+    .def_readwrite("parameters", &sem::Call::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("isCommand", &sem::Call::isCommand)
     .def("__repr__", [](sem::Call _self) -> std::string {
                      return py_repr_impl(_self);
                      })

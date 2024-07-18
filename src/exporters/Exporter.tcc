@@ -343,6 +343,8 @@ template <typename V, typename R>
 void Exporter<V, R>::visitCall(R& res, In<sem::Call> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, name);
+  __org_field(res, object, parameters);
+  __org_field(res, object, isCommand);
   __org_field(res, object, subnodes);
 }
 

@@ -151,13 +151,20 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
     skip(lex, otk::CurlyBegin);
     skip(lex, otk::CurlyBegin);
     skip(lex, otk::CurlyBegin);
-    bool isResult = lex.tok().value.text == "results";
-
     token(org::Ident, pop(lex, OrgTokSet{otk::Word}));
 
+    parseCallArguments(lex);
+
+    skip(lex, otk::CurlyEnd);
+    skip(lex, otk::CurlyEnd);
+    skip(lex, otk::CurlyEnd);
+    return end();
+}
+
+void OrgParser::parseCallArguments(OrgLexer& lex) {
     if (lex.at(otk::ParBegin)) {
         skip(lex, otk::ParBegin);
-        bool isVerbatimWrap = lex.at(otk::VerbatimBegin) && isResult;
+        bool isVerbatimWrap = lex.at(otk::VerbatimBegin);
         if (isVerbatimWrap) { skip(lex, otk::VerbatimBegin); }
 
         auto argEnd   = isVerbatimWrap ? Vec{otk::VerbatimEnd, otk::ParEnd}
@@ -181,13 +188,7 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
         if (isVerbatimWrap) { skip(lex, otk::VerbatimEnd); }
         skip(lex, otk::ParEnd);
     }
-
-    skip(lex, otk::CurlyEnd);
-    skip(lex, otk::CurlyEnd);
-    skip(lex, otk::CurlyEnd);
-    return end();
 }
-
 
 OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
     __perf_trace("parseRawUrl");
@@ -1899,6 +1900,15 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             start(org::CmdCustomArgsCommand);
             token(org::RawText, pop(lex));
             parseCommandArguments(lex);
+            break;
+        }
+
+        case otk::CmdCall: {
+            start(org::CmdCallCode);
+            skip(lex, otk::CmdPrefix);
+            skip(lex, otk::CmdCall);
+            token(org::Ident, pop(lex, otk::Word));
+            parseCallArguments(lex);
             break;
         }
 

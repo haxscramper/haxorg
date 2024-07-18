@@ -699,24 +699,7 @@ OrgConverter::ConvResult<Macro> OrgConverter::convertMacro(__args) {
     auto __trace      = trace(a);
     auto macro        = Sem<Macro>(a);
     macro->name       = get_text(one(a, N::Name));
-    macro->parameters = Sem<CmdArguments>(a);
-
-    for (auto const& arg : many(a, N::Args)) {
-        auto conv = Sem<CmdArgument>(arg);
-        if (2 < arg.size() && get_text(arg.at(1)) == "=") {
-            conv->key = get_text(arg.at(0));
-            for (int i = 2; i < arg.size(); ++i) {
-                conv->value += get_text(arg.at(i));
-            }
-        } else {
-            for (int i = 0; i < arg.size(); ++i) {
-                conv->value += get_text(arg.at(i));
-            }
-        }
-
-        addArgument(macro->parameters, conv);
-    }
-
+    macro->parameters = convertCallArguments(many(a, N::Args), a).value();
     return macro;
 }
 
@@ -1279,6 +1262,30 @@ OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
     return result;
 }
 
+OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCallArguments(
+    CVec<In> args,
+    In       source) {
+    auto result = Sem<CmdArguments>(source);
+
+    for (auto const& arg : args) {
+        auto conv = Sem<CmdArgument>(arg);
+        if (2 < arg.size() && get_text(arg.at(1)) == "=") {
+            conv->key = get_text(arg.at(0));
+            for (int i = 2; i < arg.size(); ++i) {
+                conv->value += get_text(arg.at(i));
+            }
+        } else {
+            for (int i = 0; i < arg.size(); ++i) {
+                conv->value += get_text(arg.at(i));
+            }
+        }
+
+        addArgument(result, conv);
+    }
+
+    return result;
+}
+
 OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
     auto           __trace = trace(a);
     SemId<CmdAttr> result  = Sem<CmdAttr>(a);
@@ -1390,6 +1397,21 @@ OrgConverter::ConvResult<Code> OrgConverter::convertCode(__args) {
     }
 
     return result;
+}
+
+OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
+    __perf_trace("convert", "convertCall");
+    auto __trace = trace(a);
+    if (a.kind() == org::CmdCallCode) {
+        auto call        = Sem<Call>(a);
+        call->name       = get_text(one(a, N::Name));
+        call->isCommand  = true;
+        call->parameters = convertCallArguments(many(a, N::Args), a)
+                               .value();
+        return call;
+    } else {
+        return SemError(a, "TODO Convert inline call");
+    }
 }
 
 
@@ -1522,6 +1544,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::ColonExample: return convertColonExample(a).unwrap();
         case org::CommandCaption: return convertCaption(a).unwrap();
         case org::CommandName: return convertCmdName(a).unwrap();
+        case org::CmdCallCode: return convertCall(a).unwrap();
         case org::Paragraph: {
             if (2 < a.size()
                 && AnnotatedParagraphStarts.contains(a.at(0).kind())) {

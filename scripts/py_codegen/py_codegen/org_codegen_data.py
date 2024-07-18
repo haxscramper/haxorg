@@ -715,11 +715,17 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc("Inline, statement or block call"),
             bases=[t_org("Org")],
             fields=[
-                opt_field(
+                org_field(
                     t_str(),
                     "name",
                     GenTuDoc("Call target name"),
                 ),
+                id_field(
+                    "CmdArguments",
+                    "parameters",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+                bool_field("isCommand"),
             ],
         ),
         d_org(

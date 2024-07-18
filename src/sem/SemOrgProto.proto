@@ -636,7 +636,9 @@ message AdmonitionBlock {
 message Call {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
-  optional string                                  name                             = 3;
+  string                                           name                             = 3;
+  CmdArguments                                     parameters                       = 4;
+  bool                                             isCommand                        = 5;
   string                                           debug                            = 1000;
 }
 

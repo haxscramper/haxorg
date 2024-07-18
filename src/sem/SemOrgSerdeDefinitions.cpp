@@ -507,16 +507,18 @@ void proto_serde<::orgproto::AdmonitionBlock, sem::AdmonitionBlock>::read(::orgp
 
 void proto_serde<::orgproto::Call, sem::Call>::write(::orgproto::Call* out, sem::Call const& in) {
   proto_serde<::orgproto::Call, sem::Org>::write(out, in);
-  if (in.name) {
-    proto_serde<std::string, Str>::write(out->mutable_name(), *in.name);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  if (!in.parameters.isNil()) {
+    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
   }
+  out->set_iscommand(in.isCommand);
 }
 
 void proto_serde<::orgproto::Call, sem::Call>::read(::orgproto::Call const& out, proto_write_accessor<sem::Call> in) {
   proto_serde<::orgproto::Call, sem::Org>::read(out, in.as<sem::Org>());
-  if (out.has_name()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.name(), in.for_field(&sem::Call::name));
-  }
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Call::name));
+  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Call::parameters));
+  in.for_field(&sem::Call::isCommand).get() = out.iscommand();
 }
 
 void proto_serde<::orgproto::Code::Line::Part::Raw, sem::Code::Line::Part::Raw>::write(::orgproto::Code::Line::Part::Raw* out, sem::Code::Line::Part::Raw const& in) {

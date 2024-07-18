@@ -547,12 +547,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 fieldN(0, N::Name),
                 fieldN(slice(1, 1_B), N::Args, org::InlineStmtList),
-                // fieldN(
-                //     2,
-                //     N::Body,
-                //     OrgPattern(
-                //         {field1(slice(0, 1_B), N::Args,
-                //         org::Paragraph)})),
+            })},
+        SpecPair{
+            org::CmdCallCode,
+            OrgPattern({
+                fieldN(0, N::Name),
+                fieldN(slice(1, 1_B), N::Args, org::InlineStmtList),
             })},
         SpecPair{org::Angle, OrgPattern({fieldN(0, N::Body)})},
         SpecPair{org::Bold, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
