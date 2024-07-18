@@ -289,13 +289,21 @@ struct LexerCommon {
         /// Get iterator pointing to the current token (if the lexer moves
         /// it will change)
         iterator current() {
-            return __this()->in->pos_iterator(
-                currentPos ? *currentPos : __this()->pos);
+            if (__this()->finished()) {
+                return end();
+            } else {
+                return __this()->in->pos_iterator(
+                    currentPos ? *currentPos : __this()->pos);
+            }
         }
 
         const_iterator current() const {
-            return __this()->in->pos_iterator(
-                currentPos ? *currentPos : __this()->pos);
+            if (__this()->finished()) {
+                return end();
+            } else {
+                return __this()->in->pos_iterator(
+                    currentPos ? *currentPos : __this()->pos);
+            }
         }
 
         iterator       rbegin() { return __this()->in->rbegin(); }
