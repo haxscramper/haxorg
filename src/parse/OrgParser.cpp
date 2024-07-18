@@ -164,6 +164,13 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
 void OrgParser::parseCallArguments(OrgLexer& lex) {
     if (lex.at(otk::ParBegin)) {
         skip(lex, otk::ParBegin);
+        space(lex);
+        if (lex.at(otk::ParEnd)) {
+            empty();
+            skip(lex, otk::ParEnd);
+            return;
+        }
+
         bool isVerbatimWrap = lex.at(otk::VerbatimBegin);
         if (isVerbatimWrap) { skip(lex, otk::VerbatimBegin); }
 
@@ -187,6 +194,8 @@ void OrgParser::parseCallArguments(OrgLexer& lex) {
 
         if (isVerbatimWrap) { skip(lex, otk::VerbatimEnd); }
         skip(lex, otk::ParEnd);
+    } else {
+        empty();
     }
 }
 
