@@ -54,9 +54,7 @@ void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
 }
 
 template <typename Proto>
-void proto_serde<Proto, sem::Command>::write(
-    Proto*              out,
-    const sem::Command& in) {
+void proto_serde<Proto, sem::Cmd>::write(Proto* out, const sem::Cmd& in) {
     if (in.parameters) {
         if (in.parameters) {
             proto_serde<
@@ -68,14 +66,16 @@ void proto_serde<Proto, sem::Command>::write(
 }
 
 template <typename Proto>
-void proto_serde<Proto, sem::Command>::read(
-    const Proto&                       out,
-    proto_write_accessor<sem::Command> in) {
+void proto_serde<Proto, sem::Cmd>::read(
+    const Proto&                   out,
+    proto_write_accessor<sem::Cmd> in) {
     if (out.has_parameters()) {
         proto_serde<
             Opt<orgproto::CmdArguments>,
             Opt<sem::SemId<sem::CmdArguments>>>::
-            read(out.parameters(), in.for_field(&sem::Export::parameters));
+            read(
+                out.parameters(),
+                in.for_field(&sem::BlockExport::parameters));
     }
 }
 
@@ -90,24 +90,24 @@ void proto_serde<Proto, sem::Block>::read(
     proto_write_accessor<sem::Block> in) {}
 
 
-template class proto_serde<::orgproto::Verse, sem::Block>;
-template class proto_serde<::orgproto::Export, sem::Block>;
-template class proto_serde<::orgproto::AdmonitionBlock, sem::Block>;
-template class proto_serde<::orgproto::Code, sem::Block>;
-template class proto_serde<::orgproto::Example, sem::Block>;
+template class proto_serde<::orgproto::BlockVerse, sem::Block>;
+template class proto_serde<::orgproto::BlockExport, sem::Block>;
+template class proto_serde<::orgproto::BlockAdmonition, sem::Block>;
+template class proto_serde<::orgproto::BlockCode, sem::Block>;
+template class proto_serde<::orgproto::BlockExample, sem::Block>;
 
-template class proto_serde<orgproto::AdmonitionBlock, sem::Command>;
-template class proto_serde<orgproto::Caption, sem::Command>;
-template class proto_serde<orgproto::Cell, sem::Command>;
-template class proto_serde<orgproto::CmdAttr, sem::Command>;
-template class proto_serde<orgproto::CmdName, sem::Command>;
-template class proto_serde<orgproto::CmdResults, sem::Command>;
-template class proto_serde<orgproto::Code, sem::Command>;
-template class proto_serde<orgproto::Example, sem::Command>;
-template class proto_serde<orgproto::Export, sem::Command>;
-template class proto_serde<orgproto::Row, sem::Command>;
-template class proto_serde<orgproto::Table, sem::Command>;
-template class proto_serde<orgproto::Tblfm, sem::Command>;
-template class proto_serde<orgproto::Verse, sem::Command>;
-template class proto_serde<orgproto::Quote, sem::Command>;
-template class proto_serde<orgproto::CmdCustomArgs, sem::Command>;
+template class proto_serde<::orgproto::BlockAdmonition, sem::Cmd>;
+template class proto_serde<::orgproto::CmdCaption, sem::Cmd>;
+template class proto_serde<::orgproto::Cell, sem::Cmd>;
+template class proto_serde<::orgproto::CmdAttr, sem::Cmd>;
+template class proto_serde<::orgproto::CmdName, sem::Cmd>;
+template class proto_serde<::orgproto::CmdResults, sem::Cmd>;
+template class proto_serde<::orgproto::BlockCode, sem::Cmd>;
+template class proto_serde<::orgproto::BlockExample, sem::Cmd>;
+template class proto_serde<::orgproto::BlockExport, sem::Cmd>;
+template class proto_serde<::orgproto::Row, sem::Cmd>;
+template class proto_serde<::orgproto::Table, sem::Cmd>;
+template class proto_serde<::orgproto::CmdTblfm, sem::Cmd>;
+template class proto_serde<::orgproto::BlockVerse, sem::Cmd>;
+template class proto_serde<::orgproto::BlockQuote, sem::Cmd>;
+template class proto_serde<::orgproto::CmdCustomArgs, sem::Cmd>;

@@ -109,18 +109,19 @@ struct proto_write_accessor<T>
 };
 
 template <>
-struct SerdeDefaultProvider<sem::Code::EvalResult::OrgValue> {
-    static sem::Code::EvalResult::OrgValue get() {
-        return sem::Code::EvalResult::OrgValue{
+struct SerdeDefaultProvider<sem::BlockCode::EvalResult::OrgValue> {
+    static sem::BlockCode::EvalResult::OrgValue get() {
+        return sem::BlockCode::EvalResult::OrgValue{
             .value = sem::SemId<sem::Org>::Nil()};
     }
 };
 
 template <>
-struct SerdeDefaultProvider<sem::Code::EvalResult> {
-    static sem::Code::EvalResult get() {
-        return sem::Code::EvalResult{sem::Code::EvalResult::OrgValue{
-            .value = sem::SemId<sem::Org>::Nil()}};
+struct SerdeDefaultProvider<sem::BlockCode::EvalResult> {
+    static sem::BlockCode::EvalResult get() {
+        return sem::BlockCode::EvalResult{
+            sem::BlockCode::EvalResult::OrgValue{
+                .value = sem::SemId<sem::Org>::Nil()}};
     }
 };
 
@@ -465,11 +466,9 @@ struct proto_serde<Proto, sem::Block> {
 };
 
 template <typename Proto>
-struct proto_serde<Proto, sem::Command> {
-    static void write(Proto* out, sem::Command const& in);
-    static void read(
-        Proto const&                       out,
-        proto_write_accessor<sem::Command> in);
+struct proto_serde<Proto, sem::Cmd> {
+    static void write(Proto* out, sem::Cmd const& in);
+    static void read(Proto const& out, proto_write_accessor<sem::Cmd> in);
 };
 
 template <>

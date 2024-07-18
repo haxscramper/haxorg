@@ -18,26 +18,26 @@
     __IMPL(Completion) \
     __IMPL(Paragraph) \
     __IMPL(AnnotatedParagraph) \
-    __IMPL(Center) \
-    __IMPL(Caption) \
+    __IMPL(BlockCenter) \
+    __IMPL(CmdCaption) \
     __IMPL(CmdName) \
     __IMPL(CmdCustomArgs) \
     __IMPL(CmdCustomRaw) \
     __IMPL(CmdCustomText) \
     __IMPL(CmdResults) \
-    __IMPL(CommandGroup) \
-    __IMPL(Tblfm) \
-    __IMPL(Quote) \
-    __IMPL(CommentBlock) \
-    __IMPL(Verse) \
-    __IMPL(Example) \
+    __IMPL(CmdGroup) \
+    __IMPL(CmdTblfm) \
+    __IMPL(BlockQuote) \
+    __IMPL(BlockComment) \
+    __IMPL(BlockVerse) \
+    __IMPL(BlockExample) \
     __IMPL(ColonExample) \
     __IMPL(CmdArguments) \
     __IMPL(CmdAttr) \
-    __IMPL(Export) \
-    __IMPL(AdmonitionBlock) \
+    __IMPL(BlockExport) \
+    __IMPL(BlockAdmonition) \
     __IMPL(Call) \
-    __IMPL(Code) \
+    __IMPL(BlockCode) \
     __IMPL(Time) \
     __IMPL(TimeRange) \
     __IMPL(Macro) \
@@ -150,25 +150,25 @@ enum class OrgNodeKind : short int {
   /// \brief Part of the org-mode document that is yet to be parsed. This node should not be created manually, it is only used for handling mutually recursive DSLs such as tables, which might include lists, which in turn might contain more tables in different bullet points.
   Unparsed,
   /// \brief Undefined single-line command -- most likely custom user-provided oe
-  Command,
+  Cmd,
   /// \brief Arguments for the command block
-  CommandArguments,
+  CmdArguments,
   /// \brief `#+title:` - full document title
-  CommandTitle,
+  CmdTitle,
   /// \brief `#+author:` Document author
-  CommandAuthor,
+  CmdAuthor,
   /// \brief `#+creator:` Document creator
-  CommandCreator,
+  CmdCreator,
   /// \brief `#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.
-  CommandInclude,
+  CmdInclude,
   /// \brief `#+language:`
-  CommandLanguage,
+  CmdLanguage,
   /// \brief `#+attr_html:`, `#+attr_image` etc.
-  CommandAttr,
+  CmdAttr,
   /// \brief `#+startup:`
-  CommandStartup,
+  CmdStartup,
   /// \brief `#+name:` - name of the associated entry
-  CommandName,
+  CmdName,
   /// \brief Line command with parsed text value
   CmdCustomTextCommand,
   /// \brief Line command with parsed argument list
@@ -176,17 +176,17 @@ enum class OrgNodeKind : short int {
   /// \brief Line command with raw text argument
   CmdCustomRawCommand,
   /// \brief `#+results:` - source code block evaluation results
-  CommandResults,
+  CmdResults,
   /// \brief `#+header:` - extended list of parameters passed to associated block
-  CommandHeader,
+  CmdHeader,
   /// \brief `#+options:` - document-wide formatting options
-  CommandOptions,
-  CommandTblfm,
+  CmdOptions,
+  CmdTblfm,
   /// \brief Backend-specific configuration options like `#+latex_header` `#+latex_class` etc.
-  CommandBackendOptions,
+  CmdBackendOptions,
   AttrImg,
   /// \brief `#+caption:` command
-  CommandCaption,
+  CmdCaption,
   File,
   BlockExport,
   InlineExport,
@@ -203,7 +203,7 @@ enum class OrgNodeKind : short int {
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
   BigIdent,
   /// \brief Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.
-  VerbatimMultilineBlock,
+  BlockVerbatimMultiline,
   /// \brief Single line of source code
   CodeLine,
   /// \brief Block of source code text
@@ -213,11 +213,11 @@ enum class OrgNodeKind : short int {
   /// \brief `(refs:` callout in the source code
   CodeCallout,
   /// \brief `#+begin_quote:` block in code
-  QuoteBlock,
+  BlockQuote,
   /// \brief `#+begin_comment:` block in code
-  CommentBlock,
-  CenterBlock,
-  VerseBlock,
+  BlockComment,
+  BlockCenter,
+  BlockVerse,
   /// \brief Verbatim example text block
   Example,
   /// \brief Colon example block
@@ -232,8 +232,6 @@ enum class OrgNodeKind : short int {
   CmdCallCode,
   /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
   PassCode,
-  /// \brief Command arguments
-  CmdArguments,
   /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
   CmdFlag,
   CmdKey,
@@ -396,7 +394,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgSemKind : short int { ErrorItem, ErrorGroup, CmdArgument, CmdArgumentList, StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, Center, Caption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CommandGroup, Tblfm, Quote, CommentBlock, Verse, Example, ColonExample, CmdArguments, CmdAttr, Export, AdmonitionBlock, Call, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { ErrorItem, ErrorGroup, CmdArgument, CmdArgumentList, StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, BlockCenter, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdGroup, CmdTblfm, BlockQuote, BlockComment, BlockVerse, BlockExample, ColonExample, CmdArguments, CmdAttr, BlockExport, BlockAdmonition, Call, BlockCode, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

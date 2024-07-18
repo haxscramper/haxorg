@@ -944,20 +944,21 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
     return item;
 }
 
-OrgConverter::ConvResult<Caption> OrgConverter::convertCaption(__args) {
-    __perf_trace("convert", "convertCaption");
+OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
+    __args) {
+    __perf_trace("convert", "convertCmdCaption");
     auto __trace  = trace(a);
-    auto caption  = Sem<Caption>(a);
+    auto caption  = Sem<CmdCaption>(a);
     caption->text = convertParagraph(one(a, N::Args)[0]).value();
 
     return caption;
 }
 
 
-OrgConverter::ConvResult<Tblfm> OrgConverter::convertTblfm(__args) {
-    __perf_trace("convert", "convertTblfm");
+OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
+    __perf_trace("convert", "convertCmdTblfm");
     auto __trace = trace(a);
-    auto tblfm   = Sem<Tblfm>(a);
+    auto tblfm   = Sem<CmdTblfm>(a);
 
     return tblfm;
 }
@@ -1076,8 +1077,9 @@ OrgConverter::ConvResult<Underline> OrgConverter::convertUnderline(
     return convertAllSubnodes<Underline>(a);
 }
 
-OrgConverter::ConvResult<Example> OrgConverter::convertExample(__args) {
-    SemId<Example> result = Sem<Example>(a);
+OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
+    __args) {
+    SemId<BlockExample> result = Sem<BlockExample>(a);
     for (auto const& it : many(a, N::Body)) {
         result->subnodes.push_back(convert(it));
     }
@@ -1098,11 +1100,12 @@ OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     return result;
 }
 
-OrgConverter::ConvResult<Export> OrgConverter::convertExport(__args) {
-    auto eexport = Sem<Export>(a);
+OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
+    __args) {
+    auto eexport = Sem<BlockExport>(a);
     switch (a.kind()) {
         case org::BlockExport:
-            eexport->format = Export::Format::Block;
+            eexport->format = BlockExport::Format::Block;
             break;
         default: {
         }
@@ -1130,8 +1133,9 @@ OrgConverter::ConvResult<Export> OrgConverter::convertExport(__args) {
     return eexport;
 }
 
-OrgConverter::ConvResult<Center> OrgConverter::convertCenter(__args) {
-    SemId<Center> res = Sem<Center>(a);
+OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
+    __args) {
+    SemId<BlockCenter> res = Sem<BlockCenter>(a);
     for (const auto& sub : many(a, N::Body)) {
         auto aux = convert(sub);
         res->push_back(aux);
@@ -1139,8 +1143,9 @@ OrgConverter::ConvResult<Center> OrgConverter::convertCenter(__args) {
     return res;
 }
 
-OrgConverter::ConvResult<Quote> OrgConverter::convertQuote(__args) {
-    SemId<Quote> quote = Sem<Quote>(a);
+OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
+    __args) {
+    SemId<BlockQuote> quote = Sem<BlockQuote>(a);
 
     if (auto args = one(a, N::Args); args.kind() != org::Empty) {
         quote->parameters = convertCmdArguments(args).value();
@@ -1152,9 +1157,9 @@ OrgConverter::ConvResult<Quote> OrgConverter::convertQuote(__args) {
     return quote;
 }
 
-OrgConverter::ConvResult<CommentBlock> OrgConverter::convertCommentBlock(
+OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
     __args) {
-    SemId<CommentBlock> result = Sem<CommentBlock>(a);
+    SemId<BlockComment> result = Sem<BlockComment>(a);
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
         result->push_back(sub.unwrap());
     }
@@ -1347,8 +1352,9 @@ SemId<ErrorGroup> OrgConverter::SemError(
     return res;
 }
 
-OrgConverter::ConvResult<Code> OrgConverter::convertCode(__args) {
-    SemId<Code> result = Sem<Code>(a);
+OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
+    __args) {
+    SemId<BlockCode> result = Sem<BlockCode>(a);
 
     if (one(a, N::Lang).getKind() != org::Empty) {
         result->lang = get_text(one(a, N::Lang));
@@ -1362,20 +1368,21 @@ OrgConverter::ConvResult<Code> OrgConverter::convertCode(__args) {
     }
 
     if (a.kind() == org::SrcInlineCode) {
-        Code::Line& line = result->lines.emplace_back();
+        BlockCode::Line& line = result->lines.emplace_back();
         for (auto const& it : one(a, N::Body)) {
-            line.parts.push_back(Code::Line::Part(Code::Line::Part::Raw{
-                .code = get_text(it),
-            }));
+            line.parts.push_back(
+                BlockCode::Line::Part(BlockCode::Line::Part::Raw{
+                    .code = get_text(it),
+                }));
         }
     } else {
         for (auto const& it : one(a, N::Body)) {
-            Code::Line& line = result->lines.emplace_back();
+            BlockCode::Line& line = result->lines.emplace_back();
             for (auto const& part : it) {
                 switch (part.kind()) {
                     case org::CodeText: {
-                        line.parts.push_back(
-                            Code::Line::Part(Code::Line::Part::Raw{
+                        line.parts.push_back(BlockCode::Line::Part(
+                            BlockCode::Line::Part::Raw{
                                 .code = get_text(part),
                             }));
                         break;
@@ -1390,8 +1397,8 @@ OrgConverter::ConvResult<Code> OrgConverter::convertCode(__args) {
 
     if (auto res = one(a, N::Result); res.kind() != org::Empty) {
         auto body      = one(res, N::Body);
-        result->result = sem::Code::EvalResult{
-            sem::Code::EvalResult::OrgValue{.value = convert(body)}};
+        result->result = sem::BlockCode::EvalResult{
+            sem::BlockCode::EvalResult::OrgValue{.value = convert(body)}};
     }
 
     return result;
@@ -1453,10 +1460,10 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
 
         int offset = 0;
         for (auto next_opt = items.get(i + offset + 1);
-             next_opt && next_opt->get().getKind() == org::CommandTblfm;
+             next_opt && next_opt->get().getKind() == org::CmdTblfm;
              ++offset) {
 
-            auto tblfm = convertTblfm(next_opt->get());
+            auto tblfm = convertCmdTblfm(next_opt->get());
             LOG(FATAL) << "TODO";
         }
 
@@ -1511,13 +1518,13 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::RadioTarget: return convertRadioTarget(a).unwrap();
         case org::InlineStmtList: return convertStmtList(a).unwrap();
         case org::SrcInlineCode:
-        case org::SrcCode: return convertCode(a).unwrap();
+        case org::SrcCode: return convertBlockCode(a).unwrap();
         case org::InlineFootnote: return convertFootnote(a).unwrap();
-        case org::BlockExport: return convertExport(a).unwrap();
+        case org::BlockExport: return convertBlockExport(a).unwrap();
         case org::Macro: return convertMacro(a).unwrap();
         case org::Monospace: return convertMonospace(a).unwrap();
-        case org::CenterBlock: return convertCenter(a).unwrap();
-        case org::Example: return convertExample(a).unwrap();
+        case org::BlockCenter: return convertBlockCenter(a).unwrap();
+        case org::Example: return convertBlockExample(a).unwrap();
         case org::HashTag: return convertHashTag(a).unwrap();
         case org::Error: return convertParseError(a).unwrap();
         case org::ListTag: return convert(a[0]);
@@ -1528,20 +1535,20 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::DynamicActiveTime:
         case org::DynamicInactiveTime: return convertTime(a).unwrap();
         case org::Quote: return convertMarkQuote(a).unwrap();
-        case org::CommentBlock: return convertCommentBlock(a).unwrap();
-        case org::QuoteBlock: return convertQuote(a).unwrap();
+        case org::BlockComment: return convertBlockComment(a).unwrap();
+        case org::BlockQuote: return convertBlockQuote(a).unwrap();
         case org::Colon: return convertPunctuation(a).unwrap();
-        case org::CommandInclude: return convertInclude(a).unwrap();
+        case org::CmdInclude: return convertInclude(a).unwrap();
         case org::Symbol: return convertSymbol(a).unwrap();
         case org::Angle: return convertPlaceholder(a).unwrap();
         case org::Empty: return Sem<Empty>(a);
         case org::Table: return convertTable(a).unwrap();
         case org::Footnote: return convertLink(a).unwrap();
-        case org::CommandTblfm: return convertTblfm(a).unwrap();
-        case org::CommandAttr: return convertCmdAttr(a).unwrap();
+        case org::CmdTblfm: return convertCmdTblfm(a).unwrap();
+        case org::CmdAttr: return convertCmdAttr(a).unwrap();
         case org::ColonExample: return convertColonExample(a).unwrap();
-        case org::CommandCaption: return convertCaption(a).unwrap();
-        case org::CommandName: return convertCmdName(a).unwrap();
+        case org::CmdCaption: return convertCmdCaption(a).unwrap();
+        case org::CmdName: return convertCmdName(a).unwrap();
         case org::CmdCallCode: return convertCall(a).unwrap();
         case org::Paragraph: {
             if (2 < a.size()
@@ -1648,11 +1655,11 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 case org::Columns: {
                     break;
                 }
-                case org::CommandTitle: {
+                case org::CmdTitle: {
                     doc->title = convertParagraph(sub[0]).value();
                     break;
                 }
-                case org::CommandOptions: {
+                case org::CmdOptions: {
                     convertDocumentOptions(doc->options, sub);
                     break;
                 }
@@ -1667,7 +1674,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
 
-                case org::CommandStartup: {
+                case org::CmdStartup: {
                     Vec<Str> args = get_text(sub.at(0)).split(" ");
                     Str      text = normalize(args.at(0));
                     using K       = DocumentOptions::Visibility;

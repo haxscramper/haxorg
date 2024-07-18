@@ -462,7 +462,7 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
         d_org(
-            "Command",
+            "Cmd",
             GenTuDoc("Base class for block or line commands"),
             bases=[t_org("Stmt")],
             concreteKind=False,
@@ -502,12 +502,12 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Block",
             GenTuDoc("Block command type"),
-            bases=[t_org("Command")],
+            bases=[t_org("Cmd")],
             concreteKind=False,
         ),
         d_org("Cell",
               GenTuDoc("Table cell"),
-              bases=[t_org("Command")],
+              bases=[t_org("Cmd")],
               fields=[
                   bool_field(
                       "isBlock",
@@ -516,7 +516,7 @@ def get_types() -> Sequence[GenTuStruct]:
               ]),
         d_org("Row",
               GenTuDoc("Table row"),
-              bases=[t_org("Command")],
+              bases=[t_org("Cmd")],
               fields=[
                   vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
                   bool_field(
@@ -641,22 +641,13 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             concreteKind=False,
         ),
-        d_org("Center",
+        d_org("BlockCenter",
               GenTuDoc("Center nested content in export"),
               bases=[t_org("Format")]),
         d_org(
             "LineCommand",
             GenTuDoc("Line commands"),
-            bases=[t_org("Command")],
-            concreteKind=False,
-        ),
-        # ;; TODO rename to the standalone command
-        d_org(
-            "Standalone",
-            GenTuDoc(
-                "Standalone commands that can be placed individuall on the the top level and don't have to be attached to any subsequent elements"
-            ),
-            bases=[t_org("LineCommand")],
+            bases=[t_org("Cmd")],
             concreteKind=False,
         ),
         d_org(
@@ -666,7 +657,7 @@ def get_types() -> Sequence[GenTuStruct]:
             concreteKind=False,
         ),
         d_org(
-            "Caption",
+            "CmdCaption",
             GenTuDoc("Caption annotation for any subsequent node"),
             bases=[t_org("Attached")],
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
@@ -682,7 +673,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "CmdCustomArgs",
             doc=org_doc("Custom line command with list of parsed arguments"),
-            bases=[t_org("Command")],
+            bases=[t_org("Cmd")],
             fields=[
                 org_field(t_str(), "name"),
                 bool_field("isAttached"),
@@ -714,33 +705,33 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Attached")],
         ),
         d_org(
-            "CommandGroup",
+            "CmdGroup",
             GenTuDoc(
                 "Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command"
             ),
             bases=[t_org("Stmt")],
         ),
         d_org(
-            "Tblfm",
+            "CmdTblfm",
             GenTuDoc("Tblfm command type"),
-            bases=[t_org("Command")],
+            bases=[t_org("Cmd")],
         ),
         d_org(
-            "Quote",
+            "BlockQuote",
             GenTuDoc("Quotation block"),
             bases=[t_org("Block")],
         ),
         d_org(
-            "CommentBlock",
+            "BlockComment",
             GenTuDoc("Comment block"),
             bases=[t_org("Stmt")],
         ),
         d_org(
-            "Verse",
+            "BlockVerse",
             GenTuDoc("Verse quotation block"),
             bases=[t_org("Block")],
         ),
-        d_org("Example", GenTuDoc("Example block"), bases=[t_org("Block")]),
+        d_org("BlockExample", GenTuDoc("Example block"), bases=[t_org("Block")]),
         d_org(
             "ColonExample",
             GenTuDoc("Shortened colon example block"),
@@ -778,7 +769,7 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
         ),
         d_org(
-            "Export",
+            "BlockExport",
             GenTuDoc("Direct export passthrough"),
             bases=[t_org("Block")],
             nested=[
@@ -795,10 +786,10 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
             fields=[
                 GenTuField(
-                    t_nest("Format", ["Export"]),
+                    t_nest("Format", ["BlockExport"]),
                     "format",
                     GenTuDoc("Export block type"),
-                    value="sem::Export::Format::Inline",
+                    value="sem::BlockExport::Format::Inline",
                 ),
                 GenTuField(t_str(), "exporter", GenTuDoc("Exporter backend name")),
                 opt_field(
@@ -812,7 +803,7 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
         ),
         d_org(
-            "AdmonitionBlock",
+            "BlockAdmonition",
             GenTuDoc("Block of text with admonition tag: 'note',', 'warning','"),
             bases=[t_org("Block")],
         ),
@@ -835,7 +826,7 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
         ),
         d_org(
-            "Code",
+            "BlockCode",
             GenTuDoc("Base class for all code blocks"),
             bases=[t_org("Block")],
             nested=[
@@ -858,7 +849,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                     fields=[
                         vec_field(
-                            t_nest("Part", ["Code", "Line"]),
+                            t_nest("Part", ["BlockCode", "Line"]),
                             "parts",
                             GenTuDoc("parts of the single line"),
                         )
@@ -1000,18 +991,18 @@ def get_types() -> Sequence[GenTuStruct]:
                     value="std::nullopt",
                 ),
                 GenTuField(
-                    t_vec(t_nest("Switch", ["Code"])),
+                    t_vec(t_nest("Switch", ["BlockCode"])),
                     "switches",
                     GenTuDoc("Switch options for block"),
                     value="{}",
                 ),
-                GenTuField(t_nest("Exports", ["Code"]),
+                GenTuField(t_nest("Exports", ["BlockCode"]),
                            "exports",
                            GenTuDoc("What to export"),
-                           value="sem::Code::Exports::Both"),
-                opt_field(t_nest("EvalResult", ["Code"]), "result",
+                           value="sem::BlockCode::Exports::Both"),
+                opt_field(t_nest("EvalResult", ["BlockCode"]), "result",
                           GenTuDoc("Code evaluation results")),
-                vec_field(t_nest("Line", ["Code"]), "lines",
+                vec_field(t_nest("Line", ["BlockCode"]), "lines",
                           GenTuDoc("Collected code lines")),
                 GenTuField(t_bool(), "cache", GenTuDoc("Do cache values?"),
                            value="false"),
@@ -2060,39 +2051,39 @@ def get_enums():
                     "Part of the org-mode document that is yet to be parsed. This node should not be created manually, it is only used for handling mutually recursive DSLs such as tables, which might include lists, which in turn might contain more tables in different bullet points.",
                 ),
                 efield(
-                    "Command",
+                    "Cmd",
                     "Undefined single-line command -- most likely custom user-provided oe",
                 ),
-                efield("CommandArguments", "Arguments for the command block"),
-                efield("CommandTitle", "`#+title:` - full document title"),
-                efield("CommandAuthor", "`#+author:` Document author"),
-                efield("CommandCreator", "`#+creator:` Document creator"),
+                efield("CmdArguments", "Arguments for the command block"),
+                efield("CmdTitle", "`#+title:` - full document title"),
+                efield("CmdAuthor", "`#+author:` Document author"),
+                efield("CmdCreator", "`#+creator:` Document creator"),
                 efield(
-                    "CommandInclude",
+                    "CmdInclude",
                     "`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.",
                 ),
-                efield("CommandLanguage", "`#+language:`"),
-                efield("CommandAttr", "`#+attr_html:`, `#+attr_image` etc."),
-                efield("CommandStartup", "`#+startup:`"),
-                efield("CommandName", "`#+name:` - name of the associated entry"),
+                efield("CmdLanguage", "`#+language:`"),
+                efield("CmdAttr", "`#+attr_html:`, `#+attr_image` etc."),
+                efield("CmdStartup", "`#+startup:`"),
+                efield("CmdName", "`#+name:` - name of the associated entry"),
                 efield("CmdCustomTextCommand", "Line command with parsed text value"),
                 efield("CmdCustomArgsCommand", "Line command with parsed argument list"),
                 efield("CmdCustomRawCommand", "Line command with raw text argument"),
-                efield("CommandResults",
+                efield("CmdResults",
                        "`#+results:` - source code block evaluation results"),
                 efield(
-                    "CommandHeader",
+                    "CmdHeader",
                     "`#+header:` - extended list of parameters passed to associated block",
                 ),
-                efield("CommandOptions",
+                efield("CmdOptions",
                        "`#+options:` - document-wide formatting options"),
-                efield("CommandTblfm"),
+                efield("CmdTblfm"),
                 efield(
-                    "CommandBackendOptions",
+                    "CmdBackendOptions",
                     "Backend-specific configuration options like `#+latex_header` `#+latex_class` etc.",
                 ),
                 efield("AttrImg"),
-                efield("CommandCaption", "`#+caption:` command"),
+                efield("CmdCaption", "`#+caption:` command"),
                 efield("File"),
                 efield("BlockExport"),
                 efield("InlineExport"),
@@ -2112,17 +2103,17 @@ def get_enums():
                 ),
                 efield("BigIdent", "full-uppsercase identifier such as `MUST` or `TODO`"),
                 efield(
-                    "VerbatimMultilineBlock",
+                    "BlockVerbatimMultiline",
                     "Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.",
                 ),
                 efield("CodeLine", "Single line of source code"),
                 efield("CodeText", "Block of source code text"),
                 efield("CodeTangle", "Single tangle target in the code block"),
                 efield("CodeCallout", "`(refs:` callout in the source code"),
-                efield("QuoteBlock", "`#+begin_quote:` block in code"),
-                efield("CommentBlock", "`#+begin_comment:` block in code"),
-                efield("CenterBlock"),
-                efield("VerseBlock"),
+                efield("BlockQuote", "`#+begin_quote:` block in code"),
+                efield("BlockComment", "`#+begin_comment:` block in code"),
+                efield("BlockCenter"),
+                efield("BlockVerse"),
                 efield("Example", "Verbatim example text block"),
                 efield("ColonExample", "Colon example block"),
                 efield(
@@ -2145,7 +2136,6 @@ def get_enums():
                     "PassCode",
                     "Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively",
                 ),
-                efield("CmdArguments", "Command arguments"),
                 efield(
                     "CmdFlag",
                     "Flag for source code block. For example `-n`, which is used to to make source code block export with lines",

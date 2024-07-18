@@ -245,7 +245,7 @@ auto Formatter::toString(SemId<CmdArgument> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     bool isInline = ctx.isInline;
 
@@ -278,15 +278,15 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
         auto line = b.line();
         for (auto const& part : it.parts) {
             switch (part.getKind()) {
-                case Code::Line::Part::Kind::Raw: {
+                case BlockCode::Line::Part::Kind::Raw: {
                     add(line, str(part.getRaw().code));
                     break;
                 }
-                case Code::Line::Part::Kind::Callout: {
+                case BlockCode::Line::Part::Kind::Callout: {
                     add(line, str(part.getCallout().name));
                     break;
                 }
-                case Code::Line::Part::Kind::Tangle: {
+                case BlockCode::Line::Part::Kind::Tangle: {
                     add(line, str(part.getTangle().target));
                     break;
                 }
@@ -308,23 +308,23 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
         add(result, str(""));
         add(result, b.line({str("#+results:")}));
         switch (id->result->getKind()) {
-            case Code::EvalResult::Kind::OrgValue: {
+            case BlockCode::EvalResult::Kind::OrgValue: {
                 add(result,
                     toString(id->result->getOrgValue().value, ctx));
                 break;
             }
 
-            case Code::EvalResult::Kind::Raw: {
+            case BlockCode::EvalResult::Kind::Raw: {
                 add(result, str(id->result->getRaw().text));
                 break;
             }
 
 
-            case Code::EvalResult::Kind::None: {
+            case BlockCode::EvalResult::Kind::None: {
                 break;
             }
 
-            case Code::EvalResult::Kind::File: {
+            case BlockCode::EvalResult::Kind::File: {
                 add(result,
                     str(fmt("[file:{}]", id->result->getFile().path)));
                 break;
@@ -336,7 +336,7 @@ auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
     return out;
 }
 
-auto Formatter::toString(SemId<Tblfm> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdTblfm> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
@@ -471,7 +471,7 @@ auto Formatter::toString(SemId<Symbol> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<Caption> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCaption> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+caption: "), toString(id->text, ctx)});
 }
@@ -557,7 +557,7 @@ auto Formatter::toString(SemId<DocumentGroup> id, CR<Context> ctx) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<CommandGroup> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdGroup> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
@@ -641,7 +641,7 @@ auto Formatter::toString(SemId<Completion> id, CR<Context> ctx) -> Res {
     return str(fmt("[{}/{}]", id->done, id->full));
 }
 
-auto Formatter::toString(SemId<Center> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockCenter> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_center"), toSubnodes(id, ctx), str("#+end_center")));
@@ -767,7 +767,7 @@ auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
     return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
-auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
+auto Formatter::toString(SemId<BlockAdmonition> id, CR<Context> ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
@@ -1106,7 +1106,7 @@ auto Formatter::toString(SemId<Verbatim> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("="), toSubnodes(id, ctx), str("=")));
 }
 
-auto Formatter::toString(SemId<Quote> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return stackAttached(
         b.stack(Vec<Res>::Splice(
@@ -1117,7 +1117,7 @@ auto Formatter::toString(SemId<Quote> id, CR<Context> ctx) -> Res {
         ctx);
 }
 
-auto Formatter::toString(SemId<CommentBlock> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockComment> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_comment"),
@@ -1125,7 +1125,7 @@ auto Formatter::toString(SemId<CommentBlock> id, CR<Context> ctx) -> Res {
         str("#+end_comment")));
 }
 
-auto Formatter::toString(SemId<Verse> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockVerse> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_verse"), toSubnodes(id, ctx), str("#+end_verse")));
@@ -1156,7 +1156,7 @@ Vec<T> OptVec(CR<Opt<T>> value) {
     }
 }
 
-auto Formatter::toString(SemId<Export> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res head = b.line();
     add(head, str("#+begin_export " + id->exporter));
@@ -1173,7 +1173,7 @@ auto Formatter::toString(SemId<Export> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(head, str(id->content), str("#+end_export")));
 }
 
-auto Formatter::toString(SemId<Example> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockExample> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_example"),

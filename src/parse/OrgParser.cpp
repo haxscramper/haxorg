@@ -1253,19 +1253,19 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     OrgTokenKind endTok;
     switch (lex.kind()) {
         case otk::CmdVerseBegin:
-            start(org::VerseBlock);
+            start(org::BlockVerse);
             endTok = otk::CmdVerseEnd;
             break;
         case otk::CmdCenterBegin:
-            start(org::CenterBlock);
+            start(org::BlockCenter);
             endTok = otk::CmdCenterEnd;
             break;
         case otk::CmdQuoteBegin:
-            start(org::QuoteBlock);
+            start(org::BlockQuote);
             endTok = otk::CmdQuoteEnd;
             break;
         case otk::CmdCommentBegin:
-            start(org::CommentBlock);
+            start(org::BlockComment);
             endTok = otk::CmdCommentEnd;
             break;
         default: throw fatalError(lex, "unhandled token");
@@ -1462,7 +1462,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
         }
         skip(lex, otk::CmdPrefix);
         skip(lex, otk::CmdResults);
-        start(org::CommandResults);
+        start(org::CmdResults);
         space(lex);
         parseCommandArguments(lex);
         newline(lex);
@@ -1892,7 +1892,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             start(org::CmdCustomTextCommand);
             token(org::RawText, pop(lex));
-            start(org::CommandArguments);
+            start(org::CmdArguments);
             auto sub = subToEol(
                 lex, ParagraphTerminator + OrgTokSet{otk::Newline});
             if (sub.empty()) {
@@ -1926,11 +1926,11 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex);
             if (cmd_kind == otk::CmdTitle) {
-                start(org::CommandTitle);
+                start(org::CmdTitle);
             } else {
-                start(org::CommandCaption);
+                start(org::CmdCaption);
             }
-            start(org::CommandArguments);
+            start(org::CmdArguments);
             auto sub = subToEol(
                 lex, ParagraphTerminator + OrgTokSet{otk::Newline});
             if (sub.empty()) {
@@ -1948,14 +1948,14 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdStartup:
         case otk::CmdLanguage: {
             switch (cmd_kind) {
-                case otk::CmdCreator: start(org::CommandCreator); break;
-                case otk::CmdLanguage: start(org::CommandLanguage); break;
-                case otk::CmdAuthor: start(org::CommandAuthor); break;
-                case otk::CmdOptions: start(org::CommandOptions); break;
+                case otk::CmdCreator: start(org::CmdCreator); break;
+                case otk::CmdLanguage: start(org::CmdLanguage); break;
+                case otk::CmdAuthor: start(org::CmdAuthor); break;
+                case otk::CmdOptions: start(org::CmdOptions); break;
                 case otk::CmdLatexHeader: start(org::LatexHeader); break;
-                case otk::CmdInclude: start(org::CommandInclude); break;
+                case otk::CmdInclude: start(org::CmdInclude); break;
                 case otk::CmdColumns: start(org::Columns); break;
-                case otk::CmdStartup: start(org::CommandStartup); break;
+                case otk::CmdStartup: start(org::CmdStartup); break;
                 default: throw fatalError(lex, "");
             }
 
@@ -2033,7 +2033,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         }
 
         case otk::CmdInclude: {
-            start(org::CommandInclude);
+            start(org::CmdInclude);
             skip(lex);
             skip(lex, otk::CmdInclude);
             subParse(CommandArguments, lex);
@@ -2041,7 +2041,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         }
 
         case otk::CmdAttr: {
-            start(org::CommandAttr);
+            start(org::CmdAttr);
             skip(lex, otk::CmdPrefix);
             token(org::Ident, pop(lex, otk::CmdAttr));
             subParse(CommandArguments, lex);
@@ -2054,9 +2054,9 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex);
             switch (cmd_kind) {
-                case otk::CmdHeader: start(org::CommandHeader); break;
-                case otk::CmdName: start(org::CommandName); break;
-                case otk::CmdResults: start(org::CommandResults); break;
+                case otk::CmdHeader: start(org::CmdHeader); break;
+                case otk::CmdName: start(org::CmdName); break;
+                case otk::CmdResults: start(org::CmdResults); break;
                 default:
             }
 
@@ -2078,7 +2078,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdOptions: {
             skip(lex, otk::CmdPrefix);
             skip(lex);
-            start(org::CommandOptions);
+            start(org::CmdOptions);
             token(org::RawText, pop(lex, otk::RawText));
             break;
         }
@@ -2088,7 +2088,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex);
             switch (cmd_kind) {
-                case otk::CmdTblfm: start(org::CommandTblfm); break;
+                case otk::CmdTblfm: start(org::CmdTblfm); break;
                 case otk::CmdColumns: start(org::Columns); break;
                 default: throw fatalError(lex, "asdf");
             }

@@ -77,7 +77,7 @@ class Empty(Org):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
-class Command(Stmt):
+class Cmd(Stmt):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -87,7 +87,7 @@ class Command(Stmt):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class Block(Command):
+class Block(Cmd):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -97,7 +97,7 @@ class Block(Command):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class Cell(Command):
+class Cell(Cmd):
     def __init__(self, isBlock: bool, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -110,7 +110,7 @@ class Cell(Command):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class Row(Command):
+class Row(Cmd):
     def __init__(self, cells: List[Cell], isBlock: bool, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -220,22 +220,12 @@ class AnnotatedParagraph(Stmt):
 class Format(Org):
     def __init__(self) -> None: ...
 
-class Center(Format):
+class BlockCenter(Format):
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
-class LineCommand(Command):
-    def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
-    def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
-    def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
-    def getAttached(self, kind: Optional[str]) -> List[Org]: ...
-    def getArguments(self, kind: Optional[str]) -> Optional[CmdArgumentList]: ...
-    def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
-    parameters: Optional[CmdArguments]
-    attached: List[Org]
-
-class Standalone(LineCommand):
+class LineCommand(Cmd):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -255,7 +245,7 @@ class Attached(LineCommand):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class Caption(Attached):
+class CmdCaption(Attached):
     def __init__(self, text: Paragraph, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -281,7 +271,7 @@ class CmdName(Attached):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class CmdCustomArgs(Command):
+class CmdCustomArgs(Cmd):
     def __init__(self, name: str, isAttached: bool, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -331,7 +321,7 @@ class CmdResults(Attached):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class CommandGroup(Stmt):
+class CmdGroup(Stmt):
     def __init__(self, attached: List[Org]) -> None: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...
     def getArguments(self, kind: Optional[str]) -> Optional[CmdArgumentList]: ...
@@ -340,7 +330,7 @@ class CommandGroup(Stmt):
     def __getattr__(self, name: str) -> object: ...
     attached: List[Org]
 
-class Tblfm(Command):
+class CmdTblfm(Cmd):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -352,7 +342,7 @@ class Tblfm(Command):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class Quote(Block):
+class BlockQuote(Block):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -364,7 +354,7 @@ class Quote(Block):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class CommentBlock(Stmt):
+class BlockComment(Stmt):
     def __init__(self, attached: List[Org]) -> None: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...
     def getArguments(self, kind: Optional[str]) -> Optional[CmdArgumentList]: ...
@@ -373,7 +363,7 @@ class CommentBlock(Stmt):
     def __getattr__(self, name: str) -> object: ...
     attached: List[Org]
 
-class Verse(Block):
+class BlockVerse(Block):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -385,7 +375,7 @@ class Verse(Block):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class Example(Block):
+class BlockExample(Block):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -423,13 +413,13 @@ class CmdAttr(Attached):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class ExportFormat(Enum):
+class BlockExportFormat(Enum):
     Inline = 1
     Line = 2
     Block = 3
 
-class Export(Block):
-    def __init__(self, format: ExportFormat, exporter: str, placement: Optional[str], content: str, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
+class BlockExport(Block):
+    def __init__(self, format: BlockExportFormat, exporter: str, placement: Optional[str], content: str, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...
@@ -437,14 +427,14 @@ class Export(Block):
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    format: ExportFormat
+    format: BlockExportFormat
     exporter: str
     placement: Optional[str]
     content: str
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class AdmonitionBlock(Block):
+class BlockAdmonition(Block):
     def __init__(self, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
@@ -464,155 +454,155 @@ class Call(Org):
     parameters: CmdArguments
     isCommand: bool
 
-class CodeLinePartRaw:
+class BlockCodeLinePartRaw:
     def __init__(self, code: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     code: str
 
-class CodeLinePartCallout:
+class BlockCodeLinePartCallout:
     def __init__(self, name: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     name: str
 
-class CodeLinePartTangle:
+class BlockCodeLinePartTangle:
     def __init__(self, target: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     target: str
 
-CodeLinePartData = Union[CodeLinePartRaw, CodeLinePartCallout, CodeLinePartTangle]
-class CodeLinePartKind(Enum):
+BlockCodeLinePartData = Union[BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle]
+class BlockCodeLinePartKind(Enum):
     Raw = 1
     Callout = 2
     Tangle = 3
 
-class CodeLinePart:
-    def __init__(self, data: CodeLinePartData) -> None: ...
-    def getRaw(self) -> CodeLinePartRaw: ...
-    def getCallout(self) -> CodeLinePartCallout: ...
-    def getTangle(self) -> CodeLinePartTangle: ...
+class BlockCodeLinePart:
+    def __init__(self, data: BlockCodeLinePartData) -> None: ...
+    def getRaw(self) -> BlockCodeLinePartRaw: ...
+    def getCallout(self) -> BlockCodeLinePartCallout: ...
+    def getTangle(self) -> BlockCodeLinePartTangle: ...
     @staticmethod
-    def getKindStatic(self, __input: CodeLinePartData) -> CodeLinePartKind: ...
-    def getKind(self) -> CodeLinePartKind: ...
+    def getKindStatic(self, __input: BlockCodeLinePartData) -> BlockCodeLinePartKind: ...
+    def getKind(self) -> BlockCodeLinePartKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    data: CodeLinePartData
+    data: BlockCodeLinePartData
 
-class CodeLine:
-    def __init__(self, parts: List[CodeLinePart]) -> None: ...
+class BlockCodeLine:
+    def __init__(self, parts: List[BlockCodeLinePart]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    parts: List[CodeLinePart]
+    parts: List[BlockCodeLinePart]
 
-class CodeSwitchLineStart:
+class BlockCodeSwitchLineStart:
     def __init__(self, start: int, extendLast: bool) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     start: int
     extendLast: bool
 
-class CodeSwitchCalloutFormat:
+class BlockCodeSwitchCalloutFormat:
     def __init__(self, format: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     format: str
 
-class CodeSwitchRemoveCallout:
+class BlockCodeSwitchRemoveCallout:
     def __init__(self, remove: bool) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     remove: bool
 
-class CodeSwitchEmphasizeLine:
+class BlockCodeSwitchEmphasizeLine:
     def __init__(self, line: List[int]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     line: List[int]
 
-class CodeSwitchDedent:
+class BlockCodeSwitchDedent:
     def __init__(self, value: int) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     value: int
 
-CodeSwitchData = Union[CodeSwitchLineStart, CodeSwitchCalloutFormat, CodeSwitchRemoveCallout, CodeSwitchEmphasizeLine, CodeSwitchDedent]
-class CodeSwitchKind(Enum):
+BlockCodeSwitchData = Union[BlockCodeSwitchLineStart, BlockCodeSwitchCalloutFormat, BlockCodeSwitchRemoveCallout, BlockCodeSwitchEmphasizeLine, BlockCodeSwitchDedent]
+class BlockCodeSwitchKind(Enum):
     LineStart = 1
     CalloutFormat = 2
     RemoveCallout = 3
     EmphasizeLine = 4
     Dedent = 5
 
-class CodeSwitch:
-    def __init__(self, data: CodeSwitchData) -> None: ...
-    def getLineStart(self) -> CodeSwitchLineStart: ...
-    def getCalloutFormat(self) -> CodeSwitchCalloutFormat: ...
-    def getRemoveCallout(self) -> CodeSwitchRemoveCallout: ...
-    def getEmphasizeLine(self) -> CodeSwitchEmphasizeLine: ...
-    def getDedent(self) -> CodeSwitchDedent: ...
+class BlockCodeSwitch:
+    def __init__(self, data: BlockCodeSwitchData) -> None: ...
+    def getLineStart(self) -> BlockCodeSwitchLineStart: ...
+    def getCalloutFormat(self) -> BlockCodeSwitchCalloutFormat: ...
+    def getRemoveCallout(self) -> BlockCodeSwitchRemoveCallout: ...
+    def getEmphasizeLine(self) -> BlockCodeSwitchEmphasizeLine: ...
+    def getDedent(self) -> BlockCodeSwitchDedent: ...
     @staticmethod
-    def getKindStatic(self, __input: CodeSwitchData) -> CodeSwitchKind: ...
-    def getKind(self) -> CodeSwitchKind: ...
+    def getKindStatic(self, __input: BlockCodeSwitchData) -> BlockCodeSwitchKind: ...
+    def getKind(self) -> BlockCodeSwitchKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    data: CodeSwitchData
+    data: BlockCodeSwitchData
 
-class CodeResults(Enum):
+class BlockCodeResults(Enum):
     Replace = 1
 
-class CodeExports(Enum):
+class BlockCodeExports(Enum):
     _None = 1
     Both = 2
     Code = 3
     Results = 4
 
-class CodeEvalResultNone:
+class BlockCodeEvalResultNone:
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
-class CodeEvalResultOrgValue:
+class BlockCodeEvalResultOrgValue:
     def __init__(self, value: Org) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     value: Org
 
-class CodeEvalResultFile:
+class BlockCodeEvalResultFile:
     def __init__(self, path: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     path: str
 
-class CodeEvalResultRaw:
+class BlockCodeEvalResultRaw:
     def __init__(self, text: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     text: str
 
-CodeEvalResultData = Union[CodeEvalResultNone, CodeEvalResultOrgValue, CodeEvalResultFile, CodeEvalResultRaw]
-class CodeEvalResultKind(Enum):
+BlockCodeEvalResultData = Union[BlockCodeEvalResultNone, BlockCodeEvalResultOrgValue, BlockCodeEvalResultFile, BlockCodeEvalResultRaw]
+class BlockCodeEvalResultKind(Enum):
     _None = 1
     OrgValue = 2
     File = 3
     Raw = 4
 
-class CodeEvalResult:
-    def __init__(self, data: CodeEvalResultData) -> None: ...
-    def getNone(self) -> CodeEvalResultNone: ...
-    def getOrgValue(self) -> CodeEvalResultOrgValue: ...
-    def getFile(self) -> CodeEvalResultFile: ...
-    def getRaw(self) -> CodeEvalResultRaw: ...
+class BlockCodeEvalResult:
+    def __init__(self, data: BlockCodeEvalResultData) -> None: ...
+    def getNone(self) -> BlockCodeEvalResultNone: ...
+    def getOrgValue(self) -> BlockCodeEvalResultOrgValue: ...
+    def getFile(self) -> BlockCodeEvalResultFile: ...
+    def getRaw(self) -> BlockCodeEvalResultRaw: ...
     @staticmethod
-    def getKindStatic(self, __input: CodeEvalResultData) -> CodeEvalResultKind: ...
-    def getKind(self) -> CodeEvalResultKind: ...
+    def getKindStatic(self, __input: BlockCodeEvalResultData) -> BlockCodeEvalResultKind: ...
+    def getKind(self) -> BlockCodeEvalResultKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    data: CodeEvalResultData
+    data: BlockCodeEvalResultData
 
-class Code(Block):
-    def __init__(self, lang: Optional[str], switches: List[CodeSwitch], exports: CodeExports, result: Optional[CodeEvalResult], lines: List[CodeLine], cache: bool, eval: bool, noweb: bool, hlines: bool, tangle: bool, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
+class BlockCode(Block):
+    def __init__(self, lang: Optional[str], switches: List[BlockCodeSwitch], exports: BlockCodeExports, result: Optional[BlockCodeEvalResult], lines: List[BlockCodeLine], cache: bool, eval: bool, noweb: bool, hlines: bool, tangle: bool, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
     def getArguments(self, key: Optional[str]) -> Optional[CmdArgumentList]: ...
     def getFirstArgument(self, kind: str) -> Optional[CmdArgument]: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...
@@ -621,10 +611,10 @@ class Code(Block):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     lang: Optional[str]
-    switches: List[CodeSwitch]
-    exports: CodeExports
-    result: Optional[CodeEvalResult]
-    lines: List[CodeLine]
+    switches: List[BlockCodeSwitch]
+    exports: BlockCodeExports
+    result: Optional[BlockCodeEvalResult]
+    lines: List[BlockCodeLine]
     cache: bool
     eval: bool
     noweb: bool
@@ -1498,26 +1488,26 @@ class OrgNodeKind(Enum):
     Comment = 21
     RawText = 22
     Unparsed = 23
-    Command = 24
-    CommandArguments = 25
-    CommandTitle = 26
-    CommandAuthor = 27
-    CommandCreator = 28
-    CommandInclude = 29
-    CommandLanguage = 30
-    CommandAttr = 31
-    CommandStartup = 32
-    CommandName = 33
+    Cmd = 24
+    CmdArguments = 25
+    CmdTitle = 26
+    CmdAuthor = 27
+    CmdCreator = 28
+    CmdInclude = 29
+    CmdLanguage = 30
+    CmdAttr = 31
+    CmdStartup = 32
+    CmdName = 33
     CmdCustomTextCommand = 34
     CmdCustomArgsCommand = 35
     CmdCustomRawCommand = 36
-    CommandResults = 37
-    CommandHeader = 38
-    CommandOptions = 39
-    CommandTblfm = 40
-    CommandBackendOptions = 41
+    CmdResults = 37
+    CmdHeader = 38
+    CmdOptions = 39
+    CmdTblfm = 40
+    CmdBackendOptions = 41
     AttrImg = 42
-    CommandCaption = 43
+    CmdCaption = 43
     File = 44
     BlockExport = 45
     InlineExport = 46
@@ -1527,15 +1517,15 @@ class OrgNodeKind(Enum):
     BareIdent = 50
     AdmonitionTag = 51
     BigIdent = 52
-    VerbatimMultilineBlock = 53
+    BlockVerbatimMultiline = 53
     CodeLine = 54
     CodeText = 55
     CodeTangle = 56
     CodeCallout = 57
-    QuoteBlock = 58
-    CommentBlock = 59
-    CenterBlock = 60
-    VerseBlock = 61
+    BlockQuote = 58
+    BlockComment = 59
+    BlockCenter = 60
+    BlockVerse = 61
     Example = 62
     ColonExample = 63
     SrcCode = 64
@@ -1543,78 +1533,77 @@ class OrgNodeKind(Enum):
     InlineCallCode = 66
     CmdCallCode = 67
     PassCode = 68
-    CmdArguments = 69
-    CmdFlag = 70
-    CmdKey = 71
-    CmdValue = 72
-    CmdNamedValue = 73
-    UrgencyStatus = 74
-    TextSeparator = 75
-    Paragraph = 76
-    AnnotatedParagraph = 77
-    Bold = 78
-    Italic = 79
-    Verbatim = 80
-    Backtick = 81
-    Underline = 82
-    Strike = 83
-    Quote = 84
-    Angle = 85
-    Monospace = 86
-    Par = 87
-    InlineMath = 88
-    DisplayMath = 89
-    Space = 90
-    Punctuation = 91
-    Colon = 92
-    Word = 93
-    Escaped = 94
-    Newline = 95
-    RawLink = 96
-    Link = 97
-    Macro = 98
-    BackendRaw = 99
-    Symbol = 100
-    TimeAssoc = 101
-    StaticActiveTime = 102
-    StaticInactiveTime = 103
-    DynamicActiveTime = 104
-    DynamicInactiveTime = 105
-    TimeRange = 106
-    SimpleTime = 107
-    Details = 108
-    Summary = 109
-    Table = 110
-    TableRow = 111
-    TableCell = 112
-    InlineFootnote = 113
-    Footnote = 114
-    Horizontal = 115
-    Filetags = 116
-    OrgTag = 117
-    HashTag = 118
-    MetaSymbol = 119
-    AtMention = 120
-    BracTag = 121
-    Drawer = 122
-    LatexClass = 123
-    LatexHeader = 124
-    LatexCompiler = 125
-    LatexClassOptions = 126
-    HtmlHead = 127
-    Columns = 128
-    CmdPropertyArgs = 129
-    CmdPropertyText = 130
-    CmdPropertyRaw = 131
-    PropertyList = 132
-    Property = 133
-    Placeholder = 134
-    SubtreeDescription = 135
-    SubtreeUrgency = 136
-    Logbook = 137
-    LogbookStateChange = 138
-    RadioTarget = 139
-    Target = 140
+    CmdFlag = 69
+    CmdKey = 70
+    CmdValue = 71
+    CmdNamedValue = 72
+    UrgencyStatus = 73
+    TextSeparator = 74
+    Paragraph = 75
+    AnnotatedParagraph = 76
+    Bold = 77
+    Italic = 78
+    Verbatim = 79
+    Backtick = 80
+    Underline = 81
+    Strike = 82
+    Quote = 83
+    Angle = 84
+    Monospace = 85
+    Par = 86
+    InlineMath = 87
+    DisplayMath = 88
+    Space = 89
+    Punctuation = 90
+    Colon = 91
+    Word = 92
+    Escaped = 93
+    Newline = 94
+    RawLink = 95
+    Link = 96
+    Macro = 97
+    BackendRaw = 98
+    Symbol = 99
+    TimeAssoc = 100
+    StaticActiveTime = 101
+    StaticInactiveTime = 102
+    DynamicActiveTime = 103
+    DynamicInactiveTime = 104
+    TimeRange = 105
+    SimpleTime = 106
+    Details = 107
+    Summary = 108
+    Table = 109
+    TableRow = 110
+    TableCell = 111
+    InlineFootnote = 112
+    Footnote = 113
+    Horizontal = 114
+    Filetags = 115
+    OrgTag = 116
+    HashTag = 117
+    MetaSymbol = 118
+    AtMention = 119
+    BracTag = 120
+    Drawer = 121
+    LatexClass = 122
+    LatexHeader = 123
+    LatexCompiler = 124
+    LatexClassOptions = 125
+    HtmlHead = 126
+    Columns = 127
+    CmdPropertyArgs = 128
+    CmdPropertyText = 129
+    CmdPropertyRaw = 130
+    PropertyList = 131
+    Property = 132
+    Placeholder = 133
+    SubtreeDescription = 134
+    SubtreeUrgency = 135
+    Logbook = 136
+    LogbookStateChange = 137
+    RadioTarget = 138
+    Target = 139
 
 class OrgSemKind(Enum):
     ErrorItem = 1
@@ -1631,26 +1620,26 @@ class OrgSemKind(Enum):
     Completion = 12
     Paragraph = 13
     AnnotatedParagraph = 14
-    Center = 15
-    Caption = 16
+    BlockCenter = 15
+    CmdCaption = 16
     CmdName = 17
     CmdCustomArgs = 18
     CmdCustomRaw = 19
     CmdCustomText = 20
     CmdResults = 21
-    CommandGroup = 22
-    Tblfm = 23
-    Quote = 24
-    CommentBlock = 25
-    Verse = 26
-    Example = 27
+    CmdGroup = 22
+    CmdTblfm = 23
+    BlockQuote = 24
+    BlockComment = 25
+    BlockVerse = 26
+    BlockExample = 27
     ColonExample = 28
     CmdArguments = 29
     CmdAttr = 30
-    Export = 31
-    AdmonitionBlock = 32
+    BlockExport = 31
+    BlockAdmonition = 32
     Call = 33
-    Code = 34
+    BlockCode = 34
     Time = 35
     TimeRange = 36
     Macro = 37

@@ -59,7 +59,7 @@ void Exporter<V, R>::visitEmpty(R& res, In<sem::Empty> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCommand(R& res, In<sem::Command> object) {
+void Exporter<V, R>::visitCmd(R& res, In<sem::Cmd> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, parameters);
   __org_field(res, object, attached);
@@ -165,21 +165,13 @@ void Exporter<V, R>::visitFormat(R& res, In<sem::Format> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCenter(R& res, In<sem::Center> object) {
+void Exporter<V, R>::visitBlockCenter(R& res, In<sem::BlockCenter> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitLineCommand(R& res, In<sem::LineCommand> object) {
-  __visit_specific_kind(res, object);
-  __org_field(res, object, parameters);
-  __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visitStandalone(R& res, In<sem::Standalone> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, parameters);
   __org_field(res, object, attached);
@@ -195,7 +187,7 @@ void Exporter<V, R>::visitAttached(R& res, In<sem::Attached> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCaption(R& res, In<sem::Caption> object) {
+void Exporter<V, R>::visitCmdCaption(R& res, In<sem::CmdCaption> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, text);
   __org_field(res, object, parameters);
@@ -251,22 +243,14 @@ void Exporter<V, R>::visitCmdResults(R& res, In<sem::CmdResults> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCommandGroup(R& res, In<sem::CommandGroup> object) {
+void Exporter<V, R>::visitCmdGroup(R& res, In<sem::CmdGroup> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitTblfm(R& res, In<sem::Tblfm> object) {
-  __visit_specific_kind(res, object);
-  __org_field(res, object, parameters);
-  __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visitQuote(R& res, In<sem::Quote> object) {
+void Exporter<V, R>::visitCmdTblfm(R& res, In<sem::CmdTblfm> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, parameters);
   __org_field(res, object, attached);
@@ -274,14 +258,7 @@ void Exporter<V, R>::visitQuote(R& res, In<sem::Quote> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCommentBlock(R& res, In<sem::CommentBlock> object) {
-  __visit_specific_kind(res, object);
-  __org_field(res, object, attached);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visitVerse(R& res, In<sem::Verse> object) {
+void Exporter<V, R>::visitBlockQuote(R& res, In<sem::BlockQuote> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, parameters);
   __org_field(res, object, attached);
@@ -289,7 +266,22 @@ void Exporter<V, R>::visitVerse(R& res, In<sem::Verse> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitExample(R& res, In<sem::Example> object) {
+void Exporter<V, R>::visitBlockComment(R& res, In<sem::BlockComment> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitBlockVerse(R& res, In<sem::BlockVerse> object) {
+  __visit_specific_kind(res, object);
+  __org_field(res, object, parameters);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitBlockExample(R& res, In<sem::BlockExample> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, parameters);
   __org_field(res, object, attached);
@@ -320,7 +312,7 @@ void Exporter<V, R>::visitCmdAttr(R& res, In<sem::CmdAttr> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitExport(R& res, In<sem::Export> object) {
+void Exporter<V, R>::visitBlockExport(R& res, In<sem::BlockExport> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, format);
   __org_field(res, object, exporter);
@@ -332,7 +324,7 @@ void Exporter<V, R>::visitExport(R& res, In<sem::Export> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitAdmonitionBlock(R& res, In<sem::AdmonitionBlock> object) {
+void Exporter<V, R>::visitBlockAdmonition(R& res, In<sem::BlockAdmonition> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, parameters);
   __org_field(res, object, attached);
@@ -349,7 +341,7 @@ void Exporter<V, R>::visitCall(R& res, In<sem::Call> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
+void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, lang);
   __org_field(res, object, switches);
@@ -367,64 +359,64 @@ void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Line const& object) { __obj_field(res, object, parts); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Line const& object) { __obj_field(res, object, parts); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Data const& object) { visitVariants(res, sem::Code::Line::Part::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Data const& object) { visitVariants(res, sem::BlockCode::Line::Part::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Line::Part const& object) { __obj_field(res, object, data); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part const& object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Raw const& object) { __obj_field(res, object, code); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Raw const& object) { __obj_field(res, object, code); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Callout const& object) { __obj_field(res, object, name); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Callout const& object) { __obj_field(res, object, name); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Line::Part::Tangle const& object) { __obj_field(res, object, target); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Tangle const& object) { __obj_field(res, object, target); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch::Data const& object) { visitVariants(res, sem::Code::Switch::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::Data const& object) { visitVariants(res, sem::BlockCode::Switch::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch const& object) { __obj_field(res, object, data); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch const& object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch::LineStart const& object) {
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::LineStart const& object) {
   __obj_field(res, object, start);
   __obj_field(res, object, extendLast);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch::CalloutFormat const& object) { __obj_field(res, object, format); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::CalloutFormat const& object) { __obj_field(res, object, format); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch::RemoveCallout const& object) { __obj_field(res, object, remove); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::RemoveCallout const& object) { __obj_field(res, object, remove); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch::EmphasizeLine const& object) { __obj_field(res, object, line); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::EmphasizeLine const& object) { __obj_field(res, object, line); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch::Dedent const& object) { __obj_field(res, object, value); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::Dedent const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::Data const& object) { visitVariants(res, sem::Code::EvalResult::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::Data const& object) { visitVariants(res, sem::BlockCode::EvalResult::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::EvalResult const& object) { __obj_field(res, object, data); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult const& object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::None const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::None const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::OrgValue const& object) { __obj_field(res, object, value); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::OrgValue const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::File const& object) { __obj_field(res, object, path); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::File const& object) { __obj_field(res, object, path); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::EvalResult::Raw const& object) { __obj_field(res, object, text); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::Raw const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Time::TimeVariant const& object) { visitVariants(res, sem::Time::getTimeKind(object), object); }

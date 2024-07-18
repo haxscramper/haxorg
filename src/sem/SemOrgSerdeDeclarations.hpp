@@ -16,26 +16,26 @@
         __MAP(kCompletion, completion, Completion)  \
         __MAP(kParagraph, paragraph, Paragraph)  \
         __MAP(kAnnotatedparagraph, annotatedparagraph, AnnotatedParagraph)  \
-        __MAP(kCenter, center, Center)  \
-        __MAP(kCaption, caption, Caption)  \
+        __MAP(kBlockcenter, blockcenter, BlockCenter)  \
+        __MAP(kCmdcaption, cmdcaption, CmdCaption)  \
         __MAP(kCmdname, cmdname, CmdName)  \
         __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
         __MAP(kCmdcustomraw, cmdcustomraw, CmdCustomRaw)  \
         __MAP(kCmdcustomtext, cmdcustomtext, CmdCustomText)  \
         __MAP(kCmdresults, cmdresults, CmdResults)  \
-        __MAP(kCommandgroup, commandgroup, CommandGroup)  \
-        __MAP(kTblfm, tblfm, Tblfm)  \
-        __MAP(kQuote, quote, Quote)  \
-        __MAP(kCommentblock, commentblock, CommentBlock)  \
-        __MAP(kVerse, verse, Verse)  \
-        __MAP(kExample, example, Example)  \
+        __MAP(kCmdgroup, cmdgroup, CmdGroup)  \
+        __MAP(kCmdtblfm, cmdtblfm, CmdTblfm)  \
+        __MAP(kBlockquote, blockquote, BlockQuote)  \
+        __MAP(kBlockcomment, blockcomment, BlockComment)  \
+        __MAP(kBlockverse, blockverse, BlockVerse)  \
+        __MAP(kBlockexample, blockexample, BlockExample)  \
         __MAP(kColonexample, colonexample, ColonExample)  \
         __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
         __MAP(kCmdattr, cmdattr, CmdAttr)  \
-        __MAP(kExport, export_, Export)  \
-        __MAP(kAdmonitionblock, admonitionblock, AdmonitionBlock)  \
+        __MAP(kBlockexport, blockexport, BlockExport)  \
+        __MAP(kBlockadmonition, blockadmonition, BlockAdmonition)  \
         __MAP(kCall, call, Call)  \
-        __MAP(kCode, code, Code)  \
+        __MAP(kBlockcode, blockcode, BlockCode)  \
         __MAP(kTime, time, Time)  \
         __MAP(kTimerange, timerange, TimeRange)  \
         __MAP(kMacro, macro, Macro)  \
@@ -200,16 +200,16 @@ struct proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph> {
 
 
 template <>
-struct proto_serde<::orgproto::Center, sem::Center> {
-  static void write(::orgproto::Center* out, sem::Center const& in);
-  static void read(::orgproto::Center const& out, proto_write_accessor<sem::Center> in);
+struct proto_serde<::orgproto::BlockCenter, sem::BlockCenter> {
+  static void write(::orgproto::BlockCenter* out, sem::BlockCenter const& in);
+  static void read(::orgproto::BlockCenter const& out, proto_write_accessor<sem::BlockCenter> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Caption, sem::Caption> {
-  static void write(::orgproto::Caption* out, sem::Caption const& in);
-  static void read(::orgproto::Caption const& out, proto_write_accessor<sem::Caption> in);
+struct proto_serde<::orgproto::CmdCaption, sem::CmdCaption> {
+  static void write(::orgproto::CmdCaption* out, sem::CmdCaption const& in);
+  static void read(::orgproto::CmdCaption const& out, proto_write_accessor<sem::CmdCaption> in);
 };
 
 
@@ -249,44 +249,44 @@ struct proto_serde<::orgproto::CmdResults, sem::CmdResults> {
 
 
 template <>
-struct proto_serde<::orgproto::CommandGroup, sem::CommandGroup> {
-  static void write(::orgproto::CommandGroup* out, sem::CommandGroup const& in);
-  static void read(::orgproto::CommandGroup const& out, proto_write_accessor<sem::CommandGroup> in);
+struct proto_serde<::orgproto::CmdGroup, sem::CmdGroup> {
+  static void write(::orgproto::CmdGroup* out, sem::CmdGroup const& in);
+  static void read(::orgproto::CmdGroup const& out, proto_write_accessor<sem::CmdGroup> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Tblfm, sem::Tblfm> {
-  static void write(::orgproto::Tblfm* out, sem::Tblfm const& in);
-  static void read(::orgproto::Tblfm const& out, proto_write_accessor<sem::Tblfm> in);
+struct proto_serde<::orgproto::CmdTblfm, sem::CmdTblfm> {
+  static void write(::orgproto::CmdTblfm* out, sem::CmdTblfm const& in);
+  static void read(::orgproto::CmdTblfm const& out, proto_write_accessor<sem::CmdTblfm> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Quote, sem::Quote> {
-  static void write(::orgproto::Quote* out, sem::Quote const& in);
-  static void read(::orgproto::Quote const& out, proto_write_accessor<sem::Quote> in);
+struct proto_serde<::orgproto::BlockQuote, sem::BlockQuote> {
+  static void write(::orgproto::BlockQuote* out, sem::BlockQuote const& in);
+  static void read(::orgproto::BlockQuote const& out, proto_write_accessor<sem::BlockQuote> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::CommentBlock, sem::CommentBlock> {
-  static void write(::orgproto::CommentBlock* out, sem::CommentBlock const& in);
-  static void read(::orgproto::CommentBlock const& out, proto_write_accessor<sem::CommentBlock> in);
+struct proto_serde<::orgproto::BlockComment, sem::BlockComment> {
+  static void write(::orgproto::BlockComment* out, sem::BlockComment const& in);
+  static void read(::orgproto::BlockComment const& out, proto_write_accessor<sem::BlockComment> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Verse, sem::Verse> {
-  static void write(::orgproto::Verse* out, sem::Verse const& in);
-  static void read(::orgproto::Verse const& out, proto_write_accessor<sem::Verse> in);
+struct proto_serde<::orgproto::BlockVerse, sem::BlockVerse> {
+  static void write(::orgproto::BlockVerse* out, sem::BlockVerse const& in);
+  static void read(::orgproto::BlockVerse const& out, proto_write_accessor<sem::BlockVerse> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Example, sem::Example> {
-  static void write(::orgproto::Example* out, sem::Example const& in);
-  static void read(::orgproto::Example const& out, proto_write_accessor<sem::Example> in);
+struct proto_serde<::orgproto::BlockExample, sem::BlockExample> {
+  static void write(::orgproto::BlockExample* out, sem::BlockExample const& in);
+  static void read(::orgproto::BlockExample const& out, proto_write_accessor<sem::BlockExample> in);
 };
 
 
@@ -312,16 +312,16 @@ struct proto_serde<::orgproto::CmdAttr, sem::CmdAttr> {
 
 
 template <>
-struct proto_serde<::orgproto::Export, sem::Export> {
-  static void write(::orgproto::Export* out, sem::Export const& in);
-  static void read(::orgproto::Export const& out, proto_write_accessor<sem::Export> in);
+struct proto_serde<::orgproto::BlockExport, sem::BlockExport> {
+  static void write(::orgproto::BlockExport* out, sem::BlockExport const& in);
+  static void read(::orgproto::BlockExport const& out, proto_write_accessor<sem::BlockExport> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::AdmonitionBlock, sem::AdmonitionBlock> {
-  static void write(::orgproto::AdmonitionBlock* out, sem::AdmonitionBlock const& in);
-  static void read(::orgproto::AdmonitionBlock const& out, proto_write_accessor<sem::AdmonitionBlock> in);
+struct proto_serde<::orgproto::BlockAdmonition, sem::BlockAdmonition> {
+  static void write(::orgproto::BlockAdmonition* out, sem::BlockAdmonition const& in);
+  static void read(::orgproto::BlockAdmonition const& out, proto_write_accessor<sem::BlockAdmonition> in);
 };
 
 
@@ -333,121 +333,121 @@ struct proto_serde<::orgproto::Call, sem::Call> {
 
 
 template <>
-struct proto_serde<::orgproto::Code::Line::Part::Raw, sem::Code::Line::Part::Raw> {
-  static void write(::orgproto::Code::Line::Part::Raw* out, sem::Code::Line::Part::Raw const& in);
-  static void read(::orgproto::Code::Line::Part::Raw const& out, proto_write_accessor<sem::Code::Line::Part::Raw> in);
+struct proto_serde<::orgproto::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Raw> {
+  static void write(::orgproto::BlockCode::Line::Part::Raw* out, sem::BlockCode::Line::Part::Raw const& in);
+  static void read(::orgproto::BlockCode::Line::Part::Raw const& out, proto_write_accessor<sem::BlockCode::Line::Part::Raw> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Line::Part::Callout, sem::Code::Line::Part::Callout> {
-  static void write(::orgproto::Code::Line::Part::Callout* out, sem::Code::Line::Part::Callout const& in);
-  static void read(::orgproto::Code::Line::Part::Callout const& out, proto_write_accessor<sem::Code::Line::Part::Callout> in);
+struct proto_serde<::orgproto::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Callout> {
+  static void write(::orgproto::BlockCode::Line::Part::Callout* out, sem::BlockCode::Line::Part::Callout const& in);
+  static void read(::orgproto::BlockCode::Line::Part::Callout const& out, proto_write_accessor<sem::BlockCode::Line::Part::Callout> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Line::Part::Tangle, sem::Code::Line::Part::Tangle> {
-  static void write(::orgproto::Code::Line::Part::Tangle* out, sem::Code::Line::Part::Tangle const& in);
-  static void read(::orgproto::Code::Line::Part::Tangle const& out, proto_write_accessor<sem::Code::Line::Part::Tangle> in);
+struct proto_serde<::orgproto::BlockCode::Line::Part::Tangle, sem::BlockCode::Line::Part::Tangle> {
+  static void write(::orgproto::BlockCode::Line::Part::Tangle* out, sem::BlockCode::Line::Part::Tangle const& in);
+  static void read(::orgproto::BlockCode::Line::Part::Tangle const& out, proto_write_accessor<sem::BlockCode::Line::Part::Tangle> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Line::Part, sem::Code::Line::Part> {
-  static void write(::orgproto::Code::Line::Part* out, sem::Code::Line::Part const& in);
-  static void read(::orgproto::Code::Line::Part const& out, proto_write_accessor<sem::Code::Line::Part> in);
+struct proto_serde<::orgproto::BlockCode::Line::Part, sem::BlockCode::Line::Part> {
+  static void write(::orgproto::BlockCode::Line::Part* out, sem::BlockCode::Line::Part const& in);
+  static void read(::orgproto::BlockCode::Line::Part const& out, proto_write_accessor<sem::BlockCode::Line::Part> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Line, sem::Code::Line> {
-  static void write(::orgproto::Code::Line* out, sem::Code::Line const& in);
-  static void read(::orgproto::Code::Line const& out, proto_write_accessor<sem::Code::Line> in);
+struct proto_serde<::orgproto::BlockCode::Line, sem::BlockCode::Line> {
+  static void write(::orgproto::BlockCode::Line* out, sem::BlockCode::Line const& in);
+  static void read(::orgproto::BlockCode::Line const& out, proto_write_accessor<sem::BlockCode::Line> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Switch::LineStart, sem::Code::Switch::LineStart> {
-  static void write(::orgproto::Code::Switch::LineStart* out, sem::Code::Switch::LineStart const& in);
-  static void read(::orgproto::Code::Switch::LineStart const& out, proto_write_accessor<sem::Code::Switch::LineStart> in);
+struct proto_serde<::orgproto::BlockCode::Switch::LineStart, sem::BlockCode::Switch::LineStart> {
+  static void write(::orgproto::BlockCode::Switch::LineStart* out, sem::BlockCode::Switch::LineStart const& in);
+  static void read(::orgproto::BlockCode::Switch::LineStart const& out, proto_write_accessor<sem::BlockCode::Switch::LineStart> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Switch::CalloutFormat, sem::Code::Switch::CalloutFormat> {
-  static void write(::orgproto::Code::Switch::CalloutFormat* out, sem::Code::Switch::CalloutFormat const& in);
-  static void read(::orgproto::Code::Switch::CalloutFormat const& out, proto_write_accessor<sem::Code::Switch::CalloutFormat> in);
+struct proto_serde<::orgproto::BlockCode::Switch::CalloutFormat, sem::BlockCode::Switch::CalloutFormat> {
+  static void write(::orgproto::BlockCode::Switch::CalloutFormat* out, sem::BlockCode::Switch::CalloutFormat const& in);
+  static void read(::orgproto::BlockCode::Switch::CalloutFormat const& out, proto_write_accessor<sem::BlockCode::Switch::CalloutFormat> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Switch::RemoveCallout, sem::Code::Switch::RemoveCallout> {
-  static void write(::orgproto::Code::Switch::RemoveCallout* out, sem::Code::Switch::RemoveCallout const& in);
-  static void read(::orgproto::Code::Switch::RemoveCallout const& out, proto_write_accessor<sem::Code::Switch::RemoveCallout> in);
+struct proto_serde<::orgproto::BlockCode::Switch::RemoveCallout, sem::BlockCode::Switch::RemoveCallout> {
+  static void write(::orgproto::BlockCode::Switch::RemoveCallout* out, sem::BlockCode::Switch::RemoveCallout const& in);
+  static void read(::orgproto::BlockCode::Switch::RemoveCallout const& out, proto_write_accessor<sem::BlockCode::Switch::RemoveCallout> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Switch::EmphasizeLine, sem::Code::Switch::EmphasizeLine> {
-  static void write(::orgproto::Code::Switch::EmphasizeLine* out, sem::Code::Switch::EmphasizeLine const& in);
-  static void read(::orgproto::Code::Switch::EmphasizeLine const& out, proto_write_accessor<sem::Code::Switch::EmphasizeLine> in);
+struct proto_serde<::orgproto::BlockCode::Switch::EmphasizeLine, sem::BlockCode::Switch::EmphasizeLine> {
+  static void write(::orgproto::BlockCode::Switch::EmphasizeLine* out, sem::BlockCode::Switch::EmphasizeLine const& in);
+  static void read(::orgproto::BlockCode::Switch::EmphasizeLine const& out, proto_write_accessor<sem::BlockCode::Switch::EmphasizeLine> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Switch::Dedent, sem::Code::Switch::Dedent> {
-  static void write(::orgproto::Code::Switch::Dedent* out, sem::Code::Switch::Dedent const& in);
-  static void read(::orgproto::Code::Switch::Dedent const& out, proto_write_accessor<sem::Code::Switch::Dedent> in);
+struct proto_serde<::orgproto::BlockCode::Switch::Dedent, sem::BlockCode::Switch::Dedent> {
+  static void write(::orgproto::BlockCode::Switch::Dedent* out, sem::BlockCode::Switch::Dedent const& in);
+  static void read(::orgproto::BlockCode::Switch::Dedent const& out, proto_write_accessor<sem::BlockCode::Switch::Dedent> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::Switch, sem::Code::Switch> {
-  static void write(::orgproto::Code::Switch* out, sem::Code::Switch const& in);
-  static void read(::orgproto::Code::Switch const& out, proto_write_accessor<sem::Code::Switch> in);
+struct proto_serde<::orgproto::BlockCode::Switch, sem::BlockCode::Switch> {
+  static void write(::orgproto::BlockCode::Switch* out, sem::BlockCode::Switch const& in);
+  static void read(::orgproto::BlockCode::Switch const& out, proto_write_accessor<sem::BlockCode::Switch> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::EvalResult::None, sem::Code::EvalResult::None> {
-  static void write(::orgproto::Code::EvalResult::None* out, sem::Code::EvalResult::None const& in);
-  static void read(::orgproto::Code::EvalResult::None const& out, proto_write_accessor<sem::Code::EvalResult::None> in);
+struct proto_serde<::orgproto::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::None> {
+  static void write(::orgproto::BlockCode::EvalResult::None* out, sem::BlockCode::EvalResult::None const& in);
+  static void read(::orgproto::BlockCode::EvalResult::None const& out, proto_write_accessor<sem::BlockCode::EvalResult::None> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::EvalResult::OrgValue, sem::Code::EvalResult::OrgValue> {
-  static void write(::orgproto::Code::EvalResult::OrgValue* out, sem::Code::EvalResult::OrgValue const& in);
-  static void read(::orgproto::Code::EvalResult::OrgValue const& out, proto_write_accessor<sem::Code::EvalResult::OrgValue> in);
+struct proto_serde<::orgproto::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::OrgValue> {
+  static void write(::orgproto::BlockCode::EvalResult::OrgValue* out, sem::BlockCode::EvalResult::OrgValue const& in);
+  static void read(::orgproto::BlockCode::EvalResult::OrgValue const& out, proto_write_accessor<sem::BlockCode::EvalResult::OrgValue> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::EvalResult::File, sem::Code::EvalResult::File> {
-  static void write(::orgproto::Code::EvalResult::File* out, sem::Code::EvalResult::File const& in);
-  static void read(::orgproto::Code::EvalResult::File const& out, proto_write_accessor<sem::Code::EvalResult::File> in);
+struct proto_serde<::orgproto::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::File> {
+  static void write(::orgproto::BlockCode::EvalResult::File* out, sem::BlockCode::EvalResult::File const& in);
+  static void read(::orgproto::BlockCode::EvalResult::File const& out, proto_write_accessor<sem::BlockCode::EvalResult::File> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::EvalResult::Raw, sem::Code::EvalResult::Raw> {
-  static void write(::orgproto::Code::EvalResult::Raw* out, sem::Code::EvalResult::Raw const& in);
-  static void read(::orgproto::Code::EvalResult::Raw const& out, proto_write_accessor<sem::Code::EvalResult::Raw> in);
+struct proto_serde<::orgproto::BlockCode::EvalResult::Raw, sem::BlockCode::EvalResult::Raw> {
+  static void write(::orgproto::BlockCode::EvalResult::Raw* out, sem::BlockCode::EvalResult::Raw const& in);
+  static void read(::orgproto::BlockCode::EvalResult::Raw const& out, proto_write_accessor<sem::BlockCode::EvalResult::Raw> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code::EvalResult, sem::Code::EvalResult> {
-  static void write(::orgproto::Code::EvalResult* out, sem::Code::EvalResult const& in);
-  static void read(::orgproto::Code::EvalResult const& out, proto_write_accessor<sem::Code::EvalResult> in);
+struct proto_serde<::orgproto::BlockCode::EvalResult, sem::BlockCode::EvalResult> {
+  static void write(::orgproto::BlockCode::EvalResult* out, sem::BlockCode::EvalResult const& in);
+  static void read(::orgproto::BlockCode::EvalResult const& out, proto_write_accessor<sem::BlockCode::EvalResult> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Code, sem::Code> {
-  static void write(::orgproto::Code* out, sem::Code const& in);
-  static void read(::orgproto::Code const& out, proto_write_accessor<sem::Code> in);
+struct proto_serde<::orgproto::BlockCode, sem::BlockCode> {
+  static void write(::orgproto::BlockCode* out, sem::BlockCode const& in);
+  static void read(::orgproto::BlockCode const& out, proto_write_accessor<sem::BlockCode> in);
 };
 
 

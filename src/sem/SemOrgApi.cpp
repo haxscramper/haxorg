@@ -75,8 +75,7 @@ Opt<SemId<CmdArgumentList>> CmdArguments::getArguments(
     }
 }
 
-Opt<SemId<CmdArgumentList>> Command::getArguments(
-    CR<Opt<Str>> param) const {
+Opt<SemId<CmdArgumentList>> Cmd::getArguments(CR<Opt<Str>> param) const {
     Opt<SemId<CmdArgumentList>> paramArguments;
     if (parameters) {
         paramArguments = parameters.value()->getArguments(param);
@@ -95,8 +94,7 @@ Opt<SemId<CmdArgumentList>> Command::getArguments(
     }
 }
 
-Opt<sem::SemId<CmdArgument>> Command::getFirstArgument(
-    CR<Str> kind) const {
+Opt<sem::SemId<CmdArgument>> Cmd::getFirstArgument(CR<Str> kind) const {
     if (parameters) {
         auto res = parameters.value()->getArguments(kind);
         if (res) { return (**res).args.front(); }
@@ -336,7 +334,7 @@ Vec<sem::SemId<sem::Org>> Stmt::getAttached(CR<Opt<Str>> kind) const {
                 if (normalize("attr_" + attr->target) == k) {
                     result.push_back(sub);
                 }
-            } else if (auto cap = sub.getAs<sem::Caption>();
+            } else if (auto cap = sub.getAs<sem::CmdCaption>();
                        cap && normalize(k) == "caption") {
                 result.push_back(sub);
             }
@@ -356,7 +354,7 @@ Opt<sem::SemId<CmdArgumentList>> Stmt::getArguments(
     };
 
     for (auto const& sub : attached) {
-        if (auto cap = sub.getAs<Caption>(); expect_kind("caption")) {
+        if (auto cap = sub.getAs<CmdCaption>(); expect_kind("caption")) {
             // pass
         } else if (auto attr = sub.getAs<sem::CmdAttr>()) {
             if (auto arguments = (**attr->parameters).getArguments(kind)) {

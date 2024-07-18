@@ -183,9 +183,9 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::SubtreeDescription,
             OrgPattern({field1(0, N::Text, org::Paragraph)})},
-        SpecPair{org::CenterBlock, textWrapContent},
-        SpecPair{org::QuoteBlock, textWrapContent},
-        SpecPair{org::CommentBlock, textWrapContent},
+        SpecPair{org::BlockCenter, textWrapContent},
+        SpecPair{org::BlockQuote, textWrapContent},
+        SpecPair{org::BlockComment, textWrapContent},
         SpecPair{
             org::Example,
             OrgPattern({
@@ -380,8 +380,8 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
                 fieldN(1, N::Body, {org::Empty, org::StmtList}),
             })},
-        SpecPair{org::CommandTitle, parTextCmdPattern},
-        SpecPair{org::CommandCaption, parTextCmdPattern},
+        SpecPair{org::CmdTitle, parTextCmdPattern},
+        SpecPair{org::CmdCaption, parTextCmdPattern},
         SpecPair{
             org::CmdPropertyText,
             OrgPattern({
@@ -401,7 +401,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 field1(2, N::Body, org::StmtList),
             })},
         SpecPair{
-            org::Command,
+            org::Cmd,
             OrgPattern({
                 field1(0, N::Name, org::Ident),
                 fieldN(1, N::Args, {org::CmdArguments, org::Empty}),
@@ -419,7 +419,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                             OrgPattern(org::RawText))})),
             })},
         SpecPair{
-            org::CommandInclude,
+            org::CmdInclude,
             OrgPattern({Field(
                 Range(0, N::Args),
                 OrgPattern({OrgPattern({
@@ -444,7 +444,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::RawText, org::Empty})),
             })},
         SpecPair{
-            org::CommandResults,
+            org::CmdResults,
             OrgPattern({
                 field1(0, N::Args, {org::Empty, org::CmdArguments}),
                 fieldN(1, N::Body),
@@ -468,17 +468,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 field1(1, N::Args, org::RawText),
             })},
         SpecPair{
-            org::CommandArguments,
-            OrgPattern({
-                fieldN(
-                    slice(0, 1_B),
-                    N::Args,
-                    {org::CmdKey,
-                     org::CmdValue,
-                     org::RawText,
-                     org::Empty}),
-            })},
-        SpecPair{
             org::Footnote,
             OrgPattern(
                 {Field(Range(0, N::Name)),
@@ -487,7 +476,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::InlineFootnote,
             OrgPattern({Field(Range(0, N::Definition))})},
         SpecPair{
-            org::CommandAttr,
+            org::CmdAttr,
             OrgPattern({
                 Field(
                     Range(0, N::Name),
@@ -497,14 +486,14 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::Empty, org::CmdArguments})),
             })},
         SpecPair{
-            org::CommandHeader,
+            org::CmdHeader,
             OrgPattern({
                 Field(
                     Range(0, N::Args),
                     OrgPattern({org::Empty, org::CmdArguments})),
             })},
         SpecPair{
-            org::CommandOptions,
+            org::CmdOptions,
             OrgPattern({Field(
                 Range(slice(0, 1_B), N::Args),
                 OrgPattern(org::RawText))})},

@@ -90,26 +90,26 @@ enum OrgNodeKind {
   OrgNodeKind_Comment_f                                                             = 20;
   OrgNodeKind_RawText_f                                                             = 21;
   OrgNodeKind_Unparsed_f                                                            = 22;
-  OrgNodeKind_Command_f                                                             = 23;
-  OrgNodeKind_CommandArguments_f                                                    = 24;
-  OrgNodeKind_CommandTitle_f                                                        = 25;
-  OrgNodeKind_CommandAuthor_f                                                       = 26;
-  OrgNodeKind_CommandCreator_f                                                      = 27;
-  OrgNodeKind_CommandInclude_f                                                      = 28;
-  OrgNodeKind_CommandLanguage_f                                                     = 29;
-  OrgNodeKind_CommandAttr_f                                                         = 30;
-  OrgNodeKind_CommandStartup_f                                                      = 31;
-  OrgNodeKind_CommandName_f                                                         = 32;
+  OrgNodeKind_Cmd_f                                                                 = 23;
+  OrgNodeKind_CmdArguments_f                                                        = 24;
+  OrgNodeKind_CmdTitle_f                                                            = 25;
+  OrgNodeKind_CmdAuthor_f                                                           = 26;
+  OrgNodeKind_CmdCreator_f                                                          = 27;
+  OrgNodeKind_CmdInclude_f                                                          = 28;
+  OrgNodeKind_CmdLanguage_f                                                         = 29;
+  OrgNodeKind_CmdAttr_f                                                             = 30;
+  OrgNodeKind_CmdStartup_f                                                          = 31;
+  OrgNodeKind_CmdName_f                                                             = 32;
   OrgNodeKind_CmdCustomTextCommand_f                                                = 33;
   OrgNodeKind_CmdCustomArgsCommand_f                                                = 34;
   OrgNodeKind_CmdCustomRawCommand_f                                                 = 35;
-  OrgNodeKind_CommandResults_f                                                      = 36;
-  OrgNodeKind_CommandHeader_f                                                       = 37;
-  OrgNodeKind_CommandOptions_f                                                      = 38;
-  OrgNodeKind_CommandTblfm_f                                                        = 39;
-  OrgNodeKind_CommandBackendOptions_f                                               = 40;
+  OrgNodeKind_CmdResults_f                                                          = 36;
+  OrgNodeKind_CmdHeader_f                                                           = 37;
+  OrgNodeKind_CmdOptions_f                                                          = 38;
+  OrgNodeKind_CmdTblfm_f                                                            = 39;
+  OrgNodeKind_CmdBackendOptions_f                                                   = 40;
   OrgNodeKind_AttrImg_f                                                             = 41;
-  OrgNodeKind_CommandCaption_f                                                      = 42;
+  OrgNodeKind_CmdCaption_f                                                          = 42;
   OrgNodeKind_File_f                                                                = 43;
   OrgNodeKind_BlockExport_f                                                         = 44;
   OrgNodeKind_InlineExport_f                                                        = 45;
@@ -119,15 +119,15 @@ enum OrgNodeKind {
   OrgNodeKind_BareIdent_f                                                           = 49;
   OrgNodeKind_AdmonitionTag_f                                                       = 50;
   OrgNodeKind_BigIdent_f                                                            = 51;
-  OrgNodeKind_VerbatimMultilineBlock_f                                              = 52;
+  OrgNodeKind_BlockVerbatimMultiline_f                                              = 52;
   OrgNodeKind_CodeLine_f                                                            = 53;
   OrgNodeKind_CodeText_f                                                            = 54;
   OrgNodeKind_CodeTangle_f                                                          = 55;
   OrgNodeKind_CodeCallout_f                                                         = 56;
-  OrgNodeKind_QuoteBlock_f                                                          = 57;
-  OrgNodeKind_CommentBlock_f                                                        = 58;
-  OrgNodeKind_CenterBlock_f                                                         = 59;
-  OrgNodeKind_VerseBlock_f                                                          = 60;
+  OrgNodeKind_BlockQuote_f                                                          = 57;
+  OrgNodeKind_BlockComment_f                                                        = 58;
+  OrgNodeKind_BlockCenter_f                                                         = 59;
+  OrgNodeKind_BlockVerse_f                                                          = 60;
   OrgNodeKind_Example_f                                                             = 61;
   OrgNodeKind_ColonExample_f                                                        = 62;
   OrgNodeKind_SrcCode_f                                                             = 63;
@@ -135,78 +135,77 @@ enum OrgNodeKind {
   OrgNodeKind_InlineCallCode_f                                                      = 65;
   OrgNodeKind_CmdCallCode_f                                                         = 66;
   OrgNodeKind_PassCode_f                                                            = 67;
-  OrgNodeKind_CmdArguments_f                                                        = 68;
-  OrgNodeKind_CmdFlag_f                                                             = 69;
-  OrgNodeKind_CmdKey_f                                                              = 70;
-  OrgNodeKind_CmdValue_f                                                            = 71;
-  OrgNodeKind_CmdNamedValue_f                                                       = 72;
-  OrgNodeKind_UrgencyStatus_f                                                       = 73;
-  OrgNodeKind_TextSeparator_f                                                       = 74;
-  OrgNodeKind_Paragraph_f                                                           = 75;
-  OrgNodeKind_AnnotatedParagraph_f                                                  = 76;
-  OrgNodeKind_Bold_f                                                                = 77;
-  OrgNodeKind_Italic_f                                                              = 78;
-  OrgNodeKind_Verbatim_f                                                            = 79;
-  OrgNodeKind_Backtick_f                                                            = 80;
-  OrgNodeKind_Underline_f                                                           = 81;
-  OrgNodeKind_Strike_f                                                              = 82;
-  OrgNodeKind_Quote_f                                                               = 83;
-  OrgNodeKind_Angle_f                                                               = 84;
-  OrgNodeKind_Monospace_f                                                           = 85;
-  OrgNodeKind_Par_f                                                                 = 86;
-  OrgNodeKind_InlineMath_f                                                          = 87;
-  OrgNodeKind_DisplayMath_f                                                         = 88;
-  OrgNodeKind_Space_f                                                               = 89;
-  OrgNodeKind_Punctuation_f                                                         = 90;
-  OrgNodeKind_Colon_f                                                               = 91;
-  OrgNodeKind_Word_f                                                                = 92;
-  OrgNodeKind_Escaped_f                                                             = 93;
-  OrgNodeKind_Newline_f                                                             = 94;
-  OrgNodeKind_RawLink_f                                                             = 95;
-  OrgNodeKind_Link_f                                                                = 96;
-  OrgNodeKind_Macro_f                                                               = 97;
-  OrgNodeKind_BackendRaw_f                                                          = 98;
-  OrgNodeKind_Symbol_f                                                              = 99;
-  OrgNodeKind_TimeAssoc_f                                                           = 100;
-  OrgNodeKind_StaticActiveTime_f                                                    = 101;
-  OrgNodeKind_StaticInactiveTime_f                                                  = 102;
-  OrgNodeKind_DynamicActiveTime_f                                                   = 103;
-  OrgNodeKind_DynamicInactiveTime_f                                                 = 104;
-  OrgNodeKind_TimeRange_f                                                           = 105;
-  OrgNodeKind_SimpleTime_f                                                          = 106;
-  OrgNodeKind_Details_f                                                             = 107;
-  OrgNodeKind_Summary_f                                                             = 108;
-  OrgNodeKind_Table_f                                                               = 109;
-  OrgNodeKind_TableRow_f                                                            = 110;
-  OrgNodeKind_TableCell_f                                                           = 111;
-  OrgNodeKind_InlineFootnote_f                                                      = 112;
-  OrgNodeKind_Footnote_f                                                            = 113;
-  OrgNodeKind_Horizontal_f                                                          = 114;
-  OrgNodeKind_Filetags_f                                                            = 115;
-  OrgNodeKind_OrgTag_f                                                              = 116;
-  OrgNodeKind_HashTag_f                                                             = 117;
-  OrgNodeKind_MetaSymbol_f                                                          = 118;
-  OrgNodeKind_AtMention_f                                                           = 119;
-  OrgNodeKind_BracTag_f                                                             = 120;
-  OrgNodeKind_Drawer_f                                                              = 121;
-  OrgNodeKind_LatexClass_f                                                          = 122;
-  OrgNodeKind_LatexHeader_f                                                         = 123;
-  OrgNodeKind_LatexCompiler_f                                                       = 124;
-  OrgNodeKind_LatexClassOptions_f                                                   = 125;
-  OrgNodeKind_HtmlHead_f                                                            = 126;
-  OrgNodeKind_Columns_f                                                             = 127;
-  OrgNodeKind_CmdPropertyArgs_f                                                     = 128;
-  OrgNodeKind_CmdPropertyText_f                                                     = 129;
-  OrgNodeKind_CmdPropertyRaw_f                                                      = 130;
-  OrgNodeKind_PropertyList_f                                                        = 131;
-  OrgNodeKind_Property_f                                                            = 132;
-  OrgNodeKind_Placeholder_f                                                         = 133;
-  OrgNodeKind_SubtreeDescription_f                                                  = 134;
-  OrgNodeKind_SubtreeUrgency_f                                                      = 135;
-  OrgNodeKind_Logbook_f                                                             = 136;
-  OrgNodeKind_LogbookStateChange_f                                                  = 137;
-  OrgNodeKind_RadioTarget_f                                                         = 138;
-  OrgNodeKind_Target_f                                                              = 139;
+  OrgNodeKind_CmdFlag_f                                                             = 68;
+  OrgNodeKind_CmdKey_f                                                              = 69;
+  OrgNodeKind_CmdValue_f                                                            = 70;
+  OrgNodeKind_CmdNamedValue_f                                                       = 71;
+  OrgNodeKind_UrgencyStatus_f                                                       = 72;
+  OrgNodeKind_TextSeparator_f                                                       = 73;
+  OrgNodeKind_Paragraph_f                                                           = 74;
+  OrgNodeKind_AnnotatedParagraph_f                                                  = 75;
+  OrgNodeKind_Bold_f                                                                = 76;
+  OrgNodeKind_Italic_f                                                              = 77;
+  OrgNodeKind_Verbatim_f                                                            = 78;
+  OrgNodeKind_Backtick_f                                                            = 79;
+  OrgNodeKind_Underline_f                                                           = 80;
+  OrgNodeKind_Strike_f                                                              = 81;
+  OrgNodeKind_Quote_f                                                               = 82;
+  OrgNodeKind_Angle_f                                                               = 83;
+  OrgNodeKind_Monospace_f                                                           = 84;
+  OrgNodeKind_Par_f                                                                 = 85;
+  OrgNodeKind_InlineMath_f                                                          = 86;
+  OrgNodeKind_DisplayMath_f                                                         = 87;
+  OrgNodeKind_Space_f                                                               = 88;
+  OrgNodeKind_Punctuation_f                                                         = 89;
+  OrgNodeKind_Colon_f                                                               = 90;
+  OrgNodeKind_Word_f                                                                = 91;
+  OrgNodeKind_Escaped_f                                                             = 92;
+  OrgNodeKind_Newline_f                                                             = 93;
+  OrgNodeKind_RawLink_f                                                             = 94;
+  OrgNodeKind_Link_f                                                                = 95;
+  OrgNodeKind_Macro_f                                                               = 96;
+  OrgNodeKind_BackendRaw_f                                                          = 97;
+  OrgNodeKind_Symbol_f                                                              = 98;
+  OrgNodeKind_TimeAssoc_f                                                           = 99;
+  OrgNodeKind_StaticActiveTime_f                                                    = 100;
+  OrgNodeKind_StaticInactiveTime_f                                                  = 101;
+  OrgNodeKind_DynamicActiveTime_f                                                   = 102;
+  OrgNodeKind_DynamicInactiveTime_f                                                 = 103;
+  OrgNodeKind_TimeRange_f                                                           = 104;
+  OrgNodeKind_SimpleTime_f                                                          = 105;
+  OrgNodeKind_Details_f                                                             = 106;
+  OrgNodeKind_Summary_f                                                             = 107;
+  OrgNodeKind_Table_f                                                               = 108;
+  OrgNodeKind_TableRow_f                                                            = 109;
+  OrgNodeKind_TableCell_f                                                           = 110;
+  OrgNodeKind_InlineFootnote_f                                                      = 111;
+  OrgNodeKind_Footnote_f                                                            = 112;
+  OrgNodeKind_Horizontal_f                                                          = 113;
+  OrgNodeKind_Filetags_f                                                            = 114;
+  OrgNodeKind_OrgTag_f                                                              = 115;
+  OrgNodeKind_HashTag_f                                                             = 116;
+  OrgNodeKind_MetaSymbol_f                                                          = 117;
+  OrgNodeKind_AtMention_f                                                           = 118;
+  OrgNodeKind_BracTag_f                                                             = 119;
+  OrgNodeKind_Drawer_f                                                              = 120;
+  OrgNodeKind_LatexClass_f                                                          = 121;
+  OrgNodeKind_LatexHeader_f                                                         = 122;
+  OrgNodeKind_LatexCompiler_f                                                       = 123;
+  OrgNodeKind_LatexClassOptions_f                                                   = 124;
+  OrgNodeKind_HtmlHead_f                                                            = 125;
+  OrgNodeKind_Columns_f                                                             = 126;
+  OrgNodeKind_CmdPropertyArgs_f                                                     = 127;
+  OrgNodeKind_CmdPropertyText_f                                                     = 128;
+  OrgNodeKind_CmdPropertyRaw_f                                                      = 129;
+  OrgNodeKind_PropertyList_f                                                        = 130;
+  OrgNodeKind_Property_f                                                            = 131;
+  OrgNodeKind_Placeholder_f                                                         = 132;
+  OrgNodeKind_SubtreeDescription_f                                                  = 133;
+  OrgNodeKind_SubtreeUrgency_f                                                      = 134;
+  OrgNodeKind_Logbook_f                                                             = 135;
+  OrgNodeKind_LogbookStateChange_f                                                  = 136;
+  OrgNodeKind_RadioTarget_f                                                         = 137;
+  OrgNodeKind_Target_f                                                              = 138;
 }
 
 enum OrgSemKind {
@@ -224,26 +223,26 @@ enum OrgSemKind {
   OrgSemKind_Completion_f                                                           = 11;
   OrgSemKind_Paragraph_f                                                            = 12;
   OrgSemKind_AnnotatedParagraph_f                                                   = 13;
-  OrgSemKind_Center_f                                                               = 14;
-  OrgSemKind_Caption_f                                                              = 15;
+  OrgSemKind_BlockCenter_f                                                          = 14;
+  OrgSemKind_CmdCaption_f                                                           = 15;
   OrgSemKind_CmdName_f                                                              = 16;
   OrgSemKind_CmdCustomArgs_f                                                        = 17;
   OrgSemKind_CmdCustomRaw_f                                                         = 18;
   OrgSemKind_CmdCustomText_f                                                        = 19;
   OrgSemKind_CmdResults_f                                                           = 20;
-  OrgSemKind_CommandGroup_f                                                         = 21;
-  OrgSemKind_Tblfm_f                                                                = 22;
-  OrgSemKind_Quote_f                                                                = 23;
-  OrgSemKind_CommentBlock_f                                                         = 24;
-  OrgSemKind_Verse_f                                                                = 25;
-  OrgSemKind_Example_f                                                              = 26;
+  OrgSemKind_CmdGroup_f                                                             = 21;
+  OrgSemKind_CmdTblfm_f                                                             = 22;
+  OrgSemKind_BlockQuote_f                                                           = 23;
+  OrgSemKind_BlockComment_f                                                         = 24;
+  OrgSemKind_BlockVerse_f                                                           = 25;
+  OrgSemKind_BlockExample_f                                                         = 26;
   OrgSemKind_ColonExample_f                                                         = 27;
   OrgSemKind_CmdArguments_f                                                         = 28;
   OrgSemKind_CmdAttr_f                                                              = 29;
-  OrgSemKind_Export_f                                                               = 30;
-  OrgSemKind_AdmonitionBlock_f                                                      = 31;
+  OrgSemKind_BlockExport_f                                                          = 30;
+  OrgSemKind_BlockAdmonition_f                                                      = 31;
   OrgSemKind_Call_f                                                                 = 32;
-  OrgSemKind_Code_f                                                                 = 33;
+  OrgSemKind_BlockCode_f                                                            = 33;
   OrgSemKind_Time_f                                                                 = 34;
   OrgSemKind_TimeRange_f                                                            = 35;
   OrgSemKind_Macro_f                                                                = 36;
@@ -339,7 +338,7 @@ message Empty {
   string                                           debug                            = 1000;
 }
 
-message Command {
+message Cmd {
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
   optional CmdArguments                            parameters                       = 3;
@@ -456,20 +455,13 @@ message Format {
   string                                           debug                            = 1000;
 }
 
-message Center {
+message BlockCenter {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   string                                           debug                            = 1000;
 }
 
 message LineCommand {
-  optional CmdArguments                            parameters                       = 1;
-  repeated AnyNode                                 attached                         = 2;
-  repeated AnyNode                                 subnodes                         = 3;
-  string                                           debug                            = 1000;
-}
-
-message Standalone {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -483,7 +475,7 @@ message Attached {
   string                                           debug                            = 1000;
 }
 
-message Caption {
+message CmdCaption {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -539,14 +531,14 @@ message CmdResults {
   string                                           debug                            = 1000;
 }
 
-message CommandGroup {
+message CmdGroup {
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
-message Tblfm {
+message CmdTblfm {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -554,7 +546,7 @@ message Tblfm {
   string                                           debug                            = 1000;
 }
 
-message Quote {
+message BlockQuote {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -562,14 +554,14 @@ message Quote {
   string                                           debug                            = 1000;
 }
 
-message CommentBlock {
+message BlockComment {
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   string                                           debug                            = 1000;
 }
 
-message Verse {
+message BlockVerse {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -577,7 +569,7 @@ message Verse {
   string                                           debug                            = 1000;
 }
 
-message Example {
+message BlockExample {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -608,7 +600,7 @@ message CmdAttr {
   string                                           debug                            = 1000;
 }
 
-message Export {
+message BlockExport {
   enum Format {
     Format_Inline_f                                                                 = 0;
     Format_Line_f                                                                   = 1;
@@ -618,14 +610,14 @@ message Export {
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
-  Export.Format                                    format                           = 5;
+  BlockExport.Format                               format                           = 5;
   string                                           exporter                         = 6;
   optional string                                  placement                        = 7;
   string                                           content                          = 8;
   string                                           debug                            = 1000;
 }
 
-message AdmonitionBlock {
+message BlockAdmonition {
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
@@ -642,7 +634,7 @@ message Call {
   string                                           debug                            = 1000;
 }
 
-message Code {
+message BlockCode {
   message Line {
     message Part {
       message Raw {
@@ -659,9 +651,9 @@ message Code {
       }
       message Data {
         oneof kind {
-          Code.Line.Part.Raw                       raw                              = 1;
-          Code.Line.Part.Callout                   callout                          = 2;
-          Code.Line.Part.Tangle                    tangle                           = 3;
+          BlockCode.Line.Part.Raw                  raw                              = 1;
+          BlockCode.Line.Part.Callout              callout                          = 2;
+          BlockCode.Line.Part.Tangle               tangle                           = 3;
         }
       }
       enum Kind {
@@ -669,10 +661,10 @@ message Code {
         Kind_Callout_f                                                              = 1;
         Kind_Tangle_f                                                               = 2;
       }
-      Code.Line.Part.Data                          data                             = 1;
+      BlockCode.Line.Part.Data                     data                             = 1;
       string                                       debug                            = 1000;
     }
-    repeated Code.Line.Part                        parts                            = 1;
+    repeated BlockCode.Line.Part                   parts                            = 1;
     string                                         debug                            = 1000;
   }
   message Switch {
@@ -699,11 +691,11 @@ message Code {
     }
     message Data {
       oneof kind {
-        Code.Switch.LineStart                      linestart                        = 1;
-        Code.Switch.CalloutFormat                  calloutformat                    = 2;
-        Code.Switch.RemoveCallout                  removecallout                    = 3;
-        Code.Switch.EmphasizeLine                  emphasizeline                    = 4;
-        Code.Switch.Dedent                         dedent                           = 5;
+        BlockCode.Switch.LineStart                 linestart                        = 1;
+        BlockCode.Switch.CalloutFormat             calloutformat                    = 2;
+        BlockCode.Switch.RemoveCallout             removecallout                    = 3;
+        BlockCode.Switch.EmphasizeLine             emphasizeline                    = 4;
+        BlockCode.Switch.Dedent                    dedent                           = 5;
       }
     }
     enum Kind {
@@ -713,7 +705,7 @@ message Code {
       Kind_EmphasizeLine_f                                                          = 3;
       Kind_Dedent_f                                                                 = 4;
     }
-    Code.Switch.Data                               data                             = 1;
+    BlockCode.Switch.Data                          data                             = 1;
     string                                         debug                            = 1000;
   }
   enum Results {
@@ -743,10 +735,10 @@ message Code {
     }
     message Data {
       oneof kind {
-        Code.EvalResult.None                       none                             = 1;
-        Code.EvalResult.OrgValue                   orgvalue                         = 2;
-        Code.EvalResult.File                       file                             = 3;
-        Code.EvalResult.Raw                        raw                              = 4;
+        BlockCode.EvalResult.None                  none                             = 1;
+        BlockCode.EvalResult.OrgValue              orgvalue                         = 2;
+        BlockCode.EvalResult.File                  file                             = 3;
+        BlockCode.EvalResult.Raw                   raw                              = 4;
       }
     }
     enum Kind {
@@ -755,7 +747,7 @@ message Code {
       Kind_File_f                                                                   = 2;
       Kind_Raw_f                                                                    = 3;
     }
-    Code.EvalResult.Data                           data                             = 1;
+    BlockCode.EvalResult.Data                      data                             = 1;
     string                                         debug                            = 1000;
   }
   optional CmdArguments                            parameters                       = 1;
@@ -763,10 +755,10 @@ message Code {
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   optional string                                  lang                             = 5;
-  repeated Code.Switch                             switches                         = 6;
-  Code.Exports                                     exports                          = 7;
-  optional Code.EvalResult                         result                           = 8;
-  repeated Code.Line                               lines                            = 9;
+  repeated BlockCode.Switch                        switches                         = 6;
+  BlockCode.Exports                                exports                          = 7;
+  optional BlockCode.EvalResult                    result                           = 8;
+  repeated BlockCode.Line                          lines                            = 9;
   bool                                             cache                            = 10;
   bool                                             eval                             = 11;
   bool                                             noweb                            = 12;
@@ -1503,26 +1495,26 @@ message AnyNode {
     Completion                                       completion                       = 12;
     Paragraph                                        paragraph                        = 13;
     AnnotatedParagraph                               annotatedparagraph               = 14;
-    Center                                           center                           = 15;
-    Caption                                          caption                          = 16;
+    BlockCenter                                      blockcenter                      = 15;
+    CmdCaption                                       cmdcaption                       = 16;
     CmdName                                          cmdname                          = 17;
     CmdCustomArgs                                    cmdcustomargs                    = 18;
     CmdCustomRaw                                     cmdcustomraw                     = 19;
     CmdCustomText                                    cmdcustomtext                    = 20;
     CmdResults                                       cmdresults                       = 21;
-    CommandGroup                                     commandgroup                     = 22;
-    Tblfm                                            tblfm                            = 23;
-    Quote                                            quote                            = 24;
-    CommentBlock                                     commentblock                     = 25;
-    Verse                                            verse                            = 26;
-    Example                                          example                          = 27;
+    CmdGroup                                         cmdgroup                         = 22;
+    CmdTblfm                                         cmdtblfm                         = 23;
+    BlockQuote                                       blockquote                       = 24;
+    BlockComment                                     blockcomment                     = 25;
+    BlockVerse                                       blockverse                       = 26;
+    BlockExample                                     blockexample                     = 27;
     ColonExample                                     colonexample                     = 28;
     CmdArguments                                     cmdarguments                     = 29;
     CmdAttr                                          cmdattr                          = 30;
-    Export                                           export                           = 31;
-    AdmonitionBlock                                  admonitionblock                  = 32;
+    BlockExport                                      blockexport                      = 31;
+    BlockAdmonition                                  blockadmonition                  = 32;
     Call                                             call                             = 33;
-    Code                                             code                             = 34;
+    BlockCode                                        blockcode                        = 34;
     Time                                             time                             = 35;
     TimeRange                                        timerange                        = 36;
     Macro                                            macro                            = 37;
