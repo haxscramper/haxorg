@@ -633,9 +633,16 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Created const& object) { __obj_field(res, object, time); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Unknown const& object) {
-  __obj_field(res, object, value);
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::CustomArgs const& object) {
   __obj_field(res, object, name);
+  __obj_field(res, object, sub);
+  __obj_field(res, object, parameters);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::CustomRaw const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, value);
 }
 
 template <typename V, typename R>

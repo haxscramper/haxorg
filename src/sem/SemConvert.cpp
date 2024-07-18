@@ -436,12 +436,10 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = Property(prop);
 
     } else {
-        Property::Unknown prop;
-        prop.name  = basename;
-        prop.value = convert(one(a, N::Values));
-        if (prop.value->is(osk::StmtList)
-            && prop.value->subnodes.size() == 1) {
-            prop.value = prop.value->at(0);
+        Property::CustomRaw prop;
+        prop.name = basename;
+        for (auto const& arg : many(a, N::Args)) {
+            prop.value += get_text(arg);
         }
         result = Property(prop);
     }
@@ -1656,6 +1654,16 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 }
                 case org::CommandOptions: {
                     convertDocumentOptions(doc->options, sub);
+                    break;
+                }
+
+                case org::CmdPropertyArgs: {
+                    Prop::CustomArgs prop;
+                    prop.name       = get_text(one(sub, N::Name));
+                    prop.parameters = convertCmdArguments(
+                                          one(sub, N::Args))
+                                          .value();
+                    doc->options->properties.push_back(Prop(prop));
                     break;
                 }
 

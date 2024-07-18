@@ -176,6 +176,37 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
         hadDocumentProperties = true;
     }
 
+    for (auto const& prop : id->options->properties) {
+        using P = sem::Subtree::Property;
+        switch (prop.getKind()) {
+            case P::Kind::CustomRaw: {
+                add(result,
+                    b.line({
+                        str("#+property: "),
+                        str(prop.getCustomRaw().name),
+                        str(" "),
+                        str(prop.getCustomRaw().value),
+                    }));
+                break;
+            }
+            case P::Kind::CustomArgs: {
+                add(result,
+                    b.line({
+                        str("#+property: "),
+                        str(prop.getCustomArgs().name),
+                        str(" "),
+                        toString(prop.getCustomArgs().parameters, ctx),
+                    }));
+                break;
+            }
+            default: {
+                throw std::logic_error(
+                    fmt("Unexpected document-level property: {}",
+                        prop.getKind()));
+            }
+        }
+    }
+
     if (hadDocumentProperties) { add(result, str("")); }
 
     for (auto const& sub : id->subnodes) {
@@ -868,12 +899,13 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                              toString(prop.getCreated().time, ctx)}));
                     break;
                 }
-                case P::Kind::Unknown: {
+                case P::Kind::CustomRaw: {
                     add(head,
-                        b.line(
-                            {str(":"_ss + prop.getUnknown().name
-                                 + ": "_ss),
-                             toString(prop.getUnknown().value, ctx)}));
+                        b.line({
+                            str(":"_ss + prop.getCustomRaw().name
+                                + ": "_ss),
+                            str(prop.getCustomRaw().value),
+                        }));
                     break;
                 }
                 case P::Kind::Effort: {

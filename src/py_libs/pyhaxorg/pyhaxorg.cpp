@@ -2344,19 +2344,37 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Subtree::Property::Unknown>(m, "SubtreePropertyUnknown")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Unknown {
-                        sem::Subtree::Property::Unknown result{};
+  pybind11::class_<sem::Subtree::Property::CustomArgs>(m, "SubtreePropertyCustomArgs")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::CustomArgs {
+                        sem::Subtree::Property::CustomArgs result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("value", &sem::Subtree::Property::Unknown::value, R"RAW(Converted value of the property)RAW")
-    .def_readwrite("name", &sem::Subtree::Property::Unknown::name, R"RAW(Original name of the property)RAW")
-    .def("__repr__", [](sem::Subtree::Property::Unknown _self) -> std::string {
+    .def_readwrite("name", &sem::Subtree::Property::CustomArgs::name, R"RAW(Normalized the property)RAW")
+    .def_readwrite("sub", &sem::Subtree::Property::CustomArgs::sub, R"RAW(Property target specialization)RAW")
+    .def_readwrite("parameters", &sem::Subtree::Property::CustomArgs::parameters, R"RAW(Property parameters)RAW")
+    .def("__repr__", [](sem::Subtree::Property::CustomArgs _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Subtree::Property::Unknown _self, std::string name) -> pybind11::object {
+         [](sem::Subtree::Property::CustomArgs _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Subtree::Property::CustomRaw>(m, "SubtreePropertyCustomRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::CustomRaw {
+                        sem::Subtree::Property::CustomRaw result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::Subtree::Property::CustomRaw::name, R"RAW(Normalized the property)RAW")
+    .def_readwrite("value", &sem::Subtree::Property::CustomRaw::value, R"RAW(Property value)RAW")
+    .def("__repr__", [](sem::Subtree::Property::CustomRaw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Subtree::Property::CustomRaw _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2377,7 +2395,8 @@ node can have subnodes.)RAW")
     .value("Blocker", sem::Subtree::Property::Kind::Blocker)
     .value("Unnumbered", sem::Subtree::Property::Kind::Unnumbered)
     .value("Created", sem::Subtree::Property::Kind::Created)
-    .value("Unknown", sem::Subtree::Property::Kind::Unknown)
+    .value("CustomArgs", sem::Subtree::Property::Kind::CustomArgs)
+    .value("CustomRaw", sem::Subtree::Property::Kind::CustomRaw)
     .def("__iter__", [](sem::Subtree::Property::Kind _self) -> PyEnumIterator<sem::Subtree::Property::Kind> {
                      return
                      PyEnumIterator<sem::Subtree::Property::Kind>
@@ -2415,7 +2434,8 @@ node can have subnodes.)RAW")
     .def("getBlocker", static_cast<sem::Subtree::Property::Blocker&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getBlocker))
     .def("getUnnumbered", static_cast<sem::Subtree::Property::Unnumbered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnnumbered))
     .def("getCreated", static_cast<sem::Subtree::Property::Created&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCreated))
-    .def("getUnknown", static_cast<sem::Subtree::Property::Unknown&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnknown))
+    .def("getCustomArgs", static_cast<sem::Subtree::Property::CustomArgs&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCustomArgs))
+    .def("getCustomRaw", static_cast<sem::Subtree::Property::CustomRaw&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCustomRaw))
     .def_static("getKindStatic",
                 static_cast<sem::Subtree::Property::Kind(*)(sem::Subtree::Property::Data const&)>(&sem::Subtree::Property::getKind),
                 pybind11::arg("__input"))

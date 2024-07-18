@@ -157,6 +157,11 @@ def bool_field(name: str,
     return GenTuField(t("bool"), name, doc=org_doc(doc), value=default)
 
 
+@beartype
+def str_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> GenTuField:
+    return org_field(t_str(), name, doc, default)
+
+
 def d_org(name: str, *args, **kwargs) -> GenTuStruct:
     res = GenTuStruct(QualType(name=name), *args, **kwargs)
     res.__setattr__("isOrgType", True)
@@ -206,6 +211,107 @@ def d_simple_enum(name: str, doc: GenTuDoc, *args):
             for arg in args
         ],
     )
+
+
+def get_subtree_property_types():
+    return [
+        GenTuStruct(t("Nonblocking"),
+                    GenTuDoc(""),
+                    fields=[GenTuField(t_bool(), "isBlocking", GenTuDoc(""))],
+                    nested=[GenTuPass("Nonblocking() {}")]),
+        GenTuStruct(t("Trigger"), GenTuDoc(""), nested=[GenTuPass("Trigger() {}")]),
+        GenTuStruct(t("Origin"),
+                    GenTuDoc(""),
+                    fields=[id_field("Paragraph", "text", GenTuDoc(""))],
+                    nested=[GenTuPass("Origin() {}")]),
+        GenTuStruct(t("ExportLatexClass"),
+                    GenTuDoc(""),
+                    fields=[GenTuField(t_str(), "latexClass", GenTuDoc(""))],
+                    nested=[GenTuPass("ExportLatexClass() {}")]),
+        GenTuStruct(t("ExportLatexClassOptions"),
+                    GenTuDoc(""),
+                    fields=[GenTuField(t_vec(t_str()), "options", GenTuDoc(""))],
+                    nested=[GenTuPass("ExportLatexClassOptions() {}")]),
+        GenTuStruct(t("ExportLatexHeader"),
+                    GenTuDoc(""),
+                    fields=[GenTuField(t_str(), "header", GenTuDoc(""))],
+                    nested=[GenTuPass("ExportLatexHeader() {}")]),
+        GenTuStruct(t("ExportLatexCompiler"),
+                    GenTuDoc(""),
+                    fields=[GenTuField(t_str(), "compiler", GenTuDoc(""))],
+                    nested=[GenTuPass("ExportLatexCompiler() {}")]),
+        GenTuStruct(t("Ordered"),
+                    GenTuDoc(""),
+                    fields=[GenTuField(t_bool(), "isOrdered", GenTuDoc(""))],
+                    nested=[GenTuPass("Ordered() {}")]),
+        GenTuStruct(t("Effort"),
+                    GenTuDoc(""),
+                    fields=[
+                        GenTuField(t_int(), "hours", GenTuDoc(""), value="0"),
+                        GenTuField(t_int(), "minutes", GenTuDoc(""), value="0"),
+                    ],
+                    nested=[GenTuPass("Effort() {}")]),
+        GenTuStruct(
+            t("Visibility"),
+            GenTuDoc(""),
+            nested=[
+                GenTuPass("Visibility() {}"),
+                d_simple_enum(
+                    "Level",
+                    GenTuDoc(""),
+                    "Folded",
+                    "Children",
+                    "Content",
+                    "All",
+                )
+            ],
+            fields=[
+                GenTuField(t_nest("Level", ["Subtree", "Property", "Visibility"]),
+                           "level", GenTuDoc(""))
+            ],
+        ),
+        GenTuStruct(
+            t("ExportOptions"),
+            GenTuDoc(""),
+            nested=[GenTuPass("ExportOptions() {}")],
+            fields=[
+                GenTuField(t_str(), "backend", GenTuDoc("")),
+                GenTuField(t_map(t_str(), t_str()), "values", GenTuDoc("")),
+            ],
+        ),
+        GenTuStruct(
+            t("Blocker"),
+            GenTuDoc(""),
+            nested=[GenTuPass("Blocker() {}")],
+            fields=[GenTuField(t_vec(t_str()), "blockers", GenTuDoc(""))],
+        ),
+        GenTuStruct(t("Unnumbered"), GenTuDoc(""), nested=[GenTuPass("Unnumbered() {}")]),
+        GenTuStruct(
+            t("Created"),
+            GenTuDoc(""),
+            nested=[GenTuPass("Created() {}")],
+            fields=[id_field("Time", "time", GenTuDoc(""))],
+        ),
+        GenTuStruct(
+            t("CustomArgs"),
+            GenTuDoc("Custop property with unparsed arguments"),
+            nested=[GenTuPass("CustomArgs() {}")],
+            fields=[
+                str_field("name", GenTuDoc("Original name of the property")),
+                opt_field(t_str(), "sub", GenTuDoc("Property target specialization")),
+                id_field("CmdArguments", "parameters", GenTuDoc("Property parameters")),
+            ],
+        ),
+        GenTuStruct(
+            t("CustomRaw"),
+            GenTuDoc("Custop property with unparsed arguments"),
+            nested=[GenTuPass("CustomRaw() {}")],
+            fields=[
+                str_field("name", GenTuDoc("Original name of the property")),
+                str_field("value", GenTuDoc("Property value")),
+            ],
+        )
+    ]
 
 
 def get_types() -> Sequence[GenTuStruct]:
@@ -1409,125 +1515,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                       "Subtract"),
                         d_simple_enum("InheritanceMode", GenTuDoc(""), "ThisAndSub",
                                       "OnlyThis", "OnlySub"),
-                        GenTuTypeGroup([
-                            GenTuStruct(
-                                t("Nonblocking"),
-                                GenTuDoc(""),
-                                fields=[GenTuField(t_bool(), "isBlocking", GenTuDoc(""))],
-                                nested=[GenTuPass("Nonblocking() {}")]),
-                            GenTuStruct(t("Trigger"),
-                                        GenTuDoc(""),
-                                        nested=[GenTuPass("Trigger() {}")]),
-                            GenTuStruct(
-                                t("Origin"),
-                                GenTuDoc(""),
-                                fields=[id_field("Paragraph", "text", GenTuDoc(""))],
-                                nested=[GenTuPass("Origin() {}")]),
-                            GenTuStruct(
-                                t("ExportLatexClass"),
-                                GenTuDoc(""),
-                                fields=[GenTuField(t_str(), "latexClass", GenTuDoc(""))],
-                                nested=[GenTuPass("ExportLatexClass() {}")]),
-                            GenTuStruct(
-                                t("ExportLatexClassOptions"),
-                                GenTuDoc(""),
-                                fields=[
-                                    GenTuField(t_vec(t_str()), "options", GenTuDoc(""))
-                                ],
-                                nested=[GenTuPass("ExportLatexClassOptions() {}")]),
-                            GenTuStruct(
-                                t("ExportLatexHeader"),
-                                GenTuDoc(""),
-                                fields=[GenTuField(t_str(), "header", GenTuDoc(""))],
-                                nested=[GenTuPass("ExportLatexHeader() {}")]),
-                            GenTuStruct(
-                                t("ExportLatexCompiler"),
-                                GenTuDoc(""),
-                                fields=[GenTuField(t_str(), "compiler", GenTuDoc(""))],
-                                nested=[GenTuPass("ExportLatexCompiler() {}")]),
-                            GenTuStruct(
-                                t("Ordered"),
-                                GenTuDoc(""),
-                                fields=[GenTuField(t_bool(), "isOrdered", GenTuDoc(""))],
-                                nested=[GenTuPass("Ordered() {}")]),
-                            GenTuStruct(t("Effort"),
-                                        GenTuDoc(""),
-                                        fields=[
-                                            GenTuField(t_int(),
-                                                       "hours",
-                                                       GenTuDoc(""),
-                                                       value="0"),
-                                            GenTuField(t_int(),
-                                                       "minutes",
-                                                       GenTuDoc(""),
-                                                       value="0"),
-                                        ],
-                                        nested=[GenTuPass("Effort() {}")]),
-                            GenTuStruct(
-                                t("Visibility"),
-                                GenTuDoc(""),
-                                nested=[
-                                    GenTuPass("Visibility() {}"),
-                                    d_simple_enum(
-                                        "Level",
-                                        GenTuDoc(""),
-                                        "Folded",
-                                        "Children",
-                                        "Content",
-                                        "All",
-                                    )
-                                ],
-                                fields=[
-                                    GenTuField(
-                                        t_nest("Level",
-                                               ["Subtree", "Property", "Visibility"]),
-                                        "level", GenTuDoc(""))
-                                ],
-                            ),
-                            GenTuStruct(
-                                t("ExportOptions"),
-                                GenTuDoc(""),
-                                nested=[GenTuPass("ExportOptions() {}")],
-                                fields=[
-                                    GenTuField(t_str(), "backend", GenTuDoc("")),
-                                    GenTuField(t_map(t_str(), t_str()), "values",
-                                               GenTuDoc("")),
-                                ],
-                            ),
-                            GenTuStruct(
-                                t("Blocker"),
-                                GenTuDoc(""),
-                                nested=[GenTuPass("Blocker() {}")],
-                                fields=[
-                                    GenTuField(t_vec(t_str()), "blockers", GenTuDoc(""))
-                                ],
-                            ),
-                            GenTuStruct(t("Unnumbered"),
-                                        GenTuDoc(""),
-                                        nested=[GenTuPass("Unnumbered() {}")]),
-                            GenTuStruct(
-                                t("Created"),
-                                GenTuDoc(""),
-                                nested=[GenTuPass("Created() {}")],
-                                fields=[id_field("Time", "time", GenTuDoc(""))],
-                            ),
-                            GenTuStruct(
-                                t("Unknown"),
-                                GenTuDoc("Unknown property name"),
-                                nested=[GenTuPass("Unknown() {}")],
-                                fields=[
-                                    GenTuField(
-                                        t_id(),
-                                        "value",
-                                        GenTuDoc("Converted value of the property"),
-                                        value=f"sem::SemId<sem::Org>::Nil()"),
-                                    GenTuField(t_str(),
-                                               "name",
-                                               GenTuDoc("Original name of the property"),
-                                               value='""')
-                                ],
-                            )
-                        ]),
+                        GenTuTypeGroup(get_subtree_property_types()),
                         GenTuPass("Property(CR<Data> data) : data(data) {}"),
                     ],
                 ),

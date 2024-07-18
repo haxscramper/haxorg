@@ -676,9 +676,16 @@ struct proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Propert
 
 
 template <>
-struct proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown> {
-  static void write(::orgproto::Subtree::Property::Unknown* out, sem::Subtree::Property::Unknown const& in);
-  static void read(::orgproto::Subtree::Property::Unknown const& out, proto_write_accessor<sem::Subtree::Property::Unknown> in);
+struct proto_serde<::orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs> {
+  static void write(::orgproto::Subtree::Property::CustomArgs* out, sem::Subtree::Property::CustomArgs const& in);
+  static void read(::orgproto::Subtree::Property::CustomArgs const& out, proto_write_accessor<sem::Subtree::Property::CustomArgs> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw> {
+  static void write(::orgproto::Subtree::Property::CustomRaw* out, sem::Subtree::Property::CustomRaw const& in);
+  static void read(::orgproto::Subtree::Property::CustomRaw const& out, proto_write_accessor<sem::Subtree::Property::CustomRaw> in);
 };
 
 

@@ -207,11 +207,9 @@ void Subtree::setPropertyStrValue(
         this->treeId = value;
     } else {
         removeProperty(kind, subkind);
-        Property::Unknown prop;
+        Property::CustomRaw prop;
         prop.name  = kind;
-        auto text  = SemId<RawText>::New();
-        text->text = value;
-        prop.value = text;
+        prop.value = value;
         properties.push_back(Property{prop});
     }
 }
@@ -241,8 +239,8 @@ void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
 }
 
 Str Subtree::Property::getName() const {
-    if (getKind() == Kind::Unknown) {
-        return getUnknown().name;
+    if (getKind() == Kind::CustomRaw) {
+        return getCustomRaw().name;
     } else {
         return fmt1(getKind());
     }
@@ -258,8 +256,8 @@ Opt<Str> Subtree::Property::getSubKind() const {
 
 bool Subtree::Property::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     const {
-    if (getKind() == Property::Kind::Unknown) {
-        return normalize(getUnknown().name) == normalize(kind);
+    if (getKind() == Property::Kind::CustomRaw) {
+        return normalize(getCustomRaw().name) == normalize(kind);
     } else if (normalize(fmt1(getKind())) == normalize(kind)) {
         return true;
     } else if (

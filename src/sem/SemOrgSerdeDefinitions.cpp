@@ -1207,16 +1207,32 @@ void proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property:
   proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.time(), in.for_field(&sem::Subtree::Property::Created::time));
 }
 
-void proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::write(::orgproto::Subtree::Property::Unknown* out, sem::Subtree::Property::Unknown const& in) {
-  if (!in.value.isNil()) {
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(out->mutable_value(), in.value);
-  }
+void proto_serde<::orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::write(::orgproto::Subtree::Property::CustomArgs* out, sem::Subtree::Property::CustomArgs const& in) {
   proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  if (in.sub) {
+    proto_serde<std::string, Str>::write(out->mutable_sub(), *in.sub);
+  }
+  if (!in.parameters.isNil()) {
+    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
+  }
 }
 
-void proto_serde<::orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::read(::orgproto::Subtree::Property::Unknown const& out, proto_write_accessor<sem::Subtree::Property::Unknown> in) {
-  proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(out.value(), in.for_field(&sem::Subtree::Property::Unknown::value));
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Subtree::Property::Unknown::name));
+void proto_serde<::orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::read(::orgproto::Subtree::Property::CustomArgs const& out, proto_write_accessor<sem::Subtree::Property::CustomArgs> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Subtree::Property::CustomArgs::name));
+  if (out.has_sub()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.sub(), in.for_field(&sem::Subtree::Property::CustomArgs::sub));
+  }
+  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Subtree::Property::CustomArgs::parameters));
+}
+
+void proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::write(::orgproto::Subtree::Property::CustomRaw* out, sem::Subtree::Property::CustomRaw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::read(::orgproto::Subtree::Property::CustomRaw const& out, proto_write_accessor<sem::Subtree::Property::CustomRaw> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Subtree::Property::CustomRaw::name));
+  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::Subtree::Property::CustomRaw::value));
 }
 
 void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in) {
@@ -1267,7 +1283,10 @@ void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(:
       proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::write(out->mutable_data()->mutable_created(), std::get<13>(in.data));
       break;
     case 14:
-      proto_serde<orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::write(out->mutable_data()->mutable_unknown(), std::get<14>(in.data));
+      proto_serde<orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<14>(in.data));
+      break;
+    case 15:
+      proto_serde<orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<15>(in.data));
       break;
   }
 }
@@ -1319,8 +1338,11 @@ void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::read(::
     case ::orgproto::Subtree::Property::Data::kCreated:
       proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::read(out.data().created(), in.for_field_variant<13>(&sem::Subtree::Property::data));
       break;
-    case ::orgproto::Subtree::Property::Data::kUnknown:
-      proto_serde<orgproto::Subtree::Property::Unknown, sem::Subtree::Property::Unknown>::read(out.data().unknown(), in.for_field_variant<14>(&sem::Subtree::Property::data));
+    case ::orgproto::Subtree::Property::Data::kCustomargs:
+      proto_serde<orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::read(out.data().customargs(), in.for_field_variant<14>(&sem::Subtree::Property::data));
+      break;
+    case ::orgproto::Subtree::Property::Data::kCustomraw:
+      proto_serde<orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::read(out.data().customraw(), in.for_field_variant<15>(&sem::Subtree::Property::data));
       break;
   }
 }
