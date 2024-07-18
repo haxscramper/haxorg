@@ -1964,10 +1964,15 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdFiletags);
             start(org::Filetags);
             while (lex.at(OrgTokSet{otk::Word, otk::BigIdent}, +1)) {
-                space(lex);
+                if (lex.at(otk::Colon)) {
+                    skip(lex);
+                } else {
+                    space(lex);
+                }
                 subParse(HashTag, lex);
                 space(lex);
             }
+            if (lex.at(otk::Colon)) { skip(lex); }
             break;
         }
 
