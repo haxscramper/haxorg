@@ -113,15 +113,6 @@ struct OrgParser : public OperationsTracer {
         return group->lastPending();
     }
 
-    OrgId fail(OrgTokenId invalid) {
-        (void)token(OrgNodeKind::ErrorToken, invalid);
-        /// TODO insert token with error description
-        (void)token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
-        OrgId failed           = end();
-        group->at(failed).kind = OrgNodeKind::Error;
-        return failed;
-    }
-
     OrgId back() const { return group->nodes.back(); }
 
     int treeDepth() const {

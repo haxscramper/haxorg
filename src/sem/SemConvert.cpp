@@ -341,7 +341,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
                     break;
                 }
 
-                case org::Logbook: {
+                case org::DrawerLogbook: {
                     for (auto const& entry : group.at(0)) {
                         auto log = convertSubtreeLog(entry).value();
                         tree->logbook.push_back(log);
@@ -349,7 +349,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
                     break;
                 }
 
-                case org::PropertyList: {
+                case org::DrawerPropertyList: {
                     for (const auto& prop : group) {
                         convertPropertyList(tree, prop);
                     }
@@ -1020,12 +1020,6 @@ OrgConverter::ConvResult<BigIdent> OrgConverter::convertBigIdent(__args) {
     return SemLeaf<BigIdent>(a);
 }
 
-OrgConverter::ConvResult<sem::ParseError> OrgConverter::convertParseError(
-    __args) {
-    return Sem<sem::ParseError>(a);
-}
-
-
 OrgConverter::ConvResult<MarkQuote> OrgConverter::convertMarkQuote(
     __args) {
     __perf_trace("convert", "convertMarkQuote");
@@ -1518,15 +1512,14 @@ SemId<Org> OrgConverter::convert(__args) {
         case org::RadioTarget: return convertRadioTarget(a).unwrap();
         case org::InlineStmtList: return convertStmtList(a).unwrap();
         case org::SrcInlineCode:
-        case org::SrcCode: return convertBlockCode(a).unwrap();
+        case org::BlockCode: return convertBlockCode(a).unwrap();
         case org::InlineFootnote: return convertFootnote(a).unwrap();
         case org::BlockExport: return convertBlockExport(a).unwrap();
         case org::Macro: return convertMacro(a).unwrap();
         case org::Monospace: return convertMonospace(a).unwrap();
         case org::BlockCenter: return convertBlockCenter(a).unwrap();
-        case org::Example: return convertBlockExample(a).unwrap();
+        case org::BlockExample: return convertBlockExample(a).unwrap();
         case org::HashTag: return convertHashTag(a).unwrap();
-        case org::Error: return convertParseError(a).unwrap();
         case org::ListTag: return convert(a[0]);
         case org::InlineMath: return convertMath(a).unwrap();
         case org::RawLink: return convertLink(a).unwrap();
@@ -1652,7 +1645,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
         for (const auto& sub : adapter) {
             auto __trace = trace(adapter, fmt1(sub.getKind()));
             switch (sub.kind()) {
-                case org::Columns: {
+                case org::CmdColumns: {
                     break;
                 }
                 case org::CmdTitle: {
@@ -1708,32 +1701,32 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
 
-                case org::LatexClass: {
+                case org::CmdLatexClass: {
                     Prop::ExportLatexClass res{};
                     res.latexClass = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::LatexHeader: {
+                case org::CmdLatexHeader: {
                     Prop::ExportLatexHeader res{};
                     res.header = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::LatexCompiler: {
+                case org::CmdLatexCompiler: {
                     Prop::ExportLatexCompiler res{};
                     res.compiler = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::LatexClassOptions: {
+                case org::CmdLatexClassOptions: {
                     auto value = get_text(sub.at(0));
                     Prop::ExportLatexClassOptions res;
                     res.options.push_back(value);
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::Filetags: {
+                case org::CmdFiletags: {
                     for (auto const& hash : many(sub, N::Tags)) {
                         doc->filetags.push_back(
                             convertHashTag(hash).value());

@@ -135,27 +135,25 @@ std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
 Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "None") { return OrgNodeKind::None; } else
   if (value == "Document") { return OrgNodeKind::Document; } else
-  if (value == "UserNode") { return OrgNodeKind::UserNode; } else
   if (value == "Empty") { return OrgNodeKind::Empty; } else
-  if (value == "Error") { return OrgNodeKind::Error; } else
-  if (value == "ErrorTerminator") { return OrgNodeKind::ErrorTerminator; } else
-  if (value == "ErrorToken") { return OrgNodeKind::ErrorToken; } else
   if (value == "InlineStmtList") { return OrgNodeKind::InlineStmtList; } else
   if (value == "StmtList") { return OrgNodeKind::StmtList; } else
-  if (value == "AssocStmtList") { return OrgNodeKind::AssocStmtList; } else
-  if (value == "Subtree") { return OrgNodeKind::Subtree; } else
-  if (value == "SubtreeTimes") { return OrgNodeKind::SubtreeTimes; } else
-  if (value == "SubtreeStars") { return OrgNodeKind::SubtreeStars; } else
-  if (value == "Completion") { return OrgNodeKind::Completion; } else
   if (value == "Checkbox") { return OrgNodeKind::Checkbox; } else
   if (value == "List") { return OrgNodeKind::List; } else
   if (value == "Bullet") { return OrgNodeKind::Bullet; } else
   if (value == "ListItem") { return OrgNodeKind::ListItem; } else
   if (value == "ListTag") { return OrgNodeKind::ListTag; } else
   if (value == "Counter") { return OrgNodeKind::Counter; } else
-  if (value == "Comment") { return OrgNodeKind::Comment; } else
-  if (value == "RawText") { return OrgNodeKind::RawText; } else
-  if (value == "Unparsed") { return OrgNodeKind::Unparsed; } else
+  if (value == "File") { return OrgNodeKind::File; } else
+  if (value == "ColonExample") { return OrgNodeKind::ColonExample; } else
+  if (value == "TextSeparator") { return OrgNodeKind::TextSeparator; } else
+  if (value == "Paragraph") { return OrgNodeKind::Paragraph; } else
+  if (value == "AnnotatedParagraph") { return OrgNodeKind::AnnotatedParagraph; } else
+  if (value == "TableRow") { return OrgNodeKind::TableRow; } else
+  if (value == "TableCell") { return OrgNodeKind::TableCell; } else
+  if (value == "Table") { return OrgNodeKind::Table; } else
+  if (value == "InlineFootnote") { return OrgNodeKind::InlineFootnote; } else
+  if (value == "Footnote") { return OrgNodeKind::Footnote; } else
   if (value == "Cmd") { return OrgNodeKind::Cmd; } else
   if (value == "CmdArguments") { return OrgNodeKind::CmdArguments; } else
   if (value == "CmdTitle") { return OrgNodeKind::CmdTitle; } else
@@ -173,42 +171,39 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "CmdHeader") { return OrgNodeKind::CmdHeader; } else
   if (value == "CmdOptions") { return OrgNodeKind::CmdOptions; } else
   if (value == "CmdTblfm") { return OrgNodeKind::CmdTblfm; } else
-  if (value == "CmdBackendOptions") { return OrgNodeKind::CmdBackendOptions; } else
-  if (value == "AttrImg") { return OrgNodeKind::AttrImg; } else
   if (value == "CmdCaption") { return OrgNodeKind::CmdCaption; } else
-  if (value == "File") { return OrgNodeKind::File; } else
-  if (value == "BlockExport") { return OrgNodeKind::BlockExport; } else
-  if (value == "InlineExport") { return OrgNodeKind::InlineExport; } else
-  if (value == "MultilineCommand") { return OrgNodeKind::MultilineCommand; } else
-  if (value == "Result") { return OrgNodeKind::Result; } else
-  if (value == "Ident") { return OrgNodeKind::Ident; } else
-  if (value == "BareIdent") { return OrgNodeKind::BareIdent; } else
-  if (value == "AdmonitionTag") { return OrgNodeKind::AdmonitionTag; } else
-  if (value == "BigIdent") { return OrgNodeKind::BigIdent; } else
+  if (value == "CmdResult") { return OrgNodeKind::CmdResult; } else
+  if (value == "CmdCallCode") { return OrgNodeKind::CmdCallCode; } else
+  if (value == "CmdFlag") { return OrgNodeKind::CmdFlag; } else
+  if (value == "CmdKey") { return OrgNodeKind::CmdKey; } else
+  if (value == "CmdValue") { return OrgNodeKind::CmdValue; } else
+  if (value == "CmdNamedValue") { return OrgNodeKind::CmdNamedValue; } else
+  if (value == "CmdLatexClass") { return OrgNodeKind::CmdLatexClass; } else
+  if (value == "CmdLatexHeader") { return OrgNodeKind::CmdLatexHeader; } else
+  if (value == "CmdLatexCompiler") { return OrgNodeKind::CmdLatexCompiler; } else
+  if (value == "CmdLatexClassOptions") { return OrgNodeKind::CmdLatexClassOptions; } else
+  if (value == "CmdHtmlHead") { return OrgNodeKind::CmdHtmlHead; } else
+  if (value == "CmdColumns") { return OrgNodeKind::CmdColumns; } else
+  if (value == "CmdPropertyArgs") { return OrgNodeKind::CmdPropertyArgs; } else
+  if (value == "CmdPropertyText") { return OrgNodeKind::CmdPropertyText; } else
+  if (value == "CmdPropertyRaw") { return OrgNodeKind::CmdPropertyRaw; } else
+  if (value == "CmdFiletags") { return OrgNodeKind::CmdFiletags; } else
   if (value == "BlockVerbatimMultiline") { return OrgNodeKind::BlockVerbatimMultiline; } else
   if (value == "CodeLine") { return OrgNodeKind::CodeLine; } else
   if (value == "CodeText") { return OrgNodeKind::CodeText; } else
   if (value == "CodeTangle") { return OrgNodeKind::CodeTangle; } else
   if (value == "CodeCallout") { return OrgNodeKind::CodeCallout; } else
+  if (value == "BlockCode") { return OrgNodeKind::BlockCode; } else
   if (value == "BlockQuote") { return OrgNodeKind::BlockQuote; } else
   if (value == "BlockComment") { return OrgNodeKind::BlockComment; } else
   if (value == "BlockCenter") { return OrgNodeKind::BlockCenter; } else
   if (value == "BlockVerse") { return OrgNodeKind::BlockVerse; } else
-  if (value == "Example") { return OrgNodeKind::Example; } else
-  if (value == "ColonExample") { return OrgNodeKind::ColonExample; } else
-  if (value == "SrcCode") { return OrgNodeKind::SrcCode; } else
-  if (value == "SrcInlineCode") { return OrgNodeKind::SrcInlineCode; } else
-  if (value == "InlineCallCode") { return OrgNodeKind::InlineCallCode; } else
-  if (value == "CmdCallCode") { return OrgNodeKind::CmdCallCode; } else
-  if (value == "PassCode") { return OrgNodeKind::PassCode; } else
-  if (value == "CmdFlag") { return OrgNodeKind::CmdFlag; } else
-  if (value == "CmdKey") { return OrgNodeKind::CmdKey; } else
-  if (value == "CmdValue") { return OrgNodeKind::CmdValue; } else
-  if (value == "CmdNamedValue") { return OrgNodeKind::CmdNamedValue; } else
-  if (value == "UrgencyStatus") { return OrgNodeKind::UrgencyStatus; } else
-  if (value == "TextSeparator") { return OrgNodeKind::TextSeparator; } else
-  if (value == "Paragraph") { return OrgNodeKind::Paragraph; } else
-  if (value == "AnnotatedParagraph") { return OrgNodeKind::AnnotatedParagraph; } else
+  if (value == "BlockExample") { return OrgNodeKind::BlockExample; } else
+  if (value == "BlockExport") { return OrgNodeKind::BlockExport; } else
+  if (value == "BlockDetails") { return OrgNodeKind::BlockDetails; } else
+  if (value == "BlockSummary") { return OrgNodeKind::BlockSummary; } else
+  if (value == "Ident") { return OrgNodeKind::Ident; } else
+  if (value == "BigIdent") { return OrgNodeKind::BigIdent; } else
   if (value == "Bold") { return OrgNodeKind::Bold; } else
   if (value == "Italic") { return OrgNodeKind::Italic; } else
   if (value == "Verbatim") { return OrgNodeKind::Verbatim; } else
@@ -230,75 +225,60 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "RawLink") { return OrgNodeKind::RawLink; } else
   if (value == "Link") { return OrgNodeKind::Link; } else
   if (value == "Macro") { return OrgNodeKind::Macro; } else
-  if (value == "BackendRaw") { return OrgNodeKind::BackendRaw; } else
   if (value == "Symbol") { return OrgNodeKind::Symbol; } else
-  if (value == "TimeAssoc") { return OrgNodeKind::TimeAssoc; } else
   if (value == "StaticActiveTime") { return OrgNodeKind::StaticActiveTime; } else
   if (value == "StaticInactiveTime") { return OrgNodeKind::StaticInactiveTime; } else
   if (value == "DynamicActiveTime") { return OrgNodeKind::DynamicActiveTime; } else
   if (value == "DynamicInactiveTime") { return OrgNodeKind::DynamicInactiveTime; } else
   if (value == "TimeRange") { return OrgNodeKind::TimeRange; } else
   if (value == "SimpleTime") { return OrgNodeKind::SimpleTime; } else
-  if (value == "Details") { return OrgNodeKind::Details; } else
-  if (value == "Summary") { return OrgNodeKind::Summary; } else
-  if (value == "Table") { return OrgNodeKind::Table; } else
-  if (value == "TableRow") { return OrgNodeKind::TableRow; } else
-  if (value == "TableCell") { return OrgNodeKind::TableCell; } else
-  if (value == "InlineFootnote") { return OrgNodeKind::InlineFootnote; } else
-  if (value == "Footnote") { return OrgNodeKind::Footnote; } else
-  if (value == "Horizontal") { return OrgNodeKind::Horizontal; } else
-  if (value == "Filetags") { return OrgNodeKind::Filetags; } else
-  if (value == "OrgTag") { return OrgNodeKind::OrgTag; } else
   if (value == "HashTag") { return OrgNodeKind::HashTag; } else
   if (value == "MetaSymbol") { return OrgNodeKind::MetaSymbol; } else
   if (value == "AtMention") { return OrgNodeKind::AtMention; } else
-  if (value == "BracTag") { return OrgNodeKind::BracTag; } else
-  if (value == "Drawer") { return OrgNodeKind::Drawer; } else
-  if (value == "LatexClass") { return OrgNodeKind::LatexClass; } else
-  if (value == "LatexHeader") { return OrgNodeKind::LatexHeader; } else
-  if (value == "LatexCompiler") { return OrgNodeKind::LatexCompiler; } else
-  if (value == "LatexClassOptions") { return OrgNodeKind::LatexClassOptions; } else
-  if (value == "HtmlHead") { return OrgNodeKind::HtmlHead; } else
-  if (value == "Columns") { return OrgNodeKind::Columns; } else
-  if (value == "CmdPropertyArgs") { return OrgNodeKind::CmdPropertyArgs; } else
-  if (value == "CmdPropertyText") { return OrgNodeKind::CmdPropertyText; } else
-  if (value == "CmdPropertyRaw") { return OrgNodeKind::CmdPropertyRaw; } else
-  if (value == "PropertyList") { return OrgNodeKind::PropertyList; } else
-  if (value == "Property") { return OrgNodeKind::Property; } else
   if (value == "Placeholder") { return OrgNodeKind::Placeholder; } else
-  if (value == "SubtreeDescription") { return OrgNodeKind::SubtreeDescription; } else
-  if (value == "SubtreeUrgency") { return OrgNodeKind::SubtreeUrgency; } else
-  if (value == "Logbook") { return OrgNodeKind::Logbook; } else
-  if (value == "LogbookStateChange") { return OrgNodeKind::LogbookStateChange; } else
   if (value == "RadioTarget") { return OrgNodeKind::RadioTarget; } else
   if (value == "Target") { return OrgNodeKind::Target; } else
+  if (value == "SrcInlineCode") { return OrgNodeKind::SrcInlineCode; } else
+  if (value == "InlineCallCode") { return OrgNodeKind::InlineCallCode; } else
+  if (value == "InlineExport") { return OrgNodeKind::InlineExport; } else
+  if (value == "InlineComment") { return OrgNodeKind::InlineComment; } else
+  if (value == "RawText") { return OrgNodeKind::RawText; } else
+  if (value == "SubtreeDescription") { return OrgNodeKind::SubtreeDescription; } else
+  if (value == "SubtreeUrgency") { return OrgNodeKind::SubtreeUrgency; } else
+  if (value == "DrawerLogbook") { return OrgNodeKind::DrawerLogbook; } else
+  if (value == "Drawer") { return OrgNodeKind::Drawer; } else
+  if (value == "DrawerPropertyList") { return OrgNodeKind::DrawerPropertyList; } else
+  if (value == "DrawerProperty") { return OrgNodeKind::DrawerProperty; } else
+  if (value == "Subtree") { return OrgNodeKind::Subtree; } else
+  if (value == "SubtreeTimes") { return OrgNodeKind::SubtreeTimes; } else
+  if (value == "SubtreeStars") { return OrgNodeKind::SubtreeStars; } else
+  if (value == "Completion") { return OrgNodeKind::Completion; } else
+  if (value == "SubtreeImportance") { return OrgNodeKind::SubtreeImportance; } else
   { return std::nullopt; }
 }
 std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   switch (value) {
     case OrgNodeKind::None: return "None";
     case OrgNodeKind::Document: return "Document";
-    case OrgNodeKind::UserNode: return "UserNode";
     case OrgNodeKind::Empty: return "Empty";
-    case OrgNodeKind::Error: return "Error";
-    case OrgNodeKind::ErrorTerminator: return "ErrorTerminator";
-    case OrgNodeKind::ErrorToken: return "ErrorToken";
     case OrgNodeKind::InlineStmtList: return "InlineStmtList";
     case OrgNodeKind::StmtList: return "StmtList";
-    case OrgNodeKind::AssocStmtList: return "AssocStmtList";
-    case OrgNodeKind::Subtree: return "Subtree";
-    case OrgNodeKind::SubtreeTimes: return "SubtreeTimes";
-    case OrgNodeKind::SubtreeStars: return "SubtreeStars";
-    case OrgNodeKind::Completion: return "Completion";
     case OrgNodeKind::Checkbox: return "Checkbox";
     case OrgNodeKind::List: return "List";
     case OrgNodeKind::Bullet: return "Bullet";
     case OrgNodeKind::ListItem: return "ListItem";
     case OrgNodeKind::ListTag: return "ListTag";
     case OrgNodeKind::Counter: return "Counter";
-    case OrgNodeKind::Comment: return "Comment";
-    case OrgNodeKind::RawText: return "RawText";
-    case OrgNodeKind::Unparsed: return "Unparsed";
+    case OrgNodeKind::File: return "File";
+    case OrgNodeKind::ColonExample: return "ColonExample";
+    case OrgNodeKind::TextSeparator: return "TextSeparator";
+    case OrgNodeKind::Paragraph: return "Paragraph";
+    case OrgNodeKind::AnnotatedParagraph: return "AnnotatedParagraph";
+    case OrgNodeKind::TableRow: return "TableRow";
+    case OrgNodeKind::TableCell: return "TableCell";
+    case OrgNodeKind::Table: return "Table";
+    case OrgNodeKind::InlineFootnote: return "InlineFootnote";
+    case OrgNodeKind::Footnote: return "Footnote";
     case OrgNodeKind::Cmd: return "Cmd";
     case OrgNodeKind::CmdArguments: return "CmdArguments";
     case OrgNodeKind::CmdTitle: return "CmdTitle";
@@ -316,42 +296,39 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CmdHeader: return "CmdHeader";
     case OrgNodeKind::CmdOptions: return "CmdOptions";
     case OrgNodeKind::CmdTblfm: return "CmdTblfm";
-    case OrgNodeKind::CmdBackendOptions: return "CmdBackendOptions";
-    case OrgNodeKind::AttrImg: return "AttrImg";
     case OrgNodeKind::CmdCaption: return "CmdCaption";
-    case OrgNodeKind::File: return "File";
-    case OrgNodeKind::BlockExport: return "BlockExport";
-    case OrgNodeKind::InlineExport: return "InlineExport";
-    case OrgNodeKind::MultilineCommand: return "MultilineCommand";
-    case OrgNodeKind::Result: return "Result";
-    case OrgNodeKind::Ident: return "Ident";
-    case OrgNodeKind::BareIdent: return "BareIdent";
-    case OrgNodeKind::AdmonitionTag: return "AdmonitionTag";
-    case OrgNodeKind::BigIdent: return "BigIdent";
+    case OrgNodeKind::CmdResult: return "CmdResult";
+    case OrgNodeKind::CmdCallCode: return "CmdCallCode";
+    case OrgNodeKind::CmdFlag: return "CmdFlag";
+    case OrgNodeKind::CmdKey: return "CmdKey";
+    case OrgNodeKind::CmdValue: return "CmdValue";
+    case OrgNodeKind::CmdNamedValue: return "CmdNamedValue";
+    case OrgNodeKind::CmdLatexClass: return "CmdLatexClass";
+    case OrgNodeKind::CmdLatexHeader: return "CmdLatexHeader";
+    case OrgNodeKind::CmdLatexCompiler: return "CmdLatexCompiler";
+    case OrgNodeKind::CmdLatexClassOptions: return "CmdLatexClassOptions";
+    case OrgNodeKind::CmdHtmlHead: return "CmdHtmlHead";
+    case OrgNodeKind::CmdColumns: return "CmdColumns";
+    case OrgNodeKind::CmdPropertyArgs: return "CmdPropertyArgs";
+    case OrgNodeKind::CmdPropertyText: return "CmdPropertyText";
+    case OrgNodeKind::CmdPropertyRaw: return "CmdPropertyRaw";
+    case OrgNodeKind::CmdFiletags: return "CmdFiletags";
     case OrgNodeKind::BlockVerbatimMultiline: return "BlockVerbatimMultiline";
     case OrgNodeKind::CodeLine: return "CodeLine";
     case OrgNodeKind::CodeText: return "CodeText";
     case OrgNodeKind::CodeTangle: return "CodeTangle";
     case OrgNodeKind::CodeCallout: return "CodeCallout";
+    case OrgNodeKind::BlockCode: return "BlockCode";
     case OrgNodeKind::BlockQuote: return "BlockQuote";
     case OrgNodeKind::BlockComment: return "BlockComment";
     case OrgNodeKind::BlockCenter: return "BlockCenter";
     case OrgNodeKind::BlockVerse: return "BlockVerse";
-    case OrgNodeKind::Example: return "Example";
-    case OrgNodeKind::ColonExample: return "ColonExample";
-    case OrgNodeKind::SrcCode: return "SrcCode";
-    case OrgNodeKind::SrcInlineCode: return "SrcInlineCode";
-    case OrgNodeKind::InlineCallCode: return "InlineCallCode";
-    case OrgNodeKind::CmdCallCode: return "CmdCallCode";
-    case OrgNodeKind::PassCode: return "PassCode";
-    case OrgNodeKind::CmdFlag: return "CmdFlag";
-    case OrgNodeKind::CmdKey: return "CmdKey";
-    case OrgNodeKind::CmdValue: return "CmdValue";
-    case OrgNodeKind::CmdNamedValue: return "CmdNamedValue";
-    case OrgNodeKind::UrgencyStatus: return "UrgencyStatus";
-    case OrgNodeKind::TextSeparator: return "TextSeparator";
-    case OrgNodeKind::Paragraph: return "Paragraph";
-    case OrgNodeKind::AnnotatedParagraph: return "AnnotatedParagraph";
+    case OrgNodeKind::BlockExample: return "BlockExample";
+    case OrgNodeKind::BlockExport: return "BlockExport";
+    case OrgNodeKind::BlockDetails: return "BlockDetails";
+    case OrgNodeKind::BlockSummary: return "BlockSummary";
+    case OrgNodeKind::Ident: return "Ident";
+    case OrgNodeKind::BigIdent: return "BigIdent";
     case OrgNodeKind::Bold: return "Bold";
     case OrgNodeKind::Italic: return "Italic";
     case OrgNodeKind::Verbatim: return "Verbatim";
@@ -373,48 +350,35 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::RawLink: return "RawLink";
     case OrgNodeKind::Link: return "Link";
     case OrgNodeKind::Macro: return "Macro";
-    case OrgNodeKind::BackendRaw: return "BackendRaw";
     case OrgNodeKind::Symbol: return "Symbol";
-    case OrgNodeKind::TimeAssoc: return "TimeAssoc";
     case OrgNodeKind::StaticActiveTime: return "StaticActiveTime";
     case OrgNodeKind::StaticInactiveTime: return "StaticInactiveTime";
     case OrgNodeKind::DynamicActiveTime: return "DynamicActiveTime";
     case OrgNodeKind::DynamicInactiveTime: return "DynamicInactiveTime";
     case OrgNodeKind::TimeRange: return "TimeRange";
     case OrgNodeKind::SimpleTime: return "SimpleTime";
-    case OrgNodeKind::Details: return "Details";
-    case OrgNodeKind::Summary: return "Summary";
-    case OrgNodeKind::Table: return "Table";
-    case OrgNodeKind::TableRow: return "TableRow";
-    case OrgNodeKind::TableCell: return "TableCell";
-    case OrgNodeKind::InlineFootnote: return "InlineFootnote";
-    case OrgNodeKind::Footnote: return "Footnote";
-    case OrgNodeKind::Horizontal: return "Horizontal";
-    case OrgNodeKind::Filetags: return "Filetags";
-    case OrgNodeKind::OrgTag: return "OrgTag";
     case OrgNodeKind::HashTag: return "HashTag";
     case OrgNodeKind::MetaSymbol: return "MetaSymbol";
     case OrgNodeKind::AtMention: return "AtMention";
-    case OrgNodeKind::BracTag: return "BracTag";
-    case OrgNodeKind::Drawer: return "Drawer";
-    case OrgNodeKind::LatexClass: return "LatexClass";
-    case OrgNodeKind::LatexHeader: return "LatexHeader";
-    case OrgNodeKind::LatexCompiler: return "LatexCompiler";
-    case OrgNodeKind::LatexClassOptions: return "LatexClassOptions";
-    case OrgNodeKind::HtmlHead: return "HtmlHead";
-    case OrgNodeKind::Columns: return "Columns";
-    case OrgNodeKind::CmdPropertyArgs: return "CmdPropertyArgs";
-    case OrgNodeKind::CmdPropertyText: return "CmdPropertyText";
-    case OrgNodeKind::CmdPropertyRaw: return "CmdPropertyRaw";
-    case OrgNodeKind::PropertyList: return "PropertyList";
-    case OrgNodeKind::Property: return "Property";
     case OrgNodeKind::Placeholder: return "Placeholder";
-    case OrgNodeKind::SubtreeDescription: return "SubtreeDescription";
-    case OrgNodeKind::SubtreeUrgency: return "SubtreeUrgency";
-    case OrgNodeKind::Logbook: return "Logbook";
-    case OrgNodeKind::LogbookStateChange: return "LogbookStateChange";
     case OrgNodeKind::RadioTarget: return "RadioTarget";
     case OrgNodeKind::Target: return "Target";
+    case OrgNodeKind::SrcInlineCode: return "SrcInlineCode";
+    case OrgNodeKind::InlineCallCode: return "InlineCallCode";
+    case OrgNodeKind::InlineExport: return "InlineExport";
+    case OrgNodeKind::InlineComment: return "InlineComment";
+    case OrgNodeKind::RawText: return "RawText";
+    case OrgNodeKind::SubtreeDescription: return "SubtreeDescription";
+    case OrgNodeKind::SubtreeUrgency: return "SubtreeUrgency";
+    case OrgNodeKind::DrawerLogbook: return "DrawerLogbook";
+    case OrgNodeKind::Drawer: return "Drawer";
+    case OrgNodeKind::DrawerPropertyList: return "DrawerPropertyList";
+    case OrgNodeKind::DrawerProperty: return "DrawerProperty";
+    case OrgNodeKind::Subtree: return "Subtree";
+    case OrgNodeKind::SubtreeTimes: return "SubtreeTimes";
+    case OrgNodeKind::SubtreeStars: return "SubtreeStars";
+    case OrgNodeKind::Completion: return "Completion";
+    case OrgNodeKind::SubtreeImportance: return "SubtreeImportance";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }

@@ -9,6 +9,24 @@ from py_codegen.gen_tu_cpp import *
 
 
 @beartype
+def org_doc(text: Union[str, GenTuDoc] = GenTuDoc(""), full: str = "") -> GenTuDoc:
+    return GenTuDoc(text, full) if isinstance(text, str) else text
+
+
+AnyDoc = Union[str, GenTuDoc]
+
+
+@beartype
+def efield(name: str,
+           doc: AnyDoc = GenTuDoc(""),
+           value: Optional[int] = None) -> GenTuEnumField:
+    return GenTuEnumField(name=name, doc=org_doc(doc), value=value)
+
+
+#region cxx-types
+
+
+@beartype
 def t(name: str) -> QualType:
     return QualType(name=name)
 
@@ -23,21 +41,6 @@ def t_bool() -> QualType:
 
 def t_int() -> QualType:
     return t("int")
-
-
-@beartype
-def org_doc(text: Union[str, GenTuDoc] = GenTuDoc(""), full: str = "") -> GenTuDoc:
-    return GenTuDoc(text, full) if isinstance(text, str) else text
-
-
-AnyDoc = Union[str, GenTuDoc]
-
-
-@beartype
-def efield(name: str,
-           doc: AnyDoc = GenTuDoc(""),
-           value: Optional[int] = None) -> GenTuEnumField:
-    return GenTuEnumField(name=name, doc=org_doc(doc), value=value)
 
 
 @beartype
@@ -82,6 +85,27 @@ def t_map(key: QualType, val: QualType) -> QualType:
     return QualType(name="UnorderedMap", Parameters=[key, val])
 
 
+#endregion
+
+
+@beartype
+def org_struct(
+    typ: QualType,
+    doc: AnyDoc = GenTuDoc(""),
+    fields: List[GenTuField] = [],
+    nested: List[GenTuEntry] = [],
+) -> GenTuStruct:
+    return GenTuStruct(
+        name=typ,
+        doc=org_doc(doc),
+        fields=fields,
+        nested=nested,
+    )
+
+
+#region cxx-fields
+
+
 @beartype
 def id_field(id: str, name: str, doc: AnyDoc = GenTuDoc("")) -> GenTuField:
     return GenTuField(
@@ -104,21 +128,6 @@ def opt_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")):
         name=name,
         doc=org_doc(doc),
         value="std::nullopt",
-    )
-
-
-@beartype
-def org_struct(
-    typ: QualType,
-    doc: AnyDoc = GenTuDoc(""),
-    fields: List[GenTuField] = [],
-    nested: List[GenTuEntry] = [],
-) -> GenTuStruct:
-    return GenTuStruct(
-        name=typ,
-        doc=org_doc(doc),
-        fields=fields,
-        nested=nested,
     )
 
 
@@ -160,6 +169,9 @@ def bool_field(name: str,
 @beartype
 def str_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> GenTuField:
     return org_field(t_str(), name, doc, default)
+
+
+#endregion
 
 
 def d_org(name: str, *args, **kwargs) -> GenTuStruct:
@@ -1833,10 +1845,6 @@ def get_types() -> Sequence[GenTuStruct]:
             ],
         ),
         d_org(
-            "ParseError",
-            bases=[t_org("Org")],
-        ),
-        d_org(
             "FileTarget",
             bases=[t_org("Org")],
             fields=[
@@ -1894,6 +1902,281 @@ def get_types() -> Sequence[GenTuStruct]:
     ]
 
 
+#region OrgNodeKind
+def get_org_node_kind_text():
+    return [
+        efield(
+            "Ident",
+            "regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.",
+        ),
+        efield("BigIdent", "full-uppsercase identifier such as `MUST` or `TODO`"),
+        efield(
+            "Bold",
+            """Region of text with formatting, which contains standalone words -
+     can itself contain subnodes, which allows to represent nested
+     formatting regions, such as `*bold /italic/*` text. Particular type
+     of identifier is stored in string form in `str` field for `OrgNode`
+     -- bold is represented as `\"*\"`, italic as `/` and so on. In case
+     of explicit open/close pairs only opening one is stored.
+
+     NOTE: when structured sentences are enabled, regular punctuation
+     elements like `some text (notes)` are also represented as `Word,
+     Word, Markup(str: \"(\", [Word])` - e.g. structure is not fully flat.""",
+        ),
+        efield("Italic"),
+        efield("Verbatim"),
+        efield("Backtick"),
+        efield("Underline"),
+        efield("Strike"),
+        efield("Quote"),
+        efield("Angle"),
+        efield("Monospace"),
+        efield("Par"),
+        efield(
+            "InlineMath",
+            "Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text.",
+        ),
+        efield(
+            "DisplayMath",
+            "Inline display latex math from `$$double-dollar$$` or `\\[bracket-wrapped\\]` code.",
+        ),
+        efield("Space", "Space or tab character in regular text"),
+        efield("Punctuation"),
+        efield("Colon"),
+        efield(
+            "Word",
+            "Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.",
+        ),
+        efield("Escaped", "Escaped formatting character in the text"),
+        efield("Newline"),
+        efield("RawLink", "Raw unwrapped link that was pasted in text"),
+        efield(
+            "Link",
+            """External or internal link. Consists of one or two elements - target
+     (url, file location etc.) and description (`orgParagraph` of text).
+     Description might be empty, and represented as empty node in this
+     case. For external links particular formatting of the address is
+     not handled by parser and instead contains raw string from input
+     text.""",
+        ),
+        efield(
+            "Macro",
+            """Org-mode macro replacement - during export each macro is expanded
+     and evaluated according to it's environment. Body of the macro is
+     not parsed fully during org-mode evaluation, but is checked for
+     correct parenthesis balance (as macro might contain elisp code)""",
+        ),
+        efield(
+            "Symbol",
+            "Special symbol that should be exported differently to various backends - greek letters (`\alpha`), mathematical notations and so on.",
+        ),
+        efield("StaticActiveTime"),
+        efield("StaticInactiveTime"),
+        efield("DynamicActiveTime"),
+        efield(
+            "DynamicInactiveTime",
+            "Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later",
+        ),
+        efield(
+            "TimeRange",
+            "Date and time range format - two `orgDateTime` entries",
+        ),
+        efield(
+            "SimpleTime",
+            "Result of the time range evaluation or trailing annotation a subtree",
+        ),
+        efield("HashTag"),
+        efield("MetaSymbol", "`\\sym{}` with explicit arguments"),
+        efield("AtMention", "`@user`"),
+        efield(
+            "Placeholder",
+            "Placeholder entry in text, usually writte like `<text to replace>`",
+        ),
+        efield("RadioTarget", "`<<<RADIO>>>`"),
+        efield("Target", "`<<TARGET>>`"),
+        efield(
+            "SrcInlineCode",
+            "inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.",
+        ),
+        efield(
+            "InlineCallCode",
+            "Call to named source code block.",
+        ),
+        efield(
+            "InlineExport",
+            "Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively",
+        ),
+        efield("InlineComment"),
+        efield(
+            "RawText",
+            "Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers ",
+        ),
+    ]
+
+
+def get_org_node_kind_blocks():
+    return [
+        efield(
+            "BlockVerbatimMultiline",
+            "Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.",
+        ),
+        efield("CodeLine", "Single line of source code"),
+        efield("CodeText", "Block of source code text"),
+        efield("CodeTangle", "Single tangle target in the code block"),
+        efield("CodeCallout", "`(refs:` callout in the source code"),
+        efield("BlockCode"),
+        efield("BlockQuote", "`#+begin_quote:` block in code"),
+        efield("BlockComment", "`#+begin_comment:` block in code"),
+        efield("BlockCenter"),
+        efield("BlockVerse"),
+        efield("BlockExample", "Verbatim example text block"),
+        efield("BlockExport"),
+        efield("BlockDetails", "`#+begin_details`  section"),
+        efield("BlockSummary", "`#+begin_summary` section"),
+    ]
+
+
+def get_org_node_kind_commands():
+    return [
+        efield(
+            "Cmd",
+            "Undefined single-line command -- most likely custom user-provided oe",
+        ),
+        efield("CmdArguments", "Arguments for the command block"),
+        efield("CmdTitle", "`#+title:` - full document title"),
+        efield("CmdAuthor", "`#+author:` Document author"),
+        efield("CmdCreator", "`#+creator:` Document creator"),
+        efield(
+            "CmdInclude",
+            "`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.",
+        ),
+        efield("CmdLanguage", "`#+language:`"),
+        efield("CmdAttr", "`#+attr_html:`, `#+attr_image` etc."),
+        efield("CmdStartup", "`#+startup:`"),
+        efield("CmdName", "`#+name:` - name of the associated entry"),
+        efield("CmdCustomTextCommand", "Line command with parsed text value"),
+        efield("CmdCustomArgsCommand", "Line command with parsed argument list"),
+        efield("CmdCustomRawCommand", "Line command with raw text argument"),
+        efield("CmdResults", "`#+results:` - source code block evaluation results"),
+        efield("CmdHeader",
+               "`#+header:` - extended list of parameters passed to associated block"),
+        efield("CmdOptions", "`#+options:` - document-wide formatting options"),
+        efield("CmdTblfm"),
+        efield("CmdCaption", "`#+caption:` command"),
+        efield("CmdResult", "Command evaluation result"),
+        efield("CmdCallCode", "Call to named source code block."),
+        efield(
+            "CmdFlag",
+            "Flag for source code block. For example `-n`, which is used to to make source code block export with lines",
+        ),
+        efield("CmdKey"),
+        efield("CmdValue"),
+        efield("CmdNamedValue", "Key-value pair for source code block call."),
+        efield("CmdLatexClass"),
+        efield("CmdLatexHeader"),
+        efield("CmdLatexCompiler"),
+        efield("CmdLatexClassOptions"),
+        efield("CmdHtmlHead"),
+        efield(
+            "CmdColumns",
+            "`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.",
+        ),
+        efield("CmdPropertyArgs", "`#+property:` command"),
+        efield("CmdPropertyText", "`#+property:` command"),
+        efield("CmdPropertyRaw", "`#+property:` command"),
+        efield("CmdFiletags", "`#+filetags:` line command"),
+    ]
+
+
+def get_org_node_kind_subtree():
+    return [
+        efield("SubtreeDescription", "`:description:` entry"),
+        efield("SubtreeUrgency"),
+        efield("DrawerLogbook", "`:logbook:` entry storing note information"),
+        efield(
+            "Drawer",
+            "Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`",
+        ),
+        efield("DrawerPropertyList"),
+        efield("DrawerProperty", "`:property:` drawer"),
+        efield("Subtree", "Section subtree"),
+        efield("SubtreeTimes", "Time? associated with subtree entry"),
+        efield("SubtreeStars"),
+        efield(
+            "Completion",
+            "Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.",
+        ),
+        efield(
+            "SubtreeImportance",
+            "Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.",
+        ),
+    ]
+
+
+def get_org_node_kind():
+    return [
+        #tag org-structural
+        efield("None", "Default valye for node - invalid state"),
+        efield(
+            "Document",
+            "Toplevel part of the ast, not created by parser, and only used in `semorg` stage",
+        ),
+        efield(
+            "Empty",
+            "Empty node - valid state that does not contain any value",
+        ),
+        efield("InlineStmtList"),
+        efield(
+            "StmtList",
+            "List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.",
+        ),
+
+        #tag org-list
+        efield("Checkbox", "Single checkbox item like `[X]` or `[-]`"),
+        efield("List"),
+        efield("Bullet", "List item prefix"),
+        efield("ListItem"),
+        efield(
+            "ListTag",
+            "Auxilliary wrapper for the paragraph placed at the start of the description list.",
+        ),
+        efield("Counter"),
+        #tag org-doclevel
+        efield("File"),
+        efield("ColonExample", "Colon example block"),
+        efield("TextSeparator", "Long horizontal line `----`"),
+        efield(
+            "Paragraph",
+            "Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph",
+        ),
+        efield(
+            "AnnotatedParagraph",
+            "Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph)",
+        ),
+        efield("TableRow", "Horizontal table row"),
+        efield(
+            "TableCell",
+            "Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.",
+        ),
+        efield("Table", "Org-mode table"),
+        efield(
+            "InlineFootnote",
+            "Inline footnote with text placed directly in the node body.",
+        ),
+        efield(
+            "Footnote",
+            "Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.",
+        ),
+        *get_org_node_kind_commands(),
+        *get_org_node_kind_blocks(),
+        *get_org_node_kind_text(),
+        *get_org_node_kind_subtree(),
+    ]
+
+
+#endregion
+
+
 def get_enums():
     return [
         #tag Org spec name
@@ -1927,7 +2210,7 @@ def get_enums():
                 efield("Prefix"),
                 efield("Text"),
                 efield("Todo"),
-                efield("Urgency"),
+                efield("Importance"),
                 efield("Title"),
                 efield("Completion"),
                 efield("Head"),
@@ -1968,372 +2251,7 @@ def get_enums():
             t("OrgNodeKind"),
             #region OrgNodeKind
             GenTuDoc(""),
-            [
-                efield("None", "Default valye for node - invalid state"),
-                efield(
-                    "Document",
-                    "Toplevel part of the ast, not created by parser, and only used in `semorg` stage",
-                ),
-                efield(
-                    "UserNode",
-                    "User-defined node [[code:OrgUserNode]]",
-                ),
-                efield(
-                    "Empty",
-                    "Empty node - valid state that does not contain any value",
-                ),
-                efield(
-                    "Error",
-                    org_doc(
-                        "Failed node parse",
-                        """
-   Failed node parse - technically there are no /wrong/ syntax in the
-   org-mode document because everything can be considered a one large
-   word or a paragraph with flat `Word` content.
-
-   Error node's extent covers all subnodes that were constructed
-   during nested content parsing plus ErrorTerminator node with error
-   token (description of the parsing failure). So failure node will be
-   structured as `[Error <some content> <ErrorToken>
-   <ErrorTermiator>]`. Second-to-last is the invalid token itself,
-   error terminator will hold fake token that referes to an error.
-
-   Error node can be produced by any parsing routine, although it is
-   mostly used in the low-level text elements, since high-level
-   structures are mostly detected based on the correct syntax - for
-   example, `*** subtree` (and any title variations) can never be an
-   error in itself. Title /text/ might contain an error, but invalid
-   it is not possible to write an invalid subtree - it is either `*
-   ANYTHING` or not a subtree at all.
-   """,
-                    ),
-                ),
-                efield(
-                    "ErrorTerminator",
-                    "Terminator node for failure in nested structure parsing",
-                ),
-                efield("ErrorToken", "Single invalid token"),
-                efield("InlineStmtList"),
-                efield(
-                    "StmtList",
-                    "List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.",
-                ),
-                efield(
-                    "AssocStmtList",
-                    "Associated list of statements - AST elements like commands and links are grouped together if placed on adjacent lines",
-                ),
-                efield("Subtree", "Section subtree"),
-                efield("SubtreeTimes", "Time? associated with subtree entry"),
-                efield("SubtreeStars"),
-                efield(
-                    "Completion",
-                    "Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.",
-                ),
-                efield("Checkbox", "Single checkbox item like `[X]` or `[-]`"),
-                efield("List"),
-                efield("Bullet", "List item prefix"),
-                efield("ListItem"),
-                efield(
-                    "ListTag",
-                    "Auxilliary wrapper for the paragraph placed at the start of the description list.",
-                ),
-                efield("Counter"),
-                efield(
-                    "Comment",
-                    "Inline or trailling comment. Can be used addition to `#+comment:` line or `#+begin-comment` section. Nested comment syntax is allowed (`#[ level1 #[ level2 ]# ]#`), but only outermost one is represented as separate AST node, everything else is a `.text`",
-                ),
-                efield(
-                    "RawText",
-                    "Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers ",
-                ),
-                efield(
-                    "Unparsed",
-                    "Part of the org-mode document that is yet to be parsed. This node should not be created manually, it is only used for handling mutually recursive DSLs such as tables, which might include lists, which in turn might contain more tables in different bullet points.",
-                ),
-                efield(
-                    "Cmd",
-                    "Undefined single-line command -- most likely custom user-provided oe",
-                ),
-                efield("CmdArguments", "Arguments for the command block"),
-                efield("CmdTitle", "`#+title:` - full document title"),
-                efield("CmdAuthor", "`#+author:` Document author"),
-                efield("CmdCreator", "`#+creator:` Document creator"),
-                efield(
-                    "CmdInclude",
-                    "`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.",
-                ),
-                efield("CmdLanguage", "`#+language:`"),
-                efield("CmdAttr", "`#+attr_html:`, `#+attr_image` etc."),
-                efield("CmdStartup", "`#+startup:`"),
-                efield("CmdName", "`#+name:` - name of the associated entry"),
-                efield("CmdCustomTextCommand", "Line command with parsed text value"),
-                efield("CmdCustomArgsCommand", "Line command with parsed argument list"),
-                efield("CmdCustomRawCommand", "Line command with raw text argument"),
-                efield("CmdResults",
-                       "`#+results:` - source code block evaluation results"),
-                efield(
-                    "CmdHeader",
-                    "`#+header:` - extended list of parameters passed to associated block",
-                ),
-                efield("CmdOptions",
-                       "`#+options:` - document-wide formatting options"),
-                efield("CmdTblfm"),
-                efield(
-                    "CmdBackendOptions",
-                    "Backend-specific configuration options like `#+latex_header` `#+latex_class` etc.",
-                ),
-                efield("AttrImg"),
-                efield("CmdCaption", "`#+caption:` command"),
-                efield("File"),
-                efield("BlockExport"),
-                efield("InlineExport"),
-                efield(
-                    "MultilineCommand",
-                    "Multiline command such as code block, latex equation, large block of passthrough code. Some built-in org-mode commands do not requires `#+begin` prefix, (such as `#+quote` or `#+example`) are represented by this type of block as well.",
-                ),
-                efield("Result", "Command evaluation result"),
-                efield(
-                    "Ident",
-                    "regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.",
-                ),
-                efield("BareIdent", "Bare identifier - any characters are allowed"),
-                efield(
-                    "AdmonitionTag",
-                    "Big ident used in conjunction with colon at the start of paragraph is considered an admonition tag: `NOTE: Text`, `WARNING: text` etc.",
-                ),
-                efield("BigIdent", "full-uppsercase identifier such as `MUST` or `TODO`"),
-                efield(
-                    "BlockVerbatimMultiline",
-                    "Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.",
-                ),
-                efield("CodeLine", "Single line of source code"),
-                efield("CodeText", "Block of source code text"),
-                efield("CodeTangle", "Single tangle target in the code block"),
-                efield("CodeCallout", "`(refs:` callout in the source code"),
-                efield("BlockQuote", "`#+begin_quote:` block in code"),
-                efield("BlockComment", "`#+begin_comment:` block in code"),
-                efield("BlockCenter"),
-                efield("BlockVerse"),
-                efield("Example", "Verbatim example text block"),
-                efield("ColonExample", "Colon example block"),
-                efield(
-                    "SrcCode",
-                    "Block of source code - can be multiline, single-line and",
-                ),
-                efield(
-                    "SrcInlineCode",
-                    "inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.",
-                ),
-                efield(
-                    "InlineCallCode",
-                    "Call to named source code block.",
-                ),
-                efield(
-                    "CmdCallCode",
-                    "Call to named source code block.",
-                ),
-                efield(
-                    "PassCode",
-                    "Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively",
-                ),
-                efield(
-                    "CmdFlag",
-                    "Flag for source code block. For example `-n`, which is used to to make source code block export with lines",
-                ),
-                efield("CmdKey"),
-                efield("CmdValue"),
-                efield("CmdNamedValue", "Key-value pair for source code block call."),
-                efield(
-                    "UrgencyStatus",
-                    "Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.",
-                ),
-                efield("TextSeparator", "Long horizontal line `----`"),
-                efield(
-                    "Paragraph",
-                    "Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph",
-                ),
-                efield(
-                    "AnnotatedParagraph",
-                    "Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph)",
-                ),
-                efield(
-                    "Bold",
-                    """Region of text with formatting, which contains standalone words -
-     can itself contain subnodes, which allows to represent nested
-     formatting regions, such as `*bold /italic/*` text. Particular type
-     of identifier is stored in string form in `str` field for `OrgNode`
-     -- bold is represented as `\"*\"`, italic as `/` and so on. In case
-     of explicit open/close pairs only opening one is stored.
-
-     NOTE: when structured sentences are enabled, regular punctuation
-     elements like `some text (notes)` are also represented as `Word,
-     Word, Markup(str: \"(\", [Word])` - e.g. structure is not fully flat.""",
-                ),
-                efield("Italic"),
-                efield("Verbatim"),
-                efield("Backtick"),
-                efield("Underline"),
-                efield("Strike"),
-                efield("Quote"),
-                efield("Angle"),
-                efield("Monospace"),
-                efield("Par"),
-                efield(
-                    "InlineMath",
-                    "Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text.",
-                ),
-                efield(
-                    "DisplayMath",
-                    "Inline display latex math from `$$double-dollar$$` or `\\[bracket-wrapped\\]` code.",
-                ),
-                efield("Space", "Space or tab character in regular text"),
-                efield("Punctuation"),
-                efield("Colon"),
-                efield(
-                    "Word",
-                    "Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.",
-                ),
-                efield("Escaped", "Escaped formatting character in the text"),
-                efield("Newline"),
-                efield("RawLink", "Raw unwrapped link that was pasted in text"),
-                efield(
-                    "Link",
-                    """External or internal link. Consists of one or two elements - target
-     (url, file location etc.) and description (`orgParagraph` of text).
-     Description might be empty, and represented as empty node in this
-     case. For external links particular formatting of the address is
-     not handled by parser and instead contains raw string from input
-     text.""",
-                ),
-                efield(
-                    "Macro",
-                    """Org-mode macro replacement - during export each macro is expanded
-     and evaluated according to it's environment. Body of the macro is
-     not parsed fully during org-mode evaluation, but is checked for
-     correct parenthesis balance (as macro might contain elisp code)""",
-                ),
-                efield(
-                    "BackendRaw",
-                    """Raw content to be passed to a particular backend. This is the most
-     compact way of quoting export strings, after `#+<backend>:
-     <single-backend-line>` and `#+begin-export <backend>`
-     `<multiple-lines>`.""",
-                ),
-                efield(
-                    "Symbol",
-                    "Special symbol that should be exported differently to various backends - greek letters (`\alpha`), mathematical notations and so on.",
-                ),
-                efield(
-                    "TimeAssoc",
-                    "Time association pair for the subtree deadlines.",
-                ),
-                efield("StaticActiveTime"),
-                efield("StaticInactiveTime"),
-                efield("DynamicActiveTime"),
-                efield(
-                    "DynamicInactiveTime",
-                    "Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later",
-                ),
-                efield(
-                    "TimeRange",
-                    "Date and time range format - two `orgDateTime` entries",
-                ),
-                efield(
-                    "SimpleTime",
-                    "Result of the time range evaluation or trailing annotation a subtree",
-                ),
-                efield(
-                    "Details",
-                    "`#+begin_details`  section",
-                ),
-                efield(
-                    "Summary",
-                    "`#+begin_summary` section",
-                ),
-                efield(
-                    "Table",
-                    """Org-mode table. Tables can be writtein in different formats, but in
-   the end they are all represented using single ast type. NOTE: it is
-   not guaranteed that all subnodes for table are exactly
-   `orgTableRow` - sometimes additional property metadata might be
-   used, making AST like `Table[AssocStmtList[Command[_],
-   TableRow[_]]]` possible""",
-                ),
-                efield("TableRow", "Horizontal table row"),
-                efield(
-                    "TableCell",
-                    "Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.",
-                ),
-                efield(
-                    "InlineFootnote",
-                    "Inline footnote with text placed directly in the node body.",
-                ),
-                efield(
-                    "Footnote",
-                    "Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.",
-                ),
-                efield(
-                    "Horizontal",
-                    "Horizotal rule. Rule body might contain other subnodes, to represnt `---- some text ----` kind of formatting.",
-                ),
-                efield(
-                    "Filetags",
-                    "`#+filetags:` line command",
-                ),
-                efield(
-                    "OrgTag",
-                    """Original format of org-mode tags in form of `:tagname:`. Might
-   contain one or mode identifgiers, but does not provide support for
-   nesting - `:tag1:tag2:`. Can only be placed within restricted set
-   of places such as subtree headings and has separate place in AST
-   when allowed (`orgSubtree` always has subnode `№4` with either
-   `orgEmpty` or `orgOrgTag`)""",
-                ),
-                efield(
-                    "HashTag",
-                    """More commonly used `#hashtag` format, with some additional
-   extension. Can be placed anywere in the document (including section
-   headers), but does not have separate place in AST (e.g. considered
-   regular part of the text)""",
-                ),
-                efield("MetaSymbol", "`\\sym{}` with explicit arguments"),
-                efield("AtMention", "`@user`"),
-                efield(
-                    "BracTag",
-                    "Custom extension to org-mode. Similarly to `BigIdent` used to have something like informal keywords `MUST`, `OPTIONAL`, but instead aimed /specifically/ at commit message headers - `[FEATURE]`, `[FIX]` and so on.",
-                ),
-                efield(
-                    "Drawer",
-                    "Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`",
-                ),
-                efield("LatexClass"),
-                efield("LatexHeader"),
-                efield("LatexCompiler"),
-                efield("LatexClassOptions"),
-                efield("HtmlHead"),
-                efield(
-                    "Columns",
-                    "`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.",
-                ),
-                efield("CmdPropertyArgs", "`#+property:` command"),
-                efield("CmdPropertyText", "`#+property:` command"),
-                efield("CmdPropertyRaw", "`#+property:` command"),
-                efield("PropertyList"),
-                efield("Property", "`:property:` drawer"),
-                efield(
-                    "Placeholder",
-                    "Placeholder entry in text, usually writte like `<text to replace>`",
-                ),
-                efield("SubtreeDescription", "`:description:` entry"),
-                efield("SubtreeUrgency"),
-                efield("Logbook", "`:logbook:` entry storing note information"),
-                efield(
-                    "LogbookStateChange",
-                    "Annotation about change in the subtree todo state",
-                ),
-                efield("RadioTarget", "`<<<RADIO>>>`"),
-                efield("Target", "`<<TARGET>>`"),
-            ],
+            get_org_node_kind(),
             #endregion
         ),
     ]

@@ -1348,7 +1348,7 @@ OrgId OrgParser::parseColonExample(OrgLexer& lex) {
 OrgId OrgParser::parseExample(OrgLexer& lex) {
     __perf_trace("parseExample");
     auto __trace = trace(lex);
-    start(org::Example);
+    start(org::BlockExample);
 
     skip(lex, otk::CmdPrefix);
     skip(lex, otk::CmdExampleBegin);
@@ -1378,7 +1378,7 @@ OrgId OrgParser::parseExample(OrgLexer& lex) {
 OrgId OrgParser::parseSrc(OrgLexer& lex) {
     __perf_trace("parseSrc");
     auto __trace = trace(lex);
-    start(org::SrcCode);
+    start(org::BlockCode);
     skip(lex, otk::CmdPrefix);
     skip(lex, otk::CmdSrcBegin);
     // header_args_lang
@@ -1573,7 +1573,7 @@ OrgId OrgParser::parseList(OrgLexer& lex) {
 OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     __perf_trace("parseSubtreeLogbook");
     auto __trace = trace(lex);
-    start(org::Logbook);
+    start(org::DrawerLogbook);
     skip(lex, otk::ColonLogbook);
     newline(lex);
 
@@ -1598,10 +1598,10 @@ OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
     auto __trace = trace(lex);
     skip(lex, otk::ColonProperties);
     skip(lex, otk::Newline);
-    start(org::PropertyList);
+    start(org::DrawerPropertyList);
     while (lex.can_search(otk::ColonEnd)) {
         trace(lex, "Parse single subtree property");
-        start(org::Property);
+        start(org::DrawerProperty);
         auto head = lex.kind();
         token(org::RawText, pop(lex, head));
         switch (head) {
@@ -1952,9 +1952,11 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 case otk::CmdLanguage: start(org::CmdLanguage); break;
                 case otk::CmdAuthor: start(org::CmdAuthor); break;
                 case otk::CmdOptions: start(org::CmdOptions); break;
-                case otk::CmdLatexHeader: start(org::LatexHeader); break;
+                case otk::CmdLatexHeader:
+                    start(org::CmdLatexHeader);
+                    break;
                 case otk::CmdInclude: start(org::CmdInclude); break;
-                case otk::CmdColumns: start(org::Columns); break;
+                case otk::CmdColumns: start(org::CmdColumns); break;
                 case otk::CmdStartup: start(org::CmdStartup); break;
                 default: throw fatalError(lex, "");
             }
@@ -1971,7 +1973,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdFiletags: {
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdFiletags);
-            start(org::Filetags);
+            start(org::CmdFiletags);
             while (lex.at(OrgTokSet{otk::Word, otk::BigIdent}, +1)) {
                 if (lex.at(otk::Colon)) {
                     skip(lex);
@@ -1991,11 +1993,11 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             switch (cmd_kind) {
                 case otk::CmdLatexCompiler:
-                    start(org::LatexCompiler);
+                    start(org::CmdLatexCompiler);
                     skip(lex, otk::CmdLatexCompiler);
                     break;
                 case otk::CmdLatexClass:
-                    start(org::LatexClass);
+                    start(org::CmdLatexClass);
                     skip(lex, otk::CmdLatexClass);
                     break;
                 default:
@@ -2009,7 +2011,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         case otk::CmdLatexClassOptions: {
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdLatexClassOptions);
-            start(org::LatexClassOptions);
+            start(org::CmdLatexClassOptions);
             token(org::RawText, pop(lex, otk::CmdRawArg));
             break;
         }
@@ -2089,7 +2091,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex);
             switch (cmd_kind) {
                 case otk::CmdTblfm: start(org::CmdTblfm); break;
-                case otk::CmdColumns: start(org::Columns); break;
+                case otk::CmdColumns: start(org::CmdColumns); break;
                 default: throw fatalError(lex, "asdf");
             }
             token(org::RawText, pop(lex, otk::RawText));

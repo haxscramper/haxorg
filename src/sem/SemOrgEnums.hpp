@@ -91,49 +91,11 @@ enum class OrgNodeKind : short int {
   None,
   /// \brief Toplevel part of the ast, not created by parser, and only used in `semorg` stage
   Document,
-  /// \brief User-defined node [[code:OrgUserNode]]
-  UserNode,
   /// \brief Empty node - valid state that does not contain any value
   Empty,
-  /// \brief Failed node parse
-  ///
-  ///
-  ///    Failed node parse - technically there are no /wrong/ syntax in the
-  ///    org-mode document because everything can be considered a one large
-  ///    word or a paragraph with flat `Word` content.
-  ///
-  ///    Error node's extent covers all subnodes that were constructed
-  ///    during nested content parsing plus ErrorTerminator node with error
-  ///    token (description of the parsing failure). So failure node will be
-  ///    structured as `[Error <some content> <ErrorToken>
-  ///    <ErrorTermiator>]`. Second-to-last is the invalid token itself,
-  ///    error terminator will hold fake token that referes to an error.
-  ///
-  ///    Error node can be produced by any parsing routine, although it is
-  ///    mostly used in the low-level text elements, since high-level
-  ///    structures are mostly detected based on the correct syntax - for
-  ///    example, `*** subtree` (and any title variations) can never be an
-  ///    error in itself. Title /text/ might contain an error, but invalid
-  ///    it is not possible to write an invalid subtree - it is either `*
-  ///    ANYTHING` or not a subtree at all.
-  ///
-  Error,
-  /// \brief Terminator node for failure in nested structure parsing
-  ErrorTerminator,
-  /// \brief Single invalid token
-  ErrorToken,
   InlineStmtList,
   /// \brief List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.
   StmtList,
-  /// \brief Associated list of statements - AST elements like commands and links are grouped together if placed on adjacent lines
-  AssocStmtList,
-  /// \brief Section subtree
-  Subtree,
-  /// \brief Time? associated with subtree entry
-  SubtreeTimes,
-  SubtreeStars,
-  /// \brief Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.
-  Completion,
   /// \brief Single checkbox item like `[X]` or `[-]`
   Checkbox,
   List,
@@ -143,12 +105,25 @@ enum class OrgNodeKind : short int {
   /// \brief Auxilliary wrapper for the paragraph placed at the start of the description list.
   ListTag,
   Counter,
-  /// \brief Inline or trailling comment. Can be used addition to `#+comment:` line or `#+begin-comment` section. Nested comment syntax is allowed (`#[ level1 #[ level2 ]# ]#`), but only outermost one is represented as separate AST node, everything else is a `.text`
-  Comment,
-  /// \brief Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers
-  RawText,
-  /// \brief Part of the org-mode document that is yet to be parsed. This node should not be created manually, it is only used for handling mutually recursive DSLs such as tables, which might include lists, which in turn might contain more tables in different bullet points.
-  Unparsed,
+  File,
+  /// \brief Colon example block
+  ColonExample,
+  /// \brief Long horizontal line `----`
+  TextSeparator,
+  /// \brief Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph
+  Paragraph,
+  /// \brief Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph)
+  AnnotatedParagraph,
+  /// \brief Horizontal table row
+  TableRow,
+  /// \brief Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.
+  TableCell,
+  /// \brief Org-mode table
+  Table,
+  /// \brief Inline footnote with text placed directly in the node body.
+  InlineFootnote,
+  /// \brief Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.
+  Footnote,
   /// \brief Undefined single-line command -- most likely custom user-provided oe
   Cmd,
   /// \brief Arguments for the command block
@@ -182,26 +157,33 @@ enum class OrgNodeKind : short int {
   /// \brief `#+options:` - document-wide formatting options
   CmdOptions,
   CmdTblfm,
-  /// \brief Backend-specific configuration options like `#+latex_header` `#+latex_class` etc.
-  CmdBackendOptions,
-  AttrImg,
   /// \brief `#+caption:` command
   CmdCaption,
-  File,
-  BlockExport,
-  InlineExport,
-  /// \brief Multiline command such as code block, latex equation, large block of passthrough code. Some built-in org-mode commands do not requires `#+begin` prefix, (such as `#+quote` or `#+example`) are represented by this type of block as well.
-  MultilineCommand,
   /// \brief Command evaluation result
-  Result,
-  /// \brief regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.
-  Ident,
-  /// \brief Bare identifier - any characters are allowed
-  BareIdent,
-  /// \brief Big ident used in conjunction with colon at the start of paragraph is considered an admonition tag: `NOTE: Text`, `WARNING: text` etc.
-  AdmonitionTag,
-  /// \brief full-uppsercase identifier such as `MUST` or `TODO`
-  BigIdent,
+  CmdResult,
+  /// \brief Call to named source code block.
+  CmdCallCode,
+  /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
+  CmdFlag,
+  CmdKey,
+  CmdValue,
+  /// \brief Key-value pair for source code block call.
+  CmdNamedValue,
+  CmdLatexClass,
+  CmdLatexHeader,
+  CmdLatexCompiler,
+  CmdLatexClassOptions,
+  CmdHtmlHead,
+  /// \brief `#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.
+  CmdColumns,
+  /// \brief `#+property:` command
+  CmdPropertyArgs,
+  /// \brief `#+property:` command
+  CmdPropertyText,
+  /// \brief `#+property:` command
+  CmdPropertyRaw,
+  /// \brief `#+filetags:` line command
+  CmdFiletags,
   /// \brief Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.
   BlockVerbatimMultiline,
   /// \brief Single line of source code
@@ -212,6 +194,7 @@ enum class OrgNodeKind : short int {
   CodeTangle,
   /// \brief `(refs:` callout in the source code
   CodeCallout,
+  BlockCode,
   /// \brief `#+begin_quote:` block in code
   BlockQuote,
   /// \brief `#+begin_comment:` block in code
@@ -219,33 +202,16 @@ enum class OrgNodeKind : short int {
   BlockCenter,
   BlockVerse,
   /// \brief Verbatim example text block
-  Example,
-  /// \brief Colon example block
-  ColonExample,
-  /// \brief Block of source code - can be multiline, single-line and
-  SrcCode,
-  /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
-  SrcInlineCode,
-  /// \brief Call to named source code block.
-  InlineCallCode,
-  /// \brief Call to named source code block.
-  CmdCallCode,
-  /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
-  PassCode,
-  /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
-  CmdFlag,
-  CmdKey,
-  CmdValue,
-  /// \brief Key-value pair for source code block call.
-  CmdNamedValue,
-  /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
-  UrgencyStatus,
-  /// \brief Long horizontal line `----`
-  TextSeparator,
-  /// \brief Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph
-  Paragraph,
-  /// \brief Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph)
-  AnnotatedParagraph,
+  BlockExample,
+  BlockExport,
+  /// \brief `#+begin_details`  section
+  BlockDetails,
+  /// \brief `#+begin_summary` section
+  BlockSummary,
+  /// \brief regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.
+  Ident,
+  /// \brief full-uppsercase identifier such as `MUST` or `TODO`
+  BigIdent,
   /// \brief Region of text with formatting, which contains standalone words -
   ///      can itself contain subnodes, which allows to represent nested
   ///      formatting regions, such as `*bold /italic/*` text. Particular type
@@ -292,15 +258,8 @@ enum class OrgNodeKind : short int {
   ///      not parsed fully during org-mode evaluation, but is checked for
   ///      correct parenthesis balance (as macro might contain elisp code)
   Macro,
-  /// \brief Raw content to be passed to a particular backend. This is the most
-  ///      compact way of quoting export strings, after `#+<backend>:
-  ///      <single-backend-line>` and `#+begin-export <backend>`
-  ///      `<multiple-lines>`.
-  BackendRaw,
   /// \brief Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.
   Symbol,
-  /// \brief Time association pair for the subtree deadlines.
-  TimeAssoc,
   StaticActiveTime,
   StaticInactiveTime,
   DynamicActiveTime,
@@ -310,78 +269,45 @@ enum class OrgNodeKind : short int {
   TimeRange,
   /// \brief Result of the time range evaluation or trailing annotation a subtree
   SimpleTime,
-  /// \brief `#+begin_details`  section
-  Details,
-  /// \brief `#+begin_summary` section
-  Summary,
-  /// \brief Org-mode table. Tables can be writtein in different formats, but in
-  ///    the end they are all represented using single ast type. NOTE: it is
-  ///    not guaranteed that all subnodes for table are exactly
-  ///    `orgTableRow` - sometimes additional property metadata might be
-  ///    used, making AST like `Table[AssocStmtList[Command[_],
-  ///    TableRow[_]]]` possible
-  Table,
-  /// \brief Horizontal table row
-  TableRow,
-  /// \brief Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.
-  TableCell,
-  /// \brief Inline footnote with text placed directly in the node body.
-  InlineFootnote,
-  /// \brief Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.
-  Footnote,
-  /// \brief Horizotal rule. Rule body might contain other subnodes, to represnt `---- some text ----` kind of formatting.
-  Horizontal,
-  /// \brief `#+filetags:` line command
-  Filetags,
-  /// \brief Original format of org-mode tags in form of `:tagname:`. Might
-  ///    contain one or mode identifgiers, but does not provide support for
-  ///    nesting - `:tag1:tag2:`. Can only be placed within restricted set
-  ///    of places such as subtree headings and has separate place in AST
-  ///    when allowed (`orgSubtree` always has subnode `№4` with either
-  ///    `orgEmpty` or `orgOrgTag`)
-  OrgTag,
-  /// \brief More commonly used `#hashtag` format, with some additional
-  ///    extension. Can be placed anywere in the document (including section
-  ///    headers), but does not have separate place in AST (e.g. considered
-  ///    regular part of the text)
   HashTag,
   /// \brief `\sym{}` with explicit arguments
   MetaSymbol,
   /// \brief `@user`
   AtMention,
-  /// \brief Custom extension to org-mode. Similarly to `BigIdent` used to have something like informal keywords `MUST`, `OPTIONAL`, but instead aimed /specifically/ at commit message headers - `[FEATURE]`, `[FIX]` and so on.
-  BracTag,
-  /// \brief Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`
-  Drawer,
-  LatexClass,
-  LatexHeader,
-  LatexCompiler,
-  LatexClassOptions,
-  HtmlHead,
-  /// \brief `#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.
-  Columns,
-  /// \brief `#+property:` command
-  CmdPropertyArgs,
-  /// \brief `#+property:` command
-  CmdPropertyText,
-  /// \brief `#+property:` command
-  CmdPropertyRaw,
-  PropertyList,
-  /// \brief `:property:` drawer
-  Property,
   /// \brief Placeholder entry in text, usually writte like `<text to replace>`
   Placeholder,
-  /// \brief `:description:` entry
-  SubtreeDescription,
-  SubtreeUrgency,
-  /// \brief `:logbook:` entry storing note information
-  Logbook,
-  /// \brief Annotation about change in the subtree todo state
-  LogbookStateChange,
   /// \brief `<<<RADIO>>>`
   RadioTarget,
   /// \brief `<<TARGET>>`
   Target,
+  /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
+  SrcInlineCode,
+  /// \brief Call to named source code block.
+  InlineCallCode,
+  /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
+  InlineExport,
+  InlineComment,
+  /// \brief Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers
+  RawText,
+  /// \brief `:description:` entry
+  SubtreeDescription,
+  SubtreeUrgency,
+  /// \brief `:logbook:` entry storing note information
+  DrawerLogbook,
+  /// \brief Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`
+  Drawer,
+  DrawerPropertyList,
+  /// \brief `:property:` drawer
+  DrawerProperty,
+  /// \brief Section subtree
+  Subtree,
+  /// \brief Time? associated with subtree entry
+  SubtreeTimes,
+  SubtreeStars,
+  /// \brief Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.
+  Completion,
+  /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
+  SubtreeImportance,
 };
 template <>
 struct enum_serde<OrgNodeKind> {
@@ -392,7 +318,7 @@ struct enum_serde<OrgNodeKind> {
 template <>
 struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
-                                                                OrgNodeKind::Target> {};
+                                                                OrgNodeKind::SubtreeImportance> {};
 
 enum class OrgSemKind : short int { ErrorItem, ErrorGroup, CmdArgument, CmdArgumentList, StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, BlockCenter, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdGroup, CmdTblfm, BlockQuote, BlockComment, BlockVerse, BlockExample, ColonExample, CmdArguments, CmdAttr, BlockExport, BlockAdmonition, Call, BlockCode, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>

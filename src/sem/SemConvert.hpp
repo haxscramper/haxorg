@@ -199,7 +199,6 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<Include>         convertInclude(In);
     ConvResult<Escaped>         convertEscaped(In);
     ConvResult<TextSeparator>   convertTextSeparator(In);
-    ConvResult<ParseError>      convertParseError(In);
     ConvResult<AtMention>       convertAtMention(In);
     ConvResult<Underline>       convertUnderline(In);
     ConvResult<BlockAdmonition> convertBlockAdmonition(In);

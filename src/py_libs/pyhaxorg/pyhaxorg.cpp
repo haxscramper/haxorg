@@ -3490,48 +3490,25 @@ node can have subnodes.)RAW")
   pybind11::enum_<OrgNodeKind>(m, "OrgNodeKind")
     .value("None", OrgNodeKind::None, R"RAW(Default valye for node - invalid state)RAW")
     .value("Document", OrgNodeKind::Document, R"RAW(Toplevel part of the ast, not created by parser, and only used in `semorg` stage)RAW")
-    .value("UserNode", OrgNodeKind::UserNode, R"RAW(User-defined node [[code:OrgUserNode]])RAW")
     .value("Empty", OrgNodeKind::Empty, R"RAW(Empty node - valid state that does not contain any value)RAW")
-    .value("Error", OrgNodeKind::Error, R"RAW(Failed node parse
-
-
-   Failed node parse - technically there are no /wrong/ syntax in the
-   org-mode document because everything can be considered a one large
-   word or a paragraph with flat `Word` content.
-
-   Error node's extent covers all subnodes that were constructed
-   during nested content parsing plus ErrorTerminator node with error
-   token (description of the parsing failure). So failure node will be
-   structured as `[Error <some content> <ErrorToken>
-   <ErrorTermiator>]`. Second-to-last is the invalid token itself,
-   error terminator will hold fake token that referes to an error.
-
-   Error node can be produced by any parsing routine, although it is
-   mostly used in the low-level text elements, since high-level
-   structures are mostly detected based on the correct syntax - for
-   example, `*** subtree` (and any title variations) can never be an
-   error in itself. Title /text/ might contain an error, but invalid
-   it is not possible to write an invalid subtree - it is either `*
-   ANYTHING` or not a subtree at all.
-   )RAW")
-    .value("ErrorTerminator", OrgNodeKind::ErrorTerminator, R"RAW(Terminator node for failure in nested structure parsing)RAW")
-    .value("ErrorToken", OrgNodeKind::ErrorToken, R"RAW(Single invalid token)RAW")
     .value("InlineStmtList", OrgNodeKind::InlineStmtList)
     .value("StmtList", OrgNodeKind::StmtList, R"RAW(List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.)RAW")
-    .value("AssocStmtList", OrgNodeKind::AssocStmtList, R"RAW(Associated list of statements - AST elements like commands and links are grouped together if placed on adjacent lines)RAW")
-    .value("Subtree", OrgNodeKind::Subtree, R"RAW(Section subtree)RAW")
-    .value("SubtreeTimes", OrgNodeKind::SubtreeTimes, R"RAW(Time? associated with subtree entry)RAW")
-    .value("SubtreeStars", OrgNodeKind::SubtreeStars)
-    .value("Completion", OrgNodeKind::Completion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
     .value("Checkbox", OrgNodeKind::Checkbox, R"RAW(Single checkbox item like `[X]` or `[-]`)RAW")
     .value("List", OrgNodeKind::List)
     .value("Bullet", OrgNodeKind::Bullet, R"RAW(List item prefix)RAW")
     .value("ListItem", OrgNodeKind::ListItem)
     .value("ListTag", OrgNodeKind::ListTag, R"RAW(Auxilliary wrapper for the paragraph placed at the start of the description list.)RAW")
     .value("Counter", OrgNodeKind::Counter)
-    .value("Comment", OrgNodeKind::Comment, R"RAW(Inline or trailling comment. Can be used addition to `#+comment:` line or `#+begin-comment` section. Nested comment syntax is allowed (`#[ level1 #[ level2 ]# ]#`), but only outermost one is represented as separate AST node, everything else is a `.text`)RAW")
-    .value("RawText", OrgNodeKind::RawText, R"RAW(Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers )RAW")
-    .value("Unparsed", OrgNodeKind::Unparsed, R"RAW(Part of the org-mode document that is yet to be parsed. This node should not be created manually, it is only used for handling mutually recursive DSLs such as tables, which might include lists, which in turn might contain more tables in different bullet points.)RAW")
+    .value("File", OrgNodeKind::File)
+    .value("ColonExample", OrgNodeKind::ColonExample, R"RAW(Colon example block)RAW")
+    .value("TextSeparator", OrgNodeKind::TextSeparator, R"RAW(Long horizontal line `----`)RAW")
+    .value("Paragraph", OrgNodeKind::Paragraph, R"RAW(Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph)RAW")
+    .value("AnnotatedParagraph", OrgNodeKind::AnnotatedParagraph, R"RAW(Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph))RAW")
+    .value("TableRow", OrgNodeKind::TableRow, R"RAW(Horizontal table row)RAW")
+    .value("TableCell", OrgNodeKind::TableCell, R"RAW(Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.)RAW")
+    .value("Table", OrgNodeKind::Table, R"RAW(Org-mode table)RAW")
+    .value("InlineFootnote", OrgNodeKind::InlineFootnote, R"RAW(Inline footnote with text placed directly in the node body.)RAW")
+    .value("Footnote", OrgNodeKind::Footnote, R"RAW(Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.)RAW")
     .value("Cmd", OrgNodeKind::Cmd, R"RAW(Undefined single-line command -- most likely custom user-provided oe)RAW")
     .value("CmdArguments", OrgNodeKind::CmdArguments, R"RAW(Arguments for the command block)RAW")
     .value("CmdTitle", OrgNodeKind::CmdTitle, R"RAW(`#+title:` - full document title)RAW")
@@ -3549,42 +3526,39 @@ node can have subnodes.)RAW")
     .value("CmdHeader", OrgNodeKind::CmdHeader, R"RAW(`#+header:` - extended list of parameters passed to associated block)RAW")
     .value("CmdOptions", OrgNodeKind::CmdOptions, R"RAW(`#+options:` - document-wide formatting options)RAW")
     .value("CmdTblfm", OrgNodeKind::CmdTblfm)
-    .value("CmdBackendOptions", OrgNodeKind::CmdBackendOptions, R"RAW(Backend-specific configuration options like `#+latex_header` `#+latex_class` etc.)RAW")
-    .value("AttrImg", OrgNodeKind::AttrImg)
     .value("CmdCaption", OrgNodeKind::CmdCaption, R"RAW(`#+caption:` command)RAW")
-    .value("File", OrgNodeKind::File)
-    .value("BlockExport", OrgNodeKind::BlockExport)
-    .value("InlineExport", OrgNodeKind::InlineExport)
-    .value("MultilineCommand", OrgNodeKind::MultilineCommand, R"RAW(Multiline command such as code block, latex equation, large block of passthrough code. Some built-in org-mode commands do not requires `#+begin` prefix, (such as `#+quote` or `#+example`) are represented by this type of block as well.)RAW")
-    .value("Result", OrgNodeKind::Result, R"RAW(Command evaluation result)RAW")
-    .value("Ident", OrgNodeKind::Ident, R"RAW(regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.)RAW")
-    .value("BareIdent", OrgNodeKind::BareIdent, R"RAW(Bare identifier - any characters are allowed)RAW")
-    .value("AdmonitionTag", OrgNodeKind::AdmonitionTag, R"RAW(Big ident used in conjunction with colon at the start of paragraph is considered an admonition tag: `NOTE: Text`, `WARNING: text` etc.)RAW")
-    .value("BigIdent", OrgNodeKind::BigIdent, R"RAW(full-uppsercase identifier such as `MUST` or `TODO`)RAW")
+    .value("CmdResult", OrgNodeKind::CmdResult, R"RAW(Command evaluation result)RAW")
+    .value("CmdCallCode", OrgNodeKind::CmdCallCode, R"RAW(Call to named source code block.)RAW")
+    .value("CmdFlag", OrgNodeKind::CmdFlag, R"RAW(Flag for source code block. For example `-n`, which is used to to make source code block export with lines)RAW")
+    .value("CmdKey", OrgNodeKind::CmdKey)
+    .value("CmdValue", OrgNodeKind::CmdValue)
+    .value("CmdNamedValue", OrgNodeKind::CmdNamedValue, R"RAW(Key-value pair for source code block call.)RAW")
+    .value("CmdLatexClass", OrgNodeKind::CmdLatexClass)
+    .value("CmdLatexHeader", OrgNodeKind::CmdLatexHeader)
+    .value("CmdLatexCompiler", OrgNodeKind::CmdLatexCompiler)
+    .value("CmdLatexClassOptions", OrgNodeKind::CmdLatexClassOptions)
+    .value("CmdHtmlHead", OrgNodeKind::CmdHtmlHead)
+    .value("CmdColumns", OrgNodeKind::CmdColumns, R"RAW(`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.)RAW")
+    .value("CmdPropertyArgs", OrgNodeKind::CmdPropertyArgs, R"RAW(`#+property:` command)RAW")
+    .value("CmdPropertyText", OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
+    .value("CmdPropertyRaw", OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
+    .value("CmdFiletags", OrgNodeKind::CmdFiletags, R"RAW(`#+filetags:` line command)RAW")
     .value("BlockVerbatimMultiline", OrgNodeKind::BlockVerbatimMultiline, R"RAW(Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.)RAW")
     .value("CodeLine", OrgNodeKind::CodeLine, R"RAW(Single line of source code)RAW")
     .value("CodeText", OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")
     .value("CodeTangle", OrgNodeKind::CodeTangle, R"RAW(Single tangle target in the code block)RAW")
     .value("CodeCallout", OrgNodeKind::CodeCallout, R"RAW(`(refs:` callout in the source code)RAW")
+    .value("BlockCode", OrgNodeKind::BlockCode)
     .value("BlockQuote", OrgNodeKind::BlockQuote, R"RAW(`#+begin_quote:` block in code)RAW")
     .value("BlockComment", OrgNodeKind::BlockComment, R"RAW(`#+begin_comment:` block in code)RAW")
     .value("BlockCenter", OrgNodeKind::BlockCenter)
     .value("BlockVerse", OrgNodeKind::BlockVerse)
-    .value("Example", OrgNodeKind::Example, R"RAW(Verbatim example text block)RAW")
-    .value("ColonExample", OrgNodeKind::ColonExample, R"RAW(Colon example block)RAW")
-    .value("SrcCode", OrgNodeKind::SrcCode, R"RAW(Block of source code - can be multiline, single-line and)RAW")
-    .value("SrcInlineCode", OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
-    .value("InlineCallCode", OrgNodeKind::InlineCallCode, R"RAW(Call to named source code block.)RAW")
-    .value("CmdCallCode", OrgNodeKind::CmdCallCode, R"RAW(Call to named source code block.)RAW")
-    .value("PassCode", OrgNodeKind::PassCode, R"RAW(Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively)RAW")
-    .value("CmdFlag", OrgNodeKind::CmdFlag, R"RAW(Flag for source code block. For example `-n`, which is used to to make source code block export with lines)RAW")
-    .value("CmdKey", OrgNodeKind::CmdKey)
-    .value("CmdValue", OrgNodeKind::CmdValue)
-    .value("CmdNamedValue", OrgNodeKind::CmdNamedValue, R"RAW(Key-value pair for source code block call.)RAW")
-    .value("UrgencyStatus", OrgNodeKind::UrgencyStatus, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
-    .value("TextSeparator", OrgNodeKind::TextSeparator, R"RAW(Long horizontal line `----`)RAW")
-    .value("Paragraph", OrgNodeKind::Paragraph, R"RAW(Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph)RAW")
-    .value("AnnotatedParagraph", OrgNodeKind::AnnotatedParagraph, R"RAW(Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph))RAW")
+    .value("BlockExample", OrgNodeKind::BlockExample, R"RAW(Verbatim example text block)RAW")
+    .value("BlockExport", OrgNodeKind::BlockExport)
+    .value("BlockDetails", OrgNodeKind::BlockDetails, R"RAW(`#+begin_details`  section)RAW")
+    .value("BlockSummary", OrgNodeKind::BlockSummary, R"RAW(`#+begin_summary` section)RAW")
+    .value("Ident", OrgNodeKind::Ident, R"RAW(regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.)RAW")
+    .value("BigIdent", OrgNodeKind::BigIdent, R"RAW(full-uppsercase identifier such as `MUST` or `TODO`)RAW")
     .value("Bold", OrgNodeKind::Bold, R"RAW(Region of text with formatting, which contains standalone words -
      can itself contain subnodes, which allows to represent nested
      formatting regions, such as `*bold /italic/*` text. Particular type
@@ -3623,64 +3597,35 @@ node can have subnodes.)RAW")
      and evaluated according to it's environment. Body of the macro is
      not parsed fully during org-mode evaluation, but is checked for
      correct parenthesis balance (as macro might contain elisp code))RAW")
-    .value("BackendRaw", OrgNodeKind::BackendRaw, R"RAW(Raw content to be passed to a particular backend. This is the most
-     compact way of quoting export strings, after `#+<backend>:
-     <single-backend-line>` and `#+begin-export <backend>`
-     `<multiple-lines>`.)RAW")
     .value("Symbol", OrgNodeKind::Symbol, R"RAW(Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.)RAW")
-    .value("TimeAssoc", OrgNodeKind::TimeAssoc, R"RAW(Time association pair for the subtree deadlines.)RAW")
     .value("StaticActiveTime", OrgNodeKind::StaticActiveTime)
     .value("StaticInactiveTime", OrgNodeKind::StaticInactiveTime)
     .value("DynamicActiveTime", OrgNodeKind::DynamicActiveTime)
     .value("DynamicInactiveTime", OrgNodeKind::DynamicInactiveTime, R"RAW(Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later)RAW")
     .value("TimeRange", OrgNodeKind::TimeRange, R"RAW(Date and time range format - two `orgDateTime` entries)RAW")
     .value("SimpleTime", OrgNodeKind::SimpleTime, R"RAW(Result of the time range evaluation or trailing annotation a subtree)RAW")
-    .value("Details", OrgNodeKind::Details, R"RAW(`#+begin_details`  section)RAW")
-    .value("Summary", OrgNodeKind::Summary, R"RAW(`#+begin_summary` section)RAW")
-    .value("Table", OrgNodeKind::Table, R"RAW(Org-mode table. Tables can be writtein in different formats, but in
-   the end they are all represented using single ast type. NOTE: it is
-   not guaranteed that all subnodes for table are exactly
-   `orgTableRow` - sometimes additional property metadata might be
-   used, making AST like `Table[AssocStmtList[Command[_],
-   TableRow[_]]]` possible)RAW")
-    .value("TableRow", OrgNodeKind::TableRow, R"RAW(Horizontal table row)RAW")
-    .value("TableCell", OrgNodeKind::TableCell, R"RAW(Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.)RAW")
-    .value("InlineFootnote", OrgNodeKind::InlineFootnote, R"RAW(Inline footnote with text placed directly in the node body.)RAW")
-    .value("Footnote", OrgNodeKind::Footnote, R"RAW(Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.)RAW")
-    .value("Horizontal", OrgNodeKind::Horizontal, R"RAW(Horizotal rule. Rule body might contain other subnodes, to represnt `---- some text ----` kind of formatting.)RAW")
-    .value("Filetags", OrgNodeKind::Filetags, R"RAW(`#+filetags:` line command)RAW")
-    .value("OrgTag", OrgNodeKind::OrgTag, R"RAW(Original format of org-mode tags in form of `:tagname:`. Might
-   contain one or mode identifgiers, but does not provide support for
-   nesting - `:tag1:tag2:`. Can only be placed within restricted set
-   of places such as subtree headings and has separate place in AST
-   when allowed (`orgSubtree` always has subnode `№4` with either
-   `orgEmpty` or `orgOrgTag`))RAW")
-    .value("HashTag", OrgNodeKind::HashTag, R"RAW(More commonly used `#hashtag` format, with some additional
-   extension. Can be placed anywere in the document (including section
-   headers), but does not have separate place in AST (e.g. considered
-   regular part of the text))RAW")
+    .value("HashTag", OrgNodeKind::HashTag)
     .value("MetaSymbol", OrgNodeKind::MetaSymbol, R"RAW(`\sym{}` with explicit arguments)RAW")
     .value("AtMention", OrgNodeKind::AtMention, R"RAW(`@user`)RAW")
-    .value("BracTag", OrgNodeKind::BracTag, R"RAW(Custom extension to org-mode. Similarly to `BigIdent` used to have something like informal keywords `MUST`, `OPTIONAL`, but instead aimed /specifically/ at commit message headers - `[FEATURE]`, `[FIX]` and so on.)RAW")
-    .value("Drawer", OrgNodeKind::Drawer, R"RAW(Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`)RAW")
-    .value("LatexClass", OrgNodeKind::LatexClass)
-    .value("LatexHeader", OrgNodeKind::LatexHeader)
-    .value("LatexCompiler", OrgNodeKind::LatexCompiler)
-    .value("LatexClassOptions", OrgNodeKind::LatexClassOptions)
-    .value("HtmlHead", OrgNodeKind::HtmlHead)
-    .value("Columns", OrgNodeKind::Columns, R"RAW(`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.)RAW")
-    .value("CmdPropertyArgs", OrgNodeKind::CmdPropertyArgs, R"RAW(`#+property:` command)RAW")
-    .value("CmdPropertyText", OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
-    .value("CmdPropertyRaw", OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
-    .value("PropertyList", OrgNodeKind::PropertyList)
-    .value("Property", OrgNodeKind::Property, R"RAW(`:property:` drawer)RAW")
     .value("Placeholder", OrgNodeKind::Placeholder, R"RAW(Placeholder entry in text, usually writte like `<text to replace>`)RAW")
-    .value("SubtreeDescription", OrgNodeKind::SubtreeDescription, R"RAW(`:description:` entry)RAW")
-    .value("SubtreeUrgency", OrgNodeKind::SubtreeUrgency)
-    .value("Logbook", OrgNodeKind::Logbook, R"RAW(`:logbook:` entry storing note information)RAW")
-    .value("LogbookStateChange", OrgNodeKind::LogbookStateChange, R"RAW(Annotation about change in the subtree todo state)RAW")
     .value("RadioTarget", OrgNodeKind::RadioTarget, R"RAW(`<<<RADIO>>>`)RAW")
     .value("Target", OrgNodeKind::Target, R"RAW(`<<TARGET>>`)RAW")
+    .value("SrcInlineCode", OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
+    .value("InlineCallCode", OrgNodeKind::InlineCallCode, R"RAW(Call to named source code block.)RAW")
+    .value("InlineExport", OrgNodeKind::InlineExport, R"RAW(Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively)RAW")
+    .value("InlineComment", OrgNodeKind::InlineComment)
+    .value("RawText", OrgNodeKind::RawText, R"RAW(Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers )RAW")
+    .value("SubtreeDescription", OrgNodeKind::SubtreeDescription, R"RAW(`:description:` entry)RAW")
+    .value("SubtreeUrgency", OrgNodeKind::SubtreeUrgency)
+    .value("DrawerLogbook", OrgNodeKind::DrawerLogbook, R"RAW(`:logbook:` entry storing note information)RAW")
+    .value("Drawer", OrgNodeKind::Drawer, R"RAW(Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`)RAW")
+    .value("DrawerPropertyList", OrgNodeKind::DrawerPropertyList)
+    .value("DrawerProperty", OrgNodeKind::DrawerProperty, R"RAW(`:property:` drawer)RAW")
+    .value("Subtree", OrgNodeKind::Subtree, R"RAW(Section subtree)RAW")
+    .value("SubtreeTimes", OrgNodeKind::SubtreeTimes, R"RAW(Time? associated with subtree entry)RAW")
+    .value("SubtreeStars", OrgNodeKind::SubtreeStars)
+    .value("Completion", OrgNodeKind::Completion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
+    .value("SubtreeImportance", OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
     .def("__iter__", [](OrgNodeKind _self) -> PyEnumIterator<OrgNodeKind> {
                      return
                      PyEnumIterator<OrgNodeKind>
