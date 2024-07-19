@@ -4,47 +4,26 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SEM_ORG_KIND(__IMPL) \
-    __IMPL(ErrorItem) \
-    __IMPL(ErrorGroup) \
     __IMPL(CmdArgument) \
     __IMPL(CmdArgumentList) \
+    __IMPL(CmdArguments) \
+    __IMPL(ErrorItem) \
+    __IMPL(ErrorGroup) \
     __IMPL(StmtList) \
     __IMPL(Empty) \
-    __IMPL(Cell) \
-    __IMPL(Row) \
-    __IMPL(Table) \
-    __IMPL(HashTag) \
-    __IMPL(Footnote) \
-    __IMPL(Completion) \
-    __IMPL(Paragraph) \
-    __IMPL(AnnotatedParagraph) \
-    __IMPL(BlockCenter) \
     __IMPL(CmdCaption) \
     __IMPL(CmdName) \
     __IMPL(CmdCustomArgs) \
     __IMPL(CmdCustomRaw) \
     __IMPL(CmdCustomText) \
     __IMPL(CmdResults) \
-    __IMPL(CmdGroup) \
     __IMPL(CmdTblfm) \
-    __IMPL(BlockQuote) \
-    __IMPL(BlockComment) \
-    __IMPL(BlockVerse) \
-    __IMPL(BlockExample) \
-    __IMPL(ColonExample) \
-    __IMPL(CmdArguments) \
-    __IMPL(CmdAttr) \
-    __IMPL(BlockExport) \
-    __IMPL(BlockAdmonition) \
-    __IMPL(Call) \
-    __IMPL(BlockCode) \
+    __IMPL(HashTag) \
+    __IMPL(Footnote) \
     __IMPL(Time) \
     __IMPL(TimeRange) \
     __IMPL(Macro) \
     __IMPL(Symbol) \
-    __IMPL(SubtreeLog) \
-    __IMPL(Subtree) \
-    __IMPL(InlineMath) \
     __IMPL(Escaped) \
     __IMPL(Newline) \
     __IMPL(Space) \
@@ -64,17 +43,36 @@
     __IMPL(Italic) \
     __IMPL(Strike) \
     __IMPL(Par) \
+    __IMPL(Latex) \
+    __IMPL(Link) \
+    __IMPL(BlockCenter) \
+    __IMPL(BlockQuote) \
+    __IMPL(BlockComment) \
+    __IMPL(BlockVerse) \
+    __IMPL(BlockExample) \
+    __IMPL(BlockExport) \
+    __IMPL(BlockAdmonition) \
+    __IMPL(BlockCode) \
+    __IMPL(SubtreeLog) \
+    __IMPL(Subtree) \
+    __IMPL(SubtreeCompletion) \
+    __IMPL(Cell) \
+    __IMPL(Row) \
+    __IMPL(Table) \
+    __IMPL(Paragraph) \
+    __IMPL(AnnotatedParagraph) \
+    __IMPL(ColonExample) \
+    __IMPL(CmdAttr) \
+    __IMPL(Call) \
     __IMPL(List) \
     __IMPL(ListItem) \
-    __IMPL(Link) \
     __IMPL(DocumentOptions) \
     __IMPL(Document) \
-    __IMPL(ParseError) \
     __IMPL(FileTarget) \
     __IMPL(TextSeparator) \
     __IMPL(Include) \
     __IMPL(DocumentGroup)
-enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Urgency, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
+enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {
   static Opt<OrgSpecName> from_string(std::string value);
@@ -305,7 +303,7 @@ enum class OrgNodeKind : short int {
   SubtreeTimes,
   SubtreeStars,
   /// \brief Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.
-  Completion,
+  SubtreeCompletion,
   /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
   SubtreeImportance,
 };
@@ -320,7 +318,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { ErrorItem, ErrorGroup, CmdArgument, CmdArgumentList, StmtList, Empty, Cell, Row, Table, HashTag, Footnote, Completion, Paragraph, AnnotatedParagraph, BlockCenter, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdGroup, CmdTblfm, BlockQuote, BlockComment, BlockVerse, BlockExample, ColonExample, CmdArguments, CmdAttr, BlockExport, BlockAdmonition, Call, BlockCode, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, DocumentOptions, Document, ParseError, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { CmdArgument, CmdArgumentList, CmdArguments, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, Footnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, AnnotatedParagraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);
@@ -329,7 +327,7 @@ struct enum_serde<OrgSemKind> {
 
 template <>
 struct value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
-                                                               OrgSemKind::ErrorItem,
+                                                               OrgSemKind::CmdArgument,
                                                                OrgSemKind::DocumentGroup> {};
 
 

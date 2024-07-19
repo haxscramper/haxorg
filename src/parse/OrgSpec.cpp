@@ -105,7 +105,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     "Optional TODO state of the subtree"),
                 fieldN(
                     2,
-                    N::Urgency,
+                    N::Importance,
                     {org::SubtreeImportance, org::Empty},
                     "Optional urgency marker for the subtree"),
                 field1(
@@ -116,7 +116,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(
                     4,
                     N::Completion,
-                    {org::Completion, org::Empty},
+                    {org::SubtreeCompletion, org::Empty},
                     "Cumulative or direct completion of the "
                     "nested "
                     "tree elements"),
@@ -289,12 +289,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                          org::AnnotatedParagraph,
                          org::Empty})),
                 Field(
-                    Range(4, N::Completion)
-                        .doc("Cumulative completion progress for all "
-                             "subnodes"),
-                    OrgPattern({org::Completion, org::Empty})),
-                Field(
-                    Range(5, N::Body)
+                    Range(4, N::Body)
                         .doc("Additional list items - more sublists, "
                              "extended N::Body (with code blocks, extra "
                              "parargaphs etc.)"),

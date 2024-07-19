@@ -104,6 +104,7 @@ template class proto_serde<::orgproto::CmdName, sem::Cmd>;
 template class proto_serde<::orgproto::CmdResults, sem::Cmd>;
 template class proto_serde<::orgproto::BlockCode, sem::Cmd>;
 template class proto_serde<::orgproto::BlockExample, sem::Cmd>;
+template class proto_serde<::orgproto::BlockCenter, sem::Cmd>;
 template class proto_serde<::orgproto::BlockExport, sem::Cmd>;
 template class proto_serde<::orgproto::Row, sem::Cmd>;
 template class proto_serde<::orgproto::Table, sem::Cmd>;

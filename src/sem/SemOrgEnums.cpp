@@ -28,7 +28,7 @@ Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Prefix") { return OrgSpecName::Prefix; } else
   if (value == "Text") { return OrgSpecName::Text; } else
   if (value == "Todo") { return OrgSpecName::Todo; } else
-  if (value == "Urgency") { return OrgSpecName::Urgency; } else
+  if (value == "Importance") { return OrgSpecName::Importance; } else
   if (value == "Title") { return OrgSpecName::Title; } else
   if (value == "Completion") { return OrgSpecName::Completion; } else
   if (value == "Head") { return OrgSpecName::Head; } else
@@ -93,7 +93,7 @@ std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
     case OrgSpecName::Prefix: return "Prefix";
     case OrgSpecName::Text: return "Text";
     case OrgSpecName::Todo: return "Todo";
-    case OrgSpecName::Urgency: return "Urgency";
+    case OrgSpecName::Importance: return "Importance";
     case OrgSpecName::Title: return "Title";
     case OrgSpecName::Completion: return "Completion";
     case OrgSpecName::Head: return "Head";
@@ -252,7 +252,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "Subtree") { return OrgNodeKind::Subtree; } else
   if (value == "SubtreeTimes") { return OrgNodeKind::SubtreeTimes; } else
   if (value == "SubtreeStars") { return OrgNodeKind::SubtreeStars; } else
-  if (value == "Completion") { return OrgNodeKind::Completion; } else
+  if (value == "SubtreeCompletion") { return OrgNodeKind::SubtreeCompletion; } else
   if (value == "SubtreeImportance") { return OrgNodeKind::SubtreeImportance; } else
   { return std::nullopt; }
 }
@@ -377,54 +377,33 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::Subtree: return "Subtree";
     case OrgNodeKind::SubtreeTimes: return "SubtreeTimes";
     case OrgNodeKind::SubtreeStars: return "SubtreeStars";
-    case OrgNodeKind::Completion: return "Completion";
+    case OrgNodeKind::SubtreeCompletion: return "SubtreeCompletion";
     case OrgNodeKind::SubtreeImportance: return "SubtreeImportance";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
-  if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
-  if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else
   if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
   if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
+  if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
+  if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
+  if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
-  if (value == "Cell") { return OrgSemKind::Cell; } else
-  if (value == "Row") { return OrgSemKind::Row; } else
-  if (value == "Table") { return OrgSemKind::Table; } else
-  if (value == "HashTag") { return OrgSemKind::HashTag; } else
-  if (value == "Footnote") { return OrgSemKind::Footnote; } else
-  if (value == "Completion") { return OrgSemKind::Completion; } else
-  if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
-  if (value == "AnnotatedParagraph") { return OrgSemKind::AnnotatedParagraph; } else
-  if (value == "BlockCenter") { return OrgSemKind::BlockCenter; } else
   if (value == "CmdCaption") { return OrgSemKind::CmdCaption; } else
   if (value == "CmdName") { return OrgSemKind::CmdName; } else
   if (value == "CmdCustomArgs") { return OrgSemKind::CmdCustomArgs; } else
   if (value == "CmdCustomRaw") { return OrgSemKind::CmdCustomRaw; } else
   if (value == "CmdCustomText") { return OrgSemKind::CmdCustomText; } else
   if (value == "CmdResults") { return OrgSemKind::CmdResults; } else
-  if (value == "CmdGroup") { return OrgSemKind::CmdGroup; } else
   if (value == "CmdTblfm") { return OrgSemKind::CmdTblfm; } else
-  if (value == "BlockQuote") { return OrgSemKind::BlockQuote; } else
-  if (value == "BlockComment") { return OrgSemKind::BlockComment; } else
-  if (value == "BlockVerse") { return OrgSemKind::BlockVerse; } else
-  if (value == "BlockExample") { return OrgSemKind::BlockExample; } else
-  if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
-  if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
-  if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
-  if (value == "BlockExport") { return OrgSemKind::BlockExport; } else
-  if (value == "BlockAdmonition") { return OrgSemKind::BlockAdmonition; } else
-  if (value == "Call") { return OrgSemKind::Call; } else
-  if (value == "BlockCode") { return OrgSemKind::BlockCode; } else
+  if (value == "HashTag") { return OrgSemKind::HashTag; } else
+  if (value == "Footnote") { return OrgSemKind::Footnote; } else
   if (value == "Time") { return OrgSemKind::Time; } else
   if (value == "TimeRange") { return OrgSemKind::TimeRange; } else
   if (value == "Macro") { return OrgSemKind::Macro; } else
   if (value == "Symbol") { return OrgSemKind::Symbol; } else
-  if (value == "SubtreeLog") { return OrgSemKind::SubtreeLog; } else
-  if (value == "Subtree") { return OrgSemKind::Subtree; } else
-  if (value == "InlineMath") { return OrgSemKind::InlineMath; } else
   if (value == "Escaped") { return OrgSemKind::Escaped; } else
   if (value == "Newline") { return OrgSemKind::Newline; } else
   if (value == "Space") { return OrgSemKind::Space; } else
@@ -444,12 +423,31 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Italic") { return OrgSemKind::Italic; } else
   if (value == "Strike") { return OrgSemKind::Strike; } else
   if (value == "Par") { return OrgSemKind::Par; } else
+  if (value == "Latex") { return OrgSemKind::Latex; } else
+  if (value == "Link") { return OrgSemKind::Link; } else
+  if (value == "BlockCenter") { return OrgSemKind::BlockCenter; } else
+  if (value == "BlockQuote") { return OrgSemKind::BlockQuote; } else
+  if (value == "BlockComment") { return OrgSemKind::BlockComment; } else
+  if (value == "BlockVerse") { return OrgSemKind::BlockVerse; } else
+  if (value == "BlockExample") { return OrgSemKind::BlockExample; } else
+  if (value == "BlockExport") { return OrgSemKind::BlockExport; } else
+  if (value == "BlockAdmonition") { return OrgSemKind::BlockAdmonition; } else
+  if (value == "BlockCode") { return OrgSemKind::BlockCode; } else
+  if (value == "SubtreeLog") { return OrgSemKind::SubtreeLog; } else
+  if (value == "Subtree") { return OrgSemKind::Subtree; } else
+  if (value == "SubtreeCompletion") { return OrgSemKind::SubtreeCompletion; } else
+  if (value == "Cell") { return OrgSemKind::Cell; } else
+  if (value == "Row") { return OrgSemKind::Row; } else
+  if (value == "Table") { return OrgSemKind::Table; } else
+  if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
+  if (value == "AnnotatedParagraph") { return OrgSemKind::AnnotatedParagraph; } else
+  if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
+  if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
+  if (value == "Call") { return OrgSemKind::Call; } else
   if (value == "List") { return OrgSemKind::List; } else
   if (value == "ListItem") { return OrgSemKind::ListItem; } else
-  if (value == "Link") { return OrgSemKind::Link; } else
   if (value == "DocumentOptions") { return OrgSemKind::DocumentOptions; } else
   if (value == "Document") { return OrgSemKind::Document; } else
-  if (value == "ParseError") { return OrgSemKind::ParseError; } else
   if (value == "FileTarget") { return OrgSemKind::FileTarget; } else
   if (value == "TextSeparator") { return OrgSemKind::TextSeparator; } else
   if (value == "Include") { return OrgSemKind::Include; } else
@@ -458,47 +456,26 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 }
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
-    case OrgSemKind::ErrorItem: return "ErrorItem";
-    case OrgSemKind::ErrorGroup: return "ErrorGroup";
     case OrgSemKind::CmdArgument: return "CmdArgument";
     case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
+    case OrgSemKind::CmdArguments: return "CmdArguments";
+    case OrgSemKind::ErrorItem: return "ErrorItem";
+    case OrgSemKind::ErrorGroup: return "ErrorGroup";
     case OrgSemKind::StmtList: return "StmtList";
     case OrgSemKind::Empty: return "Empty";
-    case OrgSemKind::Cell: return "Cell";
-    case OrgSemKind::Row: return "Row";
-    case OrgSemKind::Table: return "Table";
-    case OrgSemKind::HashTag: return "HashTag";
-    case OrgSemKind::Footnote: return "Footnote";
-    case OrgSemKind::Completion: return "Completion";
-    case OrgSemKind::Paragraph: return "Paragraph";
-    case OrgSemKind::AnnotatedParagraph: return "AnnotatedParagraph";
-    case OrgSemKind::BlockCenter: return "BlockCenter";
     case OrgSemKind::CmdCaption: return "CmdCaption";
     case OrgSemKind::CmdName: return "CmdName";
     case OrgSemKind::CmdCustomArgs: return "CmdCustomArgs";
     case OrgSemKind::CmdCustomRaw: return "CmdCustomRaw";
     case OrgSemKind::CmdCustomText: return "CmdCustomText";
     case OrgSemKind::CmdResults: return "CmdResults";
-    case OrgSemKind::CmdGroup: return "CmdGroup";
     case OrgSemKind::CmdTblfm: return "CmdTblfm";
-    case OrgSemKind::BlockQuote: return "BlockQuote";
-    case OrgSemKind::BlockComment: return "BlockComment";
-    case OrgSemKind::BlockVerse: return "BlockVerse";
-    case OrgSemKind::BlockExample: return "BlockExample";
-    case OrgSemKind::ColonExample: return "ColonExample";
-    case OrgSemKind::CmdArguments: return "CmdArguments";
-    case OrgSemKind::CmdAttr: return "CmdAttr";
-    case OrgSemKind::BlockExport: return "BlockExport";
-    case OrgSemKind::BlockAdmonition: return "BlockAdmonition";
-    case OrgSemKind::Call: return "Call";
-    case OrgSemKind::BlockCode: return "BlockCode";
+    case OrgSemKind::HashTag: return "HashTag";
+    case OrgSemKind::Footnote: return "Footnote";
     case OrgSemKind::Time: return "Time";
     case OrgSemKind::TimeRange: return "TimeRange";
     case OrgSemKind::Macro: return "Macro";
     case OrgSemKind::Symbol: return "Symbol";
-    case OrgSemKind::SubtreeLog: return "SubtreeLog";
-    case OrgSemKind::Subtree: return "Subtree";
-    case OrgSemKind::InlineMath: return "InlineMath";
     case OrgSemKind::Escaped: return "Escaped";
     case OrgSemKind::Newline: return "Newline";
     case OrgSemKind::Space: return "Space";
@@ -518,12 +495,31 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Italic: return "Italic";
     case OrgSemKind::Strike: return "Strike";
     case OrgSemKind::Par: return "Par";
+    case OrgSemKind::Latex: return "Latex";
+    case OrgSemKind::Link: return "Link";
+    case OrgSemKind::BlockCenter: return "BlockCenter";
+    case OrgSemKind::BlockQuote: return "BlockQuote";
+    case OrgSemKind::BlockComment: return "BlockComment";
+    case OrgSemKind::BlockVerse: return "BlockVerse";
+    case OrgSemKind::BlockExample: return "BlockExample";
+    case OrgSemKind::BlockExport: return "BlockExport";
+    case OrgSemKind::BlockAdmonition: return "BlockAdmonition";
+    case OrgSemKind::BlockCode: return "BlockCode";
+    case OrgSemKind::SubtreeLog: return "SubtreeLog";
+    case OrgSemKind::Subtree: return "Subtree";
+    case OrgSemKind::SubtreeCompletion: return "SubtreeCompletion";
+    case OrgSemKind::Cell: return "Cell";
+    case OrgSemKind::Row: return "Row";
+    case OrgSemKind::Table: return "Table";
+    case OrgSemKind::Paragraph: return "Paragraph";
+    case OrgSemKind::AnnotatedParagraph: return "AnnotatedParagraph";
+    case OrgSemKind::ColonExample: return "ColonExample";
+    case OrgSemKind::CmdAttr: return "CmdAttr";
+    case OrgSemKind::Call: return "Call";
     case OrgSemKind::List: return "List";
     case OrgSemKind::ListItem: return "ListItem";
-    case OrgSemKind::Link: return "Link";
     case OrgSemKind::DocumentOptions: return "DocumentOptions";
     case OrgSemKind::Document: return "Document";
-    case OrgSemKind::ParseError: return "ParseError";
     case OrgSemKind::FileTarget: return "FileTarget";
     case OrgSemKind::TextSeparator: return "TextSeparator";
     case OrgSemKind::Include: return "Include";

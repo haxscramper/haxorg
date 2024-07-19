@@ -557,11 +557,6 @@ auto Formatter::toString(SemId<DocumentGroup> id, CR<Context> ctx) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<CmdGroup> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    return str(__PRETTY_FUNCTION__);
-}
-
 auto Formatter::toString(SemId<Escaped> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("\\" + id->text);
@@ -636,7 +631,8 @@ auto Formatter::toString(SemId<Cell> id, CR<Context> ctx) -> Res {
 }
 
 
-auto Formatter::toString(SemId<Completion> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<SubtreeCompletion> id, CR<Context> ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(fmt("[{}/{}]", id->done, id->full));
 }
@@ -827,7 +823,7 @@ auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<InlineMath> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Latex> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id->subnodes.size() == 0) {
         return str("\\(\\)");
@@ -1269,10 +1265,6 @@ auto Formatter::toString(SemId<Underline> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("_"), toSubnodes(id, ctx), str("_")));
 }
 
-auto Formatter::toString(SemId<ParseError> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    return str(__PRETTY_FUNCTION__);
-}
 
 Formatter::Res Formatter::stackAttached(
     Res         prev,

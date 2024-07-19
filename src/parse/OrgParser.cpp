@@ -1535,8 +1535,6 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
             empty();
         }
     }
-    // completion, 4
-    { empty(); }
     // body, 5
     start(org::StmtList);
     {
@@ -1671,7 +1669,7 @@ OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
         return empty();
 
     } else {
-        start(org::Completion);
+        start(org::SubtreeCompletion);
         return end();
     }
 }

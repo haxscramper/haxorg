@@ -498,8 +498,8 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     }
 
     {
-        auto __field = field(N::Urgency, a);
-        auto urgency = one(a, N::Urgency);
+        auto __field = field(N::Importance, a);
+        auto urgency = one(a, N::Importance);
         if (urgency.kind() != org::Empty) {
             tree->priority = strip(
                 get_text(urgency), CharSet{'[', '#'}, CharSet{']'});
@@ -1160,9 +1160,9 @@ OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
     return result;
 }
 
-OrgConverter::ConvResult<LatexBody> OrgConverter::convertMath(__args) {
+OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
     if (a.kind() == org::InlineMath) {
-        return Sem<InlineMath>(a).as<LatexBody>();
+        return Sem<Latex>(a);
     } else {
         LOG(FATAL) << "Unhanled kind for inline math TODO";
     }

@@ -1,6 +1,52 @@
 /* clang-format off */
 #include <sem/SemOrgSerde.hpp>
 #include <sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::CmdArgument* out, sem::CmdArgument const& in) {
+  proto_serde<::orgproto::CmdArgument, sem::Org>::write(out, in);
+  if (in.key) {
+    proto_serde<std::string, Str>::write(out->mutable_key(), *in.key);
+  }
+  if (in.varname) {
+    proto_serde<std::string, Str>::write(out->mutable_varname(), *in.varname);
+  }
+  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::read(::orgproto::CmdArgument const& out, proto_write_accessor<sem::CmdArgument> in) {
+  proto_serde<::orgproto::CmdArgument, sem::Org>::read(out, in.as<sem::Org>());
+  if (out.has_key()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.key(), in.for_field(&sem::CmdArgument::key));
+  }
+  if (out.has_varname()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.varname(), in.for_field(&sem::CmdArgument::varname));
+  }
+  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::CmdArgument::value));
+}
+
+void proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList>::write(::orgproto::CmdArgumentList* out, sem::CmdArgumentList const& in) {
+  proto_serde<::orgproto::CmdArgumentList, sem::Org>::write(out, in);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::CmdArgument>, Vec<sem::SemId<sem::CmdArgument>>>::write(out->mutable_args(), in.args);
+}
+
+void proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList>::read(::orgproto::CmdArgumentList const& out, proto_write_accessor<sem::CmdArgumentList> in) {
+  proto_serde<::orgproto::CmdArgumentList, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::CmdArgument>, Vec<sem::SemId<sem::CmdArgument>>>::read(out.args(), in.for_field(&sem::CmdArgumentList::args));
+}
+
+void proto_serde<::orgproto::CmdArguments, sem::CmdArguments>::write(::orgproto::CmdArguments* out, sem::CmdArguments const& in) {
+  proto_serde<::orgproto::CmdArguments, sem::Org>::write(out, in);
+  if (!in.positional.isNil()) {
+    proto_serde<orgproto::CmdArgumentList, sem::SemId<sem::CmdArgumentList>>::write(out->mutable_positional(), in.positional);
+  }
+  proto_serde<::google::protobuf::Map<std::string, orgproto::CmdArgumentList>, UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>>>::write(out->mutable_named(), in.named);
+}
+
+void proto_serde<::orgproto::CmdArguments, sem::CmdArguments>::read(::orgproto::CmdArguments const& out, proto_write_accessor<sem::CmdArguments> in) {
+  proto_serde<::orgproto::CmdArguments, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<orgproto::CmdArgumentList, sem::SemId<sem::CmdArgumentList>>::read(out.positional(), in.for_field(&sem::CmdArguments::positional));
+  proto_serde<::google::protobuf::Map<std::string, orgproto::CmdArgumentList>, UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>>>::read(out.named(), in.for_field(&sem::CmdArguments::named));
+}
+
 void proto_serde<::orgproto::ErrorItem, sem::ErrorItem>::write(::orgproto::ErrorItem* out, sem::ErrorItem const& in) {
   proto_serde<::orgproto::ErrorItem, sem::Org>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_message(), in.message);
@@ -45,38 +91,6 @@ void proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup>::read(::orgproto::Erro
   }
 }
 
-void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::CmdArgument* out, sem::CmdArgument const& in) {
-  proto_serde<::orgproto::CmdArgument, sem::Org>::write(out, in);
-  if (in.key) {
-    proto_serde<std::string, Str>::write(out->mutable_key(), *in.key);
-  }
-  if (in.varname) {
-    proto_serde<std::string, Str>::write(out->mutable_varname(), *in.varname);
-  }
-  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
-}
-
-void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::read(::orgproto::CmdArgument const& out, proto_write_accessor<sem::CmdArgument> in) {
-  proto_serde<::orgproto::CmdArgument, sem::Org>::read(out, in.as<sem::Org>());
-  if (out.has_key()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.key(), in.for_field(&sem::CmdArgument::key));
-  }
-  if (out.has_varname()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.varname(), in.for_field(&sem::CmdArgument::varname));
-  }
-  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::CmdArgument::value));
-}
-
-void proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList>::write(::orgproto::CmdArgumentList* out, sem::CmdArgumentList const& in) {
-  proto_serde<::orgproto::CmdArgumentList, sem::Org>::write(out, in);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::CmdArgument>, Vec<sem::SemId<sem::CmdArgument>>>::write(out->mutable_args(), in.args);
-}
-
-void proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList>::read(::orgproto::CmdArgumentList const& out, proto_write_accessor<sem::CmdArgumentList> in) {
-  proto_serde<::orgproto::CmdArgumentList, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::CmdArgument>, Vec<sem::SemId<sem::CmdArgument>>>::read(out.args(), in.for_field(&sem::CmdArgumentList::args));
-}
-
 void proto_serde<::orgproto::StmtList, sem::StmtList>::write(::orgproto::StmtList* out, sem::StmtList const& in) {
   proto_serde<::orgproto::StmtList, sem::Org>::write(out, in);
 }
@@ -91,186 +105,6 @@ void proto_serde<::orgproto::Empty, sem::Empty>::write(::orgproto::Empty* out, s
 
 void proto_serde<::orgproto::Empty, sem::Empty>::read(::orgproto::Empty const& out, proto_write_accessor<sem::Empty> in) {
   proto_serde<::orgproto::Empty, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Cell, sem::Cell>::write(::orgproto::Cell* out, sem::Cell const& in) {
-  proto_serde<::orgproto::Cell, sem::Cmd>::write(out, in);
-  proto_serde<::orgproto::Cell, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::Cell, sem::Org>::write(out, in);
-  out->set_isblock(in.isBlock);
-}
-
-void proto_serde<::orgproto::Cell, sem::Cell>::read(::orgproto::Cell const& out, proto_write_accessor<sem::Cell> in) {
-  proto_serde<::orgproto::Cell, sem::Cmd>::read(out, in.as<sem::Cmd>());
-  proto_serde<::orgproto::Cell, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::Cell, sem::Org>::read(out, in.as<sem::Org>());
-  in.for_field(&sem::Cell::isBlock).get() = out.isblock();
-}
-
-void proto_serde<::orgproto::Row, sem::Row>::write(::orgproto::Row* out, sem::Row const& in) {
-  proto_serde<::orgproto::Row, sem::Cmd>::write(out, in);
-  proto_serde<::orgproto::Row, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::Row, sem::Org>::write(out, in);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::write(out->mutable_cells(), in.cells);
-  out->set_isblock(in.isBlock);
-}
-
-void proto_serde<::orgproto::Row, sem::Row>::read(::orgproto::Row const& out, proto_write_accessor<sem::Row> in) {
-  proto_serde<::orgproto::Row, sem::Cmd>::read(out, in.as<sem::Cmd>());
-  proto_serde<::orgproto::Row, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::Row, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::read(out.cells(), in.for_field(&sem::Row::cells));
-  in.for_field(&sem::Row::isBlock).get() = out.isblock();
-}
-
-void proto_serde<::orgproto::Table, sem::Table>::write(::orgproto::Table* out, sem::Table const& in) {
-  proto_serde<::orgproto::Table, sem::Cmd>::write(out, in);
-  proto_serde<::orgproto::Table, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::Table, sem::Org>::write(out, in);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, Vec<sem::SemId<sem::Row>>>::write(out->mutable_rows(), in.rows);
-  out->set_isblock(in.isBlock);
-}
-
-void proto_serde<::orgproto::Table, sem::Table>::read(::orgproto::Table const& out, proto_write_accessor<sem::Table> in) {
-  proto_serde<::orgproto::Table, sem::Cmd>::read(out, in.as<sem::Cmd>());
-  proto_serde<::orgproto::Table, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::Table, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, Vec<sem::SemId<sem::Row>>>::read(out.rows(), in.for_field(&sem::Table::rows));
-  in.for_field(&sem::Table::isBlock).get() = out.isblock();
-}
-
-void proto_serde<::orgproto::HashTag, sem::HashTag>::write(::orgproto::HashTag* out, sem::HashTag const& in) {
-  proto_serde<::orgproto::HashTag, sem::Org>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_head(), in.head);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::write(out->mutable_subtags(), in.subtags);
-}
-
-void proto_serde<::orgproto::HashTag, sem::HashTag>::read(::orgproto::HashTag const& out, proto_write_accessor<sem::HashTag> in) {
-  proto_serde<::orgproto::HashTag, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.head(), in.for_field(&sem::HashTag::head));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::read(out.subtags(), in.for_field(&sem::HashTag::subtags));
-}
-
-void proto_serde<::orgproto::Footnote, sem::Footnote>::write(::orgproto::Footnote* out, sem::Footnote const& in) {
-  proto_serde<::orgproto::Footnote, sem::Org>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_tag(), in.tag);
-  if (in.definition) {
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(out->mutable_definition(), *in.definition);
-  }
-}
-
-void proto_serde<::orgproto::Footnote, sem::Footnote>::read(::orgproto::Footnote const& out, proto_write_accessor<sem::Footnote> in) {
-  proto_serde<::orgproto::Footnote, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.tag(), in.for_field(&sem::Footnote::tag));
-  if (out.has_definition()) {
-    proto_serde<Opt<orgproto::AnyNode>, Opt<sem::SemId<sem::Org>>>::read(out.definition(), in.for_field(&sem::Footnote::definition));
-  }
-}
-
-void proto_serde<::orgproto::Completion, sem::Completion>::write(::orgproto::Completion* out, sem::Completion const& in) {
-  proto_serde<::orgproto::Completion, sem::Org>::write(out, in);
-  out->set_done(in.done);
-  out->set_full(in.full);
-  out->set_ispercent(in.isPercent);
-}
-
-void proto_serde<::orgproto::Completion, sem::Completion>::read(::orgproto::Completion const& out, proto_write_accessor<sem::Completion> in) {
-  proto_serde<::orgproto::Completion, sem::Org>::read(out, in.as<sem::Org>());
-  in.for_field(&sem::Completion::done).get() = out.done();
-  in.for_field(&sem::Completion::full).get() = out.full();
-  in.for_field(&sem::Completion::isPercent).get() = out.ispercent();
-}
-
-void proto_serde<::orgproto::Paragraph, sem::Paragraph>::write(::orgproto::Paragraph* out, sem::Paragraph const& in) {
-  proto_serde<::orgproto::Paragraph, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::Paragraph, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::Paragraph, sem::Paragraph>::read(::orgproto::Paragraph const& out, proto_write_accessor<sem::Paragraph> in) {
-  proto_serde<::orgproto::Paragraph, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::Paragraph, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::write(::orgproto::AnnotatedParagraph::None* out, sem::AnnotatedParagraph::None const& in) {
-
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::read(::orgproto::AnnotatedParagraph::None const& out, proto_write_accessor<sem::AnnotatedParagraph::None> in) {
-
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::write(::orgproto::AnnotatedParagraph::Footnote* out, sem::AnnotatedParagraph::Footnote const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::read(::orgproto::AnnotatedParagraph::Footnote const& out, proto_write_accessor<sem::AnnotatedParagraph::Footnote> in) {
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::AnnotatedParagraph::Footnote::name));
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::write(::orgproto::AnnotatedParagraph::Admonition* out, sem::AnnotatedParagraph::Admonition const& in) {
-  if (!in.name.isNil()) {
-    proto_serde<orgproto::BigIdent, sem::SemId<sem::BigIdent>>::write(out->mutable_name(), in.name);
-  }
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::read(::orgproto::AnnotatedParagraph::Admonition const& out, proto_write_accessor<sem::AnnotatedParagraph::Admonition> in) {
-  proto_serde<orgproto::BigIdent, sem::SemId<sem::BigIdent>>::read(out.name(), in.for_field(&sem::AnnotatedParagraph::Admonition::name));
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::write(::orgproto::AnnotatedParagraph::Timestamp* out, sem::AnnotatedParagraph::Timestamp const& in) {
-  if (!in.time.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_time(), in.time);
-  }
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::read(::orgproto::AnnotatedParagraph::Timestamp const& out, proto_write_accessor<sem::AnnotatedParagraph::Timestamp> in) {
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.time(), in.for_field(&sem::AnnotatedParagraph::Timestamp::time));
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph>::write(::orgproto::AnnotatedParagraph* out, sem::AnnotatedParagraph const& in) {
-  proto_serde<::orgproto::AnnotatedParagraph, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::AnnotatedParagraph, sem::Org>::write(out, in);
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::write(out->mutable_data()->mutable_none(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::write(out->mutable_data()->mutable_admonition(), std::get<2>(in.data));
-      break;
-    case 3:
-      proto_serde<orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::write(out->mutable_data()->mutable_timestamp(), std::get<3>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph>::read(::orgproto::AnnotatedParagraph const& out, proto_write_accessor<sem::AnnotatedParagraph> in) {
-  proto_serde<::orgproto::AnnotatedParagraph, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::AnnotatedParagraph, sem::Org>::read(out, in.as<sem::Org>());
-  switch (out.data().kind_case()) {
-    case ::orgproto::AnnotatedParagraph::Data::kNone:
-      proto_serde<orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::read(out.data().none(), in.for_field_variant<0>(&sem::AnnotatedParagraph::data));
-      break;
-    case ::orgproto::AnnotatedParagraph::Data::kFootnote:
-      proto_serde<orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::read(out.data().footnote(), in.for_field_variant<1>(&sem::AnnotatedParagraph::data));
-      break;
-    case ::orgproto::AnnotatedParagraph::Data::kAdmonition:
-      proto_serde<orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::read(out.data().admonition(), in.for_field_variant<2>(&sem::AnnotatedParagraph::data));
-      break;
-    case ::orgproto::AnnotatedParagraph::Data::kTimestamp:
-      proto_serde<orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::read(out.data().timestamp(), in.for_field_variant<3>(&sem::AnnotatedParagraph::data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::BlockCenter, sem::BlockCenter>::write(::orgproto::BlockCenter* out, sem::BlockCenter const& in) {
-  proto_serde<::orgproto::BlockCenter, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::BlockCenter, sem::BlockCenter>::read(::orgproto::BlockCenter const& out, proto_write_accessor<sem::BlockCenter> in) {
-  proto_serde<::orgproto::BlockCenter, sem::Org>::read(out, in.as<sem::Org>());
 }
 
 void proto_serde<::orgproto::CmdCaption, sem::CmdCaption>::write(::orgproto::CmdCaption* out, sem::CmdCaption const& in) {
@@ -365,16 +199,6 @@ void proto_serde<::orgproto::CmdResults, sem::CmdResults>::read(::orgproto::CmdR
   proto_serde<::orgproto::CmdResults, sem::Org>::read(out, in.as<sem::Org>());
 }
 
-void proto_serde<::orgproto::CmdGroup, sem::CmdGroup>::write(::orgproto::CmdGroup* out, sem::CmdGroup const& in) {
-  proto_serde<::orgproto::CmdGroup, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::CmdGroup, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::CmdGroup, sem::CmdGroup>::read(::orgproto::CmdGroup const& out, proto_write_accessor<sem::CmdGroup> in) {
-  proto_serde<::orgproto::CmdGroup, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::CmdGroup, sem::Org>::read(out, in.as<sem::Org>());
-}
-
 void proto_serde<::orgproto::CmdTblfm, sem::CmdTblfm>::write(::orgproto::CmdTblfm* out, sem::CmdTblfm const& in) {
   proto_serde<::orgproto::CmdTblfm, sem::Cmd>::write(out, in);
   proto_serde<::orgproto::CmdTblfm, sem::Stmt>::write(out, in);
@@ -385,6 +209,480 @@ void proto_serde<::orgproto::CmdTblfm, sem::CmdTblfm>::read(::orgproto::CmdTblfm
   proto_serde<::orgproto::CmdTblfm, sem::Cmd>::read(out, in.as<sem::Cmd>());
   proto_serde<::orgproto::CmdTblfm, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::CmdTblfm, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::HashTag, sem::HashTag>::write(::orgproto::HashTag* out, sem::HashTag const& in) {
+  proto_serde<::orgproto::HashTag, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_head(), in.head);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::write(out->mutable_subtags(), in.subtags);
+}
+
+void proto_serde<::orgproto::HashTag, sem::HashTag>::read(::orgproto::HashTag const& out, proto_write_accessor<sem::HashTag> in) {
+  proto_serde<::orgproto::HashTag, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.head(), in.for_field(&sem::HashTag::head));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::read(out.subtags(), in.for_field(&sem::HashTag::subtags));
+}
+
+void proto_serde<::orgproto::Footnote, sem::Footnote>::write(::orgproto::Footnote* out, sem::Footnote const& in) {
+  proto_serde<::orgproto::Footnote, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_tag(), in.tag);
+  if (in.definition) {
+    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(out->mutable_definition(), *in.definition);
+  }
+}
+
+void proto_serde<::orgproto::Footnote, sem::Footnote>::read(::orgproto::Footnote const& out, proto_write_accessor<sem::Footnote> in) {
+  proto_serde<::orgproto::Footnote, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.tag(), in.for_field(&sem::Footnote::tag));
+  if (out.has_definition()) {
+    proto_serde<Opt<orgproto::AnyNode>, Opt<sem::SemId<sem::Org>>>::read(out.definition(), in.for_field(&sem::Footnote::definition));
+  }
+}
+
+void proto_serde<::orgproto::Time::Repeat, sem::Time::Repeat>::write(::orgproto::Time::Repeat* out, sem::Time::Repeat const& in) {
+  out->set_mode(static_cast<orgproto::Time_Repeat_Mode>(in.mode));
+  out->set_period(static_cast<orgproto::Time_Repeat_Period>(in.period));
+  out->set_count(in.count);
+}
+
+void proto_serde<::orgproto::Time::Repeat, sem::Time::Repeat>::read(::orgproto::Time::Repeat const& out, proto_write_accessor<sem::Time::Repeat> in) {
+  in.for_field(&sem::Time::Repeat::mode).get() = static_cast<sem::Time::Repeat::Mode>(out.mode());
+  in.for_field(&sem::Time::Repeat::period).get() = static_cast<sem::Time::Repeat::Period>(out.period());
+  in.for_field(&sem::Time::Repeat::count).get() = out.count();
+}
+
+void proto_serde<::orgproto::Time::Static, sem::Time::Static>::write(::orgproto::Time::Static* out, sem::Time::Static const& in) {
+  if (in.repeat) {
+    proto_serde<orgproto::Time::Repeat, sem::Time::Repeat>::write(out->mutable_repeat(), *in.repeat);
+  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_time(), in.time);
+}
+
+void proto_serde<::orgproto::Time::Static, sem::Time::Static>::read(::orgproto::Time::Static const& out, proto_write_accessor<sem::Time::Static> in) {
+  if (out.has_repeat()) {
+    proto_serde<Opt<orgproto::Time::Repeat>, Opt<sem::Time::Repeat>>::read(out.repeat(), in.for_field(&sem::Time::Static::repeat));
+  }
+  proto_serde<orgproto::UserTime, UserTime>::read(out.time(), in.for_field(&sem::Time::Static::time));
+}
+
+void proto_serde<::orgproto::Time::Dynamic, sem::Time::Dynamic>::write(::orgproto::Time::Dynamic* out, sem::Time::Dynamic const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_expr(), in.expr);
+}
+
+void proto_serde<::orgproto::Time::Dynamic, sem::Time::Dynamic>::read(::orgproto::Time::Dynamic const& out, proto_write_accessor<sem::Time::Dynamic> in) {
+  proto_serde<std::string, Str>::read(out.expr(), in.for_field(&sem::Time::Dynamic::expr));
+}
+
+void proto_serde<::orgproto::Time, sem::Time>::write(::orgproto::Time* out, sem::Time const& in) {
+  proto_serde<::orgproto::Time, sem::Org>::write(out, in);
+  out->set_isactive(in.isActive);
+  switch (in.time.index()) {
+    case 0:
+      proto_serde<orgproto::Time::Static, sem::Time::Static>::write(out->mutable_time()->mutable_static_(), std::get<0>(in.time));
+      break;
+    case 1:
+      proto_serde<orgproto::Time::Dynamic, sem::Time::Dynamic>::write(out->mutable_time()->mutable_dynamic(), std::get<1>(in.time));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::Time, sem::Time>::read(::orgproto::Time const& out, proto_write_accessor<sem::Time> in) {
+  proto_serde<::orgproto::Time, sem::Org>::read(out, in.as<sem::Org>());
+  in.for_field(&sem::Time::isActive).get() = out.isactive();
+  switch (out.time().kind_case()) {
+    case ::orgproto::Time::TimeVariant::kStatic:
+      proto_serde<orgproto::Time::Static, sem::Time::Static>::read(out.time().static_(), in.for_field_variant<0>(&sem::Time::time));
+      break;
+    case ::orgproto::Time::TimeVariant::kDynamic:
+      proto_serde<orgproto::Time::Dynamic, sem::Time::Dynamic>::read(out.time().dynamic(), in.for_field_variant<1>(&sem::Time::time));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::TimeRange, sem::TimeRange>::write(::orgproto::TimeRange* out, sem::TimeRange const& in) {
+  proto_serde<::orgproto::TimeRange, sem::Org>::write(out, in);
+  if (!in.from.isNil()) {
+    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_from(), in.from);
+  }
+  if (!in.to.isNil()) {
+    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_to(), in.to);
+  }
+}
+
+void proto_serde<::orgproto::TimeRange, sem::TimeRange>::read(::orgproto::TimeRange const& out, proto_write_accessor<sem::TimeRange> in) {
+  proto_serde<::orgproto::TimeRange, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.from(), in.for_field(&sem::TimeRange::from));
+  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.to(), in.for_field(&sem::TimeRange::to));
+}
+
+void proto_serde<::orgproto::Macro, sem::Macro>::write(::orgproto::Macro* out, sem::Macro const& in) {
+  proto_serde<::orgproto::Macro, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  if (!in.parameters.isNil()) {
+    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
+  }
+}
+
+void proto_serde<::orgproto::Macro, sem::Macro>::read(::orgproto::Macro const& out, proto_write_accessor<sem::Macro> in) {
+  proto_serde<::orgproto::Macro, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Macro::name));
+  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Macro::parameters));
+}
+
+void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::write(::orgproto::Symbol::Param* out, sem::Symbol::Param const& in) {
+  if (in.key) {
+    proto_serde<std::string, Str>::write(out->mutable_key(), *in.key);
+  }
+  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::read(::orgproto::Symbol::Param const& out, proto_write_accessor<sem::Symbol::Param> in) {
+  if (out.has_key()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.key(), in.for_field(&sem::Symbol::Param::key));
+  }
+  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::Symbol::Param::value));
+}
+
+void proto_serde<::orgproto::Symbol, sem::Symbol>::write(::orgproto::Symbol* out, sem::Symbol const& in) {
+  proto_serde<::orgproto::Symbol, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Symbol::Param>, Vec<sem::Symbol::Param>>::write(out->mutable_parameters(), in.parameters);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AnyNode>, Vec<sem::SemId<sem::Org>>>::write(out->mutable_positional(), in.positional);
+}
+
+void proto_serde<::orgproto::Symbol, sem::Symbol>::read(::orgproto::Symbol const& out, proto_write_accessor<sem::Symbol> in) {
+  proto_serde<::orgproto::Symbol, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Symbol::name));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Symbol::Param>, Vec<sem::Symbol::Param>>::read(out.parameters(), in.for_field(&sem::Symbol::parameters));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AnyNode>, Vec<sem::SemId<sem::Org>>>::read(out.positional(), in.for_field(&sem::Symbol::positional));
+}
+
+void proto_serde<::orgproto::Escaped, sem::Escaped>::write(::orgproto::Escaped* out, sem::Escaped const& in) {
+  proto_serde<::orgproto::Escaped, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::Escaped, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Escaped, sem::Escaped>::read(::orgproto::Escaped const& out, proto_write_accessor<sem::Escaped> in) {
+  proto_serde<::orgproto::Escaped, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::Escaped, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Newline, sem::Newline>::write(::orgproto::Newline* out, sem::Newline const& in) {
+  proto_serde<::orgproto::Newline, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::Newline, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Newline, sem::Newline>::read(::orgproto::Newline const& out, proto_write_accessor<sem::Newline> in) {
+  proto_serde<::orgproto::Newline, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::Newline, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Space, sem::Space>::write(::orgproto::Space* out, sem::Space const& in) {
+  proto_serde<::orgproto::Space, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::Space, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Space, sem::Space>::read(::orgproto::Space const& out, proto_write_accessor<sem::Space> in) {
+  proto_serde<::orgproto::Space, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::Space, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Word, sem::Word>::write(::orgproto::Word* out, sem::Word const& in) {
+  proto_serde<::orgproto::Word, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::Word, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Word, sem::Word>::read(::orgproto::Word const& out, proto_write_accessor<sem::Word> in) {
+  proto_serde<::orgproto::Word, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::Word, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::AtMention, sem::AtMention>::write(::orgproto::AtMention* out, sem::AtMention const& in) {
+  proto_serde<::orgproto::AtMention, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::AtMention, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::AtMention, sem::AtMention>::read(::orgproto::AtMention const& out, proto_write_accessor<sem::AtMention> in) {
+  proto_serde<::orgproto::AtMention, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::AtMention, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::RawText, sem::RawText>::write(::orgproto::RawText* out, sem::RawText const& in) {
+  proto_serde<::orgproto::RawText, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::RawText, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::RawText, sem::RawText>::read(::orgproto::RawText const& out, proto_write_accessor<sem::RawText> in) {
+  proto_serde<::orgproto::RawText, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::RawText, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Punctuation, sem::Punctuation>::write(::orgproto::Punctuation* out, sem::Punctuation const& in) {
+  proto_serde<::orgproto::Punctuation, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::Punctuation, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Punctuation, sem::Punctuation>::read(::orgproto::Punctuation const& out, proto_write_accessor<sem::Punctuation> in) {
+  proto_serde<::orgproto::Punctuation, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::Punctuation, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Placeholder, sem::Placeholder>::write(::orgproto::Placeholder* out, sem::Placeholder const& in) {
+  proto_serde<::orgproto::Placeholder, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::Placeholder, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Placeholder, sem::Placeholder>::read(::orgproto::Placeholder const& out, proto_write_accessor<sem::Placeholder> in) {
+  proto_serde<::orgproto::Placeholder, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::Placeholder, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::BigIdent, sem::BigIdent>::write(::orgproto::BigIdent* out, sem::BigIdent const& in) {
+  proto_serde<::orgproto::BigIdent, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::BigIdent, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::BigIdent, sem::BigIdent>::read(::orgproto::BigIdent const& out, proto_write_accessor<sem::BigIdent> in) {
+  proto_serde<::orgproto::BigIdent, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::BigIdent, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::write(::orgproto::RadioTarget* out, sem::RadioTarget const& in) {
+  proto_serde<::orgproto::RadioTarget, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::RadioTarget, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in) {
+  proto_serde<::orgproto::RadioTarget, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::RadioTarget, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::TextTarget, sem::TextTarget>::write(::orgproto::TextTarget* out, sem::TextTarget const& in) {
+  proto_serde<::orgproto::TextTarget, sem::Leaf>::write(out, in);
+  proto_serde<::orgproto::TextTarget, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::TextTarget, sem::TextTarget>::read(::orgproto::TextTarget const& out, proto_write_accessor<sem::TextTarget> in) {
+  proto_serde<::orgproto::TextTarget, sem::Leaf>::read(out, in.as<sem::Leaf>());
+  proto_serde<::orgproto::TextTarget, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Bold, sem::Bold>::write(::orgproto::Bold* out, sem::Bold const& in) {
+  proto_serde<::orgproto::Bold, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Bold, sem::Bold>::read(::orgproto::Bold const& out, proto_write_accessor<sem::Bold> in) {
+  proto_serde<::orgproto::Bold, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Underline, sem::Underline>::write(::orgproto::Underline* out, sem::Underline const& in) {
+  proto_serde<::orgproto::Underline, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Underline, sem::Underline>::read(::orgproto::Underline const& out, proto_write_accessor<sem::Underline> in) {
+  proto_serde<::orgproto::Underline, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Monospace, sem::Monospace>::write(::orgproto::Monospace* out, sem::Monospace const& in) {
+  proto_serde<::orgproto::Monospace, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Monospace, sem::Monospace>::read(::orgproto::Monospace const& out, proto_write_accessor<sem::Monospace> in) {
+  proto_serde<::orgproto::Monospace, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::MarkQuote, sem::MarkQuote>::write(::orgproto::MarkQuote* out, sem::MarkQuote const& in) {
+  proto_serde<::orgproto::MarkQuote, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::MarkQuote, sem::MarkQuote>::read(::orgproto::MarkQuote const& out, proto_write_accessor<sem::MarkQuote> in) {
+  proto_serde<::orgproto::MarkQuote, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Verbatim, sem::Verbatim>::write(::orgproto::Verbatim* out, sem::Verbatim const& in) {
+  proto_serde<::orgproto::Verbatim, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Verbatim, sem::Verbatim>::read(::orgproto::Verbatim const& out, proto_write_accessor<sem::Verbatim> in) {
+  proto_serde<::orgproto::Verbatim, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Italic, sem::Italic>::write(::orgproto::Italic* out, sem::Italic const& in) {
+  proto_serde<::orgproto::Italic, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Italic, sem::Italic>::read(::orgproto::Italic const& out, proto_write_accessor<sem::Italic> in) {
+  proto_serde<::orgproto::Italic, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Strike, sem::Strike>::write(::orgproto::Strike* out, sem::Strike const& in) {
+  proto_serde<::orgproto::Strike, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Strike, sem::Strike>::read(::orgproto::Strike const& out, proto_write_accessor<sem::Strike> in) {
+  proto_serde<::orgproto::Strike, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Par, sem::Par>::write(::orgproto::Par* out, sem::Par const& in) {
+  proto_serde<::orgproto::Par, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Par, sem::Par>::read(::orgproto::Par const& out, proto_write_accessor<sem::Par> in) {
+  proto_serde<::orgproto::Par, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Latex, sem::Latex>::write(::orgproto::Latex* out, sem::Latex const& in) {
+  proto_serde<::orgproto::Latex, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::Latex, sem::Latex>::read(::orgproto::Latex const& out, proto_write_accessor<sem::Latex> in) {
+  proto_serde<::orgproto::Latex, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::write(::orgproto::Link::Raw* out, sem::Link::Raw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::read(::orgproto::Link::Raw const& out, proto_write_accessor<sem::Link::Raw> in) {
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::Link::Raw::text));
+}
+
+void proto_serde<::orgproto::Link::Id, sem::Link::Id>::write(::orgproto::Link::Id* out, sem::Link::Id const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::Link::Id, sem::Link::Id>::read(::orgproto::Link::Id const& out, proto_write_accessor<sem::Link::Id> in) {
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::Link::Id::text));
+}
+
+void proto_serde<::orgproto::Link::Person, sem::Link::Person>::write(::orgproto::Link::Person* out, sem::Link::Person const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+}
+
+void proto_serde<::orgproto::Link::Person, sem::Link::Person>::read(::orgproto::Link::Person const& out, proto_write_accessor<sem::Link::Person> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Link::Person::name));
+}
+
+void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(::orgproto::Link::UserProtocol* out, sem::Link::UserProtocol const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_protocol(), in.protocol);
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(::orgproto::Link::UserProtocol const& out, proto_write_accessor<sem::Link::UserProtocol> in) {
+  proto_serde<std::string, Str>::read(out.protocol(), in.for_field(&sem::Link::UserProtocol::protocol));
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::UserProtocol::target));
+}
+
+void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::write(::orgproto::Link::Internal* out, sem::Link::Internal const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::read(::orgproto::Link::Internal const& out, proto_write_accessor<sem::Link::Internal> in) {
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::Internal::target));
+}
+
+void proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote>::write(::orgproto::Link::Footnote* out, sem::Link::Footnote const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote>::read(::orgproto::Link::Footnote const& out, proto_write_accessor<sem::Link::Footnote> in) {
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::Footnote::target));
+}
+
+void proto_serde<::orgproto::Link::File, sem::Link::File>::write(::orgproto::Link::File* out, sem::Link::File const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
+}
+
+void proto_serde<::orgproto::Link::File, sem::Link::File>::read(::orgproto::Link::File const& out, proto_write_accessor<sem::Link::File> in) {
+  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::File::file));
+}
+
+void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::write(::orgproto::Link::Attachment* out, sem::Link::Attachment const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
+}
+
+void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::read(::orgproto::Link::Attachment const& out, proto_write_accessor<sem::Link::Attachment> in) {
+  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::Attachment::file));
+}
+
+void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem::Link const& in) {
+  proto_serde<::orgproto::Link, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::Link, sem::Org>::write(out, in);
+  if (in.description) {
+    proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_description(), *in.description);
+  }
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::Link::Raw, sem::Link::Raw>::write(out->mutable_data()->mutable_raw(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::Link::Id, sem::Link::Id>::write(out->mutable_data()->mutable_id(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::Link::Person, sem::Link::Person>::write(out->mutable_data()->mutable_person(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(out->mutable_data()->mutable_userprotocol(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::write(out->mutable_data()->mutable_internal(), std::get<4>(in.data));
+      break;
+    case 5:
+      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<5>(in.data));
+      break;
+    case 6:
+      proto_serde<orgproto::Link::File, sem::Link::File>::write(out->mutable_data()->mutable_file(), std::get<6>(in.data));
+      break;
+    case 7:
+      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::write(out->mutable_data()->mutable_attachment(), std::get<7>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::Link, sem::Link>::read(::orgproto::Link const& out, proto_write_accessor<sem::Link> in) {
+  proto_serde<::orgproto::Link, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::Link, sem::Org>::read(out, in.as<sem::Org>());
+  if (out.has_description()) {
+    proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.description(), in.for_field(&sem::Link::description));
+  }
+  switch (out.data().kind_case()) {
+    case ::orgproto::Link::Data::kRaw:
+      proto_serde<orgproto::Link::Raw, sem::Link::Raw>::read(out.data().raw(), in.for_field_variant<0>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kId:
+      proto_serde<orgproto::Link::Id, sem::Link::Id>::read(out.data().id(), in.for_field_variant<1>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kPerson:
+      proto_serde<orgproto::Link::Person, sem::Link::Person>::read(out.data().person(), in.for_field_variant<2>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kUserprotocol:
+      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<3>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kInternal:
+      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::read(out.data().internal(), in.for_field_variant<4>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kFootnote:
+      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::read(out.data().footnote(), in.for_field_variant<5>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kFile:
+      proto_serde<orgproto::Link::File, sem::Link::File>::read(out.data().file(), in.for_field_variant<6>(&sem::Link::data));
+      break;
+    case ::orgproto::Link::Data::kAttachment:
+      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::read(out.data().attachment(), in.for_field_variant<7>(&sem::Link::data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::BlockCenter, sem::BlockCenter>::write(::orgproto::BlockCenter* out, sem::BlockCenter const& in) {
+  proto_serde<::orgproto::BlockCenter, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::BlockCenter, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::BlockCenter, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::BlockCenter, sem::BlockCenter>::read(::orgproto::BlockCenter const& out, proto_write_accessor<sem::BlockCenter> in) {
+  proto_serde<::orgproto::BlockCenter, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::BlockCenter, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::BlockCenter, sem::Org>::read(out, in.as<sem::Org>());
 }
 
 void proto_serde<::orgproto::BlockQuote, sem::BlockQuote>::write(::orgproto::BlockQuote* out, sem::BlockQuote const& in) {
@@ -433,42 +731,6 @@ void proto_serde<::orgproto::BlockExample, sem::BlockExample>::read(::orgproto::
   proto_serde<::orgproto::BlockExample, sem::Org>::read(out, in.as<sem::Org>());
 }
 
-void proto_serde<::orgproto::ColonExample, sem::ColonExample>::write(::orgproto::ColonExample* out, sem::ColonExample const& in) {
-  proto_serde<::orgproto::ColonExample, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::ColonExample, sem::ColonExample>::read(::orgproto::ColonExample const& out, proto_write_accessor<sem::ColonExample> in) {
-  proto_serde<::orgproto::ColonExample, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::CmdArguments, sem::CmdArguments>::write(::orgproto::CmdArguments* out, sem::CmdArguments const& in) {
-  proto_serde<::orgproto::CmdArguments, sem::Org>::write(out, in);
-  if (!in.positional.isNil()) {
-    proto_serde<orgproto::CmdArgumentList, sem::SemId<sem::CmdArgumentList>>::write(out->mutable_positional(), in.positional);
-  }
-  proto_serde<::google::protobuf::Map<std::string, orgproto::CmdArgumentList>, UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>>>::write(out->mutable_named(), in.named);
-}
-
-void proto_serde<::orgproto::CmdArguments, sem::CmdArguments>::read(::orgproto::CmdArguments const& out, proto_write_accessor<sem::CmdArguments> in) {
-  proto_serde<::orgproto::CmdArguments, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<orgproto::CmdArgumentList, sem::SemId<sem::CmdArgumentList>>::read(out.positional(), in.for_field(&sem::CmdArguments::positional));
-  proto_serde<::google::protobuf::Map<std::string, orgproto::CmdArgumentList>, UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>>>::read(out.named(), in.for_field(&sem::CmdArguments::named));
-}
-
-void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::write(::orgproto::CmdAttr* out, sem::CmdAttr const& in) {
-  proto_serde<::orgproto::CmdAttr, sem::Cmd>::write(out, in);
-  proto_serde<::orgproto::CmdAttr, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::CmdAttr, sem::Org>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::read(::orgproto::CmdAttr const& out, proto_write_accessor<sem::CmdAttr> in) {
-  proto_serde<::orgproto::CmdAttr, sem::Cmd>::read(out, in.as<sem::Cmd>());
-  proto_serde<::orgproto::CmdAttr, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::CmdAttr, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::CmdAttr::target));
-}
-
 void proto_serde<::orgproto::BlockExport, sem::BlockExport>::write(::orgproto::BlockExport* out, sem::BlockExport const& in) {
   proto_serde<::orgproto::BlockExport, sem::Cmd>::write(out, in);
   proto_serde<::orgproto::BlockExport, sem::Stmt>::write(out, in);
@@ -503,22 +765,6 @@ void proto_serde<::orgproto::BlockAdmonition, sem::BlockAdmonition>::read(::orgp
   proto_serde<::orgproto::BlockAdmonition, sem::Cmd>::read(out, in.as<sem::Cmd>());
   proto_serde<::orgproto::BlockAdmonition, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::BlockAdmonition, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Call, sem::Call>::write(::orgproto::Call* out, sem::Call const& in) {
-  proto_serde<::orgproto::Call, sem::Org>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  if (!in.parameters.isNil()) {
-    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
-  }
-  out->set_iscommand(in.isCommand);
-}
-
-void proto_serde<::orgproto::Call, sem::Call>::read(::orgproto::Call const& out, proto_write_accessor<sem::Call> in) {
-  proto_serde<::orgproto::Call, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Call::name));
-  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Call::parameters));
-  in.for_field(&sem::Call::isCommand).get() = out.iscommand();
 }
 
 void proto_serde<::orgproto::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Raw>::write(::orgproto::BlockCode::Line::Part::Raw* out, sem::BlockCode::Line::Part::Raw const& in) {
@@ -769,124 +1015,6 @@ void proto_serde<::orgproto::BlockCode, sem::BlockCode>::read(::orgproto::BlockC
   in.for_field(&sem::BlockCode::noweb).get() = out.noweb();
   in.for_field(&sem::BlockCode::hlines).get() = out.hlines();
   in.for_field(&sem::BlockCode::tangle).get() = out.tangle();
-}
-
-void proto_serde<::orgproto::Time::Repeat, sem::Time::Repeat>::write(::orgproto::Time::Repeat* out, sem::Time::Repeat const& in) {
-  out->set_mode(static_cast<orgproto::Time_Repeat_Mode>(in.mode));
-  out->set_period(static_cast<orgproto::Time_Repeat_Period>(in.period));
-  out->set_count(in.count);
-}
-
-void proto_serde<::orgproto::Time::Repeat, sem::Time::Repeat>::read(::orgproto::Time::Repeat const& out, proto_write_accessor<sem::Time::Repeat> in) {
-  in.for_field(&sem::Time::Repeat::mode).get() = static_cast<sem::Time::Repeat::Mode>(out.mode());
-  in.for_field(&sem::Time::Repeat::period).get() = static_cast<sem::Time::Repeat::Period>(out.period());
-  in.for_field(&sem::Time::Repeat::count).get() = out.count();
-}
-
-void proto_serde<::orgproto::Time::Static, sem::Time::Static>::write(::orgproto::Time::Static* out, sem::Time::Static const& in) {
-  if (in.repeat) {
-    proto_serde<orgproto::Time::Repeat, sem::Time::Repeat>::write(out->mutable_repeat(), *in.repeat);
-  }
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_time(), in.time);
-}
-
-void proto_serde<::orgproto::Time::Static, sem::Time::Static>::read(::orgproto::Time::Static const& out, proto_write_accessor<sem::Time::Static> in) {
-  if (out.has_repeat()) {
-    proto_serde<Opt<orgproto::Time::Repeat>, Opt<sem::Time::Repeat>>::read(out.repeat(), in.for_field(&sem::Time::Static::repeat));
-  }
-  proto_serde<orgproto::UserTime, UserTime>::read(out.time(), in.for_field(&sem::Time::Static::time));
-}
-
-void proto_serde<::orgproto::Time::Dynamic, sem::Time::Dynamic>::write(::orgproto::Time::Dynamic* out, sem::Time::Dynamic const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_expr(), in.expr);
-}
-
-void proto_serde<::orgproto::Time::Dynamic, sem::Time::Dynamic>::read(::orgproto::Time::Dynamic const& out, proto_write_accessor<sem::Time::Dynamic> in) {
-  proto_serde<std::string, Str>::read(out.expr(), in.for_field(&sem::Time::Dynamic::expr));
-}
-
-void proto_serde<::orgproto::Time, sem::Time>::write(::orgproto::Time* out, sem::Time const& in) {
-  proto_serde<::orgproto::Time, sem::Org>::write(out, in);
-  out->set_isactive(in.isActive);
-  switch (in.time.index()) {
-    case 0:
-      proto_serde<orgproto::Time::Static, sem::Time::Static>::write(out->mutable_time()->mutable_static_(), std::get<0>(in.time));
-      break;
-    case 1:
-      proto_serde<orgproto::Time::Dynamic, sem::Time::Dynamic>::write(out->mutable_time()->mutable_dynamic(), std::get<1>(in.time));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::Time, sem::Time>::read(::orgproto::Time const& out, proto_write_accessor<sem::Time> in) {
-  proto_serde<::orgproto::Time, sem::Org>::read(out, in.as<sem::Org>());
-  in.for_field(&sem::Time::isActive).get() = out.isactive();
-  switch (out.time().kind_case()) {
-    case ::orgproto::Time::TimeVariant::kStatic:
-      proto_serde<orgproto::Time::Static, sem::Time::Static>::read(out.time().static_(), in.for_field_variant<0>(&sem::Time::time));
-      break;
-    case ::orgproto::Time::TimeVariant::kDynamic:
-      proto_serde<orgproto::Time::Dynamic, sem::Time::Dynamic>::read(out.time().dynamic(), in.for_field_variant<1>(&sem::Time::time));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::TimeRange, sem::TimeRange>::write(::orgproto::TimeRange* out, sem::TimeRange const& in) {
-  proto_serde<::orgproto::TimeRange, sem::Org>::write(out, in);
-  if (!in.from.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_from(), in.from);
-  }
-  if (!in.to.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_to(), in.to);
-  }
-}
-
-void proto_serde<::orgproto::TimeRange, sem::TimeRange>::read(::orgproto::TimeRange const& out, proto_write_accessor<sem::TimeRange> in) {
-  proto_serde<::orgproto::TimeRange, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.from(), in.for_field(&sem::TimeRange::from));
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.to(), in.for_field(&sem::TimeRange::to));
-}
-
-void proto_serde<::orgproto::Macro, sem::Macro>::write(::orgproto::Macro* out, sem::Macro const& in) {
-  proto_serde<::orgproto::Macro, sem::Org>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  if (!in.parameters.isNil()) {
-    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
-  }
-}
-
-void proto_serde<::orgproto::Macro, sem::Macro>::read(::orgproto::Macro const& out, proto_write_accessor<sem::Macro> in) {
-  proto_serde<::orgproto::Macro, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Macro::name));
-  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Macro::parameters));
-}
-
-void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::write(::orgproto::Symbol::Param* out, sem::Symbol::Param const& in) {
-  if (in.key) {
-    proto_serde<std::string, Str>::write(out->mutable_key(), *in.key);
-  }
-  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
-}
-
-void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::read(::orgproto::Symbol::Param const& out, proto_write_accessor<sem::Symbol::Param> in) {
-  if (out.has_key()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.key(), in.for_field(&sem::Symbol::Param::key));
-  }
-  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::Symbol::Param::value));
-}
-
-void proto_serde<::orgproto::Symbol, sem::Symbol>::write(::orgproto::Symbol* out, sem::Symbol const& in) {
-  proto_serde<::orgproto::Symbol, sem::Org>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Symbol::Param>, Vec<sem::Symbol::Param>>::write(out->mutable_parameters(), in.parameters);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AnyNode>, Vec<sem::SemId<sem::Org>>>::write(out->mutable_positional(), in.positional);
-}
-
-void proto_serde<::orgproto::Symbol, sem::Symbol>::read(::orgproto::Symbol const& out, proto_write_accessor<sem::Symbol> in) {
-  proto_serde<::orgproto::Symbol, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Symbol::name));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Symbol::Param>, Vec<sem::Symbol::Param>>::read(out.parameters(), in.for_field(&sem::Symbol::parameters));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AnyNode>, Vec<sem::SemId<sem::Org>>>::read(out.positional(), in.for_field(&sem::Symbol::positional));
 }
 
 void proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::DescribedLog>::write(::orgproto::SubtreeLog::DescribedLog* out, sem::SubtreeLog::DescribedLog const& in) {
@@ -1357,7 +1485,7 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::write(::orgproto::Subtree* 
     proto_serde<std::string, Str>::write(out->mutable_todo(), *in.todo);
   }
   if (in.completion) {
-    proto_serde<orgproto::Completion, sem::SemId<sem::Completion>>::write(out->mutable_completion(), *in.completion);
+    proto_serde<orgproto::SubtreeCompletion, sem::SemId<sem::SubtreeCompletion>>::write(out->mutable_completion(), *in.completion);
   }
   if (in.description) {
     proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_description(), *in.description);
@@ -1394,7 +1522,7 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.todo(), in.for_field(&sem::Subtree::todo));
   }
   if (out.has_completion()) {
-    proto_serde<Opt<orgproto::Completion>, Opt<sem::SemId<sem::Completion>>>::read(out.completion(), in.for_field(&sem::Subtree::completion));
+    proto_serde<Opt<orgproto::SubtreeCompletion>, Opt<sem::SemId<sem::SubtreeCompletion>>>::read(out.completion(), in.for_field(&sem::Subtree::completion));
   }
   if (out.has_description()) {
     proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.description(), in.for_field(&sem::Subtree::description));
@@ -1419,186 +1547,186 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
   }
 }
 
-void proto_serde<::orgproto::InlineMath, sem::InlineMath>::write(::orgproto::InlineMath* out, sem::InlineMath const& in) {
-  proto_serde<::orgproto::InlineMath, sem::Org>::write(out, in);
+void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in) {
+  proto_serde<::orgproto::SubtreeCompletion, sem::Org>::write(out, in);
+  out->set_done(in.done);
+  out->set_full(in.full);
+  out->set_ispercent(in.isPercent);
 }
 
-void proto_serde<::orgproto::InlineMath, sem::InlineMath>::read(::orgproto::InlineMath const& out, proto_write_accessor<sem::InlineMath> in) {
-  proto_serde<::orgproto::InlineMath, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in) {
+  proto_serde<::orgproto::SubtreeCompletion, sem::Org>::read(out, in.as<sem::Org>());
+  in.for_field(&sem::SubtreeCompletion::done).get() = out.done();
+  in.for_field(&sem::SubtreeCompletion::full).get() = out.full();
+  in.for_field(&sem::SubtreeCompletion::isPercent).get() = out.ispercent();
 }
 
-void proto_serde<::orgproto::Escaped, sem::Escaped>::write(::orgproto::Escaped* out, sem::Escaped const& in) {
-  proto_serde<::orgproto::Escaped, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::Escaped, sem::Org>::write(out, in);
+void proto_serde<::orgproto::Cell, sem::Cell>::write(::orgproto::Cell* out, sem::Cell const& in) {
+  proto_serde<::orgproto::Cell, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::Cell, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::Cell, sem::Org>::write(out, in);
+  out->set_isblock(in.isBlock);
 }
 
-void proto_serde<::orgproto::Escaped, sem::Escaped>::read(::orgproto::Escaped const& out, proto_write_accessor<sem::Escaped> in) {
-  proto_serde<::orgproto::Escaped, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::Escaped, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::Cell, sem::Cell>::read(::orgproto::Cell const& out, proto_write_accessor<sem::Cell> in) {
+  proto_serde<::orgproto::Cell, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::Cell, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::Cell, sem::Org>::read(out, in.as<sem::Org>());
+  in.for_field(&sem::Cell::isBlock).get() = out.isblock();
 }
 
-void proto_serde<::orgproto::Newline, sem::Newline>::write(::orgproto::Newline* out, sem::Newline const& in) {
-  proto_serde<::orgproto::Newline, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::Newline, sem::Org>::write(out, in);
+void proto_serde<::orgproto::Row, sem::Row>::write(::orgproto::Row* out, sem::Row const& in) {
+  proto_serde<::orgproto::Row, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::Row, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::Row, sem::Org>::write(out, in);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::write(out->mutable_cells(), in.cells);
+  out->set_isblock(in.isBlock);
 }
 
-void proto_serde<::orgproto::Newline, sem::Newline>::read(::orgproto::Newline const& out, proto_write_accessor<sem::Newline> in) {
-  proto_serde<::orgproto::Newline, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::Newline, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::Row, sem::Row>::read(::orgproto::Row const& out, proto_write_accessor<sem::Row> in) {
+  proto_serde<::orgproto::Row, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::Row, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::Row, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, Vec<sem::SemId<sem::Cell>>>::read(out.cells(), in.for_field(&sem::Row::cells));
+  in.for_field(&sem::Row::isBlock).get() = out.isblock();
 }
 
-void proto_serde<::orgproto::Space, sem::Space>::write(::orgproto::Space* out, sem::Space const& in) {
-  proto_serde<::orgproto::Space, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::Space, sem::Org>::write(out, in);
+void proto_serde<::orgproto::Table, sem::Table>::write(::orgproto::Table* out, sem::Table const& in) {
+  proto_serde<::orgproto::Table, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::Table, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::Table, sem::Org>::write(out, in);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, Vec<sem::SemId<sem::Row>>>::write(out->mutable_rows(), in.rows);
+  out->set_isblock(in.isBlock);
 }
 
-void proto_serde<::orgproto::Space, sem::Space>::read(::orgproto::Space const& out, proto_write_accessor<sem::Space> in) {
-  proto_serde<::orgproto::Space, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::Space, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::Table, sem::Table>::read(::orgproto::Table const& out, proto_write_accessor<sem::Table> in) {
+  proto_serde<::orgproto::Table, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::Table, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::Table, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, Vec<sem::SemId<sem::Row>>>::read(out.rows(), in.for_field(&sem::Table::rows));
+  in.for_field(&sem::Table::isBlock).get() = out.isblock();
 }
 
-void proto_serde<::orgproto::Word, sem::Word>::write(::orgproto::Word* out, sem::Word const& in) {
-  proto_serde<::orgproto::Word, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::Word, sem::Org>::write(out, in);
+void proto_serde<::orgproto::Paragraph, sem::Paragraph>::write(::orgproto::Paragraph* out, sem::Paragraph const& in) {
+  proto_serde<::orgproto::Paragraph, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::Paragraph, sem::Org>::write(out, in);
 }
 
-void proto_serde<::orgproto::Word, sem::Word>::read(::orgproto::Word const& out, proto_write_accessor<sem::Word> in) {
-  proto_serde<::orgproto::Word, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::Word, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::Paragraph, sem::Paragraph>::read(::orgproto::Paragraph const& out, proto_write_accessor<sem::Paragraph> in) {
+  proto_serde<::orgproto::Paragraph, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::Paragraph, sem::Org>::read(out, in.as<sem::Org>());
 }
 
-void proto_serde<::orgproto::AtMention, sem::AtMention>::write(::orgproto::AtMention* out, sem::AtMention const& in) {
-  proto_serde<::orgproto::AtMention, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::AtMention, sem::Org>::write(out, in);
+void proto_serde<::orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::write(::orgproto::AnnotatedParagraph::None* out, sem::AnnotatedParagraph::None const& in) {
+
 }
 
-void proto_serde<::orgproto::AtMention, sem::AtMention>::read(::orgproto::AtMention const& out, proto_write_accessor<sem::AtMention> in) {
-  proto_serde<::orgproto::AtMention, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::AtMention, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::read(::orgproto::AnnotatedParagraph::None const& out, proto_write_accessor<sem::AnnotatedParagraph::None> in) {
+
 }
 
-void proto_serde<::orgproto::RawText, sem::RawText>::write(::orgproto::RawText* out, sem::RawText const& in) {
-  proto_serde<::orgproto::RawText, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::RawText, sem::Org>::write(out, in);
+void proto_serde<::orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::write(::orgproto::AnnotatedParagraph::Footnote* out, sem::AnnotatedParagraph::Footnote const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
 }
 
-void proto_serde<::orgproto::RawText, sem::RawText>::read(::orgproto::RawText const& out, proto_write_accessor<sem::RawText> in) {
-  proto_serde<::orgproto::RawText, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::RawText, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::read(::orgproto::AnnotatedParagraph::Footnote const& out, proto_write_accessor<sem::AnnotatedParagraph::Footnote> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::AnnotatedParagraph::Footnote::name));
 }
 
-void proto_serde<::orgproto::Punctuation, sem::Punctuation>::write(::orgproto::Punctuation* out, sem::Punctuation const& in) {
-  proto_serde<::orgproto::Punctuation, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::Punctuation, sem::Org>::write(out, in);
+void proto_serde<::orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::write(::orgproto::AnnotatedParagraph::Admonition* out, sem::AnnotatedParagraph::Admonition const& in) {
+  if (!in.name.isNil()) {
+    proto_serde<orgproto::BigIdent, sem::SemId<sem::BigIdent>>::write(out->mutable_name(), in.name);
+  }
 }
 
-void proto_serde<::orgproto::Punctuation, sem::Punctuation>::read(::orgproto::Punctuation const& out, proto_write_accessor<sem::Punctuation> in) {
-  proto_serde<::orgproto::Punctuation, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::Punctuation, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::read(::orgproto::AnnotatedParagraph::Admonition const& out, proto_write_accessor<sem::AnnotatedParagraph::Admonition> in) {
+  proto_serde<orgproto::BigIdent, sem::SemId<sem::BigIdent>>::read(out.name(), in.for_field(&sem::AnnotatedParagraph::Admonition::name));
 }
 
-void proto_serde<::orgproto::Placeholder, sem::Placeholder>::write(::orgproto::Placeholder* out, sem::Placeholder const& in) {
-  proto_serde<::orgproto::Placeholder, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::Placeholder, sem::Org>::write(out, in);
+void proto_serde<::orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::write(::orgproto::AnnotatedParagraph::Timestamp* out, sem::AnnotatedParagraph::Timestamp const& in) {
+  if (!in.time.isNil()) {
+    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_time(), in.time);
+  }
 }
 
-void proto_serde<::orgproto::Placeholder, sem::Placeholder>::read(::orgproto::Placeholder const& out, proto_write_accessor<sem::Placeholder> in) {
-  proto_serde<::orgproto::Placeholder, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::Placeholder, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::read(::orgproto::AnnotatedParagraph::Timestamp const& out, proto_write_accessor<sem::AnnotatedParagraph::Timestamp> in) {
+  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.time(), in.for_field(&sem::AnnotatedParagraph::Timestamp::time));
 }
 
-void proto_serde<::orgproto::BigIdent, sem::BigIdent>::write(::orgproto::BigIdent* out, sem::BigIdent const& in) {
-  proto_serde<::orgproto::BigIdent, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::BigIdent, sem::Org>::write(out, in);
+void proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph>::write(::orgproto::AnnotatedParagraph* out, sem::AnnotatedParagraph const& in) {
+  proto_serde<::orgproto::AnnotatedParagraph, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::AnnotatedParagraph, sem::Org>::write(out, in);
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::write(out->mutable_data()->mutable_none(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::write(out->mutable_data()->mutable_admonition(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::write(out->mutable_data()->mutable_timestamp(), std::get<3>(in.data));
+      break;
+  }
 }
 
-void proto_serde<::orgproto::BigIdent, sem::BigIdent>::read(::orgproto::BigIdent const& out, proto_write_accessor<sem::BigIdent> in) {
-  proto_serde<::orgproto::BigIdent, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::BigIdent, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph>::read(::orgproto::AnnotatedParagraph const& out, proto_write_accessor<sem::AnnotatedParagraph> in) {
+  proto_serde<::orgproto::AnnotatedParagraph, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::AnnotatedParagraph, sem::Org>::read(out, in.as<sem::Org>());
+  switch (out.data().kind_case()) {
+    case ::orgproto::AnnotatedParagraph::Data::kNone:
+      proto_serde<orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None>::read(out.data().none(), in.for_field_variant<0>(&sem::AnnotatedParagraph::data));
+      break;
+    case ::orgproto::AnnotatedParagraph::Data::kFootnote:
+      proto_serde<orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote>::read(out.data().footnote(), in.for_field_variant<1>(&sem::AnnotatedParagraph::data));
+      break;
+    case ::orgproto::AnnotatedParagraph::Data::kAdmonition:
+      proto_serde<orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition>::read(out.data().admonition(), in.for_field_variant<2>(&sem::AnnotatedParagraph::data));
+      break;
+    case ::orgproto::AnnotatedParagraph::Data::kTimestamp:
+      proto_serde<orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp>::read(out.data().timestamp(), in.for_field_variant<3>(&sem::AnnotatedParagraph::data));
+      break;
+  }
 }
 
-void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::write(::orgproto::RadioTarget* out, sem::RadioTarget const& in) {
-  proto_serde<::orgproto::RadioTarget, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::RadioTarget, sem::Org>::write(out, in);
+void proto_serde<::orgproto::ColonExample, sem::ColonExample>::write(::orgproto::ColonExample* out, sem::ColonExample const& in) {
+  proto_serde<::orgproto::ColonExample, sem::Org>::write(out, in);
 }
 
-void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in) {
-  proto_serde<::orgproto::RadioTarget, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::RadioTarget, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::ColonExample, sem::ColonExample>::read(::orgproto::ColonExample const& out, proto_write_accessor<sem::ColonExample> in) {
+  proto_serde<::orgproto::ColonExample, sem::Org>::read(out, in.as<sem::Org>());
 }
 
-void proto_serde<::orgproto::TextTarget, sem::TextTarget>::write(::orgproto::TextTarget* out, sem::TextTarget const& in) {
-  proto_serde<::orgproto::TextTarget, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::TextTarget, sem::Org>::write(out, in);
+void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::write(::orgproto::CmdAttr* out, sem::CmdAttr const& in) {
+  proto_serde<::orgproto::CmdAttr, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::CmdAttr, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::CmdAttr, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
 }
 
-void proto_serde<::orgproto::TextTarget, sem::TextTarget>::read(::orgproto::TextTarget const& out, proto_write_accessor<sem::TextTarget> in) {
-  proto_serde<::orgproto::TextTarget, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::TextTarget, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::read(::orgproto::CmdAttr const& out, proto_write_accessor<sem::CmdAttr> in) {
+  proto_serde<::orgproto::CmdAttr, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::CmdAttr, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::CmdAttr, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::CmdAttr::target));
 }
 
-void proto_serde<::orgproto::Bold, sem::Bold>::write(::orgproto::Bold* out, sem::Bold const& in) {
-  proto_serde<::orgproto::Bold, sem::Org>::write(out, in);
+void proto_serde<::orgproto::Call, sem::Call>::write(::orgproto::Call* out, sem::Call const& in) {
+  proto_serde<::orgproto::Call, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  if (!in.parameters.isNil()) {
+    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
+  }
+  out->set_iscommand(in.isCommand);
 }
 
-void proto_serde<::orgproto::Bold, sem::Bold>::read(::orgproto::Bold const& out, proto_write_accessor<sem::Bold> in) {
-  proto_serde<::orgproto::Bold, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Underline, sem::Underline>::write(::orgproto::Underline* out, sem::Underline const& in) {
-  proto_serde<::orgproto::Underline, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::Underline, sem::Underline>::read(::orgproto::Underline const& out, proto_write_accessor<sem::Underline> in) {
-  proto_serde<::orgproto::Underline, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Monospace, sem::Monospace>::write(::orgproto::Monospace* out, sem::Monospace const& in) {
-  proto_serde<::orgproto::Monospace, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::Monospace, sem::Monospace>::read(::orgproto::Monospace const& out, proto_write_accessor<sem::Monospace> in) {
-  proto_serde<::orgproto::Monospace, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::MarkQuote, sem::MarkQuote>::write(::orgproto::MarkQuote* out, sem::MarkQuote const& in) {
-  proto_serde<::orgproto::MarkQuote, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::MarkQuote, sem::MarkQuote>::read(::orgproto::MarkQuote const& out, proto_write_accessor<sem::MarkQuote> in) {
-  proto_serde<::orgproto::MarkQuote, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Verbatim, sem::Verbatim>::write(::orgproto::Verbatim* out, sem::Verbatim const& in) {
-  proto_serde<::orgproto::Verbatim, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::Verbatim, sem::Verbatim>::read(::orgproto::Verbatim const& out, proto_write_accessor<sem::Verbatim> in) {
-  proto_serde<::orgproto::Verbatim, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Italic, sem::Italic>::write(::orgproto::Italic* out, sem::Italic const& in) {
-  proto_serde<::orgproto::Italic, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::Italic, sem::Italic>::read(::orgproto::Italic const& out, proto_write_accessor<sem::Italic> in) {
-  proto_serde<::orgproto::Italic, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Strike, sem::Strike>::write(::orgproto::Strike* out, sem::Strike const& in) {
-  proto_serde<::orgproto::Strike, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::Strike, sem::Strike>::read(::orgproto::Strike const& out, proto_write_accessor<sem::Strike> in) {
-  proto_serde<::orgproto::Strike, sem::Org>::read(out, in.as<sem::Org>());
-}
-
-void proto_serde<::orgproto::Par, sem::Par>::write(::orgproto::Par* out, sem::Par const& in) {
-  proto_serde<::orgproto::Par, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::Par, sem::Par>::read(::orgproto::Par const& out, proto_write_accessor<sem::Par> in) {
-  proto_serde<::orgproto::Par, sem::Org>::read(out, in.as<sem::Org>());
+void proto_serde<::orgproto::Call, sem::Call>::read(::orgproto::Call const& out, proto_write_accessor<sem::Call> in) {
+  proto_serde<::orgproto::Call, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Call::name));
+  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Call::parameters));
+  in.for_field(&sem::Call::isCommand).get() = out.iscommand();
 }
 
 void proto_serde<::orgproto::List, sem::List>::write(::orgproto::List* out, sem::List const& in) {
@@ -1630,140 +1758,6 @@ void proto_serde<::orgproto::ListItem, sem::ListItem>::read(::orgproto::ListItem
   }
   if (out.has_bullet()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.bullet(), in.for_field(&sem::ListItem::bullet));
-  }
-}
-
-void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::write(::orgproto::Link::Raw* out, sem::Link::Raw const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
-}
-
-void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::read(::orgproto::Link::Raw const& out, proto_write_accessor<sem::Link::Raw> in) {
-  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::Link::Raw::text));
-}
-
-void proto_serde<::orgproto::Link::Id, sem::Link::Id>::write(::orgproto::Link::Id* out, sem::Link::Id const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
-}
-
-void proto_serde<::orgproto::Link::Id, sem::Link::Id>::read(::orgproto::Link::Id const& out, proto_write_accessor<sem::Link::Id> in) {
-  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::Link::Id::text));
-}
-
-void proto_serde<::orgproto::Link::Person, sem::Link::Person>::write(::orgproto::Link::Person* out, sem::Link::Person const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-}
-
-void proto_serde<::orgproto::Link::Person, sem::Link::Person>::read(::orgproto::Link::Person const& out, proto_write_accessor<sem::Link::Person> in) {
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Link::Person::name));
-}
-
-void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(::orgproto::Link::UserProtocol* out, sem::Link::UserProtocol const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_protocol(), in.protocol);
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(::orgproto::Link::UserProtocol const& out, proto_write_accessor<sem::Link::UserProtocol> in) {
-  proto_serde<std::string, Str>::read(out.protocol(), in.for_field(&sem::Link::UserProtocol::protocol));
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::UserProtocol::target));
-}
-
-void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::write(::orgproto::Link::Internal* out, sem::Link::Internal const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::read(::orgproto::Link::Internal const& out, proto_write_accessor<sem::Link::Internal> in) {
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::Internal::target));
-}
-
-void proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote>::write(::orgproto::Link::Footnote* out, sem::Link::Footnote const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote>::read(::orgproto::Link::Footnote const& out, proto_write_accessor<sem::Link::Footnote> in) {
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::Footnote::target));
-}
-
-void proto_serde<::orgproto::Link::File, sem::Link::File>::write(::orgproto::Link::File* out, sem::Link::File const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
-}
-
-void proto_serde<::orgproto::Link::File, sem::Link::File>::read(::orgproto::Link::File const& out, proto_write_accessor<sem::Link::File> in) {
-  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::File::file));
-}
-
-void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::write(::orgproto::Link::Attachment* out, sem::Link::Attachment const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
-}
-
-void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::read(::orgproto::Link::Attachment const& out, proto_write_accessor<sem::Link::Attachment> in) {
-  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::Attachment::file));
-}
-
-void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem::Link const& in) {
-  proto_serde<::orgproto::Link, sem::Stmt>::write(out, in);
-  proto_serde<::orgproto::Link, sem::Org>::write(out, in);
-  if (in.description) {
-    proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_description(), *in.description);
-  }
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::Link::Raw, sem::Link::Raw>::write(out->mutable_data()->mutable_raw(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::Link::Id, sem::Link::Id>::write(out->mutable_data()->mutable_id(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::Link::Person, sem::Link::Person>::write(out->mutable_data()->mutable_person(), std::get<2>(in.data));
-      break;
-    case 3:
-      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(out->mutable_data()->mutable_userprotocol(), std::get<3>(in.data));
-      break;
-    case 4:
-      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::write(out->mutable_data()->mutable_internal(), std::get<4>(in.data));
-      break;
-    case 5:
-      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<5>(in.data));
-      break;
-    case 6:
-      proto_serde<orgproto::Link::File, sem::Link::File>::write(out->mutable_data()->mutable_file(), std::get<6>(in.data));
-      break;
-    case 7:
-      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::write(out->mutable_data()->mutable_attachment(), std::get<7>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::Link, sem::Link>::read(::orgproto::Link const& out, proto_write_accessor<sem::Link> in) {
-  proto_serde<::orgproto::Link, sem::Stmt>::read(out, in.as<sem::Stmt>());
-  proto_serde<::orgproto::Link, sem::Org>::read(out, in.as<sem::Org>());
-  if (out.has_description()) {
-    proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.description(), in.for_field(&sem::Link::description));
-  }
-  switch (out.data().kind_case()) {
-    case ::orgproto::Link::Data::kRaw:
-      proto_serde<orgproto::Link::Raw, sem::Link::Raw>::read(out.data().raw(), in.for_field_variant<0>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kId:
-      proto_serde<orgproto::Link::Id, sem::Link::Id>::read(out.data().id(), in.for_field_variant<1>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kPerson:
-      proto_serde<orgproto::Link::Person, sem::Link::Person>::read(out.data().person(), in.for_field_variant<2>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kUserprotocol:
-      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<3>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kInternal:
-      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::read(out.data().internal(), in.for_field_variant<4>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kFootnote:
-      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::read(out.data().footnote(), in.for_field_variant<5>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kFile:
-      proto_serde<orgproto::Link::File, sem::Link::File>::read(out.data().file(), in.for_field_variant<6>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kAttachment:
-      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::read(out.data().attachment(), in.for_field_variant<7>(&sem::Link::data));
-      break;
   }
 }
 
@@ -1975,14 +1969,6 @@ void proto_serde<::orgproto::Document, sem::Document>::read(::orgproto::Document
   if (out.has_exportfilename()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.exportfilename(), in.for_field(&sem::Document::exportFileName));
   }
-}
-
-void proto_serde<::orgproto::ParseError, sem::ParseError>::write(::orgproto::ParseError* out, sem::ParseError const& in) {
-  proto_serde<::orgproto::ParseError, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::ParseError, sem::ParseError>::read(::orgproto::ParseError const& out, proto_write_accessor<sem::ParseError> in) {
-  proto_serde<::orgproto::ParseError, sem::Org>::read(out, in.as<sem::Org>());
 }
 
 void proto_serde<::orgproto::FileTarget, sem::FileTarget>::write(::orgproto::FileTarget* out, sem::FileTarget const& in) {

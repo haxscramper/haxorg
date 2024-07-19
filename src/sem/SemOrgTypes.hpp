@@ -13,41 +13,6 @@
 #include <sem/SemOrgBase.hpp>
 #include <sem/SemOrgEnums.hpp>
 namespace sem{
-struct ErrorItem : public sem::Org {
-  using Org::Org;
-  virtual ~ErrorItem() = default;
-  BOOST_DESCRIBE_CLASS(ErrorItem,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, message, function, line, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  Str message;
-  /// \brief Conversion function name where the error was created
-  Opt<Str> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  Opt<int> line = std::nullopt;
-  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
-};
-
-/// \brief Group of value conversion errors
-struct ErrorGroup : public sem::Org {
-  using Org::Org;
-  virtual ~ErrorGroup() = default;
-  BOOST_DESCRIBE_CLASS(ErrorGroup,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, diagnostics, function, line, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  Vec<sem::SemId<sem::ErrorItem>> diagnostics = {};
-  /// \brief Conversion function name where the error was created
-  Opt<Str> function = std::nullopt;
-  /// \brief Line number for the conversion where the error was created
-  Opt<Str> line = std::nullopt;
-  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
-};
-
 /// \brief Single key-value (or positional)
 struct CmdArgument : public sem::Org {
   using Org::Org;
@@ -93,6 +58,63 @@ struct CmdArgumentList : public sem::Org {
   /// \brief List of arguments
   Vec<sem::SemId<sem::CmdArgument>> args = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgumentList; }
+};
+
+/// \brief Additional arguments for command blocks
+struct CmdArguments : public sem::Org {
+  using Org::Org;
+  virtual ~CmdArguments() = default;
+  BOOST_DESCRIBE_CLASS(CmdArguments,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind,
+                        positional,
+                        named,
+                        (OrgSemKind() const) getKind,
+                        (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
+  static OrgSemKind const staticKind;
+  /// \brief Positional arguments with no keys
+  sem::SemId<sem::CmdArgumentList> positional = sem::SemId<sem::CmdArgumentList>::Nil();
+  /// \brief Stored key-value mapping
+  UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>> named;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
+  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const;
+};
+
+struct ErrorItem : public sem::Org {
+  using Org::Org;
+  virtual ~ErrorItem() = default;
+  BOOST_DESCRIBE_CLASS(ErrorItem,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, message, function, line, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Str message;
+  /// \brief Conversion function name where the error was created
+  Opt<Str> function = std::nullopt;
+  /// \brief Line number for the conversion where the error was created
+  Opt<int> line = std::nullopt;
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
+};
+
+/// \brief Group of value conversion errors
+struct ErrorGroup : public sem::Org {
+  using Org::Org;
+  virtual ~ErrorGroup() = default;
+  BOOST_DESCRIBE_CLASS(ErrorGroup,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, diagnostics, function, line, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Vec<sem::SemId<sem::ErrorItem>> diagnostics = {};
+  /// \brief Conversion function name where the error was created
+  Opt<Str> function = std::nullopt;
+  /// \brief Line number for the conversion where the error was created
+  Opt<Str> line = std::nullopt;
+  virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
 };
 
 /// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
@@ -177,211 +199,6 @@ struct Block : public sem::Cmd {
   BOOST_DESCRIBE_CLASS(Block, (Cmd), (), (), ())
 };
 
-/// \brief Table cell
-struct Cell : public sem::Cmd {
-  using Cmd::Cmd;
-  virtual ~Cell() = default;
-  BOOST_DESCRIBE_CLASS(Cell,
-                       (Cmd),
-                       (),
-                       (),
-                       (staticKind, isBlock, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief Single-line pipe cell or `#+cell:` command
-  bool isBlock = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Cell; }
-};
-
-/// \brief Table row
-struct Row : public sem::Cmd {
-  using Cmd::Cmd;
-  virtual ~Row() = default;
-  BOOST_DESCRIBE_CLASS(Row,
-                       (Cmd),
-                       (),
-                       (),
-                       (staticKind, cells, isBlock, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief List of cells on the row
-  Vec<sem::SemId<sem::Cell>> cells = {};
-  /// \brief Single-line pipe cell or `#+cell:` command
-  bool isBlock = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
-};
-
-/// \brief Table
-struct Table : public sem::Block {
-  using Block::Block;
-  virtual ~Table() = default;
-  BOOST_DESCRIBE_CLASS(Table,
-                       (Block),
-                       (),
-                       (),
-                       (staticKind, rows, isBlock, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief List of rows for the table
-  Vec<sem::SemId<sem::Row>> rows = {};
-  /// \brief Single-line pipe cell or `#+cell:` command
-  bool isBlock = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Table; }
-};
-
-/// \brief Single or nested inline hash-tag
-struct HashTag : public sem::Inline {
-  using Inline::Inline;
-  virtual ~HashTag() = default;
-  BOOST_DESCRIBE_CLASS(HashTag,
-                       (Inline),
-                       (),
-                       (),
-                       (staticKind,
-                        head,
-                        subtags,
-                        (OrgSemKind() const) getKind,
-                        (bool(Vec<Str> const&) const) prefixMatch))
-  static OrgSemKind const staticKind;
-  /// \brief Main part of the tag
-  Str head;
-  /// \brief List of nested tags
-  Vec<sem::SemId<sem::HashTag>> subtags = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
-  /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
-  bool prefixMatch(Vec<Str> const& prefix) const;
-};
-
-/// \brief Inline and regular footnote definition
-///
-/// \note in-text link to the footnotes are implemented using `Link` nodes
-struct Footnote : public sem::Inline {
-  using Inline::Inline;
-  virtual ~Footnote() = default;
-  BOOST_DESCRIBE_CLASS(Footnote,
-                       (Inline),
-                       (),
-                       (),
-                       (staticKind, tag, definition, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief Footnote text target name
-  Str tag = "";
-  /// \brief Link to possibly resolved definition
-  Opt<sem::SemId<sem::Org>> definition = std::nullopt;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Footnote; }
-};
-
-/// \brief Completion status of the subtree list element
-struct Completion : public sem::Inline {
-  using Inline::Inline;
-  virtual ~Completion() = default;
-  BOOST_DESCRIBE_CLASS(Completion,
-                       (Inline),
-                       (),
-                       (),
-                       (staticKind, done, full, isPercent, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief Number of completed tasks
-  int done = 0;
-  /// \brief Full number of tasks
-  int full = 0;
-  /// \brief Use fraction or percent to display completion
-  bool isPercent = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Completion; }
-};
-
-/// \brief Top-level or inline paragraph
-struct Paragraph : public sem::Stmt {
-  using Stmt::Stmt;
-  virtual ~Paragraph() = default;
-  BOOST_DESCRIBE_CLASS(Paragraph,
-                       (Stmt),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Paragraph; }
-};
-
-/// \brief Top-level or inline paragraph with prefix annotation
-struct AnnotatedParagraph : public sem::Stmt {
-  using Stmt::Stmt;
-  virtual ~AnnotatedParagraph() = default;
-  struct None {
-    BOOST_DESCRIBE_CLASS(None, (), (), (), ())
-  };
-
-  struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (name))
-    Str name;
-  };
-
-  struct Admonition {
-    BOOST_DESCRIBE_CLASS(Admonition, (), (), (), (name))
-    /// \brief Prefix admonition for the paragraph
-    sem::SemId<sem::BigIdent> name = sem::SemId<sem::BigIdent>::Nil();
-  };
-
-  struct Timestamp {
-    BOOST_DESCRIBE_CLASS(Timestamp, (), (), (), (time))
-    /// \brief Leading timestamp for the paragraph
-    sem::SemId<sem::Time> time = sem::SemId<sem::Time>::Nil();
-  };
-
-  using Data = std::variant<sem::AnnotatedParagraph::None, sem::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Timestamp>;
-  enum class AnnotationKind : short int { None, Footnote, Admonition, Timestamp, };
-  BOOST_DESCRIBE_NESTED_ENUM(AnnotationKind, None, Footnote, Admonition, Timestamp)
-  using variant_enum_type = sem::AnnotatedParagraph::AnnotationKind;
-  using variant_data_type = sem::AnnotatedParagraph::Data;
-  BOOST_DESCRIBE_CLASS(AnnotatedParagraph,
-                       (Stmt),
-                       (),
-                       (),
-                       (staticKind,
-                        data,
-                        (OrgSemKind() const) getKind,
-                        (sem::AnnotatedParagraph::None const&() const) getNone,
-                        (sem::AnnotatedParagraph::None&()) getNone,
-                        (sem::AnnotatedParagraph::Footnote const&() const) getFootnote,
-                        (sem::AnnotatedParagraph::Footnote&()) getFootnote,
-                        (sem::AnnotatedParagraph::Admonition const&() const) getAdmonition,
-                        (sem::AnnotatedParagraph::Admonition&()) getAdmonition,
-                        (sem::AnnotatedParagraph::Timestamp const&() const) getTimestamp,
-                        (sem::AnnotatedParagraph::Timestamp&()) getTimestamp,
-                        (sem::AnnotatedParagraph::AnnotationKind(sem::AnnotatedParagraph::Data const&)) getAnnotationKind,
-                        (sem::AnnotatedParagraph::AnnotationKind() const) getAnnotationKind))
-  static OrgSemKind const staticKind;
-  sem::AnnotatedParagraph::Data data;
-  virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
-  sem::AnnotatedParagraph::None const& getNone() const { return std::get<0>(data); }
-  sem::AnnotatedParagraph::None& getNone() { return std::get<0>(data); }
-  sem::AnnotatedParagraph::Footnote const& getFootnote() const { return std::get<1>(data); }
-  sem::AnnotatedParagraph::Footnote& getFootnote() { return std::get<1>(data); }
-  sem::AnnotatedParagraph::Admonition const& getAdmonition() const { return std::get<2>(data); }
-  sem::AnnotatedParagraph::Admonition& getAdmonition() { return std::get<2>(data); }
-  sem::AnnotatedParagraph::Timestamp const& getTimestamp() const { return std::get<3>(data); }
-  sem::AnnotatedParagraph::Timestamp& getTimestamp() { return std::get<3>(data); }
-  static sem::AnnotatedParagraph::AnnotationKind getAnnotationKind(sem::AnnotatedParagraph::Data const& __input) { return static_cast<sem::AnnotatedParagraph::AnnotationKind>(__input.index()); }
-  sem::AnnotatedParagraph::AnnotationKind getAnnotationKind() const { return getAnnotationKind(data); }
-};
-
-/// \brief Base class for branch of formatting node classes
-struct Format : public sem::Org {
-  using Org::Org;
-  virtual ~Format() = default;
-  BOOST_DESCRIBE_CLASS(Format, (Org), (), (), ())
-};
-
-/// \brief Center nested content in export
-struct BlockCenter : public sem::Format {
-  using Format::Format;
-  virtual ~BlockCenter() = default;
-  BOOST_DESCRIBE_CLASS(BlockCenter,
-                       (Format),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::BlockCenter; }
-};
-
 /// \brief Line commands
 struct LineCommand : public sem::Cmd {
   using Cmd::Cmd;
@@ -394,6 +211,15 @@ struct Attached : public sem::LineCommand {
   using LineCommand::LineCommand;
   virtual ~Attached() = default;
   BOOST_DESCRIBE_CLASS(Attached, (LineCommand), (), (), ())
+};
+
+/// \brief Final node
+struct Leaf : public sem::Org {
+  using Org::Org;
+  virtual ~Leaf() = default;
+  BOOST_DESCRIBE_CLASS(Leaf, (Org), (), (), (text))
+  /// \brief Final leaf value
+  Str text = "";
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -484,19 +310,6 @@ struct CmdResults : public sem::Attached {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdResults; }
 };
 
-/// \brief Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command
-struct CmdGroup : public sem::Stmt {
-  using Stmt::Stmt;
-  virtual ~CmdGroup() = default;
-  BOOST_DESCRIBE_CLASS(CmdGroup,
-                       (Stmt),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdGroup; }
-};
-
 /// \brief Tblfm command type
 struct CmdTblfm : public sem::Cmd {
   using Cmd::Cmd;
@@ -508,6 +321,550 @@ struct CmdTblfm : public sem::Cmd {
                        (staticKind, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
+};
+
+/// \brief Single or nested inline hash-tag
+struct HashTag : public sem::Inline {
+  using Inline::Inline;
+  virtual ~HashTag() = default;
+  BOOST_DESCRIBE_CLASS(HashTag,
+                       (Inline),
+                       (),
+                       (),
+                       (staticKind,
+                        head,
+                        subtags,
+                        (OrgSemKind() const) getKind,
+                        (bool(Vec<Str> const&) const) prefixMatch))
+  static OrgSemKind const staticKind;
+  /// \brief Main part of the tag
+  Str head;
+  /// \brief List of nested tags
+  Vec<sem::SemId<sem::HashTag>> subtags = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
+  /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
+  bool prefixMatch(Vec<Str> const& prefix) const;
+};
+
+/// \brief Inline and regular footnote definition
+///
+/// \note in-text link to the footnotes are implemented using `Link` nodes
+struct Footnote : public sem::Inline {
+  using Inline::Inline;
+  virtual ~Footnote() = default;
+  BOOST_DESCRIBE_CLASS(Footnote,
+                       (Inline),
+                       (),
+                       (),
+                       (staticKind, tag, definition, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief Footnote text target name
+  Str tag = "";
+  /// \brief Link to possibly resolved definition
+  Opt<sem::SemId<sem::Org>> definition = std::nullopt;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Footnote; }
+};
+
+/// \brief Single static or dynamic timestamp (active or inactive)
+struct Time : public sem::Org {
+  using Org::Org;
+  virtual ~Time() = default;
+  bool isStatic() const { return std::holds_alternative<Static>(time); }
+  /// \brief Repetition information for static time
+  struct Repeat {
+    /// \brief Timestamp repetition mode
+    enum class Mode : short int {
+      /// \brief Do not repeat task on completion
+      None,
+      /// \brief ?
+      Exact,
+      /// \brief Repeat on the first matching day in the future
+      FirstMatch,
+      /// \brief Repeat task on the same day next week/month/year
+      SameDay,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
+    /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
+    enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
+    BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
+    BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
+    /// \brief mode
+    sem::Time::Repeat::Mode mode;
+    /// \brief period
+    sem::Time::Repeat::Period period;
+    /// \brief count
+    int count;
+  };
+
+  struct Static {
+    BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
+    Opt<sem::Time::Repeat> repeat;
+    UserTime time;
+  };
+
+  struct Dynamic {
+    BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr))
+    Str expr;
+  };
+
+  using TimeVariant = std::variant<sem::Time::Static, sem::Time::Dynamic>;
+  enum class TimeKind : short int { Static, Dynamic, };
+  BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
+  using variant_enum_type = sem::Time::TimeKind;
+  using variant_data_type = sem::Time::TimeVariant;
+  BOOST_DESCRIBE_CLASS(Time,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind,
+                        isActive,
+                        time,
+                        (OrgSemKind() const) getKind,
+                        (sem::Time::Static const&() const) getStatic,
+                        (sem::Time::Static&()) getStatic,
+                        (sem::Time::Dynamic const&() const) getDynamic,
+                        (sem::Time::Dynamic&()) getDynamic,
+                        (sem::Time::TimeKind(sem::Time::TimeVariant const&)) getTimeKind,
+                        (sem::Time::TimeKind() const) getTimeKind))
+  static OrgSemKind const staticKind;
+  /// \brief <active> vs [inactive]
+  bool isActive = false;
+  sem::Time::TimeVariant time;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
+  sem::Time::Static const& getStatic() const { return std::get<0>(time); }
+  sem::Time::Static& getStatic() { return std::get<0>(time); }
+  sem::Time::Dynamic const& getDynamic() const { return std::get<1>(time); }
+  sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
+  static sem::Time::TimeKind getTimeKind(sem::Time::TimeVariant const& __input) { return static_cast<sem::Time::TimeKind>(__input.index()); }
+  sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
+};
+
+/// \brief Range of time delimited by two points
+struct TimeRange : public sem::Org {
+  using Org::Org;
+  virtual ~TimeRange() = default;
+  BOOST_DESCRIBE_CLASS(TimeRange,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, from, to, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief Starting time
+  sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
+  /// \brief Finishing time
+  sem::SemId<sem::Time> to = sem::SemId<sem::Time>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::TimeRange; }
+};
+
+/// \brief Inline macro invocation
+struct Macro : public sem::Org {
+  using Org::Org;
+  virtual ~Macro() = default;
+  BOOST_DESCRIBE_CLASS(Macro,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, name, parameters, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief Macro name
+  Str name = "";
+  /// \brief Additional parameters aside from 'exporter',
+  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
+};
+
+/// \brief Text symbol or symbol command
+struct Symbol : public sem::Org {
+  using Org::Org;
+  virtual ~Symbol() = default;
+  /// \brief Symbol parameters
+  struct Param {
+    BOOST_DESCRIBE_CLASS(Param, (), (), (), (key, value))
+    /// \brief Key -- for non-positional
+    Opt<Str> key;
+    /// \brief Uninterpreted value
+    Str value;
+  };
+
+  BOOST_DESCRIBE_CLASS(Symbol,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, name, parameters, positional, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief Name of the symbol
+  Str name;
+  /// \brief Optional list of parameters
+  Vec<sem::Symbol::Param> parameters;
+  /// \brief Positional parameters
+  Vec<sem::SemId<sem::Org>> positional;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Symbol; }
+};
+
+/// \brief Escaped text
+struct Escaped : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~Escaped() = default;
+  BOOST_DESCRIBE_CLASS(Escaped,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Escaped; }
+};
+
+/// \brief \n newline
+struct Newline : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~Newline() = default;
+  BOOST_DESCRIBE_CLASS(Newline,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Newline; }
+};
+
+/// \brief ' "space",
+struct Space : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~Space() = default;
+  BOOST_DESCRIBE_CLASS(Space,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Space; }
+};
+
+/// \brief word
+struct Word : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~Word() = default;
+  BOOST_DESCRIBE_CLASS(Word,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Word; }
+};
+
+/// \brief @mention
+struct AtMention : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~AtMention() = default;
+  BOOST_DESCRIBE_CLASS(AtMention,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
+};
+
+struct RawText : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~RawText() = default;
+  BOOST_DESCRIBE_CLASS(RawText,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
+};
+
+struct Punctuation : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~Punctuation() = default;
+  BOOST_DESCRIBE_CLASS(Punctuation,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
+};
+
+struct Placeholder : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~Placeholder() = default;
+  BOOST_DESCRIBE_CLASS(Placeholder,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
+};
+
+struct BigIdent : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~BigIdent() = default;
+  BOOST_DESCRIBE_CLASS(BigIdent,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
+};
+
+/// \brief ~<<<target>>>~
+struct RadioTarget : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~RadioTarget() = default;
+  BOOST_DESCRIBE_CLASS(RadioTarget,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
+};
+
+/// \brief ~<<target>>~
+struct TextTarget : public sem::Leaf {
+  using Leaf::Leaf;
+  virtual ~TextTarget() = default;
+  BOOST_DESCRIBE_CLASS(TextTarget,
+                       (Leaf),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
+};
+
+struct Markup : public sem::Org {
+  using Org::Org;
+  virtual ~Markup() = default;
+  BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ())
+};
+
+struct Bold : public sem::Markup {
+  using Markup::Markup;
+  virtual ~Bold() = default;
+  BOOST_DESCRIBE_CLASS(Bold,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
+};
+
+struct Underline : public sem::Markup {
+  using Markup::Markup;
+  virtual ~Underline() = default;
+  BOOST_DESCRIBE_CLASS(Underline,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
+};
+
+struct Monospace : public sem::Markup {
+  using Markup::Markup;
+  virtual ~Monospace() = default;
+  BOOST_DESCRIBE_CLASS(Monospace,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
+};
+
+struct MarkQuote : public sem::Markup {
+  using Markup::Markup;
+  virtual ~MarkQuote() = default;
+  BOOST_DESCRIBE_CLASS(MarkQuote,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
+};
+
+struct Verbatim : public sem::Markup {
+  using Markup::Markup;
+  virtual ~Verbatim() = default;
+  BOOST_DESCRIBE_CLASS(Verbatim,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
+};
+
+struct Italic : public sem::Markup {
+  using Markup::Markup;
+  virtual ~Italic() = default;
+  BOOST_DESCRIBE_CLASS(Italic,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
+};
+
+struct Strike : public sem::Markup {
+  using Markup::Markup;
+  virtual ~Strike() = default;
+  BOOST_DESCRIBE_CLASS(Strike,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
+};
+
+struct Par : public sem::Markup {
+  using Markup::Markup;
+  virtual ~Par() = default;
+  BOOST_DESCRIBE_CLASS(Par,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
+};
+
+/// \brief Latex code body
+struct Latex : public sem::Org {
+  using Org::Org;
+  virtual ~Latex() = default;
+  BOOST_DESCRIBE_CLASS(Latex,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Latex; }
+};
+
+struct Link : public sem::Stmt {
+  using Stmt::Stmt;
+  virtual ~Link() = default;
+  struct Raw {
+    BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
+    Str text;
+  };
+
+  struct Id {
+    BOOST_DESCRIBE_CLASS(Id, (), (), (), (text))
+    Str text;
+  };
+
+  struct Person {
+    BOOST_DESCRIBE_CLASS(Person, (), (), (), (name))
+    Str name;
+  };
+
+  struct UserProtocol {
+    BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target))
+    Str protocol;
+    Str target;
+  };
+
+  struct Internal {
+    BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target))
+    Str target;
+  };
+
+  struct Footnote {
+    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target))
+    Str target;
+  };
+
+  struct File {
+    BOOST_DESCRIBE_CLASS(File, (), (), (), (file))
+    Str file;
+  };
+
+  struct Attachment {
+    BOOST_DESCRIBE_CLASS(Attachment, (), (), (), (file))
+    Str file;
+  };
+
+  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::UserProtocol, sem::Link::Internal, sem::Link::Footnote, sem::Link::File, sem::Link::Attachment>;
+  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment)
+  using variant_enum_type = sem::Link::Kind;
+  using variant_data_type = sem::Link::Data;
+  BOOST_DESCRIBE_CLASS(Link,
+                       (Stmt),
+                       (),
+                       (),
+                       (staticKind,
+                        description,
+                        data,
+                        (OrgSemKind() const) getKind,
+                        (sem::Link::Raw const&() const) getRaw,
+                        (sem::Link::Raw&()) getRaw,
+                        (sem::Link::Id const&() const) getId,
+                        (sem::Link::Id&()) getId,
+                        (sem::Link::Person const&() const) getPerson,
+                        (sem::Link::Person&()) getPerson,
+                        (sem::Link::UserProtocol const&() const) getUserProtocol,
+                        (sem::Link::UserProtocol&()) getUserProtocol,
+                        (sem::Link::Internal const&() const) getInternal,
+                        (sem::Link::Internal&()) getInternal,
+                        (sem::Link::Footnote const&() const) getFootnote,
+                        (sem::Link::Footnote&()) getFootnote,
+                        (sem::Link::File const&() const) getFile,
+                        (sem::Link::File&()) getFile,
+                        (sem::Link::Attachment const&() const) getAttachment,
+                        (sem::Link::Attachment&()) getAttachment,
+                        (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
+                        (sem::Link::Kind() const) getLinkKind))
+  static OrgSemKind const staticKind;
+  Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
+  sem::Link::Data data;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
+  sem::Link::Raw const& getRaw() const { return std::get<0>(data); }
+  sem::Link::Raw& getRaw() { return std::get<0>(data); }
+  sem::Link::Id const& getId() const { return std::get<1>(data); }
+  sem::Link::Id& getId() { return std::get<1>(data); }
+  sem::Link::Person const& getPerson() const { return std::get<2>(data); }
+  sem::Link::Person& getPerson() { return std::get<2>(data); }
+  sem::Link::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
+  sem::Link::UserProtocol& getUserProtocol() { return std::get<3>(data); }
+  sem::Link::Internal const& getInternal() const { return std::get<4>(data); }
+  sem::Link::Internal& getInternal() { return std::get<4>(data); }
+  sem::Link::Footnote const& getFootnote() const { return std::get<5>(data); }
+  sem::Link::Footnote& getFootnote() { return std::get<5>(data); }
+  sem::Link::File const& getFile() const { return std::get<6>(data); }
+  sem::Link::File& getFile() { return std::get<6>(data); }
+  sem::Link::Attachment const& getAttachment() const { return std::get<7>(data); }
+  sem::Link::Attachment& getAttachment() { return std::get<7>(data); }
+  static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
+  sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
+};
+
+/// \brief Center nested content in export
+struct BlockCenter : public sem::Block {
+  using Block::Block;
+  virtual ~BlockCenter() = default;
+  BOOST_DESCRIBE_CLASS(BlockCenter,
+                       (Block),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::BlockCenter; }
 };
 
 /// \brief Quotation block
@@ -562,55 +919,6 @@ struct BlockExample : public sem::Block {
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExample; }
 };
 
-/// \brief Shortened colon example block
-struct ColonExample : public sem::Org {
-  using Org::Org;
-  virtual ~ColonExample() = default;
-  BOOST_DESCRIBE_CLASS(ColonExample,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::ColonExample; }
-};
-
-/// \brief Additional arguments for command blocks
-struct CmdArguments : public sem::Org {
-  using Org::Org;
-  virtual ~CmdArguments() = default;
-  BOOST_DESCRIBE_CLASS(CmdArguments,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind,
-                        positional,
-                        named,
-                        (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
-  static OrgSemKind const staticKind;
-  /// \brief Positional arguments with no keys
-  sem::SemId<sem::CmdArgumentList> positional = sem::SemId<sem::CmdArgumentList>::Nil();
-  /// \brief Stored key-value mapping
-  UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>> named;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const;
-};
-
-/// \brief Caption annotation for any subsequent node
-struct CmdAttr : public sem::Attached {
-  using Attached::Attached;
-  virtual ~CmdAttr() = default;
-  BOOST_DESCRIBE_CLASS(CmdAttr,
-                       (Attached),
-                       (),
-                       (),
-                       (staticKind, target, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  Str target;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
-};
-
 /// \brief Direct export passthrough
 struct BlockExport : public sem::Block {
   using Block::Block;
@@ -653,24 +961,6 @@ struct BlockAdmonition : public sem::Block {
                        (staticKind, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockAdmonition; }
-};
-
-/// \brief Inline, statement or block call
-struct Call : public sem::Org {
-  using Org::Org;
-  virtual ~Call() = default;
-  BOOST_DESCRIBE_CLASS(Call,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, name, parameters, isCommand, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief Call target name
-  Str name;
-  /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
-  bool isCommand = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };
 
 /// \brief Base class for all code blocks
@@ -917,142 +1207,6 @@ struct BlockCode : public sem::Block {
   /// \brief ?
   bool tangle = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
-};
-
-/// \brief Single static or dynamic timestamp (active or inactive)
-struct Time : public sem::Org {
-  using Org::Org;
-  virtual ~Time() = default;
-  bool isStatic() const { return std::holds_alternative<Static>(time); }
-  /// \brief Repetition information for static time
-  struct Repeat {
-    /// \brief Timestamp repetition mode
-    enum class Mode : short int {
-      /// \brief Do not repeat task on completion
-      None,
-      /// \brief ?
-      Exact,
-      /// \brief Repeat on the first matching day in the future
-      FirstMatch,
-      /// \brief Repeat task on the same day next week/month/year
-      SameDay,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
-    /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
-    enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
-    BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
-    BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
-    /// \brief mode
-    sem::Time::Repeat::Mode mode;
-    /// \brief period
-    sem::Time::Repeat::Period period;
-    /// \brief count
-    int count;
-  };
-
-  struct Static {
-    BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
-    Opt<sem::Time::Repeat> repeat;
-    UserTime time;
-  };
-
-  struct Dynamic {
-    BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr))
-    Str expr;
-  };
-
-  using TimeVariant = std::variant<sem::Time::Static, sem::Time::Dynamic>;
-  enum class TimeKind : short int { Static, Dynamic, };
-  BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
-  using variant_enum_type = sem::Time::TimeKind;
-  using variant_data_type = sem::Time::TimeVariant;
-  BOOST_DESCRIBE_CLASS(Time,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind,
-                        isActive,
-                        time,
-                        (OrgSemKind() const) getKind,
-                        (sem::Time::Static const&() const) getStatic,
-                        (sem::Time::Static&()) getStatic,
-                        (sem::Time::Dynamic const&() const) getDynamic,
-                        (sem::Time::Dynamic&()) getDynamic,
-                        (sem::Time::TimeKind(sem::Time::TimeVariant const&)) getTimeKind,
-                        (sem::Time::TimeKind() const) getTimeKind))
-  static OrgSemKind const staticKind;
-  /// \brief <active> vs [inactive]
-  bool isActive = false;
-  sem::Time::TimeVariant time;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
-  sem::Time::Static const& getStatic() const { return std::get<0>(time); }
-  sem::Time::Static& getStatic() { return std::get<0>(time); }
-  sem::Time::Dynamic const& getDynamic() const { return std::get<1>(time); }
-  sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
-  static sem::Time::TimeKind getTimeKind(sem::Time::TimeVariant const& __input) { return static_cast<sem::Time::TimeKind>(__input.index()); }
-  sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
-};
-
-/// \brief Range of time delimited by two points
-struct TimeRange : public sem::Org {
-  using Org::Org;
-  virtual ~TimeRange() = default;
-  BOOST_DESCRIBE_CLASS(TimeRange,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, from, to, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief Starting time
-  sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
-  /// \brief Finishing time
-  sem::SemId<sem::Time> to = sem::SemId<sem::Time>::Nil();
-  virtual OrgSemKind getKind() const { return OrgSemKind::TimeRange; }
-};
-
-/// \brief Inline macro invocation
-struct Macro : public sem::Org {
-  using Org::Org;
-  virtual ~Macro() = default;
-  BOOST_DESCRIBE_CLASS(Macro,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, name, parameters, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief Macro name
-  Str name = "";
-  /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
-  virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
-};
-
-/// \brief Text symbol or symbol command
-struct Symbol : public sem::Org {
-  using Org::Org;
-  virtual ~Symbol() = default;
-  /// \brief Symbol parameters
-  struct Param {
-    BOOST_DESCRIBE_CLASS(Param, (), (), (), (key, value))
-    /// \brief Key -- for non-positional
-    Opt<Str> key;
-    /// \brief Uninterpreted value
-    Str value;
-  };
-
-  BOOST_DESCRIBE_CLASS(Symbol,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, name, parameters, positional, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  /// \brief Name of the symbol
-  Str name;
-  /// \brief Optional list of parameters
-  Vec<sem::Symbol::Param> parameters;
-  /// \brief Positional parameters
-  Vec<sem::SemId<sem::Org>> positional;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Symbol; }
 };
 
 /// \brief Single subtree log entry
@@ -1482,7 +1636,7 @@ struct Subtree : public sem::Org {
   /// \brief Todo state of the tree
   Opt<Str> todo = std::nullopt;
   /// \brief Task completion state
-  Opt<sem::SemId<sem::Completion>> completion = std::nullopt;
+  Opt<sem::SemId<sem::SubtreeCompletion>> completion = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
   /// \brief Trailing tags
   Vec<sem::SemId<sem::HashTag>> tags = {};
@@ -1517,274 +1671,192 @@ struct Subtree : public sem::Org {
   void setPropertyStrValue(Str const& value, Str const& kind, Opt<Str> const& subkind = std::nullopt);
 };
 
-/// \brief Latex code body
-struct LatexBody : public sem::Org {
+/// \brief Completion status of the subtree list element
+struct SubtreeCompletion : public sem::Inline {
+  using Inline::Inline;
+  virtual ~SubtreeCompletion() = default;
+  BOOST_DESCRIBE_CLASS(SubtreeCompletion,
+                       (Inline),
+                       (),
+                       (),
+                       (staticKind, done, full, isPercent, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief Number of completed tasks
+  int done = 0;
+  /// \brief Full number of tasks
+  int full = 0;
+  /// \brief Use fraction or percent to display completion
+  bool isPercent = false;
+  virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeCompletion; }
+};
+
+/// \brief Table cell
+struct Cell : public sem::Cmd {
+  using Cmd::Cmd;
+  virtual ~Cell() = default;
+  BOOST_DESCRIBE_CLASS(Cell,
+                       (Cmd),
+                       (),
+                       (),
+                       (staticKind, isBlock, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief Single-line pipe cell or `#+cell:` command
+  bool isBlock = false;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Cell; }
+};
+
+/// \brief Table row
+struct Row : public sem::Cmd {
+  using Cmd::Cmd;
+  virtual ~Row() = default;
+  BOOST_DESCRIBE_CLASS(Row,
+                       (Cmd),
+                       (),
+                       (),
+                       (staticKind, cells, isBlock, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief List of cells on the row
+  Vec<sem::SemId<sem::Cell>> cells = {};
+  /// \brief Single-line pipe cell or `#+cell:` command
+  bool isBlock = false;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
+};
+
+/// \brief Table
+struct Table : public sem::Block {
+  using Block::Block;
+  virtual ~Table() = default;
+  BOOST_DESCRIBE_CLASS(Table,
+                       (Block),
+                       (),
+                       (),
+                       (staticKind, rows, isBlock, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  /// \brief List of rows for the table
+  Vec<sem::SemId<sem::Row>> rows = {};
+  /// \brief Single-line pipe cell or `#+cell:` command
+  bool isBlock = false;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Table; }
+};
+
+/// \brief Top-level or inline paragraph
+struct Paragraph : public sem::Stmt {
+  using Stmt::Stmt;
+  virtual ~Paragraph() = default;
+  BOOST_DESCRIBE_CLASS(Paragraph,
+                       (Stmt),
+                       (),
+                       (),
+                       (staticKind, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Paragraph; }
+};
+
+/// \brief Top-level or inline paragraph with prefix annotation
+struct AnnotatedParagraph : public sem::Stmt {
+  using Stmt::Stmt;
+  virtual ~AnnotatedParagraph() = default;
+  struct None {
+    BOOST_DESCRIBE_CLASS(None, (), (), (), ())
+  };
+
+  struct Footnote {
+    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (name))
+    Str name;
+  };
+
+  struct Admonition {
+    BOOST_DESCRIBE_CLASS(Admonition, (), (), (), (name))
+    /// \brief Prefix admonition for the paragraph
+    sem::SemId<sem::BigIdent> name = sem::SemId<sem::BigIdent>::Nil();
+  };
+
+  struct Timestamp {
+    BOOST_DESCRIBE_CLASS(Timestamp, (), (), (), (time))
+    /// \brief Leading timestamp for the paragraph
+    sem::SemId<sem::Time> time = sem::SemId<sem::Time>::Nil();
+  };
+
+  using Data = std::variant<sem::AnnotatedParagraph::None, sem::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Timestamp>;
+  enum class AnnotationKind : short int { None, Footnote, Admonition, Timestamp, };
+  BOOST_DESCRIBE_NESTED_ENUM(AnnotationKind, None, Footnote, Admonition, Timestamp)
+  using variant_enum_type = sem::AnnotatedParagraph::AnnotationKind;
+  using variant_data_type = sem::AnnotatedParagraph::Data;
+  BOOST_DESCRIBE_CLASS(AnnotatedParagraph,
+                       (Stmt),
+                       (),
+                       (),
+                       (staticKind,
+                        data,
+                        (OrgSemKind() const) getKind,
+                        (sem::AnnotatedParagraph::None const&() const) getNone,
+                        (sem::AnnotatedParagraph::None&()) getNone,
+                        (sem::AnnotatedParagraph::Footnote const&() const) getFootnote,
+                        (sem::AnnotatedParagraph::Footnote&()) getFootnote,
+                        (sem::AnnotatedParagraph::Admonition const&() const) getAdmonition,
+                        (sem::AnnotatedParagraph::Admonition&()) getAdmonition,
+                        (sem::AnnotatedParagraph::Timestamp const&() const) getTimestamp,
+                        (sem::AnnotatedParagraph::Timestamp&()) getTimestamp,
+                        (sem::AnnotatedParagraph::AnnotationKind(sem::AnnotatedParagraph::Data const&)) getAnnotationKind,
+                        (sem::AnnotatedParagraph::AnnotationKind() const) getAnnotationKind))
+  static OrgSemKind const staticKind;
+  sem::AnnotatedParagraph::Data data;
+  virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
+  sem::AnnotatedParagraph::None const& getNone() const { return std::get<0>(data); }
+  sem::AnnotatedParagraph::None& getNone() { return std::get<0>(data); }
+  sem::AnnotatedParagraph::Footnote const& getFootnote() const { return std::get<1>(data); }
+  sem::AnnotatedParagraph::Footnote& getFootnote() { return std::get<1>(data); }
+  sem::AnnotatedParagraph::Admonition const& getAdmonition() const { return std::get<2>(data); }
+  sem::AnnotatedParagraph::Admonition& getAdmonition() { return std::get<2>(data); }
+  sem::AnnotatedParagraph::Timestamp const& getTimestamp() const { return std::get<3>(data); }
+  sem::AnnotatedParagraph::Timestamp& getTimestamp() { return std::get<3>(data); }
+  static sem::AnnotatedParagraph::AnnotationKind getAnnotationKind(sem::AnnotatedParagraph::Data const& __input) { return static_cast<sem::AnnotatedParagraph::AnnotationKind>(__input.index()); }
+  sem::AnnotatedParagraph::AnnotationKind getAnnotationKind() const { return getAnnotationKind(data); }
+};
+
+/// \brief Shortened colon example block
+struct ColonExample : public sem::Org {
   using Org::Org;
-  virtual ~LatexBody() = default;
-  BOOST_DESCRIBE_CLASS(LatexBody, (Org), (), (), ())
-};
-
-/// \brief Inline math
-struct InlineMath : public sem::LatexBody {
-  using LatexBody::LatexBody;
-  virtual ~InlineMath() = default;
-  BOOST_DESCRIBE_CLASS(InlineMath,
-                       (LatexBody),
+  virtual ~ColonExample() = default;
+  BOOST_DESCRIBE_CLASS(ColonExample,
+                       (Org),
                        (),
                        (),
                        (staticKind, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::InlineMath; }
+  virtual OrgSemKind getKind() const { return OrgSemKind::ColonExample; }
 };
 
-/// \brief Final node
-struct Leaf : public sem::Org {
+/// \brief Caption annotation for any subsequent node
+struct CmdAttr : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdAttr() = default;
+  BOOST_DESCRIBE_CLASS(CmdAttr,
+                       (Attached),
+                       (),
+                       (),
+                       (staticKind, target, (OrgSemKind() const) getKind))
+  static OrgSemKind const staticKind;
+  Str target;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
+};
+
+/// \brief Inline, statement or block call
+struct Call : public sem::Org {
   using Org::Org;
-  virtual ~Leaf() = default;
-  BOOST_DESCRIBE_CLASS(Leaf, (Org), (), (), (text))
-  /// \brief Final leaf value
-  Str text = "";
-};
-
-/// \brief Escaped text
-struct Escaped : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~Escaped() = default;
-  BOOST_DESCRIBE_CLASS(Escaped,
-                       (Leaf),
+  virtual ~Call() = default;
+  BOOST_DESCRIBE_CLASS(Call,
+                       (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind, name, parameters, isCommand, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Escaped; }
-};
-
-/// \brief \n newline
-struct Newline : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~Newline() = default;
-  BOOST_DESCRIBE_CLASS(Newline,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Newline; }
-};
-
-/// \brief ' "space",
-struct Space : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~Space() = default;
-  BOOST_DESCRIBE_CLASS(Space,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Space; }
-};
-
-/// \brief word
-struct Word : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~Word() = default;
-  BOOST_DESCRIBE_CLASS(Word,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Word; }
-};
-
-/// \brief @mention
-struct AtMention : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~AtMention() = default;
-  BOOST_DESCRIBE_CLASS(AtMention,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
-};
-
-struct RawText : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~RawText() = default;
-  BOOST_DESCRIBE_CLASS(RawText,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
-};
-
-struct Punctuation : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~Punctuation() = default;
-  BOOST_DESCRIBE_CLASS(Punctuation,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
-};
-
-struct Placeholder : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~Placeholder() = default;
-  BOOST_DESCRIBE_CLASS(Placeholder,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
-};
-
-struct BigIdent : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~BigIdent() = default;
-  BOOST_DESCRIBE_CLASS(BigIdent,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
-};
-
-/// \brief ~<<<target>>>~
-struct RadioTarget : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~RadioTarget() = default;
-  BOOST_DESCRIBE_CLASS(RadioTarget,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
-};
-
-/// \brief ~<<target>>~
-struct TextTarget : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~TextTarget() = default;
-  BOOST_DESCRIBE_CLASS(TextTarget,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
-};
-
-struct Markup : public sem::Org {
-  using Org::Org;
-  virtual ~Markup() = default;
-  BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ())
-};
-
-struct Bold : public sem::Markup {
-  using Markup::Markup;
-  virtual ~Bold() = default;
-  BOOST_DESCRIBE_CLASS(Bold,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
-};
-
-struct Underline : public sem::Markup {
-  using Markup::Markup;
-  virtual ~Underline() = default;
-  BOOST_DESCRIBE_CLASS(Underline,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
-};
-
-struct Monospace : public sem::Markup {
-  using Markup::Markup;
-  virtual ~Monospace() = default;
-  BOOST_DESCRIBE_CLASS(Monospace,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
-};
-
-struct MarkQuote : public sem::Markup {
-  using Markup::Markup;
-  virtual ~MarkQuote() = default;
-  BOOST_DESCRIBE_CLASS(MarkQuote,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
-};
-
-struct Verbatim : public sem::Markup {
-  using Markup::Markup;
-  virtual ~Verbatim() = default;
-  BOOST_DESCRIBE_CLASS(Verbatim,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
-};
-
-struct Italic : public sem::Markup {
-  using Markup::Markup;
-  virtual ~Italic() = default;
-  BOOST_DESCRIBE_CLASS(Italic,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
-};
-
-struct Strike : public sem::Markup {
-  using Markup::Markup;
-  virtual ~Strike() = default;
-  BOOST_DESCRIBE_CLASS(Strike,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
-};
-
-struct Par : public sem::Markup {
-  using Markup::Markup;
-  virtual ~Par() = default;
-  BOOST_DESCRIBE_CLASS(Par,
-                       (Markup),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
+  /// \brief Call target name
+  Str name;
+  /// \brief Additional parameters aside from 'exporter',
+  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
+  bool isCommand = false;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };
 
 struct List : public sem::Stmt {
@@ -1829,105 +1901,6 @@ struct ListItem : public sem::Org {
   Opt<Str> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
   bool isDescriptionItem() const { return header.has_value(); }
-};
-
-struct Link : public sem::Stmt {
-  using Stmt::Stmt;
-  virtual ~Link() = default;
-  struct Raw {
-    BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
-    Str text;
-  };
-
-  struct Id {
-    BOOST_DESCRIBE_CLASS(Id, (), (), (), (text))
-    Str text;
-  };
-
-  struct Person {
-    BOOST_DESCRIBE_CLASS(Person, (), (), (), (name))
-    Str name;
-  };
-
-  struct UserProtocol {
-    BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target))
-    Str protocol;
-    Str target;
-  };
-
-  struct Internal {
-    BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target))
-    Str target;
-  };
-
-  struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target))
-    Str target;
-  };
-
-  struct File {
-    BOOST_DESCRIBE_CLASS(File, (), (), (), (file))
-    Str file;
-  };
-
-  struct Attachment {
-    BOOST_DESCRIBE_CLASS(Attachment, (), (), (), (file))
-    Str file;
-  };
-
-  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::UserProtocol, sem::Link::Internal, sem::Link::Footnote, sem::Link::File, sem::Link::Attachment>;
-  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment)
-  using variant_enum_type = sem::Link::Kind;
-  using variant_data_type = sem::Link::Data;
-  BOOST_DESCRIBE_CLASS(Link,
-                       (Stmt),
-                       (),
-                       (),
-                       (staticKind,
-                        description,
-                        data,
-                        (OrgSemKind() const) getKind,
-                        (sem::Link::Raw const&() const) getRaw,
-                        (sem::Link::Raw&()) getRaw,
-                        (sem::Link::Id const&() const) getId,
-                        (sem::Link::Id&()) getId,
-                        (sem::Link::Person const&() const) getPerson,
-                        (sem::Link::Person&()) getPerson,
-                        (sem::Link::UserProtocol const&() const) getUserProtocol,
-                        (sem::Link::UserProtocol&()) getUserProtocol,
-                        (sem::Link::Internal const&() const) getInternal,
-                        (sem::Link::Internal&()) getInternal,
-                        (sem::Link::Footnote const&() const) getFootnote,
-                        (sem::Link::Footnote&()) getFootnote,
-                        (sem::Link::File const&() const) getFile,
-                        (sem::Link::File&()) getFile,
-                        (sem::Link::Attachment const&() const) getAttachment,
-                        (sem::Link::Attachment&()) getAttachment,
-                        (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
-                        (sem::Link::Kind() const) getLinkKind))
-  static OrgSemKind const staticKind;
-  Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
-  sem::Link::Data data;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
-  sem::Link::Raw const& getRaw() const { return std::get<0>(data); }
-  sem::Link::Raw& getRaw() { return std::get<0>(data); }
-  sem::Link::Id const& getId() const { return std::get<1>(data); }
-  sem::Link::Id& getId() { return std::get<1>(data); }
-  sem::Link::Person const& getPerson() const { return std::get<2>(data); }
-  sem::Link::Person& getPerson() { return std::get<2>(data); }
-  sem::Link::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
-  sem::Link::UserProtocol& getUserProtocol() { return std::get<3>(data); }
-  sem::Link::Internal const& getInternal() const { return std::get<4>(data); }
-  sem::Link::Internal& getInternal() { return std::get<4>(data); }
-  sem::Link::Footnote const& getFootnote() const { return std::get<5>(data); }
-  sem::Link::Footnote& getFootnote() { return std::get<5>(data); }
-  sem::Link::File const& getFile() const { return std::get<6>(data); }
-  sem::Link::File& getFile() { return std::get<6>(data); }
-  sem::Link::Attachment const& getAttachment() const { return std::get<7>(data); }
-  sem::Link::Attachment& getAttachment() { return std::get<7>(data); }
-  static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
-  sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
 };
 
 struct DocumentOptions : public sem::Org {
@@ -2082,18 +2055,6 @@ struct Document : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
   Vec<sem::Subtree::Property> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
   Opt<sem::Subtree::Property> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
-};
-
-struct ParseError : public sem::Org {
-  using Org::Org;
-  virtual ~ParseError() = default;
-  BOOST_DESCRIBE_CLASS(ParseError,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, (OrgSemKind() const) getKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::ParseError; }
 };
 
 struct FileTarget : public sem::Org {
