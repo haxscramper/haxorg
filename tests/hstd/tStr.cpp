@@ -176,7 +176,7 @@ TEST(Strutils, Mappings) {
     EXPECT_EQ(indent("", 0), "");
     EXPECT_EQ(indent("", 2), "");
     EXPECT_EQ(indent("-", 2), "  -");
-    EXPECT_EQ(normalize("aAz+1!"), "aaz");
+    EXPECT_EQ(normalize("aAz+1!"), std::string("aaz"));
     EXPECT_EQ(left_aligned("", 2), "  ");
     EXPECT_EQ(left_aligned("X", 2), "X ");
     EXPECT_EQ(right_aligned("X", 2), " X");

@@ -185,7 +185,7 @@ def test_node_properties():
 
     assert meta.level == 1
     assert meta.properties["id"]["id"] == "some-id"
-    assert meta.properties["other_prop"]["node"]["text"] == "value"
+    assert meta.properties["other_prop"]["value"] == "value"
     assert meta.properties["Effort"]["hours"] == 12
     assert meta.properties["Effort"]["minutes"] == 0
 

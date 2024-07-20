@@ -591,8 +591,7 @@ class MindMapGraph():
                             value["minutes"] = prop.getEffort().minutes
 
                         case org.SubtreePropertyKind.CustomRaw:
-                            value["node"] = json.loads(
-                                org.exportToJsonString(prop.getCustomRaw().value))
+                            value["value"] = prop.getCustomRaw().value
 
                         case org.SubtreePropertyKind.Ordered:
                             value["isOrdered"] = prop.getOrdered().isOrdered

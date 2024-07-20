@@ -271,6 +271,7 @@ def test_bookmark_import_1():
         assert org_file.exists()
         pre_content = org_file.read_text()
         assert len(bookmarks) == 1
+        log(CAT).info("_--- runnidfga;n?")
         import_alxreader_bookmarks.impl(opts, bookmarks)
         lhs = [it for it in pre_content.split("\n") if it]
         rhs = [it for it in org_file.read_text().split("\n") if it]

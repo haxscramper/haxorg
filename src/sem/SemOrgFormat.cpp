@@ -176,33 +176,35 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
         hadDocumentProperties = true;
     }
 
-    for (auto const& prop : id->options->properties) {
-        using P = sem::Subtree::Property;
-        switch (prop.getKind()) {
-            case P::Kind::CustomRaw: {
-                add(result,
-                    b.line({
-                        str("#+property: "),
-                        str(prop.getCustomRaw().name),
-                        str(" "),
-                        str(prop.getCustomRaw().value),
-                    }));
-                break;
-            }
-            case P::Kind::CustomArgs: {
-                add(result,
-                    b.line({
-                        str("#+property: "),
-                        str(prop.getCustomArgs().name),
-                        str(" "),
-                        toString(prop.getCustomArgs().parameters, ctx),
-                    }));
-                break;
-            }
-            default: {
-                throw std::logic_error(
-                    fmt("Unexpected document-level property: {}",
-                        prop.getKind()));
+    if (!id->options.isNil()) {
+        for (auto const& prop : id->options->properties) {
+            using P = sem::Subtree::Property;
+            switch (prop.getKind()) {
+                case P::Kind::CustomRaw: {
+                    add(result,
+                        b.line({
+                            str("#+property: "),
+                            str(prop.getCustomRaw().name),
+                            str(" "),
+                            str(prop.getCustomRaw().value),
+                        }));
+                    break;
+                }
+                case P::Kind::CustomArgs: {
+                    add(result,
+                        b.line({
+                            str("#+property: "),
+                            str(prop.getCustomArgs().name),
+                            str(" "),
+                            toString(prop.getCustomArgs().parameters, ctx),
+                        }));
+                    break;
+                }
+                default: {
+                    throw std::logic_error(
+                        fmt("Unexpected document-level property: {}",
+                            prop.getKind()));
+                }
             }
         }
     }

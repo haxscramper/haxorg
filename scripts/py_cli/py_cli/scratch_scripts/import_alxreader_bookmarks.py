@@ -169,7 +169,7 @@ def get_bookmarks(session: Session) -> List[BookmarkRecord]:
 
 @beartype
 def format_time(time: datetime) -> str:
-    return "[" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
+    return "[" + time.strftime("%Y-%m-%d %a %H:%M:%S") + "]"
 
 
 @beartype

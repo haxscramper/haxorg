@@ -11,26 +11,20 @@ import pytest
 from py_exporters import export_ultraplain
 from py_exporters import export_tex
 from py_exporters import export_html
+from tempfile import TemporaryDirectory
+from pathlib import Path
+import shutil
 
 FILE = None
-
-
-def get_file():
-    global FILE
-    if not FILE:
-        FILE = open("/tmp/file.org", "w")
-
-    return FILE
-
 
 @beartype
 @dataclass
 class OrgGenOptions():
     minSubnodeCount: int = 1
-    maxSubnodeCount: int = 16
+    maxSubnodeCount: int = 8
     minAttachedCount: int = 0
     maxAttachedCount: int = 0
-    maxRecursionDepth: Optional[int] = 16
+    maxRecursionDepth: Optional[int] = 8
     enableTrace: bool = False
     parentSubtree: int = 0
 
@@ -179,7 +173,6 @@ class OrgGenCtx():
             osk.FileTarget,
             osk.CmdArgument,
             osk.CmdArguments,
-            osk.ParseError,
             osk.DocumentOptions,
             osk.Empty,
             osk.SubtreeLog,
@@ -191,13 +184,12 @@ class OrgGenCtx():
             osk.DocumentGroup,
             osk.BlockAdmonition,
             osk.Include,
-            osk.CommandGroup,
             osk.CmdTblfm,
             osk.Call,
             osk.CmdResults,
             osk.Table,
             osk.StmtList,
-            osk.Completion,
+            osk.SubtreeCompletion,
         ]) - SET_COMMAND_KINDS
 
         if 3 <= self.count(osk.List):
@@ -646,11 +638,11 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_HashTag(ctx=ctx))
         case osk.Footnote:
             return draw(build_Footnote(ctx=ctx))
-        case osk.Completion:
-            return draw(build_Completion(ctx=ctx))
+        case osk.SubtreeCompletion:
+            return draw(build_SubtreeCompletion(ctx=ctx))
         case osk.Paragraph:
             return draw(build_Paragraph(ctx=ctx))
-        case osk.Center:
+        case osk.BlockCenter:
             return draw(build_BlockCenter(ctx=ctx))
         case osk.CmdCaption:
             return draw(build_CmdCaption(ctx=ctx))
@@ -785,20 +777,26 @@ def test_html_export(doc: org.Document):
     exp.exp.evalTop(doc)
 
 
+counter = 0
+
 @pytest.mark.unstable
 @settings(**gen_settings)
 @given(node_strategy(OrgGenCtx()))
 def test_render(doc: org.Document):
-    pass
+    global counter
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        dir = Path("/tmp/test_render")
+        dir.mkdir(parents=True, exist_ok=True)
 
-    # ctx = org.OrgContext()
-    # tree = org.OrgExporterTree()
-    # file = get_file()
-    # file.write("================================================\n\n")
-    # file.write(org.treeRepr(doc, colored=False))
-    # file.write("\n\n\n")
-    # file.write(ctx.formatToString(doc))
-    # file.write("\n\n")
+        with open(dir.joinpath(f"debug_{counter}.txt"), "w") as file:
+            file.write("================================================\n\n")
+            file.write(org.treeRepr(doc, colored=False))
+            file.write("\n\n\n")
+            file.write(org.formatToString(doc))
+            file.write("\n\n")
+
+        counter += 1
 
 
 # if __name__ == "__main__":
