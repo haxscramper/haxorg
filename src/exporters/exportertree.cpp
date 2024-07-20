@@ -22,8 +22,14 @@ void ExporterTree::visitField(
     int&                       i,
     const char*                name,
     CVec<sem::SemId<sem::Org>> org) {
-    if (skipAsEmpty(org)) { return; }
-    if (skipAsTooNested()) { return; }
+    if (skipAsEmpty(org)) {
+        writeSkip("empty");
+        return;
+    }
+    if (skipAsTooNested()) {
+        writeSkip("too nested");
+        return;
+    }
 
     __scope();
     indent();
@@ -92,10 +98,22 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
     os << "\n";
 }
 
+void ExporterTree::writeSkip(
+    CR<Str>     message,
+    CR<Str>     trail,
+    int         line,
+    const char* function) {
+    // indent();
+    // os << fmt("skip {} in {}:{}{}", message, function, line, trail);
+}
+
 
 template <typename T>
 void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
-    if (skipAsEmpty(value)) { return; }
+    if (skipAsEmpty(value)) {
+        writeSkip(fmt("  empty field {}", name), "\n");
+        return;
+    }
     // Location is printed as a part of 'init'
     if (std::is_same_v<T, Opt<LineCol>>) { return; }
 
@@ -131,13 +149,19 @@ void ExporterTree::visitField(
 
 template <typename T>
 void ExporterTree::visit(int& arg, sem::SemId<T> org) {
-    if (skipAsTooNested()) { return; }
+    if (skipAsTooNested()) {
+        writeSkip("too nested");
+        return;
+    }
     visit(arg, org.asOrg());
 }
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<T> opt) {
-    if (skipAsTooNested()) { return; }
+    if (skipAsTooNested()) {
+        writeSkip("too nested");
+        return;
+    }
     __scope();
     indent();
     if constexpr (std::is_enum<T>::value) {
@@ -162,7 +186,10 @@ void ExporterTree::visit(int& arg, CR<Opt<T>> opt) {
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
-    if (skipAsTooNested()) { return; }
+    if (skipAsTooNested()) {
+        writeSkip("too nested");
+        return;
+    }
     __scope();
     if (value.empty()) {
         indent();

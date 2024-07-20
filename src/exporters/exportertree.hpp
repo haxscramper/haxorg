@@ -106,6 +106,12 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         return false;
     }
 
+    void writeSkip(
+        CR<Str>     message,
+        CR<Str>     trail    = "",
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
     template <typename T>
     void visit(int& arg, CR<Vec<T>> value);
 

@@ -30,6 +30,7 @@ def export_pandoc(ctx: click.Context, config: Optional[str] = None, **kwargs):
         org.exportToTreeFile(node, "/tmp/tree.txt", org.OrgTreeExportOpts(withColor=False))
         
         exp = ExporterPandoc()
+        # exp.enableFileTrace("/tmp/pandoc_export_test.txt")
         document = exp.evalTop(node).toJson()[0]
         opts.outfile.write_text(json.dumps(document, indent=2))
 

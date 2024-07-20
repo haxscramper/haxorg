@@ -7,6 +7,7 @@ from py_scriptutils.click_utils import click_run_test
 from plumbum import local
 import pytest
 from plumbum import CommandNotFound
+import py_haxorg.pyhaxorg_wrap as org
 
 
 def test_help():
@@ -72,7 +73,15 @@ def has_cmd(cmd: str) -> bool:
 def test_pandoc_export():
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
+        dir = Path("/tmp/pandoc_export")
+        dir.mkdir(parents=True, exist_ok=True)
         out_file = dir.joinpath("out_file.json")
+        dir.joinpath("tree.txt").write_text(
+            org.treeRepr(
+                org.parseString(all_org_file.read_text()),
+                colored=False,
+            ))
+
         click_run_test(cli, [
             "export",
             "pandoc",
@@ -161,13 +170,11 @@ def test_typst_export_1():
         assert "#orgParagraph[Subtree1]" in text
         assert "tags: (\"tag\"," in text
         assert "#orgSubtree" in text
-        
+
         click_run_test(cli, args)
 
         assert attach2_dst.read_text() == attach2_src.read_text()
         assert attach_dst.read_text() == attach_src.read_text()
-
-
 
 
 def test_typst_export_2():
@@ -207,10 +214,11 @@ subtree = "changeSubtree"
         assert "customSubtree" in text
         assert "changeSubtree" in text
 
+
 def test_typst_export_doc1():
     file = Path("~/tmp/doc1.org").expanduser()
     if not file.exists():
-        return 
+        return
 
     click_run_test(cli, [
         "export",
@@ -218,5 +226,3 @@ def test_typst_export_doc1():
         f"--infile={file}",
         "--outfile=/tmp/doc1.typ",
     ])
-
-    

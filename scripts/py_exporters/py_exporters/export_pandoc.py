@@ -7,6 +7,7 @@ from beartype.typing import Union, List, Dict, Set, Tuple
 from py_scriptutils.script_logging import log
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 from py_scriptutils.json_utils import Json
+import itertools
 
 CAT = "export.pandoc"
 
@@ -103,7 +104,7 @@ class ExporterPandoc(ExporterBase):
     def evalBlockCode(self, node: org.BlockCode) -> PandocRes:
         return PandocRes()
 
-    def evalExample(self, node: org.BlockExample) -> PandocRes:
+    def evalBlockExample(self, node: org.BlockExample) -> PandocRes:
         return PandocRes()
 
     def evalBlockExport(self, node: org.BlockExport) -> PandocRes:
@@ -111,6 +112,16 @@ class ExporterPandoc(ExporterBase):
 
     def evalFootnote(self, node: org.Footnote) -> PandocRes:
         return PandocRes()
+
+    def evalListItem(self, node: org.ListItem) -> PandocRes:
+        return PandocRes.Multiple(list(itertools.chain(*[
+            self.eval(it).unpacked for it in node if it.getKind() not in [osk.Newline]
+        ])))
+
+    def evalList(self, node: org.List) -> PandocRes:
+        return PandocRes.Node("BulletList", [
+            self.content(node)
+        ])
 
     def evalTextSeparator(self, node: org.TextSeparator) -> PandocRes:
         return PandocRes.Node("HorizontalRule", "")
