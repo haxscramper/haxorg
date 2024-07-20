@@ -813,6 +813,7 @@ items:
   - name: "File-level commands"
     debug:
       doFlatParseCompare: false
+      doFormatReparse: false
     source: |
       #+TITLE: Sample Org-mode Document
       #+AUTHOR: John Doe

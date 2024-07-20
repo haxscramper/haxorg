@@ -50,7 +50,7 @@ void ExporterUltraplain::visitSubtree(
 void ExporterUltraplain::visitTime(std::string& res, In<sem::Time> time) {
     if (time->isStatic()) {
         res += (time->getTimeKind() == sem::Time::TimeKind::Dynamic ? "<" : "[");
-        res += time->getStatic().time.format();
+        res += time->getStatic().time.format(UserTime::Format::OrgFormat);
         res += (time->getTimeKind() == sem::Time::TimeKind::Dynamic ? ">" : "]");
     }
 }

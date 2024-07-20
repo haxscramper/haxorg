@@ -271,7 +271,6 @@ def test_bookmark_import_1():
         assert org_file.exists()
         pre_content = org_file.read_text()
         assert len(bookmarks) == 1
-        log(CAT).info("_--- runnidfga;n?")
         import_alxreader_bookmarks.impl(opts, bookmarks)
         lhs = [it for it in pre_content.split("\n") if it]
         rhs = [it for it in org_file.read_text().split("\n") if it]
@@ -294,7 +293,7 @@ def test_bookmark_import_1():
         def get_property_str(name: str) -> str:
             prop: org.SubtreeProperty = bookmark.getProperty(name)
             assert prop
-            return org.formatToString(prop.getUnknown().value)
+            return prop.getCustomRaw().value
 
         assert get_property_str("bookmark_start") == "0"
         assert get_property_str("bookmark_stop") == "1"

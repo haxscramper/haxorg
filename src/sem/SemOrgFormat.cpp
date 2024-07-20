@@ -200,6 +200,28 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
                         }));
                     break;
                 }
+                case P::Kind::ExportLatexHeader: {
+                    add(result,
+                        str(
+                            fmt("#+latex_header: {}",
+                                prop.getExportLatexHeader().header)));
+                    break;
+                }
+                case P::Kind::ExportLatexClass: {
+                    add(result,
+                        str(
+                            fmt("#+latex_header: {}",
+                                prop.getExportLatexClass().latexClass)));
+                    break;
+                }
+                case P::Kind::ExportLatexClassOptions: {
+                    add(result,
+                        str(fmt(
+                            "#+latex_class_options: {}",
+                            prop.getExportLatexClassOptions().options.at(
+                                0))));
+                    break;
+                }
                 default: {
                     throw std::logic_error(
                         fmt("Unexpected document-level property: {}",
