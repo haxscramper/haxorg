@@ -689,9 +689,6 @@ void addArgument(SemId<CmdArguments>& result, SemId<CmdArgument> arg) {
             result->named.insert({key, args});
         }
     } else {
-        if (result->positional.isNil()) {
-            result->positional = SemId<CmdArgumentList>::New();
-        }
         result->positional->args.push_back(arg);
     }
 }
@@ -1247,6 +1244,7 @@ OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
     __args) {
     auto                __trace = trace(a);
     SemId<CmdArguments> result  = Sem<CmdArguments>(a);
+    result->positional          = SemId<CmdArgumentList>::New();
 
     if (a.getKind() == org::CmdArguments) {
         for (auto const& item : one(a, N::Values)) {
@@ -1266,7 +1264,8 @@ OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
 OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCallArguments(
     CVec<In> args,
     In       source) {
-    auto result = Sem<CmdArguments>(source);
+    auto result        = Sem<CmdArguments>(source);
+    result->positional = SemId<CmdArgumentList>::New();
 
     for (auto const& arg : args) {
         auto conv = Sem<CmdArgument>(arg);

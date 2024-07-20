@@ -57,7 +57,7 @@ std::string maybe_format(const T& value) {
 template <typename T>
     requires(!std::formattable<T, char>)
 std::string maybe_format(const T&) {
-    return "<non-formattable>";
+    return fmt("<non-formattable {}>", demangle(typeid(T).name()));
 }
 
 template <typename T>
@@ -71,10 +71,11 @@ struct reporting_comparator {
             out.push_back({
                 .context = context,
                 .message = std::format(
-                    "{} != {} on {}",
+                    "{} != {} on {} for {}",
                     escape_literal(maybe_format(lhs)),
                     escape_literal(maybe_format(rhs)),
-                    __LINE__),
+                    __LINE__,
+                    demangle(typeid(T).name())),
             });
         }
     }
@@ -94,6 +95,49 @@ struct reporting_comparator<std::optional<T>> {
             });
         } else if (lhs.has_value()) {
             reporting_comparator<T>::compare(*lhs, *rhs, out, context);
+        }
+    }
+};
+
+template <typename K, typename V>
+struct reporting_comparator<UnorderedMap<K, V>> {
+    static void compare(
+        CR<UnorderedMap<K, V>>      lhs,
+        CR<UnorderedMap<K, V>>      rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (lhs.size() != rhs.size()) {
+            out.push_back({
+                .context = context,
+                .message = fmt(
+                    "lhs.size() != rhs.size() ({} != {}) on {}",
+                    lhs.size(),
+                    rhs.size(),
+                    __LINE__),
+            });
+        } else {
+            for (auto const& it : lhs.keys()) {
+                if (rhs.contains(it)) {
+                    reporting_comparator<V>::compare(
+                        lhs.at(it),
+                        rhs.at(it),
+                        out,
+                        context
+                            + Vec<compare_context>{{
+                                .field = maybe_format(it),
+                                .type  = "UnorderedMap",
+                            }});
+                } else {
+                    out.push_back({
+                        .context = context,
+                        .message = fmt(
+                            "no '{}' in rhs on {}",
+                            maybe_format(it),
+                            __LINE__),
+                    });
+                }
+            }
+            for (int i = 0; i < lhs.size(); ++i) {}
         }
     }
 };
@@ -195,7 +239,11 @@ struct reporting_comparator<sem::SemId<T>> {
         if (lhs.isNil() != rhs.isNil()) {
             out.push_back({
                 .context = context,
-                .message = fmt("on {}", __LINE__),
+                .message = fmt(
+                    "nil on {} -- lhs.isNil:{} rhs.isNil:{}",
+                    __LINE__,
+                    lhs.isNil(),
+                    rhs.isNil()),
             });
         } else if (!lhs.isNil()) {
             reporting_comparator<T>::compare(
