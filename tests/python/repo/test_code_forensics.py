@@ -163,7 +163,7 @@ def run_forensics(
 
     if with_debugger:
         run_parameters = [tool_path, *get_lldb_params(), "--", json.dumps(params)]
-        code, stdout, stderr = local["lldb"].run(tuple(run_parameters))
+        code, stdout, stderr = local["lldb"].with_env(LD_PRELOAD="").run(tuple(run_parameters))
         print(run_parameters)
         if code != 0:
             log().warning(f"{tool_path} run failed")
@@ -173,7 +173,7 @@ def run_forensics(
         return code, stdout, stderr
 
     else:
-        return local[tool_path].run((json.dumps(params)))
+        return local[tool_path].with_env(LD_PRELOAD="").run((json.dumps(params)))
 
 
 @beartype
@@ -265,7 +265,7 @@ def test_can_run_dir():
                     "db_path": str(repo.db),
                     "text_dump": "/tmp/test_run.txt",
                     # "graphviz": "/tmp/graph.dot",
-                    "perfetto": "/tmp/code_forensics.pftrace"
+                    # "perfetto": "/tmp/code_forensics.pftrace"
                 },
                 "log_file": "/tmp/test_can_run_dir.log"
             })

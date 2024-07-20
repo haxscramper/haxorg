@@ -16,8 +16,8 @@ class ProfdataFullProfile(BaseModel, extra="forbid"):
 class ProfdataParams(BaseModel, extra="forbid"):
     coverage: str
     coverage_db: str
-    perf_trace: Optional[str]
-    file_whitelist: List[str]
-    file_blacklist: List[str]
+    perf_trace: Optional[str] = None
+    file_whitelist: List[str] = Field(default_factory=list)
+    file_blacklist: List[str] = Field(default_factory=list)
     debug_file: Optional[str] = None
     coverage_mapping_dump: Optional[str] = None

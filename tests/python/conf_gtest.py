@@ -109,9 +109,9 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
 
     model = GTestsuiteModel.model_validate(json.loads(report_file.read_text()))
 
-    print("----")
+    # print("----")
     # print(result.stdout)
-    print(binary_path)
+    # print(binary_path)
     tests = []
 
     for suite in model.testsuites:

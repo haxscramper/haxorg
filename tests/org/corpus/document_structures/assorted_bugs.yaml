@@ -810,3 +810,45 @@ items:
     source: |
       _*~Content*_
 
+  - name: "File-level commands"
+    debug:
+      doFlatParseCompare: false
+    source: |
+      #+TITLE: Sample Org-mode Document
+      #+AUTHOR: John Doe
+      #+EMAIL: johndoe@example.com
+      #+DATE: [2024-07-14]
+      #+DESCRIPTION: This is a comprehensive sample document demonstrating Org-mode configuration options.
+      #+KEYWORDS: org-mode, emacs, configuration
+      #+LANGUAGE: en
+      #+OPTIONS: H:3 num:t toc:2 \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
+      #+BIND: C-x C-s org-save-all-org-buffers
+      #+CATEGORY: Test
+      #+SEQ_TODO: TODO(t) IN-PROGRESS(p) WAITING(w) | DONE(d) CANCELED(c)
+      #+TAGS: Work(w) Personal(p) Urgent(u)
+      #+PRIORITIES: A C B
+      #+PROPERTY: Effort_ALL 0 0:05 0:10 0:15 0:30 1:00 2:00 4:00
+      #+LINK: google http://www.google.com/search?q=%s
+      #+MACRO: authorname John Doe
+      #+SETUPFILE: ~/path/to/another/setupfile.org
+      #+STARTUP: showall indent
+      #+HTML_HEAD: <style>body { font-family: Arial, sans-serif; }</style>
+      #+LATEX_HEADER: \usepackage{amsmath}
+      #+LATEX_CLASS: article
+      #+LATEX_CLASS_OPTIONS: [a4paper]
+      #+LATEX_HEADER_EXTRA: \usepackage{hyperref}
+      #+BEAMER_FRAME_LEVEL: 2
+      #+BEAMER_HEADER_EXTRA: \setbeamertemplate{navigation symbols}{}
+      #+EXCLUDE_TAGS: noexport
+      #+SELECT_TAGS: export
+      #+ATTR_LATEX: :width 0.8\textwidth
+      #+ATTR_HTML: :alt Sample Image :title Sample Title
+      #+DRAWERS: LOGBOOK PROPERTIES
+      #+COLUMNS: %25ITEM %TODO %3PRIORITY %TAGS %Effort %CLOCKSUM
+      #+FILETAGS9: ProjectX
+      #+CONSTANTS: const1=Value1 const2=Value2
+      #+RESULTS: 
+      #+CREATOR: Emacs 28.1 (Org mode 9.4)
+      #+OPTIONS: tags:nil
+      #+OPTIONS: timestamp:t
+      #+OPTIONS: H:3 num:t toc:2 \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t tags:nil tasks:t title:t author:t date:t e:t p:t pri:nil stat:nil c:t d:(notext) todo:t

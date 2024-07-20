@@ -169,6 +169,7 @@ class GenTuNamespace:
 class GenTu:
     path: str
     entries: Sequence[GenTuEntry]
+    clangFormatGuard: bool = True
 
 
 GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
@@ -243,11 +244,13 @@ class GenConverter:
 
     def convertTu(self, tu: GenTu) -> BlockId:
         decls: List[BlockId] = []
-        decls.append(self.ast.Comment(["clang-format off"]))
+        if tu.clangFormatGuard:
+            decls.append(self.ast.Comment(["clang-format off"]))
         for item in tu.entries:
             decls += self.convertWithToplevel(item)
 
-        decls.append(self.ast.Comment(["clang-format on"]))
+        if tu.clangFormatGuard:
+            decls.append(self.ast.Comment(["clang-format on"]))
 
         return self.ast.TranslationUnit(decls)
 

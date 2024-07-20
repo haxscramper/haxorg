@@ -914,6 +914,13 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                                      prop.getEffort().minutes))}));
                     break;
                 }
+                case P::Kind::Visibility: {
+                    add(head,
+                        str(
+                            fmt(":visibility: {}",
+                                prop.getVisibility().level)));
+                    break;
+                }
                 default: {
                     LOG(FATAL) << fmt1(prop.getKind());
                 }

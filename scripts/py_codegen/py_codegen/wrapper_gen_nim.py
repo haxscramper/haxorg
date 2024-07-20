@@ -65,7 +65,7 @@ class NimOptions(BaseModel):
     def get_function_pragmas(self, func: GenTuFunction) -> List[nim.PragmaParams]:
         return [nim.PragmaParams(pragma) for pragma in self.common_function_pragmas]
 
-    path_resolution_impl: Callable[[Path], str] = None
+    path_resolution_impl: Optional[Callable[[Path], str]] = None
 
     def get_header_str_for_path(self, path: Path) -> str:
         if self.path_resolution_impl:

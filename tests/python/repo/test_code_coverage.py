@@ -136,7 +136,7 @@ class ProfileRunParams():
                 ) for context, run_params in self.run_contexts.items()
             ]).model_dump_json(indent=2))
 
-        cmd = local[profdata_merger]
+        cmd = local[profdata_merger].with_env(LD_PRELOAD="")
         if self.coverage_mapping_dump:
             self.coverage_mapping_dump.mkdir(exist_ok=True, parents=True)
 
@@ -144,7 +144,7 @@ class ProfileRunParams():
             cov.ProfdataParams(
                 coverage=str(self.get_summary()),
                 coverage_db=str(self.get_sqlite()),
-                perf_trace=str(self.get_perf()),
+                # perf_trace=str(self.get_perf()),
                 file_whitelist=self.file_whitelist,
                 file_blacklist=self.file_blacklist,
                 coverage_mapping_dump=self.coverage_mapping_dump and
@@ -361,7 +361,7 @@ def add_cov_segment_text(df: pd.DataFrame, lines: List[str], for_test: bool = Tr
 def test_file_segmentation_1():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
-        dir = Path("/tmp/test_base_run_coverage")
+        dir = Path("/tmp/test_file_segmentation_1")
         code = corpus_base.joinpath("test_file_segmentation_1.cpp").read_text()
         cmd = ProfileRunParams(dir=dir, main="main.cpp", files={"main.cpp": code})
         cmd.run()

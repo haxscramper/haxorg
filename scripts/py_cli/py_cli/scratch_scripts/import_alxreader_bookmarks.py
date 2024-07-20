@@ -273,7 +273,7 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
         bookmark.subnodes.append(org.Newline(text="\n\n"))
         bookmark.subnodes.append(
-            org.Quote(subnodes=[org.RawText(text=mark.text.replace("\x0D", " "))]))
+            org.BlockQuote(subnodes=[org.RawText(text=mark.text.replace("\x0D", " "))]))
         bookmark.subnodes.append(org.Newline(text="\n\n"))
 
 

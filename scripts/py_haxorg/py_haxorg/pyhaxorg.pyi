@@ -1,4 +1,5 @@
-/* clang-format off */
+# mypy: disable-error-code=no-redef
+
 from typing import *
 from enum import Enum
 from datetime import datetime, date, time
@@ -1873,5 +1874,3 @@ def exportToTreeFile(node: Org, path: str, opts: OrgTreeExportOpts) -> None: ...
 def annotateSequence(groups: List[SequenceSegmentGroup], first: int, last: int) -> List[SequenceAnnotation]: ...
 
 def eachSubnodeRec(node: Org, callback: function) -> None: ...
-
-/* clang-format on */

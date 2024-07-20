@@ -100,13 +100,13 @@ class ExporterPandoc(ExporterBase):
     def evalAtMention(self, node: org.AtMention) -> PandocRes:
         return PandocRes.Node("Str", "@" + node.text)
 
-    def evalCode(self, node: org.Code) -> PandocRes:
+    def evalBlockCode(self, node: org.BlockCode) -> PandocRes:
         return PandocRes()
 
-    def evalExample(self, node: org.Example) -> PandocRes:
+    def evalExample(self, node: org.BlockExample) -> PandocRes:
         return PandocRes()
 
-    def evalExport(self, node: org.Export) -> PandocRes:
+    def evalBlockExport(self, node: org.BlockExport) -> PandocRes:
         return PandocRes()
 
     def evalFootnote(self, node: org.Footnote) -> PandocRes:

@@ -285,7 +285,7 @@ def test_bookmark_import_1():
         bookmark = import_alxreader_bookmarks.get_subtree_at_path(
             node, [
                 "\"book1\" by \"author1\"",
-                "[1970-01-01 00:00:00] 00.000/50.000",
+                "[1970-01-01 Thu 00:00:00] 00.000/50.000",
             ])
 
         assert bookmark

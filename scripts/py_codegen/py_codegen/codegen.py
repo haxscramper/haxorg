@@ -656,6 +656,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             GenTu(
                 "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
+                clangFormatGuard=False,
             )),
         GenUnit(
             GenTu("{base}/sem/SemOrgProto.proto", [

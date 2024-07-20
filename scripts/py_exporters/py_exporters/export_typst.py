@@ -157,7 +157,7 @@ class ExporterTypst(ExporterBase):
     t: TextLayout
     c: ExporterTypstConfig
 
-    def applyExportConfig(self, config: org.Export):
+    def applyExportConfig(self, config: org.BlockExport):
         new_config = toml.loads(config.content)
         old_config = self.c.model_dump()
         mix_config = toml_config_profiler.merge_dicts([old_config, new_config])
@@ -369,7 +369,7 @@ class ExporterTypst(ExporterBase):
         result = self.call(self.c.tags.paragraph, args=args, body=[result], isLine=True)
         return result
 
-    def evalCenter(self, node: org.Center) -> BlockId:
+    def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
         return self.call(self.c.tags.center, body=[self.stackSubnodes(node)])
 
     def evalNewline(self, node: org.Newline) -> BlockId:
@@ -426,20 +426,20 @@ class ExporterTypst(ExporterBase):
     def evalHashTag(self, node: org.HashTag) -> BlockId:
         return self.string(self.escape(formatHashTag(node)))
 
-    def evalQuote(self, node: org.Quote) -> BlockId:
+    def evalBlockQuote(self, node: org.BlockQuote) -> BlockId:
         return self.call(self.c.tags.quote, body=[self.stackSubnodes(node)])
 
-    def evalCode(self, node: org.Code) -> BlockId:
+    def evalBlockCode(self, node: org.BlockCode) -> BlockId:
         text = ""
-        line: org.CodeLine
+        line: org.BlockCodeLine
         for idx, line in enumerate(node.lines):
-            item: org.CodeLinePart
+            item: org.BlockCodeLinePart
             if idx != 0:
                 text += "\\n"
 
             for item in line.parts:
                 match item.getKind():
-                    case org.CodeLinePartKind.Raw:
+                    case org.BlockCodeLinePartKind.Raw:
                         text += item.getRaw().code
 
         return self.call(
@@ -447,10 +447,10 @@ class ExporterTypst(ExporterBase):
             args=dict(lang=node.lang, text=text),
         )
 
-    def evalExample(self, node: org.Example) -> BlockId:
+    def evalExample(self, node: org.BlockExample) -> BlockId:
         return self.call(self.c.tags.example, body=[self.stackSubnodes(node)])
 
-    def evalExport(self, node: org.Export) -> BlockId:
+    def evalBlockExport(self, node: org.BlockExport) -> BlockId:
         if node.exporter == "typst":
             edit_config = node.getArguments("edit-config")
             if edit_config and 0 < len(edit_config.args):
@@ -508,7 +508,7 @@ class ExporterTypst(ExporterBase):
             )
 
         for it in node:
-            if isinstance(it, org.Export):
+            if isinstance(it, org.BlockExport):
                 edit_config = it.getArguments("edit-config")
                 if edit_config and 0 < len(edit_config.args):
                     if edit_config.args[0].getString() == "pre-visit":

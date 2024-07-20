@@ -438,8 +438,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else {
         Property::CustomRaw prop;
         prop.name = basename;
-        for (auto const& arg : many(a, N::Args)) {
-            prop.value += get_text(arg);
+        if (one(a, N::Values).kind() == org::RawText) {
+            prop.value = get_text(one(a, N::Values));
+        } else {
+            for (auto const& arg : one(a, N::Values)) {
+                prop.value += get_text(arg);
+            }
         }
         result = Property(prop);
     }
