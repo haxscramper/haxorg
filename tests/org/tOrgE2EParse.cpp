@@ -739,6 +739,7 @@ TEST(OrgApi, TracerOperations1) {
     MockFull p{true, true};
     fs::path tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
     p.tokenizer->setTraceFile(tokenizer_trace);
+    p.tokenizer->traceStructured = true;
 
     fs::path parser_trace{"/tmp/TraceOperations1_parser_trace.txt"};
     p.parser->setTraceFile(parser_trace);
@@ -747,6 +748,7 @@ TEST(OrgApi, TracerOperations1) {
     sem::OrgConverter converter{};
     fs::path          sem_trace{"/tmp/TraceOperations1_sem_trace.txt"};
     converter.setTraceFile(sem_trace);
+    converter.traceStructured = true;
 
     fs::path      lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
     std::ofstream fileTrace{lex_trace.c_str()};

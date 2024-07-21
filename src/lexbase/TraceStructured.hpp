@@ -7,7 +7,8 @@ namespace org::report {
 struct ValueToken {
     Str kind;
     Str value;
-    DESC_FIELDS(ValueToken, (kind, value));
+    int index;
+    DESC_FIELDS(ValueToken, (kind, value, index));
 };
 
 struct ValueLexPosition {
@@ -54,7 +55,27 @@ struct EntryParser {
 };
 
 struct EntryTokenizer {
+    DECL_DESCRIBED_ENUM(Kind, Enter, Leave, Push, Print, Error);
 
+    Kind            kind;
+    Opt<Str>        codeFunction;
+    Opt<int>        codeLine;
+    Opt<Str>        message;
+    int             depth;
+    Opt<ValueToken> token;
+    Opt<int>        line;
+    Opt<int>        column;
+
+    DESC_FIELDS(
+        EntryTokenizer,
+        (kind,
+         codeFunction,
+         codeLine,
+         message,
+         depth,
+         token,
+         line,
+         column));
 };
 
 

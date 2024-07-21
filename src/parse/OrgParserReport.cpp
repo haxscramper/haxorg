@@ -55,7 +55,12 @@ void OrgParser::report(CR<Report> in) {
             for (int i = 0; i < 10; ++i) {
                 if (in.lex->hasNext(i)) {
                     val.tokens.push_back(ValueToken{
-                        .kind = fmt1(in.lex->tok(i).kind),
+                        .kind  = fmt1(in.lex->tok(i).kind),
+                        .index = in.lex->pos.isNil()
+                                   ? -1
+                                   : static_cast<int>(
+                                         in.lex->pos.getIndex() + i),
+                        .value = in.lex->tok(i).value.text,
                     });
                 }
             }
