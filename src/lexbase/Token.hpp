@@ -185,10 +185,6 @@ struct Tokenizer {
     TokenGroup<K, V>* out;
     Tokenizer(TokenGroup<K, V>* _out) : out(_out) {}
     Vec<Vec<Token<K, V>>*> buffer;
-    /// \brief Set new active buffer pointer
-    void setBuffer(Vec<Token<K, V>>* _buffer) {
-        buffer.push_back(_buffer);
-    }
     void clearBuffer() { buffer.pop_back(); }
     /// \brief Get reference to token with specified ID
     Token<K, V>& at(TokenId<K, V> id) { return out->at(id); }

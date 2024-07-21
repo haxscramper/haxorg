@@ -50,9 +50,6 @@ struct OrgTokenizer
         Enter,
         Leave,
         Push,
-        SetBuffer,
-        ClearBuffer,
-        PushResolved,
         Print,
         Error
     };

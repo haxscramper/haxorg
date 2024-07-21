@@ -1,4 +1,5 @@
 #include <parse/OrgTokenizer.hpp>
+#include <lexbase/TraceStructured.hpp>
 
 void OrgTokenizer::report(CR<Report> in) {
     if (!TraceState) { return; }
@@ -44,22 +45,7 @@ void OrgTokenizer::report(CR<Report> in) {
             break;
         }
 
-        case ReportKind::SetBuffer: {
-            os << "  ! set buffer";
-            break;
-        }
-
         case ReportKind::Error: {
-            break;
-        }
-
-        case ReportKind::ClearBuffer: {
-            os << "  ! clear buffer" << getLoc();
-            break;
-        }
-
-        case ReportKind::PushResolved: {
-            os << "  + push resolved" << getLoc();
             break;
         }
 

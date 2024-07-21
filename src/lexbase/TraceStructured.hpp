@@ -53,5 +53,9 @@ struct EntryParser {
         (node, depth, kind, lex, codeFunction, codeLine, message));
 };
 
+struct EntryTokenizer {
+
+};
+
 
 } // namespace org::report
