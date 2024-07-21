@@ -27,7 +27,10 @@ void ExporterTree::visitField(
         return;
     }
     if (skipAsTooNested()) {
-        writeSkip("too nested");
+        writeSkip(
+            fmt("too nested stack:{} max:{}",
+                stack.size(),
+                conf.maxTreeDepth));
         return;
     }
 
@@ -98,13 +101,17 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
     os << "\n";
 }
 
+bool ExporterTree::skipAsTooNested() const {
+    return conf.maxTreeDepth < stack.size();
+}
+
 void ExporterTree::writeSkip(
     CR<Str>     message,
     CR<Str>     trail,
     int         line,
     const char* function) {
     // indent();
-    // os << fmt("skip {} in {}:{}{}", message, function, line, trail);
+    // os << fmt("{} in {}:{}{}", message, function, line, trail);
 }
 
 
@@ -119,8 +126,10 @@ void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
 
     __scope();
     indent();
-    os << name << " (" << os.green() << TypeName<T>::get() << os.end()
-       << ")";
+    os << name << " ";
+    if (conf.withTypeAnnotations) {
+        os << "(" << os.green() << TypeName<T>::get() << os.end() << ")";
+    }
     if constexpr (std::is_same_v<T, int>) {
         os << " = " << os.cyan() << fmt1(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, bool>) {
@@ -167,10 +176,15 @@ void ExporterTree::visit(int& arg, CR<T> opt) {
     if constexpr (std::is_enum<T>::value) {
         os << os.red() << std::format("{}", opt) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
-        os << TypeName<T>::get() << os.yellow() << " "
-           << escape_literal(opt) << os.end() << "\n";
+        if (conf.withTypeAnnotations) { os << TypeName<T>::get(); }
+
+        os << os.yellow() << " " << escape_literal(opt) << os.end()
+           << "\n";
     } else {
-        os << os.red() << TypeName<T>::get() << os.end() << "\n";
+        if (conf.withTypeAnnotations) {
+            os << os.red() << TypeName<T>::get() << os.end();
+        }
+        os << "\n";
     }
 }
 

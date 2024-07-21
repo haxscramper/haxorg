@@ -254,7 +254,7 @@ def test_sem_parser_expected():
 
             table.add(row)
 
-    doc = dominate.document()
+    doc = dominate.document(title="test_sem_parser_expected")
     doc.head.add(
         tags.link(rel="stylesheet",
                   href=get_haxorg_repo_root_path().joinpath(
@@ -283,5 +283,14 @@ def test_segment_tree():
     assert annotations[0].isAnnotatedWith(1, 2)
 
 
-def test_corspus_sem_render():
-    pass
+def test_doc1():
+    file = Path("~/tmp/doc1.org").expanduser()
+    if not file.exists():
+        return 
+
+    node = org.parseString(file.read_text())
+    text = org.treeRepr(node, colored=False)
+    Path("/tmp/test_doc1.txt").write_text(text)
+
+if __name__ == "__main__":
+    test_doc1()

@@ -267,7 +267,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     with open("/tmp/res.txt", "w") as file:
         file.write(org.treeRepr(node, colored=False))
 
-    doc = dominate.document()
+    doc = dominate.document(title="story_grid")
 
     table = tags.table(border=1, style='border-collapse: collapse; width: 100%;')
     thead = tags.thead(style='position: sticky; top: 0; background-color: #ddd;')

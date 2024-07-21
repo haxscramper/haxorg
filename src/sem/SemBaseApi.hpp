@@ -80,7 +80,7 @@ struct [[refl]] OrgTreeExportOpts {
     [[refl]] bool skipEmptyFields = true;
     [[refl]] int  startLevel      = 0;
     [[refl]] bool withColor       = true;
-    [[refl]] bool maxDepth        = 40;
+    [[refl]] int  maxDepth        = 40;
 
     BOOST_DESCRIBE_CLASS(
         OrgTreeExportOpts,
