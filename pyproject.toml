@@ -39,6 +39,7 @@ jsonpath-ng = "^1.6.1"
 pygments = "^2.17.2"
 asteval = "^0.9.33"
 mypy = "^1.11.0"
+ansi2html = "^1.9.2"
 
 [tool.poetry.group.local.dependencies]
 py_textlayout = {path = "./scripts/py_textlayout", develop=true}

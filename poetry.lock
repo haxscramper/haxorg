@@ -12,6 +12,21 @@ files = [
 ]
 
 [[package]]
+name = "ansi2html"
+version = "1.9.2"
+description = "Convert text with ANSI color codes to HTML or to LaTeX"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "ansi2html-1.9.2-py3-none-any.whl", hash = "sha256:dccb75aa95fb018e5d299be2b45f802952377abfdce0504c17a6ee6ef0a420c5"},
+    {file = "ansi2html-1.9.2.tar.gz", hash = "sha256:3453bf87535d37b827b05245faaa756dbab4ec3d69925e352b6319c3c955c0a5"},
+]
+
+[package.extras]
+docs = ["mkdocs", "mkdocs-material", "mkdocs-material-extensions", "mkdocstrings", "mkdocstrings-python", "pymdown-extensions"]
+test = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "asteval"
 version = "0.9.33"
 description = "Safe, minimalistic evaluator of python expression using ast module"
@@ -2310,4 +2325,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.0 <3.13"
-content-hash = "ec0e5b6eea27b886822f2234df4f3e58fb7f171bc27459bb4e5ae6631593c192"
+content-hash = "33be0678b20a82568742a48c9ff5384076edf2cce0032da90cd347a392e08b1c"

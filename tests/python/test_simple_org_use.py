@@ -16,6 +16,12 @@ import dominate
 from beartype import beartype
 from beartype.typing import Any, List
 from py_scriptutils.rich_utils import render_debug
+from ansi2html import Ansi2HTMLConverter
+
+import pygments
+from pygments import highlight
+from pygments.lexers import YamlLexer
+from pygments.formatters import HtmlFormatter
 
 osk = org.OrgSemKind
 CAT = "test_simple_org_use.py"
@@ -51,7 +57,6 @@ def test_attached_property_link():
 [[attachment:image 1.jpg]]
     """)
 
-
     p: org.Paragraph = node[0]
     assert p.getKind() == org.OrgSemKind.Paragraph
     l: org.Link = p[0]
@@ -63,6 +68,7 @@ def test_attached_property_link():
     assert onExport0
     assert onExport0.getString() == "t"
     assert onExport0.getBool() == True
+
 
 def test_link_resolution():
     resolve = org.OrgDocumentContext()
@@ -167,12 +173,16 @@ def load_yaml(path: Path) -> Any:
         return yaml.load(file, Loader=yaml.SafeLoader)
 
 
-def as_multiline(txt: str):
+@beartype
+def as_multiline(txt: str) -> List[util.text]:
+    result = []
     for idx, part in enumerate(txt.split("\n")):
         if idx != 0:
             tags.br()
 
-        util.text(part)
+        result.append(util.text(part))
+
+    return result
 
 
 borders = dict(border=1, style='border-collapse: collapse; width: 100%;')
@@ -192,49 +202,66 @@ def test_sem_parser_expected():
     corpus_files = corpus_root.rglob("*.yaml")
     corpus_data = [CorpusFile.model_validate(load_yaml(file)) for file in corpus_files]
 
-    with dominate.document() as doc:
-        with tags.table(**borders) as table:
-            with tags.tr():
-                tags.th("Source", style="width:400px;")
-                tags.th("Sem tree")
+    table = tags.table(**borders)
+    row = tags.tr()
+    row.add(tags.th("Source", _class="source-column"))
+    row.add(tags.th("Yaml tree", _class="yaml-column"))
+    row.add(tags.th("sem tree", _class="sem-column"))
 
-            for file in corpus_data:
-                for entry in file.items:
-                    with tags.tr():
-                        with tags.td(style="text-align:center;"):
-                            with tags.b():
-                                util.text(entry.name)
+    table.add(row)
 
-                    with tags.tr():
-                        if entry.source:
-                            text = entry.source
+    for file in corpus_data:
+        for entry in file.items:
+            head_row = tags.tr()
+            head_row.add(
+                tags.td(tags.b(util.text(entry.name)), style="text-align:center;"))
 
-                        else:
-                            text = corpus_root.joinpath(entry.file).read_text()
+            row = tags.tr()
+            if entry.source:
+                text = entry.source
 
-                        with tags.td():
-                            with tags.pre():
-                                as_multiline(text)
+            else:
+                text = corpus_root.joinpath(entry.file).read_text()
 
-                        with tags.td():
-                            if entry.debug.doLex and entry.debug.doParse:
-                                node = org.parseString(text)
-                                with tags.pre():
-                                    as_multiline(
-                                        org.exportToYamlString(
-                                            node,
-                                            org.OrgYamlExportOpts(
-                                                skipNullFields=True,
-                                                skipFalseFields=True,
-                                                skipZeroFields=True,
-                                                skipLocation=True,
-                                                skipId=True,
-                                            )))
+            row.add(tags.td(tags.pre(text), _class="source-cell"))
 
-                            else:
-                                util.text("Parse disabled")
+            if entry.debug.doLex and entry.debug.doParse:
+                node = org.parseString(text)
+                yaml_pre = tags.pre()
+                yaml_text = org.exportToYamlString(
+                    node,
+                    org.OrgYamlExportOpts(
+                        skipNullFields=True,
+                        skipFalseFields=True,
+                        skipZeroFields=True,
+                        skipLocation=True,
+                        skipId=True,
+                    ))
 
-    Path("/tmp/result.html").write_text(str(doc))
+                formatter = HtmlFormatter()
+                yaml_pre.add_raw_string(highlight(yaml_text, YamlLexer(), formatter))
+                row.add(tags.td(yaml_pre, _class="yaml-cell"))
+
+                tree = tags.pre()
+                conv = Ansi2HTMLConverter()
+                tree.add_raw_string(
+                    conv.convert(org.treeRepr(node, colored=True), full=False))
+                row.add(tags.td(tree, _class="sem-cell"))
+
+            else:
+                row.add(tags.td(util.text("Parse disabled"), _class="yaml-column"))
+                row.add(tags.td(util.text("Parse disabled"), _class="sem-column"))
+
+            table.add(row)
+
+    doc = dominate.document()
+    doc.head.add(
+        tags.link(rel="stylesheet",
+                  href=get_haxorg_repo_root_path().joinpath(
+                      "tests/python/test_sem_parser_expected.css")))
+    doc.add(table)
+
+    Path("/tmp/test_sem_parser_expected.html").write_text(str(doc))
 
 
 def test_segment_tree():
@@ -246,7 +273,8 @@ def test_segment_tree():
         )
     ]
 
-    annotations: List[org.SequenceAnnotation] = org.annotateSequence(org.VecOfSequenceSegmentGroupVec(segments), 0, 2)
+    annotations: List[org.SequenceAnnotation] = org.annotateSequence(
+        org.VecOfSequenceSegmentGroupVec(segments), 0, 2)
 
     assert len(annotations) == 1
     assert annotations[0].first == 0
@@ -254,3 +282,6 @@ def test_segment_tree():
     assert len(annotations[0].annotations) == 1
     assert annotations[0].isAnnotatedWith(1, 2)
 
+
+def test_corspus_sem_render():
+    pass
