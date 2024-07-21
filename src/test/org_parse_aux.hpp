@@ -5,7 +5,7 @@
 #include <parse/OrgSpec.hpp>
 #include <lexbase/NodeIO.hpp>
 
-using org = OrgNodeKind;
+using onk = OrgNodeKind;
 using otk = OrgTokenKind;
 
 struct MockFull {

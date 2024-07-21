@@ -4,7 +4,7 @@
 
 using namespace sem;
 
-using org = OrgNodeKind;
+using onk = OrgNodeKind;
 using otk = OrgTokenKind;
 using Err = OrgConverter::Errors;
 

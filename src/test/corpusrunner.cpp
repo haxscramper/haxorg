@@ -507,7 +507,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
             if (lhs.kind != rhs.kind) {
                 return false;
             } else if (OrgSet{
-                           org::TextSeparator,
+                           onk::TextSeparator,
                        }
                            .contains(lhs.kind)) {
                 return true;
@@ -521,7 +521,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                         rhs.getToken());
                     if (lhsTok.kind != rhsTok.kind) { return false; }
 
-                    if (lhs.kind == org::RawText) {
+                    if (lhs.kind == onk::RawText) {
                         CharSet s{' '};
                         return strip(lhsTok.value.text, s, s)
                             == strip(rhsTok.value.text, s, s);
@@ -771,9 +771,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             return nodes.nodes.content
                  | rv::filter([](OrgNode const& it) -> bool {
                        return !OrgSet{
-                           org::Newline,
-                           org::Empty,
-                           org::Space,
+                           onk::Newline,
+                           onk::Empty,
+                           onk::Space,
                        }
                                    .contains(it.kind);
                    })

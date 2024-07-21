@@ -75,6 +75,7 @@ struct LexerParams {
     int           visitedUnknown = 0;
     std::ostream* traceStream    = nullptr;
     int           indentation    = 0;
+    bool          traceStructured = false;
     Vec<Loc>      sub_locations;
 };
 

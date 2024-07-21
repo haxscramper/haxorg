@@ -16,6 +16,7 @@
 #include <google/protobuf/util/json_util.h>
 #include <exporters/ExporterJson.hpp>
 #include <sem/SemBaseApi.hpp>
+#include <fstream>
 
 template <
     /// Node kind
@@ -726,6 +727,39 @@ TEST(OrgApi, LinkAttachedGet1) {
     auto arg0 = args.value()->args.at(0);
     EXPECT_EQ(arg0->getBool(), true);
     EXPECT_EQ(arg0->getString(), "t");
+}
+
+TEST(OrgApi, TracerOperations1) {
+    auto     text = R"(
+* Subtree
+  :properties:
+  :key: value
+  :end:
+)";
+    MockFull p{true, true};
+    fs::path tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
+    p.tokenizer->setTraceFile(tokenizer_trace);
+
+    fs::path parser_trace{"/tmp/TraceOperations1_parser_trace.txt"};
+    p.parser->setTraceFile(parser_trace);
+    p.parser->traceStructured = true;
+
+    sem::OrgConverter converter{};
+    fs::path          sem_trace{"/tmp/TraceOperations1_sem_trace.txt"};
+    converter.setTraceFile(sem_trace);
+
+    fs::path      lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
+    std::ofstream fileTrace{lex_trace.c_str()};
+
+    LexerParams params;
+    params.traceStructured = true;
+    params.maxUnknown      = 1;
+    params.traceStream     = &fileTrace;
+    p.tokenizeBase(text, params);
+    p.tokenizeConvert();
+    p.parse();
+
+    auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {

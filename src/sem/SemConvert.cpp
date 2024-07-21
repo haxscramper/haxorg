@@ -13,7 +13,7 @@
 
 using namespace sem;
 
-using org      = OrgNodeKind;
+using onk      = OrgNodeKind;
 using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
 using Property = sem::Subtree::Property;
@@ -53,7 +53,7 @@ Str get_text(
     char const* function = __builtin_FUNCTION()) {
     if (a.isTerminal()) {
         return a.val().text;
-    } else if (a.kind() == org::Empty) {
+    } else if (a.kind() == onk::Empty) {
         return "";
     } else {
         LOG(FATAL) << fmt("{} {} {}", function, line, a.treeRepr(false));
@@ -91,7 +91,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
     auto result  = Sem<Table>(a);
 
     if (auto args = one(a, N::Args);
-        args.getKind() == org::InlineStmtList) {
+        args.getKind() == onk::InlineStmtList) {
         result->isBlock    = true;
         result->parameters = convertCmdArguments(args).value();
     }
@@ -99,7 +99,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
     for (auto const& in_row : many(a, N::Rows)) {
         SemId<Row> row = Sem<Row>(in_row);
         if (auto args = one(in_row, N::Args);
-            args.getKind() == org::InlineStmtList) {
+            args.getKind() == onk::InlineStmtList) {
             row->isBlock    = true;
             row->parameters = convertCmdArguments(args).value();
         }
@@ -107,7 +107,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
         for (auto const& in_cell : one(in_row, N::Body)) {
             SemId<Cell> cell = Sem<Cell>(in_cell);
             if (auto args = one(in_cell, N::Args);
-                args.getKind() == org::InlineStmtList) {
+                args.getKind() == onk::InlineStmtList) {
                 cell->isBlock    = true;
                 cell->parameters = convertCmdArguments(args).value();
             }
@@ -333,15 +333,15 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
     In              a) {
     __perf_trace("convert", "convertSubtreeDrawer");
     auto __trace = trace(a);
-    if (a.kind() != org::Empty) {
+    if (a.kind() != onk::Empty) {
         for (const auto& group : a) {
             switch (group.kind()) {
-                case org::SubtreeDescription: {
+                case onk::SubtreeDescription: {
                     tree->description = convertParagraph(group[0]).value();
                     break;
                 }
 
-                case org::DrawerLogbook: {
+                case onk::DrawerLogbook: {
                     for (auto const& entry : group.at(0)) {
                         auto log = convertSubtreeLog(entry).value();
                         tree->logbook.push_back(log);
@@ -349,7 +349,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
                     break;
                 }
 
-                case org::DrawerPropertyList: {
+                case onk::DrawerPropertyList: {
                     for (const auto& prop : group) {
                         convertPropertyList(tree, prop);
                     }
@@ -438,7 +438,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else {
         Property::CustomRaw prop;
         prop.name = basename;
-        if (one(a, N::Values).kind() == org::RawText) {
+        if (one(a, N::Values).kind() == onk::RawText) {
             prop.value = get_text(one(a, N::Values));
         } else {
             for (auto const& arg : one(a, N::Values)) {
@@ -504,7 +504,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Importance, a);
         auto urgency = one(a, N::Importance);
-        if (urgency.kind() != org::Empty) {
+        if (urgency.kind() != onk::Empty) {
             tree->priority = strip(
                 get_text(urgency), CharSet{'[', '#'}, CharSet{']'});
         }
@@ -513,7 +513,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Todo, a);
         auto todo    = one(a, N::Todo);
-        if (todo.getKind() != org::Empty) { tree->todo = get_text(todo); }
+        if (todo.getKind() != onk::Empty) { tree->todo = get_text(todo); }
         if (tree->todo && tree->todo.value() == "COMMENT") {
             tree->todo.reset();
             tree->isComment = true;
@@ -568,32 +568,32 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
     auto __trace = trace(a);
 
     bool cond = OrgSet{
-                      org::DynamicActiveTime,
-                      org::DynamicInactiveTime,
-                      org::StaticActiveTime,
-                      org::StaticInactiveTime,
+                      onk::DynamicActiveTime,
+                      onk::DynamicInactiveTime,
+                      onk::StaticActiveTime,
+                      onk::StaticInactiveTime,
                   }
                      .contains(a.kind());
 
     CHECK(cond) << "convert subtree" << fmt1(a.kind());
 
     auto time      = Sem<Time>(a);
-    time->isActive = (a.kind() == org::DynamicActiveTime)
-                  || (a.kind() == org::StaticActiveTime);
+    time->isActive = (a.kind() == onk::DynamicActiveTime)
+                  || (a.kind() == onk::StaticActiveTime);
 
-    if (a.kind() == org::DynamicInactiveTime
-        || a.kind() == org::DynamicActiveTime) {
+    if (a.kind() == onk::DynamicInactiveTime
+        || a.kind() == onk::DynamicActiveTime) {
         time->time = Time::Dynamic{.expr = get_text(a)};
     } else if (
-        a.kind() == org::StaticActiveTime
-        || a.kind() == org::StaticInactiveTime) {
+        a.kind() == onk::StaticActiveTime
+        || a.kind() == onk::StaticInactiveTime) {
 
         std::string datetime;
-        if (one(a, N::Year).kind() != org::Empty) {
+        if (one(a, N::Year).kind() != onk::Empty) {
             datetime += get_text(one(a, N::Year));
         }
 
-        if (one(a, N::Clock).kind() != org::Empty) {
+        if (one(a, N::Clock).kind() != onk::Empty) {
             if (!datetime.empty()) { datetime += " "; }
             datetime += get_text(one(a, N::Clock));
         }
@@ -619,7 +619,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
 
         Opt<absl::TimeZone> zone;
 
-        if (auto z = one(a, N::Zone); z.kind() != org::Empty) {
+        if (auto z = one(a, N::Zone); z.kind() != onk::Empty) {
             zone = ConvertToTimeZone(get_text(z));
         }
 
@@ -749,10 +749,10 @@ OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(
 
 namespace {
 OrgSet AnnotatedParagraphStarts{
-    org::BigIdent,
-    org::Footnote,
-    org::StaticActiveTime,
-    org::StaticInactiveTime};
+    onk::BigIdent,
+    onk::Footnote,
+    onk::StaticActiveTime,
+    onk::StaticInactiveTime};
 }
 
 OrgConverter::ConvResult<AnnotatedParagraph> OrgConverter::
@@ -761,7 +761,7 @@ OrgConverter::ConvResult<AnnotatedParagraph> OrgConverter::
     auto par     = Sem<AnnotatedParagraph>(a);
     auto it      = a.begin();
     switch ((*it).getKind()) {
-        case org::Footnote: {
+        case onk::Footnote: {
             auto footnote = convertFootnote(*it).value();
             ++it;
             par->data = AnnotatedParagraph::Footnote{
@@ -770,16 +770,16 @@ OrgConverter::ConvResult<AnnotatedParagraph> OrgConverter::
             break;
         }
 
-        case org::BigIdent: {
+        case onk::BigIdent: {
             auto ident = convertBigIdent(*it).value();
             ++it;
-            if ((*it).getKind() == org::Colon) { ++it; }
+            if ((*it).getKind() == onk::Colon) { ++it; }
             par->data = AnnotatedParagraph::Admonition{.name = ident};
             break;
         }
 
-        case org::StaticActiveTime:
-        case org::StaticInactiveTime: {
+        case onk::StaticActiveTime:
+        case onk::StaticInactiveTime: {
             auto time = convertTime(*it).value();
             ++it;
             par->data = AnnotatedParagraph::Timestamp{.time = time};
@@ -797,7 +797,7 @@ OrgConverter::ConvResult<AnnotatedParagraph> OrgConverter::
 
     auto end = a.end();
 
-    while (it != end && (*it).getKind() == org::Space) { ++it; }
+    while (it != end && (*it).getKind() == onk::Space) { ++it; }
 
     while (it != end) {
         par->push_back(convert(*it));
@@ -827,7 +827,7 @@ OrgConverter::ConvResult<StmtList> OrgConverter::convertStmtList(__args) {
 OrgConverter::ConvResult<Footnote> OrgConverter::convertFootnote(__args) {
     __perf_trace("convert", "convertFootnote");
     auto __trace = trace(a);
-    if (a.kind() == org::InlineFootnote) {
+    if (a.kind() == onk::InlineFootnote) {
         auto note        = Sem<Footnote>(a);
         note->definition = convert(one(a, N::Definition));
         return note;
@@ -845,14 +845,14 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
     auto getTarget = [&]() {
         return lstrip(get_text(one(a, N::Link)), CharSet{':'});
     };
-    if (a.kind() == org::RawLink) {
+    if (a.kind() == onk::RawLink) {
         link->data = Link::Raw{.text = get_text(a)};
 
-    } else if (a.kind() == org::Footnote) {
+    } else if (a.kind() == onk::Footnote) {
         link->data = Link::Footnote{
             .target = get_text(one(a, N::Definition))};
 
-    } else if (one(a, N::Protocol).kind() == org::Empty) {
+    } else if (one(a, N::Protocol).kind() == onk::Empty) {
         Str target = getTarget();
         if (target.starts_with(".") || target.starts_with("/")) {
             link->data = Link::File{.file = target};
@@ -886,8 +886,8 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         }
     }
 
-    if (a.kind() == org::Link) {
-        if (one(a, N::Desc).kind() == org::Paragraph) {
+    if (a.kind() == onk::Link) {
+        if (one(a, N::Desc).kind() == onk::Paragraph) {
             link->description = convertParagraph(one(a, N::Desc)).value();
         }
     }
@@ -908,15 +908,15 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
     __perf_trace("convert", "convertListItem");
     auto __trace = trace(a);
     auto item    = Sem<ListItem>(a);
-    if (one(a, N::Header).kind() != org::Empty) {
+    if (one(a, N::Header).kind() != onk::Empty) {
         item->header = convertParagraph(one(a, N::Header)).value();
     }
 
-    if (auto bullet = one(a, N::Bullet); bullet.kind() != org::Empty) {
+    if (auto bullet = one(a, N::Bullet); bullet.kind() != onk::Empty) {
         item->bullet = strip(get_text(bullet), CharSet{' '}, CharSet{' '});
     }
 
-    if (one(a, N::Checkbox).kind() != org::Empty) {
+    if (one(a, N::Checkbox).kind() != onk::Empty) {
         Str text = strip(
             get_text(one(a, N::Checkbox)),
             CharSet{'[', ' '},
@@ -1099,7 +1099,7 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     __args) {
     auto eexport = Sem<BlockExport>(a);
     switch (a.kind()) {
-        case org::BlockExport:
+        case onk::BlockExport:
             eexport->format = BlockExport::Format::Block;
             break;
         default: {
@@ -1142,7 +1142,7 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     __args) {
     SemId<BlockQuote> quote = Sem<BlockQuote>(a);
 
-    if (auto args = one(a, N::Args); args.kind() != org::Empty) {
+    if (auto args = one(a, N::Args); args.kind() != onk::Empty) {
         quote->parameters = convertCmdArguments(args).value();
     }
 
@@ -1162,7 +1162,7 @@ OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
 }
 
 OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
-    if (a.kind() == org::InlineMath) {
+    if (a.kind() == onk::InlineMath) {
         return Sem<Latex>(a);
     } else {
         LOG(FATAL) << "Unhanled kind for inline math TODO";
@@ -1246,16 +1246,16 @@ OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
     SemId<CmdArguments> result  = Sem<CmdArguments>(a);
     result->positional          = SemId<CmdArgumentList>::New();
 
-    if (a.getKind() == org::CmdArguments) {
+    if (a.getKind() == onk::CmdArguments) {
         for (auto const& item : one(a, N::Values)) {
             addArgument(result, convertCmdArgument(item).value());
         }
-    } else if (a.getKind() == org::InlineStmtList) {
+    } else if (a.getKind() == onk::InlineStmtList) {
         for (auto const& it : a) {
             addArgument(result, convertCmdArgument(it).value());
         }
     } else {
-        CHECK(a.getKind() == org::Empty) << a.treeRepr();
+        CHECK(a.getKind() == onk::Empty) << a.treeRepr();
     }
 
     return result;
@@ -1353,18 +1353,18 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     __args) {
     SemId<BlockCode> result = Sem<BlockCode>(a);
 
-    if (one(a, N::Lang).getKind() != org::Empty) {
+    if (one(a, N::Lang).getKind() != onk::Empty) {
         result->lang = get_text(one(a, N::Lang));
     }
 
-    if (one(a, N::HeaderArgs).kind() != org::Empty) {
+    if (one(a, N::HeaderArgs).kind() != onk::Empty) {
         auto args = convertCmdArguments(one(a, N::HeaderArgs))
                         .optNode()
                         .value();
         result->parameters = args;
     }
 
-    if (a.kind() == org::SrcInlineCode) {
+    if (a.kind() == onk::SrcInlineCode) {
         BlockCode::Line& line = result->lines.emplace_back();
         for (auto const& it : one(a, N::Body)) {
             line.parts.push_back(
@@ -1377,7 +1377,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
             BlockCode::Line& line = result->lines.emplace_back();
             for (auto const& part : it) {
                 switch (part.kind()) {
-                    case org::CodeText: {
+                    case onk::CodeText: {
                         line.parts.push_back(BlockCode::Line::Part(
                             BlockCode::Line::Part::Raw{
                                 .code = get_text(part),
@@ -1392,7 +1392,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
         }
     }
 
-    if (auto res = one(a, N::Result); res.kind() != org::Empty) {
+    if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
         auto body      = one(res, N::Body);
         result->result = sem::BlockCode::EvalResult{
             sem::BlockCode::EvalResult::OrgValue{.value = convert(body)}};
@@ -1404,7 +1404,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
 OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
     __perf_trace("convert", "convertCall");
     auto __trace = trace(a);
-    if (a.kind() == org::CmdCallCode) {
+    if (a.kind() == onk::CmdCallCode) {
         auto call        = Sem<Call>(a);
         call->name       = get_text(one(a, N::Name));
         call->isCommand  = true;
@@ -1457,7 +1457,7 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
 
         int offset = 0;
         for (auto next_opt = items.get(i + offset + 1);
-             next_opt && next_opt->get().getKind() == org::CmdTblfm;
+             next_opt && next_opt->get().getKind() == onk::CmdTblfm;
              ++offset) {
 
             auto tblfm = convertCmdTblfm(next_opt->get());
@@ -1489,69 +1489,69 @@ SemId<Org> OrgConverter::convert(__args) {
     }
 
     switch (a.kind()) {
-        case org::Newline: return convertNewline(a).unwrap();
-        case org::StmtList: return convertStmtList(a).unwrap();
-        case org::Subtree: return convertSubtree(a).unwrap();
-        case org::TimeRange: return convertTimeRange(a).unwrap();
-        case org::Space: return convertSpace(a).unwrap();
-        case org::Word: return convertWord(a).unwrap();
-        case org::Bold: return convertBold(a).unwrap();
-        case org::Italic: return convertItalic(a).unwrap();
-        case org::Strike: return convertStrike(a).unwrap();
-        case org::Punctuation: return convertPunctuation(a).unwrap();
-        case org::Link: return convertLink(a).unwrap();
-        case org::Par: return convertPar(a).unwrap();
-        case org::BigIdent: return convertBigIdent(a).unwrap();
-        case org::Verbatim: return convertVerbatim(a).unwrap();
-        case org::RawText: return convertRawText(a).unwrap();
-        case org::List: return convertList(a).unwrap();
-        case org::ListItem: return convertListItem(a).unwrap();
-        case org::Placeholder: return convertPlaceholder(a).unwrap();
-        case org::Escaped: return convertEscaped(a).unwrap();
-        case org::TextSeparator: return convertTextSeparator(a).unwrap();
-        case org::AtMention: return convertAtMention(a).unwrap();
-        case org::Underline: return convertUnderline(a).unwrap();
-        case org::Target: return convertTextTarget(a).unwrap();
-        case org::RadioTarget: return convertRadioTarget(a).unwrap();
-        case org::InlineStmtList: return convertStmtList(a).unwrap();
-        case org::SrcInlineCode:
-        case org::BlockCode: return convertBlockCode(a).unwrap();
-        case org::InlineFootnote: return convertFootnote(a).unwrap();
-        case org::BlockExport: return convertBlockExport(a).unwrap();
-        case org::Macro: return convertMacro(a).unwrap();
-        case org::Monospace: return convertMonospace(a).unwrap();
-        case org::BlockCenter: return convertBlockCenter(a).unwrap();
-        case org::BlockExample: return convertBlockExample(a).unwrap();
-        case org::HashTag: return convertHashTag(a).unwrap();
-        case org::ListTag: return convert(a[0]);
-        case org::InlineMath: return convertMath(a).unwrap();
-        case org::RawLink: return convertLink(a).unwrap();
-        case org::StaticActiveTime:
-        case org::StaticInactiveTime:
-        case org::DynamicActiveTime:
-        case org::DynamicInactiveTime: return convertTime(a).unwrap();
-        case org::Quote: return convertMarkQuote(a).unwrap();
-        case org::BlockComment: return convertBlockComment(a).unwrap();
-        case org::BlockQuote: return convertBlockQuote(a).unwrap();
-        case org::Colon: return convertPunctuation(a).unwrap();
-        case org::CmdInclude: return convertInclude(a).unwrap();
-        case org::Symbol: return convertSymbol(a).unwrap();
-        case org::Angle: return convertPlaceholder(a).unwrap();
-        case org::Empty: return Sem<Empty>(a);
-        case org::Table: return convertTable(a).unwrap();
-        case org::Footnote: return convertLink(a).unwrap();
-        case org::CmdTblfm: return convertCmdTblfm(a).unwrap();
-        case org::CmdAttr: return convertCmdAttr(a).unwrap();
-        case org::ColonExample: return convertColonExample(a).unwrap();
-        case org::CmdCaption: return convertCmdCaption(a).unwrap();
-        case org::CmdName: return convertCmdName(a).unwrap();
-        case org::CmdCallCode: return convertCall(a).unwrap();
-        case org::Paragraph: {
+        case onk::Newline: return convertNewline(a).unwrap();
+        case onk::StmtList: return convertStmtList(a).unwrap();
+        case onk::Subtree: return convertSubtree(a).unwrap();
+        case onk::TimeRange: return convertTimeRange(a).unwrap();
+        case onk::Space: return convertSpace(a).unwrap();
+        case onk::Word: return convertWord(a).unwrap();
+        case onk::Bold: return convertBold(a).unwrap();
+        case onk::Italic: return convertItalic(a).unwrap();
+        case onk::Strike: return convertStrike(a).unwrap();
+        case onk::Punctuation: return convertPunctuation(a).unwrap();
+        case onk::Link: return convertLink(a).unwrap();
+        case onk::Par: return convertPar(a).unwrap();
+        case onk::BigIdent: return convertBigIdent(a).unwrap();
+        case onk::Verbatim: return convertVerbatim(a).unwrap();
+        case onk::RawText: return convertRawText(a).unwrap();
+        case onk::List: return convertList(a).unwrap();
+        case onk::ListItem: return convertListItem(a).unwrap();
+        case onk::Placeholder: return convertPlaceholder(a).unwrap();
+        case onk::Escaped: return convertEscaped(a).unwrap();
+        case onk::TextSeparator: return convertTextSeparator(a).unwrap();
+        case onk::AtMention: return convertAtMention(a).unwrap();
+        case onk::Underline: return convertUnderline(a).unwrap();
+        case onk::Target: return convertTextTarget(a).unwrap();
+        case onk::RadioTarget: return convertRadioTarget(a).unwrap();
+        case onk::InlineStmtList: return convertStmtList(a).unwrap();
+        case onk::SrcInlineCode:
+        case onk::BlockCode: return convertBlockCode(a).unwrap();
+        case onk::InlineFootnote: return convertFootnote(a).unwrap();
+        case onk::BlockExport: return convertBlockExport(a).unwrap();
+        case onk::Macro: return convertMacro(a).unwrap();
+        case onk::Monospace: return convertMonospace(a).unwrap();
+        case onk::BlockCenter: return convertBlockCenter(a).unwrap();
+        case onk::BlockExample: return convertBlockExample(a).unwrap();
+        case onk::HashTag: return convertHashTag(a).unwrap();
+        case onk::ListTag: return convert(a[0]);
+        case onk::InlineMath: return convertMath(a).unwrap();
+        case onk::RawLink: return convertLink(a).unwrap();
+        case onk::StaticActiveTime:
+        case onk::StaticInactiveTime:
+        case onk::DynamicActiveTime:
+        case onk::DynamicInactiveTime: return convertTime(a).unwrap();
+        case onk::Quote: return convertMarkQuote(a).unwrap();
+        case onk::BlockComment: return convertBlockComment(a).unwrap();
+        case onk::BlockQuote: return convertBlockQuote(a).unwrap();
+        case onk::Colon: return convertPunctuation(a).unwrap();
+        case onk::CmdInclude: return convertInclude(a).unwrap();
+        case onk::Symbol: return convertSymbol(a).unwrap();
+        case onk::Angle: return convertPlaceholder(a).unwrap();
+        case onk::Empty: return Sem<Empty>(a);
+        case onk::Table: return convertTable(a).unwrap();
+        case onk::Footnote: return convertLink(a).unwrap();
+        case onk::CmdTblfm: return convertCmdTblfm(a).unwrap();
+        case onk::CmdAttr: return convertCmdAttr(a).unwrap();
+        case onk::ColonExample: return convertColonExample(a).unwrap();
+        case onk::CmdCaption: return convertCmdCaption(a).unwrap();
+        case onk::CmdName: return convertCmdName(a).unwrap();
+        case onk::CmdCallCode: return convertCall(a).unwrap();
+        case onk::Paragraph: {
             if (2 < a.size()
                 && AnnotatedParagraphStarts.contains(a.at(0).kind())) {
-                if (a.at(0).kind() == org::BigIdent) {
+                if (a.at(0).kind() == onk::BigIdent) {
                     // NOTE: ....
-                    if (2 < a.size() && a.at(1).kind() == org::Colon) {
+                    if (2 < a.size() && a.at(1).kind() == onk::Colon) {
                         return convertAnnotatedParagraph(a).unwrap();
                     } else {
                         return convertParagraph(a).unwrap();
@@ -1644,23 +1644,23 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
     using Prop          = Subtree::Property;
     Vec<OrgAdapter> buffer;
 
-    if (adapter.kind() == org::StmtList) {
+    if (adapter.kind() == onk::StmtList) {
         for (const auto& sub : adapter) {
             auto __trace = trace(adapter, fmt1(sub.getKind()));
             switch (sub.kind()) {
-                case org::CmdColumns: {
+                case onk::CmdColumns: {
                     break;
                 }
-                case org::CmdTitle: {
+                case onk::CmdTitle: {
                     doc->title = convertParagraph(sub[0]).value();
                     break;
                 }
-                case org::CmdOptions: {
+                case onk::CmdOptions: {
                     convertDocumentOptions(doc->options, sub);
                     break;
                 }
 
-                case org::CmdPropertyArgs: {
+                case onk::CmdPropertyArgs: {
                     Prop::CustomArgs prop;
                     prop.name       = get_text(one(sub, N::Name));
                     prop.parameters = convertCmdArguments(
@@ -1670,7 +1670,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
 
-                case org::CmdStartup: {
+                case onk::CmdStartup: {
                     Vec<Str> args = get_text(sub.at(0)).split(" ");
                     Str      text = normalize(args.at(0));
                     using K       = DocumentOptions::Visibility;
@@ -1704,32 +1704,32 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
 
-                case org::CmdLatexClass: {
+                case onk::CmdLatexClass: {
                     Prop::ExportLatexClass res{};
                     res.latexClass = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::CmdLatexHeader: {
+                case onk::CmdLatexHeader: {
                     Prop::ExportLatexHeader res{};
                     res.header = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::CmdLatexCompiler: {
+                case onk::CmdLatexCompiler: {
                     Prop::ExportLatexCompiler res{};
                     res.compiler = get_text(sub.at(0));
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::CmdLatexClassOptions: {
+                case onk::CmdLatexClassOptions: {
                     auto value = get_text(sub.at(0));
                     Prop::ExportLatexClassOptions res;
                     res.options.push_back(value);
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
-                case org::CmdFiletags: {
+                case onk::CmdFiletags: {
                     for (auto const& hash : many(sub, N::Tags)) {
                         doc->filetags.push_back(
                             convertHashTag(hash).value());
