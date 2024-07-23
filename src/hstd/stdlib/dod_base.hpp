@@ -119,6 +119,12 @@ struct [[nodiscard]] Id {
             return (getUnmasked() - 1);
         }
     }
+
+    int getIntIndex() const { return static_cast<int>(getIndex()); }
+    long long int getLongIntIndex() const {
+        return static_cast<long long int>(getIndex());
+    }
+
     /// Get string representation of the ID value
     auto getStr() const -> std::string { return std::to_string(value); }
 
@@ -194,9 +200,9 @@ struct [[nodiscard]] Id {
         }                                                                 \
         explicit __name(__type arg)                                       \
             : dod::Id<                                                    \
-                __type,                                                   \
-                __type,                                                   \
-                std::integral_constant<__type, __mask>>(arg) {}           \
+                  __type,                                                 \
+                  __type,                                                 \
+                  std::integral_constant<__type, __mask>>(arg) {}         \
     };
 
 

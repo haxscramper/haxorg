@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 namespace org::report {
 
@@ -79,4 +80,62 @@ struct EntryTokenizer {
 };
 
 
+struct EntryLexer {
+    struct State {
+        std::string matched;
+        std::string name;
+        int         line;   ///< Lexed text line where state was started
+        int         column; ///< Same for column
+        int         rule;
+        DESC_FIELDS(State, (matched, name, line, column, rule));
+    };
+
+    struct View {
+        int         line;
+        int         column;
+        std::string state;
+        Vec<State>  states;
+        DESC_FIELDS(View, (line, column, state, states));
+    };
+
+    struct Pop {
+        int  indent;
+        Str  currentState;
+        Str  nextState;
+        int  yamlLine;
+        View view;
+        DESC_FIELDS(
+            Pop,
+            (view, indent, currentState, nextState, yamlLine));
+    };
+
+    struct Add {
+        int        indent;
+        ValueToken token;
+        DESC_FIELDS(Add, (indent, token));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Add, Pop);
+    Data data;
+};
+
+
 } // namespace org::report
+
+template <>
+struct JsonSerde<org::report::EntryLexer> {
+    static json to_json(org::report::EntryLexer const& it) {
+        json result    = json::object();
+        result["kind"] = fmt1(it.getKind());
+        std::visit(
+            [&](auto const& value) {
+                result["data"] = to_json_eval(value);
+            },
+            it.data);
+
+        return result;
+    }
+    static org::report::EntryLexer from_json(json const& j) {
+        return org::report::EntryLexer{};
+    }
+};

@@ -100,7 +100,6 @@ struct OrgLexerImpl {
     OrgTokenGroup* tokens;
     void           add(OrgTokenKind token);
     std::string    state_name(int name);
-    std::string    view();
     void           unknown();
 
     std::string get_print_indent() const;
