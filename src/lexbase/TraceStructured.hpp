@@ -90,12 +90,38 @@ struct EntryLexer {
         DESC_FIELDS(State, (matched, name, line, column, rule));
     };
 
+
     struct View {
         int         line;
         int         column;
         std::string state;
         Vec<State>  states;
         DESC_FIELDS(View, (line, column, state, states));
+    };
+
+    struct Unknown {
+        View view;
+        int  indent;
+        DESC_FIELDS(Unknown, (view, indent));
+    };
+
+    struct PreToken {
+        int         indent;
+        int         yamlLine;
+        std::string tokenRegex;
+        View        view;
+        DESC_FIELDS(PreToken, (indent, yamlLine, tokenRegex, view));
+    };
+
+    struct Push {
+        int  indent;
+        View view;
+        Str  currentState;
+        Str  nextState;
+        int  yamlLine;
+        DESC_FIELDS(
+            Push,
+            (indent, view, currentState, nextState, yamlLine));
     };
 
     struct Pop {
@@ -115,7 +141,16 @@ struct EntryLexer {
         DESC_FIELDS(Add, (indent, token));
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Add, Pop);
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        Add,
+        Pop,
+        Push,
+        PreToken,
+        Unknown);
     Data data;
 };
 

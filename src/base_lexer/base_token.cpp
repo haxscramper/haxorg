@@ -14,6 +14,7 @@ EntryLexer::View viewStruct(OrgLexerImpl* lex) {
 
     res.line   = lex->impl->lineno();
     res.column = lex->impl->columno();
+    res.state  = lex->state_name(lex->impl->start());
 
     for (OrgLexerImpl::PushInfo const& state : lex->states) {
         res.states.push_back(EntryLexer::State{
@@ -86,11 +87,9 @@ void OrgLexerImpl::add(OrgTokenKind token) {
             };
 
             (*p.traceStream) << to_json_eval(EntryLexer{EntryLexer::Add{
-                                                 .indent = p.indentation,
-                                                 .token  = val,
-                                             }})
-                                    .dump()
-                             << std::endl;
+                .indent = p.indentation,
+                .token  = val,
+            }}) << std::endl;
         } else {
             (*p.traceStream) << std::format(
                 "{}   {:0>4}] = {} {}",
@@ -171,13 +170,23 @@ void OrgLexerImpl::push_expect_impl(int current, int next, int line) {
     });
 
     if (p.traceStream) {
-        (*p.traceStream) << std::format(
-            "{}         + {} -> {} at {} with {}",
-            get_print_indent(),
-            state_name(current),
-            state_name(next),
-            line,
-            view(this)) << std::endl;
+        if (p.traceStructured) {
+            (*p.traceStream) << to_json_eval(EntryLexer{EntryLexer::Push{
+                .view         = viewStruct(this),
+                .indent       = p.indentation,
+                .currentState = state_name(current),
+                .nextState    = state_name(next),
+                .yamlLine     = line,
+            }}) << std::endl;
+        } else {
+            (*p.traceStream) << std::format(
+                "{}         + {} -> {} at {} with {}",
+                get_print_indent(),
+                state_name(current),
+                state_name(next),
+                line,
+                view(this)) << std::endl;
+        }
     }
 }
 
@@ -186,12 +195,23 @@ void OrgLexerImpl::before(
     Opt<OrgTokenKind> kind,
     const char*       pattern) {
     if (p.traceStream) {
-        (*p.traceStream) << std::format(
-            "{}>  {:0>4}]   {} {}",
-            get_print_indent(),
-            line,
-            escape_for_write(pattern),
-            view(this)) << std::endl;
+        if (p.traceStructured) {
+            (*p.traceStream)
+                << to_json_eval(EntryLexer{EntryLexer::PreToken{
+                       .tokenRegex = pattern,
+                       .yamlLine   = line,
+                       .indent     = p.indentation,
+                       .view       = viewStruct(this),
+                   }})
+                << std::endl;
+        } else {
+            (*p.traceStream) << std::format(
+                "{}>  {:0>4}]   {} {}",
+                get_print_indent(),
+                line,
+                escape_for_write(pattern),
+                view(this)) << std::endl;
+        }
     }
 }
 
@@ -221,8 +241,17 @@ std::pair<const char*, size_t> OrgLexerImpl::get_capture(
 
 void OrgLexerImpl::unknown() {
     if (p.traceStream) {
-        (*p.traceStream) << get_print_indent() << "  X unknown "
-                         << view(this) << std::endl;
+        if (p.traceStructured) {
+            (*p.traceStream)
+                << to_json_eval(EntryLexer{EntryLexer::Unknown{
+                       .indent = p.indentation,
+                       .view   = viewStruct(this),
+                   }})
+                << std::endl;
+        } else {
+            (*p.traceStream) << get_print_indent() << "  X unknown "
+                             << view(this) << std::endl;
+        }
     } else {
         LOG(ERROR) << "Unknown " << view(this);
     }
