@@ -298,14 +298,6 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     using SemCbMap   = UnorderedMap<OrgSemKind, PyFunc>;
     using FieldCbMap = UnorderedMap<LeafFieldType, PyFunc>;
 
-    Opt<OperationsTracer> exportTracer;
-
-    ColStream                traceStream;
-    std::string              traceBuffer;
-    SPtr<PythonStreamDevice> pyStreamDevice;
-    SPtr<IoContext>          writeStreamContext;
-
-    [[refl]] void        enablePyStreamTrace(py::object stream);
     [[refl]] void        enableBufferTrace();
     [[refl]] std::string getTraceBuffer() const;
     [[refl]] void enableFileTrace(std::string const& path, bool colored);

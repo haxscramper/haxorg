@@ -178,6 +178,48 @@ struct EntryLexer {
 };
 
 
+struct EntryExport {
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        VisitField,
+        VisitSubnode,
+        NewRes,
+        VisitToEval,
+        VisitValue,
+        VisitDispatchHook,
+        VisitStart,
+        VisitEnd,
+        VisitDispatch,
+        VisitSpecificKind,
+        PushVisit,
+        PopVisit,
+        VisitGeneric,
+        VisitTop,
+        VisitVariant);
+
+    Kind             kind;
+    Opt<Str>         visitedKind = std::nullopt;
+    int              level       = 0;
+    int              codeLine    = 0;
+    Opt<std::string> visitField;
+    std::string      codeFunction;
+    bool             isStart = true;
+    std::string      visitType;
+    std::string      msg;
+
+    DESC_FIELDS(
+        EntryExport,
+        (kind,
+         visitedKind,
+         level,
+         codeLine,
+         visitField,
+         codeFunction,
+         isStart,
+         visitType,
+         msg));
+};
+
 } // namespace org::report
 
 template <>

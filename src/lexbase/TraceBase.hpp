@@ -4,10 +4,13 @@
 #include <hstd/stdlib/ColText.hpp>
 
 struct OperationsTracer {
-    bool TraceState      = false;
-    bool traceToFile     = false;
-    bool traceToBuffer   = false;
-    bool traceStructured = false;
+    bool        TraceState      = false;
+    bool        traceToFile     = false;
+    bool        traceToBuffer   = false;
+    bool        traceStructured = false;
+    bool        traceColored    = true;
+    std::string traceBuffer;
+
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
