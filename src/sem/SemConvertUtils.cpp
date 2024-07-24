@@ -1,5 +1,6 @@
 #include <sem/SemConvert.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <lexbase/TraceStructured.hpp>
 
 
 using namespace sem;
@@ -67,7 +68,6 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
     if (traceUpdateHook) { traceUpdateHook(in, TraceState, true); }
     if (!TraceState) {
         if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
-
         return;
     }
 
@@ -89,54 +89,90 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
     }
 
     ColStream os = getStream();
-    os << repeat("  ", depth);
-
-
-    switch (in.kind) {
-        case ReportKind::EnterField: {
-            os << "{ " << fmt1(in.field.value()) << fmt(" @{}", in.line)
-               << " " << getLoc();
-            if (in.msg) { os << " " << *in.msg; }
-            break;
+    if (traceStructured) {
+        using namespace org::report;
+        EntrySem res;
+        res.indent = depth;
+#define __kind(K)                                                         \
+    case ReportKind::K: {                                                 \
+        res.kind = EntrySem::Kind::K;                                     \
+        break;                                                            \
+    }
+        switch (in.kind) {
+            __kind(EnterField);
+            __kind(LeaveField);
+            __kind(Leave);
+            __kind(Print);
+            __kind(Enter);
+            __kind(Json);
         }
 
-        case ReportKind::LeaveField: {
-            os << "} " << fmt1(in.field.value()) << " " << getLoc();
-            break;
+        if (in.node && !in.node->isNil()) {
+            ValueOrgNode node;
+            node.kind = fmt1(in.node->kind());
+            node.id   = fmt1(in.node->id);
+            if (in.node->isTerminal()) {
+                node.value = in.node->val().text;
+            }
+            res.node = node;
         }
 
-        case ReportKind::Json: {
-            break;
-        }
+        if (in.msg) { res.message = in.msg; }
+        if (in.function) { res.codeFunction = in.function; }
+        if (in.line) { res.codeLine = in.line; }
 
-        case ReportKind::Enter: {
-            os << "> " << (in.function ? in.function : "")
-               << fmt(" @{}", in.line);
-            if (in.node.has_value() && in.node->isValid()) {
-                os << " " << fmt1(in.node->kind())
-                   << " ID:" << fmt1(in.node->id.getUnmasked());
+        os << to_json_eval(res).dump();
+    } else {
+        os << repeat("  ", depth);
+
+
+        switch (in.kind) {
+            case ReportKind::EnterField: {
+                os << "{ " << fmt1(in.field.value())
+                   << fmt(" @{}", in.line) << " " << getLoc();
+                if (in.msg) { os << " " << *in.msg; }
+                break;
             }
 
-            os << " " << getLoc();
-            if (in.msg) { os << " " << *in.msg; }
-            if (in.node.has_value() && in.node->isValid()
-                && in.node->get().isTerminal()) {
-                os << " " << escape_literal(in.node->val().text);
+            case ReportKind::LeaveField: {
+                os << "} " << fmt1(in.field.value()) << " " << getLoc();
+                break;
             }
-            break;
-        }
-        case ReportKind::Leave: {
-            os << "< " << (in.function ? in.function : "") << " "
-               << getLoc();
-            break;
-        }
 
-        case ReportKind::Print: {
-            os << "  " << (in.function ? in.function : "")
-               << fmt(" @{}", in.line);
-            if (in.msg) { os << " " << *in.msg; }
+            case ReportKind::Json: {
+                break;
+            }
+
+            case ReportKind::Enter: {
+                os << "> " << (in.function ? in.function : "")
+                   << fmt(" @{}", in.line);
+                if (in.node.has_value() && in.node->isValid()) {
+                    os << " " << fmt1(in.node->kind())
+                       << " ID:" << fmt1(in.node->id.getUnmasked());
+                }
+
+                os << " " << getLoc();
+                if (in.msg) { os << " " << *in.msg; }
+                if (in.node.has_value() && in.node->isValid()
+                    && in.node->get().isTerminal()) {
+                    os << " " << escape_literal(in.node->val().text);
+                }
+                break;
+            }
+            case ReportKind::Leave: {
+                os << "< " << (in.function ? in.function : "") << " "
+                   << getLoc();
+                break;
+            }
+
+            case ReportKind::Print: {
+                os << "  " << (in.function ? in.function : "")
+                   << fmt(" @{}", in.line);
+                if (in.msg) { os << " " << *in.msg; }
+            }
         }
     }
+
 
     endStream(os);
 

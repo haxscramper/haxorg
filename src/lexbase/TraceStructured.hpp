@@ -23,9 +23,10 @@ struct ValueLexPosition {
 };
 
 struct ValueOrgNode {
-    Str id;
-    Str kind;
-    DESC_FIELDS(ValueOrgNode, (id, kind));
+    Str      id;
+    Str      kind;
+    Opt<Str> value;
+    DESC_FIELDS(ValueOrgNode, (id, kind, value));
 };
 
 struct EntryParser {
@@ -53,6 +54,28 @@ struct EntryParser {
     DESC_FIELDS(
         EntryParser,
         (node, depth, kind, lex, codeFunction, codeLine, message));
+};
+
+struct EntrySem {
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        Enter,
+        EnterField,
+        LeaveField,
+        Json,
+        Print,
+        Leave);
+
+    Kind              kind;
+    Opt<ValueOrgNode> node;
+    Opt<std::string>  field;
+    int               indent;
+    Opt<Str>          message;
+    Opt<Str>          codeFunction;
+    Opt<int>          codeLine;
+    DESC_FIELDS(
+        EntrySem,
+        (kind, node, field, indent, message, codeFunction, codeLine));
 };
 
 struct EntryTokenizer {
