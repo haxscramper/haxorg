@@ -46,12 +46,7 @@ void Exporter<V, R>::visitField(
     R&                   arg,
     const char*          name,
     sem::SemId<sem::Org> org) {
-    __visit_scope(
-        VisitEvent::Kind::VisitEnd,
-        .visitedNode  = org,
-        .field        = name,
-        .visitedValue = &arg);
-
+    auto __scope = __visit_field_scope(name);
     _this()->visit(arg, org);
 }
 
@@ -62,10 +57,7 @@ void Exporter<V, R>::visitSubnode(R& tmp, int, sem::SemId<sem::Org> val) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
-    __visit_scope(
-        VisitEvent::Kind::VisitDispatch,
-        .visitedValue = &res,
-        .visitedNode  = arg);
+    __visit_scope(VisitReport::Kind::VisitDispatch, arg);
 
     if (arg.isNil()) { return; }
 
@@ -90,8 +82,7 @@ void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
 
 template <typename V, typename R>
 R Exporter<V, R>::evalTop(sem::SemId<sem::Org> org) {
-    __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
-
+    auto __scope = __visit_scope(VisitReport::Kind::VisitTop, org);
     _this()->visitStart(org);
     R tmp = _this()->newRes(org);
     _this()->visit(tmp, org);

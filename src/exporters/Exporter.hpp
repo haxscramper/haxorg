@@ -35,6 +35,46 @@ struct ExporterEventBase : OperationsTracer {
         bool                      isStart = true;
         Opt<std::string>          type;
         bool                      instant = false;
+
+        VisitReport& with_loc(
+            int         line     = __builtin_LINE(),
+            char const* function = __builtin_FUNCTION()) {
+            this->line     = line;
+            this->function = function;
+            return *this;
+        }
+
+
+        template <typename T>
+        VisitReport& with_value(CR<T> value) {
+            this->type = typeid(value).name();
+            return *this;
+        }
+
+        VisitReport& with_level(int level) {
+            this->level = level;
+            return *this;
+        }
+
+        VisitReport& with_node(sem::SemId<sem::Org> node) {
+            this->visitedNode = node;
+            return *this;
+        }
+
+        VisitReport& with_field(std::string field) {
+            this->field = field;
+            return *this;
+        }
+
+        VisitReport& with_type(std::string type) {
+            this->type = type;
+            return *this;
+        }
+
+        VisitReport& with_msg(std::string msg) {
+            this->msg = msg;
+            return *this;
+        }
     };
 
     void report(CR<VisitReport> event);
@@ -62,10 +102,20 @@ struct ExporterEventBase : OperationsTracer {
         }
     };
 
-    VisitReport init_visit(
+    VisitScope trace_instant(VisitReport report) {
+        report.instant = true;
+        return VisitScope{this, report};
+    }
+
+    VisitScope trace_scope(VisitReport report) {
+        report.instant = false;
+        return VisitScope{this, report};
+    }
+
+    VisitReport trace(
         VisitReport::Kind kind,
-        int               line,
-        char const*       function) {
+        int               line     = __builtin_LINE(),
+        char const*       function = __builtin_FUNCTION()) {
         return VisitReport{
             OperationsMsg{
                 .line     = line,
@@ -73,76 +123,6 @@ struct ExporterEventBase : OperationsTracer {
             },
             .kind = kind,
         };
-    }
-
-    VisitScope __visit_scope(
-        VisitReport::Kind         kind,
-        Opt<sem::SemId<sem::Org>> tree     = std::nullopt,
-        int                       line     = __builtin_LINE(),
-        char const*               function = __builtin_FUNCTION()) {
-        auto event        = init_visit(kind, line, function);
-        event.visitedNode = tree;
-        return VisitScope{this, event};
-    }
-
-    VisitScope __visit_instant(
-        VisitReport::Kind kind,
-        int               line     = __builtin_LINE(),
-        char const*       function = __builtin_FUNCTION()) {
-        CHECK((IntSet<VisitReport::Kind>{
-            VisitReport::Kind::VisitStart,
-            VisitReport::Kind::VisitEnd,
-            VisitReport::Kind::PushVisit,
-            VisitReport::Kind::PopVisit,
-        }
-                   .contains(kind)))
-            << fmt1(kind);
-
-        auto event    = init_visit(kind, line, function);
-        event.instant = true;
-        return VisitScope{this, event};
-    }
-
-
-    VisitScope __visit_field_scope(
-        CR<Str>     name,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
-        auto event = init_visit(
-            VisitReport::Kind::VisitField, line, function);
-        event.field = name;
-        return VisitScope{this, event};
-    }
-
-
-    VisitScope __visit_eval_scope(
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
-        return VisitScope{
-            this,
-            init_visit(VisitReport::Kind::VisitToEval, line, function)};
-    }
-
-    VisitScope __visit_specific_kind(
-        sem::SemId<sem::Org> tree,
-        int                  line     = __builtin_LINE(),
-        char const*          function = __builtin_FUNCTION()) {
-        auto event = init_visit(
-            VisitReport::Kind::VisitSpecificKind, line, function);
-        event.visitedNode = tree;
-        return VisitScope{this, event};
-    }
-
-
-    template <typename T>
-    VisitScope __visit_value(
-        CR<T>       value,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
-        auto event = init_visit(
-            VisitReport::Kind::VisitValue, line, function);
-        event.type = typeid(value).name();
-        return VisitScope{this, event};
     }
 };
 
@@ -202,11 +182,12 @@ struct Exporter : ExporterEventBase {
     void visitDispatchHook(R&, sem::SemId<sem::Org>) {}
     /// \brief Start of the top-level visit, triggered in `visitTop`
     void visitStart(sem::SemId<sem::Org> node) {
-        __visit_instant(VisitReport::Kind::VisitStart, node);
+        trace_instant(
+            trace(VisitReport::Kind::VisitStart).with_node(node));
     }
     /// \brief End of the top-level visit, triggered in the `visitTop`
     void visitEnd(sem::SemId<sem::Org> node) {
-        __visit_instant(VisitReport::Kind::VisitEnd, node);
+        trace_instant(trace(VisitReport::Kind::VisitEnd).with_node(node));
     }
 
     /// \brief Main dispatch implementation for all sem types. Dispatch
@@ -228,11 +209,11 @@ struct Exporter : ExporterEventBase {
 
 
     void pushVisit(R& res, sem::SemId<sem::Org> arg) {
-        __visit_instant(VisitReport::Kind::PushVisit, arg);
+        trace_instant(trace(VisitReport::Kind::PushVisit).with_node(arg));
     }
 
     void popVisit(R& res, sem::SemId<sem::Org> arg) {
-        __visit_instant(VisitReport::Kind::PopVisit, arg);
+        trace_instant(trace(VisitReport::Kind::PopVisit).with_node(arg));
     }
 
     /// \brief Default implementation of the visitation function for sem
@@ -258,7 +239,9 @@ struct Exporter : ExporterEventBase {
 
     template <typename T>
     void visitFieldRedirect(R& res, char const* name, T const& value) {
-        __visit_field_scope(res, name, value);
+        auto __scope = trace_scope(trace(VisitReport::Kind::VisitField)
+                                       .with_field(name)
+                                       .with_type(value));
         _this()->visitField(res, name, value);
     }
 

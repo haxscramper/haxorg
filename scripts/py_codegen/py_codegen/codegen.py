@@ -10,6 +10,7 @@ from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_scriptutils.script_logging import log
 import py_codegen.astbuilder_proto as pb
+from py_scriptutils.algorithm import cond
 from py_codegen.astbuilder_pybind11 import (
     Py11Method,
     Py11Module,
@@ -26,6 +27,7 @@ from py_codegen.astbuilder_pybind11 import (
 )
 
 CAT = "codegen"
+
 
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
@@ -103,8 +105,15 @@ def get_exporter_methods(forward: bool,
                                 "In", Parameters=[QualType.ForName(f"sem::{name}")]),
                             "object"),
                     ],
-                    impl=None if forward else "__visit_specific_kind(res, object);\n%s" %
-                    "\n".join([f"__org_field(res, object, {a.name});" for a in fields]),
+                    impl=cond(
+                        forward,
+                        None,
+                        "auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));\n{}".
+                        format(
+                            "\n".join([
+                                f"__org_field(res, object, {a.name});" for a in fields
+                            ]),),
+                    ),
                 )
             else:
                 method = GenTuFunction(
@@ -583,13 +592,12 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
                     if T.name not in ["IntSet"]:
                         stdvec_t = QualType.ForName(std_type,
-                                                Spaces=[QualType.ForName("std")],
-                                                Parameters=T.Parameters)
+                                                    Spaces=[QualType.ForName("std")],
+                                                    Parameters=T.Parameters)
 
                         opaque_declarations.append(
                             ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
-                        
-                        
+
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
 

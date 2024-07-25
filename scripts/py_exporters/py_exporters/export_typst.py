@@ -16,6 +16,7 @@ import copy
 from py_scriptutils import algorithm
 import toml
 from py_scriptutils import toml_config_profiler
+from py_scriptutils.algorithm import cond, maybe_splice
 
 CAT = "typst"
 
@@ -31,58 +32,6 @@ typst_typ = this_dir.joinpath("export_typst_base.typ")
 
 assert typst_toml.exists(), typst_toml
 assert typst_typ.exists(), typst_typ
-
-
-def cond(expr, ifTrue=None, ifFalse=None):
-    """
-    Alternative for inline if expression for simpler syntax and better formatting. Also supports 
-    multiple conditions, similar to the `cond` and `pcond` macro from lisp. Note: will evaluate
-    all arguments irrespective of the truth value, so use it only in case where compute cost is
-    small and there are no side effects. 
-
-    If the `expr` is not a list or a tuple other type -- based on the value of `expr`, return the `ifTrue` or `ifFalse. 
-
-    ```
-    value = cond(expr, "true", "false")
-    ```
-
-    If the `expr` is a list is a list or a tuple return the first item where the expression is true. If no elements
-    have true values, will return `None`. To get a default branch, use `True` as an expression. 
-
-    ```
-    value = cond([
-        (expr1, value1),
-        (expr2, value2),
-        (True, default)
-    ])
-    ```
-
-    """
-    if isinstance(expr, (list, tuple)):
-        for key, value in expr:
-            if key:
-                return value
-
-    else:
-        if expr:
-            return ifTrue
-
-        else:
-            return ifFalse
-
-
-def maybe_splice(expr, item):
-    """
-    Return `[item]` if the expression evaluates to true, otherwise return an empty list. 
-    
-    Use this for splicing optional values into the list `[it1, *maybe_splice(cond, it2)]` --
-    depending on the `cond` value, the resulting list might have one or two elements. 
-    """
-    if expr:
-        return [item]
-
-    else:
-        return []
 
 
 @beartype

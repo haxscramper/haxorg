@@ -1,5 +1,3 @@
-# mypy: disable-error-code=no-redef
-
 from typing import *
 from enum import Enum
 from datetime import datetime, date, time
