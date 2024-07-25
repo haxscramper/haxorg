@@ -241,7 +241,7 @@ struct Exporter : ExporterEventBase {
     void visitFieldRedirect(R& res, char const* name, T const& value) {
         auto __scope = trace_scope(trace(VisitReport::Kind::VisitField)
                                        .with_field(name)
-                                       .with_type(value));
+                                       .with_value(value));
         _this()->visitField(res, name, value);
     }
 

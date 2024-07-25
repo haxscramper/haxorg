@@ -68,7 +68,8 @@ void ExporterPython::enableFileTrace(
 }
 
 void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
-    auto __trace = __visit_scope(VisitReport::Kind::VisitDispatch, arg);
+    auto __scope = trace_scope(
+        trace(VisitReport::Kind::VisitDispatch).with_node(arg));
 
     if (arg.isNil()) { return; }
 
@@ -110,7 +111,9 @@ void ExporterPython::visitField(
 }
 
 ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
-    auto __scope = __visit_scope(VisitReport::Kind::VisitTop, org);
+    auto __scope = trace_scope(
+        trace(VisitReport::Kind::VisitTop).with_node(org));
+
     if (evalTopCb) {
         return evalTopCb->operator()(_self, org);
     } else {

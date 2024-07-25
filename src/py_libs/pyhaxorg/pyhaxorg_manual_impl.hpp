@@ -574,7 +574,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     template <sem::NotOrg T>
     void visitOrgField(Res& res, const char* name, T const& value) {
         auto ev = trace(VisitReport::Kind::VisitField)
-                      .with_type(value)
+                      .with_value(value)
                       .with_field(name);
 
         LeafFieldType kind = LeafKindForT<T>::value;

@@ -4070,9 +4070,6 @@ and a segment kind.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("enablePyStreamTrace",
-         static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::enablePyStreamTrace),
-         pybind11::arg("stream"))
     .def("enableBufferTrace", static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
     .def("getTraceBuffer", static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
