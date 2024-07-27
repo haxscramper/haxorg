@@ -19,6 +19,12 @@ typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::failTree(
 }
 
 template <typename N, typename K, typename V>
+void NodeGroup<N, K, V>::removeTail(Id id) {
+    nodes.content.erase(
+        nodes.content.begin() + id.getIndex(), nodes.content.end());
+}
+
+template <typename N, typename K, typename V>
 typename NodeGroup<N, K, V>::iterator NodeGroup<N, K, V>::begin(
     NodeGroup<N, K, V>::Id start) const {
     if (start.getIndex() < size()) {

@@ -1136,7 +1136,7 @@ Str normalize(CR<Str> in) {
     Str res;
     for (char c : in) {
         if (!(c == '_' || c == '-')) {
-            if (islower(c)) {
+            if (islower(c) || isdigit(c)) {
                 res += c;
             } else if (isupper(c)) {
                 res += tolower(c);
@@ -1240,4 +1240,12 @@ std::vector<std::string> rune_chunks(const std::string& str) {
         i += len;
     }
     return runes;
+}
+
+Str lstrip(CR<Str> string, CR<CharSet> chars) {
+    return strip(string, chars, {});
+}
+
+Str rstrip(CR<Str> string, CR<CharSet> chars) {
+    return strip(string, {}, chars);
 }

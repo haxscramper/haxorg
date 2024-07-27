@@ -96,6 +96,23 @@ OrgId OrgParser::end(int line, const char* function) {
     return res;
 }
 
+void OrgParser::fail(
+    CR<OrgLexer> lex,
+    CR<OrgNode>  replace,
+    int          line,
+    const char*  function) {
+    CHECK(0 <= group->treeDepth());
+    auto res = group->failTree(replace);
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::FailTree, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+}
+
+
 OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
     auto res = group->token(
         kind, group->tokens->add(OrgToken(OrgTokenKind::Unknown)));
@@ -108,6 +125,7 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
     }
     return res;
 }
+
 
 OrgId OrgParser::token(CR<OrgNode> node, int line, const char* function) {
     auto res = group->token(node);
@@ -159,7 +177,7 @@ void OrgParser::expect(
                     .report);
         }
 
-        fatalError(lex, msg, line, function);
+        throw fatalError(lex, msg, line, function);
     }
 }
 
@@ -170,7 +188,7 @@ OrgTokenId OrgParser::pop(
     char const*        function) {
     if (tok) { expect(lex, *tok, line, function); }
     if (TraceState) {
-        print(fmt("pop {}", lex.tok()), line, function, &lex);
+        print(fmt("pop {}", lex.tok()), &lex, line, function);
     }
     return lex.pop();
 }
@@ -185,7 +203,7 @@ void OrgParser::skip(
     if (item) { expect(lex, *item, line, function); }
 
     if (TraceState) {
-        print(fmt("skip {}", lex.tok()), line, function, &lex);
+        print(fmt("skip {}", lex.tok()), &lex, line, function);
     }
 
     lex.next();
@@ -220,9 +238,9 @@ finally OrgParser::trace(
 
 void OrgParser::print(
     const std::string& msg,
+    OrgLexer*          lexer,
     int                line,
-    const char*        function,
-    OrgLexer*          lexer) {
+    const char*        function) {
     if (TraceState) {
         auto build = Builder(
                          OrgParser::ReportKind::Print,

@@ -14,8 +14,7 @@ void ExporterTree::visitField(
 
     __scope();
     indent();
-    os << name << ":"
-       << "\n";
+    os << name << ":" << "\n";
     Base::visitField(arg, name, org);
 }
 
@@ -23,8 +22,17 @@ void ExporterTree::visitField(
     int&                       i,
     const char*                name,
     CVec<sem::SemId<sem::Org>> org) {
-    if (skipAsEmpty(org)) { return; }
-    if (skipAsTooNested()) { return; }
+    if (skipAsEmpty(org)) {
+        writeSkip("empty");
+        return;
+    }
+    if (skipAsTooNested()) {
+        writeSkip(
+            fmt("too nested stack:{} max:{}",
+                stack.size(),
+                conf.maxTreeDepth));
+        return;
+    }
 
     __scope();
     indent();
@@ -93,16 +101,35 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
     os << "\n";
 }
 
+bool ExporterTree::skipAsTooNested() const {
+    return conf.maxTreeDepth < stack.size();
+}
+
+void ExporterTree::writeSkip(
+    CR<Str>     message,
+    CR<Str>     trail,
+    int         line,
+    const char* function) {
+    // indent();
+    // os << fmt("{} in {}:{}{}", message, function, line, trail);
+}
+
+
 template <typename T>
 void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
-    if (skipAsEmpty(value)) { return; }
+    if (skipAsEmpty(value)) {
+        writeSkip(fmt("  empty field {}", name), "\n");
+        return;
+    }
     // Location is printed as a part of 'init'
     if (std::is_same_v<T, Opt<LineCol>>) { return; }
 
     __scope();
     indent();
-    os << name << " (" << os.green() << TypeName<T>::get() << os.end()
-       << ")";
+    os << name << " ";
+    if (conf.withTypeAnnotations) {
+        os << "(" << os.green() << TypeName<T>::get() << os.end() << ")";
+    }
     if constexpr (std::is_same_v<T, int>) {
         os << " = " << os.cyan() << fmt1(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, bool>) {
@@ -111,6 +138,9 @@ void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
         os << " = " << os.green() << fmt1(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
         os << " = " << os.yellow() << escape_literal(value) << os.end()
+           << "\n";
+    } else if constexpr (std::is_same_v<T, UserTime>) {
+        os << " = " << fmt("align:{} time:{}", value.align, value.format())
            << "\n";
     } else {
         os << "\n";
@@ -128,22 +158,33 @@ void ExporterTree::visitField(
 
 template <typename T>
 void ExporterTree::visit(int& arg, sem::SemId<T> org) {
-    if (skipAsTooNested()) { return; }
+    if (skipAsTooNested()) {
+        writeSkip("too nested");
+        return;
+    }
     visit(arg, org.asOrg());
 }
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<T> opt) {
-    if (skipAsTooNested()) { return; }
+    if (skipAsTooNested()) {
+        writeSkip("too nested");
+        return;
+    }
     __scope();
     indent();
     if constexpr (std::is_enum<T>::value) {
         os << os.red() << std::format("{}", opt) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
-        os << TypeName<T>::get() << os.yellow() << " "
-           << escape_literal(opt) << os.end() << "\n";
+        if (conf.withTypeAnnotations) { os << TypeName<T>::get(); }
+
+        os << os.yellow() << " " << escape_literal(opt) << os.end()
+           << "\n";
     } else {
-        os << os.red() << TypeName<T>::get() << os.end() << "\n";
+        if (conf.withTypeAnnotations) {
+            os << os.red() << TypeName<T>::get() << os.end();
+        }
+        os << "\n";
     }
 }
 
@@ -159,7 +200,10 @@ void ExporterTree::visit(int& arg, CR<Opt<T>> opt) {
 
 template <typename T>
 void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
-    if (skipAsTooNested()) { return; }
+    if (skipAsTooNested()) {
+        writeSkip("too nested");
+        return;
+    }
     __scope();
     if (value.empty()) {
         indent();
@@ -172,5 +216,13 @@ void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
             visit(arg, it);
             ++idx;
         }
+    }
+}
+
+template <typename V>
+void ExporterTree::visit(int& arg, CR<UnorderedMap<Str, V>> opt) {
+    __scope();
+    for (auto const& [key, value] : opt) {
+        visitField(arg, key.c_str(), value);
     }
 }

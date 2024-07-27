@@ -75,6 +75,7 @@ struct LexerParams {
     int           visitedUnknown = 0;
     std::ostream* traceStream    = nullptr;
     int           indentation    = 0;
+    bool          traceStructured = false;
     Vec<Loc>      sub_locations;
 };
 
@@ -99,7 +100,6 @@ struct OrgLexerImpl {
     OrgTokenGroup* tokens;
     void           add(OrgTokenKind token);
     std::string    state_name(int name);
-    std::string    view();
     void           unknown();
 
     std::string get_print_indent() const;

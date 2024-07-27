@@ -8,21 +8,40 @@
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
-/// \brief Base class that should be used as the base for exporter
-/// implementations.
-///
-/// Exporter class implements a CRTP visitation pattern that allows you to
-/// implement custom visitation logic over the whole range of sem tree
-/// types *and* operate on a custom types. First and foremost it was
-/// designed in mind with exporters that build some tree-like structure
-/// (JSON, YAML via direct types, string document via text layouter
-/// library, some other IR for the final document). It is of course
-/// possible to implement exporter that mutates some internal state -- in
-/// this case \tparam R can be set to some dummy type such as `int` and
-/// freely passed around.
-template <typename V, typename R = std::monostate>
-struct Exporter {
-    struct VisitEvent {
+template <typename T>
+struct TypeName {
+    static Str get() {
+        return Str(demangle(typeid(T).name())).replaceAll("sem::", "");
+    }
+};
+
+
+template <typename T>
+struct TypeName<Opt<T>> {
+    static Str get() {
+        return Str("Opt<") + TypeName<T>::get() + Str(">");
+    }
+};
+
+template <typename K, typename V>
+struct TypeName<UnorderedMap<K, V>> {
+    static Str get() {
+        return "UnorderedMap<"_ss + TypeName<K>::get() + ", "_ss
+             + TypeName<V>::get() + ">"_ss;
+    }
+};
+
+template <typename... Args>
+struct TypeName<Variant<Args...>> {
+    static Str get() {
+        return "Variant<"_ss
+             + Str(join(", ", Vec<Str>{TypeName<Args>::get()...}))
+             + ">"_ss;
+    }
+};
+
+struct ExporterEventBase : OperationsTracer {
+    struct VisitReport : OperationsMsg {
         DECL_DESCRIBED_ENUM(
             Kind,
             VisitField,
@@ -42,90 +61,122 @@ struct Exporter {
             VisitVariant);
 
         Kind                      kind;
-        Opt<sem::SemId<sem::Org>> visitedNode  = std::nullopt;
-        R*                        visitedValue = nullptr;
-        int                       level        = 0;
-        std::string               file;
-        int                       line = 0;
-        std::string               field;
-        std::string               function;
+        Opt<sem::SemId<sem::Org>> node  = std::nullopt;
+        int                       level = 0;
+        Opt<std::string>          field;
         bool                      isStart = true;
-        std::string               type;
-        std::string               msg;
+        Opt<std::string>          type;
+        bool                      instant = false;
+
+        VisitReport& with_loc(
+            int         line     = __builtin_LINE(),
+            char const* function = __builtin_FUNCTION()) {
+            this->line     = line;
+            this->function = function;
+            return *this;
+        }
+
+
+        template <typename T>
+        VisitReport& with_value(CR<T> value) {
+            this->type = TypeName<T>::get();
+            return *this;
+        }
+
+        VisitReport& with_level(int level) {
+            this->level = level;
+            return *this;
+        }
+
+        VisitReport& with_node(sem::SemId<sem::Org> node) {
+            this->node = node;
+            return *this;
+        }
+
+        VisitReport& with_field(std::string field) {
+            this->field = field;
+            return *this;
+        }
+
+        VisitReport& with_type(std::string type) {
+            this->type = type;
+            return *this;
+        }
+
+        VisitReport& with_msg(std::string msg) {
+            this->msg = msg;
+            return *this;
+        }
     };
 
-    using VisitEventCb = Func<void(VisitEvent const&)>;
-    int visitDepth     = 0;
+    void report(CR<VisitReport> event);
 
-    VisitEventCb visitEventCb;
-
-    void visitEvent(VisitEvent const& ev) {
-        if (visitEventCb) { visitEventCb(ev); }
-    }
-
-    static void writeEvent(OperationsTracer& ot, VisitEvent const& ev) {
-        auto os = ot.getStream();
-        os << os.indent(ev.level * 2) << std::format("{}", ev.kind)
-           << ev.function << os.end();
-        using K = typename VisitEvent::Kind;
-    }
-
-    static VisitEventCb getDefaultVisitEvent(OperationsTracer& trace) {
-        return [&](VisitEvent const& ev) { writeEvent(trace, ev); };
-    }
+    int visitDepth = 0;
 
     struct VisitScope {
-        Exporter<V, R>* exp;
-        VisitEvent      event;
-        VisitScope(Exporter<V, R>* exporter, VisitEvent event)
+        ExporterEventBase* exp;
+        VisitReport        event;
+        VisitScope(ExporterEventBase* exporter, VisitReport event)
             : exp(exporter), event(event) {
-            event.level   = exp->visitDepth;
-            event.isStart = true;
-            exp->visitEvent(event);
-            ++exp->visitDepth;
+            if (exp->TraceState) {
+                event.level   = exp->visitDepth;
+                event.isStart = true;
+                exp->report(event);
+                ++exp->visitDepth;
+            }
         }
 
         ~VisitScope() {
-            --exp->visitDepth;
-            event.level   = exp->visitDepth;
-            event.isStart = false;
-            exp->visitEvent(event);
+            if (exp->TraceState) {
+                --exp->visitDepth;
+                if (event.instant) {
+                    event.level   = exp->visitDepth;
+                    event.isStart = false;
+                    exp->report(event);
+                }
+            }
         }
     };
 
-#define __visit_scope(VisitKind, ...)                                     \
-    VisitScope CONCAT(visit_scope, __COUNTER__)(                          \
-        this,                                                             \
-        VisitEvent{                                                       \
-            .kind     = VisitKind,                                        \
-            .function = __PRETTY_FUNCTION__,                              \
-            .line     = __LINE__,                                         \
-            .file     = __FILE__,                                         \
-            __VA_ARGS__});
+    VisitScope trace_instant(VisitReport report) {
+        report.instant = true;
+        return VisitScope{this, report};
+    }
 
-#define __visit_field_scope(res, name, value)                             \
-    __visit_scope(                                                        \
-        VisitEvent::Kind::VisitField,                                     \
-        .field        = name,                                             \
-        .visitedValue = &res,                                             \
-        .type         = typeid(value).name());
+    VisitScope trace_scope(VisitReport report) {
+        report.instant = false;
+        return VisitScope{this, report};
+    }
 
-#define __visit_eval_scope(value)                                         \
-    __visit_scope(                                                        \
-        VisitEvent::Kind::VisitToEval, .type = typeid(value).name());
+    VisitReport trace(
+        VisitReport::Kind kind,
+        int               line     = __builtin_LINE(),
+        char const*       function = __builtin_FUNCTION()) {
+        return VisitReport{
+            OperationsMsg{
+                .line     = line,
+                .function = function,
+            },
+            .kind = kind,
+        };
+    }
+};
 
-#define __visit_specific_kind(res, tree)                                  \
-    __visit_scope(                                                        \
-        VisitEvent::Kind::VisitSpecificKind,                              \
-        .visitedValue = &res,                                             \
-        .visitedNode  = tree);
+/// \brief Base class that should be used as the base for exporter
+/// implementations.
+///
+/// Exporter class implements a CRTP visitation pattern that allows you to
+/// implement custom visitation logic over the whole range of sem tree
+/// types *and* operate on a custom types. First and foremost it was
+/// designed in mind with exporters that build some tree-like structure
+/// (JSON, YAML via direct types, string document via text layouter
+/// library, some other IR for the final document). It is of course
+/// possible to implement exporter that mutates some internal state -- in
+/// this case \tparam R can be set to some dummy type such as `int` and
+/// freely passed around.
+template <typename V, typename R = std::monostate>
+struct Exporter : ExporterEventBase {
 
-
-#define __visit_value(res, value)                                         \
-    __visit_scope(                                                        \
-        VisitEvent::Kind::VisitValue,                                     \
-        .visitedValue = &res,                                             \
-        .type         = typeid(value).name());
 
 #define __EXPORTER_USING_DEFINE(__Kind)                                   \
     using __ExporterBase::visit##__Kind;
@@ -167,11 +218,12 @@ struct Exporter {
     void visitDispatchHook(R&, sem::SemId<sem::Org>) {}
     /// \brief Start of the top-level visit, triggered in `visitTop`
     void visitStart(sem::SemId<sem::Org> node) {
-        __visit_scope(VisitEvent::Kind::VisitStart, .visitedNode = node);
+        trace_instant(
+            trace(VisitReport::Kind::VisitStart).with_node(node));
     }
     /// \brief End of the top-level visit, triggered in the `visitTop`
     void visitEnd(sem::SemId<sem::Org> node) {
-        __visit_scope(VisitEvent::Kind::VisitEnd, .visitedNode = node);
+        trace_instant(trace(VisitReport::Kind::VisitEnd).with_node(node));
     }
 
     /// \brief Main dispatch implementation for all sem types. Dispatch
@@ -193,17 +245,11 @@ struct Exporter {
 
 
     void pushVisit(R& res, sem::SemId<sem::Org> arg) {
-        __visit_scope(
-            VisitEvent::Kind::PushVisit,
-            .visitedValue = &res,
-            .visitedNode  = arg);
+        trace_instant(trace(VisitReport::Kind::PushVisit).with_node(arg));
     }
 
     void popVisit(R& res, sem::SemId<sem::Org> arg) {
-        __visit_scope(
-            VisitEvent::Kind::PopVisit,
-            .visitedValue = &res,
-            .visitedNode  = arg);
+        trace_instant(trace(VisitReport::Kind::PopVisit).with_node(arg));
     }
 
     /// \brief Default implementation of the visitation function for sem
@@ -229,7 +275,9 @@ struct Exporter {
 
     template <typename T>
     void visitFieldRedirect(R& res, char const* name, T const& value) {
-        __visit_field_scope(res, name, value);
+        auto __scope = trace_scope(trace(VisitReport::Kind::VisitField)
+                                       .with_field(name)
+                                       .with_value(value));
         _this()->visitField(res, name, value);
     }
 

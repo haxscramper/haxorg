@@ -1,7 +1,7 @@
 * Subtree
 
 * [2024-01-01] Date
-* [2023-02-12]--[2023-02-12] Time range
+* [2023-02-12]--[2023-02-12] Time range :tag:tag##sub:
 
 /Italic/
 
@@ -25,7 +25,7 @@ _Underline_
 
 <placeholder>
 
-BIGIDENT
+BIG_IDENT
 
 Punctuation , .
 
@@ -63,3 +63,28 @@ example
 
 - Item
 - Second Item
+
+
+
+
+- key :: Value
+- key :: Value
+
+
+#+attr_list: :export nil
+- =some_property= :: Must skip list on export
+
+Text
+
+- =some_property= :: Value
+
+NOTE: Annotated paragraph
+
+[2024-02-12] Timestamp paragraph
+
+paragraph [fn:1]
+
+[fn:1] footnote par
+
+#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:attach_text.txt]]

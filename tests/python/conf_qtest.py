@@ -52,6 +52,7 @@ def parse_qt_tests(binary_path: str,
     print(binary_path, file=dbg)
     print("3", file=dbg)
 
+    cmd = cmd.with_env(LD_PRELOAD="") # see [[file:conf_qtest.py::<<empty_ld_preload>>]]
     code, stdout, stderr = cmd.run(["-functions"])
     print(binary_path, file=dbg)
     print(stdout, file=dbg)

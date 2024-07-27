@@ -80,6 +80,7 @@ struct [[refl]] OrgTreeExportOpts {
     [[refl]] bool skipEmptyFields = true;
     [[refl]] int  startLevel      = 0;
     [[refl]] bool withColor       = true;
+    [[refl]] int  maxDepth        = 40;
 
     BOOST_DESCRIBE_CLASS(
         OrgTreeExportOpts,
@@ -89,7 +90,8 @@ struct [[refl]] OrgTreeExportOpts {
          withSubnodeIdx,
          skipEmptyFields,
          startLevel,
-         withColor),
+         withColor,
+         maxDepth),
         (),
         ());
 };

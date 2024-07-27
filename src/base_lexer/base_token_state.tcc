@@ -43,39 +43,55 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::BraceEnd: return "BraceEnd";
         case OrgTokenKind::Checkbox: return "Checkbox";
         case OrgTokenKind::Circumflex: return "Circumflex";
-        case OrgTokenKind::CmdAdmonitionBegin: return "CmdAdmonitionBegin";
         case OrgTokenKind::CmdAdmonitionEnd: return "CmdAdmonitionEnd";
         case OrgTokenKind::CmdAttr: return "CmdAttr";
         case OrgTokenKind::CmdAuthor: return "CmdAuthor";
+        case OrgTokenKind::CmdBindRaw: return "CmdBindRaw";
         case OrgTokenKind::CmdCall: return "CmdCall";
         case OrgTokenKind::CmdCaption: return "CmdCaption";
+        case OrgTokenKind::CmdCategoryRaw: return "CmdCategoryRaw";
+        case OrgTokenKind::CmdCell: return "CmdCell";
+        case OrgTokenKind::CmdCellBegin: return "CmdCellBegin";
+        case OrgTokenKind::CmdCellEnd: return "CmdCellEnd";
         case OrgTokenKind::CmdCenterBegin: return "CmdCenterBegin";
         case OrgTokenKind::CmdCenterEnd: return "CmdCenterEnd";
         case OrgTokenKind::CmdColonIdent: return "CmdColonIdent";
         case OrgTokenKind::CmdColumns: return "CmdColumns";
         case OrgTokenKind::CmdCommentBegin: return "CmdCommentBegin";
         case OrgTokenKind::CmdCommentEnd: return "CmdCommentEnd";
+        case OrgTokenKind::CmdConstants: return "CmdConstants";
         case OrgTokenKind::CmdContentBegin: return "CmdContentBegin";
         case OrgTokenKind::CmdContentEnd: return "CmdContentEnd";
         case OrgTokenKind::CmdCreator: return "CmdCreator";
+        case OrgTokenKind::CmdCustomRaw: return "CmdCustomRaw";
+        case OrgTokenKind::CmdDateRaw: return "CmdDateRaw";
+        case OrgTokenKind::CmdDescription: return "CmdDescription";
+        case OrgTokenKind::CmdDrawersRaw: return "CmdDrawersRaw";
+        case OrgTokenKind::CmdEmailRaw: return "CmdEmailRaw";
         case OrgTokenKind::CmdExampleBegin: return "CmdExampleBegin";
         case OrgTokenKind::CmdExampleEnd: return "CmdExampleEnd";
         case OrgTokenKind::CmdExampleLine: return "CmdExampleLine";
+        case OrgTokenKind::CmdExcludeTagsRaw: return "CmdExcludeTagsRaw";
         case OrgTokenKind::CmdExportBegin: return "CmdExportBegin";
         case OrgTokenKind::CmdExportEnd: return "CmdExportEnd";
         case OrgTokenKind::CmdExportLine: return "CmdExportLine";
         case OrgTokenKind::CmdFiletags: return "CmdFiletags";
         case OrgTokenKind::CmdFlag: return "CmdFlag";
         case OrgTokenKind::CmdHeader: return "CmdHeader";
+        case OrgTokenKind::CmdHtmlHeadRaw: return "CmdHtmlHeadRaw";
         case OrgTokenKind::CmdInclude: return "CmdInclude";
         case OrgTokenKind::CmdLanguage: return "CmdLanguage";
         case OrgTokenKind::CmdLatexClass: return "CmdLatexClass";
         case OrgTokenKind::CmdLatexClassOptions: return "CmdLatexClassOptions";
         case OrgTokenKind::CmdLatexCompiler: return "CmdLatexCompiler";
         case OrgTokenKind::CmdLatexHeader: return "CmdLatexHeader";
+        case OrgTokenKind::CmdLatexHeaderExtraRaw: return "CmdLatexHeaderExtraRaw";
+        case OrgTokenKind::CmdLinkRaw: return "CmdLinkRaw";
+        case OrgTokenKind::CmdMacroRaw: return "CmdMacroRaw";
         case OrgTokenKind::CmdName: return "CmdName";
         case OrgTokenKind::CmdOptions: return "CmdOptions";
         case OrgTokenKind::CmdPrefix: return "CmdPrefix";
+        case OrgTokenKind::CmdPrioritiesRaw: return "CmdPrioritiesRaw";
         case OrgTokenKind::CmdPropertyArgs: return "CmdPropertyArgs";
         case OrgTokenKind::CmdPropertyRaw: return "CmdPropertyRaw";
         case OrgTokenKind::CmdPropertyText: return "CmdPropertyText";
@@ -83,9 +99,18 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdQuoteEnd: return "CmdQuoteEnd";
         case OrgTokenKind::CmdRawArg: return "CmdRawArg";
         case OrgTokenKind::CmdResults: return "CmdResults";
+        case OrgTokenKind::CmdRow: return "CmdRow";
+        case OrgTokenKind::CmdRowBegin: return "CmdRowBegin";
+        case OrgTokenKind::CmdRowEnd: return "CmdRowEnd";
+        case OrgTokenKind::CmdSelectTagsRaw: return "CmdSelectTagsRaw";
+        case OrgTokenKind::CmdSeqTodoRaw: return "CmdSeqTodoRaw";
+        case OrgTokenKind::CmdSetupfileRaw: return "CmdSetupfileRaw";
         case OrgTokenKind::CmdSrcBegin: return "CmdSrcBegin";
         case OrgTokenKind::CmdSrcEnd: return "CmdSrcEnd";
         case OrgTokenKind::CmdStartup: return "CmdStartup";
+        case OrgTokenKind::CmdTableBegin: return "CmdTableBegin";
+        case OrgTokenKind::CmdTableEnd: return "CmdTableEnd";
+        case OrgTokenKind::CmdTagsRaw: return "CmdTagsRaw";
         case OrgTokenKind::CmdTblfm: return "CmdTblfm";
         case OrgTokenKind::CmdTitle: return "CmdTitle";
         case OrgTokenKind::CmdVerseBegin: return "CmdVerseBegin";
@@ -141,6 +166,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::LinkEnd: return "LinkEnd";
         case OrgTokenKind::LinkFull: return "LinkFull";
         case OrgTokenKind::LinkProtocol: return "LinkProtocol";
+        case OrgTokenKind::LinkProtocolAttachment: return "LinkProtocolAttachment";
         case OrgTokenKind::LinkProtocolFile: return "LinkProtocolFile";
         case OrgTokenKind::LinkProtocolHttp: return "LinkProtocolHttp";
         case OrgTokenKind::LinkProtocolId: return "LinkProtocolId";
@@ -167,6 +193,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::ParEnd: return "ParEnd";
         case OrgTokenKind::Percent: return "Percent";
         case OrgTokenKind::Pipe: return "Pipe";
+        case OrgTokenKind::Placeholder: return "Placeholder";
         case OrgTokenKind::Plus: return "Plus";
         case OrgTokenKind::Punctuation: return "Punctuation";
         case OrgTokenKind::RawText: return "RawText";
@@ -227,39 +254,55 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "BraceEnd") { return OrgTokenKind::BraceEnd; } else
   if (value == "Checkbox") { return OrgTokenKind::Checkbox; } else
   if (value == "Circumflex") { return OrgTokenKind::Circumflex; } else
-  if (value == "CmdAdmonitionBegin") { return OrgTokenKind::CmdAdmonitionBegin; } else
   if (value == "CmdAdmonitionEnd") { return OrgTokenKind::CmdAdmonitionEnd; } else
   if (value == "CmdAttr") { return OrgTokenKind::CmdAttr; } else
   if (value == "CmdAuthor") { return OrgTokenKind::CmdAuthor; } else
+  if (value == "CmdBindRaw") { return OrgTokenKind::CmdBindRaw; } else
   if (value == "CmdCall") { return OrgTokenKind::CmdCall; } else
   if (value == "CmdCaption") { return OrgTokenKind::CmdCaption; } else
+  if (value == "CmdCategoryRaw") { return OrgTokenKind::CmdCategoryRaw; } else
+  if (value == "CmdCell") { return OrgTokenKind::CmdCell; } else
+  if (value == "CmdCellBegin") { return OrgTokenKind::CmdCellBegin; } else
+  if (value == "CmdCellEnd") { return OrgTokenKind::CmdCellEnd; } else
   if (value == "CmdCenterBegin") { return OrgTokenKind::CmdCenterBegin; } else
   if (value == "CmdCenterEnd") { return OrgTokenKind::CmdCenterEnd; } else
   if (value == "CmdColonIdent") { return OrgTokenKind::CmdColonIdent; } else
   if (value == "CmdColumns") { return OrgTokenKind::CmdColumns; } else
   if (value == "CmdCommentBegin") { return OrgTokenKind::CmdCommentBegin; } else
   if (value == "CmdCommentEnd") { return OrgTokenKind::CmdCommentEnd; } else
+  if (value == "CmdConstants") { return OrgTokenKind::CmdConstants; } else
   if (value == "CmdContentBegin") { return OrgTokenKind::CmdContentBegin; } else
   if (value == "CmdContentEnd") { return OrgTokenKind::CmdContentEnd; } else
   if (value == "CmdCreator") { return OrgTokenKind::CmdCreator; } else
+  if (value == "CmdCustomRaw") { return OrgTokenKind::CmdCustomRaw; } else
+  if (value == "CmdDateRaw") { return OrgTokenKind::CmdDateRaw; } else
+  if (value == "CmdDescription") { return OrgTokenKind::CmdDescription; } else
+  if (value == "CmdDrawersRaw") { return OrgTokenKind::CmdDrawersRaw; } else
+  if (value == "CmdEmailRaw") { return OrgTokenKind::CmdEmailRaw; } else
   if (value == "CmdExampleBegin") { return OrgTokenKind::CmdExampleBegin; } else
   if (value == "CmdExampleEnd") { return OrgTokenKind::CmdExampleEnd; } else
   if (value == "CmdExampleLine") { return OrgTokenKind::CmdExampleLine; } else
+  if (value == "CmdExcludeTagsRaw") { return OrgTokenKind::CmdExcludeTagsRaw; } else
   if (value == "CmdExportBegin") { return OrgTokenKind::CmdExportBegin; } else
   if (value == "CmdExportEnd") { return OrgTokenKind::CmdExportEnd; } else
   if (value == "CmdExportLine") { return OrgTokenKind::CmdExportLine; } else
   if (value == "CmdFiletags") { return OrgTokenKind::CmdFiletags; } else
   if (value == "CmdFlag") { return OrgTokenKind::CmdFlag; } else
   if (value == "CmdHeader") { return OrgTokenKind::CmdHeader; } else
+  if (value == "CmdHtmlHeadRaw") { return OrgTokenKind::CmdHtmlHeadRaw; } else
   if (value == "CmdInclude") { return OrgTokenKind::CmdInclude; } else
   if (value == "CmdLanguage") { return OrgTokenKind::CmdLanguage; } else
   if (value == "CmdLatexClass") { return OrgTokenKind::CmdLatexClass; } else
   if (value == "CmdLatexClassOptions") { return OrgTokenKind::CmdLatexClassOptions; } else
   if (value == "CmdLatexCompiler") { return OrgTokenKind::CmdLatexCompiler; } else
   if (value == "CmdLatexHeader") { return OrgTokenKind::CmdLatexHeader; } else
+  if (value == "CmdLatexHeaderExtraRaw") { return OrgTokenKind::CmdLatexHeaderExtraRaw; } else
+  if (value == "CmdLinkRaw") { return OrgTokenKind::CmdLinkRaw; } else
+  if (value == "CmdMacroRaw") { return OrgTokenKind::CmdMacroRaw; } else
   if (value == "CmdName") { return OrgTokenKind::CmdName; } else
   if (value == "CmdOptions") { return OrgTokenKind::CmdOptions; } else
   if (value == "CmdPrefix") { return OrgTokenKind::CmdPrefix; } else
+  if (value == "CmdPrioritiesRaw") { return OrgTokenKind::CmdPrioritiesRaw; } else
   if (value == "CmdPropertyArgs") { return OrgTokenKind::CmdPropertyArgs; } else
   if (value == "CmdPropertyRaw") { return OrgTokenKind::CmdPropertyRaw; } else
   if (value == "CmdPropertyText") { return OrgTokenKind::CmdPropertyText; } else
@@ -267,9 +310,18 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdQuoteEnd") { return OrgTokenKind::CmdQuoteEnd; } else
   if (value == "CmdRawArg") { return OrgTokenKind::CmdRawArg; } else
   if (value == "CmdResults") { return OrgTokenKind::CmdResults; } else
+  if (value == "CmdRow") { return OrgTokenKind::CmdRow; } else
+  if (value == "CmdRowBegin") { return OrgTokenKind::CmdRowBegin; } else
+  if (value == "CmdRowEnd") { return OrgTokenKind::CmdRowEnd; } else
+  if (value == "CmdSelectTagsRaw") { return OrgTokenKind::CmdSelectTagsRaw; } else
+  if (value == "CmdSeqTodoRaw") { return OrgTokenKind::CmdSeqTodoRaw; } else
+  if (value == "CmdSetupfileRaw") { return OrgTokenKind::CmdSetupfileRaw; } else
   if (value == "CmdSrcBegin") { return OrgTokenKind::CmdSrcBegin; } else
   if (value == "CmdSrcEnd") { return OrgTokenKind::CmdSrcEnd; } else
   if (value == "CmdStartup") { return OrgTokenKind::CmdStartup; } else
+  if (value == "CmdTableBegin") { return OrgTokenKind::CmdTableBegin; } else
+  if (value == "CmdTableEnd") { return OrgTokenKind::CmdTableEnd; } else
+  if (value == "CmdTagsRaw") { return OrgTokenKind::CmdTagsRaw; } else
   if (value == "CmdTblfm") { return OrgTokenKind::CmdTblfm; } else
   if (value == "CmdTitle") { return OrgTokenKind::CmdTitle; } else
   if (value == "CmdVerseBegin") { return OrgTokenKind::CmdVerseBegin; } else
@@ -325,6 +377,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "LinkEnd") { return OrgTokenKind::LinkEnd; } else
   if (value == "LinkFull") { return OrgTokenKind::LinkFull; } else
   if (value == "LinkProtocol") { return OrgTokenKind::LinkProtocol; } else
+  if (value == "LinkProtocolAttachment") { return OrgTokenKind::LinkProtocolAttachment; } else
   if (value == "LinkProtocolFile") { return OrgTokenKind::LinkProtocolFile; } else
   if (value == "LinkProtocolHttp") { return OrgTokenKind::LinkProtocolHttp; } else
   if (value == "LinkProtocolId") { return OrgTokenKind::LinkProtocolId; } else
@@ -351,6 +404,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "ParEnd") { return OrgTokenKind::ParEnd; } else
   if (value == "Percent") { return OrgTokenKind::Percent; } else
   if (value == "Pipe") { return OrgTokenKind::Pipe; } else
+  if (value == "Placeholder") { return OrgTokenKind::Placeholder; } else
   if (value == "Plus") { return OrgTokenKind::Plus; } else
   if (value == "Punctuation") { return OrgTokenKind::Punctuation; } else
   if (value == "RawText") { return OrgTokenKind::RawText; } else

@@ -7,6 +7,7 @@ from beartype.typing import Union, List, Dict, Set, Tuple
 from py_scriptutils.script_logging import log
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 from py_scriptutils.json_utils import Json
+import itertools
 
 CAT = "export.pandoc"
 
@@ -100,17 +101,27 @@ class ExporterPandoc(ExporterBase):
     def evalAtMention(self, node: org.AtMention) -> PandocRes:
         return PandocRes.Node("Str", "@" + node.text)
 
-    def evalCode(self, node: org.Code) -> PandocRes:
+    def evalBlockCode(self, node: org.BlockCode) -> PandocRes:
         return PandocRes()
 
-    def evalExample(self, node: org.Example) -> PandocRes:
+    def evalBlockExample(self, node: org.BlockExample) -> PandocRes:
         return PandocRes()
 
-    def evalExport(self, node: org.Export) -> PandocRes:
+    def evalBlockExport(self, node: org.BlockExport) -> PandocRes:
         return PandocRes()
 
     def evalFootnote(self, node: org.Footnote) -> PandocRes:
         return PandocRes()
+
+    def evalListItem(self, node: org.ListItem) -> PandocRes:
+        return PandocRes.Multiple(list(itertools.chain(*[
+            self.eval(it).unpacked for it in node if it.getKind() not in [osk.Newline]
+        ])))
+
+    def evalList(self, node: org.List) -> PandocRes:
+        return PandocRes.Node("BulletList", [
+            self.content(node)
+        ])
 
     def evalTextSeparator(self, node: org.TextSeparator) -> PandocRes:
         return PandocRes.Node("HorizontalRule", "")

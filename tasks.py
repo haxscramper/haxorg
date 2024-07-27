@@ -157,15 +157,25 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
         return {}
 
 
+@beartype
+def get_cmd_debug_file(kind: str):
+    return get_build_root().joinpath(f"{TASK_STACK[-1]}_{kind}.txt")
+
+
+@beartype
 def run_command(
     ctx: Context,
     cmd: Union[str, Path],
-    args: List[str],
+    args: List[Union[str, Path]],
     capture: bool = False,
     allow_fail: bool = False,
     env: dict[str, str] = {},
     cwd: Optional[str] = None,
+    stderr_debug: Optional[Path] = None,
+    stdout_debug: Optional[Path] = None,
 ) -> tuple[int, str, str]:
+    stderr_debug = stderr_debug or get_cmd_debug_file("stderr")
+    stdout_debug = stdout_debug or get_cmd_debug_file("stdout")
     if isinstance(cmd, Path):
         assert cmd.exists(), cmd
         cmd = str(cmd.resolve())
@@ -200,24 +210,27 @@ def run_command(
     if cwd is not None:
         run = run.with_cwd(cwd)
 
-    try:
-        if capture or get_config(ctx).quiet:
-            retcode, stdout, stderr = run.run(
-                tuple(args),
-                retcode=None if allow_fail else 0,
-            )
-            return (retcode, stdout, stderr)
+    if get_config(ctx).quiet:
+        retcode, stdout, stderr = run.run(list(args), retcode=None)
 
-        else:
-            run[*args] & FG
-            return (0, "", "")
+    else:
+        retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
 
-    except ProcessExecutionError as e:
-        if allow_fail:
-            return (1, "", "")
+    if stdout_debug and stdout:
+        stdout_debug.write_text(stdout)
 
-        else:
-            raise Failure(f"Failed to execute the command {cmd}") from None
+    if stderr_debug and stderr:
+        stderr_debug.write_text(stderr)
+
+    if allow_fail or retcode == 0:
+        return (retcode, stdout, stderr)
+
+    else:
+        raise Failure("Failed to execute the command {}{}{}".format(
+            cmd,
+            f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
+            f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
+        )) from None
 
 
 @beartype
@@ -256,6 +269,7 @@ def ui_notify(message: str, is_ok: bool = True):
 
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
+TASK_STACK: List[str] = []
 
 
 @beartype
@@ -310,7 +324,9 @@ def org_task(
             run_ok = False
             try:
                 with GlobCompleteEvent(f"task {name}", "build") as last:
+                    TASK_STACK.append(name)
                     result = func(*args, **kwargs)
+                    TASK_STACK.pop()
 
                 run_ok = True
 
@@ -630,6 +646,7 @@ def python_protobuf_files(ctx: Context):
                     "--python_betterproto_out=" + str(proto_lib),
                     proto_config,
                 ],
+                env=dict(LD_PRELOAD=""),
             )
         else:
             log(CAT).info("Skipping protoc run " + explain)
@@ -661,7 +678,7 @@ def cmake_configure_haxorg(ctx: Context):
                 *get_cmake_defines(ctx),
             ]
 
-            run_command(ctx, "cmake", tuple(pass_flags))
+            run_command(ctx, "cmake", pass_flags)
 
 
 @org_task()
@@ -802,7 +819,7 @@ def update_py_haxorg_reflection(
             Path("/tmp/debug_reflection_stderr.txt").write_text(stderr)
 
             if exitcode != 0:
-                log(CAT).error("Reflection tool failed: %s")
+                log(CAT).error("Reflection tool failed")
                 raise
 
             log(CAT).info("Updated reflection")
@@ -1157,11 +1174,16 @@ def py_tests(ctx: Context, arg: List[str] = []):
         coverage_dir = get_cxx_coverage_dir()
         env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
 
-    run_command(ctx, "poetry", [
-        "run",
-        "python",
-        "scripts/py_repository/py_repository/gen_coverage_cxx.py",
-    ])
+    run_command(
+        ctx,
+        "poetry",
+        [
+            "run",
+            "python",
+            "scripts/py_repository/py_repository/gen_coverage_cxx.py",
+        ],
+        env=get_py_env(ctx),
+    )
 
     retcode, _, _ = run_command(
         ctx,
@@ -1190,11 +1212,16 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
 @org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
 def py_script(ctx: Context, script: str, arg: List[str] = []):
-    run_command(ctx, "poetry", [
-        "run",
-        script,
-        *arg,
-    ])
+    run_command(
+        ctx,
+        "poetry",
+        [
+            "run",
+            script,
+            *arg,
+        ],
+        env=get_py_env(ctx),
+    )
 
 
 @org_task(pre=[py_tests])

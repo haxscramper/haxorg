@@ -119,60 +119,103 @@ struct OrgConverter : public OperationsTracer {
         return spec->getMultipleSubnode(node, name);
     }
 
-  public:
-    SemId<Table>              convertTable(In);
-    SemId<HashTag>            convertHashTag(In);
-    void                      convertSubtreeDrawer(SemId<Subtree>&, In);
-    void                      convertPropertyList(SemId<Subtree>&, In);
-    SemId<SubtreeLog>         convertSubtreeLog(In);
-    SemId<Subtree>            convertSubtree(In);
-    SemId<StmtList>           convertStmtList(In);
-    SemId<Newline>            convertNewline(In);
-    SemId<Word>               convertWord(In);
-    SemId<Space>              convertSpace(In);
-    SemId<Paragraph>          convertParagraph(In);
-    SemId<AnnotatedParagraph> convertAnnotatedParagraph(In);
-    SemId<TimeRange>          convertTimeRange(In);
-    SemId<Time>               convertTime(In);
-    SemId<Punctuation>        convertPunctuation(In);
-    SemId<Link>               convertLink(In);
-    SemId<BigIdent>           convertBigIdent(In);
-    SemId<MarkQuote>          convertMarkQuote(In);
-    SemId<Strike>             convertStrike(In);
-    SemId<Verbatim>           convertVerbatim(In);
-    SemId<Italic>             convertItalic(In);
-    SemId<Par>                convertPar(In);
-    SemId<Bold>               convertBold(In);
-    SemId<RawText>            convertRawText(In);
-    SemId<List>               convertList(In);
-    SemId<ListItem>           convertListItem(In);
-    SemId<Tblfm>              convertTblfm(In);
-    SemId<Caption>            convertCaption(In);
-    SemId<Quote>              convertQuote(In);
-    SemId<CommentBlock>       convertCommentBlock(In);
-    SemId<Placeholder>        convertPlaceholder(In);
-    SemId<LatexBody>          convertMath(In);
-    SemId<Footnote>           convertFootnote(In);
-    SemId<Include>            convertInclude(In);
-    SemId<Escaped>            convertEscaped(In);
-    SemId<TextSeparator>      convertTextSeparator(In);
-    SemId<ParseError>         convertParseError(In);
-    SemId<AtMention>          convertAtMention(In);
-    SemId<Underline>          convertUnderline(In);
-    SemId<AdmonitionBlock>    convertAdmonitionBlock(In);
-    SemId<Example>            convertExample(In);
-    SemId<ColonExample>       convertColonExample(In);
-    SemId<Center>             convertCenter(In);
-    SemId<Monospace>          convertMonospace(In);
-    SemId<Symbol>             convertSymbol(In);
-    SemId<Macro>              convertMacro(In);
-    SemId<Export>             convertExport(In);
-    SemId<CmdArgument>        convertCmdArgument(In);
-    SemId<CmdArguments>       convertCmdArguments(In);
-    SemId<Code>               convertCode(In);
-    SemId<CmdAttr>            convertCmdAttr(In);
+    template <typename T>
+    struct ConvResult {
+        struct Node {
+            SemId<T> node;
+        };
 
-    Vec<SemId<Org>> flatConvertAttached(In);
+        struct Error {
+            SemId<ErrorGroup> error;
+        };
+
+        SUB_VARIANTS(Kind, Data, data, getKind, Node, Error);
+        Data data;
+        bool isNode() const { return getKind() == Kind::Node; }
+        bool isError() const { return getKind() == Kind::Error; }
+
+        Opt<SemId<ErrorGroup>> optError() const {
+            return isError() ? std::make_optional(error()) : std::nullopt;
+        }
+
+        Opt<SemId<T>> optNode() const {
+            return isNode() ? std::make_optional(value()) : std::nullopt;
+        }
+
+        ConvResult(SemId<T> value) : data{Node{.node = value}} {}
+
+        ConvResult(SemId<ErrorGroup> error)
+            : data{Error{.error = error}} {}
+
+        SemId<Org> unwrap() const {
+            return isNode() ? value().asOrg() : error().asOrg();
+        }
+
+        SemId<T>          value() const { return getNode().node; }
+        SemId<ErrorGroup> error() const { return getError().error; }
+    };
+
+  public:
+    Opt<SemId<ErrorGroup>> convertPropertyList(SemId<Subtree>&, In);
+    Opt<SemId<ErrorGroup>> convertSubtreeDrawer(SemId<Subtree>&, In);
+    Vec<ConvResult<Org>>   flatConvertAttached(Vec<In> items);
+    Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
+
+    ConvResult<AnnotatedParagraph> convertAnnotatedParagraph(In);
+    void convertDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a);
+
+    ConvResult<Table>           convertTable(In);
+    ConvResult<HashTag>         convertHashTag(In);
+    ConvResult<SubtreeLog>      convertSubtreeLog(In);
+    ConvResult<Subtree>         convertSubtree(In);
+    ConvResult<StmtList>        convertStmtList(In);
+    ConvResult<Newline>         convertNewline(In);
+    ConvResult<Word>            convertWord(In);
+    ConvResult<Space>           convertSpace(In);
+    ConvResult<Paragraph>       convertParagraph(In);
+    ConvResult<TimeRange>       convertTimeRange(In);
+    ConvResult<Time>            convertTime(In);
+    ConvResult<Punctuation>     convertPunctuation(In);
+    ConvResult<Link>            convertLink(In);
+    ConvResult<BigIdent>        convertBigIdent(In);
+    ConvResult<MarkQuote>       convertMarkQuote(In);
+    ConvResult<Strike>          convertStrike(In);
+    ConvResult<Verbatim>        convertVerbatim(In);
+    ConvResult<Italic>          convertItalic(In);
+    ConvResult<Par>             convertPar(In);
+    ConvResult<Bold>            convertBold(In);
+    ConvResult<RawText>         convertRawText(In);
+    ConvResult<RadioTarget>     convertRadioTarget(In);
+    ConvResult<TextTarget>      convertTextTarget(In);
+    ConvResult<List>            convertList(In);
+    ConvResult<ListItem>        convertListItem(In);
+    ConvResult<CmdTblfm>        convertCmdTblfm(In);
+    ConvResult<CmdCaption>      convertCmdCaption(In);
+    ConvResult<BlockQuote>      convertBlockQuote(In);
+    ConvResult<BlockComment>    convertBlockComment(In);
+    ConvResult<Placeholder>     convertPlaceholder(In);
+    ConvResult<Latex>           convertMath(In);
+    ConvResult<Footnote>        convertFootnote(In);
+    ConvResult<Include>         convertInclude(In);
+    ConvResult<Escaped>         convertEscaped(In);
+    ConvResult<TextSeparator>   convertTextSeparator(In);
+    ConvResult<AtMention>       convertAtMention(In);
+    ConvResult<Underline>       convertUnderline(In);
+    ConvResult<BlockAdmonition> convertBlockAdmonition(In);
+    ConvResult<BlockExample>    convertBlockExample(In);
+    ConvResult<ColonExample>    convertColonExample(In);
+    ConvResult<BlockCenter>     convertBlockCenter(In);
+    ConvResult<Monospace>       convertMonospace(In);
+    ConvResult<Symbol>          convertSymbol(In);
+    ConvResult<Macro>           convertMacro(In);
+    ConvResult<BlockExport>     convertBlockExport(In);
+    ConvResult<CmdArgument>     convertCmdArgument(In);
+    ConvResult<CmdArguments>    convertCmdArguments(In);
+    ConvResult<CmdArguments>    convertCallArguments(CVec<In>, In source);
+    ConvResult<BlockCode>       convertBlockCode(In);
+    ConvResult<Call>            convertCall(In);
+    ConvResult<CmdAttr>         convertCmdAttr(In);
+    ConvResult<CmdName>         convertCmdName(In);
 
 
     template <typename T>
@@ -202,11 +245,29 @@ struct OrgConverter : public OperationsTracer {
         return res;
     }
 
+    SemId<ErrorItem> SemErrorItem(
+        In          adapter,
+        CR<Str>     message,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    SemId<ErrorGroup> SemError(
+        In          adapter,
+        CR<Str>     message,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    SemId<ErrorGroup> SemError(
+        In                    adapter,
+        Vec<SemId<ErrorItem>> errors   = {},
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
+
     SemId<Org>      convert(In);
     SemId<Document> toDocument(OrgAdapter tree);
 
     finally trace(
-        In          adapter,
+        Opt<In>     adapter,
         Opt<Str>    subname  = std::nullopt,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());

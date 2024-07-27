@@ -34,5 +34,3 @@ using OrgAdapter    = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill>;
 using OrgSet        = IntSet<OrgNodeKind>;
 
 extern template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
-extern const OrgSet OrgAttachableCommands;
-extern const OrgSet OrgTrailableCommands;

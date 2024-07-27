@@ -38,6 +38,8 @@ flask-cors = "^4.0.0"
 jsonpath-ng = "^1.6.1"
 pygments = "^2.17.2"
 asteval = "^0.9.33"
+mypy = "^1.11.0"
+ansi2html = "^1.9.2"
 
 [tool.poetry.group.local.dependencies]
 py_textlayout = {path = "./scripts/py_textlayout", develop=true}
@@ -51,7 +53,6 @@ cxx_repository = {path = "./scripts/cxx_repository", develop=true}
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
-sphinx = "^7.2.6"
 # on what to do instead, and I don't have time to deal with this bullshit, so fixing to whatever version 
 # I have installed at the moment. 
 
@@ -89,3 +90,12 @@ based_on_style = "google"
 column_limit = 90
 indent_width = 4
 DISABLE_ENDING_COMMA_HEURISTIC = false
+
+[tool.mypy]
+exclude = "scripts/py_haxorg/py_haxorg/pyhaxorg.pyi"
+# strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+check_untyped_defs = true

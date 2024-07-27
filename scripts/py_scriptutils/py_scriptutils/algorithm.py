@@ -1,8 +1,64 @@
 from beartype.typing import List, Any, TypeVar, Iterable, Callable, Optional
 import itertools
 from beartype import beartype
+from itertools import dropwhile, takewhile
+import more_itertools as mit
 
 T = TypeVar('T')
+
+
+
+def cond(expr, ifTrue=None, ifFalse=None):
+    """
+    Alternative for inline if expression for simpler syntax and better formatting. Also supports 
+    multiple conditions, similar to the `cond` and `pcond` macro from lisp. Note: will evaluate
+    all arguments irrespective of the truth value, so use it only in case where compute cost is
+    small and there are no side effects. 
+
+    If the `expr` is not a list or a tuple other type -- based on the value of `expr`, return the `ifTrue` or `ifFalse. 
+
+    ```
+    value = cond(expr, "true", "false")
+    ```
+
+    If the `expr` is a list is a list or a tuple return the first item where the expression is true. If no elements
+    have true values, will return `None`. To get a default branch, use `True` as an expression. 
+
+    ```
+    value = cond([
+        (expr1, value1),
+        (expr2, value2),
+        (True, default)
+    ])
+    ```
+
+    """
+    if isinstance(expr, (list, tuple)):
+        for key, value in expr:
+            if key:
+                return value
+
+    else:
+        if expr:
+            return ifTrue
+
+        else:
+            return ifFalse
+
+
+def maybe_splice(expr, item):
+    """
+    Return `[item]` if the expression evaluates to true, otherwise return an empty list. 
+    
+    Use this for splicing optional values into the list `[it1, *maybe_splice(cond, it2)]` --
+    depending on the `cond` value, the resulting list might have one or two elements. 
+    """
+    if expr:
+        return [item]
+
+    else:
+        return []
+
 
 
 @beartype
@@ -92,3 +148,19 @@ def iterate_object_tree(tree, context: List[Any], pre_visit=None, post_visit=Non
     context.pop()
     if post_visit:
         post_visit(tree)
+
+
+@beartype
+def trim_left(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
+    return list(dropwhile(predicate, lst))
+
+
+@beartype
+def trim_right(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
+    return list(dropwhile(predicate, lst[::-1]))[::-1]
+
+
+@beartype
+def trim_both(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
+    trimmed_left = list(dropwhile(predicate, lst))
+    return list(dropwhile(predicate, trimmed_left[::-1]))[::-1]

@@ -456,14 +456,7 @@ struct RecombineState {
             }
 
             case otk::LinkTarget: {
-                if (lex.tok().value.text.starts_with(':')) {
-                    add_fake(
-                        otk::LinkTarget,
-                        loc_fill(lex.tok().value.text.substr(1)));
-                    lex.next();
-                } else {
-                    pop_as(otk::LinkTarget);
-                }
+                pop_as(otk::LinkTarget);
                 break;
             }
 
@@ -482,6 +475,15 @@ struct RecombineState {
 
             case otk::Escaped: {
                 add_fake(otk::Escaped, loc_fill(lex.val().text.substr(1)));
+                lex.next();
+                break;
+            }
+
+            case otk::Placeholder: {
+                add_fake(
+                    otk::Placeholder,
+                    loc_fill(lex.val().text.substr(
+                        1, lex.val().text.size() - 2)));
                 lex.next();
                 break;
             }
@@ -575,6 +577,15 @@ struct LineToken {
     int            indent = 0;
     Kind           kind   = Kind::None;
 
+    bool isListBreakingItem() const {
+        if (auto last = tokens.get(1_B)) {
+            return kind == Kind::ListItem
+                && last->get().kind == otk::LongNewline;
+        } else {
+            return false;
+        }
+    }
+
     BOOST_DESCRIBE_CLASS(LineToken, (), (kind, tokens, indent), (), ());
 
     IntSet<OrgTokenKind> CmdBlockClose{
@@ -585,6 +596,9 @@ struct LineToken {
         otk::CmdExportEnd,
         otk::CmdVerseEnd,
         otk::CmdCommentEnd,
+        otk::CmdTableEnd,
+        otk::CmdRowEnd,
+        otk::CmdCellEnd,
     };
 
     IntSet<OrgTokenKind> CmdBlockOpen{
@@ -595,6 +609,9 @@ struct LineToken {
         otk::CmdQuoteBegin,
         otk::CmdVerseBegin,
         otk::CmdCommentBegin,
+        otk::CmdTableBegin,
+        otk::CmdRowBegin,
+        otk::CmdCellBegin,
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{
@@ -608,6 +625,18 @@ struct LineToken {
         otk::CmdTblfm,         otk::CmdLatexClass,
         otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
         otk::CmdLatexHeader,   otk::CmdStartup,
+        otk::CmdRow,           otk::CmdCell,
+        otk::CmdAuthor,        otk::CmdCustomRaw,
+        otk::CmdDescription,   otk::CmdLinkRaw,
+        otk::CmdEmailRaw,      otk::CmdLatexHeaderExtraRaw,
+        otk::CmdDateRaw,       otk::CmdLanguage,
+        otk::CmdBindRaw,       otk::CmdCategoryRaw,
+        otk::CmdSeqTodoRaw,    otk::CmdTagsRaw,
+        otk::CmdPrioritiesRaw, otk::CmdMacroRaw,
+        otk::CmdSetupfileRaw,  otk::CmdExcludeTagsRaw,
+        otk::CmdHtmlHeadRaw,   otk::CmdSelectTagsRaw,
+        otk::CmdDrawersRaw,    otk::CmdConstants,
+        otk::CmdCreator,       otk::CmdCall,
     };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {
@@ -774,6 +803,7 @@ struct GroupToken {
     Kind kind;
     Data data;
 
+    bool isLeaf() const { return getDataKind() == DataKind::Leaf; }
     bool isNested() const { return getDataKind() == DataKind::Nested; }
     bool isSrc() const {
         if (!(isNested() && getNested().subgroups.has(0))) {
@@ -1056,6 +1086,9 @@ struct GroupVisitorState {
         }
     }
 
+    /// Recursively convert group and line tokens into a stream of org-mode
+    /// tokens, adding the indent and dedent. The function recurses only on
+    /// the block nodes, the regular list items are flat in the group.
     void rec_convert_groups(CR<Vec<GroupToken>> groups) {
         Vec<int> ind{};
         for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
@@ -1073,6 +1106,8 @@ struct GroupVisitorState {
                         function);
                 }
             };
+
+            // Add indent or dedent items that precede the content
             if (gr.kind == GK::ListItem) {
                 dbg();
                 if (ind.empty()) {
@@ -1105,7 +1140,25 @@ struct GroupVisitorState {
                         add_fake(otk::ListItemEnd, ind);
                     }
                 } else if (ind.back() == gr.indent()) {
-                    add_fake(otk::SameIndent, ind);
+                    // If the previoust list item ended with a long
+                    // trailing newline, insert a list break (dedent and
+                    // then indent) instead of marking it as a 'same
+                    // indent' which would just continue the list.
+                    if (auto prev = groups.get(gr_index - 1);
+                        prev && prev.value().get().kind == GK::ListItem) {
+                        auto const& it = prev.value().get();
+                        if (it.isLeaf()
+                            && it.getLeaf()
+                                   .lines.back()
+                                   .isListBreakingItem()) {
+                            add_fake(otk::Dedent, ind);
+                            add_fake(otk::Indent, ind);
+                        } else {
+                            add_fake(otk::SameIndent, ind);
+                        }
+                    } else {
+                        add_fake(otk::SameIndent, ind);
+                    }
                 }
                 dbg();
 
@@ -1137,7 +1190,7 @@ struct GroupVisitorState {
             if (gr.isSrc()) {
                 auto const& nest = gr.getNested();
                 rec_add_line(gr, nest.begin, ind);
-                // Find minimun indent org-mode allows the source code
+                // Find minimun indent. Org-mode allows the source code
                 // content to have indentation that is less than the
                 // `#+begin_src` start
                 int minIndent = nest.begin.indent;
@@ -1187,6 +1240,7 @@ struct GroupVisitorState {
             }
         }
 
+
         if (!ind.empty()) {
             for (auto const& _ : ind) {
                 ind.pop_back();
@@ -1210,20 +1264,32 @@ struct GroupVisitorState {
         d->print(lex, aligned, line, "group", level);
     };
 
-    void print_line(CR<LineToken> line, Str prefix, int level) {
+    void print_line(
+        CR<LineToken> line,
+        Str           prefix,
+        int           level,
+        int           code_line = __builtin_LINE(),
+        char const*   function  = __builtin_FUNCTION()) {
         if (TraceState) {
             print1(
-                fmt("[{}] line:{} indent={}",
+                fmt("[{}] line:{} indent={}{}",
                     prefix,
                     line.kind,
-                    line.indent),
-                level);
+                    line.indent,
+                    line.kind == LK::ListItem
+                        ? fmt(" ListBreak:{}", line.isListBreakingItem())
+                        : ""),
+                level,
+                code_line,
+                function);
 
             for (int token_idx = 0; token_idx < line.tokens.size();
                  ++token_idx) {
                 print1(
                     fmt("[{}] {}", token_idx, line.tokens.at(token_idx)),
-                    level + 1);
+                    level + 1,
+                    code_line,
+                    function);
             }
         }
     };

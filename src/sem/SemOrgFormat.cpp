@@ -3,6 +3,24 @@
 
 using namespace sem;
 
+namespace {
+long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
+    auto from_utc = absl::ToCivilSecond(
+        from.time, from.zone ? *from.zone : absl::TimeZone{});
+    auto to_utc = absl::ToCivilSecond(
+        to.time, to.zone ? *to.zone : absl::TimeZone{});
+    return to_utc - from_utc;
+}
+
+std::string FormatTimeDelta(long delta_seconds) {
+    long delta   = delta_seconds / 60;
+    long hours   = delta / 60;
+    long minutes = delta % 60;
+    return std::format("{}:{:02}", hours, minutes);
+}
+
+} // namespace
+
 auto Formatter::toString(SemId<Org> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id.isNil()) {
@@ -17,11 +35,38 @@ auto Formatter::toString(SemId<Org> id, CR<Context> ctx) -> Res {
     }
 }
 
+void Formatter::add(Res id, Res other) {
+    auto const& bl = b.at(other);
+    if (bl.size() == 0 && (bl.isLine() || bl.isStack())) {
+        return;
+    } else {
+        b.add_at(id, other);
+    }
+}
+
+Formatter::Res Formatter::toString(
+    Opt<SemId<CmdArguments>> args,
+    CR<Context>              ctx) {
+    if (args) {
+        return b.line({str(" "), toString(args.value(), ctx)});
+    } else {
+        return str("");
+    }
+}
+
 
 void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
-    for (auto const& it : id->subnodes) {
-        b.add_at(result, toString(it, ctx));
-    }
+    for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
+}
+
+auto Formatter::toString(SemId<RadioTarget> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return str("<<<"_ss + id->text + ">>>"_ss);
+}
+
+auto Formatter::toString(SemId<TextTarget> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return str("<<"_ss + id->text + ">>"_ss);
 }
 
 auto Formatter::toString(SemId<Word> id, CR<Context> ctx) -> Res {
@@ -29,15 +74,32 @@ auto Formatter::toString(SemId<Word> id, CR<Context> ctx) -> Res {
     return str(id->text);
 }
 
+
 auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    if (id->arguments.empty()) {
+    Vec<Res> parameters;
+
+    if (id->parameters) {
+        if (id->parameters->positional) {
+            for (auto const& it : id->parameters->positional->args) {
+                parameters.push_back(str(it->value));
+            }
+        }
+
+        for (auto const& key : sorted(id->parameters->named.keys())) {
+            for (auto const& it : id->parameters->named.at(key)->args) {
+                parameters.push_back(
+                    str(fmt("{}={}", it->key.value(), it->value)));
+            }
+        }
+    }
+
+    if (parameters.empty()) {
         return str(Str("{{{") + id->name + Str("}}}"));
     } else {
         return b.line(Vec<Res>::Splice(
             str(Str("{{{") + id->name + Str("(")),
-            id->arguments //
-                | rv::transform([&](CR<Str> s) { return str(s); }),
+            b.join(parameters, str(", ")),
             str(")}}}") //
             ));
     }
@@ -77,8 +139,7 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
     bool hadDocumentProperties = false;
 
     if (id->title) {
-        b.add_at(
-            result, b.line({str("#+title: "), toString(*id->title, ctx)}));
+        add(result, b.line({str("#+title: "), toString(*id->title, ctx)}));
         hadDocumentProperties = true;
     }
 
@@ -97,12 +158,11 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
             case Visibility::Show5Levels: res = "show5levels"; break;
         }
 
-        b.add_at(result, b.line({str("#+startup: "), str(res)}));
+        add(result, b.line({str("#+startup: "), str(res)}));
     }
 
     if (!id->filetags.empty()) {
-        b.add_at(
-            result,
+        add(result,
             b.line(
                 {str("#+filetags: :"),
                  colonHashtags(this, id->filetags),
@@ -111,19 +171,73 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
     }
 
     if (id->author) {
-        b.add_at(
-            result,
+        add(result,
             b.line({str("#+author: "), toString(*id->author, ctx)}));
         hadDocumentProperties = true;
     }
 
-    if (hadDocumentProperties) { b.add_at(result, str("")); }
-
-    for (auto const& sub : id->subnodes) {
-        b.add_at(result, toString(sub, ctx));
+    if (!id->options.isNil()) {
+        for (auto const& prop : id->options->properties) {
+            using P = sem::Subtree::Property;
+            switch (prop.getKind()) {
+                case P::Kind::CustomRaw: {
+                    add(result,
+                        b.line({
+                            str("#+property: "),
+                            str(prop.getCustomRaw().name),
+                            str(" "),
+                            str(prop.getCustomRaw().value),
+                        }));
+                    break;
+                }
+                case P::Kind::CustomArgs: {
+                    add(result,
+                        b.line({
+                            str("#+property: "),
+                            str(prop.getCustomArgs().name),
+                            str(" "),
+                            toString(prop.getCustomArgs().parameters, ctx),
+                        }));
+                    break;
+                }
+                case P::Kind::ExportLatexHeader: {
+                    add(result,
+                        str(
+                            fmt("#+latex_header: {}",
+                                prop.getExportLatexHeader().header)));
+                    break;
+                }
+                case P::Kind::ExportLatexClass: {
+                    add(result,
+                        str(
+                            fmt("#+latex_header: {}",
+                                prop.getExportLatexClass().latexClass)));
+                    break;
+                }
+                case P::Kind::ExportLatexClassOptions: {
+                    add(result,
+                        str(fmt(
+                            "#+latex_class_options: {}",
+                            prop.getExportLatexClassOptions().options.at(
+                                0))));
+                    break;
+                }
+                default: {
+                    throw std::logic_error(
+                        fmt("Unexpected document-level property: {}",
+                            prop.getKind()));
+                }
+            }
+        }
     }
 
-    if (b.at(result).size() == 0) { b.add_at(result, str("")); }
+    if (hadDocumentProperties) { add(result, str("")); }
+
+    for (auto const& sub : id->subnodes) {
+        add(result, toString(sub, ctx));
+    }
+
+    if (b.at(result).size() == 0) { add(result, str("")); }
 
     return result;
 }
@@ -155,63 +269,98 @@ auto Formatter::toString(SemId<CmdArgument> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<Code> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     bool isInline = ctx.isInline;
 
-    auto result = isInline ? b.line() : b.stack();
-    auto head   = isInline ? b.line({str("src_")})
-                           : b.line({str("#+begin_src")});
-
-    if (id->lang) {
-        b.add_at(head, str((isInline ? "" : " ") + *id->lang));
+    auto     result = isInline ? b.line() : b.stack();
+    Vec<Res> parameters;
+    if (id->parameters) {
+        parameters.push_back(toString(id->parameters.value(), ctx));
     }
 
-    if (id->parameters) {
+    auto head = isInline ? b.line({str("src_")})
+                         : b.line({str("#+begin_src")});
+
+    if (id->lang) { add(head, str((isInline ? "" : " ") + *id->lang)); }
+
+    if (!parameters.empty()) {
         if (isInline) {
-            b.add_at(head, str("["));
+            add(head, str("["));
         } else {
-            b.add_at(head, str(" "));
+            add(head, str(" "));
         }
 
-        b.add_at(head, toString(id->parameters.value(), ctx));
-        if (isInline) { b.add_at(head, str("]")); }
+        add(head, b.join(parameters, str(" ")));
+
+        if (isInline) { add(head, str("]")); }
     }
 
-    b.add_at(result, head);
-    if (isInline) { b.add_at(result, str("{")); }
+    add(result, head);
+    if (isInline) { add(result, str("{")); }
     for (auto const& it : id->lines) {
         auto line = b.line();
         for (auto const& part : it.parts) {
             switch (part.getKind()) {
-                case Code::Line::Part::Kind::Raw: {
-                    b.add_at(line, str(part.getRaw().code));
+                case BlockCode::Line::Part::Kind::Raw: {
+                    add(line, str(part.getRaw().code));
                     break;
                 }
-                case Code::Line::Part::Kind::Callout: {
-                    b.add_at(line, str(part.getCallout().name));
+                case BlockCode::Line::Part::Kind::Callout: {
+                    add(line, str(part.getCallout().name));
                     break;
                 }
-                case Code::Line::Part::Kind::Tangle: {
-                    b.add_at(line, str(part.getTangle().target));
+                case BlockCode::Line::Part::Kind::Tangle: {
+                    add(line, str(part.getTangle().target));
                     break;
                 }
             }
         }
 
-        b.add_at(result, line);
+        if (it.parts.empty()) { add(line, str("")); }
+
+        add(result, line);
     }
 
     if (isInline) {
-        b.add_at(result, str("}"));
+        add(result, str("}"));
     } else {
-        b.add_at(result, str("#+end_src"));
+        add(result, str("#+end_src"));
     }
 
-    return result;
+    if (id->result) {
+        add(result, str(""));
+        add(result, b.line({str("#+results:")}));
+        switch (id->result->getKind()) {
+            case BlockCode::EvalResult::Kind::OrgValue: {
+                add(result,
+                    toString(id->result->getOrgValue().value, ctx));
+                break;
+            }
+
+            case BlockCode::EvalResult::Kind::Raw: {
+                add(result, str(id->result->getRaw().text));
+                break;
+            }
+
+
+            case BlockCode::EvalResult::Kind::None: {
+                break;
+            }
+
+            case BlockCode::EvalResult::Kind::File: {
+                add(result,
+                    str(fmt("[file:{}]", id->result->getFile().path)));
+                break;
+            }
+        }
+    }
+
+    auto out = stackAttached(result, id.as<sem::Stmt>(), ctx);
+    return out;
 }
 
-auto Formatter::toString(SemId<Tblfm> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdTblfm> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
@@ -219,10 +368,9 @@ auto Formatter::toString(SemId<Tblfm> id, CR<Context> ctx) -> Res {
 auto Formatter::toString(SemId<List> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
-    for (auto const& it : id->subnodes) {
-        b.add_at(result, toString(it, ctx));
-    }
-    return result;
+    for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
+
+    return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
 auto Formatter::toString(SemId<SubtreeLog> id, CR<Context> ctx) -> Res {
@@ -239,9 +387,7 @@ auto Formatter::toString(SemId<Newline> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto result = b.stack();
 
-    for (int i = 1; i < id->text.size(); ++i) {
-        b.add_at(result, str(""));
-    }
+    for (int i = 1; i < id->text.size(); ++i) { add(result, str("")); }
 
     return result;
 }
@@ -262,6 +408,11 @@ auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
     switch (id->getLinkKind()) {
         case Link::Kind::Person: {
             head = str("person:" + id->getPerson().name);
+            break;
+        }
+
+        case Link::Kind::Attachment: {
+            head = str("attachment:" + id->getAttachment().file);
             break;
         }
 
@@ -324,8 +475,7 @@ auto Formatter::toString(SemId<Symbol> id, CR<Context> ctx) -> Res {
     Res result = b.line({str("\\" + id->name)});
     for (auto const& [key, value] : id->parameters) {
         if (key) {
-            b.add_at(
-                result,
+            add(result,
                 b.line({
                     str("["),
                     str(*key),
@@ -334,18 +484,18 @@ auto Formatter::toString(SemId<Symbol> id, CR<Context> ctx) -> Res {
                     str("]"),
                 }));
         } else {
-            b.add_at(result, b.line({str("["), str(value), str("]")}));
+            add(result, b.line({str("["), str(value), str("]")}));
         }
     }
 
     for (auto const& it : id->positional) {
-        b.add_at(result, b.line({str("{"), toString(it, ctx), str("}")}));
+        add(result, b.line({str("{"), toString(it, ctx), str("}")}));
     }
 
     return result;
 }
 
-auto Formatter::toString(SemId<Caption> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCaption> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+caption: "), toString(id->text, ctx)});
 }
@@ -355,22 +505,78 @@ auto Formatter::toString(SemId<CmdResults> id, CR<Context> ctx) -> Res {
     return b.line({str("#+results: ")});
 }
 
+auto Formatter::toString(SemId<CmdCustomRaw> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str(fmt("#+{}: {}", id->name, id->text))});
+}
+
+auto Formatter::toString(SemId<CmdCustomArgs> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line(
+        {str(fmt("#+{}:", id->name)), toString(id->parameters, ctx)});
+}
+
+auto Formatter::toString(SemId<CmdCustomText> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str(fmt("#+{}: ", id->name)), toString(id->text, ctx)});
+}
+
 auto Formatter::toString(SemId<CmdName> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str("#+name: ")});
+    return b.line({str("#+name: " + id->name)});
+}
+
+auto Formatter::toString(SemId<ErrorGroup> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    auto result = b.line({});
+    for (auto const& sub : id->diagnostics) {
+        add(result, toString(sub, ctx));
+    }
+    return result;
+}
+
+auto Formatter::toString(SemId<ErrorItem> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str(id->message)});
 }
 
 auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str("#+call: ")});
+    auto result = b.line({
+        str("#+call: "),
+        str(id->name),
+    });
+
+    Vec<Res> parameters;
+
+
+    if (id->parameters->positional) {
+        for (auto const& it : id->parameters->positional->args) {
+            if (it->value.contains(",")) {
+                parameters.push_back(str(fmt("={}=", it->value)));
+            } else {
+                parameters.push_back(str(it->value));
+            }
+        }
+    }
+
+    for (auto const& key : sorted(id->parameters->named.keys())) {
+        for (auto const& it : id->parameters->named.at(key)->args) {
+            parameters.push_back(
+                str(fmt("{}={}", it->key.value(), it->value)));
+        }
+    }
+
+    add(result, str("("));
+    if (!parameters.empty()) {
+        add(result, b.join(parameters, str(", ")));
+    }
+    add(result, str(")"));
+
+    return result;
 }
 
 auto Formatter::toString(SemId<DocumentGroup> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    return str(__PRETTY_FUNCTION__);
-}
-
-auto Formatter::toString(SemId<CommandGroup> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
@@ -387,8 +593,7 @@ auto Formatter::toString(SemId<Par> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Placeholder> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line(
-        Vec<Res>::Splice(str("<"), toSubnodes(id, ctx), str(">")));
+    return b.line(Vec<Res>::Splice(str("<"), str(id->text), str(">")));
 }
 
 auto Formatter::toString(SemId<BigIdent> id, CR<Context> ctx) -> Res {
@@ -416,14 +621,14 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.line();
 
-    b.add_at(result, str(id->isActive ? "<" : "["));
+    add(result, str(id->isActive ? "<" : "["));
     if (id->isStatic()) {
         UserTime const& time = id->getStatic().time;
-        b.add_at(result, str(time.format()));
+        add(result, str(time.format(UserTime::Format::OrgFormat)));
     } else {
-        b.add_at(result, str(id->getDynamic().expr));
+        add(result, str(id->getDynamic().expr));
     }
-    b.add_at(result, str(id->isActive ? ">" : "]"));
+    add(result, str(id->isActive ? ">" : "]"));
 
     return result;
 }
@@ -450,12 +655,13 @@ auto Formatter::toString(SemId<Cell> id, CR<Context> ctx) -> Res {
 }
 
 
-auto Formatter::toString(SemId<Completion> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<SubtreeCompletion> id, CR<Context> ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(fmt("[{}/{}]", id->done, id->full));
 }
 
-auto Formatter::toString(SemId<Center> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockCenter> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_center"), toSubnodes(id, ctx), str("#+end_center")));
@@ -476,21 +682,21 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res body = b.stack();
     if (id->header) {
-        Res head = b.stack();
-        b.add_at(head, toString(*id->header, ctx));
-        b.add_at(head, str(" :: "));
+        Res head = b.line();
+        add(head, toString(*id->header, ctx));
+        add(head, str(" :: "));
         if (id->subnodes.has(0)) {
-            b.add_at(head, toString(id->at(0), ctx));
-            b.add_at(body, head);
-            b.add_at(body, str(""));
+            add(head, toString(id->at(0), ctx));
+            add(body, head);
+            add(body, str(""));
 
             for (auto const& sub : id->subnodes | rv::drop(1)) {
-                b.add_at(body, toString(sub, ctx));
+                add(body, toString(sub, ctx));
             }
         }
     } else {
         for (auto const& sub : id->subnodes) {
-            b.add_at(body, toString(sub, ctx));
+            add(body, toString(sub, ctx));
         }
     }
 
@@ -503,7 +709,10 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
     }
 
 
-    return b.line({str("- " + checkbox), body});
+    return b.line({
+        str((id->bullet ? id->bullet.value() + " "_ss : "- ") + checkbox),
+        body,
+    });
 }
 
 auto Formatter::toString(SemId<AtMention> id, CR<Context> ctx) -> Res {
@@ -520,28 +729,65 @@ auto Formatter::toString(SemId<Italic> id, CR<Context> ctx) -> Res {
 auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
-    for (auto const& in_row : id->rows) {
-        Res row = b.line({str("| ")});
-        for (auto const& in_cell : in_row->cells) {
-            Res cell = b.line();
-            for (auto const& item : in_cell->subnodes) {
-                b.add_at(cell, str(" "));
-                b.add_at(cell, toString(item, ctx));
-                b.add_at(cell, str(" "));
-            }
-
-            b.add_at(row, cell);
-            b.add_at(row, str("|"));
-        }
-
-
-        b.add_at(result, row);
+    if (id->isBlock) {
+        add(result,
+            b.line({
+                str("#+begin_table"),
+                toString(id->parameters, ctx),
+            }));
     }
 
-    return result;
+    for (auto const& in_row : id->rows) {
+        if (in_row->isBlock) {
+            Res row = b.stack({b.line({
+                str("#+row:"),
+                toString(in_row->parameters, ctx),
+            })});
+
+            for (auto const& in_cell : in_row->cells) {
+                if (in_cell->isBlock) {
+                    Res cell = b.stack({b.line({
+                        str("#+cell:"),
+                        toString(in_cell->parameters, ctx),
+                    })});
+                    for (auto const& item : in_cell) {
+                        add(cell, toString(item, ctx));
+                    }
+                    add(row, cell);
+                } else {
+                    Res cell = b.line({str("| ")});
+                    for (auto const& item : in_cell) {
+                        add(cell, toString(item, ctx));
+                    }
+                    add(row, cell);
+                }
+            }
+            add(result, row);
+        } else {
+            Res row = b.line({str("| ")});
+            for (auto const& in_cell : in_row->cells) {
+                Res cell = b.line();
+                for (auto const& item : in_cell->subnodes) {
+                    add(cell, str(" "));
+                    add(cell, toString(item, ctx));
+                    add(cell, str(" "));
+                }
+
+                add(row, cell);
+                add(row, str("|"));
+            }
+
+
+            add(result, row);
+        }
+    }
+
+    if (id->isBlock) { add(result, str("#+end_table")); }
+
+    return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
-auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
+auto Formatter::toString(SemId<BlockAdmonition> id, CR<Context> ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
@@ -549,9 +795,10 @@ auto Formatter::toString(SemId<AdmonitionBlock> id, CR<Context> ctx)
 
 auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line(
-        {str("#+attr_"_ss + id->target + ": "_ss),
-         toString(id->parameters, ctx)});
+    return b.line({
+        str("#+attr_"_ss + id->target + ":"_ss),
+        toString(id->parameters, ctx),
+    });
 }
 
 auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
@@ -560,11 +807,26 @@ auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));
 }
 
+auto Formatter::toString(SemId<CmdArgumentList> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+
+    Vec<Res> result;
+    for (auto const& it : id->args) {
+        result.push_back(toString(it, ctx));
+    }
+
+    return b.join(result, str(" "));
+}
+
+
 auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> result;
-    for (auto const& pos : id->positional) {
-        result.push_back(toString(pos, ctx));
+    if (!id->positional.isNil()) {
+        for (auto const& pos : id->positional->args) {
+            result.push_back(toString(pos, ctx));
+        }
     }
 
     Vec<Str> its;
@@ -578,10 +840,14 @@ auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
         result.push_back(toString(id->named.at(key), ctx));
     }
 
-    return b.join(result, str(" "));
+    if (result.empty()) {
+        return str("");
+    } else {
+        return b.join(result, str(" "));
+    }
 }
 
-auto Formatter::toString(SemId<InlineMath> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Latex> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id->subnodes.size() == 0) {
         return str("\\(\\)");
@@ -592,65 +858,78 @@ auto Formatter::toString(SemId<InlineMath> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    Res title = b.line({
-        id->todo ? str(id->todo.value() + Str(" ")) : str(""),
-        toString(id->title, ctx),
-    });
+    Res title = b.line({});
+    {
+        Vec<Res> lead;
+        Vec<Res> tags;
 
-    if (!id->tags.empty()) {
-        b.add_at(title, str(" :"));
-        b.add_at(title, colonHashtags(this, id->tags));
-        b.add_at(title, str(":"));
+        if (id->todo) { lead.push_back(str(id->todo.value())); }
+        if (id->isComment) { lead.push_back(str("COMMENT")); }
+        if (id->priority) {
+            lead.push_back(str(fmt("[#{}]", id->priority.value())));
+        }
+        if (id->isArchived) { tags.push_back(str("ARCHIVE")); }
+
+        if (!id->title->subnodes.empty()) {
+            lead.push_back(toString(id->title, ctx));
+        }
+
+        if (!id->tags.empty()) {
+            tags.push_back(colonHashtags(this, id->tags));
+        }
+
+        if (!tags.empty()) {
+            lead.push_back(b.line({
+                str(":"),
+                b.join(tags, str(":")),
+                str(":"),
+            }));
+        }
+
+        add(title, b.join(lead, str(" ")));
     }
 
     Res head = b.stack({title});
 
     if (id->scheduled) {
-        b.add_at(
-            head,
+        add(head,
             b.line({str("SCHEDULED: "), toString(*id->scheduled, ctx)}));
     }
 
     if (id->deadline) {
-        b.add_at(
-            head,
+        add(head,
             b.line({str("DEADLINE: "), toString(*id->deadline, ctx)}));
     }
 
     if (id->closed) {
-        b.add_at(
-            head, b.line({str("CLOSED: "), toString(*id->closed, ctx)}));
+        add(head, b.line({str("CLOSED: "), toString(*id->closed, ctx)}));
     }
 
     if (!id->properties.empty() || id->treeId) {
-        b.add_at(head, str(":PROPERTIES:"));
-        if (id->treeId) {
-            b.add_at(head, str(fmt(":ID: {}", *id->treeId)));
-        }
+        add(head, str(":PROPERTIES:"));
+        if (id->treeId) { add(head, str(fmt(":ID: {}", *id->treeId))); }
 
         for (auto const& prop : id->properties) {
             using P = sem::Subtree::Property;
             switch (prop.getKind()) {
                 case P::Kind::Created: {
-                    b.add_at(
-                        head,
+                    add(head,
                         b.line(
                             {str(":CREATED: "),
                              toString(prop.getCreated().time, ctx)}));
                     break;
                 }
-                case P::Kind::Unknown: {
-                    b.add_at(
-                        head,
-                        b.line(
-                            {str(":"_ss + prop.getUnknown().name
-                                 + ": "_ss),
-                             toString(prop.getUnknown().value, ctx)}));
+                case P::Kind::CustomRaw: {
+                    add(head,
+                        b.line({
+                            str(":"_ss + prop.getCustomRaw().name
+                                + ": "_ss),
+                            str(prop.getCustomRaw().value),
+                        }));
                     break;
                 }
                 case P::Kind::Effort: {
-                    b.add_at(
-                        head,
+                    add(head,
                         b.line(
                             {str(":CREATED: "),
                              str(
@@ -659,17 +938,24 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                                      prop.getEffort().minutes))}));
                     break;
                 }
+                case P::Kind::Visibility: {
+                    add(head,
+                        str(
+                            fmt(":visibility: {}",
+                                prop.getVisibility().level)));
+                    break;
+                }
                 default: {
                     LOG(FATAL) << fmt1(prop.getKind());
                 }
             }
         }
 
-        b.add_at(head, str(":END:"));
+        add(head, str(":END:"));
     }
 
     if (!id->logbook.empty()) {
-        b.add_at(head, str(":LOGBOOK:"));
+        add(head, str(":LOGBOOK:"));
         for (auto const& log : id->logbook) {
             using Log                     = sem::SubtreeLog;
             Res                  log_head = str("");
@@ -747,6 +1033,11 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                             toString(clock.from, ctx),
                             str("--"),
                             toString(clock.to.value(), ctx),
+                            str(fmt(
+                                " => {}",
+                                FormatTimeDelta(GetTimeDelta(
+                                    clock.from->getStatic().time,
+                                    clock.to.value()->getStatic().time)))),
                         });
                     } else {
                         log_head = b.line({
@@ -805,27 +1096,25 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
             }
 
             if (desc) {
-                b.add_at(log_head, str(" \\\\"));
+                add(log_head, str(" \\\\"));
                 CHECK(!desc.value().isNil()) << fmt1(log->getLogKind());
-                b.add_at(head, log_head);
-                b.add_at(
-                    head,
+                add(head, log_head);
+                add(head,
                     b.indent(2, b.stack(toSubnodes(desc.value(), ctx))));
             } else {
-                b.add_at(head, log_head);
+                add(head, log_head);
             }
         }
-        b.add_at(head, str(":END:"));
+        add(head, str(":END:"));
     }
 
     Res result = b.stack();
 
-    b.add_at(
-        result,
+    add(result,
         b.line({str(std::string(id->level, '*')), str(" "), head}));
 
     if (!id->subnodes.empty()) {
-        b.add_at(result, str(""));
+        add(result, str(""));
         add_subnodes(result, id.asOrg(), ctx);
     }
 
@@ -844,13 +1133,18 @@ auto Formatter::toString(SemId<Verbatim> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("="), toSubnodes(id, ctx), str("=")));
 }
 
-auto Formatter::toString(SemId<Quote> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_quote"), toSubnodes(id, ctx), str("#+end_quote")));
+    return stackAttached(
+        b.stack(Vec<Res>::Splice(
+            b.line({str("#+begin_quote"), toString(id->parameters, ctx)}),
+            toSubnodes(id, ctx),
+            str("#+end_quote"))),
+        id.as<sem::Stmt>(),
+        ctx);
 }
 
-auto Formatter::toString(SemId<CommentBlock> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockComment> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_comment"),
@@ -858,7 +1152,7 @@ auto Formatter::toString(SemId<CommentBlock> id, CR<Context> ctx) -> Res {
         str("#+end_comment")));
 }
 
-auto Formatter::toString(SemId<Verse> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockVerse> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_verse"), toSubnodes(id, ctx), str("#+end_verse")));
@@ -889,24 +1183,24 @@ Vec<T> OptVec(CR<Opt<T>> value) {
     }
 }
 
-auto Formatter::toString(SemId<Export> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res head = b.line();
-    b.add_at(head, str("#+begin_export " + id->exporter));
+    add(head, str("#+begin_export " + id->exporter));
     if (id->parameters) {
-        b.add_at(head, str(" "));
-        b.add_at(head, toString(id->parameters.value(), ctx));
+        add(head, str(" "));
+        add(head, toString(id->parameters.value(), ctx));
     }
 
     if (id->placement) {
-        b.add_at(head, str(":placement " + id->placement.value()));
+        add(head, str(":placement " + id->placement.value()));
     }
 
     return b.stack(
         Vec<Res>::Splice(head, str(id->content), str("#+end_export")));
 }
 
-auto Formatter::toString(SemId<Example> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockExample> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(Vec<Res>::Splice(
         str("#+begin_example"),
@@ -934,11 +1228,16 @@ auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
          })) {
         Res line_out = b.line();
         for (auto const& item : line) {
-            b.add_at(line_out, toString(item, ctx2));
+            add(line_out, toString(item, ctx2));
         }
-        b.add_at(result, line_out);
+        add(result, line_out);
     }
-    return result;
+
+    if (id.size() == 1 && id.at(0)->is(OrgSemKind::Link)) {
+        return stackAttached(result, id.at(0).as<sem::Stmt>(), ctx);
+    } else {
+        return stackAttached(result, id.as<sem::Stmt>(), ctx);
+    }
 }
 
 auto Formatter::toString(SemId<AnnotatedParagraph> id, CR<Context> ctx)
@@ -956,18 +1255,16 @@ auto Formatter::toString(SemId<AnnotatedParagraph> id, CR<Context> ctx)
         if (first) {
             switch (id->getAnnotationKind()) {
                 case sem::AnnotatedParagraph::AnnotationKind::Admonition: {
-                    b.add_at(
-                        line_out, toString(id->getAdmonition().name, ctx));
+                    add(line_out,
+                        str(id->getAdmonition().name->text + ":"_ss));
                     break;
                 }
                 case sem::AnnotatedParagraph::AnnotationKind::Timestamp: {
-                    b.add_at(
-                        line_out, toString(id->getTimestamp().time, ctx));
+                    add(line_out, toString(id->getTimestamp().time, ctx));
                     break;
                 }
                 case sem::AnnotatedParagraph::AnnotationKind::Footnote: {
-                    b.add_at(
-                        line_out,
+                    add(line_out,
                         str(fmt("[fn:{}]", id->getFootnote().name)));
                     break;
                 }
@@ -977,16 +1274,16 @@ auto Formatter::toString(SemId<AnnotatedParagraph> id, CR<Context> ctx)
 
             if (id->getAnnotationKind()
                 != sem::AnnotatedParagraph::AnnotationKind::None) {
-                b.add_at(line_out, str(" "));
+                add(line_out, str(" "));
             }
             first = false;
         }
 
 
         for (auto const& item : line) {
-            b.add_at(line_out, toString(item, ctx2));
+            add(line_out, toString(item, ctx2));
         }
-        b.add_at(result, line_out);
+        add(result, line_out);
     }
 
 
@@ -999,7 +1296,19 @@ auto Formatter::toString(SemId<Underline> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("_"), toSubnodes(id, ctx), str("_")));
 }
 
-auto Formatter::toString(SemId<ParseError> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    return str(__PRETTY_FUNCTION__);
+
+Formatter::Res Formatter::stackAttached(
+    Res         prev,
+    SemId<Stmt> stmt,
+    CR<Context> ctx) {
+    if (stmt->attached.empty()) {
+        return prev;
+    } else {
+        auto res = b.stack();
+        for (auto const& attach : stmt->attached) {
+            add(res, toString(attach, ctx));
+        }
+        add(res, prev);
+        return res;
+    }
 }

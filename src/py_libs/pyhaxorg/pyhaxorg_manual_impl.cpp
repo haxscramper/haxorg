@@ -51,56 +51,25 @@ void init_py_manual_api(pybind11::module& m) {
     assert(PyDateTimeAPI);
 }
 
-void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
-    pyStreamDevice     = std::make_shared<PythonStreamDevice>(stream);
-    writeStreamContext = std::make_shared<IoContext>();
-    // TODO fixme the constructor
-    // writeStreamContext->stream      = std::make_shared<std::ostream>();
-    this->exportTracer              = OperationsTracer{};
-    this->exportTracer->stream      = writeStreamContext->stream;
-    this->exportTracer->traceToFile = true;
-    assert(false);
-    // writeStreamContext->stream->setDevice(&(*pyStreamDevice));
-    this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
-        this->traceVisit(ev);
-    };
-}
-
 void ExporterPython::enableBufferTrace() {
-    writeStreamContext = std::make_shared<IoContext>();
-    // TODO fixme create tracer
-    // writeStreamContext->stream      = std::make_shared<std::ostream>();
-    this->exportTracer->stream      = writeStreamContext->stream;
-    this->exportTracer->traceToFile = true;
-    assert(false);
-    // writeStreamContext->stream->setString(&traceBuffer);
-    this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
-        this->traceVisit(ev);
-    };
+    TraceState    = true;
+    traceToBuffer = true;
 }
 
-std::string ExporterPython::getTraceBuffer() const { return traceBuffer; }
+std::string ExporterPython::getTraceBuffer() const {
+    return this->traceBuffer;
+}
 
 void ExporterPython::enableFileTrace(
     const std::string& path,
     bool               colored) {
-    writeStreamContext         = std::make_shared<IoContext>();
-    writeStreamContext->stream = std::make_shared<std::ofstream>(path);
-    traceStream.ostream        = writeStreamContext->stream.get();
-    traceStream.colored        = colored;
-    this->exportTracer         = OperationsTracer{};
-    this->exportTracer->stream = writeStreamContext->stream;
-    this->exportTracer->traceToFile = true;
-    this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
-        this->traceVisit(ev);
-    };
+    this->setTraceFile(path);
+    this->traceColored = colored;
 }
 
 void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
-    __visit_scope(
-        VisitEvent::Kind::VisitDispatch,
-        .visitedValue = &res,
-        .visitedNode  = arg);
+    auto __scope = trace_scope(
+        trace(VisitReport::Kind::VisitDispatch).with_node(arg));
 
     if (arg.isNil()) { return; }
 
@@ -123,37 +92,6 @@ void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
     }
 }
 
-void ExporterPython::traceVisit(const VisitEvent& ev) {
-    using K = typename VisitEvent::Kind;
-    if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
-         && !ev.isStart)
-        || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
-            && ev.isStart)) {
-        return;
-    }
-
-    auto os = exportTracer->getStream();
-
-
-    os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
-       << fmt1(ev.kind);
-
-    if (ev.visitedNode) {
-        os << " node:" << fmt1((*ev.visitedNode)->getKind());
-    }
-
-    if (0 < ev.field.length()) { os << " field:" << ev.field; }
-
-    if (!ev.msg.empty()) {
-        os << " msg:" << os.yellow() << ev.msg << os.end();
-    }
-
-    os << " on " << fs::path(ev.file).stem() << ":" << fmt1(ev.line) << " "
-       << " " << os.end();
-
-    exportTracer->endStream(os);
-}
-
 void ExporterPython::visitField(
     Res&                 res,
     const char*          name,
@@ -173,7 +111,9 @@ void ExporterPython::visitField(
 }
 
 ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
-    __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
+    auto __scope = trace_scope(
+        trace(VisitReport::Kind::VisitTop).with_node(org));
+
     if (evalTopCb) {
         return evalTopCb->operator()(_self, org);
     } else {

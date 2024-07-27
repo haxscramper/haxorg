@@ -169,7 +169,7 @@ def get_bookmarks(session: Session) -> List[BookmarkRecord]:
 
 @beartype
 def format_time(time: datetime) -> str:
-    return "[" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
+    return "[" + time.strftime("%Y-%m-%d %a %H:%M:%S") + "]"
 
 
 @beartype
@@ -273,7 +273,7 @@ def insert_new_bookmark(tree: org.Org, mark: BookmarkRecord):
 
         bookmark.subnodes.append(org.Newline(text="\n\n"))
         bookmark.subnodes.append(
-            org.Quote(subnodes=[org.RawText(text=mark.text.replace("\x0D", " "))]))
+            org.BlockQuote(subnodes=[org.RawText(text=mark.text.replace("\x0D", " "))]))
         bookmark.subnodes.append(org.Newline(text="\n\n"))
 
 

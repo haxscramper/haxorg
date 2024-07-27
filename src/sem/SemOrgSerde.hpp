@@ -108,6 +108,23 @@ struct proto_write_accessor<T>
     }
 };
 
+template <>
+struct SerdeDefaultProvider<sem::BlockCode::EvalResult::OrgValue> {
+    static sem::BlockCode::EvalResult::OrgValue get() {
+        return sem::BlockCode::EvalResult::OrgValue{
+            .value = sem::SemId<sem::Org>::Nil()};
+    }
+};
+
+template <>
+struct SerdeDefaultProvider<sem::BlockCode::EvalResult> {
+    static sem::BlockCode::EvalResult get() {
+        return sem::BlockCode::EvalResult{
+            sem::BlockCode::EvalResult::OrgValue{
+                .value = sem::SemId<sem::Org>::Nil()}};
+    }
+};
+
 template <typename T>
 struct proto_init {
     static void init_default(T& value) {}
@@ -448,6 +465,12 @@ struct proto_serde<Proto, sem::Block> {
         proto_write_accessor<sem::Block> in);
 };
 
+template <typename Proto>
+struct proto_serde<Proto, sem::Cmd> {
+    static void write(Proto* out, sem::Cmd const& in);
+    static void read(Proto const& out, proto_write_accessor<sem::Cmd> in);
+};
+
 template <>
 struct proto_serde<orgproto::LineCol, LineCol> {
     static void write(orgproto::LineCol* out, LineCol const& in) {
@@ -479,6 +502,14 @@ struct proto_serde<std::string, std::string> {
     static void read(
         std::string const&                out,
         proto_write_accessor<std::string> in) {
+        in.get() = out;
+    }
+};
+
+
+template <>
+struct proto_serde<bool, bool> {
+    static void read(bool const& out, proto_write_accessor<bool> in) {
         in.get() = out;
     }
 };

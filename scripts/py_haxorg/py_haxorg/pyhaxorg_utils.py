@@ -6,6 +6,12 @@ from beartype.typing import List
 from py_exporters.export_ultraplain import ExporterUltraplain
 from beartype.typing import Dict
 from dataclasses import dataclass, field
+from pathlib import Path
+import shutil
+from py_scriptutils.script_logging import log, ExceptionContextNote
+import os
+
+CAT = "org"
 
 
 @beartype
@@ -27,6 +33,16 @@ def evalDateTime(time: UserTime) -> datetime:
         kwargs["second"] = brk.second
 
     return datetime(**kwargs)
+
+
+@beartype
+def normalize(it: str) -> str:
+    result = ""
+    for ch in it:
+        if ch not in ["_", "-"]:
+            result += ch.lower()
+
+    return result
 
 
 @beartype
@@ -90,6 +106,71 @@ def formatOrgWithoutTime(node: org.Org) -> str:
 
 
 @beartype
+def getAttachments(node: org.Org) -> List[org.Link]:
+    result = []
+
+    def visit(it: org.Org):
+        if isinstance(it, org.Link) and it.getLinkKind() == org.LinkKind.Attachment:
+            result.append(it)
+
+    org.eachSubnodeRec(node, visit)
+
+    return result
+
+
+@beartype
+def doExportAttachments(
+    base: Path,
+    destination: Path,
+    attachments: List[org.Link],
+    backends: List[str],
+):
+    assert base.exists() and base.is_file(), base
+    assert destination.exists() and destination.is_dir(), destination
+    for item in attachments:
+        path = item.getAttachment().file
+        do_attach = item.getArguments("attach-on-export")
+        if do_attach and 0 < len(
+                do_attach.args) and (do_attach.args[0].getString() == "t" or normalize(
+                    do_attach.args[0].getString()) in [normalize(it) for it in backends]):
+
+            method = item.getArguments("attach-method")
+            op = method.args[0].getString()
+            with ExceptionContextNote(
+                    "Attachment operation {}, for base path '{}', destination '{}', relative '{}'"
+                    .format(
+                        op,
+                        base.parent,
+                        destination,
+                        path,
+                    )):
+                match op:
+                    case "copy" | "symlink":
+                        src = base.parent.joinpath(path)
+                        if not src.exists():
+                            raise SystemError(f"Attachment source '{src}' does not exist")
+
+                        dst = destination.joinpath(path)
+                        if src != dst:
+                            if op == "copy":
+                                shutil.copy(src=src, dst=dst)
+                                log(CAT).info(f"Copied {path}")
+
+                            elif op == "symlink":
+                                if dst.exists() or dst.is_symlink():
+                                    os.unlink(dst)
+
+                                assert not dst.exists()
+                                assert src.exists()
+
+                                dst.symlink_to(src)
+                                log(CAT).info(f"Symlinked {path}")
+
+                    case _:
+                        assert False
+
+
+@beartype
 @dataclass
 class NodeIdProvider():
     nodeIdCounter: Dict[org.Org, int] = field(default_factory=dict)
@@ -97,7 +178,7 @@ class NodeIdProvider():
     def getNodeId(self, value: org.Org) -> str:
         if isinstance(value, org.Subtree) and value.treeId:
             return value.treeId
-        
+
         else:
             if value not in self.nodeIdCounter:
                 self.nodeIdCounter[value] = len(self.nodeIdCounter)

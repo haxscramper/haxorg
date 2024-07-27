@@ -2,38 +2,6 @@
 
 #include <exporters/Exporter.hpp>
 
-template <typename T>
-struct TypeName {
-    static Str get() {
-        return Str(demangle(typeid(T).name())).replaceAll("sem::", "");
-    }
-};
-
-
-template <typename T>
-struct TypeName<Opt<T>> {
-    static Str get() {
-        return Str("Opt<") + TypeName<T>::get() + Str(">");
-    }
-};
-
-template <typename K, typename V>
-struct TypeName<UnorderedMap<K, V>> {
-    static Str get() {
-        return "UnorderedMap<"_ss + TypeName<K>::get() + ", "_ss
-             + TypeName<V>::get() + ">"_ss;
-    }
-};
-
-template <typename... Args>
-struct TypeName<Variant<Args...>> {
-    static Str get() {
-        return "Variant<"_ss
-             + Str(join(", ", Vec<Str>{TypeName<Args>::get()...}))
-             + ">"_ss;
-    }
-};
-
 /// \brief Trigger field visitation for value object
 #define __obj_field(res, obj, name)                                       \
     visitFieldRedirect(res, #name, obj.name);
@@ -46,12 +14,9 @@ void Exporter<V, R>::visitField(
     R&                   arg,
     const char*          name,
     sem::SemId<sem::Org> org) {
-    __visit_scope(
-        VisitEvent::Kind::VisitEnd,
-        .visitedNode  = org,
-        .field        = name,
-        .visitedValue = &arg);
-
+    auto __scope = trace_scope(trace(VisitReport::Kind::VisitField)
+                                   .with_field(name)
+                                   .with_node(org));
     _this()->visit(arg, org);
 }
 
@@ -62,10 +27,7 @@ void Exporter<V, R>::visitSubnode(R& tmp, int, sem::SemId<sem::Org> val) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
-    __visit_scope(
-        VisitEvent::Kind::VisitDispatch,
-        .visitedValue = &res,
-        .visitedNode  = arg);
+    auto __scope = trace(VisitReport::Kind::VisitDispatch).with_node(arg);
 
     if (arg.isNil()) { return; }
 
@@ -90,8 +52,8 @@ void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
 
 template <typename V, typename R>
 R Exporter<V, R>::evalTop(sem::SemId<sem::Org> org) {
-    __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
-
+    auto __scope = trace_scope(
+        trace(VisitReport::Kind::VisitTop).with_node(org));
     _this()->visitStart(org);
     R tmp = _this()->newRes(org);
     _this()->visit(tmp, org);

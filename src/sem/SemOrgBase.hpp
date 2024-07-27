@@ -90,27 +90,51 @@ struct SemId {
 
     /// \name Get pointer to the associated sem org node from ID
     ///
-    /// \warning Resulting pointers are *not* stable -- underlying store
-    /// content is subject to relocation and as such pointers are bound to
-    /// be invalidated if the new nodes are added. The pattern of `ptr =
-    /// node.get() ... add nodes ... ptr->something` will lead to subtle
-    /// bugs with dangling pointers and should be avoided. Instead
-    /// `node->whatever ... add nodes ... node->whatever` must be used. For
-    /// the same reason storing pointers in containers is discouraged.
-    ///
     /// {@
     O*              get() { return value.get(); }
     O const*        get() const { return value.get(); }
     O*              operator->() { return get(); }
     O const*        operator->() const { return get(); }
+    O&              operator*() { return *value; }
+    O const&        operator*() const { return *value; }
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
+
+    SemId<sem::Org> at(int idx) { return value->at(idx); }
+    SemId<sem::Org> at(BackwardsIndex idx) { return value->at(idx); }
+
+    SemId<sem::Org> get(int idx) { return value->get(idx); }
+    SemId<sem::Org> get(BackwardsIndex idx) { return value->get(idx); }
+
+    using SubnodeVec = Vec<SemId<sem::Org>>;
+
+    SubnodeVec::iterator       begin() { return value->subnodes.begin(); }
+    SubnodeVec::iterator       end() { return value->subnodes.end(); }
+    SubnodeVec::const_iterator begin() const {
+        return value->subnodes.begin();
+    }
+    SubnodeVec::const_iterator end() const {
+        return value->subnodes.end();
+    }
+
+    int size() const { return value->subnodes.size(); }
 
     template <typename T>
     SemId<T> asOpt() const {
-        if (isNil() || value->getKind() != T::staticKind) {
-            return SemId<T>::Nil();
+        if constexpr (std::is_abstract_v<T>) {
+            auto dyna = getAs<T>();
+            if (dyna == nullptr) {
+                return SemId<T>::Nil();
+            } else {
+                return as<T>();
+            }
+
         } else {
-            return as<T>();
+
+            if (isNil() || value->getKind() != T::staticKind) {
+                return SemId<T>::Nil();
+            } else {
+                return as<T>();
+            }
         }
     }
 
@@ -136,13 +160,7 @@ struct SemId {
 
     template <typename T>
     Vec<SemId<T>> subAs() const {
-        Vec<SemId<T>> result;
-        for (auto const& sub : value->subnodes) {
-            if (sub->getKind() == T::staticKind) {
-                result.push_back(sub.template as<T>());
-            }
-        }
-        return result;
+        return value->template subAs<T>();
     }
 
     /// \brief non-nil nodes are converter to `true`
@@ -224,9 +242,26 @@ struct [[refl]] Org {
         return subnodes.at(idx);
     }
 
+    SemId<Org> at(BackwardsIndex idx) const { return subnodes.at(idx); }
+    Opt<SemId<Org>> get(int idx) const { return subnodes.get(idx); }
+    Opt<SemId<Org>> get(BackwardsIndex idx) const {
+        return subnodes.get(idx);
+    }
+
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
     bool          is(CR<IntSet<OrgSemKind>> kinds) const {
         return kinds.contains(getKind());
+    }
+
+    template <typename T>
+    Vec<SemId<T>> subAs() const {
+        Vec<SemId<T>> result;
+        for (auto const& sub : subnodes) {
+            if (sub->getKind() == T::staticKind) {
+                result.push_back(sub.template as<T>());
+            }
+        }
+        return result;
     }
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());

@@ -1,9 +1,9 @@
 quiet: false
-debug: false
+debug: true
 instrument:
-  coverage: true
+  coverage: false
   xray: false
-  asan: false
+  asan: true
 
 tasks:
   skip_python_refl: false

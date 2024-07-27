@@ -9,33 +9,7 @@ import py_codegen.astbuilder_base as base
 from typing import TYPE_CHECKING
 from pydantic import BaseModel, Field
 
-if not TYPE_CHECKING:
-    BlockId = NewType('BlockId', int)
-    from py_textlayout.py_textlayout_wrap import *
-else:
-    from py_textlayout.py_textlayout_wrap import BlockId
-
-import logging
-from rich.logging import RichHandler
-
-logging.basicConfig(
-    level="NOTSET",
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[
-        RichHandler(rich_tracebacks=True,
-                    markup=True,
-                    enable_link_path=False,
-                    show_time=False)
-    ],
-)
-
-for name in logging.root.manager.loggerDict:
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.WARNING)
-
-log = logging.getLogger("rich")
-log.setLevel(logging.DEBUG)
+from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
 
 class QualTypeKind(str, Enum):
@@ -341,6 +315,7 @@ class MethodDeclParams:
     isStatic: bool = False
     isVirtual: bool = False
     isPureVirtual: bool = False
+    isOverride: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
     def asMethodDef(self, Class: QualType) -> MethodDefParams:
@@ -709,12 +684,14 @@ class ASTBuilder(base.AstbuilderBase):
                 self.b.add_at(result, self.string(f"/// {line}" if Doc else f"// {line}"))
             return result
 
-    def StringLiteral(self,
-                      value: str,
-                      forceRawStr: bool = False,
-                      rawStrDelmiter: str = "RAW",
-                      prefix: str = "",
-                      suffix: str = "") -> BlockId:
+    def StringLiteral(
+        self,
+        value: str,
+        forceRawStr: bool = False,
+        rawStrDelmiter: str = "RAW",
+        prefix: str = "",
+        suffix: str = "",
+    ) -> BlockId:
         if forceRawStr:
             return self.string(f"R\"{rawStrDelmiter}({value}){rawStrDelmiter}\"")
 
@@ -1006,6 +983,7 @@ class ASTBuilder(base.AstbuilderBase):
             self.string(method.Params.Name),
             self.Arguments(method.Params),
             self.string(" const" if method.isConst else ""),
+            self.string(" override" if method.isOverride else ""),
             self.string(" = 0" if method.isPureVirtual else "")
         ])
 

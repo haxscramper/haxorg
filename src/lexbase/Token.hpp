@@ -43,7 +43,7 @@ struct TokenId
 
     explicit TokenId(IdBase arg)
         : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>(
-            arg) {}
+              arg) {}
 };
 
 template <typename K, typename V>
@@ -185,10 +185,6 @@ struct Tokenizer {
     TokenGroup<K, V>* out;
     Tokenizer(TokenGroup<K, V>* _out) : out(_out) {}
     Vec<Vec<Token<K, V>>*> buffer;
-    /// \brief Set new active buffer pointer
-    void setBuffer(Vec<Token<K, V>>* _buffer) {
-        buffer.push_back(_buffer);
-    }
     void clearBuffer() { buffer.pop_back(); }
     /// \brief Get reference to token with specified ID
     Token<K, V>& at(TokenId<K, V> id) { return out->at(id); }
@@ -289,13 +285,21 @@ struct LexerCommon {
         /// Get iterator pointing to the current token (if the lexer moves
         /// it will change)
         iterator current() {
-            return __this()->in->pos_iterator(
-                currentPos ? *currentPos : __this()->pos);
+            if (__this()->finished()) {
+                return end();
+            } else {
+                return __this()->in->pos_iterator(
+                    currentPos ? *currentPos : __this()->pos);
+            }
         }
 
         const_iterator current() const {
-            return __this()->in->pos_iterator(
-                currentPos ? *currentPos : __this()->pos);
+            if (__this()->finished()) {
+                return end();
+            } else {
+                return __this()->in->pos_iterator(
+                    currentPos ? *currentPos : __this()->pos);
+            }
         }
 
         iterator       rbegin() { return __this()->in->rbegin(); }
@@ -523,6 +527,9 @@ struct LexerCommon {
     /// \brief Advance by \arg offset tokens
     virtual void next(int offset = 1) = 0;
 
+    virtual TokenId<K, V> getPos() const { return pos; }
+    virtual void          setPos(TokenId<K, V> id) { this->pos = id; }
+
     int find(K kind) {
         int offset = 0;
         while (hasNext(offset)) {
@@ -603,6 +610,17 @@ struct SubLexer : public LexerCommon<K, V> {
     void add(CR<TokenId<K, V>> tok) { tokens.push_back(tok); }
     void start() { pos = tokens.at(0); }
 
+    void setPos(TokenId<K, V> id) override {
+        int foundPos = tokens.indexOf(id);
+        if (foundPos == -1) {
+            throw std::range_error(
+                "Sub-lexer does have a token with a specified token id");
+        }
+
+        subPos = foundPos;
+        pos    = tokens.at(subPos);
+    }
+
     void next(int offset = 1) override {
         // TODO boundary checking
         if (hasNext(offset)) {
@@ -618,8 +636,8 @@ struct SubLexer : public LexerCommon<K, V> {
 
     SubLexer(TokenGroup<K, V>* in, Vec<TokenId<K, V>> _tokens)
         : LexerCommon<K, V>(
-            in,
-            _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
+              in,
+              _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
         , tokens(_tokens) {}
 };
 

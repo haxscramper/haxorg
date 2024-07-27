@@ -52,6 +52,9 @@ sub_lexers:
     - re: "file"
       token: LinkProtocolFile
 
+    - re: "attachment"
+      token: LinkProtocolAttachment
+
     - re: https?
       token: LinkProtocolHttp
 
@@ -125,7 +128,6 @@ tokens:
   - name: LatexInlineRaw
   - name: UnderlineBegin
   - name: UnderlineEnd
-  - name: CmdAdmonitionBegin
   - name: CmdFlag
   - name: CmdContentEnd
   - name: LinkFull
@@ -154,6 +156,37 @@ rules:
   - re: "end_quote"
     states: [COMMAND]
     token: CmdQuoteEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  #tag begin_table
+  - re: "begin_table"
+    states: [COMMAND]
+    token: CmdTableBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_table"
+    states: [COMMAND]
+    token: CmdTableEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  - re: "begin_cell"
+    states: [COMMAND]
+    token: CmdCellBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_cell"
+    states: [COMMAND]
+    token: CmdCellEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  - re: "begin_row"
+    states: [COMMAND]
+    token: CmdRowBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_row"
+    states: [COMMAND]
+    token: CmdRowEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
   #tag begin_comment
@@ -269,7 +302,7 @@ rules:
 
   #region Command-parameters
   - {
-      re: ":\\w+",
+      re: ":(\\w|-)+",
       states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
       token: CmdColonIdent,
     }
@@ -318,7 +351,7 @@ rules:
   - re: "startup{prop_colon}"
     states: [COMMAND]
     token: CmdStartup
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "options{prop_colon}"
     states: [COMMAND]
@@ -336,9 +369,74 @@ rules:
     token: CmdPropertyRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
-  - re: "include{prop_colon}"
+  - re: "email{prop_colon}"
     states: [COMMAND]
-    token: CmdInclude
+    token: CmdEmailRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "macro{prop_colon}"
+    states: [COMMAND]
+    token: CmdMacroRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "seq_todo{prop_colon}"
+    states: [COMMAND]
+    token: CmdSeqTodoRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "bind{prop_colon}"
+    states: [COMMAND]
+    token: CmdBindRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "tags{prop_colon}"
+    states: [COMMAND]
+    token: CmdTagsRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "exclude_tags{prop_colon}"
+    states: [COMMAND]
+    token: CmdExcludeTagsRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "select_tags{prop_colon}"
+    states: [COMMAND]
+    token: CmdSelectTagsRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "drawers{prop_colon}"
+    states: [COMMAND]
+    token: CmdDrawersRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "keywords{prop_colon}"
+    states: [COMMAND]
+    token: CmdDateRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "category{prop_colon}"
+    states: [COMMAND]
+    token: CmdCategoryRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "priorities{prop_colon}"
+    states: [COMMAND]
+    token: CmdPrioritiesRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "setupfile{prop_colon}"
+    states: [COMMAND]
+    token: CmdSetupfileRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "html_head{prop_colon}"
+    states: [COMMAND]
+    token: CmdHtmlHeadRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "latex_header_extra{prop_colon}"
+    states: [COMMAND]
+    token: CmdLatexHeaderExtraRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: ".*"
@@ -361,6 +459,21 @@ rules:
   - re: "caption{prop_colon}"
     states: [COMMAND]
     token: CmdCaption
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "description{prop_colon}"
+    states: [COMMAND]
+    token: CmdDescription
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "date{prop_colon}"
+    states: [COMMAND]
+    token: CmdDateRaw
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "link{prop_colon}"
+    states: [COMMAND]
+    token: CmdLinkRaw
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   - re: "property{prop_colon}({text_properties})"
@@ -405,21 +518,46 @@ rules:
     states: [COMMAND]
     token: CmdPropertyArgs
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
   - re: "header{prop_colon}"
     states: [COMMAND]
     token: CmdHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
   - re: "results{prop_colon}"
     states: [COMMAND]
     token: CmdResults
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
   - re: "name{prop_colon}"
     states: [COMMAND]
     token: CmdName
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "constants{prop_colon}"
+    states: [COMMAND]
+    token: CmdConstants
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+
   - re: "attr_\\w+{prop_colon}"
     states: [COMMAND]
     token: CmdAttr
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "include{prop_colon}"
+    states: [COMMAND]
+    token: CmdInclude
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "row{prop_colon}"
+    states: [COMMAND]
+    token: CmdRow
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "cell{prop_colon}"
+    states: [COMMAND]
+    token: CmdCell
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   - re: "latex_class{prop_colon}"
@@ -442,6 +580,11 @@ rules:
     token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
   #endregion
+
+  - re: "(\\w|_)+?{prop_colon}"
+    states: [COMMAND]
+    token: CmdCustomRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   #endregion
 
@@ -575,6 +718,7 @@ rules:
   - { lit: ";", token: Semicolon }
   - { lit: "*", token: Asterisk }
   - { lit: ",", token: Comma }
+  - { re: "<(\\w|\\s)+>", token: "Placeholder" }
   - { lit: "<<<", token: TripleAngleBegin }
   - { lit: ">>>", token: TripleAngleEnd }
   - { lit: "<<", token: DoubleAngleBegin }

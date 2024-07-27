@@ -88,22 +88,22 @@ concept IsOrg = std::
     };
 
 
-__hack_fmt(OrgNodeKind);
-__hack_fmt(sem::DocumentOptions::BrokenLinks);
-__hack_fmt(sem::DocumentOptions::Visibility);
-__hack_fmt(sem::Export::Format);
-__hack_fmt(sem::Include::Kind);
-__hack_fmt(sem::Link::Kind);
-__hack_fmt(sem::ListItem::Checkbox);
-__hack_fmt(sem::Subtree::Period::Kind);
-__hack_fmt(sem::SubtreeLog::Kind);
-__hack_fmt(sem::Time::Repeat::Mode);
-__hack_fmt(sem::Time::Repeat::Period);
+// __hack_fmt(OrgNodeKind);
+// __hack_fmt(sem::DocumentOptions::BrokenLinks);
+// __hack_fmt(sem::DocumentOptions::Visibility);
+// __hack_fmt(sem::Export::Format);
+// __hack_fmt(sem::Include::Kind);
+// __hack_fmt(sem::Link::Kind);
+// __hack_fmt(sem::ListItem::Checkbox);
+// __hack_fmt(sem::Subtree::Period::Kind);
+// __hack_fmt(sem::SubtreeLog::Kind);
+// __hack_fmt(sem::Time::Repeat::Mode);
+// __hack_fmt(sem::Time::Repeat::Period);
 
-__hack_fmt(sem::Code::Switch::Kind);
-__hack_fmt(sem::Time::TimeKind);
-__hack_fmt(sem::Subtree::Property::Kind);
-__hack_fmt(sem::Code::Exports);
-__hack_fmt(sem::Subtree::Property::SetMode);
-__hack_fmt(sem::Subtree::Property::InheritanceMode);
-__hack_fmt(sem::Subtree::Property::Visibility::Level);
+// __hack_fmt(sem::Code::Switch::Kind);
+// __hack_fmt(sem::Time::TimeKind);
+// __hack_fmt(sem::Subtree::Property::Kind);
+// __hack_fmt(sem::Code::Exports);
+// __hack_fmt(sem::Subtree::Property::SetMode);
+// __hack_fmt(sem::Subtree::Property::InheritanceMode);
+// __hack_fmt(sem::Subtree::Property::Visibility::Level);

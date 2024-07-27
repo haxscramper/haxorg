@@ -97,6 +97,10 @@ class GTestsuiteModel(BaseModel, extra="forbid"):
 def parse_google_tests(binary_path: Path) -> list[GTestParams]:
     assert binary_path.exists(), binary_path
     cmd = plumbum.local[binary_path]
+    # `pytest` is executed with `LD_PRELOAD` to allow for python modules to work, but the 
+    # gtest and qtest binaries are compiled with `rpath` and don't need any additional config.
+    # <<empty_ld_preload>>
+    cmd = cmd.with_env(LD_PRELOAD="")
     report_file = Path(f"/tmp/report_{binary_path.name}.json")
     cmd.run([
         "--gtest_list_tests",
@@ -105,9 +109,9 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
 
     model = GTestsuiteModel.model_validate(json.loads(report_file.read_text()))
 
-    print("----")
+    # print("----")
     # print(result.stdout)
-    print(binary_path)
+    # print(binary_path)
     tests = []
 
     for suite in model.testsuites:

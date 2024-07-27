@@ -23,6 +23,20 @@ Field field1(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
 }
 
 template <typename Idx>
+Field field1(
+    Idx           idx,
+    N             name,
+    OrgSet const& pattern = OrgSet{},
+    Str           doc     = "") {
+    return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
+}
+
+template <typename Idx>
+Field fieldN(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
+    return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
+}
+
+template <typename Idx>
 Field fieldN(
     Idx           idx,
     N             name,
@@ -91,8 +105,8 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     "Optional TODO state of the subtree"),
                 fieldN(
                     2,
-                    N::Urgency,
-                    {org::UrgencyStatus, org::Empty},
+                    N::Importance,
+                    {org::SubtreeImportance, org::Empty},
                     "Optional urgency marker for the subtree"),
                 field1(
                     3,
@@ -102,7 +116,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(
                     4,
                     N::Completion,
-                    {org::Completion, org::Empty},
+                    {org::SubtreeCompletion, org::Empty},
                     "Cumulative or direct completion of the "
                     "nested "
                     "tree elements"),
@@ -129,7 +143,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     "Statement list of the nested nodes"),
             })},
         SpecPair{
-            org::Filetags,
+            org::CmdFiletags,
             OrgPattern({
                 field1(slice(0, 1_B), N::Tags, org::HashTag, "File tags"),
             })},
@@ -153,12 +167,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(
                     0,
                     N::Properties,
-                    {org::PropertyList, org::Empty},
+                    {org::DrawerPropertyList, org::Empty},
                     "Optional list of properties"),
                 fieldN(
                     1,
                     N::Logbook,
-                    {org::Logbook, org::Empty},
+                    {org::DrawerLogbook, org::Empty},
                     "Optional list of log entries attached to the "
                     "subtree"),
                 Field(
@@ -169,11 +183,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::SubtreeDescription,
             OrgPattern({field1(0, N::Text, org::Paragraph)})},
-        SpecPair{org::CenterBlock, textWrapContent},
-        SpecPair{org::QuoteBlock, textWrapContent},
-        SpecPair{org::CommentBlock, textWrapContent},
+        SpecPair{org::BlockCenter, textWrapContent},
+        SpecPair{org::BlockQuote, textWrapContent},
+        SpecPair{org::BlockComment, textWrapContent},
         SpecPair{
-            org::Example,
+            org::BlockExample,
             OrgPattern({
                 fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
                 fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
@@ -189,7 +203,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(
                     0,
                     N::Prefix,
-                    {org::ListTag, org::Footnote, org::AdmonitionTag}),
+                    {org::ListTag, org::Footnote, org::BigIdent}),
                 fieldN(1, N::Body, {org::Paragraph, org::Empty}),
             })},
 
@@ -203,7 +217,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         // Subtree logbook components
         SpecPair{
-            org::Logbook,
+            org::DrawerLogbook,
             OrgPattern({
                 fieldN(0, N::Logs, OrgSet{org::List}),
             })},
@@ -255,10 +269,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::CmdValue,
             OrgPattern({fieldN(0, N::Name), fieldN(1, N::Value)})},
         SpecPair{
-            org::AssocStmtList,
-            OrgPattern({fieldN(0, N::Assoc), fieldN(1, N::Main)})},
-        SpecPair{
-            org::Result,
+            org::CmdResult,
             OrgPattern({fieldN(0, N::Hash), fieldN(1, N::Body)})},
         SpecPair{
             org::ListItem,
@@ -278,25 +289,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                          org::AnnotatedParagraph,
                          org::Empty})),
                 Field(
-                    Range(4, N::Completion)
-                        .doc("Cumulative completion progress for all "
-                             "subnodes"),
-                    OrgPattern({org::Completion, org::Empty})),
-                Field(
-                    Range(5, N::Body)
+                    Range(4, N::Body)
                         .doc("Additional list items - more sublists, "
                              "extended N::Body (with code blocks, extra "
                              "parargaphs etc.)"),
                     OrgPattern({org::StmtList, org::Empty})),
-            })},
-        SpecPair{
-            org::TimeAssoc,
-            OrgPattern({
-                fieldN(0, N::Name, {org::BigIdent, org::Empty}),
-                fieldN(
-                    1,
-                    N::Time,
-                    anyTime + IntSet<OrgNodeKind>{org::TimeRange}),
             })},
         SpecPair{
             org::TimeRange,
@@ -306,11 +303,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(2, N::Diff, {org::SimpleTime, org::Empty}),
             })},
         SpecPair{
-            org::PropertyList,
+            org::DrawerPropertyList,
             OrgPattern({
                 Field(
                     Range(slice(0, 1_B), N::Property),
-                    OrgPattern(org::Property)),
+                    OrgPattern(org::DrawerProperty)),
             })},
         SpecPair{
             org::TableRow,
@@ -334,17 +331,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                         OrgPattern(org::TableCell))})),
             })},
         SpecPair{
-            org::Property,
+            org::DrawerProperty,
             OrgPattern({
                 field1(0, N::Name, org::RawText),
                 field1(1, N::Values, org::RawText),
             })},
-        SpecPair{
-            org::MultilineCommand,
-            OrgPattern(
-                {field1(0, N::Name, org::Ident),
-                 fieldN(1, N::Args, {org::CmdArguments, org::Empty}),
-                 Field(Range(2, N::Body))})},
         SpecPair{
             org::MetaSymbol,
             OrgPattern({
@@ -366,8 +357,8 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
                 fieldN(1, N::Body, {org::Empty, org::StmtList}),
             })},
-        SpecPair{org::CommandTitle, parTextCmdPattern},
-        SpecPair{org::CommandCaption, parTextCmdPattern},
+        SpecPair{org::CmdTitle, parTextCmdPattern},
+        SpecPair{org::CmdCaption, parTextCmdPattern},
         SpecPair{
             org::CmdPropertyText,
             OrgPattern({
@@ -387,7 +378,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 field1(2, N::Body, org::StmtList),
             })},
         SpecPair{
-            org::Command,
+            org::Cmd,
             OrgPattern({
                 field1(0, N::Name, org::Ident),
                 fieldN(1, N::Args, {org::CmdArguments, org::Empty}),
@@ -405,7 +396,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                             OrgPattern(org::RawText))})),
             })},
         SpecPair{
-            org::CommandInclude,
+            org::CmdInclude,
             OrgPattern({Field(
                 Range(0, N::Args),
                 OrgPattern({OrgPattern({
@@ -415,7 +406,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     fieldN(3, N::Args, {org::Empty, org::CmdArguments}),
                 })}))})},
         SpecPair{
-            org::SrcCode,
+            org::BlockCode,
             OrgPattern({
                 fieldN(0, N::Lang, {org::Ident, org::Empty}),
                 fieldN(1, N::HeaderArgs, {org::CmdArguments, org::Empty}),
@@ -430,15 +421,28 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::RawText, org::Empty})),
             })},
         SpecPair{
-            org::CommandArguments,
+            org::CmdResults,
             OrgPattern({
-                fieldN(
-                    slice(0, 1_B),
-                    N::Args,
-                    {org::CmdKey,
-                     org::CmdValue,
-                     org::RawText,
-                     org::Empty}),
+                field1(0, N::Args, {org::Empty, org::CmdArguments}),
+                fieldN(1, N::Body),
+            })},
+        SpecPair{
+            org::CmdCustomArgsCommand,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Args, org::CmdArguments),
+            })},
+        SpecPair{
+            org::CmdCustomTextCommand,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Args, org::Paragraph),
+            })},
+        SpecPair{
+            org::CmdCustomRawCommand,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Args, org::RawText),
             })},
         SpecPair{
             org::Footnote,
@@ -449,7 +453,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::InlineFootnote,
             OrgPattern({Field(Range(0, N::Definition))})},
         SpecPair{
-            org::CommandAttr,
+            org::CmdAttr,
             OrgPattern({
                 Field(
                     Range(0, N::Name),
@@ -459,14 +463,14 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::Empty, org::CmdArguments})),
             })},
         SpecPair{
-            org::CommandHeader,
+            org::CmdHeader,
             OrgPattern({
                 Field(
                     Range(0, N::Args),
                     OrgPattern({org::Empty, org::CmdArguments})),
             })},
         SpecPair{
-            org::CommandOptions,
+            org::CmdOptions,
             OrgPattern({Field(
                 Range(slice(0, 1_B), N::Args),
                 OrgPattern(org::RawText))})},
@@ -508,18 +512,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::Macro,
             OrgPattern({
                 fieldN(0, N::Name),
-                // fieldN(
-                //     1,
-                //     N::Args,
-                //     OrgPattern(
-                //         {field1(slice(0, 1_B), N::Args,
-                //         org::RawText)})),
-                // fieldN(
-                //     2,
-                //     N::Body,
-                //     OrgPattern(
-                //         {field1(slice(0, 1_B), N::Args,
-                //         org::Paragraph)})),
+                fieldN(slice(1, 1_B), N::Args, org::InlineStmtList),
+            })},
+        SpecPair{
+            org::CmdCallCode,
+            OrgPattern({
+                fieldN(0, N::Name),
+                fieldN(slice(1, 1_B), N::Args, org::InlineStmtList),
             })},
         SpecPair{org::Angle, OrgPattern({fieldN(0, N::Body)})},
         SpecPair{org::Bold, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},

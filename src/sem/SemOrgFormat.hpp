@@ -16,9 +16,15 @@ struct Formatter {
     };
 
     Formatter() : store{&b} {}
-    Res toString(SemId<Org> id, CR<Context> ctx);
-    Res newRes(CR<sem::SemId<Org>> id) { return Res::Nil(); }
-    Res str(std::string const& str) { return b.text(store.str(str)); }
+    Res  toString(SemId<Org> id, CR<Context> ctx);
+    Res  newRes(CR<sem::SemId<Org>> id) { return Res::Nil(); }
+    Res  str(std::string const& str) { return b.text(store.str(str)); }
+    void add(Res id, Res other);
+
+
+    Res toString(Opt<SemId<CmdArguments>> args, CR<Context> ctx);
+
+    Res stackAttached(Res prev, SemId<sem::Stmt> stmt, CR<Context> ctx);
 
     static Str format(OrgArg id) { return format(id, Context{}); }
 

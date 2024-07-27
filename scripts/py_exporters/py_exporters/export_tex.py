@@ -91,7 +91,7 @@ class ExporterLatex(ExporterBase):
     def evalNewline(self, node: org.Newline) -> BlockId:
         return self.string(node.text)
 
-    def evalCenter(self, node: org.Center) -> BlockId:
+    def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
         res = self.t.stack([])
         self.t.add_at(res, self.command("begin", [self.string("center")]))
         for item in node:
@@ -169,7 +169,7 @@ class ExporterLatex(ExporterBase):
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
         return self.lineSubnodes(node)
 
-    def evalExport(self, node: org.Export) -> BlockId:
+    def evalBlockExport(self, node: org.BlockExport) -> BlockId:
         if node.exporter != "latex" or node.placement:
             return self.string("")
 
@@ -221,7 +221,7 @@ class ExporterLatex(ExporterBase):
             res.append(cmd)
 
         for it in node:
-            if isinstance(it, org.Export) and it.placement == "header":
+            if isinstance(it, org.BlockExport) and it.placement == "header":
                 res.append(self.string(it.content))
 
         return res
@@ -236,8 +236,13 @@ class ExporterLatex(ExporterBase):
         self.t.add_at(res, self.command("begin", [self.string("document")]))
 
         for it in node:
-            if isinstance(it, org.Export) and it.placement == "header":
+            if isinstance(it, org.BlockExport) and it.placement == "header":
                 continue
+
+            elif isinstance(it, org.Stmt):
+                prop = it.getArguments("export")
+                if prop and 0 < len(prop.args) and prop.args[0] and prop.args[0].getBool() == False:
+                    continue
 
             self.t.add_at(res, self.exp.eval(it))
 

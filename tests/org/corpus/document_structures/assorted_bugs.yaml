@@ -1,7 +1,5 @@
 items:
   - name: "1"
-    debug:
-      doFlatReparseCompare: false
     source: |
       haxscramper, [2023-10-14 01:20]
       #recall impossible to fully clarify the requirements, but even 70% were not reached
@@ -10,8 +8,6 @@ items:
       don't think I've done
 
   - name: Long newline unhandled
-    debug:
-      doFlatReparseCompare: false
     source: |
       *** 2023-10-14 Saturday
 
@@ -20,8 +16,6 @@ items:
         LLVM XRay
 
   - name: "Timestamp with timezone"
-    debug:
-      doFlatReparseCompare: false
     source: |
       **** [2023-10-17 Tue 06:42:00 +04] :from_tg:work:
           :PROPERTIES:
@@ -34,9 +28,6 @@ items:
 
   - name: "Long newline after the command block end"
     tags: ["org_src"]
-    debug:
-      doFlatReparseCompare: false
-      doFormatReparse: false
     source: |
       #+begin_src 
 
@@ -47,8 +38,6 @@ items:
 
   - name: "Subtree state transitions"
     tags: ["org_subtree", "org_properties", "org_clocking", "org_timestamp"]
-    debug:
-      doFlatReparseCompare: false
     source: |
       **** COMPLETED Subtree title
         CLOSED: [2023-11-08 Wed 14:53:12 +04]
@@ -77,8 +66,6 @@ items:
 
   - name: "Irregular source block in the list"
     tags: ["org_list", "org_paragraph", "org_src", "org_timestamp"]
-    debug:
-      doFlatReparseCompare: false
     source: |
       - [2023-11-11  Sat 00:10:50  +04]  IDEA  #project##hcparse union  of  fields  can also  be
 
@@ -117,8 +104,6 @@ items:
 
   - name: "Internal assertion on the verbatim parsing"
     tags: ["org_list", "org_paragraph", "org_subtree", "org_quote", "org_markup"]
-    debug:
-      doFlatReparseCompare: false
     source: |
       - F
         =MFC= X
@@ -132,8 +117,6 @@ items:
 
   - name: "Incomplete italic-looking quote content"
     tags: ["org_quote", "org_subtree", "org_markup"]
-    debug:
-      doFlatReparseCompare: false
     source: |
       #+begin_quote
       i <If /> 
@@ -149,15 +132,11 @@ items:
 
   - name: "Broken standalone content"
     tags: ["org_paragraph", "defcon2"]
-    debug:
-      doFlatReparseCompare: false
     source: |
       scp -r $E:AWS_ACCESS':'$E:AWS_HOME'/build/binary.snap' ~/tmp/wip_snaps
 
   - name: "Numbered list"
     tags: ["org_list"]
-    debug:
-      doFlatReparseCompare: false
     source: |
       1. Item 1
       2. Item 2
@@ -176,9 +155,6 @@ items:
 
   - name: "Standalone caption"
     tags: ["org_paragraph", "defcon3"]
-    debug:
-      doFlatReparseCompare: false
-      doFormatReparse: false
     source: |
       - [2023-11-09 Thu 18:33:38 +04]
         #+caption:
@@ -198,8 +174,6 @@ items:
       - [[id:16cb0d5f-1e66-47ef-bc29-9f41ecb81f73][Descriuption]]  is not
         reproducible
   - name: "Interleaving monospace and verbatim"
-    debug:
-      doFlatReparseCompare: false
     source: |
       - If ~A~ is
         passes ~set(QWE OFF)~, but =11=  =cc= in
@@ -211,8 +185,6 @@ items:
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
     tags: ["org_list", "org_src", "org_block", "defcon1"]
-    debug:
-      doFlatReparseCompare: false
     # Double nested quote does not work though 
     source: |
       - Some text
@@ -232,8 +204,6 @@ items:
           - DF
 
   - name: "Logbook without properties"
-    debug:
-      doFlatReparseCompare: false
     tags: ["org_subtree", "org_logbook"]
     source: |
       ****** XX
@@ -242,12 +212,8 @@ items:
             :END:
 
   - name: "Table with trailing medium newline"
-    debug:
-      doFlatReparseCompare: false
-      doFormatReparse: false
     tags: ["org_table"]
     source: |
-
       | language | profiling            | tools              | etc. |
       |----------+----------------------+--------------------+------|
       | cxx      | gprof, perfetto, ... | vscode, conan, ... |      |
@@ -262,8 +228,6 @@ items:
       #+end_src
 
   - name: "Quote block parameters"
-    debug:
-      doFlatReparseCompare: false
     source: |
       #+begin_quote :cc @user
       Text
@@ -312,24 +276,21 @@ items:
       #+end_quote
 
   - name: "Closing curly in link"
-    debug:
-      doFlatReparseCompare: false
-      doFormatReparse: false
     source: |
       src_sh{ping
         https://google.com},
 
   - name: "At tag in subtree title"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       **** COMPLETED qxasd :work:activity##meeting:@repeated:
 
   - name: "Starting at mention in subtree tags"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
-      **** COMPLETED Store vscode configuration in dotfiles :@config:software##vscode:
+      **** COMPLETED Store vscode configuration in dotfiles :@config:softwaqtre##vscode:
 
   - name: "Colon-looking content"
     source: |
@@ -351,21 +312,17 @@ items:
       OrgTokenKind> const&)}
 
   - name: "Uppercase subtree tag content"
-    debug:
-      doFlatReparseCompare: false
     source: |
-      **** CANCELED [#C] User qweq :complexity##intricate_13:ARCHIVE:
+      **** CANCELED [#C] User qweq :ARCHIVE:complexity##intricate_13:
 
   - name: "Empty paragraph"
-    debug:
-      doFlatReparseCompare: false
     source: |
       ****** AAA
 
   - name: "tbflm"
     debug: 
       doFormatReparse: false
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       #+TBLFM: $6=round(1000*$5/$4)/1000
 
@@ -379,8 +336,6 @@ items:
       [[file:notes.images/2023-03-30_17-27.png]]
 
   - name: "Not a time range"
-    debug:
-      doFlatReparseCompare: false
     source: |
       [2023-08-02 Wed 13:39:46 +04] -- [2023-08-02 Wed 13:39:46 +04]
 
@@ -397,14 +352,12 @@ items:
         haxconf:desktop/awesome_wm.lua:679  (B370DD3E)]]
 
   - name: "Relative links"
-    debug:
-      doFlatReparseCompare: false
     source: |
-       [[./notes.images/file.png]],
+       [[file:./notes.images/file.png]],
 
   - name: "Inline latex expression"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       \(2006 - 17 = 1989\)
 
@@ -446,8 +399,6 @@ items:
     # Missing `:` after the deadline annotations causes the parser to treat 
     # property list as a standalone block of text, not attached to the subtree
     # and fail because of that 
-    debug:
-      doFlatReparseCompare: false
     source: |
       **** COMPLETED Зачет АПО ЭВМ
           CLOSED: [2022-04-08 Fri 21:45:09] DEADLINE <2022-04-08 Fri 12:40:00>
@@ -462,8 +413,6 @@ items:
       <%%(and (diary-block-d 2022 7 4 17) (diary-day '(1 3 5)))>
 
   - name: "Subtree with complex logbook notes"
-    debug:
-      doFlatReparseCompare: false
     source: |
       *** COMPLETED adfasdf
           :PROPERTIES:
@@ -489,8 +438,6 @@ items:
           :END:
 
   - name: "Leading plus in list"
-    debug:
-      doFlatReparseCompare: false
     source: |
       - A
       - B
@@ -499,12 +446,9 @@ items:
       + B
 
   - name: "Name and results"
-    debug:
-      doFlatReparseCompare: false
-      doFormatReparse: false
     source: |
       #+name: xxx
-      #+BEGIN_SRC sch :file imgs/sch_1.tmp.png :exports none
+      #+BEGIN_SRC sch :exports none :file imgs/sch_1.tmp.png
       R 1 2; right
       C 2 3; down
       L 3 4; left
@@ -515,10 +459,8 @@ items:
       [[file:imgs/sch_1.tmp.png]]
 
   - name: "Attr HTML"
-    debug:
-      doFlatReparseCompare: false
     source: |
-      #+ATTR_HTML: :width 300px border="2" rules="all" frame="border"
+      #+attr_html: border="2" rules="all" frame="border" :width 300px 
       | test num | image                   |   |
       |----------+-------------------------+---|
       | test 1   | [[file:sch_1.tmp.png]]  |   |
@@ -547,14 +489,10 @@ items:
       <<no-end
 
   - name: "Double brace end at the hashtag"
-    debug:
-      doParse: false
     source: |
       #fanfiction##[character##[image,description,new]] 
 
   - name: "Call named command"
-    debug:
-      doLex: false
     source: |
       #+call: sh_example(arg=133)
 
@@ -563,8 +501,6 @@ items:
       computed as x×(1−a)+y×a.
 
   - name: "ANSI escape"
-    debug:
-      doFlatReparseCompare: false
     source: |
       #+begin_src bash
       echo -e "ee \e[41mwefae\e[49m 123"
@@ -574,13 +510,13 @@ items:
       : ee [41mwefae[49m 123
 
   - name: "Macro with arguments"
-    debug:
-      doFlatReparseCompare: false
     source: |
       {{{results(hello 12)}}}
       {{{keyword(NAME)}}}
       {{{modification-time(FORMAT, VC)}}}
       {{{property(PROPERTY-NAME, SEARCH OPTION)}}}
+      {{{named-var(key=value)}}}
+      {{{named-xxx(test=12)}}}
 
 
   - name: "More list bugs"
@@ -591,8 +527,6 @@ items:
       - Disabled 
 
   - name: "Angle"
-    debug:
-      doFlatReparseCompare: false
     source: |
       #+begin_src nim
       dumpTree:
@@ -609,14 +543,12 @@ items:
       :         IntLit 1
 
   - name: "Property exports"
-    debug:
-      doFlatReparseCompare: false
     source: |
       #+property: header-args    :exports code
 
   - name: "Columns"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       #+columns: %7TODO(To do) %40ITEM(Task) %TAGS(Tags) %6CLOCKSUM(Clock)
 
@@ -633,7 +565,7 @@ items:
 
   - name: "Timestamp repeaters"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       * TODO V
         SCHEDULED: <2023-09-18 Mon 11:00:00 +04 +1d>
@@ -643,7 +575,7 @@ items:
 
   - name: "Assorted timestamps"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       <2022-02-05 Sat .+1w>
       <2005-10-01 Sat +1m -3d>
@@ -754,7 +686,7 @@ items:
 
   - name: "Unfinished clock item"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       *** WIP Personal notes analytics script
           :LOGBOOK:
@@ -764,14 +696,160 @@ items:
 
   - name: "Completion percent"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       *** COMPLETED XAL WSDF Transition fixes [79/90]
           CLOSED: [2023-05-08 Mon 15:14:06]
 
+  - name: "Text target parsing"
+    tags: ["org_link"]
+    source: |
+      <<<radio target>>>
+      <<text target>>
 
+  - name: "Block table"
+    tags: ["org_table", "org_block"]
+    source: |
+      #+begin_table
+      | col1 | col2 | col3 |
+      #+row: :color red 
+      | column1 
+      | column2 
+      | column3 
 
+      #+row:
+      #+cell:
 
+      Tadc
+      Cell
 
+      #+cell: :name named-cell
 
+      Line31
+      Linsdfe
 
+      #+begin_table
+      | nest1 | nest2 |
+      | nest1 | nest2 |
+      #+end_table
+
+      #+end_table
+
+  - name: "Subtree comment and archive"
+    tags: ["org_subtree", "org_tag"]
+    source: |
+      **** COMPLETED COMMENT Laptop organization :ARCHIVE:
+      **** COMMENT Laptop organization :ARCHIVE:
+      **** COMMENT 
+      **** :ARCHIVE:
+      **** :ARCHIVE:tag1:
+      **** COMMENT :ARCHIVE:tag1:
+      **** Nothing
+
+  - name: "Broken list indentation"
+    tags: ["org_list", "defcon1"]
+    debug:
+      doFlatParseCompare: false
+      doFormatReparse: false
+    source: |
+      - List
+        - Item
+      Broken
+        - Item
+      - Dedented
+
+  - name: "Single list item without spacing"
+    tags: ["org_list", "defcon1"]
+    debug: 
+      doFlatParseCompare: false
+    source: |
+      - asf
+
+        - [15:14]
+          =terminating=
+            - asdfasdf
+          an
+
+        - [17:13] There
+
+      - asdfasdf
+
+  - name: "Indented text in regular paragraph"
+    tags: ["org_paragraph"]
+    source: |
+      haxscramper, [2023-10-14 01:14]
+      #recall gpt based research for features of profiling and llvm
+
+  - name: "Broken tags in the subtree"
+    tags: ["org_subtree"]
+    source: | 
+      ** Text :broken
+
+  - name: "Multiline monospace in paragraph"
+    tags: ["org_paragraph", "org_monospace", "org_markup"]
+    source: |
+      ~Monospace text
+      Multiple lines of
+      Max 2 newlines~
+
+  - name: "Unterminated multiline monospace in paragraph"
+    tags: ["org_paragraph", "org_monospace", "org_markup", "defcon4"]
+    source: |
+      ~Monospace text
+      Multiple lines of
+      Max 2 newlines
+
+  - name: "Unterminated monospace with structure"
+    tags: ["org_paragraph", "org_list", "org_markup", "defcon3"]
+    source: |
+      ~Monospace in text
+      - Item1
+      - Item2
+
+  - name: "Unterminated monospace in markup"
+    source: |
+      _*~Content*_
+
+  - name: "File-level commands"
+    debug:
+      doFlatParseCompare: false
+      doFormatReparse: false
+    source: |
+      #+TITLE: Sample Org-mode Document
+      #+AUTHOR: John Doe
+      #+EMAIL: johndoe@example.com
+      #+DATE: [2024-07-14]
+      #+DESCRIPTION: This is a comprehensive sample document demonstrating Org-mode configuration options.
+      #+KEYWORDS: org-mode, emacs, configuration
+      #+LANGUAGE: en
+      #+OPTIONS: H:3 num:t toc:2 \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
+      #+BIND: C-x C-s org-save-all-org-buffers
+      #+CATEGORY: Test
+      #+SEQ_TODO: TODO(t) IN-PROGRESS(p) WAITING(w) | DONE(d) CANCELED(c)
+      #+TAGS: Work(w) Personal(p) Urgent(u)
+      #+PRIORITIES: A C B
+      #+PROPERTY: Effort_ALL 0 0:05 0:10 0:15 0:30 1:00 2:00 4:00
+      #+LINK: google http://www.google.com/search?q=%s
+      #+MACRO: authorname John Doe
+      #+SETUPFILE: ~/path/to/another/setupfile.org
+      #+STARTUP: showall indent
+      #+HTML_HEAD: <style>body { font-family: Arial, sans-serif; }</style>
+      #+LATEX_HEADER: \usepackage{amsmath}
+      #+LATEX_CLASS: article
+      #+LATEX_CLASS_OPTIONS: [a4paper]
+      #+LATEX_HEADER_EXTRA: \usepackage{hyperref}
+      #+BEAMER_FRAME_LEVEL: 2
+      #+BEAMER_HEADER_EXTRA: \setbeamertemplate{navigation symbols}{}
+      #+EXCLUDE_TAGS: noexport
+      #+SELECT_TAGS: export
+      #+ATTR_LATEX: :width 0.8\textwidth
+      #+ATTR_HTML: :alt Sample Image :title Sample Title
+      #+DRAWERS: LOGBOOK PROPERTIES
+      #+COLUMNS: %25ITEM %TODO %3PRIORITY %TAGS %Effort %CLOCKSUM
+      #+FILETAGS9: ProjectX
+      #+CONSTANTS: const1=Value1 const2=Value2
+      #+RESULTS: 
+      #+CREATOR: Emacs 28.1 (Org mode 9.4)
+      #+OPTIONS: tags:nil
+      #+OPTIONS: timestamp:t
+      #+OPTIONS: H:3 num:t toc:2 \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t tags:nil tasks:t title:t author:t date:t e:t p:t pri:nil stat:nil c:t d:(notext) todo:t

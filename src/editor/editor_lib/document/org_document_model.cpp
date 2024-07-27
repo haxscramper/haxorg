@@ -102,7 +102,7 @@ QModelIndex OrgDocumentModel::index(
     const QModelIndex& parent) const {
     if (hasIndex(row, column, parent)) {
         if (parent.isValid()) {
-            auto node = tree(parent)->subnodes.at(row).get();
+            auto node = tree(parent)->at(row);
             Q_ASSERT(node != nullptr);
             return createIndex(row, column, node);
         } else {

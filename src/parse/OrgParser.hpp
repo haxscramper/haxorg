@@ -9,7 +9,6 @@
 #include <lexbase/TraceBase.hpp>
 
 struct parse_error : CRTP_hexception<parse_error> {};
-struct parse_context_error : CRTP_hexception<parse_error> {};
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
@@ -36,7 +35,8 @@ struct OrgParser : public OperationsTracer {
         EndNode,
         AddToken,
         Error,
-        Print
+        Print,
+        FailTree,
     };
 
     struct Report : OperationsMsg {
@@ -51,6 +51,7 @@ struct OrgParser : public OperationsTracer {
 
     OrgId parseFootnote(OrgLexer& lex);
     OrgId parseMacro(OrgLexer& lex);
+    void  parseCallArguments(OrgLexer& lex);
     OrgId parseRawUrl(OrgLexer& lex);
     OrgId parseLink(OrgLexer& lex);
     OrgId parseInlineMath(OrgLexer& lex);
@@ -60,6 +61,8 @@ struct OrgParser : public OperationsTracer {
     OrgId parseTimeStamp(OrgLexer& lex);
     OrgId parseIdent(OrgLexer& lex);
     OrgId parseSrcInline(OrgLexer& lex);
+    OrgId parseVerbatimOrMonospace(OrgLexer& lex);
+    OrgId parseAngleTarget(OrgLexer& lex);
     OrgId parseTable(OrgLexer& lex);
     OrgId parsePlaceholder(OrgLexer& lex);
     OrgId parseTopParagraph(OrgLexer& lex);
@@ -110,15 +113,6 @@ struct OrgParser : public OperationsTracer {
         return group->lastPending();
     }
 
-    OrgId fail(OrgTokenId invalid) {
-        (void)token(OrgNodeKind::ErrorToken, invalid);
-        /// TODO insert token with error description
-        (void)token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
-        OrgId failed           = end();
-        group->at(failed).kind = OrgNodeKind::Error;
-        return failed;
-    }
-
     OrgId back() const { return group->nodes.back(); }
 
     int treeDepth() const {
@@ -162,6 +156,12 @@ struct OrgParser : public OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
+    void fail(
+        CR<OrgLexer> lex,
+        CR<OrgNode>  replace,
+        int          line     = __builtin_LINE(),
+        char const*  function = __builtin_FUNCTION());
+
     void expect(
         CR<OrgLexer>                 lex,
         CR<OrgParser::OrgExpectable> item,
@@ -198,9 +198,9 @@ struct OrgParser : public OperationsTracer {
 
     void print(
         std::string const& msg,
+        OrgLexer*          lexer    = nullptr,
         int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        OrgLexer*          lexer    = nullptr);
+        char const*        function = __builtin_FUNCTION());
 
 
   public:

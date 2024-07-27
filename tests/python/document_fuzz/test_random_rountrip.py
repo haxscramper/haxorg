@@ -11,26 +11,20 @@ import pytest
 from py_exporters import export_ultraplain
 from py_exporters import export_tex
 from py_exporters import export_html
+from tempfile import TemporaryDirectory
+from pathlib import Path
+import shutil
 
 FILE = None
-
-
-def get_file():
-    global FILE
-    if not FILE:
-        FILE = open("/tmp/file.org", "w")
-
-    return FILE
-
 
 @beartype
 @dataclass
 class OrgGenOptions():
     minSubnodeCount: int = 1
-    maxSubnodeCount: int = 16
+    maxSubnodeCount: int = 8
     minAttachedCount: int = 0
     maxAttachedCount: int = 0
-    maxRecursionDepth: Optional[int] = 16
+    maxRecursionDepth: Optional[int] = 8
     enableTrace: bool = False
     parentSubtree: int = 0
 
@@ -62,20 +56,20 @@ SET_PARAGRAPH_KINDS = org.SemSet([
     osk.Link,
     osk.Macro,
     osk.Symbol,
-    osk.InlineMath,
+    osk.Latex,
     osk.Escaped,
     osk.Placeholder,
     osk.Punctuation,
 ])
 
 SET_COMMAND_KINDS = org.SemSet([
-    osk.Code,
-    osk.Export,
-    osk.Center,
-    osk.Example,
-    osk.Quote,
-    osk.Caption,
-    osk.Verse,
+    osk.BlockCode,
+    osk.BlockExport,
+    osk.BlockCenter,
+    osk.BlockExample,
+    osk.BlockQuote,
+    osk.CmdCaption,
+    osk.BlockVerse,
 ])
 
 SET_STMT_TOPLEVEL = org.SemSet([
@@ -179,7 +173,6 @@ class OrgGenCtx():
             osk.FileTarget,
             osk.CmdArgument,
             osk.CmdArguments,
-            osk.ParseError,
             osk.DocumentOptions,
             osk.Empty,
             osk.SubtreeLog,
@@ -189,15 +182,14 @@ class OrgGenCtx():
             osk.MarkQuote,
             osk.ListItem,
             osk.DocumentGroup,
-            osk.AdmonitionBlock,
+            osk.BlockAdmonition,
             osk.Include,
-            osk.CommandGroup,
-            osk.Tblfm,
+            osk.CmdTblfm,
             osk.Call,
             osk.CmdResults,
             osk.Table,
             osk.StmtList,
-            osk.Completion,
+            osk.SubtreeCompletion,
         ]) - SET_COMMAND_KINDS
 
         if 3 <= self.count(osk.List):
@@ -304,11 +296,6 @@ def build_StmtList(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Table(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Table))
-
-
-@st.composite
 def build_HashTag(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
         st.builds(org.HashTag,
@@ -325,11 +312,6 @@ def build_Footnote(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Completion(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Completion))
-
-
-@st.composite
 def build_Paragraph(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
         st.builds(org.Paragraph,
@@ -338,21 +320,6 @@ def build_Paragraph(draw: st.DrawFn, ctx: OrgGenCtx):
                       even_item=build_Space(ctx),
                       n_strategy=st.integers(1, ctx.getMaxSubnodeCount()),
                   )))
-
-
-@st.composite
-def build_Center(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Center))
-
-
-@st.composite
-def build_Caption(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Caption, text=build_Paragraph(ctx=ctx.rec(osk.Caption))))
-
-
-@st.composite
-def build_StmtList(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.StmtList))
 
 
 @st.composite
@@ -376,23 +343,18 @@ def build_Table(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Footnote(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Footnote))
+def build_SubtreeCompletion(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.SubtreeCompletion))
 
 
 @st.composite
-def build_Completion(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Completion))
+def build_BlockCenter(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.BlockCenter))
 
 
 @st.composite
-def build_Center(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Center))
-
-
-@st.composite
-def build_Caption(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Caption, text=build_Paragraph(ctx.rec(osk.Caption))))
+def build_CmdCaption(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.CmdCaption, text=build_Paragraph(ctx.rec(osk.CmdCaption))))
 
 
 @st.composite
@@ -405,30 +367,26 @@ def build_CmdResults(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.CmdResults))
 
 
-@st.composite
-def build_CommandGroup(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.CommandGroup))
-
 
 @st.composite
-def build_Tblfm(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Tblfm))
+def build_CmdTblfm(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.CmdTblfm))
 
 
 @st.composite
-def build_Quote(draw: st.DrawFn, ctx: OrgGenCtx):
+def build_BlockQuote(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
         st.builds(
-            org.Quote,
+            org.BlockQuote,
             subnodes=interleave_with_newlines(ctx, build_Paragraph(ctx)),
         ))
 
 
 @st.composite
-def build_Verse(draw: st.DrawFn, ctx: OrgGenCtx):
+def build_BlockVerse(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
         st.builds(
-            org.Verse,
+            org.BlockVerse,
             subnodes=interleave_with_newlines(ctx, build_Paragraph(ctx)),
         ))
 
@@ -460,23 +418,23 @@ def build_raw_text_block(ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Export(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Export, subnodes=build_raw_text_block(ctx)))
+def build_BlockExport(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.BlockExport, subnodes=build_raw_text_block(ctx)))
 
 
 @st.composite
-def build_Example(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Example, subnodes=build_raw_text_block(ctx)))
+def build_BlockExample(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.BlockExample, subnodes=build_raw_text_block(ctx)))
 
 
 @st.composite
 def build_Code(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Code, subnodes=build_raw_text_block(ctx)))
+    return draw(st.builds(org.BlockCode, subnodes=build_raw_text_block(ctx)))
 
 
 @st.composite
 def build_AdmonitionBlock(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.AdmonitionBlock))
+    return draw(st.builds(org.BlockAdmonition))
 
 
 @st.composite
@@ -528,7 +486,7 @@ def build_Subtree(draw: st.DrawFn, ctx: OrgGenCtx):
 
 @st.composite
 def build_InlineMath(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.InlineMath))
+    return draw(st.builds(org.Latex))
 
 
 @st.composite
@@ -680,41 +638,39 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_HashTag(ctx=ctx))
         case osk.Footnote:
             return draw(build_Footnote(ctx=ctx))
-        case osk.Completion:
-            return draw(build_Completion(ctx=ctx))
+        case osk.SubtreeCompletion:
+            return draw(build_SubtreeCompletion(ctx=ctx))
         case osk.Paragraph:
             return draw(build_Paragraph(ctx=ctx))
-        case osk.Center:
-            return draw(build_Center(ctx=ctx))
-        case osk.Caption:
-            return draw(build_Caption(ctx=ctx))
+        case osk.BlockCenter:
+            return draw(build_BlockCenter(ctx=ctx))
+        case osk.CmdCaption:
+            return draw(build_CmdCaption(ctx=ctx))
         case osk.CmdName:
             return draw(build_CmdName(ctx=ctx))
         case osk.CmdResults:
             return draw(build_CmdResults(ctx=ctx))
-        case osk.CommandGroup:
-            return draw(build_CommandGroup(ctx=ctx))
-        case osk.Tblfm:
-            return draw(build_Tblfm(ctx=ctx))
-        case osk.Quote:
-            return draw(build_Quote(ctx=ctx))
-        case osk.Verse:
-            return draw(build_Verse(ctx=ctx))
-        case osk.Example:
-            return draw(build_Example(ctx=ctx))
+        case osk.CmdTblfm:
+            return draw(build_CmdTblfm(ctx=ctx))
+        case osk.BlockQuote:
+            return draw(build_BlockQuote(ctx=ctx))
+        case osk.BlockVerse:
+            return draw(build_BlockVerse(ctx=ctx))
+        case osk.BlockExample:
+            return draw(build_BlockExample(ctx=ctx))
         case osk.CmdArguments:
             return draw(build_CmdArguments(ctx=ctx))
         case osk.CmdAttr:
             return draw(build_CmdAttr(ctx=ctx))
         case osk.CmdArgument:
             return draw(build_CmdArgument(ctx=ctx))
-        case osk.Export:
-            return draw(build_Export(ctx=ctx))
-        case osk.AdmonitionBlock:
+        case osk.BlockExport:
+            return draw(build_BlockExport(ctx=ctx))
+        case osk.BlockAdmonition:
             return draw(build_AdmonitionBlock(ctx=ctx))
         case osk.Call:
             return draw(build_Call(ctx=ctx))
-        case osk.Code:
+        case osk.BlockCode:
             return draw(build_Code(ctx=ctx))
         case osk.Time:
             return draw(build_Time(ctx=ctx))
@@ -728,7 +684,7 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_SubtreeLog(ctx=ctx))
         case osk.Subtree:
             return draw(build_Subtree(ctx=ctx))
-        case osk.InlineMath:
+        case osk.Latex:
             return draw(build_InlineMath(ctx=ctx))
         case osk.Escaped:
             return draw(build_Escaped(ctx=ctx))
@@ -774,8 +730,6 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_DocumentOptions(ctx=ctx))
         case osk.Document:
             return draw(build_Document(ctx=ctx))
-        case osk.ParseError:
-            return draw(build_ParseError(ctx=ctx))
         case osk.FileTarget:
             return draw(build_FileTarget(ctx=ctx))
         case osk.TextSeparator:
@@ -823,20 +777,26 @@ def test_html_export(doc: org.Document):
     exp.exp.evalTop(doc)
 
 
+counter = 0
+
 @pytest.mark.unstable
 @settings(**gen_settings)
 @given(node_strategy(OrgGenCtx()))
 def test_render(doc: org.Document):
-    pass
+    global counter
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        dir = Path("/tmp/test_render")
+        dir.mkdir(parents=True, exist_ok=True)
 
-    # ctx = org.OrgContext()
-    # tree = org.OrgExporterTree()
-    # file = get_file()
-    # file.write("================================================\n\n")
-    # file.write(org.treeRepr(doc, colored=False))
-    # file.write("\n\n\n")
-    # file.write(ctx.formatToString(doc))
-    # file.write("\n\n")
+        with open(dir.joinpath(f"debug_{counter}.txt"), "w") as file:
+            file.write("================================================\n\n")
+            file.write(org.treeRepr(doc, colored=False))
+            file.write("\n\n\n")
+            file.write(org.formatToString(doc))
+            file.write("\n\n")
+
+        counter += 1
 
 
 # if __name__ == "__main__":

@@ -15,12 +15,13 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 #undef __ExporterBase
 
     struct TreeReprConf {
-        bool withLineCol     = true;
-        bool withOriginalId  = true;
-        bool withSubnodeIdx  = true;
-        bool skipEmptyFields = true;
-        int  startLevel      = 0;
-        int  maxTreeDepth    = 40;
+        bool withLineCol         = true;
+        bool withOriginalId      = true;
+        bool withSubnodeIdx      = true;
+        bool withTypeAnnotations = false;
+        bool skipEmptyFields     = true;
+        int  startLevel          = 0;
+        int  maxTreeDepth        = 40;
 
         SemSet skipNodes;
         SemSet skipSubnodesOf;
@@ -87,9 +88,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     void init(sem::SemId<sem::Org> org);
 
-    bool skipAsTooNested() const {
-        return conf.maxTreeDepth < stack.size();
-    }
+    bool skipAsTooNested() const;
 
     template <typename T>
     bool skipAsEmpty(CR<Opt<T>> opt) {
@@ -106,6 +105,12 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         return false;
     }
 
+    void writeSkip(
+        CR<Str>     message,
+        CR<Str>     trail    = "",
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
     template <typename T>
     void visit(int& arg, CR<Vec<T>> value);
 
@@ -119,6 +124,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void visit(int& arg, CR<UnorderedMap<K, V>> opt) {
         // TODO
     }
+
+    template <typename V>
+    void visit(int& arg, CR<UnorderedMap<Str, V>> opt);
 
     void visitField(
         int&                       i,

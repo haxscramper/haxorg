@@ -44,7 +44,7 @@ struct [[nodiscard]] NodeId
 
     explicit NodeId(IdBase arg)
         : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>(
-            arg) {}
+              arg) {}
 };
 
 
@@ -233,7 +233,9 @@ struct NodeGroup {
         int offset = 0 /// Offset for extending closed subnode
     );
 
-    Id failTree(Node<N, K, V> replacement);
+    Id   failTree(Node<N, K, V> replacement);
+    /// \brief Remove all nodes starting from a position `id`
+    void removeTail(Id id);
 
     CR<Node<N, K, V>> lastPending() const {
         return nodes.at(pendingTrees.back());

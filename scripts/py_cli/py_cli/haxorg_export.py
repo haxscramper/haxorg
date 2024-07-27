@@ -30,3 +30,6 @@ export.add_command(export_html)
 
 from py_cli.haxorg_export_pandoc import export_pandoc
 export.add_command(export_pandoc)
+
+from py_cli.haxorg_export_typst import export_typst
+export.add_command(export_typst)

@@ -13,6 +13,9 @@ class ExporterBase:
     def eval(self, node: org.Org):
         return self.exp.eval(node)
 
+    def enableFileTrace(self, path: str, colored: bool = False):
+        self.exp.enableFileTrace(path, colored)
+
     def __init__(self, derived):
         self.exp = org.ExporterPython()
 

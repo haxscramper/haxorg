@@ -37,53 +37,79 @@ struct ParseSpec {
     ///   doLex: false
     /// ```
     struct Dbg {
-        DECL_FIELDS(
+        /// Enable file-based tracing for all steps of the spec
+        /// checking
+        bool traceAll = false;
+        /// Trace execution of the re/flex lexer
+        bool traceLex = false;
+        /// Trace conversion from base token list to the regrouped
+        /// tokens
+        bool traceLexBase = false;
+        /// Tracing of converted token stream to DOD org-mode tree
+        bool traceParse = false;
+        /// Conversion of the tree to the
+        bool traceSem = false;
+        /// Print lex/parse/sem/source values for processing
+        bool printLexed     = false;
+        bool printBaseLexed = false;
+        bool printParsed    = false;
+        bool printSem       = false;
+        bool printSource    = false;
+        /// Test should run lex/parse/sem stages
+        bool doParse   = true;
+        bool doLex     = true;
+        bool doLexBase = true;
+        bool doSem     = true;
+
+        /// If the initial sem stage completed without issues, format
+        /// the document to string and then parse it again, comparing
+        /// parsed tree V1 vs parsed tree V2
+        bool doFormatReparse = true;
+        /// Compare flat DOD nodes generated in the first and the
+        /// second run of the parsed content. Comparison is done using
+        /// simplified versions of the flat trees -- remove
+        /// `org::Empty` nodes, newlines and whitespaces, to avoid too
+        /// making the test corpus too brittle.
+        bool doFlatParseCompare = true;
+        /// Print sem/lex/parse output debug information to the file
+        bool printLexedToFile       = false;
+        bool printBaseLexedToFile   = false;
+        bool printParsedToFile      = false;
+        bool printSemToFile         = false;
+        int  maxBaseLexUnknownCount = 100;
+        /// directory to write debug files to
+        std::string debugOutDir = "";
+
+        DESC_FIELDS(
             Dbg,
-            (),
-            /// Enable file-based tracing for all steps of the spec
-            /// checking
-            ((bool), traceAll, false),
-            /// Trace execution of the re/flex lexer
-            ((bool), traceLex, false),
-            /// Trace conversion from base token list to the regrouped
-            /// tokens
-            ((bool), traceLexBase, false),
-            /// Tracing of converted token stream to DOD org-mode tree
-            ((bool), traceParse, false),
-            /// Conversion of the tree to the
-            ((bool), traceSem, false),
-            /// Print lex/parse/sem/source values for processing
-            ((bool), printLexed, false),
-            ((bool), printBaseLexed, false),
-            ((bool), printParsed, false),
-            ((bool), printSem, false),
-            ((bool), printSource, false),
-            /// Test should run lex/parse/sem stages
-            ((bool), doParse, true),
-            ((bool), doLex, true),
-            ((bool), doLexBase, true),
-            ((bool), doSem, true),
-            /// If the initial sem stage completed without issues, format
-            /// the document to string and then parse it again, comparing
-            /// parsed tree V1 vs parsed tree V2
-            ((bool), doFormatReparse, true),
-            /// Compare flat DOD nodes generated in the first and the
-            /// second run of the parsed content. Comparison is done using
-            /// simplified versions of the flat trees -- remove
-            /// `org::Empty` nodes, newlines and whitespaces, to avoid too
-            /// making the test corpus too brittle.
-            ((bool), doFlatReparseCompare, true),
-            /// Print sem/lex/parse output debug information to the file
-            ((bool), printLexedToFile, false),
-            ((bool), printBaseLexedToFile, false),
-            ((bool), printParsedToFile, false),
-            ((bool), printSemToFile, false),
-            ((int), maxBaseLexUnknownCount, 100),
-            /// directory to write debug files to
-            ((std::string), debugOutDir, ""));
+            (traceAll,
+             traceLex,
+             traceLexBase,
+             traceParse,
+             traceSem,
+             printLexed,
+             printBaseLexed,
+             printParsed,
+             printSem,
+             printSource,
+             doParse,
+             doLex,
+             doLexBase,
+             doSem,
+             doFormatReparse,
+             doFlatParseCompare,
+             printLexedToFile,
+             printBaseLexedToFile,
+             printParsedToFile,
+             printSemToFile,
+             maxBaseLexUnknownCount,
+             debugOutDir));
     };
 
-    fs::path debugFile(std::string relativePath, bool create = true) const;
+    fs::path debugFile(
+        std::string     relativePath,
+        CR<std::string> relDebug,
+        bool            create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const std::string& message)

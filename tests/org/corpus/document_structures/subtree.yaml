@@ -1,17 +1,17 @@
 items:
   - name: "Trailing markup in subtree with tags"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: "**** COMPLETED Try =atmospace= :test##assesment##viability:"
 
   - name: "Trailing markup in subtree"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: "***** COMPLETED Update sizes of the setting grid element to use ~@scale~"
 
   - name: "Trailing colon for subtree name"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: "****** Pros:"
 
   - name: "Regular subtree"
@@ -55,7 +55,7 @@ items:
 
   - name: "Headline after paragraph"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     source: |
       Paragraph text
       * New headline
@@ -76,6 +76,6 @@ items:
 
   - name: "Lorem ipsum subtree"
     debug:
-      doFlatReparseCompare: false
+      doFlatParseCompare: false
     file: org/lorem_ipsum_subtree.org
 

@@ -36,7 +36,7 @@ OrgNode tok(OrgNodeKind kind, int id) {
     return OrgNode(kind, OrgTokenId(id));
 }
 
-using org = OrgNodeKind;
+using onk = OrgNodeKind;
 using otk = OrgTokenKind;
 
 struct TmpTree {

@@ -16,6 +16,7 @@
 #include <google/protobuf/util/json_util.h>
 #include <exporters/ExporterJson.hpp>
 #include <sem/SemBaseApi.hpp>
+#include <fstream>
 
 template <
     /// Node kind
@@ -57,7 +58,7 @@ std::string maybe_format(const T& value) {
 template <typename T>
     requires(!std::formattable<T, char>)
 std::string maybe_format(const T&) {
-    return "<non-formattable>";
+    return fmt("<non-formattable {}>", demangle(typeid(T).name()));
 }
 
 template <typename T>
@@ -71,10 +72,11 @@ struct reporting_comparator {
             out.push_back({
                 .context = context,
                 .message = std::format(
-                    "{} != {} on {}",
+                    "{} != {} on {} for {}",
                     escape_literal(maybe_format(lhs)),
                     escape_literal(maybe_format(rhs)),
-                    __LINE__),
+                    __LINE__,
+                    demangle(typeid(T).name())),
             });
         }
     }
@@ -94,6 +96,49 @@ struct reporting_comparator<std::optional<T>> {
             });
         } else if (lhs.has_value()) {
             reporting_comparator<T>::compare(*lhs, *rhs, out, context);
+        }
+    }
+};
+
+template <typename K, typename V>
+struct reporting_comparator<UnorderedMap<K, V>> {
+    static void compare(
+        CR<UnorderedMap<K, V>>      lhs,
+        CR<UnorderedMap<K, V>>      rhs,
+        Vec<compare_report>&        out,
+        Vec<compare_context> const& context) {
+        if (lhs.size() != rhs.size()) {
+            out.push_back({
+                .context = context,
+                .message = fmt(
+                    "lhs.size() != rhs.size() ({} != {}) on {}",
+                    lhs.size(),
+                    rhs.size(),
+                    __LINE__),
+            });
+        } else {
+            for (auto const& it : lhs.keys()) {
+                if (rhs.contains(it)) {
+                    reporting_comparator<V>::compare(
+                        lhs.at(it),
+                        rhs.at(it),
+                        out,
+                        context
+                            + Vec<compare_context>{{
+                                .field = maybe_format(it),
+                                .type  = "UnorderedMap",
+                            }});
+                } else {
+                    out.push_back({
+                        .context = context,
+                        .message = fmt(
+                            "no '{}' in rhs on {}",
+                            maybe_format(it),
+                            __LINE__),
+                    });
+                }
+            }
+            for (int i = 0; i < lhs.size(); ++i) {}
         }
     }
 };
@@ -195,7 +240,11 @@ struct reporting_comparator<sem::SemId<T>> {
         if (lhs.isNil() != rhs.isNil()) {
             out.push_back({
                 .context = context,
-                .message = fmt("on {}", __LINE__),
+                .message = fmt(
+                    "nil on {} -- lhs.isNil:{} rhs.isNil:{}",
+                    __LINE__,
+                    lhs.isNil(),
+                    rhs.isNil()),
             });
         } else if (!lhs.isNil()) {
             reporting_comparator<T>::compare(
@@ -332,15 +381,13 @@ TEST(TestFiles, AllNodeCoverage) {
         osk::Empty,
         osk::Row,
         osk::Table,
-        osk::Completion,
-        osk::CommandGroup,
-        osk::Quote,
+        osk::SubtreeCompletion,
+        osk::BlockQuote,
         osk::MarkQuote,
         osk::StmtList,
-        osk::AdmonitionBlock,
+        osk::BlockAdmonition,
         osk::FileTarget,
-        osk::ParseError,
-        osk::Code,
+        osk::BlockCode,
         osk::SubtreeLog,
         osk::Escaped,
         osk::Par,
@@ -627,6 +674,22 @@ sem::SemId<T> getFirstNode(sem::SemId<sem::Org> node) {
     return selector.getMatches(node).at(0).as<T>();
 }
 
+#define EXPECT_EQ2(lhs, rhs)                                              \
+    {                                                                     \
+        auto lhs_val = lhs;                                               \
+        auto rhs_val = rhs;                                               \
+        if (lhs != rhs) {                                                 \
+            FAIL() << fmt(                                                \
+                "Expected equality of these values:\n  {}\n    {}\n  "    \
+                "{}\n "                                                   \
+                "   {}",                                                  \
+                #lhs,                                                     \
+                lhs,                                                      \
+                #rhs,                                                     \
+                rhs);                                                     \
+        }                                                                 \
+    }
+
 TEST(OrgApi, SubtreePropertyModification) {
     auto doc = parseNode(R"(
 * Subtree
@@ -641,6 +704,70 @@ TEST(OrgApi, SubtreePropertyModification) {
     tree->removeProperty("bookmark_pos");
     formatted = sem::formatToString(doc);
     EXPECT_EQ(formatted.find(":bookmark_pos: 123"), -1) << formatted;
+}
+
+TEST(OrgApi, LinkAttachedGet1) {
+    auto doc = parseNode(
+        R"(#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:image 1.jpg]]
+)");
+
+    EXPECT_EQ2(doc->getKind(), OrgSemKind::Document);
+    auto par = doc->subnodes.at(0);
+    EXPECT_EQ2(par->getKind(), OrgSemKind::Paragraph);
+    auto link = par->subnodes.at(0);
+    EXPECT_EQ2(link->getKind(), OrgSemKind::Link);
+
+    auto link1 = link.getAs<sem::Link>();
+    ASSERT_TRUE(link1 != nullptr);
+
+    auto args = link1->getArguments("attach-on-export");
+    EXPECT_TRUE(args.has_value());
+    EXPECT_EQ(args.value()->args.size(), 1);
+    auto arg0 = args.value()->args.at(0);
+    EXPECT_EQ(arg0->getBool(), true);
+    EXPECT_EQ(arg0->getString(), "t");
+}
+
+TEST(OrgApi, TracerOperations1) {
+    auto     text = R"(
+* Subtree
+  :properties:
+  :key: value
+  :end:
+)";
+    MockFull p{true, true};
+    fs::path tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
+    p.tokenizer->setTraceFile(tokenizer_trace);
+    p.tokenizer->traceStructured = true;
+
+    fs::path parser_trace{"/tmp/TraceOperations1_parser_trace.txt"};
+    p.parser->setTraceFile(parser_trace);
+    p.parser->traceStructured = true;
+
+    sem::OrgConverter converter{};
+    fs::path          sem_trace{"/tmp/TraceOperations1_sem_trace.txt"};
+    converter.setTraceFile(sem_trace);
+    converter.traceStructured = true;
+
+    fs::path      lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
+    std::ofstream fileTrace{lex_trace.c_str()};
+
+    LexerParams params;
+    params.traceStructured = true;
+    params.maxUnknown      = 1;
+    params.traceStream     = &fileTrace;
+    p.tokenizeBase(text, params);
+    p.tokenizeConvert();
+    p.parse();
+
+    auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+
+    ExporterJson exp{};
+    fs::path     exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
+    exp.setTraceFile(exp_trace);
+    exp.traceStructured = true;
+    exp.evalTop(document);
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {
@@ -668,4 +795,3 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
     });
     // You may want to add test conditions to check the results.
 }
-

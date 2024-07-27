@@ -19,7 +19,7 @@ bool isLinkedDescriptionItem(sem::OrgArg n) {
     return n->is(osk::ListItem)
         && n.as<sem::ListItem>()->isDescriptionItem()
         && rs::any_of(
-               n.as<sem::ListItem>()->header.value()->subnodes,
+               n.as<sem::ListItem>()->header.value(),
                [](sem::OrgArg head) {
                    return head->is(osk::Link)
                        && head.as<sem::Link>()->getLinkKind() != slk::Raw;
