@@ -8,6 +8,38 @@
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
+template <typename T>
+struct TypeName {
+    static Str get() {
+        return Str(demangle(typeid(T).name())).replaceAll("sem::", "");
+    }
+};
+
+
+template <typename T>
+struct TypeName<Opt<T>> {
+    static Str get() {
+        return Str("Opt<") + TypeName<T>::get() + Str(">");
+    }
+};
+
+template <typename K, typename V>
+struct TypeName<UnorderedMap<K, V>> {
+    static Str get() {
+        return "UnorderedMap<"_ss + TypeName<K>::get() + ", "_ss
+             + TypeName<V>::get() + ">"_ss;
+    }
+};
+
+template <typename... Args>
+struct TypeName<Variant<Args...>> {
+    static Str get() {
+        return "Variant<"_ss
+             + Str(join(", ", Vec<Str>{TypeName<Args>::get()...}))
+             + ">"_ss;
+    }
+};
+
 struct ExporterEventBase : OperationsTracer {
     struct VisitReport : OperationsMsg {
         DECL_DESCRIBED_ENUM(
@@ -29,8 +61,8 @@ struct ExporterEventBase : OperationsTracer {
             VisitVariant);
 
         Kind                      kind;
-        Opt<sem::SemId<sem::Org>> visitedNode = std::nullopt;
-        int                       level       = 0;
+        Opt<sem::SemId<sem::Org>> node  = std::nullopt;
+        int                       level = 0;
         Opt<std::string>          field;
         bool                      isStart = true;
         Opt<std::string>          type;
@@ -47,7 +79,7 @@ struct ExporterEventBase : OperationsTracer {
 
         template <typename T>
         VisitReport& with_value(CR<T> value) {
-            this->type = typeid(value).name();
+            this->type = TypeName<T>::get();
             return *this;
         }
 
@@ -57,7 +89,7 @@ struct ExporterEventBase : OperationsTracer {
         }
 
         VisitReport& with_node(sem::SemId<sem::Org> node) {
-            this->visitedNode = node;
+            this->node = node;
             return *this;
         }
 

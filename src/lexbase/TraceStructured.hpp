@@ -201,11 +201,11 @@ struct EntryExport {
     Opt<Str>         visitedKind = std::nullopt;
     int              level       = 0;
     int              codeLine    = 0;
-    Opt<std::string> visitField;
-    std::string      codeFunction;
+    Opt<std::string> field;
+    Opt<std::string> codeFunction;
     bool             isStart = true;
-    std::string      visitType;
-    std::string      msg;
+    Opt<std::string> type;
+    Opt<std::string> msg;
 
     DESC_FIELDS(
         EntryExport,
@@ -213,10 +213,10 @@ struct EntryExport {
          visitedKind,
          level,
          codeLine,
-         visitField,
+         field,
          codeFunction,
          isStart,
-         visitType,
+         type,
          msg));
 };
 

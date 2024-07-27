@@ -1,30 +1,61 @@
 #include <exporters/Exporter.hpp>
+#include <hstd/stdlib/Json.hpp>
+#include <lexbase/TraceStructured.hpp>
 
 
 void ExporterEventBase::report(CR<VisitReport> ev) {
     using K = typename VisitReport::Kind;
-    if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
-         && !ev.isStart)
-        || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
-            && ev.isStart)) {
-        return;
-    }
-
     auto os = getStream();
 
-    os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
-       << fmt1(ev.kind);
+    if (traceStructured) {
+        using namespace org::report;
+        EntryExport exp{};
 
-    if (ev.visitedNode) {
-        os << " node:" << fmt1((*ev.visitedNode)->getKind());
+#define __kind(K)                                                         \
+    case VisitReport::Kind::K: {                                          \
+        exp.kind = EntryExport::Kind::K;                                  \
+        break;                                                            \
     }
 
-    if (ev.field) { os << " field:" << ev.field.value(); }
+        switch (ev.kind) {
+            __kind(VisitField);
+            __kind(VisitSubnode);
+            __kind(NewRes);
+            __kind(VisitToEval);
+            __kind(VisitValue);
+            __kind(VisitDispatchHook);
+            __kind(VisitStart);
+            __kind(VisitEnd);
+            __kind(VisitDispatch);
+            __kind(VisitSpecificKind);
+            __kind(PushVisit);
+            __kind(PopVisit);
+            __kind(VisitGeneric);
+            __kind(VisitTop);
+            __kind(VisitVariant);
+        }
 
-    if (ev.msg) { os << " msg:" << os.yellow() << *ev.msg << os.end(); }
+        if (ev.function) { exp.codeFunction = ev.function; }
+        if (ev.msg) { exp.msg = ev.msg; }
+        if (ev.line) { exp.codeLine = ev.line; }
+        if (ev.field) { exp.field = ev.field; }
+        if (ev.type) { exp.type = ev.type; }
+        exp.level = ev.level;
 
-    os << " on " << fs::path(ev.file).stem() << ":" << fmt1(ev.line) << " "
-       << " " << os.end();
+        os << to_json_eval(exp).dump();
+    } else {
+        os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
+           << fmt1(ev.kind);
+
+        if (ev.node) { os << " node:" << fmt1((*ev.node)->getKind()); }
+        if (ev.field) { os << " field:" << ev.field.value(); }
+        if (ev.msg) {
+            os << " msg:" << os.yellow() << *ev.msg << os.end();
+        }
+        os << " on";
+        if (ev.file) { os << " " << fs::path(ev.file).stem() << ":"; }
+        os << fmt1(ev.line) << " " << os.end();
+    }
 
     endStream(os);
 }

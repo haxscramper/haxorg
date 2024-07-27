@@ -762,6 +762,12 @@ TEST(OrgApi, TracerOperations1) {
     p.parse();
 
     auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+
+    ExporterJson exp{};
+    fs::path     exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
+    exp.setTraceFile(exp_trace);
+    exp.traceStructured = true;
+    exp.evalTop(document);
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {
