@@ -118,18 +118,22 @@ struct ExporterEventBase : OperationsTracer {
         VisitReport        event;
         VisitScope(ExporterEventBase* exporter, VisitReport event)
             : exp(exporter), event(event) {
-            event.level   = exp->visitDepth;
-            event.isStart = true;
-            exp->report(event);
-            ++exp->visitDepth;
+            if (exp->TraceState) {
+                event.level   = exp->visitDepth;
+                event.isStart = true;
+                exp->report(event);
+                ++exp->visitDepth;
+            }
         }
 
         ~VisitScope() {
-            --exp->visitDepth;
-            if (event.instant) {
-                event.level   = exp->visitDepth;
-                event.isStart = false;
-                exp->report(event);
+            if (exp->TraceState) {
+                --exp->visitDepth;
+                if (event.instant) {
+                    event.level   = exp->visitDepth;
+                    event.isStart = false;
+                    exp->report(event);
+                }
             }
         }
     };
