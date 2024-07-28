@@ -176,7 +176,6 @@ bool sort_line_labels(
 
                 c.w("\n");
             }
-            _dfmt(is_ellipsis, within_label);
             is_ellipsis = true;
             return true;
         }
@@ -789,8 +788,8 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
     int line_no_width = get_line_no_width(groups, cache);
     // --- Source sections ---
     for (int group_idx = 0; group_idx < groups.size(); ++group_idx) {
-        SourceGroup const& group               = groups[group_idx];
-        auto const& [src_id, Codespan, labels] = group;
+        SourceGroup const& group                = groups[group_idx];
+        auto const& [src_id, char_span, labels] = group;
 
         Str src_name = cache.display(src_id).value_or("<unknown>");
         std::shared_ptr<Source> src = cache.fetch(src_id);
@@ -832,11 +831,12 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
         Vec<Label> multi_labels;
         build_multi_labels(multi_labels, labels);
 
-
+        // _dfmt(char_span);
+        // _dfmt(src->lines);
         Slice<int> line_range = src->get_line_range(
-            RangeCodeSpan(Codespan));
+            RangeCodeSpan(char_span));
 
-        _dbg(fmt1(line_range));
+        // _dfmt(line_range);
 
         bool is_ellipsis = false;
         for (int idx = line_range.first; idx <= line_range.last; ++idx) {
@@ -873,8 +873,6 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
 
             bool do_skip = sort_line_labels(
                 base, is_ellipsis, line_labels);
-
-            _dfmt(idx, do_skip);
 
             if (do_skip) { continue; }
 
@@ -1021,6 +1019,7 @@ Source::Source(const Str& l) : content{l} {
             .len    = rune_length(line),
         };
 
+        // _dfmt(line, l.len, line.size());
         offset += l.len + 1;
         lines.push_back(l);
     }
@@ -1039,7 +1038,9 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
         if (it != lines.begin()) { --it; }
         int         idx  = std::distance(lines.begin(), it);
         const Line& line = lines[idx];
-        CHECK(line.offset <= offset);
+        CHECK(line.offset <= offset)
+            << fmt("line.offset = {} <= offset = {}", line.offset, offset);
+        // _dfmt(idx, offset, line.offset);
         return OffsetLine{std::ref(line), idx, offset - line.offset};
     } else {
         return std::nullopt;
@@ -1049,7 +1050,7 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
 Slice<int> Source::get_line_range(const CodeSpan& span) {
     std::optional<OffsetLine> start = get_offset_line(span.start());
     std::optional<OffsetLine> end   = get_offset_line(
-        std::max(span.end() - 1, span.start()));
+        std::max(span.end(), span.start()));
 
     int start_idx = start ? start->idx : 0;
     int end_idx   = end ? end->idx + 1 : this->lines.high();

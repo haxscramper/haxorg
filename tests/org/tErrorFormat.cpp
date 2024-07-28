@@ -21,7 +21,9 @@ def six =
 
     auto report //
         = Report(ReportKind::Error, a_id, 10)
-              .with_config(Config{}.with_compact(true))
+              .with_config(Config{} //
+                               .with_compact(true)
+                               .with_char_set(MessageCharSet::Unicode))
               .with_message("Incompatible types"_ss)
               .with_label(Label{}
                               .with_span(a_id, slice(0, 1))
@@ -52,8 +54,8 @@ TEST(PrintError, RepoExample) {
     sources.add(
         a_id,
         R"(def five = match () in {
-        () => 5,
-        () => "5",
+    () => 5,
+    () => "5",
 }
 
 def six =
@@ -75,12 +77,12 @@ def six =
                       .with_color(a))
               .with_label(
                   Label{}
-                      .with_span(a_id, slice(42, 43))
+                      .with_span(a_id, slice(42, 45))
                       .with_message(fmt("This is of type {}", "Str"))
                       .with_color(b))
               .with_label(
                   Label{}
-                      .with_span(a_id, slice(11, 47))
+                      .with_span(a_id, slice(11, 48))
                       .with_message(fmt(
                           "The values are outputs of this {} expression",
                           "match")))
