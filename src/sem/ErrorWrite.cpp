@@ -68,8 +68,24 @@ struct LineLabel {
         return *this;                                                     \
     }
 
+struct Writer {
+    ColStream& stream;
+    bool       dbg;
+    template <typename T>
+    void operator()(
+        CR<T>       value,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        if (dbg) {
+            stream << fmt("[@{}:", line) << value << "]";
+        } else {
+            stream << value;
+        }
+    }
+};
+
 struct MarginContext {
-    ColStream&    w;
+    Writer&       w;
     MarginContext clone() const { return *this; }
     _field(int, idx, 0);
     _field(bool, is_line, false);
@@ -146,7 +162,7 @@ bool sort_line_labels(
             if (!c.config.compact && !is_ellipsis) {
                 write_margin(c.clone().with_is_ellipsis(is_ellipsis));
 
-                c.w << "\n";
+                c.w("\n");
             }
             is_ellipsis = true;
             return true;
@@ -303,6 +319,7 @@ Pair<ColRune, ColRune> get_corner_elements(
     return ab;
 }
 
+
 void write_margin(MarginContext const& c) {
     Str line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
@@ -315,8 +332,9 @@ void write_margin(MarginContext const& c) {
         line_no_margin += (c.is_ellipsis ? c.draw.vbar_gap : c.draw.vbar_break);
     }
 
-    c.w << " " << ColText(c.config.margin_color, line_no_margin)
-        << (c.config.compact ? "" : " ");
+    c.w(" ");
+    c.w(ColText(c.config.margin_color, line_no_margin));
+    c.w(c.config.compact ? "" : " ");
 
 
     // Multi-line margins
@@ -353,8 +371,8 @@ void write_margin(MarginContext const& c) {
             Pair<ColRune, ColRune> ab = get_corner_elements(
                 c, col, corner, vbar, hbar, margin_ptr, multi_label);
 
-            c.w << ab.first;
-            if (!c.config.compact) { c.w << ab.second; }
+            c.w(ab.first);
+            if (!c.config.compact) { c.w(ab.second); }
         }
     }
 }
@@ -486,12 +504,13 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
         }
 
         for (int i = 0; i < width; ++i) {
-            c.w << ((i == 0) ? ct_array[0] : ct_array[1]);
+            c.w((i == 0) ? ct_array[0] : ct_array[1]);
         }
 
         if (chars != c.line.chars.end()) { ++chars; }
     }
-    c.w << "\n";
+
+    c.w("\n");
 }
 
 
@@ -620,8 +639,8 @@ void write_lines(
                 || line_label.label != c.margin_label->label)) {
             ct_array = {
                 ColRune(
-                    (line_label.multi ? (
-                         line_label.draw_msg ? c.draw.mbot : c.draw.rbot)
+                    (line_label.multi ? (line_label.draw_msg ? c.draw.mbot
+                                                             : c.draw.rbot)
                                       : c.draw.lbot),
                     line_label.label.color),
                 ColRune(c.draw.hbar, line_label.label.color),
@@ -662,9 +681,8 @@ void write_lines(
             };
         }
 
-        if (width > 0) { c.w << ct_array[0]; }
-        for (int i = 1; i < width; ++i) { c.w << ct_array[1]; }
-
+        if (width > 0) { c.w(ct_array[0]); }
+        for (int i = 1; i < width; ++i) { c.w(ct_array[1]); }
         if (chars != line.chars.end()) { ++chars; }
     }
 }
@@ -717,8 +735,7 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
     return groups;
 }
 
-void Report::write_for_stream(Cache& cache, std::ostream& stream) {
-    ColStream w{stream};
+void Report::write_for_stream(Cache& cache, ColStream& w) {
     w.colored       = true;
     Characters draw = Characters{};
     switch (config.char_set) {
@@ -726,8 +743,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
         case MessageCharSet::Ascii: draw = ascii(); break;
     }
 
-    // --- Header ---
-
+    auto op = Writer{w, config.debug};
 
     ColStyle kind_color;
     Str      kindName;
@@ -755,10 +771,17 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
     }
 
     if (code.has_value()) {
-        w << ColText(kind_color, ("[" + *code + "] "));
+        op(ColText(kind_color, ("[" + *code + "] ")));
     }
 
-    w << ColText(kind_color, kindName) << ": " << msg.value() << "\n";
+    if (msg) {
+        op(ColText(kind_color, kindName));
+        op(": ");
+        op(msg.value());
+        op("\n");
+    } else {
+        op("\n");
+    }
 
     auto groups = get_source_groups(&cache);
 
@@ -780,12 +803,12 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
             continue;
         }
 
-        w << Str(" ").repeated(line_no_width + 2) //
-          << (group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
-                 + config.margin_color                //
-          << ColRune(draw.hbar) + config.margin_color //
-          << ColRune(draw.lbox) + config.margin_color //
-          << src_name;                                // Source file name
+        op(Str(" ").repeated(line_no_width + 2));
+        op((group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
+           + config.margin_color);
+        op(ColRune(draw.hbar) + config.margin_color);
+        op(ColRune(draw.lbox) + config.margin_color);
+        op(src_name);
 
         // File name & reference
         int location = (src_id == this->location.first)
@@ -796,17 +819,21 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
 
         // Error line and column number in the error message header
         if (offset_line) {
-            w << ":" << offset_line->idx + 1 << ":"
-              << offset_line->col + 1;
+            op(":");
+            op(fmt1(offset_line->idx + 1));
+            op(":");
+            op(fmt1(offset_line->col + 1));
         } else {
-            w << ":?:?";
+            op(":?:?");
         }
 
-        w << ColRune(draw.rbox) + config.margin_color << "\n";
+        op(ColRune(draw.rbox) + config.margin_color);
+        op("\n");
 
         if (!config.compact) {
-            w << Str(" ").repeated(line_no_width + 2)
-              << ColRune(draw.vbar) + config.margin_color << "\n";
+            op(Str(" ").repeated(line_no_width + 2));
+            op(ColRune(draw.vbar) + config.margin_color);
+            op("\n");
         }
 
 
@@ -839,7 +866,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
 
 
             MarginContext base{
-                .w             = w,
+                .w             = op,
                 .config        = config,
                 .draw          = draw,
                 .multi_labels  = multi_labels,
@@ -893,16 +920,16 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
 
                     if (c == ' ' || c == '\t') {
                         for (int i = 0; i < width; ++i) {
-                            w << ColRune(wc, color);
+                            op(ColRune(wc, color));
                         }
                     } else {
-                        w << ColRune(wc, color);
+                        op(ColRune(wc, color));
                     }
 
                     col++;
                 }
             }
-            w << "\n";
+            op("\n");
 
             for (int row = 0; row < line_labels.size(); ++row) {
                 const auto& line_label = line_labels[row];
@@ -923,17 +950,18 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
                 write_lines(
                     base.clone(), line, arrow_len, line_label, row);
 
-                if (line_label.draw_msg) {
-                    w << " " << line_label.label.msg.value();
+                if (line_label.label.msg) {
+                    op(" ");
+                    op(line_label.label.msg.value());
                 }
-                w << "\n";
+                op("\n");
             }
         }
 
         bool is_final_group = group_idx + 1 == groups.size();
 
         MarginContext base{
-            .w             = w,
+            .w             = op,
             .config        = config,
             .draw          = draw,
             .multi_labels  = multi_labels,
@@ -953,33 +981,37 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
         if (help.has_value() && is_final_group) {
             if (!config.compact) {
                 write_margin(base);
-                w << "\n";
+                op("\n");
             }
             write_margin(base);
-            w << "Help"
-              << ": " << help.value() << "\n";
+            op("Help: ");
+            op(help.value());
+            op("\n");
         }
 
         // Note
         if (note.has_value() && is_final_group) {
             if (!config.compact) {
                 write_margin(base);
-                w << "\n";
+                op("\n");
             }
             write_margin(base);
 
-            w << "Note"
-              << ": " << note.value() << "\n";
+            op("Note: ");
+            op(note.value());
+            op("\n");
         }
 
         // Tail of report
         if (!config.compact) {
             if (is_final_group) {
-                w << Str(draw.hbar).repeated(line_no_width + 2)
-                  << draw.rbot << "\n";
+                op(Str(draw.hbar).repeated(line_no_width + 2));
+                op(draw.rbot);
+                op("\n");
             } else {
-                w << Str(" ").repeated(line_no_width + 2) << draw.vbar
-                  << "\n";
+                op(Str(" ").repeated(line_no_width + 2));
+                op(draw.vbar);
+                op("\n");
             }
         }
     }

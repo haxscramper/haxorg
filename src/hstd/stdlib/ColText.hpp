@@ -113,6 +113,16 @@ struct ColStyle {
     }
 
     bool operator!=(CR<ColStyle> other) const { return !(*this == other); }
+
+    // clang-format off
+    ColStyle& red() { fg = TermColorFg8Bit::Red; return *this; }
+    ColStyle& blue() { fg = TermColorFg8Bit::Blue; return *this; }
+    ColStyle& green() { fg = TermColorFg8Bit::Green; return *this; }
+    ColStyle& yellow() { fg = TermColorFg8Bit::Yellow; return *this; }
+    ColStyle& cyan() { fg = TermColorFg8Bit::Cyan; return *this; }
+    ColStyle& magenta() { fg = TermColorFg8Bit::Magenta; return *this; }
+    ColStyle& white() { fg = TermColorFg8Bit::White; return *this; }
+    // clang-format on
 };
 
 
@@ -268,7 +278,7 @@ struct ColStream : public ColText {
         return *static_cast<ColText const*>(this);
     }
 
-    ColStream() : buffered(true){};
+    ColStream() : buffered(true) {};
     ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
 
     // clang-format off

@@ -1091,7 +1091,7 @@ def get_cxx_profdata_params(
     return ProfdataParams(
         coverage=str(coverage_dir.joinpath("test-summary.json")),
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
-        perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
+        # perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
         debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
         file_whitelist=profdata_file_whitelist.split(";"),
         file_blacklist=profdata_file_blacklist.split(";"),
@@ -1286,7 +1286,7 @@ def docs_custom(
         log(CAT).info(
             f"No coverage database generated, {prof_params.coverage_db} does not exist")
 
-    run_command(ctx, "poetry", args)
+    run_command(ctx, "poetry", args, env=get_py_env(ctx))
 
 
 @org_task(
