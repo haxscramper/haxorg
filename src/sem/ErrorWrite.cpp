@@ -2,6 +2,8 @@
 #include <sem/ErrorWrite.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
 
 Characters unicode() {
     return Characters{
@@ -58,6 +60,7 @@ struct LineLabel {
     Label label;
     bool  multi;
     bool  draw_msg;
+    DESC_FIELDS(LineLabel, (col, label, multi, draw_msg));
 };
 
 
@@ -77,7 +80,7 @@ struct Writer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
         if (dbg) {
-            stream << fmt("[@{}:", line) << value << "]";
+            stream << value << fmt("@{}", line);
         } else {
             stream << value;
         }
@@ -87,6 +90,7 @@ struct Writer {
 struct MarginContext {
     Writer&       w;
     MarginContext clone() const { return *this; }
+    ColText       line_text;
     _field(int, idx, 0);
     _field(bool, is_line, false);
     _field(bool, is_ellipsis, false);
@@ -102,11 +106,10 @@ struct MarginContext {
 
     const Vec<LineLabel>&           line_labels;
     const std::optional<LineLabel>& margin_label = std::nullopt;
-    //    int                                 line_no_width = 0;
-    std::shared_ptr<Source> src;
-    Vec<Label> const&       multi_labels;
-    Characters const&       draw;
-    Config const&           config;
+    std::shared_ptr<Source>         src;
+    Vec<Label> const&               multi_labels;
+    Characters const&               draw;
+    Config const&                   config;
 };
 
 
@@ -378,8 +381,8 @@ void write_margin(MarginContext const& c) {
 }
 
 
-// Should we draw a vertical bar as part of a label arrow
-// on this line?
+/// \brief Should we draw a vertical bar as part of a label arrow
+/// on this line?
 auto get_vbar(
     int                   col,
     int                   row,
@@ -453,17 +456,14 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
         });
 };
 
-void whatever(MarginContext const& c, int row, int arrow_len) {
-    // Margin alternate
-    write_margin(
-        c.clone().with_draw_labels(true).with_report_row({row, false}));
-
+void write_line_content(MarginContext const& c, int row, int arrow_len) {
     // Lines alternate
-    auto chars = c.line.chars.begin();
+    auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
-        int width = (chars != c.line.chars.end())
-                      ? c.config.char_width(*chars, col).second
-                      : 1;
+        int width = 1;
+        // (chars != c.line.chars.end())
+        //     ? c.config.char_width(*chars, col).second
+        //     : 1;
 
         Opt<LineLabel> underline = get_underline(c, col);
         if (row != 0) { underline.reset(); }
@@ -473,7 +473,7 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
                 col, row, c.line_labels, c.margin_label)) {
             std::array<Str, 2> ct_inner;
             if (underline) {
-                if (vbar->label.span->len() <= 1 || true) {
+                if (vbar->label.span->len() <= 1) {
                     ct_inner = {c.draw.underbar, c.draw.underline};
                 } else if (
                     c.line.offset + col == vbar->label.span->start()) {
@@ -507,10 +507,8 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
             c.w((i == 0) ? ct_array[0] : ct_array[1]);
         }
 
-        if (chars != c.line.chars.end()) { ++chars; }
+        if (chars != c.line_text.end()) { ++chars; }
     }
-
-    c.w("\n");
 }
 
 
@@ -599,19 +597,12 @@ void build_line_labels(
 int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
     int line_no_width = 0;
     for (const auto& group : groups) {
-        Str src_name = cache.display(group.src_id).value_or("<unknown>");
+        Str  src_name = cache.display(group.src_id).value_or("<unknown>");
+        auto src      = cache.fetch(group.src_id);
 
-        try {
-            auto src = cache.fetch(group.src_id);
-
-            auto line_range = src->get_line_range(
-                RangeCodeSpan(group.span));
-            int width     = fmt1(line_range.last).size();
-            line_no_width = std::max(line_no_width, width);
-        } catch (const std::exception& e) {
-            std::cerr << "Unable to fetch source " << src_name << ": "
-                      << e.what() << std::endl;
-        }
+        auto line_range = src->get_line_range(RangeCodeSpan(group.span));
+        int  width      = fmt1(line_range.last).size();
+        line_no_width   = std::max(line_no_width, width);
     }
     return line_no_width;
 }
@@ -623,11 +614,9 @@ void write_lines(
     LineLabel const&     line_label,
     int                  row) {
     // Lines
-    auto chars = line.chars.begin();
+    auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
-        int width = (chars != line.chars.end())
-                      ? c.config.char_width(*chars, col).second
-                      : 1;
+        int width = 1;
 
         bool is_hbar = (((col > line_label.col) ^ line_label.multi)
                         || (line_label.label.msg && line_label.draw_msg
@@ -683,7 +672,7 @@ void write_lines(
 
         if (width > 0) { c.w(ct_array[0]); }
         for (int i = 1; i < width; ++i) { c.w(ct_array[1]); }
-        if (chars != line.chars.end()) { ++chars; }
+        if (chars != c.line_text.end()) { ++chars; }
     }
 }
 }; // namespace
@@ -793,16 +782,7 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
         auto const& [src_id, Codespan, labels] = group;
 
         Str src_name = cache.display(src_id).value_or("<unknown>");
-
-        std::shared_ptr<Source> src;
-        try {
-            src = cache.fetch(src_id);
-        } catch (const std::exception& e) {
-            std::cerr << "Unable to fetch source " << src_name << ": "
-                      << e.what() << std::endl;
-            continue;
-        }
-
+        std::shared_ptr<Source> src = cache.fetch(src_id);
         op(Str(" ").repeated(line_no_width + 2));
         op((group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
            + config.margin_color);
@@ -851,7 +831,8 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
             if (!line_opt) { continue; }
 
 
-            Line                     line         = line_opt.value();
+            Line line = line_opt.value();
+            _dbg(fmt1(line));
             std::optional<LineLabel> margin_label = get_margin_label(
                 line, multi_labels);
 
@@ -875,6 +856,7 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
                 .idx           = idx,
                 .line_no_width = line_no_width,
                 .line          = line,
+                .line_text     = src->get_line_text(line),
             };
 
             bool do_skip = sort_line_labels(
@@ -894,7 +876,7 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
                 }
             }
 
-            arrow_len += config.compact ? 1 : 2;
+            arrow_len += config.compact ? 1 : 2; // add arrow end space
 
             // Margin
             write_margin(base.clone()
@@ -902,10 +884,10 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
                              .with_is_ellipsis(is_ellipsis)
                              .with_draw_labels(true));
 
-            // Line
+            // Lines
             if (!is_ellipsis) {
                 int col = 0;
-                for (char c : line.chars) {
+                for (ColRune c : base.line_text) {
                     Opt<CRw<Label>> highlight = get_highlight(
                         col,
                         multi_labels,
@@ -916,15 +898,7 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
                     ColStyle color = highlight ? highlight->get().color
                                                : config.unimportant_color;
 
-                    auto [wc, width] = config.char_width(c, col);
-
-                    if (c == ' ' || c == '\t') {
-                        for (int i = 0; i < width; ++i) {
-                            op(ColRune(wc, color));
-                        }
-                    } else {
-                        op(ColRune(wc, color));
-                    }
+                    op(ColRune(c.rune, color));
 
                     col++;
                 }
@@ -935,10 +909,17 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
                 const auto& line_label = line_labels[row];
 
                 if (!config.compact) {
-                    whatever(
+                    // Margin alternate
+                    write_margin(base.clone()
+                                     .with_draw_labels(true)
+                                     .with_report_row({row, false}));
+
+                    write_line_content(
                         base.with_is_ellipsis(is_ellipsis),
                         row,
                         arrow_len);
+
+                    base.w("\n");
                 }
 
                 // Margin
@@ -1045,6 +1026,10 @@ Slice<int> Source::get_line_range(const CodeSpan& span) {
     } else {
         return {0, lines.size()};
     }
+}
+
+ColText Source::get_line_text(CR<Line> line) {
+    return content.at(slice(line.offset, line.offset + line.len));
 }
 
 std::pair<char, int> Config::char_width(char c, int col) const {

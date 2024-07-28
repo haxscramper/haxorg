@@ -206,6 +206,7 @@ struct ColText : Vec<ColRune> {
     ColText(CR<ColStyle> style, CR<std::string> text);
 
     ColText(CR<std::string> text) : ColText(ColStyle{}, text) {}
+    ColText(Span<ColRune> text) : Vec<ColRune>{text} {}
 
     ColText(CR<ColStyle> style, char text)
         : Vec<ColRune>({ColRune(text, style)}) {}

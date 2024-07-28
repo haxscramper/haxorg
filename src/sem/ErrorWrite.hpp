@@ -25,25 +25,26 @@ using Id = int;
 /// \brief A trait implemented by spans within a character-based source.
 class CodeSpan {
   public:
-    /// \brief Get the identifier of the source that this Codespan refers to.
+    /// \brief Get the identifier of the source that this Codespan refers
+    /// to.
     virtual const Id source() const = 0;
 
-    // Get the start offset of this Codespan.
-    // Offsets are zero-indexed character offsets from the beginning of the
-    // source.
+    /// Get the start offset of this Codespan.
+    /// Offsets are zero-indexed character offsets from the beginning of
+    /// the source.
     virtual int start() const = 0;
 
-    // Get the (exclusive) end offset of this Codespan.
-    // The end offset should *always* be greater than or equal to the start
-    // offset as given by CodeSpan::start(). Offsets are zero-indexed
-    // character offsets from the beginning of the source.
+    /// Get the (exclusive) end offset of this Codespan.
+    /// The end offset should *always* be greater than or equal to the
+    /// start offset as given by CodeSpan::start(). Offsets are
+    /// zero-indexed character offsets from the beginning of the source.
     virtual int end() const = 0;
 
-    // Get the length of this Codespan (difference between the start of the
-    // Codespan and the end of the Codespan).
+    /// Get the length of this Codespan (difference between the start of
+    /// the Codespan and the end of the Codespan).
     int len() const { return end() - start(); }
 
-    // Determine whether the Codespan contains the given offset.
+    /// Determine whether the Codespan contains the given offset.
     bool contains(int offset) const {
         return start() <= offset && offset < end();
     }
@@ -94,22 +95,23 @@ class Cache {
 
 // A type representing a single line of a `Source`.
 struct Line {
-    int         offset;
-    int         len;
-    std::string chars;
+    int offset;
+    int len;
+    // std::string chars;
 
     // Get the offset of this line in the original `Source` (i.e: the
     // number of characters that precede it).
-    inline int get_offset() const { return offset; }
+    int get_offset() const { return offset; }
 
-    // Get the character length of this line.
-    inline int get_len() const { return len; }
+    /// \brief Get the character length of this line.
+    int get_len() const { return len; }
 
-    // Get the offset Codespan of this line in the original `Source`.
-    inline Slice<int> span() const { return {offset, offset + len}; }
+    /// \brief Get the offset Codespan of this line in the original
+    /// `Source`.
+    Slice<int> span() const { return {offset, offset + len}; }
+
+    DESC_FIELDS(Line, (offset, len));
 };
-
-BOOST_DESCRIBE_STRUCT(Line, (), (offset, len, chars));
 
 template <>
 struct std::formatter<Line> : std::formatter<std::string> {
@@ -123,21 +125,21 @@ struct std::formatter<Line> : std::formatter<std::string> {
 };
 
 
-// A type representing a single source that may be referred to by
-// `CodeSpan`s.
-//
-// In most cases, a source is a single input file.
+/// A type representing a single source that may be referred to by
+/// `CodeSpan`s.
+///
+/// In most cases, a source is a single input file.
 struct Source {
     Vec<Line> lines;
     int       len;
+    ColText   content;
 
-    Source(Str const& l) {
+    Source(Str const& l) : content{l} {
         int offset = 0;
         for (std::string const& line : l.split('\n')) {
             Line l{
                 .offset = offset,
-                .len    = static_cast<int>(line.size()) + 1,
-                .chars  = line,
+                .len    = rune_length(line) + 1,
             };
 
             offset += l.len;
@@ -150,9 +152,10 @@ struct Source {
         const Line& line;
         int         idx = 0;
         int         col = 0;
+        DESC_FIELDS(OffsetLine, (idx, col));
     };
 
-    // Get access to a specific, zero-indexed Line.
+    /// \brief Get access to a specific, zero-indexed Line.
     std::optional<Line> line(int idx) const {
         if (idx < lines.size()) {
             return std::cref(lines[idx]);
@@ -170,6 +173,10 @@ struct Source {
     /// The resulting range is guaranteed to contain valid line indices
     /// (i.e: those that can be used for Source::line()).
     Slice<int> get_line_range(const CodeSpan& span);
+
+    ColText get_line_text(CR<Line> line);
+
+    DESC_FIELDS(Source, (lines, len));
 };
 
 class StrCache : public Cache {
@@ -290,6 +297,7 @@ struct Label {
 struct LabelInfo {
     LabelKind   kind;
     const Label label;
+    DESC_FIELDS(LabelInfo, (kind, label));
 };
 
 
@@ -297,6 +305,7 @@ struct SourceGroup {
     Id             src_id;
     Slice<int>     span;
     Vec<LabelInfo> labels;
+    DESC_FIELDS(SourceGroup, (src_id, span, labels));
 };
 
 enum class ReportKind
@@ -307,26 +316,31 @@ enum class ReportKind
     Custom
 };
 
+BOOST_DESCRIBE_ENUM(ReportKind, Error, Warning, Advice, Custom);
+
 enum class LabelAttach
 {
-    // Arrows should attach to the start of the label Codespan.
+    /// Arrows should attach to the start of the label Codespan.
     Start,
-    // Arrows should attach to the middle of the label Codespan (or as
-    // close to the middle as we can get).
+    /// Arrows should attach to the middle of the label Codespan (or as
+    /// close to the middle as we can get).
     Middle,
-    // Arrows should attach to the end of the label Codespan.
+    /// Arrows should attach to the end of the label Codespan.
     End,
 };
 
+BOOST_DESCRIBE_ENUM(LabelAttach, Start, Middle, End);
 
 enum class MessageCharSet
 {
-    // Unicode characters (an attempt is made to use only
-    // commonly-supported characters).
+    /// Unicode characters (an attempt is made to use only
+    /// commonly-supported characters).
     Unicode,
-    // ASCII-only characters.
+    /// ASCII-only characters.
     Ascii,
 };
+
+BOOST_DESCRIBE_ENUM(MessageCharSet, Unicode, Ascii);
 
 struct Config {
     Config()
@@ -403,6 +417,22 @@ struct Config {
     bool        debug = false;
 
     MessageCharSet char_set = MessageCharSet::Unicode;
+    DESC_FIELDS(
+        Config,
+        (error_color,
+         warning_color,
+         advice_color,
+         margin_color,
+         unimportant_color,
+         note_color,
+         cross_gap,
+         label_attach,
+         compact,
+         underlines,
+         multiline_arrows,
+         color,
+         tab_width,
+         debug));
 };
 
 class Report {
@@ -415,6 +445,10 @@ class Report {
     std::pair<Id, int>         location = {0, 0};
     Vec<Label>                 labels   = {};
     Config                     config   = Config{};
+
+    DESC_FIELDS(
+        Report,
+        (kind, code, msg, note, help, location, labels, config));
 
 
     /// \brief Give this report a numerical code that may be used to more
