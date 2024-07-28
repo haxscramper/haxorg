@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
+#include <boost/preprocessor.hpp>
 
 Characters unicode() {
     return Characters{
@@ -105,7 +106,7 @@ struct MarginContext {
 
 
     const Vec<LineLabel>&           line_labels;
-    const std::optional<LineLabel>& margin_label = std::nullopt;
+    const std::optional<LineLabel>& margin_label;
     std::shared_ptr<Source>         src;
     Vec<Label> const&               multi_labels;
     Characters const&               draw;
@@ -146,6 +147,14 @@ std::optional<LineLabel> get_margin_label(
 
 void write_margin(MarginContext const& c);
 
+#define _dfmt_impl(_1, _2, arg)                                           \
+    << " " << BOOST_PP_STRINGIZE(arg) << fmt(" = ⦃{}⦄", arg)
+
+
+#define _dfmt(...)                                                        \
+    DLOG(INFO) << "]" BOOST_PP_SEQ_FOR_EACH(                              \
+        _dfmt_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__));
+
 
 bool sort_line_labels(
     MarginContext const& c,
@@ -167,6 +176,7 @@ bool sort_line_labels(
 
                 c.w("\n");
             }
+            _dfmt(is_ellipsis, within_label);
             is_ellipsis = true;
             return true;
         }
@@ -772,7 +782,8 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
         op("\n");
     }
 
-    auto groups = get_source_groups(&cache);
+    Opt<LineLabel> null_label = std::nullopt;
+    auto           groups     = get_source_groups(&cache);
 
     // Line number maximum width
     int line_no_width = get_line_no_width(groups, cache);
@@ -825,14 +836,14 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
         Slice<int> line_range = src->get_line_range(
             RangeCodeSpan(Codespan));
 
+        _dbg(fmt1(line_range));
+
         bool is_ellipsis = false;
         for (int idx = line_range.first; idx <= line_range.last; ++idx) {
             auto line_opt = src->line(idx);
             if (!line_opt) { continue; }
 
-
-            Line line = line_opt.value();
-            _dbg(fmt1(line));
+            Line                     line         = line_opt.value();
             std::optional<LineLabel> margin_label = get_margin_label(
                 line, multi_labels);
 
@@ -856,11 +867,14 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
                 .idx           = idx,
                 .line_no_width = line_no_width,
                 .line          = line,
+                .margin_label  = margin_label,
                 .line_text     = src->get_line_text(line),
             };
 
             bool do_skip = sort_line_labels(
                 base, is_ellipsis, line_labels);
+
+            _dfmt(idx, do_skip);
 
             if (do_skip) { continue; }
 
@@ -887,7 +901,7 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
             // Lines
             if (!is_ellipsis) {
                 int col = 0;
-                for (ColRune c : base.line_text) {
+                for (ColRune const& c : base.line_text) {
                     Opt<CRw<Label>> highlight = get_highlight(
                         col,
                         multi_labels,
@@ -955,6 +969,7 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
             .is_ellipsis   = false,
             .report_row    = std::pair{0, false},
             .line          = Line{},
+            .margin_label  = null_label,
         };
 
 
@@ -998,6 +1013,20 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
     }
 }
 
+Source::Source(const Str& l) : content{l} {
+    int offset = 0;
+    for (std::string const& line : l.split('\n')) {
+        Line l{
+            .offset = offset,
+            .len    = rune_length(line),
+        };
+
+        offset += l.len + 1;
+        lines.push_back(l);
+    }
+    len = offset;
+}
+
 std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
     if (offset <= len) {
         auto it = std::lower_bound(
@@ -1010,7 +1039,7 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
         if (it != lines.begin()) { --it; }
         int         idx  = std::distance(lines.begin(), it);
         const Line& line = lines[idx];
-        CHECK(offset >= line.offset);
+        CHECK(line.offset <= offset);
         return OffsetLine{std::ref(line), idx, offset - line.offset};
     } else {
         return std::nullopt;
@@ -1019,17 +1048,16 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
 
 Slice<int> Source::get_line_range(const CodeSpan& span) {
     std::optional<OffsetLine> start = get_offset_line(span.start());
-    std::optional<OffsetLine> end   = get_offset_line(span.end());
+    std::optional<OffsetLine> end   = get_offset_line(
+        std::max(span.end() - 1, span.start()));
 
-    if (start && end) {
-        return {start->idx, end->idx};
-    } else {
-        return {0, lines.size()};
-    }
+    int start_idx = start ? start->idx : 0;
+    int end_idx   = end ? end->idx + 1 : this->lines.high();
+    return slice(start_idx, end_idx);
 }
 
 ColText Source::get_line_text(CR<Line> line) {
-    return content.at(slice(line.offset, line.offset + line.len));
+    return content.at(slice(line.offset, line.offset + line.len - 1));
 }
 
 std::pair<char, int> Config::char_width(char c, int col) const {

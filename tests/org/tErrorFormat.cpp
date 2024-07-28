@@ -67,20 +67,20 @@ def six =
     auto report //
         = Report(ReportKind::Error, a_id, 12)
               // .with_config(Config{}.with_debug(true))
-              // .with_message("Incompatible types"_ss)
-              // .with_label(
-              //     Label{}
-              //         .with_span(a_id, slice(32, 33))
-              //         .with_message(fmt("This is of type {}", "Nat"))
-              //         .with_color(a))
-              // .with_label(
-              //     Label{}
-              //         .with_span(a_id, slice(42, 45))
-              //         .with_message(fmt("This is of type {}", "Str"))
-              //         .with_color(b))
+              .with_message("Incompatible types"_ss)
               .with_label(
                   Label{}
-                      .with_span(a_id, slice(11, 48))
+                      .with_span(a_id, slice(32, 32))
+                      .with_message(fmt("This is of type {}", "Nat"))
+                      .with_color(a))
+              .with_label(
+                  Label{}
+                      .with_span(a_id, slice(42, 43))
+                      .with_message(fmt("This is of type {}", "Str"))
+                      .with_color(b))
+              .with_label(
+                  Label{}
+                      .with_span(a_id, slice(11, 47))
                       .with_message(fmt(
                           "The values are outputs of this {} expression",
                           "match")))

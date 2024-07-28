@@ -134,19 +134,7 @@ struct Source {
     int       len;
     ColText   content;
 
-    Source(Str const& l) : content{l} {
-        int offset = 0;
-        for (std::string const& line : l.split('\n')) {
-            Line l{
-                .offset = offset,
-                .len    = rune_length(line) + 1,
-            };
-
-            offset += l.len;
-            lines.push_back(l);
-        }
-        len = offset;
-    }
+    Source(Str const& l);
 
     struct OffsetLine {
         const Line& line;
