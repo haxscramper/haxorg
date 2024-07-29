@@ -401,8 +401,13 @@ struct Config {
         return *this;
     }
 
-    Config& with_debug(bool debug) {
-        this->debug = debug;
+    Config& with_debug_writes(bool debug_writes) {
+        this->debug_writes = debug_writes;
+        return *this;
+    }
+
+    Config& with_debug_scopes(bool debug_scopes) {
+        this->debug_scopes = debug_scopes;
         return *this;
     }
 
@@ -423,7 +428,8 @@ struct Config {
     bool        multiline_arrows;
     bool        color;
     int         tab_width;
-    bool        debug = false;
+    bool        debug_writes = false;
+    bool        debug_scopes = false;
 
     MessageCharSet char_set = MessageCharSet::Unicode;
     DESC_FIELDS(
@@ -441,7 +447,8 @@ struct Config {
          multiline_arrows,
          color,
          tab_width,
-         debug));
+         debug_writes,
+         debug_scopes));
 };
 
 class Report {

@@ -78,7 +78,8 @@ TEST(PrintError, StringBuilder1) {
     auto [labels, str] = labelList(
         {
             labelPair({}, "012\n"),
-            labelPair({Label{}.with_message("MSG"_ss)}, "345"),
+            labelPair({Label{}.with_message("MSG"_ss)}, "456"),
+            labelPair({}, "\n890\n"),
         },
         id);
 
@@ -87,6 +88,7 @@ TEST(PrintError, StringBuilder1) {
     auto report = Report(ReportKind::Error, id, 12);
 
     for (auto const& label : labels) { report.with_label(label); }
+    report.with_config(Config{}.with_debug_scopes(true));
 
     writeFile(
         fmt("/tmp/error_{}.txt", "StringBuilder1"),
