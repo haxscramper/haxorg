@@ -33,6 +33,19 @@ enum class TermColorBg8Bit : u8
     Default    ///< default terminal foreground color
 };
 
+BOOST_DESCRIBE_ENUM(
+    TermColorBg8Bit,
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    EightBit,
+    Default);
+
 template <>
 struct value_domain<TermColorBg8Bit>
     : value_domain_ungapped<
@@ -56,6 +69,19 @@ enum class TermColorFg8Bit : u8
     Default    ///< default terminal foreground color
 };
 
+BOOST_DESCRIBE_ENUM(
+    TermColorFg8Bit,
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    EightBit,
+    Default);
+
 template <>
 struct value_domain<TermColorFg8Bit>
     : value_domain_ungapped<
@@ -75,6 +101,18 @@ enum class Style : u8
     Hidden,       ///< hidden text
     Strikethrough ///< strikethrough
 };
+
+BOOST_DESCRIBE_ENUM(
+    Style,
+    Bright,
+    Dim,
+    Italic,
+    Underscore,
+    Blink,
+    BlinkRapid,
+    Reverse,
+    Hidden,
+    Strikethrough);
 
 template <>
 struct value_domain<Style>
@@ -123,8 +161,9 @@ struct ColStyle {
     ColStyle& magenta() { fg = TermColorFg8Bit::Magenta; return *this; }
     ColStyle& white() { fg = TermColorFg8Bit::White; return *this; }
     // clang-format on
-};
 
+    DESC_FIELDS(ColStyle, (fg, bg, style));
+};
 
 #define ESC_PREFIX "\033["
 
@@ -187,6 +226,33 @@ struct ColRune {
     bool operator!=(ColRune const& other) const {
         return !(*this == other);
     }
+
+    DESC_FIELDS(ColRune, (rune, style));
+};
+
+template <>
+struct std::formatter<ColRune> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ColRune& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx(p.rune, ctx);
+        if (p.style.fg != (TermColorFg8Bit)0) {
+            fmt_ctx(":fg", ctx);
+            fmt_ctx(p.style.fg, ctx);
+        }
+
+        if (p.style.bg != (TermColorBg8Bit)0) {
+            fmt_ctx(":bg", ctx);
+            fmt_ctx(p.style.bg, ctx);
+        }
+
+        for (auto const& it : p.style.style) {
+            fmt_ctx(":", ctx);
+            fmt_ctx(it, ctx);
+        }
+
+        return fmt_ctx("}", ctx);
+    }
 };
 
 struct ColText : Vec<ColRune> {
@@ -235,16 +301,11 @@ struct ColText : Vec<ColRune> {
     }
 };
 
-template <typename CharT>
-struct std::formatter<ColText, CharT>
-    : std::formatter<std::string, CharT> {
-    using FmtType = ColText;
+template <>
+struct std::formatter<ColText> : std::formatter<std::string> {
     template <typename FormatContext>
-    typename FormatContext::iterator format(
-        FmtType const& p,
-        FormatContext& ctx) {
-        std::formatter<std::string, CharT> fmt;
-        return fmt.format(to_colored_string(p, true), ctx);
+    auto format(const ColText& p, FormatContext& ctx) const {
+        return std::formatter<Vec<ColRune>>{}.format(p, ctx);
     }
 };
 

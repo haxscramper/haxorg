@@ -76,3 +76,15 @@ struct std::formatter<UPtr<T>> : std::formatter<std::string> {
         }
     }
 };
+
+template <typename T>
+struct std_format_ptr_as_value : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(T* p, FormatContext& ctx) const {
+        if (p == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            return fmt_ctx(*p, ctx);
+        }
+    }
+};

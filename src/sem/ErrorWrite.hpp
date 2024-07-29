@@ -16,6 +16,8 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Opt.hpp>
 
 class Source;
 
@@ -47,6 +49,15 @@ class CodeSpan {
     /// Determine whether the Codespan contains the given offset.
     bool contains(int offset) const {
         return start() <= offset && offset < end();
+    }
+};
+
+template <>
+struct std::formatter<CodeSpan> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const CodeSpan& p, FormatContext& ctx) const {
+        return fmt_ctx(
+            fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);
     }
 };
 
@@ -256,6 +267,8 @@ struct Label {
         return *this;
     }
 
+    Label clone() const { return *this; }
+
     Label(const std::shared_ptr<CodeSpan>& Codespan = nullptr)
         : span(Codespan) {}
 
@@ -264,6 +277,8 @@ struct Label {
     ColStyle                  color    = ColStyle{};
     int                       order    = 0;
     int                       priority = 0;
+
+    DESC_FIELDS(Label, (span, msg, color, order, priority));
 
     bool operator==(Label const& other) const {
         if (msg.has_value() != other.msg.has_value()) {
@@ -280,6 +295,12 @@ struct Label {
     inline int last_offset() const {
         return std::max(span->end() - 1, span->start());
     }
+};
+
+template <>
+struct std::formatter<CodeSpan*>
+    : public std_format_ptr_as_value<CodeSpan> {
+    using std_format_ptr_as_value<CodeSpan>::format;
 };
 
 struct LabelInfo {

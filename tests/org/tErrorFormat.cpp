@@ -1,6 +1,7 @@
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 TEST(PrintError, Simple) {
     StrCache sources;
@@ -47,6 +48,72 @@ def six =
     writeFile("/tmp/error_Simple.txt", report.to_string(sources, false));
 }
 
+Pair<Vec<Label>, Str> labelPair(Vec<Label> const& it, Str const& it2) {
+    return {it, it2};
+}
+
+Pair<Vec<Label>, Str> labelList(
+    Vec<Pair<Vec<Label>, Str>> const& text,
+    Id                                source) {
+    Str        str;
+    Vec<Label> labels;
+
+    for (auto const& [in_labels, in_str] : text) {
+        int first = str.size();
+        str += in_str;
+        int last = str.size() - 1;
+        for (auto const& label : in_labels) {
+            labels.push_back(
+                label.clone().with_span(source, slice(first, last)));
+        }
+    }
+
+    return {labels, str};
+}
+
+TEST(PrintError, StringBuilder1) {
+    StrCache sources;
+    Id       id = 1;
+
+    auto [labels, str] = labelList(
+        {
+            labelPair({}, "012\n"),
+            labelPair({Label{}.with_message("MSG"_ss)}, "345"),
+        },
+        id);
+
+    sources.add(id, str, "file");
+
+    auto report = Report(ReportKind::Error, id, 12);
+
+    for (auto const& label : labels) { report.with_label(label); }
+
+    writeFile(
+        fmt("/tmp/error_{}.txt", "StringBuilder1"),
+        fmt(R"(- - - - - -
+{}
+- - - - - -
+{}
+{}
+)",
+            own_view(rune_chunks(str)) //
+                | rv::enumerate
+                | rv::transform(
+                    [](Pair<int, std::string> const& l) -> std::string {
+                        return fmt(
+                            "[{}] {}", l.first, escape_literal(l.second));
+                    })
+                | rv::intersperse("\n") //
+                | rv::join              //
+                | rs::to<std::string>(),
+            labels //
+                | rv::transform([](Label const& l) { return fmt1(l); })
+                | rv::intersperse("\n") //
+                | rv::join              //
+                | rs::to<std::string>(),
+            report.to_string(sources, false)));
+}
+
 TEST(PrintError, RepoExample) {
     StrCache sources;
     Id       a_id = 1;
@@ -72,7 +139,7 @@ def six =
               .with_message("Incompatible types"_ss)
               .with_label(
                   Label{}
-                      .with_span(a_id, slice(32, 32))
+                      .with_span(a_id, slice(30, 30))
                       .with_message(fmt("This is of type {}", "Nat"))
                       .with_color(a))
               .with_label(
