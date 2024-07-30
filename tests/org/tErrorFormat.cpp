@@ -88,7 +88,18 @@ TEST(PrintError, StringBuilder1) {
     auto report = Report(ReportKind::Error, id, 12);
 
     for (auto const& label : labels) { report.with_label(label); }
-    report.with_config(Config{}.with_debug_scopes(true));
+    // report.with_config(Config{}.with_debug_writes(true));
+
+    {
+        Vec<SourceGroup> groups = report.get_source_groups(&sources);
+        EXPECT_EQ(groups.size(), 1);
+        SourceGroup const& group = groups[0];
+        EXPECT_EQ(group.labels.size(), 1);
+        EXPECT_EQ(group.span.first, 4);
+        EXPECT_EQ(group.span.last, 6);
+        LabelInfo const& label = group.labels.at(0);
+        Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
+    }
 
     writeFile(
         fmt("/tmp/error_{}.txt", "StringBuilder1"),

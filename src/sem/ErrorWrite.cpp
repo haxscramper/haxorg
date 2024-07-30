@@ -97,6 +97,7 @@ struct MarginContext {
     _field(bool, is_ellipsis, false);
     _field(int, line_no_width, 0);
     _field(bool, draw_labels, false);
+    _field(int, arrow_len, 0);
     Line const&                         line;
     std::optional<std::pair<int, bool>> report_row = std::nullopt;
     MarginContext& with_report_row(std::pair<int, bool> const& value) {
@@ -125,6 +126,22 @@ struct MarginContext {
     }
 };
 
+int get_arrow_len(MarginContext const& base) {
+    // Determine label bounds so we know where to put error
+    // messages
+    int arrow_len = 0;
+    for (const auto& ll : base.line_labels) {
+        if (ll.multi) {
+            arrow_len = base.line.get_len();
+        } else {
+            arrow_len = std::max(
+                arrow_len, ll.label.span->end() - base.line.offset);
+        }
+    }
+
+    arrow_len += base.config.compact ? 1 : 2; // add arrow end space
+    return arrow_len;
+}
 
 std::optional<LineLabel> get_margin_label(
     Line const&       line,
@@ -185,11 +202,10 @@ bool sort_line_labels(
         } else {
             if (!c.config.compact && !is_ellipsis) {
                 write_margin(c.clone().with_is_ellipsis(is_ellipsis));
-
                 c.w("\n");
             }
             is_ellipsis = true;
-            return true;
+            return false;
         }
     } else {
         is_ellipsis = false;
@@ -206,7 +222,7 @@ bool sort_line_labels(
                        b.label.order, b.col, !b.label.span->start());
         });
 
-    return false;
+    return true;
 }
 
 void fill_margin_elements(
@@ -428,15 +444,15 @@ auto get_vbar(
 
 Opt<CRw<Label>> get_highlight(
     int                      col,
-    Vec<Label> const&        multi_labels,
-    Line const&              line,
-    Vec<LineLabel>&          line_labels,
+    MarginContext const&     base,
     std::optional<LineLabel> margin_label) {
     Vec<CRw<Label>> candidates;
 
     if (margin_label) { candidates.push_back(margin_label->label); }
-    for (const auto& l : multi_labels) { candidates.push_back(l); }
-    for (const auto& l : line_labels) { candidates.push_back(l.label); }
+    for (const auto& l : base.multi_labels) { candidates.push_back(l); }
+    for (const auto& l : base.line_labels) {
+        candidates.push_back(l.label);
+    }
 
     auto it = std::min_element(
         candidates.begin(),
@@ -448,7 +464,7 @@ Opt<CRw<Label>> get_highlight(
 
 
     if (it != candidates.end()
-        && it->get().span->contains(line.offset + col)) {
+        && it->get().span->contains(base.line.offset + col)) {
         return *it;
     } else {
         return std::nullopt;
@@ -535,7 +551,6 @@ void write_line_content(MarginContext const& c, int row, int arrow_len) {
 
 
 Vec<LineLabel> build_line_labels(
-
     Config const&         config,
     Line const&           line,
     Vec<LabelInfo> const& labels,
@@ -749,16 +764,16 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
 }
 
 void write_report_group_header(
-    Config const&                  config,
-    int                            group_idx,
-    int                            line_no_width,
-    Cache&                         cache,
-    Report const&                  report,
-    Writer&                        op,
-    Vec<LabelInfo> const&          labels,
-    Id                             src_id,
-    std::shared_ptr<Source> const& src) {
-    Str src_name = cache.display(src_id).value_or("<unknown>");
+    Config const&      config,
+    int                group_idx,
+    int                line_no_width,
+    Cache&             cache,
+    Report const&      report,
+    Writer&            op,
+    SourceGroup const& group) {
+
+    std::shared_ptr<Source> src = cache.fetch(group.src_id);
+    Str src_name = cache.display(group.src_id).value_or("<unknown>");
 
     op(Str(" ").repeated(line_no_width + 2));
     op((group_idx == 0 ? ColRune(config.char_set.ltop)
@@ -769,9 +784,9 @@ void write_report_group_header(
     op(src_name);
 
     // File name & reference
-    int location = (src_id == report.location.first)
+    int location = (group.src_id == report.location.first)
                      ? report.location.second
-                     : labels[0].label.span->start();
+                     : group.labels[0].label.span->start();
 
     auto offset_line = src->get_offset_line(location);
 
@@ -795,6 +810,67 @@ void write_report_group_header(
     }
 }
 
+void write_report_source_line(
+    MarginContext const&            base,
+    std::optional<LineLabel> const& margin_label) {
+    write_margin(base.clone()
+                     .with_is_line(true)
+                     .with_is_ellipsis(base.is_ellipsis)
+                     .with_draw_labels(true));
+
+    // Lines
+    if (!base.is_ellipsis) {
+        int col = 0;
+        for (ColRune const& c : base.line_text) {
+            Opt<CRw<Label>> highlight = get_highlight(
+                col, base, margin_label);
+
+            ColStyle color = highlight ? highlight->get().color
+                                       : base.config.unimportant_color;
+
+            base.w(ColRune(c.rune, color));
+
+            col++;
+        }
+    }
+}
+
+void write_report_line_annotations(MarginContext base) {
+    auto scope = base.scope("line_annotations");
+    for (int row = 0; row < base.line_labels.size(); ++row) {
+        const auto& line_label = base.line_labels[row];
+
+        if (!base.config.compact) {
+            // Margin alternate
+            write_margin(
+                base.clone().with_draw_labels(true).with_report_row(
+                    {row, false}));
+
+            write_line_content(
+                base.with_is_ellipsis(base.is_ellipsis),
+                row,
+                base.arrow_len);
+
+            base.w("\n");
+        }
+
+        // Margin
+        write_margin(base.clone()
+                         .with_is_ellipsis(base.is_ellipsis)
+                         .with_report_row({row, true})
+                         .with_draw_labels(true));
+
+        write_lines(
+            base.clone(), base.line, base.arrow_len, line_label, row);
+
+        if (line_label.label.msg) {
+            base.w(" ");
+            base.w(line_label.label.msg.value());
+        }
+        base.w("\n");
+    }
+}
+
 void write_report_group(
     int                     group_idx,
     int                     line_no_width,
@@ -802,25 +878,16 @@ void write_report_group(
     Report const&           report,
     Vec<SourceGroup> const& groups,
     Writer&                 op) {
-    SourceGroup const& group                = groups[group_idx];
-    auto const& [src_id, char_span, labels] = group;
-    auto const&             config          = report.config;
-    std::shared_ptr<Source> src             = cache.fetch(src_id);
+    SourceGroup const&      group  = groups[group_idx];
+    auto const&             config = report.config;
+    std::shared_ptr<Source> src    = cache.fetch(group.src_id);
 
     write_report_group_header(
-        config,
-        group_idx,
-        line_no_width,
-        cache,
-        report,
-        op,
-        labels,
-        src_id,
-        src);
+        config, group_idx, line_no_width, cache, report, op, group);
 
     // Generate a list of multi-line labels
-    Vec<Label> multi_labels = Report::build_multi_labels(labels);
-    Slice<int> line_range = src->get_line_range(RangeCodeSpan(char_span));
+    Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
+    Slice<int> line_range = src->get_line_range(RangeCodeSpan(group.span));
 
     bool is_ellipsis = false;
     for (int idx = line_range.first; idx <= line_range.last; ++idx) {
@@ -833,7 +900,7 @@ void write_report_group(
 
         Vec<LineLabel> line_labels //
             = build_line_labels(
-                config, line, labels, margin_label, multi_labels);
+                config, line, group.labels, margin_label, multi_labels);
 
         MarginContext base{
             .w             = op,
@@ -848,75 +915,13 @@ void write_report_group(
             .line_text     = src->get_line_text(line),
         };
 
-        bool do_skip = sort_line_labels(base, is_ellipsis, line_labels);
-
-        if (do_skip) { continue; }
-
-        // Determine label bounds so we know where to put error
-        // messages
-        int arrow_len = 0;
-        for (const auto& ll : line_labels) {
-            if (ll.multi) {
-                arrow_len = line.get_len();
-            } else {
-                arrow_len = std::max(
-                    arrow_len, ll.label.span->end() - line.offset);
-            }
-        }
-
-        arrow_len += config.compact ? 1 : 2; // add arrow end space
-
-        // Margin
-        write_margin(base.clone()
-                         .with_is_line(true)
-                         .with_is_ellipsis(is_ellipsis)
-                         .with_draw_labels(true));
-
-        // Lines
-        if (!is_ellipsis) {
-            int col = 0;
-            for (ColRune const& c : base.line_text) {
-                Opt<CRw<Label>> highlight = get_highlight(
-                    col, multi_labels, line, line_labels, margin_label);
-
-                ColStyle color = highlight ? highlight->get().color
-                                           : config.unimportant_color;
-
-                op(ColRune(c.rune, color));
-
-                col++;
-            }
-        }
-        op("\n");
-
-        for (int row = 0; row < line_labels.size(); ++row) {
-            const auto& line_label = line_labels[row];
-
-            if (!config.compact) {
-                // Margin alternate
-                write_margin(
-                    base.clone().with_draw_labels(true).with_report_row(
-                        {row, false}));
-
-                write_line_content(
-                    base.with_is_ellipsis(is_ellipsis), row, arrow_len);
-
-                base.w("\n");
-            }
-
-            // Margin
-            write_margin(base.clone()
-                             .with_is_ellipsis(is_ellipsis)
-                             .with_report_row({row, true})
-                             .with_draw_labels(true));
-
-            write_lines(base.clone(), line, arrow_len, line_label, row);
-
-            if (line_label.label.msg) {
-                op(" ");
-                op(line_label.label.msg.value());
-            }
+        if (sort_line_labels(base, is_ellipsis, line_labels)) {
+            base.with_is_ellipsis(is_ellipsis);
+            int arrow_len = get_arrow_len(base);
+            base.with_arrow_len(arrow_len);
+            write_report_source_line(base, margin_label);
             op("\n");
+            write_report_line_annotations(base);
         }
     }
 
