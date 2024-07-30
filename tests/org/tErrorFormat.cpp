@@ -83,6 +83,8 @@ TEST(PrintError, StringBuilder1) {
         },
         id);
 
+    EXPECT_EQ(str, "012\n456\n890\n");
+
     sources.add(id, str, "file");
 
     auto report = Report(ReportKind::Error, id, 12);
@@ -90,14 +92,32 @@ TEST(PrintError, StringBuilder1) {
     for (auto const& label : labels) { report.with_label(label); }
     // report.with_config(Config{}.with_debug_writes(true));
 
+
     {
+        SPtr<Source> src = sources.fetch(id);
+        for (auto const& line : src->lines) { LOG(INFO) << fmt1(line); }
+        {
+            auto line = src->get_offset_line(4);
+            EXPECT_EQ(str.at(4), '4');
+            EXPECT_TRUE(line.has_value());
+            EXPECT_EQ(line.value().idx, 1);
+        }
+
+        {
+            auto line = src->get_offset_line(6);
+            EXPECT_EQ(str.at(6), '6');
+            EXPECT_TRUE(line.has_value());
+            EXPECT_EQ(line.value().idx, 1);
+        }
+
         Vec<SourceGroup> groups = report.get_source_groups(&sources);
         EXPECT_EQ(groups.size(), 1);
         SourceGroup const& group = groups[0];
         EXPECT_EQ(group.labels.size(), 1);
         EXPECT_EQ(group.span.first, 4);
         EXPECT_EQ(group.span.last, 6);
-        LabelInfo const& label  = group.labels.at(0);
+        LabelInfo const& label = group.labels.at(0);
+        EXPECT_EQ(label.kind, LabelKind::Inline);
         Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
     }
 

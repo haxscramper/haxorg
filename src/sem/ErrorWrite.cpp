@@ -4,7 +4,6 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
-#include <boost/preprocessor.hpp>
 
 Characters Config::unicode() {
     return Characters{
@@ -175,15 +174,6 @@ std::optional<LineLabel> get_margin_label(
 }
 
 void write_margin(MarginContext const& c);
-
-#define _dfmt_impl(_1, _2, arg)                                           \
-    << " " << BOOST_PP_STRINGIZE(arg) << fmt(" = ⦃{}⦄", arg)
-
-
-#define _dfmt(...)                                                        \
-    DLOG(INFO) << "]" BOOST_PP_SEQ_FOR_EACH(                              \
-        _dfmt_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__));
-
 
 bool sort_line_labels(
     MarginContext const& c,
@@ -497,52 +487,36 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
 void write_line_content(MarginContext const& c, int row, int arrow_len) {
     // Lines alternate
     auto chars = c.line_text.begin();
+    _dfmt(arrow_len);
     for (int col = 0; col < arrow_len; ++col) {
-        int width = 1;
-        // (chars != c.line.chars.end())
-        //     ? c.config.char_width(*chars, col).second
-        //     : 1;
-
         Opt<LineLabel> underline = get_underline(c, col);
         if (row != 0) { underline.reset(); }
 
         std::array<ColRune, 2> ct_array;
         if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
-            std::array<Str, 2> ct_inner;
             if (underline) {
                 if (vbar->label.span.len() <= 1) {
-                    ct_inner = {c.draw().underbar, c.draw().underline};
+                    c.w(c.draw().underbar);
                 } else if (
                     c.line.offset + col == vbar->label.span.start()) {
-                    ct_inner = {c.draw().ltop, c.draw().underbar};
+                    c.w(c.draw().ltop);
                 } else if (
                     c.line.offset + col == vbar->label.last_offset()) {
-                    ct_inner = {c.draw().rtop, c.draw().underbar};
+                    c.w(c.draw().rtop);
                 } else {
-                    ct_inner = {c.draw().underbar, c.draw().underline};
+                    c.w(c.draw().underbar);
                 }
             } else if (
                 vbar->multi && row == 0 && c.config.multiline_arrows) {
-                ct_inner = {c.draw().uarrow, ' '};
+                c.w(c.draw().uarrow);
             } else {
-                ct_inner = {c.draw().vbar, ' '};
+                c.w(c.draw().vbar);
             }
-            ct_array = {
-                ColRune(ct_inner[0], vbar->label.color),
-                ColRune(ct_inner[1], vbar->label.color),
-            };
         } else if (underline) {
-            ct_array = {
-                ColRune(c.draw().underline, underline->label.color),
-                ColRune(c.draw().underline, underline->label.color),
-            };
+            c.w(ColRune(c.draw().underline, underline->label.color));
         } else {
-            ct_array = {ColRune(' '), ColRune(' ')};
-        }
-
-        for (int i = 0; i < width; ++i) {
-            c.w((i == 0) ? ct_array[0] : ct_array[1]);
+            c.w(ColRune(' '));
         }
 
         if (chars != c.line_text.end()) { ++chars; }
@@ -1065,14 +1039,13 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
             lines.end(),
             offset,
             [](const Line& line, int offset) {
-                return line.offset < offset;
+                return line.offset <= offset;
             });
         if (it != lines.begin()) { --it; }
         int         idx  = std::distance(lines.begin(), it);
         const Line& line = lines[idx];
         CHECK(line.offset <= offset)
             << fmt("line.offset = {} <= offset = {}", line.offset, offset);
-        // _dfmt(idx, offset, line.offset);
         return OffsetLine{std::ref(line), idx, offset - line.offset};
     } else {
         return std::nullopt;
