@@ -6,7 +6,7 @@
 #include <hstd/system/reflection.hpp>
 #include <boost/preprocessor.hpp>
 
-Characters unicode() {
+Characters Config::unicode() {
     return Characters{
         .hbar       = Str("─"),
         .vbar       = Str("│"),
@@ -30,7 +30,7 @@ Characters unicode() {
     };
 }
 
-Characters ascii() {
+Characters Config::ascii() {
     return Characters{
         .hbar       = Str("-"),
         .vbar       = Str("|"),
@@ -109,8 +109,9 @@ struct MarginContext {
     const std::optional<LineLabel>& margin_label;
     std::shared_ptr<Source>         src;
     Vec<Label> const&               multi_labels;
-    Characters const&               draw;
     Config const&                   config;
+
+    Characters const& draw() const { return config.char_set; }
 
     finally scope(
         char const* function = __builtin_FUNCTION(),
@@ -288,24 +289,24 @@ Pair<ColRune, ColRune> get_corner_elements(
     if (corner) {
         auto [label, is_start] = *corner;
         ab                     = {
-            is_start ? ColRune(c.draw.ltop, label.get().color)
-                                         : ColRune(c.draw.lbot, label.get().color),
-            ColRune(c.draw.hbar, label.get().color),
+            is_start ? ColRune(c.draw().ltop, label.get().color)
+                                         : ColRune(c.draw().lbot, label.get().color),
+            ColRune(c.draw().hbar, label.get().color),
         };
     } else if (hbar && vbar && !c.config.cross_gap) {
         ab = {
-            ColRune(c.draw.xbar, hbar->color),
-            ColRune(c.draw.hbar, hbar->color),
+            ColRune(c.draw().xbar, hbar->color),
+            ColRune(c.draw().hbar, hbar->color),
         };
     } else if (hbar) {
         ab = {
-            ColRune(c.draw.hbar, hbar->color),
-            ColRune(c.draw.hbar, hbar->color),
+            ColRune(c.draw().hbar, hbar->color),
+            ColRune(c.draw().hbar, hbar->color),
         };
     } else if (vbar) {
         ab = {
-            c.is_ellipsis ? ColRune(c.draw.vbar_gap, vbar->color)
-                          : ColRune(c.draw.vbar, vbar->color),
+            c.is_ellipsis ? ColRune(c.draw().vbar_gap, vbar->color)
+                          : ColRune(c.draw().vbar, vbar->color),
             ColRune(' '),
         };
     } else if (margin_ptr && c.is_line) {
@@ -315,20 +316,21 @@ Pair<ColRune, ColRune> get_corner_elements(
                                     : false;
         bool is_limit           = col == c.multi_labels.size();
         if (is_limit) {
-            ab.first = ColRune(c.draw.rarrow, margin.get().label.color);
+            ab.first = ColRune(c.draw().rarrow, margin.get().label.color);
         } else if (is_col) {
             if (is_start) {
-                ab.first = ColRune(c.draw.ltop, margin.get().label.color);
+                ab.first = ColRune(
+                    c.draw().ltop, margin.get().label.color);
             } else {
                 ab.first = ColRune(
-                    c.draw.lcross, margin.get().label.color);
+                    c.draw().lcross, margin.get().label.color);
             }
         } else {
-            ab.first = ColRune(c.draw.hbar, margin.get().label.color);
+            ab.first = ColRune(c.draw().hbar, margin.get().label.color);
         }
 
         if (!is_limit) {
-            ab.second = ColRune(c.draw.hbar, margin.get().label.color);
+            ab.second = ColRune(c.draw().hbar, margin.get().label.color);
         } else {
             ab.second = ColRune(' ');
         }
@@ -350,10 +352,11 @@ void write_margin(MarginContext const& c) {
         int line_no    = c.idx + 1;
         line_no_margin = Str(" ").repeated(
                              c.line_no_width - fmt1(line_no).length())
-                       + Str(fmt1(line_no)) + Str(" ") + Str(c.draw.vbar);
+                       + Str(fmt1(line_no)) + Str(" ")
+                       + Str(c.draw().vbar);
     } else {
         line_no_margin = Str(" ").repeated(c.line_no_width + 1);
-        line_no_margin += (c.is_ellipsis ? c.draw.vbar_gap : c.draw.vbar_break);
+        line_no_margin += (c.is_ellipsis ? c.draw().vbar_gap : c.draw().vbar_break);
     }
 
     c.w(" ");
@@ -493,21 +496,21 @@ void write_line_content(MarginContext const& c, int row, int arrow_len) {
             std::array<Str, 2> ct_inner;
             if (underline) {
                 if (vbar->label.span->len() <= 1) {
-                    ct_inner = {c.draw.underbar, c.draw.underline};
+                    ct_inner = {c.draw().underbar, c.draw().underline};
                 } else if (
                     c.line.offset + col == vbar->label.span->start()) {
-                    ct_inner = {c.draw.ltop, c.draw.underbar};
+                    ct_inner = {c.draw().ltop, c.draw().underbar};
                 } else if (
                     c.line.offset + col == vbar->label.last_offset()) {
-                    ct_inner = {c.draw.rtop, c.draw.underbar};
+                    ct_inner = {c.draw().rtop, c.draw().underbar};
                 } else {
-                    ct_inner = {c.draw.underbar, c.draw.underline};
+                    ct_inner = {c.draw().underbar, c.draw().underline};
                 }
             } else if (
                 vbar->multi && row == 0 && c.config.multiline_arrows) {
-                ct_inner = {c.draw.uarrow, ' '};
+                ct_inner = {c.draw().uarrow, ' '};
             } else {
-                ct_inner = {c.draw.vbar, ' '};
+                ct_inner = {c.draw().vbar, ' '};
             }
             ct_array = {
                 ColRune(ct_inner[0], vbar->label.color),
@@ -515,8 +518,8 @@ void write_line_content(MarginContext const& c, int row, int arrow_len) {
             };
         } else if (underline) {
             ct_array = {
-                ColRune(c.draw.underline, underline->label.color),
-                ColRune(c.draw.underline, underline->label.color),
+                ColRune(c.draw().underline, underline->label.color),
+                ColRune(c.draw().underline, underline->label.color),
             };
         } else {
             ct_array = {ColRune(' '), ColRune(' ')};
@@ -530,25 +533,6 @@ void write_line_content(MarginContext const& c, int row, int arrow_len) {
     }
 }
 
-
-Vec<Label> build_multi_labels(Vec<LabelInfo> const& labels) {
-    Vec<Label> multi_labels;
-    for (LabelInfo const& label_info : labels) {
-        if (label_info.kind == LabelKind::Multiline) {
-            multi_labels.push_back(label_info.label);
-        }
-    }
-
-    // Sort multiline labels by length
-    std::sort(
-        multi_labels.begin(),
-        multi_labels.end(),
-        [](Label const& a, Label const& b) {
-            return (a.span->len()) > (b.span->len());
-        });
-
-    return multi_labels;
-}
 
 Vec<LineLabel> build_line_labels(
 
@@ -650,11 +634,12 @@ void write_lines(
                 || line_label.label != c.margin_label->label)) {
             ct_array = {
                 ColRune(
-                    (line_label.multi ? (line_label.draw_msg ? c.draw.mbot
-                                                             : c.draw.rbot)
-                                      : c.draw.lbot),
+                    (line_label.multi
+                         ? (line_label.draw_msg ? c.draw().mbot
+                                                : c.draw().rbot)
+                         : c.draw().lbot),
                     line_label.label.color),
-                ColRune(c.draw.hbar, line_label.label.color),
+                ColRune(c.draw().hbar, line_label.label.color),
             };
         } else if (std::optional<LineLabel> vbar_ll = std::nullopt;
                    (vbar_ll = get_vbar(
@@ -662,28 +647,28 @@ void write_lines(
                    && (col != line_label.col || line_label.label.msg)) {
             if (!c.config.cross_gap && is_hbar) {
                 ct_array = {
-                    ColRune(c.draw.xbar, line_label.label.color),
+                    ColRune(c.draw().xbar, line_label.label.color),
                     ColRune(' ', line_label.label.color),
                 };
             } else if (is_hbar) {
                 ct_array = {
-                    ColRune(c.draw.hbar, line_label.label.color),
-                    ColRune(c.draw.hbar, line_label.label.color),
+                    ColRune(c.draw().hbar, line_label.label.color),
+                    ColRune(c.draw().hbar, line_label.label.color),
                 };
             } else {
                 ct_array = {
                     ColRune(
                         (vbar_ll->multi && row == 0 && c.config.compact
-                             ? c.draw.uarrow
-                             : c.draw.vbar),
+                             ? c.draw().uarrow
+                             : c.draw().vbar),
                         vbar_ll->label.color),
                     ColRune(' ', line_label.label.color),
                 };
             }
         } else if (is_hbar) {
             ct_array = {
-                ColRune(c.draw.hbar, line_label.label.color),
-                ColRune(c.draw.hbar, line_label.label.color),
+                ColRune(c.draw().hbar, line_label.label.color),
+                ColRune(c.draw().hbar, line_label.label.color),
             };
         } else {
             ct_array = {
@@ -698,6 +683,26 @@ void write_lines(
     }
 }
 }; // namespace
+
+Vec<Label> Report::build_multi_labels(Vec<LabelInfo> const& labels) {
+    Vec<Label> multi_labels;
+    for (LabelInfo const& label_info : labels) {
+        if (label_info.kind == LabelKind::Multiline) {
+            multi_labels.push_back(label_info.label);
+        }
+    }
+
+    // Sort multiline labels by length
+    std::sort(
+        multi_labels.begin(),
+        multi_labels.end(),
+        [](Label const& a, Label const& b) {
+            return (a.span->len()) > (b.span->len());
+        });
+
+    return multi_labels;
+}
+
 
 Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
     Vec<SourceGroup> groups;
@@ -743,25 +748,24 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
     return groups;
 }
 
-void write_report_group(
-    int                     group_idx,
-    int                     line_no_width,
-    Cache&                  cache,
-    Report const&           report,
-    Vec<SourceGroup> const& groups,
-    Writer&                 op,
-    Characters const&       draw) {
-    SourceGroup const& group                = groups[group_idx];
-    auto const& [src_id, char_span, labels] = group;
-    auto const& config                      = report.config;
-
+void write_report_group_header(
+    Config const&                  config,
+    int                            group_idx,
+    int                            line_no_width,
+    Cache&                         cache,
+    Report const&                  report,
+    Writer&                        op,
+    Vec<LabelInfo> const&          labels,
+    Id                             src_id,
+    std::shared_ptr<Source> const& src) {
     Str src_name = cache.display(src_id).value_or("<unknown>");
-    std::shared_ptr<Source> src = cache.fetch(src_id);
+
     op(Str(" ").repeated(line_no_width + 2));
-    op((group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
+    op((group_idx == 0 ? ColRune(config.char_set.ltop)
+                       : ColRune(config.char_set.lcross))
        + config.margin_color);
-    op(ColRune(draw.hbar) + config.margin_color);
-    op(ColRune(draw.lbox) + config.margin_color);
+    op(ColRune(config.char_set.hbar) + config.margin_color);
+    op(ColRune(config.char_set.lbox) + config.margin_color);
     op(src_name);
 
     // File name & reference
@@ -781,18 +785,41 @@ void write_report_group(
         op(":?:?");
     }
 
-    op(ColRune(draw.rbox) + config.margin_color);
+    op(ColRune(config.char_set.rbox) + config.margin_color);
     op("\n");
 
     if (!config.compact) {
         op(Str(" ").repeated(line_no_width + 2));
-        op(ColRune(draw.vbar) + config.margin_color);
+        op(ColRune(config.char_set.vbar) + config.margin_color);
         op("\n");
     }
+}
 
+void write_report_group(
+    int                     group_idx,
+    int                     line_no_width,
+    Cache&                  cache,
+    Report const&           report,
+    Vec<SourceGroup> const& groups,
+    Writer&                 op) {
+    SourceGroup const& group                = groups[group_idx];
+    auto const& [src_id, char_span, labels] = group;
+    auto const&             config          = report.config;
+    std::shared_ptr<Source> src             = cache.fetch(src_id);
+
+    write_report_group_header(
+        config,
+        group_idx,
+        line_no_width,
+        cache,
+        report,
+        op,
+        labels,
+        src_id,
+        src);
 
     // Generate a list of multi-line labels
-    Vec<Label> multi_labels = build_multi_labels(labels);
+    Vec<Label> multi_labels = Report::build_multi_labels(labels);
     Slice<int> line_range = src->get_line_range(RangeCodeSpan(char_span));
 
     bool is_ellipsis = false;
@@ -800,7 +827,7 @@ void write_report_group(
         auto line_opt = src->line(idx);
         if (!line_opt) { continue; }
 
-        Line                     line         = line_opt.value();
+        Line const&              line         = line_opt.value();
         std::optional<LineLabel> margin_label = get_margin_label(
             line, multi_labels);
 
@@ -808,13 +835,9 @@ void write_report_group(
             = build_line_labels(
                 config, line, labels, margin_label, multi_labels);
 
-        for (auto const& it : line_labels) { LOG(INFO) << fmt1(it); }
-
-
         MarginContext base{
             .w             = op,
             .config        = config,
-            .draw          = draw,
             .multi_labels  = multi_labels,
             .line_labels   = line_labels,
             .src           = src,
@@ -903,7 +926,6 @@ void write_report_group(
     MarginContext  base{
          .w             = op,
          .config        = config,
-         .draw          = draw,
          .multi_labels  = multi_labels,
          .line_labels   = {},
          .src           = src,
@@ -946,12 +968,12 @@ void write_report_group(
     // Tail of report
     if (!config.compact) {
         if (is_final_group) {
-            op(Str(draw.hbar).repeated(line_no_width + 2));
-            op(draw.rbot);
+            op(Str(config.char_set.hbar).repeated(line_no_width + 2));
+            op(config.char_set.rbot);
             op("\n");
         } else {
             op(Str(" ").repeated(line_no_width + 2));
-            op(draw.vbar);
+            op(config.char_set.vbar);
             op("\n");
         }
     }
@@ -998,14 +1020,8 @@ void write_report_header(Report const& report, Writer& op) {
 }
 
 void Report::write_for_stream(Cache& cache, ColStream& w) {
-    w.colored       = true;
-    Characters draw = Characters{};
-    switch (config.char_set) {
-        case MessageCharSet::Unicode: draw = unicode(); break;
-        case MessageCharSet::Ascii: draw = ascii(); break;
-    }
-
-    auto op = Writer{w, &config};
+    w.colored = true;
+    auto op   = Writer{w, &config};
 
     write_report_header(*this, op);
 
@@ -1018,7 +1034,7 @@ void Report::write_for_stream(Cache& cache, ColStream& w) {
     for (int group_idx = 0; group_idx < groups.size(); ++group_idx) {
 
         write_report_group(
-            group_idx, line_no_width, cache, *this, groups, op, draw);
+            group_idx, line_no_width, cache, *this, groups, op);
     }
 }
 

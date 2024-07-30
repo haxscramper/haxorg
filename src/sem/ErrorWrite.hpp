@@ -180,7 +180,6 @@ struct Source {
 
 class StrCache : public Cache {
 
-
     /// Cache interface
   public:
     UnorderedMap<Id, std::shared_ptr<Source>> sources;
@@ -340,16 +339,6 @@ enum class LabelAttach
 
 BOOST_DESCRIBE_ENUM(LabelAttach, Start, Middle, End);
 
-enum class MessageCharSet
-{
-    /// Unicode characters (an attempt is made to use only
-    /// commonly-supported characters).
-    Unicode,
-    /// ASCII-only characters.
-    Ascii,
-};
-
-BOOST_DESCRIBE_ENUM(MessageCharSet, Unicode, Ascii);
 
 struct Config {
     Config()
@@ -396,7 +385,7 @@ struct Config {
         return *this;
     }
 
-    Config& with_char_set(MessageCharSet char_set) {
+    Config& with_char_set(Characters char_set) {
         this->char_set = char_set;
         return *this;
     }
@@ -430,8 +419,11 @@ struct Config {
     int         tab_width;
     bool        debug_writes = false;
     bool        debug_scopes = false;
+    Characters  char_set     = Config::unicode();
 
-    MessageCharSet char_set = MessageCharSet::Unicode;
+    static Characters unicode();
+    static Characters ascii();
+
     DESC_FIELDS(
         Config,
         (error_color,
@@ -552,4 +544,6 @@ class Report {
         write_for_stream(cache, buf);
         return buf.toString(colored);
     }
+
+    static Vec<Label> build_multi_labels(Vec<LabelInfo> const& labels);
 };

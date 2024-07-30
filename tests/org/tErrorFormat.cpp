@@ -24,7 +24,7 @@ def six =
         = Report(ReportKind::Error, a_id, 10)
               .with_config(Config{} //
                                .with_compact(true)
-                               .with_char_set(MessageCharSet::Unicode))
+                               .with_char_set(Config::unicode()))
               .with_message("Incompatible types"_ss)
               .with_label(Label{}
                               .with_span(a_id, slice(0, 1))
