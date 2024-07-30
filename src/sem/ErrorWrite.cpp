@@ -135,7 +135,7 @@ int get_arrow_len(MarginContext const& base) {
             arrow_len = base.line.get_len();
         } else {
             arrow_len = std::max(
-                arrow_len, ll.label.span->end() - base.line.offset);
+                arrow_len, ll.label.span.end() - base.line.offset);
         }
     }
 
@@ -150,12 +150,12 @@ std::optional<LineLabel> get_margin_label(
     int                      min_key = std::numeric_limits<int>::max();
     for (int i = 0; i < multi_labels.size(); ++i) {
         Label const& label    = multi_labels[i];
-        bool         is_start = line.span().contains(label.span->start());
+        bool         is_start = line.span().contains(label.span.start());
         bool         is_end   = line.span().contains(label.last_offset());
 
         if (is_start || is_end) {
             LineLabel ll{
-                .col = (is_start ? label.span->start()
+                .col = (is_start ? label.span.start()
                                  : label.last_offset())
                      - line.offset,
                 .label    = label,
@@ -164,7 +164,7 @@ std::optional<LineLabel> get_margin_label(
             };
 
 
-            int key = (ll.col << 1) | (!label.span->start());
+            int key = (ll.col << 1) | (!label.span.start());
             if (key < min_key) {
                 min_key      = key;
                 margin_label = ll;
@@ -195,7 +195,7 @@ bool sort_line_labels(
             c.multi_labels.begin(),
             c.multi_labels.end(),
             [&](Label const& label) {
-                return label.span->contains(c.line.span().first);
+                return label.span.contains(c.line.span().first);
             });
         if (!is_ellipsis && within_label) {
             is_ellipsis = true;
@@ -217,9 +217,9 @@ bool sort_line_labels(
         line_labels.end(),
         [](const LineLabel& a, const LineLabel& b) {
             return std::make_tuple(
-                       a.label.order, a.col, !a.label.span->start())
+                       a.label.order, a.col, !a.label.span.start())
                  < std::make_tuple(
-                       b.label.order, b.col, !b.label.span->start());
+                       b.label.order, b.col, !b.label.span.start());
         });
 
     return true;
@@ -241,10 +241,10 @@ void fill_margin_elements(
             margin = c.margin_label;
         }
 
-        if (label.span->start() <= line_span.last
-            && line_span.first < label.span->end()) {
+        if (label.span.start() <= line_span.last
+            && line_span.first < label.span.end()) {
             bool is_parent = i != col;
-            bool is_start  = line_span.contains(label.span->start());
+            bool is_start  = line_span.contains(label.span.start());
             bool is_end    = line_span.contains(label.last_offset());
 
             if (margin && c.is_line) {
@@ -458,13 +458,13 @@ Opt<CRw<Label>> get_highlight(
         candidates.begin(),
         candidates.end(),
         [&](const auto& a, const auto& b) {
-            return std::make_tuple(-a.get().priority, a.get().span->len())
-                 < std::make_tuple(-b.get().priority, b.get().span->len());
+            return std::make_tuple(-a.get().priority, a.get().span.len())
+                 < std::make_tuple(-b.get().priority, b.get().span.len());
         });
 
 
     if (it != candidates.end()
-        && it->get().span->contains(base.line.offset + col)) {
+        && it->get().span.contains(base.line.offset + col)) {
         return *it;
     } else {
         return std::nullopt;
@@ -476,7 +476,7 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
     Vec<std::reference_wrapper<LineLabel const>> candidates;
     for (const auto& it : c.line_labels) {
         if (c.config.underlines && !it.multi
-            && it.label.span->contains(c.line.offset + col)) {
+            && it.label.span.contains(c.line.offset + col)) {
             candidates.push_back(it);
         }
     }
@@ -488,9 +488,9 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
         candidates.end(),
         [&](const auto& a, const auto& b) {
             return std::make_tuple(
-                       -a.get().label.priority, a.get().label.span->len())
+                       -a.get().label.priority, a.get().label.span.len())
                  < std::make_tuple(
-                       -b.get().label.priority, b.get().label.span->len());
+                       -b.get().label.priority, b.get().label.span.len());
         });
 };
 
@@ -511,10 +511,10 @@ void write_line_content(MarginContext const& c, int row, int arrow_len) {
                 col, row, c.line_labels, c.margin_label)) {
             std::array<Str, 2> ct_inner;
             if (underline) {
-                if (vbar->label.span->len() <= 1) {
+                if (vbar->label.span.len() <= 1) {
                     ct_inner = {c.draw().underbar, c.draw().underline};
                 } else if (
-                    c.line.offset + col == vbar->label.span->start()) {
+                    c.line.offset + col == vbar->label.span.start()) {
                     ct_inner = {c.draw().ltop, c.draw().underbar};
                 } else if (
                     c.line.offset + col == vbar->label.last_offset()) {
@@ -558,14 +558,14 @@ Vec<LineLabel> build_line_labels(
     Vec<Label> const&     multi_labels) {
     Vec<LineLabel> line_labels;
     for (CR<Label> label : multi_labels) {
-        bool is_start = line.span().contains(label.span->start());
+        bool is_start = line.span().contains(label.span.start());
         bool is_end   = line.span().contains(label.last_offset());
         bool different_from_margin_label
             = (!margin_label.has_value() || label != margin_label->label);
 
         if ((is_start && different_from_margin_label) || is_end) {
             LineLabel ll{
-                .col = (is_start ? label.span->start()
+                .col = (is_start ? label.span.start()
                                  : label.last_offset())
                      - line.offset,
                 .label    = label,
@@ -579,17 +579,17 @@ Vec<LineLabel> build_line_labels(
     }
 
     for (const LabelInfo& label_info : labels) {
-        if (label_info.label.span->start() >= line.span().first
-            && label_info.label.span->end() <= line.span().last) {
+        if (label_info.label.span.start() >= line.span().first
+            && label_info.label.span.end() <= line.span().last) {
             if (label_info.kind == LabelKind::Inline) {
                 int position = 0;
                 switch (config.label_attach) {
                     case LabelAttach::Start:
-                        position = label_info.label.span->start();
+                        position = label_info.label.span.start();
                         break;
                     case LabelAttach::Middle:
-                        position = (label_info.label.span->start()
-                                    + label_info.label.span->end())
+                        position = (label_info.label.span.start()
+                                    + label_info.label.span.end())
                                  / 2;
                         break;
                     case LabelAttach::End:
@@ -599,7 +599,7 @@ Vec<LineLabel> build_line_labels(
 
                 LineLabel ll{
                     .col = std::max(
-                               position, label_info.label.span->start())
+                               position, label_info.label.span.start())
                          - line.offset,
                     .label    = label_info.label,
                     .multi    = false,
@@ -621,7 +621,7 @@ int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
         Str  src_name = cache.display(group.src_id).value_or("<unknown>");
         auto src      = cache.fetch(group.src_id);
 
-        auto line_range = src->get_line_range(RangeCodeSpan(group.span));
+        auto line_range = src->get_line_range(CodeSpan{{}, group.span});
         int  width      = fmt1(line_range.last).size();
         line_no_width   = std::max(line_no_width, width);
     }
@@ -712,7 +712,7 @@ Vec<Label> Report::build_multi_labels(Vec<LabelInfo> const& labels) {
         multi_labels.begin(),
         multi_labels.end(),
         [](Label const& a, Label const& b) {
-            return (a.span->len()) > (b.span->len());
+            return (a.span.len()) > (b.span.len());
         });
 
     return multi_labels;
@@ -722,19 +722,19 @@ Vec<Label> Report::build_multi_labels(Vec<LabelInfo> const& labels) {
 Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
     Vec<SourceGroup> groups;
     for (const auto& label : labels) {
-        auto src_display            = cache->display(label.span->source());
-        std::shared_ptr<Source> src = cache->fetch(label.span->source());
+        auto src_display            = cache->display(label.span.source());
+        std::shared_ptr<Source> src = cache->fetch(label.span.source());
         if (!src) { continue; }
 
-        CHECK(label.span->start() <= label.span->end())
+        CHECK(label.span.start() <= label.span.end())
             << "Label start is after its end";
 
         auto start_line //
-            = src->get_offset_line(label.span->start()).value().idx;
+            = src->get_offset_line(label.span.start()).value().idx;
 
         auto end_line //
             = src->get_offset_line(
-                     std::max(label.span->end() - 1, label.span->start()))
+                     std::max(label.span.end() - 1, label.span.start()))
                   .value()
                   .idx;
 
@@ -746,17 +746,17 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
 
         auto it = std::find_if(
             groups.begin(), groups.end(), [&](const SourceGroup& group) {
-                return group.src_id == label.span->source();
+                return group.src_id == label.span.source();
             });
 
         if (it != groups.end()) {
-            it->span.first = std::min(it->span.first, label.span->start());
-            it->span.last  = std::max(it->span.last, label.span->end());
+            it->span.first = std::min(it->span.first, label.span.start());
+            it->span.last  = std::max(it->span.last, label.span.end());
             it->labels.push_back(label_info);
         } else {
             groups.push_back(SourceGroup{
-                .src_id = label.span->source(),
-                .span   = slice(label.span->start(), label.span->end()),
+                .src_id = label.span.source(),
+                .span   = slice(label.span.start(), label.span.end()),
                 .labels = {label_info}});
         }
     }
@@ -786,7 +786,7 @@ void write_report_group_header(
     // File name & reference
     int location = (group.src_id == report.location.first)
                      ? report.location.second
-                     : group.labels[0].label.span->start();
+                     : group.labels[0].label.span.start();
 
     auto offset_line = src->get_offset_line(location);
 
@@ -887,7 +887,7 @@ void write_report_group(
 
     // Generate a list of multi-line labels
     Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
-    Slice<int> line_range = src->get_line_range(RangeCodeSpan(group.span));
+    Slice<int> line_range = src->get_line_range(CodeSpan{{}, group.span});
 
     bool is_ellipsis = false;
     for (int idx = line_range.first; idx <= line_range.last; ++idx) {

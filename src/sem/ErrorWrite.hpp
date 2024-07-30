@@ -25,22 +25,24 @@ class Source;
 using Id = int;
 
 /// \brief A trait implemented by spans within a character-based source.
-class CodeSpan {
-  public:
+struct CodeSpan {
+    Id         id;
+    Slice<int> range;
+
     /// \brief Get the identifier of the source that this Codespan refers
     /// to.
-    virtual const Id source() const = 0;
+    const Id source() const { return id; }
 
     /// Get the start offset of this Codespan.
     /// Offsets are zero-indexed character offsets from the beginning of
     /// the source.
-    virtual int start() const = 0;
+    int start() const { return range.first; }
 
     /// Get the (exclusive) end offset of this Codespan.
     /// The end offset should *always* be greater than or equal to the
     /// start offset as given by CodeSpan::start(). Offsets are
     /// zero-indexed character offsets from the beginning of the source.
-    virtual int end() const = 0;
+    int end() const { return range.last; }
 
     /// Get the length of this Codespan (difference between the start of
     /// the Codespan and the end of the Codespan).
@@ -59,38 +61,6 @@ struct std::formatter<CodeSpan> : std::formatter<std::string> {
         return fmt_ctx(
             fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);
     }
-};
-
-// CodeSpan implementation for Range<usize>
-class RangeCodeSpan : public CodeSpan {
-  public:
-    explicit RangeCodeSpan(Slice<int> range) : range_(range) {}
-
-    virtual const Id source() const override { return -1; }
-    int              start() const override { return range_.first; }
-    int              end() const override { return range_.last; }
-
-  private:
-    Slice<int> range_;
-};
-
-/// \brief CodeSpan implementation for (Id, Range<usize>)
-class TupleCodeSpan : public CodeSpan {
-  public:
-    explicit TupleCodeSpan(Id id, Slice<int> range)
-        : id_(std::move(id)), range_(range) {}
-
-    const Id source() const override { return id_; }
-    int      start() const override { return range_.first; }
-    int      end() const override { return range_.last; }
-
-    static std::shared_ptr<TupleCodeSpan> New(Id id, Slice<int> range) {
-        return std::make_shared<TupleCodeSpan>(id, range);
-    }
-
-  private:
-    Id         id_;
-    Slice<int> range_;
 };
 
 class Cache {
@@ -262,20 +232,17 @@ struct Label {
     }
 
     Label& with_span(Id id, Slice<int> range) {
-        this->span = TupleCodeSpan::New(id, range);
+        this->span = CodeSpan{id, range};
         return *this;
     }
 
     Label clone() const { return *this; }
 
-    Label(const std::shared_ptr<CodeSpan>& Codespan = nullptr)
-        : span(Codespan) {}
-
-    std::shared_ptr<CodeSpan> span     = nullptr;
-    std::optional<ColText>    msg      = std::nullopt;
-    ColStyle                  color    = ColStyle{};
-    int                       order    = 0;
-    int                       priority = 0;
+    CodeSpan               span;
+    std::optional<ColText> msg      = std::nullopt;
+    ColStyle               color    = ColStyle{};
+    int                    order    = 0;
+    int                    priority = 0;
 
     DESC_FIELDS(Label, (span, msg, color, order, priority));
 
@@ -292,7 +259,7 @@ struct Label {
     }
 
     inline int last_offset() const {
-        return std::max(span->end() - 1, span->start());
+        return std::max(span.end() - 1, span.start());
     }
 };
 
