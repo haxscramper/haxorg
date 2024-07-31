@@ -71,6 +71,30 @@ Pair<Vec<Label>, Str> labelList(
     return {labels, str};
 }
 
+
+std::string pivotStringTable(const std::string& input) {
+    std::stringstream ss(input);
+    std::string       line;
+    Vec<Vec<char>>    matrix;
+    int               max_length = 0;
+
+    while (std::getline(ss, line)) {
+        max_length = std::max<int>(max_length, line.size());
+        matrix.push_back(Vec<char>(line.begin(), line.end()));
+    }
+
+    std::stringstream result;
+    for (int in_col = 0; in_col < max_length; ++in_col) {
+        for (int in_row = 0; in_row < matrix.size(); ++in_row) {
+            result << matrix.at(in_row).at_or(in_col, ' ');
+        }
+        result << "\n";
+    }
+
+    return result.str();
+}
+
+
 TEST(PrintError, StringBuilder1) {
     StrCache sources;
     Id       id = 1;
@@ -90,7 +114,10 @@ TEST(PrintError, StringBuilder1) {
     auto report = Report(ReportKind::Error, id, 12);
 
     for (auto const& label : labels) { report.with_label(label); }
-    // report.with_config(Config{}.with_debug_writes(true));
+    report.with_config(Config{} //
+                           .with_char_set(Config::ascii())
+                       // .with_debug_writes(true)
+    );
 
 
     {
@@ -120,12 +147,17 @@ TEST(PrintError, StringBuilder1) {
         Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
     }
 
+    Str report_text = report.to_string(sources, false);
+    Str pivoted     = pivotStringTable(report_text);
+
     writeFile(
         fmt("/tmp/error_{}.txt", "StringBuilder1"),
         fmt(R"(- - - - - -
 {}
 - - - - - -
 {}
+{}
+- - - - - -
 {}
 )",
             own_view(rune_chunks(str)) //
@@ -143,7 +175,14 @@ TEST(PrintError, StringBuilder1) {
                 | rv::intersperse("\n") //
                 | rv::join              //
                 | rs::to<std::string>(),
-            report.to_string(sources, false)));
+            report_text,
+            pivoted));
+
+    EXPECT_TRUE(pivoted.contains("4^"));
+    EXPECT_TRUE(pivoted.contains("5|"));
+    EXPECT_TRUE(pivoted.contains("6^"));
+    EXPECT_TRUE(report_text.contains("`-- MSG"));
+    EXPECT_TRUE(report_text.contains("^|^"));
 }
 
 TEST(PrintError, RepoExample) {
