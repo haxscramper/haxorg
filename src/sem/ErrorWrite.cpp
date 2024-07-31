@@ -74,6 +74,9 @@ struct LineLabel {
 struct Writer {
     ColStream& stream;
     Config*    config;
+
+    bool dbg_report() const { return config->debug_report_info; }
+
     template <typename T>
     void operator()(
         CR<T>       value,
@@ -844,6 +847,9 @@ void write_report_line_annotations(MarginContext base) {
         if (line_label.label.msg) {
             base.w(" ");
             base.w(line_label.label.msg.value());
+            // if (base.w.dbg_report()) {
+            // base.w(fmt("{}", line_label.label.span));
+            // }
         }
         base.w("\n");
     }

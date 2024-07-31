@@ -360,6 +360,12 @@ struct Config {
         return *this;
     }
 
+
+    Config& with_debug_report_info(bool debug_report_info) {
+        this->debug_report_info = debug_report_info;
+        return *this;
+    }
+
     Config& with_debug_scopes(bool debug_scopes) {
         this->debug_scopes = debug_scopes;
         return *this;
@@ -382,9 +388,10 @@ struct Config {
     bool        multiline_arrows;
     bool        color;
     int         tab_width;
-    bool        debug_writes = false;
-    bool        debug_scopes = false;
-    Characters  char_set     = Config::unicode();
+    bool        debug_writes      = false;
+    bool        debug_scopes      = false;
+    bool        debug_report_info = false;
+    Characters  char_set          = Config::unicode();
 
     static Characters unicode();
     static Characters ascii();
