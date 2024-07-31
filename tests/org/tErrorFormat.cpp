@@ -94,6 +94,69 @@ std::string pivotStringTable(const std::string& input) {
     return result.str();
 }
 
+struct PrintErrorTestSetup {
+    StrCache   sources;
+    Id         id = 1;
+    Report     report;
+    Str        str;
+    Vec<Label> labels;
+
+    Str report_text;
+    Str pivoted;
+
+    PrintErrorTestSetup(
+        Vec<Pair<Vec<Label>, Str>> list,
+        Characters const&          chars)
+        : report{ReportKind::Error, id, 12} //
+    {
+        report.with_config(Config{}.with_char_set(chars));
+        auto [_labels, _str] = labelList(list, id);
+        labels               = _labels;
+        str                  = _str;
+        sources.add(id, str, "file");
+        for (auto const& label : labels) { report.with_label(label); }
+    }
+
+
+    void build_report() {
+        report_text = report.to_string(sources, false);
+        pivoted     = pivotStringTable(report_text);
+    }
+
+    void write_report(Str const& path) {
+        writeFile(
+            path.c_str(),
+            fmt(R"(- - - - - -
+{}
+- - - - - -
+{}
+{}
+- - - - - -
+{}
+)",
+
+                own_view(rune_chunks(str)) //
+                    | rv::enumerate
+                    | rv::transform(
+                        [](Pair<int, std::string> const& l)
+                            -> std::string {
+                            return fmt(
+                                "[{}] {}",
+                                l.first,
+                                escape_literal(l.second));
+                        })
+                    | rv::intersperse("\n") //
+                    | rv::join              //
+                    | rs::to<std::string>(),
+                labels //
+                    | rv::transform([](Label const& l) { return fmt1(l); })
+                    | rv::intersperse("\n") //
+                    | rv::join              //
+                    | rs::to<std::string>(),
+                report_text,
+                report.config.char_set.uarrow == "^" ? pivoted : ""));
+    }
+};
 
 TEST(PrintError, StringBuilder1) {
     StrCache sources;
@@ -160,6 +223,7 @@ TEST(PrintError, StringBuilder1) {
 - - - - - -
 {}
 )",
+
             own_view(rune_chunks(str)) //
                 | rv::enumerate
                 | rv::transform(
@@ -184,6 +248,75 @@ TEST(PrintError, StringBuilder1) {
     EXPECT_TRUE(report_text.contains("`-- MSG"));
     EXPECT_TRUE(report_text.contains("^|^"));
 }
+
+TEST(PrintError, StringBuilderSetup1) {
+    PrintErrorTestSetup s{
+        {
+            labelPair({}, "012\n"),
+            labelPair({Label{}.with_message("MSG"_ss)}, "456"),
+            labelPair({}, "\n890\n"),
+        },
+        Config::ascii(),
+    };
+
+    s.build_report();
+
+    // s.write_report("/tmp/error_StringBuilderSetup1.txt");
+
+    EXPECT_TRUE(s.pivoted.contains("4^"));
+    EXPECT_TRUE(s.pivoted.contains("5|"));
+    EXPECT_TRUE(s.pivoted.contains("6^"));
+    EXPECT_TRUE(s.report_text.contains("`-- MSG"));
+    EXPECT_TRUE(s.report_text.contains("^|^"));
+}
+
+TEST(PrintError, StringBuilderSetup_MultiLabels) {
+    PrintErrorTestSetup s{
+        {
+            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({}, " "),
+            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({}, " "),
+            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({}, "\n"),
+        },
+        Config::ascii(),
+    };
+
+    // s.report.config.with_debug_writes(true);
+    s.build_report();
+
+    s.write_report("/tmp/StringBuilderSetup_MultiLabels.txt");
+    EXPECT_TRUE(s.report_text.contains(",^ ,^ ,^"));
+    // overlapping arrows under the last 'A' group
+    EXPECT_TRUE(s.pivoted.contains("A,-|-|"));
+}
+
+TEST(PrintError, StringBuilderSetup_MultiLabels_ManyLines) {
+    PrintErrorTestSetup s{
+        {
+            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({}, " "),
+            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({}, " "),
+            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({}, "\n\n"),
+            labelPair({Label{}.with_message("MSG"_ss)}, "BB"),
+            labelPair({}, " "),
+            labelPair({Label{}.with_message("MSG"_ss)}, "BB"),
+            labelPair({}, " "),
+            labelPair({Label{}.with_message("MSG"_ss)}, "BB"),
+            labelPair({}, "\n"),
+        },
+        Config::ascii(),
+    };
+
+    // s.report.config.with_debug_writes(true);
+    s.build_report();
+    // s.write_report("/tmp/StringBuilderSetup_MultiLabels_ManyLines.txt");
+    EXPECT_TRUE(s.pivoted.contains("A,-|-|` B,-|-|` "));
+}
+
 
 TEST(PrintError, RepoExample) {
     StrCache sources;

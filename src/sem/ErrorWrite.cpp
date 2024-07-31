@@ -501,7 +501,7 @@ void write_line_label_arrows(
         if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
             if (underline) {
-                if (vbar->label.span.len() <= 1) {
+                if (vbar->label.span.len() == 0) {
                     c.w(c.draw().underbar);
                 } else if (
                     c.line.offset + col == vbar->label.span.start()) {
@@ -1067,7 +1067,11 @@ Slice<int> Source::get_line_range(const CodeSpan& span) {
 }
 
 ColText Source::get_line_text(CR<Line> line) {
-    return content.at(slice(line.offset, line.offset + line.len - 1));
+    if (line.len == 0) {
+        return ColText{};
+    } else {
+        return content.at(slice(line.offset, line.offset + line.len - 1));
+    }
 }
 
 std::pair<char, int> Config::char_width(char c, int col) const {
