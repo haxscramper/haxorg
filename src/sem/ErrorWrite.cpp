@@ -114,9 +114,10 @@ struct MarginContext {
     Characters const& draw() const { return config.char_set; }
 
     finally scope(
-        char const* function = __builtin_FUNCTION(),
-        int         line     = __builtin_LINE()) const {
-        if (config.debug_scopes) {
+        Str const& function    = Str{__builtin_FUNCTION()},
+        bool       force_scope = false,
+        int        line        = __builtin_LINE()) const {
+        if (config.debug_scopes || force_scope) {
             w.stream << fmt("«{}:{}«", line, function);
             return finally{[&]() { w.stream << "»»"; }};
         } else {
@@ -418,15 +419,16 @@ auto get_vbar(
     int                   row,
     Vec<LineLabel> const& line_labels,
     Opt<LineLabel> const& margin_label) -> std::optional<LineLabel> {
-    for (const auto& ll : line_labels) {
-        if (ll.label.msg
-            && (!margin_label.has_value()
-                || ll.label != margin_label->label)
-            && ll.col == col
-            && ((row <= &ll - &line_labels[0] && !ll.multi)
-                || (row <= &ll - &line_labels[0] && ll.multi))) {
-            return ll;
+    for (const auto& [line_label_row, ll] : enumerate(line_labels)) {
+        // Ignore empty labels
+        if (!ll.label.msg.has_value()) { continue; }
+        // Ignore multiline labels when drawing bars under the lines
+        if (margin_label.has_value()
+            && &ll.label == &margin_label->label) {
+            continue;
         }
+
+        if (ll.col == col && row <= line_label_row) { return ll; }
     }
     return std::nullopt;
 };
@@ -463,7 +465,7 @@ Opt<CRw<Label>> get_highlight(
 
 
 auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
-    Vec<std::reference_wrapper<LineLabel const>> candidates;
+    Vec<CRw<LineLabel>> candidates;
     for (const auto& it : c.line_labels) {
         if (c.config.underlines && !it.multi
             && it.label.span.contains(c.line.offset + col)) {
@@ -476,7 +478,7 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
     return *std::min_element(
         candidates.begin(),
         candidates.end(),
-        [&](const auto& a, const auto& b) {
+        [&](CRw<LineLabel> a, CRw<LineLabel> b) {
             return std::make_tuple(
                        -a.get().label.priority, a.get().label.span.len())
                  < std::make_tuple(
@@ -484,11 +486,14 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
         });
 };
 
-void write_line_content(MarginContext const& c, int row, int arrow_len) {
+void write_line_label_arrows(
+    MarginContext const& c,
+    int                  row,
+    int                  arrow_len) {
     // Lines alternate
     auto chars = c.line_text.begin();
-    _dfmt(arrow_len);
     for (int col = 0; col < arrow_len; ++col) {
+
         Opt<LineLabel> underline = get_underline(c, col);
         if (row != 0) { underline.reset(); }
 
@@ -501,8 +506,7 @@ void write_line_content(MarginContext const& c, int row, int arrow_len) {
                 } else if (
                     c.line.offset + col == vbar->label.span.start()) {
                     c.w(c.draw().ltop);
-                } else if (
-                    c.line.offset + col == vbar->label.last_offset()) {
+                } else if (c.line.offset + col == vbar->label.span.end()) {
                     c.w(c.draw().rtop);
                 } else {
                     c.w(c.draw().underbar);
@@ -820,7 +824,7 @@ void write_report_line_annotations(MarginContext base) {
                 base.clone().with_draw_labels(true).with_report_row(
                     {row, false}));
 
-            write_line_content(
+            write_line_label_arrows(
                 base.with_is_ellipsis(base.is_ellipsis),
                 row,
                 base.arrow_len);

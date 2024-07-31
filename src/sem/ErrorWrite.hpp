@@ -49,9 +49,7 @@ struct CodeSpan {
     int len() const { return end() - start(); }
 
     /// Determine whether the Codespan contains the given offset.
-    bool contains(int offset) const {
-        return start() <= offset && offset < end();
-    }
+    bool contains(int offset) const { return range.contains(offset); }
 };
 
 template <>

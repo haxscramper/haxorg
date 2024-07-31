@@ -95,7 +95,6 @@ TEST(PrintError, StringBuilder1) {
 
     {
         SPtr<Source> src = sources.fetch(id);
-        for (auto const& line : src->lines) { LOG(INFO) << fmt1(line); }
         {
             auto line = src->get_offset_line(4);
             EXPECT_EQ(str.at(4), '4');
