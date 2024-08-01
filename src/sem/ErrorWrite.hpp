@@ -234,15 +234,22 @@ struct Label {
         return *this;
     }
 
+
+    Label& with_id(int label_id) {
+        this->id = label_id;
+        return *this;
+    }
+
     Label clone() const { return *this; }
 
+    int                    id;
     CodeSpan               span;
     std::optional<ColText> msg      = std::nullopt;
     ColStyle               color    = ColStyle{};
     int                    order    = 0;
     int                    priority = 0;
 
-    DESC_FIELDS(Label, (span, msg, color, order, priority));
+    DESC_FIELDS(Label, (span, msg, color, order, priority, id));
 
     bool operator==(Label const& other) const {
         if (msg.has_value() != other.msg.has_value()) {
@@ -255,10 +262,6 @@ struct Label {
             }
         }
     }
-
-    inline int last_offset() const {
-        return std::max(span.end() - 1, span.start());
-    }
 };
 
 template <>
@@ -268,9 +271,9 @@ struct std::formatter<CodeSpan*>
 };
 
 struct LabelInfo {
-    LabelKind   kind;
-    const Label label;
-    DESC_FIELDS(LabelInfo, (kind, label));
+    LabelKind kind;
+    Label     label;
+    DESC_FIELDS(LabelInfo, (kind));
 };
 
 

@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 Characters Config::unicode() {
     return Characters{
@@ -154,12 +155,11 @@ std::optional<LineLabel> get_margin_label(
     for (int i = 0; i < multi_labels.size(); ++i) {
         Label const& label    = multi_labels[i];
         bool         is_start = line.span().contains(label.span.start());
-        bool         is_end   = line.span().contains(label.last_offset());
+        bool         is_end   = line.span().contains(label.span.end());
 
         if (is_start || is_end) {
             LineLabel ll{
-                .col = (is_start ? label.span.start()
-                                 : label.last_offset())
+                .col = (is_start ? label.span.start() : label.span.end())
                      - line.offset,
                 .label    = label,
                 .multi    = true,
@@ -239,7 +239,7 @@ void fill_margin_elements(
             && line_span.first < label.span.end()) {
             bool is_parent = i != col;
             bool is_start  = line_span.contains(label.span.start());
-            bool is_end    = line_span.contains(label.last_offset());
+            bool is_end    = line_span.contains(label.span.end());
 
             if (margin && c.is_line) {
                 margin_ptr = std::make_pair(margin.value(), is_start);
@@ -427,7 +427,7 @@ auto get_vbar(
         if (!ll.label.msg.has_value()) { continue; }
         // Ignore multiline labels when drawing bars under the lines
         if (margin_label.has_value()
-            && &ll.label == &margin_label->label) {
+            && ll.label.id == margin_label->label.id) {
             continue;
         }
 
@@ -540,21 +540,25 @@ Vec<LineLabel> build_line_labels(
     Vec<LineLabel> line_labels;
     for (CR<Label> label : multi_labels) {
         bool is_start = line.span().contains(label.span.start());
-        bool is_end   = line.span().contains(label.last_offset());
+        bool is_end   = line.span().contains(label.span.end());
         bool different_from_margin_label
             = (!margin_label.has_value() || label != margin_label->label);
 
-        if ((is_start && different_from_margin_label) || is_end) {
+        if (is_start && different_from_margin_label) {
             LineLabel ll{
-                .col = (is_start ? label.span.start()
-                                 : label.last_offset())
-                     - line.offset,
+                .col      = label.span.start() - line.offset,
                 .label    = label,
                 .multi    = true,
                 .draw_msg = is_end,
             };
-
-
+            line_labels.push_back(ll);
+        } else if (is_end) {
+            LineLabel ll{
+                .col      = label.span.end() - line.offset,
+                .label    = label,
+                .multi    = true,
+                .draw_msg = is_end,
+            };
             line_labels.push_back(ll);
         }
     }
@@ -574,7 +578,7 @@ Vec<LineLabel> build_line_labels(
                                  / 2;
                         break;
                     case LabelAttach::End:
-                        position = label_info.label.last_offset();
+                        position = label_info.label.span.end();
                         break;
                 }
 
@@ -618,63 +622,50 @@ void write_lines(
     // Lines
     auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
-        int width = 1;
+        int  width   = 1;
+        bool is_hbar = false;
+        if (line_label.label.msg.has_value()) {
+            is_hbar = (
+                //
+                (line_label.col < col && !line_label.multi)
+                //
+                || (col <= line_label.col && line_label.multi)
+                //
+                || (line_label.label.msg && line_label.draw_msg
+                    && line_label.col < col));
+        }
 
-        bool is_hbar = (((col > line_label.col) ^ line_label.multi)
-                        || (line_label.label.msg && line_label.draw_msg
-                            && col > line_label.col))
-                    && line_label.label.msg;
-        std::array<ColRune, 2> ct_array;
+        std::optional<LineLabel> vbar_ll = get_vbar(
+            col, row, c.line_labels, c.margin_label);
+
         if (col == line_label.col && line_label.label.msg
             && (!c.margin_label.has_value()
                 || line_label.label != c.margin_label->label)) {
-            ct_array = {
-                ColRune(
-                    (line_label.multi
-                         ? (line_label.draw_msg ? c.draw().mbot
-                                                : c.draw().rbot)
-                         : c.draw().lbot),
-                    line_label.label.color),
-                ColRune(c.draw().hbar, line_label.label.color),
-            };
-        } else if (std::optional<LineLabel> vbar_ll = std::nullopt;
-                   (vbar_ll = get_vbar(
-                        col, row, c.line_labels, c.margin_label))
-                   && (col != line_label.col || line_label.label.msg)) {
+            c.w(ColRune(
+                (line_label.multi ? (line_label.draw_msg ? c.draw().mbot
+                                                         : c.draw().rbot)
+                                  : c.draw().lbot),
+                line_label.label.color));
+        } else if (
+            vbar_ll.has_value()
+            && (col != line_label.col || line_label.label.msg)) {
             if (!c.config.cross_gap && is_hbar) {
-                ct_array = {
-                    ColRune(c.draw().xbar, line_label.label.color),
-                    ColRune(' ', line_label.label.color),
-                };
+                c.w(ColRune(c.draw().xbar, line_label.label.color));
             } else if (is_hbar) {
-                ct_array = {
-                    ColRune(c.draw().hbar, line_label.label.color),
-                    ColRune(c.draw().hbar, line_label.label.color),
-                };
+                c.w(ColRune(c.draw().hbar, line_label.label.color));
             } else {
-                ct_array = {
-                    ColRune(
-                        (vbar_ll->multi && row == 0 && c.config.compact
-                             ? c.draw().uarrow
-                             : c.draw().vbar),
-                        vbar_ll->label.color),
-                    ColRune(' ', line_label.label.color),
-                };
+                c.w(ColRune(
+                    (vbar_ll->multi && row == 0 && c.config.compact
+                         ? c.draw().uarrow
+                         : c.draw().vbar),
+                    vbar_ll->label.color));
             }
         } else if (is_hbar) {
-            ct_array = {
-                ColRune(c.draw().hbar, line_label.label.color),
-                ColRune(c.draw().hbar, line_label.label.color),
-            };
+            c.w(ColRune(c.draw().hbar, line_label.label.color));
         } else {
-            ct_array = {
-                ColRune(' '),
-                ColRune(' '),
-            };
+            c.w(ColRune(' '));
         }
 
-        if (width > 0) { c.w(ct_array[0]); }
-        for (int i = 1; i < width; ++i) { c.w(ct_array[1]); }
         if (chars != c.line_text.end()) { ++chars; }
     }
 }
@@ -847,9 +838,6 @@ void write_report_line_annotations(MarginContext base) {
         if (line_label.label.msg) {
             base.w(" ");
             base.w(line_label.label.msg.value());
-            // if (base.w.dbg_report()) {
-            // base.w(fmt("{}", line_label.label.span));
-            // }
         }
         base.w("\n");
     }
@@ -1009,11 +997,23 @@ void write_report_header(Report const& report, Writer& op) {
 }
 
 void Report::write_for_stream(Cache& cache, ColStream& w) {
+    UnorderedMap<int, int> label_ids;
+    for (auto const& [label_idx, l] : enumerate(labels)) {
+        if (label_ids.contains(l.id)) {
+            throw std::logic_error(
+                fmt("Report labels must have unique IDs: label with index "
+                    "{} has id {} which is a duplicate of label index {}",
+                    label_idx,
+                    l,
+                    label_ids.at(l.id)));
+        }
+
+        label_ids[l.id] = label_idx;
+    }
+
     w.colored = true;
     auto op   = Writer{w, &config};
-
     write_report_header(*this, op);
-
 
     Vec<SourceGroup> groups = get_source_groups(&cache);
 

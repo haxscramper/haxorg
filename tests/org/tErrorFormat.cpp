@@ -26,18 +26,18 @@ def six =
                                .with_compact(true)
                                .with_char_set(Config::unicode()))
               .with_message("Incompatible types"_ss)
-              .with_label(Label{}
+              .with_label(Label{1}
                               .with_span(a_id, slice(0, 1))
                               .with_color(ColStyle{}.red()))
-              .with_label(Label{}
+              .with_label(Label{2}
                               .with_span(a_id, slice(2, 3))
                               .with_color(ColStyle{}.red())
                               .with_message("`b` for banana"_ss)
                               .with_order(1))
-              .with_label(Label{}
+              .with_label(Label{3}
                               .with_span(a_id, slice(4, 5))
                               .with_color(ColStyle{}.green()))
-              .with_label(Label{}
+              .with_label(Label{4}
                               .with_span(a_id, slice(7, 9))
                               .with_color(ColStyle{}.cyan())
                               .with_message("`e` for emerald"_ss))
@@ -57,14 +57,16 @@ Pair<Vec<Label>, Str> labelList(
     Id                                source) {
     Str        str;
     Vec<Label> labels;
+    int        label_idx = 0;
 
     for (auto const& [in_labels, in_str] : text) {
         int first = str.size();
         str += in_str;
         int last = str.size() - 1;
         for (auto const& label : in_labels) {
-            labels.push_back(
-                label.clone().with_span(source, slice(first, last)));
+            labels.push_back(label.clone()
+                                 .with_id(++label_idx)
+                                 .with_span(source, slice(first, last)));
         }
     }
 
@@ -342,17 +344,17 @@ def six =
               // .with_config(Config{}.with_debug(true))
               .with_message("Incompatible types"_ss)
               .with_label(
-                  Label{}
+                  Label{1}
                       .with_span(a_id, slice(30, 30))
                       .with_message(fmt("This is of type {}", "Nat"))
                       .with_color(a))
               .with_label(
-                  Label{}
+                  Label{2}
                       .with_span(a_id, slice(42, 45))
                       .with_message(fmt("This is of type {}", "Str"))
                       .with_color(b))
               .with_label(
-                  Label{}
+                  Label{3}
                       .with_span(a_id, slice(11, 48))
                       .with_message(fmt(
                           "The values are outputs of this {} expression",
@@ -389,23 +391,23 @@ TEST(PrintError, MultipleFiles) {
               .with_code("3")
               .with_message("Cannot add types Nat and Str"_qs)
               .with_label(
-                  Label(CodeSpan(b_id, slice(10, 14)))
+                  Label(1, CodeSpan(b_id, slice(10, 14)))
                       .with_message(
                           ColText("This is of type ") + natColorized)
                       .with_color(a))
               .with_label(
-                  Label(CodeSpan(b_id, slice(17, 20)))
+                  Label(2, CodeSpan(b_id, slice(17, 20)))
                       .with_message(
                           ColText("This is of typee ") + strColorized)
                       .with_color(b))
-              .with_label(Label(CodeSpan(b_id, slice(15, 16)))
+              .with_label(Label(3, CodeSpan(b_id, slice(15, 16)))
                               .with_message(
                                   natColorized + ColText(" and ")
                                   + strColorized
                                   + ColText(" undergo addition here"))
                               .with_color(c)
                               .with_order(10))
-              .with_label(Label(CodeSpan(a_id, slice(4, 8)))
+              .with_label(Label(4, CodeSpan(a_id, slice(4, 8)))
                               .with_message(
                                   ColText("Original definition of ")
                                   + fiveColorized + ColText(" is here"))
@@ -436,101 +438,60 @@ def multiline :: Str = match Some 5 in {
     StrCache    sources;
     sources.add(id, code, "tao");
     std::stringstream os;
+    int               label_counter = 0;
+
+    auto label = [&](Slice<int>  range,
+                     int         line     = __builtin_LINE(),
+                     char const* function = __builtin_FUNCTION()) {
+        return Label{++label_counter, CodeSpan(id, range)}.with_message(
+            fmt("MSG {} {}", range, line));
+    };
 
     auto report //
         = Report(ReportKind::Error, id, 13)
               .with_code("3")
               .with_message(("Incompatible types"_qs))
-              .with_label(Label(CodeSpan(id, slice(0, 1)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(1, 2)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(2, 3)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(3, 4)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(4, 5)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(5, 6)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(6, 7)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(7, 8)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(8, 9)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(9, 10)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(10, 11)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(11, 12)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(12, 13)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(13, 14)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(14, 15)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(15, 16)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(16, 17)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(17, 18)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(18, 19)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(19, 20)))
-                              .with_message("Color"_qs))
-              .with_label(Label(CodeSpan(id, slice(20, 21)))
-                              .with_message("Color123"_qs))
-              .with_label(Label(CodeSpan(id, slice(18, 19)))
-                              .with_message("This is of type Nat"_qs))
-              .with_label(Label(CodeSpan(id, slice(13, 16)))
-                              .with_message("This is of type Str"_qs))
-              .with_label(Label(CodeSpan(id, slice(40, 41)))
-                              .with_message("This is of type Nat"_qs))
-              .with_label(Label(CodeSpan(id, slice(43, 47)))
-                              .with_message("This is of type Bool"_qs))
-              .with_label(Label(CodeSpan(id, slice(49, 51)))
-                              .with_message("This is of type ()"_qs))
-              .with_label(Label(CodeSpan(id, slice(53, 55)))
-                              .with_message("This is of type [_]"_qs))
-              .with_label(Label(CodeSpan(id, slice(25, 78)))
-                              .with_message("This is of type Str"_qs))
-              .with_label(Label(CodeSpan(id, slice(81, 124)))
-                              .with_message("This is of type Nat"_qs))
-              .with_label(
-                  Label(CodeSpan(id, slice(100, 126)))
-                      .with_message("This is an inner multi-line"_qs))
-              .with_label(
-                  Label(CodeSpan(id, slice(106, 120)))
-                      .with_message("This is another inner multi-line"_qs))
-              .with_label(Label(CodeSpan(id, slice(108, 122)))
-                              .with_message(
-                                  "This is *really* nested multi-line"_qs))
-              .with_label(
-                  Label(CodeSpan(id, slice(110, 111)))
-                      .with_message(
-                          "This is an inline within the ne  b   bsting!"_qs))
-              .with_label(Label(CodeSpan(id, slice(111, 112)))
-                              .with_message("And another!"_qs))
-              .with_label(Label(CodeSpan(id, slice(103, 123)))
-                              .with_message(
-                                  "This is *really* nested multi-line"_qs))
-              .with_label(Label(CodeSpan(id, slice(105, 125)))
-                              .with_message(
-                                  "This is *really* nested multi-line"_qs))
-              .with_label(Label(CodeSpan(id, slice(112, 116)))
-                              .with_message(
-                                  "This is *really* nested multi-line"_qs))
-              .with_label(Label(CodeSpan(id, slice(26, 100)))
-                              .with_message("Hahaha!"_qs))
-              .with_label(Label(CodeSpan(id, slice(85, 110)))
-                              .with_message("Oh god, no more 1"_qs))
-              .with_label(Label(CodeSpan(id, slice(84, 114)))
-                              .with_message("Oh god, no more 2"_qs))
-              .with_label(Label(CodeSpan(id, slice(89, 113)))
-                              .with_message("Oh god, no more 3"_qs))
+              .with_label(label(slice(0, 1)))
+              .with_label(label(slice(1, 2)))
+              .with_label(label(slice(2, 3)))
+              .with_label(label(slice(3, 4)))
+              .with_label(label(slice(4, 5)))
+              .with_label(label(slice(5, 6)))
+              .with_label(label(slice(6, 7)))
+              .with_label(label(slice(7, 8)))
+              .with_label(label(slice(8, 9)))
+              .with_label(label(slice(9, 10)))
+              .with_label(label(slice(10, 11)))
+              .with_label(label(slice(11, 12)))
+              .with_label(label(slice(12, 13)))
+              .with_label(label(slice(13, 14)))
+              .with_label(label(slice(14, 15)))
+              .with_label(label(slice(15, 16)))
+              .with_label(label(slice(16, 17)))
+              .with_label(label(slice(17, 18)))
+              .with_label(label(slice(18, 19)))
+              .with_label(label(slice(19, 20)))
+              .with_label(label(slice(20, 21)))
+              .with_label(label(slice(18, 19)))
+              .with_label(label(slice(13, 16)))
+              .with_label(label(slice(40, 41)))
+              .with_label(label(slice(43, 47)))
+              .with_label(label(slice(49, 51)))
+              .with_label(label(slice(53, 55)))
+              .with_label(label(slice(25, 78)))
+              .with_label(label(slice(81, 124)))
+              .with_label(label(slice(100, 126)))
+              .with_label(label(slice(106, 119)))
+              .with_label(label(slice(108, 121)))
+              .with_label(label(slice(110, 111)))
+              .with_label(label(slice(111, 112)))
+              .with_label(label(slice(103, 123)))
+              .with_label(label(slice(105, 125)))
+              .with_label(label(slice(112, 116)))
+              .with_label(label(slice(26, 100)))
+              .with_label(label(slice(85, 110)))
+              .with_label(label(slice(84, 114)))
+              .with_label(label(slice(89, 113)))
               .with_config(Config()
                                .with_cross_gap(false)
                                .with_compact(true)
@@ -540,4 +501,50 @@ def multiline :: Str = match Some 5 in {
     writeFile(
         "/tmp/error_MultipleAnnotations.txt",
         report.to_string(sources, false));
+}
+
+TEST(PrintError, MultipleAnnotations2) {
+    Id          id   = 0;
+    std::string code = R"(def fives = ["5", 5]
+
+def sixes = ["6", 6, True, (), []]1
+
+def multiline :: Str = match Some 5 in {
+    # Some x => x
+    # None => 0
+
+})";
+    StrCache    sources;
+    sources.add(id, code, "tao");
+    std::stringstream os;
+    int               label_counter = 0;
+
+    auto label = [&](Slice<int>  range,
+                     int         line     = __builtin_LINE(),
+                     char const* function = __builtin_FUNCTION()) {
+        return Label{++label_counter, CodeSpan(id, range)}.with_message(
+            fmt("MSG {} {}", range, line));
+    };
+
+    auto report //
+        = Report(ReportKind::Error, id, 13)
+              .with_code("3")
+              .with_message(("Incompatible types"_qs))
+              .with_label(label(slice(108, 124)))
+              // .with_label(label(slice(105, 125)))
+              // .with_label(label(slice(112, 116)))
+              .with_config(Config()
+                               .with_cross_gap(false)
+                               .with_compact(true)
+                               .with_underlines(true)
+                               .with_tab_width(4));
+
+    // report.config.with_debug_writes(true);
+
+    writeFile(
+        "/tmp/error_MultipleAnnotations2.txt",
+        fmt("{}\n{}..{}\n",
+            report.to_string(sources, false),
+            code.at(108),
+            code.at(122)));
 }
