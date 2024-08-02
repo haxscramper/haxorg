@@ -219,13 +219,16 @@ bool sort_line_labels(
     return true;
 }
 
-void fill_margin_elements(
-    MarginContext const&        c,
-    int                         col,
-    Opt<Pair<Label, bool>>&     corner,
-    Opt<Pair<LineLabel, bool>>& margin_ptr,
-    Opt<Label>&                 vbar,
-    Opt<Label>&                 hbar) {
+struct MarginElements {
+    Opt<Label>                 hbar       = std::nullopt;
+    Opt<Label>                 vbar       = std::nullopt;
+    Opt<Pair<Label, bool>>     corner     = std::nullopt;
+    Opt<Pair<LineLabel, bool>> margin_ptr = std::nullopt;
+};
+
+MarginElements fill_margin_elements(MarginContext const& c, int col) {
+
+    MarginElements result;
 
     Slice<int> line_span = c.src->line(c.idx).value().span();
     for (int i = 0; i < std::min(col + 1, c.multi_labels.size()); ++i) {
@@ -242,9 +245,10 @@ void fill_margin_elements(
             bool is_end    = line_span.contains(label.span.end());
 
             if (margin && c.is_line) {
-                margin_ptr = std::make_pair(margin.value(), is_start);
+                result.margin_ptr = std::make_pair(
+                    margin.value(), is_start);
             } else if (!is_start && (!is_end || c.is_line)) {
-                if (!vbar && !is_parent) { vbar = label; }
+                if (!result.vbar && !is_parent) { result.vbar = label; }
             } else if (c.report_row.has_value()) {
                 auto report_row_value = c.report_row.value();
                 int  label_row        = 0;
@@ -258,100 +262,96 @@ void fill_margin_elements(
                 if (report_row_value.first == label_row) {
                     if (margin) {
                         if (col == i) {
-                            vbar = margin->label;
+                            result.vbar = margin->label;
                         } else {
-                            vbar = std::nullopt;
+                            result.vbar = std::nullopt;
                         }
 
                         if (is_start) { continue; }
                     }
 
                     if (report_row_value.second) {
-                        hbar = label;
+                        result.hbar = label;
                         if (!is_parent) {
-                            corner = std::make_pair(label, is_start);
+                            result.corner = std::make_pair(
+                                label, is_start);
                         }
                     } else if (!is_start) {
-                        if (!vbar && !is_parent) { vbar = label; }
+                        if (!result.vbar && !is_parent) {
+                            result.vbar = label;
+                        }
                     }
                 } else {
-                    if (!vbar && !is_parent
+                    if (!result.vbar && !is_parent
                         && (is_start
                             ^ (report_row_value.first < label_row))) {
-                        vbar = label;
+                        result.vbar = label;
                     }
                 }
             }
         }
     }
+
+    return result;
 }
 
 Pair<ColRune, ColRune> get_corner_elements(
-    MarginContext const&                c,
-    int                                 col,
-    CR<Opt<Pair<CRw<Label>, bool>>>     corner,
-    CR<Opt<Label>>                      vbar,
-    CR<Opt<Label>>                      hbar,
-    CR<Opt<Pair<CRw<LineLabel>, bool>>> margin_ptr,
-    CR<Opt<CRw<Label>>>                 multi_label) {
-    std::pair<ColRune, ColRune> ab;
+    MarginContext const&  c,
+    int                   col,
+    MarginElements const& margin,
+    CR<Opt<CRw<Label>>>   multi_label) {
+    ColRune base;
+    ColRune extended;
 
-    if (corner) {
-        auto [label, is_start] = *corner;
-        ab                     = {
-            is_start ? ColRune(c.draw().ltop, label.get().color)
-                                         : ColRune(c.draw().lbot, label.get().color),
-            ColRune(c.draw().hbar, label.get().color),
-        };
-    } else if (hbar && vbar && !c.config.cross_gap) {
-        ab = {
-            ColRune(c.draw().xbar, hbar->color),
-            ColRune(c.draw().hbar, hbar->color),
-        };
-    } else if (hbar) {
-        ab = {
-            ColRune(c.draw().hbar, hbar->color),
-            ColRune(c.draw().hbar, hbar->color),
-        };
-    } else if (vbar) {
-        ab = {
-            c.is_ellipsis ? ColRune(c.draw().vbar_gap, vbar->color)
-                          : ColRune(c.draw().vbar, vbar->color),
-            ColRune(' '),
-        };
-    } else if (margin_ptr && c.is_line) {
-        auto [margin, is_start] = *margin_ptr;
-        bool is_col             = multi_label
-                                    ? (multi_label->get() == margin.get().label)
-                                    : false;
-        bool is_limit           = col == c.multi_labels.size();
+    if (margin.corner) {
+        auto [label, is_start] = *margin.corner;
+        if (is_start) {
+            base = ColRune(c.draw().ltop, label.color);
+        } else {
+            base = ColRune(c.draw().lbot, label.color);
+        }
+
+        extended = ColRune(c.draw().hbar, label.color);
+    } else if (margin.hbar && margin.vbar && !c.config.cross_gap) {
+        base     = ColRune(c.draw().xbar, margin.hbar->color);
+        extended = ColRune(c.draw().hbar, margin.hbar->color);
+    } else if (margin.hbar) {
+        base     = ColRune(c.draw().hbar, margin.hbar->color);
+        extended = ColRune(c.draw().hbar, margin.hbar->color);
+    } else if (margin.vbar) {
+        if (c.is_ellipsis) {
+            base = ColRune(c.draw().vbar_gap, margin.vbar->color);
+        } else {
+            base = ColRune(c.draw().vbar, margin.vbar->color);
+        }
+        extended = ColRune(' ');
+    } else if (margin.margin_ptr && c.is_line) {
+        auto [label, is_start] = *margin.margin_ptr;
+        bool is_col   = multi_label && (multi_label->get() == label.label);
+        bool is_limit = col == c.multi_labels.size();
         if (is_limit) {
-            ab.first = ColRune(c.draw().rarrow, margin.get().label.color);
+            base = ColRune(c.draw().rarrow, label.label.color);
         } else if (is_col) {
             if (is_start) {
-                ab.first = ColRune(
-                    c.draw().ltop, margin.get().label.color);
+                base = ColRune(c.draw().ltop, label.label.color);
             } else {
-                ab.first = ColRune(
-                    c.draw().lcross, margin.get().label.color);
+                base = ColRune(c.draw().lcross, label.label.color);
             }
         } else {
-            ab.first = ColRune(c.draw().hbar, margin.get().label.color);
+            base = ColRune(c.draw().hbar, label.label.color);
         }
 
-        if (!is_limit) {
-            ab.second = ColRune(c.draw().hbar, margin.get().label.color);
+        if (is_limit) {
+            extended = ColRune(' ');
         } else {
-            ab.second = ColRune(' ');
+            extended = ColRune(c.draw().hbar, label.label.color);
         }
     } else {
-        ab = {
-            ColRune(' '),
-            ColRune(' '),
-        };
+        base     = ColRune(' ');
+        extended = ColRune(' ');
     }
 
-    return ab;
+    return {base, extended};
 }
 
 
@@ -380,33 +380,31 @@ void write_margin(MarginContext const& c) {
                                     + (0 < c.multi_labels.size() ? 1 : 0);
              ++col) {
 
-            Opt<Label>                 hbar       = std::nullopt;
-            Opt<Label>                 vbar       = std::nullopt;
-            Opt<Pair<Label, bool>>     corner     = std::nullopt;
-            Opt<Pair<LineLabel, bool>> margin_ptr = std::nullopt;
-
             Opt<CRw<Label>> multi_label = c.multi_labels.get(col);
+            auto            margin      = fill_margin_elements(c, col);
 
-            fill_margin_elements(c, col, corner, margin_ptr, vbar, hbar);
-
-            if (margin_ptr && c.is_line) {
+            if (margin.margin_ptr && c.is_line) {
                 bool is_col = multi_label
-                           && (*multi_label == margin_ptr->first.label);
+                           && (*multi_label
+                               == margin.margin_ptr->first.label);
 
                 bool is_limit = col + 1 == c.multi_labels.size();
                 if (!is_col && !is_limit) {
-                    hbar = hbar.value_or(margin_ptr->first.label);
+                    margin.hbar = margin.hbar.value_or(
+                        margin.margin_ptr->first.label);
                 }
             }
 
-            if (hbar
-                && !((*hbar != c.margin_label->label) || !c.is_line)) {
-                hbar = std::nullopt;
+            if (margin.hbar
+                && !(
+                    (*margin.hbar != c.margin_label->label)
+                    || !c.is_line)) {
+                margin.hbar = std::nullopt;
             }
 
 
             Pair<ColRune, ColRune> ab = get_corner_elements(
-                c, col, corner, vbar, hbar, margin_ptr, multi_label);
+                c, col, margin, multi_label);
 
             c.w(ab.first);
             if (!c.config.compact) { c.w(ab.second); }
@@ -641,11 +639,16 @@ void write_lines(
         if (col == line_label.col && line_label.label.msg
             && (!c.margin_label.has_value()
                 || line_label.label != c.margin_label->label)) {
-            c.w(ColRune(
-                (line_label.multi ? (line_label.draw_msg ? c.draw().mbot
-                                                         : c.draw().rbot)
-                                  : c.draw().lbot),
-                line_label.label.color));
+            if (line_label.multi) {
+                if (line_label.draw_msg) {
+                    c.w(ColRune(c.draw().mbot, line_label.label.color));
+                } else {
+                    c.w(ColRune(c.draw().rbot, line_label.label.color));
+                }
+            } else {
+                c.w(ColRune(c.draw().lbot, line_label.label.color));
+            }
+
         } else if (
             vbar_ll.has_value()
             && (col != line_label.col || line_label.label.msg)) {
@@ -654,11 +657,11 @@ void write_lines(
             } else if (is_hbar) {
                 c.w(ColRune(c.draw().hbar, line_label.label.color));
             } else {
-                c.w(ColRune(
-                    (vbar_ll->multi && row == 0 && c.config.compact
-                         ? c.draw().uarrow
-                         : c.draw().vbar),
-                    vbar_ll->label.color));
+                if (vbar_ll->multi && row == 0 && c.config.compact) {
+                    c.w(ColRune(c.draw().uarrow, vbar_ll->label.color));
+                } else {
+                    c.w(ColRune(c.draw().vbar, vbar_ll->label.color));
+                }
             }
         } else if (is_hbar) {
             c.w(ColRune(c.draw().hbar, line_label.label.color));
