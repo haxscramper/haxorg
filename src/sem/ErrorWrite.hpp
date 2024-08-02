@@ -252,15 +252,7 @@ struct Label {
     DESC_FIELDS(Label, (span, msg, color, order, priority, id));
 
     bool operator==(Label const& other) const {
-        if (msg.has_value() != other.msg.has_value()) {
-            return false;
-        } else {
-            if (msg && !(msg.value() == other.msg.value())) {
-                return false;
-            } else {
-                return true;
-            }
-        }
+        return this->id == other.id;
     }
 };
 

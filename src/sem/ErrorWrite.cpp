@@ -402,12 +402,13 @@ void write_margin(MarginContext const& c) {
                 margin.hbar = std::nullopt;
             }
 
+            {
+                auto [base, extended] = get_corner_elements(
+                    c, col, margin, multi_label);
 
-            Pair<ColRune, ColRune> ab = get_corner_elements(
-                c, col, margin, multi_label);
-
-            c.w(ab.first);
-            if (!c.config.compact) { c.w(ab.second); }
+                c.w(base);
+                if (!c.config.compact) { c.w(extended); }
+            }
         }
     }
 }
