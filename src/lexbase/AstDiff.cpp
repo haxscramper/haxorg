@@ -2,12 +2,74 @@
 
 using namespace diff;
 
+/// Sets Height, Parent and Subnodes for each node.
+struct PreorderVisitor {
+    int id    = 0;
+    int Depth = 0;
+
+    NodeIdx     Parent;
+    SyntaxTree& Tree;
+    NodeStore*  store;
+
+    PreorderVisitor(SyntaxTree& Tree, NodeStore* store)
+        : Tree(Tree), store(store) {}
+
+    std::tuple<NodeIdx, NodeIdx> PreTraverse(NodeStore::Id const& node) {
+        NodeIdx MyId = id;
+        Tree.Nodes.emplace_back(store);
+        diff::Node& N = Tree.getMutableNode(MyId);
+        N.Parent      = Parent;
+        N.Depth       = Depth;
+        N.ASTNode     = node;
+
+        if (Parent.isValid()) {
+            diff::Node& P = Tree.getMutableNode(Parent);
+            P.Subnodes.push_back(MyId);
+        }
+
+        Parent = MyId;
+        ++id;
+        ++Depth;
+        return std::make_tuple(MyId, Tree.getNode(MyId).Parent);
+    }
+
+    void PostTraverse(std::tuple<NodeIdx, NodeIdx> State) {
+        NodeIdx MyId, PreviousParent;
+        std::tie(MyId, PreviousParent) = State;
+        assert(
+            MyId.isValid() && "Expecting to only traverse valid nodes.");
+        Parent = PreviousParent;
+        --Depth;
+        diff::Node& N         = Tree.getMutableNode(MyId);
+        N.RightMostDescendant = id - 1;
+        assert(
+            N.RightMostDescendant >= 0
+            && N.RightMostDescendant < Tree.getSize()
+            && "Rightmost descendant must be a valid tree node.");
+        if (N.isLeaf()) { Tree.Leaves.push_back(MyId); }
+        N.Height = 1;
+        for (NodeIdx Subnode : N.Subnodes) {
+            N.Height = std::max(
+                N.Height, 1 + Tree.getNode(Subnode).Height);
+        }
+    }
+
+    void Traverse(NodeStore::Id node) {
+        auto SavedState = PreTraverse(node);
+        for (int i = 0; i < store->getSubnodeCount(node); ++i) {
+            Traverse(store->getSubnodeAt(node, i));
+        }
+        PostTraverse(SavedState);
+    }
+};
+
+
 bool ComparisonOptions::isMatchingAllowed(const Node& N1, const Node& N2)
     const {
     return N1.getNodeKind() == N2.getNodeKind();
 }
 
-Vec<NodeIdx> getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
+Vec<NodeIdx> diff::getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
     Vec<NodeIdx> Ids;
     size_t       Expanded = 0;
     Ids.push_back(Root);
@@ -19,7 +81,9 @@ Vec<NodeIdx> getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
     return Ids;
 }
 
-Vec<NodeIdx> getSubtreePostorder(const SyntaxTree& Tree, NodeIdx Root) {
+Vec<NodeIdx> diff::getSubtreePostorder(
+    const SyntaxTree& Tree,
+    NodeIdx           Root) {
     Vec<NodeIdx>        Postorder;
     Func<void(NodeIdx)> Traverse = [&](NodeIdx id) {
         const diff::Node& N = Tree.getNode(id);
@@ -30,13 +94,14 @@ Vec<NodeIdx> getSubtreePostorder(const SyntaxTree& Tree, NodeIdx Root) {
     return Postorder;
 }
 
-void printDstChange(
+void diff::printDstChange(
     std::ostream&                OS,
     ASTDiff&                     Diff,
     SyntaxTree&                  SrcTree,
     SyntaxTree&                  DstTree,
     NodeIdx                      Dst,
-    Func<Str(CR<NodeStore::Id>)> ValoStr) {
+    Func<Str(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<Str(CR<NodeStore::Id>)> FormatDstTreeValue) {
     const diff::Node& DstNode = DstTree.getNode(Dst);
     NodeIdx           Src     = Diff.getMapped(DstTree, Dst);
     switch (DstNode.Change) {
@@ -49,8 +114,9 @@ void printDstChange(
         }
         case ChangeKind::Update: {
             OS << "Update ";
-            OS << ValoStr(SrcTree.getNode(Src).ASTNode);
-            OS << " to " << ValoStr(DstTree.getNode(Dst).ASTNode);
+            OS << FormatSrcTreeValue(SrcTree.getNode(Src).ASTNode);
+            OS << " to ";
+            OS << FormatDstTreeValue(DstTree.getNode(Dst).ASTNode);
             break;
         }
         case ChangeKind::Insert: [[fallthrough]];
@@ -64,16 +130,17 @@ void printDstChange(
                 OS << "Update and Move";
             }
             OS << " [\033[32m";
-            OS << ValoStr(DstTree.getNode(Dst).ASTNode);
+            OS << FormatDstTreeValue(DstTree.getNode(Dst).ASTNode);
             OS << "\033[0m] into [\033[31m";
-            OS << ValoStr(DstTree.getNode(DstNode.Parent).ASTNode);
+            OS << FormatDstTreeValue(
+                DstTree.getNode(DstNode.Parent).ASTNode);
             OS << "\033[0m] at " << DstTree.findPositionInParent(Dst);
             break;
         }
     }
 }
 
-void printNode(
+void diff::printNode(
     std::ostream&                OS,
     SyntaxTree&                  Tree,
     NodeIdx                      id,
@@ -423,4 +490,10 @@ void ZhangShashaMatcher::computeForestDist(
     // for (const auto& r : ForestDist) {
     //     std::cout << r << "\n";
     // }
+}
+
+void diff::SyntaxTree::FromNode(NodeStore* store) {
+    PreorderVisitor PreorderWalker(*this, store);
+    PreorderWalker.Traverse(store->getRoot());
+    initTree();
 }

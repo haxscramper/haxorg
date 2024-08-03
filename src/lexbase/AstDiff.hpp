@@ -84,7 +84,7 @@ struct NodeStore {
 
         template <typename T>
         static Id FromPtr(T const* value) {
-            return Id{.id = static_cast<i64>(value)};
+            return Id{.id = reinterpret_cast<i64>(value)};
         }
 
         template <typename T>
@@ -94,7 +94,8 @@ struct NodeStore {
 
         template <typename T>
         T const* ToPtr() const {
-            return static_cast<T*>(id);
+            return reinterpret_cast<T const*>(
+                static_cast<std::intptr_t>(id));
         }
     };
 
@@ -260,7 +261,8 @@ class SyntaxTree {
     ComparisonOptions const& getOpts() const { return opts; }
 
   public:
-    SyntaxTree(ComparisonOptions const& opts);
+    SyntaxTree(ComparisonOptions const& _opts) {}
+
     /// Constructs a tree from an AST node using provided accessor
     /// callbacks
     void FromNode(NodeStore* store);
@@ -425,9 +427,12 @@ class ASTDiff {
     struct Change {
         struct MovePoint {
             /// Insert the node under a specified original tree
-            NodeIdx under;
+            NodeIdx under = NodeIdx{};
             /// Insert the node on specified position
             int position = 0;
+            MovePoint() {};
+            MovePoint(NodeIdx const& under, int position)
+                : under{under}, position{position} {};
         };
 
         struct Insert {
@@ -458,7 +463,7 @@ class ASTDiff {
         NodeIdx  src;
         NodeIdx  dst;
         ASTDiff* diff;
-    Data     data;
+        Data     data;
 
         Change() {}
         Change(CR<Data> data, ASTDiff* diff, NodeIdx src, NodeIdx dst)
@@ -526,13 +531,13 @@ class ASTDiff {
             case ChangeKind::Move: {
                 result.data = typename Change::Move{
                     .update = node.Change == ChangeKind::Update,
-                    .from   = {
-                        .under    = src.getNode(srcNode).Parent,
-                        .position = src.findPositionInParent(srcNode, true),
+                    .from   = Change::MovePoint{
+                         src.getNode(srcNode).Parent,
+                         src.findPositionInParent(srcNode, true),
                     },
-                    .to     = {
-                        .under    = dst.getNode(dstNode).Parent,
-                        .position = dst.findPositionInParent(dstNode, true),
+                    .to     = Change::MovePoint{
+                        dst.getNode(dstNode).Parent,
+                        dst.findPositionInParent(dstNode, true),
                     },
                 };
                 break;
@@ -540,9 +545,8 @@ class ASTDiff {
 
             case ChangeKind::Insert: {
                 result.data = typename Change::Insert{
-                    .to = {
-                        .under    = node.Parent,
-                        .position = //
+                    .to = Change::MovePoint{
+                        node.Parent,
                         fromDst ? dst.findPositionInParent(dstNode)
                                 : src.findPositionInParent(srcNode),
                     }};
@@ -655,74 +659,6 @@ class ASTDiff {
     friend class ZhangShashaMatcher;
 };
 
-/// Sets Height, Parent and Subnodes for each node.
-struct PreorderVisitor {
-    int id    = 0;
-    int Depth = 0;
-
-    NodeIdx     Parent;
-    SyntaxTree& Tree;
-    NodeStore*  store;
-
-    PreorderVisitor(SyntaxTree& Tree, NodeStore* store)
-        : Tree(Tree), store(store) {}
-
-    std::tuple<NodeIdx, NodeIdx> PreTraverse(NodeStore::Id const& node) {
-        NodeIdx MyId = id;
-        Tree.Nodes.emplace_back(store);
-        Node& N   = Tree.getMutableNode(MyId);
-        N.Parent  = Parent;
-        N.Depth   = Depth;
-        N.ASTNode = node;
-
-        if (Parent.isValid()) {
-            Node& P = Tree.getMutableNode(Parent);
-            P.Subnodes.push_back(MyId);
-        }
-
-        Parent = MyId;
-        ++id;
-        ++Depth;
-        return std::make_tuple(MyId, Tree.getNode(MyId).Parent);
-    }
-
-    void PostTraverse(std::tuple<NodeIdx, NodeIdx> State) {
-        NodeIdx MyId, PreviousParent;
-        std::tie(MyId, PreviousParent) = State;
-        assert(
-            MyId.isValid() && "Expecting to only traverse valid nodes.");
-        Parent = PreviousParent;
-        --Depth;
-        Node& N               = Tree.getMutableNode(MyId);
-        N.RightMostDescendant = id - 1;
-        assert(
-            N.RightMostDescendant >= 0
-            && N.RightMostDescendant < Tree.getSize()
-            && "Rightmost descendant must be a valid tree node.");
-        if (N.isLeaf()) { Tree.Leaves.push_back(MyId); }
-        N.Height = 1;
-        for (NodeIdx Subnode : N.Subnodes) {
-            N.Height = std::max(
-                N.Height, 1 + Tree.getNode(Subnode).Height);
-        }
-    }
-
-    void Traverse(NodeStore::Id node) {
-        auto SavedState = PreTraverse(node);
-        for (int i = 0; i < store->getSubnodeCount(node); ++i) {
-            Traverse(store->getSubnodeAt(node, i));
-        }
-        PostTraverse(SavedState);
-    }
-};
-
-SyntaxTree::SyntaxTree(ComparisonOptions const& _opts) : opts(_opts) {}
-
-void SyntaxTree::FromNode(NodeStore* store) {
-    PreorderVisitor PreorderWalker(*this, store);
-    PreorderWalker.Traverse(store->getRoot());
-    initTree();
-}
 
 
 /// \brief Identifies a node in a subtree by its postorder offset, starting
@@ -945,5 +881,6 @@ void printDstChange(
     SyntaxTree&                  SrcTree,
     SyntaxTree&                  DstTree,
     NodeIdx                      Dst,
-    Func<Str(CR<NodeStore::Id>)> ValoStr);
+    Func<Str(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<Str(CR<NodeStore::Id>)> FormatDstTreeValue);
 } // namespace diff
