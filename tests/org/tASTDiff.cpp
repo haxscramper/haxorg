@@ -255,6 +255,10 @@ struct OrgNodeStore : NodeStore {
         return id.ToPtr<sem::Org>();
     }
 
+    sem::Org* get(Id const& id) {
+        return const_cast<sem::Org*>(id.ToPtr<sem::Org>());
+    }
+
     virtual int getSubnodeCount(const Id& id) override {
         return get(id)->subnodes.size();
     }
@@ -283,6 +287,27 @@ struct OrgDiffBuilder {
     SPtr<OrgNodeStore>        dstStore;
     MockFull                  srcParse;
     MockFull                  dstParse;
+
+    sem::Org* getSrc(NodeStore::Id const& id) { return srcStore->get(id); }
+    sem::Org* getDst(NodeStore::Id const& id) { return dstStore->get(id); }
+
+    sem::Org* getSrc(diff::NodeIdx const& id) {
+        return getSrc(srcSyntax->getNode(id).ASTNode);
+    }
+
+    sem::Org* getDst(diff::NodeIdx const& id) {
+        return getDst(dstSyntax->getNode(id).ASTNode);
+    }
+
+    template <typename T>
+    T* getSrcT(diff::NodeIdx const& id) {
+        return dynamic_cast<T*>(getSrc(srcSyntax->getNode(id).ASTNode));
+    }
+
+    template <typename T>
+    T* getDstT(diff::NodeIdx const& id) {
+        return dynamic_cast<T*>(getDst(dstSyntax->getNode(id).ASTNode));
+    }
 
     sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
         auto mock = isSrc ? &srcParse : &dstParse;
@@ -348,10 +373,28 @@ struct OrgDiffBuilder {
     }
 };
 
-TEST(AstDiff, OrgWordDocument) {
+TEST(AstDiff, OrgOneWord) {
     OrgDiffBuilder builder{};
     auto           Src = builder.setSrc("word");
     auto           Dst = builder.setDst("word");
     builder.setDiffTrees(Src, Dst, builder.getOptions());
-    auto changes = builder.diff->getAllChanges(false);
+    auto changes = builder.diff->getAllChanges();
+    EXPECT_TRUE(changes.empty());
+}
+
+
+TEST(AstDiff, OrgChangedWord) {
+    OrgDiffBuilder builder{};
+    auto           Src = builder.setSrc("word1");
+    auto           Dst = builder.setDst("word2");
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes = builder.diff->getAllChanges();
+    for (auto const& ch : changes) { LOG(INFO) << fmt1(ch); }
+    EXPECT_EQ(changes.size(), 1);
+    auto ch0 = changes.at(0);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
+    EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
 }

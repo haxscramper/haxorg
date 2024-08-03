@@ -64,6 +64,8 @@ struct NodeIdx {
                 "non-valid (-1) node found for " + msg);
         }
     }
+
+    DESC_FIELDS(NodeIdx, (Offset));
 };
 
 
@@ -73,6 +75,8 @@ struct ASTNodeKind {
     bool operator==(ASTNodeKind const& other) const {
         return value == other.value;
     }
+
+    DESC_FIELDS(ASTNodeKind, (value));
 };
 
 struct NodeStore {
@@ -438,21 +442,30 @@ class ASTDiff {
             MovePoint() {};
             MovePoint(NodeIdx const& under, int position)
                 : under{under}, position{position} {};
+            DESC_FIELDS(MovePoint, (under, position));
         };
 
         struct Insert {
             MovePoint to;
+            DESC_FIELDS(Insert, (to));
         };
 
         struct Move {
             MovePoint from;
             MovePoint to;
             bool      update = false;
+            DESC_FIELDS(Move, (from, to, update));
         };
 
-        struct Update {};
-        struct None {};
-        struct Delete {};
+        struct Update {
+            DESC_FIELDS(Update, ());
+        };
+        struct None {
+            DESC_FIELDS(None, ());
+        };
+        struct Delete {
+            DESC_FIELDS(Delete, ());
+        };
 
         SUB_VARIANTS(
             Kind,
@@ -467,8 +480,10 @@ class ASTDiff {
 
         NodeIdx  src;
         NodeIdx  dst;
-        ASTDiff* diff;
+        ASTDiff* diff = nullptr;
         Data     data;
+
+        DESC_FIELDS(Change, (src, dst, data, diff));
 
         Change() {}
         Change(CR<Data> data, ASTDiff* diff, NodeIdx src, NodeIdx dst)
@@ -896,3 +911,7 @@ void printMapping(
     Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
     Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
 } // namespace diff
+
+template <>
+struct std::formatter<diff::ASTDiff*>
+    : std_format_ptr_as_hex<diff::ASTDiff> {};

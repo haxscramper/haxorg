@@ -80,11 +80,25 @@ struct std::formatter<UPtr<T>> : std::formatter<std::string> {
 template <typename T>
 struct std_format_ptr_as_value : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(T* p, FormatContext& ctx) const {
+    auto format(T const* p, FormatContext& ctx) const {
         if (p == nullptr) {
             return fmt_ctx("nullptr", ctx);
         } else {
             return fmt_ctx(*p, ctx);
+        }
+    }
+};
+
+
+template <typename T>
+struct std_format_ptr_as_hex : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(T const* p, FormatContext& ctx) const {
+        if (p == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            return fmt_ctx(
+                std::format("{:p}", static_cast<const void*>(p)), ctx);
         }
     }
 };
