@@ -71,6 +71,10 @@ struct TestDiffBuilder {
 
     static ComparisonOptions getOptions() {
         return ComparisonOptions{
+            .getUpdateCost = [](diff::Node const& Src,
+                                diff::Node const& Dst) -> double {
+                return 1;
+            },
             .areValuesEqual = [](diff::Node const& Src,
                                  diff::Node const& Dst) -> bool {
                 return Src.getStore<TestNodeStore>()->getNodeValue(
@@ -239,7 +243,6 @@ struct OrgDiffBuilder : OrgNodeDiff {
     MockFull dstParse;
 
 
-
     sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
         auto mock = isSrc ? &srcParse : &dstParse;
         mock->run(text);
@@ -254,7 +257,6 @@ struct OrgDiffBuilder : OrgNodeDiff {
     sem::SemId<sem::Document> setDst(std::string const& text) {
         return setOrg(text, false);
     }
-
 };
 
 TEST(AstDiff, OrgOneWord) {

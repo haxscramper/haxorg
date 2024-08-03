@@ -85,6 +85,8 @@ diff::ComparisonOptions OrgNodeDiff::getOptions() {
     };
 
     return diff::ComparisonOptions{
+        .getUpdateCost  = [](diff::Node const& Src,
+                            diff::Node const& Dst) -> double { return 1; },
         .areValuesEqual = [LeafKinds](
                               diff::Node const& Src,
                               diff::Node const& Dst) -> bool {

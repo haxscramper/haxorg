@@ -173,6 +173,15 @@ struct ComparisonOptions {
     int  MaxSize          = 100;
     bool StopAfterTopDown = false;
 
+    /// Use a simple cost model for edit actions, which seems good
+    /// enough. Simple cost model for edit actions. This seems to make the
+    /// matching algorithm perform reasonably well. The values range
+    /// between 0 and 1, or infinity if this edit action should always be
+    /// avoided.
+    double DeletionCost  = 1;
+    double InsertionCost = 1;
+    double UpdateCost    = 1;
+
     enum class FirstPassKind
     {
         TopDown,
@@ -180,8 +189,9 @@ struct ComparisonOptions {
     };
 
     FirstPassKind firstPass = FirstPassKind::TopDown;
-    Func<bool(const Node& N1, const Node& N2)>   isMatchingAllowed;
-    Func<bool(Node const& src, Node const& dst)> areValuesEqual;
+    Func<bool(const Node& N1, const Node& N2)>     isMatchingAllowed;
+    Func<bool(Node const& src, Node const& dst)>   areValuesEqual;
+    Func<double(Node const& src, Node const& dst)> getUpdateCost;
 };
 
 
@@ -775,19 +785,26 @@ class Subtree {
 /// insertion, deletion and update as edit actions (similar to the
 /// Levenshtein distance).
 class ZhangShashaMatcher {
-    const ASTDiff&   DiffImpl;
-    Subtree          S1;
-    Subtree          S2;
-    Vec<Vec<double>> TreeDist, ForestDist;
+    const ASTDiff&           DiffImpl;
+    Subtree                  S1;
+    Subtree                  S2;
+    Vec<Vec<double>>         TreeDist, ForestDist;
+    ComparisonOptions const& opts;
 
   public:
     ZhangShashaMatcher(
-        const ASTDiff&    DiffImpl,
-        const SyntaxTree& src,
-        const SyntaxTree& dst,
-        NodeIdx           Id1,
-        NodeIdx           Id2)
-        : DiffImpl(DiffImpl), S1(src, Id1), S2(dst, Id2) {
+        ComparisonOptions const& opts,
+        const ASTDiff&           DiffImpl,
+        const SyntaxTree&        src,
+        const SyntaxTree&        dst,
+        NodeIdx                  Id1,
+        NodeIdx                  Id2)
+        : opts{opts}
+        , DiffImpl(DiffImpl)
+        , S1(src, Id1)
+        , S2(dst, Id2)
+    //
+    {
 
         TreeDist.resize(size_t(S1.getSize()) + 1);
         ForestDist.resize(size_t(S1.getSize()) + 1);
@@ -801,19 +818,7 @@ class ZhangShashaMatcher {
     Vec<std::pair<NodeIdx, NodeIdx>> getMatchingNodes();
 
   private:
-    /// We use a simple cost model for edit actions, which seems good
-    /// enough. Simple cost model for edit actions. This seems to make the
-    /// matching algorithm perform reasonably well. The values range
-    /// between 0 and 1, or infinity if this edit action should always be
-    /// avoided.
-    double DeletionCost  = 1;
-    double InsertionCost = 1;
-    double UpdateCost    = 1;
-
-    double getUpdateCost(
-        ComparisonOptions const& opts,
-        SubNodeIdx               Id1,
-        SubNodeIdx               Id2) {
+    double getUpdateCost(SubNodeIdx Id1, SubNodeIdx Id2) {
         if (!DiffImpl.isMatchingPossible(
                 S1.getIdInRoot(Id1), S2.getIdInRoot(Id2))) {
             return std::numeric_limits<double>::max();
@@ -821,9 +826,8 @@ class ZhangShashaMatcher {
             if (opts.areValuesEqual(S1.getNode(Id1), S2.getNode(Id2))) {
                 return 0;
             } else {
-                /// IMPLEMENT weighted node update cost that accounts for
-                /// the value similarity
-                return UpdateCost;
+                return opts.getUpdateCost(
+                    S1.getNode(Id1), S2.getNode(Id2));
             }
         }
     }

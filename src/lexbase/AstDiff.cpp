@@ -292,7 +292,7 @@ void diff::ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
         > Options.MaxSize) {
         return;
     }
-    ZhangShashaMatcher               Matcher(*this, src, dst, Id1, Id2);
+    ZhangShashaMatcher Matcher{Options, *this, src, dst, Id1, Id2};
     Vec<std::pair<NodeIdx, NodeIdx>> R = Matcher.getMatchingNodes();
     // COUT << R << "\n";
     for (const auto& Tuple : R) {
@@ -400,24 +400,24 @@ void ZhangShashaMatcher::computeForestDist(
     SubNodeIdx LMD2        = S2.getLeftMostDescendant(Id2);
     ForestDist[LMD1][LMD2] = 0;
     for (SubNodeIdx D1 = LMD1 + 1; D1 <= Id1; ++D1) {
-        ForestDist[D1][LMD2] = ForestDist[D1 - 1][LMD2] + DeletionCost;
+        ForestDist[D1][LMD2] = ForestDist[D1 - 1][LMD2]
+                             + opts.DeletionCost;
         for (SubNodeIdx D2 = LMD2 + 1; D2 <= Id2; ++D2) {
             ForestDist[LMD1][D2] = ForestDist[LMD1][D2 - 1]
-                                 + InsertionCost;
+                                 + opts.InsertionCost;
             SubNodeIdx DLMD1 = S1.getLeftMostDescendant(D1);
             SubNodeIdx DLMD2 = S2.getLeftMostDescendant(D2);
             if (DLMD1 == LMD1 && DLMD2 == LMD2) {
-                double UpdateCost = getUpdateCost(
-                    DiffImpl.Options, D1, D2);
+                double UpdateCost  = getUpdateCost(D1, D2);
                 ForestDist[D1][D2] = std::min(
-                    {ForestDist[D1 - 1][D2] + DeletionCost,
-                     ForestDist[D1][D2 - 1] + InsertionCost,
+                    {ForestDist[D1 - 1][D2] + opts.DeletionCost,
+                     ForestDist[D1][D2 - 1] + opts.InsertionCost,
                      ForestDist[D1 - 1][D2 - 1] + UpdateCost});
                 TreeDist[D1][D2] = ForestDist[D1][D2];
             } else {
                 ForestDist[D1][D2] = std::min(
-                    {ForestDist[D1 - 1][D2] + DeletionCost,
-                     ForestDist[D1][D2 - 1] + InsertionCost,
+                    {ForestDist[D1 - 1][D2] + opts.DeletionCost,
+                     ForestDist[D1][D2 - 1] + opts.InsertionCost,
                      ForestDist[DLMD1][DLMD2] + TreeDist[D1][D2]});
             }
         }
