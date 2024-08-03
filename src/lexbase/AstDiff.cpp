@@ -64,11 +64,6 @@ struct PreorderVisitor {
 };
 
 
-bool ComparisonOptions::isMatchingAllowed(const Node& N1, const Node& N2)
-    const {
-    return N1.getNodeKind() == N2.getNodeKind();
-}
-
 Vec<NodeIdx> diff::getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
     Vec<NodeIdx> Ids;
     size_t       Expanded = 0;

@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <sem/SemOrg.hpp>
+#include <test/org_parse_aux.hpp>
 
 
 using namespace diff;
@@ -58,18 +60,7 @@ struct TestNodeStore : NodeStore {
 };
 
 
-ComparisonOptions getTestOptions() {
-    return ComparisonOptions{
-        .areValuesEqual = [](Node const& Src, Node const& Dst) -> bool {
-            return Src.getStore<TestNodeStore>()->getNodeValue(Src.ASTNode)
-                == Dst.getStore<TestNodeStore>()->getNodeValue(
-                    Dst.ASTNode);
-        },
-    };
-}
-
-
-struct DiffBuilder {
+struct TestDiffBuilder {
     SPtr<SyntaxTree>    srcSyntax;
     SPtr<SyntaxTree>    dstSyntax;
     SPtr<ASTDiff>       diff;
@@ -78,7 +69,24 @@ struct DiffBuilder {
     SPtr<TestNodeStore> srcStore;
     SPtr<TestNodeStore> dstStore;
 
-    DiffBuilder(
+    static ComparisonOptions getOptions() {
+        return ComparisonOptions{
+            .areValuesEqual = [](diff::Node const& Src,
+                                 diff::Node const& Dst) -> bool {
+                return Src.getStore<TestNodeStore>()->getNodeValue(
+                           Src.ASTNode)
+                    == Dst.getStore<TestNodeStore>()->getNodeValue(
+                        Dst.ASTNode);
+            },
+            .isMatchingAllowed = [](diff::Node const& Src,
+                                    diff::Node const& Dst) -> bool {
+                return Src.getNodeKind() == Dst.getNodeKind();
+            },
+        };
+    }
+
+
+    TestDiffBuilder(
         TestNode::Ptr            src,
         TestNode::Ptr            dst,
         ComparisonOptions const& Options)
@@ -97,8 +105,9 @@ using ChKind = ASTDiff::Change::Kind;
 
 TEST(AstDiff, BaselineApi) {
     {
-        DiffBuilder b(n("same", 0), n("same", 0), getTestOptions());
-        auto        changes = b.diff->getAllChanges(false);
+        TestDiffBuilder b(
+            n("same", 0), n("same", 0), TestDiffBuilder::getOptions());
+        auto changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
         ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
@@ -114,8 +123,9 @@ TEST(AstDiff, BaselineApi) {
         EXPECT_TRUE(srcPath.at(0).isRoot());
     }
     {
-        DiffBuilder b(n("first", 0), n("second", 0), getTestOptions());
-        auto        changes = b.diff->getAllChanges(false);
+        TestDiffBuilder b(
+            n("first", 0), n("second", 0), TestDiffBuilder::getOptions());
+        auto changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
         ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::Update);
@@ -123,8 +133,10 @@ TEST(AstDiff, BaselineApi) {
         EXPECT_EQ(ch0.getDstValue(b.dstStore.get()), "second");
     }
     {
-        DiffBuilder builder(
-            n("0", 0), n("0", 0, {n("1", 1)}), getTestOptions());
+        TestDiffBuilder builder(
+            n("0", 0),
+            n("0", 0, {n("1", 1)}),
+            TestDiffBuilder::getOptions());
         auto changes = builder.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 2);
         ASTDiff::Change ch0 = changes.at(0);
@@ -146,12 +158,12 @@ TEST(AstDiff, BaselineApi) {
 }
 
 TEST(AstDiff, GreedyTopDown) {
-    auto opts             = getTestOptions();
+    auto opts             = TestDiffBuilder::getOptions();
     opts.firstPass        = ComparisonOptions::FirstPassKind::Greedy;
     opts.StopAfterTopDown = true;
     {
-        DiffBuilder builder(n("0", 0), n("0", 0), opts);
-        auto        changes = builder.diff->getAllChanges(false);
+        TestDiffBuilder builder(n("0", 0), n("0", 0), opts);
+        auto            changes = builder.diff->getAllChanges(false);
     }
 }
 
@@ -199,7 +211,7 @@ TEST(AstDiff, PointerBasedNodes) {
     auto SrcStore = std::make_shared<TestNodeStore>(src.get());
     auto DstStore = std::make_shared<TestNodeStore>(dst.get());
 
-    ComparisonOptions Options = getTestOptions();
+    ComparisonOptions Options = TestDiffBuilder::getOptions();
 
     SyntaxTree SrcTree{Options};
     SrcTree.FromNode(SrcStore.get());
@@ -219,4 +231,127 @@ TEST(AstDiff, PointerBasedNodes) {
         DstStore->getToStr());
 
     writeDebugFile(os.getBuffer().toString(false), "txt", "", true);
+}
+
+
+struct OrgNodeStore : NodeStore {
+    sem::SemId<sem::Org> root;
+
+    using value_type = Opt<Str>;
+    using node_type  = TestNode;
+
+    OrgNodeStore(sem::SemId<sem::Org> root) : root{root} {}
+
+    Opt<Str> getNodeValue(NodeStore::Id const& id) {
+        auto node = get(id);
+        if (auto leaf = node->dyn_cast<sem::Leaf>()) {
+            return leaf->text;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    sem::Org const* get(Id const& id) const {
+        return id.ToPtr<sem::Org>();
+    }
+
+    virtual int getSubnodeCount(const Id& id) override {
+        return get(id)->subnodes.size();
+    }
+
+    virtual Id getSubnodeAt(const Id& node, int index) override {
+        return NodeStore::Id::FromPtr(get(node)->subnodes.at(index).get());
+    }
+
+    virtual Id getRoot() override {
+        return NodeStore::Id::FromPtr(root.get());
+    }
+
+    virtual ASTNodeKind getNodeKind(const Id& node) const override {
+        return static_cast<int>(get(node)->getKind());
+    }
+};
+
+
+struct OrgDiffBuilder {
+    SPtr<SyntaxTree>          srcSyntax;
+    SPtr<SyntaxTree>          dstSyntax;
+    SPtr<ASTDiff>             diff;
+    sem::SemId<sem::Document> src;
+    sem::SemId<sem::Document> dst;
+    SPtr<OrgNodeStore>        srcStore;
+    SPtr<OrgNodeStore>        dstStore;
+    MockFull                  srcParse;
+    MockFull                  dstParse;
+
+    sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
+        auto mock = isSrc ? &srcParse : &dstParse;
+        mock->run(text);
+        sem::OrgConverter converter{};
+        return converter.toDocument(OrgAdapter(&mock->nodes, OrgId(0)));
+    }
+
+    sem::SemId<sem::Document> setSrc(std::string const& text) {
+        return setOrg(text, true);
+    }
+
+    sem::SemId<sem::Document> setDst(std::string const& text) {
+        return setOrg(text, false);
+    }
+
+    ComparisonOptions getOptions() {
+        return ComparisonOptions{
+            .areValuesEqual = [](diff::Node const& Src,
+                                 diff::Node const& Dst) -> bool {
+                return Src.getStore<OrgNodeStore>()->getNodeValue(
+                           Src.ASTNode)
+                    == Dst.getStore<OrgNodeStore>()->getNodeValue(
+                        Dst.ASTNode);
+            },
+            .isMatchingAllowed = [](diff::Node const& Src,
+                                    diff::Node const& Dst) -> bool {
+                auto SrcKind = static_cast<OrgSemKind>(
+                    Src.getNodeKind().value);
+                auto DstKind = static_cast<OrgSemKind>(
+                    Dst.getNodeKind().value);
+                SemSet LeafKinds{
+                    OrgSemKind::Word,
+                    OrgSemKind::BigIdent,
+                    OrgSemKind::Punctuation,
+                    OrgSemKind::Escaped,
+                    OrgSemKind::Newline,
+                    OrgSemKind::Empty,
+                };
+                if (SrcKind == DstKind) {
+                    return true;
+                } else {
+                    return LeafKinds.contains(SrcKind)
+                        && LeafKinds.contains(DstKind);
+                }
+            },
+        };
+    }
+
+    void setDiffTrees(
+        sem::SemId<sem::Document> const& src,
+        sem::SemId<sem::Document> const& dst,
+        ComparisonOptions const&         Options) {
+        this->src = src;
+        this->dst = dst;
+        srcSyntax = std::make_shared<SyntaxTree>(Options);
+        dstSyntax = std::make_shared<SyntaxTree>(Options);
+        srcStore  = std::make_shared<OrgNodeStore>(src.asOrg());
+        dstStore  = std::make_shared<OrgNodeStore>(dst.asOrg());
+        srcSyntax->FromNode(srcStore.get());
+        dstSyntax->FromNode(dstStore.get());
+        diff = std::make_shared<ASTDiff>(*srcSyntax, *dstSyntax, Options);
+    }
+};
+
+TEST(AstDiff, OrgWordDocument) {
+    OrgDiffBuilder builder{};
+    auto           Src = builder.setSrc("word");
+    auto           Dst = builder.setDst("word");
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes = builder.diff->getAllChanges(false);
 }

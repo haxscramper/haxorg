@@ -176,7 +176,7 @@ struct ComparisonOptions {
     };
 
     FirstPassKind firstPass = FirstPassKind::TopDown;
-    bool          isMatchingAllowed(const Node& N1, const Node& N2) const;
+    Func<bool(const Node& N1, const Node& N2)>   isMatchingAllowed;
     Func<bool(Node const& src, Node const& dst)> areValuesEqual;
 };
 
@@ -196,7 +196,8 @@ struct Node {
     ChangeKind    Change              = ChangeKind::None;
     NodeStore*    store               = nullptr;
 
-    Node(NodeStore* store = nullptr) : store{store} {}
+    Node(NodeStore* store) : store{store} {}
+
     ASTNodeKind getNodeKind() const { return store->getNodeKind(ASTNode); }
     bool        isLeaf() const { return Subnodes.empty(); }
 

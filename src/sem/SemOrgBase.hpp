@@ -234,7 +234,7 @@ struct [[refl]] Org {
 
     template <typename T>
     T const* dyn_cast() const {
-        return dynamic_cast<T*>(this);
+        return dynamic_cast<T const*>(this);
     }
 
     /// \brief Get subnode at specified index
