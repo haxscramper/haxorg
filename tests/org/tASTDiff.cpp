@@ -55,6 +55,18 @@ struct TestNodeStore : NodeStore {
     }
 };
 
+
+ComparisonOptions getTestOptions() {
+    return ComparisonOptions{
+        .areValuesEqual = [](Node const& Src, Node const& Dst) -> bool {
+            return Src.getStore<TestNodeStore>()->getNodeValue(Src.ASTNode)
+                == Dst.getStore<TestNodeStore>()->getNodeValue(
+                    Dst.ASTNode);
+        },
+    };
+}
+
+
 struct DiffBuilder {
     SPtr<SyntaxTree>    srcSyntax;
     SPtr<SyntaxTree>    dstSyntax;
@@ -83,7 +95,7 @@ using ChKind = ASTDiff::Change::Kind;
 
 TEST(AstDiff, BaselineApi) {
     {
-        DiffBuilder b(n("same", 0), n("same", 0), ComparisonOptions{});
+        DiffBuilder b(n("same", 0), n("same", 0), getTestOptions());
         auto        changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
         ASTDiff::Change ch0 = changes.at(0);
@@ -100,7 +112,7 @@ TEST(AstDiff, BaselineApi) {
         EXPECT_TRUE(srcPath.at(0).isRoot());
     }
     {
-        DiffBuilder b(n("first", 0), n("second", 0), ComparisonOptions{});
+        DiffBuilder b(n("first", 0), n("second", 0), getTestOptions());
         auto        changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
         ASTDiff::Change ch0 = changes.at(0);
@@ -110,7 +122,7 @@ TEST(AstDiff, BaselineApi) {
     }
     {
         DiffBuilder builder(
-            n("0", 0), n("0", 0, {n("1", 1)}), ComparisonOptions{});
+            n("0", 0), n("0", 0, {n("1", 1)}), getTestOptions());
         auto changes = builder.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 2);
         ASTDiff::Change ch0 = changes.at(0);
@@ -132,7 +144,7 @@ TEST(AstDiff, BaselineApi) {
 }
 
 TEST(AstDiff, GreedyTopDown) {
-    auto opts             = ComparisonOptions{};
+    auto opts             = getTestOptions();
     opts.firstPass        = ComparisonOptions::FirstPassKind::Greedy;
     opts.StopAfterTopDown = true;
     {
@@ -185,7 +197,7 @@ TEST(AstDiff, PointerBasedNodes) {
     auto SrcStore = std::make_shared<TestNodeStore>(src.get());
     auto DstStore = std::make_shared<TestNodeStore>(dst.get());
 
-    ComparisonOptions Options{};
+    ComparisonOptions Options = getTestOptions();
 
     SyntaxTree SrcTree{Options};
     SrcTree.FromNode(SrcStore.get());

@@ -202,6 +202,13 @@ struct Node {
     Node(NodeStore* store = nullptr) : store{store} {}
     ASTNodeKind getNodeKind() const { return store->getNodeKind(ASTNode); }
     bool        isLeaf() const { return Subnodes.empty(); }
+
+    template <typename T>
+    T* getStore() const {
+        auto res = dynamic_cast<T*>(store);
+        CHECK(res != nullptr);
+        return res;
+    }
 };
 } // namespace diff
 
@@ -658,7 +665,6 @@ class ASTDiff {
     const ComparisonOptions& Options;
     friend class ZhangShashaMatcher;
 };
-
 
 
 /// \brief Identifies a node in a subtree by its postorder offset, starting
