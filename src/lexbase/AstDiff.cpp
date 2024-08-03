@@ -94,65 +94,6 @@ Vec<NodeIdx> diff::getSubtreePostorder(
     return Postorder;
 }
 
-void diff::printDstChange(
-    std::ostream&                OS,
-    ASTDiff&                     Diff,
-    SyntaxTree&                  SrcTree,
-    SyntaxTree&                  DstTree,
-    NodeIdx                      Dst,
-    Func<Str(CR<NodeStore::Id>)> FormatSrcTreeValue,
-    Func<Str(CR<NodeStore::Id>)> FormatDstTreeValue) {
-    const diff::Node& DstNode = DstTree.getNode(Dst);
-    NodeIdx           Src     = Diff.getMapped(DstTree, Dst);
-    switch (DstNode.Change) {
-        case ChangeKind::None: {
-            break;
-        }
-        case ChangeKind::Delete: {
-            assert(false && "The destination tree can't have deletions.");
-            break;
-        }
-        case ChangeKind::Update: {
-            OS << "Update ";
-            OS << FormatSrcTreeValue(SrcTree.getNode(Src).ASTNode);
-            OS << " to ";
-            OS << FormatDstTreeValue(DstTree.getNode(Dst).ASTNode);
-            break;
-        }
-        case ChangeKind::Insert: [[fallthrough]];
-        case ChangeKind::Move: [[fallthrough]];
-        case ChangeKind::UpdateMove: {
-            if (DstNode.Change == ChangeKind::Insert) {
-                OS << "Insert";
-            } else if (DstNode.Change == ChangeKind::Move) {
-                OS << "Move";
-            } else if (DstNode.Change == ChangeKind::UpdateMove) {
-                OS << "Update and Move";
-            }
-            OS << " [\033[32m";
-            OS << FormatDstTreeValue(DstTree.getNode(Dst).ASTNode);
-            OS << "\033[0m] into [\033[31m";
-            OS << FormatDstTreeValue(
-                DstTree.getNode(DstNode.Parent).ASTNode);
-            OS << "\033[0m] at " << DstTree.findPositionInParent(Dst);
-            break;
-        }
-    }
-}
-
-void diff::printNode(
-    std::ostream&                OS,
-    SyntaxTree&                  Tree,
-    NodeIdx                      id,
-    Func<Str(CR<NodeStore::Id>)> ValoStr) {
-    if (id.isInvalid()) {
-        OS << "None";
-    } else {
-        OS << "(" << id << "): '";
-        OS << Tree.getNode(id).getNodeKind().value;
-        OS << "' '" << ValoStr(Tree.getNode(id).ASTNode) << "'";
-    }
-}
 
 void diff::ASTDiff::computeChangeKinds(Mapping& M) {
     for (NodeIdx const& Id1 : src) {
@@ -496,4 +437,100 @@ void diff::SyntaxTree::FromNode(NodeStore* store) {
     PreorderVisitor PreorderWalker(*this, store);
     PreorderWalker.Traverse(store->getRoot());
     initTree();
+}
+
+void diff::printDstChange(
+    ColStream&                       os,
+    const ASTDiff&                   Diff,
+    const SyntaxTree&                SrcTree,
+    const SyntaxTree&                DstTree,
+    NodeIdx                          Dst,
+    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue) {
+    const diff::Node& DstNode = DstTree.getNode(Dst);
+    NodeIdx           Src     = Diff.getMapped(DstTree, Dst);
+    switch (DstNode.Change) {
+        case ChangeKind::None: {
+            break;
+        }
+        case ChangeKind::Delete: {
+            assert(false && "The destination tree can't have deletions.");
+            break;
+        }
+        case ChangeKind::Update: {
+            os << "Update ";
+            os << FormatSrcTreeValue(SrcTree.getNode(Src).ASTNode);
+            os << " to ";
+            os << FormatDstTreeValue(DstTree.getNode(Dst).ASTNode);
+            break;
+        }
+        case ChangeKind::Insert: [[fallthrough]];
+        case ChangeKind::Move: [[fallthrough]];
+        case ChangeKind::UpdateMove: {
+            if (DstNode.Change == ChangeKind::Insert) {
+                os << "Insert";
+            } else if (DstNode.Change == ChangeKind::Move) {
+                os << "Move";
+            } else if (DstNode.Change == ChangeKind::UpdateMove) {
+                os << "Update and Move";
+            }
+            os << " [" << os.yellow();
+            os << FormatDstTreeValue(DstTree.getNode(Dst).ASTNode);
+            os << os.end() << "] into [" << os.yellow();
+            os << FormatDstTreeValue(
+                DstTree.getNode(DstNode.Parent).ASTNode);
+            os << os.end() << "] at " << DstTree.findPositionInParent(Dst);
+            break;
+        }
+    }
+}
+
+void diff::printNode(
+    ColStream&                       os,
+    const SyntaxTree&                Tree,
+    NodeIdx                          id,
+    Func<ColText(CR<NodeStore::Id>)> ValoStr) {
+    if (id.isInvalid()) {
+        os << "None";
+    } else {
+        os << "(" << id << "): '";
+        os << Tree.getNode(id).getNodeKind().value;
+        os << "' '" << ValoStr(Tree.getNode(id).ASTNode) << "'";
+    }
+}
+
+
+void diff::printMapping(
+    ColStream&                       os,
+    ASTDiff const&                   Diff,
+    SyntaxTree const&                SrcTree,
+    SyntaxTree const&                DstTree,
+    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue) {
+
+    for (diff::NodeIdx Dst : DstTree) {
+        diff::NodeIdx Src = Diff.getMapped(DstTree, Dst);
+        if (Src.isValid()) {
+            os << "Match [" << os.yellow();
+            printNode(os, SrcTree, Src, FormatSrcTreeValue);
+            os << os.end() << "] to [" << os.yellow();
+            printNode(os, DstTree, Dst, FormatDstTreeValue);
+            os << os.end() << "] ";
+        } else {
+            os << "Dst to [" << os.blue();
+            printNode(os, DstTree, Dst, FormatDstTreeValue);
+            os << os.end() << "] ";
+        }
+
+        printDstChange(
+            os,
+            Diff,
+            SrcTree,
+            DstTree,
+            Dst,
+            FormatSrcTreeValue,
+            FormatDstTreeValue);
+
+        os << "\n";
+    }
 }

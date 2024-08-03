@@ -36,7 +36,18 @@ struct IoOpenConf {
 };
 
 
-void        writeFile(fs::path const& target, std::string const& content);
+void writeFile(fs::path const& target, std::string const& content);
+
+void writeDebugFile(
+    std::string const& content,
+    std::string const& extension,
+    std::string const& stem_suffix = "",
+    bool               writeLog    = false,
+    int                line        = __builtin_LINE(),
+    char const*        function    = __builtin_FUNCTION(),
+    char const*        file        = __builtin_FILE());
+
+
 std::string readFile(fs::path const& target);
 
 template <>

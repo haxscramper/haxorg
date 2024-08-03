@@ -401,6 +401,16 @@ inline ColStream& operator<<(ColStream& os, char const& value) {
     return os;
 }
 
+inline ColStream& operator<<(ColStream& os, int const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, float const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
 inline ColStream& operator<<(ColStream& os, std::string const& value) {
     os.write(ColText(os.active, value));
     return os;

@@ -2,6 +2,8 @@
 #include <lexbase/AstDiff.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+
 
 using namespace diff;
 
@@ -48,8 +50,8 @@ struct TestNodeStore : NodeStore {
         return node.ToPtr<TestNode>()->kind;
     }
 
-    Func<Str(CR<NodeStore::Id>)> getToStr() {
-        return [](CR<NodeStore::Id> arg) -> Str {
+    Func<ColText(CR<NodeStore::Id>)> getToStr() {
+        return [](CR<NodeStore::Id> arg) -> ColText {
             return std::format("{}", arg.ToPtr<TestNode>()->value);
         };
     }
@@ -207,30 +209,14 @@ TEST(AstDiff, PointerBasedNodes) {
     ASTDiff Diff{SrcTree, DstTree, Options};
 
 
-    std::stringstream os;
-    for (diff::NodeIdx Dst : DstTree) {
-        diff::NodeIdx Src = Diff.getMapped(DstTree, Dst);
-        if (Src.isValid()) {
-            os << "Match [\033[33m";
-            printNode(os, SrcTree, Src, SrcStore->getToStr());
-            os << "\033[0m] to [\033[33m";
-            printNode(os, DstTree, Dst, DstStore->getToStr());
-            os << "\033[0m] ";
-        } else {
-            os << "Dst to [\033[32m";
-            printNode(os, DstTree, Dst, DstStore->getToStr());
-            os << "\033[0m] ";
-        }
+    ColStream os;
+    printMapping(
+        os,
+        Diff,
+        SrcTree,
+        DstTree,
+        SrcStore->getToStr(),
+        DstStore->getToStr());
 
-        printDstChange(
-            os,
-            Diff,
-            SrcTree,
-            DstTree,
-            Dst,
-            SrcStore->getToStr(),
-            DstStore->getToStr());
-
-        os << "\n";
-    }
+    writeDebugFile(os.getBuffer().toString(false), "txt", "", true);
 }

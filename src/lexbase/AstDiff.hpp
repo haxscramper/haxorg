@@ -9,7 +9,7 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <absl/log/check.h>
-
+#include <hstd/stdlib/ColText.hpp>
 
 #include <iostream>
 #include <cassert>
@@ -18,9 +18,6 @@
 #include <unordered_set>
 #include <limits>
 #include <functional>
-#include <memory>
-#include <optional>
-#include <vector>
 
 
 #define COUT std::cout << "[\033[33m" << __LINE__ << "\033[0m] "
@@ -875,18 +872,26 @@ class PriorityList {
 
 
 void printNode(
-    std::ostream&                OS,
-    SyntaxTree&                  Tree,
-    NodeIdx                      id,
-    Func<Str(CR<NodeStore::Id>)> ValoStr);
+    ColStream&                       os,
+    SyntaxTree const&                Tree,
+    NodeIdx                          id,
+    Func<ColText(CR<NodeStore::Id>)> ValoStr);
 
 
 void printDstChange(
-    std::ostream&                OS,
-    ASTDiff&                     Diff,
-    SyntaxTree&                  SrcTree,
-    SyntaxTree&                  DstTree,
-    NodeIdx                      Dst,
-    Func<Str(CR<NodeStore::Id>)> FormatSrcTreeValue,
-    Func<Str(CR<NodeStore::Id>)> FormatDstTreeValue);
+    ColStream&                       OS,
+    ASTDiff const&                   Diff,
+    SyntaxTree const&                SrcTree,
+    SyntaxTree const&                DstTree,
+    NodeIdx                          Dst,
+    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
+
+void printMapping(
+    ColStream&                       os,
+    ASTDiff const&                   Diff,
+    SyntaxTree const&                SrcTree,
+    SyntaxTree const&                DstTree,
+    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
 } // namespace diff
