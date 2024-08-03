@@ -27,22 +27,13 @@ struct IoContext {
     SPtr<std::ostream> stream;
 };
 
-struct IoOpenConf {
-    bool enableRead    = false;
-    bool enableWrite   = true;
-    bool createDirs    = false;
-    bool useStdout     = false;
-    bool truncateWrite = true;
-};
-
-
 void writeFile(fs::path const& target, std::string const& content);
 
 void writeDebugFile(
     std::string const& content,
     std::string const& extension,
-    std::string const& stem_suffix = "",
     bool               writeLog    = false,
+    std::string const& stem_suffix = "",
     int                line        = __builtin_LINE(),
     char const*        function    = __builtin_FUNCTION(),
     char const*        file        = __builtin_FILE());

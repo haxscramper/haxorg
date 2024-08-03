@@ -5,7 +5,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <sem/SemOrg.hpp>
 #include <test/org_parse_aux.hpp>
-
+#include <sem/SemAstDiff.hpp>
 
 using namespace diff;
 
@@ -230,84 +230,15 @@ TEST(AstDiff, PointerBasedNodes) {
         SrcStore->getToStr(),
         DstStore->getToStr());
 
-    writeDebugFile(os.getBuffer().toString(false), "txt", "", true);
+    writeDebugFile(os.getBuffer().toString(false), "txt");
 }
 
 
-struct OrgNodeStore : NodeStore {
-    sem::SemId<sem::Org> root;
-
-    using value_type = Opt<Str>;
-    using node_type  = TestNode;
-
-    OrgNodeStore(sem::SemId<sem::Org> root) : root{root} {}
-
-    Opt<Str> getNodeValue(NodeStore::Id const& id) {
-        auto node = get(id);
-        if (auto leaf = node->dyn_cast<sem::Leaf>()) {
-            return leaf->text;
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    sem::Org const* get(Id const& id) const {
-        return id.ToPtr<sem::Org>();
-    }
-
-    sem::Org* get(Id const& id) {
-        return const_cast<sem::Org*>(id.ToPtr<sem::Org>());
-    }
-
-    virtual int getSubnodeCount(const Id& id) override {
-        return get(id)->subnodes.size();
-    }
-
-    virtual Id getSubnodeAt(const Id& node, int index) override {
-        return NodeStore::Id::FromPtr(get(node)->subnodes.at(index).get());
-    }
-
-    virtual Id getRoot() override {
-        return NodeStore::Id::FromPtr(root.get());
-    }
-
-    virtual ASTNodeKind getNodeKind(const Id& node) const override {
-        return static_cast<int>(get(node)->getKind());
-    }
-};
+struct OrgDiffBuilder : OrgNodeDiff {
+    MockFull srcParse;
+    MockFull dstParse;
 
 
-struct OrgDiffBuilder {
-    SPtr<SyntaxTree>          srcSyntax;
-    SPtr<SyntaxTree>          dstSyntax;
-    SPtr<ASTDiff>             diff;
-    sem::SemId<sem::Document> src;
-    sem::SemId<sem::Document> dst;
-    SPtr<OrgNodeStore>        srcStore;
-    SPtr<OrgNodeStore>        dstStore;
-    MockFull                  srcParse;
-    MockFull                  dstParse;
-
-    sem::Org* getSrc(NodeStore::Id const& id) { return srcStore->get(id); }
-    sem::Org* getDst(NodeStore::Id const& id) { return dstStore->get(id); }
-
-    sem::Org* getSrc(diff::NodeIdx const& id) {
-        return getSrc(srcSyntax->getNode(id).ASTNode);
-    }
-
-    sem::Org* getDst(diff::NodeIdx const& id) {
-        return getDst(dstSyntax->getNode(id).ASTNode);
-    }
-
-    template <typename T>
-    T* getSrcT(diff::NodeIdx const& id) {
-        return dynamic_cast<T*>(getSrc(srcSyntax->getNode(id).ASTNode));
-    }
-
-    template <typename T>
-    T* getDstT(diff::NodeIdx const& id) {
-        return dynamic_cast<T*>(getDst(dstSyntax->getNode(id).ASTNode));
-    }
 
     sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
         auto mock = isSrc ? &srcParse : &dstParse;
@@ -324,53 +255,6 @@ struct OrgDiffBuilder {
         return setOrg(text, false);
     }
 
-    ComparisonOptions getOptions() {
-        return ComparisonOptions{
-            .areValuesEqual = [](diff::Node const& Src,
-                                 diff::Node const& Dst) -> bool {
-                return Src.getStore<OrgNodeStore>()->getNodeValue(
-                           Src.ASTNode)
-                    == Dst.getStore<OrgNodeStore>()->getNodeValue(
-                        Dst.ASTNode);
-            },
-            .isMatchingAllowed = [](diff::Node const& Src,
-                                    diff::Node const& Dst) -> bool {
-                auto SrcKind = static_cast<OrgSemKind>(
-                    Src.getNodeKind().value);
-                auto DstKind = static_cast<OrgSemKind>(
-                    Dst.getNodeKind().value);
-                SemSet LeafKinds{
-                    OrgSemKind::Word,
-                    OrgSemKind::BigIdent,
-                    OrgSemKind::Punctuation,
-                    OrgSemKind::Escaped,
-                    OrgSemKind::Newline,
-                    OrgSemKind::Empty,
-                };
-                if (SrcKind == DstKind) {
-                    return true;
-                } else {
-                    return LeafKinds.contains(SrcKind)
-                        && LeafKinds.contains(DstKind);
-                }
-            },
-        };
-    }
-
-    void setDiffTrees(
-        sem::SemId<sem::Document> const& src,
-        sem::SemId<sem::Document> const& dst,
-        ComparisonOptions const&         Options) {
-        this->src = src;
-        this->dst = dst;
-        srcSyntax = std::make_shared<SyntaxTree>(Options);
-        dstSyntax = std::make_shared<SyntaxTree>(Options);
-        srcStore  = std::make_shared<OrgNodeStore>(src.asOrg());
-        dstStore  = std::make_shared<OrgNodeStore>(dst.asOrg());
-        srcSyntax->FromNode(srcStore.get());
-        dstSyntax->FromNode(dstStore.get());
-        diff = std::make_shared<ASTDiff>(*srcSyntax, *dstSyntax, Options);
-    }
 };
 
 TEST(AstDiff, OrgOneWord) {
@@ -389,7 +273,66 @@ TEST(AstDiff, OrgChangedWord) {
     auto           Dst = builder.setDst("word2");
     builder.setDiffTrees(Src, Dst, builder.getOptions());
     auto changes = builder.diff->getAllChanges();
-    for (auto const& ch : changes) { LOG(INFO) << fmt1(ch); }
+    EXPECT_EQ(changes.size(), 1);
+    auto ch0 = changes.at(0);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
+    EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
+}
+
+TEST(AstDiff, OrgChangeNestedWord) {
+    OrgDiffBuilder builder{};
+    auto           Src = builder.setSrc("*word1*");
+    auto           Dst = builder.setDst("*word2*");
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes    = builder.diff->getAllChanges();
+    auto change_fmt = builder.formatDiff();
+    writeDebugFile(
+        change_fmt.toString(false), "txt", true, "OrgChangeNestedWord");
+
+    EXPECT_EQ(changes.size(), 1);
+    auto ch0 = changes.at(0);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
+    EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
+}
+
+TEST(AstDiff, OrgChangeDeeplyNestedWord) {
+    OrgDiffBuilder builder{};
+
+    auto Src = builder.setSrc(R"(
+* Subtree1
+** Subtree2
+*** Subtree3
+
+#+begin_center
+word1
+#+end_center
+)");
+
+    auto Dst = builder.setDst(R"(
+* Subtree1
+** Subtree2
+*** Subtree3
+
+#+begin_center
+word2
+#+end_center
+)");
+
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes    = builder.diff->getAllChanges();
+    auto change_fmt = builder.formatDiff();
+    writeDebugFile(
+        change_fmt.toString(false),
+        "txt",
+        true,
+        "OrgChangeDeeplyNestedWord");
+
     EXPECT_EQ(changes.size(), 1);
     auto ch0 = changes.at(0);
     EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);

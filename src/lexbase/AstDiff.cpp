@@ -446,6 +446,7 @@ void diff::printDstChange(
     NodeIdx           Src     = Diff.getMapped(DstTree, Dst);
     switch (DstNode.Change) {
         case ChangeKind::None: {
+            os << "Unchanged";
             break;
         }
         case ChangeKind::Delete: {

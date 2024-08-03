@@ -44,8 +44,8 @@ void writeFileOrStdout(
 void writeDebugFile(
     const std::string& content,
     const std::string& extension,
-    const std::string& stem_suffix,
     bool               writeLog,
+    const std::string& stem_suffix,
     int                line,
     const char*        function,
     const char*        file) {
