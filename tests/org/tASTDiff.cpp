@@ -1,6 +1,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <lexbase/AstDiff.hpp>
 #include <gtest/gtest.h>
+#include <hstd/stdlib/Map.hpp>
 
 using namespace diff;
 
@@ -20,110 +21,112 @@ TestNode::Ptr n(
     return TestNode::shared(kind, val, subnodes);
 }
 
-using TestSyntaxTree = SyntaxTree<TestNode*, std::string>;
-using TestWalker     = TestSyntaxTree::WalkParameters<TestNode::Ptr>;
-using TestDiff       = ASTDiff<TestNode*, std::string>;
-using TestOptions    = ComparisonOptions<TestNode*, std::string>;
+struct TestNodeStore : NodeStore {
+    TestNode* root;
 
-TestWalker getTestWalker() {
-    return TestWalker{
-        .getSubnodeAt = [](CR<TestNode::Ptr> node, int pos)
-            -> CR<TestNode::Ptr> { return node->subnodes.at(pos); },
-        .getSubnodeNumber = [](CR<TestNode::Ptr> node) -> int {
-            return node->subnodes.size();
-        },
-        .getSubnodeId = [](CR<TestNode::Ptr> node) -> TestNode* {
-            return node.get();
-        },
-    };
-}
+    using value_type = std::string;
+    using node_type  = TestNode;
 
-TestOptions getTestOptions() {
-    return TestOptions{
-        .getNodeValueImpl = [](TestNode* id) -> std::string const& {
-            return id->value;
-        },
-        .getNodeKindImpl = [](TestNode* id) { return id->kind; },
-        .isMatchingAllowedImpl =
-            [](TestNode* id1, TestNode* id2) {
-                return id1->kind == id2->kind;
-            }};
-}
+    TestNodeStore(TestNode* root) : root{root} {}
 
-struct DiffBuilder {
-    SPtr<TestSyntaxTree> srcSyntax;
-    SPtr<TestSyntaxTree> dstSyntax;
-    SPtr<TestDiff>       diff;
-    TestNode::Ptr        src;
-    TestNode::Ptr        dst;
+    std::string const& getNodeValue(NodeStore::Id const& id) {
+        return id.ToPtr<TestNode>()->value;
+    }
 
-    DiffBuilder(
-        TestNode::Ptr      src,
-        TestNode::Ptr      dst,
-        TestOptions const& Options)
-        : src(src), dst(dst) {
-        srcSyntax         = std::make_shared<TestSyntaxTree>(Options);
-        dstSyntax         = std::make_shared<TestSyntaxTree>(Options);
-        TestWalker walker = getTestWalker();
-        srcSyntax->FromNode(src, walker);
-        dstSyntax->FromNode(dst, walker);
-        diff = std::make_shared<TestDiff>(*srcSyntax, *dstSyntax, Options);
+    virtual int getSubnodeCount(const Id& id) override {
+        return id.ToPtr<TestNode>()->subnodes.size();
+    }
+
+    virtual Id getSubnodeAt(const Id& node, int index) override {
+        return NodeStore::Id::FromPtr(
+            node.ToPtr<TestNode>()->subnodes.at(index).get());
+    }
+
+    virtual Id getRoot() override { return NodeStore::Id::FromPtr(root); }
+
+    virtual ASTNodeKind getNodeKind(const Id& node) const override {
+        return node.ToPtr<TestNode>()->kind;
     }
 };
 
-using ChKind = TestDiff::Change::Kind;
+struct DiffBuilder {
+    SPtr<SyntaxTree>    srcSyntax;
+    SPtr<SyntaxTree>    dstSyntax;
+    SPtr<ASTDiff>       diff;
+    TestNode::Ptr       src;
+    TestNode::Ptr       dst;
+    SPtr<TestNodeStore> srcStore;
+    SPtr<TestNodeStore> dstStore;
+
+    DiffBuilder(
+        TestNode::Ptr            src,
+        TestNode::Ptr            dst,
+        ComparisonOptions const& Options)
+        : src(src), dst(dst) {
+        srcSyntax = std::make_shared<SyntaxTree>(Options);
+        dstSyntax = std::make_shared<SyntaxTree>(Options);
+        srcStore  = std::make_shared<TestNodeStore>(src.get());
+        dstStore  = std::make_shared<TestNodeStore>(dst.get());
+        srcSyntax->FromNode(srcStore.get());
+        dstSyntax->FromNode(dstStore.get());
+        diff = std::make_shared<ASTDiff>(*srcSyntax, *dstSyntax, Options);
+    }
+};
+
+using ChKind = ASTDiff::Change::Kind;
 
 TEST(AstDiff, BaselineApi) {
     {
-        DiffBuilder builder(n(0, "same"), n(0, "same"), getTestOptions());
-        auto        changes = builder.diff->getAllChanges(false);
+        DiffBuilder b(n(0, "same"), n(0, "same"), ComparisonOptions{});
+        auto        changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
-        TestDiff::Change ch0 = changes.at(0);
+        ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
-        EXPECT_EQ(ch0.getSrcValue(), std::string("same"));
-        EXPECT_EQ(ch0.getDstValue(), std::string("same"));
-        EXPECT_EQ(ch0.getBaseDstChain().at(0)->value, "same");
-        EXPECT_EQ(ch0.getBaseSrcChain().at(0)->value, "same");
+        EXPECT_EQ(ch0.getSrcValue(b.srcStore.get()), std::string("same"));
+        EXPECT_EQ(ch0.getDstValue(b.dstStore.get()), std::string("same"));
+        EXPECT_EQ(
+            b.dstStore->getNodeValue(ch0.getBaseDstChain().at(0)), "same");
+        EXPECT_EQ(
+            b.srcStore->getNodeValue(ch0.getBaseSrcChain().at(0)), "same");
         auto dstPath = ch0.getDstPath();
         auto srcPath = ch0.getSrcPath();
         EXPECT_TRUE(dstPath.at(0).isRoot());
         EXPECT_TRUE(srcPath.at(0).isRoot());
     }
     {
-        DiffBuilder builder(
-            n(0, "first"), n(0, "second"), getTestOptions());
-        auto changes = builder.diff->getAllChanges(false);
+        DiffBuilder b(n(0, "first"), n(0, "second"), ComparisonOptions{});
+        auto        changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
-        TestDiff::Change ch0 = changes.at(0);
+        ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::Update);
         EXPECT_EQ(ch0.getSrcValue(), "first");
         EXPECT_EQ(ch0.getDstValue(), "second");
     }
     {
         DiffBuilder builder(
-            n(0, "0"), n(0, "0", {n(1, "1")}), getTestOptions());
+            n(0, "0"), n(0, "0", {n(1, "1")}), ComparisonOptions{});
         auto changes = builder.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 2);
-        TestDiff::Change ch0 = changes.at(0);
+        ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
-        TestDiff::Change ch1 = changes.at(1);
+        ASTDiff::Change ch1 = changes.at(1);
         EXPECT_EQ(ch1.getKind(), ChKind::Insert);
         EXPECT_EQ(ch1.getInsert().to.position, 0);
-        EXPECT_EQ(ch1.getInsert().to.under, NodeId(0));
+        EXPECT_EQ(ch1.getInsert().to.under, NodeIdx(0));
         auto dstPath = ch1.getDstPath();
         EXPECT_EQ(dstPath.size(), 2);
         EXPECT_TRUE(dstPath.at(0).isRoot());
-        EXPECT_EQ(dstPath.at(1).under, NodeId(0));
+        EXPECT_EQ(dstPath.at(1).under, NodeIdx(0));
         EXPECT_EQ(dstPath.at(1).position, 0);
         EXPECT_EQ(
-            builder.dstSyntax->getNodeValue(
-                builder.dstSyntax->getNode(dstPath.back())),
+            builder.srcStore->getNodeValue(
+                builder.dstSyntax->getNode(dstPath.back()).ASTNode),
             "1");
     }
 }
 
 TEST(AstDiff, GreedyTopDown) {
-    auto opts             = getTestOptions();
+    auto opts             = ComparisonOptions{};
     opts.firstPass        = TestOptions::FirstPassKind::Greedy;
     opts.StopAfterTopDown = true;
     {
@@ -143,9 +146,7 @@ TEST(AstDiff, PointerBasedNodes) {
 
         TreeMirror<IdT, ValT> toMirror() {
             Vec<TreeMirror<IdT, ValT>> subMirror;
-            for (auto& it : sub) {
-                subMirror.push_back(it.toMirror());
-            }
+            for (auto& it : sub) { subMirror.push_back(it.toMirror()); }
             return TreeMirror<IdT, ValT>{this, subMirror};
         }
     };
@@ -227,8 +228,8 @@ TEST(AstDiff, PointerBasedNodes) {
 
 
     std::stringstream os;
-    for (diff::NodeId Dst : DstTree) {
-        diff::NodeId Src = Diff.getMapped(DstTree, Dst);
+    for (diff::NodeIdx Dst : DstTree) {
+        diff::NodeIdx Src = Diff.getMapped(DstTree, Dst);
         if (Src.isValid()) {
             os << "Match [\033[33m";
             printNode(os, SrcTree, Src, toStr);
@@ -295,8 +296,8 @@ TEST(AstDiff, PointerBasedNodesWithVariants) {
     ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
     std::stringstream os;
-    for (diff::NodeId Dst : DstTree) {
-        diff::NodeId Src = Diff.getMapped(DstTree, Dst);
+    for (diff::NodeIdx Dst : DstTree) {
+        diff::NodeIdx Src = Diff.getMapped(DstTree, Dst);
         if (Src.isValid()) {
             os << "Match ";
             printNode(os, SrcTree, Src, toStr);
