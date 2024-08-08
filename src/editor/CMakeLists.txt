@@ -1,73 +1,4 @@
-include(ExternalProject)
-
-set(COLA_INSTALL_DIR "${CMAKE_BINARY_DIR}/libcola/install")
-set(COLA_CXX_FLAGS "-I${COLA_INSTALL_DIR} ${CMAKE_CXX_FLAGS}")
-
-if(${ORG_USE_SANITIZER})
-    string(REPLACE "-fsanitize=undefined,address" "" COLA_CXX_FLAGS "${COLA_CXX_FLAGS}")
-endif()
-
-if(ORG_FORCE_ADAPTAGRAMS_BUILD)
-    set(_IMPL_FORCE_ADAPTAGRAMS_BUILD 1)
-else()
-    set(_IMPL_FORCE_ADAPTAGRAMS_BUILD 0)
-endif()
-
-message(STATUS "ORG_FORCE_ADAPTAGRAMS_BUILD = ${ORG_FORCE_ADAPTAGRAMS_BUILD} -> ${_IMPL_FORCE_ADAPTAGRAMS_BUILD}")
-message(STATUS "COLA_INSTALL_DIR = ${COLA_INSTALL_DIR} COLA_CXX_FLAGS = ${COLA_CXX_FLAGS}")
-
-ExternalProject_Add(libcola
-    SOURCE_DIR "${DEPS_DIR}/adaptagrams/cola"
-    PREFIX "${CMAKE_BINARY_DIR}/libcola"
-    BUILD_IN_SOURCE 1
-    BUILD_ALWAYS ${_IMPL_FORCE_ADAPTAGRAMS_BUILD}
-    UPDATE_DISCONNECTED ${_IMPL_FORCE_ADAPTAGRAMS_BUILD}
-
-    CONFIGURE_COMMAND
-        mkdir -p <SOURCE_DIR>/m4
-    COMMAND
-        autoreconf --force --install --verbose
-    COMMAND
-        mkdir -p ${COLA_INSTALL_DIR} &&
-        cd ${COLA_INSTALL_DIR} &&
-        ${DEPS_DIR}/adaptagrams/cola/configure
-            --prefix=${COLA_INSTALL_DIR}
-            CXXFLAGS=${COLA_CXX_FLAGS}
-            CC=${CMAKE_C_COMPILER}
-            CXX=${CMAKE_CXX_COMPILER}
-    BUILD_COMMAND cd ${COLA_INSTALL_DIR} && make
-    INSTALL_COMMAND cd ${COLA_INSTALL_DIR} && make install
-    # Otherwise Ninja build dies on spot because muh simplicity certainly
-    # meant that honoring project-target dependencies written in cmake file
-    # is too difficult.
-    BUILD_BYPRODUCTS
-        "${COLA_INSTALL_DIR}/lib/libavoid.a"
-        "${COLA_INSTALL_DIR}/lib/libcola.a"
-        "${COLA_INSTALL_DIR}/lib/libdialect.a"
-        "${COLA_INSTALL_DIR}/lib/libtopology.a"
-        "${COLA_INSTALL_DIR}/lib/libvpsc.a"
-)
-
-add_library(libcola_external INTERFACE)
-
-set_property(TARGET libcola_external PROPERTY INTERFACE_LINK_LIBRARIES
-    "${COLA_INSTALL_DIR}/lib/libavoid.a"
-    "${COLA_INSTALL_DIR}/lib/libcola.a"
-    "${COLA_INSTALL_DIR}/lib/libdialect.a"
-    "${COLA_INSTALL_DIR}/lib/libtopology.a"
-    "${COLA_INSTALL_DIR}/lib/libvpsc.a"
-)
-
-set_property(TARGET libcola_external
-    PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DEPS_DIR}/adaptagrams/cola" "${COLA_INSTALL_DIR}"
-)
-
-
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Test Widgets)
-find_package(PkgConfig)
-pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
-
-# qt_policy(SET QTP0003 NEW)
 
 qt_standard_project_setup()
 enable_testing(true)
@@ -78,8 +9,6 @@ qt_add_library(editor_lib STATIC)
 glob_add_sources2(editor_lib "${EDITOR_DIR}/editor_lib.*" "${BASE}")
 haxorg_target_setup(editor_lib)
 
-add_dependencies(editor_lib libcola)
-
 target_link_libraries(
   editor_lib
   PUBLIC hstd
@@ -89,7 +18,12 @@ target_link_libraries(
          Qt6::Core
          Qt6::Widgets
          ${CAIROMM_LIBRARIES}
-         libcola_external)
+         cola_cola
+         cola_avoid
+         cola_dialect
+         cola_vpsc
+         cola_topology
+     )
 
 target_include_directories(
   editor_lib PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"
