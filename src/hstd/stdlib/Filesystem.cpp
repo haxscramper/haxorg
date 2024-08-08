@@ -2,6 +2,7 @@
 #include <fstream>
 #include <absl/log/check.h>
 #include <sstream>
+#include <absl/log/log.h>
 
 void writeFile(const fs::path& target, const std::string& content) {
     std::ofstream file{target.native()};
@@ -37,5 +38,24 @@ void writeFileOrStdout(
 
     } else {
         std::cout << content;
+    }
+}
+
+void writeDebugFile(
+    const std::string& content,
+    const std::string& extension,
+    bool               writeLog,
+    const std::string& stem_suffix,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    auto        filename  = fs::path{file}.stem();
+    std::string full_path = fmt(
+        "/tmp/{}_{}{}.{}", filename, function, stem_suffix, extension);
+
+    writeFile(full_path, content);
+    if (writeLog) {
+        LOG(INFO) << fmt(
+            "{}:{}:{} wrote to {}", filename, function, line, full_path);
     }
 }

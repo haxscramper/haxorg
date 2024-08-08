@@ -2,8 +2,11 @@
 #include <sem/ErrorWrite.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Set.hpp>
 
-Characters unicode() {
+Characters Config::unicode() {
     return Characters{
         .hbar       = Str("─"),
         .vbar       = Str("│"),
@@ -27,7 +30,7 @@ Characters unicode() {
     };
 }
 
-Characters ascii() {
+Characters Config::ascii() {
     return Characters{
         .hbar       = Str("-"),
         .vbar       = Str("|"),
@@ -58,6 +61,7 @@ struct LineLabel {
     Label label;
     bool  multi;
     bool  draw_msg;
+    DESC_FIELDS(LineLabel, (col, label, multi, draw_msg));
 };
 
 
@@ -68,14 +72,35 @@ struct LineLabel {
         return *this;                                                     \
     }
 
+struct Writer {
+    ColStream& stream;
+    Config*    config;
+
+    bool dbg_report() const { return config->debug_report_info; }
+
+    template <typename T>
+    void operator()(
+        CR<T>       value,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        if (config->debug_writes) {
+            stream << value << fmt("@{}", line);
+        } else {
+            stream << value;
+        }
+    }
+};
+
 struct MarginContext {
-    ColStream&    w;
+    Writer&       w;
     MarginContext clone() const { return *this; }
+    ColText       line_text;
     _field(int, idx, 0);
     _field(bool, is_line, false);
     _field(bool, is_ellipsis, false);
     _field(int, line_no_width, 0);
     _field(bool, draw_labels, false);
+    _field(int, arrow_len, 0);
     Line const&                         line;
     std::optional<std::pair<int, bool>> report_row = std::nullopt;
     MarginContext& with_report_row(std::pair<int, bool> const& value) {
@@ -85,14 +110,42 @@ struct MarginContext {
 
 
     const Vec<LineLabel>&           line_labels;
-    const std::optional<LineLabel>& margin_label = std::nullopt;
-    //    int                                 line_no_width = 0;
-    std::shared_ptr<Source> src;
-    Vec<Label> const&       multi_labels;
-    Characters const&       draw;
-    Config const&           config;
+    const std::optional<LineLabel>& margin_label;
+    std::shared_ptr<Source>         src;
+    Vec<Label> const&               multi_labels;
+    Config const&                   config;
+
+    Characters const& draw() const { return config.char_set; }
+
+    finally scope(
+        Str const& function    = Str{__builtin_FUNCTION()},
+        bool       force_scope = false,
+        int        line        = __builtin_LINE()) const {
+        if (config.debug_scopes || force_scope) {
+            w.stream << fmt("«{}:{}«", line, function);
+            return finally{[&]() { w.stream << "»»"; }};
+        } else {
+            return finally::nop();
+        }
+    }
 };
 
+int get_arrow_len(MarginContext const& base) {
+    // Determine label bounds so we know where to put error
+    // messages
+    int arrow_len = 0;
+    for (const auto& ll : base.line_labels) {
+        if (ll.multi) {
+            arrow_len = base.line.get_len();
+        } else {
+            arrow_len = std::max(
+                arrow_len, ll.label.span.end() - base.line.offset);
+        }
+    }
+
+    arrow_len += base.config.compact ? 1 : 2; // add arrow end space
+    return arrow_len;
+}
 
 std::optional<LineLabel> get_margin_label(
     Line const&       line,
@@ -101,13 +154,12 @@ std::optional<LineLabel> get_margin_label(
     int                      min_key = std::numeric_limits<int>::max();
     for (int i = 0; i < multi_labels.size(); ++i) {
         Label const& label    = multi_labels[i];
-        bool         is_start = line.span().contains(label.span->start());
-        bool         is_end   = line.span().contains(label.last_offset());
+        bool         is_start = line.span().contains(label.span.start());
+        bool         is_end   = line.span().contains(label.span.end());
 
         if (is_start || is_end) {
             LineLabel ll{
-                .col = (is_start ? label.span->start()
-                                 : label.last_offset())
+                .col = (is_start ? label.span.start() : label.span.end())
                      - line.offset,
                 .label    = label,
                 .multi    = true,
@@ -115,7 +167,7 @@ std::optional<LineLabel> get_margin_label(
             };
 
 
-            int key = (ll.col << 1) | (!label.span->start());
+            int key = (ll.col << 1) | (!label.span.start());
             if (key < min_key) {
                 min_key      = key;
                 margin_label = ll;
@@ -127,7 +179,6 @@ std::optional<LineLabel> get_margin_label(
 
 void write_margin(MarginContext const& c);
 
-
 bool sort_line_labels(
     MarginContext const& c,
     bool&                is_ellipsis,
@@ -138,18 +189,17 @@ bool sort_line_labels(
             c.multi_labels.begin(),
             c.multi_labels.end(),
             [&](Label const& label) {
-                return label.span->contains(c.line.span().first);
+                return label.span.contains(c.line.span().first);
             });
         if (!is_ellipsis && within_label) {
             is_ellipsis = true;
         } else {
             if (!c.config.compact && !is_ellipsis) {
                 write_margin(c.clone().with_is_ellipsis(is_ellipsis));
-
-                c.w << "\n";
+                c.w("\n");
             }
             is_ellipsis = true;
-            return true;
+            return false;
         }
     } else {
         is_ellipsis = false;
@@ -161,21 +211,24 @@ bool sort_line_labels(
         line_labels.end(),
         [](const LineLabel& a, const LineLabel& b) {
             return std::make_tuple(
-                       a.label.order, a.col, !a.label.span->start())
+                       a.label.order, a.col, !a.label.span.start())
                  < std::make_tuple(
-                       b.label.order, b.col, !b.label.span->start());
+                       b.label.order, b.col, !b.label.span.start());
         });
 
-    return false;
+    return true;
 }
 
-void fill_margin_elements(
-    MarginContext const&        c,
-    int                         col,
-    Opt<Pair<Label, bool>>&     corner,
-    Opt<Pair<LineLabel, bool>>& margin_ptr,
-    Opt<Label>&                 vbar,
-    Opt<Label>&                 hbar) {
+struct MarginElements {
+    Opt<Label>                 hbar       = std::nullopt;
+    Opt<Label>                 vbar       = std::nullopt;
+    Opt<Pair<Label, bool>>     corner     = std::nullopt;
+    Opt<Pair<LineLabel, bool>> margin_ptr = std::nullopt;
+};
+
+MarginElements fill_margin_elements(MarginContext const& c, int col) {
+
+    MarginElements result;
 
     Slice<int> line_span = c.src->line(c.idx).value().span();
     for (int i = 0; i < std::min(col + 1, c.multi_labels.size()); ++i) {
@@ -185,16 +238,17 @@ void fill_margin_elements(
             margin = c.margin_label;
         }
 
-        if (label.span->start() <= line_span.last
-            && line_span.first < label.span->end()) {
+        if (label.span.start() <= line_span.last
+            && line_span.first < label.span.end()) {
             bool is_parent = i != col;
-            bool is_start  = line_span.contains(label.span->start());
-            bool is_end    = line_span.contains(label.last_offset());
+            bool is_start  = line_span.contains(label.span.start());
+            bool is_end    = line_span.contains(label.span.end());
 
             if (margin && c.is_line) {
-                margin_ptr = std::make_pair(margin.value(), is_start);
+                result.margin_ptr = std::make_pair(
+                    margin.value(), is_start);
             } else if (!is_start && (!is_end || c.is_line)) {
-                if (!vbar && !is_parent) { vbar = label; }
+                if (!result.vbar && !is_parent) { result.vbar = label; }
             } else if (c.report_row.has_value()) {
                 auto report_row_value = c.report_row.value();
                 int  label_row        = 0;
@@ -208,115 +262,116 @@ void fill_margin_elements(
                 if (report_row_value.first == label_row) {
                     if (margin) {
                         if (col == i) {
-                            vbar = margin->label;
+                            result.vbar = margin->label;
                         } else {
-                            vbar = std::nullopt;
+                            result.vbar = std::nullopt;
                         }
 
                         if (is_start) { continue; }
                     }
 
                     if (report_row_value.second) {
-                        hbar = label;
+                        result.hbar = label;
                         if (!is_parent) {
-                            corner = std::make_pair(label, is_start);
+                            result.corner = std::make_pair(
+                                label, is_start);
                         }
                     } else if (!is_start) {
-                        if (!vbar && !is_parent) { vbar = label; }
+                        if (!result.vbar && !is_parent) {
+                            result.vbar = label;
+                        }
                     }
                 } else {
-                    if (!vbar && !is_parent
+                    if (!result.vbar && !is_parent
                         && (is_start
                             ^ (report_row_value.first < label_row))) {
-                        vbar = label;
+                        result.vbar = label;
                     }
                 }
             }
         }
     }
+
+    return result;
 }
 
 Pair<ColRune, ColRune> get_corner_elements(
-    MarginContext const&                c,
-    int                                 col,
-    CR<Opt<Pair<CRw<Label>, bool>>>     corner,
-    CR<Opt<Label>>                      vbar,
-    CR<Opt<Label>>                      hbar,
-    CR<Opt<Pair<CRw<LineLabel>, bool>>> margin_ptr,
-    CR<Opt<CRw<Label>>>                 multi_label) {
-    std::pair<ColRune, ColRune> ab;
+    MarginContext const&  c,
+    int                   col,
+    MarginElements const& margin,
+    CR<Opt<CRw<Label>>>   multi_label) {
+    ColRune base;
+    ColRune extended;
 
-    if (corner) {
-        auto [label, is_start] = *corner;
-        ab                     = {
-            is_start ? ColRune(c.draw.ltop, label.get().color)
-                                         : ColRune(c.draw.lbot, label.get().color),
-            ColRune(c.draw.hbar, label.get().color),
-        };
-    } else if (hbar && vbar && !c.config.cross_gap) {
-        ab = {
-            ColRune(c.draw.xbar, hbar->color),
-            ColRune(c.draw.hbar, hbar->color),
-        };
-    } else if (hbar) {
-        ab = {
-            ColRune(c.draw.hbar, hbar->color),
-            ColRune(c.draw.hbar, hbar->color),
-        };
-    } else if (vbar) {
-        ab = {
-            c.is_ellipsis ? ColRune(c.draw.vbar_gap, vbar->color)
-                          : ColRune(c.draw.vbar, vbar->color),
-            ColRune(' '),
-        };
-    } else if (margin_ptr && c.is_line) {
-        auto [margin, is_start] = *margin_ptr;
-        bool is_col             = multi_label
-                                    ? (multi_label->get() == margin.get().label)
-                                    : false;
-        bool is_limit           = col == c.multi_labels.size();
+    if (margin.corner) {
+        auto [label, is_start] = *margin.corner;
+        if (is_start) {
+            base = ColRune(c.draw().ltop, label.color);
+        } else {
+            base = ColRune(c.draw().lbot, label.color);
+        }
+
+        extended = ColRune(c.draw().hbar, label.color);
+    } else if (margin.hbar && margin.vbar && !c.config.cross_gap) {
+        base     = ColRune(c.draw().xbar, margin.hbar->color);
+        extended = ColRune(c.draw().hbar, margin.hbar->color);
+    } else if (margin.hbar) {
+        base     = ColRune(c.draw().hbar, margin.hbar->color);
+        extended = ColRune(c.draw().hbar, margin.hbar->color);
+    } else if (margin.vbar) {
+        if (c.is_ellipsis) {
+            base = ColRune(c.draw().vbar_gap, margin.vbar->color);
+        } else {
+            base = ColRune(c.draw().vbar, margin.vbar->color);
+        }
+        extended = ColRune(' ');
+    } else if (margin.margin_ptr && c.is_line) {
+        auto [label, is_start] = *margin.margin_ptr;
+        bool is_col   = multi_label && (multi_label->get() == label.label);
+        bool is_limit = col == c.multi_labels.size();
         if (is_limit) {
-            ab.first = ColRune(c.draw.rarrow, margin.get().label.color);
+            base = ColRune(c.draw().rarrow, label.label.color);
         } else if (is_col) {
             if (is_start) {
-                ab.first = ColRune(c.draw.ltop, margin.get().label.color);
+                base = ColRune(c.draw().ltop, label.label.color);
             } else {
-                ab.first = ColRune(
-                    c.draw.lcross, margin.get().label.color);
+                base = ColRune(c.draw().lcross, label.label.color);
             }
         } else {
-            ab.first = ColRune(c.draw.hbar, margin.get().label.color);
+            base = ColRune(c.draw().hbar, label.label.color);
         }
 
-        if (!is_limit) {
-            ab.second = ColRune(c.draw.hbar, margin.get().label.color);
+        if (is_limit) {
+            extended = ColRune(' ');
         } else {
-            ab.second = ColRune(' ');
+            extended = ColRune(c.draw().hbar, label.label.color);
         }
     } else {
-        ab = {
-            ColRune(' '),
-            ColRune(' '),
-        };
+        base     = ColRune(' ');
+        extended = ColRune(' ');
     }
 
-    return ab;
+    return {base, extended};
 }
 
+
 void write_margin(MarginContext const& c) {
-    Str line_no_margin;
+    auto __scope = c.scope("margin");
+    Str  line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
         int line_no    = c.idx + 1;
         line_no_margin = Str(" ").repeated(
                              c.line_no_width - fmt1(line_no).length())
-                       + Str(fmt1(line_no)) + Str(" ") + Str(c.draw.vbar);
+                       + Str(fmt1(line_no)) + Str(" ")
+                       + Str(c.draw().vbar);
     } else {
         line_no_margin = Str(" ").repeated(c.line_no_width + 1);
-        line_no_margin += (c.is_ellipsis ? c.draw.vbar_gap : c.draw.vbar_break);
+        line_no_margin += (c.is_ellipsis ? c.draw().vbar_gap : c.draw().vbar_break);
     }
 
-    c.w << " " << ColText(c.config.margin_color, line_no_margin)
-        << (c.config.compact ? "" : " ");
+    c.w(" ");
+    c.w(ColText(c.config.margin_color, line_no_margin));
+    c.w(c.config.compact ? "" : " ");
 
 
     // Multi-line margins
@@ -325,57 +380,57 @@ void write_margin(MarginContext const& c) {
                                     + (0 < c.multi_labels.size() ? 1 : 0);
              ++col) {
 
-            Opt<Label>                 hbar       = std::nullopt;
-            Opt<Label>                 vbar       = std::nullopt;
-            Opt<Pair<Label, bool>>     corner     = std::nullopt;
-            Opt<Pair<LineLabel, bool>> margin_ptr = std::nullopt;
-
             Opt<CRw<Label>> multi_label = c.multi_labels.get(col);
+            auto            margin      = fill_margin_elements(c, col);
 
-            fill_margin_elements(c, col, corner, margin_ptr, vbar, hbar);
-
-            if (margin_ptr && c.is_line) {
+            if (margin.margin_ptr && c.is_line) {
                 bool is_col = multi_label
-                           && (*multi_label == margin_ptr->first.label);
+                           && (*multi_label
+                               == margin.margin_ptr->first.label);
 
                 bool is_limit = col + 1 == c.multi_labels.size();
                 if (!is_col && !is_limit) {
-                    hbar = hbar.value_or(margin_ptr->first.label);
+                    margin.hbar = margin.hbar.value_or(
+                        margin.margin_ptr->first.label);
                 }
             }
 
-            if (hbar
-                && !((*hbar != c.margin_label->label) || !c.is_line)) {
-                hbar = std::nullopt;
+            if (margin.hbar
+                && !(
+                    (*margin.hbar != c.margin_label->label)
+                    || !c.is_line)) {
+                margin.hbar = std::nullopt;
             }
 
+            {
+                auto [base, extended] = get_corner_elements(
+                    c, col, margin, multi_label);
 
-            Pair<ColRune, ColRune> ab = get_corner_elements(
-                c, col, corner, vbar, hbar, margin_ptr, multi_label);
-
-            c.w << ab.first;
-            if (!c.config.compact) { c.w << ab.second; }
+                c.w(base);
+                if (!c.config.compact) { c.w(extended); }
+            }
         }
     }
 }
 
 
-// Should we draw a vertical bar as part of a label arrow
-// on this line?
+/// \brief Should we draw a vertical bar as part of a label arrow
+/// on this line?
 auto get_vbar(
     int                   col,
     int                   row,
     Vec<LineLabel> const& line_labels,
     Opt<LineLabel> const& margin_label) -> std::optional<LineLabel> {
-    for (const auto& ll : line_labels) {
-        if (ll.label.msg
-            && (!margin_label.has_value()
-                || ll.label != margin_label->label)
-            && ll.col == col
-            && ((row <= &ll - &line_labels[0] && !ll.multi)
-                || (row <= &ll - &line_labels[0] && ll.multi))) {
-            return ll;
+    for (const auto& [line_label_row, ll] : enumerate(line_labels)) {
+        // Ignore empty labels
+        if (!ll.label.msg.has_value()) { continue; }
+        // Ignore multiline labels when drawing bars under the lines
+        if (margin_label.has_value()
+            && ll.label.id == margin_label->label.id) {
+            continue;
         }
+
+        if (ll.col == col && row <= line_label_row) { return ll; }
     }
     return std::nullopt;
 };
@@ -383,29 +438,27 @@ auto get_vbar(
 
 Opt<CRw<Label>> get_highlight(
     int                      col,
-    Vec<Label> const&        multi_labels,
-    Line const&              line,
-    Vec<LineLabel>&          line_labels,
+    MarginContext const&     base,
     std::optional<LineLabel> margin_label) {
     Vec<CRw<Label>> candidates;
 
     if (margin_label) { candidates.push_back(margin_label->label); }
-
-    for (const auto& l : multi_labels) { candidates.push_back(l); }
-
-    for (const auto& l : line_labels) { candidates.push_back(l.label); }
+    for (const auto& l : base.multi_labels) { candidates.push_back(l); }
+    for (const auto& l : base.line_labels) {
+        candidates.push_back(l.label);
+    }
 
     auto it = std::min_element(
         candidates.begin(),
         candidates.end(),
         [&](const auto& a, const auto& b) {
-            return std::make_tuple(-a.get().priority, a.get().span->len())
-                 < std::make_tuple(-b.get().priority, b.get().span->len());
+            return std::make_tuple(-a.get().priority, a.get().span.len())
+                 < std::make_tuple(-b.get().priority, b.get().span.len());
         });
 
 
     if (it != candidates.end()
-        && it->get().span->contains(line.offset + col)) {
+        && it->get().span.contains(base.line.offset + col)) {
         return *it;
     } else {
         return std::nullopt;
@@ -414,10 +467,10 @@ Opt<CRw<Label>> get_highlight(
 
 
 auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
-    Vec<std::reference_wrapper<LineLabel const>> candidates;
+    Vec<CRw<LineLabel>> candidates;
     for (const auto& it : c.line_labels) {
         if (c.config.underlines && !it.multi
-            && it.label.span->contains(c.line.offset + col)) {
+            && it.label.span.contains(c.line.offset + col)) {
             candidates.push_back(it);
         }
     }
@@ -427,25 +480,21 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
     return *std::min_element(
         candidates.begin(),
         candidates.end(),
-        [&](const auto& a, const auto& b) {
+        [&](CRw<LineLabel> a, CRw<LineLabel> b) {
             return std::make_tuple(
-                       -a.get().label.priority, a.get().label.span->len())
+                       -a.get().label.priority, a.get().label.span.len())
                  < std::make_tuple(
-                       -b.get().label.priority, b.get().label.span->len());
+                       -b.get().label.priority, b.get().label.span.len());
         });
 };
 
-void whatever(MarginContext const& c, int row, int arrow_len) {
-    // Margin alternate
-    write_margin(
-        c.clone().with_draw_labels(true).with_report_row({row, false}));
-
+void write_line_label_arrows(
+    MarginContext const& c,
+    int                  row,
+    int                  arrow_len) {
     // Lines alternate
-    auto chars = c.line.chars.begin();
+    auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
-        int width = (chars != c.line.chars.end())
-                      ? c.config.char_width(*chars, col).second
-                      : 1;
 
         Opt<LineLabel> underline = get_underline(c, col);
         if (row != 0) { underline.reset(); }
@@ -453,117 +502,88 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
         std::array<ColRune, 2> ct_array;
         if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
-            std::array<Str, 2> ct_inner;
             if (underline) {
-                if (vbar->label.span->len() <= 1 || true) {
-                    ct_inner = {c.draw.underbar, c.draw.underline};
+                if (vbar->label.span.len() == 0) {
+                    c.w(c.draw().underbar);
                 } else if (
-                    c.line.offset + col == vbar->label.span->start()) {
-                    ct_inner = {c.draw.ltop, c.draw.underbar};
-                } else if (
-                    c.line.offset + col == vbar->label.last_offset()) {
-                    ct_inner = {c.draw.rtop, c.draw.underbar};
+                    c.line.offset + col == vbar->label.span.start()) {
+                    c.w(c.draw().ltop);
+                } else if (c.line.offset + col == vbar->label.span.end()) {
+                    c.w(c.draw().rtop);
                 } else {
-                    ct_inner = {c.draw.underbar, c.draw.underline};
+                    c.w(c.draw().underbar);
                 }
             } else if (
                 vbar->multi && row == 0 && c.config.multiline_arrows) {
-                ct_inner = {c.draw.uarrow, ' '};
+                c.w(c.draw().uarrow);
             } else {
-                ct_inner = {c.draw.vbar, ' '};
+                c.w(c.draw().vbar);
             }
-            ct_array = {
-                ColRune(ct_inner[0], vbar->label.color),
-                ColRune(ct_inner[1], vbar->label.color),
-            };
         } else if (underline) {
-            ct_array = {
-                ColRune(c.draw.underline, underline->label.color),
-                ColRune(c.draw.underline, underline->label.color),
-            };
+            c.w(ColRune(c.draw().underline, underline->label.color));
         } else {
-            ct_array = {ColRune(' '), ColRune(' ')};
+            c.w(ColRune(' '));
         }
 
-        for (int i = 0; i < width; ++i) {
-            c.w << ((i == 0) ? ct_array[0] : ct_array[1]);
-        }
-
-        if (chars != c.line.chars.end()) { ++chars; }
+        if (chars != c.line_text.end()) { ++chars; }
     }
-    c.w << "\n";
 }
 
 
-void build_multi_labels(
-    Vec<Label>&           multi_labels,
-    Vec<LabelInfo> const& labels) {
-    for (LabelInfo const& label_info : labels) {
-        if (label_info.kind == LabelKind::Multiline) {
-            multi_labels.push_back(label_info.label);
-        }
-    }
-
-
-    // Sort multiline labels by length
-    std::sort(
-        multi_labels.begin(),
-        multi_labels.end(),
-        [](Label const& a, Label const& b) {
-            return (a.span->len()) > (b.span->len());
-        });
-}
-
-void build_line_labels(
-    Vec<LineLabel>&       line_labels,
+Vec<LineLabel> build_line_labels(
     Config const&         config,
     Line const&           line,
     Vec<LabelInfo> const& labels,
     Opt<LineLabel> const& margin_label,
-    Vec<Label>            multi_labels) {
+    Vec<Label> const&     multi_labels) {
+    Vec<LineLabel> line_labels;
     for (CR<Label> label : multi_labels) {
-        bool is_start = line.span().contains(label.span->start());
-        bool is_end   = line.span().contains(label.last_offset());
+        bool is_start = line.span().contains(label.span.start());
+        bool is_end   = line.span().contains(label.span.end());
         bool different_from_margin_label
             = (!margin_label.has_value() || label != margin_label->label);
 
-        if ((is_start && different_from_margin_label) || is_end) {
+        if (is_start && different_from_margin_label) {
             LineLabel ll{
-                .col = (is_start ? label.span->start()
-                                 : label.last_offset())
-                     - line.offset,
+                .col      = label.span.start() - line.offset,
                 .label    = label,
                 .multi    = true,
                 .draw_msg = is_end,
             };
-
-
+            line_labels.push_back(ll);
+        } else if (is_end) {
+            LineLabel ll{
+                .col      = label.span.end() - line.offset,
+                .label    = label,
+                .multi    = true,
+                .draw_msg = is_end,
+            };
             line_labels.push_back(ll);
         }
     }
 
     for (const LabelInfo& label_info : labels) {
-        if (label_info.label.span->start() >= line.span().first
-            && label_info.label.span->end() <= line.span().last) {
+        if (label_info.label.span.start() >= line.span().first
+            && label_info.label.span.end() <= line.span().last) {
             if (label_info.kind == LabelKind::Inline) {
                 int position = 0;
                 switch (config.label_attach) {
                     case LabelAttach::Start:
-                        position = label_info.label.span->start();
+                        position = label_info.label.span.start();
                         break;
                     case LabelAttach::Middle:
-                        position = (label_info.label.span->start()
-                                    + label_info.label.span->end())
+                        position = (label_info.label.span.start()
+                                    + label_info.label.span.end())
                                  / 2;
                         break;
                     case LabelAttach::End:
-                        position = label_info.label.last_offset();
+                        position = label_info.label.span.end();
                         break;
                 }
 
                 LineLabel ll{
                     .col = std::max(
-                               position, label_info.label.span->start())
+                               position, label_info.label.span.start())
                          - line.offset,
                     .label    = label_info.label,
                     .multi    = false,
@@ -575,24 +595,19 @@ void build_line_labels(
             }
         }
     }
+
+    return line_labels;
 }
 
 int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
     int line_no_width = 0;
     for (const auto& group : groups) {
-        Str src_name = cache.display(group.src_id).value_or("<unknown>");
+        Str  src_name = cache.display(group.src_id).value_or("<unknown>");
+        auto src      = cache.fetch(group.src_id);
 
-        try {
-            auto src = cache.fetch(group.src_id);
-
-            auto line_range = src->get_line_range(
-                RangeCodeSpan(group.span));
-            int width     = fmt1(line_range.last).size();
-            line_no_width = std::max(line_no_width, width);
-        } catch (const std::exception& e) {
-            std::cerr << "Unable to fetch source " << src_name << ": "
-                      << e.what() << std::endl;
-        }
+        auto line_range = src->get_line_range(CodeSpan{{}, group.span});
+        int  width      = fmt1(line_range.last).size();
+        line_no_width   = std::max(line_no_width, width);
     }
     return line_no_width;
 }
@@ -604,91 +619,100 @@ void write_lines(
     LineLabel const&     line_label,
     int                  row) {
     // Lines
-    auto chars = line.chars.begin();
+    auto chars = c.line_text.begin();
     for (int col = 0; col < arrow_len; ++col) {
-        int width = (chars != line.chars.end())
-                      ? c.config.char_width(*chars, col).second
-                      : 1;
+        int  width   = 1;
+        bool is_hbar = false;
+        if (line_label.label.msg.has_value()) {
+            is_hbar = (
+                //
+                (line_label.col < col && !line_label.multi)
+                //
+                || (col <= line_label.col && line_label.multi)
+                //
+                || (line_label.label.msg && line_label.draw_msg
+                    && line_label.col < col));
+        }
 
-        bool is_hbar = (((col > line_label.col) ^ line_label.multi)
-                        || (line_label.label.msg && line_label.draw_msg
-                            && col > line_label.col))
-                    && line_label.label.msg;
-        std::array<ColRune, 2> ct_array;
+        std::optional<LineLabel> vbar_ll = get_vbar(
+            col, row, c.line_labels, c.margin_label);
+
         if (col == line_label.col && line_label.label.msg
             && (!c.margin_label.has_value()
                 || line_label.label != c.margin_label->label)) {
-            ct_array = {
-                ColRune(
-                    (line_label.multi ? (
-                         line_label.draw_msg ? c.draw.mbot : c.draw.rbot)
-                                      : c.draw.lbot),
-                    line_label.label.color),
-                ColRune(c.draw.hbar, line_label.label.color),
-            };
-        } else if (std::optional<LineLabel> vbar_ll = std::nullopt;
-                   (vbar_ll = get_vbar(
-                        col, row, c.line_labels, c.margin_label))
-                   && (col != line_label.col || line_label.label.msg)) {
-            if (!c.config.cross_gap && is_hbar) {
-                ct_array = {
-                    ColRune(c.draw.xbar, line_label.label.color),
-                    ColRune(' ', line_label.label.color),
-                };
-            } else if (is_hbar) {
-                ct_array = {
-                    ColRune(c.draw.hbar, line_label.label.color),
-                    ColRune(c.draw.hbar, line_label.label.color),
-                };
+            if (line_label.multi) {
+                if (line_label.draw_msg) {
+                    c.w(ColRune(c.draw().mbot, line_label.label.color));
+                } else {
+                    c.w(ColRune(c.draw().rbot, line_label.label.color));
+                }
             } else {
-                ct_array = {
-                    ColRune(
-                        (vbar_ll->multi && row == 0 && c.config.compact
-                             ? c.draw.uarrow
-                             : c.draw.vbar),
-                        vbar_ll->label.color),
-                    ColRune(' ', line_label.label.color),
-                };
+                c.w(ColRune(c.draw().lbot, line_label.label.color));
+            }
+
+        } else if (
+            vbar_ll.has_value()
+            && (col != line_label.col || line_label.label.msg)) {
+            if (!c.config.cross_gap && is_hbar) {
+                c.w(ColRune(c.draw().xbar, line_label.label.color));
+            } else if (is_hbar) {
+                c.w(ColRune(c.draw().hbar, line_label.label.color));
+            } else {
+                if (vbar_ll->multi && row == 0 && c.config.compact) {
+                    c.w(ColRune(c.draw().uarrow, vbar_ll->label.color));
+                } else {
+                    c.w(ColRune(c.draw().vbar, vbar_ll->label.color));
+                }
             }
         } else if (is_hbar) {
-            ct_array = {
-                ColRune(c.draw.hbar, line_label.label.color),
-                ColRune(c.draw.hbar, line_label.label.color),
-            };
+            c.w(ColRune(c.draw().hbar, line_label.label.color));
         } else {
-            ct_array = {
-                ColRune(' '),
-                ColRune(' '),
-            };
+            c.w(ColRune(' '));
         }
 
-        if (width > 0) { c.w << ct_array[0]; }
-        for (int i = 1; i < width; ++i) { c.w << ct_array[1]; }
-
-        if (chars != line.chars.end()) { ++chars; }
+        if (chars != c.line_text.end()) { ++chars; }
     }
 }
 }; // namespace
 
+Vec<Label> Report::build_multi_labels(Vec<LabelInfo> const& labels) {
+    Vec<Label> multi_labels;
+    for (LabelInfo const& label_info : labels) {
+        if (label_info.kind == LabelKind::Multiline) {
+            multi_labels.push_back(label_info.label);
+        }
+    }
+
+    // Sort multiline labels by length
+    std::sort(
+        multi_labels.begin(),
+        multi_labels.end(),
+        [](Label const& a, Label const& b) {
+            return (a.span.len()) > (b.span.len());
+        });
+
+    return multi_labels;
+}
+
+
 Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
     Vec<SourceGroup> groups;
     for (const auto& label : labels) {
-        auto src_display            = cache->display(label.span->source());
-        std::shared_ptr<Source> src = cache->fetch(label.span->source());
+        auto src_display            = cache->display(label.span.source());
+        std::shared_ptr<Source> src = cache->fetch(label.span.source());
         if (!src) { continue; }
 
-        assert(label.span->start() <= label.span->end());
+        CHECK(label.span.start() <= label.span.end())
+            << "Label start is after its end";
 
-        // "Label start is after its end");
-        auto start_line = src->get_offset_line(label.span->start())
-                              .value()
-                              .idx;
+        auto start_line //
+            = src->get_offset_line(label.span.start()).value().idx;
 
-        auto end_line = src->get_offset_line(std::max(
-                                                 label.span->end() - 1,
-                                                 label.span->start()))
-                            .value()
-                            .idx;
+        auto end_line //
+            = src->get_offset_line(
+                     std::max(label.span.end() - 1, label.span.start()))
+                  .value()
+                  .idx;
 
         LabelInfo label_info{
             .kind  = (start_line == end_line) ? LabelKind::Inline
@@ -696,293 +720,330 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
             .label = label,
         };
 
-        auto group_it = std::find_if(
+        auto it = std::find_if(
             groups.begin(), groups.end(), [&](const SourceGroup& group) {
-                return group.src_id == label.span->source();
+                return group.src_id == label.span.source();
             });
 
-        if (group_it != groups.end()) {
-            group_it->span.first = std::min(
-                group_it->span.first, label.span->start());
-            group_it->span.last = std::max(
-                group_it->span.last, label.span->end());
-            group_it->labels.push_back(label_info);
+        if (it != groups.end()) {
+            it->span.first = std::min(it->span.first, label.span.start());
+            it->span.last  = std::max(it->span.last, label.span.end());
+            it->labels.push_back(label_info);
         } else {
             groups.push_back(SourceGroup{
-                .src_id = label.span->source(),
-                .span   = slice(label.span->start(), label.span->end()),
+                .src_id = label.span.source(),
+                .span   = slice(label.span.start(), label.span.end()),
                 .labels = {label_info}});
         }
     }
     return groups;
 }
 
-void Report::write_for_stream(Cache& cache, std::ostream& stream) {
-    ColStream w{stream};
-    w.colored       = true;
-    Characters draw = Characters{};
-    switch (config.char_set) {
-        case MessageCharSet::Unicode: draw = unicode(); break;
-        case MessageCharSet::Ascii: draw = ascii(); break;
+void write_report_group_header(
+    Config const&      config,
+    int                group_idx,
+    int                line_no_width,
+    Cache&             cache,
+    Report const&      report,
+    Writer&            op,
+    SourceGroup const& group) {
+
+    std::shared_ptr<Source> src = cache.fetch(group.src_id);
+    Str src_name = cache.display(group.src_id).value_or("<unknown>");
+
+    op(Str(" ").repeated(line_no_width + 2));
+    op((group_idx == 0 ? ColRune(config.char_set.ltop)
+                       : ColRune(config.char_set.lcross))
+       + config.margin_color);
+    op(ColRune(config.char_set.hbar) + config.margin_color);
+    op(ColRune(config.char_set.lbox) + config.margin_color);
+    op(src_name);
+
+    // File name & reference
+    int location = (group.src_id == report.location.first)
+                     ? report.location.second
+                     : group.labels[0].label.span.start();
+
+    auto offset_line = src->get_offset_line(location);
+
+    // Error line and column number in the error message header
+    if (offset_line) {
+        op(":");
+        op(fmt1(offset_line->idx + 1));
+        op(":");
+        op(fmt1(offset_line->col + 1));
+    } else {
+        op(":?:?");
     }
 
-    // --- Header ---
+    op(ColRune(config.char_set.rbox) + config.margin_color);
+    op("\n");
+
+    if (!config.compact) {
+        op(Str(" ").repeated(line_no_width + 2));
+        op(ColRune(config.char_set.vbar) + config.margin_color);
+        op("\n");
+    }
+}
+
+void write_report_source_line(
+    MarginContext const&            base,
+    std::optional<LineLabel> const& margin_label) {
+    write_margin(base.clone()
+                     .with_is_line(true)
+                     .with_is_ellipsis(base.is_ellipsis)
+                     .with_draw_labels(true));
+
+    // Lines
+    if (!base.is_ellipsis) {
+        int col = 0;
+        for (ColRune const& c : base.line_text) {
+            Opt<CRw<Label>> highlight = get_highlight(
+                col, base, margin_label);
+
+            ColStyle color = highlight ? highlight->get().color
+                                       : base.config.unimportant_color;
+
+            base.w(ColRune(c.rune, color));
+
+            col++;
+        }
+    }
+}
+
+void write_report_line_annotations(MarginContext base) {
+    auto scope = base.scope("line_annotations");
+    for (int row = 0; row < base.line_labels.size(); ++row) {
+        const auto& line_label = base.line_labels[row];
+
+        if (!base.config.compact) {
+            // Margin alternate
+            write_margin(
+                base.clone().with_draw_labels(true).with_report_row(
+                    {row, false}));
+
+            write_line_label_arrows(
+                base.with_is_ellipsis(base.is_ellipsis),
+                row,
+                base.arrow_len);
+
+            base.w("\n");
+        }
+
+        // Margin
+        write_margin(base.clone()
+                         .with_is_ellipsis(base.is_ellipsis)
+                         .with_report_row({row, true})
+                         .with_draw_labels(true));
+
+        write_lines(
+            base.clone(), base.line, base.arrow_len, line_label, row);
+
+        if (line_label.label.msg) {
+            base.w(" ");
+            base.w(line_label.label.msg.value());
+        }
+        base.w("\n");
+    }
+}
+
+void write_report_group(
+    int                     group_idx,
+    int                     line_no_width,
+    Cache&                  cache,
+    Report const&           report,
+    Vec<SourceGroup> const& groups,
+    Writer&                 op) {
+    SourceGroup const&      group  = groups[group_idx];
+    auto const&             config = report.config;
+    std::shared_ptr<Source> src    = cache.fetch(group.src_id);
+
+    write_report_group_header(
+        config, group_idx, line_no_width, cache, report, op, group);
+
+    // Generate a list of multi-line labels
+    Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
+    Slice<int> line_range = src->get_line_range(CodeSpan{{}, group.span});
+
+    bool is_ellipsis = false;
+    for (int idx = line_range.first; idx <= line_range.last; ++idx) {
+        auto line_opt = src->line(idx);
+        if (!line_opt) { continue; }
+
+        Line const&              line         = line_opt.value();
+        std::optional<LineLabel> margin_label = get_margin_label(
+            line, multi_labels);
+
+        Vec<LineLabel> line_labels //
+            = build_line_labels(
+                config, line, group.labels, margin_label, multi_labels);
+
+        MarginContext base{
+            .w             = op,
+            .config        = config,
+            .multi_labels  = multi_labels,
+            .line_labels   = line_labels,
+            .src           = src,
+            .idx           = idx,
+            .line_no_width = line_no_width,
+            .line          = line,
+            .margin_label  = margin_label,
+            .line_text     = src->get_line_text(line),
+        };
+
+        if (sort_line_labels(base, is_ellipsis, line_labels)) {
+            base.with_is_ellipsis(is_ellipsis);
+            int arrow_len = get_arrow_len(base);
+            base.with_arrow_len(arrow_len);
+            write_report_source_line(base, margin_label);
+            op("\n");
+            write_report_line_annotations(base);
+        }
+    }
+
+    bool is_final_group = group_idx + 1 == groups.size();
+
+    Opt<LineLabel> null_label = std::nullopt;
+    MarginContext  base{
+         .w             = op,
+         .config        = config,
+         .multi_labels  = multi_labels,
+         .line_labels   = {},
+         .src           = src,
+         .idx           = 0,
+         .line_no_width = line_no_width,
+         .draw_labels   = true,
+         .is_line       = false,
+         .is_ellipsis   = false,
+         .report_row    = std::pair{0, false},
+         .line          = Line{},
+         .margin_label  = null_label,
+    };
 
 
+    // Help
+    if (report.help.has_value() && is_final_group) {
+        if (!config.compact) {
+            write_margin(base);
+            op("\n");
+        }
+        write_margin(base);
+        op("Help: ");
+        op(report.help.value());
+        op("\n");
+    }
+
+    // Note
+    if (report.note.has_value() && is_final_group) {
+        if (!config.compact) {
+            write_margin(base);
+            op("\n");
+        }
+        write_margin(base);
+
+        op("Note: ");
+        op(report.note.value());
+        op("\n");
+    }
+
+    // Tail of report
+    if (!config.compact) {
+        if (is_final_group) {
+            op(Str(config.char_set.hbar).repeated(line_no_width + 2));
+            op(config.char_set.rbot);
+            op("\n");
+        } else {
+            op(Str(" ").repeated(line_no_width + 2));
+            op(config.char_set.vbar);
+            op("\n");
+        }
+    }
+}
+
+void write_report_header(Report const& report, Writer& op) {
     ColStyle kind_color;
     Str      kindName;
-    switch (kind) {
+    switch (report.kind) {
         case ReportKind::Error: {
-            kind_color = config.error_color;
+            kind_color = report.config.error_color;
             kindName   = "Error";
             break;
         }
         case ReportKind::Warning: {
-            kind_color = config.warning_color;
+            kind_color = report.config.warning_color;
             kindName   = "Warning";
             break;
         }
         case ReportKind::Advice: {
-            kind_color = config.advice_color;
+            kind_color = report.config.advice_color;
             kindName   = "Advice";
             break;
         }
         case ReportKind::Custom: {
-            kind_color = config.unimportant_color;
+            kind_color = report.config.unimportant_color;
             kindName   = "Custom";
             break;
         }
     }
 
-    if (code.has_value()) {
-        w << ColText(kind_color, ("[" + *code + "] "));
+    if (report.code.has_value()) {
+        op(ColText(kind_color, ("[" + *report.code + "] ")));
     }
 
-    w << ColText(kind_color, kindName) << ": " << msg.value() << "\n";
+    if (report.msg) {
+        op(ColText(kind_color, kindName));
+        op(": ");
+        op(report.msg.value());
+        op("\n");
+    } else {
+        op("\n");
+    }
+}
 
-    auto groups = get_source_groups(&cache);
+void Report::write_for_stream(Cache& cache, ColStream& w) {
+    UnorderedMap<int, int> label_ids;
+    for (auto const& [label_idx, l] : enumerate(labels)) {
+        if (label_ids.contains(l.id)) {
+            throw std::logic_error(
+                fmt("Report labels must have unique IDs: label with index "
+                    "{} has id {} which is a duplicate of label index {}",
+                    label_idx,
+                    l,
+                    label_ids.at(l.id)));
+        }
+
+        label_ids[l.id] = label_idx;
+    }
+
+    w.colored = true;
+    auto op   = Writer{w, &config};
+    write_report_header(*this, op);
+
+    Vec<SourceGroup> groups = get_source_groups(&cache);
 
     // Line number maximum width
     int line_no_width = get_line_no_width(groups, cache);
     // --- Source sections ---
     for (int group_idx = 0; group_idx < groups.size(); ++group_idx) {
-        SourceGroup const& group               = groups[group_idx];
-        auto const& [src_id, Codespan, labels] = group;
 
-        Str src_name = cache.display(src_id).value_or("<unknown>");
+        write_report_group(
+            group_idx, line_no_width, cache, *this, groups, op);
+    }
+}
 
-        std::shared_ptr<Source> src;
-        try {
-            src = cache.fetch(src_id);
-        } catch (const std::exception& e) {
-            std::cerr << "Unable to fetch source " << src_name << ": "
-                      << e.what() << std::endl;
-            continue;
-        }
-
-        w << Str(" ").repeated(line_no_width + 2) //
-          << (group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
-                 + config.margin_color                //
-          << ColRune(draw.hbar) + config.margin_color //
-          << ColRune(draw.lbox) + config.margin_color //
-          << src_name;                                // Source file name
-
-        // File name & reference
-        int location = (src_id == this->location.first)
-                         ? this->location.second
-                         : labels[0].label.span->start();
-
-        auto offset_line = src->get_offset_line(location);
-
-        // Error line and column number in the error message header
-        if (offset_line) {
-            w << ":" << offset_line->idx + 1 << ":"
-              << offset_line->col + 1;
-        } else {
-            w << ":?:?";
-        }
-
-        w << ColRune(draw.rbox) + config.margin_color << "\n";
-
-        if (!config.compact) {
-            w << Str(" ").repeated(line_no_width + 2)
-              << ColRune(draw.vbar) + config.margin_color << "\n";
-        }
-
-
-        // Generate a list of multi-line labels
-        Vec<Label> multi_labels;
-        build_multi_labels(multi_labels, labels);
-
-
-        Slice<int> line_range = src->get_line_range(
-            RangeCodeSpan(Codespan));
-
-        bool is_ellipsis = false;
-        for (int idx = line_range.first; idx <= line_range.last; ++idx) {
-            auto line_opt = src->line(idx);
-            if (!line_opt) { continue; }
-
-
-            Line                     line         = line_opt.value();
-            std::optional<LineLabel> margin_label = get_margin_label(
-                line, multi_labels);
-
-            Vec<LineLabel> line_labels;
-            build_line_labels(
-                line_labels,
-                config,
-                line,
-                labels,
-                margin_label,
-                multi_labels);
-
-
-            MarginContext base{
-                .w             = w,
-                .config        = config,
-                .draw          = draw,
-                .multi_labels  = multi_labels,
-                .line_labels   = line_labels,
-                .src           = src,
-                .idx           = idx,
-                .line_no_width = line_no_width,
-                .line          = line,
-            };
-
-            bool do_skip = sort_line_labels(
-                base, is_ellipsis, line_labels);
-
-            if (do_skip) { continue; }
-
-            // Determine label bounds so we know where to put error
-            // messages
-            int arrow_len = 0;
-            for (const auto& ll : line_labels) {
-                if (ll.multi) {
-                    arrow_len = line.get_len();
-                } else {
-                    arrow_len = std::max(
-                        arrow_len, ll.label.span->end() - line.offset);
-                }
-            }
-
-            arrow_len += config.compact ? 1 : 2;
-
-            // Margin
-            write_margin(base.clone()
-                             .with_is_line(true)
-                             .with_is_ellipsis(is_ellipsis)
-                             .with_draw_labels(true));
-
-            // Line
-            if (!is_ellipsis) {
-                int col = 0;
-                for (char c : line.chars) {
-                    Opt<CRw<Label>> highlight = get_highlight(
-                        col,
-                        multi_labels,
-                        line,
-                        line_labels,
-                        margin_label);
-
-                    ColStyle color = highlight ? highlight->get().color
-                                               : config.unimportant_color;
-
-                    auto [wc, width] = config.char_width(c, col);
-
-                    if (c == ' ' || c == '\t') {
-                        for (int i = 0; i < width; ++i) {
-                            w << ColRune(wc, color);
-                        }
-                    } else {
-                        w << ColRune(wc, color);
-                    }
-
-                    col++;
-                }
-            }
-            w << "\n";
-
-            for (int row = 0; row < line_labels.size(); ++row) {
-                const auto& line_label = line_labels[row];
-
-                if (!config.compact) {
-                    whatever(
-                        base.with_is_ellipsis(is_ellipsis),
-                        row,
-                        arrow_len);
-                }
-
-                // Margin
-                write_margin(base.clone()
-                                 .with_is_ellipsis(is_ellipsis)
-                                 .with_report_row({row, true})
-                                 .with_draw_labels(true));
-
-                write_lines(
-                    base.clone(), line, arrow_len, line_label, row);
-
-                if (line_label.draw_msg) {
-                    w << " " << line_label.label.msg.value();
-                }
-                w << "\n";
-            }
-        }
-
-        bool is_final_group = group_idx + 1 == groups.size();
-
-        MarginContext base{
-            .w             = w,
-            .config        = config,
-            .draw          = draw,
-            .multi_labels  = multi_labels,
-            .line_labels   = {},
-            .src           = src,
-            .idx           = 0,
-            .line_no_width = line_no_width,
-            .draw_labels   = true,
-            .is_line       = false,
-            .is_ellipsis   = false,
-            .report_row    = std::pair{0, false},
-            .line          = Line{},
+Source::Source(const Str& l) : content{l} {
+    int offset = 0;
+    for (std::string const& line : l.split('\n')) {
+        Line l{
+            .offset = offset,
+            .len    = rune_length(line),
         };
 
-
-        // Help
-        if (help.has_value() && is_final_group) {
-            if (!config.compact) {
-                write_margin(base);
-                w << "\n";
-            }
-            write_margin(base);
-            w << "Help"
-              << ": " << help.value() << "\n";
-        }
-
-        // Note
-        if (note.has_value() && is_final_group) {
-            if (!config.compact) {
-                write_margin(base);
-                w << "\n";
-            }
-            write_margin(base);
-
-            w << "Note"
-              << ": " << note.value() << "\n";
-        }
-
-        // Tail of report
-        if (!config.compact) {
-            if (is_final_group) {
-                w << Str(draw.hbar).repeated(line_no_width + 2)
-                  << draw.rbot << "\n";
-            } else {
-                w << Str(" ").repeated(line_no_width + 2) << draw.vbar
-                  << "\n";
-            }
-        }
+        // _dfmt(line, l.len, line.size());
+        offset += l.len + 1;
+        lines.push_back(l);
     }
+    len = offset;
 }
 
 std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
@@ -992,12 +1053,13 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
             lines.end(),
             offset,
             [](const Line& line, int offset) {
-                return line.offset < offset;
+                return line.offset <= offset;
             });
         if (it != lines.begin()) { --it; }
         int         idx  = std::distance(lines.begin(), it);
         const Line& line = lines[idx];
-        CHECK(offset >= line.offset);
+        CHECK(line.offset <= offset)
+            << fmt("line.offset = {} <= offset = {}", line.offset, offset);
         return OffsetLine{std::ref(line), idx, offset - line.offset};
     } else {
         return std::nullopt;
@@ -1006,12 +1068,19 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
 
 Slice<int> Source::get_line_range(const CodeSpan& span) {
     std::optional<OffsetLine> start = get_offset_line(span.start());
-    std::optional<OffsetLine> end   = get_offset_line(span.end());
+    std::optional<OffsetLine> end   = get_offset_line(
+        std::max(span.end(), span.start()));
 
-    if (start && end) {
-        return {start->idx, end->idx};
+    int start_idx = start ? start->idx : 0;
+    int end_idx   = end ? end->idx + 1 : this->lines.high();
+    return slice(start_idx, end_idx);
+}
+
+ColText Source::get_line_text(CR<Line> line) {
+    if (line.len == 0) {
+        return ColText{};
     } else {
-        return {0, lines.size()};
+        return content.at(slice(line.offset, line.offset + line.len - 1));
     }
 }
 

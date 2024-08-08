@@ -1,6 +1,11 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <lexbase/AstDiff.hpp>
 #include <gtest/gtest.h>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <sem/SemOrg.hpp>
+#include <test/org_parse_aux.hpp>
+#include <sem/SemAstDiff.hpp>
 
 using namespace diff;
 
@@ -14,297 +19,327 @@ struct TestNode : SharedPtrApi<TestNode> {
 };
 
 TestNode::Ptr n(
-    int                kind,
     std::string const& val,
+    int                kind,
     Vec<TestNode::Ptr> subnodes = {}) {
     return TestNode::shared(kind, val, subnodes);
 }
 
-using TestSyntaxTree = SyntaxTree<TestNode*, std::string>;
-using TestWalker     = TestSyntaxTree::WalkParameters<TestNode::Ptr>;
-using TestDiff       = ASTDiff<TestNode*, std::string>;
-using TestOptions    = ComparisonOptions<TestNode*, std::string>;
+struct TestNodeStore : NodeStore {
+    TestNode* root;
 
-TestWalker getTestWalker() {
-    return TestWalker{
-        .getSubnodeAt = [](CR<TestNode::Ptr> node, int pos)
-            -> CR<TestNode::Ptr> { return node->subnodes.at(pos); },
-        .getSubnodeNumber = [](CR<TestNode::Ptr> node) -> int {
-            return node->subnodes.size();
-        },
-        .getSubnodeId = [](CR<TestNode::Ptr> node) -> TestNode* {
-            return node.get();
-        },
-    };
-}
+    using value_type = std::string;
+    using node_type  = TestNode;
 
-TestOptions getTestOptions() {
-    return TestOptions{
-        .getNodeValueImpl = [](TestNode* id) -> std::string const& {
-            return id->value;
-        },
-        .getNodeKindImpl = [](TestNode* id) { return id->kind; },
-        .isMatchingAllowedImpl =
-            [](TestNode* id1, TestNode* id2) {
-                return id1->kind == id2->kind;
-            }};
-}
+    TestNodeStore(TestNode* root) : root{root} {}
 
-struct DiffBuilder {
-    SPtr<TestSyntaxTree> srcSyntax;
-    SPtr<TestSyntaxTree> dstSyntax;
-    SPtr<TestDiff>       diff;
-    TestNode::Ptr        src;
-    TestNode::Ptr        dst;
+    std::string const& getNodeValue(NodeStore::Id const& id) {
+        return id.ToPtr<TestNode>()->value;
+    }
 
-    DiffBuilder(
-        TestNode::Ptr      src,
-        TestNode::Ptr      dst,
-        TestOptions const& Options)
-        : src(src), dst(dst) {
-        srcSyntax         = std::make_shared<TestSyntaxTree>(Options);
-        dstSyntax         = std::make_shared<TestSyntaxTree>(Options);
-        TestWalker walker = getTestWalker();
-        srcSyntax->FromNode(src, walker);
-        dstSyntax->FromNode(dst, walker);
-        diff = std::make_shared<TestDiff>(*srcSyntax, *dstSyntax, Options);
+    virtual int getSubnodeCount(const Id& id) override {
+        return id.ToPtr<TestNode>()->subnodes.size();
+    }
+
+    virtual Id getSubnodeAt(const Id& node, int index) override {
+        return NodeStore::Id::FromPtr(
+            node.ToPtr<TestNode>()->subnodes.at(index).get());
+    }
+
+    virtual Id getRoot() override { return NodeStore::Id::FromPtr(root); }
+
+    virtual ASTNodeKind getNodeKind(const Id& node) const override {
+        return node.ToPtr<TestNode>()->kind;
+    }
+
+    Func<ColText(CR<NodeStore::Id>)> getToStr() {
+        return [](CR<NodeStore::Id> arg) -> ColText {
+            return std::format("{}", arg.ToPtr<TestNode>()->value);
+        };
     }
 };
 
-using ChKind = TestDiff::Change::Kind;
+
+struct TestDiffBuilder {
+    SPtr<SyntaxTree>    srcSyntax;
+    SPtr<SyntaxTree>    dstSyntax;
+    SPtr<ASTDiff>       diff;
+    TestNode::Ptr       src;
+    TestNode::Ptr       dst;
+    SPtr<TestNodeStore> srcStore;
+    SPtr<TestNodeStore> dstStore;
+
+    static ComparisonOptions getOptions() {
+        return ComparisonOptions{
+            .getUpdateCost = [](diff::Node const& Src,
+                                diff::Node const& Dst) -> double {
+                return 1;
+            },
+            .areValuesEqual = [](diff::Node const& Src,
+                                 diff::Node const& Dst) -> bool {
+                return Src.getStore<TestNodeStore>()->getNodeValue(
+                           Src.ASTNode)
+                    == Dst.getStore<TestNodeStore>()->getNodeValue(
+                        Dst.ASTNode);
+            },
+            .isMatchingAllowed = [](diff::Node const& Src,
+                                    diff::Node const& Dst) -> bool {
+                return Src.getNodeKind() == Dst.getNodeKind();
+            },
+        };
+    }
+
+
+    TestDiffBuilder(
+        TestNode::Ptr            src,
+        TestNode::Ptr            dst,
+        ComparisonOptions const& Options)
+        : src(src), dst(dst) {
+        srcSyntax = std::make_shared<SyntaxTree>(Options);
+        dstSyntax = std::make_shared<SyntaxTree>(Options);
+        srcStore  = std::make_shared<TestNodeStore>(src.get());
+        dstStore  = std::make_shared<TestNodeStore>(dst.get());
+        srcSyntax->FromNode(srcStore.get());
+        dstSyntax->FromNode(dstStore.get());
+        diff = std::make_shared<ASTDiff>(*srcSyntax, *dstSyntax, Options);
+    }
+};
+
+using ChKind = ASTDiff::Change::Kind;
 
 TEST(AstDiff, BaselineApi) {
     {
-        DiffBuilder builder(n(0, "same"), n(0, "same"), getTestOptions());
-        auto        changes = builder.diff->getAllChanges(false);
+        TestDiffBuilder b(
+            n("same", 0), n("same", 0), TestDiffBuilder::getOptions());
+        auto changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
-        TestDiff::Change ch0 = changes.at(0);
+        ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
-        EXPECT_EQ(ch0.getSrcValue(), std::string("same"));
-        EXPECT_EQ(ch0.getDstValue(), std::string("same"));
-        EXPECT_EQ(ch0.getBaseDstChain().at(0)->value, "same");
-        EXPECT_EQ(ch0.getBaseSrcChain().at(0)->value, "same");
+        EXPECT_EQ(ch0.getSrcValue(b.srcStore.get()), std::string("same"));
+        EXPECT_EQ(ch0.getDstValue(b.dstStore.get()), std::string("same"));
+        EXPECT_EQ(
+            b.dstStore->getNodeValue(ch0.getBaseDstChain().at(0)), "same");
+        EXPECT_EQ(
+            b.srcStore->getNodeValue(ch0.getBaseSrcChain().at(0)), "same");
         auto dstPath = ch0.getDstPath();
         auto srcPath = ch0.getSrcPath();
         EXPECT_TRUE(dstPath.at(0).isRoot());
         EXPECT_TRUE(srcPath.at(0).isRoot());
     }
     {
-        DiffBuilder builder(
-            n(0, "first"), n(0, "second"), getTestOptions());
-        auto changes = builder.diff->getAllChanges(false);
+        TestDiffBuilder b(
+            n("first", 0), n("second", 0), TestDiffBuilder::getOptions());
+        auto changes = b.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
-        TestDiff::Change ch0 = changes.at(0);
+        ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::Update);
-        EXPECT_EQ(ch0.getSrcValue(), "first");
-        EXPECT_EQ(ch0.getDstValue(), "second");
+        EXPECT_EQ(ch0.getSrcValue(b.srcStore.get()), "first");
+        EXPECT_EQ(ch0.getDstValue(b.dstStore.get()), "second");
     }
     {
-        DiffBuilder builder(
-            n(0, "0"), n(0, "0", {n(1, "1")}), getTestOptions());
+        TestDiffBuilder builder(
+            n("0", 0),
+            n("0", 0, {n("1", 1)}),
+            TestDiffBuilder::getOptions());
         auto changes = builder.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 2);
-        TestDiff::Change ch0 = changes.at(0);
+        ASTDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
-        TestDiff::Change ch1 = changes.at(1);
+        ASTDiff::Change ch1 = changes.at(1);
         EXPECT_EQ(ch1.getKind(), ChKind::Insert);
         EXPECT_EQ(ch1.getInsert().to.position, 0);
-        EXPECT_EQ(ch1.getInsert().to.under, NodeId(0));
+        EXPECT_EQ(ch1.getInsert().to.under, NodeIdx(0));
         auto dstPath = ch1.getDstPath();
         EXPECT_EQ(dstPath.size(), 2);
         EXPECT_TRUE(dstPath.at(0).isRoot());
-        EXPECT_EQ(dstPath.at(1).under, NodeId(0));
+        EXPECT_EQ(dstPath.at(1).under, NodeIdx(0));
         EXPECT_EQ(dstPath.at(1).position, 0);
         EXPECT_EQ(
-            builder.dstSyntax->getNodeValue(
-                builder.dstSyntax->getNode(dstPath.back())),
+            builder.srcStore->getNodeValue(
+                builder.dstSyntax->getNode(dstPath.back()).ASTNode),
             "1");
     }
 }
 
 TEST(AstDiff, GreedyTopDown) {
-    auto opts             = getTestOptions();
-    opts.firstPass        = TestOptions::FirstPassKind::Greedy;
+    auto opts             = TestDiffBuilder::getOptions();
+    opts.firstPass        = ComparisonOptions::FirstPassKind::Greedy;
     opts.StopAfterTopDown = true;
     {
-        DiffBuilder builder(n(0, "0"), n(0, "0"), opts);
-        auto        changes = builder.diff->getAllChanges(false);
+        TestDiffBuilder builder(n("0", 0), n("0", 0), opts);
+        auto            changes = builder.diff->getAllChanges(false);
     }
 }
 
 TEST(AstDiff, PointerBasedNodes) {
-    struct RealNode {
-        std::string   value;
-        int           kind;
-        Vec<RealNode> sub;
-
-        using IdT  = RealNode*;
-        using ValT = std::string;
-
-        TreeMirror<IdT, ValT> toMirror() {
-            Vec<TreeMirror<IdT, ValT>> subMirror;
-            for (auto& it : sub) {
-                subMirror.push_back(it.toMirror());
-            }
-            return TreeMirror<IdT, ValT>{this, subMirror};
-        }
-    };
-
-    using IdT  = RealNode::IdT;
-    using ValT = RealNode::ValT;
-
-    Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
-        return std::format("{}", arg);
-    };
-
-    auto src = RealNode{
+    auto src = n(
         "",
         6,
-        {RealNode{
-             "",
-             8,
-             {RealNode{"**", 18},
-              RealNode{"CLI", 39},
-              RealNode{"", 3},
-              RealNode{"", 55, {RealNode{"tools", 69}}},
-              RealNode{"", 3},
-              RealNode{"", 3},
-              RealNode{"", 3},
-              RealNode{"", 94, {RealNode{"", 3}, RealNode{"", 3}}},
-              RealNode{"", 6, {}}}},
-         RealNode{
-             "",
-             55,
-             {RealNode{"Nested", 69},
-              RealNode{" ", 67},
-              RealNode{"content", 69}}}}};
-
-    auto dst = RealNode{
-        "",
-        6,
-        {RealNode{
-            "",
-            8,
-            {RealNode{"**", 18},
-             RealNode{"CLI", 39},
-             RealNode{"", 3},
-             RealNode{"", 55, {RealNode{"tools", 69}}},
-             RealNode{"", 3},
-             RealNode{"", 3},
-             RealNode{"", 3},
-             RealNode{"", 94, {RealNode{"", 3}, RealNode{"", 3}}},
-             RealNode{
-                 "",
+        {
+            n("",
+              8,
+              {n("**", 18),
+               n("CLI", 39),
+               n("", 3),
+               n("", 55, {n("tools", 69)}),
+               n("", 3),
+               n("", 3),
+               n("", 3),
+               n("", 94, {n("", 3), n("", 3)}),
+               n("",
                  6,
-                 {RealNode{
-                     "",
-                     55,
-                     {RealNode{"Nested", 69},
-                      RealNode{" ", 67},
-                      RealNode{"content", 69}}}}}}}}};
+                 {n("",
+                    55,
+                    {n("Nested", 69), n(" ", 67), n("content", 69)})})}),
+        });
 
-    auto Src = src.toMirror();
-    auto Dst = dst.toMirror();
+    auto dst = n(
+        "",
+        6,
+        {n("",
+           8,
+           {n("**", 18),
+            n("CLI", 39),
+            n("", 3),
+            n("", 55, {n("tools", 69)}),
+            n("", 3),
+            n("", 3),
+            n("", 3),
+            n("", 94, {n("", 3), n("", 3)}),
+            n("",
+              6,
+              {n("",
+                 55,
+                 {n("Nested", 69), n(" ", 67), n("content", 69)})})})});
 
-    ComparisonOptions<IdT, ValT> Options{
-        .getNodeValueImpl = [](IdT id) { return id->value; },
-        .getNodeKindImpl  = [](IdT id) { return id->kind; },
-        .isMatchingAllowedImpl =
-            [](IdT id1, IdT id2) { return id1->kind == id2->kind; }};
+    auto SrcStore = std::make_shared<TestNodeStore>(src.get());
+    auto DstStore = std::make_shared<TestNodeStore>(dst.get());
 
-    SyntaxTree<IdT, ValT>::WalkParameters<TreeMirror<IdT, ValT>> walk{
-        .getSubnodeAt     = diff::getSubnodeAtTreeMirror<IdT, ValT>,
-        .getSubnodeNumber = diff::getSubnodeNumberTreeMirror<IdT, ValT>,
-        .getSubnodeId     = diff::getSubnodeIdTreeMirror<IdT, ValT>,
-    };
+    ComparisonOptions Options = TestDiffBuilder::getOptions();
 
-    SyntaxTree<IdT, ValT> SrcTree{Options};
-    SrcTree.FromNode<TreeMirror<IdT, ValT>>(Src, walk);
-    SyntaxTree<IdT, ValT> DstTree{Options};
-    DstTree.FromNode(Dst, walk);
+    SyntaxTree SrcTree{Options};
+    SrcTree.FromNode(SrcStore.get());
+    SyntaxTree DstTree{Options};
+    DstTree.FromNode(DstStore.get());
 
-    ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
+    ASTDiff Diff{SrcTree, DstTree, Options};
 
 
-    std::stringstream os;
-    for (diff::NodeId Dst : DstTree) {
-        diff::NodeId Src = Diff.getMapped(DstTree, Dst);
-        if (Src.isValid()) {
-            os << "Match [\033[33m";
-            printNode(os, SrcTree, Src, toStr);
-            os << "\033[0m] to [\033[33m";
-            printNode(os, DstTree, Dst, toStr);
-            os << "\033[0m] ";
-        } else {
-            os << "Dst to [\033[32m";
-            printNode(os, DstTree, Dst, toStr);
-            os << "\033[0m] ";
-        }
+    ColStream os;
+    printMapping(
+        os,
+        Diff,
+        SrcTree,
+        DstTree,
+        SrcStore->getToStr(),
+        DstStore->getToStr());
 
-        printDstChange(os, Diff, SrcTree, DstTree, Dst, toStr);
-        os << "\n";
-    }
+    writeDebugFile(os.getBuffer().toString(false), "txt");
 }
 
-TEST(AstDiff, PointerBasedNodesWithVariants) {
-    struct RealNode {
-        std::variant<int, double, std::string> value;
-        Vec<RealNode>                          sub;
-    };
 
-    auto src = RealNode{
-        "toplevel", {RealNode{1}, RealNode{1.2}, RealNode{"subnode"}}};
-
-    auto dst = RealNode{
-        "toplevel", {RealNode{22}, RealNode{1.2}, RealNode{"subnode'"}}};
-
-    using IdT  = RealNode*;
-    using ValT = decltype(src.value);
+struct OrgDiffBuilder : OrgNodeDiff {
+    MockFull srcParse;
+    MockFull dstParse;
 
 
-    Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
-        return std::format("{}", arg);
-    };
-
-    auto Src = TreeMirror<IdT, ValT>{
-        &src,
-        {TreeMirror<IdT, ValT>{&src.sub[0]},
-         TreeMirror<IdT, ValT>{&src.sub[1]}}};
-
-    auto Dst = TreeMirror<IdT, ValT>{
-        &dst,
-        {TreeMirror<IdT, ValT>{&dst.sub[0]},
-         TreeMirror<IdT, ValT>{&dst.sub[1]},
-         TreeMirror<IdT, ValT>{&dst.sub[2]}}};
-
-    ComparisonOptions<IdT, ValT> Options{
-        .getNodeValueImpl = [](IdT id) { return id->value; },
-        .getNodeKindImpl  = [](IdT id) { return 0; }};
-
-    SyntaxTree<IdT, ValT>::WalkParameters<TreeMirror<IdT, ValT>> walk{
-        .getSubnodeAt     = diff::getSubnodeAtTreeMirror<IdT, ValT>,
-        .getSubnodeNumber = diff::getSubnodeNumberTreeMirror<IdT, ValT>,
-        .getSubnodeId     = diff::getSubnodeIdTreeMirror<IdT, ValT>,
-    };
-
-    SyntaxTree<IdT, ValT> SrcTree{Options};
-    SrcTree.FromNode<TreeMirror<IdT, ValT>>(Src, walk);
-    SyntaxTree<IdT, ValT> DstTree{Options};
-    DstTree.FromNode(Dst, walk);
-
-    ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
-
-    std::stringstream os;
-    for (diff::NodeId Dst : DstTree) {
-        diff::NodeId Src = Diff.getMapped(DstTree, Dst);
-        if (Src.isValid()) {
-            os << "Match ";
-            printNode(os, SrcTree, Src, toStr);
-            os << " to ";
-            printNode(os, DstTree, Dst, toStr);
-            os << "\n";
-        }
-
-        printDstChange(os, Diff, SrcTree, DstTree, Dst, toStr);
+    sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
+        auto mock = isSrc ? &srcParse : &dstParse;
+        mock->run(text);
+        sem::OrgConverter converter{};
+        return converter.toDocument(OrgAdapter(&mock->nodes, OrgId(0)));
     }
+
+    sem::SemId<sem::Document> setSrc(std::string const& text) {
+        return setOrg(text, true);
+    }
+
+    sem::SemId<sem::Document> setDst(std::string const& text) {
+        return setOrg(text, false);
+    }
+};
+
+TEST(AstDiff, OrgOneWord) {
+    OrgDiffBuilder builder{};
+    auto           Src = builder.setSrc("word");
+    auto           Dst = builder.setDst("word");
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes = builder.diff->getAllChanges();
+    EXPECT_TRUE(changes.empty());
+}
+
+
+TEST(AstDiff, OrgChangedWord) {
+    OrgDiffBuilder builder{};
+    auto           Src = builder.setSrc("word1");
+    auto           Dst = builder.setDst("word2");
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes = builder.diff->getAllChanges();
+    EXPECT_EQ(changes.size(), 1);
+    auto ch0 = changes.at(0);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
+    EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
+}
+
+TEST(AstDiff, OrgChangeNestedWord) {
+    OrgDiffBuilder builder{};
+    auto           Src = builder.setSrc("*word1*");
+    auto           Dst = builder.setDst("*word2*");
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes    = builder.diff->getAllChanges();
+    auto change_fmt = builder.formatDiff();
+    writeDebugFile(
+        change_fmt.toString(false), "txt", true, "OrgChangeNestedWord");
+
+    EXPECT_EQ(changes.size(), 1);
+    auto ch0 = changes.at(0);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
+    EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
+}
+
+TEST(AstDiff, OrgChangeDeeplyNestedWord) {
+    OrgDiffBuilder builder{};
+
+    auto Src = builder.setSrc(R"(
+* Subtree1
+** Subtree2
+*** Subtree3
+
+#+begin_center
+word1
+#+end_center
+)");
+
+    auto Dst = builder.setDst(R"(
+* Subtree1
+** Subtree2
+*** Subtree3
+
+#+begin_center
+word2
+#+end_center
+)");
+
+    builder.setDiffTrees(Src, Dst, builder.getOptions());
+    auto changes    = builder.diff->getAllChanges();
+    auto change_fmt = builder.formatDiff();
+    writeDebugFile(
+        change_fmt.toString(false),
+        "txt",
+        true,
+        "OrgChangeDeeplyNestedWord");
+
+    EXPECT_EQ(changes.size(), 1);
+    auto ch0 = changes.at(0);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
+    EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
 }

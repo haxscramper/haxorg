@@ -79,46 +79,6 @@ SubLexer<OrgTokenKind, OrgFill> subToEol(
     return sub;
 }
 
-Vec<OrgTokenId> strip(
-    OrgLexer&                   lex,
-    const Vec<OrgTokenId>&      tokens,
-    const IntSet<OrgTokenKind>& leading,
-    const IntSet<OrgTokenKind>& trailing,
-    const IntSet<OrgTokenKind>& skipLeading,
-    const IntSet<OrgTokenKind>& skipTrailing) {
-    Vec<OrgTokenId> result;
-
-    auto leftmost  = 0;
-    auto rightmost = tokens.high();
-    while (leftmost <= rightmost
-           && (skipLeading + leading)
-                  .contains(lex.in->at(tokens[leftmost]).kind)) {
-        ++leftmost;
-    }
-
-    while (leftmost <= rightmost
-           && (skipTrailing + trailing)
-                  .contains(lex.in->at(tokens[rightmost]).kind)) {
-        --rightmost;
-    }
-
-    for (const auto [idx, token] : enumerate(tokens)) {
-        if (idx < leftmost) {
-            if ((skipLeading.contains(lex.in->at(token).kind))) {
-                result.push_back(token);
-            }
-        } else if (rightmost < idx) {
-            if (skipTrailing.contains(lex.in->at(token).kind)) {
-                result.push_back(token);
-            }
-        } else {
-            result.push_back(token);
-        }
-    }
-    return result;
-}
-
-
 void OrgParser::parseCSVArguments(OrgLexer& lex) {
     __perf_trace("parseCSVArguments");
     auto __trace = trace(lex);
@@ -199,13 +159,6 @@ void OrgParser::parseCallArguments(OrgLexer& lex) {
     }
 }
 
-OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
-    __perf_trace("parseRawUrl");
-    auto __trace = trace(lex);
-    auto tok     = token(onk::RawLink, pop(lex, otk::RawText));
-    return tok;
-}
-
 
 OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
     __perf_trace("parsePlaceholder");
@@ -216,16 +169,6 @@ OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
     } else {
         return token(onk::Punctuation, pop(lex, lex.kind()));
     }
-}
-
-
-OrgId OrgParser::parseTarget(OrgLexer& lex) {
-    __perf_trace("parseTarget");
-    auto __trace = trace(lex);
-    skip(lex, otk::DoubleAngleBegin);
-    auto tok = token(onk::Target, pop(lex, otk::RawText));
-    skip(lex, otk::DoubleAngleEnd);
-    return tok;
 }
 
 
@@ -872,13 +815,6 @@ OrgId OrgParser::parseFootnote(OrgLexer& lex) {
     }
 }
 
-OrgId OrgParser::parseIdent(OrgLexer& lex) {
-    __perf_trace("parseIdent");
-    auto __trace = trace(lex);
-    auto tok     = token(onk::Ident, pop(lex, otk::Word));
-    return tok;
-}
-
 
 OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
     __perf_trace("parseSrcInline");
@@ -1173,21 +1109,6 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex) {
     end();
     return back();
 }
-
-
-OrgId OrgParser::parseInlineParagraph(OrgLexer& lex) {
-    __perf_trace("parseInlineParagraph");
-    auto __trace = trace(lex);
-    return subParse(Paragraph, lex);
-}
-
-
-OrgId OrgParser::parseTopParagraph(OrgLexer& lex) {
-    __perf_trace("parseTopParagraph");
-    auto __trace = trace(lex);
-    return subParse(Paragraph, lex);
-}
-
 
 OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
     __perf_trace("parseCommandArguments");

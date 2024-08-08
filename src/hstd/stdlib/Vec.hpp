@@ -222,6 +222,18 @@ class Vec : public std::vector<T> {
 
     T const& at(BackwardsIndex idx) const { return this->at(index(idx)); }
 
+    T const& at_or(int idx, T const& fallback) const {
+        if (has(idx)) {
+            return at(idx);
+        } else {
+            return fallback;
+        }
+    }
+
+    T const& at_or(BackwardsIndex idx, T const& fallback) const {
+        return at_or(index(idx), fallback);
+    }
+
     /// \brief Return the mutable reference to element at index, if the
     /// vector does not have enough elements, resize it to fit.
     T& resize_at(int idx) {
