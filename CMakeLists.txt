@@ -115,6 +115,8 @@ add_subdirectory(thirdparty/mp11)
 add_subdirectory(thirdparty/describe)
 add_subdirectory(src/hstd)
 
+add_subdirectory(src/adaptagrams_wrap)
+
 include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)
 include(src/cmake/target_pyhaxorg.cmake)
