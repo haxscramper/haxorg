@@ -71,9 +71,15 @@ target_include_directories(cola_cola PUBLIC ${CAIROMM_INCLUDE_DIRS})
 
 
 add_library(adaptagrams)
+haxorg_target_setup(adaptagrams)
+target_link_libraries(adaptagrams PUBLIC cola_cola hstd absl::log absl::base)
+target_include_directories(adaptagrams PUBLIC "${COLA_DIR}")
+
 glob_add_sources_2_v2(
     TARGET "adaptagrams"
     LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/.*"
     SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
     RECURSE OFF
 )
+
+

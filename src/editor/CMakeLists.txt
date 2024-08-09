@@ -18,11 +18,7 @@ target_link_libraries(
          Qt6::Core
          Qt6::Widgets
          ${CAIROMM_LIBRARIES}
-         cola_cola
-         cola_avoid
-         cola_dialect
-         cola_vpsc
-         cola_topology
+         adaptagrams
      )
 
 target_include_directories(
