@@ -38,4 +38,5 @@ target_link_libraries(
     hstd
     absl::flags
     absl::flags_parse
+    adaptagrams
 )
