@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/wrappers/perfetto_aux.hpp>
+#include <hstd/wrappers/hstd_extra/perfetto_aux.hpp>
 
 // The set of track event categories that the example is using.
 PERFETTO_DEFINE_CATEGORIES(

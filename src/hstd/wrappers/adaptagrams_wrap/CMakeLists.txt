@@ -72,7 +72,16 @@ target_include_directories(cola_cola PUBLIC ${CAIROMM_INCLUDE_DIRS})
 
 add_library(adaptagrams)
 haxorg_target_setup(adaptagrams)
-target_link_libraries(adaptagrams PUBLIC cola_cola hstd absl::log absl::base)
+target_link_libraries(adaptagrams PUBLIC
+    cola_cola
+    cola_avoid
+    cola_dialect
+    cola_topology
+    cola_vpsc
+    hstd
+    absl::log
+    absl::base)
+
 target_include_directories(adaptagrams PUBLIC "${COLA_DIR}")
 
 glob_add_sources_2_v2(

@@ -7,7 +7,7 @@
 #include <QDataStream>
 #include <editor/editor_lib/common/app_utils.hpp>
 
-#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {

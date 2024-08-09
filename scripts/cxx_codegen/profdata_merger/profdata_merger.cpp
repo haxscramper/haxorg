@@ -50,7 +50,7 @@ PERFETTO_DEFINE_CATEGORIES(
 
 #pragma clang diagnostic error "-Wswitch"
 
-#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
 using namespace llvm::coverage;

@@ -1,4 +1,4 @@
-#include <hstd/wrappers/graphviz.hpp>
+#include <hstd/wrappers/hstd_extra/graphviz.hpp>
 #include <filesystem>
 #include <format>
 

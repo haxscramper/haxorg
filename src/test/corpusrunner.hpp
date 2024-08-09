@@ -6,7 +6,7 @@
 #include <string>
 
 #include <test/NodeTest.hpp>
-#include <hstd/wrappers/textlayouter.hpp>
+#include <hstd/wrappers/hstd_extra/textlayouter.hpp>
 
 /// Whole result of the specification test run
 struct TestResult {
