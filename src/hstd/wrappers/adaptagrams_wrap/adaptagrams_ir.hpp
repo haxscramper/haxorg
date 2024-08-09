@@ -88,13 +88,13 @@ struct [[refl]] GraphConstraint {
     /// the layout
     struct [[refl]] Align {
         struct [[refl]] Spec {
-            int         node;                  ///< Rectangle index
-            Opt<double> fixPos = std::nullopt; ///< ??? wtf
-            double      offset = 0.0;          ///< Offset from the axis
+            [[refl]] int         node; ///< Rectangle index
+            [[refl]] Opt<double> fixPos = std::nullopt; ///< ??? wtf
+            [[refl]] double      offset = 0.0; ///< Offset from the axis
         };
 
-        Vec<Spec> nodes;
-        vpsc::Dim dimension; ///< Which axist to align on
+        [[refl]] Vec<Spec> nodes;
+        [[refl]] vpsc::Dim dimension; ///< Which axist to align on
         DESC_FIELDS(Align, (nodes, dimension));
 
         /// \brief Map to cola layout constraint object
@@ -112,11 +112,11 @@ struct [[refl]] GraphConstraint {
     };
 
     struct [[refl]] Separate {
-        Align     left;
-        Align     right;
-        double    separationDistance = 1.0;
-        bool      isExactSeparation  = false;
-        vpsc::Dim dimension; ///< Which axis to partition nodes
+        [[refl]] Align     left;
+        [[refl]] Align     right;
+        [[refl]] double    separationDistance = 1.0;
+        [[refl]] bool      isExactSeparation  = false;
+        [[refl]] vpsc::Dim dimension; ///< Which axis to partition nodes
         DESC_FIELDS(
             Separate,
             (left, right, separationDistance, isExactSeparation));
@@ -138,11 +138,11 @@ struct [[refl]] GraphConstraint {
     };
 
     struct [[refl]] MultiSeparate {
-        Vec<Align>          lines;
-        Vec<Pair<int, int>> alignPairs;
-        vpsc::Dim           dimension;
-        double              separationDistance;
-        bool                isExactSeparation;
+        [[refl]] Vec<Align>          lines;
+        [[refl]] Vec<Pair<int, int>> alignPairs;
+        [[refl]] vpsc::Dim           dimension;
+        [[refl]] double              separationDistance;
+        [[refl]] bool                isExactSeparation;
 
         Vec<Res> toCola() const {
             Vec<Res> result;
@@ -168,15 +168,15 @@ struct [[refl]] GraphConstraint {
     };
 
     struct [[refl]] FixedRelative {
-        Vec<int> nodes;
-        bool     fixedPosition = false;
+        [[refl]] Vec<int> nodes;
+        [[refl]] bool     fixedPosition = false;
         Res toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
     };
 
     struct [[refl]] PageBoundary {
-        GraphRect rect;
-        double    weight = 100.0;
-        Res       toCola() const {
+        [[refl]] GraphRect rect;
+        [[refl]] double    weight = 100.0;
+        Res                toCola() const {
             return std::make_shared<cola::PageBoundaryConstraints>(
                 rect.left,
                 rect.left + rect.width,
@@ -228,7 +228,10 @@ struct [[refl]] GraphConstraint {
 /// Stores a minimum amount of information about the graph properties --
 /// list of edges, shapes of nodes, and some backend-specific parameters.
 struct [[refl]] GraphLayoutIR {
-    using IrEdge = Pair<int, int>;
+    struct [[refl]] IrEdge {
+        [[refl]] int source;
+        [[refl]] int target;
+    };
 
     struct [[refl]] Subgraph {
         Str graphName; ///< Graphviz graph name

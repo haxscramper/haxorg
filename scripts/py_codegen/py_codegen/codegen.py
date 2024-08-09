@@ -264,9 +264,6 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
     res = Py11Module("pyhaxorg")
     b: TextLayout = ast.b
 
-    res.Before.append(ast.Include("pyhaxorg_manual_impl.hpp"))
-    res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
-
     base_map = get_base_map(expanded)
 
     def codegenConstructCallback(value: Any) -> None:
@@ -641,7 +638,30 @@ def gen_adaptagrams_wrappers(
     pyast: pya.ASTBuilder,
     reflection_path: Path,
 ) -> GenFiles:
-    return GenFiles([])
+    tu: ConvTu = conv_proto_file(reflection_path)
+    autogen_structs = gen_pybind11_wrappers(ast, [], tu)
+
+    return GenFiles([
+        GenUnit(
+            GenTu(
+                "{root}/scripts/py_haxorg/py_haxorg/py_adaptagrams.pyi",
+                [GenTuPass(autogen_structs.build_typedef(pyast))],
+                clangFormatGuard=False,
+            )),
+        GenUnit(
+            GenTu(
+                "{root}/src/hstd/wrappers/adaptagrams_py_wrap/adaptagrams_py_wrap.cpp",
+                [
+                    GenTuPass("#undef slots"),
+                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
+                    GenTuInclude("hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp",
+                                 True),
+                    GenTuInclude("pybind11/pybind11.h", True),
+                    GenTuInclude("pybind11/stl.h", True),
+                    GenTuPass(autogen_structs.build_bind(ast)),
+                ],
+            )),
+    ])
 
 
 @beartype
@@ -674,6 +694,8 @@ def gen_pyhaxorg_wrappers(
     org_type_names = [Typ.name for Typ in expanded]
 
     autogen_structs = gen_pybind11_wrappers(ast, expanded, tu)
+    autogen_structs.Before.append(ast.Include("pyhaxorg_manual_impl.hpp"))
+    autogen_structs.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
     return GenFiles([
         GenUnit(

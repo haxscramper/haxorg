@@ -4,7 +4,6 @@
 #include <pybind11/pybind11.h>
 #include <sem/SemOrg.hpp>
 #include <pybind11/stl.h>
-#include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
@@ -53,6 +52,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotation>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotation>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegmentGroup>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
+#include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg");
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument");

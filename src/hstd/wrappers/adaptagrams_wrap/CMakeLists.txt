@@ -64,6 +64,8 @@ add_cola_library(topology)
 add_cola_library(vpsc)
 
 find_package(PkgConfig)
+find_package(PythonLibs 3.12)
+
 pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 
 target_link_libraries(cola_cola PUBLIC ${CAIROMM_LIBRARIES})
@@ -91,4 +93,10 @@ glob_add_sources_2_v2(
     RECURSE OFF
 )
 
+pybind11_add_module(
+    adaptagrams_py
+    "${BASE}/src/hstd/wrappers/adaptagrams_py_wrap/adaptagrams_py_wrap.cpp"
+)
 
+haxorg_target_setup(adaptagrams_py)
+target_link_libraries(adaptagrams_py PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto adaptagrams)
