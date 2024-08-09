@@ -18,6 +18,66 @@
 #include <libdialect/graphs.h>
 
 
+struct GraphPoint {
+    int x;
+    int y;
+    GraphPoint() : x{0}, y{0} {}
+    GraphPoint(int x, int y) : x{x}, y{y} {}
+    DESC_FIELDS(GraphPoint, (x, y));
+};
+
+struct GraphPath {
+    Vec<GraphPoint> points;
+    Opt<GraphPoint> startPoint;
+    Opt<GraphPoint> endPoint;
+    bool            bezier;
+    void point(int x, int y) { points.push_back(GraphPoint(x, y)); }
+    void point(GraphPoint const& p) { points.push_back(p); }
+    DESC_FIELDS(GraphPath, (points, startPoint, endPoint, bezier));
+};
+
+struct GraphSize {
+    int w;
+    int h;
+
+    int  height() const { return h; }
+    int  width() const { return w; }
+    bool operator==(GraphSize const& other) const {
+        return w == other.w && h == other.h;
+    }
+    DESC_FIELDS(GraphSize, (w, h));
+};
+
+struct GraphRect {
+    int       left;
+    int       top;
+    int       width;
+    int       height;
+    GraphSize size() const { return GraphSize(width, height); }
+    GraphRect() : left(0), top(0), width(-1), height(-1) {}
+    GraphRect(int left, int top, int width, int height)
+        : left{left}, top{top}, width{width}, height{height} {}
+
+    void setBottomLeft(int x, int y) {
+        width  = (width >= 0) ? width : left - x;
+        height = (height >= 0) ? height : top - y;
+        left   = x;
+        top    = y - height;
+    }
+
+    void setTopRight(int x, int y) {
+        width  = (width >= 0) ? width : x - left;
+        height = (height >= 0) ? height : y - top;
+        top    = y;
+    }
+
+
+    void setBottomLeft(GraphPoint const& p) { setBottomLeft(p.x, p.y); }
+    void setTopRight(GraphPoint const& p) { setTopRight(p.x, p.y); }
+    DESC_FIELDS(GraphRect, (left, top, width, height));
+};
+
+
 /// \brief IR wrapper for the cola layout constraints
 struct GraphConstraint {
     using Res = SPtr<cola::CompoundConstraint>;
@@ -120,14 +180,14 @@ struct GraphConstraint {
     };
 
     struct PageBoundary {
-        QRect  rect;
-        double weight = 100.0;
-        Res    toCola() const {
+        GraphRect rect;
+        double    weight = 100.0;
+        Res       toCola() const {
             return std::make_shared<cola::PageBoundaryConstraints>(
-                rect.left(),
-                rect.right(),
-                rect.bottom(),
-                rect.top(),
+                rect.left,
+                rect.left + rect.width,
+                rect.top + rect.height,
+                rect.top,
                 weight);
         }
     };
@@ -200,7 +260,7 @@ struct GraphLayoutIR {
     /// \brief Nodes for the graph. Node is identified by the index in the
     /// array of sizes. In the result value each original qsize is mapped
     /// to the rectangle.
-    Vec<QSize> rectangles;
+    Vec<GraphSize> rectangles;
     /// \brief List of source-target pairs. Edge source/target IDs refer to
     /// the size rectangles.
     Vec<IrEdge> edges;
@@ -209,11 +269,11 @@ struct GraphLayoutIR {
     Vec<GraphConstraint> constraints;
     Vec<Subgraph>        subgraphs;
     /// \brief If some edge has a dedicated label of specified size.
-    UnorderedMap<IrEdge, QSize> edgeLabels;
-    double                      width  = 100;
-    double                      height = 100;
+    UnorderedMap<IrEdge, GraphSize> edgeLabels;
+    double                          width  = 100;
+    double                          height = 100;
     /// \brief Graph name. Backend-specific.
-    Str                  graphName      = "G";
+    Str graphName = "G";
 
     /// \brief Which DPI to use when converting to and from graphviz sizes.
     /// Backend-specific, 72 is the default used by graphviz.
@@ -242,9 +302,9 @@ struct GraphLayoutIR {
         /// \brief Sequence of painter paths going from source to target
         /// node. If the node has a label rectangle specified, the paths
         /// are placed in a way to accomodate for the rectangle.
-        Vec<QPainterPath> paths;
+        Vec<GraphPath> paths;
         /// \brief Edge label rectangle
-        Opt<QRect> labelRect;
+        Opt<GraphRect> labelRect;
         DESC_FIELDS(Edge, (paths, labelRect));
     };
 
@@ -254,7 +314,7 @@ struct GraphLayoutIR {
         /// subgraph are stored in a flat layout result.
         struct Subgraph {
             /// \brief Bounding box for the rectangle content
-            QRect         bbox;
+            GraphRect     bbox;
             Vec<Subgraph> subgraphs;
 
             /// \brief Get reference to subgraph specified at path
@@ -272,12 +332,12 @@ struct GraphLayoutIR {
         /// \brief Fixed node layout rectangles with absolute coordinates.
         /// Subgraph nodes are also included. Edge label nodes are not
         /// included.
-        Vec<QRect> fixed;
+        Vec<GraphRect> fixed;
         /// \brief Mapping from the source-target edge pair to the edge
         /// layout spec
         UnorderedMap<IrEdge, Edge> lines;
         /// \brief Bounding box for the whole rectangle
-        QRect bbox;
+        GraphRect bbox;
         /// \brief Top-level list of subgraphs
         Vec<Subgraph> subgraphs;
         /// \brief Flattened list of subgraphs in DFS order with paths
@@ -373,3 +433,7 @@ struct GraphLayoutIR {
 DECL_QDEBUG_FORMATTER(QPainterPath);
 
 Q_DECLARE_REFL_METATYPE(GraphLayoutIR::Edge);
+
+QPainterPath toQPainterPath(GraphPath const& path);
+QPoint       toQPoint(GraphPoint const& point);
+QRect        toQRect(GraphRect const& rect);

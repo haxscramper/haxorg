@@ -128,8 +128,9 @@ struct OrgEdgeItem : public OrgGraphElementItem {
 
     QRectF boundingRect() const override {
         QRectF boundingRect;
-        for (const QPainterPath& path : getEdge().paths) {
-            boundingRect = boundingRect.united(path.boundingRect());
+        for (GraphPath const& path : getEdge().paths) {
+            boundingRect = boundingRect.united(
+                toQPainterPath(path).boundingRect());
         }
         return boundingRect;
     }
@@ -165,15 +166,15 @@ struct OrgEdgeItem : public OrgGraphElementItem {
         QWidget*                        widget) override {
         updateStateFromIndex();
         painter->setPen(QPen(Qt::red, 2));
-        for (QPainterPath const& path : getEdge().paths) {
-            painter->drawPath(path);
+        for (GraphPath const& path : getEdge().paths) {
+            painter->drawPath(toQPainterPath(path));
         }
 
         painter->save();
         {
             painter->setBrush(QBrush{Qt::red});
-            painter->drawPolygon(
-                getArrowHeadPolygon(getEdge().paths.back(), 5.0));
+            painter->drawPolygon(getArrowHeadPolygon(
+                toQPainterPath(getEdge().paths.back()), 5.0));
         }
         painter->restore();
 
@@ -182,14 +183,14 @@ struct OrgEdgeItem : public OrgGraphElementItem {
             {
                 painter->setPen(QPen{Qt::green, 2});
                 painter->setBrush(QBrush{QColor{215, 214, 213}});
-                painter->drawRoundedRect(*rect, 5, 5);
+                painter->drawRoundedRect(toQRect(*rect), 5, 5);
             }
             painter->restore();
 
             painter->save();
             {
                 QString text = qindex_get<QString>(index, Qt::DisplayRole);
-                painter->translate(rect->topLeft());
+                painter->translate(toQRect(*rect).topLeft());
                 toDocument(text)->drawContents(painter);
             }
             painter->restore();

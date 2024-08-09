@@ -17,18 +17,23 @@ endfunction()
 function(glob_add_sources_v2)
   cmake_parse_arguments(ARG "" "RECURSE;TARGET;EXT_GLOB;LS_REGEX" "" "${ARGN}")
   list_filter_files_v2(OUT SRC_FILES GLOB ${ARG_EXT_GLOB} REGEX "${ARG_LS_REGEX}" RECURSE ${ARG_RECURSE})
+  # message(STATUS "TARGET = ${ARG_TARGET} RECURSE = ${ARG_RECURSE} EXT_GLOB = ${ARG_EXT_GLOB} LS_REGEX = ${ARG_LS_REGEX}")
   target_sources("${ARG_TARGET}" PRIVATE "${SRC_FILES}")
 endfunction()
 
 function(glob_add_sources_2_v2)
-  set(ARG_EXTENSIONS "hpp;cpp")
   cmake_parse_arguments(ARG "" "RECURSE;TARGET;LS_REGEX;SEARCH_BASE" "EXTENSIONS" "${ARGN}")
+  if (NOT ARG_EXTENSIONS)
+      set(ARG_EXTENSIONS "hpp;cpp")
+  endif()
+
   if(ARG_RECURSE)
       set(EXT_GLOB_BASE "${ARG_SEARCH_BASE}/**")
   else()
       set(EXT_GLOB_BASE "${ARG_SEARCH_BASE}")
   endif()
 
+  # message(STATUS "ARG_EXTENSIONS = ${ARG_EXTENSIONS} TARGET = ${ARG_TARGET}")
   foreach(EXT IN LISTS ARG_EXTENSIONS)
       glob_add_sources_v2(TARGET "${ARG_TARGET}" EXT_GLOB "${EXT_GLOB_BASE}/*.${EXT}" LS_REGEX "${ARG_LS_REGEX}" RECURSE ${ARG_RECURSE})
   endforeach()
@@ -63,3 +68,12 @@ pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 
 target_link_libraries(cola_cola PUBLIC ${CAIROMM_LIBRARIES})
 target_include_directories(cola_cola PUBLIC ${CAIROMM_INCLUDE_DIRS})
+
+
+add_library(adaptagrams)
+glob_add_sources_2_v2(
+    TARGET "adaptagrams"
+    LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/.*"
+    SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
+    RECURSE OFF
+)

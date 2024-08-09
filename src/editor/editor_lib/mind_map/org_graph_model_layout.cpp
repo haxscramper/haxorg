@@ -23,7 +23,8 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
         if (index.isNode()) {
             nodeToRect[index.getVDesc()] = ir.rectangles.size();
             auto size                    = config.getNodeSize(gi);
-            ir.rectangles.push_back(QSize(size.width(), size.height()));
+            ir.rectangles.push_back(
+                GraphSize(size.width(), size.height()));
         } else {
             auto [source, target] = index.getSourceTarget();
             auto ir_edge          = std::make_pair(
@@ -31,7 +32,9 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
             ir.edges.push_back(ir_edge);
 
             if (auto str = index.getDisplay(); !str.isEmpty()) {
-                ir.edgeLabels[ir_edge] = config.getEdgeLabelSize(gi);
+                auto size              = config.getEdgeLabelSize(gi);
+                ir.edgeLabels[ir_edge] = GraphSize(
+                    size.width(), size.height());
             }
         }
     }
@@ -153,7 +156,7 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
     res.original  = lyt;
     auto conv_lyt = lyt.convert();
 
-    res.bbox = conv_lyt.bbox;
+    res.bbox = toQRect(conv_lyt.bbox);
     // drop all the content from the layout and set the size from the
     // expected computed layout.
     res.data.clear();
@@ -168,7 +171,9 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
         GraphIndex  gi{index};
         if (gi.isNode()) {
             res.data.at(row) = ElementLayout{
-                .data = conv_lyt.fixed.at(nodeToRect.at(gi.getVDesc()))};
+                .data = toQRect(
+                    conv_lyt.fixed.at(nodeToRect.at(gi.getVDesc()))),
+            };
         } else {
             auto [source, target] = gi.getSourceTarget();
             res.data.at(row)      = ElementLayout{conv_lyt.lines.at({
@@ -186,7 +191,7 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
             std::holds_alternative<std::monostate>(res.data.at(row).data));
         res.data.at(row) = ElementLayout{
             .data = Subgraph{
-                .bbox = conv_lyt.getSubgraph(it.value()).bbox,
+                .bbox = toQRect(conv_lyt.getSubgraph(it.value()).bbox),
             }};
     }
 

@@ -9,30 +9,27 @@
 
 /// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
 /// (y down). `height` is the vertical size of the main graph bounding box.
-QPoint toGvPoint(pointf p, int height) {
-    return QPoint(p.x, height - p.y);
+GraphPoint toGvPoint(pointf p, int height) {
+    return GraphPoint(p.x, height - p.y);
 }
 
 /// \brief Get bounding gox for the nested subtraph
-QRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<QRect> bbox) {
-    boxf  rect = g.info()->bb;
-    QRect res{};
-    res.setBottomLeft(toGvPoint(rect.LL, bbox.height()));
-    res.setTopRight(toGvPoint(rect.UR, bbox.height()));
-    Q_ASSERT(res.isValid());
+GraphRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<GraphRect> bbox) {
+    boxf      rect = g.info()->bb;
+    GraphRect res{};
+    res.setBottomLeft(toGvPoint(rect.LL, bbox.height));
+    res.setTopRight(toGvPoint(rect.UR, bbox.height));
     return res;
 }
 
-QRect getGraphBBox(CR<Graphviz::Graph> g) {
+GraphRect getGraphBBox(CR<Graphviz::Graph> g) {
     boxf rect = g.info()->bb;
 
     // +----[UR]
     // |       |
     // [LL]----+
 
-    auto res = QRect(0, 0, rect.UR.x, rect.UR.y);
-
-    Q_ASSERT(res.isValid());
+    auto res = GraphRect(0, 0, rect.UR.x, rect.UR.y);
     return res;
 }
 
@@ -96,18 +93,18 @@ std::string getNodePropertiesAsString(
     return result;
 }
 
-QRect getNodeRectangle(
+GraphRect getNodeRectangle(
     CR<Graphviz::Graph> g,
     CR<Graphviz::Node>  node,
     int                 scaling,
-    CR<QRect>           bbox) {
+    CR<GraphRect>       bbox) {
     double width  = node.info()->width * scaling;
     double height = node.info()->height * scaling;
     double x      = node.info()->coord.x;
-    double y      = bbox.height() - node.info()->coord.y;
+    double y      = bbox.height - node.info()->coord.y;
     int    x1     = std::round(x - width / 2);
     int    y1     = std::round(y - height / 2);
-    auto   result = QRect(
+    auto   result = GraphRect(
         std::round(x1),
         std::round(y1),
         std::round(width),
@@ -116,30 +113,30 @@ QRect getNodeRectangle(
     return result;
 }
 
-QPainterPath getEdgeSpline(
+GraphPath getEdgeSpline(
     CR<Graphviz::Edge> edge,
     int                scaling,
-    CR<QRect>          bbox) {
-    splines*     spl = edge.info()->spl;
-    QPainterPath path;
-    int          height = bbox.height();
+    CR<GraphRect>      bbox) {
+    GraphPath path;
+    splines*  spl = edge.info()->spl;
+    path.bezier   = true;
+    int height    = bbox.height;
     if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
         bezier bez = spl->list[0];
         if (bez.sflag) {
-            path.moveTo(toGvPoint(bez.sp, height));
-            path.lineTo(toGvPoint(bez.list[0], height));
+            path.startPoint = toGvPoint(bez.sp, height);
+            path.point(toGvPoint(bez.list[0], height));
         } else {
-            path.moveTo(toGvPoint(bez.list[0], height));
+            path.point(toGvPoint(bez.list[0], height));
         }
 
         for (int i = 1; i < bez.size; i += 3) {
-            path.cubicTo(
-                toGvPoint(bez.list[i], height),
-                toGvPoint(bez.list[i + 1], height),
-                toGvPoint(bez.list[i + 2], height));
+            path.point(toGvPoint(bez.list[i], height));
+            path.point(toGvPoint(bez.list[i + 1], height));
+            path.point(toGvPoint(bez.list[i + 2], height));
         }
 
-        if (bez.eflag) { path.lineTo(toGvPoint(bez.ep, height)); }
+        if (bez.eflag) { path.point(toGvPoint(bez.ep, height)); }
     }
     return path;
 }
@@ -169,8 +166,8 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     // Add node to a specified subgraph
     auto add_node = [&](Graphviz::Graph& graph,
                         int              index) -> Graphviz::Node {
-        CR<QSize> r    = rectangles.at(index);
-        auto      node = graph.node(fmt1(index));
+        CR<GraphSize> r    = rectangles.at(index);
+        auto          node = graph.node(fmt1(index));
         // default DPI used by graphviz to convert from
         // inches.
         node.setHeight(r.height() / float(graphviz_size_scaling));
@@ -298,7 +295,7 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
         // parts and insert an intermediate node in between, so large
         // labels will not overlap with the graph structure later on.
         if (edgeLabels.contains(e)) {
-            CR<QSize> r = edgeLabels.at(e);
+            CR<GraphSize> r = edgeLabels.at(e);
 
             auto target_graph = //
                 get_subgraph_containers({e.first, e.second}).at(0).second;
@@ -374,16 +371,16 @@ GraphLayoutIR::HolaResult GraphLayoutIR::doHolaLayout() {
 GraphLayoutIR::Result GraphLayoutIR::HolaResult::convert() {
     Result res;
     for (auto const& e : this->edges) {
-        QPainterPath path;
+        GraphPath path;
         for (auto const& p : e.second->getRoutePoints()) {
-            path.lineTo(p.x, p.y);
+            path.point(p.x, p.y);
         }
         res.lines[e.first] = Edge{.paths = {path}};
     }
 
     for (auto const& n : this->nodes) {
         auto b = n->getBoundingBox();
-        res.fixed.push_back(QRect(b.x, b.y, b.w(), b.h()));
+        res.fixed.push_back(GraphRect(b.x, b.y, b.w(), b.h()));
     }
 
     return res;
@@ -501,7 +498,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
     res.bbox = getGraphBBox(graph);
-    Q_ASSERT(res.bbox.size() != QSize(0, 0));
+    Q_ASSERT(res.bbox.size() != GraphSize(0, 0));
 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
@@ -585,7 +582,7 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
     res.fixed            //
         = baseRectangles //
         | rv::transform([](CR<vpsc::Rectangle> r) {
-              return QRect(
+              return GraphRect(
                   r.getMinX(),               // top left x
                   r.getMaxY(),               // top left y
                   r.getMaxX() - r.getMinX(), // width
@@ -595,11 +592,45 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
         | rs::to<Vec>();
 
     for (auto const& edge : edges) {
-        QPainterPath           path;
+        GraphPath              path;
         Avoid::PolyLine const& route = edge.connection->displayRoute();
-        for (auto const& p : route.ps) { path.lineTo(p.x, p.y); }
+        for (auto const& p : route.ps) { path.point(p.x, p.y); }
         res.lines[edge.edge] = Edge{.paths = {path}};
     }
 
     return res;
+}
+
+QPainterPath toQPainterPath(const GraphPath& path) {
+    QPainterPath res;
+    if (path.bezier) {
+        if (path.startPoint) {
+            res.moveTo(toQPoint(*path.startPoint));
+            res.lineTo(toQPoint(path.points.at(1)));
+        } else {
+            res.moveTo(toQPoint(path.points.at(0)));
+        }
+
+        for (int i = 0; i < path.points.size(); i += 3) {
+            res.cubicTo(
+                toQPoint(path.points.at(i)),
+                toQPoint(path.points.at(i + 1)),
+                toQPoint(path.points.at(i + 2)));
+        }
+
+        if (path.endPoint) { res.moveTo(toQPoint(*path.endPoint)); }
+    } else {
+        for (auto const& point : path.points) {
+            res.moveTo(point.x, point.y);
+        }
+    }
+    return res;
+}
+
+QPoint toQPoint(const GraphPoint& point) {
+    return QPoint(point.x, point.y);
+}
+
+QRect toQRect(const GraphRect& rect) {
+    return QRect(rect.left, rect.top, rect.width, rect.height);
 }

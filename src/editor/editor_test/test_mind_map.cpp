@@ -249,7 +249,7 @@ void TestMindMap::testLibcolaRaw2() {
 
 GraphLayoutIR init_graph(
     CVec<Pair<int, int>> edges,
-    QSize                size = QSize(5, 5)) {
+    GraphSize            size = GraphSize(5, 5)) {
     int           max_node = 0;
     GraphLayoutIR ir;
     ir.edges = edges;
@@ -270,10 +270,10 @@ void TestMindMap::testLibcolaIr1() {
     ir.edges.push_back({1, 2});
     ir.edges.push_back({2, 3});
 
-    ir.rectangles.push_back(QSize(5, 5));
-    ir.rectangles.push_back(QSize(5, 5));
-    ir.rectangles.push_back(QSize(5, 5));
-    ir.rectangles.push_back(QSize(5, 5));
+    ir.rectangles.push_back(GraphSize(5, 5));
+    ir.rectangles.push_back(GraphSize(5, 5));
+    ir.rectangles.push_back(GraphSize(5, 5));
+    ir.rectangles.push_back(GraphSize(5, 5));
 
 
     ir.constraints.push_back(C{C::Align{
@@ -303,7 +303,7 @@ void TestMindMap::testLibcolaIr2() {
             {3, 4},
             {4, 5},
         },
-        QSize(60, 60));
+        GraphSize(60, 60));
 
     ir.width  = 400;
     ir.height = 400;
@@ -314,7 +314,7 @@ void TestMindMap::testLibcolaIr2() {
 
     lyt.router->outputInstanceToSVG("/tmp/testLibcolaIr2_router");
     lyt.router->outputDiagramText("/tmp/testLibcolaIr2_router");
-    QVERIFY(!conv.lines.at({0, 1}).paths.at(0).isEmpty());
+    QVERIFY(!toQPainterPath(conv.lines.at({0, 1}).paths.at(0)).isEmpty());
 }
 
 void TestMindMap::testHolaIr1() {
@@ -329,12 +329,12 @@ void TestMindMap::testHolaIr1() {
             {3, 4},
             {4, 5},
         },
-        QSize(60, 60));
+        GraphSize(60, 60));
 
     auto lyt = ir.doHolaLayout();
     writeFile("/tmp/testHolaIr1.svg", lyt.graph->writeSvg());
     auto conv = lyt.convert();
-    QVERIFY(!conv.lines.at({0, 1}).paths.at(0).isEmpty());
+    QVERIFY(!toQPainterPath(conv.lines.at({0, 1}).paths.at(0)).isEmpty());
 }
 
 void TestMindMap::testGraphvizIr1() {
@@ -344,27 +344,27 @@ void TestMindMap::testGraphvizIr1() {
     ir.edges.push_back({1, 2});
     ir.edges.push_back({2, 3});
 
-    ir.rectangles.push_back(QSize(5, 5));
-    ir.rectangles.push_back(QSize(5, 5));
-    ir.rectangles.push_back(QSize(20, 20));
-    ir.rectangles.push_back(QSize(20, 20));
+    ir.rectangles.push_back(GraphSize(5, 5));
+    ir.rectangles.push_back(GraphSize(5, 5));
+    ir.rectangles.push_back(GraphSize(20, 20));
+    ir.rectangles.push_back(GraphSize(20, 20));
     auto lyt = ir.doGraphvizLayout(gvc);
     lyt.writeSvg("/tmp/testGraphvizIr1.svg");
     lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
     auto converted = lyt.convert();
     QCOMPARE_EQ(converted.fixed.size(), 4);
 
-    QCOMPARE_EQ(converted.fixed.at(0).width(), 5);
-    QCOMPARE_EQ(converted.fixed.at(0).height(), 5);
+    QCOMPARE_EQ(converted.fixed.at(0).width, 5);
+    QCOMPARE_EQ(converted.fixed.at(0).height, 5);
 
-    QCOMPARE_EQ(converted.fixed.at(1).width(), 5);
-    QCOMPARE_EQ(converted.fixed.at(1).height(), 5);
+    QCOMPARE_EQ(converted.fixed.at(1).width, 5);
+    QCOMPARE_EQ(converted.fixed.at(1).height, 5);
 
-    QCOMPARE_EQ(converted.fixed.at(2).width(), 20);
-    QCOMPARE_EQ(converted.fixed.at(2).height(), 20);
+    QCOMPARE_EQ(converted.fixed.at(2).width, 20);
+    QCOMPARE_EQ(converted.fixed.at(2).height, 20);
 
-    QCOMPARE_EQ(converted.fixed.at(3).width(), 20);
-    QCOMPARE_EQ(converted.fixed.at(3).height(), 20);
+    QCOMPARE_EQ(converted.fixed.at(3).width, 20);
+    QCOMPARE_EQ(converted.fixed.at(3).height, 20);
 
     QCOMPARE_EQ(converted.lines.size(), 3);
 }
@@ -378,7 +378,7 @@ void TestMindMap::testGraphvizIrClusters() {
     };
 
     for (int i = 0; i <= 10; ++i) {
-        ir.rectangles.push_back(QSize(10, 10));
+        ir.rectangles.push_back(GraphSize(10, 10));
     }
 
     using S = GraphLayoutIR::Subgraph;
@@ -418,8 +418,10 @@ void TestMindMap::testGraphvizIrClusters() {
     QCOMPARE_EQ2(c.subgraphPaths.at(0), Vec<int>{0});
     QCOMPARE_EQ2(c.subgraphPaths.at(1), (Vec<int>{0, 0}));
     QCOMPARE_EQ2(c.subgraphPaths.at(2), (Vec<int>{0, 1}));
-    QVERIFY(c.getSubgraph({0}).bbox.contains(c.getSubgraph({0, 0}).bbox));
-    QVERIFY(c.getSubgraph({0}).bbox.contains(c.getSubgraph({0, 1}).bbox));
+    QVERIFY(toQRect(c.getSubgraph({0}).bbox)
+                .contains(toQRect(c.getSubgraph({0, 0}).bbox)));
+    QVERIFY(toQRect(c.getSubgraph({0}).bbox)
+                .contains(toQRect(c.getSubgraph({0, 1}).bbox)));
 }
 
 void TestMindMap::testGraphConstruction() {
