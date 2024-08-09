@@ -26,6 +26,8 @@ from py_codegen.astbuilder_pybind11 import (
     py_type,
 )
 
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+
 CAT = "codegen"
 
 
@@ -108,8 +110,8 @@ def get_exporter_methods(forward: bool,
                     impl=cond(
                         forward,
                         None,
-                        "auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));\n{}".
-                        format(
+                        "auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));\n{}"
+                        .format(
                             "\n".join([
                                 f"__org_field(res, object, {a.name});" for a in fields
                             ]),),
@@ -634,9 +636,23 @@ def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
 
 
 @beartype
-def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
+def gen_adaptagrams_wrappers(
+    ast: ASTBuilder,
+    pyast: pya.ASTBuilder,
+    reflection_path: Path,
+) -> GenFiles:
+    return GenFiles([])
+
+
+@beartype
+def gen_pyhaxorg_wrappers(
+    ast: ASTBuilder,
+    pyast: pya.ASTBuilder,
+    reflection_path: Path,
+) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
     proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
+    t = ast.b
 
     protobuf = proto.build_protobuf()
     protobuf_writer_declarations, protobuf_writer_implementation = proto.build_protobuf_writer(
@@ -766,21 +782,11 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     ])
 
 
-if __name__ == "__main__":
-    import os
-    import sys
-    from pprint import pprint
-
-    t = TextLayout()
-    builder = ASTBuilder(t)
-    pyast = pya.ASTBuilder(t)
-    description: GenFiles = gen_value(builder,
-                                      pyast,
-                                      reflection_path=os.path.join(
-                                          sys.argv[1], "reflection.pb"))
-    trace_file = open("/tmp/trace.txt", "w")
-    indent = 0
-
+def gen_description_files(
+    description: GenFiles,
+    builder: ASTBuilder,
+    t: TextLayout,
+):
     for tu in description.files:
         for i in range(2):
             if i == 1 and not tu.source:
@@ -791,8 +797,11 @@ if __name__ == "__main__":
             if not define:
                 continue
 
-            path = define.path.format(base=os.path.join(sys.argv[2], "src"),
-                                      root=sys.argv[2])
+            path = define.path.format(
+                base=get_haxorg_repo_root_path().joinpath("src"),
+                root=get_haxorg_repo_root_path(),
+            )
+
             result = builder.TranslationUnit([
                 GenConverter(
                     builder,
@@ -824,3 +833,50 @@ if __name__ == "__main__":
                 with open(path, "w") as out:
                     out.write(newCode)
                 log(CAT).info(f"[red]Wrote[/red] to {define.path}")
+
+
+from py_scriptutils.toml_config_profiler import apply_options, options_from_model, get_context
+import rich_click as click
+
+
+class CodegenOptions(BaseModel):
+    reflection_path: str
+    codegen_task: Literal["pyhaxorg", "adaptagrams"]
+
+
+def codegen_options(f):
+    return apply_options(f, options_from_model(CodegenOptions))
+
+
+@click.command()
+@codegen_options
+@click.pass_context
+def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
+    opts: CodegenOptions = get_context(ctx, CodegenOptions, config=config, kwargs=kwargs)
+
+    impl = None
+    match opts.codegen_task:
+        case "adaptagrams":
+            impl = gen_adaptagrams_wrappers
+
+        case "pyhaxorg":
+            impl = gen_pyhaxorg_wrappers
+
+    t = TextLayout()
+    builder = ASTBuilder(t)
+    pyast = pya.ASTBuilder(t)
+    description: GenFiles = impl(
+        builder,
+        pyast,
+        reflection_path=Path(opts.reflection_path),
+    )
+
+    gen_description_files(
+        description=description,
+        builder=builder,
+        t=t,
+    )
+
+
+if __name__ == "__main__":
+    impl()

@@ -13,16 +13,13 @@ from py_scriptutils.toml_config_profiler import (
     merge_cli_model,
     options_from_model,
     run_config_provider,
+    pack_context,
 )
 from py_scriptutils.tracer import TraceCollector
 from pydantic import BaseModel, Field
 
 
-@beartype
-def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict,
-                 config: Optional[str]):
-    ctx.ensure_object(dict)
-    ctx.obj[name] = get_cli_model(ctx, T, kwargs, config)
+
 
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"

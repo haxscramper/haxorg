@@ -13,74 +13,81 @@
 #include <libdialect/graphs.h>
 #pragma warning(pop)
 
-struct GraphPoint {
-    int x;
-    int y;
+struct [[refl]] GraphPoint {
+    [[refl]] int x;
+    [[refl]] int y;
     GraphPoint() : x{0}, y{0} {}
     GraphPoint(int x, int y) : x{x}, y{y} {}
     DESC_FIELDS(GraphPoint, (x, y));
 };
 
-struct GraphPath {
-    Vec<GraphPoint> points;
-    Opt<GraphPoint> startPoint;
-    Opt<GraphPoint> endPoint;
-    bool            bezier;
-    void point(int x, int y) { points.push_back(GraphPoint(x, y)); }
-    void point(GraphPoint const& p) { points.push_back(p); }
+struct [[refl]] GraphPath {
+    [[refl]] Vec<GraphPoint> points;
+    [[refl]] Opt<GraphPoint> startPoint;
+    [[refl]] Opt<GraphPoint> endPoint;
+    [[refl]] bool            bezier;
+    [[refl]] void            point(int x, int y) {
+        points.push_back(GraphPoint(x, y));
+    }
+    [[refl]] void point(GraphPoint const& p) { points.push_back(p); }
     DESC_FIELDS(GraphPath, (points, startPoint, endPoint, bezier));
 };
 
-struct GraphSize {
-    int w;
-    int h;
+struct [[refl]] GraphSize {
+    [[refl]] int w;
+    [[refl]] int h;
 
-    int  height() const { return h; }
-    int  width() const { return w; }
+    [[refl]] int height() const { return h; }
+    [[refl]] int width() const { return w; }
+
     bool operator==(GraphSize const& other) const {
         return w == other.w && h == other.h;
     }
     DESC_FIELDS(GraphSize, (w, h));
 };
 
-struct GraphRect {
-    int       left;
-    int       top;
-    int       width;
-    int       height;
-    GraphSize size() const { return GraphSize(width, height); }
+struct [[refl]] GraphRect {
+    [[refl]] int       left;
+    [[refl]] int       top;
+    [[refl]] int       width;
+    [[refl]] int       height;
+    [[refl]] GraphSize size() const { return GraphSize(width, height); }
     GraphRect() : left(0), top(0), width(-1), height(-1) {}
     GraphRect(int left, int top, int width, int height)
         : left{left}, top{top}, width{width}, height{height} {}
 
-    void setBottomLeft(int x, int y) {
+    [[refl]] void setBottomLeft(int x, int y) {
         width  = (width >= 0) ? width : left - x;
         height = (height >= 0) ? height : top - y;
         left   = x;
         top    = y - height;
     }
 
-    void setTopRight(int x, int y) {
+    [[refl]] void setTopRight(int x, int y) {
         width  = (width >= 0) ? width : x - left;
         height = (height >= 0) ? height : y - top;
         top    = y;
     }
 
 
-    void setBottomLeft(GraphPoint const& p) { setBottomLeft(p.x, p.y); }
-    void setTopRight(GraphPoint const& p) { setTopRight(p.x, p.y); }
+    [[refl]] void setBottomLeft(GraphPoint const& p) {
+        setBottomLeft(p.x, p.y);
+    }
+    [[refl]] void setTopRight(GraphPoint const& p) {
+        setTopRight(p.x, p.y);
+    }
     DESC_FIELDS(GraphRect, (left, top, width, height));
 };
 
 
 /// \brief IR wrapper for the cola layout constraints
-struct GraphConstraint {
+struct [[refl]] GraphConstraint {
     using Res = SPtr<cola::CompoundConstraint>;
 
     /// \brief Listed nodes must be positioned on the same X/Y dimension in
     /// the layout
-    struct Align {
-        struct Spec {
+    struct [[refl]] Align {
+        struct [[refl]] Spec {
             int         node;                  ///< Rectangle index
             Opt<double> fixPos = std::nullopt; ///< ??? wtf
             double      offset = 0.0;          ///< Offset from the axis
@@ -104,7 +111,7 @@ struct GraphConstraint {
         }
     };
 
-    struct Separate {
+    struct [[refl]] Separate {
         Align     left;
         Align     right;
         double    separationDistance = 1.0;
@@ -130,7 +137,7 @@ struct GraphConstraint {
         }
     };
 
-    struct MultiSeparate {
+    struct [[refl]] MultiSeparate {
         Vec<Align>          lines;
         Vec<Pair<int, int>> alignPairs;
         vpsc::Dim           dimension;
@@ -160,13 +167,13 @@ struct GraphConstraint {
         }
     };
 
-    struct FixedRelative {
+    struct [[refl]] FixedRelative {
         Vec<int> nodes;
         bool     fixedPosition = false;
         Res toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
     };
 
-    struct PageBoundary {
+    struct [[refl]] PageBoundary {
         GraphRect rect;
         double    weight = 100.0;
         Res       toCola() const {
@@ -220,10 +227,10 @@ struct GraphConstraint {
 /// \brief Main store for the graph layout intermediate representation.
 /// Stores a minimum amount of information about the graph properties --
 /// list of edges, shapes of nodes, and some backend-specific parameters.
-struct GraphLayoutIR {
+struct [[refl]] GraphLayoutIR {
     using IrEdge = Pair<int, int>;
 
-    struct Subgraph {
+    struct [[refl]] Subgraph {
         Str graphName; ///< Graphviz graph name
 
         /// \brief Which nodes go directly in this cluster level (subgraphs
@@ -242,31 +249,31 @@ struct GraphLayoutIR {
     /// \brief Nodes for the graph. Node is identified by the index in the
     /// array of sizes. In the result value each original qsize is mapped
     /// to the rectangle.
-    Vec<GraphSize> rectangles;
+    [[refl]] Vec<GraphSize> rectangles;
     /// \brief List of source-target pairs. Edge source/target IDs refer to
     /// the size rectangles.
-    Vec<IrEdge> edges;
+    [[refl]] Vec<IrEdge> edges;
     /// \brief Cola constraints for graph layout. This part is
     /// backend-specific.
-    Vec<GraphConstraint> constraints;
-    Vec<Subgraph>        subgraphs;
+    [[refl]] Vec<GraphConstraint> constraints;
+    [[refl]] Vec<Subgraph>        subgraphs;
     /// \brief If some edge has a dedicated label of specified size.
-    UnorderedMap<IrEdge, GraphSize> edgeLabels;
-    double                          width  = 100;
-    double                          height = 100;
+    [[refl]] UnorderedMap<IrEdge, GraphSize> edgeLabels;
+    [[refl]] double                          width  = 100;
+    [[refl]] double                          height = 100;
     /// \brief Graph name. Backend-specific.
-    Str graphName = "G";
+    [[refl]] Str graphName = "G";
 
     /// \brief Which DPI to use when converting to and from graphviz sizes.
     /// Backend-specific, 72 is the default used by graphviz.
-    int graphviz_size_scaling = 72;
+    [[refl]] int graphviz_size_scaling = 72;
 
     /// \brief validate the edge/rectangle structure for debugging. Throws
     /// assert failure if the structure is incorrect.
-    void validate();
+    [[refl]] void validate();
 
     /// \brief Graph edge layout
-    struct Edge {
+    struct [[refl]] Edge {
         /// \brief Sequence of painter paths going from source to target
         /// node. If the node has a label rectangle specified, the paths
         /// are placed in a way to accomodate for the rectangle.
@@ -277,13 +284,13 @@ struct GraphLayoutIR {
     };
 
     /// \brief Full layout result from the conversion
-    struct Result {
+    struct [[refl]] Result {
         /// \brief Recursive subgraph layout. Nodes and edges inside of the
         /// subgraph are stored in a flat layout result.
-        struct Subgraph {
+        struct [[refl]] Subgraph {
             /// \brief Bounding box for the rectangle content
-            GraphRect     bbox;
-            Vec<Subgraph> subgraphs;
+            [[refl]] GraphRect     bbox;
+            [[refl]] Vec<Subgraph> subgraphs;
 
             /// \brief Get reference to subgraph specified at path
             Subgraph const& getSubgraph(Span<int> path) const {
@@ -300,19 +307,19 @@ struct GraphLayoutIR {
         /// \brief Fixed node layout rectangles with absolute coordinates.
         /// Subgraph nodes are also included. Edge label nodes are not
         /// included.
-        Vec<GraphRect> fixed;
+        [[refl]] Vec<GraphRect> fixed;
         /// \brief Mapping from the source-target edge pair to the edge
         /// layout spec
-        UnorderedMap<IrEdge, Edge> lines;
+        [[refl]] UnorderedMap<IrEdge, Edge> lines;
         /// \brief Bounding box for the whole rectangle
-        GraphRect bbox;
+        [[refl]] GraphRect bbox;
         /// \brief Top-level list of subgraphs
-        Vec<Subgraph> subgraphs;
+        [[refl]] Vec<Subgraph> subgraphs;
         /// \brief Flattened list of subgraphs in DFS order with paths
-        Vec<Vec<int>> subgraphPaths;
+        [[refl]] Vec<Vec<int>> subgraphPaths;
 
         /// \brief Get subgraph at path
-        Subgraph const& getSubgraph(CVec<int> path) {
+        [[refl]] Subgraph const& getSubgraph(CVec<int> path) {
             switch (path.size()) {
                 case 0:
                     throw std::invalid_argument(
@@ -355,14 +362,15 @@ struct GraphLayoutIR {
         Result convert();
     };
 
-    HolaResult doHolaLayout();
+    HolaResult      doHolaLayout();
+    [[refl]] Result doHolaConvert() { return doHolaLayout().convert(); }
 
     /// \brief Backend-specific layout results for cola graph layout
-    struct ColaResult {
+    struct [[refl]] ColaResult {
         Vec<vpsc::Rectangle>  baseRectangles;
         Vec<vpsc::Rectangle*> rectPointers;
 
-        struct EdgeData {
+        struct [[refl]] EdgeData {
             IrEdge                     edge;
             Avoid::ShapeConnectionPin* sourcePin;
             Avoid::ShapeConnectionPin* targetPin;
@@ -382,5 +390,6 @@ struct GraphLayoutIR {
         void writeSvg(CR<Str> path);
     };
 
-    ColaResult doColaLayout();
+    ColaResult      doColaLayout();
+    [[refl]] Result doColaConvert() { return doColaLayout().convert(); }
 };

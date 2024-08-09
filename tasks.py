@@ -773,6 +773,8 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
     else:
         run_command(ctx, tool, [json.dumps(config)])
 
+CODEGEN_TASKS = ["adaptagrams", "pyhaxorg"]
+
 
 @org_task(pre=[python_protobuf_files])
 def update_py_haxorg_reflection(
@@ -782,8 +784,7 @@ def update_py_haxorg_reflection(
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     toolchain_include = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
-    out_file = get_script_root("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
+
 
     with FileOperation.InTmp(
             input=[
@@ -791,38 +792,47 @@ def update_py_haxorg_reflection(
                 for path in ["src"]
                 for glob in ["*.hpp", "*.cppm"]
             ],
-            output=[out_file],
+            output=[get_build_root(f"{task}.pb") for task in CODEGEN_TASKS],
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
         if is_forced(ctx, "update_py_haxorg_reflection") or (
                 op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
-            exitcode, stdout, stderr = run_command(
-                ctx,
-                "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
-                [
-                    "-p",
-                    compile_commands,
-                    "--compilation-database",
-                    compile_commands,
-                    "--toolchain-include",
-                    toolchain_include,
-                    *(["--verbose"] if verbose else []),
-                    "--out",
-                    out_file,
-                    src_file,
-                ],
-                capture=True,
-                allow_fail=True,
-            )
+            for task in CODEGEN_TASKS:
+                out_file = get_build_root(f"{task}.pb")
+                match task:
+                    case "pyhaxorg":
+                        src_file = get_script_root("src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp")
 
-            Path("/tmp/debug_reflection_stdout.txt").write_text(stdout)
-            Path("/tmp/debug_reflection_stderr.txt").write_text(stderr)
+                    case "adaptagrams":
+                        src_file = get_script_root("src/hstd/wrappers/adaptagrams_wrap/adaptagrams_ir_refl_target.cpp")
 
-            if exitcode != 0:
-                log(CAT).error("Reflection tool failed")
-                raise
+                exitcode, stdout, stderr = run_command(
+                    ctx,
+                    "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
+                    [
+                        "-p",
+                        compile_commands,
+                        "--compilation-database",
+                        compile_commands,
+                        "--toolchain-include",
+                        toolchain_include,
+                        *(["--verbose"] if verbose else []),
+                        "--out",
+                        out_file,
+                        src_file,
+                    ],
+                    capture=True,
+                    allow_fail=True,
+                )
 
-            log(CAT).info("Updated reflection")
+                Path(f"/tmp/debug_reflection_{task}_stdout.txt").write_text(stdout)
+                Path(f"/tmp/debug_reflection_{task}_stderr.txt").write_text(stderr)
+
+                if exitcode != 0:
+                    log(CAT).error("Reflection tool failed")
+                    raise
+
+                log(CAT).info("Updated reflection")
 
         else:
             log(CAT).info("Python reflection run not needed " +
@@ -832,7 +842,7 @@ def update_py_haxorg_reflection(
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[
     # cmake_haxorg,
-    update_py_haxorg_reflection
+    # update_py_haxorg_reflection
 ])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
@@ -840,16 +850,20 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     log(CAT).info("Executing haxorg code generation step.")
-    run_command(ctx,
-                "poetry", [
-                    "run",
-                    get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
-                    get_build_root(),
-                    get_script_root(),
-                ],
-                env=get_py_env(ctx))
+    for task in CODEGEN_TASKS:  
+        run_command(
+            ctx,
+            "poetry",
+            [
+                "run",
+                get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
+                "--reflection_path={}".format(get_build_root().joinpath(f"{task}.pb")),
+                f"--codegen_task={task}",
+            ],
+            env=get_py_env(ctx),
+        )
 
-    log(CAT).info("Updated code definitions")
+        log(CAT).info("Updated code definitions")
 
 
 @org_task(pre=[cmake_haxorg, symlink_build])

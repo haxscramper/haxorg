@@ -277,3 +277,14 @@ def make_config_provider(config_file_name: str, with_trace: bool = False):
         return D
 
     return implementation
+
+@beartype
+def pack_context(ctx: click.Context, name: str, T: type, kwargs: dict,
+                 config: Optional[str]):
+    ctx.ensure_object(dict)
+    ctx.obj[name] = get_cli_model(ctx, T, kwargs, config)
+
+@beartype
+def get_context(ctx: click.Context, T: type, kwargs: dict, config: Optional[str]):
+    pack_context(ctx, "tmp", T, kwargs=kwargs, config=config)
+    return ctx.obj["tmp"]
