@@ -650,7 +650,7 @@ def gen_adaptagrams_wrappers(
             )),
         GenUnit(
             GenTu(
-                "{root}/src/hstd/wrappers/adaptagrams_py_wrap/adaptagrams_py_wrap.cpp",
+                "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
                 [
                     GenTuPass("#undef slots"),
                     GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),

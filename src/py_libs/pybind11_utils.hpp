@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pybind11/stl_bind.h>
+
 namespace py = pybind11;
 
 template <typename E>

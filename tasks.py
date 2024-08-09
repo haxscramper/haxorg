@@ -804,7 +804,7 @@ def update_py_haxorg_reflection(
                         src_file = get_script_root("src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp")
 
                     case "adaptagrams":
-                        src_file = get_script_root("src/hstd/wrappers/adaptagrams_wrap/adaptagrams_ir_refl_target.cpp")
+                        src_file = get_script_root("src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
 
                 exitcode, stdout, stderr = run_command(
                     ctx,
