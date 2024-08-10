@@ -13,6 +13,15 @@
 
 
 namespace {
+
+vpsc::Dim toVpsc(GraphDimension dim) {
+    switch (dim) {
+        case GraphDimension::XDIM: return vpsc::Dim::XDIM;
+        case GraphDimension::YDIM: return vpsc::Dim::YDIM;
+        case GraphDimension::UNSET: return vpsc::Dim::UNSET;
+    }
+}
+
 const char* original_subgraph_nodes_prop = "original_nodes";
 const char* original_subgraph_path_prop  = "original_path";
 const char* original_subgraph_index      = "original_index";
@@ -647,4 +656,80 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
     }
 
     return res;
+}
+
+GraphConstraint::Res GraphConstraint::Align::toCola() const {
+    auto result = std::make_shared<cola::AlignmentConstraint>(
+        toVpsc(dimension));
+
+    for (auto const& spec : nodes) {
+        result->addShape(spec.node, spec.offset);
+        if (spec.fixPos) { result->fixPos(*spec.fixPos); }
+    }
+
+    return result;
+}
+
+Vec<GraphConstraint::Res> GraphConstraint::Separate::toCola() const {
+    auto left_constraint  = left.toCola();
+    auto right_constraint = right.toCola();
+    auto result           = std::make_shared<cola::SeparationConstraint>(
+        toVpsc(dimension),
+        dynamic_cast<cola::AlignmentConstraint*>(left_constraint.get()),
+        dynamic_cast<cola::AlignmentConstraint*>(right_constraint.get()),
+        separationDistance,
+        isExactSeparation);
+
+    return {result, left_constraint, right_constraint};
+}
+
+Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
+    Vec<Res> result;
+    for (auto const& line : lines) { result.push_back(line.toCola()); }
+
+    auto sep = std::make_shared<cola::MultiSeparationConstraint>(
+        toVpsc(dimension), separationDistance, isExactSeparation);
+
+    for (auto [pair1, pair2] : alignPairs) {
+        sep->addAlignmentPair(
+            dynamic_cast<cola::AlignmentConstraint*>(
+                result.at(pair1).get()),
+            dynamic_cast<cola::AlignmentConstraint*>(
+                result.at(pair2).get()));
+    }
+
+    result.push_back(sep);
+
+    return result;
+}
+
+Vec<GraphConstraint::Res> GraphConstraint::toCola(
+    const std::vector<vpsc::Rectangle*>& allRects) const {
+    return std::visit(
+        overloaded{
+            [&](FixedRelative const& fixed) -> Vec<Res> {
+                return {fixed.toCola(allRects)};
+            },
+            [&](Align const& align) -> Vec<Res> {
+                return {align.toCola()};
+            },
+            [&](MultiSeparate const& sep) -> Vec<Res> {
+                return sep.toCola();
+            },
+            [&](PageBoundary const& sep) -> Vec<Res> {
+                return {sep.toCola()};
+            },
+            [&](Separate const& sep) -> Vec<Res> { return sep.toCola(); },
+            [&](Empty const& sep) -> Vec<Res> { return {}; },
+        },
+        data);
+}
+
+GraphConstraint::Res GraphConstraint::PageBoundary::toCola() const {
+    return std::make_shared<cola::PageBoundaryConstraints>(
+        rect.left,
+        rect.left + rect.width,
+        rect.top + rect.height,
+        rect.top,
+        weight);
 }

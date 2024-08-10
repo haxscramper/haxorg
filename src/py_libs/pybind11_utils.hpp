@@ -8,8 +8,28 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Pair.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 namespace py = pybind11;
+
+struct PyTypeRegistryGuard {
+    UnorderedSet<Str> py_cxx_map;
+
+    void incl(Str const& name) { py_cxx_map.incl(name); }
+    bool contains(Str const& name) const {
+        return py_cxx_map.contains(name);
+    }
+
+    PyTypeRegistryGuard() {
+        auto const& registered_types = pybind11::detail::get_internals()
+                                           .registered_types_py;
+        for (auto& item : registered_types) {
+            auto type = Str((((PyTypeObject*)item.first)->tp_name));
+            auto name = type.split(".").at(1);
+            py_cxx_map.incl(name);
+        }
+    }
+};
 
 template <typename E>
 class PyEnumIterator {
@@ -34,76 +54,125 @@ class PyEnumIterator {
 };
 
 template <typename E>
-void bind_enum_iterator(py::module& m, const char* PyTypeName) {
-    py::class_<PyEnumIterator<E>>(
-        m, (std::string(PyTypeName) + "EnumIterator").c_str())
-        .def("__iter__", [](PyEnumIterator<E>& self) { return self; })
-        .def("__next__", [](PyEnumIterator<E>& self) {
-            auto current = *self;
-            if (current == value_domain<E>::high()) {
-                throw py::stop_iteration();
-            }
-            ++self;
-            return current;
-        });
+void bind_enum_iterator(
+    py::module&          m,
+    const char*          PyTypeName,
+    PyTypeRegistryGuard& guard) {
+    auto name = std::string(PyTypeName) + "EnumIterator";
+    if (!guard.contains(name)) {
+        guard.incl(name);
+        py::class_<PyEnumIterator<E>>(m, name.c_str())
+            .def("__iter__", [](PyEnumIterator<E>& self) { return self; })
+            .def("__next__", [](PyEnumIterator<E>& self) {
+                auto current = *self;
+                if (current == value_domain<E>::high()) {
+                    throw py::stop_iteration();
+                }
+                ++self;
+                return current;
+            });
+    }
 }
 
 template <typename T>
-void bind_int_set(py::module& m, const char* PyNameType) {
-    py::class_<IntSet<T>>(m, PyNameType)
-        .def(py::init([](py::list list) -> IntSet<T> {
-            IntSet<T> result;
-            for (auto const& it : list) { result.incl(it.cast<T>()); }
+void bind_int_set(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    if (!guard.contains(PyNameType)) {
+        guard.incl(PyNameType);
+        py::class_<IntSet<T>>(m, PyNameType)
+            .def(py::init([](py::list list) -> IntSet<T> {
+                IntSet<T> result;
+                for (auto const& it : list) { result.incl(it.cast<T>()); }
 
-            return result;
-        }));
+                return result;
+            }));
+    }
 }
 
 template <typename T>
-void bind_vector(py::module& m, const char* PyNameType) {
-    py::bind_vector<std::vector<T>>(
-        m, (std::string(PyNameType) + "StdVector").c_str());
-    pybind11::class_<Vec<T>, std::vector<T>>(
-        m, (std::string(PyNameType) + "Vec").c_str())
-        .def(pybind11::init<>())
-        .def(pybind11::init<int, const T&>())
-        .def(pybind11::init<std::initializer_list<T>>())
-        .def(pybind11::init<const Vec<T>&>())
-        .def(py::init([](py::list list) -> Vec<T> {
-            Vec<T> result;
-            for (auto const& it : list) { result.push_back(it.cast<T>()); }
-            return result;
-        }))
-        .def("FromValue", &Vec<T>::FromValue)
-        // .def("append", (void(Vec<T>::*)(const Vec<T>&)) &
-        // Vec<T>::append)
-        ;
+void bind_vector(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+
+    auto base_name = std::string(PyNameType) + "StdVector";
+    auto hstd_name = std::string(PyNameType) + "Vec";
+
+    if (!guard.contains(base_name)) {
+        guard.incl(base_name);
+        py::bind_vector<std::vector<T>>(m, base_name.c_str());
+    }
+
+    if (!guard.contains(hstd_name)) {
+        guard.incl(hstd_name);
+        pybind11::class_<Vec<T>, std::vector<T>>(m, hstd_name.c_str())
+            .def(pybind11::init<>())
+            .def(pybind11::init<int, const T&>())
+            .def(pybind11::init<std::initializer_list<T>>())
+            .def(pybind11::init<const Vec<T>&>())
+            .def(py::init([](py::list list) -> Vec<T> {
+                Vec<T> result;
+                for (auto const& it : list) {
+                    result.push_back(it.cast<T>());
+                }
+                return result;
+            }))
+            .def("FromValue", &Vec<T>::FromValue)
+            // .def("append", (void(Vec<T>::*)(const Vec<T>&)) &
+            // Vec<T>::append)
+            ;
+    }
 }
 
 template <typename K, typename V>
-void bind_unordered_map(py::module& m, const char* PyNameType) {
-    py::bind_map<std::unordered_map<K, V>>(
-        m, (std::string(PyNameType) + "StdUnorderedMap").c_str());
+void bind_unordered_map(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    auto base_name = std::string(PyNameType) + "StdUnorderedMap";
+    auto hstd_name = std::string(PyNameType) + "UnorderedMap";
 
-    pybind11::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
-        m, (std::string(PyNameType) + "UnorderedMap").c_str())
-        .def(pybind11::init<>())
-        .def(pybind11::init<const UnorderedMap<K, V>&>());
+
+    if (!guard.contains(base_name)) {
+        guard.incl(base_name);
+        py::bind_map<std::unordered_map<K, V>>(m, base_name.c_str());
+    }
+
+    if (!guard.contains(hstd_name)) {
+        guard.incl(hstd_name);
+        pybind11::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
+            m, hstd_name.c_str())
+            .def(pybind11::init<>())
+            .def(pybind11::init<const UnorderedMap<K, V>&>());
+    }
 }
 
 template <typename K, typename V>
-void bind_mapping(py::module& m, const char* PyNameType) {
+void bind_mapping(
+    py::module&          m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
     using M = UnorderedMap<K, V>;
 
-    py::bind_map<std::unordered_map<K, V>>(
-        m, (std::string(PyNameType) + "StdUnorderedMap").c_str());
+    auto base_name = std::string(PyNameType) + "StdUnorderedMap";
+    auto hstd_name = std::string(PyNameType) + "UnorderedMap";
 
-    py::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
-        m, (std::string(PyNameType) + "UnorderedMap").c_str())
-        .def(py::init<>())
-        .def("contains", &M::contains)
-        .def("get", &M::get)
-        .def("keys", &M::keys);
+    if (!guard.contains(base_name)) {
+        guard.incl(base_name);
+        py::bind_map<std::unordered_map<K, V>>(m, base_name.c_str());
+    }
+
+    if (!guard.contains(hstd_name)) {
+        guard.incl(hstd_name);
+        py::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
+            m, hstd_name.c_str())
+            .def(py::init<>())
+            .def("contains", &M::contains)
+            .def("get", &M::get)
+            .def("keys", &M::keys);
+    }
 }
 
 template <typename T>

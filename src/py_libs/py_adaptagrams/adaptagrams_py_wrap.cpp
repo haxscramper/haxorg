@@ -34,20 +34,21 @@ PYBIND11_MAKE_OPAQUE(Vec<GraphLayoutIR::Result::Subgraph>)
 PYBIND11_MAKE_OPAQUE(std::vector<Vec<int>>)
 PYBIND11_MAKE_OPAQUE(Vec<Vec<int>>)
 PYBIND11_MODULE(py_adaptagrams, m) {
-  bind_vector<GraphPoint>(m, "VecOfGraphPoint");
-  bind_vector<GraphConstraint::Align::Spec>(m, "VecOfGraphConstraintAlignSpec");
-  bind_vector<GraphConstraint::Align>(m, "VecOfGraphConstraintAlign");
-  bind_vector<std::pair<int, int>>(m, "VecOfstdpairOfintint");
-  bind_vector<int>(m, "VecOfint");
-  bind_vector<GraphSize>(m, "VecOfGraphSize");
-  bind_vector<GraphEdge>(m, "VecOfGraphEdge");
-  bind_vector<GraphConstraint>(m, "VecOfGraphConstraint");
-  bind_vector<GraphLayoutIR::Subgraph>(m, "VecOfGraphLayoutIRSubgraph");
-  bind_unordered_map<GraphEdge, GraphSize>(m, "UnorderedMapOfGraphEdgeGraphSize");
-  bind_vector<GraphRect>(m, "VecOfGraphRect");
-  bind_unordered_map<GraphEdge, GraphLayoutIR::Edge>(m, "UnorderedMapOfGraphEdgeGraphLayoutIREdge");
-  bind_vector<GraphLayoutIR::Result::Subgraph>(m, "VecOfGraphLayoutIRResultSubgraph");
-  bind_vector<Vec<int>>(m, "VecOfVecOfint");
+  PyTypeRegistryGuard type_registry_guard{};
+  bind_vector<GraphPoint>(m, "VecOfGraphPoint", type_registry_guard);
+  bind_vector<GraphConstraint::Align::Spec>(m, "VecOfGraphConstraintAlignSpec", type_registry_guard);
+  bind_vector<GraphConstraint::Align>(m, "VecOfGraphConstraintAlign", type_registry_guard);
+  bind_vector<std::pair<int, int>>(m, "VecOfstdpairOfintint", type_registry_guard);
+  bind_vector<int>(m, "VecOfint", type_registry_guard);
+  bind_vector<GraphSize>(m, "VecOfGraphSize", type_registry_guard);
+  bind_vector<GraphEdge>(m, "VecOfGraphEdge", type_registry_guard);
+  bind_vector<GraphConstraint>(m, "VecOfGraphConstraint", type_registry_guard);
+  bind_vector<GraphLayoutIR::Subgraph>(m, "VecOfGraphLayoutIRSubgraph", type_registry_guard);
+  bind_unordered_map<GraphEdge, GraphSize>(m, "UnorderedMapOfGraphEdgeGraphSize", type_registry_guard);
+  bind_vector<GraphRect>(m, "VecOfGraphRect", type_registry_guard);
+  bind_unordered_map<GraphEdge, GraphLayoutIR::Edge>(m, "UnorderedMapOfGraphEdgeGraphLayoutIREdge", type_registry_guard);
+  bind_vector<GraphLayoutIR::Result::Subgraph>(m, "VecOfGraphLayoutIRResultSubgraph", type_registry_guard);
+  bind_vector<Vec<int>>(m, "VecOfVecOfint", type_registry_guard);
   pybind11::class_<GraphPoint>(m, "GraphPoint")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphPoint {
                         GraphPoint result{};
@@ -150,6 +151,24 @@ PYBIND11_MODULE(py_adaptagrams, m) {
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_static("InitEmptyStatic",
+                static_cast<GraphConstraint(*)(GraphConstraint::Empty const&)>(&GraphConstraint::InitEmpty),
+                pybind11::arg("arg"))
+    .def_static("InitAlignStatic",
+                static_cast<GraphConstraint(*)(GraphConstraint::Align const&)>(&GraphConstraint::InitAlign),
+                pybind11::arg("arg"))
+    .def_static("InitSeparateStatic",
+                static_cast<GraphConstraint(*)(GraphConstraint::Separate const&)>(&GraphConstraint::InitSeparate),
+                pybind11::arg("arg"))
+    .def_static("InitMultiSeparateStatic",
+                static_cast<GraphConstraint(*)(GraphConstraint::MultiSeparate const&)>(&GraphConstraint::InitMultiSeparate),
+                pybind11::arg("arg"))
+    .def_static("InitFixedRelativeStatic",
+                static_cast<GraphConstraint(*)(GraphConstraint::FixedRelative const&)>(&GraphConstraint::InitFixedRelative),
+                pybind11::arg("arg"))
+    .def_static("InitPageBoundaryStatic",
+                static_cast<GraphConstraint(*)(GraphConstraint::PageBoundary const&)>(&GraphConstraint::InitPageBoundary),
+                pybind11::arg("arg"))
     .def("__repr__", [](GraphConstraint _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -219,7 +238,8 @@ PYBIND11_MODULE(py_adaptagrams, m) {
     .def_readwrite("right", &GraphConstraint::Separate::right)
     .def_readwrite("separationDistance", &GraphConstraint::Separate::separationDistance)
     .def_readwrite("isExactSeparation", &GraphConstraint::Separate::isExactSeparation)
-    .def_readwrite("dimension", &GraphConstraint::Separate::dimension, R"RAW(Which axis to partition nodes)RAW")
+    .def_readwrite("dimension", &GraphConstraint::Separate::dimension, R"RAW(Which axis to partition
+nodes)RAW")
     .def("__repr__", [](GraphConstraint::Separate _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -402,6 +422,17 @@ layout spec)RAW")
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
+    ;
+  bind_enum_iterator<GraphDimension>(m, "GraphDimension", type_registry_guard);
+  pybind11::enum_<GraphDimension>(m, "GraphDimension")
+    .value("XDIM", GraphDimension::XDIM)
+    .value("YDIM", GraphDimension::YDIM)
+    .value("UNSET", GraphDimension::UNSET)
+    .def("__iter__", [](GraphDimension _self) -> PyEnumIterator<GraphDimension> {
+                     return
+                     PyEnumIterator<GraphDimension>
+                     ();
+                     })
     ;
 }
 /* clang-format on */

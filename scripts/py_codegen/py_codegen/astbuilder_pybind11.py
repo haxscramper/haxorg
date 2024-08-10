@@ -377,7 +377,11 @@ class Py11Enum:
         return b.stack([
             ast.XCall(
                 "bind_enum_iterator",
-                args=[b.text("m"), ast.Literal(self.PyName)],
+                args=[
+                    b.text("m"),
+                    ast.Literal(self.PyName),
+                    ast.string("type_registry_guard"),
+                ],
                 Params=[self.Enum],
                 Stmt=True,
             ),
@@ -535,27 +539,25 @@ class Py11Class:
         str_type = QualType.ForName("string", Spaces=[QualType.ForName("std")])
         pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("pybind11")])
         self.Methods.append(
-            Py11Method(
-                PyName="__repr__",
-                CxxName="",
-                ResultTy=str_type,
-                Body=[
-                    ast.Return(ast.XCall("py_repr_impl", [ast.string("_self")])),
-                ]))
+            Py11Method(PyName="__repr__",
+                       CxxName="",
+                       ResultTy=str_type,
+                       Body=[
+                           ast.Return(ast.XCall("py_repr_impl", [ast.string("_self")])),
+                       ]))
 
         self.Methods.append(
-            Py11Method(
-                PyName="__getattr__",
-                CxxName="",
-                ResultTy=pyobj_type,
-                Args=[GenTuIdent(str_type, "name")],
-                Body=[
-                    ast.Return(
-                        ast.XCall("py_getattr_impl", [
-                            ast.string("_self"),
-                            ast.string("name"),
-                        ])),
-                ]))
+            Py11Method(PyName="__getattr__",
+                       CxxName="",
+                       ResultTy=pyobj_type,
+                       Args=[GenTuIdent(str_type, "name")],
+                       Body=[
+                           ast.Return(
+                               ast.XCall("py_getattr_impl", [
+                                   ast.string("_self"),
+                                   ast.string("name"),
+                               ])),
+                       ]))
 
         # self.Methods.append(
         #     Py11Method(

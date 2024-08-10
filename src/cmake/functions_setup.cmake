@@ -4,6 +4,7 @@ function(set_target_flags TARGET)
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
+  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Qunused-arguments")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
   # add_target_property(${TARGET} COMPILE_OPTIONS

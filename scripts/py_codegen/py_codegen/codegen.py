@@ -352,7 +352,9 @@ def add_translation_unit(res: Py11Module, ast: ASTBuilder, tu: ConvTu):
 def add_type_specializations(res: Py11Module, ast: ASTBuilder):
 
     opaque_declarations: List[BlockId] = []
-    specialization_calls: List[BlockId] = []
+    specialization_calls: List[BlockId] = [
+        ast.string("PyTypeRegistryGuard type_registry_guard{};")
+    ]
 
     type_use_context: List[Any] = []
     seen_types: Set[QualType] = set()
@@ -406,6 +408,7 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
                             [
                                 ast.string("m"),
                                 ast.StringLiteral(py_type_bind(T).Name),
+                                ast.string("type_registry_guard"),
                             ],
                             Params=T.Parameters,
                             Stmt=True,

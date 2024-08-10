@@ -13,6 +13,15 @@
 #include <libdialect/graphs.h>
 #pragma warning(pop)
 
+enum class [[refl]] GraphDimension
+{
+    XDIM  = 0,
+    YDIM  = 1,
+    UNSET = 2,
+};
+
+BOOST_DESCRIBE_ENUM(GraphDimension, XDIM, YDIM, UNSET)
+
 struct [[refl]] GraphPoint {
     [[refl]] int x;
     [[refl]] int y;
@@ -98,54 +107,32 @@ struct [[refl]] GraphConstraint {
             DESC_FIELDS(Spec, (node, fixPos, offset));
         };
 
-        [[refl]] Vec<Spec> nodes;
-        [[refl]] vpsc::Dim dimension; ///< Which axist to align on
+        [[refl]] Vec<Spec>      nodes;
+        [[refl]] GraphDimension dimension; ///< Which axist to align on
         DESC_FIELDS(Align, (nodes, dimension));
 
         /// \brief Map to cola layout constraint object
-        Res toCola() const {
-            auto result = std::make_shared<cola::AlignmentConstraint>(
-                dimension);
-
-            for (auto const& spec : nodes) {
-                result->addShape(spec.node, spec.offset);
-                if (spec.fixPos) { result->fixPos(*spec.fixPos); }
-            }
-
-            return result;
-        }
+        Res toCola() const;
     };
 
     struct [[refl]] Separate {
-        [[refl]] Align     left;
-        [[refl]] Align     right;
-        [[refl]] double    separationDistance = 1.0;
-        [[refl]] bool      isExactSeparation  = false;
-        [[refl]] vpsc::Dim dimension; ///< Which axis to partition nodes
+        [[refl]] Align          left;
+        [[refl]] Align          right;
+        [[refl]] double         separationDistance = 1.0;
+        [[refl]] bool           isExactSeparation  = false;
+        [[refl]] GraphDimension dimension; ///< Which axis to partition
+                                           ///< nodes
         DESC_FIELDS(
             Separate,
             (left, right, separationDistance, isExactSeparation));
 
-        Vec<Res> toCola() const {
-            auto left_constraint  = left.toCola();
-            auto right_constraint = right.toCola();
-            auto result = std::make_shared<cola::SeparationConstraint>(
-                dimension,
-                dynamic_cast<cola::AlignmentConstraint*>(
-                    left_constraint.get()),
-                dynamic_cast<cola::AlignmentConstraint*>(
-                    right_constraint.get()),
-                separationDistance,
-                isExactSeparation);
-
-            return {result, left_constraint, right_constraint};
-        }
+        Vec<Res> toCola() const;
     };
 
     struct [[refl]] MultiSeparate {
         [[refl]] Vec<Align>          lines;
         [[refl]] Vec<Pair<int, int>> alignPairs;
-        [[refl]] vpsc::Dim           dimension;
+        [[refl]] GraphDimension      dimension;
         [[refl]] double              separationDistance;
         [[refl]] bool                isExactSeparation;
 
@@ -157,27 +144,7 @@ struct [[refl]] GraphConstraint {
              separationDistance,
              isExactSeparation));
 
-        Vec<Res> toCola() const {
-            Vec<Res> result;
-            for (auto const& line : lines) {
-                result.push_back(line.toCola());
-            }
-
-            auto sep = std::make_shared<cola::MultiSeparationConstraint>(
-                dimension, separationDistance, isExactSeparation);
-
-            for (auto [pair1, pair2] : alignPairs) {
-                sep->addAlignmentPair(
-                    dynamic_cast<cola::AlignmentConstraint*>(
-                        result.at(pair1).get()),
-                    dynamic_cast<cola::AlignmentConstraint*>(
-                        result.at(pair2).get()));
-            }
-
-            result.push_back(sep);
-
-            return result;
-        }
+        Vec<Res> toCola() const;
     };
 
     struct [[refl]] FixedRelative {
@@ -192,38 +159,10 @@ struct [[refl]] GraphConstraint {
         [[refl]] double    weight = 100.0;
         DESC_FIELDS(PageBoundary, (rect, weight));
 
-        Res toCola() const {
-            return std::make_shared<cola::PageBoundaryConstraints>(
-                rect.left,
-                rect.left + rect.width,
-                rect.top + rect.height,
-                rect.top,
-                weight);
-        }
+        Res toCola() const;
     };
 
-    Vec<Res> toCola(std::vector<vpsc::Rectangle*> const& allRects) const {
-        return std::visit(
-            overloaded{
-                [&](FixedRelative const& fixed) -> Vec<Res> {
-                    return {fixed.toCola(allRects)};
-                },
-                [&](Align const& align) -> Vec<Res> {
-                    return {align.toCola()};
-                },
-                [&](MultiSeparate const& sep) -> Vec<Res> {
-                    return sep.toCola();
-                },
-                [&](PageBoundary const& sep) -> Vec<Res> {
-                    return {sep.toCola()};
-                },
-                [&](Separate const& sep) -> Vec<Res> {
-                    return sep.toCola();
-                },
-                [&](Empty const& sep) -> Vec<Res> { return {}; },
-            },
-            data);
-    }
+    Vec<Res> toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
 
     SUB_VARIANTS(
         Kind,
@@ -241,6 +180,34 @@ struct [[refl]] GraphConstraint {
 
     GraphConstraint() {}
     GraphConstraint(CR<Data> data) : data(data) {};
+
+    [[refl]] static GraphConstraint InitEmpty(Empty const& arg) {
+        return GraphConstraint(arg);
+    }
+
+    [[refl]] static GraphConstraint InitAlign(Align const& arg) {
+        return GraphConstraint(arg);
+    }
+
+    [[refl]] static GraphConstraint InitSeparate(Separate const& arg) {
+        return GraphConstraint(arg);
+    }
+
+    [[refl]] static GraphConstraint InitMultiSeparate(
+        MultiSeparate const& arg) {
+        return GraphConstraint(arg);
+    }
+
+    [[refl]] static GraphConstraint InitFixedRelative(
+        FixedRelative const& arg) {
+        return GraphConstraint(arg);
+    }
+
+    [[refl]] static GraphConstraint InitPageBoundary(
+        PageBoundary const& arg) {
+        return GraphConstraint(arg);
+    }
+
 
     DESC_FIELDS(GraphConstraint, (data));
 };

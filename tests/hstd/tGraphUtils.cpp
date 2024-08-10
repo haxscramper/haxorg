@@ -217,12 +217,12 @@ TEST(GraphUtils, LibcolaIr1) {
 
     ir.constraints.push_back(C{C::Align{
         .nodes = {C::Align::Spec{.node = 0}, C::Align::Spec{.node = 1}},
-        .dimension = vpsc::XDIM,
+        .dimension = GraphDimension::XDIM,
     }});
 
     ir.constraints.push_back(C{C::Align{
         .nodes = {C::Align::Spec{.node = 1}, C::Align::Spec{.node = 3}},
-        .dimension = vpsc::YDIM,
+        .dimension = GraphDimension::YDIM,
     }});
 
     auto lyt = ir.doColaLayout();
