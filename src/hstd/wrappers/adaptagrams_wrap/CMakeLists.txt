@@ -95,7 +95,7 @@ glob_add_sources_2_v2(
 
 pybind11_add_module(
     adaptagrams_py
-    "${BASE}/src/hstd/wrappers/adaptagrams_py_wrap/adaptagrams_py_wrap.cpp"
+    "${BASE}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp"
 )
 
 haxorg_target_setup(adaptagrams_py)

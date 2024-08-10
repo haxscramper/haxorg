@@ -27,8 +27,12 @@ GraphLayoutProxy::FullLayout GraphLayoutProxy::getFullLayout() const {
                 GraphSize(size.width(), size.height()));
         } else {
             auto [source, target] = index.getSourceTarget();
-            auto ir_edge          = std::make_pair(
-                nodeToRect.at(source), nodeToRect.at(target));
+
+            auto ir_edge = GraphEdge{
+                .source = nodeToRect.at(source),
+                .target = nodeToRect.at(target),
+            };
+
             ir.edges.push_back(ir_edge);
 
             if (auto str = index.getDisplay(); !str.isEmpty()) {

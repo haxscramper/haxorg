@@ -224,14 +224,32 @@ struct [[refl]] GraphConstraint {
     GraphConstraint(CR<Data> data) : data(data) {};
 };
 
+struct [[refl]] GraphEdge {
+    [[refl]] int source;
+    [[refl]] int target;
+
+    bool operator==(GraphEdge const& other) const {
+        return source == other.source && target == other.target;
+    }
+};
+
+
+template <>
+struct std::hash<GraphEdge> {
+    std::size_t operator()(GraphEdge const& it) const noexcept {
+        std::size_t result = 0;
+        boost::hash_combine(result, it.source);
+        boost::hash_combine(result, it.target);
+        return result;
+    }
+};
+
+
 /// \brief Main store for the graph layout intermediate representation.
 /// Stores a minimum amount of information about the graph properties --
 /// list of edges, shapes of nodes, and some backend-specific parameters.
 struct [[refl]] GraphLayoutIR {
-    struct [[refl]] IrEdge {
-        [[refl]] int source;
-        [[refl]] int target;
-    };
+
 
     struct [[refl]] Subgraph {
         Str graphName; ///< Graphviz graph name
@@ -255,15 +273,15 @@ struct [[refl]] GraphLayoutIR {
     [[refl]] Vec<GraphSize> rectangles;
     /// \brief List of source-target pairs. Edge source/target IDs refer to
     /// the size rectangles.
-    [[refl]] Vec<IrEdge> edges;
+    [[refl]] Vec<GraphEdge> edges;
     /// \brief Cola constraints for graph layout. This part is
     /// backend-specific.
     [[refl]] Vec<GraphConstraint> constraints;
     [[refl]] Vec<Subgraph>        subgraphs;
     /// \brief If some edge has a dedicated label of specified size.
-    [[refl]] UnorderedMap<IrEdge, GraphSize> edgeLabels;
-    [[refl]] double                          width  = 100;
-    [[refl]] double                          height = 100;
+    [[refl]] UnorderedMap<GraphEdge, GraphSize> edgeLabels = {};
+    [[refl]] double                             width      = 100;
+    [[refl]] double                             height     = 100;
     /// \brief Graph name. Backend-specific.
     [[refl]] Str graphName = "G";
 
@@ -313,7 +331,7 @@ struct [[refl]] GraphLayoutIR {
         [[refl]] Vec<GraphRect> fixed;
         /// \brief Mapping from the source-target edge pair to the edge
         /// layout spec
-        [[refl]] UnorderedMap<IrEdge, Edge> lines;
+        [[refl]] UnorderedMap<GraphEdge, Edge> lines;
         /// \brief Bounding box for the whole rectangle
         [[refl]] GraphRect bbox;
         /// \brief Top-level list of subgraphs
@@ -358,9 +376,9 @@ struct [[refl]] GraphLayoutIR {
         Graphviz::LayoutType layout = Graphviz::LayoutType::Dot);
 
     struct HolaResult {
-        SPtr<dialect::Graph>                      graph;
-        Vec<SPtr<dialect::Node>>                  nodes;
-        UnorderedMap<IrEdge, SPtr<dialect::Edge>> edges;
+        SPtr<dialect::Graph>                         graph;
+        Vec<SPtr<dialect::Node>>                     nodes;
+        UnorderedMap<GraphEdge, SPtr<dialect::Edge>> edges;
 
         Result convert();
     };
@@ -374,7 +392,7 @@ struct [[refl]] GraphLayoutIR {
         Vec<vpsc::Rectangle*> rectPointers;
 
         struct [[refl]] EdgeData {
-            IrEdge                     edge;
+            GraphEdge                  edge;
             Avoid::ShapeConnectionPin* sourcePin;
             Avoid::ShapeConnectionPin* targetPin;
             Avoid::ConnEnd             sourceEnd;

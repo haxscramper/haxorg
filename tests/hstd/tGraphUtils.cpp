@@ -187,13 +187,13 @@ TEST(GraphUtils, LibcolaRaw2) {
 }
 
 GraphLayoutIR init_graph(
-    CVec<Pair<int, int>> edges,
-    GraphSize            size = GraphSize(5, 5)) {
+    CVec<GraphEdge> edges,
+    GraphSize       size = GraphSize(5, 5)) {
     int           max_node = 0;
     GraphLayoutIR ir;
     ir.edges = edges;
     for (auto const& e : edges) {
-        max_node = std::max(max_node, std::max(e.first, e.second));
+        max_node = std::max(max_node, std::max(e.source, e.target));
     }
 
     for (int i = 0; i <= max_node; ++i) { ir.rectangles.push_back(size); }

@@ -174,7 +174,7 @@ bool GraphLayoutIR::Subgraph::isEmpty() const {
 void GraphLayoutIR::validate() {
     for (auto const& e : enumerator(edges)) {
         for (auto const& it :
-             Vec<int>{e.value().first, e.value().second}) {
+             Vec<int>{e.value().source, e.value().target}) {
             if (!(it < rectangles.size())) {
                 throw std::logic_error(
                     fmt("Edge {} point is out of range for rectangles: "
@@ -191,8 +191,8 @@ void GraphLayoutIR::ColaResult::writeSvg(CR<Str> path) {
     auto e //
         = edges | rv::transform([](EdgeData const& e) -> Pair<uint, uint> {
               return std::make_pair(
-                  static_cast<uint>(e.edge.first),
-                  static_cast<uint>(e.edge.second));
+                  static_cast<uint>(e.edge.source),
+                  static_cast<uint>(e.edge.target));
           })
         | rs::to<std::vector>();
     OutputFile output(rectPointers, e, nullptr, path);
@@ -338,8 +338,8 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
 
     for (auto const& e : this->edges) {
         auto init_targets = [&]<typename T>(T& in) {
-            in.setAttr(source_index_prop, e.first);
-            in.setAttr(target_index_prop, e.second);
+            in.setAttr(source_index_prop, e.source);
+            in.setAttr(target_index_prop, e.target);
         };
 
         // If there is a label size for an edge, split the line in two
@@ -349,12 +349,13 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
             CR<GraphSize> r = edgeLabels.at(e);
 
             auto target_graph = //
-                get_subgraph_containers({e.first, e.second}).at(0).second;
+                get_subgraph_containers({e.source, e.target}).at(0).second;
 
             // TODO choose which graph/subgraph to add node to based on the
             // subgraphs for source/target, implement this as a
             // `getCommonSubgraph(int n1, int n2)`
-            auto node = target_graph.node(fmt("{}_{}", e.first, e.second));
+            auto node = target_graph.node(
+                fmt("{}_{}", e.source, e.target));
 
             node.setHeight(r.height() / float(graphviz_size_scaling));
             node.setWidth(r.width() / float(graphviz_size_scaling));
@@ -368,18 +369,18 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
             // `----<pre_label>----[node]----<post_label>----`
 
             auto pre_label = target_graph.edge(
-                nodes.at(e.first).value(), node);
+                nodes.at(e.source).value(), node);
             init_targets(pre_label);
             pre_label.setAttr("headport", "w"_ss);
 
             auto post_label = target_graph.edge(
-                node, nodes.at(e.second).value());
+                node, nodes.at(e.target).value());
             init_targets(post_label);
             post_label.setAttr("tailport", "e"_ss);
 
         } else {
             auto edge = result.graph.edge(
-                nodes.at(e.first).value(), nodes.at(e.second).value());
+                nodes.at(e.source).value(), nodes.at(e.target).value());
             init_targets(edge);
         }
     }
@@ -402,7 +403,7 @@ GraphLayoutIR::HolaResult GraphLayoutIR::doHolaLayout() {
 
     for (auto const& pair : edges) {
         auto edge = dialect::Edge::allocate(
-            res.nodes.at(pair.first), res.nodes.at(pair.second));
+            res.nodes.at(pair.source), res.nodes.at(pair.target));
         res.graph->addEdge(edge);
         res.edges[pair] = edge;
     }
@@ -464,7 +465,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         ir.rectPointers,
         edges
             | rv::transform([](auto const& i) -> Pair<unsigned, unsigned> {
-                  return std::make_pair<unsigned>(i.first, i.second);
+                  return std::make_pair<unsigned>(i.source, i.target);
               })
             | rs::to<std::vector>(),
         width / 2);
@@ -515,13 +516,13 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     unsigned int connectionPinClassID = 1;
     for (auto const& edge : edges) {
         ++connectionPinClassID;
-        pin_for_shape(shapes.at(edge.first), connectionPinClassID);
-        pin_for_shape(shapes.at(edge.second), connectionPinClassID);
+        pin_for_shape(shapes.at(edge.source), connectionPinClassID);
+        pin_for_shape(shapes.at(edge.target), connectionPinClassID);
 
         Avoid::ConnEnd sourceEnd{
-            shapes.at(edge.first), connectionPinClassID};
+            shapes.at(edge.source), connectionPinClassID};
         Avoid::ConnEnd targetEnd{
-            shapes.at(edge.second), connectionPinClassID};
+            shapes.at(edge.target), connectionPinClassID};
         auto conn = new Avoid::ConnRef{
             ir.router.get(), sourceEnd, targetEnd};
         conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
@@ -552,9 +553,10 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
         // and are instead pushed out to edge properties.
         if (auto prop = node.getAttr<bool>("is_edge_label");
             prop.has_value() && *prop) {
-            auto key = std::make_pair(
-                node.getAttr<int>(source_index_prop).value(),
-                node.getAttr<int>(target_index_prop).value());
+            auto key = GraphEdge{
+                .source = node.getAttr<int>(source_index_prop).value(),
+                .target = node.getAttr<int>(target_index_prop).value(),
+            };
 
             res.lines[key].labelRect = getNodeRectangle(
                 graph, node, graphviz_size_scaling, res.bbox);
@@ -567,9 +569,10 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     });
 
     graph.eachEdge([&](CR<Graphviz::Edge> edge) {
-        auto key = std::make_pair(
-            edge.getAttr<int>(source_index_prop).value(),
-            edge.getAttr<int>(target_index_prop).value());
+        auto key = GraphEdge{
+            .source = edge.getAttr<int>(source_index_prop).value(),
+            .target = edge.getAttr<int>(target_index_prop).value(),
+        };
 
         // Push back instead of assignment to collect all pieces of
         // multi-element edges with label nodes.
