@@ -424,4 +424,7 @@ struct [[refl]] GraphLayoutIR {
 
     ColaResult      doColaLayout();
     [[refl]] Result doColaConvert() { return doColaLayout().convert(); }
+    [[refl]] void   doColaSvgWrite(std::string const& path) {
+        doColaLayout().writeSvg(path);
+    }
 };

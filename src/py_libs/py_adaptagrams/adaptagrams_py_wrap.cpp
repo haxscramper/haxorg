@@ -344,6 +344,9 @@ Backend-specific, 72 is the default used by graphviz.)RAW")
 assert failure if the structure is incorrect.)RAW")
     .def("doHolaConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doHolaConvert))
     .def("doColaConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doColaConvert))
+    .def("doColaSvgWrite",
+         static_cast<void(GraphLayoutIR::*)(std::string const&)>(&GraphLayoutIR::doColaSvgWrite),
+         pybind11::arg("path"))
     .def("__repr__", [](GraphLayoutIR _self) -> std::string {
                      return py_repr_impl(_self);
                      })
