@@ -86,6 +86,7 @@ target_link_libraries(adaptagrams PUBLIC
 
 target_include_directories(adaptagrams PUBLIC "${COLA_DIR}")
 
+
 glob_add_sources_2_v2(
     TARGET "adaptagrams"
     LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/.*"
@@ -94,10 +95,21 @@ glob_add_sources_2_v2(
 )
 
 pybind11_add_module(
-    adaptagrams_py
+    py_adaptagrams
     "${BASE}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp"
     "${BASE}/src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp"
 )
 
-haxorg_target_setup(adaptagrams_py)
-target_link_libraries(adaptagrams_py PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto adaptagrams)
+set_target_properties(py_adaptagrams PROPERTIES
+    OUTPUT_NAME "py_adaptagrams"
+    SUFFIX ".so"
+)
+
+haxorg_target_setup(py_adaptagrams)
+target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto adaptagrams)
+
+set_target_properties(py_adaptagrams PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)

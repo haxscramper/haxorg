@@ -726,7 +726,7 @@ class Py11Module:
 
         return b.stack([
             *self.Before,
-            b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
+            b.text(f"PYBIND11_MODULE({self.PyName}, m) {{"),
             b.indent(2, b.stack(passes)),
             b.text("}"), *self.After
         ])

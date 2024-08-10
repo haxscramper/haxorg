@@ -33,7 +33,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<GraphLayoutIR::Result::Subgraph>)
 PYBIND11_MAKE_OPAQUE(Vec<GraphLayoutIR::Result::Subgraph>)
 PYBIND11_MAKE_OPAQUE(std::vector<Vec<int>>)
 PYBIND11_MAKE_OPAQUE(Vec<Vec<int>>)
-PYBIND11_MODULE(pyhaxorg, m) {
+PYBIND11_MODULE(py_adaptagrams, m) {
   bind_vector<GraphPoint>(m, "VecOfGraphPoint");
   bind_vector<GraphConstraint::Align::Spec>(m, "VecOfGraphConstraintAlignSpec");
   bind_vector<GraphConstraint::Align>(m, "VecOfGraphConstraintAlign");

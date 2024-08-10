@@ -637,7 +637,7 @@ def gen_adaptagrams_wrappers(
     reflection_path: Path,
 ) -> GenFiles:
     tu: ConvTu = conv_proto_file(reflection_path)
-    res = Py11Module("adaptagrams")
+    res = Py11Module("py_adaptagrams")
     add_translation_unit(res, ast=ast, tu=tu)
     add_type_specializations(res, ast=ast)
 
@@ -648,7 +648,7 @@ def gen_adaptagrams_wrappers(
     return GenFiles([
         GenUnit(
             GenTu(
-                "{root}/scripts/py_haxorg/py_haxorg/py_adaptagrams.pyi",
+                "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
                 [GenTuPass(res.build_typedef(pyast))],
                 clangFormatGuard=False,
             )),

@@ -1,0 +1,17 @@
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+import sys
+from typing import TYPE_CHECKING
+import os
+from beartype import beartype
+
+build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
+if str(build_dir) not in sys.path:
+    sys.path.append(str(build_dir))
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from py_wrappers.py_adaptagrams import *
+else:
+    print(os.getenv("LD_PRELOAD"))
+    from py_adaptagrams import *
+

@@ -49,6 +49,7 @@ py_scriptutils = {path = "./scripts/py_scriptutils", develop=true}
 py_codegen = {path = "./scripts/py_codegen", develop=true}
 py_cli = {path = "./scripts/py_cli", develop=true}
 py_repository = {path = "./scripts/py_repository", develop=true}
+py_wrappers = {path = "./scripts/py_wrappers", develop=true}
 cxx_repository = {path = "./scripts/cxx_repository", develop=true}
 
 [tool.poetry.group.dev.dependencies]
