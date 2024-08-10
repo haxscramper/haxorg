@@ -84,6 +84,10 @@ struct [[refl]] GraphRect {
 struct [[refl]] GraphConstraint {
     using Res = SPtr<cola::CompoundConstraint>;
 
+    struct [[refl]] Empty {
+        DESC_FIELDS(Empty, ());
+    };
+
     /// \brief Listed nodes must be positioned on the same X/Y dimension in
     /// the layout
     struct [[refl]] Align {
@@ -91,6 +95,7 @@ struct [[refl]] GraphConstraint {
             [[refl]] int         node; ///< Rectangle index
             [[refl]] Opt<double> fixPos = std::nullopt; ///< ??? wtf
             [[refl]] double      offset = 0.0; ///< Offset from the axis
+            DESC_FIELDS(Spec, (node, fixPos, offset));
         };
 
         [[refl]] Vec<Spec> nodes;
@@ -144,6 +149,14 @@ struct [[refl]] GraphConstraint {
         [[refl]] double              separationDistance;
         [[refl]] bool                isExactSeparation;
 
+        DESC_FIELDS(
+            MultiSeparate,
+            (lines,
+             alignPairs,
+             dimension,
+             separationDistance,
+             isExactSeparation));
+
         Vec<Res> toCola() const {
             Vec<Res> result;
             for (auto const& line : lines) {
@@ -170,13 +183,16 @@ struct [[refl]] GraphConstraint {
     struct [[refl]] FixedRelative {
         [[refl]] Vec<int> nodes;
         [[refl]] bool     fixedPosition = false;
+        DESC_FIELDS(FixedRelative, (nodes, fixedPosition));
         Res toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
     };
 
     struct [[refl]] PageBoundary {
         [[refl]] GraphRect rect;
         [[refl]] double    weight = 100.0;
-        Res                toCola() const {
+        DESC_FIELDS(PageBoundary, (rect, weight));
+
+        Res toCola() const {
             return std::make_shared<cola::PageBoundaryConstraints>(
                 rect.left,
                 rect.left + rect.width,
@@ -204,6 +220,7 @@ struct [[refl]] GraphConstraint {
                 [&](Separate const& sep) -> Vec<Res> {
                     return sep.toCola();
                 },
+                [&](Empty const& sep) -> Vec<Res> { return {}; },
             },
             data);
     }
@@ -213,6 +230,7 @@ struct [[refl]] GraphConstraint {
         Data,
         data,
         getKind,
+        Empty,
         Align,
         FixedRelative,
         Separate,
@@ -221,7 +239,10 @@ struct [[refl]] GraphConstraint {
 
     Data data;
 
+    GraphConstraint() {}
     GraphConstraint(CR<Data> data) : data(data) {};
+
+    DESC_FIELDS(GraphConstraint, (data));
 };
 
 struct [[refl]] GraphEdge {
@@ -231,6 +252,8 @@ struct [[refl]] GraphEdge {
     bool operator==(GraphEdge const& other) const {
         return source == other.source && target == other.target;
     }
+
+    DESC_FIELDS(GraphEdge, (source, target));
 };
 
 
@@ -264,6 +287,10 @@ struct [[refl]] GraphLayoutIR {
         /// content inside.
         Opt<int> internalMargin;
 
+        DESC_FIELDS(
+            Subgraph,
+            (graphName, nodes, subgraphs, internalMargin));
+
         bool isEmpty() const;
     };
 
@@ -284,6 +311,17 @@ struct [[refl]] GraphLayoutIR {
     [[refl]] double                             height     = 100;
     /// \brief Graph name. Backend-specific.
     [[refl]] Str graphName = "G";
+
+    DESC_FIELDS(
+        GraphLayoutIR,
+        (rectangles,
+         edges,
+         constraints,
+         subgraphs,
+         edgeLabels,
+         width,
+         height,
+         graphName));
 
     /// \brief Which DPI to use when converting to and from graphviz sizes.
     /// Backend-specific, 72 is the default used by graphviz.
@@ -313,6 +351,8 @@ struct [[refl]] GraphLayoutIR {
             [[refl]] GraphRect     bbox;
             [[refl]] Vec<Subgraph> subgraphs;
 
+            DESC_FIELDS(Subgraph, (bbox, subgraphs));
+
             /// \brief Get reference to subgraph specified at path
             Subgraph const& getSubgraph(Span<int> path) const {
                 switch (path.size()) {
@@ -339,8 +379,12 @@ struct [[refl]] GraphLayoutIR {
         /// \brief Flattened list of subgraphs in DFS order with paths
         [[refl]] Vec<Vec<int>> subgraphPaths;
 
+        DESC_FIELDS(
+            Result,
+            (fixed, lines, bbox, subgraphs, subgraphPaths));
+
         /// \brief Get subgraph at path
-        [[refl]] Subgraph const& getSubgraph(CVec<int> path) {
+        Subgraph const& getSubgraph(Vec<int> const& path) {
             switch (path.size()) {
                 case 0:
                     throw std::invalid_argument(
@@ -387,11 +431,11 @@ struct [[refl]] GraphLayoutIR {
     [[refl]] Result doHolaConvert() { return doHolaLayout().convert(); }
 
     /// \brief Backend-specific layout results for cola graph layout
-    struct [[refl]] ColaResult {
+    struct ColaResult {
         Vec<vpsc::Rectangle>  baseRectangles;
         Vec<vpsc::Rectangle*> rectPointers;
 
-        struct [[refl]] EdgeData {
+        struct EdgeData {
             GraphEdge                  edge;
             Avoid::ShapeConnectionPin* sourcePin;
             Avoid::ShapeConnectionPin* targetPin;

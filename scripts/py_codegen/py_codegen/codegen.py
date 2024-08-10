@@ -638,8 +638,12 @@ def gen_adaptagrams_wrappers(
 ) -> GenFiles:
     tu: ConvTu = conv_proto_file(reflection_path)
     res = Py11Module("adaptagrams")
-    add_translation_unit(res, tu)
-    add_type_specializations(res, ast)
+    add_translation_unit(res, ast=ast, tu=tu)
+    add_type_specializations(res, ast=ast)
+
+    with open("/tmp/adaptagrams_reflection.json", "w") as file:
+        log(CAT).debug(f"Debug reflection data to {file.name}")
+        file.write(open_proto_file(reflection_path).to_json(2))
 
     return GenFiles([
         GenUnit(
@@ -656,6 +660,7 @@ def gen_adaptagrams_wrappers(
                     GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
                     GenTuInclude("hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp",
                                  True),
+                    GenTuInclude("py_libs/pybind11_utils.hpp", True),
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("pybind11/stl.h", True),
                     GenTuPass(res.build_bind(ast)),

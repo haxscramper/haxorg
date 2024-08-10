@@ -1,6 +1,13 @@
 #pragma once
 
 #include <pybind11/stl_bind.h>
+#include <hstd/stdlib/Set.hpp>
+#include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/IntSet.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Pair.hpp>
 
 namespace py = pybind11;
 
