@@ -3,6 +3,7 @@ import sys
 from typing import TYPE_CHECKING
 import os
 from beartype import beartype
+from beartype.typing import Optional, List
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
 if str(build_dir) not in sys.path:
@@ -22,7 +23,27 @@ class GraphLayout():
     def __init__(self) -> None:
         self.ir = GraphLayoutIR()
 
-    def alignDim(self, source: int, target: int, dimension: GraphDimension):
+    def alignSpec(self,
+                  node: int,
+                  fixPos: Optional[float] = None,
+                  offset: float = 0.0) -> GraphConstraintAlignSpec:
+        return GraphConstraintAlignSpec(node=node, fixPos=fixPos, offset=offset)
+
+    def alignDimN(self, specs: List[GraphConstraintAlignSpec], dimension: GraphDimension):
+        self.ir.constraints.append(
+            GraphConstraint.InitAlignStatic(
+                GraphConstraintAlign(
+                    nodes=specs,
+                    dimension=dimension,
+                )))
+
+    def alignXDimN(self, specs: List[GraphConstraintAlignSpec]):
+        self.alignDimN(specs, GraphDimension.XDIM)
+
+    def alignYDimN(self, specs: List[GraphConstraintAlignSpec]):
+        self.alignDimN(specs, GraphDimension.YDIM)
+
+    def alignDim2(self, source: int, target: int, dimension: GraphDimension):
         self.ir.constraints.append(
             GraphConstraint.InitAlignStatic(
                 GraphConstraintAlign(
@@ -33,11 +54,11 @@ class GraphLayout():
                     dimension=dimension,
                 )))
 
-    def alignXDim(self, source: int, target: int):
-        self.alignDim(source, target, dimension=GraphDimension.XDIM)
+    def alignXDim2(self, source: int, target: int):
+        self.alignDim2(source, target, dimension=GraphDimension.XDIM)
 
-    def alignYDim(self, source: int, target: int):
-        self.alignDim(source, target, dimension=GraphDimension.YDIM)
+    def alignYDim2(self, source: int, target: int):
+        self.alignDim2(source, target, dimension=GraphDimension.YDIM)
 
     def edge(self, source: int, target: int):
         self.ir.edges.append(GraphEdge(source=source, target=target))
