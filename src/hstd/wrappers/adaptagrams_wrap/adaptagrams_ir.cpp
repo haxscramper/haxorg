@@ -646,33 +646,61 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
         | rv::transform([](CR<vpsc::Rectangle> r) {
               return GraphRect(
                   r.getMinX(),               // top left x
-                  r.getMaxY(),               // top left y
+                  r.getMinY(),               // top left y
                   r.getMaxX() - r.getMinX(), // width
                   r.getMaxY() - r.getMinY()  // height
               );
           })
         | rs::to<Vec>();
 
+    double x_min = std::numeric_limits<double>::max();
+    double x_max = std::numeric_limits<double>::min();
+    double y_min = std::numeric_limits<double>::max();
+    double y_max = std::numeric_limits<double>::min();
+
+    auto register_point = [&](double x, double y) {
+        x_min = std::min(x_min, x);
+        x_max = std::max(x_max, x);
+        y_min = std::min(y_min, y);
+        y_max = std::max(y_max, y);
+    };
+
     res.bbox.height = 0;
     res.bbox.width  = 0;
     for (auto const& rect : res.fixed) {
-        GraphPoint upperLeft{rect.left, rect.top};
-        GraphPoint lowerRight{
-            rect.left + rect.width, rect.top + rect.height};
+        register_point(rect.left, rect.top);
+        register_point(rect.left + rect.width, rect.top + rect.height);
+    }
 
-        res.bbox.extend(upperLeft);
-        res.bbox.extend(lowerRight);
+    for (auto const& edge : edges) {
+        Avoid::PolyLine const& route = edge.connection->displayRoute();
+        for (auto const& p : route.ps) { register_point(p.x, p.y); }
+    }
+
+    res.bbox.left   = x_min;
+    res.bbox.top    = y_min;
+    res.bbox.width  = x_max - x_min;
+    res.bbox.height = y_max - y_min;
+    double x_offset = -res.bbox.left;
+    double y_offset = -res.bbox.top;
+
+    for (auto& rect : res.fixed) {
+        rect.left += x_offset;
+        rect.top += y_offset;
+        _dfmt(rect);
     }
 
     for (auto const& edge : edges) {
         GraphPath              path;
         Avoid::PolyLine const& route = edge.connection->displayRoute();
         for (auto const& p : route.ps) {
-            path.point(p.x, p.y);
-            res.bbox.extend(GraphPoint{p.x, p.y});
+            path.point(p.x + x_offset, p.y + y_offset);
         }
         res.lines[edge.edge] = Edge{.paths = {path}};
     }
+
+    res.bbox.left += x_offset;
+    res.bbox.top += y_offset;
 
     return res;
 }

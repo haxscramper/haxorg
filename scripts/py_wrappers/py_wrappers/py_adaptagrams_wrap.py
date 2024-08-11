@@ -133,10 +133,7 @@ class svg_path(tags.html_tag):
 
 @beartype
 def toSvg(res: GraphLayoutIRResult) -> svg:
-    r = 10
-    x_offset = -res.bbox.left
-    y_offset = -res.bbox.top
-
+    r = 0
     result = svg(
         width=res.bbox.width + r,
         height=res.bbox.height + r,
@@ -149,32 +146,32 @@ def toSvg(res: GraphLayoutIRResult) -> svg:
     for rect_idx, rect in enumerate(res.fixed):
         result.add(
             svg_rect(
-                x=round(rect.left + x_offset, ndigits=3),
-                y=round(rect.top + y_offset - rect.height, ndigits=3),
+                x=str(round(rect.left, ndigits=3)),
+                y=str(round(rect.top, ndigits=3)),
                 width=round(rect.width, ndigits=3),
                 height=round(rect.height, ndigits=3),
                 fill="none",
                 stroke="black",
                 stroke_width=2,
-                rect_idx=rect_idx,
+                rect_idx=str(rect_idx),
             ))
 
     for line_idx, line in enumerate(res.lines.values()):
         cmd = svg_path_cmd()
         for it in line.paths:
-            cmd.move_to(it.points[0].x + x_offset, it.points[0].y + y_offset)
+            cmd.move_to(it.points[0].x, it.points[0].y)
             for point in it.points[1:]:
-                cmd.line_to(point.x + x_offset, point.y + y_offset)
+                cmd.line_to(point.x, point.y)
 
             # cmd.close_path()
-            # cmd.move_to(it.points[-1].x + x_offset, it.points[-1].y + y_offset)
+            # cmd.move_to(it.points[-1].x + x_offset, it.points[-1].y)
 
         result.add(
             svg_path(d=cmd,
                      stroke="black",
                      fill="none",
                      **{
-                         "line-idx": line_idx,
+                         "line-idx": str(line_idx),
                          "stroke-linecap": "butt",
                          "stroke-width": "1",
                          "fill-rule": "nonzero",
