@@ -70,10 +70,21 @@ class GraphLayout():
         self.ir.rectangles.append(GraphSize(w=width, h=height))
 
 
+def rename_kwargs_for_svg(kwargs):
+    result = {}
+    for key, value in kwargs.items():
+        result[key.replace("_", "-")] = value
+
+    return result
+
+
 class svg(tags.html_tag):
 
     def __init__(self, width: int, height: int, *args, **kwargs):
-        super().__init__(*args, width=width, height=height, **kwargs)
+        super().__init__(*args,
+                         width=width,
+                         height=height,
+                         **rename_kwargs_for_svg(kwargs))
 
 
 class svg_circle(tags.html_tag):
@@ -84,11 +95,19 @@ class svg_rect(tags.html_tag):
     tagname = "rect"
 
     def __init__(self, x: int, y: int, width: int, height: int, *args, **kwargs):
-        super().__init__(*args, x=x, y=y, width=width, height=height, **kwargs)
+        super().__init__(*args,
+                         x=x,
+                         y=y,
+                         width=width,
+                         height=height,
+                         **rename_kwargs_for_svg(kwargs))
 
 
 class svg_text(tags.html_tag):
     tagname = "text"
+
+    def __init__(self, text: str, x: Number, y: Number, *args, **kwargs):
+        super().__init__(text, *args, x=x, y=y, **rename_kwargs_for_svg(kwargs))
 
 
 @beartype
@@ -128,57 +147,70 @@ class svg_path(tags.html_tag):
     tagname = "path"
 
     def __init__(self, d: SvgPathBuilder, *args, **kwargs):
-        super().__init__(*args, d=str(d), **kwargs)
+        super().__init__(*args, d=str(d), **rename_kwargs_for_svg(kwargs))
 
 
 @beartype
-def toSvg(res: GraphLayoutIRResult) -> svg:
-    r = 0
+def toSvg(
+    res: GraphLayoutIRResult,
+    draw_geometric_positions: bool = True,
+) -> svg:
+    r = 10
     result = svg(
-        width=res.bbox.width + r,
-        height=res.bbox.height + r,
+        width=res.bbox.width + r * 2,
+        height=res.bbox.height + r * 2,
         viewBox="0 0 {:.3f} {:.3f}".format(
-            res.bbox.width + r,
-            res.bbox.height + r,
+            res.bbox.width + r * 2,
+            res.bbox.height + r * 2,
         ),
     )
 
     for rect_idx, rect in enumerate(res.fixed):
+        if draw_geometric_positions:
+            result.add(
+                svg_text(
+                    f"{rect.left:.2f}, {rect.top:.2f}",
+                    x=rect.left + r,
+                    y=rect.top + r,
+                    font_size="8px",
+                    text_anchor="end",
+                ))
+
         result.add(
             svg_rect(
-                x=str(round(rect.left, ndigits=3)),
-                y=str(round(rect.top, ndigits=3)),
+                x=str(round(rect.left + r, ndigits=3)),
+                y=str(round(rect.top + r, ndigits=3)),
                 width=round(rect.width, ndigits=3),
                 height=round(rect.height, ndigits=3),
                 fill="none",
                 stroke="black",
-                stroke_width=2,
+                stroke_width=1,
                 rect_idx=str(rect_idx),
             ))
 
     for line_idx, line in enumerate(res.lines.values()):
         cmd = svg_path_cmd()
         for it in line.paths:
-            cmd.move_to(it.points[0].x, it.points[0].y)
+            cmd.move_to(it.points[0].x + r, it.points[0].y + r)
             for point in it.points[1:]:
-                cmd.line_to(point.x, point.y)
+                cmd.line_to(point.x + r, point.y + r)
 
             # cmd.close_path()
             # cmd.move_to(it.points[-1].x + x_offset, it.points[-1].y)
 
         result.add(
-            svg_path(d=cmd,
-                     stroke="black",
-                     fill="none",
-                     **{
-                         "line-idx": str(line_idx),
-                         "stroke-linecap": "butt",
-                         "stroke-width": "1",
-                         "fill-rule": "nonzero",
-                         "stroke-linejoin": "miter",
-                         "stroke-opacity": "1",
-                         "stroke-miterlimit": "10",
-                     }))
+            svg_path(
+                d=cmd,
+                stroke="black",
+                fill="none",
+                line_idx=str(line_idx),
+                stroke_linecap="butt",
+                stroke_width="1",
+                fill_rule="nonzero",
+                stroke_linejoin="miter",
+                stroke_opacity="1",
+                stroke_miterlimit="10",
+            ))
 
     return result
 
