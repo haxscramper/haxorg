@@ -26,19 +26,29 @@ class GraphLayout():
     def __init__(self) -> None:
         self.ir = GraphLayoutIR()
 
-    def alignSpec(self,
-                  node: int,
-                  fixPos: Optional[float] = None,
-                  offset: float = 0.0) -> GraphConstraintAlignSpec:
-        return GraphConstraintAlignSpec(node=node, fixPos=fixPos, offset=offset)
+    def newAlignSpec(self,
+                     node: int,
+                     fixPos: Optional[Number] = None,
+                     offset: Number = 0.0) -> GraphConstraintAlignSpec:
+        return GraphConstraintAlignSpec(
+            node=node,
+            fixPos=fixPos and float(fixPos),
+            offset=float(offset),
+        )
+
+    def newAlign(self, specs: List[GraphConstraintAlignSpec],
+                 dimension: GraphDimension) -> GraphConstraintAlign:
+        return GraphConstraintAlign(nodes=specs, dimension=dimension)
+
+    def newAlignX(self, specs: List[GraphConstraintAlignSpec]) -> GraphConstraintAlign:
+        return GraphConstraintAlign(nodes=specs, dimension=GraphDimension.XDIM)
+
+    def newAlignY(self, specs: List[GraphConstraintAlignSpec]) -> GraphConstraintAlign:
+        return GraphConstraintAlign(nodes=specs, dimension=GraphDimension.YDIM)
 
     def alignDimN(self, specs: List[GraphConstraintAlignSpec], dimension: GraphDimension):
         self.ir.constraints.append(
-            GraphConstraint.InitAlignStatic(
-                GraphConstraintAlign(
-                    nodes=specs,
-                    dimension=dimension,
-                )))
+            GraphConstraint.InitAlignStatic(self.newAlign(specs, dimension)))
 
     def alignXDimN(self, specs: List[GraphConstraintAlignSpec]):
         self.alignDimN(specs, GraphDimension.XDIM)
@@ -62,6 +72,38 @@ class GraphLayout():
 
     def alignYDim2(self, source: int, target: int):
         self.alignDim2(source, target, dimension=GraphDimension.YDIM)
+
+    def separate2(self,
+                  left: GraphConstraintAlign,
+                  right: GraphConstraintAlign,
+                  dimension: GraphDimension,
+                  distance: Number = 1.0):
+        self.ir.constraints.append(
+            GraphConstraint.InitSeparateStatic(
+                GraphConstraintSeparate(
+                    left=left,
+                    right=right,
+                    separationDistance=float(distance),
+                    dimension=dimension,
+                )))
+
+    def separateXDim2(self,
+                      left: GraphConstraintAlign,
+                      right: GraphConstraintAlign,
+                      distance: Number = 1.0):
+        self.separate2(left=left,
+                       right=right,
+                       dimension=GraphDimension.XDIM,
+                       distance=float(distance))
+
+    def separateYDim2(self,
+                      left: GraphConstraintAlign,
+                      right: GraphConstraintAlign,
+                      distance: Number = 1.0):
+        self.separate2(left=left,
+                       right=right,
+                       dimension=GraphDimension.YDIM,
+                       distance=float(distance))
 
     def edge(self, source: int, target: int):
         self.ir.edges.append(GraphEdge(source=source, target=target))
@@ -183,7 +225,8 @@ def toSvg(
         if draw_geometric_positions:
             stext = svg_text(f"", font_size="8px")
             stext.add(svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
-            stext.add(svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
+            stext.add(
+                svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
             stext.add(svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
             sg = svg_g(transform=f"translate({rect.left - 50:.0f}, {rect.top:.0f})")
             sg.add(stext)

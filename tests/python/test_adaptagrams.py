@@ -5,6 +5,20 @@ from py_scriptutils.script_logging import to_debug_json
 from pathlib import Path
 
 
+def make_chain_graph(count: int, mult: int) -> wrap.GraphLayout:
+    ir = wrap.GraphLayout()
+    for i in range(0, count - 1):
+        ir.edge(i, i + 1)
+
+    for i in range(0, count):
+        ir.rect(20 * mult, 20 * mult)
+
+    ir.ir.width = 100 * mult
+    ir.ir.height = 100 * mult
+
+    return ir
+
+
 class ConvTest():
 
     def __init__(self, conv: wrap.GraphLayoutIRResult) -> None:
@@ -124,20 +138,20 @@ def test_py_util_align_many():
         ir.rect(5, 5)
 
     ir.alignXDimN([
-        ir.alignSpec(0),
-        ir.alignSpec(1),
-        ir.alignSpec(2),
+        ir.newAlignSpec(0),
+        ir.newAlignSpec(1),
+        ir.newAlignSpec(2),
     ])
 
     ir.alignYDimN([
-        ir.alignSpec(2),
-        ir.alignSpec(4),
-        ir.alignSpec(5),
+        ir.newAlignSpec(2),
+        ir.newAlignSpec(4),
+        ir.newAlignSpec(5),
     ])
 
     ir.alignXDimN([
-        ir.alignSpec(5),
-        ir.alignSpec(6),
+        ir.newAlignSpec(5),
+        ir.newAlignSpec(6),
     ])
 
     conv = ir.ir.doColaConvert()
@@ -164,11 +178,11 @@ def test_align_axis_separation():
     ir.rect(5 * mult, 5 * mult)
 
     ir.alignXDimN([
-        ir.alignSpec(0, offset=50.0 * mult),
-        ir.alignSpec(1, offset=-50.0 * mult),
-        ir.alignSpec(2, offset=20.0 * mult),
-        ir.alignSpec(3),
-        ir.alignSpec(4),
+        ir.newAlignSpec(0, offset=50.0 * mult),
+        ir.newAlignSpec(1, offset=-50.0 * mult),
+        ir.newAlignSpec(2, offset=20.0 * mult),
+        ir.newAlignSpec(3),
+        ir.newAlignSpec(4),
     ])
 
     ir.ir.width = 100 * mult
@@ -176,7 +190,6 @@ def test_align_axis_separation():
 
     t = ConvTest(ir.ir.doColaConvert())
     assert t.rect(3).left == t.rect(4).left
-    t.debug()
 
     path_01 = t.path(3, 4)
     assert len(path_01.paths) == 1
@@ -191,3 +204,29 @@ def test_align_axis_separation():
     assert int(t.rect_center(3).x - 50 * mult) == int(t.rect_center(1).x)
     assert int(t.rect_center(3).x + 50 * mult) == int(t.rect_center(0).x)
     assert int(t.rect_center(4).x) == int(t.rect_center(3).x)
+
+
+def test_align_axis_multi_separate():
+    mult = 5
+    ir = make_chain_graph(6, mult)
+
+    ir.separateXDim2(
+        left=ir.newAlignX([
+            ir.newAlignSpec(0),
+            ir.newAlignSpec(1),
+        ]),
+        right=ir.newAlignX([
+            ir.newAlignSpec(2),
+            ir.newAlignSpec(3),
+        ]),
+        distance=50 * mult,
+    )
+
+    ir.alignYDimN([
+        ir.newAlignSpec(3),
+        ir.newAlignSpec(4),
+        ir.newAlignSpec(5),
+    ])
+
+    t = ConvTest(ir.ir.doColaConvert())
+    t.debug()

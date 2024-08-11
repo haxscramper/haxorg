@@ -132,7 +132,11 @@ struct [[refl]] GraphConstraint {
                                            ///< nodes
         DESC_FIELDS(
             Separate,
-            (left, right, separationDistance, isExactSeparation));
+            (left,
+             right,
+             separationDistance,
+             isExactSeparation,
+             dimension));
 
         Vec<Res>    toCola() const;
         std::string toColaString() const;
