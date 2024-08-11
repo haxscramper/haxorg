@@ -13,6 +13,10 @@ class ConvTest():
     def rect(self, idx: int) -> wrap.GraphRect:
         return self.conv.fixed[idx]
 
+    def rect_center(self, idx: int) -> wrap.GraphPoint:
+        r = self.rect(idx)
+        return wrap.GraphPoint(x=r.left + r.width / 2, y=r.top + r.height / 2)
+
     def path(self, source: int, target: int) -> wrap.GraphLayoutIREdge:
         return self.conv.lines[wrap.GraphEdge(source=source, target=target)]
 
@@ -53,7 +57,7 @@ class ConvTest():
         sformat = str(wrap.toSvgFileText(wrap.toSvg(self.conv)))
         # print(sformat)
         Path("/tmp/result2.svg").write_text(sformat)
-        self.conv.doColaSvgWrite("/tmp/result.svg")
+        # self.conv.doColaSvgWrite("/tmp/result.svg")
 
 
 def test_ir_align_two():
@@ -175,7 +179,15 @@ def test_align_axis_separation():
     t.debug()
 
     path_01 = t.path(3, 4)
+    assert len(path_01.paths) == 1
+    assert len(path_01.paths[0].points) == 2
+    path_01_first = path_01.paths[0].points[0]
+    path_01_last = path_01.paths[0].points[1]
 
-    center_axis_x = t.rect(3).left + t.rect(3).width
-    assert int(center_axis_x) + 20 * mult == int(t.rect(2).left)
-    # assert int(center_axis_x) +
+    assert path_01_first.x == path_01_last.x
+
+    assert path_01_last.x == t.rect_center(3).x
+    assert int(t.rect_center(3).x + 20 * mult) == int(t.rect_center(2).x)
+    assert int(t.rect_center(3).x - 50 * mult) == int(t.rect_center(1).x)
+    assert int(t.rect_center(3).x + 50 * mult) == int(t.rect_center(0).x)
+    assert int(t.rect_center(4).x) == int(t.rect_center(3).x)

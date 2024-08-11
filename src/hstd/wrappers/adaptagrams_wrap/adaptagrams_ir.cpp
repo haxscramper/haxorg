@@ -687,7 +687,6 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
     for (auto& rect : res.fixed) {
         rect.left += x_offset;
         rect.top += y_offset;
-        _dfmt(rect);
     }
 
     for (auto const& edge : edges) {
