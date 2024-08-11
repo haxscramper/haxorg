@@ -4,12 +4,57 @@ from pprint import pprint, pformat
 from py_scriptutils.script_logging import to_debug_json
 from pathlib import Path
 
+
 class ConvTest():
+
     def __init__(self, conv: wrap.GraphLayoutIRResult) -> None:
         self.conv = conv
 
     def rect(self, idx: int) -> wrap.GraphRect:
         return self.conv.fixed[idx]
+
+    def path(self, source: int, target: int) -> wrap.GraphLayoutIREdge:
+        return self.conv.lines[wrap.GraphEdge(source=source, target=target)]
+
+    def debug(self):
+        dump = to_debug_json(self.conv, skip_cyclic_data=False)
+        pre_fmt = pformat(dump, width=120)
+
+        def aux(it):
+            match it:
+                case dict():
+                    if "x" in it:
+                        it["x"] = it["x"] - self.conv.bbox.left
+
+                    if "y" in it:
+                        it["y"] = it["y"] - self.conv.bbox.top
+
+                    for key, value in it.items():
+                        if isinstance(value, float):
+                            it[key] = round(value, ndigits=3)
+
+                        else:
+                            aux(value)
+
+                case list() | tuple():
+                    for item in it:
+                        aux(item)
+
+                case float() | int() | str() | None:
+                    pass
+
+                case _:
+                    raise TypeError(str(type(it)))
+
+        aux(dump)
+
+        post_fmt = pformat(dump, width=120)
+        Path("/tmp/dbg.txt").write_text(f"{pre_fmt}\n{post_fmt}")
+        sformat = str(wrap.toSvgFileText(wrap.toSvg(self.conv)))
+        # print(sformat)
+        Path("/tmp/result2.svg").write_text(sformat)
+        self.conv.doColaSvgWrite("/tmp/result.svg")
+
 
 def test_ir_align_two():
     ir = wrap.GraphLayoutIR()
@@ -100,6 +145,7 @@ def test_py_util_align_many():
     assert len(set([rect(2).top, rect(4).top, rect(5).top])) == 1
     assert len(set([rect(5).left, rect(6).left])) == 1
 
+
 def test_align_axis_separation():
     ir = wrap.GraphLayout()
     mult = 5
@@ -112,7 +158,6 @@ def test_align_axis_separation():
     ir.rect(10 * mult, 10 * mult)
     ir.rect(5 * mult, 5 * mult)
     ir.rect(5 * mult, 5 * mult)
-    
 
     ir.alignXDimN([
         ir.alignSpec(0, offset=50.0 * mult),
@@ -126,43 +171,11 @@ def test_align_axis_separation():
     ir.ir.height = 100 * mult
 
     t = ConvTest(ir.ir.doColaConvert())
-    dump = to_debug_json(t.conv, skip_cyclic_data=False)
-    pre_fmt = pformat(dump, width=120)
-    def aux(it):
-        match it:
-            case dict():
-                if "x" in it:
-                    it["x"] = it["x"] - t.conv.bbox.left
-
-                if "y" in it:
-                    it["y"] = it["y"] - t.conv.bbox.top
-
-                for key, value in it.items():
-                    if isinstance(value, float):
-                        it[key] = round(value, ndigits=3)
-
-                    else:
-                        aux(value)
-
-            case list() | tuple():
-                for item in it:
-                    aux(item)
-
-            case float() | int() | str() | None:
-                pass
-
-            case _:
-                raise TypeError(str(type(it)))
-
-
-    aux(dump)
-
-    post_fmt = pformat(dump, width=120)
-    Path("/tmp/dbg.txt").write_text(f"{pre_fmt}\n{post_fmt}")
-    sformat = str(wrap.toSvgFileText(wrap.toSvg(t.conv)))
-    # print(sformat)
-    Path("/tmp/result2.svg").write_text(sformat)
-    center = t.rect(3).left
-    ir.ir.doColaSvgWrite("/tmp/result.svg")
     assert t.rect(3).left == t.rect(4).left
-    assert (t.rect(3).left + t.rect(3).width) == (t.rect(2).left + 20)
+    t.debug()
+
+    path_01 = t.path(3, 4)
+
+    center_axis_x = t.rect(3).left + t.rect(3).width
+    assert int(center_axis_x) + 20 * mult == int(t.rect(2).left)
+    # assert int(center_axis_x) +

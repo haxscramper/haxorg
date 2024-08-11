@@ -106,8 +106,22 @@ class svg_rect(tags.html_tag):
 class svg_text(tags.html_tag):
     tagname = "text"
 
-    def __init__(self, text: str, x: Number, y: Number, *args, **kwargs):
-        super().__init__(text, *args, x=x, y=y, **rename_kwargs_for_svg(kwargs))
+    def __init__(self, text: str, *args, **kwargs):
+        super().__init__(text, *args, **rename_kwargs_for_svg(kwargs))
+
+
+class svg_tspan(tags.html_tag):
+    tagname = "tspan"
+
+    def __init__(self, text: str, *args, **kwargs):
+        super().__init__(text, *args, **rename_kwargs_for_svg(kwargs))
+
+
+class svg_g(tags.html_tag):
+    tagname = "g"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **rename_kwargs_for_svg(kwargs))
 
 
 @beartype
@@ -167,14 +181,13 @@ def toSvg(
 
     for rect_idx, rect in enumerate(res.fixed):
         if draw_geometric_positions:
-            result.add(
-                svg_text(
-                    f"{rect.left:.2f}, {rect.top:.2f}",
-                    x=rect.left + r,
-                    y=rect.top + r,
-                    font_size="8px",
-                    text_anchor="end",
-                ))
+            stext = svg_text(f"", font_size="8px")
+            stext.add(svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
+            stext.add(svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
+            stext.add(svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
+            sg = svg_g(transform=f"translate({rect.left - 50:.0f}, {rect.top:.0f})")
+            sg.add(stext)
+            result.add(sg)
 
         result.add(
             svg_rect(
