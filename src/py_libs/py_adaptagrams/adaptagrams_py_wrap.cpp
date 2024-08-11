@@ -25,6 +25,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<GraphLayoutIR::Subgraph>)
 PYBIND11_MAKE_OPAQUE(Vec<GraphLayoutIR::Subgraph>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<GraphEdge, GraphSize>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<GraphEdge, GraphSize>)
+PYBIND11_MAKE_OPAQUE(std::vector<GraphPath>)
+PYBIND11_MAKE_OPAQUE(Vec<GraphPath>)
 PYBIND11_MAKE_OPAQUE(std::vector<GraphRect>)
 PYBIND11_MAKE_OPAQUE(Vec<GraphRect>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<GraphEdge, GraphLayoutIR::Edge>)
@@ -45,6 +47,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
   bind_vector<GraphConstraint>(m, "VecOfGraphConstraint", type_registry_guard);
   bind_vector<GraphLayoutIR::Subgraph>(m, "VecOfGraphLayoutIRSubgraph", type_registry_guard);
   bind_unordered_map<GraphEdge, GraphSize>(m, "UnorderedMapOfGraphEdgeGraphSize", type_registry_guard);
+  bind_vector<GraphPath>(m, "VecOfGraphPath", type_registry_guard);
   bind_vector<GraphRect>(m, "VecOfGraphRect", type_registry_guard);
   bind_unordered_map<GraphEdge, GraphLayoutIR::Edge>(m, "UnorderedMapOfGraphEdgeGraphLayoutIREdge", type_registry_guard);
   bind_vector<GraphLayoutIR::Result::Subgraph>(m, "VecOfGraphLayoutIRResultSubgraph", type_registry_guard);
@@ -77,7 +80,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
     .def_readwrite("endPoint", &GraphPath::endPoint)
     .def_readwrite("bezier", &GraphPath::bezier)
     .def("point",
-         static_cast<void(GraphPath::*)(int, int)>(&GraphPath::point),
+         static_cast<void(GraphPath::*)(double, double)>(&GraphPath::point),
          pybind11::arg("x"),
          pybind11::arg("y"))
     .def("point",
@@ -100,8 +103,8 @@ PYBIND11_MODULE(py_adaptagrams, m) {
                         }))
     .def_readwrite("w", &GraphSize::w)
     .def_readwrite("h", &GraphSize::h)
-    .def("height", static_cast<int(GraphSize::*)() const>(&GraphSize::height))
-    .def("width", static_cast<int(GraphSize::*)() const>(&GraphSize::width))
+    .def("height", static_cast<double(GraphSize::*)() const>(&GraphSize::height))
+    .def("width", static_cast<double(GraphSize::*)() const>(&GraphSize::width))
     .def("__repr__", [](GraphSize _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -123,11 +126,11 @@ PYBIND11_MODULE(py_adaptagrams, m) {
     .def_readwrite("height", &GraphRect::height)
     .def("size", static_cast<GraphSize(GraphRect::*)() const>(&GraphRect::size))
     .def("setBottomLeft",
-         static_cast<void(GraphRect::*)(int, int)>(&GraphRect::setBottomLeft),
+         static_cast<void(GraphRect::*)(double, double)>(&GraphRect::setBottomLeft),
          pybind11::arg("x"),
          pybind11::arg("y"))
     .def("setTopRight",
-         static_cast<void(GraphRect::*)(int, int)>(&GraphRect::setTopRight),
+         static_cast<void(GraphRect::*)(double, double)>(&GraphRect::setTopRight),
          pybind11::arg("x"),
          pybind11::arg("y"))
     .def("setBottomLeft",
@@ -378,6 +381,10 @@ assert failure if the structure is incorrect.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("paths", &GraphLayoutIR::Edge::paths, R"RAW(\brief Sequence of painter paths going from source to target
+node. If the node has a label rectangle specified, the paths
+are placed in a way to accomodate for the rectangle.)RAW")
+    .def_readwrite("labelRect", &GraphLayoutIR::Edge::labelRect, R"RAW(\brief Edge label rectangle)RAW")
     .def("__repr__", [](GraphLayoutIR::Edge _self) -> std::string {
                      return py_repr_impl(_self);
                      })

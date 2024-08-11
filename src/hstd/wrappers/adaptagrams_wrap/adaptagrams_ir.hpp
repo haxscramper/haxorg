@@ -23,10 +23,10 @@ enum class [[refl]] GraphDimension
 BOOST_DESCRIBE_ENUM(GraphDimension, XDIM, YDIM, UNSET)
 
 struct [[refl]] GraphPoint {
-    [[refl]] int x;
-    [[refl]] int y;
+    [[refl]] double x;
+    [[refl]] double y;
     GraphPoint() : x{0}, y{0} {}
-    GraphPoint(int x, int y) : x{x}, y{y} {}
+    GraphPoint(double x, double y) : x{x}, y{y} {}
     DESC_FIELDS(GraphPoint, (x, y));
 };
 
@@ -35,7 +35,7 @@ struct [[refl]] GraphPath {
     [[refl]] Opt<GraphPoint> startPoint;
     [[refl]] Opt<GraphPoint> endPoint;
     [[refl]] bool            bezier;
-    [[refl]] void            point(int x, int y) {
+    [[refl]] void            point(double x, double y) {
         points.push_back(GraphPoint(x, y));
     }
     [[refl]] void point(GraphPoint const& p) { points.push_back(p); }
@@ -43,11 +43,11 @@ struct [[refl]] GraphPath {
 };
 
 struct [[refl]] GraphSize {
-    [[refl]] int w;
-    [[refl]] int h;
+    [[refl]] double w;
+    [[refl]] double h;
 
-    [[refl]] int height() const { return h; }
-    [[refl]] int width() const { return w; }
+    [[refl]] double height() const { return h; }
+    [[refl]] double width() const { return w; }
 
     bool operator==(GraphSize const& other) const {
         return w == other.w && h == other.h;
@@ -56,23 +56,23 @@ struct [[refl]] GraphSize {
 };
 
 struct [[refl]] GraphRect {
-    [[refl]] int       left;
-    [[refl]] int       top;
-    [[refl]] int       width;
-    [[refl]] int       height;
+    [[refl]] double    left;
+    [[refl]] double    top;
+    [[refl]] double    width;
+    [[refl]] double    height;
     [[refl]] GraphSize size() const { return GraphSize(width, height); }
     GraphRect() : left(0), top(0), width(-1), height(-1) {}
-    GraphRect(int left, int top, int width, int height)
+    GraphRect(double left, double top, double width, double height)
         : left{left}, top{top}, width{width}, height{height} {}
 
-    [[refl]] void setBottomLeft(int x, int y) {
+    [[refl]] void setBottomLeft(double x, double y) {
         width  = (width >= 0) ? width : left - x;
         height = (height >= 0) ? height : top - y;
         left   = x;
         top    = y - height;
     }
 
-    [[refl]] void setTopRight(int x, int y) {
+    [[refl]] void setTopRight(double x, double y) {
         width  = (width >= 0) ? width : x - left;
         height = (height >= 0) ? height : y - top;
         top    = y;
@@ -265,7 +265,7 @@ struct [[refl]] GraphLayoutIR {
         Vec<Subgraph> subgraphs;
         /// \brief For graphviz: px spacing between subgraph and the
         /// content inside.
-        Opt<int> internalMargin;
+        Opt<double> internalMargin;
 
         DESC_FIELDS(
             Subgraph,
@@ -316,9 +316,9 @@ struct [[refl]] GraphLayoutIR {
         /// \brief Sequence of painter paths going from source to target
         /// node. If the node has a label rectangle specified, the paths
         /// are placed in a way to accomodate for the rectangle.
-        Vec<GraphPath> paths;
+        [[refl]] Vec<GraphPath> paths;
         /// \brief Edge label rectangle
-        Opt<GraphRect> labelRect;
+        [[refl]] Opt<GraphRect> labelRect;
         DESC_FIELDS(Edge, (paths, labelRect));
     };
 

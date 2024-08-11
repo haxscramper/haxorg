@@ -5,6 +5,7 @@ import os
 from beartype import beartype
 from beartype.typing import Optional, List
 from dominate import tags
+from numbers import Number
 import copy
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
@@ -91,26 +92,96 @@ class svg_text(tags.html_tag):
 
 
 @beartype
+class SvgPathBuilder:
+
+    def __init__(self):
+        self.commands = []
+
+    def move_to(self, x: Number, y: Number) -> 'SvgPathBuilder':
+        self.commands.append(f"M {x:.3f} {y:.3f}")
+        return self
+
+    def line_to(self, x: Number, y: Number) -> 'SvgPathBuilder':
+        self.commands.append(f"L {x:.3f} {y:.3f}")
+        return self
+
+    def curve_to(self, x1: Number, y1: Number, x2: Number, y2: Number, x: Number,
+                 y: Number) -> 'SvgPathBuilder':
+        self.commands.append(f"C {x1:.3f} {y1:.3f}, {x2:.3f} {y2:.3f}, {x:.3f} {y:.3f}")
+        return self
+
+    def close_path(self) -> 'SvgPathBuilder':
+        self.commands.append("Z")
+        return self
+
+    def __str__(self) -> str:
+        return " ".join(self.commands)
+
+
+@beartype
+def svg_path_cmd() -> SvgPathBuilder:
+    return SvgPathBuilder()
+
+
+@beartype
+class svg_path(tags.html_tag):
+    tagname = "path"
+
+    def __init__(self, d: SvgPathBuilder, *args, **kwargs):
+        super().__init__(*args, d=str(d), **kwargs)
+
+
+@beartype
 def toSvg(res: GraphLayoutIRResult) -> svg:
+    r = 10
     x_offset = -res.bbox.left
     y_offset = -res.bbox.top
+
     result = svg(
-        width=res.bbox.width,
-        height=res.bbox.height,
-        viewBox="0 0 {} {}".format(res.bbox.width, res.bbox.height),
+        width=res.bbox.width + r,
+        height=res.bbox.height + r,
+        viewBox="0 0 {:.3f} {:.3f}".format(
+            res.bbox.width + r,
+            res.bbox.height + r,
+        ),
     )
 
-    for rect in res.fixed:
+    for rect_idx, rect in enumerate(res.fixed):
         result.add(
             svg_rect(
-                x=rect.left + x_offset,
-                y=rect.top + y_offset,
-                width=rect.width,
-                height=rect.height,
+                x=round(rect.left + x_offset, ndigits=3),
+                y=round(rect.top + y_offset - rect.height, ndigits=3),
+                width=round(rect.width, ndigits=3),
+                height=round(rect.height, ndigits=3),
                 fill="none",
                 stroke="black",
                 stroke_width=2,
+                rect_idx=rect_idx,
             ))
+
+    for line_idx, line in enumerate(res.lines.values()):
+        cmd = svg_path_cmd()
+        for it in line.paths:
+            cmd.move_to(it.points[0].x + x_offset, it.points[0].y + y_offset)
+            for point in it.points[1:]:
+                cmd.line_to(point.x + x_offset, point.y + y_offset)
+
+            # cmd.close_path()
+            # cmd.move_to(it.points[-1].x + x_offset, it.points[-1].y + y_offset)
+
+        result.add(
+            svg_path(d=cmd,
+                     stroke="black",
+                     fill="none",
+                     **{
+                         "line-idx": line_idx,
+                         "stroke-linecap": "butt",
+                         "stroke-width": "1",
+                         "fill-rule": "nonzero",
+                         "stroke-linejoin": "miter",
+                         "stroke-opacity": "1",
+                         "stroke-miterlimit": "10",
+                     }))
 
     return result
 

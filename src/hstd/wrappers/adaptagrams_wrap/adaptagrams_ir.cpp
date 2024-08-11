@@ -669,10 +669,7 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
         Avoid::PolyLine const& route = edge.connection->displayRoute();
         for (auto const& p : route.ps) {
             path.point(p.x, p.y);
-            res.bbox.extend(GraphPoint{
-                static_cast<int>(p.x),
-                static_cast<int>(p.y),
-            });
+            res.bbox.extend(GraphPoint{p.x, p.y});
         }
         res.lines[edge.edge] = Edge{.paths = {path}};
     }

@@ -1,6 +1,6 @@
 import py_wrappers.py_adaptagrams_wrap as wrap
 
-from pprint import pprint
+from pprint import pprint, pformat
 from py_scriptutils.script_logging import to_debug_json
 from pathlib import Path
 
@@ -102,26 +102,63 @@ def test_py_util_align_many():
 
 def test_align_axis_separation():
     ir = wrap.GraphLayout()
+    mult = 5
     ir.edge(0, 1)
     ir.edge(1, 2)
     ir.edge(2, 3)
     ir.edge(3, 4)
-    ir.rect(20, 20)
-    ir.rect(15, 15)
-    ir.rect(10, 10)
-    ir.rect(5, 5)
-    ir.rect(5, 5)
+    ir.rect(20 * mult, 20 * mult)
+    ir.rect(15 * mult, 15 * mult)
+    ir.rect(10 * mult, 10 * mult)
+    ir.rect(5 * mult, 5 * mult)
+    ir.rect(5 * mult, 5 * mult)
     
 
     ir.alignXDimN([
-        ir.alignSpec(0, offset=50.0),
-        ir.alignSpec(1, offset=-50.0),
-        ir.alignSpec(2, offset=20.0),
+        ir.alignSpec(0, offset=50.0 * mult),
+        ir.alignSpec(1, offset=-50.0 * mult),
+        ir.alignSpec(2, offset=20.0 * mult),
         ir.alignSpec(3),
         ir.alignSpec(4),
     ])
 
+    ir.ir.width = 100 * mult
+    ir.ir.height = 100 * mult
+
     t = ConvTest(ir.ir.doColaConvert())
+    dump = to_debug_json(t.conv, skip_cyclic_data=False)
+    pre_fmt = pformat(dump, width=120)
+    def aux(it):
+        match it:
+            case dict():
+                if "x" in it:
+                    it["x"] = it["x"] - t.conv.bbox.left
+
+                if "y" in it:
+                    it["y"] = it["y"] - t.conv.bbox.top
+
+                for key, value in it.items():
+                    if isinstance(value, float):
+                        it[key] = round(value, ndigits=3)
+
+                    else:
+                        aux(value)
+
+            case list() | tuple():
+                for item in it:
+                    aux(item)
+
+            case float() | int() | str() | None:
+                pass
+
+            case _:
+                raise TypeError(str(type(it)))
+
+
+    aux(dump)
+
+    post_fmt = pformat(dump, width=120)
+    Path("/tmp/dbg.txt").write_text(f"{pre_fmt}\n{post_fmt}")
     sformat = str(wrap.toSvgFileText(wrap.toSvg(t.conv)))
     # print(sformat)
     Path("/tmp/result2.svg").write_text(sformat)
