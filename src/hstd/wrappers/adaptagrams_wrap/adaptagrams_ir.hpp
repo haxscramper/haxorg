@@ -86,6 +86,13 @@ struct [[refl]] GraphRect {
         setTopRight(p.x, p.y);
     }
     DESC_FIELDS(GraphRect, (left, top, width, height));
+
+    bool contains(GraphPoint const& p) const {
+        return (left <= p.x && p.x <= (left + width))
+            && (top <= p.y && p.y <= (top + height));
+    }
+
+    void extend(GraphPoint const& point);
 };
 
 
@@ -112,7 +119,8 @@ struct [[refl]] GraphConstraint {
         DESC_FIELDS(Align, (nodes, dimension));
 
         /// \brief Map to cola layout constraint object
-        Res toCola() const;
+        Res         toCola() const;
+        std::string toColaString() const { return toCola()->toString(); }
     };
 
     struct [[refl]] Separate {
@@ -126,7 +134,8 @@ struct [[refl]] GraphConstraint {
             Separate,
             (left, right, separationDistance, isExactSeparation));
 
-        Vec<Res> toCola() const;
+        Vec<Res>    toCola() const;
+        std::string toColaString() const;
     };
 
     struct [[refl]] MultiSeparate {
@@ -144,7 +153,8 @@ struct [[refl]] GraphConstraint {
              separationDistance,
              isExactSeparation));
 
-        Vec<Res> toCola() const;
+        Vec<Res>    toCola() const;
+        std::string toColaString() const;
     };
 
     struct [[refl]] FixedRelative {
@@ -159,10 +169,13 @@ struct [[refl]] GraphConstraint {
         [[refl]] double    weight = 100.0;
         DESC_FIELDS(PageBoundary, (rect, weight));
 
-        Res toCola() const;
+        Res         toCola() const;
+        std::string toColaString() const { return toCola()->toString(); }
     };
 
     Vec<Res> toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
+    std::string toColaString(
+        std::vector<vpsc::Rectangle*> const& allRects) const;
 
     SUB_VARIANTS(
         Kind,
@@ -420,6 +433,10 @@ struct [[refl]] GraphLayoutIR {
 
         /// \brief write graph layout result into the SVG svg file
         void writeSvg(CR<Str> path);
+
+        Vec<SPtr<cola::CompoundConstraint>> setupConstraints(
+            Vec<GraphSize> const&       rectangles,
+            Vec<GraphConstraint> const& constraints);
     };
 
     ColaResult      doColaLayout();
@@ -427,4 +444,6 @@ struct [[refl]] GraphLayoutIR {
     [[refl]] void   doColaSvgWrite(std::string const& path) {
         doColaLayout().writeSvg(path);
     }
+
+    [[refl]] std::string doColaStrFormat();
 };

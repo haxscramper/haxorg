@@ -70,6 +70,9 @@ def py_type(Typ: QualType) -> pya.PyType:
         case "Bool":
             name = "bool"
 
+        case "double":
+            name = "float"
+
         case ["void"]:
             name = "None"
 

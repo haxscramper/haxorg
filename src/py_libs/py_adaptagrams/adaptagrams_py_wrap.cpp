@@ -347,6 +347,7 @@ assert failure if the structure is incorrect.)RAW")
     .def("doColaSvgWrite",
          static_cast<void(GraphLayoutIR::*)(std::string const&)>(&GraphLayoutIR::doColaSvgWrite),
          pybind11::arg("path"))
+    .def("doColaStrFormat", static_cast<std::string(GraphLayoutIR::*)()>(&GraphLayoutIR::doColaStrFormat))
     .def("__repr__", [](GraphLayoutIR _self) -> std::string {
                      return py_repr_impl(_self);
                      })

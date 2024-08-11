@@ -3,14 +3,12 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
-#pragma warning(push, 0)
 #include <libcola/output_svg.h>
 #include <libavoid/libavoid.h>
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
-#pragma warning(pop)
-
 
 namespace {
 
@@ -442,33 +440,39 @@ GraphLayoutIR::Result GraphLayoutIR::HolaResult::convert() {
 }
 
 
-GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
-    validate();
-    ColaResult ir;
-
-    ir.baseRectangles.reserve(rectangles.size());
+Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
+    setupConstraints(
+        const Vec<GraphSize>&       rectangles,
+        const Vec<GraphConstraint>& constraints) {
+    baseRectangles.reserve(rectangles.size());
     for (auto const& r : rectangles) {
-        ir.baseRectangles.push_back(
+        baseRectangles.push_back(
             vpsc::Rectangle(0, r.width(), 0, r.width()));
     }
 
-    ir.rectPointers                                 //
-        = ir.baseRectangles                         //
+    rectPointers                                    //
+        = baseRectangles                            //
         | rv::transform([](auto& r) { return &r; }) //
         | rs::to<Vec>();
 
+    return constraints //
+         | rv::transform([&](CR<GraphConstraint> c) {
+               return c.toCola(rectPointers);
+           })
+         | rv::join //
+         | rs::to<Vec>();
+}
+
+
+GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
+    validate();
+    ColaResult                ir;
     cola::CompoundConstraints ccs;
 
-    Vec<SPtr<cola::CompoundConstraint>> constraints //
-        = this->constraints                         //
-        | rv::transform([&](CR<GraphConstraint> c) {
-              return c.toCola(ir.rectPointers);
-          })
-        | rv::join //
-        | rs::to<Vec>();
+    Vec<SPtr<cola::CompoundConstraint>> constraints = ir.setupConstraints(
+        rectangles, this->constraints);
 
     for (auto const& c : constraints) { ccs.push_back(c.get()); }
-
 
     cola::ConstrainedFDLayout alg2(
         ir.rectPointers,
@@ -549,6 +553,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
     return ir;
 }
+
 
 GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     Result res;
@@ -648,10 +653,27 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
           })
         | rs::to<Vec>();
 
+    res.bbox.height = 0;
+    res.bbox.width  = 0;
+    for (auto const& rect : res.fixed) {
+        GraphPoint upperLeft{rect.left, rect.top};
+        GraphPoint lowerRight{
+            rect.left + rect.width, rect.top + rect.height};
+
+        res.bbox.extend(upperLeft);
+        res.bbox.extend(lowerRight);
+    }
+
     for (auto const& edge : edges) {
         GraphPath              path;
         Avoid::PolyLine const& route = edge.connection->displayRoute();
-        for (auto const& p : route.ps) { path.point(p.x, p.y); }
+        for (auto const& p : route.ps) {
+            path.point(p.x, p.y);
+            res.bbox.extend(GraphPoint{
+                static_cast<int>(p.x),
+                static_cast<int>(p.y),
+            });
+        }
         res.lines[edge.edge] = Edge{.paths = {path}};
     }
 
@@ -683,6 +705,41 @@ Vec<GraphConstraint::Res> GraphConstraint::Separate::toCola() const {
     return {result, left_constraint, right_constraint};
 }
 
+namespace {
+std::string joinCola(Vec<GraphConstraint::Res> const& args) {
+    return std::string{"["}
+         + (args //
+            | rv::transform([](GraphConstraint::Res const& it) {
+                  return it->toString();
+              })
+            | rv::intersperse(", ") //
+            | rv::join              //
+            | rs::to<std::string>())
+         + std::string{"]"};
+}
+} // namespace
+
+std::string GraphLayoutIR::doColaStrFormat() {
+    ColaResult                          ir;
+    Vec<SPtr<cola::CompoundConstraint>> constraints = ir.setupConstraints(
+        rectangles, this->constraints);
+    return joinCola(constraints);
+}
+
+std::string GraphConstraint::Separate::toColaString() const {
+    return joinCola(toCola());
+}
+
+std::string GraphConstraint::MultiSeparate::toColaString() const {
+    return joinCola(toCola());
+}
+
+std::string GraphConstraint::toColaString(
+    const std::vector<vpsc::Rectangle*>& allRects) const {
+    return joinCola(toCola(allRects));
+}
+
+
 Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
     Vec<Res> result;
     for (auto const& line : lines) { result.push_back(line.toCola()); }
@@ -702,6 +759,7 @@ Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
 
     return result;
 }
+
 
 Vec<GraphConstraint::Res> GraphConstraint::toCola(
     const std::vector<vpsc::Rectangle*>& allRects) const {
@@ -725,6 +783,7 @@ Vec<GraphConstraint::Res> GraphConstraint::toCola(
         data);
 }
 
+
 GraphConstraint::Res GraphConstraint::PageBoundary::toCola() const {
     return std::make_shared<cola::PageBoundaryConstraints>(
         rect.left,
@@ -732,4 +791,15 @@ GraphConstraint::Res GraphConstraint::PageBoundary::toCola() const {
         rect.top + rect.height,
         rect.top,
         weight);
+}
+
+void GraphRect::extend(const GraphPoint& point) {
+    int min_x = std::min(left, point.x);
+    int max_x = std::max(left + width, point.x);
+    int min_y = std::min(top, point.y);
+    int max_y = std::max(top + height, point.y);
+    left      = min_x;
+    top       = min_y;
+    height    = max_y - min_y;
+    width     = max_x - min_x;
 }
