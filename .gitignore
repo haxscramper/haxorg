@@ -534,3 +534,5 @@ docs/custom_html
 toolchain/
 
 *.pdf
+adaptagrams_debug.*
+libavoid-diagram.*

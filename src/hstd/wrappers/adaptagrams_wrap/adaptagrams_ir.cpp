@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Debug.hpp>
 
 #include <libcola/output_svg.h>
+#include <libtopology/orthogonal_topology.h>
 #include <libavoid/libavoid.h>
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
@@ -488,30 +489,46 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     alg2.run();
 
 
-    ir.router = std::make_shared<Avoid::Router>(Avoid::OrthogonalRouting);
+    ir.router = std::make_shared<Avoid::Router>(
+        Avoid::OrthogonalRouting | Avoid::PolyLineRouting);
+
     ir.router->setRoutingPenalty(
         Avoid::RoutingParameter::segmentPenalty, 50);
     ir.router->setRoutingPenalty(Avoid::RoutingParameter::anglePenalty, 0);
     ir.router->setRoutingPenalty(
-        Avoid::RoutingParameter::crossingPenalty, 400);
+        Avoid::RoutingParameter::crossingPenalty, 0);
     ir.router->setRoutingPenalty(
         Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
     ir.router->setRoutingPenalty(
         Avoid::RoutingParameter::fixedSharedPathPenalty, 110);
 
-    // class ID
+    ir.router->setRoutingOption(
+        Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
+    ir.router->setRoutingOption(
+        Avoid::nudgeSharedPathsWithCommonEndPoint, true);
 
 
     Vec<Avoid::ShapeRef*> shapes;
+    cola::VariableIDMap   idMap;
+    cola::RootCluster     rootCluster{};
+
+    unsigned int connectionPinClassID = 1;
+    unsigned int connectionID         = edges.size() + 1;
+    unsigned int shapeRefID = edges.size() + ir.baseRectangles.size() + 2;
 
     for (auto const& it : enumerator(ir.baseRectangles)) {
-        auto const& r    = it.value();
-        auto        poly = Avoid::Polygon{4};
+        ++shapeRefID;
+        rootCluster.addChildNode(it.index());
+        vpsc::Rectangle const& r    = it.value();
+        auto                   poly = Avoid::Polygon{4};
         poly.setPoint(0, Avoid::Point{r.getMinX(), r.getMaxY()});
         poly.setPoint(1, Avoid::Point{r.getMaxX(), r.getMaxY()});
         poly.setPoint(2, Avoid::Point{r.getMaxX(), r.getMinY()});
         poly.setPoint(3, Avoid::Point{r.getMinX(), r.getMinY()});
-        shapes.push_back(new Avoid::ShapeRef{ir.router.get(), poly});
+        auto shape = new Avoid::ShapeRef{
+            ir.router.get(), poly, shapeRefID};
+        idMap.addMappingForVariable(it.index(), shapeRefID);
+        shapes.push_back(shape);
     }
 
     auto pin_for_shape = [](Avoid::ShapeRef* shape, int pinClass) {
@@ -526,9 +543,10 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         };
     };
 
-    unsigned int connectionPinClassID = 1;
+
     for (auto const& edge : edges) {
         ++connectionPinClassID;
+        ++connectionID;
         pin_for_shape(shapes.at(edge.source), connectionPinClassID);
         pin_for_shape(shapes.at(edge.target), connectionPinClassID);
 
@@ -536,8 +554,14 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
             shapes.at(edge.source), connectionPinClassID};
         Avoid::ConnEnd targetEnd{
             shapes.at(edge.target), connectionPinClassID};
+
         auto conn = new Avoid::ConnRef{
-            ir.router.get(), sourceEnd, targetEnd};
+            ir.router.get(),
+            sourceEnd,
+            targetEnd,
+            connectionID,
+        };
+
         conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
 
         ColaResult::EdgeData route{
@@ -548,8 +572,13 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         ir.edges.push_back(route);
     }
 
+    topology::AvoidTopologyAddon topologyAddon{
+        ir.rectPointers, ccs, &rootCluster, idMap};
 
+
+    ir.router->setTopologyAddon(&topologyAddon);
     ir.router->processTransaction();
+    ir.router->outputInstanceToSVG("adaptagrams_debug");
 
     return ir;
 }
