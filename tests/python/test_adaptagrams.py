@@ -5,16 +5,22 @@ from py_scriptutils.script_logging import to_debug_json
 from pathlib import Path
 
 
-def make_chain_graph(count: int, mult: int) -> wrap.GraphLayout:
+def make_disconnected_graph(count: int, mult: int) -> wrap.GraphLayout:
     ir = wrap.GraphLayout()
-    for i in range(0, count - 1):
-        ir.edge(i, i + 1)
 
     for i in range(0, count):
         ir.rect(20 * mult, 20 * mult)
 
     ir.ir.width = 100 * mult
     ir.ir.height = 100 * mult
+
+    return ir
+
+
+def make_chain_graph(count: int, mult: int) -> wrap.GraphLayout:
+    ir = make_disconnected_graph(count=count, mult=mult)
+    for i in range(0, count - 1):
+        ir.edge(i, i + 1)
 
     return ir
 
@@ -206,7 +212,7 @@ def test_align_axis_separation():
     assert int(t.rect_center(4).x) == int(t.rect_center(3).x)
 
 
-def test_align_axis_multi_separate():
+def test_align_axis_separate_2():
     mult = 5
     ir = make_chain_graph(6, mult)
 
@@ -227,6 +233,55 @@ def test_align_axis_multi_separate():
         ir.newAlignSpec(4),
         ir.newAlignSpec(5),
     ])
+
+    t = ConvTest(ir.ir.doColaConvert())
+
+
+def test_align_axis_multi_separate_equal_sizes():
+    mult = 5
+    ir = make_disconnected_graph(9, mult)
+
+    ir.separateXDimN(
+        lines=[
+            ir.newAlignX([
+                ir.newAlignSpec(0),
+                ir.newAlignSpec(3),
+                ir.newAlignSpec(6),
+            ]),
+            ir.newAlignX([
+                ir.newAlignSpec(1),
+                ir.newAlignSpec(4),
+                ir.newAlignSpec(7),
+            ]),
+            ir.newAlignX([
+                ir.newAlignSpec(2),
+                ir.newAlignSpec(5),
+                ir.newAlignSpec(8),
+            ]),
+        ],
+        distance=50 * mult,
+    )
+
+    ir.separateYDimN(
+        lines=[
+            ir.newAlignY([
+                ir.newAlignSpec(0),
+                ir.newAlignSpec(1),
+                ir.newAlignSpec(2),
+            ]),
+            ir.newAlignY([
+                ir.newAlignSpec(3),
+                ir.newAlignSpec(4),
+                ir.newAlignSpec(5),
+            ]),
+            ir.newAlignY([
+                ir.newAlignSpec(6),
+                ir.newAlignSpec(7),
+                ir.newAlignSpec(8),
+            ]),
+        ],
+        distance=50 * mult,
+    )
 
     t = ConvTest(ir.ir.doColaConvert())
     t.debug()

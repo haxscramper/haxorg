@@ -3,7 +3,7 @@ import sys
 from typing import TYPE_CHECKING
 import os
 from beartype import beartype
-from beartype.typing import Optional, List
+from beartype.typing import Optional, List, Tuple
 from dominate import tags
 from numbers import Number
 import copy
@@ -104,6 +104,51 @@ class GraphLayout():
                        right=right,
                        dimension=GraphDimension.YDIM,
                        distance=float(distance))
+
+    def separateN(
+        self,
+        lines: List[GraphConstraintAlign],
+        dimension: GraphDimension,
+        distance: Number = 1.0,
+        alignPairs: Optional[List[Tuple[int, int]]] = None,
+    ):
+        self.ir.constraints.append(
+            GraphConstraint.InitMultiSeparateStatic(
+                GraphConstraintMultiSeparate(
+                    lines=lines,
+                    separationDistance=float(distance),
+                    dimension=dimension,
+                    alignPairs=[(i, i + i)
+                                for i in range(0,
+                                               len(lines) -
+                                               1)] if alignPairs is None else alignPairs,
+                )))
+
+    def separateXDimN(
+        self,
+        lines: List[GraphConstraintAlign],
+        distance: Number = 1.0,
+        alignPairs: Optional[List[Tuple[int, int]]] = None,
+    ):
+        self.separateN(
+            lines=lines,
+            dimension=GraphDimension.XDIM,
+            distance=float(distance),
+            alignPairs=alignPairs,
+        )
+
+    def separateYDimN(
+        self,
+        lines: List[GraphConstraintAlign],
+        distance: Number = 1.0,
+        alignPairs: Optional[List[Tuple[int, int]]] = None,
+    ):
+        self.separateN(
+            lines=lines,
+            dimension=GraphDimension.YDIM,
+            distance=float(distance),
+            alignPairs=alignPairs,
+        )
 
     def edge(self, source: int, target: int):
         self.ir.edges.append(GraphEdge(source=source, target=target))

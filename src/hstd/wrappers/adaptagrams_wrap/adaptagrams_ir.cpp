@@ -576,7 +576,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         ir.rectPointers, ccs, &rootCluster, idMap};
 
 
-    ir.router->setTopologyAddon(&topologyAddon);
+    // ir.router->setTopologyAddon(&topologyAddon);
     ir.router->processTransaction();
     ir.router->outputInstanceToSVG("adaptagrams_debug");
 
