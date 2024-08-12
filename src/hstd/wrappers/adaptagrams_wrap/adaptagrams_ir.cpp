@@ -448,7 +448,7 @@ Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
     baseRectangles.reserve(rectangles.size());
     for (auto const& r : rectangles) {
         baseRectangles.push_back(
-            vpsc::Rectangle(0, r.width(), 0, r.width()));
+            vpsc::Rectangle(0, r.width(), 0, r.height()));
     }
 
     rectPointers                                    //

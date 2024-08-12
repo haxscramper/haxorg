@@ -285,3 +285,58 @@ def test_align_axis_multi_separate_equal_sizes():
 
     t = ConvTest(ir.ir.doColaConvert())
     t.debug()
+
+def test_align_axis_multi_separate_different_sizes():
+    mult = 5
+    ir = wrap.GraphLayout()
+
+    for i in range(0, 9):
+        ir.rect(5 * mult * (i + 1), 2 * mult * (i + 1))
+
+    ir.ir.width = 100 * mult
+    ir.ir.height = 100 * mult
+
+    ir.separateXDimN(
+        lines=[
+            ir.newAlignX([
+                ir.newAlignSpec(0),
+                ir.newAlignSpec(3),
+                ir.newAlignSpec(6),
+            ]),
+            ir.newAlignX([
+                ir.newAlignSpec(1),
+                ir.newAlignSpec(4),
+                ir.newAlignSpec(7),
+            ]),
+            ir.newAlignX([
+                ir.newAlignSpec(2),
+                ir.newAlignSpec(5),
+                ir.newAlignSpec(8),
+            ]),
+        ],
+        distance=100 * mult,
+    )
+
+    ir.separateYDimN(
+        lines=[
+            ir.newAlignY([
+                ir.newAlignSpec(0),
+                ir.newAlignSpec(1),
+                ir.newAlignSpec(2),
+            ]),
+            ir.newAlignY([
+                ir.newAlignSpec(3),
+                ir.newAlignSpec(4),
+                ir.newAlignSpec(5),
+            ]),
+            ir.newAlignY([
+                ir.newAlignSpec(6),
+                ir.newAlignSpec(7),
+                ir.newAlignSpec(8),
+            ]),
+        ],
+        distance=50 * mult,
+    )
+
+    t = ConvTest(ir.ir.doColaConvert())
+    t.debug()
