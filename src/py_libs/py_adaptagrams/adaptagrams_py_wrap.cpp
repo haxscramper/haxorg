@@ -204,6 +204,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
                         }))
     .def_readwrite("nodes", &GraphConstraint::Align::nodes)
     .def_readwrite("dimension", &GraphConstraint::Align::dimension, R"RAW(Which axist to align on)RAW")
+    .def("toColaString", static_cast<std::string(GraphConstraint::Align::*)() const>(&GraphConstraint::Align::toColaString))
     .def("__repr__", [](GraphConstraint::Align _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -243,6 +244,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
     .def_readwrite("isExactSeparation", &GraphConstraint::Separate::isExactSeparation)
     .def_readwrite("dimension", &GraphConstraint::Separate::dimension, R"RAW(Which axis to partition
 nodes)RAW")
+    .def("toColaString", static_cast<std::string(GraphConstraint::Separate::*)() const>(&GraphConstraint::Separate::toColaString))
     .def("__repr__", [](GraphConstraint::Separate _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -263,6 +265,7 @@ nodes)RAW")
     .def_readwrite("dimension", &GraphConstraint::MultiSeparate::dimension)
     .def_readwrite("separationDistance", &GraphConstraint::MultiSeparate::separationDistance)
     .def_readwrite("isExactSeparation", &GraphConstraint::MultiSeparate::isExactSeparation)
+    .def("toColaString", static_cast<std::string(GraphConstraint::MultiSeparate::*)() const>(&GraphConstraint::MultiSeparate::toColaString))
     .def("__repr__", [](GraphConstraint::MultiSeparate _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -297,6 +300,7 @@ nodes)RAW")
                         }))
     .def_readwrite("rect", &GraphConstraint::PageBoundary::rect)
     .def_readwrite("weight", &GraphConstraint::PageBoundary::weight)
+    .def("toColaString", static_cast<std::string(GraphConstraint::PageBoundary::*)() const>(&GraphConstraint::PageBoundary::toColaString))
     .def("__repr__", [](GraphConstraint::PageBoundary _self) -> std::string {
                      return py_repr_impl(_self);
                      })

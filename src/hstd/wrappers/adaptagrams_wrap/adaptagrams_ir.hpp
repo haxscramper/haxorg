@@ -119,8 +119,10 @@ struct [[refl]] GraphConstraint {
         DESC_FIELDS(Align, (nodes, dimension));
 
         /// \brief Map to cola layout constraint object
-        Res         toCola() const;
-        std::string toColaString() const { return toCola()->toString(); }
+        Res                  toCola() const;
+        [[refl]] std::string toColaString() const {
+            return toCola()->toString();
+        }
     };
 
     struct [[refl]] Separate {
@@ -138,8 +140,8 @@ struct [[refl]] GraphConstraint {
              isExactSeparation,
              dimension));
 
-        Vec<Res>    toCola() const;
-        std::string toColaString() const;
+        Vec<Res>             toCola() const;
+        [[refl]] std::string toColaString() const;
     };
 
     struct [[refl]] MultiSeparate {
@@ -157,8 +159,8 @@ struct [[refl]] GraphConstraint {
              separationDistance,
              isExactSeparation));
 
-        Vec<Res>    toCola() const;
-        std::string toColaString() const;
+        Vec<Res>             toCola() const;
+        [[refl]] std::string toColaString() const;
     };
 
     struct [[refl]] FixedRelative {
@@ -173,8 +175,10 @@ struct [[refl]] GraphConstraint {
         [[refl]] double    weight = 100.0;
         DESC_FIELDS(PageBoundary, (rect, weight));
 
-        Res         toCola() const;
-        std::string toColaString() const { return toCola()->toString(); }
+        Res                  toCola() const;
+        [[refl]] std::string toColaString() const {
+            return toCola()->toString();
+        }
     };
 
     Vec<Res> toCola(std::vector<vpsc::Rectangle*> const& allRects) const;

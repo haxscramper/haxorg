@@ -360,7 +360,8 @@ class Cell():
     content: str
     rect_idx: int = -1
 
-@pytest.mark.bad_asan # adaptagrams library triggers sanitizer error
+
+@pytest.mark.bad_asan  # adaptagrams library triggers sanitizer error
 def test_tree_sheet_constraint():
     mult = 5
     ir = wrap.GraphLayout()
@@ -380,15 +381,21 @@ def test_tree_sheet_constraint():
 
     def get_depth(t: Tree):
         subs = [get_depth(s) for s in t.sub]
-        if 0 < len(subs):
+        if 1 < len(subs):
             return max(*subs) + 1
+
+        elif len(subs) == 1:
+            return subs[0] + 1
 
         else:
             return 1
 
     def get_cols(t: Tree):
         subs = [get_cols(s) for s in t.sub]
-        if 0 < len(subs):
+        if len(subs) == 1:
+            return max(subs[0], len(t.content))
+
+        elif 1 < len(subs):
             return max(max(*subs), len(t.content))
 
         else:
@@ -426,21 +433,28 @@ def test_tree_sheet_constraint():
                 cell.rect_idx = ir.rect(20, 20)
 
     y_aligns: List[wrap.GraphConstraintAlign] = []
+    x_aligns: List[wrap.GraphConstraintAlign] = []
 
     for row in grid:
         row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
         if 1 < len(row_nodes):
-            y_aligns.append(ir.newAlignX(row_nodes))
+            y_aligns.append(ir.newAlignY(row_nodes))
 
-    ir.separateYDimN(y_aligns, distance=50 * mult)
+    c1 = ir.separateYDimN(y_aligns, distance=25 * mult)
 
-    for idx, it in enumerate(y_aligns):
+    for col in range(0, col_count):
+        col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
+        if 1 < len(col_nodes):
+            pass
+            x_aligns.append(ir.newAlignX(col_nodes))
+
+    c2 = ir.separateXDimN(x_aligns, distance=25 * mult) 
+
+
+    for idx, it in enumerate(x_aligns):
         print(idx, it)
 
-    pprint_to_file(to_debug_json(dict(
-        grid=grid,
-        # y_aligns=y_aligns,
-    )), "/tmp/test_tree_sheet.py")
+    pprint_to_file(to_debug_json(dict(grid=grid,)), "/tmp/test_tree_sheet.py")
 
     ir.ir.width = 100 * mult
     ir.ir.height = 100 * mult

@@ -129,14 +129,14 @@ class GraphLayout():
         distance: Number = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
     ) -> GraphConstraintMultiSeparate:
+        pairs = [(i, i + 1)
+                 for i in range(0,
+                                len(lines) - 1)] if alignPairs is None else alignPairs
         constraint = GraphConstraintMultiSeparate(
             lines=lines,
             separationDistance=float(distance),
             dimension=dimension,
-            alignPairs=[(i, i + 1)
-                        for i in range(0,
-                                       len(lines) -
-                                       1)] if alignPairs is None else alignPairs,
+            alignPairs=pairs,
         )
 
         self.ir.constraints.append(GraphConstraint.InitMultiSeparateStatic(constraint))

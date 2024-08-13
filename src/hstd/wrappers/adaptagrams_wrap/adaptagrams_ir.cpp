@@ -795,10 +795,24 @@ std::string GraphConstraint::toColaString(
 
 Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
     Vec<Res> result;
-    for (auto const& line : lines) { result.push_back(line.toCola()); }
+    for (auto const& [idx, line] : enumerate(lines)) {
+        if (line.dimension != this->dimension) {
+            throw std::logic_error(
+                fmt("multi-aling line {} has dimension {} but the main "
+                    "multi-align has dimension {} -- align dimensions "
+                    "must match",
+                    idx,
+                    line.dimension,
+                    this->dimension));
+        }
+
+        result.push_back(line.toCola());
+    }
 
     auto sep = std::make_shared<cola::MultiSeparationConstraint>(
         toVpsc(dimension), separationDistance, isExactSeparation);
+
+    CHECK(sep.get() != nullptr);
 
     for (auto const& it : enumerator(alignPairs)) {
         auto const& src = it.value().first;
