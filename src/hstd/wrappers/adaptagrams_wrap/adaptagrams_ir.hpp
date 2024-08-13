@@ -295,8 +295,13 @@ struct [[refl]] GraphLayoutIR {
     [[refl]] Vec<Subgraph>        subgraphs;
     /// \brief If some edge has a dedicated label of specified size.
     [[refl]] UnorderedMap<GraphEdge, GraphSize> edgeLabels = {};
-    [[refl]] double                             width      = 100;
-    [[refl]] double                             height     = 100;
+
+    [[refl]] double width            = 100;
+    [[refl]] double height           = 100;
+    [[refl]] double leftBBoxMargin   = 0.0;
+    [[refl]] double rightBBoxMargin  = 0.0;
+    [[refl]] double topBBoxMargin    = 0.0;
+    [[refl]] double bottomBBoxMargin = 0.0;
     /// \brief Graph name. Backend-specific.
     [[refl]] Str graphName = "G";
 
@@ -420,6 +425,7 @@ struct [[refl]] GraphLayoutIR {
 
     /// \brief Backend-specific layout results for cola graph layout
     struct ColaResult {
+        GraphLayoutIR*        baseIr;
         Vec<vpsc::Rectangle>  baseRectangles;
         Vec<vpsc::Rectangle*> rectPointers;
 

@@ -467,7 +467,7 @@ Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
 
 GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     validate();
-    ColaResult                ir;
+    ColaResult                ir{.baseIr = this};
     cola::CompoundConstraints ccs;
 
     Vec<SPtr<cola::CompoundConstraint>> constraints = ir.setupConstraints(
@@ -706,10 +706,12 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
         for (auto const& p : route.ps) { register_point(p.x, p.y); }
     }
 
-    res.bbox.left   = x_min;
-    res.bbox.top    = y_min;
-    res.bbox.width  = x_max - x_min;
-    res.bbox.height = y_max - y_min;
+    res.bbox.left  = x_min - baseIr->leftBBoxMargin;
+    res.bbox.top   = y_min - baseIr->topBBoxMargin;
+    res.bbox.width = x_max - x_min
+                   + (baseIr->leftBBoxMargin + baseIr->rightBBoxMargin);
+    res.bbox.height = y_max - y_min
+                    + (baseIr->topBBoxMargin + baseIr->bottomBBoxMargin);
     double x_offset = -res.bbox.left;
     double y_offset = -res.bbox.top;
 

@@ -125,7 +125,7 @@ class GraphEdge:
     target: int
 
 class GraphLayoutIR:
-    def __init__(self, rectangles: List[GraphSize], edges: List[GraphEdge], constraints: List[GraphConstraint], subgraphs: List[GraphLayoutIRSubgraph], edgeLabels: Dict[GraphEdge, GraphSize], width: double, height: double, graphName: str, graphviz_size_scaling: int) -> None: ...
+    def __init__(self, rectangles: List[GraphSize], edges: List[GraphEdge], constraints: List[GraphConstraint], subgraphs: List[GraphLayoutIRSubgraph], edgeLabels: Dict[GraphEdge, GraphSize], width: double, height: double, leftBBoxMargin: double, rightBBoxMargin: double, topBBoxMargin: double, bottomBBoxMargin: double, graphName: str, graphviz_size_scaling: int) -> None: ...
     def validate(self) -> None: ...
     def doHolaConvert(self) -> GraphLayoutIRResult: ...
     def doColaConvert(self) -> GraphLayoutIRResult: ...
@@ -140,6 +140,10 @@ class GraphLayoutIR:
     edgeLabels: Dict[GraphEdge, GraphSize]
     width: double
     height: double
+    leftBBoxMargin: double
+    rightBBoxMargin: double
+    topBBoxMargin: double
+    bottomBBoxMargin: double
     graphName: str
     graphviz_size_scaling: int
 

@@ -368,14 +368,14 @@ def test_tree_sheet_constraint():
 
     tree = Tree(sub=[
         Tree(sub=[
-            Tree(content=["1", "2", "3"]),
-            Tree(content=["4", "5", "9"]),
-            Tree(content=["9", "I", "I"]),
+            Tree(content=["AA", "AB", "AC", "AD"]),
+            Tree(content=["BA", "BB", "BC", "BD"]),
+            Tree(content=["CA", "CB", "CC", "CD"]),
         ]),
         Tree(sub=[
-            Tree(content=["1", "2", "3"]),
-            Tree(content=["4", "5", "9"]),
-            Tree(content=["9", "I", "I"]),
+            Tree(content=["RR", "RE", "RL", "RQ"]),
+            Tree(content=["ER", "EE", "EL", "EQ"]),
+            Tree(content=["LR", "LE", "LL", "LQ"]),
         ]),
     ])
 
@@ -402,11 +402,15 @@ def test_tree_sheet_constraint():
             return len(t.content)
 
     def get_rows(t: Tree):
-        return sum(get_rows(s) for s in t.sub) + 1
+        res = sum(get_rows(s) for s in t.sub) + 1
+        if 0 < len(t.content):
+            res += 1
+
+        return res
 
     max_depth = get_depth(tree)
     col_count = max_depth + get_cols(tree)
-    row_count = get_rows(tree)
+    row_count = get_rows(tree) + 1
 
     #[row][col]
     grid: List[List[Optional[Cell]]] = [[None] * col_count for _ in range(0, row_count)]
@@ -415,49 +419,54 @@ def test_tree_sheet_constraint():
     def aux(t: Tree, level: int):
         nonlocal dfs_row
         column = level
-        grid[dfs_row][column] = Cell(content="start")
+        grid[dfs_row][column] = Cell(content="**")
         if 0 < len(t.content):
             dfs_row += 1
-            column = max_depth
-            for cell in t.content:
-                grid[dfs_row][column] = Cell(content=cell)
+            for cell_idx, cell in enumerate(t.content):
+                grid[dfs_row][max_depth + cell_idx] = Cell(content=cell)
+
+        dfs_row += 1
 
         for s in t.sub:
             aux(s, level + 1)
+
 
     aux(tree, 0)
 
     for row_idx, row in enumerate(grid):
         for col_idx, cell in enumerate(row):
             if cell:
-                cell.rect_idx = ir.rect(20, 20)
+                cell.rect_idx = ir.rect(width=20 * mult, height=10 * mult)
 
     y_aligns: List[wrap.GraphConstraintAlign] = []
     x_aligns: List[wrap.GraphConstraintAlign] = []
 
+    print("\n".join(" ".join(f"{cell.rect_idx:>02} {cell.content}" if cell else "_____" for cell in row) for row in grid))
+
     for row in grid:
         row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
-        if 1 < len(row_nodes):
+        if 0 < len(row_nodes):
             y_aligns.append(ir.newAlignY(row_nodes))
 
-    c1 = ir.separateYDimN(y_aligns, distance=25 * mult)
+    ir.separateYDimN(y_aligns, distance=20 * mult)
 
     for col in range(0, col_count):
         col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
-        if 1 < len(col_nodes):
+        if 0 < len(col_nodes):
             pass
             x_aligns.append(ir.newAlignX(col_nodes))
 
-    c2 = ir.separateXDimN(x_aligns, distance=25 * mult) 
+    ir.separateXDimN(x_aligns, distance=50 * mult)
 
+    pprint_to_file(
+        to_debug_json(dict(grid=grid)),
+        "/tmp/test_tree_sheet.py",
+        width=200,
+    )
 
-    for idx, it in enumerate(x_aligns):
-        print(idx, it)
-
-    pprint_to_file(to_debug_json(dict(grid=grid,)), "/tmp/test_tree_sheet.py")
-
-    ir.ir.width = 100 * mult
+    ir.ir.width = 150 * mult
     ir.ir.height = 100 * mult
+    ir.ir.leftBBoxMargin = 100
 
     t = ConvTest(ir.ir.doColaConvert())
     t.debug()

@@ -3,7 +3,7 @@ import sys
 from typing import TYPE_CHECKING
 import os
 from beartype import beartype
-from beartype.typing import Optional, List, Tuple
+from beartype.typing import Optional, List, Tuple, Dict, Any
 from dominate import tags
 from numbers import Number
 import copy
@@ -273,8 +273,10 @@ class svg_path(tags.html_tag):
 
 @beartype
 def toSvg(
-    res: GraphLayoutIRResult,
-    draw_geometric_positions: bool = True,
+        res: GraphLayoutIRResult,
+        draw_geometric_positions: bool = True,
+        rect_debug_map: Dict[int, Dict[str, Any]] = dict(),
+        edge_debug_map: Dict[Tuple[int, int], Dict[str, Any]] = dict(),
 ) -> svg:
     r = 10
     result = svg(
@@ -292,6 +294,11 @@ def toSvg(
             stext.add(svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
             stext.add(
                 svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
+            if rect_idx in rect_debug_map:
+                for key, value in rect_debug_map[rect_idx]:
+                    stext.add(svg_tspan(f"{key}:{value}"))
+
+                    
             stext.add(svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
             sg = svg_g(transform=f"translate({rect.left - 50:.0f}, {rect.top:.0f})")
             sg.add(stext)
