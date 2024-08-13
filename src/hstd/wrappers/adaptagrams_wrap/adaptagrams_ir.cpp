@@ -800,12 +800,24 @@ Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
     auto sep = std::make_shared<cola::MultiSeparationConstraint>(
         toVpsc(dimension), separationDistance, isExactSeparation);
 
-    for (auto [pair1, pair2] : alignPairs) {
+    for (auto const& it : enumerator(alignPairs)) {
+        auto const& src = it.value().first;
+        auto const& dst = it.value().second;
+        if (!(src < result.size() && dst < result.size())) {
+            throw std::range_error(fmt(
+                "multi separate pair {} src/dst are out of range: dst:{}, "
+                "src:{} line-count:{}",
+                it.index(),
+                src,
+                dst,
+                result.size()));
+        }
+
+
         sep->addAlignmentPair(
+            dynamic_cast<cola::AlignmentConstraint*>(result.at(src).get()),
             dynamic_cast<cola::AlignmentConstraint*>(
-                result.at(pair1).get()),
-            dynamic_cast<cola::AlignmentConstraint*>(
-                result.at(pair2).get()));
+                result.at(dst).get()));
     }
 
     result.push_back(sep);

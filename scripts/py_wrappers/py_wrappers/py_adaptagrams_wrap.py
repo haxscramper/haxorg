@@ -36,15 +36,32 @@ class GraphLayout():
             offset=float(offset),
         )
 
-    def newAlign(self, specs: List[GraphConstraintAlignSpec],
-                 dimension: GraphDimension) -> GraphConstraintAlign:
-        return GraphConstraintAlign(nodes=specs, dimension=dimension)
+    def newAlign(
+        self,
+        specs: List[GraphConstraintAlignSpec | int],
+        dimension: GraphDimension,
+    ) -> GraphConstraintAlign:
+        aligns: List[GraphConstraintAlignSpec] = []
+        for spec in specs:
+            match spec:
+                case GraphConstraintAlignSpec():
+                    aligns.append(spec)
 
-    def newAlignX(self, specs: List[GraphConstraintAlignSpec]) -> GraphConstraintAlign:
-        return GraphConstraintAlign(nodes=specs, dimension=GraphDimension.XDIM)
+                case int():
+                    aligns.append(self.newAlignSpec(spec))
 
-    def newAlignY(self, specs: List[GraphConstraintAlignSpec]) -> GraphConstraintAlign:
-        return GraphConstraintAlign(nodes=specs, dimension=GraphDimension.YDIM)
+                case _:
+                    raise TypeError(type(spec))
+
+        return GraphConstraintAlign(nodes=aligns, dimension=dimension)
+
+    def newAlignX(self,
+                  specs: List[GraphConstraintAlignSpec | int]) -> GraphConstraintAlign:
+        return self.newAlign(specs=specs, dimension=GraphDimension.XDIM)
+
+    def newAlignY(self,
+                  specs: List[GraphConstraintAlignSpec | int]) -> GraphConstraintAlign:
+        return self.newAlign(specs=specs, dimension=GraphDimension.YDIM)
 
     def alignDimN(self, specs: List[GraphConstraintAlignSpec], dimension: GraphDimension):
         self.ir.constraints.append(
@@ -153,8 +170,10 @@ class GraphLayout():
     def edge(self, source: int, target: int):
         self.ir.edges.append(GraphEdge(source=source, target=target))
 
-    def rect(self, width: int, height: int):
+    def rect(self, width: int, height: int) -> int:
+        res_idx = len(self.ir.rectangles)
         self.ir.rectangles.append(GraphSize(w=width, h=height))
+        return res_idx
 
 
 def rename_kwargs_for_svg(kwargs):

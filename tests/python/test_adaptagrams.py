@@ -1,8 +1,11 @@
 import py_wrappers.py_adaptagrams_wrap as wrap
 
 from pprint import pprint, pformat
-from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.script_logging import to_debug_json, pprint_to_file
 from pathlib import Path
+from dataclasses import dataclass, field
+from beartype import beartype
+from beartype.typing import List, Optional, Tuple
 
 
 def make_disconnected_graph(count: int, mult: int) -> wrap.GraphLayout:
@@ -286,6 +289,7 @@ def test_align_axis_multi_separate_equal_sizes():
     t = ConvTest(ir.ir.doColaConvert())
     t.debug()
 
+
 def test_align_axis_multi_separate_different_sizes():
     mult = 5
     ir = wrap.GraphLayout()
@@ -340,3 +344,106 @@ def test_align_axis_multi_separate_different_sizes():
 
     t = ConvTest(ir.ir.doColaConvert())
     t.debug()
+
+
+@beartype
+@dataclass
+class Tree():
+    content: List[str] = field(default_factory=list)
+    sub: List["Tree"] = field(default_factory=list)
+
+
+@beartype
+@dataclass
+class Cell():
+    content: str
+    rect_idx: int = -1
+
+
+def test_tree_sheet_constraint():
+    mult = 5
+    ir = wrap.GraphLayout()
+
+    tree = Tree(sub=[
+        Tree(sub=[
+            Tree(content=["1", "2", "3"]),
+            Tree(content=["4", "5", "9"]),
+            Tree(content=["9", "I", "I"]),
+        ]),
+        Tree(sub=[
+            Tree(content=["1", "2", "3"]),
+            Tree(content=["4", "5", "9"]),
+            Tree(content=["9", "I", "I"]),
+        ]),
+    ])
+
+    def get_depth(t: Tree):
+        subs = [get_depth(s) for s in t.sub]
+        if 0 < len(subs):
+            return max(*subs) + 1
+
+        else:
+            return 1
+
+    def get_cols(t: Tree):
+        subs = [get_cols(s) for s in t.sub]
+        if 0 < len(subs):
+            return max(max(*subs), len(t.content))
+
+        else:
+            return len(t.content)
+
+    def get_rows(t: Tree):
+        return sum(get_rows(s) for s in t.sub) + 1
+
+    max_depth = get_depth(tree)
+    col_count = max_depth + get_cols(tree)
+    row_count = get_rows(tree)
+
+    #[row][col]
+    grid: List[List[Optional[Cell]]] = [[None] * col_count for _ in range(0, row_count)]
+    dfs_row: int = 0
+
+    def aux(t: Tree, level: int):
+        nonlocal dfs_row
+        column = level
+        grid[dfs_row][column] = Cell(content="start")
+        if 0 < len(t.content):
+            dfs_row += 1
+            column = max_depth
+            for cell in t.content:
+                grid[dfs_row][column] = Cell(content=cell)
+
+        for s in t.sub:
+            aux(s, level + 1)
+
+    aux(tree, 0)
+
+    for row_idx, row in enumerate(grid):
+        for col_idx, cell in enumerate(row):
+            if cell:
+                cell.rect_idx = ir.rect(20, 20)
+
+    y_aligns: List[wrap.GraphConstraintAlign] = []
+
+    for row in grid:
+        row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
+        if 1 < len(row_nodes):
+            y_aligns.append(ir.newAlignX(row_nodes))
+
+    ir.separateYDimN(y_aligns, distance=50 * mult)
+
+    pprint_to_file(to_debug_json(dict(
+        grid=grid,
+        # y_aligns=y_aligns,
+    )), "/tmp/test_tree_sheet.py")
+
+    ir.ir.width = 100 * mult
+    ir.ir.height = 100 * mult
+
+    t = ConvTest(ir.ir.doColaConvert())
+    t.debug()
+
+
+if __name__ == "__main__":
+    test_tree_sheet_constraint()

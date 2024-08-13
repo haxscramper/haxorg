@@ -21,6 +21,7 @@ import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
 from py_repository.gen_coverage_cookies import ProfdataParams
+from py_scriptutils.algorithm import remove_ansi
 import typing
 import inspect
 import copy
@@ -217,10 +218,12 @@ def run_command(
         retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
 
     if stdout_debug and stdout:
-        stdout_debug.write_text(stdout)
+        log(CAT).info(f"Wrote stdout to {stdout_debug}")
+        stdout_debug.write_text(remove_ansi(stdout))
 
     if stderr_debug and stderr:
-        stderr_debug.write_text(stderr)
+        log(CAT).info(f"Wrote stderr to {stderr_debug}")
+        stderr_debug.write_text(remove_ansi(stderr))
 
     if allow_fail or retcode == 0:
         return (retcode, stdout, stderr)
@@ -1022,7 +1025,7 @@ def get_poetry_lldb(test: str) -> list[str]:
     ]
 
 
-@task(iterable=["arg"])
+@org_task(iterable=["arg"])
 def py_debug_script(ctx: Context, arg):
     run_command(
         ctx,

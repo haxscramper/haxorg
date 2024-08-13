@@ -3,9 +3,9 @@ import itertools
 from beartype import beartype
 from itertools import dropwhile, takewhile
 import more_itertools as mit
+import re
 
 T = TypeVar('T')
-
 
 
 def cond(expr, ifTrue=None, ifFalse=None):
@@ -59,6 +59,10 @@ def maybe_splice(expr, item):
     else:
         return []
 
+
+def remove_ansi(text: str) -> str:
+    ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+    return ansi_escape.sub("", text)
 
 
 @beartype
