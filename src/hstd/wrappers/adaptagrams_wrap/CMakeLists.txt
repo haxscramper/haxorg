@@ -72,8 +72,16 @@ target_link_libraries(cola_cola PUBLIC ${CAIROMM_LIBRARIES})
 target_include_directories(cola_cola PUBLIC ${CAIROMM_INCLUDE_DIRS})
 
 
+function(haxorg_target_setup_v2)
+    cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
+    set_common_files("${ARG_TARGET}")
+    set_target_output("${ARG_TARGET}")
+    set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
+endfunction()
+
+
 add_library(adaptagrams)
-haxorg_target_setup(adaptagrams)
+haxorg_target_setup_v2(TARGET adaptagrams FORCE_NO_ASAN ON)
 target_link_libraries(adaptagrams PUBLIC
     cola_cola
     cola_avoid
@@ -105,7 +113,7 @@ set_target_properties(py_adaptagrams PROPERTIES
     SUFFIX ".so"
 )
 
-haxorg_target_setup(py_adaptagrams)
+haxorg_target_setup_v2(TARGET py_adaptagrams FORCE_NO_ASAN ON)
 target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto adaptagrams)
 
 set_target_properties(py_adaptagrams PROPERTIES

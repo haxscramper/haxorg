@@ -813,11 +813,11 @@ Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
                 result.size()));
         }
 
-
         sep->addAlignmentPair(
             dynamic_cast<cola::AlignmentConstraint*>(result.at(src).get()),
-            dynamic_cast<cola::AlignmentConstraint*>(
-                result.at(dst).get()));
+            dynamic_cast<cola::AlignmentConstraint*>(result.at(dst).get())
+            //
+        );
     }
 
     result.push_back(sep);

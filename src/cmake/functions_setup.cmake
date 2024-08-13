@@ -1,132 +1,141 @@
-function(set_target_flags TARGET)
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Qunused-arguments")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
-  # add_target_property(${TARGET} COMPILE_OPTIONS
-  # @${BASE}/scripts/cxx_repository/warning_config.txt)
+function(set_target_flags_impl)
+    cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
+    message(STATUS "TARGET = ${ARG_TARGET} FORCE_NO_ASAN = ${ARG_FORCE_NO_ASAN}")
 
-  if(${ORG_INSTRUMENT_TRACE})
-    add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
-  endif()
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
+    # add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+    # @${BASE}/scripts/cxx_repository/warning_config.txt)
 
-  if(${ORG_USE_XRAY})
-
-  else()
-    add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
-    add_target_property(${TARGET} LINK_OPTIONS "-fuse-ld=mold")
-  endif()
-
-  target_compile_features(${TARGET} PUBLIC cxx_std_23)
-
-  add_target_property(${TARGET} COMPILE_OPTIONS "-ftime-trace")
-  add_target_property(${TARGET} LINK_OPTIONS "-ftime-trace")
-
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-    # Avoid getting flooded with compilation errors
-    set(CMAKE_CXX_COMPILER clang++)
-    # if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON) add_target_property(${TARGET}
-    # COMPILE_OPTIONS "-ferror-limit=${MAX_COMPILE_ERRORS}") endif()
-
-    # add_target_property(${TARGET} COMPILE_OPTIONS "-v")
-
-    # add_target_property(${TARGET} COMPILE_OPTIONS
-    # "-fdiagnostics-format=sarif")
-
-    add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
-    add_target_property(${TARGET} COMPILE_OPTIONS "-fPIC")
-
-    if(${ORG_USE_SANITIZER})
-      add_target_property(${TARGET} COMPILE_OPTIONS
-                          "-fsanitize=undefined,address")
-      # LLVM ships with sanitizer runtime and I could not figure out how to
-      # compile it in statically nor do I know whether this is really necessary
-      # or not
-      add_target_property(${TARGET} COMPILE_OPTIONS "-shared-libasan")
-      add_target_property(${TARGET} COMPILE_OPTIONS
-                          "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-      add_target_property(${TARGET} LINK_OPTIONS
-                          "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-      add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
-      add_target_property(${TARGET} LINK_OPTIONS "-L${LLVM_GNU_CLANG_DIR}")
-      add_target_property(${TARGET} LINK_OPTIONS "-Wl,-rpath,${LLVM_ASAN_LIBRARY}")
-      target_link_libraries(${TARGET} PRIVATE ${ASAN_LIBRARY})
+    if(${ORG_INSTRUMENT_TRACE})
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS -finstrument-functions)
     endif()
 
-    # Specify runtime search paths for the libraries so created binaries did not
-    # have to depend on the LD_PRELOAD_PATH being set up correctly.
-    add_target_property(
-      ${TARGET} LINK_OPTIONS
-      "-Wl,-rpath,${LLVM_GNU_CLANG_DIR}")
-
     if(${ORG_USE_XRAY})
-      add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instrument")
-      add_target_property(${TARGET} LINK_OPTIONS "-fxray-instrument")
-      add_target_property(${TARGET} COMPILE_OPTIONS
-                          "-fxray-instruction-threshold=50")
+
+    else()
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
+      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
+    endif()
+
+    target_compile_features(${ARG_TARGET} PUBLIC cxx_std_23)
+
+    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
+    add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+      # Avoid getting flooded with compilation errors
+      set(CMAKE_CXX_COMPILER clang++)
+      # if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON) add_target_property(${ARG_TARGET}
+      # COMPILE_OPTIONS "-ferror-limit=${MAX_COMPILE_ERRORS}") endif()
+
+      # add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-v")
+
+      # add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+      # "-fdiagnostics-format=sarif")
+
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")
+
+      if(${ORG_USE_SANITIZER})
+            if(NOT ${ARG_FORCE_NO_ASAN})
+                add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                                    "-fsanitize=undefined,address")
+                # LLVM ships with sanitizer runtime and I could not figure out how to
+                # compile it in statically nor do I know whether this is really necessary
+                # or not
+                add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-shared-libasan")
+                add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                                    "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+                add_target_property(${ARG_TARGET} LINK_OPTIONS
+                                    "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+                add_target_property(${ARG_TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
+                add_target_property(${ARG_TARGET} LINK_OPTIONS "-L${LLVM_GNU_CLANG_DIR}")
+                add_target_property(${ARG_TARGET} LINK_OPTIONS "-Wl,-rpath,${LLVM_ASAN_LIBRARY}")
+                target_link_libraries(${ARG_TARGET} PRIVATE ${ASAN_LIBRARY})
+            endif()
+      endif()
+
+      # Specify runtime search paths for the libraries so created binaries did not
+      # have to depend on the LD_PRELOAD_PATH being set up correctly.
       add_target_property(
-        ${TARGET} COMPILE_OPTIONS
-        "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt")
+        ${ARG_TARGET} LINK_OPTIONS
+        "-Wl,-rpath,${LLVM_GNU_CLANG_DIR}")
+
+      if(${ORG_USE_XRAY})
+        add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instrument")
+        add_target_property(${ARG_TARGET} LINK_OPTIONS "-fxray-instrument")
+        add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                            "-fxray-instruction-threshold=50")
+        add_target_property(
+          ${ARG_TARGET} COMPILE_OPTIONS
+          "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt")
+      endif()
+
+      if(${ORG_USE_PERFETTO})
+        add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PERFETTO)
+      endif()
+
+      if(${ORG_USE_XRAY})
+        add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
+      endif()
+
+      if(${ORG_USE_PGO})
+        add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PGO)
+        add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
+        add_target_property(${ARG_TARGET} LINK_OPTIONS "-fprofile-instr-generate")
+        add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
+        add_target_property(${ARG_TARGET} LINK_OPTIONS "-fcoverage-mapping")
+      endif()
+
+      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
+
+      if(${PROFILE_USE})
+        add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                            "-fprofile-use=${BASE}/haxorg-compile.profdata")
+      endif()
+
+      if(${ORG_USE_COVERAGE})
+        # https://reviews.llvm.org/D52034 https://reviews.llvm.org/D52033
+        set(PROFILE_FILTER_FLAG
+            --coverage "-fprofile-filter-files=thirdparty" #
+            --coverage "-fprofile-filter-files=base_lexer_gen" #
+            --coverage "-fprofile-filter-files=pb\\.(cc|cpp|h|hpp)$" #
+        )
+
+        target_compile_options(
+          ${ARG_TARGET} PRIVATE -fprofile-instr-generate -fcoverage-mapping
+                            -ftest-coverage "${PROFILE_FILTER_FLAG}")
+
+        target_link_options(${ARG_TARGET} PRIVATE -lgcov --coverage
+                            -fprofile-instr-generate -fcoverage-mapping)
+
+      endif()
     endif()
 
-    if(${ORG_USE_PERFETTO})
-      add_target_property(${TARGET} COMPILE_DEFINITIONS ORG_USE_PERFETTO)
-    endif()
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
+      # Same configuration option for g++ compiler
+      set(CMAKE_CXX_COMPILER g++)
+      add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                          "-fmax-errors=${MAX_COMPILE_ERRORS}")
 
-    if(${ORG_USE_XRAY})
-      add_target_property(${TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
-    endif()
-
-    if(${ORG_USE_PGO})
-      add_target_property(${TARGET} COMPILE_DEFINITIONS ORG_USE_PGO)
-      add_target_property(${TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
-      add_target_property(${TARGET} LINK_OPTIONS "-fprofile-instr-generate")
-      add_target_property(${TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
-      add_target_property(${TARGET} LINK_OPTIONS "-fcoverage-mapping")
-    endif()
-
-    add_target_property(${TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
-
-    if(${PROFILE_USE})
-      add_target_property(${TARGET} COMPILE_OPTIONS
-                          "-fprofile-use=${BASE}/haxorg-compile.profdata")
-    endif()
-
-    if(${ORG_USE_COVERAGE})
-      # https://reviews.llvm.org/D52034 https://reviews.llvm.org/D52033
-      set(PROFILE_FILTER_FLAG
-          --coverage "-fprofile-filter-files=thirdparty" #
-          --coverage "-fprofile-filter-files=base_lexer_gen" #
-          --coverage "-fprofile-filter-files=pb\\.(cc|cpp|h|hpp)$" #
-      )
-
-      target_compile_options(
-        ${TARGET} PRIVATE -fprofile-instr-generate -fcoverage-mapping
-                          -ftest-coverage "${PROFILE_FILTER_FLAG}")
-
-      target_link_options(${TARGET} PRIVATE -lgcov --coverage
-                          -fprofile-instr-generate -fcoverage-mapping)
+      if(${ORG_USE_COVERAGE})
+        target_compile_options(${ARG_TARGET} PRIVATE --coverage)
+        target_link_options(${ARG_TARGET} PRIVATE -lgcov --coverage)
+      endif()
 
     endif()
-  endif()
+endfunction()
 
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-    # Same configuration option for g++ compiler
-    set(CMAKE_CXX_COMPILER g++)
-    add_target_property(${TARGET} COMPILE_OPTIONS
-                        "-fmax-errors=${MAX_COMPILE_ERRORS}")
-
-    if(${ORG_USE_COVERAGE})
-      target_compile_options(${TARGET} PRIVATE --coverage)
-      target_link_options(${TARGET} PRIVATE -lgcov --coverage)
-    endif()
-
-  endif()
+function(set_target_flags TARGET)
+    set_target_flags_impl(TARGET "${TARGET}")
 endfunction()
 
 function(set_common_files TARGET)

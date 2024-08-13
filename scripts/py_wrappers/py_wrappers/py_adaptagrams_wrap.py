@@ -128,26 +128,27 @@ class GraphLayout():
         dimension: GraphDimension,
         distance: Number = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
-    ):
-        self.ir.constraints.append(
-            GraphConstraint.InitMultiSeparateStatic(
-                GraphConstraintMultiSeparate(
-                    lines=lines,
-                    separationDistance=float(distance),
-                    dimension=dimension,
-                    alignPairs=[(i, i + i)
-                                for i in range(0,
-                                               len(lines) -
-                                               1)] if alignPairs is None else alignPairs,
-                )))
+    ) -> GraphConstraintMultiSeparate:
+        constraint = GraphConstraintMultiSeparate(
+            lines=lines,
+            separationDistance=float(distance),
+            dimension=dimension,
+            alignPairs=[(i, i + 1)
+                        for i in range(0,
+                                       len(lines) -
+                                       1)] if alignPairs is None else alignPairs,
+        )
+
+        self.ir.constraints.append(GraphConstraint.InitMultiSeparateStatic(constraint))
+        return constraint
 
     def separateXDimN(
         self,
         lines: List[GraphConstraintAlign],
         distance: Number = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
-    ):
-        self.separateN(
+    ) -> GraphConstraintMultiSeparate:
+        return self.separateN(
             lines=lines,
             dimension=GraphDimension.XDIM,
             distance=float(distance),
@@ -159,8 +160,8 @@ class GraphLayout():
         lines: List[GraphConstraintAlign],
         distance: Number = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
-    ):
-        self.separateN(
+    ) -> GraphConstraintMultiSeparate:
+        return self.separateN(
             lines=lines,
             dimension=GraphDimension.YDIM,
             distance=float(distance),

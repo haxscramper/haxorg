@@ -6,6 +6,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from beartype import beartype
 from beartype.typing import List, Optional, Tuple
+import pytest
 
 
 def make_disconnected_graph(count: int, mult: int) -> wrap.GraphLayout:
@@ -359,7 +360,7 @@ class Cell():
     content: str
     rect_idx: int = -1
 
-
+@pytest.mark.bad_asan # adaptagrams library triggers sanitizer error
 def test_tree_sheet_constraint():
     mult = 5
     ir = wrap.GraphLayout()
@@ -432,6 +433,9 @@ def test_tree_sheet_constraint():
             y_aligns.append(ir.newAlignX(row_nodes))
 
     ir.separateYDimN(y_aligns, distance=50 * mult)
+
+    for idx, it in enumerate(y_aligns):
+        print(idx, it)
 
     pprint_to_file(to_debug_json(dict(
         grid=grid,
