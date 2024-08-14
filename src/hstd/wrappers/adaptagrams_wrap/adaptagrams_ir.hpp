@@ -97,7 +97,7 @@ struct [[refl]] GraphRect {
 
 
 /// \brief IR wrapper for the cola layout constraints
-struct [[refl]] GraphConstraint {
+struct [[refl]] GraphNodeConstraint {
     using Res = SPtr<cola::CompoundConstraint>;
 
     struct [[refl]] Empty {
@@ -199,38 +199,38 @@ struct [[refl]] GraphConstraint {
 
     Data data;
 
-    GraphConstraint() {}
-    GraphConstraint(CR<Data> data) : data(data) {};
+    GraphNodeConstraint() {}
+    GraphNodeConstraint(CR<Data> data) : data(data) {};
 
-    [[refl]] static GraphConstraint InitEmpty(Empty const& arg) {
-        return GraphConstraint(arg);
+    [[refl]] static GraphNodeConstraint InitEmpty(Empty const& arg) {
+        return GraphNodeConstraint(arg);
     }
 
-    [[refl]] static GraphConstraint InitAlign(Align const& arg) {
-        return GraphConstraint(arg);
+    [[refl]] static GraphNodeConstraint InitAlign(Align const& arg) {
+        return GraphNodeConstraint(arg);
     }
 
-    [[refl]] static GraphConstraint InitSeparate(Separate const& arg) {
-        return GraphConstraint(arg);
+    [[refl]] static GraphNodeConstraint InitSeparate(Separate const& arg) {
+        return GraphNodeConstraint(arg);
     }
 
-    [[refl]] static GraphConstraint InitMultiSeparate(
+    [[refl]] static GraphNodeConstraint InitMultiSeparate(
         MultiSeparate const& arg) {
-        return GraphConstraint(arg);
+        return GraphNodeConstraint(arg);
     }
 
-    [[refl]] static GraphConstraint InitFixedRelative(
+    [[refl]] static GraphNodeConstraint InitFixedRelative(
         FixedRelative const& arg) {
-        return GraphConstraint(arg);
+        return GraphNodeConstraint(arg);
     }
 
-    [[refl]] static GraphConstraint InitPageBoundary(
+    [[refl]] static GraphNodeConstraint InitPageBoundary(
         PageBoundary const& arg) {
-        return GraphConstraint(arg);
+        return GraphNodeConstraint(arg);
     }
 
 
-    DESC_FIELDS(GraphConstraint, (data));
+    DESC_FIELDS(GraphNodeConstraint, (data));
 };
 
 struct [[refl]] GraphEdge {
@@ -253,6 +253,32 @@ struct std::hash<GraphEdge> {
         boost::hash_combine(result, it.target);
         return result;
     }
+};
+
+struct [[refl]] GraphEdgeConstraint {
+    enum class [[refl]] Port
+    {
+        Default,
+        North,
+        South,
+        West,
+        East,
+        Center,
+    };
+
+    BOOST_DESCRIBE_NESTED_ENUM(
+        Port,
+        Default,
+        North,
+        South,
+        West,
+        East,
+        Center);
+
+    [[refl]] Port sourcePort;
+    [[refl]] Port targetPort;
+
+    DESC_FIELDS(GraphEdgeConstraint, (sourcePort, targetPort));
 };
 
 
@@ -289,12 +315,13 @@ struct [[refl]] GraphLayoutIR {
     /// \brief List of source-target pairs. Edge source/target IDs refer to
     /// the size rectangles.
     [[refl]] Vec<GraphEdge> edges;
-    /// \brief Cola constraints for graph layout. This part is
+    /// \brief Cola nodeConstraints for graph layout. This part is
     /// backend-specific.
-    [[refl]] Vec<GraphConstraint> constraints;
-    [[refl]] Vec<Subgraph>        subgraphs;
+    [[refl]] Vec<GraphNodeConstraint> nodeConstraints;
+    [[refl]] Vec<Subgraph>            subgraphs;
     /// \brief If some edge has a dedicated label of specified size.
-    [[refl]] UnorderedMap<GraphEdge, GraphSize> edgeLabels = {};
+    [[refl]] UnorderedMap<GraphEdge, GraphSize>           edgeLabels = {};
+    [[refl]] UnorderedMap<GraphEdge, GraphEdgeConstraint> edgeConstraints;
 
     [[refl]] double width            = 100;
     [[refl]] double height           = 100;
@@ -309,7 +336,7 @@ struct [[refl]] GraphLayoutIR {
         GraphLayoutIR,
         (rectangles,
          edges,
-         constraints,
+         nodeConstraints,
          subgraphs,
          edgeLabels,
          width,
@@ -449,8 +476,8 @@ struct [[refl]] GraphLayoutIR {
         void writeSvg(CR<Str> path);
 
         Vec<SPtr<cola::CompoundConstraint>> setupConstraints(
-            Vec<GraphSize> const&       rectangles,
-            Vec<GraphConstraint> const& constraints);
+            Vec<GraphSize> const&           rectangles,
+            Vec<GraphNodeConstraint> const& constraints);
     };
 
     ColaResult      doColaLayout();

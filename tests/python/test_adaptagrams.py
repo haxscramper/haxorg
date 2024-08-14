@@ -418,37 +418,86 @@ def test_tree_sheet_constraint():
 
     def aux(t: Tree, level: int):
         nonlocal dfs_row
-        column = level
-        grid[dfs_row][column] = Cell(content="**")
+        this_row = dfs_row
+        grid[dfs_row][level] = Cell(
+            content="**",
+            rect_idx=ir.rect(width=20 * mult, height=10 * mult),
+        )
+
         if 0 < len(t.content):
             dfs_row += 1
             for cell_idx, cell in enumerate(t.content):
-                grid[dfs_row][max_depth + cell_idx] = Cell(content=cell)
+                grid[dfs_row][max_depth + cell_idx] = Cell(
+                    content=cell,
+                    rect_idx=ir.rect(width=20 * mult, height=10 * mult),
+                )
+
+            source_rect = grid[this_row][level].rect_idx
+            target_rect = grid[dfs_row][max_depth].rect_idx
+
+            ir.edge(source=source_rect, target=target_rect)
+            ir.edgePorts(
+                source=source_rect,
+                target=target_rect,
+                sourcePort=wrap.GraphEdgeConstraintPort.South,
+                targetPort=wrap.GraphEdgeConstraintPort.West,
+            )
+
+            for cell_idx in range(0, len(t.content) - 1):
+                source_rect = grid[dfs_row][max_depth + cell_idx].rect_idx
+                target_rect = grid[dfs_row][max_depth + cell_idx + 1].rect_idx
+
+                ir.edge(source=source_rect, target=target_rect)
+                ir.edgePorts(
+                    source=source_rect,
+                    target=target_rect,
+                    sourcePort=wrap.GraphEdgeConstraintPort.East,
+                    targetPort=wrap.GraphEdgeConstraintPort.West,
+                )
 
         dfs_row += 1
+        sub_rows: List[int] = []
 
         for s in t.sub:
+            sub_rows.append(dfs_row)
             aux(s, level + 1)
 
+        for row in sub_rows:
+            source_rect = grid[this_row][level].rect_idx
+            target_rect = grid[row][level + 1].rect_idx
+
+            ir.edge(source=source_rect, target=target_rect)
+            ir.edgePorts(
+                source=source_rect,
+                target=target_rect,
+                sourcePort=wrap.GraphEdgeConstraintPort.South,
+                targetPort=wrap.GraphEdgeConstraintPort.West,
+            )
 
     aux(tree, 0)
 
-    for row_idx, row in enumerate(grid):
-        for col_idx, cell in enumerate(row):
-            if cell:
-                cell.rect_idx = ir.rect(width=20 * mult, height=10 * mult)
+    pprint_to_file(to_debug_json(
+        ir.ir.edgeConstraints,
+        skip_cyclic_data=False,
+    ), "/tmp/edge_constraints.py")
 
     y_aligns: List[wrap.GraphConstraintAlign] = []
     x_aligns: List[wrap.GraphConstraintAlign] = []
 
-    print("\n".join(" ".join(f"{cell.rect_idx:>02} {cell.content}" if cell else "_____" for cell in row) for row in grid))
+    print("\n".join(" ".join(f"{cell.rect_idx:>02} {cell.content}" if cell else "_____"
+                             for cell in row)
+                    for row in grid))
 
     for row in grid:
         row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
         if 0 < len(row_nodes):
             y_aligns.append(ir.newAlignY(row_nodes))
 
-    ir.separateYDimN(y_aligns, distance=15 * mult)
+    ir.separateYDimN(
+        y_aligns,
+        distance=15 * mult,
+        isExactSeparation=True,
+    )
 
     for col in range(0, col_count):
         col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
@@ -456,7 +505,11 @@ def test_tree_sheet_constraint():
             pass
             x_aligns.append(ir.newAlignX(col_nodes))
 
-    ir.separateXDimN(x_aligns, distance=30 * mult)
+    ir.separateXDimN(
+        x_aligns,
+        distance=30 * mult,
+        isExactSeparation=True,
+    )
 
     pprint_to_file(
         to_debug_json(dict(grid=grid)),

@@ -201,7 +201,7 @@ GraphLayoutIR init_graph(
     return ir;
 }
 
-using C = GraphConstraint;
+using C = GraphNodeConstraint;
 
 TEST(GraphUtils, LibcolaIr1) {
     GraphLayoutIR ir;
@@ -215,12 +215,12 @@ TEST(GraphUtils, LibcolaIr1) {
     ir.rectangles.push_back(GraphSize(5, 5));
 
 
-    ir.constraints.push_back(C{C::Align{
+    ir.nodeConstraints.push_back(C{C::Align{
         .nodes = {C::Align::Spec{.node = 0}, C::Align::Spec{.node = 1}},
         .dimension = GraphDimension::XDIM,
     }});
 
-    ir.constraints.push_back(C{C::Align{
+    ir.nodeConstraints.push_back(C{C::Align{
         .nodes = {C::Align::Spec{.node = 1}, C::Align::Spec{.node = 3}},
         .dimension = GraphDimension::YDIM,
     }});

@@ -79,9 +79,6 @@ def to_debug_json(
                 else:
                     return [[aux(key), aux(obj[key])] for key in keys]
 
-            elif hasattr(obj, "__iter__"):
-                return [aux(it) for it in obj]
-
             elif hasattr(obj, "__len__") and hasattr(obj, "__getitem__"):
                 return [aux(obj[i]) for i in range(0, len(obj))]
 

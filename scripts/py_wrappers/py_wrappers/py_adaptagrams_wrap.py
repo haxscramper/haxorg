@@ -29,8 +29,8 @@ class GraphLayout():
     def newAlignSpec(self,
                      node: int,
                      fixPos: Optional[Number] = None,
-                     offset: Number = 0.0) -> GraphConstraintAlignSpec:
-        return GraphConstraintAlignSpec(
+                     offset: Number = 0.0) -> GraphNodeConstraintAlignSpec:
+        return GraphNodeConstraintAlignSpec(
             node=node,
             fixPos=fixPos and float(fixPos),
             offset=float(offset),
@@ -38,13 +38,13 @@ class GraphLayout():
 
     def newAlign(
         self,
-        specs: List[GraphConstraintAlignSpec | int],
+        specs: List[GraphNodeConstraintAlignSpec | int],
         dimension: GraphDimension,
-    ) -> GraphConstraintAlign:
-        aligns: List[GraphConstraintAlignSpec] = []
+    ) -> GraphNodeConstraintAlign:
+        aligns: List[GraphNodeConstraintAlignSpec] = []
         for spec in specs:
             match spec:
-                case GraphConstraintAlignSpec():
+                case GraphNodeConstraintAlignSpec():
                     aligns.append(spec)
 
                 case int():
@@ -53,33 +53,36 @@ class GraphLayout():
                 case _:
                     raise TypeError(type(spec))
 
-        return GraphConstraintAlign(nodes=aligns, dimension=dimension)
+        return GraphNodeConstraintAlign(nodes=aligns, dimension=dimension)
 
-    def newAlignX(self,
-                  specs: List[GraphConstraintAlignSpec | int]) -> GraphConstraintAlign:
+    def newAlignX(
+            self,
+            specs: List[GraphNodeConstraintAlignSpec | int]) -> GraphNodeConstraintAlign:
         return self.newAlign(specs=specs, dimension=GraphDimension.XDIM)
 
-    def newAlignY(self,
-                  specs: List[GraphConstraintAlignSpec | int]) -> GraphConstraintAlign:
+    def newAlignY(
+            self,
+            specs: List[GraphNodeConstraintAlignSpec | int]) -> GraphNodeConstraintAlign:
         return self.newAlign(specs=specs, dimension=GraphDimension.YDIM)
 
-    def alignDimN(self, specs: List[GraphConstraintAlignSpec], dimension: GraphDimension):
-        self.ir.constraints.append(
-            GraphConstraint.InitAlignStatic(self.newAlign(specs, dimension)))
+    def alignDimN(self, specs: List[GraphNodeConstraintAlignSpec],
+                  dimension: GraphDimension):
+        self.ir.nodeConstraints.append(
+            GraphNodeConstraint.InitAlignStatic(self.newAlign(specs, dimension)))
 
-    def alignXDimN(self, specs: List[GraphConstraintAlignSpec]):
+    def alignXDimN(self, specs: List[GraphNodeConstraintAlignSpec]):
         self.alignDimN(specs, GraphDimension.XDIM)
 
-    def alignYDimN(self, specs: List[GraphConstraintAlignSpec]):
+    def alignYDimN(self, specs: List[GraphNodeConstraintAlignSpec]):
         self.alignDimN(specs, GraphDimension.YDIM)
 
     def alignDim2(self, source: int, target: int, dimension: GraphDimension):
-        self.ir.constraints.append(
-            GraphConstraint.InitAlignStatic(
-                GraphConstraintAlign(
+        self.ir.nodeConstraints.append(
+            GraphNodeConstraint.InitAlignStatic(
+                GraphNodeConstraintAlign(
                     nodes=[
-                        GraphConstraintAlignSpec(node=source),
-                        GraphConstraintAlignSpec(node=target),
+                        GraphNodeConstraintAlignSpec(node=source),
+                        GraphNodeConstraintAlignSpec(node=target),
                     ],
                     dimension=dimension,
                 )))
@@ -90,14 +93,24 @@ class GraphLayout():
     def alignYDim2(self, source: int, target: int):
         self.alignDim2(source, target, dimension=GraphDimension.YDIM)
 
+    def edgePorts(self, source: int, target: int, sourcePort: GraphEdgeConstraintPort,
+                  targetPort: GraphEdgeConstraintPort):
+        self.ir.edgeConstraints[GraphEdge(
+            source=source,
+            target=target,
+        )] = GraphEdgeConstraint(
+            sourcePort=sourcePort,
+            targetPort=targetPort,
+        )
+
     def separate2(self,
-                  left: GraphConstraintAlign,
-                  right: GraphConstraintAlign,
+                  left: GraphNodeConstraintAlign,
+                  right: GraphNodeConstraintAlign,
                   dimension: GraphDimension,
                   distance: Number = 1.0):
-        self.ir.constraints.append(
-            GraphConstraint.InitSeparateStatic(
-                GraphConstraintSeparate(
+        self.ir.nodeConstraints.append(
+            GraphNodeConstraint.InitSeparateStatic(
+                GraphNodeConstraintSeparate(
                     left=left,
                     right=right,
                     separationDistance=float(distance),
@@ -105,8 +118,8 @@ class GraphLayout():
                 )))
 
     def separateXDim2(self,
-                      left: GraphConstraintAlign,
-                      right: GraphConstraintAlign,
+                      left: GraphNodeConstraintAlign,
+                      right: GraphNodeConstraintAlign,
                       distance: Number = 1.0):
         self.separate2(left=left,
                        right=right,
@@ -114,8 +127,8 @@ class GraphLayout():
                        distance=float(distance))
 
     def separateYDim2(self,
-                      left: GraphConstraintAlign,
-                      right: GraphConstraintAlign,
+                      left: GraphNodeConstraintAlign,
+                      right: GraphNodeConstraintAlign,
                       distance: Number = 1.0):
         self.separate2(left=left,
                        right=right,
@@ -124,48 +137,55 @@ class GraphLayout():
 
     def separateN(
         self,
-        lines: List[GraphConstraintAlign],
+        lines: List[GraphNodeConstraintAlign],
         dimension: GraphDimension,
         distance: Number = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
-    ) -> GraphConstraintMultiSeparate:
+        isExactSeparation: bool = False,
+    ) -> GraphNodeConstraintMultiSeparate:
         pairs = [(i, i + 1)
                  for i in range(0,
                                 len(lines) - 1)] if alignPairs is None else alignPairs
-        constraint = GraphConstraintMultiSeparate(
+        constraint = GraphNodeConstraintMultiSeparate(
             lines=lines,
             separationDistance=float(distance),
             dimension=dimension,
             alignPairs=pairs,
+            isExactSeparation=isExactSeparation,
         )
 
-        self.ir.constraints.append(GraphConstraint.InitMultiSeparateStatic(constraint))
+        self.ir.nodeConstraints.append(
+            GraphNodeConstraint.InitMultiSeparateStatic(constraint))
         return constraint
 
     def separateXDimN(
         self,
-        lines: List[GraphConstraintAlign],
+        lines: List[GraphNodeConstraintAlign],
         distance: Number = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
-    ) -> GraphConstraintMultiSeparate:
+        isExactSeparation: bool = False,
+    ) -> GraphNodeConstraintMultiSeparate:
         return self.separateN(
             lines=lines,
             dimension=GraphDimension.XDIM,
             distance=float(distance),
             alignPairs=alignPairs,
+            isExactSeparation=isExactSeparation,
         )
 
     def separateYDimN(
         self,
-        lines: List[GraphConstraintAlign],
+        lines: List[GraphNodeConstraintAlign],
         distance: Number = 1.0,
         alignPairs: Optional[List[Tuple[int, int]]] = None,
-    ) -> GraphConstraintMultiSeparate:
+        isExactSeparation: bool = False,
+    ) -> GraphNodeConstraintMultiSeparate:
         return self.separateN(
             lines=lines,
             dimension=GraphDimension.YDIM,
             distance=float(distance),
             alignPairs=alignPairs,
+            isExactSeparation=isExactSeparation,
         )
 
     def edge(self, source: int, target: int):

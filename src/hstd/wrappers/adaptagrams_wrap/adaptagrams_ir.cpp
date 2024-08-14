@@ -163,7 +163,7 @@ GraphPath getEdgeSpline(
 } // namespace
 
 
-GraphConstraint::Res GraphConstraint::FixedRelative::toCola(
+GraphNodeConstraint::Res GraphNodeConstraint::FixedRelative::toCola(
     const std::vector<vpsc::Rectangle*>& allRects) const {
     return std::make_shared<cola::FixedRelativeConstraint>(
         allRects,
@@ -443,8 +443,8 @@ GraphLayoutIR::Result GraphLayoutIR::HolaResult::convert() {
 
 Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
     setupConstraints(
-        const Vec<GraphSize>&       rectangles,
-        const Vec<GraphConstraint>& constraints) {
+        const Vec<GraphSize>&           rectangles,
+        const Vec<GraphNodeConstraint>& constraints) {
     baseRectangles.reserve(rectangles.size());
     for (auto const& r : rectangles) {
         baseRectangles.push_back(
@@ -457,7 +457,7 @@ Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
         | rs::to<Vec>();
 
     return constraints //
-         | rv::transform([&](CR<GraphConstraint> c) {
+         | rv::transform([&](CR<GraphNodeConstraint> c) {
                return c.toCola(rectPointers);
            })
          | rv::join //
@@ -471,7 +471,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     cola::CompoundConstraints ccs;
 
     Vec<SPtr<cola::CompoundConstraint>> constraints = ir.setupConstraints(
-        rectangles, this->constraints);
+        rectangles, this->nodeConstraints);
 
     for (auto const& c : constraints) { ccs.push_back(c.get()); }
 
@@ -531,15 +531,62 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         shapes.push_back(shape);
     }
 
-    auto pin_for_shape = [](Avoid::ShapeRef* shape, int pinClass) {
+    auto pin_for_shape = [](Avoid::ShapeRef*          shape,
+                            int                       pinClass,
+                            GraphEdgeConstraint::Port port) {
+        float               xOffset = Avoid::ATTACH_POS_CENTRE;
+        float               yOffset = Avoid::ATTACH_POS_CENTRE;
+        Avoid::ConnDirFlags connDir = Avoid::ConnDirNone;
+
+        switch (port) {
+            case GraphEdgeConstraint::Port::North: {
+                yOffset = Avoid::ATTACH_POS_TOP;
+                xOffset = Avoid::ATTACH_POS_CENTRE;
+                connDir = Avoid::ConnDirUp;
+                break;
+            }
+
+            case GraphEdgeConstraint::Port::South: {
+                yOffset = Avoid::ATTACH_POS_BOTTOM;
+                xOffset = Avoid::ATTACH_POS_CENTRE;
+                connDir = Avoid::ConnDirDown;
+                break;
+            }
+
+            case GraphEdgeConstraint::Port::West: {
+                yOffset = Avoid::ATTACH_POS_CENTRE;
+                xOffset = Avoid::ATTACH_POS_LEFT;
+                connDir = Avoid::ConnDirLeft;
+                break;
+            }
+
+            case GraphEdgeConstraint::Port::East: {
+                yOffset = Avoid::ATTACH_POS_CENTRE;
+                xOffset = Avoid::ATTACH_POS_RIGHT;
+                connDir = Avoid::ConnDirRight;
+                break;
+            }
+
+            case GraphEdgeConstraint::Port::Center: {
+                yOffset = Avoid::ATTACH_POS_CENTRE;
+                xOffset = Avoid::ATTACH_POS_CENTRE;
+                connDir = Avoid::ConnDirNone;
+                break;
+            }
+
+            case GraphEdgeConstraint::Port::Default: {
+                break;
+            }
+        }
+
         return new Avoid::ShapeConnectionPin{
             shape,
             static_cast<uint>(pinClass),
-            Avoid::ATTACH_POS_CENTRE,
-            Avoid::ATTACH_POS_CENTRE,
+            xOffset,
+            yOffset,
             true,
             0,
-            Avoid::ConnDirNone,
+            connDir,
         };
     };
 
@@ -547,8 +594,26 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     for (auto const& edge : edges) {
         ++connectionPinClassID;
         ++connectionID;
-        pin_for_shape(shapes.at(edge.source), connectionPinClassID);
-        pin_for_shape(shapes.at(edge.target), connectionPinClassID);
+        if (edgeConstraints.contains(edge)) {
+            auto const& c = edgeConstraints.at(edge);
+            pin_for_shape(
+                shapes.at(edge.source),
+                connectionPinClassID,
+                c.sourcePort);
+            pin_for_shape(
+                shapes.at(edge.target),
+                connectionPinClassID,
+                c.targetPort);
+        } else {
+            pin_for_shape(
+                shapes.at(edge.source),
+                connectionPinClassID,
+                GraphEdgeConstraint::Port::Default);
+            pin_for_shape(
+                shapes.at(edge.target),
+                connectionPinClassID,
+                GraphEdgeConstraint::Port::Default);
+        }
 
         Avoid::ConnEnd sourceEnd{
             shapes.at(edge.source), connectionPinClassID};
@@ -735,7 +800,7 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
     return res;
 }
 
-GraphConstraint::Res GraphConstraint::Align::toCola() const {
+GraphNodeConstraint::Res GraphNodeConstraint::Align::toCola() const {
     auto result = std::make_shared<cola::AlignmentConstraint>(
         toVpsc(dimension));
 
@@ -747,10 +812,20 @@ GraphConstraint::Res GraphConstraint::Align::toCola() const {
     return result;
 }
 
-Vec<GraphConstraint::Res> GraphConstraint::Separate::toCola() const {
+Vec<GraphNodeConstraint::Res> GraphNodeConstraint::Separate::toCola()
+    const {
     auto left_constraint  = left.toCola();
     auto right_constraint = right.toCola();
-    auto result           = std::make_shared<cola::SeparationConstraint>(
+    if (dimension != left.dimension || dimension != right.dimension) {
+        throw std::logic_error(fmt(
+            "separation constraint alignments must have the same "
+            "dimension. Separation has dimension {}, left: {}, right:{}",
+            this->dimension,
+            left.dimension,
+            right.dimension));
+    }
+
+    auto result = std::make_shared<cola::SeparationConstraint>(
         toVpsc(dimension),
         dynamic_cast<cola::AlignmentConstraint*>(left_constraint.get()),
         dynamic_cast<cola::AlignmentConstraint*>(right_constraint.get()),
@@ -761,10 +836,10 @@ Vec<GraphConstraint::Res> GraphConstraint::Separate::toCola() const {
 }
 
 namespace {
-std::string joinCola(Vec<GraphConstraint::Res> const& args) {
+std::string joinCola(Vec<GraphNodeConstraint::Res> const& args) {
     return std::string{"["}
          + (args //
-            | rv::transform([](GraphConstraint::Res const& it) {
+            | rv::transform([](GraphNodeConstraint::Res const& it) {
                   return it->toString();
               })
             | rv::intersperse(", ") //
@@ -777,25 +852,26 @@ std::string joinCola(Vec<GraphConstraint::Res> const& args) {
 std::string GraphLayoutIR::doColaStrFormat() {
     ColaResult                          ir;
     Vec<SPtr<cola::CompoundConstraint>> constraints = ir.setupConstraints(
-        rectangles, this->constraints);
+        rectangles, this->nodeConstraints);
     return joinCola(constraints);
 }
 
-std::string GraphConstraint::Separate::toColaString() const {
+std::string GraphNodeConstraint::Separate::toColaString() const {
     return joinCola(toCola());
 }
 
-std::string GraphConstraint::MultiSeparate::toColaString() const {
+std::string GraphNodeConstraint::MultiSeparate::toColaString() const {
     return joinCola(toCola());
 }
 
-std::string GraphConstraint::toColaString(
+std::string GraphNodeConstraint::toColaString(
     const std::vector<vpsc::Rectangle*>& allRects) const {
     return joinCola(toCola(allRects));
 }
 
 
-Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
+Vec<GraphNodeConstraint::Res> GraphNodeConstraint::MultiSeparate::toCola()
+    const {
     Vec<Res> result;
     for (auto const& [idx, line] : enumerate(lines)) {
         if (line.dimension != this->dimension) {
@@ -842,7 +918,7 @@ Vec<GraphConstraint::Res> GraphConstraint::MultiSeparate::toCola() const {
 }
 
 
-Vec<GraphConstraint::Res> GraphConstraint::toCola(
+Vec<GraphNodeConstraint::Res> GraphNodeConstraint::toCola(
     const std::vector<vpsc::Rectangle*>& allRects) const {
     return std::visit(
         overloaded{
@@ -865,7 +941,8 @@ Vec<GraphConstraint::Res> GraphConstraint::toCola(
 }
 
 
-GraphConstraint::Res GraphConstraint::PageBoundary::toCola() const {
+GraphNodeConstraint::Res GraphNodeConstraint::PageBoundary::toCola()
+    const {
     return std::make_shared<cola::PageBoundaryConstraints>(
         rect.left,
         rect.left + rect.width,
