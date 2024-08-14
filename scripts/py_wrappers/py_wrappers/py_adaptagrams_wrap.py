@@ -197,6 +197,9 @@ class svg(tags.html_tag):
 class svg_circle(tags.html_tag):
     tagname = "circle"
 
+    def __init__(self, x: int, y: int, r: int, *args, **kwargs):
+        super().__init__(*args, cx=x, cy=y, r=r, **rename_kwargs_for_svg(kwargs))
+
 
 class svg_rect(tags.html_tag):
     tagname = "rect"
@@ -215,6 +218,18 @@ class svg_text(tags.html_tag):
 
     def __init__(self, text: str, *args, **kwargs):
         super().__init__(text, *args, **rename_kwargs_for_svg(kwargs))
+
+
+class svg_line(tags.html_tag):
+    tagname = "line"
+
+    def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args, **kwargs):
+        super().__init__(x1=x1,
+                         x2=x2,
+                         y1=y1,
+                         y2=y2,
+                         *args,
+                         **rename_kwargs_for_svg(kwargs))
 
 
 class svg_tspan(tags.html_tag):
@@ -278,18 +293,50 @@ def toSvg(
     rect_debug_map: Dict[int, Dict[str, Any]] = dict(),
     edge_debug_map: Dict[Tuple[int, int], Dict[str, Any]] = dict(),
     draw_positions_inside: bool = True,
+    grid_vertical_step: Optional[int] = 50,
+    grid_horizontal_step: Optional[int] = 50,
 ) -> svg:
     r = 10
+    viewbox_width = res.bbox.width + r * 2
+    viewbox_height = res.bbox.height + r * 2
     result = svg(
-        width=res.bbox.width + r * 2,
-        height=res.bbox.height + r * 2,
+        width=viewbox_width,
+        height=viewbox_height,
         viewBox="0 0 {:.3f} {:.3f}".format(
-            res.bbox.width + r * 2,
-            res.bbox.height + r * 2,
+            viewbox_width,
+            viewbox_height,
         ),
     )
 
+    grid_style = dict(
+        stroke="black",
+        stroke_width="0.25",
+        stroke_dasharray="5, 10",
+    )
+
+    if grid_horizontal_step != None:
+        for i in range(0, int(viewbox_width), grid_horizontal_step):
+            result.add(svg_line(
+                x1=i,
+                x2=i,
+                y1=0,
+                y2=viewbox_height,
+                **grid_style,
+            ))
+
+    if grid_vertical_step != None:
+        for i in range(0, int(viewbox_height), grid_vertical_step):
+            result.add(svg_line(
+                x1=0,
+                x2=viewbox_width,
+                y1=i,
+                y2=i,
+                **grid_style,
+            ))
+
     for rect_idx, rect in enumerate(res.fixed):
+        rect_x = rect.left + r
+        rect_y = rect.top + r
         if draw_geometric_positions:
             stext = svg_text(f"", font_size="8px")
             stext.add(svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
@@ -301,20 +348,26 @@ def toSvg(
 
             stext.add(svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
             if draw_positions_inside:
-                sg = svg_g(
-                    transform=f"translate({rect.left + r + 2:.0f}, {rect.top + r +2:.0f})")
+                sg = svg_g(transform=f"translate({rect_x + 2:.0f}, {rect_y +2:.0f})")
 
             else:
-                sg = svg_g(
-                    transform=f"translate({rect.left + r - 50:.0f}, {rect.top + r:.0f})")
+                sg = svg_g(transform=f"translate({rect_x - 50:.0f}, {rect_y:.0f})")
 
             sg.add(stext)
             result.add(sg)
 
         result.add(
+            svg_circle(
+                x=str(round(rect_x, ndigits=3)),
+                y=str(round(rect_y, ndigits=3)),
+                r=3,
+                fill="red",
+            ))
+
+        result.add(
             svg_rect(
-                x=str(round(rect.left + r, ndigits=3)),
-                y=str(round(rect.top + r, ndigits=3)),
+                x=str(round(rect_x, ndigits=3)),
+                y=str(round(rect_y, ndigits=3)),
                 width=round(rect.width, ndigits=3),
                 height=round(rect.height, ndigits=3),
                 fill="none",
