@@ -273,10 +273,11 @@ class svg_path(tags.html_tag):
 
 @beartype
 def toSvg(
-        res: GraphLayoutIRResult,
-        draw_geometric_positions: bool = True,
-        rect_debug_map: Dict[int, Dict[str, Any]] = dict(),
-        edge_debug_map: Dict[Tuple[int, int], Dict[str, Any]] = dict(),
+    res: GraphLayoutIRResult,
+    draw_geometric_positions: bool = True,
+    rect_debug_map: Dict[int, Dict[str, Any]] = dict(),
+    edge_debug_map: Dict[Tuple[int, int], Dict[str, Any]] = dict(),
+    draw_positions_inside: bool = True,
 ) -> svg:
     r = 10
     result = svg(
@@ -298,9 +299,15 @@ def toSvg(
                 for key, value in rect_debug_map[rect_idx]:
                     stext.add(svg_tspan(f"{key}:{value}"))
 
-                    
             stext.add(svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
-            sg = svg_g(transform=f"translate({rect.left - 50:.0f}, {rect.top:.0f})")
+            if draw_positions_inside:
+                sg = svg_g(
+                    transform=f"translate({rect.left + r + 2:.0f}, {rect.top + r +2:.0f})")
+
+            else:
+                sg = svg_g(
+                    transform=f"translate({rect.left + r - 50:.0f}, {rect.top + r:.0f})")
+
             sg.add(stext)
             result.add(sg)
 

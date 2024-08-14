@@ -448,7 +448,7 @@ def test_tree_sheet_constraint():
         if 0 < len(row_nodes):
             y_aligns.append(ir.newAlignY(row_nodes))
 
-    ir.separateYDimN(y_aligns, distance=20 * mult)
+    ir.separateYDimN(y_aligns, distance=15 * mult)
 
     for col in range(0, col_count):
         col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
@@ -456,7 +456,7 @@ def test_tree_sheet_constraint():
             pass
             x_aligns.append(ir.newAlignX(col_nodes))
 
-    ir.separateXDimN(x_aligns, distance=50 * mult)
+    ir.separateXDimN(x_aligns, distance=30 * mult)
 
     pprint_to_file(
         to_debug_json(dict(grid=grid)),
