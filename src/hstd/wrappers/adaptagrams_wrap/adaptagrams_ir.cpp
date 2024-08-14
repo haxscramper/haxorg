@@ -531,6 +531,11 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         shapes.push_back(shape);
     }
 
+    auto get_pin_class_id = [](GraphEdgeConstraint::Port port,
+                               int rect_idx) -> uint {
+        return static_cast<uint>(port) + rect_idx * 10;
+    };
+
     auto pin_for_shape = [](Avoid::ShapeRef*          shape,
                             int                       pinClass,
                             GraphEdgeConstraint::Port port) {
@@ -592,33 +597,22 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
 
     for (auto const& edge : edges) {
-        ++connectionPinClassID;
         ++connectionID;
-        if (edgeConstraints.contains(edge)) {
-            auto const& c = edgeConstraints.at(edge);
-            pin_for_shape(
-                shapes.at(edge.source),
-                connectionPinClassID,
-                c.sourcePort);
-            pin_for_shape(
-                shapes.at(edge.target),
-                connectionPinClassID,
-                c.targetPort);
-        } else {
-            pin_for_shape(
-                shapes.at(edge.source),
-                connectionPinClassID,
-                GraphEdgeConstraint::Port::Default);
-            pin_for_shape(
-                shapes.at(edge.target),
-                connectionPinClassID,
-                GraphEdgeConstraint::Port::Default);
-        }
 
-        Avoid::ConnEnd sourceEnd{
-            shapes.at(edge.source), connectionPinClassID};
-        Avoid::ConnEnd targetEnd{
-            shapes.at(edge.target), connectionPinClassID};
+        auto const& c = edgeConstraints.get(edge);
+
+        auto sourcePort    = c ? c->sourcePort
+                               : GraphEdgeConstraint::Port::Default;
+        auto targetPort    = c ? c->targetPort
+                               : GraphEdgeConstraint::Port::Default;
+        uint sourceClassId = get_pin_class_id(sourcePort, edge.source);
+        uint targetClassId = get_pin_class_id(targetPort, edge.target);
+
+        pin_for_shape(shapes.at(edge.source), sourceClassId, sourcePort);
+        pin_for_shape(shapes.at(edge.target), targetClassId, targetPort);
+
+        Avoid::ConnEnd sourceEnd{shapes.at(edge.source), sourceClassId};
+        Avoid::ConnEnd targetEnd{shapes.at(edge.target), targetClassId};
 
         auto conn = new Avoid::ConnRef{
             ir.router.get(),

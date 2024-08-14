@@ -82,6 +82,12 @@ def to_debug_json(
             elif hasattr(obj, "__len__") and hasattr(obj, "__getitem__"):
                 return [aux(obj[i]) for i in range(0, len(obj))]
 
+            elif hasattr(obj, "__str__") or hasattr(obj, "__repr__"):
+                return f"{type(obj)} = {obj}"
+            
+            elif hasattr(obj, "__int__"):
+                return f"{type(obj)} = {int(obj)}"
+
             else:
                 return f"unhandled {type(obj)}"
 

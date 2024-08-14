@@ -347,6 +347,44 @@ def test_align_axis_multi_separate_different_sizes():
     t.debug()
 
 
+def test_node_pin_connections():
+    mult = 5
+    ir = wrap.GraphLayout()
+    shape1 = ir.rect(20 * mult, 20 * mult)
+    shape2 = ir.rect(20 * mult, 20 * mult)
+    shape3 = ir.rect(20 * mult, 20 * mult)
+
+    ir.edge(shape1, shape3)
+    ir.edge(shape2, shape3)
+
+    ir.edgePorts(
+        shape1,
+        shape3,
+        sourcePort=wrap.GraphEdgeConstraintPort.East,
+        targetPort=wrap.GraphEdgeConstraintPort.West,
+    )
+
+    ir.edgePorts(
+        shape2,
+        shape3,
+        sourcePort=wrap.GraphEdgeConstraintPort.East,
+        targetPort=wrap.GraphEdgeConstraintPort.West,
+    )
+
+    ir.separateXDim2(
+        left=ir.newAlignX([shape1, shape2]),
+        right=ir.newAlignX([shape3]),
+        distance=50 * mult,
+    )
+
+    ir.ir.width = 100 * mult
+    ir.ir.height = 100 * mult
+    ir.ir.doColaSvgWrite("/tmp/result.svg")
+
+    t = ConvTest(ir.ir.doColaConvert())
+    t.debug()
+
+
 @beartype
 @dataclass
 class Tree():
@@ -361,7 +399,6 @@ class Cell():
     rect_idx: int = -1
 
 
-@pytest.mark.bad_asan  # adaptagrams library triggers sanitizer error
 def test_tree_sheet_constraint():
     mult = 5
     ir = wrap.GraphLayout()
@@ -475,11 +512,6 @@ def test_tree_sheet_constraint():
             )
 
     aux(tree, 0)
-
-    pprint_to_file(to_debug_json(
-        ir.ir.edgeConstraints,
-        skip_cyclic_data=False,
-    ), "/tmp/edge_constraints.py")
 
     y_aligns: List[wrap.GraphConstraintAlign] = []
     x_aligns: List[wrap.GraphConstraintAlign] = []
