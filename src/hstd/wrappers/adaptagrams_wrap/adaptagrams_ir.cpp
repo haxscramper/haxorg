@@ -512,9 +512,9 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     cola::VariableIDMap   idMap;
     cola::RootCluster     rootCluster{};
 
-    unsigned int connectionPinClassID = 1;
-    unsigned int connectionID         = edges.size() + 1;
-    unsigned int shapeRefID = edges.size() + ir.baseRectangles.size() + 2;
+    uint connectionPinClassID = 1;
+    uint connectionID         = edges.size() + 1;
+    uint shapeRefID = edges.size() + ir.baseRectangles.size() + 2;
 
     for (auto const& it : enumerator(ir.baseRectangles)) {
         ++shapeRefID;
@@ -592,39 +592,32 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
 
     for (auto const& edge : edges) {
-        ++connectionPinClassID;
+        uint sourceClass = ++connectionPinClassID;
+        uint targetClass = ++connectionPinClassID;
         ++connectionID;
         if (edgeConstraints.contains(edge)) {
             auto const& c = edgeConstraints.at(edge);
             pin_for_shape(
-                shapes.at(edge.source),
-                connectionPinClassID,
-                c.sourcePort);
+                shapes.at(edge.source), sourceClass, c.sourcePort);
             pin_for_shape(
-                shapes.at(edge.target),
-                connectionPinClassID,
-                c.targetPort);
+                shapes.at(edge.target), targetClass, c.targetPort);
         } else {
             pin_for_shape(
                 shapes.at(edge.source),
-                connectionPinClassID,
+                sourceClass,
                 GraphEdgeConstraint::Port::Default);
             pin_for_shape(
                 shapes.at(edge.target),
-                connectionPinClassID,
+                targetClass,
                 GraphEdgeConstraint::Port::Default);
         }
 
-        Avoid::ConnEnd sourceEnd{
-            shapes.at(edge.source), connectionPinClassID};
-        Avoid::ConnEnd targetEnd{
-            shapes.at(edge.target), connectionPinClassID};
+        Avoid::ConnEnd sourceEnd{shapes.at(edge.source), sourceClass};
+        Avoid::ConnEnd targetEnd{shapes.at(edge.target), targetClass};
 
         auto conn = new Avoid::ConnRef{
-            ir.router.get(),
-            sourceEnd,
-            targetEnd,
-            connectionID,
+            ir.router.get(), sourceEnd, targetEnd,
+            // connectionID,
         };
 
         conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
