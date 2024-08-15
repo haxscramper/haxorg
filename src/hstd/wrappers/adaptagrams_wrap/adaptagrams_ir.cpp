@@ -465,10 +465,9 @@ Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
 }
 
 struct PortData {
-    int                        targetShape;
     uint                       pinId;
     Avoid::ShapeConnectionPin* pin = nullptr;
-    DESC_FIELDS(PortData, (targetShape, pinId, pin));
+    DESC_FIELDS(PortData, (pinId, pin));
 };
 
 template <>
@@ -485,22 +484,11 @@ struct std::formatter<Avoid::ShapeConnectionPin*>
 };
 
 struct ShapePorts {
-    UnorderedMap<GraphEdgeConstraint::Port, Vec<PortData>> ports;
+    UnorderedMap<GraphEdgeConstraint::Port, UnorderedMap<uint, PortData>>
+             ports;
     PortData getPort(GraphEdgeConstraint::Port port, uint targetShape)
         const {
-        auto it = rs::find_if(ports.at(port), [&](CR<PortData> dat) {
-            return dat.targetShape == targetShape;
-        });
-
-        if (it == ports.at(port).end()) {
-            throw std::logic_error(std::format(
-                "Implementation error, could not find port from side "
-                "{} to shape {}",
-                port,
-                targetShape));
-        } else {
-            return *it;
-        }
+        return ports.at(port).at(targetShape);
     }
     DESC_FIELDS(ShapePorts, (ports));
 };
@@ -590,25 +578,26 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
             uint targetClass              = ++connectionPinClassID;
             auto [sourcePort, targetPort] = getPortDirections(edge);
 
-            shapePorts[edge.source].ports[sourcePort].push_back(PortData{
-                .targetShape = edge.target,
-                .pinId       = sourceClass,
-            });
+            shapePorts[edge.source].ports[sourcePort][edge.target] = PortData{
+                .pinId = sourceClass,
+            };
 
-            shapePorts[edge.target].ports[targetPort].push_back(PortData{
-                .targetShape = edge.source,
-                .pinId       = targetClass,
-            });
+            shapePorts[edge.target].ports[targetPort][edge.source] = PortData{
+                .pinId = targetClass,
+            };
         }
     }
 
-    for (auto& [shapeIdx, shape] : shapePorts) {
+    for (auto& [sourceShape, shape] : shapePorts) {
         for (auto& [portDirection, portList] : shape.ports) {
             int portIdx = 0;
-            for (PortData& port : portList) {
-                float portNudge = 0.02 * (portIdx - (portList.size() / 2));
-                float xOffset   = Avoid::ATTACH_POS_CENTRE;
-                float yOffset   = Avoid::ATTACH_POS_CENTRE;
+            for (auto& [targetShape, port] : portList) {
+                float portNudge //
+                    = 0.02
+                    * (portIdx - static_cast<float>(portList.size() / 2));
+
+                float xOffset = Avoid::ATTACH_POS_CENTRE;
+                float yOffset = Avoid::ATTACH_POS_CENTRE;
 
                 Avoid::ConnDirFlags connDir = Avoid::ConnDirNone;
 
@@ -653,8 +642,21 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
                     }
                 }
 
+                if (!(0 <= xOffset && xOffset <= 1)
+                    || !(0 <= yOffset && yOffset <= 1)) {
+                    throw logic_assertion_error::init(
+                        fmt("xOffset:{} yOffset:{}, port-idx:{}, "
+                            "port-list-size:{} port-nudge:{} mult:{}",
+                            xOffset,
+                            yOffset,
+                            portIdx,
+                            portList.size() / 2,
+                            portNudge,
+                            portIdx - (portList.size() / 2)));
+                }
+
                 port.pin = new Avoid::ShapeConnectionPin{
-                    shapes.at(shapeIdx),
+                    shapes.at(sourceShape),
                     static_cast<uint>(port.pinId),
                     xOffset,
                     yOffset,
@@ -667,24 +669,33 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         }
     }
 
-    LOG(INFO) << fmt1(shapePorts);
+    // for (auto const& it : shapePorts) { LOG(INFO) << fmt1(it); }
 
     uint connectionID = edges.size() + 1;
     for (auto const& edge : edges) {
         auto [sourceDirection, targetDirection] = getPortDirections(edge);
 
+
+        // LOG(INFO) << fmt(
+        //     "source:{} target:{} source-dir:{} target-dir:{}",
+        //     edge.source,
+        //     edge.target,
+        //     sourceDirection,
+        //     targetDirection);
+
+        // _dfmt(shapePorts.at(edge.source));
+        // _dfmt(shapePorts.at(edge.target));
+
         PortData sourcePort = shapePorts.at(edge.source)
                                   .getPort(sourceDirection, edge.target);
 
         PortData targetPort = shapePorts.at(edge.target)
-                                  .getPort(targetDirection, edge.target);
+                                  .getPort(targetDirection, edge.source);
 
-        LOG(INFO) << fmt(
-            "source:{} target:{} source-pin:{} target-pin:{}",
-            edge.source,
-            edge.target,
-            sourcePort.pinId,
-            targetPort.pinId);
+        // LOG(INFO) << fmt(
+        //     "source-pin:{} target-pin:{}",
+        //     sourcePort.pinId,
+        //     targetPort.pinId);
 
         Avoid::ConnEnd sourceEnd{shapes.at(edge.source), sourcePort.pinId};
         Avoid::ConnEnd targetEnd{shapes.at(edge.target), targetPort.pinId};
