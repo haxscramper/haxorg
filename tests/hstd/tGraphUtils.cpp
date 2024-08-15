@@ -94,6 +94,7 @@ TEST(GraphUtils, LibcolaRaw1) {
     router->outputInstanceToSVG("/tmp/orthordering-01");
 }
 
+
 TEST(GraphUtils, LibcolaRaw2) {
     using namespace Avoid;
     Router  router_it{Avoid::OrthogonalRouting};
@@ -185,6 +186,108 @@ TEST(GraphUtils, LibcolaRaw2) {
     router->processTransaction();
     router->outputInstanceToSVG("/tmp/testLibcolaRaw2");
 }
+
+TEST(GraphUtils, LibcolaRaw3) {
+    std::vector<std::pair<unsigned, unsigned>> edges{
+        {0, 1},
+        {1, 2},
+    };
+
+    double                        mult   = 10;
+    double                        width  = 100 * mult;
+    double                        height = 100 * mult;
+    std::vector<vpsc::Rectangle*> rectangles;
+
+    for (unsigned i = 0; i < 3; i++) {
+        double x = i * 10 * mult;
+        double y = i * 10 * mult;
+        rectangles.push_back(
+            new vpsc::Rectangle(x, x + 5 * mult, y, y + 5 * mult));
+    }
+
+    cola::CompoundConstraints ccs;
+
+    cola::AlignmentConstraint align_on_x1{vpsc::XDIM};
+    ccs.push_back(&align_on_x1);
+    align_on_x1.addShape(0, 0);
+    align_on_x1.addShape(1, 0);
+
+    cola::AlignmentConstraint align_on_x2{vpsc::XDIM};
+    ccs.push_back(&align_on_x2);
+    align_on_x2.addShape(2, 0);
+
+    cola::MultiSeparationConstraint separate{vpsc::XDIM};
+    ccs.push_back(&separate);
+    separate.setSeparation(50 * mult);
+    separate.addAlignmentPair(&align_on_x1, &align_on_x2);
+
+
+    cola::ConstrainedFDLayout alg2(rectangles, edges, width / 2);
+    alg2.setConstraints(ccs);
+    alg2.run();
+
+    Avoid::Router* router = new Avoid::Router(Avoid::OrthogonalRouting);
+    router->setRoutingPenalty((Avoid::PenaltyType)0, 50);
+
+    auto r = [&](int idx) -> vpsc::Rectangle& {
+        return *rectangles.at(idx);
+    };
+
+    Avoid::Rectangle shapeRect1(
+        Avoid::Point(r(0).getMinX(), r(0).getMinY()),
+        Avoid::Point(r(0).getMaxX(), r(0).getMaxY()));
+
+    Avoid::ShapeRef* shapeRef1 = new Avoid::ShapeRef(router, shapeRect1);
+
+    Avoid::Rectangle shapeRect2(
+        Avoid::Point(r(1).getMinX(), r(1).getMinY()),
+        Avoid::Point(r(1).getMaxX(), r(1).getMaxY()));
+    Avoid::ShapeRef* shapeRef2 = new Avoid::ShapeRef(router, shapeRect2);
+
+    Avoid::Rectangle shapeRect3(
+        Avoid::Point(r(2).getMinX(), r(2).getMinY()),
+        Avoid::Point(r(2).getMaxX(), r(2).getMaxY()));
+
+    Avoid::ShapeRef* shapeRef3 = new Avoid::ShapeRef(router, shapeRect3);
+
+    auto ID_1 = 1;
+    auto ID_2 = 2;
+
+    new Avoid::ShapeConnectionPin(
+        shapeRef3, ID_2, 0.25, 0.4, true, 0, Avoid::ConnDirLeft);
+    new Avoid::ShapeConnectionPin(
+        shapeRef3, ID_2, 0.75, 0.6, true, 0, Avoid::ConnDirLeft);
+
+    new Avoid::ShapeConnectionPin(
+        shapeRef1,
+        ID_1,
+        Avoid::ATTACH_POS_CENTRE,
+        Avoid::ATTACH_POS_CENTRE,
+        true,
+        0.0,
+        Avoid::ConnDirNone);
+    new Avoid::ShapeConnectionPin(
+        shapeRef2,
+        ID_1,
+        Avoid::ATTACH_POS_CENTRE,
+        Avoid::ATTACH_POS_CENTRE,
+        true,
+        0.0,
+        Avoid::ConnDirNone);
+
+    // Create connectors from each shape to an input pin on shape 3.
+    Avoid::ConnEnd srcEnd(shapeRef2, ID_1);
+    Avoid::ConnEnd dstEnd(shapeRef3, ID_2);
+    new Avoid::ConnRef(router, srcEnd, dstEnd);
+
+    srcEnd = Avoid::ConnEnd(shapeRef1, ID_1);
+    dstEnd = Avoid::ConnEnd(shapeRef3, ID_2);
+    new Avoid::ConnRef(router, srcEnd, dstEnd);
+
+    router->processTransaction();
+    router->outputInstanceToSVG("/tmp/LibcolaRaw3");
+}
+
 
 GraphLayoutIR init_graph(
     CVec<GraphEdge> edges,
