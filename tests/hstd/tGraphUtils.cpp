@@ -187,6 +187,103 @@ TEST(GraphUtils, LibcolaRaw2) {
     router->outputInstanceToSVG("/tmp/testLibcolaRaw2");
 }
 
+TEST(GraphUtils, LibavoidRaw1) {
+    using namespace Avoid;
+    Router* router = new Router(PolyLineRouting | OrthogonalRouting);
+    router->setRoutingParameter((RoutingParameter)0, 50);
+    router->setRoutingParameter((RoutingParameter)1, 0);
+    router->setRoutingParameter((RoutingParameter)2, 0);
+    router->setRoutingParameter((RoutingParameter)3, 4000);
+    router->setRoutingParameter((RoutingParameter)4, 0);
+    router->setRoutingParameter((RoutingParameter)5, 100);
+    router->setRoutingParameter((RoutingParameter)6, 0);
+    router->setRoutingParameter((RoutingParameter)7, 4);
+    router->setRoutingOption((RoutingOption)0, true);
+    router->setRoutingOption((RoutingOption)1, true);
+    router->setRoutingOption((RoutingOption)2, false);
+    router->setRoutingOption((RoutingOption)3, false);
+
+    double rectMaxX       = -264;
+    double rectMinX       = -296;
+    double rectConnectorX = rectMaxX - 1;
+    double rectSize       = 20;
+
+    std::vector<Checkpoint> checkpoints{
+        Checkpoint{
+            Point{-242, 782},
+            ConnDirFlag::ConnDirAll,
+            ConnDirFlag::ConnDirRight,
+        },
+        Checkpoint{
+            Point{400, 240},
+            ConnDirFlag::ConnDirAll,
+            ConnDirFlag::ConnDirRight,
+        },
+    };
+
+
+    ConnEnd dstPt(Point(158, 246), 15);
+
+    auto add_left_box = [&](double rectY, int connId, uint shapeRefId) {
+        Polygon poly(4);
+        poly.ps[0] = Point{rectMaxX, rectY};
+        poly.ps[1] = Point{rectMaxX, rectY + rectSize};
+        poly.ps[2] = Point{rectMinX, rectY + rectSize};
+        poly.ps[3] = Point{rectMinX, rectY};
+        new ShapeRef{router, poly, shapeRefId};
+        ConnRef* conn = new ConnRef(router, connId);
+        ConnEnd  srcPt(Point(rectConnectorX, rectY + rectSize / 2), 8);
+        conn->setSourceEndpoint(srcPt);
+        conn->setDestEndpoint(dstPt);
+        conn->setRoutingType((ConnType)2);
+        conn->setRoutingCheckpoints(checkpoints);
+    };
+
+    int id = 0;
+    add_left_box(376, id + 1, id + 2);
+    id += 2;
+    add_left_box(526, id + 1, id + 2);
+    id += 2;
+    add_left_box(601, id + 1, id + 2);
+    id += 2;
+    add_left_box(676, id + 1, id + 2);
+    id += 2;
+    add_left_box(900, id + 1, id + 2);
+
+    {
+        Polygon dest(4);
+        dest.ps[0] = Point(180, 200);
+        dest.ps[1] = Point(180, 280);
+        dest.ps[2] = Point(120, 280);
+        dest.ps[3] = Point(120, 200);
+        new ShapeRef(router, dest, 42);
+    }
+
+    {
+        Polygon obstacle(4);
+        obstacle.ps[0] = Point(-119, 690);
+        obstacle.ps[1] = Point(-119, 827);
+        obstacle.ps[2] = Point(-181, 827);
+        obstacle.ps[3] = Point(-181, 690);
+        new ShapeRef(router, obstacle, 59);
+    }
+
+    {
+        Polygon obstacle(4);
+        obstacle.ps[0] = Point(-119, 100);
+        obstacle.ps[1] = Point(-119, 250);
+        obstacle.ps[2] = Point(-181, 250);
+        obstacle.ps[3] = Point(-181, 100);
+        new ShapeRef(router, obstacle, 60);
+    }
+
+
+    router->processTransaction();
+    router->outputInstanceToSVG("/tmp/nudgingSkipsCheckpoint02");
+
+    delete router;
+}
+
 TEST(GraphUtils, LibcolaRaw3) {
     using namespace Avoid;
     std::vector<std::pair<unsigned, unsigned>> edges{

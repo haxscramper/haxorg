@@ -362,11 +362,12 @@ def toSvg(
             stext.add(svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
             stext.add(
                 svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
-            if rect_idx in rect_debug_map:
-                for key, value in rect_debug_map[rect_idx]:
-                    stext.add(svg_tspan(f"{key}:{value}"))
-
             stext.add(svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
+
+            if rect_idx in rect_debug_map:
+                for key, value in rect_debug_map[rect_idx].items():
+                    stext.add(svg_tspan(f"{key}:{value}", dy="1.2em", x="0"))
+
             if draw_positions_inside:
                 sg = svg_g(transform=f"translate({rect_x + 2:.0f}, {rect_y +2:.0f})")
 

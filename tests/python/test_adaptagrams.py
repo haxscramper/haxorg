@@ -5,7 +5,7 @@ from py_scriptutils.script_logging import to_debug_json, pprint_to_file
 from pathlib import Path
 from dataclasses import dataclass, field
 from beartype import beartype
-from beartype.typing import List, Optional, Tuple
+from beartype.typing import List, Optional, Tuple, Dict, Any
 import pytest
 
 
@@ -44,7 +44,10 @@ class ConvTest():
     def path(self, source: int, target: int) -> wrap.GraphLayoutIREdge:
         return self.conv.lines[wrap.GraphEdge(source=source, target=target)]
 
-    def debug(self):
+    def debug(
+            self,
+            rect_debug_map: Dict[int, Dict[str, Any]] = dict(),
+    ):
         dump = to_debug_json(self.conv, skip_cyclic_data=False)
         pre_fmt = pformat(dump, width=120)
 
@@ -78,7 +81,11 @@ class ConvTest():
 
         post_fmt = pformat(dump, width=120)
         Path("/tmp/dbg.txt").write_text(f"{pre_fmt}\n{post_fmt}")
-        sformat = str(wrap.toSvgFileText(wrap.toSvg(self.conv)))
+        sformat = str(
+            wrap.toSvgFileText(wrap.toSvg(
+                self.conv,
+                rect_debug_map=rect_debug_map,
+            )))
         # print(sformat)
         Path("/tmp/result2.svg").write_text(sformat)
         # self.conv.doColaSvgWrite("/tmp/result.svg")
@@ -453,21 +460,22 @@ def test_tree_sheet_constraint():
     grid: List[List[Optional[Cell]]] = [[None] * col_count for _ in range(0, row_count)]
     dfs_row: int = 0
 
+    rect_debug_map: Dict[int, Dict[str, Any]] = dict()
+
     def aux(t: Tree, level: int):
         nonlocal dfs_row
         this_row = dfs_row
-        grid[dfs_row][level] = Cell(
-            content="**",
-            rect_idx=ir.rect(width=20 * mult, height=10 * mult),
-        )
+        rect = ir.rect(width=20 * mult, height=10 * mult)
+        grid[dfs_row][level] = Cell(content="**", rect_idx=rect)
+
+        rect_debug_map[rect] = dict(pos=f"{dfs_row}/{level}")
 
         if 0 < len(t.content):
             dfs_row += 1
             for cell_idx, cell in enumerate(t.content):
-                grid[dfs_row][max_depth + cell_idx] = Cell(
-                    content=cell,
-                    rect_idx=ir.rect(width=20 * mult, height=10 * mult),
-                )
+                rect = ir.rect(width=20 * mult, height=10 * mult)
+                grid[dfs_row][max_depth + cell_idx] = Cell(content=cell, rect_idx=rect)
+                rect_debug_map[rect] = dict(pos=f"{dfs_row}/{max_depth + cell_idx}")
 
             source_rect = grid[this_row][level].rect_idx
             target_rect = grid[dfs_row][max_depth].rect_idx
@@ -516,9 +524,10 @@ def test_tree_sheet_constraint():
     y_aligns: List[wrap.GraphConstraintAlign] = []
     x_aligns: List[wrap.GraphConstraintAlign] = []
 
-    print("\n".join(" ".join(f"{cell.rect_idx:>02} {cell.content}" if cell else "_____"
-                             for cell in row)
-                    for row in grid))
+    grid_fmt = "\n".join(" ".join(
+        f"{cell.rect_idx:>02} {cell.content}" if cell else "_____"
+        for cell in row)
+                         for row in grid)
 
     for row in grid:
         row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
@@ -543,18 +552,24 @@ def test_tree_sheet_constraint():
         isExactSeparation=True,
     )
 
-    pprint_to_file(
-        to_debug_json(dict(grid=grid)),
-        "/tmp/test_tree_sheet.py",
-        width=200,
-    )
-
     ir.ir.width = 150 * mult
     ir.ir.height = 100 * mult
     ir.ir.leftBBoxMargin = 100
 
     t = ConvTest(ir.ir.doColaConvert())
-    t.debug()
+    t.debug(rect_debug_map)
+
+    def rect_at(row: int, col: int) -> int:
+        return grid[row][col].rect_idx
+
+    assert rect_at(0, 0) == 0
+
+    # Roughly assert the edge shape between main root node and the second 
+    # subtree of the main root -- it must have an L-shape and two segments
+    path_0_1 = t.path(rect_at(0, 0), rect_at(8, 1)).paths[0]
+    assert len(path_0_1.points) == 3
+    assert int(path_0_1.points[0].x) == int(path_0_1.points[1].x)
+    assert int(path_0_1.points[1].y) == int(path_0_1.points[2].y)
 
 
 if __name__ == "__main__":

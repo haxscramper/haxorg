@@ -592,6 +592,14 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         for (auto& [portDirection, portList] : shape.ports) {
             int portIdx = 0;
             for (auto& [targetShape, port] : portList) {
+                // Overlapping shape connection pins cause router to
+                // arrange the edges incorrectly. Only one of the connected
+                // edges ends up being routed, everything else is drawn as
+                // a straight line. I could not find a configuration option
+                // to addres this, so instead I'm explicitly spreading out
+                // the connector offsets. Specific value of 0.02 was chosen
+                // to make ports appear "close" together, but ultimately it
+                // does not matter if it is something like 0.000001.
                 float portNudge //
                     = 0.02
                     * (portIdx - static_cast<float>(portList.size() / 2));
