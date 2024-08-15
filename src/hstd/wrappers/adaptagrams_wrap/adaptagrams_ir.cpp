@@ -464,6 +464,47 @@ Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
          | rs::to<Vec>();
 }
 
+struct PortData {
+    int                        targetShape;
+    uint                       pinId;
+    Avoid::ShapeConnectionPin* pin = nullptr;
+    DESC_FIELDS(PortData, (targetShape, pinId, pin));
+};
+
+template <>
+struct std::formatter<Avoid::ShapeConnectionPin*>
+    : std_format_ptr_as_hex<Avoid::ShapeConnectionPin> {
+    template <typename FormatContext>
+    auto format(Avoid::ShapeConnectionPin* p, FormatContext& ctx) const {
+        if (p == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            return fmt_ctx(fmt("ids:{}", p->ids()), ctx);
+        }
+    }
+};
+
+struct ShapePorts {
+    UnorderedMap<GraphEdgeConstraint::Port, Vec<PortData>> ports;
+    PortData getPort(GraphEdgeConstraint::Port port, uint targetShape)
+        const {
+        auto it = rs::find_if(ports.at(port), [&](CR<PortData> dat) {
+            return dat.targetShape == targetShape;
+        });
+
+        if (it == ports.at(port).end()) {
+            throw std::logic_error(std::format(
+                "Implementation error, could not find port from side "
+                "{} to shape {}",
+                port,
+                targetShape));
+        } else {
+            return *it;
+        }
+    }
+    DESC_FIELDS(ShapePorts, (ports));
+};
+
 
 GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     validate();
@@ -512,112 +553,147 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     cola::VariableIDMap   idMap;
     cola::RootCluster     rootCluster{};
 
-    uint connectionPinClassID = 1;
-    uint connectionID         = edges.size() + 1;
-    uint shapeRefID = edges.size() + ir.baseRectangles.size() + 2;
 
-    for (auto const& it : enumerator(ir.baseRectangles)) {
-        ++shapeRefID;
-        rootCluster.addChildNode(it.index());
-        vpsc::Rectangle const& r    = it.value();
-        auto                   poly = Avoid::Polygon{4};
-        poly.setPoint(0, Avoid::Point{r.getMinX(), r.getMaxY()});
-        poly.setPoint(1, Avoid::Point{r.getMaxX(), r.getMaxY()});
-        poly.setPoint(2, Avoid::Point{r.getMaxX(), r.getMinY()});
-        poly.setPoint(3, Avoid::Point{r.getMinX(), r.getMinY()});
-        auto shape = new Avoid::ShapeRef{
-            ir.router.get(), poly, shapeRefID};
-        idMap.addMappingForVariable(it.index(), shapeRefID);
-        shapes.push_back(shape);
+    {
+        uint shapeRefID = edges.size() + ir.baseRectangles.size() + 2;
+        for (auto const& it : enumerator(ir.baseRectangles)) {
+            ++shapeRefID;
+            rootCluster.addChildNode(it.index());
+            vpsc::Rectangle const& r    = it.value();
+            auto                   poly = Avoid::Polygon{4};
+            poly.setPoint(0, Avoid::Point{r.getMinX(), r.getMaxY()});
+            poly.setPoint(1, Avoid::Point{r.getMaxX(), r.getMaxY()});
+            poly.setPoint(2, Avoid::Point{r.getMaxX(), r.getMinY()});
+            poly.setPoint(3, Avoid::Point{r.getMinX(), r.getMinY()});
+            auto shape = new Avoid::ShapeRef{
+                ir.router.get(), poly, shapeRefID};
+            idMap.addMappingForVariable(it.index(), shapeRefID);
+            shapes.push_back(shape);
+        }
     }
 
-    auto pin_for_shape = [](Avoid::ShapeRef*          shape,
-                            int                       pinClass,
-                            GraphEdgeConstraint::Port port) {
-        float               xOffset = Avoid::ATTACH_POS_CENTRE;
-        float               yOffset = Avoid::ATTACH_POS_CENTRE;
-        Avoid::ConnDirFlags connDir = Avoid::ConnDirNone;
 
-        switch (port) {
-            case GraphEdgeConstraint::Port::North: {
-                yOffset = Avoid::ATTACH_POS_TOP;
-                xOffset = Avoid::ATTACH_POS_CENTRE;
-                connDir = Avoid::ConnDirUp;
-                break;
-            }
+    UnorderedMap<int, ShapePorts> shapePorts;
+    auto getPortDirections = [&](GraphEdge const& edge)
+        -> Pair<GraphEdgeConstraint::Port, GraphEdgeConstraint::Port> {
+        auto c = edgeConstraints.get(edge);
 
-            case GraphEdgeConstraint::Port::South: {
-                yOffset = Avoid::ATTACH_POS_BOTTOM;
-                xOffset = Avoid::ATTACH_POS_CENTRE;
-                connDir = Avoid::ConnDirDown;
-                break;
-            }
-
-            case GraphEdgeConstraint::Port::West: {
-                yOffset = Avoid::ATTACH_POS_CENTRE;
-                xOffset = Avoid::ATTACH_POS_LEFT;
-                connDir = Avoid::ConnDirLeft;
-                break;
-            }
-
-            case GraphEdgeConstraint::Port::East: {
-                yOffset = Avoid::ATTACH_POS_CENTRE;
-                xOffset = Avoid::ATTACH_POS_RIGHT;
-                connDir = Avoid::ConnDirRight;
-                break;
-            }
-
-            case GraphEdgeConstraint::Port::Center: {
-                yOffset = Avoid::ATTACH_POS_CENTRE;
-                xOffset = Avoid::ATTACH_POS_CENTRE;
-                connDir = Avoid::ConnDirNone;
-                break;
-            }
-
-            case GraphEdgeConstraint::Port::Default: {
-                break;
-            }
-        }
-
-        return new Avoid::ShapeConnectionPin{
-            shape,
-            static_cast<uint>(pinClass),
-            xOffset,
-            yOffset,
-            true,
-            0,
-            connDir,
-        };
+        return {
+            c ? c->sourcePort : GraphEdgeConstraint::Port::Default,
+            c ? c->targetPort : GraphEdgeConstraint::Port::Default};
     };
 
+    {
+        uint connectionPinClassID = 1;
+        for (auto const& edge : edges) {
+            uint sourceClass              = ++connectionPinClassID;
+            uint targetClass              = ++connectionPinClassID;
+            auto [sourcePort, targetPort] = getPortDirections(edge);
 
-    for (auto const& edge : edges) {
-        uint sourceClass = ++connectionPinClassID;
-        uint targetClass = ++connectionPinClassID;
-        ++connectionID;
-        if (edgeConstraints.contains(edge)) {
-            auto const& c = edgeConstraints.at(edge);
-            pin_for_shape(
-                shapes.at(edge.source), sourceClass, c.sourcePort);
-            pin_for_shape(
-                shapes.at(edge.target), targetClass, c.targetPort);
-        } else {
-            pin_for_shape(
-                shapes.at(edge.source),
-                sourceClass,
-                GraphEdgeConstraint::Port::Default);
-            pin_for_shape(
-                shapes.at(edge.target),
-                targetClass,
-                GraphEdgeConstraint::Port::Default);
+            shapePorts[edge.source].ports[sourcePort].push_back(PortData{
+                .targetShape = edge.target,
+                .pinId       = sourceClass,
+            });
+
+            shapePorts[edge.target].ports[targetPort].push_back(PortData{
+                .targetShape = edge.source,
+                .pinId       = targetClass,
+            });
         }
+    }
 
-        Avoid::ConnEnd sourceEnd{shapes.at(edge.source), sourceClass};
-        Avoid::ConnEnd targetEnd{shapes.at(edge.target), targetClass};
+    for (auto& [shapeIdx, shape] : shapePorts) {
+        for (auto& [portDirection, portList] : shape.ports) {
+            int portIdx = 0;
+            for (PortData& port : portList) {
+                float portNudge = 0.02 * (portIdx - (portList.size() / 2));
+                float xOffset   = Avoid::ATTACH_POS_CENTRE;
+                float yOffset   = Avoid::ATTACH_POS_CENTRE;
+
+                Avoid::ConnDirFlags connDir = Avoid::ConnDirNone;
+
+                switch (portDirection) {
+                    case GraphEdgeConstraint::Port::North: {
+                        yOffset = Avoid::ATTACH_POS_TOP;
+                        xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+                        connDir = Avoid::ConnDirUp;
+                        break;
+                    }
+
+                    case GraphEdgeConstraint::Port::South: {
+                        yOffset = Avoid::ATTACH_POS_BOTTOM;
+                        xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+                        connDir = Avoid::ConnDirDown;
+                        break;
+                    }
+
+                    case GraphEdgeConstraint::Port::West: {
+                        yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+                        xOffset = Avoid::ATTACH_POS_LEFT;
+                        connDir = Avoid::ConnDirLeft;
+                        break;
+                    }
+
+                    case GraphEdgeConstraint::Port::East: {
+                        yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+                        xOffset = Avoid::ATTACH_POS_RIGHT;
+                        connDir = Avoid::ConnDirRight;
+                        break;
+                    }
+
+                    case GraphEdgeConstraint::Port::Center: {
+                        yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+                        xOffset = Avoid::ATTACH_POS_CENTRE;
+                        connDir = Avoid::ConnDirNone;
+                        break;
+                    }
+
+                    case GraphEdgeConstraint::Port::Default: {
+                        break;
+                    }
+                }
+
+                port.pin = new Avoid::ShapeConnectionPin{
+                    shapes.at(shapeIdx),
+                    static_cast<uint>(port.pinId),
+                    xOffset,
+                    yOffset,
+                    true,
+                    0,
+                    connDir,
+                };
+                ++portIdx;
+            }
+        }
+    }
+
+    LOG(INFO) << fmt1(shapePorts);
+
+    uint connectionID = edges.size() + 1;
+    for (auto const& edge : edges) {
+        auto [sourceDirection, targetDirection] = getPortDirections(edge);
+
+        PortData sourcePort = shapePorts.at(edge.source)
+                                  .getPort(sourceDirection, edge.target);
+
+        PortData targetPort = shapePorts.at(edge.target)
+                                  .getPort(targetDirection, edge.target);
+
+        LOG(INFO) << fmt(
+            "source:{} target:{} source-pin:{} target-pin:{}",
+            edge.source,
+            edge.target,
+            sourcePort.pinId,
+            targetPort.pinId);
+
+        Avoid::ConnEnd sourceEnd{shapes.at(edge.source), sourcePort.pinId};
+        Avoid::ConnEnd targetEnd{shapes.at(edge.target), targetPort.pinId};
 
         auto conn = new Avoid::ConnRef{
-            ir.router.get(), sourceEnd, targetEnd,
-            // connectionID,
+            ir.router.get(),
+            sourceEnd,
+            targetEnd,
+            ++connectionID,
         };
 
         conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
