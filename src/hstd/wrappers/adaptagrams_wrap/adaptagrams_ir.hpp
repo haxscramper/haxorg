@@ -187,17 +187,67 @@ struct [[refl]] GraphNodeConstraint {
     std::string toColaString(
         std::vector<vpsc::Rectangle*> const& allRects) const;
 
-    SUB_VARIANTS(
+    enum class [[refl]] Kind : unsigned short int
+    {
+        Empty,
+        Align,
+        FixedRelative,
+        Separate,
+        MultiSeparate,
+        PageBoundary
+    };
+
+    BOOST_DESCRIBE_NESTED_ENUM(
         Kind,
-        Data,
-        data,
-        getKind,
         Empty,
         Align,
         FixedRelative,
         Separate,
         MultiSeparate,
         PageBoundary);
+
+    using Data = std::variant<
+        Empty,
+        Align,
+        FixedRelative,
+        Separate,
+        MultiSeparate,
+        PageBoundary //
+        >;
+
+    [[refl]] Empty const& getEmpty() const {
+        return std::get<Empty>(data);
+    }
+
+    [[refl]] Align const& getAlign() const {
+        return std::get<Align>(data);
+    }
+
+    [[refl]] FixedRelative& getFixedRelative() {
+        return std::get<FixedRelative>(data);
+    }
+
+    [[refl]] FixedRelative const& getFixedRelative() const {
+        return std::get<FixedRelative>(data);
+    }
+
+    [[refl]] Separate const& getSeparate() const {
+        return std::get<Separate>(data);
+    }
+
+    [[refl]] MultiSeparate const& getMultiSeparate() const {
+        return std::get<MultiSeparate>(data);
+    }
+
+    [[refl]] PageBoundary const& getPageBoundary() const {
+        return std::get<PageBoundary>(data);
+    }
+
+    [[refl]] GraphNodeConstraint::Kind getKind() const {
+        return getKind(data);
+    }
+
+    static Kind getKind(CR<Data> __input);
 
     Data data;
 

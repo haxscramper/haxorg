@@ -2,6 +2,7 @@
 
 #include <llvm/Support/TimeProfiler.h>
 #include <format>
+#include <absl/log/log.h>
 
 namespace c = clang;
 using llvm::dyn_cast;
@@ -328,10 +329,22 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                     break;
                 }
 
+                case c::NestedNameSpecifier::TypeSpec: {
+                    auto space  = &result.emplace_back();
+                    auto record = nns->getAsType()->getAsRecordDecl();
+                    add_debug(space, "type spec");
+                    space->set_isnamespace(true);
+                    space->set_name(record->getNameAsString());
+                    auto spaces = getNamespaces(record, Loc);
+                    result.insert(
+                        result.end(), spaces.begin(), spaces.end());
+                    break;
+                }
+
                 default: {
                     Diag(
                         DiagKind::Warning,
-                        "Unahdled namespace filler kind '%0'",
+                        "Unhadled namespace filler kind '%0'",
                         Loc)
                         << kind;
                 }
@@ -822,9 +835,9 @@ void ReflASTVisitor::fillCxxRecordDecl(
                             "is anon "
                             "subrec: {}\n",
                             FieldDecl != nullptr,
-                            (FieldDecl ? (
-                                 FieldDecl->isImplicit() ? "implicit"
-                                                         : "not implicit")
+                            (FieldDecl ? (FieldDecl->isImplicit()
+                                              ? "implicit"
+                                              : "not implicit")
                                        : "no field"),
                             SubRecord->getNameAsString().empty());
                     }
@@ -866,6 +879,7 @@ void ReflASTVisitor::fillCxxRecordDecl(
         } else if (
             llvm::isa<c::IndirectFieldDecl>(SubDecl)
             || llvm::isa<c::UsingDecl>(SubDecl)
+            || llvm::isa<c::EnumDecl>(SubDecl)
             || llvm::isa<c::UsingShadowDecl>(SubDecl)) {
             // pass
         } else {

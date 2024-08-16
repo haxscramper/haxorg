@@ -957,6 +957,25 @@ std::string GraphNodeConstraint::toColaString(
     return joinCola(toCola(allRects));
 }
 
+GraphNodeConstraint::Kind GraphNodeConstraint::getKind(CR<Data> __input) {
+    return std ::visit(
+        overloaded{
+            [](Empty const&) -> Kind { return Kind ::Empty; },
+            [](Align const&) -> Kind { return Kind ::Align; },
+            [](FixedRelative const&) -> Kind {
+                return Kind ::FixedRelative;
+            },
+            [](Separate const&) -> Kind { return Kind ::Separate; },
+            [](MultiSeparate const&) -> Kind {
+                return Kind ::MultiSeparate;
+            },
+            [](PageBoundary const&) -> Kind {
+                return Kind ::PageBoundary;
+            },
+        },
+        __input);
+}
+
 
 Vec<GraphNodeConstraint::Res> GraphNodeConstraint::MultiSeparate::toCola()
     const {

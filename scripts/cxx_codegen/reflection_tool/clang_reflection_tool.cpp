@@ -135,13 +135,18 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
 
     auto push = [&](std::string const& value,
                     int                line = __builtin_LINE()) {
-        LOG_CERR(line) << "+++ Adding " << value << std::endl;
+        if (VerboseRun) {
+            LOG_CERR(line) << "+++ Adding " << value << std::endl;
+        }
         filteredArgs.push_back(value);
     };
 
     for (size_t i = 0; i < Args.size(); ++i) {
         auto drop = [&](int line = __builtin_LINE()) {
-            LOG_CERR(line) << "!!! Discarding " << Args[i] << std::endl;
+            if (VerboseRun) {
+                LOG_CERR(line)
+                    << "!!! Discarding " << Args[i] << std::endl;
+            }
         };
 
         // Skip unwanted arguments
@@ -186,7 +191,7 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     // TODO Redirect warnings and other diagnostics into a temporary
     // location Use serif output.
     push("-Wno-everything");
-    push("-v");
+    if (VerboseRun) { push("-v"); }
     push("-isystem");
     push(ToolchainInclude);
     /*
@@ -225,15 +230,16 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     // std include causes issues with `cstdddef`), but the message above
     // should stay there regardless.
 
+    if (VerboseRun) {
+        LOG_CERR() << "Filtered command line arguments\n";
+        for (auto const& arg : filteredArgs) {
+            LOG_CERR() << "[ ] " << arg << "\n";
+        }
 
-    LOG_CERR() << "Filtered command line arguments\n";
-    for (auto const& arg : filteredArgs) {
-        LOG_CERR() << "[ ] " << arg << "\n";
+        LOG_CERR() << ":: ";
+        for (auto const& arg : filteredArgs) { std::cerr << " " << arg; }
+        std::cerr << "\n";
     }
-
-    LOG_CERR() << ":: ";
-    for (auto const& arg : filteredArgs) { std::cerr << " " << arg; }
-    std::cerr << "\n";
 
     return filteredArgs;
 }
@@ -285,10 +291,12 @@ int main(int argc, const char** argv) {
         }
     }
 
-    LOG_CERR() << "Using toolchain include " << ToolchainInclude
-               << std::endl;
+    if (VerboseRun) {
+        LOG_CERR() << "Using toolchain include " << ToolchainInclude
+                   << std::endl;
 
-    LOG_CERR() << "Configuration parse OK, running tool\n";
+        LOG_CERR() << "Configuration parse OK, running tool\n";
+    }
     int result = tool.run(
         clang::tooling::newFrontendActionFactory<ReflFrontendAction>()
             .get());

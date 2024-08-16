@@ -706,8 +706,12 @@ def cmake_haxorg_clean(ctx: Context):
         stamp_path.unlink()
 
 
-@org_task(pre=[cmake_configure_haxorg])
-def cmake_haxorg(ctx: Context):
+@org_task(pre=[cmake_configure_haxorg], iterable=["target"])
+def cmake_haxorg(
+    ctx: Context,
+    target: List[str] = ["all"],
+    force: bool = False,
+):
     """Compile main set of libraries and binaries for org-mode parser"""
     build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
@@ -723,12 +727,12 @@ def cmake_haxorg(ctx: Context):
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
-        if is_forced(ctx, "cmake_haxorg") or op.should_run():
+        if force or is_forced(ctx, "cmake_haxorg") or op.should_run():
             log(CAT).info(op.explain("Main C++"))
             run_command(
                 ctx,
                 "cmake",
-                ["--build", build_dir],
+                ["--build", build_dir, "--target"] + target,
                 env={'NINJA_FORCE_COLOR': '1'},
             )
 
@@ -776,10 +780,17 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
     else:
         run_command(ctx, tool, [json.dumps(config)])
 
-CODEGEN_TASKS = ["adaptagrams", "pyhaxorg"]
+
+CODEGEN_TASKS = [
+    "adaptagrams",
+    # "pyhaxorg",
+]
 
 
-@org_task(pre=[python_protobuf_files])
+@org_task(pre=[
+    python_protobuf_files,
+    # cmake_haxorg,
+])
 def update_py_haxorg_reflection(
     ctx: Context,
     verbose: bool = False,
@@ -788,6 +799,15 @@ def update_py_haxorg_reflection(
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     toolchain_include = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
 
+    run_self(
+        ctx,
+        [
+            "cmake-haxorg",
+            "--target=reflection_lib",
+            "--target=reflection_tool",
+            "--force",
+        ],
+    )
 
     with FileOperation.InTmp(
             input=[
@@ -804,10 +824,12 @@ def update_py_haxorg_reflection(
                 out_file = get_build_root(f"{task}.pb")
                 match task:
                     case "pyhaxorg":
-                        src_file = get_script_root("src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp")
+                        src_file = get_script_root(
+                            "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp")
 
                     case "adaptagrams":
-                        src_file = get_script_root("src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
+                        src_file = get_script_root(
+                            "src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
 
                 exitcode, stdout, stderr = run_command(
                     ctx,
@@ -853,7 +875,7 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     log(CAT).info("Executing haxorg code generation step.")
-    for task in CODEGEN_TASKS:  
+    for task in CODEGEN_TASKS:
         run_command(
             ctx,
             "poetry",

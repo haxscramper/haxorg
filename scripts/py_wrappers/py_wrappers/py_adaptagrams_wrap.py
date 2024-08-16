@@ -224,10 +224,12 @@ def rename_kwargs_for_svg(kwargs):
 class svg(tags.html_tag):
 
     def __init__(self, width: int, height: int, *args, **kwargs):
-        super().__init__(*args,
-                         width=width,
-                         height=height,
-                         **rename_kwargs_for_svg(kwargs))
+        super().__init__(
+            *args,
+            width=width,
+            height=height,
+            **rename_kwargs_for_svg(kwargs),
+        )
 
 
 class svg_circle(tags.html_tag):
@@ -241,12 +243,14 @@ class svg_rect(tags.html_tag):
     tagname = "rect"
 
     def __init__(self, x: int, y: int, width: int, height: int, *args, **kwargs):
-        super().__init__(*args,
-                         x=x,
-                         y=y,
-                         width=width,
-                         height=height,
-                         **rename_kwargs_for_svg(kwargs))
+        super().__init__(
+            *args,
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            **rename_kwargs_for_svg(kwargs),
+        )
 
 
 class svg_text(tags.html_tag):
@@ -260,12 +264,14 @@ class svg_line(tags.html_tag):
     tagname = "line"
 
     def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args, **kwargs):
-        super().__init__(x1=x1,
-                         x2=x2,
-                         y1=y1,
-                         y2=y2,
-                         *args,
-                         **rename_kwargs_for_svg(kwargs))
+        super().__init__(
+            x1=x1,
+            x2=x2,
+            y1=y1,
+            y2=y2,
+            *args,
+            **rename_kwargs_for_svg(kwargs),
+        )
 
 
 class svg_tspan(tags.html_tag):
@@ -331,6 +337,7 @@ def toSvg(
     draw_positions_inside: bool = True,
     grid_vertical_step: Optional[int] = 50,
     grid_horizontal_step: Optional[int] = 50,
+    ir: Optional[GraphLayoutIR] = None,
 ) -> svg:
     r = 10
     viewbox_width = res.bbox.width + r * 2
@@ -436,6 +443,16 @@ def toSvg(
                 stroke_opacity="1",
                 stroke_miterlimit="10",
             ))
+
+    if ir:
+        for c in ir.nodeConstraints:
+            match c.getKind():
+                case GraphNodeConstraintPageBoundary():
+                    print(type(c))
+
+                case _:
+                    print(type(c))
+                    # result.add(svg_rect(x=str(c)))
 
     return result
 

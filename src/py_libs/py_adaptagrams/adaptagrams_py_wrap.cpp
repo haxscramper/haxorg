@@ -157,6 +157,13 @@ PYBIND11_MODULE(py_adaptagrams, m) {
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def("getEmpty", static_cast<GraphNodeConstraint::Empty const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getEmpty))
+    .def("getAlign", static_cast<GraphNodeConstraint::Align const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getAlign))
+    .def("getFixedRelative", static_cast<GraphNodeConstraint::FixedRelative&(GraphNodeConstraint::*)()>(&GraphNodeConstraint::getFixedRelative))
+    .def("getSeparate", static_cast<GraphNodeConstraint::Separate const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getSeparate))
+    .def("getMultiSeparate", static_cast<GraphNodeConstraint::MultiSeparate const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getMultiSeparate))
+    .def("getPageBoundary", static_cast<GraphNodeConstraint::PageBoundary const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getPageBoundary))
+    .def("getKind", static_cast<GraphNodeConstraint::Kind(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getKind))
     .def_static("InitEmptyStatic",
                 static_cast<GraphNodeConstraint(*)(GraphNodeConstraint::Empty const&)>(&GraphNodeConstraint::InitEmpty),
                 pybind11::arg("arg"))
@@ -474,6 +481,20 @@ layout spec)RAW")
     .def("__iter__", [](GraphDimension _self) -> PyEnumIterator<GraphDimension> {
                      return
                      PyEnumIterator<GraphDimension>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind", type_registry_guard);
+  pybind11::enum_<GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind")
+    .value("Empty", GraphNodeConstraint::Kind::Empty)
+    .value("Align", GraphNodeConstraint::Kind::Align)
+    .value("FixedRelative", GraphNodeConstraint::Kind::FixedRelative)
+    .value("Separate", GraphNodeConstraint::Kind::Separate)
+    .value("MultiSeparate", GraphNodeConstraint::Kind::MultiSeparate)
+    .value("PageBoundary", GraphNodeConstraint::Kind::PageBoundary)
+    .def("__iter__", [](GraphNodeConstraint::Kind _self) -> PyEnumIterator<GraphNodeConstraint::Kind> {
+                     return
+                     PyEnumIterator<GraphNodeConstraint::Kind>
                      ();
                      })
     ;
