@@ -28,7 +28,8 @@ import dominate.tags as tags
 import dominate
 from dominate.util import text
 from datetime import datetime, timedelta
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
+import statistics
 
 CAT = "story-grid"
 
@@ -396,6 +397,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
 class Cell():
     content: str
     rect_idx: int = -1
+    debug: Dict[str, Any] = field(default_factory=list)
 
 
 @beartype
@@ -415,7 +417,7 @@ def get_typst_story_grid(headers: List[Header]):
             return 1
 
     def get_content(h: Header):
-        return [f for f in fields(h) if f not in SKIP_FIELDS]
+        return [f for f in fields(h) if f.name not in SKIP_FIELDS]
 
     def get_cols(t: Header):
         subs = [get_cols(s) for s in t.nested]
@@ -432,7 +434,7 @@ def get_typst_story_grid(headers: List[Header]):
     def get_rows(t: Header):
         res = sum(get_rows(s) for s in t.nested) + 1
         content = get_content(t)
-        res += 1
+        # res += 1
         return res
 
     max_depth = get_depth(root)
@@ -458,22 +460,51 @@ def get_typst_story_grid(headers: List[Header]):
 
         Path("/tmp/grid_fmt.txt").write_text(grid_fmt)
 
+        pprint_to_file(
+            to_debug_json(grid),
+            "/tmp/grid_debug.py",
+            width=240,
+        )
+
     def aux(h: Header, level: int):
         nonlocal dfs_row
         this_row = dfs_row
         rect = ir.rect(width=20 * mult, height=10 * mult)
-        grid[dfs_row][level] = Cell(content="**", rect_idx=rect)
-        content = get_content(h)
-        dfs_row += 1
-        for cell_idx, field in enumerate(content):
-            rect = ir.rect(width=20 * mult, height=10 * mult)
-            content: str = field.name
-            value = getattr(h, field.name)
-            match field.name:
-                case "time":
-                    pass
+        grid[dfs_row][level] = Cell(
+            content="**",
+            rect_idx=rect,
+            debug=dict(
+                width=ir.ir.rectangles[rect].width(),
+                height=ir.ir.rectangles[rect].height(),
+                field="base",
+            ),
+        )
 
-            grid[dfs_row][max_depth + cell_idx] = Cell(content=content, rect_idx=rect)
+        content = get_content(h)
+        # dfs_row += 1
+        for cell_idx, field in enumerate(content):
+            fmt_field: str = field.name
+            value = getattr(h, field.name)
+            assert field.name not in SKIP_FIELDS
+            match field.name:
+                case "title":
+                    fmt_field = "".join(
+                        [ExporterUltraplain.getStr(it) for it in h.title])
+
+                case _:
+                    fmt_field = str(value)
+
+            height = len(fmt_field) / 10
+            rect = ir.rect(width=20 * mult, height=int(height * mult))
+            grid[dfs_row][max_depth + cell_idx] = Cell(
+                content=fmt_field,
+                rect_idx=rect,
+                debug=dict(
+                    width=ir.ir.rectangles[rect].width(),
+                    height=ir.ir.rectangles[rect].height(),
+                    field=field.name,
+                ),
+            )
 
         source_rect = grid[this_row][level].rect_idx
         target_rect = grid[dfs_row][max_depth].rect_idx
@@ -482,7 +513,7 @@ def get_typst_story_grid(headers: List[Header]):
         ir.edgePorts(
             source=source_rect,
             target=target_rect,
-            sourcePort=cola.GraphEdgeConstraintPort.South,
+            sourcePort=cola.GraphEdgeConstraintPort.East,
             targetPort=cola.GraphEdgeConstraintPort.West,
         )
 
@@ -491,12 +522,12 @@ def get_typst_story_grid(headers: List[Header]):
             target_rect = grid[dfs_row][max_depth + cell_idx + 1].rect_idx
 
             ir.edge(source=source_rect, target=target_rect)
-            ir.edgePorts(
-                source=source_rect,
-                target=target_rect,
-                sourcePort=cola.GraphEdgeConstraintPort.East,
-                targetPort=cola.GraphEdgeConstraintPort.West,
-            )
+            # ir.edgePorts(
+            #     source=source_rect,
+            #     target=target_rect,
+            #     sourcePort=cola.GraphEdgeConstraintPort.East,
+            #     targetPort=cola.GraphEdgeConstraintPort.West,
+            # )
 
         dfs_row += 1
         sub_rows: List[int] = []
@@ -520,24 +551,34 @@ def get_typst_story_grid(headers: List[Header]):
     aux(root, 0)
     debug_grid()
 
-    if True:
-        y_aligns: List[cola.GraphNodeConstraintAlign] = []
-        x_aligns: List[cola.GraphNodeConstraintAlign] = []
+    y_aligns: List[cola.GraphNodeConstraintAlign] = []
+    x_aligns: List[cola.GraphNodeConstraintAlign] = []
+    vertical_sizes: List[int] = []
+    horizontal_sizes: List[int] = []
 
-        for row in grid:
-            row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
-            if 0 < len(row_nodes):
-                y_aligns.append(ir.newAlignY(row_nodes))
+    for row in grid:
+        row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
+        if 0 < len(row_nodes):
+            vertical_sizes.append(
+                int(
+                    statistics.mean(ir.ir.rectangles[idx].height() for idx in row_nodes) +
+                    1))
 
-        ir.separateYDimN(y_aligns, distance=15 * mult)
+            y_aligns.append(ir.newAlignY(row_nodes))
 
-        for col in range(0, col_count):
-            col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
-            if 0 < len(col_nodes):
-                pass
-                x_aligns.append(ir.newAlignX(col_nodes))
+    ir.separateYDimN(y_aligns, distance=max(vertical_sizes))
 
-        ir.separateXDimN(x_aligns, distance=30 * mult)
+    for col in range(0, col_count):
+        col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
+        if 0 < len(col_nodes):
+            horizontal_sizes.append(
+                int(
+                    statistics.mean(ir.ir.rectangles[idx].height() for idx in col_nodes) +
+                    1))
+
+            x_aligns.append(ir.newAlignX(col_nodes))
+
+    ir.separateXDimN(x_aligns, distance=max(horizontal_sizes))
 
     ir.ir.width = 100 * mult * col_count
     ir.ir.height = 100 * mult * row_count
