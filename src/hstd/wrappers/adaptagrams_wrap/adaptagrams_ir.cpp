@@ -1020,7 +1020,7 @@ Vec<GraphNodeConstraint::Res> GraphNodeConstraint::toCola(
                 return sep.toCola();
             },
             [&](PageBoundary const& sep) -> Vec<Res> {
-                return {sep.toCola()};
+                return {sep.toCola(allRects)};
             },
             [&](Separate const& sep) -> Vec<Res> { return sep.toCola(); },
             [&](Empty const& sep) -> Vec<Res> { return {}; },
@@ -1029,14 +1029,20 @@ Vec<GraphNodeConstraint::Res> GraphNodeConstraint::toCola(
 }
 
 
-GraphNodeConstraint::Res GraphNodeConstraint::PageBoundary::toCola()
-    const {
-    return std::make_shared<cola::PageBoundaryConstraints>(
+GraphNodeConstraint::Res GraphNodeConstraint::PageBoundary::toCola(
+    std::vector<vpsc::Rectangle*> const& allRects) const {
+    auto result = std::make_shared<cola::PageBoundaryConstraints>(
         rect.left,
         rect.left + rect.width,
-        rect.top + rect.height,
         rect.top,
+        rect.top + rect.height,
         weight);
+
+    for (auto const& [idx, rect] : enumerate(allRects)) {
+        result->addShape(idx, rect->height() / 2, rect->width() / 2);
+    }
+
+    return result;
 }
 
 void GraphRect::extend(const GraphPoint& point) {

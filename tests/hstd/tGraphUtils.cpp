@@ -212,17 +212,27 @@ TEST(GraphUtils, LibavoidRaw1) {
         Checkpoint{
             Point{-242, 782},
             ConnDirFlag::ConnDirAll,
-            ConnDirFlag::ConnDirRight,
+            ConnDirFlag::ConnDirAll,
+        },
+        Checkpoint{
+            Point{500, 500},
+            ConnDirFlag::ConnDirAll,
+            ConnDirFlag::ConnDirAll,
+        },
+        Checkpoint{
+            Point{400, 400},
+            ConnDirFlag::ConnDirAll,
+            ConnDirFlag::ConnDirAll,
         },
         Checkpoint{
             Point{400, 240},
             ConnDirFlag::ConnDirAll,
-            ConnDirFlag::ConnDirRight,
+            ConnDirFlag::ConnDirAll,
         },
     };
 
 
-    ConnEnd dstPt(Point(158, 246), 15);
+    ConnEnd dstPt(Point(160, 240), ConnDirFlag::ConnDirRight);
 
     auto add_left_box = [&](double rectY, int connId, uint shapeRefId) {
         Polygon poly(4);
@@ -235,7 +245,7 @@ TEST(GraphUtils, LibavoidRaw1) {
         ConnEnd  srcPt(Point(rectConnectorX, rectY + rectSize / 2), 8);
         conn->setSourceEndpoint(srcPt);
         conn->setDestEndpoint(dstPt);
-        conn->setRoutingType((ConnType)2);
+        conn->setRoutingType(ConnType::ConnType_Orthogonal);
         conn->setRoutingCheckpoints(checkpoints);
     };
 
@@ -261,19 +271,19 @@ TEST(GraphUtils, LibavoidRaw1) {
 
     {
         Polygon obstacle(4);
-        obstacle.ps[0] = Point(-119, 690);
-        obstacle.ps[1] = Point(-119, 827);
-        obstacle.ps[2] = Point(-181, 827);
-        obstacle.ps[3] = Point(-181, 690);
+        obstacle.ps[0] = Point(-120, 690);
+        obstacle.ps[1] = Point(-120, 830);
+        obstacle.ps[2] = Point(-180, 830);
+        obstacle.ps[3] = Point(-180, 690);
         new ShapeRef(router, obstacle, 59);
     }
 
     {
         Polygon obstacle(4);
-        obstacle.ps[0] = Point(-119, 100);
-        obstacle.ps[1] = Point(-119, 250);
-        obstacle.ps[2] = Point(-181, 250);
-        obstacle.ps[3] = Point(-181, 100);
+        obstacle.ps[0] = Point(-120, 100);
+        obstacle.ps[1] = Point(-120, 250);
+        obstacle.ps[2] = Point(-180, 250);
+        obstacle.ps[3] = Point(-180, 100);
         new ShapeRef(router, obstacle, 60);
     }
 

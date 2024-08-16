@@ -173,11 +173,13 @@ struct [[refl]] GraphNodeConstraint {
     struct [[refl]] PageBoundary {
         [[refl]] GraphRect rect;
         [[refl]] double    weight = 100.0;
-        DESC_FIELDS(PageBoundary, (rect, weight));
+        [[refl]] Vec<int>  nodes;
+        DESC_FIELDS(PageBoundary, (rect, weight, nodes));
 
-        Res                  toCola() const;
-        [[refl]] std::string toColaString() const {
-            return toCola()->toString();
+        Res toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
+        [[refl]] std::string toColaString(
+            std::vector<vpsc::Rectangle*> const& allRects) const {
+            return toCola(allRects)->toString();
         }
     };
 

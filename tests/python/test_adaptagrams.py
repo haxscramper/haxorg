@@ -31,8 +31,9 @@ def make_chain_graph(count: int, mult: int) -> wrap.GraphLayout:
 
 class ConvTest():
 
-    def __init__(self, conv: wrap.GraphLayoutIRResult) -> None:
-        self.conv = conv
+    def __init__(self, conv: wrap.GraphLayout) -> None:
+        self.conv = conv.ir.doColaConvert()
+        self.ir = conv.ir
 
     def rect(self, idx: int) -> wrap.GraphRect:
         return self.conv.fixed[idx]
@@ -205,7 +206,7 @@ def test_align_axis_separation():
     ir.ir.width = 100 * mult
     ir.ir.height = 100 * mult
 
-    t = ConvTest(ir.ir.doColaConvert())
+    t = ConvTest(ir)
     assert t.rect(3).left == t.rect(4).left
 
     path_01 = t.path(3, 4)
@@ -245,7 +246,7 @@ def test_align_axis_separate_2():
         ir.newAlignSpec(5),
     ])
 
-    t = ConvTest(ir.ir.doColaConvert())
+    t = ConvTest(ir)
 
 
 def test_align_axis_multi_separate_equal_sizes():
@@ -294,7 +295,7 @@ def test_align_axis_multi_separate_equal_sizes():
         distance=50 * mult,
     )
 
-    t = ConvTest(ir.ir.doColaConvert())
+    t = ConvTest(ir)
     t.debug()
 
 
@@ -350,7 +351,7 @@ def test_align_axis_multi_separate_different_sizes():
         distance=50 * mult,
     )
 
-    t = ConvTest(ir.ir.doColaConvert())
+    t = ConvTest(ir)
     t.debug()
 
 
@@ -388,7 +389,7 @@ def test_node_pin_connections():
     ir.ir.height = 100 * mult
     ir.ir.doColaSvgWrite("/tmp/result.svg")
 
-    t = ConvTest(ir.ir.doColaConvert())
+    t = ConvTest(ir)
     t.debug()
 
 
@@ -556,7 +557,7 @@ def test_tree_sheet_constraint():
     ir.ir.height = 100 * mult
     ir.ir.leftBBoxMargin = 100
 
-    t = ConvTest(ir.ir.doColaConvert())
+    t = ConvTest(ir)
     t.debug(rect_debug_map)
 
     def rect_at(row: int, col: int) -> int:
@@ -564,12 +565,42 @@ def test_tree_sheet_constraint():
 
     assert rect_at(0, 0) == 0
 
-    # Roughly assert the edge shape between main root node and the second 
+    # Roughly assert the edge shape between main root node and the second
     # subtree of the main root -- it must have an L-shape and two segments
     path_0_1 = t.path(rect_at(0, 0), rect_at(8, 1)).paths[0]
     assert len(path_0_1.points) == 3
     assert int(path_0_1.points[0].x) == int(path_0_1.points[1].x)
     assert int(path_0_1.points[1].y) == int(path_0_1.points[2].y)
+
+
+def test_page_boundary():
+    mult = 5
+    ir = wrap.GraphLayout()
+    ir.ir.width = 150 * mult
+    ir.ir.height = 100 * mult
+
+    r1 = ir.rect(width=10 * mult, height=10 * mult)
+    r2 = ir.rect(width=10 * mult, height=10 * mult)
+    r3 = ir.rect(width=10 * mult, height=10 * mult)
+    r4 = ir.rect(width=10 * mult, height=10 * mult)
+
+    ir.edge(r1, r2)
+    ir.edge(r3, r4)
+
+    ir.pageBoundary(
+        [r1, r2],
+        wrap.GraphRect(left=0, top=0, width=40 * mult, height=40 * mult),
+        weight=10,
+    )
+
+    # ir.pageBoundary(
+    #     [r3, r4],
+    #     wrap.GraphRect(left=50 * mult, top=0, width=40 * mult, height=40 * mult),
+    #     weight=10,
+    # )
+
+    t = ConvTest(ir)
+    t.debug()
 
 
 if __name__ == "__main__":

@@ -158,6 +158,22 @@ class GraphLayout():
             GraphNodeConstraint.InitMultiSeparateStatic(constraint))
         return constraint
 
+    def pageBoundary(
+        self,
+        rects: List[int],
+        boundary: GraphRect,
+        weight: Number = 100.0,
+    ) -> GraphNodeConstraintPageBoundary:
+        constraint = GraphNodeConstraintPageBoundary(
+            rect=boundary,
+            nodes=rects,
+            weight=100,
+        )
+
+        self.ir.nodeConstraints.append(
+            GraphNodeConstraint.InitPageBoundaryStatic(constraint))
+        return constraint
+
     def separateXDimN(
         self,
         lines: List[GraphNodeConstraintAlign],

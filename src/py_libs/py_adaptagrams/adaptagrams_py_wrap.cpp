@@ -303,7 +303,10 @@ nodes)RAW")
                         }))
     .def_readwrite("rect", &GraphNodeConstraint::PageBoundary::rect)
     .def_readwrite("weight", &GraphNodeConstraint::PageBoundary::weight)
-    .def("toColaString", static_cast<std::string(GraphNodeConstraint::PageBoundary::*)() const>(&GraphNodeConstraint::PageBoundary::toColaString))
+    .def_readwrite("nodes", &GraphNodeConstraint::PageBoundary::nodes)
+    .def("toColaString",
+         static_cast<std::string(GraphNodeConstraint::PageBoundary::*)(std::vector<vpsc::Rectangle*> const&) const>(&GraphNodeConstraint::PageBoundary::toColaString),
+         pybind11::arg("allRects"))
     .def("__repr__", [](GraphNodeConstraint::PageBoundary _self) -> std::string {
                      return py_repr_impl(_self);
                      })
