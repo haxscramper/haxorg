@@ -17,6 +17,7 @@ from py_scriptutils import algorithm
 import toml
 from py_scriptutils import toml_config_profiler
 from py_scriptutils.algorithm import cond, maybe_splice
+import py_codegen.astbuilder_typst as typ
 
 CAT = "typst"
 
@@ -34,39 +35,8 @@ assert typst_toml.exists(), typst_toml
 assert typst_typ.exists(), typst_typ
 
 
-@beartype
-class RawStr():
-
-    def __init__(self, value: str) -> None:
-        self.value = value
-
-
-@beartype
-class RawBlock():
-
-    def __init__(self, value: BlockId) -> None:
-        self.value = value
-
-
-class TypstPackageFields(BaseModel):
-    name: str
-    version: str
-    entrypoint: str
-    authors: List[str]
-    license: str
-    description: str
-
-
-class TypstPackageModel(BaseModel):
-    package: TypstPackageFields
-
-
-def get_typst_export_package() -> TypstPackageModel:
-    return TypstPackageModel.model_validate(toml.loads(typst_toml.read_text()))
-
-
 def refresh_typst_export_package():
-    config = get_typst_export_package()
+    config = get_typst_export_package(typst_toml)
     out_path = Path("~/.local/share/typst/packages/{namespace}/{name}/{version}".format(
         version=config.package.version,
         name=config.package.name,
@@ -120,150 +90,8 @@ class ExporterTypst(ExporterBase):
     def newOrg(self, node: org.Org):
         return self.t.text("TODO" + str(node.getKind()))
 
-    def string(self, node: str | BlockId) -> BlockId:
-        if isinstance(node, str):
-            return self.t.text(node)
-
-        else:
-            return node
-
-    def surround(self, text: str, nodes: List[BlockId]) -> BlockId:
-        return self.t.line([self.string(text), *nodes, self.string(text)])
-
-    def content(self, content: BlockId) -> BlockId:
-        return self.t.line([self.string("["), content, self.string("]")])
-
-    def expr(self, value) -> BlockId:
-        match value:
-            case bool():
-                return self.string("true" if value else "false")
-
-            case int() | float():
-                return self.string(str(value))
-
-            case RawStr():
-                return self.string(value.value)
-
-            case RawBlock():
-                return self.string(value.value)
-
-            case str():
-                return self.t.wrap_quote(value)
-
-            case list():
-                if all(isinstance(it, (int, str, float)) for it in value):
-                    return self.t.pars(
-                        self.t.csv([self.expr(it) for it in value] + [self.string("")]))
-
-                else:
-                    return self.t.stack([
-                        self.string("("),
-                        self.t.csv(
-                            [self.expr(it) for it in value],
-                            isLine=False,
-                            isTrailing=True,
-                        ),
-                        self.string(")")
-                    ])
-
-            case None:
-                return self.string("null")
-
-            case org.Org():
-                return self.content(self.exp.eval(value))
-
-            case dict():
-                return self.t.pars(
-                    self.t.csv([
-                        self.t.line([
-                            self.string(key),
-                            self.string(": "),
-                            self.expr(value[key]),
-                        ]) for key in sorted(value.keys())
-                    ]))
-
-            case _:
-                raise ValueError(
-                    f"Unexpected type for `expr()` conversion: {type(value)}")
-
-    def escape(self, text: str) -> str:
-        res = ""
-        for ch in text:
-            if ch in ["@", "#", "<"]:
-                res += "\\" + ch
-
-            else:
-                res += ch
-
-        return res
-
-    @beartype
-    def call(
-        self,
-        name: str,
-        args: Dict[str, BlockId | str] = dict(),
-        body: List[BlockId] | BlockId = list(),
-        positional: List[BlockId | str] | BlockId | str = list(),
-        isContent: bool = False,
-        isLine: bool = False,
-    ) -> BlockId:
-        b = body if isinstance(body, list) else [body]
-        arglist = []
-
-        if isinstance(positional, list):
-            for it in positional:
-                arglist.append(
-                    self.t.line([
-                        self.expr(it),
-                        self.string(cond(isLine, ", ", ",")),
-                    ]))
-
-        else:
-            arglist.append(positional)
-
-        for key in sorted(args.keys()):
-            arglist.append(
-                self.t.line([
-                    self.string(key),
-                    self.string(": "),
-                    self.expr(args[key]),
-                    self.string(cond(isLine, ", ", ",")),
-                ]))
-
-        result = cond(isLine, self.t.line, self.t.stack)([
-            self.string(
-                cond([
-                    (arglist, f"#{name}("),
-                    (b and not isLine, f"#{name}["),
-                    (True, f"#{name}"),
-                ])),
-            *maybe_splice(
-                arglist,
-                self.t.line(arglist) if isLine else self.t.indent(
-                    2,
-                    self.t.stack(arglist),
-                )),
-            *maybe_splice(
-                arglist,
-                self.string(
-                    cond([
-                        (b and arglist and not isLine, ")["),
-                        (arglist, ")"),
-                        (True, ""),
-                    ]))),
-        ] + [
-            cond(isLine, self.t.line, self.t.stack)([
-                *maybe_splice(isLine, self.string("[")),
-                self.t.indent(cond(isLine, 0, 2), b[idx]),
-                self.string("]") if idx == len(b) - 1 else self.string("]["),
-            ]) for idx in range(len(b))
-        ])
-
-        if isContent:
-            return self.content(result)
-
-        else:
-            return result
+            # case org.Org():
+            #     return self.content(self.exp.eval(value))
 
     def wrapStmt(self, node: org.Stmt, result: BlockId) -> BlockId:
         args = node.getArguments("export")
@@ -370,7 +198,7 @@ class ExporterTypst(ExporterBase):
         )
 
     def evalTextSeparator(self, node: org.TextSeparator) -> BlockId:
-        return self.call("line", dict(length=RawStr("100%")))
+        return self.call("line", dict(length=typ.RawStr("100%")))
 
     def evalHashTag(self, node: org.HashTag) -> BlockId:
         return self.string(self.escape(formatHashTag(node)))
@@ -444,7 +272,7 @@ class ExporterTypst(ExporterBase):
         return res
 
     def evalDocument(self, node: org.Document) -> BlockId:
-        module = get_typst_export_package()
+        module = typ.get_typst_export_package(typst_toml)
         res = self.t.stack([])
 
         if self.c.with_standard_baze:
@@ -515,16 +343,17 @@ class ExporterTypst(ExporterBase):
             self.call(self.c.tags.list,
                       args=dict(
                           isDescription=node.isDescriptionList(),
-                          items=RawBlock(
-                              self.expr([RawBlock(self.exp.eval(it)) for it in node])),
+                          items=typ.RawBlock(
+                              self.expr([typ.RawBlock(self.exp.eval(it)) for it in node
+                                        ])),
                       )))
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         args = dict(
-            content=RawBlock(self.content(self.stackSubnodes(self.trimSub(node)))))
+            content=typ.RawBlock(self.content(self.stackSubnodes(self.trimSub(node)))))
 
         if node.isDescriptionItem():
-            args["header"] = RawBlock(self.content(self.exp.eval(node.header)))
+            args["header"] = typ.RawBlock(self.content(self.exp.eval(node.header)))
             args["isDescription"] = True
 
         else:

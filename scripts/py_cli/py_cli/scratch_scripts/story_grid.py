@@ -16,6 +16,7 @@ from py_scriptutils.toml_config_profiler import (
 from py_exporters.export_html import ExporterHtml, add_html, add_new
 from py_exporters.export_ultraplain import ExporterUltraplain
 import py_wrappers.py_adaptagrams_wrap as cola
+import py_codegen.astbuilder_typst as typ
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.pyhaxorg_utils import evalDateTime
@@ -416,8 +417,10 @@ def get_typst_story_grid(headers: List[Header]):
         else:
             return 1
 
+    TYP_SKIP_FIELDS = SKIP_FIELDS + ["title", "words"]
+
     def get_content(h: Header):
-        return [f for f in fields(h) if f.name not in SKIP_FIELDS]
+        return [f for f in fields(h) if f.name not in TYP_SKIP_FIELDS]
 
     def get_cols(t: Header):
         subs = [get_cols(s) for s in t.nested]
@@ -469,9 +472,18 @@ def get_typst_story_grid(headers: List[Header]):
     def aux(h: Header, level: int):
         nonlocal dfs_row
         this_row = dfs_row
-        rect = ir.rect(width=20 * mult, height=10 * mult)
+
+        def rect_for_content(fmt_field: str) -> int:
+            rect_width = 40
+            return ir.rect(
+                width=rect_width * mult,
+                height=int((len(fmt_field) / rect_width * 2 + 10) * mult),
+            )
+
+        title_text = "".join([ExporterUltraplain.getStr(it) for it in h.title])
+        rect = rect_for_content(title_text)
         grid[dfs_row][level] = Cell(
-            content="**",
+            content=title_text,
             rect_idx=rect,
             debug=dict(
                 width=ir.ir.rectangles[rect].width(),
@@ -483,22 +495,30 @@ def get_typst_story_grid(headers: List[Header]):
         content = get_content(h)
         # dfs_row += 1
         for cell_idx, field in enumerate(content):
-            fmt_field: str = field.name
+            fmt_field: str = ""
             value = getattr(h, field.name)
             if value == None:
                 continue
 
-            assert field.name not in SKIP_FIELDS
-            match field.name:
-                case "title":
-                    fmt_field = "".join([ExporterUltraplain.getStr(it) for it in h.title])
+            assert field.name not in TYP_SKIP_FIELDS
+            match value:
+                case list():
+                    for it in value:
+                        match it:
+                            case org.Org():
+                                fmt_field += ExporterUltraplain.getStr(it)
+
+                            case str():
+                                fmt_field += it
+
+                            case _:
+                                raise TypeError(type(it))
 
                 case _:
                     fmt_field = str(value)
 
-            rect_width = 20
-            rect = ir.rect(width=rect_width * mult,
-                           height=int(len(fmt_field) / rect_width * mult))
+            rect = rect_for_content(fmt_field)
+
             grid[dfs_row][max_depth + cell_idx] = Cell(
                 content=fmt_field,
                 rect_idx=rect,
@@ -509,16 +529,22 @@ def get_typst_story_grid(headers: List[Header]):
                 ),
             )
 
-        source_rect = grid[this_row][level].rect_idx
-        target_rect = grid[dfs_row][max_depth].rect_idx
+        # debug_grid()
 
-        ir.edge(source=source_rect, target=target_rect)
-        ir.edgePorts(
-            source=source_rect,
-            target=target_rect,
-            sourcePort=cola.GraphEdgeConstraintPort.East,
-            targetPort=cola.GraphEdgeConstraintPort.West,
-        )
+        source_rect = grid[this_row][level].rect_idx
+        for i in range(0, len(grid[dfs_row]) - max_depth):
+            if grid[dfs_row][max_depth + i] != None:
+                target_rect = grid[dfs_row][max_depth + i].rect_idx
+
+                ir.edge(source=source_rect, target=target_rect)
+                ir.edgePorts(
+                    source=source_rect,
+                    target=target_rect,
+                    sourcePort=cola.GraphEdgeConstraintPort.East,
+                    targetPort=cola.GraphEdgeConstraintPort.West,
+                )
+
+                break
 
         for cell_idx in range(0, len(content) - 1):
             pass
@@ -599,7 +625,7 @@ def get_typst_story_grid(headers: List[Header]):
     log(CAT).info("doing layout")
     conv = ir.ir.doColaConvert()
     log(CAT).info("done layout")
-   
+
     svg_doc = cola.svg.toSvgFileText(
         cola.toSvg(
             conv,
@@ -608,6 +634,55 @@ def get_typst_story_grid(headers: List[Header]):
         ))
     Path("/tmp/result2.svg").write_text(str(svg_doc))
     log(CAT).info("saved to SVG file")
+
+    ast = typ.ASTBuilder()
+
+    page = ast.stack([])
+    ast.add_at(
+        page,
+        ast.set(
+            "page",
+            args=dict(
+                height=typ.RawStr(f"{int(conv.bbox.height)}pt"),
+                width=typ.RawStr(f"{int(conv.bbox.width)}pt"),
+            ),
+        ))
+
+    for row in grid:
+        for cell in row:
+            if cell == None:
+                continue
+
+            rect_idx = cell.rect_idx
+            rect = conv.fixed[rect_idx]
+
+            ast.add_at(
+                page,
+                ast.call(
+                    "place",
+                    positional=[
+                        ast.litRaw("top + left"),
+                        ast.litRaw(
+                            ast.call(
+                                "rect",
+                                args=dict(
+                                    width=ast.litPt(rect.width),
+                                    height=ast.litPt(rect.height),
+                                ),
+                                isFirst=False,
+                                isLine=True,
+                                body=ast.string(
+                                    ast.escape(cell.content.replace("\n", " "))),
+                            ))
+                    ],
+                    args=dict(
+                        dx=ast.litPt(rect.left),
+                        dy=ast.litPt(rect.top),
+                    ),
+                    isLine=True,
+                ))
+
+    Path("/tmp/result.typ").write_text(ast.toString(page))
 
 
 @click.command()

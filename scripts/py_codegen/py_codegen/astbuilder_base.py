@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, NewType
 
 from beartype import beartype
 from beartype.typing import List, Optional, Union, overload
-from py_textlayout.py_textlayout_wrap import TextLayout
+from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 import itertools
 
 if TYPE_CHECKING:
@@ -75,6 +75,9 @@ class AstbuilderBase:
     context_stack: List[Union[AstLineCtx, AstStackCtx,
                               AstIndentCtx]] = field(default_factory=list)
     last_result: Optional[BlockId] = None
+
+    def toString(self, block: BlockId) -> str:
+        return self.b.toString(block, TextOptions())
 
     def __repr__(self):
         # Beartype cannot run default repr because it fails with missing context state value.
