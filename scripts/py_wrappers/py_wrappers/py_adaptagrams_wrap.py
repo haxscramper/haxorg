@@ -447,12 +447,20 @@ def toSvg(
     if ir:
         for c in ir.nodeConstraints:
             match c.getKind():
-                case GraphNodeConstraintPageBoundary():
-                    print(type(c))
+                case GraphNodeConstraintKind.PageBoundary:
+                    b = c.getPageBoundary()
+                    result.add(
+                        svg_rect(
+                            x=str(round(b.rect.left + r, ndigits=3)),
+                            y=str(round(b.rect.top + r, ndigits=3)),
+                            width=str(round(b.rect.width, ndigits=3)),
+                            height=str(round(b.rect.height, ndigits=3)),
+                            fill="none",
+                            stroke="blue",
+                        ))
 
                 case _:
-                    print(type(c))
-                    # result.add(svg_rect(x=str(c)))
+                    pass
 
     return result
 

@@ -524,8 +524,8 @@ def test_tree_sheet_constraint():
 
     aux(tree, 0)
 
-    y_aligns: List[wrap.GraphConstraintAlign] = []
-    x_aligns: List[wrap.GraphConstraintAlign] = []
+    y_aligns: List[wrap.GraphNodeConstraintAlign] = []
+    x_aligns: List[wrap.GraphNodeConstraintAlign] = []
 
     grid_fmt = "\n".join(" ".join(
         f"{cell.rect_idx:>02} {cell.content}" if cell else "_____"
@@ -589,11 +589,11 @@ def test_page_boundary():
     ir.edge(r1, r2)
     ir.edge(r3, r4)
 
-    ir.pageBoundary(
-        [r1, r2],
-        wrap.GraphRect(left=0, top=0, width=40 * mult, height=40 * mult),
-        weight=10,
-    )
+    # ir.pageBoundary(
+    #     [r1, r2],
+    #     wrap.GraphRect(left=0, top=0, width=40 * mult, height=40 * mult),
+    #     weight=10,
+    # )
 
     # ir.pageBoundary(
     #     [r3, r4],

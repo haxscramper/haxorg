@@ -511,31 +511,53 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
                   return std::make_pair<unsigned>(i.source, i.target);
               })
             | rs::to<std::vector>(),
-        width / 2);
+        60);
 
+    LOG(INFO) << "Running node placement";
     alg2.setConstraints(ccs);
     // alg2.setAvoidNodeOverlaps(true);
     alg2.run();
 
 
-    ir.router = std::make_shared<Avoid::Router>(
-        Avoid::OrthogonalRouting | Avoid::PolyLineRouting);
+    if (true) {
+        ir.router = std::make_shared<Avoid::Router>(
+            Avoid::OrthogonalRouting);
 
-    ir.router->setRoutingPenalty(
-        Avoid::RoutingParameter::segmentPenalty, 50);
-    ir.router->setRoutingPenalty(Avoid::RoutingParameter::anglePenalty, 0);
-    ir.router->setRoutingPenalty(
-        Avoid::RoutingParameter::crossingPenalty, 0);
-    ir.router->setRoutingPenalty(
-        Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
-    ir.router->setRoutingPenalty(
-        Avoid::RoutingParameter::fixedSharedPathPenalty, 110);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)0, 50);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)1, 0);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)2, 0);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)3, 4000);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)4, 0);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)5, 100);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)6, 0);
+        ir.router->setRoutingParameter((Avoid::RoutingParameter)7, 4);
+        ir.router->setRoutingOption((Avoid::RoutingOption)0, false);
+        ir.router->setRoutingOption((Avoid::RoutingOption)1, true);
+        ir.router->setRoutingOption((Avoid::RoutingOption)2, false);
+        ir.router->setRoutingOption((Avoid::RoutingOption)3, false);
+    } else {
+        ir.router = std::make_shared<Avoid::Router>(
+            Avoid::OrthogonalRouting | Avoid::PolyLineRouting);
 
-    ir.router->setRoutingOption(
-        Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
-    ir.router->setRoutingOption(
-        Avoid::nudgeSharedPathsWithCommonEndPoint, true);
+        ir.router->setRoutingPenalty(
+            Avoid::RoutingParameter::segmentPenalty, 50);
+        ir.router->setRoutingPenalty(
+            Avoid::RoutingParameter::anglePenalty, 0);
+        ir.router->setRoutingPenalty(
+            Avoid::RoutingParameter::crossingPenalty, 0);
+        ir.router->setRoutingPenalty(
+            Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
+        ir.router->setRoutingPenalty(
+            Avoid::RoutingParameter::fixedSharedPathPenalty, 110);
 
+        ir.router->setRoutingOption(
+            Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
+        ir.router->setRoutingOption(
+            Avoid::nudgeSharedPathsWithCommonEndPoint, true);
+    }
+
+
+    LOG(INFO) << "Routing";
 
     Vec<Avoid::ShapeRef*> shapes;
     cola::VariableIDMap   idMap;
@@ -588,6 +610,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         }
     }
 
+    LOG(INFO) << "Arranging shape ports";
     for (auto& [sourceShape, shape] : shapePorts) {
         for (auto& [portDirection, portList] : shape.ports) {
             int portIdx = 0;
@@ -728,10 +751,13 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     topology::AvoidTopologyAddon topologyAddon{
         ir.rectPointers, ccs, &rootCluster, idMap};
 
-
-    // ir.router->setTopologyAddon(&topologyAddon);
-    ir.router->processTransaction();
-    ir.router->outputInstanceToSVG("adaptagrams_debug");
+    if (!edges.empty()) {
+        LOG(INFO) << "Processing routing transaction";
+        // ir.router->setTopologyAddon(&topologyAddon);
+        ir.router->processTransaction();
+        // ir.router->outputInstanceToSVG("adaptagrams_debug");
+        LOG(INFO) << "Done router transaction";
+    }
 
     return ir;
 }

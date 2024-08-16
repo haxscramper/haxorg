@@ -725,7 +725,7 @@ def cmake_haxorg(
             ]
         ],
             stamp_path=get_task_stamp("cmake_haxorg"),
-            stamp_content=str(get_cmake_defines(ctx)),
+            stamp_content=str(get_cmake_defines(ctx) + target),
     ) as op:
         if force or is_forced(ctx, "cmake_haxorg") or op.should_run():
             log(CAT).info(op.explain("Main C++"))

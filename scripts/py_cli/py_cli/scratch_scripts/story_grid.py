@@ -15,6 +15,7 @@ from py_scriptutils.toml_config_profiler import (
 
 from py_exporters.export_html import ExporterHtml, add_html, add_new
 from py_exporters.export_ultraplain import ExporterUltraplain
+import py_wrappers.py_adaptagrams_wrap as cola
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.pyhaxorg_utils import evalDateTime
@@ -22,11 +23,14 @@ from py_haxorg.pyhaxorg_utils import evalDateTime
 from pathlib import Path
 from beartype import beartype
 from dataclasses import dataclass, field, fields
-from beartype.typing import Optional, Tuple, List, Union
+from beartype.typing import Optional, Tuple, List, Union, Dict, Any
 import dominate.tags as tags
 import dominate
 from dominate.util import text
 from datetime import datetime, timedelta
+from py_scriptutils.script_logging import log
+
+CAT = "story-grid"
 
 
 class StoryGridOpts(BaseModel, extra="forbid"):
@@ -57,13 +61,15 @@ class Header():
     shift: Optional[Tuple[str, str]] = None
     tags: List[org.HashTag] = field(default_factory=list)
     time: Optional[Union[datetime, Tuple[datetime, datetime]]] = None
+    nested: List["Header"] = field(default_factory=list)
 
 
+@beartype
 def rec_filter_subnodes(node: org.Org, target: List[org.OrgSemKind]) -> List[org.Org]:
     result = []
     if node is None:
         return result
-    
+
     if node.getKind() in target:
         result.append(node)
 
@@ -134,10 +140,9 @@ def rec_node(node: org.Org) -> List[Header]:
                     else:
                         header.words = count
 
-            result.append(header)
             for sub in node:
                 if isinstance(sub, org.Subtree):
-                    result += rec_node(sub)
+                    header.nested += rec_node(sub)
 
                 elif isinstance(sub, org.List):
                     if sub.isDescriptionList():
@@ -174,11 +179,13 @@ def rec_node(node: org.Org) -> List[Header]:
                                         it = item.subnodes[0][0]
                                         match it:
                                             case org.Time():
-                                                header.time = evalDateTime(it.getStatic().time)
+                                                header.time = evalDateTime(
+                                                    it.getStatic().time)
 
                                             case org.TimeRange():
                                                 header.time = (
-                                                    evalDateTime(it.from_.getStatic().time),
+                                                    evalDateTime(
+                                                        it.from_.getStatic().time),
                                                     evalDateTime(it.to.getStatic().time),
                                                 )
 
@@ -191,6 +198,7 @@ def rec_node(node: org.Org) -> List[Header]:
                 else:
                     count_words(sub)
 
+            result.append(header)
         case org.Document():
             for sub in node:
                 result += rec_node(sub)
@@ -198,7 +206,8 @@ def rec_node(node: org.Org) -> List[Header]:
     return result
 
 
-def to_html(node: org.Org | List[org.Org]):
+@beartype
+def to_html(node: org.Org | List[org.Org] | str | int):
     if isinstance(node, list):
         html = []
         for item in node:
@@ -214,6 +223,7 @@ def to_html(node: org.Org | List[org.Org]):
         return html.exp.evalTop(node)
 
 
+@beartype
 def format_time_difference(delta: timedelta) -> List[str]:
     # Define a year and a month in seconds for approximate calculation
     # Assuming an average month length of 30.44 days and a year of 365.25 days
@@ -251,36 +261,39 @@ def format_time_difference(delta: timedelta) -> List[str]:
     return duration_parts
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@cli_options
-@click.pass_context
-def cli(ctx: click.Context, config: str, **kwargs) -> None:
-    pack_context(ctx, "root", StoryGridOpts, config=config, kwargs=kwargs)
-    opts: StoryGridOpts = ctx.obj["root"]
-    node = org.parseFile(str(opts.infile.resolve()), org.OrgParseParameters())
-    headers = rec_node(node)
+SKIP_FIELDS = ["level", "pov", "tags", "nested"]
 
-    with open("/tmp/res.txt", "w") as file:
-        file.write(org.treeRepr(node, colored=False))
+
+@beartype
+def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
+    headers: List[Header] = []
+
+    @beartype
+    def aux(h: Header):
+        headers.append(h)
+        for sub in h.nested:
+            aux(sub)
+
+    for h in nested_headers:
+        aux(h)
+
+    assert all(isinstance(h, Header) for h in headers)
 
     doc = dominate.document(title="story_grid")
 
     table = tags.table(border=1, style='border-collapse: collapse; width: 100%;')
     thead = tags.thead(style='position: sticky; top: 0; background-color: #ddd;')
     header_row = tags.tr()
-    skipped = ["level", "pov", "tags"]
+
     for field in fields(Header([], 0)):
-        if field.name in skipped:
+        if field.name in SKIP_FIELDS:
             continue
 
         elif field.name == "time":
             header_row.add(tags.th("delta"))
 
         header_row.add(tags.th(field.name))
+
     thead.add(header_row)
     table.add(thead)
 
@@ -308,7 +321,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                 row.add(tags.td())
 
         for field in fields(h):
-            if field.name in skipped:
+            if field.name in SKIP_FIELDS:
                 continue
 
             elif field.name == "title":
@@ -375,8 +388,190 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     doc.add(table)
 
+    return doc
+
+
+@beartype
+@dataclass
+class Cell():
+    content: str
+    rect_idx: int = -1
+
+
+@beartype
+def get_typst_story_grid(headers: List[Header]):
+    root = Header([], 0)
+    root.nested = headers
+
+    def get_depth(t: Header):
+        subs = [get_depth(s) for s in t.nested]
+        if 1 < len(subs):
+            return max(*subs) + 1
+
+        elif len(subs) == 1:
+            return subs[0] + 1
+
+        else:
+            return 1
+
+    def get_content(h: Header):
+        return [f for f in fields(h) if f not in SKIP_FIELDS]
+
+    def get_cols(t: Header):
+        subs = [get_cols(s) for s in t.nested]
+        content = get_content(t)
+        if len(subs) == 1:
+            return max(subs[0], len(content))
+
+        elif 1 < len(subs):
+            return max(max(*subs), len(content))
+
+        else:
+            return len(content)
+
+    def get_rows(t: Header):
+        res = sum(get_rows(s) for s in t.nested) + 1
+        content = get_content(t)
+        res += 1
+        return res
+
+    max_depth = get_depth(root)
+    col_count = max_depth + get_cols(root)
+    row_count = get_rows(root) + 1
+
+    #[row][col]
+    grid: List[List[Optional[Cell]]] = [[None] * col_count for _ in range(0, row_count)]
+    dfs_row: int = 0
+    mult = 5
+    ir = cola.GraphLayout()
+
+    def debug_grid():
+
+        def fmt_cell(cell: Optional[Cell]) -> str:
+            if cell == None:
+                return "[" + "_" * 7 + "]"
+
+            else:
+                return f"{cell.rect_idx:>02} {cell.content}"[0:9].center(9, " ")
+
+        grid_fmt = "\n".join(" ".join(fmt_cell(cell) for cell in row) for row in grid)
+
+        Path("/tmp/grid_fmt.txt").write_text(grid_fmt)
+
+    def aux(h: Header, level: int):
+        nonlocal dfs_row
+        this_row = dfs_row
+        rect = ir.rect(width=20 * mult, height=10 * mult)
+        grid[dfs_row][level] = Cell(content="**", rect_idx=rect)
+        content = get_content(h)
+        dfs_row += 1
+        for cell_idx, field in enumerate(content):
+            rect = ir.rect(width=20 * mult, height=10 * mult)
+            content: str = field.name
+            value = getattr(h, field.name)
+            match field.name:
+                case "time":
+                    pass
+
+            grid[dfs_row][max_depth + cell_idx] = Cell(content=content, rect_idx=rect)
+
+        source_rect = grid[this_row][level].rect_idx
+        target_rect = grid[dfs_row][max_depth].rect_idx
+
+        ir.edge(source=source_rect, target=target_rect)
+        ir.edgePorts(
+            source=source_rect,
+            target=target_rect,
+            sourcePort=cola.GraphEdgeConstraintPort.South,
+            targetPort=cola.GraphEdgeConstraintPort.West,
+        )
+
+        for cell_idx in range(0, len(content) - 1):
+            source_rect = grid[dfs_row][max_depth + cell_idx].rect_idx
+            target_rect = grid[dfs_row][max_depth + cell_idx + 1].rect_idx
+
+            ir.edge(source=source_rect, target=target_rect)
+            ir.edgePorts(
+                source=source_rect,
+                target=target_rect,
+                sourcePort=cola.GraphEdgeConstraintPort.East,
+                targetPort=cola.GraphEdgeConstraintPort.West,
+            )
+
+        dfs_row += 1
+        sub_rows: List[int] = []
+
+        for s in h.nested:
+            sub_rows.append(dfs_row)
+            aux(s, level + 1)
+
+        for row in sub_rows:
+            source_rect = grid[this_row][level].rect_idx
+            target_rect = grid[row][level + 1].rect_idx
+
+            ir.edge(source=source_rect, target=target_rect)
+            ir.edgePorts(
+                source=source_rect,
+                target=target_rect,
+                sourcePort=cola.GraphEdgeConstraintPort.South,
+                targetPort=cola.GraphEdgeConstraintPort.West,
+            )
+
+    aux(root, 0)
+    debug_grid()
+
+    if True:
+        y_aligns: List[cola.GraphNodeConstraintAlign] = []
+        x_aligns: List[cola.GraphNodeConstraintAlign] = []
+
+        for row in grid:
+            row_nodes: List[int] = [cell.rect_idx for cell in row if cell]
+            if 0 < len(row_nodes):
+                y_aligns.append(ir.newAlignY(row_nodes))
+
+        ir.separateYDimN(y_aligns, distance=15 * mult)
+
+        for col in range(0, col_count):
+            col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
+            if 0 < len(col_nodes):
+                pass
+                x_aligns.append(ir.newAlignX(col_nodes))
+
+        ir.separateXDimN(x_aligns, distance=30 * mult)
+
+    ir.ir.width = 100 * mult * col_count
+    ir.ir.height = 100 * mult * row_count
+    ir.ir.leftBBoxMargin = 100
+
+    log(CAT).info("doing layout")
+    conv = ir.ir.doColaConvert()
+    log(CAT).info("done layout")
+    svg_doc = cola.toSvgFileText(cola.toSvg(conv, ir=ir.ir))
+    Path("/tmp/result2.svg").write_text(str(svg_doc))
+    log(CAT).info("saved to SVG file")
+
+
+@click.command()
+@click.option("--config",
+              type=click.Path(exists=True),
+              default=None,
+              help="Path to config file.")
+@cli_options
+@click.pass_context
+def cli(ctx: click.Context, config: str, **kwargs) -> None:
+    pack_context(ctx, "root", StoryGridOpts, config=config, kwargs=kwargs)
+    opts: StoryGridOpts = ctx.obj["root"]
+    node = org.parseFile(str(opts.infile.resolve()), org.OrgParseParameters())
+    headers = rec_node(node)
+
+    with open("/tmp/res.txt", "w") as file:
+        file.write(org.treeRepr(node, colored=False))
+
+    doc = get_html_story_grid(headers)
     with open(opts.outfile, "w") as out:
         out.write(str(doc))
+
+    typst = get_typst_story_grid(headers)
 
     print("parsed node ok")
 
