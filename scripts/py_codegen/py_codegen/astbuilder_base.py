@@ -122,8 +122,18 @@ class AstbuilderBase:
         else:
             return self.b.stack(args)
 
-    def line(self, *args: BlockId) -> BlockId:
-        return self.b.line(args)
+    def line(self, *args: BlockId | List[BlockId]) -> BlockId:
+        if any(isinstance(arg, list) for arg in args):
+            return self.b.line(list(itertools.chain(*args)))
+        else:
+            return self.b.line(args)
+
+    def spatial(self, isLine: bool, *args: BlockId | List[BlockId]) -> BlockId:
+        if isLine:
+            return self.line(*args)
+
+        else:
+            return self.stack(*args)
 
     def indent(self, indent: int, *args: BlockId) -> BlockId:
         return self.b.indent(indent, self.b.stack(args))

@@ -20,16 +20,19 @@ import py_codegen.astbuilder_typst as typ
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.pyhaxorg_utils import evalDateTime
+import itertools
 
 from pathlib import Path
 from beartype import beartype
 from dataclasses import dataclass, field, fields
+import dataclasses
 from beartype.typing import Optional, Tuple, List, Union, Dict, Any
 import dominate.tags as tags
 import dominate
 from dominate.util import text
 from datetime import datetime, timedelta
 from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
+from py_scriptutils.algorithm import maybe_splice
 import statistics
 
 CAT = "story-grid"
@@ -399,6 +402,7 @@ class Cell():
     content: str
     rect_idx: int = -1
     debug: Dict[str, Any] = field(default_factory=list)
+    field: Optional[dataclasses.Field] = None
 
 
 @beartype
@@ -485,6 +489,7 @@ def get_typst_story_grid(headers: List[Header]):
         grid[dfs_row][level] = Cell(
             content=title_text,
             rect_idx=rect,
+            field=[f for f in fields(h) if f.name == "title"][0],
             debug=dict(
                 width=ir.ir.rectangles[rect].width(),
                 height=ir.ir.rectangles[rect].height(),
@@ -522,6 +527,7 @@ def get_typst_story_grid(headers: List[Header]):
             grid[dfs_row][max_depth + cell_idx] = Cell(
                 content=fmt_field,
                 rect_idx=rect,
+                field=field,
                 debug=dict(
                     width=ir.ir.rectangles[rect].width(),
                     height=ir.ir.rectangles[rect].height(),
@@ -546,18 +552,21 @@ def get_typst_story_grid(headers: List[Header]):
 
                 break
 
-        for cell_idx in range(0, len(content) - 1):
-            pass
-            # source_rect = grid[dfs_row][max_depth + cell_idx].rect_idx
-            # target_rect = grid[dfs_row][max_depth + cell_idx + 1].rect_idx
+        content_offsets = [
+            idx for idx in range(0,
+                                 len(content) - 1) if grid[dfs_row][max_depth + idx]
+        ]
+        for src_index, dst_index in itertools.pairwise(content_offsets):
+            source_rect = grid[dfs_row][max_depth + src_index].rect_idx
+            target_rect = grid[dfs_row][max_depth + dst_index].rect_idx
 
-            # ir.edge(source=source_rect, target=target_rect)
-            # ir.edgePorts(
-            #     source=source_rect,
-            #     target=target_rect,
-            #     sourcePort=cola.GraphEdgeConstraintPort.East,
-            #     targetPort=cola.GraphEdgeConstraintPort.West,
-            # )
+            ir.edge(source=source_rect, target=target_rect)
+            ir.edgePorts(
+                source=source_rect,
+                target=target_rect,
+                sourcePort=cola.GraphEdgeConstraintPort.East,
+                targetPort=cola.GraphEdgeConstraintPort.West,
+            )
 
         dfs_row += 1
         sub_rows: List[int] = []
@@ -620,7 +629,7 @@ def get_typst_story_grid(headers: List[Header]):
 
     ir.ir.width = 100 * mult * col_count
     ir.ir.height = 100 * mult * row_count
-    ir.ir.leftBBoxMargin = 100
+    # ir.ir.leftBBoxMargin = 100
 
     log(CAT).info("doing layout")
     conv = ir.ir.doColaConvert()
@@ -664,20 +673,70 @@ def get_typst_story_grid(headers: List[Header]):
                         ast.litRaw("top + left"),
                         ast.litRaw(
                             ast.call(
-                                "rect",
-                                args=dict(
-                                    width=ast.litPt(rect.width),
-                                    height=ast.litPt(rect.height),
-                                ),
+                                "stack",
+                                args=dict(dir=ast.litRaw("ttb")),
+                                post_positional=[
+                                    *maybe_splice(
+                                        cell.field,
+                                        cell.field and ast.litRaw(
+                                            ast.content(ast.string(cell.field.name))),
+                                    ),
+                                    ast.litRaw(
+                                        ast.call(
+                                            "rect",
+                                            args=dict(
+                                                width=ast.litPt(rect.width),
+                                                height=ast.litPt(rect.height),
+                                            ),
+                                            isFirst=False,
+                                            isLine=True,
+                                            body=ast.string(
+                                                ast.escape(cell.content.replace(
+                                                    "\n", " "))),
+                                        ))
+                                ],
                                 isFirst=False,
                                 isLine=True,
-                                body=ast.string(
-                                    ast.escape(cell.content.replace("\n", " "))),
                             ))
                     ],
                     args=dict(
                         dx=ast.litPt(rect.left),
                         dy=ast.litPt(rect.top),
+                    ),
+                    isLine=True,
+                ))
+
+    for targets, edge in conv.lines.items():
+        for path in edge.paths:
+            x0 = path.points[0].x
+            y0 = path.points[0].y
+            ast.add_at(
+                page,
+                ast.call(
+                    "place",
+                    positional=[
+                        ast.litRaw("top + left"),
+                        ast.litRaw(
+                            ast.call(
+                                "path",
+                                args=dict(stroke=ast.litRaw("blue"),),
+                                post_positional=[
+                                    ast.litRaw(
+                                        ast.expr(
+                                            [
+                                                ast.litPt(pt.x - x0),
+                                                ast.litPt(pt.y - y0),
+                                            ],
+                                            isLine=True,
+                                        )) for pt in path.points
+                                ],
+                                isLine=True,
+                                isFirst=False,
+                            ))
+                    ],
+                    args=dict(
+                        dx=ast.litPt(x0),
+                        dy=ast.litPt(y0),
                     ),
                     isLine=True,
                 ))

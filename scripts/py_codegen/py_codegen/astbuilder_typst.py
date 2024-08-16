@@ -107,6 +107,7 @@ class ASTBuilder(base.AstbuilderBase):
         args: Dict[str, BlockId | str] = dict(),
         body: List[BlockId] | BlockId = list(),
         positional: List[BlockId | str | RawBlock | RawStr] | BlockId | str = list(),
+        post_positional: List[BlockId | str | RawBlock | RawStr] | BlockId | str = list(),
         isContent: bool = False,
         isLine: bool = False,
         isFirst: bool = True,
@@ -116,16 +117,19 @@ class ASTBuilder(base.AstbuilderBase):
 
         prefix = "#" if isFirst else ""
 
-        if isinstance(positional, list):
-            for it in positional:
-                arglist.append(
-                    self.b.line([
-                        self.expr(it),
-                        self.string(cond(isLine, ", ", ",")),
-                    ]))
+        def add_direct_arglist(values):
+            if isinstance(values, list):
+                for it in values:
+                    arglist.append(
+                        self.b.line([
+                            self.expr(it),
+                            self.string(cond(isLine, ", ", ",")),
+                        ]))
 
-        else:
-            arglist.append(positional)
+            else:
+                arglist.append(values)
+
+        add_direct_arglist(positional)
 
         for key in sorted(args.keys()):
             arglist.append(
@@ -135,6 +139,8 @@ class ASTBuilder(base.AstbuilderBase):
                     self.expr(args[key]),
                     self.string(cond(isLine, ", ", ",")),
                 ]))
+
+        add_direct_arglist(post_positional)
 
         result = cond(isLine, self.b.line, self.b.stack)([
             self.string(
@@ -171,7 +177,7 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return result
 
-    def expr(self, value) -> BlockId:
+    def expr(self, value, isLine: bool = False) -> BlockId:
         match value:
             case bool():
                 return self.string("true" if value else "false")
@@ -191,18 +197,20 @@ class ASTBuilder(base.AstbuilderBase):
             case list():
                 if all(isinstance(it, (int, str, float)) for it in value):
                     return self.b.pars(
-                        self.b.csv([self.expr(it) for it in value] + [self.string("")]))
+                        self.b.csv([self.expr(it, isLine=isLine) for it in value] +
+                                   [self.string("")]))
 
                 else:
-                    return self.b.stack([
+                    return self.spatial(
+                        isLine,
                         self.string("("),
                         self.csv(
-                            [self.expr(it) for it in value],
-                            isLine=False,
+                            [self.expr(it, isLine=isLine) for it in value],
+                            isLine=isLine,
                             isTrailing=True,
                         ),
-                        self.string(")")
-                    ])
+                        self.string(")"),
+                    )
 
             case None:
                 return self.string("null")
@@ -213,7 +221,7 @@ class ASTBuilder(base.AstbuilderBase):
                         self.b.line([
                             self.string(key),
                             self.string(": "),
-                            self.expr(value[key]),
+                            self.expr(value[key], isLine=isLine),
                         ]) for key in sorted(value.keys())
                     ]))
 
