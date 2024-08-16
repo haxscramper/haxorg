@@ -485,17 +485,20 @@ def get_typst_story_grid(headers: List[Header]):
         for cell_idx, field in enumerate(content):
             fmt_field: str = field.name
             value = getattr(h, field.name)
+            if value == None:
+                continue
+
             assert field.name not in SKIP_FIELDS
             match field.name:
                 case "title":
-                    fmt_field = "".join(
-                        [ExporterUltraplain.getStr(it) for it in h.title])
+                    fmt_field = "".join([ExporterUltraplain.getStr(it) for it in h.title])
 
                 case _:
                     fmt_field = str(value)
 
-            height = len(fmt_field) / 10
-            rect = ir.rect(width=20 * mult, height=int(height * mult))
+            rect_width = 20
+            rect = ir.rect(width=rect_width * mult,
+                           height=int(len(fmt_field) / rect_width * mult))
             grid[dfs_row][max_depth + cell_idx] = Cell(
                 content=fmt_field,
                 rect_idx=rect,
@@ -518,10 +521,11 @@ def get_typst_story_grid(headers: List[Header]):
         )
 
         for cell_idx in range(0, len(content) - 1):
-            source_rect = grid[dfs_row][max_depth + cell_idx].rect_idx
-            target_rect = grid[dfs_row][max_depth + cell_idx + 1].rect_idx
+            pass
+            # source_rect = grid[dfs_row][max_depth + cell_idx].rect_idx
+            # target_rect = grid[dfs_row][max_depth + cell_idx + 1].rect_idx
 
-            ir.edge(source=source_rect, target=target_rect)
+            # ir.edge(source=source_rect, target=target_rect)
             # ir.edgePorts(
             #     source=source_rect,
             #     target=target_rect,
@@ -566,19 +570,27 @@ def get_typst_story_grid(headers: List[Header]):
 
             y_aligns.append(ir.newAlignY(row_nodes))
 
-    ir.separateYDimN(y_aligns, distance=max(vertical_sizes))
+    ir.separateYDimN(
+        y_aligns,
+        distance=max(vertical_sizes),
+        isExactSeparation=True,
+    )
 
     for col in range(0, col_count):
         col_nodes: List[int] = [row[col].rect_idx for row in grid if row[col]]
         if 0 < len(col_nodes):
             horizontal_sizes.append(
                 int(
-                    statistics.mean(ir.ir.rectangles[idx].height() for idx in col_nodes) +
+                    statistics.mean(ir.ir.rectangles[idx].width() for idx in col_nodes) +
                     1))
 
             x_aligns.append(ir.newAlignX(col_nodes))
 
-    ir.separateXDimN(x_aligns, distance=max(horizontal_sizes))
+    ir.separateXDimN(
+        x_aligns,
+        distance=statistics.mean(horizontal_sizes) + 5,
+        isExactSeparation=True,
+    )
 
     ir.ir.width = 100 * mult * col_count
     ir.ir.height = 100 * mult * row_count
@@ -587,7 +599,13 @@ def get_typst_story_grid(headers: List[Header]):
     log(CAT).info("doing layout")
     conv = ir.ir.doColaConvert()
     log(CAT).info("done layout")
-    svg_doc = cola.toSvgFileText(cola.toSvg(conv, ir=ir.ir))
+   
+    svg_doc = cola.svg.toSvgFileText(
+        cola.toSvg(
+            conv,
+            ir=ir.ir,
+            draw_geometric_positions=False,
+        ))
     Path("/tmp/result2.svg").write_text(str(svg_doc))
     log(CAT).info("saved to SVG file")
 

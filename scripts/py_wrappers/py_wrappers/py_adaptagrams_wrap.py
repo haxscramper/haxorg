@@ -7,6 +7,7 @@ from beartype.typing import Optional, List, Tuple, Dict, Any
 from dominate import tags
 from numbers import Number
 import copy
+import py_scriptutils.svg_utils as svg
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
 if str(build_dir) not in sys.path:
@@ -213,121 +214,6 @@ class GraphLayout():
         return res_idx
 
 
-def rename_kwargs_for_svg(kwargs):
-    result = {}
-    for key, value in kwargs.items():
-        result[key.replace("_", "-")] = value
-
-    return result
-
-
-class svg(tags.html_tag):
-
-    def __init__(self, width: int, height: int, *args, **kwargs):
-        super().__init__(
-            *args,
-            width=width,
-            height=height,
-            **rename_kwargs_for_svg(kwargs),
-        )
-
-
-class svg_circle(tags.html_tag):
-    tagname = "circle"
-
-    def __init__(self, x: int, y: int, r: int, *args, **kwargs):
-        super().__init__(*args, cx=x, cy=y, r=r, **rename_kwargs_for_svg(kwargs))
-
-
-class svg_rect(tags.html_tag):
-    tagname = "rect"
-
-    def __init__(self, x: int, y: int, width: int, height: int, *args, **kwargs):
-        super().__init__(
-            *args,
-            x=x,
-            y=y,
-            width=width,
-            height=height,
-            **rename_kwargs_for_svg(kwargs),
-        )
-
-
-class svg_text(tags.html_tag):
-    tagname = "text"
-
-    def __init__(self, text: str, *args, **kwargs):
-        super().__init__(text, *args, **rename_kwargs_for_svg(kwargs))
-
-
-class svg_line(tags.html_tag):
-    tagname = "line"
-
-    def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args, **kwargs):
-        super().__init__(
-            x1=x1,
-            x2=x2,
-            y1=y1,
-            y2=y2,
-            *args,
-            **rename_kwargs_for_svg(kwargs),
-        )
-
-
-class svg_tspan(tags.html_tag):
-    tagname = "tspan"
-
-    def __init__(self, text: str, *args, **kwargs):
-        super().__init__(text, *args, **rename_kwargs_for_svg(kwargs))
-
-
-class svg_g(tags.html_tag):
-    tagname = "g"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **rename_kwargs_for_svg(kwargs))
-
-
-@beartype
-class SvgPathBuilder:
-
-    def __init__(self):
-        self.commands = []
-
-    def move_to(self, x: Number, y: Number) -> 'SvgPathBuilder':
-        self.commands.append(f"M {x:.3f} {y:.3f}")
-        return self
-
-    def line_to(self, x: Number, y: Number) -> 'SvgPathBuilder':
-        self.commands.append(f"L {x:.3f} {y:.3f}")
-        return self
-
-    def curve_to(self, x1: Number, y1: Number, x2: Number, y2: Number, x: Number,
-                 y: Number) -> 'SvgPathBuilder':
-        self.commands.append(f"C {x1:.3f} {y1:.3f}, {x2:.3f} {y2:.3f}, {x:.3f} {y:.3f}")
-        return self
-
-    def close_path(self) -> 'SvgPathBuilder':
-        self.commands.append("Z")
-        return self
-
-    def __str__(self) -> str:
-        return " ".join(self.commands)
-
-
-@beartype
-def svg_path_cmd() -> SvgPathBuilder:
-    return SvgPathBuilder()
-
-
-@beartype
-class svg_path(tags.html_tag):
-    tagname = "path"
-
-    def __init__(self, d: SvgPathBuilder, *args, **kwargs):
-        super().__init__(*args, d=str(d), **rename_kwargs_for_svg(kwargs))
-
-
 @beartype
 def toSvg(
     res: GraphLayoutIRResult,
@@ -338,11 +224,11 @@ def toSvg(
     grid_vertical_step: Optional[int] = 50,
     grid_horizontal_step: Optional[int] = 50,
     ir: Optional[GraphLayoutIR] = None,
-) -> svg:
+) -> svg.svg:
     r = 10
     viewbox_width = res.bbox.width + r * 2
     viewbox_height = res.bbox.height + r * 2
-    result = svg(
+    result = svg.svg(
         width=viewbox_width,
         height=viewbox_height,
         viewBox="0 0 {:.3f} {:.3f}".format(
@@ -359,7 +245,7 @@ def toSvg(
 
     if grid_horizontal_step != None:
         for i in range(0, int(viewbox_width), grid_horizontal_step):
-            result.add(svg_line(
+            result.add(svg.svg_line(
                 x1=i,
                 x2=i,
                 y1=0,
@@ -369,7 +255,7 @@ def toSvg(
 
     if grid_vertical_step != None:
         for i in range(0, int(viewbox_height), grid_vertical_step):
-            result.add(svg_line(
+            result.add(svg.svg_line(
                 x1=0,
                 x2=viewbox_width,
                 y1=i,
@@ -381,27 +267,27 @@ def toSvg(
         rect_x = rect.left + r
         rect_y = rect.top + r
         if draw_geometric_positions:
-            stext = svg_text(f"", font_size="8px")
-            stext.add(svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
+            stext = svg.svg_text(f"", font_size="8px")
+            stext.add(svg.svg_tspan(f"x:{rect.left:.0f} y:{rect.top:.0f}", dy="1.2em", x="0"))
             stext.add(
-                svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
-            stext.add(svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
+                svg.svg_tspan(f"w:{rect.width:.0f} h:{rect.height:.0f}", dy="1.2em", x="0"))
+            stext.add(svg.svg_tspan(f"idx:{rect_idx}", dy="1.2em", x="0"))
 
             if rect_idx in rect_debug_map:
                 for key, value in rect_debug_map[rect_idx].items():
-                    stext.add(svg_tspan(f"{key}:{value}", dy="1.2em", x="0"))
+                    stext.add(svg.svg_tspan(f"{key}:{value}", dy="1.2em", x="0"))
 
             if draw_positions_inside:
-                sg = svg_g(transform=f"translate({rect_x + 2:.0f}, {rect_y +2:.0f})")
+                sg = svg.svg_g(transform=f"translate({rect_x + 2:.0f}, {rect_y +2:.0f})")
 
             else:
-                sg = svg_g(transform=f"translate({rect_x - 50:.0f}, {rect_y:.0f})")
+                sg = svg.svg_g(transform=f"translate({rect_x - 50:.0f}, {rect_y:.0f})")
 
             sg.add(stext)
             result.add(sg)
 
         result.add(
-            svg_circle(
+            svg.svg_circle(
                 x=str(round(rect_x, ndigits=3)),
                 y=str(round(rect_y, ndigits=3)),
                 r=3,
@@ -409,7 +295,7 @@ def toSvg(
             ))
 
         result.add(
-            svg_rect(
+            svg.svg_rect(
                 x=str(round(rect_x, ndigits=3)),
                 y=str(round(rect_y, ndigits=3)),
                 width=round(rect.width, ndigits=3),
@@ -421,7 +307,7 @@ def toSvg(
             ))
 
     for line_idx, line in enumerate(res.lines.values()):
-        cmd = svg_path_cmd()
+        cmd = svg.svg_path_cmd()
         for it in line.paths:
             cmd.move_to(it.points[0].x + r, it.points[0].y + r)
             for point in it.points[1:]:
@@ -431,7 +317,7 @@ def toSvg(
             # cmd.move_to(it.points[-1].x + x_offset, it.points[-1].y)
 
         result.add(
-            svg_path(
+            svg.svg_path(
                 d=cmd,
                 stroke="black",
                 fill="none",
@@ -450,7 +336,7 @@ def toSvg(
                 case GraphNodeConstraintKind.PageBoundary:
                     b = c.getPageBoundary()
                     result.add(
-                        svg_rect(
+                        svg.svg_rect(
                             x=str(round(b.rect.left + r, ndigits=3)),
                             y=str(round(b.rect.top + r, ndigits=3)),
                             width=str(round(b.rect.width, ndigits=3)),
@@ -464,10 +350,3 @@ def toSvg(
 
     return result
 
-
-@beartype
-def toSvgFileText(node: svg) -> str:
-    tmp = copy.copy(node)
-    tmp["xmlns"] = "http://www.w3.org/2000/svg"
-    tmp["xmlns:xlink"] = "http://www.w3.org/1999/xlink"
-    return "{}\n{}".format('<?xml version="1.0" encoding="UTF-8"?>', str(tmp))
