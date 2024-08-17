@@ -494,6 +494,207 @@ struct ShapePorts {
 };
 
 
+namespace {
+SPtr<Avoid::Router> init_router() {
+    if (true) {
+        auto result = std::make_shared<Avoid::Router>(
+            Avoid::OrthogonalRouting);
+
+        result->setRoutingParameter((Avoid::RoutingParameter)0, 50);
+        result->setRoutingParameter((Avoid::RoutingParameter)1, 0);
+        result->setRoutingParameter((Avoid::RoutingParameter)2, 0);
+        result->setRoutingParameter((Avoid::RoutingParameter)3, 4000);
+        result->setRoutingParameter((Avoid::RoutingParameter)4, 0);
+        result->setRoutingParameter((Avoid::RoutingParameter)5, 100);
+        result->setRoutingParameter((Avoid::RoutingParameter)6, 0);
+        result->setRoutingParameter((Avoid::RoutingParameter)7, 4);
+        result->setRoutingOption((Avoid::RoutingOption)0, false);
+        result->setRoutingOption((Avoid::RoutingOption)1, true);
+        result->setRoutingOption((Avoid::RoutingOption)2, false);
+        result->setRoutingOption((Avoid::RoutingOption)3, false);
+        return result;
+    } else {
+        auto result = std::make_shared<Avoid::Router>(
+            Avoid::OrthogonalRouting | Avoid::PolyLineRouting);
+
+        result->setRoutingPenalty(
+            Avoid::RoutingParameter::segmentPenalty, 50);
+        result->setRoutingPenalty(
+            Avoid::RoutingParameter::anglePenalty, 0);
+        result->setRoutingPenalty(
+            Avoid::RoutingParameter::crossingPenalty, 0);
+        result->setRoutingPenalty(
+            Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
+        result->setRoutingPenalty(
+            Avoid::RoutingParameter::fixedSharedPathPenalty, 110);
+
+        result->setRoutingOption(
+            Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
+        result->setRoutingOption(
+            Avoid::nudgeSharedPathsWithCommonEndPoint, true);
+        return result;
+    }
+}
+
+void add_rectangles(
+    cola::RootCluster&         rootCluster,
+    GraphLayoutIR::ColaResult& ir,
+    Vec<GraphEdge> const&      edges,
+    cola::VariableIDMap&       idMap,
+    Vec<Avoid::ShapeRef*>&     shapes) {
+    uint shapeRefID = edges.size() + ir.baseRectangles.size() + 2;
+    for (auto const& it : enumerator(ir.baseRectangles)) {
+        ++shapeRefID;
+        rootCluster.addChildNode(it.index());
+        vpsc::Rectangle const& r    = it.value();
+        auto                   poly = Avoid::Polygon{4};
+        poly.setPoint(0, Avoid::Point{r.getMinX(), r.getMaxY()});
+        poly.setPoint(1, Avoid::Point{r.getMaxX(), r.getMaxY()});
+        poly.setPoint(2, Avoid::Point{r.getMaxX(), r.getMinY()});
+        poly.setPoint(3, Avoid::Point{r.getMinX(), r.getMinY()});
+        auto shape = new Avoid::ShapeRef{
+            ir.router.get(), poly, shapeRefID};
+        idMap.addMappingForVariable(it.index(), shapeRefID);
+        shapes.push_back(shape);
+    }
+}
+
+auto getPortDirections(GraphLayoutIR* ir, GraphEdge const& edge)
+    -> Pair<GraphEdgeConstraint::Port, GraphEdgeConstraint::Port> {
+    auto c = ir->edgeConstraints.get(edge);
+
+    return {
+        c ? c->sourcePort : GraphEdgeConstraint::Port::Default,
+        c ? c->targetPort : GraphEdgeConstraint::Port::Default,
+    };
+}
+
+std::tuple<float, float, Avoid::ConnDirFlags> get_port_offsets(
+    GraphEdgeConstraint::Port portDirection,
+    int                       portIdx,
+    int                       portListSize) {
+    // Overlapping shape connection pins cause router to
+    // arrange the edges incorrectly. Only one of the connected
+    // edges ends up being routed, everything else is drawn as
+    // a straight line. I could not find a configuration option
+    // to addres this, so instead I'm explicitly spreading out
+    // the connector offsets. Specific value of 0.02 was chosen
+    // to make ports appear "close" together, but ultimately it
+    // does not matter if it is something like 0.000001.
+    float portNudge //
+        = 0.02 * (portIdx - static_cast<float>(portListSize / 2));
+
+    float xOffset = Avoid::ATTACH_POS_CENTRE;
+    float yOffset = Avoid::ATTACH_POS_CENTRE;
+
+    Avoid::ConnDirFlags connDir = Avoid::ConnDirNone;
+
+    switch (portDirection) {
+        case GraphEdgeConstraint::Port::North: {
+            yOffset = Avoid::ATTACH_POS_TOP;
+            xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+            connDir = Avoid::ConnDirUp;
+            break;
+        }
+
+        case GraphEdgeConstraint::Port::South: {
+            yOffset = Avoid::ATTACH_POS_BOTTOM;
+            xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+            connDir = Avoid::ConnDirDown;
+            break;
+        }
+
+        case GraphEdgeConstraint::Port::West: {
+            yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+            xOffset = Avoid::ATTACH_POS_LEFT;
+            connDir = Avoid::ConnDirLeft;
+            break;
+        }
+
+        case GraphEdgeConstraint::Port::East: {
+            yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+            xOffset = Avoid::ATTACH_POS_RIGHT;
+            connDir = Avoid::ConnDirRight;
+            break;
+        }
+
+        case GraphEdgeConstraint::Port::Center: {
+            yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
+            xOffset = Avoid::ATTACH_POS_CENTRE;
+            connDir = Avoid::ConnDirNone;
+            break;
+        }
+
+        case GraphEdgeConstraint::Port::Default: {
+            break;
+        }
+    }
+
+    if (!(0 <= xOffset && xOffset <= 1)
+        || !(0 <= yOffset && yOffset <= 1)) {
+        throw logic_assertion_error::init(
+            fmt("xOffset:{} yOffset:{}, port-idx:{}, "
+                "port-list-size:{} port-nudge:{} mult:{}",
+                xOffset,
+                yOffset,
+                portIdx,
+                portListSize / 2,
+                portNudge,
+                portIdx - (portListSize / 2)));
+    }
+
+    return {xOffset, yOffset, connDir};
+}
+
+UnorderedMap<int, ShapePorts> init_shape_ports(
+    GraphLayoutIR*               ir,
+    Vec<GraphEdge> const&        edges,
+    Vec<Avoid::ShapeRef*> const& shapes) {
+    UnorderedMap<int, ShapePorts> shapePorts;
+
+    {
+        uint connectionPinClassID = 1;
+        for (auto const& edge : edges) {
+            uint sourceClass              = ++connectionPinClassID;
+            uint targetClass              = ++connectionPinClassID;
+            auto [sourcePort, targetPort] = getPortDirections(ir, edge);
+
+            shapePorts[edge.source].ports[sourcePort][edge.target] = PortData{
+                .pinId = sourceClass,
+            };
+
+            shapePorts[edge.target].ports[targetPort][edge.source] = PortData{
+                .pinId = targetClass,
+            };
+        }
+    }
+
+    for (auto& [sourceShape, shape] : shapePorts) {
+        for (auto& [portDirection, portList] : shape.ports) {
+            int portIdx = 0;
+            for (auto& [targetShape, port] : portList) {
+                auto [xOffset, yOffset, connDir] = get_port_offsets(
+                    portDirection, portIdx, portList.size());
+
+                port.pin = new Avoid::ShapeConnectionPin{
+                    shapes.at(sourceShape),
+                    static_cast<uint>(port.pinId),
+                    xOffset,
+                    yOffset,
+                    true,
+                    0,
+                    connDir,
+                };
+                ++portIdx;
+            }
+        }
+    }
+
+    return shapePorts;
+}
+
+} // namespace
+
 GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
     validate();
     ColaResult                ir{.baseIr = this};
@@ -513,220 +714,29 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
             | rs::to<std::vector>(),
         60);
 
-    LOG(INFO) << "Running node placement";
     alg2.setConstraints(ccs);
-    // alg2.setAvoidNodeOverlaps(true);
     alg2.run();
 
-
-    if (true) {
-        ir.router = std::make_shared<Avoid::Router>(
-            Avoid::OrthogonalRouting);
-
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)0, 50);
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)1, 0);
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)2, 0);
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)3, 4000);
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)4, 0);
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)5, 100);
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)6, 0);
-        ir.router->setRoutingParameter((Avoid::RoutingParameter)7, 4);
-        ir.router->setRoutingOption((Avoid::RoutingOption)0, false);
-        ir.router->setRoutingOption((Avoid::RoutingOption)1, true);
-        ir.router->setRoutingOption((Avoid::RoutingOption)2, false);
-        ir.router->setRoutingOption((Avoid::RoutingOption)3, false);
-    } else {
-        ir.router = std::make_shared<Avoid::Router>(
-            Avoid::OrthogonalRouting | Avoid::PolyLineRouting);
-
-        ir.router->setRoutingPenalty(
-            Avoid::RoutingParameter::segmentPenalty, 50);
-        ir.router->setRoutingPenalty(
-            Avoid::RoutingParameter::anglePenalty, 0);
-        ir.router->setRoutingPenalty(
-            Avoid::RoutingParameter::crossingPenalty, 0);
-        ir.router->setRoutingPenalty(
-            Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
-        ir.router->setRoutingPenalty(
-            Avoid::RoutingParameter::fixedSharedPathPenalty, 110);
-
-        ir.router->setRoutingOption(
-            Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
-        ir.router->setRoutingOption(
-            Avoid::nudgeSharedPathsWithCommonEndPoint, true);
-    }
-
-
-    LOG(INFO) << "Routing";
+    ir.router = init_router();
 
     Vec<Avoid::ShapeRef*> shapes;
     cola::VariableIDMap   idMap;
     cola::RootCluster     rootCluster{};
+    add_rectangles(rootCluster, ir, edges, idMap, shapes);
 
-
-    {
-        uint shapeRefID = edges.size() + ir.baseRectangles.size() + 2;
-        for (auto const& it : enumerator(ir.baseRectangles)) {
-            ++shapeRefID;
-            rootCluster.addChildNode(it.index());
-            vpsc::Rectangle const& r    = it.value();
-            auto                   poly = Avoid::Polygon{4};
-            poly.setPoint(0, Avoid::Point{r.getMinX(), r.getMaxY()});
-            poly.setPoint(1, Avoid::Point{r.getMaxX(), r.getMaxY()});
-            poly.setPoint(2, Avoid::Point{r.getMaxX(), r.getMinY()});
-            poly.setPoint(3, Avoid::Point{r.getMinX(), r.getMinY()});
-            auto shape = new Avoid::ShapeRef{
-                ir.router.get(), poly, shapeRefID};
-            idMap.addMappingForVariable(it.index(), shapeRefID);
-            shapes.push_back(shape);
-        }
-    }
-
-
-    UnorderedMap<int, ShapePorts> shapePorts;
-    auto getPortDirections = [&](GraphEdge const& edge)
-        -> Pair<GraphEdgeConstraint::Port, GraphEdgeConstraint::Port> {
-        auto c = edgeConstraints.get(edge);
-
-        return {
-            c ? c->sourcePort : GraphEdgeConstraint::Port::Default,
-            c ? c->targetPort : GraphEdgeConstraint::Port::Default};
-    };
-
-    {
-        uint connectionPinClassID = 1;
-        for (auto const& edge : edges) {
-            uint sourceClass              = ++connectionPinClassID;
-            uint targetClass              = ++connectionPinClassID;
-            auto [sourcePort, targetPort] = getPortDirections(edge);
-
-            shapePorts[edge.source].ports[sourcePort][edge.target] = PortData{
-                .pinId = sourceClass,
-            };
-
-            shapePorts[edge.target].ports[targetPort][edge.source] = PortData{
-                .pinId = targetClass,
-            };
-        }
-    }
-
-    LOG(INFO) << "Arranging shape ports";
-    for (auto& [sourceShape, shape] : shapePorts) {
-        for (auto& [portDirection, portList] : shape.ports) {
-            int portIdx = 0;
-            for (auto& [targetShape, port] : portList) {
-                // Overlapping shape connection pins cause router to
-                // arrange the edges incorrectly. Only one of the connected
-                // edges ends up being routed, everything else is drawn as
-                // a straight line. I could not find a configuration option
-                // to addres this, so instead I'm explicitly spreading out
-                // the connector offsets. Specific value of 0.02 was chosen
-                // to make ports appear "close" together, but ultimately it
-                // does not matter if it is something like 0.000001.
-                float portNudge //
-                    = 0.02
-                    * (portIdx - static_cast<float>(portList.size() / 2));
-
-                float xOffset = Avoid::ATTACH_POS_CENTRE;
-                float yOffset = Avoid::ATTACH_POS_CENTRE;
-
-                Avoid::ConnDirFlags connDir = Avoid::ConnDirNone;
-
-                switch (portDirection) {
-                    case GraphEdgeConstraint::Port::North: {
-                        yOffset = Avoid::ATTACH_POS_TOP;
-                        xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-                        connDir = Avoid::ConnDirUp;
-                        break;
-                    }
-
-                    case GraphEdgeConstraint::Port::South: {
-                        yOffset = Avoid::ATTACH_POS_BOTTOM;
-                        xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-                        connDir = Avoid::ConnDirDown;
-                        break;
-                    }
-
-                    case GraphEdgeConstraint::Port::West: {
-                        yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-                        xOffset = Avoid::ATTACH_POS_LEFT;
-                        connDir = Avoid::ConnDirLeft;
-                        break;
-                    }
-
-                    case GraphEdgeConstraint::Port::East: {
-                        yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-                        xOffset = Avoid::ATTACH_POS_RIGHT;
-                        connDir = Avoid::ConnDirRight;
-                        break;
-                    }
-
-                    case GraphEdgeConstraint::Port::Center: {
-                        yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-                        xOffset = Avoid::ATTACH_POS_CENTRE;
-                        connDir = Avoid::ConnDirNone;
-                        break;
-                    }
-
-                    case GraphEdgeConstraint::Port::Default: {
-                        break;
-                    }
-                }
-
-                if (!(0 <= xOffset && xOffset <= 1)
-                    || !(0 <= yOffset && yOffset <= 1)) {
-                    throw logic_assertion_error::init(
-                        fmt("xOffset:{} yOffset:{}, port-idx:{}, "
-                            "port-list-size:{} port-nudge:{} mult:{}",
-                            xOffset,
-                            yOffset,
-                            portIdx,
-                            portList.size() / 2,
-                            portNudge,
-                            portIdx - (portList.size() / 2)));
-                }
-
-                port.pin = new Avoid::ShapeConnectionPin{
-                    shapes.at(sourceShape),
-                    static_cast<uint>(port.pinId),
-                    xOffset,
-                    yOffset,
-                    true,
-                    0,
-                    connDir,
-                };
-                ++portIdx;
-            }
-        }
-    }
-
-    // for (auto const& it : shapePorts) { LOG(INFO) << fmt1(it); }
+    UnorderedMap<int, ShapePorts> shapePorts = init_shape_ports(
+        this, edges, shapes);
 
     uint connectionID = edges.size() + 1;
     for (auto const& edge : edges) {
-        auto [sourceDirection, targetDirection] = getPortDirections(edge);
-
-
-        // LOG(INFO) << fmt(
-        //     "source:{} target:{} source-dir:{} target-dir:{}",
-        //     edge.source,
-        //     edge.target,
-        //     sourceDirection,
-        //     targetDirection);
-
-        // _dfmt(shapePorts.at(edge.source));
-        // _dfmt(shapePorts.at(edge.target));
+        auto [sourceDirection, targetDirection] = getPortDirections(
+            this, edge);
 
         PortData sourcePort = shapePorts.at(edge.source)
                                   .getPort(sourceDirection, edge.target);
 
         PortData targetPort = shapePorts.at(edge.target)
                                   .getPort(targetDirection, edge.source);
-
-        // LOG(INFO) << fmt(
-        //     "source-pin:{} target-pin:{}",
-        //     sourcePort.pinId,
-        //     targetPort.pinId);
 
         Avoid::ConnEnd sourceEnd{shapes.at(edge.source), sourcePort.pinId};
         Avoid::ConnEnd targetEnd{shapes.at(edge.target), targetPort.pinId};
@@ -752,11 +762,9 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         ir.rectPointers, ccs, &rootCluster, idMap};
 
     if (!edges.empty()) {
-        LOG(INFO) << "Processing routing transaction";
         // ir.router->setTopologyAddon(&topologyAddon);
         ir.router->processTransaction();
         // ir.router->outputInstanceToSVG("adaptagrams_debug");
-        LOG(INFO) << "Done router transaction";
     }
 
     return ir;

@@ -34,6 +34,7 @@ from datetime import datetime, timedelta
 from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
 from py_scriptutils.algorithm import maybe_splice
 import statistics
+from numbers import Number
 
 CAT = "story-grid"
 
@@ -405,54 +406,46 @@ class Cell():
     field: Optional[dataclasses.Field] = None
 
 
+TYP_SKIP_FIELDS = SKIP_FIELDS + ["title", "words"]
+
+
+def get_typ_content(h: Header):
+    return [f for f in fields(h) if f.name not in TYP_SKIP_FIELDS]
+
+
+def get_typ_cols(t: Header):
+    subs = [get_typ_cols(s) for s in t.nested]
+    content = get_typ_content(t)
+    if len(subs) == 1:
+        return max(subs[0], len(content))
+
+    elif 1 < len(subs):
+        return max(max(*subs), len(content))
+
+    else:
+        return len(content)
+
+
+def get_typ_rows(t: Header):
+    res = sum(get_typ_rows(s) for s in t.nested) + 1
+    content = get_typ_content(t)
+    # res += 1
+    return res
+
+
 @beartype
-def get_typst_story_grid(headers: List[Header]):
-    root = Header([], 0)
-    root.nested = headers
-
-    def get_depth(t: Header):
-        subs = [get_depth(s) for s in t.nested]
-        if 1 < len(subs):
-            return max(*subs) + 1
-
-        elif len(subs) == 1:
-            return subs[0] + 1
-
-        else:
-            return 1
-
-    TYP_SKIP_FIELDS = SKIP_FIELDS + ["title", "words"]
-
-    def get_content(h: Header):
-        return [f for f in fields(h) if f.name not in TYP_SKIP_FIELDS]
-
-    def get_cols(t: Header):
-        subs = [get_cols(s) for s in t.nested]
-        content = get_content(t)
-        if len(subs) == 1:
-            return max(subs[0], len(content))
-
-        elif 1 < len(subs):
-            return max(max(*subs), len(content))
-
-        else:
-            return len(content)
-
-    def get_rows(t: Header):
-        res = sum(get_rows(s) for s in t.nested) + 1
-        content = get_content(t)
-        # res += 1
-        return res
-
-    max_depth = get_depth(root)
-    col_count = max_depth + get_cols(root)
-    row_count = get_rows(root) + 1
+def init_grid(
+    row_count: int,
+    col_count: int,
+    max_depth: int,
+    root: Header,
+    ir: cola.GraphLayout,
+    mult: Number,
+) -> List[List[Optional[Cell]]]:
 
     #[row][col]
     grid: List[List[Optional[Cell]]] = [[None] * col_count for _ in range(0, row_count)]
     dfs_row: int = 0
-    mult = 5
-    ir = cola.GraphLayout()
 
     def debug_grid():
 
@@ -512,7 +505,7 @@ def get_typst_story_grid(headers: List[Header]):
             field=[f for f in fields(h) if f.name == "title"][0],
         )
 
-        content = get_content(h)
+        content = get_typ_content(h)
         # dfs_row += 1
         for cell_idx, field in enumerate(content):
             fmt_field: str = ""
@@ -599,6 +592,17 @@ def get_typst_story_grid(headers: List[Header]):
     aux(root, 0)
     debug_grid()
 
+    return grid
+
+
+@beartype
+def add_typ_constraints(
+    ir: cola.GraphLayout,
+    grid: List[List[Optional[Cell]]],
+    col_count: int,
+    row_count: int,
+    mult: Number,
+):
     y_aligns: List[cola.GraphNodeConstraintAlign] = []
     x_aligns: List[cola.GraphNodeConstraintAlign] = []
     vertical_sizes: List[int] = []
@@ -643,40 +647,67 @@ def get_typst_story_grid(headers: List[Header]):
     ir.ir.topBBoxMargin = 100
     ir.ir.bottomBBoxMargin = 100
 
-    log(CAT).info("doing layout")
-    conv = ir.ir.doColaConvert()
-    log(CAT).info("done layout")
 
-    svg_doc = cola.svg.toSvgFileText(
-        cola.toSvg(
-            conv,
-            ir=ir.ir,
-            draw_geometric_positions=False,
-        ))
-    Path("/tmp/result2.svg").write_text(str(svg_doc))
-    log(CAT).info("saved to SVG file")
+@beartype
+def get_typ_content_rect(
+    ast: typ.ASTBuilder,
+    cell: Cell,
+    rect: cola.GraphRect,
+    add_debug: bool = False,
+):
+    text = [ast.string(ast.escape(cell.content.replace("\n", " ")))]
 
-    ast = typ.ASTBuilder()
+    def get_args(color: str) -> dict:
+        return dict(
+            fill=ast.litRaw(f"{color}.lighten(80%)"),
+            stroke=ast.litRaw(f"{color}"),
+            inset=ast.litPt(3),
+            radius=ast.litPt(3),
+            # baseline=ast.litRaw("20%"),
+        )
 
-    page = ast.stack([])
-    ast.add_at(
-        page,
-        ast.set(
-            "page",
-            args=dict(
-                height=ast.litPt(int(conv.bbox.height)),
-                width=ast.litPt(int(conv.bbox.width)),
-                margin=dict(
-                    top=ast.litPt(0),
-                    left=ast.litPt(0),
-                    right=ast.litPt(0),
-                    bottom=ast.litPt(0),
-                ),
-            ),
-        ))
+    if add_debug:
+        for key in sorted(cell.debug.keys()):
+            text.append(
+                ast.call(
+                    name="box",
+                    args=get_args("blue"),
+                    body=[ast.string(key)],
+                    isLine=True,
+                ))
 
-    ast.add_at(page, ast.set("par", args=dict(justify=ast.litRaw("true"))))
+            text.append(
+                ast.call(
+                    name="box",
+                    args=get_args("green"),
+                    body=[ast.string(ast.escape(str(cell.debug[key])))],
+                    isLine=True,
+                ))
 
+    return ast.call(
+        "rect",
+        args=dict(
+            width=ast.litPt(rect.width),
+            height=ast.litPt(rect.height),
+            radius=ast.litPt(5),
+        ),
+        isLine=True,
+        body=ast.call(
+            name="align",
+            positional=[ast.litRaw("center + horizon")],
+            body=ast.line(*text),
+            isLine=True,
+        ),
+    )
+
+
+@beartype
+def add_typ_nodes(
+    ast: typ.ASTBuilder,
+    page: typ.BlockId,
+    conv: cola.GraphLayoutIRResult,
+    grid: List[List[Optional[Cell]]],
+):
     for row in grid:
         for cell in row:
             if cell == None:
@@ -706,52 +737,6 @@ def get_typst_story_grid(headers: List[Header]):
                         isLine=True,
                     ))
 
-            def get_content_rect(add_debug: bool = False):
-                text = [ast.string(ast.escape(cell.content.replace("\n", " ")))]
-
-                def get_args(color: str) -> dict:
-                    return dict(
-                        fill=ast.litRaw(f"{color}.lighten(80%)"),
-                        stroke=ast.litRaw(f"{color}"),
-                        inset=ast.litPt(3),
-                        radius=ast.litPt(3),
-                        # baseline=ast.litRaw("20%"),
-                    )
-
-                if add_debug:
-                    for key in sorted(cell.debug.keys()):
-                        text.append(
-                            ast.call(
-                                name="box",
-                                args=get_args("blue"),
-                                body=[ast.string(key)],
-                                isLine=True,
-                            ))
-
-                        text.append(
-                            ast.call(
-                                name="box",
-                                args=get_args("green"),
-                                body=[ast.string(ast.escape(str(cell.debug[key])))],
-                                isLine=True,
-                            ))
-
-                return ast.call(
-                    "rect",
-                    args=dict(
-                        width=ast.litPt(rect.width),
-                        height=ast.litPt(rect.height),
-                        radius=ast.litPt(5),
-                    ),
-                    isLine=True,
-                    body=ast.call(
-                        name="align",
-                        positional=[ast.litRaw("center + horizon")],
-                        body=ast.line(*text),
-                        isLine=True,
-                    ),
-                )
-
             ast.add_at(
                 page,
                 ast.place(
@@ -764,13 +749,25 @@ def get_typst_story_grid(headers: List[Header]):
                                 cell.field,
                                 cell.field and get_field_name_rect(),
                             ),
-                            get_content_rect(),
+                            get_typ_content_rect(
+                                ast=ast,
+                                add_debug=False,
+                                cell=cell,
+                                rect=rect,
+                            ),
                         ],
                         isLine=True,
                     ),
                     isLine=True,
                 ))
 
+
+@beartype
+def add_typ_edges(
+    ast: typ.ASTBuilder,
+    page: typ.BlockId,
+    conv: cola.GraphLayoutIRResult,
+):
     for targets, edge in conv.lines.items():
         for path in edge.paths:
             x0 = path.points[0].x
@@ -806,6 +803,81 @@ def get_typst_story_grid(headers: List[Header]):
                     isLine=True,
                 ))
 
+
+@beartype
+def get_typst_story_grid(headers: List[Header]):
+    root = Header([], 0)
+    root.nested = headers
+
+    def get_depth(t: Header):
+        subs = [get_depth(s) for s in t.nested]
+        if 1 < len(subs):
+            return max(*subs) + 1
+
+        elif len(subs) == 1:
+            return subs[0] + 1
+
+        else:
+            return 1
+
+    max_depth = get_depth(root)
+    col_count = max_depth + get_typ_cols(root)
+    row_count = get_typ_rows(root) + 1
+    ir = cola.GraphLayout()
+    mult = 5
+
+    grid = init_grid(
+        row_count=row_count,
+        col_count=col_count,
+        max_depth=max_depth,
+        mult=mult,
+        root=root,
+        ir=ir,
+    )
+
+    add_typ_constraints(
+        ir=ir,
+        grid=grid,
+        col_count=col_count,
+        row_count=row_count,
+        mult=mult,
+    )
+
+    log(CAT).info("doing layout")
+    conv = ir.ir.doColaConvert()
+    log(CAT).info("done layout")
+
+    svg_doc = cola.svg.toSvgFileText(
+        cola.toSvg(
+            conv,
+            ir=ir.ir,
+            draw_geometric_positions=False,
+        ))
+    Path("/tmp/result2.svg").write_text(str(svg_doc))
+    log(CAT).info("saved to SVG file")
+
+    ast = typ.ASTBuilder()
+
+    page = ast.stack([])
+    ast.add_at(
+        page,
+        ast.set(
+            "page",
+            args=dict(
+                height=ast.litPt(int(conv.bbox.height)),
+                width=ast.litPt(int(conv.bbox.width)),
+                margin=dict(
+                    top=ast.litPt(0),
+                    left=ast.litPt(0),
+                    right=ast.litPt(0),
+                    bottom=ast.litPt(0),
+                ),
+            ),
+        ))
+
+    ast.add_at(page, ast.set("par", args=dict(justify=ast.litRaw("true"))))
+    add_typ_nodes(ast=ast, page=page, conv=conv, grid=grid)
+    add_typ_edges(ast=ast, page=page, conv=conv)
     Path("/tmp/result.typ").write_text(ast.toString(page))
 
 
