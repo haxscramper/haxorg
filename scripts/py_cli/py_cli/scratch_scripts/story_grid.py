@@ -473,15 +473,20 @@ def get_typst_story_grid(headers: List[Header]):
             width=240,
         )
 
+    rect_inset = 5
+    rect_width = 40
+
     def aux(h: Header, level: int):
         nonlocal dfs_row
         this_row = dfs_row
 
+        def rect_textsize(fmt_field: str) -> float:
+            return ((float(len(fmt_field) * 5) / rect_width) + 1) * mult
+
         def rect_for_content(fmt_field: str) -> int:
-            rect_width = 40
             return ir.rect(
                 width=rect_width * mult,
-                height=int((len(fmt_field) / rect_width * 2 + 10) * mult),
+                height=int(rect_textsize(fmt_field)) + (rect_inset * 2),
             )
 
         title_text = "".join([ExporterUltraplain.getStr(it) for it in h.title])
@@ -495,6 +500,7 @@ def get_typst_story_grid(headers: List[Header]):
                     width=ir.ir.rectangles[rect].width(),
                     height=ir.ir.rectangles[rect].height(),
                     textlen=len(text),
+                    textsize=int(rect_textsize(text)),
                 ),
                 **kwargs,
             )
@@ -657,15 +663,19 @@ def get_typst_story_grid(headers: List[Header]):
         page,
         ast.set(
             "page",
-            args=dict(height=ast.litPt(int(conv.bbox.height)),
-                      width=ast.litPt(int(conv.bbox.width)),
-                      margin=dict(
-                          top=ast.litPt(0),
-                          left=ast.litPt(0),
-                          right=ast.litPt(0),
-                          bottom=ast.litPt(0),
-                      )),
+            args=dict(
+                height=ast.litPt(int(conv.bbox.height)),
+                width=ast.litPt(int(conv.bbox.width)),
+                margin=dict(
+                    top=ast.litPt(0),
+                    left=ast.litPt(0),
+                    right=ast.litPt(0),
+                    bottom=ast.litPt(0),
+                ),
+            ),
         ))
+
+    ast.add_at(page, ast.set("par", args=dict(justify=ast.litRaw("true"))))
 
     for row in grid:
         for cell in row:
@@ -696,7 +706,36 @@ def get_typst_story_grid(headers: List[Header]):
                         isLine=True,
                     ))
 
-            def get_content_rect():
+            def get_content_rect(add_debug: bool = False):
+                text = [ast.string(ast.escape(cell.content.replace("\n", " ")))]
+
+                def get_args(color: str) -> dict:
+                    return dict(
+                        fill=ast.litRaw(f"{color}.lighten(80%)"),
+                        stroke=ast.litRaw(f"{color}"),
+                        inset=ast.litPt(3),
+                        radius=ast.litPt(3),
+                        # baseline=ast.litRaw("20%"),
+                    )
+
+                if add_debug:
+                    for key in sorted(cell.debug.keys()):
+                        text.append(
+                            ast.call(
+                                name="box",
+                                args=get_args("blue"),
+                                body=[ast.string(key)],
+                                isLine=True,
+                            ))
+
+                        text.append(
+                            ast.call(
+                                name="box",
+                                args=get_args("green"),
+                                body=[ast.string(ast.escape(str(cell.debug[key])))],
+                                isLine=True,
+                            ))
+
                 return ast.call(
                     "rect",
                     args=dict(
@@ -705,7 +744,12 @@ def get_typst_story_grid(headers: List[Header]):
                         radius=ast.litPt(5),
                     ),
                     isLine=True,
-                    body=ast.string(ast.escape(cell.content.replace("\n", " "))),
+                    body=ast.call(
+                        name="align",
+                        positional=[ast.litRaw("center + horizon")],
+                        body=ast.line(*text),
+                        isLine=True,
+                    ),
                 )
 
             ast.add_at(
