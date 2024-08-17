@@ -491,6 +491,11 @@ struct [[refl]] GraphLayoutIR {
         Graphviz             gvc,
         Graphviz::LayoutType layout = Graphviz::LayoutType::Dot);
 
+    [[refl]] Result doGraphvizConvert() {
+        Graphviz gvc;
+        return doGraphvizLayout(gvc).convert();
+    }
+
     struct HolaResult {
         SPtr<dialect::Graph>                         graph;
         Vec<SPtr<dialect::Node>>                     nodes;

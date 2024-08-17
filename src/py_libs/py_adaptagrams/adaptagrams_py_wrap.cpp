@@ -384,6 +384,7 @@ backend-specific.)RAW")
 Backend-specific, 72 is the default used by graphviz.)RAW")
     .def("validate", static_cast<void(GraphLayoutIR::*)()>(&GraphLayoutIR::validate), R"RAW(\brief validate the edge/rectangle structure for debugging. Throws
 assert failure if the structure is incorrect.)RAW")
+    .def("doGraphvizConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doGraphvizConvert))
     .def("doHolaConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doHolaConvert))
     .def("doColaConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doColaConvert))
     .def("doColaSvgWrite",

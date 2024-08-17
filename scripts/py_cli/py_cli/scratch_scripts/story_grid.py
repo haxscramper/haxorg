@@ -555,8 +555,7 @@ def init_grid(
                 break
 
         content_offsets = [
-            idx for idx in range(0,
-                                 len(content) - 1) if grid[dfs_row][max_depth + idx]
+            idx for idx in range(0, len(content)) if grid[dfs_row][max_depth + idx]
         ]
         for src_index, dst_index in itertools.pairwise(content_offsets):
             source_rect = grid[dfs_row][max_depth + src_index].rect_idx
@@ -844,6 +843,7 @@ def get_typst_story_grid(headers: List[Header]):
     )
 
     log(CAT).info("doing layout")
+    # conv = ir.ir.doGraphvizConvert()
     conv = ir.ir.doColaConvert()
     log(CAT).info("done layout")
 
