@@ -485,16 +485,25 @@ def get_typst_story_grid(headers: List[Header]):
             )
 
         title_text = "".join([ExporterUltraplain.getStr(it) for it in h.title])
-        rect = rect_for_content(title_text)
-        grid[dfs_row][level] = Cell(
-            content=title_text,
-            rect_idx=rect,
+
+        def set_cell(row: int, col: int, text: str, **kwargs):
+            rect = rect_for_content(text)
+            grid[row][col] = Cell(
+                content=text,
+                rect_idx=rect,
+                debug=dict(
+                    width=ir.ir.rectangles[rect].width(),
+                    height=ir.ir.rectangles[rect].height(),
+                    textlen=len(text),
+                ),
+                **kwargs,
+            )
+
+        set_cell(
+            dfs_row,
+            level,
+            title_text,
             field=[f for f in fields(h) if f.name == "title"][0],
-            debug=dict(
-                width=ir.ir.rectangles[rect].width(),
-                height=ir.ir.rectangles[rect].height(),
-                field="base",
-            ),
         )
 
         content = get_content(h)
@@ -522,17 +531,11 @@ def get_typst_story_grid(headers: List[Header]):
                 case _:
                     fmt_field = str(value)
 
-            rect = rect_for_content(fmt_field)
-
-            grid[dfs_row][max_depth + cell_idx] = Cell(
-                content=fmt_field,
-                rect_idx=rect,
+            set_cell(
+                dfs_row,
+                max_depth + cell_idx,
+                fmt_field,
                 field=field,
-                debug=dict(
-                    width=ir.ir.rectangles[rect].width(),
-                    height=ir.ir.rectangles[rect].height(),
-                    field=field.name,
-                ),
             )
 
         # debug_grid()
@@ -607,7 +610,7 @@ def get_typst_story_grid(headers: List[Header]):
 
     ir.separateYDimN(
         y_aligns,
-        distance=max(vertical_sizes),
+        distance=max(vertical_sizes) + 10,
         isExactSeparation=True,
     )
 
@@ -629,7 +632,10 @@ def get_typst_story_grid(headers: List[Header]):
 
     ir.ir.width = 100 * mult * col_count
     ir.ir.height = 100 * mult * row_count
-    # ir.ir.leftBBoxMargin = 100
+    ir.ir.leftBBoxMargin = 100
+    ir.ir.rightBBoxMargin = 100
+    ir.ir.topBBoxMargin = 100
+    ir.ir.bottomBBoxMargin = 100
 
     log(CAT).info("doing layout")
     conv = ir.ir.doColaConvert()
@@ -651,10 +657,14 @@ def get_typst_story_grid(headers: List[Header]):
         page,
         ast.set(
             "page",
-            args=dict(
-                height=typ.RawStr(f"{int(conv.bbox.height)}pt"),
-                width=typ.RawStr(f"{int(conv.bbox.width)}pt"),
-            ),
+            args=dict(height=ast.litPt(int(conv.bbox.height)),
+                      width=ast.litPt(int(conv.bbox.width)),
+                      margin=dict(
+                          top=ast.litPt(0),
+                          left=ast.litPt(0),
+                          right=ast.litPt(0),
+                          bottom=ast.litPt(0),
+                      )),
         ))
 
     for row in grid:
@@ -665,43 +675,54 @@ def get_typst_story_grid(headers: List[Header]):
             rect_idx = cell.rect_idx
             rect = conv.fixed[rect_idx]
 
+            def get_field_name_rect():
+                return ast.litRaw(
+                    ast.place(
+                        anchor="top + left",
+                        body=ast.content(
+                            ast.call(
+                                name="rect",
+                                args=dict(
+                                    fill=ast.litRaw("red.lighten(80%)"),
+                                    stroke=ast.litRaw("red"),
+                                    radius=ast.litPt(2),
+                                    inset=ast.litPt(2),
+                                ),
+                                body=[ast.string(cell.field.name)],
+                                isLine=True,
+                            )),
+                        dx=0,
+                        dy=-15,
+                        isLine=True,
+                    ))
+
+            def get_content_rect():
+                return ast.call(
+                    "rect",
+                    args=dict(
+                        width=ast.litPt(rect.width),
+                        height=ast.litPt(rect.height),
+                        radius=ast.litPt(5),
+                    ),
+                    isLine=True,
+                    body=ast.string(ast.escape(cell.content.replace("\n", " "))),
+                )
+
             ast.add_at(
                 page,
-                ast.call(
-                    "place",
-                    positional=[
-                        ast.litRaw("top + left"),
-                        ast.litRaw(
-                            ast.call(
-                                "stack",
-                                args=dict(dir=ast.litRaw("ttb")),
-                                post_positional=[
-                                    *maybe_splice(
-                                        cell.field,
-                                        cell.field and ast.litRaw(
-                                            ast.content(ast.string(cell.field.name))),
-                                    ),
-                                    ast.litRaw(
-                                        ast.call(
-                                            "rect",
-                                            args=dict(
-                                                width=ast.litPt(rect.width),
-                                                height=ast.litPt(rect.height),
-                                            ),
-                                            isFirst=False,
-                                            isLine=True,
-                                            body=ast.string(
-                                                ast.escape(cell.content.replace(
-                                                    "\n", " "))),
-                                        ))
-                                ],
-                                isFirst=False,
-                                isLine=True,
-                            ))
-                    ],
-                    args=dict(
-                        dx=ast.litPt(rect.left),
-                        dy=ast.litPt(rect.top),
+                ast.place(
+                    anchor="top + left",
+                    dx=rect.left,
+                    dy=rect.top,
+                    body=ast.content(
+                        [
+                            *maybe_splice(
+                                cell.field,
+                                cell.field and get_field_name_rect(),
+                            ),
+                            get_content_rect(),
+                        ],
+                        isLine=True,
                     ),
                     isLine=True,
                 ))

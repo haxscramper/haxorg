@@ -1,13 +1,14 @@
 from py_textlayout.py_textlayout_wrap import TextLayout
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
-from beartype.typing import List, Optional, Dict
+from beartype.typing import List, Optional, Dict, Any
 from beartype import beartype
 import py_codegen.astbuilder_base as base
 from pydantic import BaseModel, Field
 from pathlib import Path
 import toml
 from py_scriptutils.algorithm import cond, maybe_splice
+from numbers import Number
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId
@@ -46,6 +47,9 @@ class RawBlock():
         self.value = value
 
 
+AnyBlock = BlockId | List[BlockId] | RawBlock | List[RawBlock]
+
+
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
@@ -59,6 +63,32 @@ class ASTBuilder(base.AstbuilderBase):
 
         else:
             return node
+
+    def toBlockList(self, blocks: AnyBlock) -> List[BlockId]:
+        match blocks:
+            case int():
+                return [blocks]
+
+            case RawBlock():
+                return [blocks.value]
+
+            case list():
+                result = []
+                for it in blocks:
+                    match it:
+                        case int():
+                            result.append(it)
+
+                        case RawBlock():
+                            result.append(it.value)
+
+                        case _:
+                            raise TypeError(type(it))
+
+                return result
+
+            case _:
+                raise TypeError(type(blocks))
 
     def escape(self, text: str) -> str:
         res = ""
@@ -74,8 +104,36 @@ class ASTBuilder(base.AstbuilderBase):
     def surround(self, text: str, nodes: List[BlockId]) -> BlockId:
         return self.line(self.string(text), *nodes, self.string(text))
 
-    def content(self, content: BlockId) -> BlockId:
-        return self.line(self.string("["), content, self.string("]"))
+    def content(self, content: AnyBlock, isLine: bool = True) -> BlockId:
+        if isLine:
+            return self.line(
+                self.string("["),
+                *self.toBlockList(content),
+                self.string("]"),
+            )
+
+        else:
+            return self.stack(
+                self.string("["),
+                self.indent(2, *self.toBlockList(content)),
+                self.string("]"),
+            )
+
+    def place(
+        self,
+        anchor: str,
+        dx: str | Number,
+        dy: str | Number,
+        body: BlockId,
+        isLine: bool = False,
+    ) -> BlockId:
+        return self.call(
+            "place",
+            positional=[self.litRaw(anchor)],
+            post_positional=[self.litRaw(body)],
+            args=dict(dx=self.litPt(dx), dy=self.litPt(dy)),
+            isLine=isLine,
+        )
 
     def set(self, name: str, args: Dict[str, BlockId | str] = dict()) -> BlockId:
         return self.cmd("set", self.call(
@@ -98,7 +156,7 @@ class ASTBuilder(base.AstbuilderBase):
     def add_at(self, target: BlockId, other: BlockId | List[BlockId]):
         self.b.add_at(target, other)
 
-    def litPt(self, value: float) -> RawStr:
+    def litPt(self, value: Number) -> RawStr:
         return RawStr(f"{value}pt")
 
     def call(
