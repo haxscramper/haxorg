@@ -618,7 +618,7 @@ struct FuzzyMatcher : OperationsTracer {
         Vec<int>& matches);
 
     bool fuzzy_match(Range pattern, Range str, int& outScore) {
-        matches.resize(str.last + 1);
+        matches.resize(pattern.last + 1);
         return fuzzy_match(pattern, str, outScore, matches);
     }
 

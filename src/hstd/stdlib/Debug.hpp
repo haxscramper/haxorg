@@ -9,7 +9,6 @@
 #include <iostream>
 
 
-
 void setMessageStream(std::ostream& stream);
 
 
@@ -26,3 +25,11 @@ void setMessageStream(std::ostream& stream);
 #define _dfmt(...)                                                        \
     DLOG(INFO) << "]" BOOST_PP_SEQ_FOR_EACH(                              \
         _dfmt_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__));
+
+#define _dfmt_expr_impl(_1, _2, arg)                                      \
+    +std::string{" "} + BOOST_PP_STRINGIZE(arg) + fmt(" = ⦃{}⦄", arg)
+
+
+#define _dfmt_expr(...)                                                   \
+    (std::string{""} BOOST_PP_SEQ_FOR_EACH(                               \
+        _dfmt_expr_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)))

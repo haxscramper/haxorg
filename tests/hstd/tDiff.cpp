@@ -209,8 +209,8 @@ class DiffTestFuzzy : public ::testing::Test {
 
 TEST_F(DiffTestFuzzy, FullMatch) {
     auto m = getMatches("123", "010233");
-    LOG(INFO) << fmt1(m);
+    EXPECT_EQ(m.size(), 3);
     EXPECT_EQ(m.at(0), 1);
     EXPECT_EQ(m.at(1), 3);
-    EXPECT_EQ(m.at(0), 4);
+    EXPECT_EQ(m.at(2), 4);
 }

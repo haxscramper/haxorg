@@ -1,4 +1,5 @@
 #include "diffs.hpp"
+#include <hstd/stdlib/Debug.hpp>
 
 Vec<BacktrackRes> longestCommonSubsequence(
     int                   lhsSize,
@@ -617,7 +618,8 @@ struct fuzzy_result {
         m.message(OperationsMsg{                                          \
             .line     = __LINE__,                                         \
             .function = __func__,                                         \
-            .msg      = __msg,                                            \
+            .msg      = indent(__msg, recursionCount),                    \
+            .file     = __FILE__,                                         \
         });                                                               \
     }
 
@@ -629,7 +631,8 @@ fuzzy_result fuzzy_match_recursive(
     Vec<int> const&     srcMatches,
     Vec<int>&           matches,
     int                 nextMatch,
-    int&                recursionCount) {
+    int&                recursionCount,
+    int                 matchSize) {
 
     LG(fmt("Match recursive count:{}", recursionCount));
 
@@ -657,6 +660,7 @@ fuzzy_result fuzzy_match_recursive(
 
         // Found match
         if (m.isEqual(pattern.first, str.first)) {
+            LG(fmt("pattern[{}] == str[{}]", pattern.first, str.first));
             // "Copy-on-Write" srcMatches into matches
             if (first_match) {
                 matches     = srcMatches;
@@ -665,16 +669,19 @@ fuzzy_result fuzzy_match_recursive(
 
             // Recursive call that "skips" this match
             Vec<int> recursiveMatches;
-            ++str.first;
+            recursiveMatches.resize(matchSize);
+            FuzzyMatcher::Range recurseRange = str;
+            ++recurseRange.first;
             fuzzy_result recurse = fuzzy_match_recursive(
                 m,
                 pattern,
-                str,
+                recurseRange,
                 strBegin,
                 matches,
                 recursiveMatches,
                 nextMatch,
-                recursionCount);
+                recursionCount,
+                matchSize);
 
             LG(
                 fmt("Recursive call result score:{} match:{}",
@@ -692,9 +699,15 @@ fuzzy_result fuzzy_match_recursive(
             }
 
             // Advance
-            matches[nextMatch++] = str.first;
+            LG(_dfmt_expr(nextMatch, str.first));
+            matches.at(nextMatch) = str.first;
+            ++nextMatch;
             ++pattern.first;
+            LG(fmt1(matches));
+        } else {
+            LG(fmt("pattern[{}] != str[{}]", pattern.first, str.first));
         }
+
         ++str.first;
     }
 
@@ -754,8 +767,7 @@ fuzzy_result fuzzy_match_recursive(
     // Return best result
     if (recursiveMatch && (!matched || outScore < bestRecursiveScore)) {
         // Recursive score is better than "this"
-        matches  = bestRecursiveMatches;
-        outScore = bestRecursiveScore;
+        matches = bestRecursiveMatches;
         return {
             .has_match = true,
             .score     = bestRecursiveScore,
@@ -779,10 +791,19 @@ bool FuzzyMatcher::fuzzy_match(
     int&      outScore,
     Vec<int>& matches) {
     int      recursionCount = 0;
-    Vec<int> strMatches;
+    Vec<int> srcMatches;
+    srcMatches.resize(pattern.last + 1);
 
     fuzzy_result result = fuzzy_match_recursive(
-        *this, pattern, str, str, strMatches, matches, 0, recursionCount);
+        *this,
+        pattern,
+        str,
+        str,
+        srcMatches,
+        matches,
+        0,
+        recursionCount,
+        pattern.last + 1);
 
     outScore = result.score;
 

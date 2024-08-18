@@ -38,28 +38,28 @@ void OperationsTracer::endStream(ColStream& stream) {
 }
 
 void OperationsTracer::message(const std::string& value) {
-    if(TraceState) {
-    auto os = getStream();
-    os << value;
-    endStream(os);
+    if (TraceState) {
+        auto os = getStream();
+        os << value;
+        endStream(os);
     }
 }
 
 void OperationsTracer::message(const OperationsMsg& value) {
     if (TraceState) {
 
-    auto os = getStream();
-    if (traceStructured) {
-        os << to_json_eval(value).dump();
-    } else {
-        os << fmt(
-            "{}:{}:{} @{} {}",
-            value.file ? fs::path{value.file}.filename().native() : "",
-            value.line,
-            value.column,
-            value.function ? value.function : "?",
-            value.msg ? value.msg : "");
-    }
-    endStream(os);
+        auto os = getStream();
+        if (traceStructured) {
+            os << to_json_eval(value).dump();
+        } else {
+            os << fmt(
+                "{}:{}:{} @{} {}",
+                value.file ? fs::path{value.file}.filename().native() : "",
+                value.line,
+                value.column,
+                value.function ? value.function : "?",
+                value.msg ? value.msg.value() : "");
+        }
+        endStream(os);
     }
 }
