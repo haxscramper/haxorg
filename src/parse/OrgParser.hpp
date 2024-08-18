@@ -6,7 +6,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Exception.hpp>
 
-#include <lexbase/TraceBase.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
 
 struct parse_error : CRTP_hexception<parse_error> {};
 

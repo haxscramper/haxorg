@@ -10,7 +10,7 @@
 
 #include <parse/OrgTypes.hpp>
 
-#include <lexbase/TraceBase.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
 
 #ifdef ORG_USE_PERFETTO
 #    define __perf_trace(name) TRACE_EVENT("lexing", name)

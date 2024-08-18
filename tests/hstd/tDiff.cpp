@@ -193,16 +193,16 @@ class DiffTestFuzzy : public ::testing::Test {
     FuzzyMatcher matcher;
 
     auto getMatches(const Str& lhs, const Str& rhs) -> Vec<int> {
-        matcher.debug   = true;
-        matcher.isEqual = [&](CR<int> lhsIdx, CR<int> rhsIdx) -> bool {
+        int score = 0;
+        matcher.setTraceFile("/tmp/MatcherTrace.txt");
+        matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
+        matcher.isEqual     = [&](CR<int> lhsIdx, CR<int> rhsIdx) -> bool {
             return lhs.at(lhsIdx) == rhs.at(rhsIdx);
         };
-        matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
-        int score           = 0;
 
         matcher.fuzzy_match(
-            slice(0, lhs.size() - 1), slice(0, rhs.size() - 1), score
-        );
+            slice(0, lhs.size() - 1), slice(0, rhs.size() - 1), score);
+
         return matcher.matches;
     }
 };

@@ -63,6 +63,12 @@ struct JsonSerde<std::string> {
     }
 };
 
+template <>
+struct JsonSerde<char const*> {
+    static json        to_json(char const* const& it) { return json(it); }
+    static char const* from_json(json const& j) { return nullptr; }
+};
+
 
 template <>
 struct JsonSerde<Str> {

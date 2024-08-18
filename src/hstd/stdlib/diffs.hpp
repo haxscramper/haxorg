@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
 
 #include <hstd/system/reflection.hpp>
 
@@ -571,7 +572,7 @@ ColText formatInlineDiff(
     DiffFormatConf      conf);
 
 
-struct FuzzyMatcher {
+struct FuzzyMatcher : OperationsTracer {
     Func<bool(int lhsIdx, int rhsIdx)> isEqual;
     Func<bool(int idx)>                isSeparator;
 
@@ -591,9 +592,8 @@ struct FuzzyMatcher {
     /// maximum penalty for leading letters
     int max_leading_letter_penalty = -15;
     /// penalty for every letter that doesn't matter
-    int  unmatched_letter_penalty = -1;
-    int  start_score              = 100;
-    bool debug                    = false;
+    int unmatched_letter_penalty = -1;
+    int start_score              = 100;
 
     DESC_FIELDS(
         FuzzyMatcher,

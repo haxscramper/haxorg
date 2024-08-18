@@ -612,6 +612,15 @@ struct fuzzy_result {
     int  score;
 };
 
+#define LG(__msg)                                                         \
+    if (m.TraceState) {                                                   \
+        m.message(OperationsMsg{                                          \
+            .line     = __LINE__,                                         \
+            .function = __func__,                                         \
+            .msg      = __msg,                                            \
+        });                                                               \
+    }
+
 fuzzy_result fuzzy_match_recursive(
     FuzzyMatcher&       m,
     FuzzyMatcher::Range pattern,
@@ -621,14 +630,19 @@ fuzzy_result fuzzy_match_recursive(
     Vec<int>&           matches,
     int                 nextMatch,
     int&                recursionCount) {
+
+    LG(fmt("Match recursive count:{}", recursionCount));
+
     // Count recursions
     ++recursionCount;
     if (m.recursionLimit <= recursionCount) {
+        LG("Rearched recursion limit");
         return {.has_match = false};
     }
 
     // Detect end of Strs
     if (!pattern.isValid() || !str.isValid()) {
+        LG("End of the pattern/string detected");
         return {.has_match = false};
     }
 
@@ -662,6 +676,10 @@ fuzzy_result fuzzy_match_recursive(
                 nextMatch,
                 recursionCount);
 
+            LG(
+                fmt("Recursive call result score:{} match:{}",
+                    recurse.score,
+                    recurse.has_match));
 
             if (recurse.has_match) {
                 // Pick best recursive score

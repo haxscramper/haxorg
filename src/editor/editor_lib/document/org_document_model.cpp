@@ -31,10 +31,10 @@ int OrgSubtreeSearchModel::getScore(OrgBoxId arg) {
     auto const& node = store->getBoxedNode(arg);
     u64         addr = (u64)node.get();
     if (!scoreCache.contains(addr)) {
-        FuzzyMatcher<char const> matcher;
-        std::string              title = ExporterUltraplain::toStr(
+        FuzzyMatcher matcher;
+        std::string  title = ExporterUltraplain::toStr(
             node.as<sem::Subtree>()->title);
-        scoreCache[addr] = matcher.get_score(title, pattern);
+        // scoreCache[addr] = matcher.get_score(title, pattern);
     }
 
     return scoreCache[addr];
