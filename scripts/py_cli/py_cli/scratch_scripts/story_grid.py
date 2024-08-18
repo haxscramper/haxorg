@@ -324,19 +324,23 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                 row.add(add_new(tags.td(**kwargs), to_html(it)))
 
             else:
-                row.add(tags.td())
+                row.add(tags.td(**kwargs))
 
         for field in fields(h):
+            opacity = (max_level - h.level) / max_level * 0.75
+            header_style = f"background-color: rgba(255, 0, 0, {opacity:.2f});"
+            cell_args = dict()
+            if 0 < len(h.nested):
+                cell_args["style"] = header_style
+
             if field.name in SKIP_FIELDS:
                 continue
 
             elif field.name == "title":
                 prefix = f"#{idx} " + "*" * h.level + " "
-                opacity = (max_level - h.level) / max_level * 0.75
                 row.add(
                     add_new(
-                        tags.td(
-                            style=f"background-color: rgba(255, 0, 0, {opacity:.2f});"),
+                        tags.td(style=header_style),
                         [to_html(prefix), to_html(h.title)],
                     ))
 
@@ -350,7 +354,7 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                             ), to_html(h.words)))
 
                 else:
-                    opt(h.words)
+                    opt(h.words, **cell_args)
 
             elif field.name == "time":
                 if h.time:
@@ -365,30 +369,33 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                             format_time_difference(start - prev_start)[:2]))
 
                     if isinstance(h.time, datetime):
-                        opt(offset)
-                        opt("{}".format(start.strftime("[%Y-%m-%d]")))
+                        opt(offset, **cell_args)
+                        opt("{}".format(start.strftime("[%Y-%m-%d]")), **cell_args)
 
                     else:
-                        opt(offset)
-                        opt("{}-{}".format(
-                            start.strftime("[%Y-%m-%d]"),
-                            end.strftime("[%Y-%m-%d]"),
-                        ))
+                        opt(offset, **cell_args)
+                        opt(
+                            "{}-{}".format(
+                                start.strftime("[%Y-%m-%d]"),
+                                end.strftime("[%Y-%m-%d]"),
+                            ),
+                            **cell_args,
+                        )
 
                 else:
-                    opt("")
-                    opt("")
+                    opt("", **cell_args)
+                    opt("", **cell_args)
 
             elif field.name == "shift":
                 value = getattr(h, field.name)
                 if value:
-                    opt("/".join(value))
+                    opt("/".join(value), **cell_args)
 
                 else:
-                    opt("")
+                    opt("", **cell_args)
 
             else:
-                opt(getattr(h, field.name))
+                opt(getattr(h, field.name), **cell_args)
 
         table.add(row)
 

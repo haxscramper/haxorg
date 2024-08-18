@@ -186,22 +186,31 @@ TEST_F(DiffTest, Insertion) {
     EXPECT_EQ(result[3].targetPos, 3);
 }
 
-class FuzzyMatchConfigurableTest : public ::testing::Test {
+class DiffTestFuzzy : public ::testing::Test {
   protected:
-    void SetUp() override {
-        matcher.isEqual = [](CR<char> lhs, CR<char> rhs) -> bool {
-            return lhs == rhs;
+    void SetUp() override {}
+
+    FuzzyMatcher matcher;
+
+    auto getMatches(const Str& lhs, const Str& rhs) -> Vec<int> {
+        matcher.debug   = true;
+        matcher.isEqual = [&](CR<int> lhsIdx, CR<int> rhsIdx) -> bool {
+            return lhs.at(lhsIdx) == rhs.at(rhsIdx);
         };
         matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
-    }
+        int score           = 0;
 
-    FuzzyMatcher<char const> matcher;
-
-    auto getMatches(const Str& lhs, const Str& rhs) -> Array<int, 256> {
+        matcher.fuzzy_match(
+            slice(0, lhs.size() - 1), slice(0, rhs.size() - 1), score
+        );
         return matcher.matches;
     }
 };
 
-TEST_F(FuzzyMatchConfigurableTest, FullMatch) {
+TEST_F(DiffTestFuzzy, FullMatch) {
     auto m = getMatches("123", "010233");
+    LOG(INFO) << fmt1(m);
+    EXPECT_EQ(m.at(0), 1);
+    EXPECT_EQ(m.at(1), 3);
+    EXPECT_EQ(m.at(0), 4);
 }
