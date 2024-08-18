@@ -574,7 +574,8 @@ ColText formatInlineDiff(
 
 struct FuzzyMatcher : OperationsTracer {
     using Range     = Slice<int>;
-    using ScoreFunc = Func<int(Range const& str, int nextMatch)>;
+    using ScoreFunc = Func<
+        int(Range const& str, int nextMatch, Vec<int> const& matches)>;
 
     Func<bool(int lhsIdx, int rhsIdx)> isEqual;
 

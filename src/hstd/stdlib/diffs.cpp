@@ -715,7 +715,7 @@ fuzzy_result fuzzy_match_recursive(
     int  outScore = 0;
 
     // Calculate score
-    if (matched) { outScore = m.matchScore(str, nextMatch); }
+    if (matched) { outScore = m.matchScore(str, nextMatch, matches); }
 
     // Return best result
     if (recursiveMatch && (!matched || outScore < bestRecursiveScore)) {
@@ -740,7 +740,10 @@ fuzzy_result fuzzy_match_recursive(
 
 FuzzyMatcher::ScoreFunc FuzzyMatcher::getLinearScore(
     const LinearScoreConfig& conf) {
-    return [&](Range const& _str, int nextMatch) -> int {
+    return [&conf](
+               Range const&    _str,
+               int             nextMatch,
+               Vec<int> const& matches) -> int {
         auto str      = _str;
         int  outScore = 0;
         // Iterate str to end
@@ -776,7 +779,8 @@ FuzzyMatcher::ScoreFunc FuzzyMatcher::getLinearScore(
             if (0 == currIdx) {
                 outScore += conf.first_letter_bonus;
             } else {
-                if (conf.isSeparator(matches[currIdx - 1])) {
+                if (conf.isSeparator
+                    && conf.isSeparator(matches[currIdx - 1])) {
                     outScore += conf.separator_bonus;
                 }
             }
