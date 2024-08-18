@@ -1,4 +1,5 @@
-#include <lexbase/TraceBase.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
+#include <hstd/stdlib/Json.hpp>
 #include <fstream>
 
 void OperationsTracer::setTraceFile(const fs::path& outfile) {
@@ -33,5 +34,32 @@ void OperationsTracer::endStream(ColStream& stream) {
         traceBuffer += stream.toString(traceColored);
     } else {
         (*stream.ostream) << std::endl;
+    }
+}
+
+void OperationsTracer::message(const std::string& value) {
+    if(TraceState) {
+    auto os = getStream();
+    os << value;
+    endStream(os);
+    }
+}
+
+void OperationsTracer::message(const OperationsMsg& value) {
+    if (TraceState) {
+
+    auto os = getStream();
+    if (traceStructured) {
+        os << to_json_eval(value).dump();
+    } else {
+        os << fmt(
+            "{}:{}:{} @{} {}",
+            value.file ? fs::path{value.file}.filename().native() : "",
+            value.line,
+            value.column,
+            value.function ? value.function : "?",
+            value.msg ? value.msg : "");
+    }
+    endStream(os);
     }
 }
