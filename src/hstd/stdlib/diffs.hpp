@@ -573,43 +573,49 @@ ColText formatInlineDiff(
 
 
 struct FuzzyMatcher : OperationsTracer {
-    Func<bool(int lhsIdx, int rhsIdx)> isEqual;
-    Func<bool(int idx)>                isSeparator;
+    using Range     = Slice<int>;
+    using ScoreFunc = Func<int(Range const& str, int nextMatch)>;
 
-    using Range = Slice<int>;
+    Func<bool(int lhsIdx, int rhsIdx)> isEqual;
+
+    ScoreFunc matchScore;
+
 
     int recursionLimit = 10;
-    /// bonus for adjacent matches
-    int sequential_bonus = 15;
-    /// bonus if match occurs after a separator
-    int separator_bonus = 30;
-    /// bonus if match is uppercase and prev is lower
-    int camel_bonus = 30;
-    /// bonus if the first letter is matched
-    int first_letter_bonus = 15;
-    /// penalty applied for every letter in str before the first match
-    int leading_letter_penalty = -5;
-    /// maximum penalty for leading letters
-    int max_leading_letter_penalty = -15;
-    /// penalty for every letter that doesn't matter
-    int unmatched_letter_penalty = -1;
-    int start_score              = 100;
 
-    DESC_FIELDS(
-        FuzzyMatcher,
-        (recursionLimit,
-         sequential_bonus,
-         separator_bonus,
-         camel_bonus,
-         first_letter_bonus,
-         leading_letter_penalty,
-         max_leading_letter_penalty,
-         unmatched_letter_penalty,
-         start_score,
-         matches));
+    struct LinearScoreConfig {
+        /// bonus for adjacent matches
+        int sequential_bonus = 15;
+        /// bonus if match occurs after a separator
+        int separator_bonus = 30;
+        /// bonus if the first letter is matched
+        int first_letter_bonus = 15;
+        /// penalty applied for every letter in str before the first match
+        int leading_letter_penalty = -5;
+        /// maximum penalty for leading letters
+        int max_leading_letter_penalty = -15;
+        /// penalty for every letter that doesn't matter
+        int                 unmatched_letter_penalty = -1;
+        int                 start_score              = 100;
+        Func<bool(int idx)> isSeparator;
+
+        DESC_FIELDS(
+            LinearScoreConfig,
+            (sequential_bonus,
+             separator_bonus,
+             first_letter_bonus,
+             leading_letter_penalty,
+             max_leading_letter_penalty,
+             unmatched_letter_penalty,
+             start_score));
+    };
+
+    ScoreFunc getLinearScore(LinearScoreConfig const& conf);
+
+
+    DESC_FIELDS(FuzzyMatcher, (recursionLimit, matches));
 
     Vec<int> matches;
-
 
     bool fuzzy_match(
         Range     pattern,

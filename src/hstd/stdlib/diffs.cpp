@@ -657,7 +657,7 @@ fuzzy_result fuzzy_match_recursive(
     // Loop through pattern and str looking for a match
     bool first_match = true;
     while (pattern.isValid() && str.isValid()) {
-
+        LG(fmt("str:{} pattern:{}", str, pattern));
         // Found match
         if (m.isEqual(pattern.first, str.first)) {
             LG(fmt("pattern[{}] == str[{}]", pattern.first, str.first));
@@ -707,7 +707,6 @@ fuzzy_result fuzzy_match_recursive(
         } else {
             LG(fmt("pattern[{}] != str[{}]", pattern.first, str.first));
         }
-
         ++str.first;
     }
 
@@ -716,53 +715,7 @@ fuzzy_result fuzzy_match_recursive(
     int  outScore = 0;
 
     // Calculate score
-    if (matched) {
-
-        // Iterate str to end
-        while (str.isValid()) { ++str.first; }
-
-        // Initialize score
-        outScore = m.start_score;
-
-        // Apply leading letter penalty
-        int penalty = m.leading_letter_penalty * matches[0];
-        if (penalty < m.max_leading_letter_penalty) {
-            penalty = m.max_leading_letter_penalty;
-        }
-        outScore += penalty;
-
-        // Apply unmatched penalty
-        int unmatched = str.first - nextMatch;
-        outScore += m.unmatched_letter_penalty * unmatched;
-
-        // Apply ordering bonuses
-        for (int i = 0; i < nextMatch; ++i) {
-            int currIdx = matches[i];
-
-            if (i > 0) {
-                int prevIdx = matches[i - 1];
-
-                // Sequential
-                if (currIdx == (prevIdx + 1)) {
-                    outScore += m.sequential_bonus;
-                }
-            }
-
-            // Check for bonuses based on neighbor character value
-            if (0 < currIdx) {
-                // Camel case
-                int neighbor = strBegin.first + currIdx - 1;
-                // int curr     = strBegin.first + currIdx;
-                // Separator
-                if (m.isSeparator(neighbor)) {
-                    outScore += m.separator_bonus;
-                }
-            } else {
-                // First letter
-                outScore += m.first_letter_bonus;
-            }
-        }
-    }
+    if (matched) { outScore = m.matchScore(str, nextMatch); }
 
     // Return best result
     if (recursiveMatch && (!matched || outScore < bestRecursiveScore)) {
@@ -784,6 +737,53 @@ fuzzy_result fuzzy_match_recursive(
     }
 }
 } // namespace
+
+FuzzyMatcher::ScoreFunc FuzzyMatcher::getLinearScore(
+    const LinearScoreConfig& conf) {
+    return [&](Range const& _str, int nextMatch) -> int {
+        auto str      = _str;
+        int  outScore = 0;
+        // Iterate str to end
+        while (str.isValid()) { ++str.first; }
+
+        // Initialize score
+        outScore = conf.start_score;
+
+        // Apply leading letter penalty
+        int penalty = conf.leading_letter_penalty * matches[0];
+        if (penalty < conf.max_leading_letter_penalty) {
+            penalty = conf.max_leading_letter_penalty;
+        }
+        outScore += penalty;
+
+        // Apply unmatched penalty
+        int unmatched = str.first - nextMatch;
+        outScore += conf.unmatched_letter_penalty * unmatched;
+
+        // Apply ordering bonuses
+        for (int i = 0; i < nextMatch; ++i) {
+            int currIdx = matches[i];
+
+            if (i > 0) {
+                int prevIdx = matches[i - 1];
+
+                // Sequential
+                if (currIdx == (prevIdx + 1)) {
+                    outScore += conf.sequential_bonus;
+                }
+            }
+
+            if (0 == currIdx) {
+                outScore += conf.first_letter_bonus;
+            } else {
+                if (conf.isSeparator(matches[currIdx - 1])) {
+                    outScore += conf.separator_bonus;
+                }
+            }
+        }
+        return outScore;
+    };
+}
 
 bool FuzzyMatcher::fuzzy_match(
     Range     pattern,
