@@ -21,7 +21,7 @@
 
 #include "repo_profile.hpp"
 
-#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 void CreateTables(SQLite::Database& db) {
     auto        path = __CURRENT_FILE_DIR__ / "code_forensics.sql";

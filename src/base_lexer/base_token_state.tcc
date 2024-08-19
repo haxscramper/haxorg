@@ -67,6 +67,8 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdDateRaw: return "CmdDateRaw";
         case OrgTokenKind::CmdDescription: return "CmdDescription";
         case OrgTokenKind::CmdDrawersRaw: return "CmdDrawersRaw";
+        case OrgTokenKind::CmdDynamicBegin: return "CmdDynamicBegin";
+        case OrgTokenKind::CmdDynamicEnd: return "CmdDynamicEnd";
         case OrgTokenKind::CmdEmailRaw: return "CmdEmailRaw";
         case OrgTokenKind::CmdExampleBegin: return "CmdExampleBegin";
         case OrgTokenKind::CmdExampleEnd: return "CmdExampleEnd";
@@ -278,6 +280,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdDateRaw") { return OrgTokenKind::CmdDateRaw; } else
   if (value == "CmdDescription") { return OrgTokenKind::CmdDescription; } else
   if (value == "CmdDrawersRaw") { return OrgTokenKind::CmdDrawersRaw; } else
+  if (value == "CmdDynamicBegin") { return OrgTokenKind::CmdDynamicBegin; } else
+  if (value == "CmdDynamicEnd") { return OrgTokenKind::CmdDynamicEnd; } else
   if (value == "CmdEmailRaw") { return OrgTokenKind::CmdEmailRaw; } else
   if (value == "CmdExampleBegin") { return OrgTokenKind::CmdExampleBegin; } else
   if (value == "CmdExampleEnd") { return OrgTokenKind::CmdExampleEnd; } else

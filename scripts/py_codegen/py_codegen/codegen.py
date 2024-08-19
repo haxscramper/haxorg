@@ -26,6 +26,8 @@ from py_codegen.astbuilder_pybind11 import (
     py_type,
 )
 
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+
 CAT = "codegen"
 
 
@@ -108,8 +110,8 @@ def get_exporter_methods(forward: bool,
                     impl=cond(
                         forward,
                         None,
-                        "auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));\n{}".
-                        format(
+                        "auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));\n{}"
+                        .format(
                             "\n".join([
                                 f"__org_field(res, object, {a.name});" for a in fields
                             ]),),
@@ -258,14 +260,10 @@ def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
 
 
 @beartype
-def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module:
-    res = Py11Module("pyhaxorg")
+def add_structures(res: Py11Module, ast: ASTBuilder, structs: List[GenTuStruct]):
     b: TextLayout = ast.b
 
-    res.Before.append(ast.Include("pyhaxorg_manual_impl.hpp"))
-    res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
-
-    base_map = get_base_map(expanded)
+    base_map = get_base_map(structs)
 
     def codegenConstructCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
@@ -288,16 +286,150 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     # Map data definitions into python wrappers
     iterate_object_tree(
-        GenTuNamespace("sem", expanded),
+        GenTuNamespace("sem", structs),
         [],
         post_visit=codegenConstructCallback,
     )
 
-    for item in get_enums() + [get_osk_enum(expanded)]:
+
+@beartype
+def add_enums(res: Py11Module, ast: ASTBuilder, enums: List[GenTuEnum]):
+    for item in enums:
         wrap = Py11Enum.FromGenTu(item, py_type(item.name).Name)
         res.Decls.append(wrap)
 
-    return res
+
+@beartype
+def add_translation_unit(res: Py11Module, ast: ASTBuilder, tu: ConvTu):
+    for _struct in tu.structs:
+        # There is no topological sorting on the type declarations, so to make the initialization
+        # work in correct order I need to push some of the [[refl]] annotated types at the top.
+        if _struct.name.name == "Org":
+            from py_scriptutils.script_logging import pprint_to_file
+            pprint_to_file(_struct, "/tmp/sem_org_struct.py")
+            org_decl = pybind_org_id(ast, ast.b, _struct, {})
+            org_decl.Methods.append(
+                Py11Method(
+                    "__getitem__",
+                    "at",
+                    t_id(),
+                    [GenTuIdent(QualType.ForName("int"), "idx")],
+                    IsConst=True,
+                    IsStatic=False,
+                ))
+
+            org_decl.Methods.append(
+                Py11Method(
+                    PyName="__iter__",
+                    CxxName="at",
+                    ResultTy=QualType.ForName("auto"),
+                    Args=[GenTuIdent(t_id().par0().asConstRef(), "node")],
+                    Body=[
+                        ast.b.text(
+                            "return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());"
+                        )
+                    ],
+                    DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
+                    ExplicitClassParam=True,
+                ))
+
+            res.Decls.insert(0, org_decl)
+
+        elif _struct.name.name == "LineCol":
+            res.Decls.insert(0, pybind_nested_type(ast, _struct))
+
+        else:
+            res.Decls.append(pybind_nested_type(ast, _struct))
+
+    for _enum in tu.enums:
+        res.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
+
+    for _func in tu.functions:
+        res.Decls.append(Py11Function.FromGenTu(_func))
+
+
+@beartype
+def add_type_specializations(res: Py11Module, ast: ASTBuilder):
+
+    opaque_declarations: List[BlockId] = []
+    specialization_calls: List[BlockId] = [
+        ast.string("PyTypeRegistryGuard type_registry_guard{};")
+    ]
+
+    type_use_context: List[Any] = []
+    seen_types: Set[QualType] = set()
+
+    def record_specializations(value: Any):
+        nonlocal type_use_context
+        if isinstance(value, QualType):
+
+            def rec_type(T: QualType):
+
+                def rec_drop(T: QualType) -> QualType:
+                    return T.model_copy(update=dict(
+                        isConst=False,
+                        RefKind=ReferenceKind.NotRef,
+                        ptrCount=0,
+                        isNamespace=False,
+                        meta=dict(),
+                        Spaces=[rec_drop(S) for S in T.Spaces],
+                        Parameters=[rec_drop(P) for P in T.Parameters],
+                    ))
+
+                T = rec_drop(T)
+
+                if hash(T) in seen_types:
+                    return
+
+                else:
+                    seen_types.add(hash(T))
+
+                if T.name in ["Vec", "UnorderedMap", "IntSet"]:
+                    std_type: str = {
+                        "Vec": "vector",
+                        "UnorderedMap": "unordered_map",
+                        "IntSet": "int_set",
+                    }.get(T.name, None)
+
+                    if T.name not in ["IntSet"]:
+                        stdvec_t = QualType.ForName(std_type,
+                                                    Spaces=[QualType.ForName("std")],
+                                                    Parameters=T.Parameters)
+
+                        opaque_declarations.append(
+                            ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+
+                    opaque_declarations.append(
+                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
+
+                    specialization_calls.append(
+                        ast.XCall(
+                            f"bind_{std_type}",
+                            [
+                                ast.string("m"),
+                                ast.StringLiteral(py_type_bind(T).Name),
+                                ast.string("type_registry_guard"),
+                            ],
+                            Params=T.Parameters,
+                            Stmt=True,
+                        ))
+
+                else:
+                    for P in T.Parameters:
+                        rec_type(P)
+
+            rec_type(value)
+
+    iterate_object_tree(
+        res,
+        type_use_context,
+        pre_visit=record_specializations,
+    )
+
+    for decl in opaque_declarations:
+        res.Before.append(decl)
+
+    res.Decls = [Py11BindPass(D) for D in specialization_calls] + res.Decls
 
 
 @beartype
@@ -502,141 +634,53 @@ def to_base_types(obj):
 
 
 @beartype
-def gen_pybind11_wrappers(ast: ASTBuilder, expanded: List[GenTuStruct],
-                          tu: ConvTu) -> Py11Module:
-    autogen_structs = get_bind_methods(ast, expanded)
+def gen_adaptagrams_wrappers(
+    ast: ASTBuilder,
+    pyast: pya.ASTBuilder,
+    reflection_path: Path,
+) -> GenFiles:
+    tu: ConvTu = conv_proto_file(reflection_path)
+    res = Py11Module("py_adaptagrams")
+    add_translation_unit(res, ast=ast, tu=tu)
+    add_type_specializations(res, ast=ast)
 
-    for _struct in tu.structs:
-        # There is no topological sorting on the type declarations, so to make the initialization
-        # work in correct order I need to push some of the [[refl]] annotated types at the top.
-        if _struct.name.name == "Org":
-            from py_scriptutils.script_logging import pprint_to_file
-            pprint_to_file(_struct, "/tmp/sem_org_struct.py")
-            org_decl = pybind_org_id(ast, ast.b, _struct, {})
-            org_decl.Methods.append(
-                Py11Method(
-                    "__getitem__",
-                    "at",
-                    t_id(),
-                    [GenTuIdent(QualType.ForName("int"), "idx")],
-                    IsConst=True,
-                    IsStatic=False,
-                ))
+    with open("/tmp/adaptagrams_reflection.json", "w") as file:
+        log(CAT).debug(f"Debug reflection data to {file.name}")
+        file.write(open_proto_file(reflection_path).to_json(2))
 
-            org_decl.Methods.append(
-                Py11Method(
-                    PyName="__iter__",
-                    CxxName="at",
-                    ResultTy=QualType.ForName("auto"),
-                    Args=[GenTuIdent(t_id().par0().asConstRef(), "node")],
-                    Body=[
-                        ast.b.text(
-                            "return pybind11::make_iterator(node.subnodes.begin(), node.subnodes.end());"
-                        )
-                    ],
-                    DefParams=[ast.b.text("pybind11::keep_alive<0, 1>()")],
-                    ExplicitClassParam=True,
-                ))
-
-            autogen_structs.Decls.insert(0, org_decl)
-
-        elif _struct.name.name == "LineCol":
-            autogen_structs.Decls.insert(0, pybind_nested_type(ast, _struct))
-
-        else:
-            autogen_structs.Decls.append(pybind_nested_type(ast, _struct))
-
-    for _enum in tu.enums:
-        autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
-
-    for _func in tu.functions:
-        autogen_structs.Decls.append(Py11Function.FromGenTu(_func))
-
-    opaque_declarations: List[BlockId] = []
-    specialization_calls: List[BlockId] = []
-
-    type_use_context: List[Any] = []
-    seen_types: Set[QualType] = set()
-
-    def record_specializations(value: Any):
-        nonlocal type_use_context
-        if isinstance(value, QualType):
-
-            def rec_type(T: QualType):
-
-                def rec_drop(T: QualType) -> QualType:
-                    return T.model_copy(update=dict(
-                        isConst=False,
-                        RefKind=ReferenceKind.NotRef,
-                        ptrCount=0,
-                        isNamespace=False,
-                        meta=dict(),
-                        Spaces=[rec_drop(S) for S in T.Spaces],
-                        Parameters=[rec_drop(P) for P in T.Parameters],
-                    ))
-
-                T = rec_drop(T)
-
-                if hash(T) in seen_types:
-                    return
-
-                else:
-                    seen_types.add(hash(T))
-
-                if T.name in ["Vec", "UnorderedMap", "IntSet"]:
-                    std_type: str = {
-                        "Vec": "vector",
-                        "UnorderedMap": "unordered_map",
-                        "IntSet": "int_set",
-                    }.get(T.name, None)
-
-                    if T.name not in ["IntSet"]:
-                        stdvec_t = QualType.ForName(std_type,
-                                                    Spaces=[QualType.ForName("std")],
-                                                    Parameters=T.Parameters)
-
-                        opaque_declarations.append(
-                            ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
-
-                    opaque_declarations.append(
-                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
-
-                    specialization_calls.append(
-                        ast.XCall(
-                            f"bind_{std_type}",
-                            [
-                                ast.string("m"),
-                                ast.StringLiteral(py_type_bind(T).Name),
-                            ],
-                            Params=T.Parameters,
-                            Stmt=True,
-                        ))
-
-                else:
-                    for P in T.Parameters:
-                        rec_type(P)
-
-            rec_type(value)
-
-    iterate_object_tree(
-        autogen_structs,
-        type_use_context,
-        pre_visit=record_specializations,
-    )
-
-    for decl in opaque_declarations:
-        autogen_structs.Before.append(decl)
-
-    autogen_structs.Decls = [Py11BindPass(D) for D in specialization_calls
-                            ] + autogen_structs.Decls
-
-    return autogen_structs
+    return GenFiles([
+        GenUnit(
+            GenTu(
+                "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
+                [GenTuPass(res.build_typedef(pyast))],
+                clangFormatGuard=False,
+            )),
+        GenUnit(
+            GenTu(
+                "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
+                [
+                    GenTuPass("#undef slots"),
+                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
+                    GenTuInclude("hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp",
+                                 True),
+                    GenTuInclude("py_libs/pybind11_utils.hpp", True),
+                    GenTuInclude("pybind11/pybind11.h", True),
+                    GenTuInclude("pybind11/stl.h", True),
+                    GenTuPass(res.build_bind(ast)),
+                ],
+            )),
+    ])
 
 
 @beartype
-def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
+def gen_pyhaxorg_wrappers(
+    ast: ASTBuilder,
+    pyast: pya.ASTBuilder,
+    reflection_path: Path,
+) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
     proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
+    t = ast.b
 
     protobuf = proto.build_protobuf()
     protobuf_writer_declarations, protobuf_writer_implementation = proto.build_protobuf_writer(
@@ -657,13 +701,18 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     global org_type_names
     org_type_names = [Typ.name for Typ in expanded]
 
-    autogen_structs = gen_pybind11_wrappers(ast, expanded, tu)
+    res = Py11Module("pyhaxorg")
+    add_structures(res, ast, expanded)
+    add_enums(res, ast, get_enums() + [get_osk_enum(expanded)])
+    add_translation_unit(res, ast, tu)
+    add_type_specializations(res, ast)
+    res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
     return GenFiles([
         GenUnit(
             GenTu(
                 "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-                [GenTuPass(autogen_structs.build_typedef(pyast))],
+                [GenTuPass(res.build_typedef(pyast))],
                 clangFormatGuard=False,
             )),
         GenUnit(
@@ -713,7 +762,8 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),
-                    GenTuPass(autogen_structs.build_bind(ast)),
+                    GenTuInclude("pyhaxorg_manual_impl.hpp", False),
+                    GenTuPass(res.build_bind(ast)),
                 ],
             )),
         GenUnit(
@@ -766,21 +816,11 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     ])
 
 
-if __name__ == "__main__":
-    import os
-    import sys
-    from pprint import pprint
-
-    t = TextLayout()
-    builder = ASTBuilder(t)
-    pyast = pya.ASTBuilder(t)
-    description: GenFiles = gen_value(builder,
-                                      pyast,
-                                      reflection_path=os.path.join(
-                                          sys.argv[1], "reflection.pb"))
-    trace_file = open("/tmp/trace.txt", "w")
-    indent = 0
-
+def gen_description_files(
+    description: GenFiles,
+    builder: ASTBuilder,
+    t: TextLayout,
+):
     for tu in description.files:
         for i in range(2):
             if i == 1 and not tu.source:
@@ -791,8 +831,11 @@ if __name__ == "__main__":
             if not define:
                 continue
 
-            path = define.path.format(base=os.path.join(sys.argv[2], "src"),
-                                      root=sys.argv[2])
+            path = define.path.format(
+                base=get_haxorg_repo_root_path().joinpath("src"),
+                root=get_haxorg_repo_root_path(),
+            )
+
             result = builder.TranslationUnit([
                 GenConverter(
                     builder,
@@ -824,3 +867,50 @@ if __name__ == "__main__":
                 with open(path, "w") as out:
                     out.write(newCode)
                 log(CAT).info(f"[red]Wrote[/red] to {define.path}")
+
+
+from py_scriptutils.toml_config_profiler import apply_options, options_from_model, get_context
+import rich_click as click
+
+
+class CodegenOptions(BaseModel):
+    reflection_path: str
+    codegen_task: Literal["pyhaxorg", "adaptagrams"]
+
+
+def codegen_options(f):
+    return apply_options(f, options_from_model(CodegenOptions))
+
+
+@click.command()
+@codegen_options
+@click.pass_context
+def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
+    opts: CodegenOptions = get_context(ctx, CodegenOptions, config=config, kwargs=kwargs)
+
+    impl = None
+    match opts.codegen_task:
+        case "adaptagrams":
+            impl = gen_adaptagrams_wrappers
+
+        case "pyhaxorg":
+            impl = gen_pyhaxorg_wrappers
+
+    t = TextLayout()
+    builder = ASTBuilder(t)
+    pyast = pya.ASTBuilder(t)
+    description: GenFiles = impl(
+        builder,
+        pyast,
+        reflection_path=Path(opts.reflection_path),
+    )
+
+    gen_description_files(
+        description=description,
+        builder=builder,
+        t=t,
+    )
+
+
+if __name__ == "__main__":
+    impl()

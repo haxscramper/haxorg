@@ -18,27 +18,6 @@
 #include <sem/SemBaseApi.hpp>
 #include <fstream>
 
-template <
-    /// Node kind
-    typename N,
-    /// Token kind
-    typename K,
-    /// Node value kind
-    typename Val>
-diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
-    /// Map DOD node ID to the node object
-    Func<CR<Node<N, K, Val>>(NodeId<N, K, Val>)> getNode,
-    /// Map DOD node value from node object
-    Func<CR<Val>(NodeId<N, K, Val>)> getValue) {
-    return {
-        .getNodeValueImpl =
-            [getValue](NodeId<N, K, Val> id) { return getValue(id); },
-        .getNodeKindImpl =
-            [getNode](NodeId<N, K, Val> id) {
-                return static_cast<int>(getNode(id).kind);
-            }};
-}
-
 struct compare_context {
     std::string type;
     std::string field;

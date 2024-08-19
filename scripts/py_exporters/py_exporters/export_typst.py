@@ -17,6 +17,7 @@ from py_scriptutils import algorithm
 import toml
 from py_scriptutils import toml_config_profiler
 from py_scriptutils.algorithm import cond, maybe_splice
+import py_codegen.astbuilder_typst as typ
 
 CAT = "typst"
 
@@ -34,39 +35,8 @@ assert typst_toml.exists(), typst_toml
 assert typst_typ.exists(), typst_typ
 
 
-@beartype
-class RawStr():
-
-    def __init__(self, value: str) -> None:
-        self.value = value
-
-
-@beartype
-class RawBlock():
-
-    def __init__(self, value: BlockId) -> None:
-        self.value = value
-
-
-class TypstPackageFields(BaseModel):
-    name: str
-    version: str
-    entrypoint: str
-    authors: List[str]
-    license: str
-    description: str
-
-
-class TypstPackageModel(BaseModel):
-    package: TypstPackageFields
-
-
-def get_typst_export_package() -> TypstPackageModel:
-    return TypstPackageModel.model_validate(toml.loads(typst_toml.read_text()))
-
-
 def refresh_typst_export_package():
-    config = get_typst_export_package()
+    config = typ.get_typst_export_package(typst_toml)
     out_path = Path("~/.local/share/typst/packages/{namespace}/{name}/{version}".format(
         version=config.package.version,
         name=config.package.name,
@@ -103,7 +73,7 @@ class ExporterTypstConfig(BaseModel):
 
 @beartype
 class ExporterTypst(ExporterBase):
-    t: TextLayout
+    t: typ.ASTBuilder
     c: ExporterTypstConfig
 
     def applyExportConfig(self, config: org.BlockExport):
@@ -114,161 +84,24 @@ class ExporterTypst(ExporterBase):
 
     def __init__(self, CRTP_derived=None):
         super().__init__(CRTP_derived or self)
-        self.t = TextLayout()
+        self.t = typ.ASTBuilder()
         self.c = ExporterTypstConfig()
 
     def newOrg(self, node: org.Org):
-        return self.t.text("TODO" + str(node.getKind()))
+        return self.t.string("TODO" + str(node.getKind()))
 
-    def string(self, node: str | BlockId) -> BlockId:
-        if isinstance(node, str):
-            return self.t.text(node)
-
-        else:
-            return node
-
-    def surround(self, text: str, nodes: List[BlockId]) -> BlockId:
-        return self.t.line([self.string(text), *nodes, self.string(text)])
-
-    def content(self, content: BlockId) -> BlockId:
-        return self.t.line([self.string("["), content, self.string("]")])
-
-    def expr(self, value) -> BlockId:
+    def expr(self, value, isLine: bool = False) -> BlockId:
         match value:
-            case bool():
-                return self.string("true" if value else "false")
-
-            case int() | float():
-                return self.string(str(value))
-
-            case RawStr():
-                return self.string(value.value)
-
-            case RawBlock():
-                return self.string(value.value)
-
-            case str():
-                return self.t.wrap_quote(value)
-
-            case list():
-                if all(isinstance(it, (int, str, float)) for it in value):
-                    return self.t.pars(
-                        self.t.csv([self.expr(it) for it in value] + [self.string("")]))
-
-                else:
-                    return self.t.stack([
-                        self.string("("),
-                        self.t.csv(
-                            [self.expr(it) for it in value],
-                            isLine=False,
-                            isTrailing=True,
-                        ),
-                        self.string(")")
-                    ])
-
-            case None:
-                return self.string("null")
-
             case org.Org():
-                return self.content(self.exp.eval(value))
-
-            case dict():
-                return self.t.pars(
-                    self.t.csv([
-                        self.t.line([
-                            self.string(key),
-                            self.string(": "),
-                            self.expr(value[key]),
-                        ]) for key in sorted(value.keys())
-                    ]))
+                return self.t.content(self.exp.eval(value))
 
             case _:
-                raise ValueError(
-                    f"Unexpected type for `expr()` conversion: {type(value)}")
-
-    def escape(self, text: str) -> str:
-        res = ""
-        for ch in text:
-            if ch in ["@", "#", "<"]:
-                res += "\\" + ch
-
-            else:
-                res += ch
-
-        return res
-
-    @beartype
-    def call(
-        self,
-        name: str,
-        args: Dict[str, BlockId | str] = dict(),
-        body: List[BlockId] | BlockId = list(),
-        positional: List[BlockId | str] | BlockId | str = list(),
-        isContent: bool = False,
-        isLine: bool = False,
-    ) -> BlockId:
-        b = body if isinstance(body, list) else [body]
-        arglist = []
-
-        if isinstance(positional, list):
-            for it in positional:
-                arglist.append(
-                    self.t.line([
-                        self.expr(it),
-                        self.string(cond(isLine, ", ", ",")),
-                    ]))
-
-        else:
-            arglist.append(positional)
-
-        for key in sorted(args.keys()):
-            arglist.append(
-                self.t.line([
-                    self.string(key),
-                    self.string(": "),
-                    self.expr(args[key]),
-                    self.string(cond(isLine, ", ", ",")),
-                ]))
-
-        result = cond(isLine, self.t.line, self.t.stack)([
-            self.string(
-                cond([
-                    (arglist, f"#{name}("),
-                    (b and not isLine, f"#{name}["),
-                    (True, f"#{name}"),
-                ])),
-            *maybe_splice(
-                arglist,
-                self.t.line(arglist) if isLine else self.t.indent(
-                    2,
-                    self.t.stack(arglist),
-                )),
-            *maybe_splice(
-                arglist,
-                self.string(
-                    cond([
-                        (b and arglist and not isLine, ")["),
-                        (arglist, ")"),
-                        (True, ""),
-                    ]))),
-        ] + [
-            cond(isLine, self.t.line, self.t.stack)([
-                *maybe_splice(isLine, self.string("[")),
-                self.t.indent(cond(isLine, 0, 2), b[idx]),
-                self.string("]") if idx == len(b) - 1 else self.string("]["),
-            ]) for idx in range(len(b))
-        ])
-
-        if isContent:
-            return self.content(result)
-
-        else:
-            return result
+                return self.t.expr(value=value, isLine=isLine)
 
     def wrapStmt(self, node: org.Stmt, result: BlockId) -> BlockId:
         args = node.getArguments("export")
         if args and 0 < len(args.args) and args.args[0].getBool() == False:
-            return self.string("")
+            return self.t.string("")
 
         else:
             return result
@@ -286,13 +119,13 @@ class ExporterTypst(ExporterBase):
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
         if len(node.subnodes) == 1 and isinstance(
                 node[0], org.Link) and node[0].getLinkKind() in [org.LinkKind.Attachment]:
-            return self.string("")
+            return self.t.string("")
 
         elif len(node.subnodes) == 0:
-            return self.string("")
+            return self.t.string("")
 
         else:
-            return self.call(
+            return self.t.call(
                 self.c.tags.paragraph,
                 body=[self.lineSubnodes(self.trimSub(node))],
                 isLine=True,
@@ -315,36 +148,36 @@ class ExporterTypst(ExporterBase):
                 args["timestamp"] = formatDateTime(
                     node.getTimestamp().time.getStatic().time)
 
-        result = self.call(self.c.tags.paragraph, args=args, body=[result], isLine=True)
+        result = self.t.call(self.c.tags.paragraph, args=args, body=[result], isLine=True)
         return result
 
     def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
-        return self.call(self.c.tags.center, body=[self.stackSubnodes(node)])
+        return self.t.call(self.c.tags.center, body=[self.stackSubnodes(node)])
 
     def evalNewline(self, node: org.Newline) -> BlockId:
-        return self.string(node.text)
+        return self.t.string(node.text)
 
     def evalWord(self, node: org.Word) -> BlockId:
-        return self.string(self.escape(node.text))
+        return self.t.string(self.t.escape(node.text))
 
     def evalBigIdent(self, node: org.BigIdent) -> BlockId:
-        return self.call(
+        return self.t.call(
             self.c.tags.bigIdent,
             args=dict(text=node.text),
             isLine=True,
         )
 
     def evalRawText(self, node: org.RawText) -> BlockId:
-        return self.string(self.escape(node.text))
+        return self.t.string(self.t.escape(node.text))
 
     def evalPunctuation(self, node: org.Punctuation) -> BlockId:
-        return self.string(self.escape(node.text))
+        return self.t.string(self.t.escape(node.text))
 
     def evalSpace(self, node: org.Space) -> BlockId:
-        return self.string(node.text)
+        return self.t.string(node.text)
 
     def evalPlaceholder(self, node: org.Placeholder) -> BlockId:
-        return self.call(
+        return self.t.call(
             self.c.tags.placeholder,
             args=dict(text=node.text),
             isLine=True,
@@ -363,20 +196,20 @@ class ExporterTypst(ExporterBase):
         return self.surround("_", [self.lineSubnodes(node)])
 
     def evalAtMention(self, node: org.AtMention) -> BlockId:
-        return self.call(
+        return self.t.call(
             self.c.tags.mention,
             args=dict(text=node.text),
             isLine=True,
         )
 
     def evalTextSeparator(self, node: org.TextSeparator) -> BlockId:
-        return self.call("line", dict(length=RawStr("100%")))
+        return self.t.call("line", dict(length=typ.RawStr("100%")))
 
     def evalHashTag(self, node: org.HashTag) -> BlockId:
-        return self.string(self.escape(formatHashTag(node)))
+        return self.t.string(self.t.escape(formatHashTag(node)))
 
     def evalBlockQuote(self, node: org.BlockQuote) -> BlockId:
-        return self.call(self.c.tags.quote, body=[self.stackSubnodes(node)])
+        return self.t.call(self.c.tags.quote, body=[self.stackSubnodes(node)])
 
     def evalBlockCode(self, node: org.BlockCode) -> BlockId:
         text = ""
@@ -391,13 +224,13 @@ class ExporterTypst(ExporterBase):
                     case org.BlockCodeLinePartKind.Raw:
                         text += item.getRaw().code
 
-        return self.call(
+        return self.t.call(
             self.c.tags.code,
             args=dict(lang=node.lang, text=text),
         )
 
-    def evalExample(self, node: org.BlockExample) -> BlockId:
-        return self.call(self.c.tags.example, body=[self.stackSubnodes(node)])
+    def evalBlockExample(self, node: org.BlockExample) -> BlockId:
+        return self.t.call(self.c.tags.example, body=[self.stackSubnodes(node)])
 
     def evalBlockExport(self, node: org.BlockExport) -> BlockId:
         if node.exporter == "typst":
@@ -405,21 +238,21 @@ class ExporterTypst(ExporterBase):
             if edit_config and 0 < len(edit_config.args):
                 match edit_config.args[0].getString():
                     case "pre-visit":
-                        return self.string("")
+                        return self.t.string("")
 
                     case "in-visit":
                         self.applyExportConfig(node)
-                        return self.string("")
+                        return self.t.string("")
 
             else:
-                return self.string(node.content)
+                return self.t.string(node.content)
 
         else:
-            return self.string("")
+            return self.t.string("")
 
     def evalSubtree(self, node: org.Subtree) -> BlockId:
         if node.isComment or node.isArchived:
-            return self.string("")
+            return self.t.string("")
 
         res = self.t.stack([])
 
@@ -431,7 +264,7 @@ class ExporterTypst(ExporterBase):
         self.t.add_at(
             res,
             self.t.line([
-                self.call(
+                self.t.call(
                     self.c.tags.subtree,
                     dict(level=node.level, tags=tags),
                     self.exp.eval(node.title),
@@ -444,13 +277,13 @@ class ExporterTypst(ExporterBase):
         return res
 
     def evalDocument(self, node: org.Document) -> BlockId:
-        module = get_typst_export_package()
+        module = typ.get_typst_export_package(typst_toml)
         res = self.t.stack([])
 
         if self.c.with_standard_baze:
             self.t.add_at(
                 res,
-                self.string("#import \"@local/{name}:{version}\": *".format(
+                self.t.string("#import \"@local/{name}:{version}\": *".format(
                     name=module.package.name,
                     version=module.package.version,
                 )),
@@ -469,18 +302,18 @@ class ExporterTypst(ExporterBase):
         return res
 
     def evalMacro(self, node: org.Macro) -> BlockId:
-        return self.string("")
+        return self.t.string("")
 
     def evalTime(self, node: org.Time) -> BlockId:
-        return self.string(formatDateTime(node.getStatic().time))
+        return self.t.string(formatDateTime(node.getStatic().time))
 
     def evalLink(self, node: org.Link) -> BlockId:
         match node.getLinkKind():
             case org.LinkKind.Attachment:
-                return self.string("")
+                return self.t.string("")
 
             case org.LinkKind.Raw:
-                return self.call(
+                return self.t.call(
                     "link",
                     positional=[node.getRaw().text],
                     body=[self.exp.eval(node.description)] if node.description else [],
@@ -488,12 +321,12 @@ class ExporterTypst(ExporterBase):
                 )
 
             case _:
-                return self.string(f"TODO {node.getLinkKind()}")
+                return self.t.string(f"TODO {node.getLinkKind()}")
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line([
             self.exp.eval(node.from_),
-            self.string("--"),
+            self.t.string("--"),
             self.exp.eval(node.to),
         ])
 
@@ -512,22 +345,23 @@ class ExporterTypst(ExporterBase):
 
         return self.wrapStmt(
             node,
-            self.call(self.c.tags.list,
-                      args=dict(
-                          isDescription=node.isDescriptionList(),
-                          items=RawBlock(
-                              self.expr([RawBlock(self.exp.eval(it)) for it in node])),
-                      )))
+            self.t.call(self.c.tags.list,
+                        args=dict(
+                            isDescription=node.isDescriptionList(),
+                            items=typ.RawBlock(
+                                self.expr(
+                                    [typ.RawBlock(self.exp.eval(it)) for it in node])),
+                        )))
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         args = dict(
-            content=RawBlock(self.content(self.stackSubnodes(self.trimSub(node)))))
+            content=typ.RawBlock(self.t.content(self.stackSubnodes(self.trimSub(node)))))
 
         if node.isDescriptionItem():
-            args["header"] = RawBlock(self.content(self.exp.eval(node.header)))
+            args["header"] = typ.RawBlock(self.t.content(self.exp.eval(node.header)))
             args["isDescription"] = True
 
         else:
             args["isDescription"] = False
 
-        return self.call(self.c.tags.listItem, args=args, isContent=True)
+        return self.t.call(self.c.tags.listItem, args=args, isContent=True)

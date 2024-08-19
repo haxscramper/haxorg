@@ -1687,6 +1687,19 @@ type = "directory"
 url = "scripts/py_textlayout"
 
 [[package]]
+name = "py-wrappers"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = "^3.9.0 <3.13"
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "scripts/py_wrappers"
+
+[[package]]
 name = "pydantic"
 version = "2.6.3"
 description = "Data validation using Python type hints"
@@ -2325,4 +2338,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.0 <3.13"
-content-hash = "33be0678b20a82568742a48c9ff5384076edf2cce0032da90cd347a392e08b1c"
+content-hash = "33d8fc4e35f6c19444e1ebeb9e3f61195a3260c5dd4f77b31b7de3dfe4ff98f9"

@@ -1,6 +1,9 @@
 #pragma once
 
+#pragma warning(push, 0)
 #include <yaml-cpp/yaml.h>
+#pragma warning(pop)
+
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/strformat.hpp>

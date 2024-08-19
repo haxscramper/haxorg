@@ -79,3 +79,30 @@ items:
       doFlatParseCompare: false
     file: org/lorem_ipsum_subtree.org
 
+  - name: "Nested lists in the subtree notes"
+    debug: 
+      doLexBase: false
+    source: |
+      **** Title:
+        :LOGBOOK:
+        - Note taken on [2024-07-27 Sat 22:52:02 +04] \\
+          Some note
+        - Note taken on [2024-07-27 Sat 22:52:08 +04] \\
+          Add note
+          - List in the note
+          - [2024-07-27 Sat 22:52:14 +04] Timestamp
+        :END:
+
+  - name: User-defined drawer
+    debug: 
+      doLexBase: false
+    source: |
+      ** This is a headline
+
+        Still outside the drawer
+
+        :DRAWERNAME:
+        This is inside the drawer.
+        :END:
+        After the drawer.
+

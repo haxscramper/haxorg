@@ -21,6 +21,7 @@ import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
 from py_repository.gen_coverage_cookies import ProfdataParams
+from py_scriptutils.algorithm import remove_ansi
 import typing
 import inspect
 import copy
@@ -217,10 +218,12 @@ def run_command(
         retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
 
     if stdout_debug and stdout:
-        stdout_debug.write_text(stdout)
+        log(CAT).info(f"Wrote stdout to {stdout_debug}")
+        stdout_debug.write_text(remove_ansi(stdout))
 
     if stderr_debug and stderr:
-        stderr_debug.write_text(stderr)
+        log(CAT).info(f"Wrote stderr to {stderr_debug}")
+        stderr_debug.write_text(remove_ansi(stderr))
 
     if allow_fail or retcode == 0:
         return (retcode, stdout, stderr)
@@ -653,7 +656,7 @@ def python_protobuf_files(ctx: Context):
 
 
 @org_task(pre=[base_environment])
-def cmake_configure_haxorg(ctx: Context):
+def cmake_configure_haxorg(ctx: Context, force: bool = False):
     """Execute cmake configuration step for haxorg"""
 
     with FileOperation.InTmp(
@@ -665,7 +668,7 @@ def cmake_configure_haxorg(ctx: Context):
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
         log(CAT).info(op.explain("cmake configuration"))
-        if is_forced(ctx, "cmake_configure_haxorg") or op.should_run():
+        if force or is_forced(ctx, "cmake_configure_haxorg") or op.should_run():
             log(CAT).info("running haxorg cmake configuration")
             pass_flags = [
                 "-B",
@@ -703,8 +706,12 @@ def cmake_haxorg_clean(ctx: Context):
         stamp_path.unlink()
 
 
-@org_task(pre=[cmake_configure_haxorg])
-def cmake_haxorg(ctx: Context):
+@org_task(pre=[cmake_configure_haxorg], iterable=["target"])
+def cmake_haxorg(
+    ctx: Context,
+    target: List[str] = ["all"],
+    force: bool = False,
+):
     """Compile main set of libraries and binaries for org-mode parser"""
     build_dir = get_component_build_dir(ctx, "haxorg")
     with FileOperation.InTmp(
@@ -718,14 +725,14 @@ def cmake_haxorg(ctx: Context):
             ]
         ],
             stamp_path=get_task_stamp("cmake_haxorg"),
-            stamp_content=str(get_cmake_defines(ctx)),
+            stamp_content=str(get_cmake_defines(ctx) + target),
     ) as op:
-        if is_forced(ctx, "cmake_haxorg") or op.should_run():
+        if force or is_forced(ctx, "cmake_haxorg") or op.should_run():
             log(CAT).info(op.explain("Main C++"))
             run_command(
                 ctx,
                 "cmake",
-                ["--build", build_dir],
+                ["--build", build_dir, "--target"] + target,
                 env={'NINJA_FORCE_COLOR': '1'},
             )
 
@@ -774,7 +781,16 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
         run_command(ctx, tool, [json.dumps(config)])
 
 
-@org_task(pre=[python_protobuf_files])
+CODEGEN_TASKS = [
+    "adaptagrams",
+    "pyhaxorg",
+]
+
+
+@org_task(pre=[
+    python_protobuf_files,
+    # cmake_haxorg,
+])
 def update_py_haxorg_reflection(
     ctx: Context,
     verbose: bool = False,
@@ -782,8 +798,16 @@ def update_py_haxorg_reflection(
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root("build/haxorg/compile_commands.json")
     toolchain_include = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
-    out_file = get_script_root("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"
+
+    run_self(
+        ctx,
+        [
+            "cmake-haxorg",
+            "--target=reflection_lib",
+            "--target=reflection_tool",
+            "--force",
+        ],
+    )
 
     with FileOperation.InTmp(
             input=[
@@ -791,38 +815,49 @@ def update_py_haxorg_reflection(
                 for path in ["src"]
                 for glob in ["*.hpp", "*.cppm"]
             ],
-            output=[out_file],
+            output=[get_build_root(f"{task}.pb") for task in CODEGEN_TASKS],
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
         if is_forced(ctx, "update_py_haxorg_reflection") or (
                 op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]):
-            exitcode, stdout, stderr = run_command(
-                ctx,
-                "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
-                [
-                    "-p",
-                    compile_commands,
-                    "--compilation-database",
-                    compile_commands,
-                    "--toolchain-include",
-                    toolchain_include,
-                    *(["--verbose"] if verbose else []),
-                    "--out",
-                    out_file,
-                    src_file,
-                ],
-                capture=True,
-                allow_fail=True,
-            )
+            for task in CODEGEN_TASKS:
+                out_file = get_build_root(f"{task}.pb")
+                match task:
+                    case "pyhaxorg":
+                        src_file = get_script_root(
+                            "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp")
 
-            Path("/tmp/debug_reflection_stdout.txt").write_text(stdout)
-            Path("/tmp/debug_reflection_stderr.txt").write_text(stderr)
+                    case "adaptagrams":
+                        src_file = get_script_root(
+                            "src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
 
-            if exitcode != 0:
-                log(CAT).error("Reflection tool failed")
-                raise
+                exitcode, stdout, stderr = run_command(
+                    ctx,
+                    "build/haxorg/scripts/cxx_codegen/reflection_tool/reflection_tool",
+                    [
+                        "-p",
+                        compile_commands,
+                        "--compilation-database",
+                        compile_commands,
+                        "--toolchain-include",
+                        toolchain_include,
+                        *(["--verbose"] if verbose else []),
+                        "--out",
+                        out_file,
+                        src_file,
+                    ],
+                    capture=True,
+                    allow_fail=True,
+                )
 
-            log(CAT).info("Updated reflection")
+                Path(f"/tmp/debug_reflection_{task}_stdout.txt").write_text(stdout)
+                Path(f"/tmp/debug_reflection_{task}_stderr.txt").write_text(stderr)
+
+                if exitcode != 0:
+                    log(CAT).error("Reflection tool failed")
+                    raise
+
+                log(CAT).info("Updated reflection")
 
         else:
             log(CAT).info("Python reflection run not needed " +
@@ -832,7 +867,7 @@ def update_py_haxorg_reflection(
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[
     # cmake_haxorg,
-    update_py_haxorg_reflection
+    # update_py_haxorg_reflection
 ])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
@@ -840,16 +875,20 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     log(CAT).info("Executing haxorg code generation step.")
-    run_command(ctx,
-                "poetry", [
-                    "run",
-                    get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
-                    get_build_root(),
-                    get_script_root(),
-                ],
-                env=get_py_env(ctx))
+    for task in CODEGEN_TASKS:
+        run_command(
+            ctx,
+            "poetry",
+            [
+                "run",
+                get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
+                "--reflection_path={}".format(get_build_root().joinpath(f"{task}.pb")),
+                f"--codegen_task={task}",
+            ],
+            env=get_py_env(ctx),
+        )
 
-    log(CAT).info("Updated code definitions")
+        log(CAT).info("Updated code definitions")
 
 
 @org_task(pre=[cmake_haxorg, symlink_build])
@@ -1008,7 +1047,7 @@ def get_poetry_lldb(test: str) -> list[str]:
     ]
 
 
-@task(iterable=["arg"])
+@org_task(iterable=["arg"])
 def py_debug_script(ctx: Context, arg):
     run_command(
         ctx,
@@ -1091,7 +1130,7 @@ def get_cxx_profdata_params(
     return ProfdataParams(
         coverage=str(coverage_dir.joinpath("test-summary.json")),
         coverage_db=str(coverage_dir.joinpath("coverage.sqlite")),
-        perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
+        # perf_trace=str(coverage_dir.joinpath("coverage_merge.pftrace")),
         debug_file=str(coverage_dir.joinpath("coverage_debug.json")),
         file_whitelist=profdata_file_whitelist.split(";"),
         file_blacklist=profdata_file_blacklist.split(";"),
@@ -1286,7 +1325,7 @@ def docs_custom(
         log(CAT).info(
             f"No coverage database generated, {prof_params.coverage_db} does not exist")
 
-    run_command(ctx, "poetry", args)
+    run_command(ctx, "poetry", args, env=get_py_env(ctx))
 
 
 @org_task(

@@ -20,7 +20,7 @@ struct MockFull {
     Opt<int>                     maxUnknownBaseTokens;
     sem::SemId<sem::Org>         node;
 
-    MockFull(bool tracedParser, bool tracedLexer)
+    MockFull(bool tracedParser = false, bool tracedLexer = false)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
         spec                  = getOrgSpec();
         parser                = std::make_shared<OrgParser>(&nodes);

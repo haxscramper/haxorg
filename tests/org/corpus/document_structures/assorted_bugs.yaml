@@ -853,3 +853,46 @@ items:
       #+OPTIONS: tags:nil
       #+OPTIONS: timestamp:t
       #+OPTIONS: H:3 num:t toc:2 \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t tags:nil tasks:t title:t author:t date:t e:t p:t pri:nil stat:nil c:t d:(notext) todo:t
+
+
+  - name: "Source code block callouts"
+    source: |
+      #+begin_src ruby -r -n :tangle mysample.rb
+        puts 'Hi!'          # (ref:puts)
+      #+end_src
+
+  - name: "Source code block tangling"
+    source: |
+      #+name: hello-function
+      #+begin_src python
+      def hello():
+          return "Hello, world!"
+      #+end_src
+
+      #+begin_src python :tangle example.py
+      print(<<hello-function>>())
+      #+end_src
+
+  - name: "Latex block" 
+    debug: 
+      doLexBase: false
+    source: |
+      #+begin_latex
+      \cfrac{12}{2}
+      #+end_latex
+
+  - name: "Begin user-defined node for parsed content"
+    debug: 
+      doLexBase: false
+    source: |
+      #+begin: user-block
+      
+      #+end:
+
+  - name: "Begin user-defined node for raw content"
+    debug: 
+      doLexBase: false
+    source: |
+      #+begin_raw: user-block
+      
+      #+end_raw:

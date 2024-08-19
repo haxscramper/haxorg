@@ -1041,6 +1041,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
     p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
     if (p.parser->TraceState) {
+        p.parser->traceColored = false;
         p.parser->setTraceFile(
             spec.debugFile("trace_parse.log", relDebug));
     }

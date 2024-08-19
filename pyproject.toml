@@ -49,6 +49,7 @@ py_scriptutils = {path = "./scripts/py_scriptutils", develop=true}
 py_codegen = {path = "./scripts/py_codegen", develop=true}
 py_cli = {path = "./scripts/py_cli", develop=true}
 py_repository = {path = "./scripts/py_repository", develop=true}
+py_wrappers = {path = "./scripts/py_wrappers", develop=true}
 cxx_repository = {path = "./scripts/cxx_repository", develop=true}
 
 [tool.poetry.group.dev.dependencies]
@@ -67,6 +68,7 @@ console_output_style = "classic"
 markers = [
     "unstable: fuzzy tests that can randomly fail in CI",
     "x11: must be run in x11 environment to work",
+    "bad_asan: code triggers sanitizer error", # External libraries cannot be fixed and trigger errors
     "test_coverage_annotation_file_cxx: C++ test coverage annotation extraction for a file",
     "test_gtest_class(name, params): C++ Google test class runner",
     "test_gtest_function(name, params): C++ Google test individual test instance",

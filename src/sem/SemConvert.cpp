@@ -11,6 +11,8 @@
 #include <absl/log/log.h>
 
 
+struct convert_logic_error : CRTP_hexception<convert_logic_error> {};
+
 using namespace sem;
 
 using onk      = OrgNodeKind;
@@ -56,7 +58,8 @@ Str get_text(
     } else if (a.kind() == onk::Empty) {
         return "";
     } else {
-        LOG(FATAL) << fmt("{} {} {}", function, line, a.treeRepr(false));
+        throw convert_logic_error::init(
+            fmt("{} {} {}", function, line, a.treeRepr(false)));
     }
 }
 
@@ -268,8 +271,9 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 priority.oldPriority = priorities.at(0)->text;
                 priority.action      = Log::Priority::Action::Removed;
             } else {
-                LOG(FATAL) << fmt1(words)
-                           << " Unexpected priority log message structure";
+                throw convert_logic_error::init(
+                    fmt("{} Unexpected priority log message structure",
+                        words));
             }
 
             priority.on = times.at(0);
@@ -399,9 +403,9 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             created.time = par0.as<sem::Time>();
             result       = Property(created);
         } else {
-            LOG(FATAL)
-                << "Could not extract time from 'created' property\n"
-                << a.treeRepr(true);
+            throw convert_logic_error::init(
+                fmt("Could not extract time from 'created' property\n{}",
+                    a.treeRepr(false)));
         }
 
     } else if (name == "origin") {
@@ -418,7 +422,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             prop.level = visibility.value();
             result     = Property(prop);
         } else {
-            LOG(FATAL) << "Unknown visibility";
+            throw convert_logic_error::init("Unknown visibility");
         }
 
     } else if (name == "effort") {
@@ -1165,7 +1169,8 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
     if (a.kind() == onk::InlineMath) {
         return Sem<Latex>(a);
     } else {
-        LOG(FATAL) << "Unhanled kind for inline math TODO";
+        throw convert_logic_error::init(
+            "Unhanled kind for inline math TODO");
     }
 }
 
@@ -1385,7 +1390,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
                         break;
                     }
                     default: {
-                        LOG(FATAL) << fmt1(part.kind());
+                        throw convert_logic_error::init(fmt1(part.kind()));
                     }
                 }
             }
@@ -1461,7 +1466,7 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
              ++offset) {
 
             auto tblfm = convertCmdTblfm(next_opt->get());
-            LOG(FATAL) << "TODO";
+            throw convert_logic_error::init("TODO");
         }
 
         i += offset;
@@ -1692,7 +1697,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                         doc->options->initialVisibility = K::
                             ShowEverything;
                     } else {
-                        LOG(FATAL) << text;
+                        throw convert_logic_error::init(text);
                     }
 
                     if (auto it = args.get(1); it.has_value()) {

@@ -220,9 +220,9 @@ class ConvTu:
 
 
 @beartype
-def open_proto_file(path: str) -> pb.TU:
+def open_proto_file(path: Path) -> pb.TU:
     unit = pb.TU()
-    assert os.path.exists(path)
+    assert path.exists()
 
     with open(path, "rb") as f:
         unit = pb.TU.FromString(f.read())
@@ -231,7 +231,7 @@ def open_proto_file(path: str) -> pb.TU:
 
 
 @beartype
-def conv_proto_file(path: str, original: Optional[Path] = None) -> ConvTu:
+def conv_proto_file(path: Path, original: Optional[Path] = None) -> ConvTu:
     unit = open_proto_file(path)
     return ConvTu(
         structs=[conv_proto_record(rec, original) for rec in unit.records],

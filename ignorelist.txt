@@ -6,3 +6,4 @@ src:*sem/*
 src:/usr/lib64/gcc/*
 src:/usr/lib/*
 interceptor_via_lib:libgtest.so*
+src:*thirdparty/*

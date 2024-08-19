@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
 
 #include <hstd/system/reflection.hpp>
 
@@ -299,46 +300,10 @@ inline bool scanInvisible(CR<Str> text, CharSet& invisSet) {
 }
 
 
-inline bool hasInvisibleChanges(
+bool hasInvisibleChanges(
     Vec<SeqEdit>& diff,
     Vec<Str>&     oldSeq,
-    Vec<Str>&     newSeq) {
-    // Is any change in the edit sequence invisible?
-    CharSet start = Invis + ' ';
-
-    auto invis = [&start](Str text) { return scanInvisible(text, start); };
-
-    // Iterate over all edits from right to left, updating active set of
-    // invisible characters as we got.
-    int idx = diff.size() - 1;
-    while (idx >= 0) {
-        SeqEdit& edit = diff[idx];
-        switch (edit.kind) {
-            case SeqEditKind::Delete:
-                if (invis(oldSeq[edit.sourcePos])) { return true; }
-                break;
-            case SeqEditKind::Insert:
-                if (invis(newSeq[edit.targetPos])) { return true; }
-                break;
-            case SeqEditKind::None:
-            case SeqEditKind::Transpose: break;
-            case SeqEditKind::Keep:
-                // Check for kept characters - this will update
-                // 'invisible' set if any found, so edits like `" X"
-                // -> "X"` are not considered as 'has invisible'
-                if (invis(oldSeq[edit.sourcePos])) {}
-                break;
-            case SeqEditKind::Replace:
-                if (invis(oldSeq[edit.sourcePos])
-                    || invis(newSeq[edit.targetPos])) {
-                    return true;
-                }
-                break;
-        }
-        idx--;
-    }
-    return false;
-}
+    Vec<Str>&     newSeq);
 
 inline bool hasInvisible(
     std::string text,
@@ -402,94 +367,9 @@ struct ShiftedDiff {
         ());
 
     /// \brief Construct shifted diff pairing from LCS trace information
-    inline ShiftedDiff(CR<BacktrackRes> track, int lhsMax, int rhsMax) {
-        using sek    = SeqEditKind;
-        int prevLhs  = 0;
-        int prevRhs  = 0;
-        int fullSize = std::max(lhsMax, rhsMax);
-        for (int pos = 0; pos < track.lhsIndex.size(); ++pos) {
-            int lhsPos = track.lhsIndex.at(pos);
-            int rhsPos = track.rhsIndex.at(pos);
-            for (int i = prevLhs; i < lhsPos; ++i) {
-                newShifted.push_back(Item{sek::None, 0});
-                oldShifted.push_back(Item{sek::Delete, i});
-            }
+    ShiftedDiff(CR<BacktrackRes> track, int lhsMax, int rhsMax);
 
-            for (int i = prevRhs; i < rhsPos; ++i) {
-                newShifted.push_back(Item{sek::Insert, i});
-                oldShifted.push_back(Item{sek::None, 0});
-            }
-
-            newShifted.push_back(Item{sek::Keep, rhsPos});
-            oldShifted.push_back(Item{sek::Keep, lhsPos});
-            prevLhs = lhsPos + 1;
-            prevRhs = rhsPos + 1;
-        }
-
-        if (prevLhs < lhsMax) {
-            for (int lhsPos = prevLhs; lhsPos < lhsMax; ++lhsPos) {
-                oldShifted.push_back(Item{sek::Delete, lhsPos});
-                newShifted.push_back(Item{sek::None, 0});
-            }
-        }
-
-        if (prevRhs < rhsMax) {
-            for (int rhsPos = prevRhs; rhsPos < rhsMax; ++rhsPos) {
-                oldShifted.push_back(Item{sek::None, 0});
-                newShifted.push_back(Item{sek::Insert, rhsPos});
-            }
-        }
-    }
-
-    inline ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
-        // Align diff operations against each other, for further
-        // formatting.
-        using sek = SeqEditKind;
-        for (auto line : diff) {
-            switch (line.kind) {
-                case sek::Replace:
-                    oldShifted.push_back({sek::Replace, line.sourcePos});
-                    break;
-
-                case sek::None:
-                    assert(false && "Input diff sequence should not contain empty operations");
-                    break;
-
-                case sek::Transpose:
-                    assert(false && "Input diff sequence should not contain transpose operations");
-                    break;
-
-                case sek::Delete:
-                    oldShifted.push_back({sek::Delete, line.sourcePos});
-                    break;
-
-                case sek::Insert:
-                    newShifted.push_back({sek::Insert, line.targetPos});
-                    break;
-
-                case sek::Keep:
-                    int oldLen = oldShifted.size();
-                    int newLen = newShifted.size();
-
-                    if (oldLen < newLen) {
-                        while (oldLen < newLen) {
-                            oldShifted.push_back({sek::None, 0});
-                            oldLen++;
-                        }
-
-                    } else if (newLen < oldLen) {
-                        while (newLen < oldLen) {
-                            newShifted.push_back({sek::None, 0});
-                            newLen++;
-                        }
-                    }
-
-                    oldShifted.push_back({sek::Keep, line.sourcePos});
-                    newShifted.push_back({sek::Keep, line.targetPos});
-                    break;
-            }
-        }
-    }
+    ShiftedDiff(CR<Vec<SeqEdit>>& diff);
 };
 
 struct BufItem {
@@ -676,433 +556,80 @@ struct FormattedDiff {
 
     FormattedDiff(
         const ShiftedDiff& shifted,
-        DiffFormatConf     conf = DiffFormatConf{}) {
-        Vec<BufItem> oldText, newText;
-
-        using sek     = SeqEditKind;
-        int unchanged = 0;
-
-        for (auto [lhs, rhs, lhsDefault, rhsDefault, idx] :
-             zipToMax(shifted.oldShifted, shifted.newShifted)) {
-            if (lhs.kind == sek::Keep && rhs.kind == sek::Keep) {
-                if (unchanged < conf.maxUnchanged) {
-                    ++unchanged;
-                } else {
-                    continue;
-                }
-            } else {
-                unchanged = 0;
-            }
-            // Start new entry on the old line
-            oldText.push_back(BufItem{
-                .originalIndex = lhs.item,
-                // Only case where lhs can have unchanged lines is for
-                // unified diff+filler
-                .changed = conf.unified() && lhs.kind != sek::None,
-                .kind    = lhs.kind});
-
-            // New entry on the new line
-            newText.push_back(BufItem{
-                .originalIndex = rhs.item,
-                // Only newly inserted lines need to be formatted for the
-                // unified diff, everything else is displayed on the
-                // 'original' version.
-                .changed = conf.unified() && rhs.kind == sek::Insert,
-                .kind    = rhs.kind});
-        }
-
-        *this = FormattedDiff(oldText, newText, conf);
-    }
+        DiffFormatConf     conf = DiffFormatConf{});
 
     FormattedDiff(
         const Vec<BufItem>&   oldText,
         const Vec<BufItem>&   newText,
-        const DiffFormatConf& conf = DiffFormatConf{}) {
-        bool first = true;
-
-        if (conf.groupLine) {
-            assert(!conf.sideBySide);
-            // Grouping line edits is not possible in the side-by-side
-            // representation, so going directly for unified one.
-            Vec<BufItem> lhsBuf = {oldText[0]};
-            Vec<BufItem> rhsBuf = {newText[0]};
-
-            auto addBuffers = [this, &lhsBuf, &rhsBuf]() {
-                for (const BufItem& line : lhsBuf) {
-                    if (line.changed) {
-                        stacked().elements.push_back(
-                            {.lineIndex     = line.lineIndex,
-                             .prefix        = line.kind,
-                             .isLhs         = true,
-                             .originalIndex = line.originalIndex});
-                    }
-                }
-
-                for (const BufItem& line : rhsBuf) {
-                    if (line.changed) {
-                        stacked().elements.push_back(
-                            {.lineIndex     = line.lineIndex,
-                             .prefix        = line.kind,
-                             .isLhs         = false,
-                             .originalIndex = line.originalIndex});
-                    }
-                }
-            };
-
-            for (auto it = oldText.begin() + 1, jt = newText.begin() + 1;
-                 it != oldText.end() - 1;
-                 ++it, ++jt) {
-                if (it->kind != lhsBuf.back().kind
-                    || jt->kind != rhsBuf.back().kind) {
-                    // If one of the edit streaks finished, dump both
-                    // results to output and continue
-                    //
-                    // - removed + added    - removed
-                    // - removed + added    - removed
-                    // - removed ?          + added
-                    // ~ kept    ~ kept     + added
-                    // ~ kept    ~ kept     - removed
-                    //                      ~ kept
-                    //                      ~ kept
-                    addBuffers();
-                    lhsBuf = {*it};
-                    rhsBuf = {*jt};
-                } else {
-                    lhsBuf.push_back(*it);
-                    rhsBuf.push_back(*jt);
-                }
-            }
-
-            addBuffers();
-
-        } else {
-            // Ungrouped lines either with unified or side-by-side
-            // representation
-            int lhsMax = 0;
-            content    = FormattedDiff::UnifiedDiff{};
-
-            for (auto oldIt = oldText.begin(), newIt = newText.begin();
-                 oldIt != oldText.end();
-                 ++oldIt, ++newIt) {
-                if (conf.sideBySide) {
-                    unified().lhs.push_back(FormattedDiff::DiffLine{
-                        .originalIndex = oldIt->originalIndex,
-                        .isLhs         = true,
-                        .prefix        = oldIt->kind,
-                        .lineIndex     = oldIt->lineIndex});
-
-                    unified().rhs.push_back(FormattedDiff::DiffLine{
-                        .originalIndex = newIt->originalIndex,
-                        .isLhs         = false,
-                        .prefix        = newIt->kind,
-                        .lineIndex     = newIt->lineIndex});
-                } else {
-                    unified().lhs.push_back(FormattedDiff::DiffLine{
-                        .originalIndex = oldIt->originalIndex,
-                        .isLhs         = true,
-                        .prefix        = oldIt->kind,
-                        .lineIndex     = oldIt->lineIndex});
-
-                    if (newIt->changed) {
-                        unified().rhs.push_back(FormattedDiff::DiffLine{
-                            .originalIndex = newIt->originalIndex,
-                            .isLhs         = false,
-                            .prefix        = newIt->kind,
-                            .lineIndex     = newIt->lineIndex});
-                    }
-                }
-            }
-        }
-    }
+        const DiffFormatConf& conf = DiffFormatConf{});
 };
 
 
-inline ColText formatInlineDiff(
+ColText formatInlineDiff(
     const Vec<Str>&     src,
     const Vec<Str>&     target,
     const Vec<SeqEdit>& diffed,
-    DiffFormatConf      conf) {
-    CharSet      start = Invis + CharSet{' '};
-    Vec<ColText> chunks;
-
-    auto push = [&](const Str&  text,
-                    SeqEditKind mode,
-                    SeqEditKind secondary,
-                    bool        toLast   = false,
-                    bool        isInline = false) {
-        ColText chunk;
-        if (conf.explainInvisible && scanInvisible(text, start)) {
-            chunk = conf.chunk(
-                toVisibleNames(conf, text), mode, secondary, isInline);
-        } else {
-            chunk = conf.chunk(text, mode, secondary, isInline);
-        }
-
-        if (toLast) {
-            chunks.back().append(chunk);
-        } else {
-            chunks.push_back(chunk);
-        }
-    };
-
-    Vec<Span<SeqEdit const>> groups;
-    if (conf.groupInline) {
-        groups = partition<SeqEdit, SeqEditKind>(
-            diffed, [](CR<SeqEdit> edit) { return edit.kind; });
-    } else {
-        for (int i = 0; i < diffed.size(); ++i) {
-            groups[i] = {diffed[slice(i, i)]};
-        }
-    }
-
-    using sek = SeqEditKind;
-    int gIdx  = groups.size() - 1;
-    while (0 <= gIdx) {
-        switch (groups[gIdx][0].kind) {
-            case sek::Keep: {
-                Str buf;
-                for (const auto& op : groups[gIdx]) {
-                    buf.append(src[op.sourcePos]);
-                }
-                push(buf, sek::Keep, sek::Keep);
-                break;
-            }
-            case sek::None:
-            case sek::Transpose: break;
-            case sek::Insert: {
-                Str buf;
-                for (const auto& op : groups[gIdx]) {
-                    buf.append(target[op.targetPos]);
-                }
-                push(buf, sek::Insert, sek::Insert);
-                break;
-            }
-            case sek::Delete: {
-                Str buf;
-                for (const auto& op : groups[gIdx]) {
-                    buf.append(src[op.sourcePos]);
-                }
-                push(buf, sek::Delete, sek::Delete);
-                break;
-            }
-            case sek::Replace: {
-                Str sourceBuf, targetBuf;
-                for (const auto& op : groups[gIdx]) {
-                    sourceBuf.append(src[op.sourcePos]);
-                    targetBuf.append(target[op.targetPos]);
-                }
-                push(sourceBuf, sek::Replace, sek::Delete, true);
-                push(targetBuf, sek::Replace, sek::Insert, true, true);
-                break;
-            }
-        }
-        gIdx--;
-    }
-
-    // Because we iterated from right to left, all edit operations are
-    // placed in reverse as well, so this needs to be fixed
-    return join(conf.inlineDiffSeparator, chunks);
-}
+    DiffFormatConf      conf);
 
 
-template <
-    typename T,
-    int MatchBufferSize        = 256,
-    typename MatchPositionType = int>
-struct FuzzyMatcher {
-    Func<bool(CR<T>, CR<T>)> isEqual;
-    Func<bool(CR<T>)>        isSeparator;
+struct FuzzyMatcher : OperationsTracer {
+    using Range     = Slice<int>;
+    using ScoreFunc = Func<
+        int(Range const& str, int nextMatch, Vec<int> const& matches)>;
+
+    Func<bool(int lhsIdx, int rhsIdx)> isEqual;
+
+    ScoreFunc matchScore;
+
 
     int recursionLimit = 10;
-    /// bonus for adjacent matches
-    int sequential_bonus = 15;
-    /// bonus if match occurs after a separator
-    int separator_bonus = 30;
-    /// bonus if match is uppercase and prev is lower
-    int camel_bonus = 30;
-    /// bonus if the first letter is matched
-    int first_letter_bonus = 15;
-    /// penalty applied for every letter in str before the first match
-    int leading_letter_penalty = -5;
-    /// maximum penalty for leading letters
-    int max_leading_letter_penalty = -15;
-    /// penalty for every letter that doesn't matter
-    int unmatched_letter_penalty = -1;
-    int start_score              = 100;
 
-    Array<MatchPositionType, MatchBufferSize> matches;
+    struct LinearScoreConfig {
+        /// bonus for adjacent matches
+        int sequential_bonus = 15;
+        /// bonus if match occurs after a separator
+        int separator_bonus = 30;
+        /// bonus if the first letter is matched
+        int first_letter_bonus = 15;
+        /// penalty applied for every letter in str before the first match
+        int leading_letter_penalty = -5;
+        /// maximum penalty for leading letters
+        int max_leading_letter_penalty = -15;
+        /// penalty for every letter that doesn't matter
+        int                 unmatched_letter_penalty = -1;
+        int                 start_score              = 100;
+        Func<bool(int idx)> isSeparator;
 
-    bool fuzzy_match_recursive(
-        Span<T>                  pattern,
-        Span<T>                  str,
-        int&                     outScore,
-        Span<T>                  strBegin,
-        const MatchPositionType* srcMatches,
-        MatchPositionType*       matches,
-        int                      nextMatch,
-        int&                     recursionCount) {
-        // Count recursions
-        ++recursionCount;
-        if (recursionLimit <= recursionCount) { return false; }
+        DESC_FIELDS(
+            LinearScoreConfig,
+            (sequential_bonus,
+             separator_bonus,
+             first_letter_bonus,
+             leading_letter_penalty,
+             max_leading_letter_penalty,
+             unmatched_letter_penalty,
+             start_score));
+    };
 
-        // Detect end of Strs
-        if (!pattern.hasData() || !str.hasData()) { return false; }
+    ScoreFunc getLinearScore(LinearScoreConfig const& conf);
 
-        // Recursion params
-        bool              recursiveMatch = false;
-        MatchPositionType bestRecursiveMatches[MatchBufferSize];
-        int               bestRecursiveScore = 0;
 
-        // Loop through pattern and str looking for a match
-        bool first_match = true;
-        while (pattern.hasData() && str.hasData()) {
+    DESC_FIELDS(FuzzyMatcher, (recursionLimit, matches));
 
-            // Found match
-            if (this->isEqual(pattern.front(), str.front())) {
-
-                // Supplied matches buffer was too short
-                if (MatchBufferSize <= nextMatch) { return false; }
-
-                // "Copy-on-Write" srcMatches into matches
-                if (first_match && srcMatches) {
-                    memcpy(matches, srcMatches, nextMatch);
-                    first_match = false;
-                }
-
-                // Recursive call that "skips" this match
-                MatchPositionType recursiveMatches[MatchBufferSize];
-                int               recursiveScore;
-                str.moveStart(1, str.data() + str.size());
-                if (fuzzy_match_recursive(
-                        pattern,
-                        str,
-                        recursiveScore,
-                        strBegin,
-                        matches,
-                        recursiveMatches,
-                        nextMatch,
-                        recursionCount)) {
-
-                    // Pick best recursive score
-                    if (!recursiveMatch
-                        || bestRecursiveScore < recursiveScore) {
-                        memcpy(
-                            bestRecursiveMatches,
-                            recursiveMatches,
-                            MatchBufferSize);
-                        bestRecursiveScore = recursiveScore;
-                    }
-                    recursiveMatch = true;
-                }
-
-                // Advance
-                matches[nextMatch++] = std::distance(
-                    str.data(), strBegin.data());
-                pattern.moveStart(1, pattern.data() + pattern.size());
-            }
-            str.moveStart(1, str.data() + str.size());
-        }
-
-        // Determine if full pattern was matched
-        bool matched = !pattern.hasData();
-
-        // Calculate score
-        if (matched) {
-
-            // Iterate str to end
-            while (str.hasData()) {
-                str.moveStart(1, str.data() + str.size());
-            }
-
-            // Initialize score
-            outScore = start_score;
-
-            // Apply leading letter penalty
-            int penalty = leading_letter_penalty * matches[0];
-            if (penalty < max_leading_letter_penalty) {
-                penalty = max_leading_letter_penalty;
-            }
-            outScore += penalty;
-
-            // Apply unmatched penalty
-            int unmatched = std::distance(str.data(), strBegin.data())
-                          - nextMatch;
-            outScore += unmatched_letter_penalty * unmatched;
-
-            // Apply ordering bonuses
-            for (int i = 0; i < nextMatch; ++i) {
-                MatchPositionType currIdx = matches[i];
-
-                if (i > 0) {
-                    MatchPositionType prevIdx = matches[i - 1];
-
-                    // Sequential
-                    if (currIdx == (prevIdx + 1)) {
-                        outScore += sequential_bonus;
-                    }
-                }
-
-                // Check for bonuses based on neighbor character value
-                if (0 < currIdx) {
-                    // Camel case
-                    const T& neighbor = strBegin[currIdx - 1];
-                    const T& curr     = strBegin[currIdx];
-                    // TODO implement in generic manner
-                    // if (neighbor.isLower() && curr.isLower()) {
-                    //     outScore += camel_bonus;
-                    // }
-
-                    // Separator
-                    if (isSeparator(neighbor)) {
-                        outScore += separator_bonus;
-                    }
-                } else {
-                    // First letter
-                    outScore += first_letter_bonus;
-                }
-            }
-        }
-
-        // Return best result
-        if (recursiveMatch
-            && (!matched || outScore < bestRecursiveScore)) {
-            // Recursive score is better than "this"
-            memcpy(matches, bestRecursiveMatches, MatchBufferSize);
-            outScore = bestRecursiveScore;
-            return true;
-        } else if (matched) {
-            // "this" score is better than recursive
-            return true;
-        } else {
-            // no match
-            return false;
-        }
-    }
-
+    Vec<int> matches;
 
     bool fuzzy_match(
-        Span<T>            pattern,
-        Span<T>            str,
-        int&               outScore,
-        MatchPositionType* matches) {
-        int recursionCount = 0;
+        Range     pattern,
+        Range     str,
+        int&      outScore,
+        Vec<int>& matches);
 
-        return fuzzy_match_recursive(
-            pattern,
-            str,
-            outScore,
-            str,
-            nullptr,
-            matches,
-            0,
-            recursionCount);
+    bool fuzzy_match(Range pattern, Range str, int& outScore) {
+        matches.resize(pattern.last + 1);
+        return fuzzy_match(pattern, str, outScore, matches);
     }
 
-    bool fuzzy_match(Span<T> pattern, Span<T> str, int& outScore) {
-        return fuzzy_match(pattern, str, outScore, &matches[0]);
-    }
-
-    int get_score(Span<T> item, Span<T> pattern) {
+    int get_score(Range item, Range pattern) {
         int score;
         if (fuzzy_match(pattern, item, score)) {
             return score;

@@ -32,3 +32,6 @@ struct CRTP_hexception
                 .c_str());
     }
 };
+
+
+struct logic_assertion_error : CRTP_hexception<logic_assertion_error> {};

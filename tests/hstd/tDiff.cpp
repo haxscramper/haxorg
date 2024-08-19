@@ -186,22 +186,110 @@ TEST_F(DiffTest, Insertion) {
     EXPECT_EQ(result[3].targetPos, 3);
 }
 
-class FuzzyMatchConfigurableTest : public ::testing::Test {
+class DiffTestFuzzy : public ::testing::Test {
   protected:
-    void SetUp() override {
-        matcher.isEqual = [](CR<char> lhs, CR<char> rhs) -> bool {
-            return lhs == rhs;
-        };
-        matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
+    void SetUp() override {}
+
+
+    FuzzyMatcher initMatcher(bool trace = false) {
+        const ::testing::TestInfo* const test_info //
+            = ::testing::UnitTest::GetInstance()->current_test_info();
+        FuzzyMatcher matcher;
+
+        if (trace) {
+            matcher.setTraceFile(
+                fmt("/tmp/{}_{}.txt",
+                    test_info->test_suite_name(),
+                    test_info->name()));
+        }
+
+        return matcher;
     }
 
-    FuzzyMatcher<char const> matcher;
+    Vec<int> runMatcher(
+        FuzzyMatcher& matcher,
+        const Str&    lhs,
+        const Str&    rhs) {
+        int score       = 0;
+        matcher.isEqual = [&](CR<int> lhsIdx, CR<int> rhsIdx) -> bool {
+            return lhs.at(lhsIdx) == rhs.at(rhsIdx);
+        };
 
-    auto getMatches(const Str& lhs, const Str& rhs) -> Array<int, 256> {
+        if (!lhs.empty() && !rhs.empty()) {
+            matcher.fuzzy_match(
+                slice(0, lhs.size() - 1), slice(0, rhs.size() - 1), score);
+        }
+
         return matcher.matches;
+    }
+
+    auto getMatches(const Str& lhs, const Str& rhs) -> Vec<int> {
+        FuzzyMatcher matcher = initMatcher();
+
+        matcher.matchScore = matcher.getLinearScore(
+            FuzzyMatcher::LinearScoreConfig{
+                .isSeparator = [](CR<char> sep) -> bool {
+                    return false;
+                }});
+        return runMatcher(matcher, lhs, rhs);
     }
 };
 
-TEST_F(FuzzyMatchConfigurableTest, FullMatch) {
+TEST_F(DiffTestFuzzy, FullMatch) {
     auto m = getMatches("123", "010233");
+    EXPECT_EQ(m.size(), 3);
+    EXPECT_EQ(m.at(0), 1);
+    EXPECT_EQ(m.at(1), 3);
+    EXPECT_EQ(m.at(2), 4);
+}
+
+TEST_F(DiffTestFuzzy, FavorLateCluster) {
+    auto m = initMatcher(true);
+
+    m.matchScore = [](FuzzyMatcher::Range const& str,
+                      int                        nextMatch,
+                      Vec<int> const&            matches) -> int {
+        int base = 0;
+        for (auto const& it : matches) { base += it; }
+        return base;
+    };
+
+
+    auto res = runMatcher(m, "999", "999000999");
+    EXPECT_EQ(res.size(), 3);
+    EXPECT_EQ(res.at(0), 6);
+    EXPECT_EQ(res.at(1), 7);
+    EXPECT_EQ(res.at(2), 8);
+}
+
+
+TEST_F(DiffTestFuzzy, FavorEarlyCluster) {
+    auto m = initMatcher(true);
+
+    m.matchScore = [](FuzzyMatcher::Range const& str,
+                      int                        nextMatch,
+                      Vec<int> const&            matches) -> int {
+        int base = 0;
+        for (auto const& it : matches) { base += str.last - it; }
+        return base;
+    };
+
+
+    auto res = runMatcher(m, "999", "999000999");
+    EXPECT_EQ(res.size(), 3);
+    EXPECT_EQ(res.at(0), 0);
+    EXPECT_EQ(res.at(1), 1);
+    EXPECT_EQ(res.at(2), 2);
+}
+
+TEST_F(DiffTestFuzzy, EdgeCases) {
+    {
+        auto m = getMatches("", "0000000000000");
+        EXPECT_EQ(m.size(), 0);
+    }
+
+    {
+        auto m = getMatches("000000000", "");
+        EXPECT_EQ(m.size(), 0);
+    }
 }

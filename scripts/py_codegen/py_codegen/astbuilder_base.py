@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, NewType
 
 from beartype import beartype
 from beartype.typing import List, Optional, Union, overload
-from py_textlayout.py_textlayout_wrap import TextLayout
+from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 import itertools
 
 if TYPE_CHECKING:
@@ -76,6 +76,9 @@ class AstbuilderBase:
                               AstIndentCtx]] = field(default_factory=list)
     last_result: Optional[BlockId] = None
 
+    def toString(self, block: BlockId) -> str:
+        return self.b.toString(block, TextOptions())
+
     def __repr__(self):
         # Beartype cannot run default repr because it fails with missing context state value.
         return "astbuilder-base"
@@ -119,8 +122,18 @@ class AstbuilderBase:
         else:
             return self.b.stack(args)
 
-    def line(self, *args: BlockId) -> BlockId:
-        return self.b.line(args)
+    def line(self, *args: BlockId | List[BlockId]) -> BlockId:
+        if any(isinstance(arg, list) for arg in args):
+            return self.b.line(list(itertools.chain(*args)))
+        else:
+            return self.b.line(args)
+
+    def spatial(self, isLine: bool, *args: BlockId | List[BlockId]) -> BlockId:
+        if isLine:
+            return self.line(*args)
+
+        else:
+            return self.stack(*args)
 
     def indent(self, indent: int, *args: BlockId) -> BlockId:
         return self.b.indent(indent, self.b.stack(args))

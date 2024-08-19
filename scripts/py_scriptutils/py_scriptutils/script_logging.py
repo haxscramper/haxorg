@@ -14,6 +14,7 @@ def to_debug_json(
     obj,
     include_single_underscore_attrs: bool = False,
     include_double_underscore_attrs: bool = False,
+    skip_cyclic_data: bool = True,
 ):
     visited = set()
 
@@ -24,7 +25,7 @@ def to_debug_json(
         elif isinstance(obj, (enum.Enum, enum.IntEnum, enum.StrEnum)):
             return str(obj)
 
-        if id(obj) in visited:
+        if skip_cyclic_data and id(obj) in visited:
             return f"cycle {type(obj)} {id(obj)}"
 
         visited.add(id(obj))
@@ -69,6 +70,23 @@ def to_debug_json(
                         result[slot_name] = aux(value)
 
                 return result
+
+            elif hasattr(obj, "keys") and hasattr(obj, "__getitem__"):
+                keys = obj.keys()
+                if all(isinstance(it, str) for it in keys):
+                    return {key: aux(obj[key]) for key in keys}
+
+                else:
+                    return [[aux(key), aux(obj[key])] for key in keys]
+
+            elif hasattr(obj, "__len__") and hasattr(obj, "__getitem__"):
+                return [aux(obj[i]) for i in range(0, len(obj))]
+
+            elif hasattr(obj, "__str__") or hasattr(obj, "__repr__"):
+                return f"{type(obj)} = {obj}"
+            
+            elif hasattr(obj, "__int__"):
+                return f"{type(obj)} = {int(obj)}"
 
             else:
                 return f"unhandled {type(obj)}"
@@ -131,6 +149,7 @@ class ExceptionContextNote:
     """
     If context body raises an exception, add a note to it.
     """
+
     def __init__(self, note: str):
         self.note = note
 
@@ -143,6 +162,7 @@ class ExceptionContextNote:
                 exc_value.__notes__ = []
             exc_value.__notes__.append(self.note)
         return False
+
 
 def custom_traceback_handler(exc_type, exc_value, exc_traceback):
     """

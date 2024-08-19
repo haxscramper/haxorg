@@ -123,16 +123,15 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
     }
 };
 
-template <typename T, int Size, typename CharT>
-struct std::formatter<Array<T, Size>, CharT> : Fmt<std::string, CharT> {
-    using FmtType = Array<T, Size>;
+template <typename T, int Size>
+struct std::formatter<Array<T, Size>> : std::formatter<std::string> {
     template <typename FormatContext>
     typename FormatContext::iterator format(
-        FmtType const& p,
-        FormatContext& ctx) {
-        Fmt<std::string, CharT> fmt;
+        Array<T, Size> const& p,
+        FormatContext&        ctx) const {
+        std::formatter<std::string> fmt;
         fmt.format("[", ctx);
-        fmt.format(join(", ", p));
+        fmt.format(join(", ", p), ctx);
         return fmt.format("]", ctx);
     }
 };

@@ -9,7 +9,7 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <absl/log/check.h>
-
+#include <hstd/stdlib/ColText.hpp>
 
 #include <iostream>
 #include <cassert>
@@ -18,9 +18,6 @@
 #include <unordered_set>
 #include <limits>
 #include <functional>
-#include <memory>
-#include <optional>
-#include <vector>
 
 
 #define COUT std::cout << "[\033[33m" << __LINE__ << "\033[0m] "
@@ -39,25 +36,26 @@ void writeIfIndex(std::ostream& os, std::variant<Args...> const& var) {
     }
 }
 
+
 /// \brief Within a tree, this identifies a node by its preorder offset.
 ///
 /// Internally this is an index into a flat structure that holds syntax
 /// tree nodes. Access to the target node is performed via vector indexing.
-struct NodeId {
+struct NodeIdx {
   private:
     static constexpr int InvalidNodeOffset = -1;
 
   public:
     int Offset; /// Offset in the postorder iteratio
-    inline NodeId() : Offset(InvalidNodeOffset) {}
-    inline NodeId(int Offset) : Offset(Offset) {}
+    inline NodeIdx() : Offset(InvalidNodeOffset) {}
+    inline NodeIdx(int Offset) : Offset(Offset) {}
 
-    inline         operator int() const { return Offset; }
-    inline NodeId& operator++() { return ++Offset, *this; }
-    inline NodeId& operator--() { return --Offset, *this; }
-    /// Support defining iterators on NodeId.
-    inline NodeId& operator*() { return *this; }
-    inline bool    isValid() const { return Offset != InvalidNodeOffset; }
+    inline          operator int() const { return Offset; }
+    inline NodeIdx& operator++() { return ++Offset, *this; }
+    inline NodeIdx& operator--() { return --Offset, *this; }
+    /// Support defining iterators on NodeIdx.
+    inline NodeIdx& operator*() { return *this; }
+    inline bool     isValid() const { return Offset != InvalidNodeOffset; }
     inline bool isInvalid() const { return Offset == InvalidNodeOffset; }
 
     inline void assertValid(std::string const& msg) const {
@@ -65,6 +63,51 @@ struct NodeId {
             throw std::domain_error(
                 "non-valid (-1) node found for " + msg);
         }
+    }
+
+    DESC_FIELDS(NodeIdx, (Offset));
+};
+
+
+struct ASTNodeKind {
+    int value = 0;
+    ASTNodeKind(int kind) : value(kind) {}
+    bool operator==(ASTNodeKind const& other) const {
+        return value == other.value;
+    }
+
+    DESC_FIELDS(ASTNodeKind, (value));
+};
+
+struct NodeStore {
+    struct Id {
+        i64 id = -1;
+
+        template <typename T>
+        static Id FromPtr(T const* value) {
+            return Id{.id = reinterpret_cast<i64>(value)};
+        }
+
+        template <typename T>
+        T* ToPtr() {
+            return static_cast<T*>(id);
+        }
+
+        template <typename T>
+        T const* ToPtr() const {
+            return reinterpret_cast<T const*>(
+                static_cast<std::intptr_t>(id));
+        }
+    };
+
+    virtual int getSubnodeCount(Id const& id)           = 0;
+    virtual Id  getSubnodeAt(Id const& node, int index) = 0;
+    virtual Id  getRoot()                               = 0;
+
+
+    virtual ASTNodeKind getNodeKind(Id const& node) const = 0;
+    virtual bool isMatchingAllowed(Id const& src, Id const& dst) const {
+        return getNodeKind(src) == getNodeKind(dst);
     }
 };
 
@@ -79,19 +122,19 @@ class Mapping {
         DstToSrc.resize(Size);
     }
 
-    void link(NodeId Src, NodeId Dst) {
+    void link(NodeIdx Src, NodeIdx Dst) {
         SrcToDst[Src] = Dst;
         DstToSrc[Dst] = Src;
     }
 
-    NodeId getDst(NodeId Src) const { return SrcToDst[Src]; }
-    NodeId getSrc(NodeId Dst) const { return DstToSrc[Dst]; }
-    bool   hasSrc(NodeId Src) const { return getDst(Src).isValid(); }
-    bool   hasDst(NodeId Dst) const { return getSrc(Dst).isValid(); }
+    NodeIdx getDst(NodeIdx Src) const { return SrcToDst[Src]; }
+    NodeIdx getSrc(NodeIdx Dst) const { return DstToSrc[Dst]; }
+    bool    hasSrc(NodeIdx Src) const { return getDst(Src).isValid(); }
+    bool    hasDst(NodeIdx Dst) const { return getSrc(Dst).isValid(); }
 
   private:
-    Vec<NodeId> SrcToDst;
-    Vec<NodeId> DstToSrc;
+    Vec<NodeIdx> SrcToDst;
+    Vec<NodeIdx> DstToSrc;
 };
 
 enum class ChangeKind
@@ -114,19 +157,9 @@ BOOST_DESCRIBE_ENUM(
     Move,
     UpdateMove);
 
-struct ASTNodeKind {
-    int value = 0;
-    ASTNodeKind(int kind) : value(kind) {}
-    bool operator==(ASTNodeKind const& other) const {
-        return value == other.value;
-    }
-};
 
-
-template <typename Id, typename Val>
 struct Node;
 
-template <typename Id, typename Val>
 struct ComparisonOptions {
     /// During top-down matching, only consider nodes of at least this
     /// height.
@@ -140,6 +173,15 @@ struct ComparisonOptions {
     int  MaxSize          = 100;
     bool StopAfterTopDown = false;
 
+    /// Use a simple cost model for edit actions, which seems good
+    /// enough. Simple cost model for edit actions. This seems to make the
+    /// matching algorithm perform reasonably well. The values range
+    /// between 0 and 1, or infinity if this edit action should always be
+    /// avoided.
+    double DeletionCost  = 1;
+    double InsertionCost = 1;
+    double UpdateCost    = 1;
+
     enum class FirstPassKind
     {
         TopDown,
@@ -147,88 +189,62 @@ struct ComparisonOptions {
     };
 
     FirstPassKind firstPass = FirstPassKind::TopDown;
-
-    /// \brief Get node value from specified ID
-    Func<Val(Id)> getNodeValueImpl;
-    /// \brief Get node kind in integer form (usually static cast of enum
-    /// to int)
-    Func<int(Id)> getNodeKindImpl;
-    /// \brief Can node with these IDs be matched together? Callback can be
-    /// empty
-    Func<bool(Id, Id)> isMatchingAllowedImpl;
-    /// Returns false if the nodes should never be matched.
-    bool isMatchingAllowed(
-        const Node<Id, Val>& N1,
-        const Node<Id, Val>& N2) const {
-        if (isMatchingAllowedImpl
-            && isMatchingAllowedImpl(N1.ASTNode, N2.ASTNode)) {
-            return true;
-        } else {
-            return N1.getNodeKind(*this) == N2.getNodeKind(*this);
-        }
-    }
-
-    Val getNodeValue(Id id) const { return getNodeValueImpl(id); }
-    int getNodeKind(Id id) const { return getNodeKindImpl(id); }
+    Func<bool(const Node& N1, const Node& N2)>     isMatchingAllowed;
+    Func<bool(Node const& src, Node const& dst)>   areValuesEqual;
+    Func<double(Node const& src, Node const& dst)> getUpdateCost;
 };
-
-
-/// \brief Temporary container for transitioning the original AST structure
-/// to the SyntaxTree form.
-template <typename Id, typename Val>
-struct TreeMirror {
-    Id id; /// Identifier value that can be used to get back the original
-           /// node information
-
-    Vec<TreeMirror<Id, Val>> subnodes; /// List of the subnodes
-};
-
-template <typename Id, typename Val>
-CR<TreeMirror<Id, Val>> getSubnodeAtTreeMirror(
-    CR<TreeMirror<Id, Val>> tree,
-    int                     index) {
-    return tree.subnodes.at(index);
-}
-
-template <typename Id, typename Val>
-int getSubnodeNumberTreeMirror(CR<TreeMirror<Id, Val>> tree) {
-    return tree.subnodes.size();
-}
-
-template <typename Id, typename Val>
-Id getSubnodeIdTreeMirror(CR<TreeMirror<Id, Val>> tree) {
-    return tree.id;
-}
 
 
 /// \brief Represents an AST node, alongside some additional information.
 ///
 /// Single node of the original AST
-template <typename Id, typename Val>
 struct Node {
-    NodeId      Parent              = NodeId();
-    NodeId      LeftMostDescendant  = NodeId();
-    NodeId      RightMostDescendant = NodeId();
-    int         Depth               = 0;
-    int         Height              = 0;
-    int         Shift               = 0;
-    Id          ASTNode  = Id(); /// Reference to the original AST node
-    Vec<NodeId> Subnodes = {};   /// Explicit list of the subnode IDS
-    ChangeKind  Change   = ChangeKind::None;
+    NodeIdx       Parent              = NodeIdx{};
+    NodeIdx       LeftMostDescendant  = NodeIdx{};
+    NodeIdx       RightMostDescendant = NodeIdx{};
+    int           Depth               = 0;
+    int           Height              = 0;
+    int           Shift               = 0;
+    NodeStore::Id ASTNode             = NodeStore::Id{};
+    Vec<NodeIdx>  Subnodes            = {};
+    ChangeKind    Change              = ChangeKind::None;
+    NodeStore*    store               = nullptr;
 
-    ASTNodeKind getNodeKind(
-        ComparisonOptions<Id, Val> const& _opts) const {
-        return _opts.getNodeKind(ASTNode);
+    Node(NodeStore* store) : store{store} {}
+
+    ASTNodeKind getNodeKind() const { return store->getNodeKind(ASTNode); }
+    bool        isLeaf() const { return Subnodes.empty(); }
+
+    template <typename T>
+    T* getStore() const {
+        auto res = dynamic_cast<T*>(store);
+        CHECK(res != nullptr);
+        return res;
     }
-
-    bool isLeaf() const { return Subnodes.empty(); }
 };
 } // namespace diff
 
-template <typename Id, typename Val>
-struct std::formatter<diff::Node<Id, Val>> : std::formatter<std::string> {
+template <>
+struct std::formatter<diff::NodeIdx> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const diff::Node<Id, Val>& p, FormatContext& ctx) {
+    auto format(const diff::NodeIdx& p, FormatContext& ctx) const {
+        return fmt_ctx(p.Offset, ctx);
+    }
+};
+
+
+template <>
+struct std::formatter<diff::NodeStore::Id> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const diff::NodeStore::Id& p, FormatContext& ctx) const {
+        return fmt_ctx(p.id, ctx);
+    }
+};
+
+template <>
+struct std::formatter<diff::Node> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const diff::Node& p, FormatContext& ctx) {
         return std::format(
             "<H: {}, D: {}, S: {}, P: {}, L: {}, R: {}>",
             p.Height,
@@ -242,123 +258,102 @@ struct std::formatter<diff::Node<Id, Val>> : std::formatter<std::string> {
 
 
 namespace diff {
+
+class SyntaxTree;
+
+Vec<NodeIdx> getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root);
+Vec<NodeIdx> getSubtreePostorder(const SyntaxTree& Tree, NodeIdx Root);
+
+
 /// SyntaxTree objects represent subtrees of the AST.
 ///
 /// There are only two instances of the SyntaxTree class during comparison
 /// - destination and source. Structure is not recursive in tiself -
 /// subnodes are determined based on the Node::Subnodes field which
 /// explicitly stores list of subnode ids.
-template <typename Id, typename Val>
 class SyntaxTree {
   public:
-    SyntaxTree(SyntaxTree<Id, Val>&& Other) = default;
-    ~SyntaxTree()                           = default;
-    using PreorderIterator                  = NodeId;
+    SyntaxTree(SyntaxTree&& Other) = default;
+    ~SyntaxTree()                  = default;
+    using PreorderIterator         = NodeIdx;
 
-    ComparisonOptions<Id, Val> const& getOpts() const { return opts; }
+    ComparisonOptions const& getOpts() const { return opts; }
 
   public:
-    SyntaxTree(ComparisonOptions<Id, Val> const& opts);
-    template <typename InNode>
-    struct WalkParameters {
-        /// Get subnode at position
-        Func<CR<InNode>(CR<InNode>, int)> getSubnodeAt;
-        /// Get number of subnodes for input node
-        Func<int(CR<InNode>)> getSubnodeNumber;
-        /// Get ID for subnode
-        Func<Id(CR<InNode>)> getSubnodeId;
-    };
+    SyntaxTree(ComparisonOptions const& _opts) {}
 
     /// Constructs a tree from an AST node using provided accessor
     /// callbacks
-    template <typename InNode>
-    void FromNode(InNode const& N, CR<WalkParameters<InNode>> walk);
+    void FromNode(NodeStore* store);
     /// Nodes in preorder.
-    Vec<Node<Id, Val>> Nodes;
-    Vec<NodeId>        Leaves;
+    Vec<Node>    Nodes;
+    Vec<NodeIdx> Leaves;
     /// Maps preorder indices to postorder ones.
-    Vec<int>                   PostorderIds;
-    Vec<NodeId>                NodesBfs;
-    int                        getSize() const { return Nodes.size(); }
-    NodeId                     getRootId() const { return 0; }
-    PreorderIterator           begin() const { return getRootId(); }
-    PreorderIterator           end() const { return getSize(); }
-    ComparisonOptions<Id, Val> opts;
+    Vec<int>          PostorderIds;
+    Vec<NodeIdx>      NodesBfs;
+    int               getSize() const { return Nodes.size(); }
+    NodeIdx           getRootId() const { return 0; }
+    PreorderIterator  begin() const { return getRootId(); }
+    PreorderIterator  end() const { return getSize(); }
+    ComparisonOptions opts;
 
-    Node<Id, Val> const& getNode(NodeId id) const {
-        return Nodes.at(id.Offset);
+    NodeStore::Id getStoreId(NodeIdx idx) const {
+        return getNode(idx).ASTNode;
     }
 
-    NodeId getParent(NodeId id) const { return getNode(id).Parent; }
+    Node const& getNode(NodeIdx id) const { return Nodes.at(id.Offset); }
+    NodeIdx     getParent(NodeIdx id) const { return getNode(id).Parent; }
 
     struct PathElement {
         /// Parent node to index into -- set to 'invalid' for root nodes
-        NodeId under;
+        NodeIdx under;
         /// Position for the `under` node indexing
         int  position;
         bool isRoot() const { return under.isInvalid() && position == -1; }
     };
 
-    Node<Id, Val> const& getNode(PathElement const& path) {
+    Node const& getNode(PathElement const& path) {
         return getNode(getNode(path.under).Subnodes.at(path.position));
     }
 
-    Node<Id, Val>& getMutableNode(NodeId id) { return Nodes[id]; }
+    Node& getMutableNode(NodeIdx id) { return Nodes[id]; }
 
     /// \brief Iterate over all node IDs that are present in the syntax
     /// tree
-    generator<NodeId> nodeIds() {
-        for (int i = 0; i < Nodes.size(); ++i) { co_yield NodeId(i); }
+    generator<NodeIdx> nodeIds() {
+        for (int i = 0; i < Nodes.size(); ++i) { co_yield NodeIdx(i); }
     }
 
     /// \brief Check if the node ID falls in a range of nodes that is
     /// stored in this syntax tree
-    bool isValidNodeId(NodeId id) const {
+    bool isValidNodeIdx(NodeIdx id) const {
         return 0 <= id && id < getSize();
     }
 
     /// \brief Add node value objet to the syntax tree node list
-    void addNode(Node<Id, Val>& N) { Nodes.push_back(N); }
+    void addNode(Node& N) { Nodes.push_back(N); }
 
-    int getNumberOfDescendants(NodeId id) const {
+    int getNumberOfDescendants(NodeIdx id) const {
         return getNode(id).RightMostDescendant - id + 1;
     }
 
     /// \brief Check if given ID is a subtree of a given root
-    bool isInSubtree(NodeId id, NodeId SubtreeRoot) const {
+    bool isInSubtree(NodeIdx id, NodeIdx SubtreeRoot) const {
         return SubtreeRoot <= id
             && id <= getNode(SubtreeRoot).RightMostDescendant;
     }
 
-    /// Serialize the node attributes to a string representation. This
-    /// should uniquely distinguish nodes of the same kind. Note that this
-    /// function just returns a representation of the node value, not
-    /// considering descendants.
-    Val getNodeValue(NodeId id) const { return getNodeValue(getNode(id)); }
-    int getNodeKind(NodeId id) const { return getNodeKind(getNode(id)); }
-
-    /// \brief Get node value using callbacks provided in the `opts` field
-    Val getNodeValue(const Node<Id, Val>& Node) const {
-        return opts.getNodeValue(Node.ASTNode);
-    }
-
-    /// \brief Get node kind value using callbacks provided in the `opts`
-    /// field
-    int getNodeKind(const Node<Id, Val>& Node) const {
-        return opts.getNodeKind(Node.ASTNode);
-    }
-
     /// \brief Get full list of the node's ancestors. Iteration starts with
     /// the current node or it's direct ancestor and moves upwards.
-    Vec<NodeId> getParentIdChain(
-        NodeId id,
-        bool   withSelf = true /// Include the node in the list
+    Vec<NodeIdx> getParentIdChain(
+        NodeIdx id,
+        bool    withSelf = true /// Include the node in the list
     ) const {
-        Vec<NodeId> result;
+        Vec<NodeIdx> result;
 
         if (withSelf) { result.push_back(id); }
 
-        NodeId parent = getParent(id);
+        NodeIdx parent = getParent(id);
         while (parent.isValid()) {
             result.push_back(parent);
             parent = getParent(parent);
@@ -369,8 +364,8 @@ class SyntaxTree {
 
     /// \brief Return node ID that uniquely identifes a given node starting
     /// from the root base
-    Vec<PathElement> getNodePath(NodeId node) const {
-        Vec<NodeId>      parents = getParentIdChain(node, true);
+    Vec<PathElement> getNodePath(NodeIdx node) const {
+        Vec<NodeIdx>     parents = getParentIdChain(node, true);
         Vec<PathElement> result;
 
         for (int i = 1; i < parents.size(); ++i) {
@@ -380,23 +375,24 @@ class SyntaxTree {
             });
         }
 
-        result.push_back(PathElement{.under = NodeId(), .position = -1});
+        result.push_back(PathElement{.under = NodeIdx(), .position = -1});
 
         std::reverse(result.begin(), result.end());
 
         return result;
     }
 
-    Vec<Id> getBaseParentIdChain(NodeId node, bool withSelf) const {
-        Vec<Id> result;
+    Vec<NodeStore::Id> getBaseParentIdChain(NodeIdx node, bool withSelf)
+        const {
+        Vec<NodeStore::Id> result;
         for (auto const& node : getParentIdChain(node, withSelf)) {
             result.push_back(getNode(node).ASTNode);
         }
         return result;
     }
 
-    int findPositionInParent(NodeId id, bool Shifted = false) const {
-        NodeId Parent = getNode(id).Parent;
+    int findPositionInParent(NodeIdx id, bool Shifted = false) const {
+        NodeIdx Parent = getNode(id).Parent;
         if (Parent.isInvalid()) { return 0; }
         const auto& Siblings = getNode(Parent).Subnodes;
         int         Position = 0;
@@ -417,21 +413,21 @@ class SyntaxTree {
         setLeftMostDescendants();
         int PostorderId = 0;
         PostorderIds.resize(getSize());
-        Func<void(NodeId)> PostorderTraverse = [&](NodeId id) {
-            for (NodeId Subnode : getNode(id).Subnodes) {
+        Func<void(NodeIdx)> PostorderTraverse = [&](NodeIdx id) {
+            for (NodeIdx Subnode : getNode(id).Subnodes) {
                 PostorderTraverse(Subnode);
             }
             PostorderIds[id] = PostorderId;
             ++PostorderId;
         };
         PostorderTraverse(getRootId());
-        NodesBfs = getSubtreeBfs<Id, Val>(*this, getRootId());
+        NodesBfs = getSubtreeBfs(*this, getRootId());
     }
 
     void setLeftMostDescendants() {
-        for (NodeId Leaf : Leaves) {
+        for (NodeIdx Leaf : Leaves) {
             getMutableNode(Leaf).LeftMostDescendant = Leaf;
-            NodeId Parent, Cur = Leaf;
+            NodeIdx Parent, Cur = Leaf;
             while ((Parent = getNode(Cur).Parent).isValid()
                    && getNode(Parent).Subnodes[0] == Cur) {
                 Cur                                    = Parent;
@@ -442,7 +438,6 @@ class SyntaxTree {
 };
 
 
-template <typename Id, typename Val>
 class ASTDiff {
   public:
     ~ASTDiff() = default;
@@ -451,24 +446,36 @@ class ASTDiff {
     struct Change {
         struct MovePoint {
             /// Insert the node under a specified original tree
-            NodeId under;
+            NodeIdx under = NodeIdx{};
             /// Insert the node on specified position
             int position = 0;
+            MovePoint() {};
+            MovePoint(NodeIdx const& under, int position)
+                : under{under}, position{position} {};
+            DESC_FIELDS(MovePoint, (under, position));
         };
 
         struct Insert {
             MovePoint to;
+            DESC_FIELDS(Insert, (to));
         };
 
         struct Move {
             MovePoint from;
             MovePoint to;
             bool      update = false;
+            DESC_FIELDS(Move, (from, to, update));
         };
 
-        struct Update {};
-        struct None {};
-        struct Delete {};
+        struct Update {
+            DESC_FIELDS(Update, ());
+        };
+        struct None {
+            DESC_FIELDS(None, ());
+        };
+        struct Delete {
+            DESC_FIELDS(Delete, ());
+        };
 
         SUB_VARIANTS(
             Kind,
@@ -481,50 +488,59 @@ class ASTDiff {
             None,
             Delete);
 
-        NodeId   src;
-        NodeId   dst;
-        ASTDiff* diff;
+        NodeIdx  src;
+        NodeIdx  dst;
+        ASTDiff* diff = nullptr;
         Data     data;
 
+        DESC_FIELDS(Change, (src, dst, data, diff));
+
         Change() {}
-        Change(CR<Data> data, ASTDiff* diff, NodeId src, NodeId dst)
+        Change(CR<Data> data, ASTDiff* diff, NodeIdx src, NodeIdx dst)
             : src(src), dst(dst), diff(diff), data(data) {}
 
 
         // clang-format off
-        Vec<NodeId> getSrcChain(bool withSelf = true) const { return diff->src.getParentIdChain(src, withSelf); }
-        Vec<NodeId> getDstChain(bool withSelf = true) const { return diff->src.getParentIdChain(src, withSelf); }
-        Vec<typename SyntaxTree<Id, Val>::PathElement> getSrcPath() const { return diff->src.getNodePath(src); }
-        Vec<typename SyntaxTree<Id, Val>::PathElement> getDstPath() const { return diff->dst.getNodePath(dst); }
-        Vec<Id> getBaseSrcChain(bool withSelf = true) const { return diff->src.getBaseParentIdChain(src, withSelf); }
-        Vec<Id> getBaseDstChain(bool withSelf = true) const { return diff->dst.getBaseParentIdChain(dst, withSelf); }
-
-        Val getSrcValue() const { CHECK(src.isValid()); return diff->src.getNodeValue(src); }
-        Val getDstValue() const { CHECK(dst.isValid()); return diff->dst.getNodeValue(dst); }
-        int getSrcKind() const { CHECK(src.isValid()); return diff->dst.getNodeKind(dst); }
-        int getDstKind() const { CHECK(dst.isValid()); return diff->src.getNodeKind(src); }
+        Vec<NodeIdx> getSrcChain(bool withSelf = true) const { return diff->src.getParentIdChain(src, withSelf); }
+        Vec<NodeIdx> getDstChain(bool withSelf = true) const { return diff->src.getParentIdChain(src, withSelf); }
+        Vec<SyntaxTree::PathElement> getSrcPath() const { return diff->src.getNodePath(src); }
+        Vec<SyntaxTree::PathElement> getDstPath() const { return diff->dst.getNodePath(dst); }
+        Vec<NodeStore::Id> getBaseSrcChain(bool withSelf = true) const { return diff->src.getBaseParentIdChain(src, withSelf); }
+        Vec<NodeStore::Id> getBaseDstChain(bool withSelf = true) const { return diff->dst.getBaseParentIdChain(dst, withSelf); }
         // clang-format on
+
+        template <typename Store>
+        Store::value_type getSrcValue(Store* store) const {
+            CHECK(src.isValid());
+            return store->getNodeValue(diff->src.getStoreId(src));
+        }
+
+        template <typename Store>
+        Store::value_type getDstValue(Store* store) const {
+            CHECK(dst.isValid());
+            return store->getNodeValue(diff->dst.getStoreId(dst));
+        }
     };
 
 
-    SyntaxTree<Id, Val>& src;
-    SyntaxTree<Id, Val>& dst;
+    SyntaxTree& src;
+    SyntaxTree& dst;
 
     Mapping TheMapping;
     ASTDiff(
-        SyntaxTree<Id, Val>&              src,
-        SyntaxTree<Id, Val>&              dst,
-        const ComparisonOptions<Id, Val>& Options)
+        SyntaxTree&              src,
+        SyntaxTree&              dst,
+        const ComparisonOptions& Options)
         : src(src), dst(dst), Options(Options) {
         computeMapping();
         computeChangeKinds(TheMapping);
     }
 
-    Change getChange(NodeId srcNode, NodeId dstNode, bool fromDst) {
+    Change getChange(NodeIdx srcNode, NodeIdx dstNode, bool fromDst) {
         Change result;
 
-        Node<Id, Val> const& node = fromDst ? dst.getNode(dstNode)
-                                            : src.getNode(srcNode);
+        Node const& node = fromDst ? dst.getNode(dstNode)
+                                   : src.getNode(srcNode);
         switch (node.Change) {
             case ChangeKind::Delete: {
                 result.data = typename Change::Delete();
@@ -545,13 +561,13 @@ class ASTDiff {
             case ChangeKind::Move: {
                 result.data = typename Change::Move{
                     .update = node.Change == ChangeKind::Update,
-                    .from   = {
-                        .under    = src.getNode(srcNode).Parent,
-                        .position = src.findPositionInParent(srcNode, true),
+                    .from   = Change::MovePoint{
+                         src.getNode(srcNode).Parent,
+                         src.findPositionInParent(srcNode, true),
                     },
-                    .to     = {
-                        .under    = dst.getNode(dstNode).Parent,
-                        .position = dst.findPositionInParent(dstNode, true),
+                    .to     = Change::MovePoint{
+                        dst.getNode(dstNode).Parent,
+                        dst.findPositionInParent(dstNode, true),
                     },
                 };
                 break;
@@ -559,9 +575,8 @@ class ASTDiff {
 
             case ChangeKind::Insert: {
                 result.data = typename Change::Insert{
-                    .to = {
-                        .under    = node.Parent,
-                        .position = //
+                    .to = Change::MovePoint{
+                        node.Parent,
                         fromDst ? dst.findPositionInParent(dstNode)
                                 : src.findPositionInParent(srcNode),
                     }};
@@ -576,11 +591,11 @@ class ASTDiff {
         return result;
     }
 
-    Change getChangeFromDst(NodeId dst) {
+    Change getChangeFromDst(NodeIdx dst) {
         return getChange(TheMapping.getSrc(dst), dst, true);
     }
 
-    Change getChangeFromSrc(NodeId src) {
+    Change getChangeFromSrc(NodeIdx src) {
         return getChange(src, TheMapping.getDst(src), false);
     }
 
@@ -590,14 +605,14 @@ class ASTDiff {
                              /// with no modifications
     ) {
         Vec<Change> result;
-        for (NodeId const& dstNode : dst.nodeIds()) {
+        for (NodeIdx const& dstNode : dst.nodeIds()) {
             if (!skipNone
                 || this->dst.getNode(dstNode).Change != ChangeKind::None) {
                 result.push_back(getChangeFromDst(dstNode));
             }
         }
 
-        for (NodeId const& srcNode : src.nodeIds()) {
+        for (NodeIdx const& srcNode : src.nodeIds()) {
             if (this->src.getNode(srcNode).Change == ChangeKind::Delete) {
                 result.push_back(getChangeFromSrc(srcNode));
             }
@@ -608,7 +623,7 @@ class ASTDiff {
 
     /// \brief Matches nodes one-by-one based on their similarity.
     void computeMapping() {
-        using Pass = ComparisonOptions<Id, Val>::FirstPassKind;
+        using Pass = ComparisonOptions::FirstPassKind;
         switch (Options.firstPass) {
             case Pass::TopDown: TheMapping = matchTopDown(); break;
             case Pass::Greedy: TheMapping = greedyMatchTopDown(); break;
@@ -626,7 +641,7 @@ class ASTDiff {
 
     /// \brief Returns the ID of the node that is mapped to the given node
     /// in SourceTree.
-    NodeId getMapped(const SyntaxTree<Id, Val>& Tree, NodeId id) const {
+    NodeIdx getMapped(const SyntaxTree& Tree, NodeIdx id) const {
         if (&Tree == &src) { return TheMapping.getDst(id); }
         assert(&Tree == &dst && "Invalid tree.");
         return TheMapping.getSrc(id);
@@ -635,18 +650,19 @@ class ASTDiff {
   private:
     /// \brief Returns true if the two subtrees are isomorphic to each
     /// other.
-    bool identical(NodeId Id1, NodeId Id2) const;
+    bool identical(NodeIdx Id1, NodeIdx Id2) const;
 
     /// \brief Returns false if the nodes must not be mached.
-    bool isMatchingPossible(NodeId Id1, NodeId Id2) const {
+    bool isMatchingPossible(NodeIdx Id1, NodeIdx Id2) const {
         return Options.isMatchingAllowed(
             src.getNode(Id1), dst.getNode(Id2));
     }
 
     /// \brief Returns true if the nodes' parents are matched.
-    bool haveSameParents(const Mapping& M, NodeId Id1, NodeId Id2) const {
-        NodeId P1 = src.getNode(Id1).Parent;
-        NodeId P2 = dst.getNode(Id2).Parent;
+    bool haveSameParents(const Mapping& M, NodeIdx Id1, NodeIdx Id2)
+        const {
+        NodeIdx P1 = src.getNode(Id1).Parent;
+        NodeIdx P2 = dst.getNode(Id2).Parent;
         return (P1.isInvalid() && P2.isInvalid())
             || (P1.isValid() && P2.isValid() && M.getDst(P1) == P2);
     }
@@ -654,192 +670,78 @@ class ASTDiff {
     /// \brief Uses an optimal albeit slow algorithm to compute a mapping
     /// between two subtrees, but only if both have fewer nodes than
     /// MaxSize.
-    void addOptimalMapping(Mapping& M, NodeId Id1, NodeId Id2) const;
+    void addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2) const;
     /// \brief Computes the ratio of common descendants between the two
     /// nodes. Descendants are only considered to be equal when they are
     /// mapped in M.
-    double getJaccardSimilarity(const Mapping& M, NodeId Id1, NodeId Id2)
+    double getJaccardSimilarity(const Mapping& M, NodeIdx Id1, NodeIdx Id2)
         const;
     /// \brief Returns the node that has the highest degree of similarity.
-    NodeId findCandidate(const Mapping& M, NodeId Id1) const;
+    NodeIdx findCandidate(const Mapping& M, NodeIdx Id1) const;
     /// \brief Returns a mapping of identical subtrees.
     Mapping matchTopDown() const;
     Mapping greedyMatchTopDown() const;
 
     /// \brief Tries to match any yet unmapped nodes, in a bottom-up
     /// fashion.
-    void                              matchBottomUp(Mapping& M) const;
-    const ComparisonOptions<Id, Val>& Options;
-    template <typename Id_, typename Val_>
+    void                     matchBottomUp(Mapping& M) const;
+    const ComparisonOptions& Options;
     friend class ZhangShashaMatcher;
 };
-
-/// Sets Height, Parent and Subnodes for each node.
-template <typename Id, typename Val, typename InNode>
-struct PreorderVisitor {
-    int id    = 0;
-    int Depth = 0;
-
-    NodeId               Parent;
-    SyntaxTree<Id, Val>& Tree;
-
-    typename SyntaxTree<Id, Val>::template WalkParameters<InNode> walk;
-
-    PreorderVisitor(
-        SyntaxTree<Id, Val>& Tree,
-        CR<typename SyntaxTree<Id, Val>::template WalkParameters<InNode>>
-            walk)
-        : Tree(Tree), walk(walk) {}
-
-    std::tuple<NodeId, NodeId> PreTraverse(InNode const& node) {
-        NodeId MyId = id;
-        Tree.Nodes.emplace_back();
-        Node<Id, Val>& N = Tree.getMutableNode(MyId);
-        N.Parent         = Parent;
-        N.Depth          = Depth;
-        N.ASTNode        = walk.getSubnodeId(node);
-
-        if (Parent.isValid()) {
-            Node<Id, Val>& P = Tree.getMutableNode(Parent);
-            P.Subnodes.push_back(MyId);
-        }
-
-        Parent = MyId;
-        ++id;
-        ++Depth;
-        return std::make_tuple(MyId, Tree.getNode(MyId).Parent);
-    }
-
-    void PostTraverse(std::tuple<NodeId, NodeId> State) {
-        NodeId MyId, PreviousParent;
-        std::tie(MyId, PreviousParent) = State;
-        assert(
-            MyId.isValid() && "Expecting to only traverse valid nodes.");
-        Parent = PreviousParent;
-        --Depth;
-        Node<Id, Val>& N      = Tree.getMutableNode(MyId);
-        N.RightMostDescendant = id - 1;
-        assert(
-            N.RightMostDescendant >= 0
-            && N.RightMostDescendant < Tree.getSize()
-            && "Rightmost descendant must be a valid tree node.");
-        if (N.isLeaf()) { Tree.Leaves.push_back(MyId); }
-        N.Height = 1;
-        for (NodeId Subnode : N.Subnodes) {
-            N.Height = std::max(
-                N.Height, 1 + Tree.getNode(Subnode).Height);
-        }
-    }
-
-    void Traverse(CR<InNode> node) {
-        auto SavedState = PreTraverse(node);
-        for (int i = 0; i < walk.getSubnodeNumber(node); ++i) {
-            Traverse(walk.getSubnodeAt(node, i));
-        }
-        PostTraverse(SavedState);
-    }
-};
-
-template <typename Id, typename Val>
-SyntaxTree<Id, Val>::SyntaxTree(ComparisonOptions<Id, Val> const& _opts)
-    : opts(_opts) {}
-
-template <typename Id, typename Val>
-template <typename InNode>
-void SyntaxTree<Id, Val>::FromNode(
-    InNode const&                                   N,
-    CR<SyntaxTree<Id, Val>::WalkParameters<InNode>> walk) {
-    PreorderVisitor<Id, Val, InNode> PreorderWalker(*this, walk);
-    PreorderWalker.Traverse(N);
-    initTree();
-}
-
-template <typename Id, typename Val>
-static Vec<NodeId> getSubtreePostorder(
-    const SyntaxTree<Id, Val>& Tree,
-    NodeId                     Root) {
-    Vec<NodeId>        Postorder;
-    Func<void(NodeId)> Traverse = [&](NodeId id) {
-        const Node<Id, Val>& N = Tree.getNode(id);
-        for (NodeId Subnode : N.Subnodes) { Traverse(Subnode); }
-        Postorder.push_back(id);
-    };
-    Traverse(Root);
-    return Postorder;
-}
-
-template <typename Id, typename Val>
-static Vec<NodeId> getSubtreeBfs(
-    const SyntaxTree<Id, Val>& Tree,
-    NodeId                     Root) {
-    Vec<NodeId> Ids;
-    size_t      Expanded = 0;
-    Ids.push_back(Root);
-    while (Expanded < Ids.size()) {
-        for (NodeId Subnode : Tree.getNode(Ids[Expanded++]).Subnodes) {
-            Ids.push_back(Subnode);
-        }
-    }
-    return Ids;
-}
 
 
 /// \brief Identifies a node in a subtree by its postorder offset, starting
 /// at 1.
-struct SubNodeId {
+struct SubNodeIdx {
     int Id = 0;
-    explicit SubNodeId(int Id) : Id(Id) {}
-    explicit SubNodeId() = default;
+    explicit SubNodeIdx(int Id) : Id(Id) {}
+    explicit SubNodeIdx() = default;
     operator int() const { return Id; }
-    SubNodeId& operator++() { return ++Id, *this; }
-    SubNodeId& operator--() { return --Id, *this; }
-    SubNodeId  operator+(int Other) const { return SubNodeId(Id + Other); }
+    SubNodeIdx& operator++() { return ++Id, *this; }
+    SubNodeIdx& operator--() { return --Id, *this; }
+    SubNodeIdx  operator+(int Other) const {
+        return SubNodeIdx(Id + Other);
+    }
 };
 
 
-template <typename Id, typename Val>
 class Subtree {
   public:
     /// The parent tree.
-    const SyntaxTree<Id, Val>& Tree;
-    /// Maps SubNodeIds to original ids.
-    Vec<NodeId> RootIds;
+    const SyntaxTree& Tree;
+    /// Maps SubNodeIdxs to original ids.
+    Vec<NodeIdx> RootIds;
     /// Maps subtree nodes to their leftmost descendants wtihin the
     /// subtree.
-    Vec<SubNodeId> LeftMostDescendants;
+    Vec<SubNodeIdx> LeftMostDescendants;
 
   public:
-    Vec<SubNodeId> KeyRoots;
-    Subtree(const SyntaxTree<Id, Val>& Tree, NodeId SubtreeRoot)
-        : Tree(Tree) {
-        RootIds       = getSubtreePostorder<Id, Val>(Tree, SubtreeRoot);
+    Vec<SubNodeIdx> KeyRoots;
+    Subtree(const SyntaxTree& Tree, NodeIdx SubtreeRoot) : Tree(Tree) {
+        RootIds       = getSubtreePostorder(Tree, SubtreeRoot);
         int NumLeaves = setLeftMostDescendants();
         computeKeyRoots(NumLeaves);
     }
 
     int getSize() const { return RootIds.size(); }
 
-    NodeId getIdInRoot(SubNodeId id) const {
+    NodeIdx getIdInRoot(SubNodeIdx id) const {
         assert(id > 0 && id <= getSize() && "Invalid subtree node index.");
         return RootIds[id - 1];
     }
 
-    const Node<Id, Val>& getNode(SubNodeId id) const {
+    const Node& getNode(SubNodeIdx id) const {
         return Tree.getNode(getIdInRoot(id));
     }
 
-    SubNodeId getLeftMostDescendant(SubNodeId id) const {
+    SubNodeIdx getLeftMostDescendant(SubNodeIdx id) const {
         assert(id > 0 && id <= getSize() && "Invalid subtree node index.");
         return LeftMostDescendants[id - 1];
     }
     /// Returns the postorder index of the leftmost descendant in the
     /// subtree.
-    NodeId getPostorderOffset() const {
-        return Tree.PostorderIds[getIdInRoot(SubNodeId(1))];
-    }
-
-    Val getNodeValue(SubNodeId id) const {
-        return Tree.getNodeValue(getIdInRoot(id));
+    NodeIdx getPostorderOffset() const {
+        return Tree.PostorderIds[getIdInRoot(SubNodeIdx(1))];
     }
 
   private:
@@ -848,15 +750,15 @@ class Subtree {
         int NumLeaves = 0;
         LeftMostDescendants.resize(getSize());
         for (int I = 0; I < getSize(); ++I) {
-            SubNodeId            SI(I + 1);
-            const Node<Id, Val>& N = getNode(SI);
+            SubNodeIdx  SI(I + 1);
+            const Node& N = getNode(SI);
             NumLeaves += N.isLeaf();
             assert(
                 I == Tree.PostorderIds[getIdInRoot(SI)] -
                          getPostorderOffset() &&
                 "Postorder traversal in subtree should correspond to "
                 "traversal in the root tree by a constant offset.");
-            LeftMostDescendants[I] = SubNodeId(
+            LeftMostDescendants[I] = SubNodeIdx(
                 Tree.PostorderIds[N.LeftMostDescendant]
                 - getPostorderOffset());
         }
@@ -867,8 +769,8 @@ class Subtree {
         KeyRoots.resize(Leaves);
         std::unordered_set<int> Visited;
         int                     K = Leaves - 1;
-        for (SubNodeId I(getSize()); I > 0; --I) {
-            SubNodeId LeftDesc = getLeftMostDescendant(I);
+        for (SubNodeIdx I(getSize()); I > 0; --I) {
+            SubNodeIdx LeftDesc = getLeftMostDescendant(I);
             if (0 < Visited.count(LeftDesc)) { continue; }
             assert(K >= 0 && "K should be non-negative");
             KeyRoots[K] = I;
@@ -882,21 +784,27 @@ class Subtree {
 /// Computes an optimal mapping between two trees using only
 /// insertion, deletion and update as edit actions (similar to the
 /// Levenshtein distance).
-template <typename Id, typename Val>
 class ZhangShashaMatcher {
-    const ASTDiff<Id, Val>& DiffImpl;
-    Subtree<Id, Val>        S1;
-    Subtree<Id, Val>        S2;
-    Vec<Vec<double>>        TreeDist, ForestDist;
+    const ASTDiff&           DiffImpl;
+    Subtree                  S1;
+    Subtree                  S2;
+    Vec<Vec<double>>         TreeDist, ForestDist;
+    ComparisonOptions const& opts;
 
   public:
     ZhangShashaMatcher(
-        const ASTDiff<Id, Val>&    DiffImpl,
-        const SyntaxTree<Id, Val>& src,
-        const SyntaxTree<Id, Val>& dst,
-        NodeId                     Id1,
-        NodeId                     Id2)
-        : DiffImpl(DiffImpl), S1(src, Id1), S2(dst, Id2) {
+        ComparisonOptions const& opts,
+        const ASTDiff&           DiffImpl,
+        const SyntaxTree&        src,
+        const SyntaxTree&        dst,
+        NodeIdx                  Id1,
+        NodeIdx                  Id2)
+        : opts{opts}
+        , DiffImpl(DiffImpl)
+        , S1(src, Id1)
+        , S2(dst, Id2)
+    //
+    {
 
         TreeDist.resize(size_t(S1.getSize()) + 1);
         ForestDist.resize(size_t(S1.getSize()) + 1);
@@ -907,176 +815,57 @@ class ZhangShashaMatcher {
         }
     }
 
-    Vec<std::pair<NodeId, NodeId>> getMatchingNodes() {
-        Vec<std::pair<NodeId, NodeId>>       Matches;
-        Vec<std::pair<SubNodeId, SubNodeId>> TreePairs;
-        computeTreeDist();
-        bool RootNodePair = true;
-        TreePairs.emplace_back(
-            SubNodeId(S1.getSize()), SubNodeId(S2.getSize()));
-
-        // COUT << "SRC: " << DiffImpl.src.Nodes << "\n";
-        // COUT << "DST: " << DiffImpl.dst.Nodes << "\n";
-
-        while (!TreePairs.empty()) {
-            SubNodeId LastRow, LastCol, FirstRow, FirstCol, Row, Col;
-            std::tie(LastRow, LastCol) = TreePairs.back();
-            TreePairs.pop_back();
-            if (!RootNodePair) { computeForestDist(LastRow, LastCol); }
-
-            RootNodePair = false;
-            FirstRow     = S1.getLeftMostDescendant(LastRow);
-            FirstCol     = S2.getLeftMostDescendant(LastCol);
-            Row          = LastRow;
-            Col          = LastCol;
-            while (Row > FirstRow || Col > FirstCol) {
-                // COUT << "rowcol " << Row << " " << Col << "\n";
-                // COUT << ForestDist << "\n";
-                if (Row > FirstRow
-                    && ForestDist[Row - 1][Col] + 1
-                           == ForestDist[Row][Col]) {
-                    // COUT << "Dec col\n";
-                    --Row;
-                } else if (
-                    Col > FirstCol
-                    && ForestDist[Row][Col - 1] + 1
-                           == ForestDist[Row][Col]) {
-                    // COUT << "Dec row\n";
-                    --Col;
-                } else {
-                    SubNodeId LMD1 = S1.getLeftMostDescendant(Row);
-                    SubNodeId LMD2 = S2.getLeftMostDescendant(Col);
-                    // COUT << "> " << LMD1 << " " << LMD2 << " " << Row
-                    //      << " " << Col << "\n";
-                    if (LMD1 == S1.getLeftMostDescendant(LastRow)
-                        && LMD2 == S2.getLeftMostDescendant(LastCol)) {
-                        // COUT << "ROOT IDS " << S1.RootIds << " "
-                        //      << S2.RootIds << " Row " << Row << " Col "
-                        //      << Col << "\n";
-                        NodeId Id1 = S1.getIdInRoot(Row);
-                        NodeId Id2 = S2.getIdInRoot(Col);
-                        auto   n1  = DiffImpl.src.getNode(Id1);
-                        auto   n2  = DiffImpl.dst.getNode(Id2);
-                        // COUT << "CMP " << Id1 << " (" << n1 << ") " <<
-                        // Id2
-                        //      << " (" << n2 << ") can be matched "
-                        //      << n1.getNodeKind(DiffImpl.src.getOpts())
-                        //      << " "
-                        //      << n2.getNodeKind(DiffImpl.dst.getOpts())
-                        //      << " "
-                        //      << (DiffImpl.isMatchingPossible(Id1, Id2)
-                        //              ? "true"
-                        //              : "false")
-                        //      << "\n";
-                        assert(
-                            DiffImpl.isMatchingPossible(Id1, Id2)
-                            && "These nodes must not be matched.");
-                        Matches.emplace_back(Id1, Id2);
-                        --Row;
-                        --Col;
-                    } else {
-                        TreePairs.emplace_back(Row, Col);
-                        Row = LMD1;
-                        Col = LMD2;
-                    }
-                }
-            }
-        }
-        return Matches;
-    }
+    Vec<std::pair<NodeIdx, NodeIdx>> getMatchingNodes();
 
   private:
-    /// We use a simple cost model for edit actions, which seems good
-    /// enough. Simple cost model for edit actions. This seems to make the
-    /// matching algorithm perform reasonably well. The values range
-    /// between 0 and 1, or infinity if this edit action should always be
-    /// avoided.
-    double DeletionCost  = 1;
-    double InsertionCost = 1;
-    double UpdateCost    = 1;
-
-    double getUpdateCost(SubNodeId Id1, SubNodeId Id2) {
+    double getUpdateCost(SubNodeIdx Id1, SubNodeIdx Id2) {
         if (!DiffImpl.isMatchingPossible(
                 S1.getIdInRoot(Id1), S2.getIdInRoot(Id2))) {
             return std::numeric_limits<double>::max();
         } else {
-            if (S1.getNodeValue(Id1) == S2.getNodeValue(Id2)) {
+            if (opts.areValuesEqual(S1.getNode(Id1), S2.getNode(Id2))) {
                 return 0;
             } else {
-                /// IMPLEMENT weighted node update cost that accounts for
-                /// the value similarity
-                return UpdateCost;
+                return opts.getUpdateCost(
+                    S1.getNode(Id1), S2.getNode(Id2));
             }
         }
     }
 
     void computeTreeDist() {
-        for (SubNodeId Id1 : S1.KeyRoots) {
-            for (SubNodeId Id2 : S2.KeyRoots) {
+        for (SubNodeIdx Id1 : S1.KeyRoots) {
+            for (SubNodeIdx Id2 : S2.KeyRoots) {
                 computeForestDist(Id1, Id2);
             }
         }
     }
 
-    void computeForestDist(SubNodeId Id1, SubNodeId Id2) {
-        assert(Id1 > 0 && Id2 > 0 && "Expecting offsets greater than 0.");
-        SubNodeId LMD1         = S1.getLeftMostDescendant(Id1);
-        SubNodeId LMD2         = S2.getLeftMostDescendant(Id2);
-        ForestDist[LMD1][LMD2] = 0;
-        for (SubNodeId D1 = LMD1 + 1; D1 <= Id1; ++D1) {
-            ForestDist[D1][LMD2] = ForestDist[D1 - 1][LMD2] + DeletionCost;
-            for (SubNodeId D2 = LMD2 + 1; D2 <= Id2; ++D2) {
-                ForestDist[LMD1][D2] = ForestDist[LMD1][D2 - 1]
-                                     + InsertionCost;
-                SubNodeId DLMD1 = S1.getLeftMostDescendant(D1);
-                SubNodeId DLMD2 = S2.getLeftMostDescendant(D2);
-                if (DLMD1 == LMD1 && DLMD2 == LMD2) {
-                    double UpdateCost  = getUpdateCost(D1, D2);
-                    ForestDist[D1][D2] = std::min(
-                        {ForestDist[D1 - 1][D2] + DeletionCost,
-                         ForestDist[D1][D2 - 1] + InsertionCost,
-                         ForestDist[D1 - 1][D2 - 1] + UpdateCost});
-                    TreeDist[D1][D2] = ForestDist[D1][D2];
-                } else {
-                    ForestDist[D1][D2] = std::min(
-                        {ForestDist[D1 - 1][D2] + DeletionCost,
-                         ForestDist[D1][D2 - 1] + InsertionCost,
-                         ForestDist[DLMD1][DLMD2] + TreeDist[D1][D2]});
-                }
-            }
-        }
-        // std::cout << "---- " << Id1 << " " << Id2 << "\n";
-        // for (const auto& r : ForestDist) {
-        //     std::cout << r << "\n";
-        // }
-    }
+    void computeForestDist(SubNodeIdx Id1, SubNodeIdx Id2);
 };
 
 // Compares nodes by their depth.
-template <typename Id, typename Val>
 struct HeightLess {
-    const SyntaxTree<Id, Val>& Tree;
-    HeightLess(const SyntaxTree<Id, Val>& Tree) : Tree(Tree) {}
-    bool operator()(NodeId Id1, NodeId Id2) const {
+    const SyntaxTree& Tree;
+    HeightLess(const SyntaxTree& Tree) : Tree(Tree) {}
+    bool operator()(NodeIdx Id1, NodeIdx Id2) const {
         return Tree.getNode(Id1).Height < Tree.getNode(Id2).Height;
     }
 };
 
 // Priority queue for nodes, sorted descendingly by their height.
-template <typename Id, typename Val>
 class PriorityList {
-    const SyntaxTree<Id, Val>& Tree;
-    HeightLess<Id, Val>        Cmp;
-    Vec<NodeId>                Container;
-    std::priority_queue<NodeId, Vec<NodeId>, HeightLess<Id, Val>> List;
+    const SyntaxTree&                                      Tree;
+    HeightLess                                             Cmp;
+    Vec<NodeIdx>                                           Container;
+    std::priority_queue<NodeIdx, Vec<NodeIdx>, HeightLess> List;
 
   public:
-    PriorityList(const SyntaxTree<Id, Val>& Tree)
+    PriorityList(const SyntaxTree& Tree)
         : Tree(Tree), Cmp(Tree), List(Cmp, Container) {}
-    void        push(NodeId id) { List.push(id); }
-    Vec<NodeId> pop() {
-        int         Max = peekMax();
-        Vec<NodeId> Result;
+    void         push(NodeIdx id) { List.push(id); }
+    Vec<NodeIdx> pop() {
+        int          Max = peekMax();
+        Vec<NodeIdx> Result;
         if (Max == 0) { return Result; }
         while (peekMax() == Max) {
             Result.push_back(List.top());
@@ -1094,321 +883,39 @@ class PriorityList {
     }
 
     /// \brief add all subnodes in the input list
-    void open(NodeId id) {
-        for (NodeId Subnode : Tree.getNode(id).Subnodes) { push(Subnode); }
+    void open(NodeIdx id) {
+        for (NodeIdx Subnode : Tree.getNode(id).Subnodes) {
+            push(Subnode);
+        }
     }
 };
 
 
-template <typename Id, typename Val>
-bool ASTDiff<Id, Val>::identical(NodeId Id1, NodeId Id2) const {
-    const Node<Id, Val>& N1 = src.getNode(Id1);
-    const Node<Id, Val>& N2 = dst.getNode(Id2);
-    if (N1.Subnodes.size() != N2.Subnodes.size()
-        || !isMatchingPossible(Id1, Id2)
-        || src.getNodeValue(Id1) != dst.getNodeValue(Id2)) {
-        return false;
-    }
-    for (size_t id = 0, E = N1.Subnodes.size(); id < E; ++id) {
-        if (!identical(N1.Subnodes[id], N2.Subnodes[id])) { return false; }
-    }
-    return true;
-}
+void printNode(
+    ColStream&                       os,
+    SyntaxTree const&                Tree,
+    NodeIdx                          id,
+    Func<ColText(CR<NodeStore::Id>)> ValoStr);
 
 
-template <typename Id, typename Val>
-void ASTDiff<Id, Val>::addOptimalMapping(
-    Mapping& M,
-    NodeId   Id1,
-    NodeId   Id2) const {
-    if (std::max(
-            src.getNumberOfDescendants(Id1),
-            dst.getNumberOfDescendants(Id2))
-        > Options.MaxSize) {
-        return;
-    }
-    ZhangShashaMatcher<Id, Val>    Matcher(*this, src, dst, Id1, Id2);
-    Vec<std::pair<NodeId, NodeId>> R = Matcher.getMatchingNodes();
-    // COUT << R << "\n";
-    for (const auto& Tuple : R) {
-        NodeId Src = Tuple.first;
-        NodeId Dst = Tuple.second;
-        if (!M.hasSrc(Src) && !M.hasDst(Dst)) { M.link(Src, Dst); }
-    }
-}
+void printDstChange(
+    ColStream&                       OS,
+    ASTDiff const&                   Diff,
+    SyntaxTree const&                SrcTree,
+    SyntaxTree const&                DstTree,
+    NodeIdx                          Dst,
+    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
 
-template <typename Id, typename Val>
-double ASTDiff<Id, Val>::getJaccardSimilarity(
-    const Mapping& M,
-    NodeId         Id1,
-    NodeId         Id2) const {
-    int                  CommonDescendants = 0;
-    const Node<Id, Val>& N1                = src.getNode(Id1);
-    // Count the common descendants, excluding the subtree root.
-    for (NodeId Src = Id1 + 1; Src <= N1.RightMostDescendant; ++Src) {
-        NodeId Dst = M.getDst(Src);
-        CommonDescendants += int(
-            Dst.isValid() && dst.isInSubtree(Dst, Id2));
-    }
-    // We need to subtract 1 to get the number of descendants excluding the
-    // root.
-    double Denominator = src.getNumberOfDescendants(Id1) - 1
-                       + dst.getNumberOfDescendants(Id2) - 1
-                       - CommonDescendants;
-    // CommonDescendants is less than the size of one subtree.
-    assert(Denominator >= 0 && "Expected non-negative denominator.");
-    if (Denominator == 0) { return 0; }
-    return CommonDescendants / Denominator;
-}
-
-
-template <typename Id, typename Val>
-NodeId ASTDiff<Id, Val>::findCandidate(const Mapping& M, NodeId Id1)
-    const {
-    NodeId Candidate;
-    double HighestSimilarity = 0.0;
-    for (NodeId const& Id2 : dst) {
-        if (!isMatchingPossible(Id1, Id2)) { continue; }
-        if (M.hasDst(Id2)) { continue; }
-        double Similarity = getJaccardSimilarity(M, Id1, Id2);
-        if (Similarity >= Options.MinSimilarity
-            && Similarity > HighestSimilarity) {
-            HighestSimilarity = Similarity;
-            Candidate         = Id2;
-        }
-    }
-    return Candidate;
-}
-
-
-template <typename Id, typename Val>
-void ASTDiff<Id, Val>::matchBottomUp(Mapping& M) const {
-    Vec<NodeId> Postorder = getSubtreePostorder<Id, Val>(
-        src, src.getRootId());
-    // for all nodes in left, if node itself is not matched, but
-    // has any children matched
-    for (NodeId const& Id1 : Postorder) {
-        if (Id1 == src.getRootId() && !M.hasSrc(src.getRootId())
-            && !M.hasDst(dst.getRootId())) {
-            if (isMatchingPossible(src.getRootId(), dst.getRootId())) {
-                M.link(src.getRootId(), dst.getRootId());
-                addOptimalMapping(M, src.getRootId(), dst.getRootId());
-            }
-            break;
-        }
-
-        bool                 Matched = M.hasSrc(Id1);
-        const Node<Id, Val>& N1      = src.getNode(Id1);
-
-        bool MatchedSubnodes = std::any_of(
-            N1.Subnodes.begin(), N1.Subnodes.end(), [&](NodeId Subnode) {
-                return M.hasSrc(Subnode);
-            });
-
-        //  if it is a valid candidate and matches criteria for
-        // minimum number of shares subnodes
-        if (Matched || !MatchedSubnodes) { continue; }
-        NodeId Id2 = findCandidate(M, Id1);
-        if (Id2.isValid()) {
-            // add node to mapping
-            M.link(Id1, Id2);
-            // if max of number of subnodes does not exceed threshold
-            addOptimalMapping(M, Id1, Id2);
-        }
-    }
-}
-
-
-template <typename Id, typename Val>
-Mapping ASTDiff<Id, Val>::matchTopDown() const {
-    PriorityList<Id, Val> L1(src);
-    PriorityList<Id, Val> L2(dst);
-    Mapping               M(src.getSize() + dst.getSize());
-    L1.push(src.getRootId());
-    L2.push(dst.getRootId());
-    int Max1, Max2;
-    // until subtree of necessary height hasn't been reached
-    while (std::min(Max1 = L1.peekMax(), Max2 = L2.peekMax())
-           > Options.MinHeight) {
-        // if two top subtrees don't have equal height
-        if (Max1 > Max2) {
-            // insert all nodes from tallest subforest
-            for (NodeId const& id : L1.pop()) { L1.open(id); }
-        } else if (Max2 > Max1) {
-            for (NodeId const& id : L2.pop()) { L2.open(id); }
-        } else {
-            // otherwise get two subforest of equal height
-            Vec<NodeId> H1, H2;
-            H1 = L1.pop();
-            H2 = L2.pop();
-            // for each combination of Therese is these forests
-            for (NodeId const& Id1 : H1) {
-                for (NodeId const& Id2 : H2) {
-                    // if pair of trees is isomorphic
-                    if (identical(Id1, Id2) && !M.hasSrc(Id1)
-                        && !M.hasDst(Id2)) {
-                        for (int I = 0,
-                                 E = src.getNumberOfDescendants(Id1);
-                             I < E;
-                             ++I) {
-                            M.link(Id1 + I, Id2 + I);
-                        }
-                    }
-                }
-            }
-            // so we basically determine if there is any isomorphic
-            // mapping between either (1) roots two highest subforests
-            // or (2) root and subnodes of a root in other tree
-
-
-            for (NodeId const& Id1 : H1) {
-                // if there is unmatched forest root in first forest
-                if (!M.hasSrc(Id1)) {
-                    // insert it's subnodes
-                    L1.open(Id1);
-                }
-            }
-            for (NodeId const& Id2 : H2) {
-                // do the same for other forest
-                if (!M.hasDst(Id2)) { L2.open(Id2); }
-            }
-        }
-    }
-    return M;
-}
-
-template <typename Id, typename Val>
-Mapping ASTDiff<Id, Val>::greedyMatchTopDown() const {
-    Mapping                    M(src.getSize() + dst.getSize());
-    Func<void(NodeId, NodeId)> aux;
-    aux = [&](NodeId srcId, NodeId dstId) {
-        auto const& srcNode = src.getNode(srcId);
-        auto const& dstNode = dst.getNode(dstId);
-        if (srcNode.isLeaf() || dstNode.isLeaf()) {
-            M.link(srcId, dstId);
-        } else {
-            for (int i = 0;
-                 i < std::min(
-                     srcNode.Subnodes.size(), dstNode.Subnodes.size());
-                 ++i) {
-                aux(srcNode.Subnodes.at(i), dstNode.Subnodes.at(i));
-            }
-        }
-    };
-
-    return M;
-}
-
-
-template <typename Id, typename Val>
-void ASTDiff<Id, Val>::computeChangeKinds(Mapping& M) {
-    for (NodeId const& Id1 : src) {
-        if (!M.hasSrc(Id1)) {
-            src.getMutableNode(Id1).Change = ChangeKind::Delete;
-            src.getMutableNode(Id1).Shift -= 1;
-        }
-    }
-    for (NodeId const& Id2 : dst) {
-        if (!M.hasDst(Id2)) {
-            dst.getMutableNode(Id2).Change = ChangeKind::Insert;
-            dst.getMutableNode(Id2).Shift -= 1;
-        }
-    }
-    for (NodeId const& Id1 : src.NodesBfs) {
-        NodeId Id2 = M.getDst(Id1);
-        if (Id2.isInvalid()) { continue; }
-        if (!haveSameParents(M, Id1, Id2)
-            || src.findPositionInParent(Id1, true)
-                   != dst.findPositionInParent(Id2, true)) {
-            src.getMutableNode(Id1).Shift -= 1;
-            dst.getMutableNode(Id2).Shift -= 1;
-        }
-    }
-    for (NodeId const& Id2 : dst.NodesBfs) {
-        NodeId Id1 = M.getSrc(Id2);
-        if (Id1.isInvalid()) { continue; }
-        Node<Id, Val>& N1 = src.getMutableNode(Id1);
-        Node<Id, Val>& N2 = dst.getMutableNode(Id2);
-        if (Id1.isInvalid()) { continue; }
-        if (!haveSameParents(M, Id1, Id2)
-            || src.findPositionInParent(Id1, true)
-                   != dst.findPositionInParent(Id2, true)) {
-            N1.Change = N2.Change = ChangeKind::Move;
-        }
-
-        if (src.getNodeValue(Id1) != dst.getNodeValue(Id2)) {
-            N2.Change = (N1.Change == ChangeKind::Move ? ChangeKind::UpdateMove : ChangeKind::Update);
-            N1.Change = N2.Change;
-        }
-    }
-}
-
-
-template <typename Id, typename Val>
-static void printNode(
-    std::ostream&        OS,
-    SyntaxTree<Id, Val>& Tree,
-    NodeId               id,
-    Func<Str(CR<Val>)>   ValoStr) {
-    if (id.isInvalid()) {
-        OS << "None";
-    } else {
-        OS << "(" << id << "): '";
-        OS << Tree.getNode(id).getNodeKind(Tree.getOpts()).value;
-        OS << "' '" << ValoStr(Tree.getNodeValue(id)) << "'";
-    }
-}
-
-
-template <typename Id, typename Val>
-static void printDstChange(
-    std::ostream&        OS,
-    ASTDiff<Id, Val>&    Diff,
-    SyntaxTree<Id, Val>& SrcTree,
-    SyntaxTree<Id, Val>& DstTree,
-    NodeId               Dst,
-    Func<Str(CR<Val>)>   ValoStr) {
-    const Node<Id, Val>& DstNode = DstTree.getNode(Dst);
-    NodeId               Src     = Diff.getMapped(DstTree, Dst);
-    switch (DstNode.Change) {
-        case ChangeKind::None: {
-            break;
-        }
-        case ChangeKind::Delete: {
-            assert(false && "The destination tree can't have deletions.");
-            break;
-        }
-        case ChangeKind::Update: {
-            OS << "Update ";
-            OS << ValoStr(SrcTree.getNodeValue(Src));
-            OS << " to " << ValoStr(DstTree.getNodeValue(Dst));
-            break;
-        }
-        case ChangeKind::Insert: [[fallthrough]];
-        case ChangeKind::Move: [[fallthrough]];
-        case ChangeKind::UpdateMove: {
-            if (DstNode.Change == ChangeKind::Insert) {
-                OS << "Insert";
-            } else if (DstNode.Change == ChangeKind::Move) {
-                OS << "Move";
-            } else if (DstNode.Change == ChangeKind::UpdateMove) {
-                OS << "Update and Move";
-            }
-            OS << " [\033[32m";
-            OS << ValoStr(DstTree.getNodeValue(Dst));
-            OS << "\033[0m] into [\033[31m";
-            OS << ValoStr(DstTree.getNodeValue(DstNode.Parent));
-            OS << "\033[0m] at " << DstTree.findPositionInParent(Dst);
-            break;
-        }
-    }
-}
+void printMapping(
+    ColStream&                       os,
+    ASTDiff const&                   Diff,
+    SyntaxTree const&                SrcTree,
+    SyntaxTree const&                DstTree,
+    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
+    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
 } // namespace diff
 
 template <>
-struct std::formatter<diff::NodeId> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const diff::NodeId& p, FormatContext& ctx) {
-        return std::to_string(p.Offset);
-    }
-};
+struct std::formatter<diff::ASTDiff*>
+    : std_format_ptr_as_hex<diff::ASTDiff> {};

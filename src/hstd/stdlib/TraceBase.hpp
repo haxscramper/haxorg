@@ -1,7 +1,19 @@
 #pragma once
 
+#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/system/reflection.hpp>
+
+struct OperationsMsg {
+    Opt<std::string> msg;
+    char const*      file     = nullptr;
+    char const*      function = nullptr;
+    int              line     = 0;
+    int              column   = 0;
+    DESC_FIELDS(OperationsMsg, (msg, file, function, line, column));
+};
+
 
 struct OperationsTracer {
     bool        TraceState      = false;
@@ -18,16 +30,10 @@ struct OperationsTracer {
     void               setTraceFile(fs::path const& outfile);
     ColStream          getStream();
     void               endStream(ColStream& stream);
+    void               message(std::string const& value);
+    void               message(OperationsMsg const& value);
 };
 
-
-struct OperationsMsg {
-    Opt<std::string> msg;
-    char const*      file     = nullptr;
-    char const*      function = nullptr;
-    int              line     = 0;
-    int              column   = 0;
-};
 
 template <typename Derived, typename Msg>
 struct OperationsMsgBulder : CRTP_this_method<Derived> {

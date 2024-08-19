@@ -148,6 +148,7 @@ Content2
 class CorpusDebug(BaseModel):
     doParse: bool = True
     doLex: bool = True
+    doLexBase: bool = True
 
 
 class CorpusEntry(BaseModel, extra="forbid"):
@@ -225,7 +226,7 @@ def test_sem_parser_expected():
 
             row.add(tags.td(tags.pre(text), _class="source-cell"))
 
-            if entry.debug.doLex and entry.debug.doParse:
+            if entry.debug.doLexBase and entry.debug.doLex and entry.debug.doParse:
                 node = org.parseString(text)
                 yaml_pre = tags.pre()
                 yaml_text = org.exportToYamlString(
@@ -286,11 +287,12 @@ def test_segment_tree():
 def test_doc1():
     file = Path("~/tmp/doc1.org").expanduser()
     if not file.exists():
-        return 
+        return
 
     node = org.parseString(file.read_text())
     text = org.treeRepr(node, colored=False)
     Path("/tmp/test_doc1.txt").write_text(text)
+
 
 if __name__ == "__main__":
     test_doc1()

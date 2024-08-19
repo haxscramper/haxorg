@@ -33,6 +33,19 @@ enum class TermColorBg8Bit : u8
     Default    ///< default terminal foreground color
 };
 
+BOOST_DESCRIBE_ENUM(
+    TermColorBg8Bit,
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    EightBit,
+    Default);
+
 template <>
 struct value_domain<TermColorBg8Bit>
     : value_domain_ungapped<
@@ -56,6 +69,19 @@ enum class TermColorFg8Bit : u8
     Default    ///< default terminal foreground color
 };
 
+BOOST_DESCRIBE_ENUM(
+    TermColorFg8Bit,
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    EightBit,
+    Default);
+
 template <>
 struct value_domain<TermColorFg8Bit>
     : value_domain_ungapped<
@@ -75,6 +101,18 @@ enum class Style : u8
     Hidden,       ///< hidden text
     Strikethrough ///< strikethrough
 };
+
+BOOST_DESCRIBE_ENUM(
+    Style,
+    Bright,
+    Dim,
+    Italic,
+    Underscore,
+    Blink,
+    BlinkRapid,
+    Reverse,
+    Hidden,
+    Strikethrough);
 
 template <>
 struct value_domain<Style>
@@ -113,8 +151,19 @@ struct ColStyle {
     }
 
     bool operator!=(CR<ColStyle> other) const { return !(*this == other); }
-};
 
+    // clang-format off
+    ColStyle& red() { fg = TermColorFg8Bit::Red; return *this; }
+    ColStyle& blue() { fg = TermColorFg8Bit::Blue; return *this; }
+    ColStyle& green() { fg = TermColorFg8Bit::Green; return *this; }
+    ColStyle& yellow() { fg = TermColorFg8Bit::Yellow; return *this; }
+    ColStyle& cyan() { fg = TermColorFg8Bit::Cyan; return *this; }
+    ColStyle& magenta() { fg = TermColorFg8Bit::Magenta; return *this; }
+    ColStyle& white() { fg = TermColorFg8Bit::White; return *this; }
+    // clang-format on
+
+    DESC_FIELDS(ColStyle, (fg, bg, style));
+};
 
 #define ESC_PREFIX "\033["
 
@@ -177,6 +226,33 @@ struct ColRune {
     bool operator!=(ColRune const& other) const {
         return !(*this == other);
     }
+
+    DESC_FIELDS(ColRune, (rune, style));
+};
+
+template <>
+struct std::formatter<ColRune> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ColRune& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx(p.rune, ctx);
+        if (p.style.fg != (TermColorFg8Bit)0) {
+            fmt_ctx(":fg", ctx);
+            fmt_ctx(p.style.fg, ctx);
+        }
+
+        if (p.style.bg != (TermColorBg8Bit)0) {
+            fmt_ctx(":bg", ctx);
+            fmt_ctx(p.style.bg, ctx);
+        }
+
+        for (auto const& it : p.style.style) {
+            fmt_ctx(":", ctx);
+            fmt_ctx(it, ctx);
+        }
+
+        return fmt_ctx("}", ctx);
+    }
 };
 
 struct ColText : Vec<ColRune> {
@@ -196,6 +272,7 @@ struct ColText : Vec<ColRune> {
     ColText(CR<ColStyle> style, CR<std::string> text);
 
     ColText(CR<std::string> text) : ColText(ColStyle{}, text) {}
+    ColText(Span<ColRune> text) : Vec<ColRune>{text} {}
 
     ColText(CR<ColStyle> style, char text)
         : Vec<ColRune>({ColRune(text, style)}) {}
@@ -224,16 +301,11 @@ struct ColText : Vec<ColRune> {
     }
 };
 
-template <typename CharT>
-struct std::formatter<ColText, CharT>
-    : std::formatter<std::string, CharT> {
-    using FmtType = ColText;
+template <>
+struct std::formatter<ColText> : std::formatter<std::string> {
     template <typename FormatContext>
-    typename FormatContext::iterator format(
-        FmtType const& p,
-        FormatContext& ctx) {
-        std::formatter<std::string, CharT> fmt;
-        return fmt.format(to_colored_string(p, true), ctx);
+    auto format(const ColText& p, FormatContext& ctx) const {
+        return std::formatter<Vec<ColRune>>{}.format(p, ctx);
     }
 };
 
@@ -268,7 +340,7 @@ struct ColStream : public ColText {
         return *static_cast<ColText const*>(this);
     }
 
-    ColStream() : buffered(true){};
+    ColStream() : buffered(true) {};
     ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
 
     // clang-format off
@@ -326,6 +398,16 @@ inline ColStream& operator<<(ColStream& os, Style const& value) {
 
 inline ColStream& operator<<(ColStream& os, char const& value) {
     os.write(ColText(os.active, value));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, int const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, float const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
     return os;
 }
 

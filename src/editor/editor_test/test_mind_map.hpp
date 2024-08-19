@@ -9,14 +9,6 @@ class TestMindMap
     void initTestCase() { init_test_base(); }
     void cleanupTestCase() { cleanup_test_base(); }
 
-    void testLibcolaApi1();
-    void testLibcolaRaw1();
-    void testLibcolaRaw2();
-    void testLibcolaIr1();
-    void testLibcolaIr2();
-    void testHolaIr1();
-    void testGraphvizIr1();
-    void testGraphvizIrClusters();
     void testGraphConstruction();
     void testGraphConstructionSubtreeId1();
     void testGraphConstructionFootnoteId();

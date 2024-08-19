@@ -39,6 +39,8 @@ enum class OrgTokenKind : unsigned short int {
   CmdDateRaw,
   CmdDescription,
   CmdDrawersRaw,
+  CmdDynamicBegin,
+  CmdDynamicEnd,
   CmdEmailRaw,
   CmdExampleBegin,
   CmdExampleEnd,

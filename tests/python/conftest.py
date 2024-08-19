@@ -113,8 +113,9 @@ def trace_session():
     if coverage:
         coverage = Path(coverage)
         summary = summarize_cookies(coverage)
-        coverage.joinpath("test-summary.json").write_text(
-            summary.model_dump_json(indent=2))
+        respath = coverage.joinpath("test-summary.json")
+        respath.parent.mkdir(parents=True, exist_ok=True)
+        respath.write_text(summary.model_dump_json(indent=2))
 
 
 @pytest.fixture(scope="module", autouse=True)
