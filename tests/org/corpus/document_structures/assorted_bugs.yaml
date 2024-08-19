@@ -874,22 +874,25 @@ items:
       #+end_src
 
   - name: "Latex block" 
+    debug: 
+      doLexBase: false
     source: |
       #+begin_latex
       \cfrac{12}{2}
       #+end_latex
 
-  # - name: "Begin user-defined node for parsed content"
-  #   debug:
-  #     traceAll: true
-
-  #   source: |
-  #     #+begin: user-block
+  - name: "Begin user-defined node for parsed content"
+    debug: 
+      doLexBase: false
+    source: |
+      #+begin: user-block
       
-  #     #+end:
+      #+end:
 
-  # - name: "Begin user-defined node for raw content"
-  #   source: |
-  #     #+begin_raw: user-block
+  - name: "Begin user-defined node for raw content"
+    debug: 
+      doLexBase: false
+    source: |
+      #+begin_raw: user-block
       
-  #     #+end_raw:
+      #+end_raw:

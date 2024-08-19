@@ -93,7 +93,7 @@ class ExporterTypst(ExporterBase):
     def expr(self, value, isLine: bool = False) -> BlockId:
         match value:
             case org.Org():
-                return self.content(self.exp.eval(value))
+                return self.t.content(self.exp.eval(value))
 
             case _:
                 return self.t.expr(value=value, isLine=isLine)
@@ -355,10 +355,10 @@ class ExporterTypst(ExporterBase):
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         args = dict(
-            content=typ.RawBlock(self.content(self.stackSubnodes(self.trimSub(node)))))
+            content=typ.RawBlock(self.t.content(self.stackSubnodes(self.trimSub(node)))))
 
         if node.isDescriptionItem():
-            args["header"] = typ.RawBlock(self.content(self.exp.eval(node.header)))
+            args["header"] = typ.RawBlock(self.t.content(self.exp.eval(node.header)))
             args["isDescription"] = True
 
         else:

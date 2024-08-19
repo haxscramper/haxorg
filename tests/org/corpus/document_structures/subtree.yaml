@@ -80,6 +80,8 @@ items:
     file: org/lorem_ipsum_subtree.org
 
   - name: "Nested lists in the subtree notes"
+    debug: 
+      doLexBase: false
     source: |
       **** Title:
         :LOGBOOK:
@@ -92,6 +94,8 @@ items:
         :END:
 
   - name: User-defined drawer
+    debug: 
+      doLexBase: false
     source: |
       ** This is a headline
 
