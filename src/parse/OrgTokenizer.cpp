@@ -49,6 +49,8 @@ struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     }
 
 
+struct tokenizer_error : CRTP_hexception<tokenizer_error> {};
+
 using otk = OrgTokenKind;
 
 template <typename T>
@@ -659,19 +661,19 @@ struct LineToken {
                 next) {
                 kind = *next;
             } else {
-                LOG(FATAL)
-                    << fmt("Unknown line command kind mapping {}, {}",
-                           tokens.at(tokensOffset + 1),
-                           tokens);
+                throw tokenizer_error::init(
+                    fmt("Unknown line command kind mapping {}, {}",
+                        tokens.at(tokensOffset + 1),
+                        tokens));
             }
 
 
         } else if (CmdBlockClose.contains(current.kind)) {
             kind = Kind::BlockClose;
         } else {
-            LOG(FATAL) << fmt(
-                "Expected line command or closing block, but got {}",
-                current.kind);
+            throw tokenizer_error::init(
+                fmt("Expected line command or closing block, but got {}",
+                    current.kind));
         }
     }
 
@@ -949,10 +951,10 @@ struct TokenVisitor {
                 }
 
                 default: {
-                    LOG(FATAL)
-                        << fmt("Unhandled line kind {} {}",
-                               start->kind,
-                               it->tokens);
+                    throw tokenizer_error::init(
+                        fmt("Unhandled line kind {} {}",
+                            start->kind,
+                            it->tokens));
                     return std::nullopt;
                 }
             }

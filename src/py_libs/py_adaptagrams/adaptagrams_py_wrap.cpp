@@ -128,20 +128,6 @@ PYBIND11_MODULE(py_adaptagrams, m) {
     .def_readwrite("width", &GraphRect::width)
     .def_readwrite("height", &GraphRect::height)
     .def("size", static_cast<GraphSize(GraphRect::*)() const>(&GraphRect::size))
-    .def("setBottomLeft",
-         static_cast<void(GraphRect::*)(double, double)>(&GraphRect::setBottomLeft),
-         pybind11::arg("x"),
-         pybind11::arg("y"))
-    .def("setTopRight",
-         static_cast<void(GraphRect::*)(double, double)>(&GraphRect::setTopRight),
-         pybind11::arg("x"),
-         pybind11::arg("y"))
-    .def("setBottomLeft",
-         static_cast<void(GraphRect::*)(GraphPoint const&)>(&GraphRect::setBottomLeft),
-         pybind11::arg("p"))
-    .def("setTopRight",
-         static_cast<void(GraphRect::*)(GraphPoint const&)>(&GraphRect::setTopRight),
-         pybind11::arg("p"))
     .def("__repr__", [](GraphRect _self) -> std::string {
                      return py_repr_impl(_self);
                      })

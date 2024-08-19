@@ -291,7 +291,7 @@ def run_collector(
         )
 
     else:
-        tu = conv_proto_file(str(tmp_output), original=input)
+        tu = conv_proto_file(tmp_output, original=input)
         refl[str(input)] = time.time()
         with open(conf.reflect_cache, "w") as file:
             file.write(json.dumps(refl, indent=2))
@@ -363,7 +363,7 @@ def write_run_result_information(
 
         sep("Serialized data:")
         if tu.pb_path and tu.pb_path.exists():
-            file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+            file.write(open_proto_file(tu.pb_path).to_json(2))
 
     if conf.print_reflection_run_fail_to_stdout:
         buffer = io.StringIO()
@@ -410,7 +410,7 @@ def run_collector_for_path(
         if conf.reflection_run_serialize:
             out_path = conf.reflection_run_path or str(serialize_path)
             with open(out_path, "w") as file:
-                file.write(remove_dbgOrigin(open_proto_file(str(tu.pb_path)).to_json()))
+                file.write(remove_dbgOrigin(open_proto_file(tu.pb_path).to_json()))
                 log().info(f"Wrote dump to {serialize_path}")
 
         write_run_result_information(conf, tu, path, commands)

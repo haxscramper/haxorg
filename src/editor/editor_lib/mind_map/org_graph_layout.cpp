@@ -15,12 +15,12 @@ QPainterPath toQPainterPath(const GraphPath& path) {
     if (path.bezier) {
         if (path.startPoint) {
             res.moveTo(toQPoint(*path.startPoint));
-            res.lineTo(toQPoint(path.points.at(1)));
+            res.lineTo(toQPoint(path.points.at(0)));
         } else {
             res.moveTo(toQPoint(path.points.at(0)));
         }
 
-        for (int i = 0; i < path.points.size(); i += 3) {
+        for (int i = 1; i < path.points.size(); i += 3) {
             res.cubicTo(
                 toQPoint(path.points.at(i)),
                 toQPoint(path.points.at(i + 1)),

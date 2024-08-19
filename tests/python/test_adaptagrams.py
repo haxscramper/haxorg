@@ -83,7 +83,7 @@ class ConvTest():
         post_fmt = pformat(dump, width=120)
         Path("/tmp/dbg.txt").write_text(f"{pre_fmt}\n{post_fmt}")
         sformat = str(
-            wrap.toSvgFileText(
+            wrap.svg.toSvgFileText(
                 wrap.toSvg(
                     self.conv,
                     rect_debug_map=rect_debug_map,
@@ -106,20 +106,20 @@ def test_ir_align_two():
 
     ir.nodeConstraints.append(
         wrap.GraphNodeConstraint.InitAlignStatic(
-            wrap.GraphConstraintAlign(
+            wrap.GraphNodeConstraintAlign(
                 nodes=[
-                    wrap.GraphConstraintAlignSpec(node=0),
-                    wrap.GraphConstraintAlignSpec(node=1),
+                    wrap.GraphNodeConstraintAlignSpec(node=0),
+                    wrap.GraphNodeConstraintAlignSpec(node=1),
                 ],
                 dimension=wrap.GraphDimension.XDIM,
             )))
 
     ir.nodeConstraints.append(
         wrap.GraphNodeConstraint.InitAlignStatic(
-            wrap.GraphConstraintAlign(
+            wrap.GraphNodeConstraintAlign(
                 nodes=[
-                    wrap.GraphConstraintAlignSpec(node=1),
-                    wrap.GraphConstraintAlignSpec(node=3),
+                    wrap.GraphNodeConstraintAlignSpec(node=1),
+                    wrap.GraphNodeConstraintAlignSpec(node=3),
                 ],
                 dimension=wrap.GraphDimension.YDIM,
             )))

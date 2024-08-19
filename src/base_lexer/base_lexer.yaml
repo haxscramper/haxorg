@@ -222,6 +222,18 @@ rules:
     token: CmdCenterEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
+  #tag begin dynamic
+  - re: "begin:"
+    states: [COMMAND]
+    token: CmdDynamicBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end:"
+    states: [COMMAND]
+    token: CmdDynamicEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+
   #region begin_example
   - re: "begin_example"
     states: [COMMAND]

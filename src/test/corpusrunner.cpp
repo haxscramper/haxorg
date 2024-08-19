@@ -890,6 +890,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     __perf_trace("lex base");
 
     SPtr<std::ofstream> fileTrace;
+    _dfmt(spec.debug.traceAll, spec.debug.traceLexBase);
     if (spec.debug.traceAll || spec.debug.traceLexBase) {
         fileTrace = std::make_shared<std::ofstream>(
             spec.debugFile("trace_lex_base.log", relDebug));
@@ -1041,6 +1042,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
     p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
     if (p.parser->TraceState) {
+        p.parser->traceColored = false;
         p.parser->setTraceFile(
             spec.debugFile("trace_parse.log", relDebug));
     }

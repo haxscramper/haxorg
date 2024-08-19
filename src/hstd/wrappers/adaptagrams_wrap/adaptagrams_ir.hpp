@@ -65,26 +65,6 @@ struct [[refl]] GraphRect {
     GraphRect(double left, double top, double width, double height)
         : left{left}, top{top}, width{width}, height{height} {}
 
-    [[refl]] void setBottomLeft(double x, double y) {
-        width  = (width >= 0) ? width : left - x;
-        height = (height >= 0) ? height : top - y;
-        left   = x;
-        top    = y - height;
-    }
-
-    [[refl]] void setTopRight(double x, double y) {
-        width  = (width >= 0) ? width : x - left;
-        height = (height >= 0) ? height : y - top;
-        top    = y;
-    }
-
-
-    [[refl]] void setBottomLeft(GraphPoint const& p) {
-        setBottomLeft(p.x, p.y);
-    }
-    [[refl]] void setTopRight(GraphPoint const& p) {
-        setTopRight(p.x, p.y);
-    }
     DESC_FIELDS(GraphRect, (left, top, width, height));
 
     bool contains(GraphPoint const& p) const {

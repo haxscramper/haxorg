@@ -57,7 +57,7 @@ def export_typst(ctx: click.Context, config: Optional[str] = None, **kwargs):
             out.write(typst.t.toTreeRepr(res))
 
         else:
-            out.write(typst.t.toString(res, TextOptions()))
+            out.write(typst.t.toString(res))
 
     pyhaxorg_utils.doExportAttachments(
         base=opts.infile,

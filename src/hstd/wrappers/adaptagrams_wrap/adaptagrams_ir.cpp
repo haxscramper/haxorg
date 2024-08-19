@@ -37,8 +37,14 @@ GraphPoint toGvPoint(pointf p, int height) {
 GraphRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<GraphRect> bbox) {
     boxf      rect = g.info()->bb;
     GraphRect res{};
-    res.setBottomLeft(toGvPoint(rect.LL, bbox.height));
-    res.setTopRight(toGvPoint(rect.UR, bbox.height));
+    CHECK(0 <= bbox.height);
+    auto ll    = toGvPoint(rect.LL, bbox.height);
+    auto ur    = toGvPoint(rect.UR, bbox.height);
+    res.left   = ll.x;
+    res.top    = ur.y;
+    res.width  = ur.x - ll.x;
+    res.height = ll.y - ur.y;
+    CHECK(0 <= res.height);
     return res;
 }
 
@@ -156,7 +162,7 @@ GraphPath getEdgeSpline(
             path.point(toGvPoint(bez.list[i + 2], height));
         }
 
-        if (bez.eflag) { path.point(toGvPoint(bez.ep, height)); }
+        if (bez.eflag) { path.endPoint = toGvPoint(bez.ep, height); }
     }
     return path;
 }

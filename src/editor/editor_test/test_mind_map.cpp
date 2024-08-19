@@ -62,10 +62,6 @@ using namespace org::mind_map;
     QCOMPARE_OP_IMPL(computed, baseline, >=, GreaterThanOrEqual)
 
 
-
-
-
-
 void TestMindMap::testGraphConstruction() {
     OrgStore store;
     Graph    graph{&store, nullptr};
@@ -1286,6 +1282,7 @@ void TestMindMap::testQtGraphSceneFullMindMap() {
                             b.graph->index(b.graph->getBoxIndex(box)))
                         .value();
 
+        dump_all("dbg");
         auto clusters = getFullyOverlappingItems(
             b.view, item->boundingRect());
 

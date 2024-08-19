@@ -656,7 +656,7 @@ def python_protobuf_files(ctx: Context):
 
 
 @org_task(pre=[base_environment])
-def cmake_configure_haxorg(ctx: Context):
+def cmake_configure_haxorg(ctx: Context, force: bool = False):
     """Execute cmake configuration step for haxorg"""
 
     with FileOperation.InTmp(
@@ -668,7 +668,7 @@ def cmake_configure_haxorg(ctx: Context):
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
         log(CAT).info(op.explain("cmake configuration"))
-        if is_forced(ctx, "cmake_configure_haxorg") or op.should_run():
+        if force or is_forced(ctx, "cmake_configure_haxorg") or op.should_run():
             log(CAT).info("running haxorg cmake configuration")
             pass_flags = [
                 "-B",
@@ -783,7 +783,7 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 
 CODEGEN_TASKS = [
     "adaptagrams",
-    # "pyhaxorg",
+    "pyhaxorg",
 ]
 
 
