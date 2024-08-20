@@ -156,10 +156,16 @@ install(
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include
-    FILE_SET headers DESTINATION include
 )
 
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")
+
+install(EXPORT HaxorgTargets
+    FILE HaxorgTargets.cmake
+    NAMESPACE haxorg::
+    DESTINATION lib/cmake/haxorg
+)
+
 
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"

@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CXX_STANDARD 23)
 
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../build/install")
+
+find_package(Haxorg CONFIG REQUIRED)
+
 add_executable(main main.cpp)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
