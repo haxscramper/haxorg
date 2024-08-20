@@ -25,6 +25,7 @@ from py_scriptutils.algorithm import remove_ansi
 import typing
 import inspect
 import copy
+import shutil
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -738,6 +739,23 @@ def cmake_haxorg(
 
         elif not op.should_run():
             log(CAT).info(f"Not running build {op.explain('cmake_haxorg')}")
+
+
+@org_task(pre=[cmake_haxorg])
+def cmake_install_dev(ctx: Context):
+    """Install haxorg targets in the build directory"""
+    install_dir = get_build_root().joinpath("install")
+    if install_dir.exists():
+        shutil.rmtree(install_dir)
+        
+    run_command(ctx, "cmake", [
+        "--install",
+        get_component_build_dir(ctx, "haxorg"),
+        "--prefix",
+        install_dir,
+        # "--component",
+        # "haxorg_component"
+    ])
 
 
 def get_lldb_py_import() -> List[str]:

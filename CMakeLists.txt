@@ -124,3 +124,60 @@ include(src/cmake/target_pyhaxorg.cmake)
 add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
 add_subdirectory("${BASE}/src/editor")
+
+
+
+function(get_target_header_files target_name header_files_var)
+    get_target_property(sources ${target_name} SOURCES)
+    set(header_files "")
+
+    foreach(source IN LISTS sources)
+        get_filename_component(ext "${source}" EXT)
+        if(ext STREQUAL ".h")
+            list(APPEND header_files "${source}")
+        elseif(ext STREQUAL ".hpp")
+            list(APPEND header_files "${source}")
+        endif()
+    endforeach()
+
+    set(${header_files_var} ${header_files} PARENT_SCOPE)
+endfunction()
+
+get_target_header_files(haxorg HAXORG_HEADERS)
+get_target_header_files(hstd HSTD_HEADERS)
+
+target_sources(haxorg INTERFACE FILE_SET headers TYPE INTERFACE_HEADERS FILES ${HAXORG_HEADERS})
+target_sources(hstd INTERFACE FILE_SET headers TYPE INTERFACE_HEADERS FILES ${HSTD_HEADERS})
+
+install(
+    TARGETS haxorg hstd
+    EXPORT haxorg
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+install(TARGETS haxorg FILE_SET headers DESTINATION include/haxorg)
+install(TARGETS hstd FILE_SET headers DESTINATION include/hstd)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/haxorg
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
+    VERSION "0.3.7"
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
+    DESTINATION lib/cmake/haxorg
+)
+
+add_library(haxorg::haxorg ALIAS haxorg)
+add_library(haxorg::hstd ALIAS hstd)
