@@ -143,11 +143,11 @@ function(get_target_header_files target_name header_files_var)
     set(${header_files_var} ${header_files} PARENT_SCOPE)
 endfunction()
 
-get_target_header_files(haxorg HAXORG_HEADERS)
-get_target_header_files(hstd HSTD_HEADERS)
+# get_target_header_files(haxorg HAXORG_HEADERS)
+# get_target_header_files(hstd HSTD_HEADERS)
 
-target_sources(haxorg INTERFACE FILE_SET headers TYPE INTERFACE_HEADERS FILES ${HAXORG_HEADERS})
-target_sources(hstd INTERFACE FILE_SET headers TYPE INTERFACE_HEADERS FILES ${HSTD_HEADERS})
+# target_sources(haxorg INTERFACE FILE_SET headers TYPE HEADERS FILES ${HAXORG_HEADERS})
+# target_sources(hstd INTERFACE FILE_SET headers TYPE HEADERS FILES ${HSTD_HEADERS})
 
 install(
     TARGETS haxorg hstd
@@ -156,10 +156,10 @@ install(
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include
+    FILE_SET headers DESTINATION include
 )
 
-install(TARGETS haxorg FILE_SET headers DESTINATION include/haxorg)
-install(TARGETS hstd FILE_SET headers DESTINATION include/hstd)
+install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")
 
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
