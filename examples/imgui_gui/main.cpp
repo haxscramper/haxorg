@@ -1,21 +1,17 @@
 #include "imgui.h"
-#include "imgui_impl_sdl2.h"
+#include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <SDL.h>
-#include <SDL_opengl.h>
+#include <GLFW/glfw3.h>
 
-int main(int, char**) {
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window* window = SDL_CreateWindow(
-        "ImGui SDL2+OpenGL3 example",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        1280,
-        720,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+int main() {
+    if (!glfwInit()) { return 1; }
 
-    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    GLFWwindow* window = glfwCreateWindow(
+        1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    if (window == NULL) { return 1; }
+
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); // Enable vsync
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -23,45 +19,48 @@ int main(int, char**) {
 
     ImGui::StyleColorsDark();
 
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
-    bool done = false;
-    while (!done) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT) { done = true; }
-            if (event.type == SDL_WINDOWEVENT
-                && event.window.event == SDL_WINDOWEVENT_CLOSE
-                && event.window.windowID == SDL_GetWindowID(window)) {
-                done = true;
-            }
-        }
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
 
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Hello, world!");
-        ImGui::Text("This is some useful text.");
+        // Fullscreen window
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        // ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::Begin(
+            "Fullscreen Window",
+            nullptr,
+            ImGuiWindowFlags_NoDecoration
+                | ImGuiWindowFlags_NoBringToFrontOnFocus
+                | ImGuiWindowFlags_NoNav);
+
+        ImGui::Text("This is a fullscreen window.");
+
         ImGui::End();
 
         ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        SDL_GL_SwapWindow(window);
+        glfwSwapBuffers(window);
     }
 
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
+    glfwDestroyWindow(window);
+    glfwTerminate();
     return 0;
 }
