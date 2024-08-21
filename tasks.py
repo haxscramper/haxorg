@@ -778,7 +778,15 @@ def cmake_build_deps(
         ],
     )
 
-    dep(build_name="abseil", deps_name="abseil-cpp")
+    dep(
+        build_name="abseil",
+        deps_name="abseil-cpp",
+        configure_args=[
+            cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+
     dep(
         build_name="SQLiteCpp",
         deps_name="SQLiteCpp",
@@ -824,6 +832,8 @@ def cmake_build_deps(
             cmake_opt("utf8_range_ENABLE_INSTALL", True),
             cmake_opt("protobuf_ABSL_PROVIDER", "package"),
             cmake_opt("CMAKE_PREFIX_PATH", install_dir.joinpath("abseil")),
+            cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
     )
 
