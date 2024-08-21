@@ -12,7 +12,7 @@ haxorg_target_setup(editor_lib)
 target_link_libraries(
   editor_lib
   PUBLIC hstd
-         perfetto
+         Perfetto::perfetto
          haxorg
          Qt6::Test
          Qt6::Core

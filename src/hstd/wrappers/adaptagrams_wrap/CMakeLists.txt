@@ -114,7 +114,7 @@ set_target_properties(py_adaptagrams PROPERTIES
 )
 
 haxorg_target_setup_v2(TARGET py_adaptagrams FORCE_NO_ASAN ON)
-target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto adaptagrams)
+target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg Perfetto::perfetto adaptagrams)
 
 set_target_properties(py_adaptagrams PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

@@ -8,7 +8,7 @@ target_link_libraries(profdata_merger
     ${profdata_merger_llvm_libs}
     SQLiteCpp
     sqlite3
-    perfetto
+    Perfetto::perfetto
     tbb
     absl::base
     absl::log

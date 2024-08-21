@@ -1,6 +1,6 @@
 #pragma once
 
-#include <perfetto.h>
+#include <perfetto/perfetto.h>
 #include <filesystem>
 
 std::unique_ptr<perfetto::TracingSession> StartTracing();

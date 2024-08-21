@@ -34,7 +34,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Map.hpp>
 
-#include <perfetto.h>
+#include <perfetto/perfetto.h>
 
 PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("llvm").SetDescription("LLVM code execution time"),

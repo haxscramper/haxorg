@@ -32,7 +32,7 @@ add_dependencies(code_forensics libgit2)
 
 target_link_libraries(code_forensics PUBLIC
     hstd
-    perfetto
+    Perfetto::perfetto
     range-v3
     SQLiteCpp
     sqlite3

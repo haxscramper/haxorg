@@ -756,6 +756,14 @@ def cmake_build_deps(
         ])
 
     dep(
+        build_name="perfetto",
+        deps_name="cmake_wrap/perfetto",
+        configure_args=[
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+
+    dep(
         build_name="immer",
         deps_name="immer",
         configure_args=[

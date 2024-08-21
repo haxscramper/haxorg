@@ -19,7 +19,7 @@ target_link_libraries(
     absl::base
     absl::log
     absl::flags
-    perfetto
+    Perfetto::perfetto
     range-v3
     nlohmann_json
     boost_describe
