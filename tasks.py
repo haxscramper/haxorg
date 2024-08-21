@@ -789,6 +789,14 @@ def cmake_build_deps(
 
     dep(build_name="mp11", deps_name="mp11")
     dep(
+        build_name="json",
+        deps_name="json",
+        configure_args=[
+            cmake_opt("JSON_BuildTests", False),
+        ],
+    )
+
+    dep(
         build_name="yaml",
         deps_name="yaml-cpp",
         configure_args=[cmake_opt("YAML_CPP_BUILD_TESTS", False)],

@@ -79,39 +79,43 @@ set(DEPS_DIR "${BASE}/thirdparty")
 set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
 message(STATUS "Binary directory for dependencies ${DEPS_BINARY}")
 
-add_subdirectory("${DEPS_DIR}/yaml-cpp")
-
-add_library(perfetto STATIC "${DEPS_DIR}/perfetto/sdk/perfetto.cc")
-target_include_directories(perfetto PUBLIC "${DEPS_DIR}/perfetto/sdk")
-
-add_subdirectory("${DEPS_DIR}/range-v3")
-
-add_library(immer_lib INTERFACE)
-target_include_directories(immer_lib INTERFACE "${DEPS_DIR}/immer")
-
-add_library(lager_lib INTERFACE)
-target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
-
-set(SQLITECPP_RUN_CPPLINT OFF)
-
-add_subdirectory("${DEPS_DIR}/pybind11")
-
-add_subdirectory("${DEPS_DIR}/abseil-cpp")
-add_subdirectory("${DEPS_DIR}/googletest")
-add_subdirectory("${DEPS_DIR}/SQLiteCpp")
+set(DEPS_INSTALL "${BASE}/build/deps_install")
+message(STATUS "DEPS_INSTALL = ${DEPS_INSTALL}")
 
 
-set(protobuf_INSTALL OFF)
-set(protobuf_BUILD_TESTS OFF)
-set(utf8_range_ENABLE_TESTS OFF)
-set(utf8_range_ENABLE_INSTALL OFF)
-add_subdirectory("${DEPS_DIR}/protobuf")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/yaml/share/cmake/yaml-cpp")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/SQLiteCpp/lib/cmake/SQLiteCpp")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/pybind11/share/cmake/pybind11")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/protobuf/lib/cmake/protobuf")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/mp11/lib/cmake/boost_mp11-1.85.0")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
+
+message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
+message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
+
+find_package(yaml-cpp CONFIG REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
+find_package(absl CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
+find_package(Immer CONFIG REQUIRED)
+find_package(Lager CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(SQLiteCpp CONFIG REQUIRED)
+find_package(boost_mp11 CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(protobuf CONFIG REQUIRED)
+
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
-add_subdirectory(thirdparty/json)
-add_subdirectory(thirdparty/mp11)
+add_library(perfetto STATIC "${DEPS_DIR}/perfetto/sdk/perfetto.cc")
+target_include_directories(perfetto PUBLIC "${DEPS_DIR}/perfetto/sdk")
 add_subdirectory(thirdparty/describe)
 add_subdirectory(src/hstd)
 
@@ -124,5 +128,3 @@ include(src/cmake/target_pyhaxorg.cmake)
 add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
 add_subdirectory("${BASE}/src/editor")
-
-
