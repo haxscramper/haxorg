@@ -21,7 +21,7 @@ import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
 from py_repository.gen_coverage_cookies import ProfdataParams
-from py_scriptutils.algorithm import remove_ansi
+from py_scriptutils.algorithm import remove_ansi, maybe_splice
 import typing
 import inspect
 import copy
@@ -132,10 +132,10 @@ def is_ci() -> bool:
 
 
 @beartype
-def cmake_opt(name: str, value: Union[str, bool]) -> str:
+def cmake_opt(name: str, value: Union[str, bool, Path]) -> str:
     result = "-D" + name + "="
-    if isinstance(value, str):
-        result += value
+    if isinstance(value, (str, Path)):
+        result += str(value)
 
     elif isinstance(value, bool):
         result += ("ON" if value else "OFF")
@@ -707,6 +707,107 @@ def cmake_haxorg_clean(ctx: Context):
         stamp_path.unlink()
 
 
+@org_task()
+def cmake_build_deps(
+    ctx: Context,
+    rebuild: bool = False,
+    force: bool = False,
+):
+    conf = get_config(ctx)
+    build_dir = get_build_root().joinpath("deps_build")
+    if rebuild and build_dir.exists():
+        shutil.rmtree(build_dir)
+
+    build_dir.mkdir(parents=True, exist_ok=True)
+
+    install_dir = get_build_root().joinpath("deps_install")
+    if rebuild and install_dir.exists():
+        shutil.rmtree(install_dir)
+
+    install_dir.mkdir(parents=True, exist_ok=True)
+
+    deps_dir = get_script_root().joinpath("thirdparty")
+
+    def dep(
+        build_name: str,
+        deps_name: str,
+        configure_args: List[str] = [],
+        verbose: bool = False,
+    ):
+        run_command(ctx, "cmake", [
+            "-B",
+            build_dir.joinpath(build_name),
+            "-S",
+            deps_dir.joinpath(deps_name),
+            cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
+            cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"),
+            cmake_opt("CMAKE_TOOLCHAIN_FILE",
+                      get_script_root().joinpath("toolchain.cmake")),
+            *configure_args,
+            *maybe_splice(force, "--fresh"),
+        ])
+
+        run_command(ctx, "cmake", [
+            "--build",
+            build_dir.joinpath(build_name),
+            "--target",
+            "install",
+            "--parallel",
+        ])
+
+    dep(
+        build_name="immer",
+        deps_name="immer",
+        configure_args=[
+            cmake_opt("immer_BUILD_TESTS", False),
+            cmake_opt("immer_BUILD_EXAMPLES", False),
+            cmake_opt("immer_BUILD_DOCS", False),
+            cmake_opt("immer_BUILD_EXTRAS", False),
+        ],
+    )
+
+    dep(
+        build_name="lager",
+        deps_name="lager",
+        configure_args=[
+            cmake_opt("lager_BUILD_EXAMPLES", False),
+            cmake_opt("lager_BUILD_TESTS", False),
+            cmake_opt("lager_BUILD_FAILURE_TESTS", False),
+            cmake_opt("lager_BUILD_DEBUGGER_EXAMPLES", False),
+            cmake_opt("lager_BUILD_DOCS", False),
+        ],
+    )
+
+    dep(build_name="abseil", deps_name="abseil-cpp")
+    dep(
+        build_name="SQLiteCpp",
+        deps_name="SQLiteCpp",
+        configure_args=[cmake_opt("SQLITECPP_RUN_CPPLINT", False)],
+    )
+
+    dep(build_name="libgit2", deps_name="libgit2")
+
+    dep(build_name="mp11", deps_name="mp11")
+    dep(
+        build_name="yaml",
+        deps_name="yaml-cpp",
+        configure_args=[cmake_opt("YAML_CPP_BUILD_TESTS", False)],
+    )
+    dep(
+        build_name="range-v3",
+        deps_name="range-v3",
+        configure_args=[
+            cmake_opt("RANGE_V3_TESTS", False),
+            cmake_opt("RANGE_V3_EXAMPLES", False),
+            cmake_opt("RANGE_V3_PERF", False),
+        ],
+    )
+    dep(build_name="pybind11", deps_name="pybind11")
+    dep(build_name="protobuf", deps_name="protobuf")
+    dep(build_name="googlemock", deps_name="googlemock")
+    dep(build_name="googletest", deps_name="googletest")
+
+
 @org_task(pre=[cmake_configure_haxorg], iterable=["target"])
 def cmake_haxorg(
     ctx: Context,
@@ -747,15 +848,18 @@ def cmake_install_dev(ctx: Context):
     install_dir = get_build_root().joinpath("install")
     if install_dir.exists():
         shutil.rmtree(install_dir)
-        
-    run_command(ctx, "cmake", [
-        "--install",
-        get_component_build_dir(ctx, "haxorg"),
-        "--prefix",
-        install_dir,
-        # "--component",
-        # "haxorg_component"
-    ])
+
+    run_command(
+        ctx,
+        "cmake",
+        [
+            "--install",
+            get_component_build_dir(ctx, "haxorg"),
+            "--prefix",
+            install_dir,
+            # "--component",
+            # "haxorg_component"
+        ])
 
 
 def get_lldb_py_import() -> List[str]:
