@@ -43,7 +43,6 @@ list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
 
-option(ORG_USE_PCH "Use precompiled headers" ON)
 option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace" OFF)
 option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
@@ -94,6 +93,7 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
 
 message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
 message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
@@ -109,6 +109,7 @@ find_package(SQLiteCpp CONFIG REQUIRED)
 find_package(boost_mp11 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
+find_package(Reflex CONFIG REQUIRED)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
@@ -128,3 +129,44 @@ include(src/cmake/target_pyhaxorg.cmake)
 add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
 add_subdirectory("${BASE}/src/editor")
+
+
+install(
+    TARGETS haxorg hstd
+    EXPORT HaxorgTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")
+
+install(EXPORT HaxorgTargets
+    FILE HaxorgTargets.cmake
+    NAMESPACE haxorg::
+    DESTINATION lib/cmake/haxorg
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/haxorg
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
+    VERSION "0.3.7"
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
+    DESTINATION lib/cmake/haxorg
+)
+
+add_library(haxorg::haxorg ALIAS haxorg)
+add_library(haxorg::hstd ALIAS hstd)
