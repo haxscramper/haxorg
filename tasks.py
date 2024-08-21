@@ -740,7 +740,7 @@ def cmake_build_deps(
             "-S",
             deps_dir.joinpath(deps_name),
             cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
-            cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"),
+            cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
             cmake_opt("CMAKE_TOOLCHAIN_FILE",
                       get_script_root().joinpath("toolchain.cmake")),
             *configure_args,
@@ -802,9 +802,23 @@ def cmake_build_deps(
             cmake_opt("RANGE_V3_PERF", False),
         ],
     )
-    dep(build_name="pybind11", deps_name="pybind11")
-    dep(build_name="protobuf", deps_name="protobuf")
-    dep(build_name="googlemock", deps_name="googlemock")
+    dep(
+        build_name="pybind11",
+        deps_name="pybind11",
+        configure_args=[cmake_opt("PYBIND11_TEST", False)],
+    )
+    dep(
+        build_name="protobuf",
+        deps_name="protobuf",
+        configure_args=[
+            cmake_opt("protobuf_BUILD_TESTS", False),
+            cmake_opt("utf8_range_ENABLE_TESTS", False),
+            cmake_opt("utf8_range_ENABLE_INSTALL", True),
+            cmake_opt("protobuf_ABSL_PROVIDER", "package"),
+            cmake_opt("CMAKE_PREFIX_PATH", install_dir.joinpath("abseil")),
+        ],
+    )
+
     dep(build_name="googletest", deps_name="googletest")
 
 
