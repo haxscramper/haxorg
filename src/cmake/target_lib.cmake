@@ -27,29 +27,16 @@ protobuf_generate(
 
 target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
 
-if (${ORG_USE_PCH})
-    target_precompile_headers(haxorg PRIVATE
-      <string>
-      <format>
-      <nlohmann/json.hpp>
-      <optional>
-      <vector>
-      <boost/mp11.hpp>
-      <boost/describe.hpp>
-      <sem/SemOrg.hpp>
-    )
-endif()
-
 # Use re-flex static library as a direct dependency here so it would be compiled
 # and linked with right sanitizer options (otherwise it triggers lots of false 
 # positives)
-add_subdirectory("${BASE}/thirdparty/RE-flex")
+# add_subdirectory("${BASE}/thirdparty/RE-flex")
 
 target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}
     hstd
-    ReflexLibStatic
+    Reflex::ReflexLibStatic
     range-v3
     # protobuf::protobuf-lite
     protobuf::libprotobuf
@@ -60,8 +47,8 @@ target_link_libraries(haxorg PUBLIC
     nlohmann_json
 )
 
-target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
-target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include" "${CMAKE_CURRENT_BINARY_DIR}")
+# target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
+target_include_directories(haxorg PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 # target_link_options(haxorg PRIVATE "-Wl,--copy-dt-needed-entries")
 
 add_executable(tests_org)

@@ -838,6 +838,13 @@ def cmake_build_deps(
     )
 
     dep(build_name="googletest", deps_name="googletest")
+    dep(
+        build_name="reflex",
+        deps_name="RE-flex",
+        configure_args=[
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
 
 
 @org_task(pre=[cmake_configure_haxorg], iterable=["target"])

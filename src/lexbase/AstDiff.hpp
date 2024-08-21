@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Func.hpp>
 #include <absl/log/check.h>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 
 #include <iostream>
 #include <cassert>
