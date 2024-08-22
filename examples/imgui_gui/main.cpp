@@ -17,6 +17,30 @@ struct Config {
     DESC_FIELDS(Config, (file, mode));
 };
 
+void render_outline(sem::SemId<sem::Org> const& org) {
+    switch (org->getKind()) {
+        case OrgSemKind::Document: {
+            if (ImGui::TreeNode("Document")) {
+                for (auto const& sub : org->subnodes) {
+                    render_outline(sub);
+                }
+                ImGui::TreePop();
+            }
+            break;
+        }
+        case OrgSemKind::Subtree: {
+            if (ImGui::TreeNode("Subtree")) {
+                for (auto const& sub : org->subnodes) {
+                    render_outline(sub);
+                }
+                ImGui::TreePop();
+            }
+            break;
+        }
+        default: {
+        }
+    }
+}
 
 int main(int argc, char** argv) {
     if (!glfwInit()) { return 1; }
@@ -71,27 +95,44 @@ int main(int argc, char** argv) {
                 | ImGuiWindowFlags_NoNav);
 
 
-        render_tree(node, config);
+        switch (conf.mode) {
+            case Config::Mode::SemTree: {
+                render_sem_tree(node, config);
+                break;
+            }
+            case Config::Mode::Outline: {
+                render_outline(node);
+                break;
+            }
+        }
+
 
         ImGui::End();
+        ImGuiIO& io = ImGui::GetIO();
+        ImGui::SetNextWindowPos(
+            ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Always);
+        ImGui::Begin(
+            "FPS",
+            nullptr,
+            ImGuiWindowFlags_NoDecoration
+                | ImGuiWindowFlags_AlwaysAutoResize
+                | ImGuiWindowFlags_NoSavedSettings
+                | ImGuiWindowFlags_NoFocusOnAppearing
+                | ImGuiWindowFlags_NoNav);
+        ImGui::Text("%.2f FPS", io.Framerate);
 
-        { // show FPS
-            ImGuiIO& io = ImGui::GetIO();
-            ImGui::SetNextWindowPos(
-                ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Always);
-            ImGui::Begin(
-                "FPS",
-                nullptr,
-                ImGuiWindowFlags_NoDecoration
-                    | ImGuiWindowFlags_AlwaysAutoResize
-                    | ImGuiWindowFlags_NoSavedSettings
-                    | ImGuiWindowFlags_NoFocusOnAppearing
-                    | ImGuiWindowFlags_NoNav);
-            ImGui::Text("%.2f FPS", io.Framerate);
-            ImGui::Checkbox("Show nullopt", &config.showNullopt);
-            ImGui::Checkbox("Show space", &config.showSpace);
-            ImGui::End();
+        switch (conf.mode) {
+            case Config::Mode::SemTree: {
+                ImGui::Checkbox("Show nullopt", &config.showNullopt);
+                ImGui::Checkbox("Show space", &config.showSpace);
+                break;
+            }
+            default: {
+            }
         }
+
+
+        ImGui::End();
 
         ImGui::Render();
         int display_w, display_h;

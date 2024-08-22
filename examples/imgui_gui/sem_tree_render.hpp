@@ -8,4 +8,6 @@ struct VisualExporterConfig {
     bool doTrace     = false;
 };
 
-void render_tree(sem::SemId<sem::Org> tree, VisualExporterConfig& config);
+void render_sem_tree(
+    sem::SemId<sem::Org>  tree,
+    VisualExporterConfig& config);

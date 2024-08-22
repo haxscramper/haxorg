@@ -36,6 +36,7 @@ find_package(Haxorg CONFIG REQUIRED)
 
 add_executable(main
     main.cpp
+    sem_tree_render.hpp
     sem_tree_render.cpp)
 
 set(BASE "${CMAKE_SOURCE_DIR}")

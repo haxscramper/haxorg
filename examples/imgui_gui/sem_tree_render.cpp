@@ -211,7 +211,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
 
 template class Exporter<ExporterVisual, int>;
 
-void render_tree(sem::SemId<sem::Org> tree, VisualExporterConfig& config) {
+void render_sem_tree(sem::SemId<sem::Org> tree, VisualExporterConfig& config) {
     ExporterVisual exp{.config = config};
     if (config.doTrace) {
         exp.setTraceFile("/tmp/ExportWalker.txt");
