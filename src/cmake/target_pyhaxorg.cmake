@@ -27,7 +27,7 @@ target_include_directories(
 )
 
 
-target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto)
+target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg Perfetto::perfetto)
 
 
 target_compile_options(pyhaxorg PRIVATE -shared-libasan)
@@ -51,5 +51,5 @@ target_include_directories(
     ${PYTHON_INCLUDE_DIRS}
 )
 
-target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg perfetto)
+target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg Perfetto::perfetto)
 target_compile_options(pyhaxorg_test_main PRIVATE -shared-libasan)

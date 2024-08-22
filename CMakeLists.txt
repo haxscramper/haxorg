@@ -59,21 +59,6 @@ option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adapt
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
-
-
-# if (${ORG_USE_SANITIZER})
-#     # Enable the sanitizer options. They are set globally primarity for the
-#     # in-source dependencies like google fuzztest, ABSL and so on -- if there
-#     # is a way to set them in a more focused manner they should be moved to the
-#     # respective consumers of these flags.
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address")
-#     set(VAR_ORG_SANITIZER_LINK_FLAGS "-fsanitize=undefined,address -L${ASAN_RT_PATH} -Wl,-rpath,${ASAN_RT_PATH}")
-#     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${VAR_ORG_SANITIZER_LINK_FLAGS}")
-#     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${VAR_ORG_SANITIZER_LINK_FLAGS}")
-# endif()
-
-
-
 set(DEPS_DIR "${BASE}/thirdparty")
 set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
 message(STATUS "Binary directory for dependencies ${DEPS_BINARY}")
@@ -118,9 +103,6 @@ include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
-add_library(perfetto STATIC "${DEPS_DIR}/perfetto/sdk/perfetto.cc")
-target_include_directories(perfetto PUBLIC "${DEPS_DIR}/perfetto/sdk")
-
 add_subdirectory(thirdparty/describe)
 add_subdirectory(src/hstd)
 
@@ -134,43 +116,49 @@ add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
 add_subdirectory("${BASE}/src/editor")
 
+install(
+    TARGETS haxorg hstd
+    EXPORT HaxorgTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
 
-# install(
-#     TARGETS haxorg hstd
-#     EXPORT HaxorgTargets
-#     LIBRARY DESTINATION lib
-#     ARCHIVE DESTINATION lib
-#     RUNTIME DESTINATION bin
-#     INCLUDES DESTINATION include
-# )
+install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")
 
-# install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.pb.h"
+)
 
-# install(EXPORT HaxorgTargets
-#     FILE HaxorgTargets.cmake
-#     NAMESPACE haxorg::
-#     DESTINATION lib/cmake/haxorg
-# )
+install(EXPORT HaxorgTargets
+    FILE HaxorgTargets.cmake
+    NAMESPACE haxorg::
+    DESTINATION lib/cmake/haxorg
+)
 
-# include(CMakePackageConfigHelpers)
 
-# configure_package_config_file(
-#     "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
-#     "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
-#     INSTALL_DESTINATION lib/cmake/haxorg
-# )
 
-# write_basic_package_version_file(
-#     "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
-#     VERSION "0.3.7"
-#     COMPATIBILITY AnyNewerVersion
-# )
+include(CMakePackageConfigHelpers)
 
-# install(FILES
-#     "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
-#     "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
-#     DESTINATION lib/cmake/haxorg
-# )
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/haxorg
+)
 
-# add_library(haxorg::haxorg ALIAS haxorg)
-# add_library(haxorg::hstd ALIAS hstd)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
+    VERSION "0.3.7"
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
+    DESTINATION lib/cmake/haxorg
+)
+
+add_library(haxorg::haxorg ALIAS haxorg)
+add_library(haxorg::hstd ALIAS hstd)

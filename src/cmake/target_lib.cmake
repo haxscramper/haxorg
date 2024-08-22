@@ -48,7 +48,10 @@ target_link_libraries(haxorg PUBLIC
 )
 
 # target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
-target_include_directories(haxorg PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(haxorg PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
 # target_link_options(haxorg PRIVATE "-Wl,--copy-dt-needed-entries")
 
 add_executable(tests_org)
