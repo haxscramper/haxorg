@@ -4,9 +4,50 @@
 #include <GLFW/glfw3.h>
 #include <sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <exporters/ExporterBase.hpp>
 #include <cstdlib>
+#include <exporters/Exporter.cpp>
+
 
 fs::path get_home() { return fs::path{std::getenv("HOME")}; }
+
+struct ExporterVisual : public Exporter<ExporterVisual, int> {
+    using Base = Exporter<ExporterVisual, int>;
+#define __ExporterBase Base
+    EXPORTER_USING()
+#undef __ExporterBase
+
+    bool ImOrgTree(char const* name) {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        return ImGui::TreeNode(name);
+    }
+
+    void visitField(int&, const char* name, Str const& value) {
+        ImGui::Text("%s = %s", name, value.c_str());
+    }
+
+    template <typename T>
+    void visitField(int&, const char* name, CR<T> field) {
+        ImGui::Text(name);
+    }
+
+    void visitSubtree(int& j, sem::SemId<sem::Subtree> tree) {
+        if (ImOrgTree("Subtree")) {
+            for (auto const& sub : tree->subnodes) { visit(j, sub); }
+            ImGui::TreePop();
+        }
+    }
+
+    void visitDocument(int& j, sem::SemId<sem::Document> doc) {
+        if (ImOrgTree("Document")) {
+            for (auto const& sub : doc->subnodes) { visit(j, sub); }
+            ImGui::TreePop();
+        }
+    }
+};
+
+
+template class Exporter<ExporterVisual, int>;
 
 int main() {
     if (!glfwInit()) { return 1; }
@@ -28,6 +69,7 @@ int main() {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     auto file = readFile(get_home() / "tmp/doc1.org");
+    auto node = sem::parseString(file);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -48,7 +90,24 @@ int main() {
                 | ImGuiWindowFlags_NoBringToFrontOnFocus
                 | ImGuiWindowFlags_NoNav);
 
-        ImGui::Text("This is a fullscreen window.");
+        ExporterVisual exp;
+        exp.evalTop(node);
+
+        { // show FPS
+            ImGuiIO& io = ImGui::GetIO();
+            ImGui::SetNextWindowPos(
+                ImVec2(io.DisplaySize.x - 100, 10), ImGuiCond_Always);
+            ImGui::Begin(
+                "FPS",
+                nullptr,
+                ImGuiWindowFlags_NoDecoration
+                    | ImGuiWindowFlags_AlwaysAutoResize
+                    | ImGuiWindowFlags_NoSavedSettings
+                    | ImGuiWindowFlags_NoFocusOnAppearing
+                    | ImGuiWindowFlags_NoNav);
+            ImGui::Text("%.2f FPS", io.Framerate);
+            ImGui::End();
+        }
 
         ImGui::End();
 

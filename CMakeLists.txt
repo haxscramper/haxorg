@@ -125,7 +125,11 @@ install(
     INCLUDES DESTINATION include
 )
 
-install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")
+install(DIRECTORY src/ DESTINATION include FILES_MATCHING
+    PATTERN "*.hpp"
+    PATTERN "*.tcc"
+    PATTERN "*Exporter.cpp"
+)
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
     DESTINATION include
