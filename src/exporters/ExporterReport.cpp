@@ -53,8 +53,12 @@ void ExporterEventBase::report(CR<VisitReport> ev) {
             os << " msg:" << os.yellow() << *ev.msg << os.end();
         }
         os << " on";
-        if (ev.file) { os << " " << fs::path(ev.file).stem() << ":"; }
-        os << fmt1(ev.line) << " " << os.end();
+        if (ev.file) {
+            os << " " << fs::path(ev.file).stem() << ":" << fmt1(ev.line)
+               << " " << os.end();
+        } else {
+            os << " " << fmt1(ev.line) << " " << os.end();
+        }
     }
 
     endStream(os);
