@@ -34,7 +34,9 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 
-add_executable(main main.cpp)
+add_executable(main
+    main.cpp
+    sem_tree_render.cpp)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
 
