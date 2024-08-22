@@ -707,11 +707,12 @@ def cmake_haxorg_clean(ctx: Context):
         stamp_path.unlink()
 
 
-@org_task()
+@org_task(iterable=["build_whitelist"])
 def cmake_build_deps(
     ctx: Context,
     rebuild: bool = False,
     force: bool = False,
+    build_whitelist: List[str] = [],
 ):
     conf = get_config(ctx)
     build_dir = get_build_root().joinpath("deps_build")
@@ -734,6 +735,9 @@ def cmake_build_deps(
         configure_args: List[str] = [],
         verbose: bool = False,
     ):
+        if 0 < len(build_whitelist) and build_name not in build_whitelist:
+            return
+
         run_command(ctx, "cmake", [
             "-B",
             build_dir.joinpath(build_name),
@@ -755,6 +759,7 @@ def cmake_build_deps(
             "--parallel",
         ])
 
+    dep(build_name="describe", deps_name="cmake_wrap/describe")  
     dep(
         build_name="perfetto",
         deps_name="cmake_wrap/perfetto",

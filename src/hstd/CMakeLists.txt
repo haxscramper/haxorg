@@ -22,7 +22,7 @@ target_link_libraries(
     Perfetto::perfetto
     range-v3
     nlohmann_json
-    boost_describe
+    Boost::boost_describe
 )
 
 add_executable(tests_hstd)

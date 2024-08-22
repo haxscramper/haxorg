@@ -80,6 +80,7 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/perfetto/lib/cmake/Perfetto")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/describe/lib/cmake/BoostDescribe")
 
 message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
 message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
@@ -97,15 +98,14 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(Reflex CONFIG REQUIRED)
 find_package(Perfetto CONFIG REQUIRED)
+find_package(BoostDescribe CONFIG REQUIRED)
 find_package(PythonLibs 3.12)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
-add_subdirectory(thirdparty/describe)
 add_subdirectory(src/hstd)
-
 add_subdirectory(src/hstd/wrappers/adaptagrams_wrap)
 
 include(src/cmake/target_codegen.cmake)
