@@ -37,14 +37,14 @@ target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_GVC_LIBRARY}
     hstd
     Reflex::ReflexLibStatic
-    range-v3
+    range-v3::range-v3
     # protobuf::protobuf-lite
     protobuf::libprotobuf
     protobuf::libprotoc
     absl::base
     absl::log
     Perfetto::perfetto
-    nlohmann_json
+    nlohmann_json::nlohmann_json
 )
 
 # target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
@@ -68,7 +68,7 @@ add_custom_command(
             "${CMAKE_SOURCE_DIR}/build/haxorg")
 
 target_sources(tests_org PRIVATE "${BASE}/tests/testprofiler.cpp")
-target_link_libraries(tests_org PUBLIC haxorg gtest)
+target_link_libraries(tests_org PUBLIC haxorg GTest::gtest)
 
 target_include_directories(tests_org PUBLIC
     "${BASE}/thirdparty/immer"

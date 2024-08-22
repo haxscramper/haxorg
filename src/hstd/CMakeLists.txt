@@ -15,13 +15,13 @@ target_link_libraries(
     PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}
-    yaml-cpp
+    yaml-cpp::yaml-cpp
     absl::base
     absl::log
     absl::flags
     Perfetto::perfetto
-    range-v3
-    nlohmann_json
+    range-v3::range-v3
+    nlohmann_json::nlohmann_json
     Boost::boost_describe
 )
 
@@ -34,7 +34,7 @@ glob_add_sources2(tests_hstd "${BASE}/tests/hstd/.*" "${BASE}")
 
 target_link_libraries(
     tests_hstd PUBLIC
-    gtest
+    GTest::gtest
     hstd
     absl::flags
     absl::flags_parse

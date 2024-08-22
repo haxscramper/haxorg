@@ -328,6 +328,8 @@ def org_task(
             run_ok = False
             try:
                 with GlobCompleteEvent(f"task {name}", "build") as last:
+                    assert os.getcwd() == str(get_script_root(
+                    )), "Invoke tasks must be executed from the root directory"
                     TASK_STACK.append(name)
                     result = func(*args, **kwargs)
                     TASK_STACK.pop()
@@ -663,7 +665,7 @@ def cmake_configure_haxorg(ctx: Context, force: bool = False):
     with FileOperation.InTmp(
         [
             Path("CMakeLists.txt"),
-            Path("src/cmake").rglob("*.cmake"),
+            *Path("src/cmake").rglob("*.cmake"),
         ],
             stamp_path=get_task_stamp("cmake_configure_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
@@ -759,7 +761,7 @@ def cmake_build_deps(
             "--parallel",
         ])
 
-    dep(build_name="describe", deps_name="cmake_wrap/describe")  
+    dep(build_name="describe", deps_name="cmake_wrap/describe")
     dep(
         build_name="perfetto",
         deps_name="cmake_wrap/perfetto",
@@ -820,7 +822,10 @@ def cmake_build_deps(
     dep(
         build_name="yaml",
         deps_name="yaml-cpp",
-        configure_args=[cmake_opt("YAML_CPP_BUILD_TESTS", False)],
+        configure_args=[
+            cmake_opt("YAML_CPP_BUILD_TESTS", False),
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
     )
     dep(
         build_name="range-v3",

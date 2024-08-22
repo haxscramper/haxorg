@@ -12,7 +12,7 @@ target_link_libraries(profdata_merger
     tbb
     absl::base
     absl::log
-    nlohmann_json
+    nlohmann_json::nlohmann_json
     hstd
 )
 
