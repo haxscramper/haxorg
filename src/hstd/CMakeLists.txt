@@ -15,7 +15,7 @@ target_link_libraries(
     PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}
-    yaml-cpp::yaml-cpp
+    yaml-cpp
     absl::base
     absl::log
     absl::flags

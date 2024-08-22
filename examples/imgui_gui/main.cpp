@@ -4,6 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <cstdlib>
+
+fs::path get_home() { return fs::path{std::getenv("HOME")}; }
 
 int main() {
     if (!glfwInit()) { return 1; }
@@ -24,7 +27,7 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
-    auto file = readFile("~/tmp/doc1.org");
+    auto file = readFile(get_home() / "tmp/doc1.org");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
