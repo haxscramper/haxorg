@@ -40,9 +40,57 @@ std::string FormatTimeDelta(long delta_seconds) {
     return std::format("{}:{:02}", hours, minutes);
 }
 
+static float minimap_rect_height = 20.0f;
+
+void render_mini_map(
+    CVec<sem::SemId<sem::Subtree>> tree,
+    float                          mini_map_height,
+    ImVec2                         size,
+    float&                         scroll_y,
+    float                          content_height) {
+
+    ImGui::InvisibleButton("MiniMap", size);
+    ImVec2 window_pos = ImGui::GetWindowPos();
+
+    float mini_map_scale = size.y / content_height;
+
+    std::function<void(const sem::SemId<sem::Subtree>&)> render_node;
+
+    int dfs_idx = 0;
+
+    render_node = [&](const sem::SemId<sem::Subtree>& node) {
+        float node_y = scroll_y
+                     + (dfs_idx * minimap_rect_height) * mini_map_scale;
+        ++dfs_idx;
+        ImVec2 rect_pos = ImVec2(
+            window_pos.x + node->level * 5.0f, node_y);
+        ImVec2 rect_end = ImVec2(
+            rect_pos.x + size.x - node->level * 5.0f,
+            rect_pos.y + minimap_rect_height * mini_map_scale);
+
+        ImU32 rect_color = ImGui::ColorConvertFloat4ToU32(
+            color((ColorName)((int)ColorName::Red + node->level - 1)));
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            rect_pos, rect_end, rect_color);
+
+        if (ImGui::IsItemHovered()
+            && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            scroll_y = node_y / mini_map_scale - 0.5f * size.y;
+        }
+
+        for (const auto& subnode : node.subAs<sem::Subtree>()) {
+            render_node(subnode);
+        }
+    };
+
+    for (const auto& node : tree) { render_node(node); }
+}
+
+
 void render_outline_subtree(
     sem::SemId<sem::Subtree> const& org,
-    OutlineConfig const&            conf) {
+    OutlineConfig const&            conf,
+    float&                          content_height) {
 
 
     auto const nested = org.subAs<sem::Subtree>();
@@ -103,6 +151,8 @@ void render_outline_subtree(
             ImGui::TableSetColumnIndex(4);
             ImGui::Text("%s", FormatTimeDelta(full_duration).c_str());
         }
+
+        content_height += ImGui::GetTextLineHeightWithSpacing();
     };
 
     if (!nested.empty()) {
@@ -122,7 +172,7 @@ void render_outline_subtree(
 
         if (node_open) {
             for (auto const& sub : nested) {
-                render_outline_subtree(sub, conf);
+                render_outline_subtree(sub, conf, content_height);
             }
             ImGui::TreePop();
         }
@@ -133,7 +183,8 @@ void render_outline_subtree(
 
 void render_outline(
     sem::SemId<sem::Org> const& org,
-    OutlineConfig const&        conf) {
+    OutlineConfig const&        conf,
+    float&                      content_height) {
     if (ImGui::BeginTable(
             "TreeTable",
             5,
@@ -153,7 +204,7 @@ void render_outline(
         ImGui::TableHeadersRow();
 
         for (auto const& sub : org.subAs<sem::Subtree>()) {
-            render_outline_subtree(sub, conf);
+            render_outline_subtree(sub, conf, content_height);
         }
 
         ImGui::EndTable();
@@ -205,8 +256,10 @@ int main(int argc, char** argv) {
     outline_config.priorities.incl("");
 
     Vec<Str> priorities{""};
+    int      subtree_count = 0;
     sem::eachSubnodeRec(node, [&](sem::SemId<sem::Org> it) {
         if (auto tree = it.asOpt<sem::Subtree>()) {
+            ++subtree_count;
             if (tree->priority
                 && priorities.indexOf(tree->priority.value()) == -1) {
                 priorities.push_back(tree->priority.value());
@@ -227,7 +280,8 @@ int main(int argc, char** argv) {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
         ImGui::SetNextWindowSize(viewport->WorkSize);
-        // ImGui::SetNextWindowViewport(viewport->ID);
+        float scroll_y       = 0.0f;
+        float content_height = 0.0f;
         ImGui::Begin(
             "Fullscreen Window",
             nullptr,
@@ -242,13 +296,27 @@ int main(int argc, char** argv) {
                 break;
             }
             case Config::Mode::Outline: {
-                render_outline(node, outline_config);
+                render_outline(node, outline_config, content_height);
                 break;
             }
         }
 
 
         ImGui::End();
+
+        ImVec2 mini_map_size = ImVec2(500, ImGui::GetWindowHeight());
+        ImGui::SetNextWindowSize(mini_map_size, ImGuiCond_Once);
+        ImGui::Begin("Map");
+
+        render_mini_map(
+            node.subAs<sem::Subtree>(),
+            mini_map_size.y,
+            mini_map_size,
+            scroll_y,
+            content_height);
+
+        ImGui::End();
+
         ImGuiIO& io = ImGui::GetIO();
         ImGui::SetNextWindowPos(
             ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Once);
