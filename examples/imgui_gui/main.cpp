@@ -109,7 +109,7 @@ void render_outline(
         ImGui::TableSetupColumn(
             "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
         ImGui::TableSetupColumn(
-            "Title", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+            "Title", ImGuiTableColumnFlags_WidthFixed, 400.0f);
         ImGui::TableSetupColumn(
             "Prio", ImGuiTableColumnFlags_WidthFixed, 50.0f);
         ImGui::TableSetupColumn(
@@ -129,12 +129,21 @@ void render_outline(
 int main(int argc, char** argv) {
     if (!glfwInit()) { return 1; }
 
+
+    GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
+
     GLFWwindow* window = glfwCreateWindow(
-        1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+        mode->width,
+        mode->height,
+        "Dear ImGui GLFW+OpenGL3 example",
+        NULL,
+        NULL);
+
     if (window == NULL) { return 1; }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync
+    glfwSwapInterval(1);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -252,6 +261,10 @@ int main(int argc, char** argv) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
+
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
     }
 
     ImGui_ImplOpenGL3_Shutdown();
