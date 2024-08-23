@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <exporters/ExporterUltraplain.hpp>
 
 #include "sem_tree_render.hpp"
 
@@ -17,28 +18,60 @@ struct Config {
     DESC_FIELDS(Config, (file, mode));
 };
 
+void render_outline_subtree(sem::SemId<sem::Subtree> const& org) {
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+
+    ImGui::PushID(
+        fmt("{:p}", static_cast<const void*>(org.value.get())).c_str());
+
+    bool node_open = ImGui::TreeNodeEx(
+        "##custom",
+        ImGuiTreeNodeFlags_SpanFullWidth
+            | ImGuiTreeNodeFlags_AllowItemOverlap);
+    ImGui::PopID();
+
+    if (node_open) {
+        for (auto const& sub : org.subAs<sem::Subtree>()) {
+            render_outline_subtree(sub);
+        }
+        ImGui::TreePop();
+    }
+
+    ImGui::SameLine();
+    ImGui::PushTextWrapPos(
+        ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
+    ImGui::Text(
+        "%s", ExporterUltraplain::toStr(org->title.asOrg()).c_str());
+    ImGui::PopTextWrapPos();
+
+
+    ImGui::TableSetColumnIndex(1);
+    ImGui::Text("%s", "xasd");
+
+    ImGui::TableSetColumnIndex(2);
+    ImGui::Text("%s", "xasd");
+
+    ImGui::TableSetColumnIndex(3);
+    ImGui::Text("%s", "werwer");
+}
+
 void render_outline(sem::SemId<sem::Org> const& org) {
-    switch (org->getKind()) {
-        case OrgSemKind::Document: {
-            if (ImGui::TreeNode("Document")) {
-                for (auto const& sub : org->subnodes) {
-                    render_outline(sub);
-                }
-                ImGui::TreePop();
-            }
-            break;
+    if (ImGui::BeginTable(
+            "TreeTable",
+            4,
+            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Tree");
+        ImGui::TableSetupColumn("Title");
+        ImGui::TableSetupColumn("Property 2");
+        ImGui::TableSetupColumn("Property 3");
+        ImGui::TableHeadersRow();
+
+        for (auto const& sub : org.subAs<sem::Subtree>()) {
+            render_outline_subtree(sub);
         }
-        case OrgSemKind::Subtree: {
-            if (ImGui::TreeNode("Subtree")) {
-                for (auto const& sub : org->subnodes) {
-                    render_outline(sub);
-                }
-                ImGui::TreePop();
-            }
-            break;
-        }
-        default: {
-        }
+
+        ImGui::EndTable();
     }
 }
 
