@@ -5,6 +5,7 @@
 #include <sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <exporters/ExporterUltraplain.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 #include "sem_tree_render.hpp"
 
@@ -18,57 +19,107 @@ struct Config {
     DESC_FIELDS(Config, (file, mode));
 };
 
-void render_outline_subtree(sem::SemId<sem::Subtree> const& org) {
-    ImGui::TableNextRow();
-    ImGui::TableSetColumnIndex(0);
+struct OutlineConfig {
+    bool              showDone = false;
+    UnorderedSet<Str> priorities;
+    DESC_FIELDS(OutlineConfig, (showDone));
+};
 
-    ImGui::PushID(
-        fmt("{:p}", static_cast<const void*>(org.value.get())).c_str());
+void render_outline_subtree(
+    sem::SemId<sem::Subtree> const& org,
+    OutlineConfig const&            conf) {
 
-    bool node_open = ImGui::TreeNodeEx(
-        "##custom",
-        ImGuiTreeNodeFlags_SpanFullWidth
-            | ImGuiTreeNodeFlags_AllowItemOverlap);
-    ImGui::PopID();
 
-    if (node_open) {
-        for (auto const& sub : org.subAs<sem::Subtree>()) {
-            render_outline_subtree(sub);
-        }
-        ImGui::TreePop();
+    auto const nested = org.subAs<sem::Subtree>();
+
+    bool skipped //
+        = (!conf.showDone && org->todo
+           && (org->todo == "DONE" || org->todo == "COMPLETED"))
+       || (org->priority.has_value()
+           && !conf.priorities.contains(org->priority.value()))
+       || (!org->priority.has_value() && !conf.priorities.contains(""));
+
+    if (!skipped || !nested.empty()) {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
     }
 
-    ImGui::SameLine();
-    ImGui::PushTextWrapPos(
-        ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
-    ImGui::Text(
-        "%s", ExporterUltraplain::toStr(org->title.asOrg()).c_str());
-    ImGui::PopTextWrapPos();
+    auto render_tree_columns = [&]() {
+        ImGui::TableSetColumnIndex(1);
+        ImGui::PushTextWrapPos(
+            ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
+        ImGui::Text(
+            "%s", ExporterUltraplain::toStr(org->title.asOrg()).c_str());
+        ImGui::PopTextWrapPos();
+
+        if (org->priority) {
+            ImGui::TableSetColumnIndex(2);
+            ImGui::TextColored(
+                color(ColorName::Red),
+                "%s",
+                org->priority.value().c_str());
+        }
 
 
-    ImGui::TableSetColumnIndex(1);
-    ImGui::Text("%s", "xasd");
+        if (org->todo) {
+            ImGui::TableSetColumnIndex(3);
+            ImGui::TextColored(
+                color(ColorName::Yellow), "%s", org->todo.value().c_str());
+        }
 
-    ImGui::TableSetColumnIndex(2);
-    ImGui::Text("%s", "xasd");
+        ImGui::TableSetColumnIndex(4);
+        ImGui::Text("%s", "werwer");
+    };
 
-    ImGui::TableSetColumnIndex(3);
-    ImGui::Text("%s", "werwer");
+    if (!nested.empty()) {
+        ImGui::PushID(
+            fmt("{:p}", static_cast<const void*>(org.value.get()))
+                .c_str());
+
+        if (org->level < 3) {
+            ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        }
+        bool node_open = ImGui::TreeNodeEx(
+            fmt("[{}]", org->level).c_str(),
+            ImGuiTreeNodeFlags_SpanFullWidth);
+        ImGui::PopID();
+
+        render_tree_columns();
+
+        if (node_open) {
+            for (auto const& sub : nested) {
+                render_outline_subtree(sub, conf);
+            }
+            ImGui::TreePop();
+        }
+    } else if (!skipped) {
+        render_tree_columns();
+    }
 }
 
-void render_outline(sem::SemId<sem::Org> const& org) {
+void render_outline(
+    sem::SemId<sem::Org> const& org,
+    OutlineConfig const&        conf) {
     if (ImGui::BeginTable(
             "TreeTable",
-            4,
-            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-        ImGui::TableSetupColumn("Tree");
-        ImGui::TableSetupColumn("Title");
-        ImGui::TableSetupColumn("Property 2");
-        ImGui::TableSetupColumn("Property 3");
+            5,
+            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg
+                | ImGuiTableFlags_SizingFixedFit)) {
+
+        ImGui::TableSetupColumn(
+            "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableSetupColumn(
+            "Title", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+        ImGui::TableSetupColumn(
+            "Prio", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+        ImGui::TableSetupColumn(
+            "TODO", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableSetupColumn(
+            "Property 3", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
 
         for (auto const& sub : org.subAs<sem::Subtree>()) {
-            render_outline_subtree(sub);
+            render_outline_subtree(sub, conf);
         }
 
         ImGui::EndTable();
@@ -106,7 +157,21 @@ int main(int argc, char** argv) {
 
     bool doTrace = true;
 
-    VisualExporterConfig config;
+    VisualExporterConfig sem_tree_config;
+    OutlineConfig        outline_config;
+    outline_config.priorities.incl("");
+
+    Vec<Str> priorities{""};
+    sem::eachSubnodeRec(node, [&](sem::SemId<sem::Org> it) {
+        if (auto tree = it.asOpt<sem::Subtree>()) {
+            if (tree->priority
+                && priorities.indexOf(tree->priority.value()) == -1) {
+                priorities.push_back(tree->priority.value());
+            }
+        }
+    });
+
+    rs::sort(priorities);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -130,11 +195,11 @@ int main(int argc, char** argv) {
 
         switch (conf.mode) {
             case Config::Mode::SemTree: {
-                render_sem_tree(node, config);
+                render_sem_tree(node, sem_tree_config);
                 break;
             }
             case Config::Mode::Outline: {
-                render_outline(node);
+                render_outline(node, outline_config);
                 break;
             }
         }
@@ -143,21 +208,32 @@ int main(int argc, char** argv) {
         ImGui::End();
         ImGuiIO& io = ImGui::GetIO();
         ImGui::SetNextWindowPos(
-            ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Always);
-        ImGui::Begin(
-            "FPS",
-            nullptr,
-            ImGuiWindowFlags_NoDecoration
-                | ImGuiWindowFlags_AlwaysAutoResize
-                | ImGuiWindowFlags_NoSavedSettings
-                | ImGuiWindowFlags_NoFocusOnAppearing
-                | ImGuiWindowFlags_NoNav);
+            ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Once);
+        ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("%.2f FPS", io.Framerate);
 
         switch (conf.mode) {
             case Config::Mode::SemTree: {
-                ImGui::Checkbox("Show nullopt", &config.showNullopt);
-                ImGui::Checkbox("Show space", &config.showSpace);
+                ImGui::Checkbox(
+                    "Show nullopt", &sem_tree_config.showNullopt);
+                ImGui::Checkbox("Show space", &sem_tree_config.showSpace);
+                break;
+            }
+            case Config::Mode::Outline: {
+                ImGui::Checkbox("Show done", &outline_config.showDone);
+                for (auto const& it : priorities) {
+                    bool shown = outline_config.priorities.contains(it);
+                    bool start = shown;
+                    ImGui::Checkbox(
+                        fmt("Priority '{}'", it).c_str(), &shown);
+                    if (start != shown) {
+                        if (shown) {
+                            outline_config.priorities.incl(it);
+                        } else {
+                            outline_config.priorities.excl(it);
+                        }
+                    }
+                }
                 break;
             }
             default: {

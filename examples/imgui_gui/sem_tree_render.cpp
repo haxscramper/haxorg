@@ -7,27 +7,6 @@
 
 #pragma clang diagnostic ignored "-Wc99-extensions"
 
-enum class ColorName
-{
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    BrightBlack,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
-    Background,
-    Foreground
-};
 
 ImVec4 theme[] = {
     [(int)ColorName::Black]        = ImVec4(0.157f, 0.165f, 0.180f, 1.00f),
