@@ -25,6 +25,21 @@ struct OutlineConfig {
     DESC_FIELDS(OutlineConfig, (showDone));
 };
 
+long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
+    auto from_utc = absl::ToCivilSecond(
+        from.time, from.zone ? *from.zone : absl::TimeZone{});
+    auto to_utc = absl::ToCivilSecond(
+        to.time, to.zone ? *to.zone : absl::TimeZone{});
+    return to_utc - from_utc;
+}
+
+std::string FormatTimeDelta(long delta_seconds) {
+    long delta   = delta_seconds / 60;
+    long hours   = delta / 60;
+    long minutes = delta % 60;
+    return std::format("{}:{:02}", hours, minutes);
+}
+
 void render_outline_subtree(
     sem::SemId<sem::Subtree> const& org,
     OutlineConfig const&            conf) {
@@ -67,8 +82,27 @@ void render_outline_subtree(
                 color(ColorName::Yellow), "%s", org->todo.value().c_str());
         }
 
-        ImGui::TableSetColumnIndex(4);
-        ImGui::Text("%s", "werwer");
+        long full_duration = 0;
+        for (auto const& log : org->logbook) {
+            switch (log->getLogKind()) {
+                case sem::SubtreeLog::Kind::Clock: {
+                    auto const& clock = log->getClock();
+                    if (clock.to && clock.from) {
+                        full_duration += GetTimeDelta(
+                            clock.from->getStatic().time,
+                            clock.to.value()->getStatic().time);
+                    }
+                    break;
+                }
+                default: {
+                }
+            }
+        }
+
+        if (full_duration != 0) {
+            ImGui::TableSetColumnIndex(4);
+            ImGui::Text("%s", FormatTimeDelta(full_duration).c_str());
+        }
     };
 
     if (!nested.empty()) {
@@ -115,7 +149,7 @@ void render_outline(
         ImGui::TableSetupColumn(
             "TODO", ImGuiTableColumnFlags_WidthFixed, 120.0f);
         ImGui::TableSetupColumn(
-            "Property 3", ImGuiTableColumnFlags_WidthStretch);
+            "Duration", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
 
         for (auto const& sub : org.subAs<sem::Subtree>()) {
