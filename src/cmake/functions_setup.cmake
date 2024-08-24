@@ -1,7 +1,5 @@
 function(set_target_flags_impl)
     cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
-    message(STATUS "TARGET = ${ARG_TARGET} FORCE_NO_ASAN = ${ARG_FORCE_NO_ASAN}")
-
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
