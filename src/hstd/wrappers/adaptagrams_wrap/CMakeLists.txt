@@ -1,69 +1,6 @@
 set(COLA_DIR "${DEPS_DIR}/adaptagrams/cola")
 include(CMakeParseArguments)
 
-function(list_filter_files_v2)
-  cmake_parse_arguments(ARG "" "RECURSE;OUT;GLOB;REGEX" "" "${ARGN}")
-  if(ARG_RECURSE)
-    set(GLOB_COMMAND "GLOB_RECURSE")
-  else()
-    set(GLOB_COMMAND "GLOB")
-  endif()
-  file(${GLOB_COMMAND} TMP ${ARG_GLOB})
-  list(FILTER TMP INCLUDE REGEX "${ARG_REGEX}")
-  set("${ARG_OUT}"
-      "${TMP}"
-      PARENT_SCOPE)
-endfunction()
-
-function(glob_add_sources_v2)
-  cmake_parse_arguments(ARG "" "RECURSE;TARGET;EXT_GLOB;LS_REGEX" "" "${ARGN}")
-  list_filter_files_v2(
-    OUT
-    SRC_FILES
-    GLOB
-    ${ARG_EXT_GLOB}
-    REGEX
-    "${ARG_LS_REGEX}"
-    RECURSE
-    ${ARG_RECURSE})
-  # message(STATUS "TARGET = ${ARG_TARGET} RECURSE = ${ARG_RECURSE} EXT_GLOB = ${ARG_EXT_GLOB}
-  # LS_REGEX = ${ARG_LS_REGEX}")
-  target_sources("${ARG_TARGET}" PRIVATE "${SRC_FILES}")
-endfunction()
-
-function(glob_add_sources_2_v2)
-  cmake_parse_arguments(ARG "" "RECURSE;TARGET;LS_REGEX;SEARCH_BASE" "EXTENSIONS" "${ARGN}")
-  if(NOT ARG_EXTENSIONS)
-    set(ARG_EXTENSIONS "hpp;cpp")
-  endif()
-
-  if(ARG_RECURSE)
-    set(EXT_GLOB_BASE "${ARG_SEARCH_BASE}/**")
-  else()
-    set(EXT_GLOB_BASE "${ARG_SEARCH_BASE}")
-  endif()
-
-  # message(STATUS "ARG_EXTENSIONS = ${ARG_EXTENSIONS} TARGET = ${ARG_TARGET}")
-  foreach(EXT IN LISTS ARG_EXTENSIONS)
-    glob_add_sources_v2(
-      TARGET
-      "${ARG_TARGET}"
-      EXT_GLOB
-      "${EXT_GLOB_BASE}/*.${EXT}"
-      LS_REGEX
-      "${ARG_LS_REGEX}"
-      RECURSE
-      ${ARG_RECURSE})
-  endforeach()
-endfunction()
-
-function(haxorg_target_setup_v2)
-  cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
-  set_common_files("${ARG_TARGET}")
-  set_target_output("${ARG_TARGET}")
-  set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
-endfunction()
-
 add_library(adaptagrams)
 haxorg_target_setup_v2(TARGET adaptagrams FORCE_NO_ASAN ON)
 target_link_libraries(
@@ -79,7 +16,7 @@ target_link_libraries(
 
 target_include_directories(adaptagrams PUBLIC "${COLA_DIR}")
 
-glob_add_sources_2_v2(
+glob_add_sources2(
   TARGET
   "adaptagrams"
   LS_REGEX

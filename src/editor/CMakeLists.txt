@@ -6,8 +6,8 @@ set(EDITOR_DIR "${BASE}/src/editor")
 message("[DBG] EDITOR_DIR = ${EDITOR_DIR}")
 
 qt_add_library(editor_lib STATIC)
-glob_add_sources2(editor_lib "${EDITOR_DIR}/editor_lib.*" "${BASE}")
-haxorg_target_setup(editor_lib)
+glob_add_sources2(TARGET editor_lib LS_REGEX "${EDITOR_DIR}/editor_lib.*" SEARCH_BASE "${BASE}")
+haxorg_target_setup_v2(TARGET editor_lib)
 
 target_link_libraries(
   editor_lib
@@ -24,18 +24,20 @@ target_include_directories(editor_lib PUBLIC "${BASE}/thirdparty/immer" "${BASE}
                                              "${BASE}/src" ${CAIROMM_INCLUDE_DIRS})
 
 qt_add_executable(editor_app)
-glob_add_sources2(editor_app "${EDITOR_DIR}/editor_app.*" "${BASE}")
-haxorg_target_setup(editor_app)
+glob_add_sources2(TARGET editor_app LS_REGEX "${EDITOR_DIR}/editor_app.*" SEARCH_BASE "${BASE}")
+haxorg_target_setup_v2(TARGET editor_app)
 target_link_libraries(editor_app PUBLIC editor_lib)
 
 qt_add_executable(editor_driver)
-glob_add_sources2(editor_driver "${EDITOR_DIR}/editor_driver.*" "${BASE}")
-haxorg_target_setup(editor_driver)
+glob_add_sources2(TARGET editor_driver LS_REGEX "${EDITOR_DIR}/editor_driver.*" SEARCH_BASE
+                      "${BASE}")
+haxorg_target_setup_v2(TARGET editor_driver)
 target_link_libraries(editor_driver PUBLIC editor_lib)
 
 qt_add_library(editor_test_lib STATIC)
-glob_add_sources2(editor_test_lib "${EDITOR_DIR}/editor_test.*" "${BASE}")
-haxorg_target_setup(editor_test_lib)
+glob_add_sources2(TARGET editor_test_lib LS_REGEX "${EDITOR_DIR}/editor_test.*" SEARCH_BASE
+                      "${BASE}")
+haxorg_target_setup_v2(TARGET editor_test_lib)
 target_link_libraries(editor_test_lib PUBLIC editor_lib)
 
 function(create_target class_name path)
@@ -47,7 +49,7 @@ function(create_target class_name path)
   set(TEST_EXECUTABLE_NAME "${class_name}_test")
   qt_add_executable(${TEST_EXECUTABLE_NAME} ${source_file})
   target_include_directories(${TEST_EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR})
-  haxorg_target_setup(${TEST_EXECUTABLE_NAME})
+  haxorg_target_setup_v2(TARGET ${TEST_EXECUTABLE_NAME})
   target_link_libraries(${TEST_EXECUTABLE_NAME} PUBLIC editor_test_lib)
 endfunction()
 

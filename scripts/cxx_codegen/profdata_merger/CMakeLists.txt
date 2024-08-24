@@ -4,7 +4,7 @@ llvm_map_components_to_libnames(profdata_merger_llvm_libs support core irreader 
 
 message(STATUS ${profdata_merger_llvm_libs})
 
-haxorg_target_setup(profdata_merger)
+haxorg_target_setup_v2(TARGET profdata_merger)
 target_link_libraries(
   profdata_merger
   ${profdata_merger_llvm_libs}

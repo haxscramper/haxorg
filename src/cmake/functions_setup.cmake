@@ -9,8 +9,6 @@ function(set_target_flags_impl)
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
-  # add_target_property(${ARG_TARGET} COMPILE_OPTIONS
-  # @${BASE}/scripts/cxx_repository/warning_config.txt)
 
   if(${ORG_INSTRUMENT_TRACE})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS -finstrument-functions)
@@ -31,12 +29,6 @@ function(set_target_flags_impl)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
-    # if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON) add_target_property(${ARG_TARGET} COMPILE_OPTIONS
-    # "-ferror-limit=${MAX_COMPILE_ERRORS}") endif()
-
-    # add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-v")
-
-    # add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
 
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")
@@ -142,8 +134,9 @@ function(set_common_files TARGET)
 
 endfunction()
 
-function(haxorg_target_setup TARGET)
-  set_common_files("${TARGET}")
-  set_target_output("${TARGET}")
-  set_target_flags("${TARGET}")
+function(haxorg_target_setup_v2)
+  cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
+  set_common_files("${ARG_TARGET}")
+  set_target_output("${ARG_TARGET}")
+  set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
 endfunction()
