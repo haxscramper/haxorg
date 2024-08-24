@@ -26,8 +26,8 @@ add_subdirectory(reflection_tool)
 
 add_executable(convert_const_ref convert_const_ref.cpp)
 target_link_libraries(
-  convert_const_ref ${llvm_libs} clangBasic clangASTMatchers
-  clangTooling # Add more Clang components as neede
+  convert_const_ref ${llvm_libs} clangBasic clangASTMatchers clangTooling # Add more Clang
+                                                                          # components as neede
 )
 
 set_target_properties(convert_const_ref PROPERTIES CXX_STANDARD 20)

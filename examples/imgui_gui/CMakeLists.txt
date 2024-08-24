@@ -34,23 +34,15 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 
-add_executable(main
-    main.cpp
-    sem_tree_render.hpp
-    sem_tree_render.cpp)
+add_executable(main main.cpp sem_tree_render.hpp sem_tree_render.cpp)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
 
-
-
-
 file(GLOB IMGUI_SOURCES "${BASE}/imgui/*.cpp")
-add_library(
-  imgui STATIC ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
-               "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
+add_library(imgui STATIC ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
+                         "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
 target_link_libraries(imgui PUBLIC SDL2)
-target_include_directories(imgui PUBLIC "${BASE}/imgui"
-                                        "${BASE}/imgui/backends")
+target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends")
 
 target_link_libraries(
   main
@@ -62,5 +54,4 @@ target_link_libraries(
           absl::flags
           haxorg::haxorg
           haxorg::hstd
-          range-v3::range-v3
-      )
+          range-v3::range-v3)

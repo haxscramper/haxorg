@@ -46,8 +46,7 @@ function(pad_string output str padchar length operation)
 endfunction()
 
 function(trace ARGS)
-  # TODO print current line location, {CMAKE_CURRENT_LIST_LINE} prints the same
-  # value
+  # TODO print current line location, {CMAKE_CURRENT_LIST_LINE} prints the same value
   message(DEBUG "${ARGV}${cColorReset}")
 endfunction()
 
@@ -63,11 +62,9 @@ function(print_target_property TARGET PROPERTY)
   get_target_property(TMP ${TARGET} ${PROPERTY})
   list(LENGTH TMP LEN)
   if(${LEN} LESS 2)
-    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' "
-          "is set to ${TMP}")
+    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' " "is set to ${TMP}")
   else()
-    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' "
-          "is set to list of lenth ${LEN}")
+    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' " "is set to list of lenth ${LEN}")
     foreach(item ${TMP})
       trace("  - ${item}")
     endforeach()

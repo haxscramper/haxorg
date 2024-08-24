@@ -5,7 +5,7 @@ cmake_policy(SET CMP0148 OLD) # or NEW
 cmake_policy(SET CMP0155 NEW)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-#include(conda_toolchain.cmake)
+# include(conda_toolchain.cmake)
 
 set(ABSL_CC_LIB_COPTS "-fPIC")
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
@@ -22,16 +22,14 @@ set(SCRIPT_DIR "${BASE}/src/scripts")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
+# Describe relative paths to the shared and header libraries packaged with LLVM in order for the
+# code to compile, link and execute correctly. Note that runtime execution will use these library
+# paths as well
 
-## Describe relative paths to the shared and header libraries packaged with LLVM
-## in order for the code to compile, link and execute correctly. Note that runtime
-## execution will use these library paths as well
-
-# Directory with clang-related runtime libraries such as asan that are shipped
-# with LLVM
+# Directory with clang-related runtime libraries such as asan that are shipped with LLVM
 set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/18/lib/x86_64-unknown-linux-gnu")
-# Declare variable for the asan library path, it is used in target setups, this
-# is not some specific variable that is implicitly consumed, just declared it here
+# Declare variable for the asan library path, it is used in target setups, this is not some specific
+# variable that is implicitly consumed, just declared it here
 set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
 set(PACKAGED_STD_VERSION "14")
 
@@ -51,10 +49,9 @@ option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
 option(ORG_USE_SANITIZER "Use sanitizers" ON)
-# Adaptagrams in the editor project uses libtooling for compilation and does not react
-# well to the changes in the main environment. Sometimes it does not build or does not
-# rebuild things. By default this option forces the dependency to be configured for all
-# builds.
+# Adaptagrams in the editor project uses libtooling for compilation and does not react well to the
+# changes in the main environment. Sometimes it does not build or does not rebuild things. By
+# default this option forces the dependency to be configured for all builds.
 option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
@@ -65,7 +62,6 @@ message(STATUS "Binary directory for dependencies ${DEPS_BINARY}")
 
 set(DEPS_INSTALL "${BASE}/build/deps_install")
 message(STATUS "DEPS_INSTALL = ${DEPS_INSTALL}")
-
 
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/yaml/share/cmake/yaml-cpp")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/SQLiteCpp/lib/cmake/SQLiteCpp")
@@ -110,7 +106,9 @@ find_package(Adaptagrams CONFIG REQUIRED)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
-set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_BuildTests
+    OFF
+    CACHE INTERNAL "")
 
 add_subdirectory(src/hstd)
 add_subdirectory(src/hstd/wrappers/adaptagrams_wrap)
@@ -122,52 +120,47 @@ add_subdirectory(scripts/cxx_codegen)
 add_subdirectory("${BASE}/src/editor")
 
 install(
-    TARGETS haxorg hstd
-    EXPORT HaxorgTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
-)
+  TARGETS haxorg hstd
+  EXPORT HaxorgTargets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
 
-install(DIRECTORY src/ DESTINATION include FILES_MATCHING
-    PATTERN "*.hpp"
-    PATTERN "*.tcc"
-    PATTERN "*Exporter.cpp"
-)
+install(
+  DIRECTORY src/
+  DESTINATION include
+  FILES_MATCHING
+  PATTERN "*.hpp"
+  PATTERN "*.tcc"
+  PATTERN "*Exporter.cpp")
 
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.pb.h"
-)
+install(
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
+  DESTINATION include
+  FILES_MATCHING
+  PATTERN "*.pb.h")
 
-install(EXPORT HaxorgTargets
-    FILE HaxorgTargets.cmake
-    NAMESPACE haxorg::
-    DESTINATION lib/cmake/haxorg
-)
-
-
+install(
+  EXPORT HaxorgTargets
+  FILE HaxorgTargets.cmake
+  NAMESPACE haxorg::
+  DESTINATION lib/cmake/haxorg)
 
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/haxorg
-)
+  "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake" INSTALL_DESTINATION lib/cmake/haxorg)
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
-    VERSION "0.3.7"
-    COMPATIBILITY AnyNewerVersion
-)
+  "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
+  VERSION "0.3.7"
+  COMPATIBILITY AnyNewerVersion)
 
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
-    DESTINATION lib/cmake/haxorg
-)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake" DESTINATION lib/cmake/haxorg)
 
 add_library(haxorg::haxorg ALIAS haxorg)
 add_library(haxorg::hstd ALIAS hstd)

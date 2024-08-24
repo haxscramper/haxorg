@@ -14,27 +14,24 @@ set_target_flags(code_forensics)
 
 glob_add_sources2(code_forensics "${BASE}/scripts/cxx_repository/.*" "${BASE}")
 
-target_link_libraries(code_forensics PUBLIC
-    hstd
-    Perfetto::perfetto
-    range-v3::range-v3
-    SQLiteCpp
-    sqlite3
-    pthread
-    dl
-    git2
-    pcre
-    OpenSSL::SSL
-    OpenSSL::Crypto
-    ${ZLIB_LIBRARIES}
-    ${PCRE_LIBRARIES}
-)
+target_link_libraries(
+  code_forensics
+  PUBLIC hstd
+         Perfetto::perfetto
+         range-v3::range-v3
+         SQLiteCpp
+         sqlite3
+         pthread
+         dl
+         git2
+         pcre
+         OpenSSL::SSL
+         OpenSSL::Crypto
+         ${ZLIB_LIBRARIES}
+         ${PCRE_LIBRARIES})
 
 target_link_directories(code_forensics PUBLIC "${LIBGIT2_LIBRARIES}")
 
-target_include_directories(code_forensics PUBLIC
-    "${BASE}/thirdparty/immer"
-    "${BASE}/thirdparty/lager"
-    "${BASE}/thirdparty/libgit2/include"
-)
-
+target_include_directories(
+  code_forensics PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"
+                        "${BASE}/thirdparty/libgit2/include")
