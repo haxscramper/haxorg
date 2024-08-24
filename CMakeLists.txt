@@ -114,10 +114,8 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 add_subdirectory(src/hstd)
 add_subdirectory(src/hstd/wrappers/adaptagrams_wrap)
-
-include(src/cmake/target_codegen.cmake)
-include(src/cmake/target_lib.cmake)
-include(src/cmake/target_pyhaxorg.cmake)
+add_subdirectory(src/haxorg)
+add_subdirectory(src/py_libs)
 
 add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
