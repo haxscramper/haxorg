@@ -1,21 +1,21 @@
-#include <test/org_parse_aux.hpp>
+#include <haxorg/test/org_parse_aux.hpp>
 #include <gtest/gtest.h>
 
-#include <parse/OrgParser.hpp>
-#include <parse/OrgTokenizer.hpp>
+#include <haxorg/parse/OrgParser.hpp>
+#include <haxorg/parse/OrgTokenizer.hpp>
 #include <gtest/gtest.h>
 
-#include <lexbase/AstSpec.hpp>
-#include <lexbase/AstDiff.hpp>
-#include <test/NodeTest.hpp>
+#include <haxorg/lexbase/AstSpec.hpp>
+#include <haxorg/lexbase/AstDiff.hpp>
+#include <haxorg/test/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
 
 #include <hstd/stdlib/Filesystem.hpp>
-#include <sem/SemOrgSerde.hpp>
+#include <haxorg/sem/SemOrgSerde.hpp>
 #include <google/protobuf/util/json_util.h>
-#include <exporters/ExporterJson.hpp>
-#include <sem/SemBaseApi.hpp>
+#include <haxorg/exporters/ExporterJson.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <fstream>
 
 struct compare_context {

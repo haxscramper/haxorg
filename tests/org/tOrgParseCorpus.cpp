@@ -1,20 +1,20 @@
-#include <test/corpusrunner.hpp>
+#include <haxorg/test/corpusrunner.hpp>
 
-#include <parse/OrgParser.hpp>
-#include <parse/OrgTokenizer.hpp>
-#include <lexbase/NodeIO.hpp>
-#include <test/NodeTest.hpp>
-#include <sem/ErrorWrite.hpp>
+#include <haxorg/parse/OrgParser.hpp>
+#include <haxorg/parse/OrgTokenizer.hpp>
+#include <haxorg/lexbase/NodeIO.hpp>
+#include <haxorg/test/NodeTest.hpp>
+#include <haxorg/sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <sem/SemConvert.hpp>
+#include <haxorg/sem/SemConvert.hpp>
 
 #include <fnmatch.h>
 #include "../testprofiler.hpp"
 
-#include <sem/perfetto_org.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";

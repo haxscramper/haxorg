@@ -1,15 +1,15 @@
 add_library(haxorg)
 set_common_files(haxorg)
 
-glob_add_sources2(haxorg "${BASE}/src/exporters/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/annotators/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/lexbase/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/parse/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/sem/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/tools/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/types/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/base_lexer/.*" "${BASE}")
-glob_add_sources2(haxorg "${BASE}/src/test/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/exporters/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/annotators/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/lexbase/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/parse/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/sem/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/tools/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/types/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/base_lexer/.*" "${BASE}")
+glob_add_sources2(haxorg "${BASE}/src/haxorg/test/.*" "${BASE}")
 
 set_target_output(haxorg)
 set_target_flags(haxorg)
@@ -20,8 +20,8 @@ find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 protobuf_generate(
     LANGUAGE cpp
     OUT_VAR ORG_PROTO_GENERATED_FILES
-    IMPORT_DIRS "${BASE}/src/sem"
-    PROTOS "${BASE}/src/sem/SemOrgProto.proto" "${BASE}/src/sem/SemOrgProtoManual.proto"
+    IMPORT_DIRS "${BASE}/src/haxorg/sem"
+    PROTOS "${BASE}/src/haxorg/sem/SemOrgProto.proto" "${BASE}/src/haxorg/sem/SemOrgProtoManual.proto"
     PROTOC_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}"
 )
 

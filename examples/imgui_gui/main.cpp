@@ -2,9 +2,9 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
-#include <sem/SemBaseApi.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <exporters/ExporterUltraplain.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <hstd/stdlib/Set.hpp>
 
 #include "sem_tree_render.hpp"

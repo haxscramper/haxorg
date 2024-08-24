@@ -7,7 +7,7 @@
 #include <QPainter>
 #include <QLabel>
 #include <QTextEdit>
-#include <sem/SemBaseApi.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 struct OrgEditItemDelegate : public QStyledItemDelegate {
     OrgStore* store;

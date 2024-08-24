@@ -1,6 +1,6 @@
 #include "org_exporter_html.hpp"
 
-#include <exporters/Exporter.cpp>
+#include <haxorg/exporters/Exporter.cpp>
 
 template class Exporter<ExporterHtml, layout::BlockId>;
 

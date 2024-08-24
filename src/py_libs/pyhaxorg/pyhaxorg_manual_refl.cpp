@@ -1,16 +1,16 @@
 #include "pyhaxorg_manual_impl.hpp"
-#include "sem/SemOrgSerde.hpp"
+#include <haxorg/sem/SemOrgSerde.hpp>
 
-#include <sem/SemOrgFormat.hpp>
-#include <exporters/ExporterJson.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/exporters/ExporterJson.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
-#include <exporters/exporteryaml.hpp>
-#include <exporters/exportertree.hpp>
+#include <haxorg/exporters/exporteryaml.hpp>
+#include <haxorg/exporters/exportertree.hpp>
 #include <datetime.h>
 #include <fstream>
 
 #include <memory>
 
-#include <exporters/Exporter.cpp>
-#include <sem/perfetto_org.hpp>
+#include <haxorg/exporters/Exporter.cpp>
+#include <haxorg/sem/perfetto_org.hpp>

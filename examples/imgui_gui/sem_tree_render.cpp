@@ -1,9 +1,9 @@
 #include "sem_tree_render.hpp"
 
 #include <imgui.h>
-#include <exporters/ExporterBase.hpp>
+#include <haxorg/exporters/ExporterBase.hpp>
 #include <cstdlib>
-#include <exporters/Exporter.cpp>
+#include <haxorg/exporters/Exporter.cpp>
 
 #pragma clang diagnostic ignored "-Wc99-extensions"
 

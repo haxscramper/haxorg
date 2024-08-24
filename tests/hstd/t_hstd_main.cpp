@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <absl/flags/parse.h>
 
-#include <sem/perfetto_org.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 #include "../common_main.hpp"
 
 void enable_full_trace_on_cli() {}

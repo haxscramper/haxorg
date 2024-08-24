@@ -1,7 +1,7 @@
 #include "org_document_model.hpp"
 #include <hstd/stdlib/diffs.hpp>
-#include <exporters/ExporterUltraplain.hpp>
-#include <sem/SemBaseApi.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <QLabel>
 #include <QDebug>
 #include <hstd/stdlib/Enumerate.hpp>

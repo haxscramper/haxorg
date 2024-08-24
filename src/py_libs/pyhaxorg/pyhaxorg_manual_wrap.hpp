@@ -2,7 +2,7 @@
 
 #    undef slots
 #    include <pybind11/pybind11.h>
-#    include <sem/SemOrg.hpp>
+#    include <haxorg/sem/SemOrg.hpp>
 #    include <pybind11/stl.h>
 
 #    include "pyhaxorg_manual_impl.hpp"

@@ -5,16 +5,16 @@
 
 #undef slots
 #include <pybind11/pybind11.h>
-#include <sem/SemOrg.hpp>
+#include <haxorg/sem/SemOrg.hpp>
 #include <pybind11/stl.h>
 #include <hstd/stdlib/Yaml.hpp>
 #include <hstd/stdlib/Json.hpp>
 
-#include <sem/SemConvert.hpp>
-#include <parse/OrgParser.hpp>
-#include <parse/OrgTokenizer.hpp>
-#include <parse/OrgTypes.hpp>
-#include <exporters/Exporter.hpp>
+#include <haxorg/sem/SemConvert.hpp>
+#include <haxorg/parse/OrgParser.hpp>
+#include <haxorg/parse/OrgTokenizer.hpp>
+#include <haxorg/parse/OrgTypes.hpp>
+#include <haxorg/exporters/Exporter.hpp>
 
 
 #include <SemOrgProto.pb.h>
@@ -22,7 +22,7 @@
 #include <py_libs/pybind11_utils.hpp>
 
 #include <frameobject.h>
-#include <sem/SemBaseApi.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
 
 

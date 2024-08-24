@@ -1,8 +1,8 @@
 #include <editor/editor_lib/common/app_utils.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <exporters/ExporterUltraplain.hpp>
-#include <exporters/ExporterJson.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
+#include <haxorg/exporters/ExporterJson.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <QMainWindow>
 #include <QApplication>
