@@ -40,42 +40,53 @@ std::string FormatTimeDelta(long delta_seconds) {
     return std::format("{}:{:02}", hours, minutes);
 }
 
-static float minimap_rect_height = 20.0f;
+namespace {
+float minimap_rect_height = 5.0f;
+float minimap_top_offset  = 10.0f;
+float minimap_indent_size = 5.0f;
+} // namespace
 
-void render_mini_map(
+Opt<int> render_mini_map(
     CVec<sem::SemId<sem::Subtree>> tree,
     float                          mini_map_height,
     ImVec2                         size,
-    float&                         scroll_y,
     float                          content_height) {
 
     ImGui::InvisibleButton("MiniMap", size);
     ImVec2 window_pos = ImGui::GetWindowPos();
-
-    float mini_map_scale = size.y / content_height;
-
     std::function<void(const sem::SemId<sem::Subtree>&)> render_node;
 
-    int dfs_idx = 0;
+    int      dfs_idx = 0;
+    Opt<int> out_idx;
 
     render_node = [&](const sem::SemId<sem::Subtree>& node) {
-        float node_y = scroll_y
-                     + (dfs_idx * minimap_rect_height) * mini_map_scale;
+        const float node_y = minimap_top_offset + window_pos.y
+                           + (dfs_idx * minimap_rect_height);
+
+
         ++dfs_idx;
         ImVec2 rect_pos = ImVec2(
-            window_pos.x + node->level * 5.0f, node_y);
+            window_pos.x + node->level * minimap_indent_size, node_y);
         ImVec2 rect_end = ImVec2(
-            rect_pos.x + size.x - node->level * 5.0f,
-            rect_pos.y + minimap_rect_height * mini_map_scale);
+            rect_pos.x + size.x - node->level * minimap_indent_size,
+            rect_pos.y + minimap_rect_height);
 
         ImU32 rect_color = ImGui::ColorConvertFloat4ToU32(
             color((ColorName)((int)ColorName::Red + node->level - 1)));
         ImGui::GetWindowDrawList()->AddRectFilled(
             rect_pos, rect_end, rect_color);
 
-        if (ImGui::IsItemHovered()
-            && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            scroll_y = node_y / mini_map_scale - 0.5f * size.y;
+        if (ImGui::IsMouseHoveringRect(rect_pos, rect_end)) {
+            ImGui::GetWindowDrawList()->AddRect(
+                rect_pos,
+                rect_end,
+                IM_COL32(0, 255, 255, 255),
+                0.0f,
+                0,
+                2.0f);
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                out_idx = dfs_idx;
+            }
         }
 
         for (const auto& subnode : node.subAs<sem::Subtree>()) {
@@ -84,6 +95,8 @@ void render_mini_map(
     };
 
     for (const auto& node : tree) { render_node(node); }
+
+    return out_idx;
 }
 
 
@@ -218,9 +231,11 @@ int main(int argc, char** argv) {
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
+    bool fullscreen = false;
+
     GLFWwindow* window = glfwCreateWindow(
-        mode->width,
-        mode->height,
+        fullscreen ? mode->width : 1280,
+        fullscreen ? mode->height : 720,
         "Dear ImGui GLFW+OpenGL3 example",
         NULL,
         NULL);
@@ -257,9 +272,11 @@ int main(int argc, char** argv) {
 
     Vec<Str> priorities{""};
     int      subtree_count = 0;
+    int      max_level     = 0;
     sem::eachSubnodeRec(node, [&](sem::SemId<sem::Org> it) {
         if (auto tree = it.asOpt<sem::Subtree>()) {
             ++subtree_count;
+            max_level = std::max(tree->level, max_level);
             if (tree->priority
                 && priorities.indexOf(tree->priority.value()) == -1) {
                 priorities.push_back(tree->priority.value());
@@ -268,7 +285,7 @@ int main(int argc, char** argv) {
     });
 
     rs::sort(priorities);
-
+    Opt<int> row_scroll;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -301,21 +318,36 @@ int main(int argc, char** argv) {
             }
         }
 
+        if (row_scroll) {
+            float scroll = static_cast<float>(row_scroll.value())
+                         / static_cast<float>(subtree_count)
+                         * content_height;
+            ImGui::SetScrollY(scroll);
+        }
+
+        ImVec2 mini_map_size = ImVec2(
+            max_level * minimap_indent_size + 10.0f,
+            ImGui::GetWindowHeight());
 
         ImGui::End();
 
-        ImVec2 mini_map_size = ImVec2(500, ImGui::GetWindowHeight());
-        ImGui::SetNextWindowSize(mini_map_size, ImGuiCond_Once);
-        ImGui::Begin("Map");
+        ImGui::SetNextWindowPos(
+            ImVec2(io.DisplaySize.x - mini_map_size.x, 0));
+        ImGui::SetNextWindowSize(mini_map_size);
+        ImGui::Begin(
+            "Map",
+            nullptr,
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav);
 
-        render_mini_map(
+
+        row_scroll = render_mini_map(
             node.subAs<sem::Subtree>(),
             mini_map_size.y,
             mini_map_size,
-            scroll_y,
             content_height);
 
         ImGui::End();
+
 
         ImGuiIO& io = ImGui::GetIO();
         ImGui::SetNextWindowPos(
