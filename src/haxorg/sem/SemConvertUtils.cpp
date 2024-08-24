@@ -63,14 +63,7 @@ std::string OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
 void OrgConverter::report(CR<OrgConverter::Report> in) {
     using fg = TermColorFg8Bit;
 
-    if (reportHook) { reportHook(in); }
-
-    if (traceUpdateHook) { traceUpdateHook(in, TraceState, true); }
-    if (!TraceState) {
-        if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
-        return;
-    }
-
+    if (!TraceState) { return; }
 
     auto getLoc = [&]() -> std::string {
         std::string res;
@@ -181,8 +174,6 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         || in.kind == ReportKind::LeaveField) {
         --depth;
     }
-
-    if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
 }
 
 

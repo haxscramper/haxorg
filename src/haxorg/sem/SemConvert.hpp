@@ -99,9 +99,6 @@ struct OrgConverter : public OperationsTracer {
     int  depth = 0;
     void report(CR<Report> in);
 
-    Func<void(CR<Report>)>              reportHook;
-    Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
-
   public:
     UPtr<OrgSpec> spec;
     Opt<int>      documentId = std::nullopt;
