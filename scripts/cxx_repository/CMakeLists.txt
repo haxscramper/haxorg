@@ -12,13 +12,12 @@ set_common_files(code_forensics)
 set_target_output(code_forensics)
 set_target_flags(code_forensics)
 
-glob_add_sources2(TARGET code_forensics LS_REGEX "${BASE}/scripts/cxx_repository/.*"
-                      SEARCH_BASE "${BASE}")
+glob_add_sources2(TARGET code_forensics LS_REGEX "${BASE}/scripts/cxx_repository/.*" SEARCH_BASE
+                  "${BASE}")
 
 target_link_libraries(
   code_forensics
   PUBLIC hstd
-         Perfetto::perfetto
          range-v3::range-v3
          SQLiteCpp
          sqlite3
@@ -30,6 +29,10 @@ target_link_libraries(
          OpenSSL::Crypto
          ${ZLIB_LIBRARIES}
          ${PCRE_LIBRARIES})
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(code_forensics PUBLIC Perfetto::perfetto)
+endif()
 
 target_link_directories(code_forensics PUBLIC "${LIBGIT2_LIBRARIES}")
 

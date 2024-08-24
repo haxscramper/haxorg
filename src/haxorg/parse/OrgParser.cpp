@@ -5,13 +5,6 @@
 #include <absl/log/check.h>
 #include <haxorg/sem/perfetto_org.hpp>
 
-#ifdef ORG_USE_PERFETTO
-#    pragma clang diagnostic ignored "-Wmacro-redefined"
-#    define __perf_trace(name) TRACE_EVENT("parsing", name)
-#else
-#    define __perf_trace(...)
-#endif
-
 
 using otk = OrgTokenKind;
 using onk = OrgNodeKind;
@@ -80,7 +73,7 @@ SubLexer<OrgTokenKind, OrgFill> subToEol(
 }
 
 void OrgParser::parseCSVArguments(OrgLexer& lex) {
-    __perf_trace("parseCSVArguments");
+    __perf_trace("parsing", "parseCSVArguments");
     auto __trace = trace(lex);
     token(onk::Ident, pop(lex, OrgTokSet{otk::Word}));
 
@@ -105,7 +98,7 @@ OrgId OrgParser::subParseImpl(
 
 
 OrgId OrgParser::parseMacro(OrgLexer& lex) {
-    __perf_trace("parseMacro");
+    __perf_trace("parsing", "parseMacro");
     auto __trace = trace(lex);
     start(onk::Macro);
     skip(lex, otk::CurlyBegin);
@@ -161,7 +154,7 @@ void OrgParser::parseCallArguments(OrgLexer& lex) {
 
 
 OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
-    __perf_trace("parsePlaceholder");
+    __perf_trace("parsing", "parsePlaceholder");
     auto __trace = trace(lex);
     if (lex.at(otk::Placeholder)) {
         auto tok = token(onk::Placeholder, pop(lex, otk::Placeholder));
@@ -173,7 +166,7 @@ OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseLatex(OrgLexer& lex) {
-    __perf_trace("parseLatex");
+    __perf_trace("parsing", "parseLatex");
     auto __trace = trace(lex);
     skip(lex, otk::LatexParBegin);
     auto tok = token(onk::InlineMath, pop(lex, otk::LatexInlineRaw));
@@ -185,7 +178,7 @@ OrgId OrgParser::parseLatex(OrgLexer& lex) {
 void OrgParser::textFold(OrgLexer& lex) {
     // Text fold method will consume all tokens in the lexer, folding into
     // series of tree nodes.
-    __perf_trace("textFold");
+    __perf_trace("parsing", "textFold");
     auto __trace = trace(lex);
 
     Func<void()> aux;
@@ -427,7 +420,7 @@ void OrgParser::textFold(OrgLexer& lex) {
 
 
 Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
-    __perf_trace("parseText");
+    __perf_trace("parsing", "parseText");
     auto        __trace   = trace(lex);
     OrgId       first     = back();
     std::string forMsg    = getLocMsg(lex);
@@ -456,7 +449,7 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseLink(OrgLexer& lex) {
-    __perf_trace("parseLink");
+    __perf_trace("parsing", "parseLink");
     auto __trace = trace(lex);
     if (lex.at(otk::LinkProtocolHttp)) {
         start(onk::Link);
@@ -535,7 +528,7 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseInlineMath(OrgLexer& lex) {
-    __perf_trace("parseInlineMath");
+    __perf_trace("parsing", "parseInlineMath");
     auto __trace = trace(lex);
 
     start(onk::InlineMath);
@@ -546,7 +539,7 @@ OrgId OrgParser::parseInlineMath(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSymbol(OrgLexer& lex) {
-    __perf_trace("parseSymbol");
+    __perf_trace("parsing", "parseSymbol");
     auto __trace = trace(lex);
     start(onk::Symbol);
     token(onk::Ident, pop(lex, otk::Symbol));
@@ -580,7 +573,7 @@ OrgId OrgParser::parseSymbol(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseHashTag(OrgLexer& lex) {
-    __perf_trace("parseHashTag");
+    __perf_trace("parsing", "parseHashTag");
     auto __trace = trace(lex);
 
     struct HashState {
@@ -651,7 +644,7 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
-    __perf_trace("parseTimeStamp");
+    __perf_trace("parsing", "parseTimeStamp");
     auto __trace   = trace(lex);
     auto start_tok = lex.tok();
     expect(lex, OrgTokSet{otk::BraceBegin, otk::AngleBegin});
@@ -736,7 +729,7 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
-    __perf_trace("parseTimeRange");
+    __perf_trace("parsing", "parseTimeRange");
     auto            __trace  = trace(lex);
     bool            isActive = lex.at(otk::AngleBegin);
     const OrgTokSet times{
@@ -794,7 +787,7 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseFootnote(OrgLexer& lex) {
-    __perf_trace("parseFootnote");
+    __perf_trace("parsing", "parseFootnote");
     auto __trace = trace(lex);
     if (lex.at(otk::FootnoteLinked)) {
         start(onk::Footnote);
@@ -817,7 +810,7 @@ OrgId OrgParser::parseFootnote(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
-    __perf_trace("parseSrcInline");
+    __perf_trace("parsing", "parseSrcInline");
     auto __trace = trace(lex);
     start(onk::SrcInlineCode);
     {
@@ -850,7 +843,7 @@ OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseVerbatimOrMonospace(OrgLexer& lex) {
-    __perf_trace("parseVerbatimOrMonospace");
+    __perf_trace("parsing", "parseVerbatimOrMonospace");
     auto __trace = trace(lex);
     bool m       = lex.kind() == otk::MonospaceBegin;
 
@@ -947,7 +940,7 @@ OrgId OrgParser::parseAngleTarget(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTable(OrgLexer& lex) {
-    __perf_trace("parseTable");
+    __perf_trace("parsing", "parseTable");
     auto __trace = trace(lex);
     start(onk::Table);
 
@@ -1111,7 +1104,7 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
-    __perf_trace("parseCommandArguments");
+    __perf_trace("parsing", "parseCommandArguments");
     auto __trace = trace(lex);
     space(lex);
     start(onk::InlineStmtList);
@@ -1145,7 +1138,7 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSrcArguments(OrgLexer& lex) {
-    __perf_trace("parseSrcArguments");
+    __perf_trace("parsing", "parseSrcArguments");
     auto __trace = trace(lex);
     space(lex);
     if (lex.at(Newline)) {
@@ -1167,7 +1160,7 @@ OrgId OrgParser::parseSrcArguments(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
-    __perf_trace("parseTextWrapCommand");
+    __perf_trace("parsing", "parseTextWrapCommand");
     skip(lex, otk::CmdPrefix);
     auto __trace = trace(lex);
 
@@ -1217,7 +1210,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseBlockExport(OrgLexer& lex) {
-    __perf_trace("parseExample");
+    __perf_trace("parsing", "parseExample");
     auto __trace = trace(lex);
     start(onk::BlockExport);
 
@@ -1246,7 +1239,7 @@ OrgId OrgParser::parseBlockExport(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseColonExample(OrgLexer& lex) {
-    __perf_trace("parseColonExample");
+    __perf_trace("parsing", "parseColonExample");
 
     auto __trace = trace(lex);
 
@@ -1267,7 +1260,7 @@ OrgId OrgParser::parseColonExample(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseExample(OrgLexer& lex) {
-    __perf_trace("parseExample");
+    __perf_trace("parsing", "parseExample");
     auto __trace = trace(lex);
     start(onk::BlockExample);
 
@@ -1297,7 +1290,7 @@ OrgId OrgParser::parseExample(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSrc(OrgLexer& lex) {
-    __perf_trace("parseSrc");
+    __perf_trace("parsing", "parseSrc");
     auto __trace = trace(lex);
     start(onk::BlockCode);
     skip(lex, otk::CmdPrefix);
@@ -1398,7 +1391,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseListItem(OrgLexer& lex) {
-    __perf_trace("parseListItem");
+    __perf_trace("parsing", "parseListItem");
     auto __trace = trace(lex);
     start(onk::ListItem);
     // prefix, 0
@@ -1473,7 +1466,7 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseList(OrgLexer& lex) {
-    __perf_trace("parseList");
+    __perf_trace("parsing", "parseList");
     auto __trace = trace(lex);
     start(onk::List);
 
@@ -1490,7 +1483,7 @@ OrgId OrgParser::parseList(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
-    __perf_trace("parseSubtreeLogbook");
+    __perf_trace("parsing", "parseSubtreeLogbook");
     auto __trace = trace(lex);
     start(onk::DrawerLogbook);
     skip(lex, otk::ColonLogbook);
@@ -1513,7 +1506,7 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
-    __perf_trace("parseSubtreeProperties");
+    __perf_trace("parsing", "parseSubtreeProperties");
     auto __trace = trace(lex);
     skip(lex, otk::ColonProperties);
     skip(lex, otk::Newline);
@@ -1561,7 +1554,7 @@ OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
-    __perf_trace("parseSubtreeDrawer");
+    __perf_trace("parsing", "parseSubtreeDrawer");
     auto __trace = trace(lex);
     start(onk::Drawer);
 
@@ -1584,7 +1577,7 @@ OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
 void tokenFormat(ColStream& os, OrgToken const& t) { os << t->text; }
 
 OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
-    __perf_trace("parseSubtreeCompletion");
+    __perf_trace("parsing", "parseSubtreeCompletion");
     auto __trace = trace(lex);
     if (lex.finished() || lex.at(Newline) || lex.at(otk::Colon)) {
         return empty();
@@ -1597,7 +1590,7 @@ OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
-    __perf_trace("parseSubtreeTodo");
+    __perf_trace("parsing", "parseSubtreeTodo");
     auto __trace = trace(lex);
     space(lex);
     if (lex.at(otk::BigIdent)) {
@@ -1609,7 +1602,7 @@ OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeUrgency(OrgLexer& lex) {
-    __perf_trace("parseSubtreeUrgency");
+    __perf_trace("parsing", "parseSubtreeUrgency");
     auto __trace = trace(lex);
     space(lex);
     if (lex.at(otk::SubtreePriority)) {
@@ -1621,7 +1614,7 @@ OrgId OrgParser::parseSubtreeUrgency(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTitle(OrgLexer& lex) {
-    __perf_trace("parseSubtreeTitle");
+    __perf_trace("parsing", "parseSubtreeTitle");
     auto __trace = trace(lex);
     space(lex);
     SubLexer sub{lex};
@@ -1663,7 +1656,7 @@ OrgId OrgParser::parseSubtreeTitle(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTags(OrgLexer& lex) {
-    __perf_trace("parseSubtreeTags");
+    __perf_trace("parsing", "parseSubtreeTags");
     auto __trace = trace(lex);
     if (lex.at(otk::Colon)) {
         start(onk::InlineStmtList);
@@ -1682,7 +1675,7 @@ OrgId OrgParser::parseSubtreeTags(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
-    __perf_trace("parseSubtreeTimes");
+    __perf_trace("parsing", "parseSubtreeTimes");
     auto __trace = trace(lex);
     if (lex.at(otk::LeadingSpace) && lex.at(otk::TreeTime, +1)) {
         space(lex);
@@ -1734,7 +1727,7 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseSubtree(OrgLexer& lex) {
-    __perf_trace("parseSubtree");
+    __perf_trace("parsing", "parseSubtree");
     auto __trace = trace(lex);
     start(onk::Subtree);
     // prefix
@@ -1768,7 +1761,7 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseOrgFile(OrgLexer& lex) {
-    __perf_trace("parseOrgFile");
+    __perf_trace("parsing", "parseOrgFile");
     auto __trace = trace(lex);
     start(onk::File);
     LOG(FATAL);
@@ -1777,7 +1770,7 @@ OrgId OrgParser::parseOrgFile(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
-    __perf_trace("parseLineCommand");
+    __perf_trace("parsing", "parseLineCommand");
     auto __trace  = trace(lex);
     auto cmd_kind = lex.kind(+1);
     switch (cmd_kind) {
@@ -2033,7 +2026,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
-    __perf_trace("parseStmtListItem");
+    __perf_trace("parsing", "parseStmtListItem");
     auto __trace = trace(lex);
     switch (lex.kind()) {
         case otk::SubtreeStars: return subParse(Subtree, lex);
@@ -2088,7 +2081,7 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseTop(OrgLexer& lex) {
-    __perf_trace("parseTop");
+    __perf_trace("parsing", "parseTop");
     auto __trace = trace(lex);
     start(onk::StmtList);
     while (!lex.finished()) {
@@ -2103,7 +2096,7 @@ OrgId OrgParser::parseTop(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseFull(OrgLexer& lex) {
-    __perf_trace("parseFull");
+    __perf_trace("parsing", "parseFull");
     auto __trace = trace(lex);
     auto id      = subParse(Top, lex);
     extendSubtreeTrails(OrgId(0));
@@ -2274,7 +2267,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
 } // namespace
 
 void OrgParser::extendSubtreeTrails(OrgId position) {
-    __perf_trace("extendSubtreeTrails");
+    __perf_trace("parsing", "extendSubtreeTrails");
     extendSubtreeTrailsImpl(this, position, 0);
     assertValidStructure(group, position);
 }

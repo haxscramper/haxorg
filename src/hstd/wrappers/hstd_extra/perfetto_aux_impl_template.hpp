@@ -1,5 +1,7 @@
 #include "perfetto_aux.hpp"
-#include <fstream>
+
+#ifdef ORG_USE_PERFETTO
+#    include <fstream>
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
@@ -63,3 +65,5 @@ std::unique_ptr<perfetto::TracingSession> StartProcessTracing(
     perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
     return tracing_session;
 }
+
+#endif

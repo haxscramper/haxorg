@@ -14,14 +14,6 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 
-#ifdef ORG_USE_PERFETTO
-#    pragma clang diagnostic ignored "-Wmacro-redefined"
-#    define __perf_trace(name) TRACE_EVENT("cli", name)
-#else
-#    define __perf_trace(...)
-#endif
-
-
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
     Op          op;
@@ -706,7 +698,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
     CR<std::string> from,
     CR<Str>         relDebug) {
-    __perf_trace("run spec");
+    __perf_trace("cli", "run spec");
     MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
     if (spec.debug.traceAll || spec.debug.printSource) {
@@ -887,7 +879,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     MockFull&     p,
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
-    __perf_trace("lex base");
+    __perf_trace("cli", "lex base");
 
     SPtr<std::ofstream> fileTrace;
     if (spec.debug.traceAll || spec.debug.traceLexBase) {
@@ -898,7 +890,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     LexerParams params;
     params.maxUnknown  = spec.debug.maxBaseLexUnknownCount;
     params.traceStream = fileTrace.get();
-    __perf_trace("tokenize base");
+    __perf_trace("cli", "tokenize base");
     p.tokenizeBase(spec.source, params);
 
     if (spec.debug.traceAll || spec.debug.printBaseLexed
@@ -940,7 +932,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     MockFull&     p,
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
-    __perf_trace("lex");
+    __perf_trace("cli", "lex");
 
     p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
     if (p.tokenizer->TraceState) {
@@ -948,14 +940,14 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
             spec.debugFile("trace_lex.log", relDebug));
     }
 
-    __perf_trace("tokenize convert");
+    __perf_trace("cli", "tokenize convert");
     p.tokenizeConvert();
 
     if (spec.debug.traceAll || spec.debug.printLexed
         || spec.debug.printLexedToFile) {
         auto content = std::format("{}", yamlRepr(p.tokens));
 
-        __perf_trace("write lexer yaml file");
+        __perf_trace("cli", "write lexer yaml file");
         if (spec.debug.traceAll || spec.debug.printLexedToFile) {
             writeFile(spec, "lexed.yaml", content + "\n", relDebug);
         } else {
@@ -997,7 +989,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
 
-    __perf_trace("parse");
+    __perf_trace("cli", "parse");
     using Pos = OrgNodeGroup::TreeReprConf::WritePos;
     UnorderedMap<OrgId, int> parseAddedOnLine;
 
@@ -1118,7 +1110,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     MockFull&     p,
     CR<ParseSpec> spec,
     CR<Str>       relDebug) {
-    __perf_trace("sem convert");
+    __perf_trace("cli", "sem convert");
     sem::OrgConverter converter{};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;

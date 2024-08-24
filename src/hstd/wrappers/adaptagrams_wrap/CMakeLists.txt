@@ -32,8 +32,11 @@ pybind11_add_module(py_adaptagrams "${BASE}/src/py_libs/py_adaptagrams/adaptagra
 set_target_properties(py_adaptagrams PROPERTIES OUTPUT_NAME "py_adaptagrams" SUFFIX ".so")
 
 haxorg_target_setup_v2(TARGET py_adaptagrams FORCE_NO_ASAN ON)
-target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg
-                                             Perfetto::perfetto adaptagrams)
+target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg adaptagrams)
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(py_adaptagrams PRIVATE Perfetto::perfetto)
+endif()
 
 set_target_properties(
   py_adaptagrams

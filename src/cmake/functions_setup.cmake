@@ -127,11 +127,6 @@ function(set_common_files TARGET)
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
   add_target_property("${TARGET}" LINK_LIBRARIES dw)
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
-
-  if(${ORG_USE_PERFETTO})
-    add_target_property(${TARGET} PRECOMPILE_HEADERS <perfetto.h>)
-  endif()
-
 endfunction()
 
 function(haxorg_target_setup_v2)

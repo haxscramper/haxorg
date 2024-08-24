@@ -2,7 +2,8 @@ add_library(hstd)
 set_common_files(hstd)
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/stdlib/.*" SEARCH_BASE "${BASE}")
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/wrappers/hstd_extra.*" SEARCH_BASE "${BASE}")
+glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/wrappers/hstd_extra.*" SEARCH_BASE
+                  "${BASE}")
 set_target_output(hstd)
 set_target_flags(hstd)
 
@@ -17,10 +18,13 @@ target_link_libraries(
          absl::base
          absl::log
          absl::flags
-         Perfetto::perfetto
          range-v3::range-v3
          nlohmann_json::nlohmann_json
          Boost::boost_describe)
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(hstd PUBLIC Perfetto::perfetto)
+endif()
 
 add_executable(tests_hstd)
 set_common_files(tests_hstd)

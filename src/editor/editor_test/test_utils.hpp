@@ -264,7 +264,9 @@ void test_message_handler(
 
 
 struct TestBase {
+#ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession> tracing;
+#endif
 
     void init_test_base();
     void cleanup_test_base();

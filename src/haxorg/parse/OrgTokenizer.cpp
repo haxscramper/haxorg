@@ -10,13 +10,6 @@
 #include <hstd/system/Formatter.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 
-#ifdef ORG_USE_PERFETTO
-#    pragma clang diagnostic ignored "-Wmacro-redefined"
-#    define __perf_trace(name) TRACE_EVENT("lexing", name)
-#else
-#    define __perf_trace(...)
-#endif
-
 struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     Builder& with_id(OrgTokenId const& id) {
         report.id = id;
@@ -853,7 +846,7 @@ struct TokenVisitor {
     OrgTokenizer*  d;
     bool const&    TraceState;
     Vec<LineToken> to_lines(OrgLexer& lex) {
-        __perf_trace("to_lines");
+        __perf_trace("lexing", "to_lines");
         Vec<LineToken> lines;
         auto const&    tokens = lex.in;
         auto           start  = tokens->begin();
@@ -881,7 +874,7 @@ struct TokenVisitor {
 
 
     Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
-        __perf_trace("to_groups");
+        __perf_trace("lexing", "to_groups");
         using Iter = Vec<LineToken>::iterator;
         Func<Opt<GroupToken>(Iter & it)> rec_group;
         rec_group = [&](Iter& it) -> Opt<GroupToken> {
@@ -1344,13 +1337,13 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
     }
     if (TraceState) { visitor.print_groups(root); }
     {
-        __perf_trace("rec convert groups");
+        __perf_trace("lexing", "rec convert groups");
         visitor.rec_convert_groups(root);
     }
     Lexer<OrgTokenKind, OrgFill> relex{&visitor.regroup};
     RecombineState               recombine_state{this, relex};
     {
-        __perf_trace("recombine");
+        __perf_trace("lexing", "recombine");
         recombine_state.recombine_impl();
     }
 }

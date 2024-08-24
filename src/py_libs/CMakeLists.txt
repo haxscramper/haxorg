@@ -29,7 +29,11 @@ set_target_properties(pyhaxorg PROPERTIES OUTPUT_NAME "pyhaxorg" SUFFIX ".so")
 
 target_include_directories(pyhaxorg PUBLIC "${BASE}" "${BASE}/src/py_libs" ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg Perfetto::perfetto)
+target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg)
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(pyhaxorg PRIVATE Perfetto::perfetto)
+endif()
 
 target_compile_options(pyhaxorg PRIVATE -shared-libasan)
 
@@ -44,6 +48,8 @@ target_include_directories(
   pyhaxorg_test_main PUBLIC "${BASE}" "${BASE}/src/py_libs" "${DEPS_DIR}/pybind11/include"
                             ${PYTHON_INCLUDE_DIRS})
 
-target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg
-                                                 Perfetto::perfetto)
+target_link_libraries(pyhaxorg_test_main PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg)
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(pyhaxorg_test_main PRIVATE Perfetto::perfetto)
+endif()
 target_compile_options(pyhaxorg_test_main PRIVATE -shared-libasan)

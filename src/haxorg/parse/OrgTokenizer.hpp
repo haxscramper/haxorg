@@ -12,13 +12,6 @@
 
 #include <hstd/stdlib/TraceBase.hpp>
 
-#ifdef ORG_USE_PERFETTO
-#    define __perf_trace(name) TRACE_EVENT("lexing", name)
-#else
-#    define __perf_trace(a)
-#endif
-
-
 struct ImplementError : public std::runtime_error {
     explicit inline ImplementError(const std::string& message = "")
         : std::runtime_error(message) {}

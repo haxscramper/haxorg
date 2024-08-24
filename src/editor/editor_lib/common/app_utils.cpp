@@ -360,7 +360,7 @@ QPixmap save_screenshot(const QString& filePath) {
 }
 
 void perf_accept_signal(CR<Str> signal, int extraId) {
-    TRACE_EVENT(
+    __perf_trace(
         "qt_signals",
         signal.c_str(),
         perfetto::TerminatingFlow::ProcessScoped(
@@ -368,7 +368,7 @@ void perf_accept_signal(CR<Str> signal, int extraId) {
 }
 
 void perf_emit_signal(CR<Str> signal, int extraId) {
-    TRACE_EVENT(
+    __perf_trace(
         "qt_signals",
         signal.c_str(),
         perfetto::Flow::ProcessScoped(getSignalId(signal, extraId)));

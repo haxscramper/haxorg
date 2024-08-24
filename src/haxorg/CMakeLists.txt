@@ -43,8 +43,11 @@ target_link_libraries(
          protobuf::libprotoc
          absl::base
          absl::log
-         Perfetto::perfetto
          nlohmann_json::nlohmann_json)
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(haxorg PUBLIC Perfetto::perfetto)
+endif()
 
 target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                          $<INSTALL_INTERFACE:include>)
@@ -71,5 +74,6 @@ add_executable(specrunner_org)
 set_common_files(specrunner_org)
 set_target_output(specrunner_org)
 set_target_flags(specrunner_org)
-glob_add_sources2(TARGET specrunner_org LS_REGEX "${BASE}/tests/specrunner/.*" SEARCH_BASE "${BASE}")
+glob_add_sources2(TARGET specrunner_org LS_REGEX "${BASE}/tests/specrunner/.*" SEARCH_BASE
+                  "${BASE}")
 target_link_libraries(specrunner_org PUBLIC haxorg)

@@ -12,13 +12,16 @@ haxorg_target_setup_v2(TARGET editor_lib)
 target_link_libraries(
   editor_lib
   PUBLIC hstd
-         Perfetto::perfetto
          haxorg
          Qt6::Test
          Qt6::Core
          Qt6::Widgets
          ${CAIROMM_LIBRARIES}
          adaptagrams)
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(editor_lib PUBLIC Perfetto::perfetto)
+endif()
 
 target_include_directories(editor_lib PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"
                                              "${BASE}/src" ${CAIROMM_INCLUDE_DIRS})
@@ -30,13 +33,13 @@ target_link_libraries(editor_app PUBLIC editor_lib)
 
 qt_add_executable(editor_driver)
 glob_add_sources2(TARGET editor_driver LS_REGEX "${EDITOR_DIR}/editor_driver.*" SEARCH_BASE
-                      "${BASE}")
+                  "${BASE}")
 haxorg_target_setup_v2(TARGET editor_driver)
 target_link_libraries(editor_driver PUBLIC editor_lib)
 
 qt_add_library(editor_test_lib STATIC)
 glob_add_sources2(TARGET editor_test_lib LS_REGEX "${EDITOR_DIR}/editor_test.*" SEARCH_BASE
-                      "${BASE}")
+                  "${BASE}")
 haxorg_target_setup_v2(TARGET editor_test_lib)
 target_link_libraries(editor_test_lib PUBLIC editor_lib)
 

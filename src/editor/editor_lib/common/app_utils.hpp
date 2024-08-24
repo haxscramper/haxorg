@@ -18,6 +18,7 @@
 
 #include <hstd/wrappers/hstd_extra/perfetto_aux.hpp>
 
+#ifdef ORG_USE_PERFETTO
 // The set of track event categories that the example is using.
 PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("qt_signals")
@@ -25,16 +26,17 @@ PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("mind_map").SetDescription("Mind map operations")
     //
 );
+#endif
 
 int  getSignalId(CR<Str> signal, int extraId);
 void perf_emit_signal(CR<Str> signal, int extraId);
 void perf_accept_signal(CR<Str> signal, int extraId);
 
-#define PERF_MMAP(...) TRACE_EVENT("mind_map" __VA_OPT__(, ) __VA_ARGS__)
+#define PERF_MMAP(...) __perf_trace("mind_map" __VA_OPT__(, ) __VA_ARGS__)
 #define PERF_MMAP_BEGIN(...)                                              \
-    TRACE_EVENT_BEGIN("mind_map" __VA_OPT__(, ) __VA_ARGS__)
+    __perf_trace_begin("mind_map" __VA_OPT__(, ) __VA_ARGS__)
 #define PERF_MMAP_END(...)                                                \
-    TRACE_EVENT_END("mind_map" __VA_OPT__(, ) __VA_ARGS__)
+    __perf_trace_end("mind_map" __VA_OPT__(, ) __VA_ARGS__)
 
 class QWindow;
 
