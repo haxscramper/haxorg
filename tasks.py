@@ -453,7 +453,8 @@ def docker_run(
 
     def mnt(local: str, container: Optional[str] = None) -> List[str]:
         container = container or local
-        local = Path(local) if Path(local).is_absolute() else get_script_root(local)
+        local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
+        assert local.exists()
         return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
 
     HAXORG_BUILD_TMP = Path("/tmp/haxorg_build_dir")
@@ -465,21 +466,21 @@ def docker_run(
         "docker",
         [
             "run",
-            *itertools.chain(
-                mnt(it) for it in [
-                    "src",
-                    "scripts",
-                    "tests",
-                    "tasks.py",
-                    "docs",
-                    "invoke.yaml",
-                    "invoke-ci.yaml",
-                    "pyproject.toml",
-                    "ignorelist.txt",
-                    ".git",
-                    "thirdparty",
-                    "CMakeLists.txt",
-                ]),
+            *itertools.chain(*(mnt(it) for it in [
+                "src",
+                "scripts",
+                "tests",
+                "tasks.py",
+                "docs",
+                "invoke.yaml",
+                "invoke-ci.yaml",
+                "pyproject.toml",
+                "ignorelist.txt",
+                ".git",
+                "thirdparty",
+                "CMakeLists.txt",
+                "toolchain.cmake",
+            ])),
             # Scratch directory for simplified local debugging and rebuilds if needed.
             *mnt(HAXORG_BUILD_TMP, "build"),
             *(["-it"] if interactive else []),
@@ -543,14 +544,14 @@ def reflex_lexer_generator(ctx: Context):
 @org_task(pre=[base_environment, reflex_lexer_generator], force_notify=True)
 def haxorg_base_lexer(ctx: Context):
     """Generate base lexer file definitions and compile them to C code"""
-    py_file = get_script_root("src/base_lexer/base_lexer.py")
-    gen_lexer = get_script_root("src/base_lexer/base_lexer.l")
+    py_file = get_script_root("src/haxorg/base_lexer/base_lexer.py")
+    gen_lexer = get_script_root("src/haxorg/base_lexer/base_lexer.l")
     reflex_run_params = [
         "--fast",
         "--nodefault",
         # "--debug",
         "--case-insensitive",
-        f"--outfile={get_script_root('src/base_lexer/base_lexer_gen.cpp')}",
+        f"--outfile={get_script_root('src/haxorg/base_lexer/base_lexer_gen.cpp')}",
         "--namespace=base_lexer",
         gen_lexer,
     ]
@@ -848,6 +849,9 @@ def cmake_build_deps(
         deps_name="pybind11",
         configure_args=[cmake_opt("PYBIND11_TEST", False)],
     )
+
+    dep(build_name="utf8_range", deps_name="protobuf/third_party/utf8_range")
+
     dep(
         build_name="protobuf",
         deps_name="protobuf",
@@ -856,7 +860,11 @@ def cmake_build_deps(
             cmake_opt("utf8_range_ENABLE_TESTS", False),
             cmake_opt("utf8_range_ENABLE_INSTALL", True),
             cmake_opt("protobuf_ABSL_PROVIDER", "package"),
-            cmake_opt("CMAKE_PREFIX_PATH", install_dir.joinpath("abseil")),
+            cmake_opt(
+                "CMAKE_PREFIX_PATH", ";".join([
+                    install_dir.joinpath("abseil/lib/cmake/absl"),
+                    install_dir.joinpath("utf8_range/lib/cmake/utf8_range"),
+                ])),
             cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
             cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
@@ -907,7 +915,7 @@ def cmake_haxorg(
 
 
 @org_task(pre=[cmake_haxorg])
-def cmake_install_dev(ctx: Context):
+def cmake_install_dev(ctx: Context, use_perfetto: bool = False):
     """Install haxorg targets in the build directory"""
     install_dir = get_build_root().joinpath("install")
     if install_dir.exists():
@@ -921,6 +929,7 @@ def cmake_install_dev(ctx: Context):
             get_component_build_dir(ctx, "haxorg"),
             "--prefix",
             install_dir,
+            get_cmake_defines("ORG_USE_PERFETTO", use_perfetto),
             # "--component",
             # "haxorg_component"
         ])
@@ -1592,6 +1601,7 @@ def cxx_target_coverage(
 @org_task()
 def ci(
     ctx: Context,
+    deps: bool = True,
     build: bool = True,
     test: bool = True,
     docs: bool = True,
@@ -1600,6 +1610,10 @@ def ci(
 ):
     "Execute all CI tasks"
     env = {"INVOKE_CI": "ON"}
+    if deps:
+        log(CAT).info("Running CI dependency installation")
+        run_self(ctx, ["cmake-build-deps"], env=env)
+
     if build:
         log(CAT).info("Running CI cmake")
         run_command(

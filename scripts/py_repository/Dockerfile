@@ -33,7 +33,7 @@ RUN apt-get install -y libxkbcommon-dev libgraphviz-dev libboost-all-dev
 RUN apt-get install -y mold
 RUN apt-get install -y elfutils libdw-dev
 RUN apt-get install -y libncurses5-dev doxygen graphviz
-RUN apt-get install -y libpcre3 libpcre3-dev libtbb-dev
+RUN apt-get install -y libtbb-dev
 
 RUN wget -q "https://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz"
 RUN tar xzf ncurses-5.9.tar.gz

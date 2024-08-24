@@ -21,11 +21,8 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json"
 message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
 
 find_package(Reflex CONFIG REQUIRED)
-set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package(absl CONFIG REQUIRED)
-set(CMAKE_FIND_DEBUG_MODE FALSE)
 find_package(protobuf CONFIG REQUIRED)
-find_package(Perfetto CONFIG REQUIRED)
 find_package(boost_mp11 CONFIG REQUIRED)
 find_package(BoostDescribe CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
