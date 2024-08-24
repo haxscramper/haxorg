@@ -50,7 +50,8 @@ Opt<int> render_mini_map(
     CVec<sem::SemId<sem::Subtree>> tree,
     float                          mini_map_height,
     ImVec2                         size,
-    float                          content_height) {
+    float                          content_height,
+    float                          scroll_y) {
 
     ImGui::InvisibleButton("MiniMap", size);
     ImVec2 window_pos = ImGui::GetWindowPos();
@@ -224,6 +225,157 @@ void render_outline(
     }
 }
 
+void frame_start() {
+    glfwPollEvents();
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void frame_end(GLFWwindow* window) {
+    ImGui::Render();
+    int display_w, display_h;
+    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    glfwSwapBuffers(window);
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+}
+
+void fullscreen_window_begin() {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+
+    ImGui::Begin(
+        "Fullscreen Window",
+        nullptr,
+        ImGuiWindowFlags_NoDecoration
+            | ImGuiWindowFlags_NoBringToFrontOnFocus
+            | ImGuiWindowFlags_NoNav);
+}
+
+void fps_window_begin() {
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::SetNextWindowPos(
+        ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Once);
+    ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("%.2f FPS", io.Framerate);
+}
+
+void sem_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+    VisualExporterConfig sem_tree_config;
+    while (!glfwWindowShouldClose(window)) {
+        frame_start();
+        render_sem_tree(node, sem_tree_config);
+        {
+            fps_window_begin();
+            ImGui::Checkbox("Show nullopt", &sem_tree_config.showNullopt);
+            ImGui::Checkbox("Show space", &sem_tree_config.showSpace);
+            ImGui::End();
+        }
+        frame_end(window);
+    }
+}
+
+void outline_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+    OutlineConfig outline_config;
+    outline_config.priorities.incl("");
+
+    Vec<Str> priorities{""};
+    int      subtree_count = 0;
+    int      max_level     = 0;
+    sem::eachSubnodeRec(node, [&](sem::SemId<sem::Org> it) {
+        if (auto tree = it.asOpt<sem::Subtree>()) {
+            ++subtree_count;
+            max_level = std::max(tree->level, max_level);
+            if (tree->priority
+                && priorities.indexOf(tree->priority.value()) == -1) {
+                priorities.push_back(tree->priority.value());
+            }
+        }
+    });
+
+    rs::sort(priorities);
+    Opt<int> row_scroll;
+
+    while (!glfwWindowShouldClose(window)) {
+        frame_start();
+        float  content_height = 0.0f;
+        float  scroll_y       = 0.0f;
+        ImVec2 mini_map_size;
+
+        {
+            fullscreen_window_begin();
+            render_outline(node, outline_config, content_height);
+
+            if (row_scroll) {
+                float scroll = static_cast<float>(row_scroll.value())
+                             / static_cast<float>(subtree_count)
+                             * content_height;
+                ImGui::SetScrollY(scroll);
+            }
+
+            mini_map_size = ImVec2(
+                max_level * minimap_indent_size + 10.0f,
+                ImGui::GetWindowHeight());
+
+            scroll_y = ImGui::GetScrollY();
+
+            ImGui::End();
+        }
+
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            ImGui::SetNextWindowPos(
+                ImVec2(io.DisplaySize.x - mini_map_size.x, 0));
+            ImGui::SetNextWindowSize(mini_map_size);
+            ImGui::Begin(
+                "Map",
+                nullptr,
+                ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav);
+
+
+            row_scroll = render_mini_map(
+                node.subAs<sem::Subtree>(),
+                mini_map_size.y,
+                mini_map_size,
+                content_height,
+                scroll_y);
+
+            ImGui::End();
+        }
+
+        {
+            fps_window_begin();
+            ImGui::Checkbox("Show done", &outline_config.showDone);
+            for (auto const& it : priorities) {
+                bool shown = outline_config.priorities.contains(it);
+                bool start = shown;
+                ImGui::Checkbox(fmt("Priority '{}'", it).c_str(), &shown);
+                if (start != shown) {
+                    if (shown) {
+                        outline_config.priorities.incl(it);
+                    } else {
+                        outline_config.priorities.excl(it);
+                    }
+                }
+            }
+            ImGui::End();
+        }
+
+        frame_end(window);
+    }
+}
+
 int main(int argc, char** argv) {
     if (!glfwInit()) { return 1; }
 
@@ -264,140 +416,14 @@ int main(int argc, char** argv) {
     auto file = readFile(fs::path{conf.file.toBase()});
     auto node = sem::parseString(file);
 
-    bool doTrace = true;
-
-    VisualExporterConfig sem_tree_config;
-    OutlineConfig        outline_config;
-    outline_config.priorities.incl("");
-
-    Vec<Str> priorities{""};
-    int      subtree_count = 0;
-    int      max_level     = 0;
-    sem::eachSubnodeRec(node, [&](sem::SemId<sem::Org> it) {
-        if (auto tree = it.asOpt<sem::Subtree>()) {
-            ++subtree_count;
-            max_level = std::max(tree->level, max_level);
-            if (tree->priority
-                && priorities.indexOf(tree->priority.value()) == -1) {
-                priorities.push_back(tree->priority.value());
-            }
+    switch (conf.mode) {
+        case Config::Mode::SemTree: {
+            sem_tree_loop(window, node);
+            break;
         }
-    });
-
-    rs::sort(priorities);
-    Opt<int> row_scroll;
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        // Fullscreen window
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->WorkPos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-        float scroll_y       = 0.0f;
-        float content_height = 0.0f;
-        ImGui::Begin(
-            "Fullscreen Window",
-            nullptr,
-            ImGuiWindowFlags_NoDecoration
-                | ImGuiWindowFlags_NoBringToFrontOnFocus
-                | ImGuiWindowFlags_NoNav);
-
-
-        switch (conf.mode) {
-            case Config::Mode::SemTree: {
-                render_sem_tree(node, sem_tree_config);
-                break;
-            }
-            case Config::Mode::Outline: {
-                render_outline(node, outline_config, content_height);
-                break;
-            }
-        }
-
-        if (row_scroll) {
-            float scroll = static_cast<float>(row_scroll.value())
-                         / static_cast<float>(subtree_count)
-                         * content_height;
-            ImGui::SetScrollY(scroll);
-        }
-
-        ImVec2 mini_map_size = ImVec2(
-            max_level * minimap_indent_size + 10.0f,
-            ImGui::GetWindowHeight());
-
-        ImGui::End();
-
-        ImGui::SetNextWindowPos(
-            ImVec2(io.DisplaySize.x - mini_map_size.x, 0));
-        ImGui::SetNextWindowSize(mini_map_size);
-        ImGui::Begin(
-            "Map",
-            nullptr,
-            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav);
-
-
-        row_scroll = render_mini_map(
-            node.subAs<sem::Subtree>(),
-            mini_map_size.y,
-            mini_map_size,
-            content_height);
-
-        ImGui::End();
-
-
-        ImGuiIO& io = ImGui::GetIO();
-        ImGui::SetNextWindowPos(
-            ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Once);
-        ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("%.2f FPS", io.Framerate);
-
-        switch (conf.mode) {
-            case Config::Mode::SemTree: {
-                ImGui::Checkbox(
-                    "Show nullopt", &sem_tree_config.showNullopt);
-                ImGui::Checkbox("Show space", &sem_tree_config.showSpace);
-                break;
-            }
-            case Config::Mode::Outline: {
-                ImGui::Checkbox("Show done", &outline_config.showDone);
-                for (auto const& it : priorities) {
-                    bool shown = outline_config.priorities.contains(it);
-                    bool start = shown;
-                    ImGui::Checkbox(
-                        fmt("Priority '{}'", it).c_str(), &shown);
-                    if (start != shown) {
-                        if (shown) {
-                            outline_config.priorities.incl(it);
-                        } else {
-                            outline_config.priorities.excl(it);
-                        }
-                    }
-                }
-                break;
-            }
-            default: {
-            }
-        }
-
-
-        ImGui::End();
-
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        case Config::Mode::Outline: {
+            outline_tree_loop(window, node);
+            break;
         }
     }
 
