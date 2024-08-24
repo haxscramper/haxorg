@@ -92,48 +92,5 @@ concept IsSubVariantType = requires() {
 };
 
 
-#define __DECL_FIELDS_define_field_aux(first, second, third)              \
-    __unpack_pars first second = third;
-
-#define __DECL_FIELDS_per_field(class_bases_bases, field)                 \
-    __DECL_FIELDS_define_field(field)
-
-#define __DECL_FIELDS_get_field_name_aux(a, fieldName, d) fieldName
-#define __DECL_FIELDS_get_field_name(_, arg)                              \
-    , __DECL_FIELDS_get_field_name_aux arg
-#define __DECL_FIELDS_drop_leading_comma(first, ...) __VA_ARGS__
-
-#define __DECL_FIELDS_define_field(arg) __DECL_FIELDS_define_field_aux arg
-#define __DECL_FIELDS_define_field_only(_, arg)                           \
-    __DECL_FIELDS_define_field_aux arg
-
-#define __DECL_FIELDS_pass_args_field_aux(_1, fieldname, _3)              \
-    fieldname(args.fieldname),
-#define __DECL_FIELDS_pass_args_field(_, arg)                             \
-    __DECL_FIELDS_pass_args_field_aux arg
-
-#define EMPTY()
-
-#define DECL_FIELDS(classname, bases, ...)                                \
-    FOR_EACH_CALL_WITH_PASS(                                              \
-        __DECL_FIELDS_per_field, (classname, bases), __VA_ARGS__)         \
-                                                                          \
-    BOOST_DESCRIBE_CLASS(                                                 \
-        classname,                                                        \
-        bases, /* Expand teh list of fields and leave only the the name   \
-                  of the field to be passed to the public members of the  \
-                  boost describe */                                       \
-        (      /* < Extra wrapping paren, __get_field_name leaves out the \
-                    a,b,c,d,e list*/                                      \
-         __DECL_FIELDS_drop_leading_comma EMPTY()(                        \
-             EXPAND(FOR_EACH_CALL_WITH_PASS(                              \
-                 __DECL_FIELDS_get_field_name,                            \
-                 () /* < Nothing to pass around */,                       \
-                 __VA_ARGS__)))),                                         \
-        () /* For simplicity reasons, sem nodes have public fields and no \
-              protected/private members */                                \
-        ,                                                                 \
-        ());
-
 #define DESC_FIELDS(classname, arg)                                       \
     BOOST_DESCRIBE_CLASS(classname, (), arg, (), ())

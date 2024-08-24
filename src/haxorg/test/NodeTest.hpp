@@ -21,11 +21,9 @@ struct ParseSpec {
 
     struct Conf {
         DECL_DESCRIBED_ENUM(MatchMode, Full, ExpectedSubset);
-        DECL_FIELDS(
-            Conf,
-            (),
-            ((MatchMode), tokenMatch, MatchMode::Full),
-            ((MatchMode), nodeMatch, MatchMode::Full));
+        MatchMode tokenMatch = MatchMode::Full;
+        MatchMode nodeMatch  = MatchMode::Full;
+        DESC_FIELDS(Conf, (tokenMatch, nodeMatch));
     };
 
     /// `debug:` field in the yaml specification. All the fields in the

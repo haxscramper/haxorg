@@ -40,41 +40,46 @@ struct std::formatter<PTime> : std::formatter<std::string> {
 };
 
 struct cli_repo_config {
-    DECL_FIELDS(
-        cli_repo_config,
-        (),
-        /// Absolute path to input directory
-        ((std::string), path, ""),
-        /// Which branch to analyze
-        ((std::string), branch, ""));
+    /// Absolute path to input directory
+    std::string path = "";
+    /// Which branch to analyze
+    std::string branch = "";
+
+    DESC_FIELDS(cli_repo_config, (path, branch));
 };
 
 struct cli_out_config {
-    DECL_FIELDS(
+    /// Mandatory option, path for the sqlite database to write to
+    std::string db_path = "";
+    /// Redirect internal logging into the specified file
+    Opt<std::string> log_file = std::nullopt;
+    /// Dump file version representation at the end of the processing
+    /// run.
+    Opt<std::string> text_dump = std::nullopt;
+    /// Write an analyzed commit graph of the repository into the file
+    Opt<std::string> graphviz = std::nullopt;
+    /// Enable perfetto profiling and write trace results into a file.
+    Opt<std::string> perfetto = std::nullopt;
+
+    DESC_FIELDS(
         cli_out_config,
-        (),
-        /// Mandatory option, path for the sqlite database to write to
-        ((std::string), db_path, ""),
-        /// Redirect internal logging into the specified file
-        ((Opt<std::string>), log_file, std::nullopt),
-        /// Dump file version representation at the end of the processing
-        /// run.
-        ((Opt<std::string>), text_dump, std::nullopt),
-        /// Write an analyzed commit graph of the repository into the file
-        ((Opt<std::string>), graphviz, std::nullopt),
-        /// Enable perfetto profiling and write trace results into a file.
-        ((Opt<std::string>), perfetto, std::nullopt));
+        (db_path, log_file, text_dump, graphviz, perfetto));
 };
 
 struct cli_diff_config {
-    DECL_FIELDS(
+    int rename_threshold              = 50;
+    int break_rewrite_threshold       = 60;
+    int copy_threshold                = 50;
+    int rename_limit                  = 1000;
+    int rename_from_rewrite_threshold = 50;
+
+    DESC_FIELDS(
         cli_diff_config,
-        (),
-        ((int), rename_threshold, 50),
-        ((int), break_rewrite_threshold, 60),
-        ((int), copy_threshold, 50),
-        ((int), rename_limit, 1000),
-        ((int), rename_from_rewrite_threshold, 50));
+        (rename_threshold,
+         break_rewrite_threshold,
+         copy_threshold,
+         rename_limit,
+         rename_from_rewrite_threshold));
 };
 
 struct cli_config_config {
@@ -102,12 +107,10 @@ struct cli_config_config {
 };
 
 struct cli_config {
-    DECL_FIELDS(
-        cli_config,
-        (),
-        ((cli_repo_config), repo, cli_repo_config{}),
-        ((cli_config_config), config, cli_config_config{}),
-        ((cli_out_config), out, cli_out_config{}));
+    cli_repo_config   repo   = cli_repo_config{};
+    cli_config_config config = cli_config_config{};
+    cli_out_config    out    = cli_out_config{};
+    DESC_FIELDS(cli_config, (repo, config, out));
 };
 
 

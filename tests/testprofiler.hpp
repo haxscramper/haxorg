@@ -11,12 +11,10 @@ struct TestProfiler {
     json        metadata;
 
     struct RunRecord {
-        DECL_FIELDS(
-            RunRecord,
-            (),
-            ((std::string), xray_path, ""),
-            ((std::string), pgo_path, ""),
-            ((json), metadata, json()));
+        std::string xray_path = "";
+        std::string pgo_path  = "";
+        json        metadata  = json{};
+        DESC_FIELDS(RunRecord, (xray_path, pgo_path, metadata));
     };
 
     static Vec<RunRecord> runRecords;
