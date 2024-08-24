@@ -39,39 +39,6 @@ function(glob_add_sources_2_v2)
   endforeach()
 endfunction()
 
-
-function(add_cola_library cola_name)
-    set(cola_fullname "cola_${cola_name}")
-    add_library("${cola_fullname}")
-    glob_add_sources_2_v2(
-        TARGET "${cola_fullname}"
-        LS_REGEX "${COLA_DIR}/lib${cola_name}/.*"
-        SEARCH_BASE "${COLA_DIR}/lib${cola_name}"
-        EXTENSIONS "hpp;cpp;h"
-        RECURSE OFF
-    )
-
-    target_include_directories(${cola_fullname} PUBLIC "${COLA_DIR}")
-endfunction()
-
-
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cola_autoconf_config.h" "${COLA_DIR}/libcola/config.h")
-
-add_cola_library(avoid)
-add_cola_library(cola)
-add_cola_library(dialect)
-add_cola_library(topology)
-add_cola_library(vpsc)
-
-find_package(PkgConfig)
-find_package(PythonLibs 3.12)
-
-pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
-
-target_link_libraries(cola_cola PUBLIC ${CAIROMM_LIBRARIES})
-target_include_directories(cola_cola PUBLIC ${CAIROMM_INCLUDE_DIRS})
-
-
 function(haxorg_target_setup_v2)
     cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
     set_common_files("${ARG_TARGET}")
@@ -83,11 +50,11 @@ endfunction()
 add_library(adaptagrams)
 haxorg_target_setup_v2(TARGET adaptagrams FORCE_NO_ASAN ON)
 target_link_libraries(adaptagrams PUBLIC
-    cola_cola
-    cola_avoid
-    cola_dialect
-    cola_topology
-    cola_vpsc
+    Adaptagrams::cola
+    Adaptagrams::avoid
+    Adaptagrams::dialect
+    Adaptagrams::topology
+    Adaptagrams::vpsc
     hstd
     absl::log
     absl::base)

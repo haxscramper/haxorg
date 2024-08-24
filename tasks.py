@@ -763,6 +763,13 @@ def cmake_build_deps(
 
     dep(build_name="describe", deps_name="cmake_wrap/describe")
     dep(
+        build_name="adaptagrams",
+        deps_name="cmake_wrap/adaptagrams",
+        configure_args=[
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+    dep(
         build_name="perfetto",
         deps_name="cmake_wrap/perfetto",
         configure_args=[

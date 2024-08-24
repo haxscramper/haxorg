@@ -27,7 +27,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 ## in order for the code to compile, link and execute correctly. Note that runtime
 ## execution will use these library paths as well
 
-# Directory with clang-related runtime libraries such as asan that are shipped 
+# Directory with clang-related runtime libraries such as asan that are shipped
 # with LLVM
 set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/18/lib/x86_64-unknown-linux-gnu")
 # Declare variable for the asan library path, it is used in target setups, this
@@ -50,7 +50,7 @@ option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
-option(ORG_USE_SANITIZER "Use sanitizers" ON) 
+option(ORG_USE_SANITIZER "Use sanitizers" ON)
 # Adaptagrams in the editor project uses libtooling for compilation and does not react
 # well to the changes in the main environment. Sometimes it does not build or does not
 # rebuild things. By default this option forces the dependency to be configured for all
@@ -67,23 +67,27 @@ set(DEPS_INSTALL "${BASE}/build/deps_install")
 message(STATUS "DEPS_INSTALL = ${DEPS_INSTALL}")
 
 
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/yaml/share/cmake/yaml-cpp")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/SQLiteCpp/lib/cmake/SQLiteCpp")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/pybind11/share/cmake/pybind11")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/protobuf/lib/cmake/protobuf")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/mp11/lib/cmake/boost_mp11-1.85.0")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/lager/lib/cmake/Lager")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/immer/lib/cmake/Immer")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/abseil/lib/cmake/absl")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/perfetto/lib/cmake/Perfetto")
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_INSTALL}/describe/lib/cmake/BoostDescribe")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/yaml/share/cmake/yaml-cpp")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/SQLiteCpp/lib/cmake/SQLiteCpp")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/pybind11/share/cmake/pybind11")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/protobuf/lib/cmake/protobuf")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/mp11/lib/cmake/boost_mp11-1.85.0")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/perfetto/lib/cmake/Perfetto")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/describe/lib/cmake/BoostDescribe")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
 
 message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
 message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
+
+find_package(PkgConfig)
+pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
@@ -100,6 +104,7 @@ find_package(Reflex CONFIG REQUIRED)
 find_package(Perfetto CONFIG REQUIRED)
 find_package(BoostDescribe CONFIG REQUIRED)
 find_package(PythonLibs 3.12)
+find_package(Adaptagrams CONFIG REQUIRED)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 
