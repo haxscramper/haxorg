@@ -469,6 +469,7 @@ def docker_run(
     reflection: bool = True,
     deps_configure: bool = True,
     deps_build: bool = True,
+    build_dir: str = "/tmp/haxorg_build_dir",
 ):
     """Run docker"""
 
@@ -481,7 +482,7 @@ def docker_run(
         assert local.exists()
         return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
 
-    HAXORG_BUILD_TMP = Path("/tmp/haxorg_build_dir")
+    HAXORG_BUILD_TMP = Path(build_dir)
     if not HAXORG_BUILD_TMP.exists():
         HAXORG_BUILD_TMP.mkdir(parents=True)
 
