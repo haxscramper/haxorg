@@ -126,13 +126,14 @@ def is_xray_coverage(ctx: Context) -> bool:
 def is_forced(ctx: Context, name: str) -> bool:
     return name in conf.force_task
 
+
 @beartype
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
 
+
 if is_ci():
     log(CAT).info(f"Using config {get_haxorg_repo_root_config_path()}")
-
 
 
 @beartype
@@ -470,6 +471,8 @@ def docker_run(
     deps_configure: bool = True,
     deps_build: bool = True,
     build_dir: str = "/tmp/haxorg_build_dir",
+    example: bool = True,
+    install: bool = True,
 ):
     """Run docker"""
 
@@ -523,6 +526,8 @@ def docker_run(
                 invoke_opt("reflection", reflection),
                 invoke_opt("deps-configure", deps_configure),
                 invoke_opt("deps-build", deps_build),
+                invoke_opt("install", install),
+                invoke_opt("example", example),
             ]),
         ])
 
@@ -967,7 +972,7 @@ def cmake_haxorg(
 
 
 @org_task(pre=[cmake_haxorg])
-def cmake_install_dev(ctx: Context, use_perfetto: bool = False):
+def cmake_install_dev(ctx: Context, perfetto: bool = False):
     """Install haxorg targets in the build directory"""
     install_dir = get_build_root().joinpath("install")
     if install_dir.exists():
@@ -981,10 +986,35 @@ def cmake_install_dev(ctx: Context, use_perfetto: bool = False):
             get_component_build_dir(ctx, "haxorg"),
             "--prefix",
             install_dir,
-            get_cmake_defines("ORG_USE_PERFETTO", use_perfetto),
+            # cmake_opt("ORG_USE_PERFETTO", perfetto),
             # "--component",
             # "haxorg_component"
         ])
+
+
+@org_task(pre=[cmake_install_dev])
+def cmake_example(ctx: Context):
+    example_build = get_build_root().joinpath("example_build")
+    toolchain = get_script_root().joinpath("toolchain.cmake")
+    assert toolchain.exists()
+    run_command(ctx, "cmake", [
+        "-B",
+        example_build,
+        "-S",
+        get_script_root().joinpath("examples/imgui_gui"),
+        "-G",
+        "Ninja",
+        cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")),
+        cmake_opt("CMAKE_C_COMPILER", get_llvm_root("bin/clang")),
+    ])
+
+    run_command(ctx, "cmake", [
+        "--build",
+        example_build,
+        "--target",
+        "all",
+        "--parallel",
+    ])
 
 
 def get_lldb_py_import() -> List[str]:
@@ -1627,6 +1657,8 @@ def ci(
     docs: bool = True,
     coverage: bool = True,
     reflection: bool = True,
+    install: bool = True,
+    example: bool = True,
 ):
     "Execute all CI tasks"
     env = {"INVOKE_CI": "ON"}
@@ -1686,5 +1718,13 @@ def ci(
             ctx,
             "invoke",
             ["docs-custom"],
+            env=env,
+        )
+
+    if install:
+        log(CAT).info("Running install")
+        run_self(
+            ctx,
+            ["cmake-install-dev"],
             env=env,
         )

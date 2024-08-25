@@ -82,9 +82,6 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/utf8_range/lib/cmake/utf8_range
 
 set(ENV{PKG_CONFIG_PATH} "${DEPS_INSTALL}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
-message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
-message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
-
 find_package(PkgConfig)
 pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 pkg_check_modules(LIBGIT2 REQUIRED libgit2)
