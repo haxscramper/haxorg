@@ -35,10 +35,14 @@ def get_haxorg_repo_root_path() -> Path:
     return result
 
 
-def get_haxorg_repo_root_config() -> HaxorgConfig:
-    file = get_haxorg_repo_root_path().joinpath(
+def get_haxorg_repo_root_config_path() -> Path:
+    return get_haxorg_repo_root_path().joinpath(
         "invoke-ci.yaml" if os.getenv("INVOKE_CI") else "invoke.yaml")
-    
+
+
+def get_haxorg_repo_root_config() -> HaxorgConfig:
+    file = get_haxorg_repo_root_config_path()
+
     with open(file, 'r') as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 

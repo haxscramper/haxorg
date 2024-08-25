@@ -19,7 +19,7 @@ import json
 import sys
 import traceback
 import itertools
-from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
+from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config, get_haxorg_repo_root_config_path
 from py_repository.gen_coverage_cookies import ProfdataParams
 from py_scriptutils.algorithm import remove_ansi, maybe_splice, cond
 from py_scriptutils import os_utils
@@ -116,20 +116,23 @@ def get_config(ctx: Context) -> HaxorgConfig:
 
 
 def is_instrumented_coverage(ctx: Context) -> bool:
-    return ctx.config.get("instrument")["coverage"]
+    return conf.instrument.coverage
 
 
 def is_xray_coverage(ctx: Context) -> bool:
-    return ctx.config.get("instrument")["xray"]
+    return conf.instrument.xray
 
 
 def is_forced(ctx: Context, name: str) -> bool:
-    return name in get_config(ctx).force_task
-
+    return name in conf.force_task
 
 @beartype
 def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
+
+if is_ci():
+    log(CAT).info(f"Using config {get_haxorg_repo_root_config_path()}")
+
 
 
 @beartype
