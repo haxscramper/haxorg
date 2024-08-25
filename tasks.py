@@ -605,12 +605,6 @@ def symlink_build(ctx: Context):
         is_dir=True,
     )
 
-    link(
-        real_path=get_component_build_dir(ctx, "utils"),
-        link_path=get_build_root("utils"),
-        is_dir=True,
-    )
-
 
 @org_task(pre=[symlink_build])
 def python_protobuf_files(ctx: Context):
@@ -644,7 +638,7 @@ def python_protobuf_files(ctx: Context):
 
             run_command(
                 ctx,
-                get_build_root("haxorg/thirdparty/protobuf/protoc"),
+                get_build_root("deps_install/protobuf/bin/protoc"),
                 [
                     f"--plugin={protoc_plugin}",
                     "-I",
@@ -1080,8 +1074,9 @@ def update_py_haxorg_reflection(
 
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[
-    # cmake_haxorg,
-    # update_py_haxorg_reflection
+    cmake_haxorg,
+    update_py_haxorg_reflection,
+    symlink_build,
 ])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""

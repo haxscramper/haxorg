@@ -38,8 +38,4 @@ if(${ORG_USE_PERFETTO})
   target_link_libraries(py_adaptagrams PRIVATE Perfetto::perfetto)
 endif()
 
-set_target_properties(
-  py_adaptagrams
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+

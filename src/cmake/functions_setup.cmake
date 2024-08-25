@@ -10,6 +10,12 @@ function(set_target_flags_impl)
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
 
+  set_target_properties(
+    ${ARG_TARGET}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+               LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+               ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+
   if(${ORG_INSTRUMENT_TRACE})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS -finstrument-functions)
   endif()
