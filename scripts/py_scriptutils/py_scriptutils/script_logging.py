@@ -8,6 +8,10 @@ from types import MethodType
 from rich.text import Text
 from rich.console import Console
 import enum
+import os
+
+def is_ci() -> bool:
+    return bool(os.getenv("INVOKE_CI"))
 
 
 def to_debug_json(
@@ -144,6 +148,8 @@ def log(category="rich") -> logging.Logger:
     log = logging.getLogger(category)
     return log
 
+def ci_log() -> logging.Logger:
+    return log("ci")
 
 class ExceptionContextNote:
     """

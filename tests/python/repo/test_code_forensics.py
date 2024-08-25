@@ -145,7 +145,7 @@ def run_forensics(
     verbose_consistency_checks: bool = False,
 ) -> tuple[int, str, str]:
     tool_path = str(get_haxorg_repo_root_path().joinpath(
-        "build/haxorg/scripts/cxx_repository/code_forensics"))
+        "build/haxorg/code_forensics"))
 
     params = merge_dicts([{
         "out": {

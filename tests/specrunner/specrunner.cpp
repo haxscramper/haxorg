@@ -1,5 +1,5 @@
-#include <test/corpusrunner.hpp>
-#include <sem/perfetto_org.hpp>
+#include <haxorg/test/corpusrunner.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 template <>

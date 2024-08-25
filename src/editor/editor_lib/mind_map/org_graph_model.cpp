@@ -4,11 +4,11 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <QDebug>
-#include <exporters/ExporterUltraplain.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <editor/editor_lib/document/org_document_render.hpp>
 #include <editor/editor_lib/store/org_exporter_html.hpp>
 #include <hstd/stdlib/Set.hpp>
-#include <exporters/exportertree.hpp>
+#include <haxorg/exporters/exportertree.hpp>
 
 #pragma clang diagnostic error "-Wswitch"
 

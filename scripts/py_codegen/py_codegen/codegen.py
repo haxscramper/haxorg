@@ -727,7 +727,7 @@ def gen_pyhaxorg_wrappers(
                 "{base}/sem/SemOrgSerdeDeclarations.hpp",
                 [
                     GenTuPass("#pragma once"),
-                    GenTuPass("#include <sem/SemOrgSerde.hpp>"),
+                    GenTuPass("#include <haxorg/sem/SemOrgSerde.hpp>"),
                     GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
                 ] + [
                     GenTuPass(t.stack([ast.Any(rec), t.text("")]))
@@ -737,8 +737,8 @@ def gen_pyhaxorg_wrappers(
             GenTu(
                 "{base}/sem/SemOrgSerdeDefinitions.cpp",
                 [
-                    GenTuPass("#include <sem/SemOrgSerde.hpp>"),
-                    GenTuPass("#include <sem/SemOrgSerdeDeclarations.hpp>"),
+                    GenTuPass("#include <haxorg/sem/SemOrgSerde.hpp>"),
+                    GenTuPass("#include <haxorg/sem/SemOrgSerdeDeclarations.hpp>"),
                 ] + [
                     GenTuPass(t.stack([ast.Any(rec), t.text("")]))
                     for rec in protobuf_writer_implementation
@@ -755,12 +755,12 @@ def gen_pyhaxorg_wrappers(
                   get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
-                "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
+                "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
                     GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
                     GenTuInclude("pybind11/pybind11.h", True),
-                    GenTuInclude("sem/SemOrg.hpp", True),
+                    GenTuInclude("haxorg/sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),
                     GenTuInclude("pyhaxorg_manual_impl.hpp", False),
                     GenTuPass(res.build_bind(ast)),
@@ -798,18 +798,18 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                 "{base}/sem/SemOrgTypes.hpp",
                 [
                     GenTuPass("#pragma once"),
-                    GenTuInclude("sem/SemOrgEnums.hpp", True),
+                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
                     GenTuInclude("hstd/stdlib/Vec.hpp", True),
                     GenTuInclude("hstd/stdlib/Variant.hpp", True),
                     GenTuInclude("hstd/stdlib/Time.hpp", True),
                     GenTuInclude("hstd/stdlib/Opt.hpp", True),
                     GenTuInclude("hstd/stdlib/Str.hpp", True),
-                    GenTuInclude("parse/OrgTypes.hpp", True),
+                    GenTuInclude("haxorg/parse/OrgTypes.hpp", True),
                     GenTuInclude("boost/describe.hpp", True),
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("functional", True),
-                    GenTuInclude("sem/SemOrgBase.hpp", True),
-                    GenTuInclude("sem/SemOrgEnums.hpp", True),
+                    GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
+                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
                     GenTuNamespace("sem", [GenTuTypeGroup(expanded, enumName="")]),
                 ],
             )),
@@ -832,7 +832,7 @@ def gen_description_files(
                 continue
 
             path = define.path.format(
-                base=get_haxorg_repo_root_path().joinpath("src"),
+                base=get_haxorg_repo_root_path().joinpath("src/haxorg"),
                 root=get_haxorg_repo_root_path(),
             )
 

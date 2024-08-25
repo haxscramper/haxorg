@@ -2,10 +2,14 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import sys
 from beartype.typing import Union, List, Iterable
 from beartype import beartype
+from py_scriptutils.script_logging import ci_log
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
 if str(build_dir) not in sys.path:
     sys.path.append(str(build_dir))
+
+for p in sys.path:
+    ci_log().info(p)
 
 from typing import TYPE_CHECKING
 from beartype.typing import NewType

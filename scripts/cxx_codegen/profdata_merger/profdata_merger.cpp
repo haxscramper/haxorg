@@ -34,7 +34,9 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Map.hpp>
 
-#include <perfetto.h>
+#include <hstd/wrappers/hstd_extra/perfetto_aux.hpp>
+
+#ifdef ORG_USE_PERFETTO
 
 PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("llvm").SetDescription("LLVM code execution time"),
@@ -43,6 +45,9 @@ PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("main").SetDescription("Top execution steps")
     //
 );
+
+
+#endif
 
 #define NO_COVERAGE                                                       \
     __attribute__((no_sanitize("coverage", "address", "thread")))
@@ -1527,7 +1532,7 @@ NO_COVERAGE void add_file(
     llvm::StringRef        file,
     queries&               q,
     db_build_ctx&          ctx) {
-    TRACE_EVENT("sql", "File coverage data");
+    __perf_trace("sql", "File coverage data");
     int file_id = ctx.get_file_id(file.str(), q);
 
     add_file_regions(*mapping, file.str(), q, ctx);
@@ -1584,7 +1589,7 @@ NO_COVERAGE llvm::MD5::MD5Result getMD5Digest(
 NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
     std::string const& coverage_path,
     std::string const& binary_path) {
-    TRACE_EVENT(
+    __perf_trace(
         "llvm",
         "Profraw to coverage mapping",
         "coverage_path",
@@ -1594,7 +1599,7 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
 
     llvm::InstrProfWriter Writer;
     {
-        TRACE_EVENT("llvm", "Load raw profile coverage");
+        __perf_trace("llvm", "Load raw profile coverage");
         loadInput(coverage_path, binary_path, &Writer);
         LOG(INFO) << std::format(
             "Loaded {} binary {}", coverage_path, binary_path);
@@ -1607,7 +1612,7 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
     std::vector<llvm::StringRef> ObjectFilenames;
     ObjectFilenames.push_back(binary_path);
     {
-        TRACE_EVENT("llvm", "Write converted profile data");
+        __perf_trace("llvm", "Write converted profile data");
         std::error_code      EC;
         llvm::raw_fd_ostream Output(tmp_path, EC, llvm::sys::fs::OF_None);
 
@@ -1624,7 +1629,7 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
 
 
     {
-        TRACE_EVENT("llvm", "Load coverage profile data");
+        __perf_trace("llvm", "Load coverage profile data");
         auto FS = llvm::vfs::getRealFileSystem();
         llvm::Expected<std::shared_ptr<CoverageMapping>>
             mapping_or_err = CoverageMapping::load(
@@ -1714,11 +1719,12 @@ NO_COVERAGE int main(int argc, char** argv) {
 
     fs::path db_file{config.coverage_db};
 
+#ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
     if (config.perf_trace) {
         perfetto_session = StartProcessTracing("profdata_merger");
     }
-
+#endif
 
     if (fs::exists(db_file)) { fs::remove(db_file); }
 
@@ -1761,7 +1767,7 @@ NO_COVERAGE int main(int argc, char** argv) {
         coverage_map;
 
     {
-        TRACE_EVENT("llvm", "Parallel convert of coverage data");
+        __perf_trace("llvm", "Parallel convert of coverage data");
         std::vector<std::pair<std::string, std::string>> paths{};
 
         for (auto const& run : summary.runs) {
@@ -1775,7 +1781,7 @@ NO_COVERAGE int main(int argc, char** argv) {
             paths.begin(),
             paths.end(),
             [&](const std::pair<std::string, std::string>& p) {
-                TRACE_EVENT("llvm", "Get coverage mapping task");
+                __perf_trace("llvm", "Get coverage mapping task");
                 auto coverage = get_coverage_mapping(p.first, p.second);
                 std::scoped_lock lock{coverage_mutex};
                 coverage_map.emplace(p, std::move(coverage));
@@ -1790,7 +1796,7 @@ NO_COVERAGE int main(int argc, char** argv) {
     }
 
     for (auto const& [run_idx, run] : enumerate(summary.runs)) {
-        TRACE_EVENT("main", "Insert run data");
+        __perf_trace("main", "Insert run data");
         finally{flush_debug};
         LOG(INFO) << fmt(
             "[{}/{}] Insert run data profile={} binary={}",
@@ -1824,10 +1830,10 @@ NO_COVERAGE int main(int argc, char** argv) {
 
         json j_run = json::object();
         {
-            TRACE_EVENT("sql", "Full coverage run info");
+            __perf_trace("sql", "Full coverage run info");
             SQLite::Transaction transaction(db);
             {
-                TRACE_EVENT("sql", "Covered files");
+                __perf_trace("sql", "Covered files");
                 json j_files = json::object();
                 for (auto const& file : mapping->getUniqueSourceFiles()) {
                     std::string debug;
@@ -1838,7 +1844,7 @@ NO_COVERAGE int main(int argc, char** argv) {
                         }));
                         continue;
                     }
-                    TRACE_EVENT("sql", "Add file", "File", file.str());
+                    __perf_trace("sql", "Add file", "File", file.str());
                     add_file(mapping.get(), file, q, ctx);
                 }
 
@@ -1852,8 +1858,11 @@ NO_COVERAGE int main(int argc, char** argv) {
         debug["runs"].push_back(j_run);
     }
 
+
     if (config.perf_trace) {
         fs::path out_path{config.perf_trace.value()};
+#ifdef ORG_USE_PERFETTO
         StopTracing(std::move(perfetto_session), out_path);
+#endif
     }
 }

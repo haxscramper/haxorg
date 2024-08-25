@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <hstd/stdlib/Str.hpp>
-#include <sem/SemOrg.hpp>
+#include <haxorg/sem/SemOrg.hpp>
 #include <QStyleOption>
 
 SPtr<QWidget> make_label(Str const& node);

@@ -46,8 +46,7 @@ function(pad_string output str padchar length operation)
 endfunction()
 
 function(trace ARGS)
-  # TODO print current line location, {CMAKE_CURRENT_LIST_LINE} prints the same
-  # value
+  # TODO print current line location, {CMAKE_CURRENT_LIST_LINE} prints the same value
   message(DEBUG "${ARGV}${cColorReset}")
 endfunction()
 
@@ -63,11 +62,9 @@ function(print_target_property TARGET PROPERTY)
   get_target_property(TMP ${TARGET} ${PROPERTY})
   list(LENGTH TMP LEN)
   if(${LEN} LESS 2)
-    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' "
-          "is set to ${TMP}")
+    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' " "is set to ${TMP}")
   else()
-    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' "
-          "is set to list of lenth ${LEN}")
+    trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' " "is set to list of lenth ${LEN}")
     foreach(item ${TMP})
       trace("  - ${item}")
     endforeach()
@@ -81,26 +78,76 @@ function(add_target_property TARGET PROPERTY VALUE)
     PROPERTY "${PROPERTY}" "${VALUE}")
 endfunction()
 
-function(list_filter_files OUT GLOB REGEX)
-  file(GLOB_RECURSE TMP ${GLOB})
-  list(FILTER TMP INCLUDE REGEX "${REGEX}")
-  set("${OUT}"
+function(list_filter_files)
+  cmake_parse_arguments(ARG "" "RECURSE;OUT;GLOB;REGEX" "" "${ARGN}")
+  if(ARG_RECURSE)
+    set(GLOB_COMMAND "GLOB_RECURSE")
+  else()
+    set(GLOB_COMMAND "GLOB")
+  endif()
+  file(${GLOB_COMMAND} TMP ${ARG_GLOB})
+  list(FILTER TMP INCLUDE REGEX "${ARG_REGEX}")
+  set("${ARG_OUT}"
       "${TMP}"
       PARENT_SCOPE)
 endfunction()
 
-function(glob_add_sources TARGET EXT_GLOB LS_REGEX)
-  # message(STATUS "Adding files for ${TARGET} GLOB:${EXT_GLOB} REGEX:${LS_REGEX}")
-  list_filter_files(SRC_FILES ${EXT_GLOB} "${LS_REGEX}")
-  add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
+function(glob_add_sources)
+  cmake_parse_arguments(ARG "" "RECURSE;TARGET;EXT_GLOB;LS_REGEX;DEBUG" "" "${ARGN}")
+  list_filter_files(
+    OUT
+    SRC_FILES
+    GLOB
+    ${ARG_EXT_GLOB}
+    REGEX
+    "${ARG_LS_REGEX}"
+    RECURSE
+    ${ARG_RECURSE}
+    DEBUG
+    ${ARG_DEBUG})
+
+  if(${ARG_DEBUG})
+    message(
+      STATUS
+        "TARGET = ${ARG_TARGET} RECURSE = ${ARG_RECURSE} EXT_GLOB = ${ARG_EXT_GLOB} LS_REGEX = ${ARG_LS_REGEX}"
+    )
+    foreach(file ${SRC_FILES})
+      message(STATUS "FILE ${file}")
+    endforeach()
+
+  endif()
+
+  target_sources("${ARG_TARGET}" PRIVATE "${SRC_FILES}")
+
 endfunction()
 
-function(glob_add_sources2 TARGET LS_REGEX SEARCH_BASE)
-  glob_add_sources("${TARGET}" "${SEARCH_BASE}/**/*.cpp" "${LS_REGEX}")
-  glob_add_sources("${TARGET}" "${SEARCH_BASE}/**/*.hpp" "${LS_REGEX}")
-endfunction()
+function(glob_add_sources2)
+  cmake_parse_arguments(ARG "" "RECURSE;TARGET;LS_REGEX;SEARCH_BASE;DEBUG" "EXTENSIONS" "${ARGN}")
+  if(NOT ARG_EXTENSIONS)
+    set(ARG_EXTENSIONS "hpp;cpp")
+  endif()
 
-function(glob_add_sources2_one_level TARGET LS_REGEX SEARCH_BASE)
-  glob_add_sources("${TARGET}" "${SEARCH_BASE}/*.cpp" "${LS_REGEX}")
-  glob_add_sources("${TARGET}" "${SEARCH_BASE}/*.hpp" "${LS_REGEX}")
+  if(ARG_RECURSE)
+    set(EXT_GLOB_BASE "${ARG_SEARCH_BASE}/**")
+  else()
+    set(EXT_GLOB_BASE "${ARG_SEARCH_BASE}")
+  endif()
+
+  if(${ARG_DEBUG})
+    message(STATUS "ARG_EXTENSIONS = ${ARG_EXTENSIONS} TARGET = ${ARG_TARGET}")
+  endif()
+
+  foreach(EXT IN LISTS ARG_EXTENSIONS)
+    glob_add_sources(
+      TARGET
+      "${ARG_TARGET}"
+      EXT_GLOB
+      "${EXT_GLOB_BASE}/*.${EXT}"
+      LS_REGEX
+      "${ARG_LS_REGEX}"
+      RECURSE
+      ${ARG_RECURSE}
+      DEBUG
+      ${ARG_DEBUG})
+  endforeach()
 endfunction()

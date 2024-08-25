@@ -1,0 +1,39 @@
+#pragma once
+
+#include <haxorg/sem/SemBaseApi.hpp>
+#include <imgui.h>
+
+struct VisualExporterConfig {
+    bool showNullopt = false;
+    bool showSpace   = false;
+    bool doTrace     = false;
+};
+
+void render_sem_tree(
+    sem::SemId<sem::Org>  tree,
+    VisualExporterConfig& config);
+
+enum class ColorName
+{
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+    Background,
+    Foreground
+};
+
+
+ImVec4 const& color(ColorName const& name);

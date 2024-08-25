@@ -2,7 +2,7 @@
 #include "../testprofiler.hpp"
 #include "../common_main.hpp"
 
-#include <sem/perfetto_org.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 FILE* trace_out;

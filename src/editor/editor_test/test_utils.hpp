@@ -4,9 +4,9 @@
 #include <editor/editor_lib/main_gui/mainwindow.hpp>
 #include <editor/editor_lib/common/app_init.hpp>
 #include <editor/editor_lib/common/app_utils.hpp>
-#include <exporters/ExporterUltraplain.hpp>
-#include <sem/SemOrgFormat.hpp>
-#include <exporters/exportertree.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/exporters/exportertree.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 
 using osk = OrgSemKind;
@@ -264,7 +264,9 @@ void test_message_handler(
 
 
 struct TestBase {
+#ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession> tracing;
+#endif
 
     void init_test_base();
     void cleanup_test_base();

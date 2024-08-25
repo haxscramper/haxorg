@@ -3,7 +3,7 @@
 #include "org_document_model.hpp"
 #include <QStyledItemDelegate>
 #include <QTextEdit>
-#include <sem/SemBaseApi.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 
 class OrgDocumentOutline;

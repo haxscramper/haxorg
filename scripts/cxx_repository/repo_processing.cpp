@@ -514,7 +514,8 @@ struct ChangeIterationState {
 
         ir::FileTrackSection& section = state->at(section_id);
 
-        if (state->should_debug() && state->should_debug_file(section.path)) {
+        if (state->should_debug()
+            && state->should_debug_file(section.path)) {
             LOG(INFO) << std::format(
                 "[apply] {} '{}'",
                 add,
@@ -543,7 +544,8 @@ struct ChangeIterationState {
         CR<RemoveAction>       remove) {
 
         ir::FileTrackSection& section = state->at(section_id);
-        if (state->should_debug() && state->should_debug_file(section.path)) {
+        if (state->should_debug()
+            && state->should_debug_file(section.path)) {
             LOG(INFO) << std::format("[apply] {}", remove);
         }
 
@@ -667,9 +669,7 @@ void check_tree_entry_consistency(
     char const*           root,
     git_tree_entry const* entry) {
     const git_object_t entry_type = git_tree_entry_type(entry);
-    if (entry_type != GIT_OBJECT_BLOB) {
-        return;
-    }
+    if (entry_type != GIT_OBJECT_BLOB) { return; }
 
     fs::path path = fs::path{root} / fs::path{git_tree_entry_name(entry)};
     ir::FilePathId path_id = state->content->getFilePath(path);
@@ -681,9 +681,7 @@ void check_tree_entry_consistency(
         return;
     }
 
-    if (!state->should_check_file(path.native())) {
-        return;
-    }
+    if (!state->should_check_file(path.native())) { return; }
 
     ir::FileTrackId        track_id   = iter_state.which_track(path_id);
     ir::FileTrackSectionId section_id = state->at(track_id)
@@ -719,9 +717,10 @@ void check_tree_entry_consistency(
                 -> std::tuple<int, std::string, std::string> {
                 return std::tuple(
                     line_pair.first,
-                    line_pair.second.first ? state->str(
-                        state->at(*line_pair.second.first).content)
-                                           : "",
+                    line_pair.second.first
+                        ? state->str(
+                              state->at(*line_pair.second.first).content)
+                        : "",
                     line_pair.second.second ? *line_pair.second.second
                                             : "");
             })
@@ -782,7 +781,7 @@ void check_tree_entry_consistency(
 
 void for_each_commit(CommitGraph& g, walker_state* state) {
     LOG(INFO) << "Getting list of files changed per each commit";
-    TRACE_EVENT("repo", "For each commit");
+    __perf_trace("repo", "For each commit");
 
     git_commit*     prev = nullptr;
     Vec<CommitTask> tasks;
@@ -845,7 +844,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                    return get_commit_actions(state, task);
                })) {
 
-        TRACE_EVENT(
+        __perf_trace(
             "repo",
             "Actions for commit",
             "hash",
@@ -859,12 +858,13 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         }
 
         for (auto const& [file_id, actions] : commit_actions.actions) {
-            TRACE_EVENT(
+            __perf_trace(
                 "repo",
                 "Actions for file",
                 "path",
                 state->str(state->at(file_id).path));
-            if (state->should_debug() && state->should_debug_file(file_id)) {
+            if (state->should_debug()
+                && state->should_debug_file(file_id)) {
                 LOG(INFO) << std::format(
                     "[mainloop] New action on file {} {}",
                     file_id,
@@ -935,7 +935,7 @@ CommitId process_commit(git_oid commit_oid, walker_state* state) {
 
 
 CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
-    TRACE_EVENT("repo", "build repo graph main");
+    __perf_trace("repo", "build repo graph main");
     // All constructed information
     Vec<CommitId> processed{};
     // Walk over every commit in the history
@@ -960,6 +960,6 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
         state->add_full_commit(commit);
     }
 
-    TRACE_EVENT("repo", "construct repo graph structure");
+    __perf_trace("repo", "construct repo graph structure");
     return CommitGraph{state->repo, state->config->cli.repo.branch};
 }

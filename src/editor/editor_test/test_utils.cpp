@@ -74,16 +74,20 @@ void TestBase::init_test_base() {
 
 
     if (getPerfTrace()) {
+#if ORG_USE_PERFETTO
         InitializePerfetto();
         tracing = StartTracing();
+#endif
     }
 }
 
 void TestBase::cleanup_test_base() {
     qInstallMessageHandler(pre_test_handler);
     if (getPerfTrace()) {
+#ifdef ORG_USE_PERFETTO
         Q_ASSERT(tracing.get() != nullptr);
         StopTracing(std::move(tracing), *getPerfTrace());
+#endif
     }
 }
 

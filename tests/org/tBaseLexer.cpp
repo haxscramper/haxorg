@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
-#include <base_lexer/base_token.hpp>
+#include <haxorg/base_lexer/base_token.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <absl/log/log.h>
-#include <parse/OrgTokenizer.hpp>
-#include <parse/OrgParser.hpp>
-#include <sem/SemConvert.hpp>
-#include <exporters/exporteryaml.hpp>
-#include <test/corpusrunner.hpp>
+#include <haxorg/parse/OrgTokenizer.hpp>
+#include <haxorg/parse/OrgParser.hpp>
+#include <haxorg/sem/SemConvert.hpp>
+#include <haxorg/exporters/exporteryaml.hpp>
+#include <haxorg/test/corpusrunner.hpp>
 
 TEST(ManualFileRun, TestDoc1) {
     {

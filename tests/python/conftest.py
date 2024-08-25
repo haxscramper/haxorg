@@ -147,7 +147,7 @@ def pytest_collect_file(parent: Module, path: str):
             binary_path = "build/haxorg/tests_org"
 
         else:
-            binary_path = "build/haxorg/src/hstd/tests_hstd"
+            binary_path = "build/haxorg/tests_hstd"
 
         binary_path = get_haxorg_repo_root_path().joinpath(binary_path)
 
@@ -212,8 +212,13 @@ def get_function_names(expression: str) -> List[str]:
 
 def pytest_collection_modifyitems(config: pytest.Config,
                                   items: List[pytest.Item]) -> None:
-    filter = config.getoption("--markfilter")
-    debug = config.getoption("--markfilter-debug")
+    try:
+        filter = config.getoption("--markfilter")
+        debug = config.getoption("--markfilter-debug")
+
+    except ValueError:
+        return
+
     if debug:
         dbg_file = open("/tmp/pytest_debug.txt", "w")
 

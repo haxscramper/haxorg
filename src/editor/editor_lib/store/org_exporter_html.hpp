@@ -1,7 +1,7 @@
 #ifndef EXPORTERHTML_HPP
 #define EXPORTERHTML_HPP
 
-#include <exporters/Exporter.hpp>
+#include <haxorg/exporters/Exporter.hpp>
 #include <hstd/wrappers/hstd_extra/textlayouter.hpp>
 #include <concepts>
 

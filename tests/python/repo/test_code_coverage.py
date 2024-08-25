@@ -31,8 +31,7 @@ def dbg(map) -> str:
 
 CAT = "test_code_coverage"
 
-profdata_merger = get_haxorg_repo_root_path().joinpath(
-    "build/haxorg/scripts/cxx_codegen/profdata_merger/profdata_merger")
+profdata_merger = get_haxorg_repo_root_path().joinpath("build/haxorg/profdata_merger")
 
 tool_dir = get_haxorg_repo_root_path().joinpath("toolchain/llvm/bin")
 corpus_base = get_haxorg_repo_root_path().joinpath("tests/python/repo/coverage_corpus")
@@ -820,17 +819,18 @@ def test_macro_coverage1():
 
         run_common(cmd, dir)
 
+
 @pytest.mark.test_coverage_annotation_file_cxx
 def test_exporter_tcc_coverage():
     with TemporaryDirectory() as tmp:
         dir = Path(tmp)
         dir = Path("/tmp/test_exporter_tcc_coverage")
 
-        cmd = ProfileRunParams(
-            dir=dir,
-            main="main.cpp",
-            files= {
-                "exporter.hpp": """
+        cmd = ProfileRunParams(dir=dir,
+                               main="main.cpp",
+                               files={
+                                   "exporter.hpp":
+                                       """
 #pragma once
 template <typename T>
 struct Exporter {
@@ -838,7 +838,8 @@ struct Exporter {
     void impl_2();
 };             
                 """,
-                "exporter.tcc": """
+                                   "exporter.tcc":
+                                       """
 #include "exporter.hpp"
 
 template <typename T>
@@ -848,13 +849,15 @@ template <typename T>
 void Exporter<T>::impl_2() {}
 
                 """,
-                "exporter.cpp": """
+                                   "exporter.cpp":
+                                       """
 #include "exporter.hpp"                
 #include "exporter.tcc"
 
 template class Exporter<int>;
                 """,
-                "main.cpp": """
+                                   "main.cpp":
+                                       """
 #include "exporter.hpp"
 
 int main() {
@@ -864,8 +867,7 @@ int main() {
     exp.impl_2();
 }
                 """,
-            },
-            run_contexts={"1":[]}
-        )
+                               },
+                               run_contexts={"1": []})
 
     run_common(cmd, dir)

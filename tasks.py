@@ -19,12 +19,14 @@ import json
 import sys
 import traceback
 import itertools
-from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
+from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config, get_haxorg_repo_root_config_path
 from py_repository.gen_coverage_cookies import ProfdataParams
-from py_scriptutils.algorithm import remove_ansi
+from py_scriptutils.algorithm import remove_ansi, maybe_splice, cond
+from py_scriptutils import os_utils
 import typing
 import inspect
 import copy
+import shutil
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -114,15 +116,15 @@ def get_config(ctx: Context) -> HaxorgConfig:
 
 
 def is_instrumented_coverage(ctx: Context) -> bool:
-    return ctx.config.get("instrument")["coverage"]
+    return conf.instrument.coverage
 
 
 def is_xray_coverage(ctx: Context) -> bool:
-    return ctx.config.get("instrument")["xray"]
+    return conf.instrument.xray
 
 
 def is_forced(ctx: Context, name: str) -> bool:
-    return name in get_config(ctx).force_task
+    return name in conf.force_task
 
 
 @beartype
@@ -130,16 +132,38 @@ def is_ci() -> bool:
     return bool(os.getenv("INVOKE_CI"))
 
 
+if is_ci():
+    log(CAT).info(f"Using config {get_haxorg_repo_root_config_path()}")
+
+
 @beartype
-def cmake_opt(name: str, value: Union[str, bool]) -> str:
+def cmake_opt(name: str, value: Union[str, bool, Path]) -> str:
     result = "-D" + name + "="
-    if isinstance(value, str):
-        result += value
+    if isinstance(value, (str, Path)):
+        result += str(value)
 
     elif isinstance(value, bool):
         result += ("ON" if value else "OFF")
 
     return result
+
+
+@beartype
+def invoke_opt(name: str, value: bool) -> str:
+    match value:
+        case bool():
+            # Because invoke has
+            # - `No idea what 'False' is!`,
+            # - `No idea what 'off' is!` and
+            # - `No idea what 'false' is!`
+            if value:
+                return f"--{name}"
+
+            else:
+                return f"--no-{name}"
+
+        case _:
+            raise TypeError(type(value))
 
 
 def get_py_env(ctx: Context) -> Dict[str, str]:
@@ -327,6 +351,8 @@ def org_task(
             run_ok = False
             try:
                 with GlobCompleteEvent(f"task {name}", "build") as last:
+                    assert os.getcwd() == str(get_script_root(
+                    )), "Invoke tasks must be executed from the root directory"
                     TASK_STACK.append(name)
                     result = func(*args, **kwargs)
                     TASK_STACK.pop()
@@ -442,6 +468,11 @@ def docker_run(
     docs: bool = True,
     coverage: bool = True,
     reflection: bool = True,
+    deps_configure: bool = True,
+    deps_build: bool = True,
+    build_dir: str = "/tmp/haxorg_build_dir",
+    example: bool = True,
+    install: bool = True,
 ):
     """Run docker"""
 
@@ -450,10 +481,11 @@ def docker_run(
 
     def mnt(local: str, container: Optional[str] = None) -> List[str]:
         container = container or local
-        local = Path(local) if Path(local).is_absolute() else get_script_root(local)
+        local: Path = Path(local) if Path(local).is_absolute() else get_script_root(local)
+        assert local.exists()
         return ["--mount", f"type=bind,src={local},dst={docker_path(container)}"]
 
-    HAXORG_BUILD_TMP = Path("/tmp/haxorg_build_dir")
+    HAXORG_BUILD_TMP = Path(build_dir)
     if not HAXORG_BUILD_TMP.exists():
         HAXORG_BUILD_TMP.mkdir(parents=True)
 
@@ -462,21 +494,22 @@ def docker_run(
         "docker",
         [
             "run",
-            *itertools.chain(
-                mnt(it) for it in [
-                    "src",
-                    "scripts",
-                    "tests",
-                    "tasks.py",
-                    "docs",
-                    "invoke.yaml",
-                    "invoke-ci.yaml",
-                    "pyproject.toml",
-                    "ignorelist.txt",
-                    ".git",
-                    "thirdparty",
-                    "CMakeLists.txt",
-                ]),
+            *itertools.chain(*(mnt(it) for it in [
+                "src",
+                "scripts",
+                "tests",
+                "tasks.py",
+                "docs",
+                "invoke.yaml",
+                "invoke-ci.yaml",
+                "pyproject.toml",
+                "ignorelist.txt",
+                ".git",
+                "thirdparty",
+                "CMakeLists.txt",
+                "toolchain.cmake",
+                "HaxorgConfig.cmake.in",
+            ])),
             # Scratch directory for simplified local debugging and rebuilds if needed.
             *mnt(HAXORG_BUILD_TMP, "build"),
             *(["-it"] if interactive else []),
@@ -486,15 +519,15 @@ def docker_run(
             *(["bash"] if interactive else [
                 "invoke",
                 "ci",
-                # Because invoke has
-                # - `No idea what 'False' is!`,
-                # - `No idea what 'off' is!` and
-                # - `No idea what 'false' is!`
-                "--build" if build else "--no-build",
-                "--test" if test else "--no-test",
-                "--docs" if docs else "--no-docs",
-                "--coverage" if coverage else "--no-coverage",
-                "--reflection" if reflection else "--no-reflection",
+                invoke_opt("build", build),
+                invoke_opt("test", test),
+                invoke_opt("docs", docs),
+                invoke_opt("coverage", coverage),
+                invoke_opt("reflection", reflection),
+                invoke_opt("deps-configure", deps_configure),
+                invoke_opt("deps-build", deps_build),
+                invoke_opt("install", install),
+                invoke_opt("example", example),
             ]),
         ])
 
@@ -540,14 +573,14 @@ def reflex_lexer_generator(ctx: Context):
 @org_task(pre=[base_environment, reflex_lexer_generator], force_notify=True)
 def haxorg_base_lexer(ctx: Context):
     """Generate base lexer file definitions and compile them to C code"""
-    py_file = get_script_root("src/base_lexer/base_lexer.py")
-    gen_lexer = get_script_root("src/base_lexer/base_lexer.l")
+    py_file = get_script_root("src/haxorg/base_lexer/base_lexer.py")
+    gen_lexer = get_script_root("src/haxorg/base_lexer/base_lexer.l")
     reflex_run_params = [
         "--fast",
         "--nodefault",
         # "--debug",
         "--case-insensitive",
-        f"--outfile={get_script_root('src/base_lexer/base_lexer_gen.cpp')}",
+        f"--outfile={get_script_root('src/haxorg/base_lexer/base_lexer_gen.cpp')}",
         "--namespace=base_lexer",
         gen_lexer,
     ]
@@ -600,12 +633,6 @@ def symlink_build(ctx: Context):
         is_dir=True,
     )
 
-    link(
-        real_path=get_component_build_dir(ctx, "utils"),
-        link_path=get_build_root("utils"),
-        is_dir=True,
-    )
-
 
 @org_task(pre=[symlink_build])
 def python_protobuf_files(ctx: Context):
@@ -639,7 +666,7 @@ def python_protobuf_files(ctx: Context):
 
             run_command(
                 ctx,
-                get_build_root("haxorg/thirdparty/protobuf/protoc"),
+                get_build_root("deps_install/protobuf/bin/protoc"),
                 [
                     f"--plugin={protoc_plugin}",
                     "-I",
@@ -662,7 +689,7 @@ def cmake_configure_haxorg(ctx: Context, force: bool = False):
     with FileOperation.InTmp(
         [
             Path("CMakeLists.txt"),
-            Path("src/cmake").rglob("*.cmake"),
+            *Path("src/cmake").rglob("*.cmake"),
         ],
             stamp_path=get_task_stamp("cmake_configure_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
@@ -705,12 +732,209 @@ def cmake_haxorg_clean(ctx: Context):
     if stamp_path.exists():
         stamp_path.unlink()
 
+    os_utils.rmdir_quiet(get_build_root().joinpath("deps_build"))
+    os_utils.rmdir_quiet(get_build_root().joinpath("deps_install"))
 
-@org_task(pre=[cmake_configure_haxorg], iterable=["target"])
+
+@org_task(iterable=["build_whitelist", "ninja_flag"])
+def cmake_build_deps(
+    ctx: Context,
+    rebuild: bool = False,
+    force: bool = False,
+    build_whitelist: List[str] = [],
+    ninja_flag: List[str] = [],
+    configure: bool = True,
+):
+    conf = get_config(ctx)
+    build_dir = get_build_root().joinpath("deps_build")
+    if rebuild and build_dir.exists():
+        shutil.rmtree(build_dir)
+
+    build_dir.mkdir(parents=True, exist_ok=True)
+
+    install_dir = get_build_root().joinpath("deps_install")
+    if rebuild and install_dir.exists():
+        shutil.rmtree(install_dir)
+
+    install_dir.mkdir(parents=True, exist_ok=True)
+
+    deps_dir = get_script_root().joinpath("thirdparty")
+
+    def dep(
+        build_name: str,
+        deps_name: str,
+        configure_args: List[str] = [],
+    ):
+        if 0 < len(build_whitelist) and build_name not in build_whitelist:
+            return
+
+        if configure:
+            run_command(ctx, "cmake", [
+                "-B",
+                build_dir.joinpath(build_name),
+                "-S",
+                deps_dir.joinpath(deps_name),
+                "-G",
+                "Ninja",
+                cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
+                cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
+                cmake_opt("CMAKE_TOOLCHAIN_FILE",
+                          get_script_root().joinpath("toolchain.cmake")),
+                *configure_args,
+                *maybe_splice(force, "--fresh"),
+            ])
+
+        run_command(ctx, "cmake", [
+            "--build",
+            build_dir.joinpath(build_name),
+            "--target",
+            "install",
+            "--parallel",
+            *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
+        ])
+
+    dep(build_name="describe", deps_name="cmake_wrap/describe")
+    dep(
+        build_name="adaptagrams",
+        deps_name="cmake_wrap/adaptagrams",
+        configure_args=[
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+    dep(
+        build_name="perfetto",
+        deps_name="cmake_wrap/perfetto",
+        configure_args=[
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+
+    dep(
+        build_name="immer",
+        deps_name="immer",
+        configure_args=[
+            cmake_opt("immer_BUILD_TESTS", False),
+            cmake_opt("immer_BUILD_EXAMPLES", False),
+            cmake_opt("immer_BUILD_DOCS", False),
+            cmake_opt("immer_BUILD_EXTRAS", False),
+        ],
+    )
+
+    dep(
+        build_name="lager",
+        deps_name="lager",
+        configure_args=[
+            cmake_opt("lager_BUILD_EXAMPLES", False),
+            cmake_opt("lager_BUILD_TESTS", False),
+            cmake_opt("lager_BUILD_FAILURE_TESTS", False),
+            cmake_opt("lager_BUILD_DEBUGGER_EXAMPLES", False),
+            cmake_opt("lager_BUILD_DOCS", False),
+        ],
+    )
+
+    dep(
+        build_name="abseil",
+        deps_name="abseil-cpp",
+        configure_args=[
+            cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+
+    dep(
+        build_name="SQLiteCpp",
+        deps_name="SQLiteCpp",
+        configure_args=[cmake_opt("SQLITECPP_RUN_CPPLINT", False)],
+    )
+
+    dep(build_name="libgit2", deps_name="libgit2")
+
+    dep(build_name="mp11", deps_name="mp11")
+    dep(
+        build_name="json",
+        deps_name="json",
+        configure_args=[
+            cmake_opt("JSON_BuildTests", False),
+        ],
+    )
+
+    dep(
+        build_name="yaml",
+        deps_name="yaml-cpp",
+        configure_args=[
+            cmake_opt("YAML_CPP_BUILD_TESTS", False),
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+
+    if is_ci():
+        run_command(ctx, "git", [
+            "config",
+            "--global",
+            "--add",
+            "safe.directory",
+            deps_dir.joinpath("range-v3"),
+        ])
+
+    dep(
+        build_name="range-v3",
+        deps_name="range-v3",
+        configure_args=[
+            cmake_opt("RANGE_V3_TESTS", False),
+            cmake_opt("RANGE_V3_EXAMPLES", False),
+            cmake_opt("RANGE_V3_PERF", False),
+        ],
+    )
+
+    dep(
+        build_name="pybind11",
+        deps_name="pybind11",
+        configure_args=[cmake_opt("PYBIND11_TEST", False)],
+    )
+
+    dep(
+        build_name="utf8_range",
+        deps_name="protobuf/third_party/utf8_range",
+        configure_args=[
+            cmake_opt("CMAKE_PREFIX_PATH", install_dir.joinpath("abseil/lib/cmake/absl")),
+            cmake_opt("utf8_range_ENABLE_TESTS", False),
+        ],
+    )
+
+    dep(
+        build_name="protobuf",
+        deps_name="protobuf",
+        configure_args=[
+            cmake_opt("protobuf_BUILD_TESTS", False),
+            cmake_opt("utf8_range_ENABLE_TESTS", False),
+            cmake_opt("utf8_range_ENABLE_INSTALL", True),
+            cmake_opt("protobuf_ABSL_PROVIDER", "package"),
+            cmake_opt(
+                "CMAKE_PREFIX_PATH", ";".join([
+                    str(install_dir.joinpath("abseil/lib/cmake/absl")),
+                    str(install_dir.joinpath("utf8_range/lib/cmake/utf8_range")),
+                ])),
+            cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+
+    dep(build_name="googletest", deps_name="googletest")
+    dep(
+        build_name="reflex",
+        deps_name="RE-flex",
+        configure_args=[
+            cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
+        ],
+    )
+
+
+@org_task(pre=[cmake_configure_haxorg], iterable=["target", "ninja_flag"])
 def cmake_haxorg(
     ctx: Context,
     target: List[str] = ["all"],
     force: bool = False,
+    ninja_flag: List[str] = [],
 ):
     """Compile main set of libraries and binaries for org-mode parser"""
     build_dir = get_component_build_dir(ctx, "haxorg")
@@ -732,12 +956,65 @@ def cmake_haxorg(
             run_command(
                 ctx,
                 "cmake",
-                ["--build", build_dir, "--target"] + target,
+                [
+                    "--build",
+                    build_dir,
+                    "--target",
+                    *target,
+                    "--parallel",
+                    *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
+                ],
                 env={'NINJA_FORCE_COLOR': '1'},
             )
 
         elif not op.should_run():
             log(CAT).info(f"Not running build {op.explain('cmake_haxorg')}")
+
+
+@org_task(pre=[cmake_haxorg])
+def cmake_install_dev(ctx: Context, perfetto: bool = False):
+    """Install haxorg targets in the build directory"""
+    install_dir = get_build_root().joinpath("install")
+    if install_dir.exists():
+        shutil.rmtree(install_dir)
+
+    run_command(
+        ctx,
+        "cmake",
+        [
+            "--install",
+            get_component_build_dir(ctx, "haxorg"),
+            "--prefix",
+            install_dir,
+            # cmake_opt("ORG_USE_PERFETTO", perfetto),
+            # "--component",
+            # "haxorg_component"
+        ])
+
+
+@org_task(pre=[cmake_install_dev])
+def cmake_example(ctx: Context):
+    example_build = get_build_root().joinpath("example_build")
+    toolchain = get_script_root().joinpath("toolchain.cmake")
+    assert toolchain.exists()
+    run_command(ctx, "cmake", [
+        "-B",
+        example_build,
+        "-S",
+        get_script_root().joinpath("examples/imgui_gui"),
+        "-G",
+        "Ninja",
+        cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")),
+        cmake_opt("CMAKE_C_COMPILER", get_llvm_root("bin/clang")),
+    ])
+
+    run_command(ctx, "cmake", [
+        "--build",
+        example_build,
+        "--target",
+        "all",
+        "--parallel",
+    ])
 
 
 def get_lldb_py_import() -> List[str]:
@@ -757,7 +1034,7 @@ def get_lldb_source_on_crash() -> List[str]:
 @org_task(pre=[cmake_haxorg])
 def haxorg_code_forensics(ctx: Context, debug: bool = False):
     "Generate code forensics dump for the repository"
-    tool = get_build_root("haxorg/scripts/cxx_repository/code_forensics")
+    tool = get_build_root("haxorg/code_forensics")
     config = {
         "repo": {
             "path": str(get_script_root()),
@@ -866,8 +1143,9 @@ def update_py_haxorg_reflection(
 
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[
-    # cmake_haxorg,
-    # update_py_haxorg_reflection
+    cmake_haxorg,
+    update_py_haxorg_reflection,
+    symlink_build,
 ])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
@@ -889,22 +1167,6 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
         )
 
         log(CAT).info("Updated code definitions")
-
-
-@org_task(pre=[cmake_haxorg, symlink_build])
-def std_tests(ctx):
-    """Execute standard library tests"""
-    dir = get_build_root("haxorg")
-    test = dir / "src/hstd/tests_hstd"
-    run_command(ctx, test, [], cwd=str(dir))
-
-
-@org_task(pre=[cmake_haxorg])
-def org_tests(ctx):
-    """Execute standard library tests"""
-    dir = get_build_root("haxorg")
-    test = dir / "tests_org"
-    run_command(ctx, test, [], cwd=str(dir))
 
 
 @beartype
@@ -995,24 +1257,6 @@ def org_test_perf(ctx: Context):
         run["record", "--call-graph", "dwarf", tests] & FG
     except ProcessExecutionError:
         pass
-
-
-@org_task(pre=[cmake_haxorg])
-def std_xray(ctx: Context):
-    """Generate test xray information for STD"""
-    xray_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
-
-
-@org_task(pre=[cmake_haxorg])
-def std_coverage(ctx: Context):
-    """Generate test coverage information for STD"""
-    binary_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
-
-
-@org_task(pre=[cmake_haxorg])
-def org_coverage(ctx: Context):
-    """Generate test coverage information for ORG"""
-    binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
 @org_task(pre=[cmake_haxorg, python_protobuf_files])
@@ -1192,7 +1436,7 @@ def cxx_merge_coverage(
     profile_path = get_cxx_profdata_params_path()
     run_command(
         ctx,
-        "build/haxorg/scripts/cxx_codegen/profdata_merger/profdata_merger",
+        "build/haxorg/profdata_merger",
         [
             profile_path,
         ],
@@ -1406,14 +1650,27 @@ def cxx_target_coverage(
 @org_task()
 def ci(
     ctx: Context,
+    deps_configure: bool = True,
+    deps_build: bool = True,
     build: bool = True,
     test: bool = True,
     docs: bool = True,
     coverage: bool = True,
     reflection: bool = True,
+    install: bool = True,
+    example: bool = True,
 ):
     "Execute all CI tasks"
     env = {"INVOKE_CI": "ON"}
+    if deps_configure or deps_build:
+        log(CAT).info("Running CI dependency installation")
+        run_self(
+            ctx,
+            ["cmake-build-deps",
+             invoke_opt("configure", deps_configure)],
+            env=env,
+        )
+
     if build:
         log(CAT).info("Running CI cmake")
         run_command(
@@ -1461,5 +1718,13 @@ def ci(
             ctx,
             "invoke",
             ["docs-custom"],
+            env=env,
+        )
+
+    if install:
+        log(CAT).info("Running install")
+        run_self(
+            ctx,
+            ["cmake-install-dev"],
             env=env,
         )

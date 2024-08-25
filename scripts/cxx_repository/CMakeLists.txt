@@ -12,45 +12,32 @@ set_common_files(code_forensics)
 set_target_output(code_forensics)
 set_target_flags(code_forensics)
 
-glob_add_sources2(code_forensics "${BASE}/scripts/cxx_repository/.*" "${BASE}")
+glob_add_sources2(TARGET code_forensics LS_REGEX "${BASE}/scripts/cxx_repository/.*" SEARCH_BASE
+                  "${BASE}")
 
-SET(LIBGIT2_PREFIX "${CMAKE_BINARY_DIR}/libgit2")
-message(STATUS "LIBGIT2_PREFIX = ${LIBGIT2_PREFIX}")
+target_link_libraries(
+  code_forensics
+  PUBLIC hstd
+         range-v3::range-v3
+         SQLiteCpp
+         sqlite3
+         pthread
+         dl
+         pcre
+         OpenSSL::SSL
+         OpenSSL::Crypto
+         ${ZLIB_LIBRARIES}
+         ${PCRE_LIBRARIES})
 
-include(ExternalProject)
-ExternalProject_Add(libgit2
-  SOURCE_DIR "${BASE}/thirdparty/libgit2"
-  BINARY_DIR "${LIBGIT2_PREFIX}"
-  CMAKE_ARGS
-    -DBUILD_SHARED_LIBS=OFF
-    -DBUILD_CLAR=OFF
-    -DBUILD_EXAMPLES=OFF
-    -DCMAKE_INSTALL_PREFIX=${LIBGIT2_PREFIX}
-)
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(code_forensics PUBLIC Perfetto::perfetto)
+endif()
 
-add_dependencies(code_forensics libgit2)
+target_link_libraries(code_forensics PUBLIC "${LIBGIT2_LIBRARIES}")
+target_include_directories(code_forensics PUBLIC "${LIBGIT2_INCLUDE_DIRS}")
+target_link_directories(code_forensics PUBLIC ${LIBGIT2_LIBRARY_DIRS})
+target_link_options(code_forensics PUBLIC "-Wl,-rpath,${LIBGIT2_LIBRARY_DIRS}")
 
-target_link_libraries(code_forensics PUBLIC
-    hstd
-    perfetto
-    range-v3
-    SQLiteCpp
-    sqlite3
-    pthread
-    dl
-    git2
-    pcre
-    OpenSSL::SSL
-    OpenSSL::Crypto
-    ${ZLIB_LIBRARIES}
-    ${PCRE_LIBRARIES}
-)
-
-target_link_directories(code_forensics PUBLIC "${LIBGIT2_PREFIX}")
-
-target_include_directories(code_forensics PUBLIC
-    "${BASE}/thirdparty/immer"
-    "${BASE}/thirdparty/lager"
-    "${BASE}/thirdparty/libgit2/include"
-)
-
+target_include_directories(
+  code_forensics PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"
+                        "${BASE}/thirdparty/libgit2/include")

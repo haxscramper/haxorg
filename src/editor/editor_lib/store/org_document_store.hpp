@@ -3,9 +3,9 @@
 #include <QMimeData>
 #include <QIODevice>
 
-#include <sem/SemOrg.hpp>
+#include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <sem/SemBaseApi.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <immer/box.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 

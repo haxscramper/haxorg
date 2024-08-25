@@ -1,11 +1,11 @@
 #include <hstd/stdlib/Ptrs.hpp>
-#include <lexbase/AstDiff.hpp>
+#include <haxorg/lexbase/AstDiff.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <sem/SemOrg.hpp>
-#include <test/org_parse_aux.hpp>
-#include <sem/SemAstDiff.hpp>
+#include <haxorg/sem/SemOrg.hpp>
+#include <haxorg/test/org_parse_aux.hpp>
+#include <haxorg/sem/SemAstDiff.hpp>
 
 using namespace diff;
 
