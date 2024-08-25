@@ -114,7 +114,6 @@ function(set_target_flags_impl)
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=${MAX_COMPILE_ERRORS}")
 
     if(${ORG_USE_COVERAGE})
-      target_compile_options(${ARG_TARGET} PRIVATE --coverage)
       target_link_options(${ARG_TARGET} PRIVATE -lgcov --coverage)
     endif()
 

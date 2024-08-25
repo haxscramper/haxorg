@@ -36,6 +36,7 @@ endif()
 target_link_libraries(code_forensics PUBLIC "${LIBGIT2_LIBRARIES}")
 target_include_directories(code_forensics PUBLIC "${LIBGIT2_INCLUDE_DIRS}")
 target_link_directories(code_forensics PUBLIC ${LIBGIT2_LIBRARY_DIRS})
+target_link_options(code_forensics PUBLIC "-Wl,-rpath,${LIBGIT2_LIBRARY_DIRS}")
 
 target_include_directories(
   code_forensics PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"

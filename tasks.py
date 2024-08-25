@@ -21,7 +21,8 @@ import traceback
 import itertools
 from py_scriptutils.repo_files import HaxorgConfig, get_haxorg_repo_root_config
 from py_repository.gen_coverage_cookies import ProfdataParams
-from py_scriptutils.algorithm import remove_ansi, maybe_splice
+from py_scriptutils.algorithm import remove_ansi, maybe_splice, cond
+from py_scriptutils import os_utils
 import typing
 import inspect
 import copy
@@ -141,6 +142,24 @@ def cmake_opt(name: str, value: Union[str, bool, Path]) -> str:
         result += ("ON" if value else "OFF")
 
     return result
+
+
+@beartype
+def invoke_opt(name: str, value: bool) -> str:
+    match value:
+        case bool():
+            # Because invoke has
+            # - `No idea what 'False' is!`,
+            # - `No idea what 'off' is!` and
+            # - `No idea what 'false' is!`
+            if value:
+                return f"--{name}"
+
+            else:
+                return f"--no-{name}"
+
+        case _:
+            raise TypeError(type(value))
 
 
 def get_py_env(ctx: Context) -> Dict[str, str]:
@@ -445,6 +464,8 @@ def docker_run(
     docs: bool = True,
     coverage: bool = True,
     reflection: bool = True,
+    deps_configure: bool = True,
+    deps_build: bool = True,
 ):
     """Run docker"""
 
@@ -491,15 +512,13 @@ def docker_run(
             *(["bash"] if interactive else [
                 "invoke",
                 "ci",
-                # Because invoke has
-                # - `No idea what 'False' is!`,
-                # - `No idea what 'off' is!` and
-                # - `No idea what 'false' is!`
-                "--build" if build else "--no-build",
-                "--test" if test else "--no-test",
-                "--docs" if docs else "--no-docs",
-                "--coverage" if coverage else "--no-coverage",
-                "--reflection" if reflection else "--no-reflection",
+                invoke_opt("build", build),
+                invoke_opt("test", test),
+                invoke_opt("docs", docs),
+                invoke_opt("coverage", coverage),
+                invoke_opt("reflection", reflection),
+                invoke_opt("deps-configure", deps_configure),
+                invoke_opt("deps-build", deps_build),
             ]),
         ])
 
@@ -704,13 +723,18 @@ def cmake_haxorg_clean(ctx: Context):
     if stamp_path.exists():
         stamp_path.unlink()
 
+    os_utils.rmdir_quiet(get_build_root().joinpath("deps_build"))
+    os_utils.rmdir_quiet(get_build_root().joinpath("deps_install"))
 
-@org_task(iterable=["build_whitelist"])
+
+@org_task(iterable=["build_whitelist", "ninja_flag"])
 def cmake_build_deps(
     ctx: Context,
     rebuild: bool = False,
     force: bool = False,
     build_whitelist: List[str] = [],
+    ninja_flag: List[str] = [],
+    configure: bool = True,
 ):
     conf = get_config(ctx)
     build_dir = get_build_root().joinpath("deps_build")
@@ -731,23 +755,25 @@ def cmake_build_deps(
         build_name: str,
         deps_name: str,
         configure_args: List[str] = [],
-        verbose: bool = False,
     ):
         if 0 < len(build_whitelist) and build_name not in build_whitelist:
             return
 
-        run_command(ctx, "cmake", [
-            "-B",
-            build_dir.joinpath(build_name),
-            "-S",
-            deps_dir.joinpath(deps_name),
-            cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
-            cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
-            cmake_opt("CMAKE_TOOLCHAIN_FILE",
-                      get_script_root().joinpath("toolchain.cmake")),
-            *configure_args,
-            *maybe_splice(force, "--fresh"),
-        ])
+        if configure:
+            run_command(ctx, "cmake", [
+                "-B",
+                build_dir.joinpath(build_name),
+                "-S",
+                deps_dir.joinpath(deps_name),
+                "-G",
+                "Ninja",
+                cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(build_name)),
+                cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
+                cmake_opt("CMAKE_TOOLCHAIN_FILE",
+                          get_script_root().joinpath("toolchain.cmake")),
+                *configure_args,
+                *maybe_splice(force, "--fresh"),
+            ])
 
         run_command(ctx, "cmake", [
             "--build",
@@ -755,6 +781,7 @@ def cmake_build_deps(
             "--target",
             "install",
             "--parallel",
+            *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
         ])
 
     dep(build_name="describe", deps_name="cmake_wrap/describe")
@@ -893,11 +920,12 @@ def cmake_build_deps(
     )
 
 
-@org_task(pre=[cmake_configure_haxorg], iterable=["target"])
+@org_task(pre=[cmake_configure_haxorg], iterable=["target", "ninja_flag"])
 def cmake_haxorg(
     ctx: Context,
     target: List[str] = ["all"],
     force: bool = False,
+    ninja_flag: List[str] = [],
 ):
     """Compile main set of libraries and binaries for org-mode parser"""
     build_dir = get_component_build_dir(ctx, "haxorg")
@@ -919,7 +947,14 @@ def cmake_haxorg(
             run_command(
                 ctx,
                 "cmake",
-                ["--build", build_dir, "--target"] + target,
+                [
+                    "--build",
+                    build_dir,
+                    "--target",
+                    *target,
+                    "--parallel",
+                    *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
+                ],
                 env={'NINJA_FORCE_COLOR': '1'},
             )
 
@@ -965,7 +1000,7 @@ def get_lldb_source_on_crash() -> List[str]:
 @org_task(pre=[cmake_haxorg])
 def haxorg_code_forensics(ctx: Context, debug: bool = False):
     "Generate code forensics dump for the repository"
-    tool = get_build_root("haxorg/scripts/cxx_repository/code_forensics")
+    tool = get_build_root("haxorg/code_forensics")
     config = {
         "repo": {
             "path": str(get_script_root()),
@@ -1100,22 +1135,6 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
         log(CAT).info("Updated code definitions")
 
 
-@org_task(pre=[cmake_haxorg, symlink_build])
-def std_tests(ctx):
-    """Execute standard library tests"""
-    dir = get_build_root("haxorg")
-    test = dir / "src/hstd/tests_hstd"
-    run_command(ctx, test, [], cwd=str(dir))
-
-
-@org_task(pre=[cmake_haxorg])
-def org_tests(ctx):
-    """Execute standard library tests"""
-    dir = get_build_root("haxorg")
-    test = dir / "tests_org"
-    run_command(ctx, test, [], cwd=str(dir))
-
-
 @beartype
 def binary_coverage(ctx: Context, test: Path):
     dir = test.parent
@@ -1204,24 +1223,6 @@ def org_test_perf(ctx: Context):
         run["record", "--call-graph", "dwarf", tests] & FG
     except ProcessExecutionError:
         pass
-
-
-@org_task(pre=[cmake_haxorg])
-def std_xray(ctx: Context):
-    """Generate test xray information for STD"""
-    xray_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
-
-
-@org_task(pre=[cmake_haxorg])
-def std_coverage(ctx: Context):
-    """Generate test coverage information for STD"""
-    binary_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
-
-
-@org_task(pre=[cmake_haxorg])
-def org_coverage(ctx: Context):
-    """Generate test coverage information for ORG"""
-    binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
 @org_task(pre=[cmake_haxorg, python_protobuf_files])
@@ -1401,7 +1402,7 @@ def cxx_merge_coverage(
     profile_path = get_cxx_profdata_params_path()
     run_command(
         ctx,
-        "build/haxorg/scripts/cxx_codegen/profdata_merger/profdata_merger",
+        "build/haxorg/profdata_merger",
         [
             profile_path,
         ],
@@ -1615,7 +1616,8 @@ def cxx_target_coverage(
 @org_task()
 def ci(
     ctx: Context,
-    deps: bool = True,
+    deps_configure: bool = True,
+    deps_build: bool = True,
     build: bool = True,
     test: bool = True,
     docs: bool = True,
@@ -1624,9 +1626,14 @@ def ci(
 ):
     "Execute all CI tasks"
     env = {"INVOKE_CI": "ON"}
-    if deps:
+    if deps_configure or deps_build:
         log(CAT).info("Running CI dependency installation")
-        run_self(ctx, ["cmake-build-deps"], env=env)
+        run_self(
+            ctx,
+            ["cmake-build-deps",
+             invoke_opt("configure", deps_configure)],
+            env=env,
+        )
 
     if build:
         log(CAT).info("Running CI cmake")
