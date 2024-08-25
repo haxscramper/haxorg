@@ -23,7 +23,6 @@ target_link_libraries(
          sqlite3
          pthread
          dl
-         git2
          pcre
          OpenSSL::SSL
          OpenSSL::Crypto
@@ -34,7 +33,9 @@ if(${ORG_USE_PERFETTO})
   target_link_libraries(code_forensics PUBLIC Perfetto::perfetto)
 endif()
 
-target_link_directories(code_forensics PUBLIC "${LIBGIT2_LIBRARIES}")
+target_link_libraries(code_forensics PUBLIC "${LIBGIT2_LIBRARIES}")
+target_include_directories(code_forensics PUBLIC "${LIBGIT2_INCLUDE_DIRS}")
+target_link_directories(code_forensics PUBLIC ${LIBGIT2_LIBRARY_DIRS})
 
 target_include_directories(
   code_forensics PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager"

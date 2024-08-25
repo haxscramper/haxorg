@@ -43,3 +43,13 @@ RUN ln -sf /usr/local/lib/libncurses.so.5 /usr/lib/libtinfo.so.5
 RUN apt-get install -y libcairomm-1.0-dev
 RUN apt-get install -y jq
 RUN apt-get install -y build-essential autoconf automake libtool pkg-config
+
+RUN echo "deb http://deb.debian.org/debian stable main" > /etc/apt/sources.list.d/stable.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libpcre3/stable \
+    libpcre3-dev/stable && \
+    rm /etc/apt/sources.list.d/stable.list && \
+    apt-get update && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*

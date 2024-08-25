@@ -78,6 +78,8 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/perfetto/lib/cmake/Perfetto")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/describe/lib/cmake/BoostDescribe")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/utf8_range/lib/cmake/utf8_range")
+
 set(ENV{PKG_CONFIG_PATH} "${DEPS_INSTALL}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
 message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
@@ -103,7 +105,7 @@ if(${ORG_USE_PERFETTO})
   find_package(Perfetto CONFIG REQUIRED)
 endif()
 find_package(BoostDescribe CONFIG REQUIRED)
-find_package(PythonLibs 3.12)
+find_package(PythonLibs 3.11)
 find_package(Adaptagrams CONFIG REQUIRED)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")

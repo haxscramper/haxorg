@@ -480,6 +480,7 @@ def docker_run(
                 "thirdparty",
                 "CMakeLists.txt",
                 "toolchain.cmake",
+                "HaxorgConfig.cmake.in",
             ])),
             # Scratch directory for simplified local debugging and rebuilds if needed.
             *mnt(HAXORG_BUILD_TMP, "build"),
@@ -835,6 +836,16 @@ def cmake_build_deps(
             cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
         ],
     )
+
+    if is_ci():
+        run_command(ctx, "git", [
+            "config",
+            "--global",
+            "--add",
+            "safe.directory",
+            deps_dir.joinpath("range-v3"),
+        ])
+
     dep(
         build_name="range-v3",
         deps_name="range-v3",
@@ -844,13 +855,21 @@ def cmake_build_deps(
             cmake_opt("RANGE_V3_PERF", False),
         ],
     )
+
     dep(
         build_name="pybind11",
         deps_name="pybind11",
         configure_args=[cmake_opt("PYBIND11_TEST", False)],
     )
 
-    dep(build_name="utf8_range", deps_name="protobuf/third_party/utf8_range")
+    dep(
+        build_name="utf8_range",
+        deps_name="protobuf/third_party/utf8_range",
+        configure_args=[
+            cmake_opt("CMAKE_PREFIX_PATH", install_dir.joinpath("abseil/lib/cmake/absl")),
+            cmake_opt("utf8_range_ENABLE_TESTS", False),
+        ],
+    )
 
     dep(
         build_name="protobuf",
@@ -862,8 +881,8 @@ def cmake_build_deps(
             cmake_opt("protobuf_ABSL_PROVIDER", "package"),
             cmake_opt(
                 "CMAKE_PREFIX_PATH", ";".join([
-                    install_dir.joinpath("abseil/lib/cmake/absl"),
-                    install_dir.joinpath("utf8_range/lib/cmake/utf8_range"),
+                    str(install_dir.joinpath("abseil/lib/cmake/absl")),
+                    str(install_dir.joinpath("utf8_range/lib/cmake/utf8_range")),
                 ])),
             cmake_opt("ABSL_CC_LIB_COPTS", "-fPIC"),
             cmake_opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
