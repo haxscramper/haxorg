@@ -43,7 +43,8 @@ target_link_libraries(
          protobuf::libprotoc
          absl::base
          absl::log
-         nlohmann_json::nlohmann_json)
+         nlohmann_json::nlohmann_json
+         immer)
 
 if(${ORG_USE_PERFETTO})
   target_link_libraries(haxorg PUBLIC Perfetto::perfetto)

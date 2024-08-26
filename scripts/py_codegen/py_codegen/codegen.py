@@ -599,6 +599,32 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
     return [rec_expand_type(T, [QualType.ForName("sem")]) for T in types]
 
 
+@beartype
+def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
+    result = deepcopy(recs)
+
+    def impl(obj: Any):
+        match obj:
+            case QualType(name="SemId"):
+                obj.name = "ImmId"
+                obj.Spaces = [QualType.ForName("org")]
+
+            case QualType(Spaces=[QualType(name="sem")]):
+                obj.name = "Imm" + obj.name
+                obj.Spaces = [QualType.ForName("org")]
+
+            case QualType(name="Vec"):
+                obj.name = "vector"
+                obj.Spaces = [QualType.ForName("immer")]
+
+            case GenTuStruct():
+                obj.methods = []
+
+    iterate_object_tree(result, [], pre_visit=impl)
+
+    return result
+
+
 def to_base_types(obj):
 
     def aux(obj, seen):
@@ -679,6 +705,7 @@ def gen_pyhaxorg_wrappers(
     reflection_path: Path,
 ) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
+    immutable = rewrite_to_immutable(expanded)
     proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
     t = ast.b
 
@@ -807,10 +834,18 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("haxorg/parse/OrgTypes.hpp", True),
                     GenTuInclude("boost/describe.hpp", True),
                     GenTuInclude("hstd/system/macros.hpp", True),
-                    GenTuInclude("functional", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
                     GenTuNamespace("sem", [GenTuTypeGroup(expanded, enumName="")]),
+                ],
+            )),
+        GenUnit(
+            GenTu(
+                "{base}/sem/ImmOrgTypes.hpp",
+                [
+                    GenTuPass("#pragma once"),
+                    GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
+                    GenTuNamespace("org", [GenTuTypeGroup(immutable, enumName="")]),
                 ],
             )),
     ])
@@ -820,6 +855,7 @@ def gen_description_files(
     description: GenFiles,
     builder: ASTBuilder,
     t: TextLayout,
+    tmp: bool,
 ):
     for tu in description.files:
         for i in range(2):
@@ -831,10 +867,9 @@ def gen_description_files(
             if not define:
                 continue
 
-            path = define.path.format(
-                base=get_haxorg_repo_root_path().joinpath("src/haxorg"),
-                root=get_haxorg_repo_root_path(),
-            )
+            out_root = Path("/tmp") if tmp else get_haxorg_repo_root_path()
+
+            path = define.path.format(base=out_root.joinpath("src/haxorg"), root=out_root)
 
             result = builder.TranslationUnit([
                 GenConverter(
@@ -876,6 +911,7 @@ import rich_click as click
 class CodegenOptions(BaseModel):
     reflection_path: str
     codegen_task: Literal["pyhaxorg", "adaptagrams"]
+    tmp: bool = False
 
 
 def codegen_options(f):
@@ -909,6 +945,7 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
         description=description,
         builder=builder,
         t=t,
+        tmp=opts.tmp,
     )
 
 
