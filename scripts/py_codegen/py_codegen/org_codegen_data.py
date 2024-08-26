@@ -53,11 +53,11 @@ def t_space(name: str | QualType, Spaces: List[str]) -> QualType:
 
 
 def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
-    return QualType(name=name, Spaces=[n_sem()] + extraSpaces)
+    return QualType(name=name, Spaces=[n_sem()] + extraSpaces, meta=dict(isOrgType=True))
 
 
 def t_nest(name: Union[str, QualType], Spaces: List[str]) -> QualType:
-    return t_space(name, ["sem"] + Spaces)
+    return t_space(name, ["sem"] + Spaces).model_copy(update=dict(meta=dict(isOrgType=True)))
 
 
 def k_args(obj: Any, **kwargs) -> Any:

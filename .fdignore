@@ -2,3 +2,4 @@ thirdparty
 *.css
 *.js
 profdata_merger.sql
+ImmOrgTypes.hpp

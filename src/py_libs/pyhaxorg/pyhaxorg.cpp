@@ -5,8 +5,8 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <pybind11/stl.h>
 #include "pyhaxorg_manual_impl.hpp"
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */>)
+PYBIND11_MAKE_OPAQUE(Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::SemId<sem::CmdArgumentList>>)
@@ -40,22 +40,22 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Row>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Subtree>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgSelectorCondition>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::OrgSelectorCondition>)
-PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind>)
-PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment>)
-PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment>)
-PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotationTag>)
-PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotationTag>)
-PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotation>)
-PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotation>)
-PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegmentGroup>)
-PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Subtree /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */>)
+PYBIND11_MAKE_OPAQUE(Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Subtree /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
+PYBIND11_MAKE_OPAQUE(std::vector<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>)
+PYBIND11_MAKE_OPAQUE(Vec<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
+PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind /*  [492]Type parameter [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */> /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotationTag /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotationTag /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotation /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotation /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
+PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegmentGroup /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>)
+PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */)
 PYBIND11_MODULE(pyhaxorg, m) {
   PyTypeRegistryGuard type_registry_guard{};
-  bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_vector<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */>(m, "VecOfSemIdOfOrg", type_registry_guard);
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument", type_registry_guard);
   bind_unordered_map<Str, sem::SemId<sem::CmdArgumentList>>(m, "UnorderedMapOfStrSemIdOfCmdArgumentList", type_registry_guard);
   bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
@@ -73,13 +73,13 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell", type_registry_guard);
   bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow", type_registry_guard);
-  bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree", type_registry_guard);
-  bind_vector<sem::OrgSelectorCondition>(m, "VecOfOrgSelectorCondition", type_registry_guard);
-  bind_int_set<OrgSemKind>(m, "IntSetOfOrgSemKind", type_registry_guard);
-  bind_vector<SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
-  bind_vector<SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
-  bind_vector<SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
-  bind_vector<SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
+  bind_vector<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Subtree /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */>(m, "VecOfSemIdOfSubtree", type_registry_guard);
+  bind_vector<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfOrgSelectorCondition", type_registry_guard);
+  bind_int_set<OrgSemKind /*  [492]Type parameter [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */>(m, "IntSetOfOrgSemKind", type_registry_guard);
+  bind_vector<SequenceSegment /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfSequenceSegment", type_registry_guard);
+  bind_vector<SequenceAnnotationTag /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
+  bind_vector<SequenceAnnotation /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfSequenceAnnotation", type_registry_guard);
+  bind_vector<SequenceSegmentGroup /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_readwrite("documentId", &sem::Org::documentId, R"RAW(\brief Application specific ID of the original document)RAW")
@@ -89,21 +89,21 @@ Some of the derived nodes don't make the use of subnode list
 (word, punctuation etc), but it was left on the top level of the
 hierarchy for conveinience purposes. It is not expected that 'any'
 node can have subnodes.)RAW")
-    .def("getKind", static_cast<OrgSemKind(sem::Org::*)() const>(&sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
-    .def("isGenerated", static_cast<bool(sem::Org::*)() const>(&sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
+    .def("getKind", static_cast<OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */(sem::Org::*)() const>(&sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
+    .def("isGenerated", static_cast<bool /*  [404] >bool [502]typeclass=Builtin */(sem::Org::*)() const>(&sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
     .def("push_back",
-         static_cast<void(sem::Org::*)(sem::SemId<sem::Org>)>(&sem::Org::push_back),
+         static_cast<void /*  [502]typeclass=Builtin */(sem::Org::*)(sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem::Org::push_back),
          pybind11::arg("sub"))
     .def("insert",
-         static_cast<void(sem::Org::*)(int, sem::SemId<sem::Org>)>(&sem::Org::insert),
+         static_cast<void /*  [502]typeclass=Builtin */(sem::Org::*)(int /*  [415] >builtin/unqual [502]typeclass=Builtin */, sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem::Org::insert),
          pybind11::arg("pos"),
          pybind11::arg("node"))
     .def("at",
-         static_cast<sem::SemId<sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
+         static_cast<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(sem::Org::*)(int /*  [415] >builtin/unqual [502]typeclass=Builtin */) const>(&sem::Org::at),
          pybind11::arg("idx"),
          R"RAW(\brief Get subnode at specified index)RAW")
     .def("is_",
-         static_cast<bool(sem::Org::*)(OrgSemKind) const>(&sem::Org::is),
+         static_cast<bool /*  [404] >bool [502]typeclass=Builtin */(sem::Org::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */) const>(&sem::Org::is),
          pybind11::arg("kind"))
     .def("__getitem__",
          static_cast<sem::SemId<sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
@@ -114,20 +114,20 @@ node can have subnodes.)RAW")
          },
          pybind11::keep_alive<0, 1>())
     ;
-  pybind11::class_<LineCol>(m, "LineCol")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> LineCol {
-                        LineCol result{};
+  pybind11::class_<LineCol /*  [433] >record [502]typeclass=Record */>(m, "LineCol")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> LineCol /*  [433] >record [502]typeclass=Record */ {
+                        LineCol /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("line", &LineCol::line)
-    .def_readwrite("column", &LineCol::column)
-    .def_readwrite("pos", &LineCol::pos)
-    .def("__repr__", [](LineCol _self) -> std::string {
+    .def_readwrite("line", &LineCol /*  [433] >record [502]typeclass=Record */::line)
+    .def_readwrite("column", &LineCol /*  [433] >record [502]typeclass=Record */::column)
+    .def_readwrite("pos", &LineCol /*  [433] >record [502]typeclass=Record */::pos)
+    .def("__repr__", [](LineCol /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](LineCol _self, std::string name) -> pybind11::object {
+         [](LineCol /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -3684,113 +3684,113 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<UserTimeBreakdown>(m, "UserTimeBreakdown")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> UserTimeBreakdown {
-                        UserTimeBreakdown result{};
+  pybind11::class_<UserTimeBreakdown /*  [433] >record [502]typeclass=Record */>(m, "UserTimeBreakdown")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> UserTimeBreakdown /*  [433] >record [502]typeclass=Record */ {
+                        UserTimeBreakdown /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("year", &UserTimeBreakdown::year)
-    .def_readwrite("month", &UserTimeBreakdown::month)
-    .def_readwrite("day", &UserTimeBreakdown::day)
-    .def_readwrite("hour", &UserTimeBreakdown::hour)
-    .def_readwrite("minute", &UserTimeBreakdown::minute)
-    .def_readwrite("second", &UserTimeBreakdown::second)
-    .def_readwrite("zone", &UserTimeBreakdown::zone)
-    .def("__repr__", [](UserTimeBreakdown _self) -> std::string {
+    .def_readwrite("year", &UserTimeBreakdown /*  [433] >record [502]typeclass=Record */::year)
+    .def_readwrite("month", &UserTimeBreakdown /*  [433] >record [502]typeclass=Record */::month)
+    .def_readwrite("day", &UserTimeBreakdown /*  [433] >record [502]typeclass=Record */::day)
+    .def_readwrite("hour", &UserTimeBreakdown /*  [433] >record [502]typeclass=Record */::hour)
+    .def_readwrite("minute", &UserTimeBreakdown /*  [433] >record [502]typeclass=Record */::minute)
+    .def_readwrite("second", &UserTimeBreakdown /*  [433] >record [502]typeclass=Record */::second)
+    .def_readwrite("zone", &UserTimeBreakdown /*  [433] >record [502]typeclass=Record */::zone)
+    .def("__repr__", [](UserTimeBreakdown /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](UserTimeBreakdown _self, std::string name) -> pybind11::object {
+         [](UserTimeBreakdown /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<UserTime>(m, "UserTime")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> UserTime {
-                        UserTime result{};
+  pybind11::class_<UserTime /*  [433] >record [502]typeclass=Record */>(m, "UserTime")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> UserTime /*  [433] >record [502]typeclass=Record */ {
+                        UserTime /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("getBreakdown", static_cast<UserTimeBreakdown(UserTime::*)() const>(&UserTime::getBreakdown))
-    .def("format", static_cast<std::string(UserTime::*)() const>(&UserTime::format))
-    .def("__repr__", [](UserTime _self) -> std::string {
+    .def("getBreakdown", static_cast<UserTimeBreakdown /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */(UserTime /*  [433] >record [502]typeclass=Record */::*)() const>(&UserTime /*  [433] >record [502]typeclass=Record */::getBreakdown))
+    .def("format", static_cast<std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */(UserTime /*  [433] >record [502]typeclass=Record */::*)() const>(&UserTime /*  [433] >record [502]typeclass=Record */::format))
+    .def("__repr__", [](UserTime /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](UserTime _self, std::string name) -> pybind11::object {
+         [](UserTime /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgParseParameters>(m, "OrgParseParameters")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgParseParameters {
-                        sem::OrgParseParameters result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */>(m, "OrgParseParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("baseTokenTracePath", &sem::OrgParseParameters::baseTokenTracePath)
-    .def_readwrite("tokenTracePath", &sem::OrgParseParameters::tokenTracePath)
-    .def_readwrite("parseTracePath", &sem::OrgParseParameters::parseTracePath)
-    .def_readwrite("semTracePath", &sem::OrgParseParameters::semTracePath)
-    .def("__repr__", [](sem::OrgParseParameters _self) -> std::string {
+    .def_readwrite("baseTokenTracePath", &sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */::baseTokenTracePath)
+    .def_readwrite("tokenTracePath", &sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */::tokenTracePath)
+    .def_readwrite("parseTracePath", &sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */::parseTracePath)
+    .def_readwrite("semTracePath", &sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */::semTracePath)
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgParseParameters _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgParseParameters /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgYamlExportOpts {
-                        sem::OrgYamlExportOpts result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */>(m, "OrgYamlExportOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("skipNullFields", &sem::OrgYamlExportOpts::skipNullFields)
-    .def_readwrite("skipFalseFields", &sem::OrgYamlExportOpts::skipFalseFields)
-    .def_readwrite("skipZeroFields", &sem::OrgYamlExportOpts::skipZeroFields)
-    .def_readwrite("skipLocation", &sem::OrgYamlExportOpts::skipLocation)
-    .def_readwrite("skipId", &sem::OrgYamlExportOpts::skipId)
-    .def("__repr__", [](sem::OrgYamlExportOpts _self) -> std::string {
+    .def_readwrite("skipNullFields", &sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */::skipNullFields)
+    .def_readwrite("skipFalseFields", &sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */::skipFalseFields)
+    .def_readwrite("skipZeroFields", &sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */::skipZeroFields)
+    .def_readwrite("skipLocation", &sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */::skipLocation)
+    .def_readwrite("skipId", &sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */::skipId)
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgYamlExportOpts _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgTreeExportOpts {
-                        sem::OrgTreeExportOpts result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */>(m, "OrgTreeExportOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("withLineCol", &sem::OrgTreeExportOpts::withLineCol)
-    .def_readwrite("withOriginalId", &sem::OrgTreeExportOpts::withOriginalId)
-    .def_readwrite("withSubnodeIdx", &sem::OrgTreeExportOpts::withSubnodeIdx)
-    .def_readwrite("skipEmptyFields", &sem::OrgTreeExportOpts::skipEmptyFields)
-    .def_readwrite("startLevel", &sem::OrgTreeExportOpts::startLevel)
-    .def_readwrite("withColor", &sem::OrgTreeExportOpts::withColor)
-    .def_readwrite("maxDepth", &sem::OrgTreeExportOpts::maxDepth)
-    .def("__repr__", [](sem::OrgTreeExportOpts _self) -> std::string {
+    .def_readwrite("withLineCol", &sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */::withLineCol)
+    .def_readwrite("withOriginalId", &sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */::withOriginalId)
+    .def_readwrite("withSubnodeIdx", &sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */::withSubnodeIdx)
+    .def_readwrite("skipEmptyFields", &sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */::skipEmptyFields)
+    .def_readwrite("startLevel", &sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */::startLevel)
+    .def_readwrite("withColor", &sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */::withColor)
+    .def_readwrite("maxDepth", &sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */::maxDepth)
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgTreeExportOpts _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubnodeVisitorCtxPart>(m, "SubnodeVisitorCtxPart")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorCtxPart {
-                        sem::SubnodeVisitorCtxPart result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */>(m, "SubnodeVisitorCtxPart")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("node", &sem::SubnodeVisitorCtxPart::node, R"RAW(\brief Parent node for the currently visited one. Each node is
+    .def_readwrite("node", &sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */::node, R"RAW(\brief Parent node for the currently visited one. Each node is
 encountered exactly once in the visitor context path, but when
 visiting multi-layered fields (vector field) the node is not,
 present.
@@ -3798,223 +3798,223 @@ present.
 For vector fields the path will have two parts:
 `[node+field-name]+[index]` -- the first element from the actual
 field visit and the second is from accessing each particular index.)RAW")
-    .def_readwrite("index", &sem::SubnodeVisitorCtxPart::index, R"RAW(\brief If the current visit is in vector field -- index of
+    .def_readwrite("index", &sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */::index, R"RAW(\brief If the current visit is in vector field -- index of
 the node in parent list.)RAW")
-    .def_readwrite("field", &sem::SubnodeVisitorCtxPart::field, R"RAW(\brief If the current visit is in the dedicated field (`.title` for
+    .def_readwrite("field", &sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */::field, R"RAW(\brief If the current visit is in the dedicated field (`.title` for
 example),)RAW")
-    .def_readwrite("kind", &sem::SubnodeVisitorCtxPart::kind)
-    .def("__repr__", [](sem::SubnodeVisitorCtxPart _self) -> std::string {
+    .def_readwrite("kind", &sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */::kind)
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::SubnodeVisitorCtxPart _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubnodeVisitorOpts>(m, "SubnodeVisitorOpts")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorOpts {
-                        sem::SubnodeVisitorOpts result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorOpts /*  [433] >record [502]typeclass=Record */>(m, "SubnodeVisitorOpts")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::SubnodeVisitorOpts /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::SubnodeVisitorOpts /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::SubnodeVisitorOpts _self) -> std::string {
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorOpts /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::SubnodeVisitorOpts _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorOpts /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubnodeVisitorResult>(m, "SubnodeVisitorResult")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorResult {
-                        sem::SubnodeVisitorResult result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */>(m, "SubnodeVisitorResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("visitNextFields", &sem::SubnodeVisitorResult::visitNextFields, R"RAW(\brief After visting the current node, descend into it's node
+    .def_readwrite("visitNextFields", &sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */::visitNextFields, R"RAW(\brief After visting the current node, descend into it's node
 fields)RAW")
-    .def_readwrite("visitNextSubnodes", &sem::SubnodeVisitorResult::visitNextSubnodes, R"RAW(\brief)RAW")
-    .def_readwrite("visitNextBases", &sem::SubnodeVisitorResult::visitNextBases)
-    .def("__repr__", [](sem::SubnodeVisitorResult _self) -> std::string {
+    .def_readwrite("visitNextSubnodes", &sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */::visitNextSubnodes, R"RAW(\brief)RAW")
+    .def_readwrite("visitNextBases", &sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */::visitNextBases)
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::SubnodeVisitorResult _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorResult /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgDocumentContext>(m, "OrgDocumentContext")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentContext {
-                        sem::OrgDocumentContext result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */>(m, "OrgDocumentContext")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
     .def("getSubtreeById",
-         static_cast<Vec<sem::SemId<sem::Subtree>>(sem::OrgDocumentContext::*)(Str const&) const>(&sem::OrgDocumentContext::getSubtreeById),
+         static_cast<Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Subtree /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */) const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::getSubtreeById),
          pybind11::arg("id"))
     .def("getLinkTarget",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(sem::SemId<sem::Link> const&) const>(&sem::OrgDocumentContext::getLinkTarget),
+         static_cast<Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Link /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */) const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::getLinkTarget),
          pybind11::arg("link"))
     .def("getRadioTarget",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(Str const&) const>(&sem::OrgDocumentContext::getRadioTarget),
+         static_cast<Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */) const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::getRadioTarget),
          pybind11::arg("name"))
     .def("addNodes",
-         static_cast<void(sem::OrgDocumentContext::*)(sem::SemId<sem::Org> const&)>(&sem::OrgDocumentContext::addNodes),
+         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */::addNodes),
          pybind11::arg("node"),
          R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
-    .def("__repr__", [](sem::OrgDocumentContext _self) -> std::string {
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgDocumentContext _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgSelectorLink>(m, "OrgSelectorLink")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorLink {
-                        sem::OrgSelectorLink result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */>(m, "OrgSelectorLink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::OrgSelectorLink _self) -> std::string {
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgSelectorLink _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgSelectorResult>(m, "OrgSelectorResult")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorResult {
-                        sem::OrgSelectorResult result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */>(m, "OrgSelectorResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::OrgSelectorResult _self) -> std::string {
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgSelectorResult _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgSelectorCondition>(m, "OrgSelectorCondition")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgSelectorCondition {
-                        sem::OrgSelectorCondition result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */>(m, "OrgSelectorCondition")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("isTarget", &sem::OrgSelectorCondition::isTarget, R"RAW(\brief Matched node should be added to the full match set)RAW")
-    .def_readwrite("debug", &sem::OrgSelectorCondition::debug)
-    .def_readwrite("link", &sem::OrgSelectorCondition::link)
-    .def("__repr__", [](sem::OrgSelectorCondition _self) -> std::string {
+    .def_readwrite("isTarget", &sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */::isTarget, R"RAW(\brief Matched node should be added to the full match set)RAW")
+    .def_readwrite("debug", &sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */::debug)
+    .def_readwrite("link", &sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */::link)
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgSelectorCondition _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::OrgDocumentSelector>(m, "OrgDocumentSelector")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentSelector {
-                        sem::OrgDocumentSelector result{};
+  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */>(m, "OrgDocumentSelector")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ {
+                        sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("path", &sem::OrgDocumentSelector::path)
-    .def_readwrite("debug", &sem::OrgDocumentSelector::debug)
+    .def_readwrite("path", &sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::path)
+    .def_readwrite("debug", &sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::debug)
     .def("getMatches",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentSelector::*)(sem::SemId<sem::Org> const&) const>(&sem::OrgDocumentSelector::getMatches),
+         static_cast<Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */) const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::getMatches),
          pybind11::arg("node"))
-    .def("linkDirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkDirectSubnode))
-    .def("linkIndirectSubnode", static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)() const>(&sem::OrgDocumentSelector::linkIndirectSubnode))
+    .def("linkDirectSubnode", static_cast<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)() const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::linkDirectSubnode))
+    .def("linkIndirectSubnode", static_cast<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)() const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::linkIndirectSubnode))
     .def("linkField",
-         static_cast<sem::OrgSelectorLink(sem::OrgDocumentSelector::*)(Str const&) const>(&sem::OrgDocumentSelector::linkField),
+         static_cast<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */) const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::linkField),
          pybind11::arg("name"))
     .def("searchSubtreePlaintextTitle",
-         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreePlaintextTitle),
+         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchSubtreePlaintextTitle),
          pybind11::arg("title"),
          pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     .def("searchSubtreeId",
-         static_cast<void(sem::OrgDocumentSelector::*)(Str const&, bool, std::optional<int>, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchSubtreeId),
+         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<int /*  [492]Type parameter [415] >builtin/unqual [502]typeclass=Builtin */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchSubtreeId),
          pybind11::arg("id"),
          pybind11::arg("isTarget"),
          pybind11::arg_v("maxLevel", std::nullopt),
          pybind11::arg_v("link", std::nullopt))
     .def("searchAnyKind",
-         static_cast<void(sem::OrgDocumentSelector::*)(IntSet<OrgSemKind> const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchAnyKind),
+         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(IntSet<OrgSemKind /*  [492]Type parameter [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchAnyKind),
          pybind11::arg("kinds"),
          pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
     .def("searchPredicate",
-         static_cast<void(sem::OrgDocumentSelector::*)(sem::OrgSelectorCondition::Predicate const&, bool, std::optional<sem::OrgSelectorLink>)>(&sem::OrgDocumentSelector::searchPredicate),
+         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [201] [251]type namespace */::Predicate const& /*  [395] T-reference [401] >ref/ptr [368] T-const [385] typedef type sem/SemBaseApi.hpp:256:11 [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchPredicate),
          pybind11::arg("predicate"),
          pybind11::arg("isTarget"),
          pybind11::arg_v("link", std::nullopt))
-    .def("__repr__", [](sem::OrgDocumentSelector _self) -> std::string {
+    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::OrgDocumentSelector _self, std::string name) -> pybind11::object {
+         [](sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<SequenceSegment>(m, "SequenceSegment")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegment {
-                        SequenceSegment result{};
+  pybind11::class_<SequenceSegment /*  [433] >record [502]typeclass=Record */>(m, "SequenceSegment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegment /*  [433] >record [502]typeclass=Record */ {
+                        SequenceSegment /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("kind", &SequenceSegment::kind, R"RAW(\brief Kind of the segment, does not have to be unique for all
+    .def_readwrite("kind", &SequenceSegment /*  [433] >record [502]typeclass=Record */::kind, R"RAW(\brief Kind of the segment, does not have to be unique for all
 segments, and different sequence segment groups can have segments
 with identical kinds.)RAW")
-    .def_readwrite("first", &SequenceSegment::first, R"RAW(\brief Inclusive left boundary of the segment. Mustnot overlap with
+    .def_readwrite("first", &SequenceSegment /*  [433] >record [502]typeclass=Record */::first, R"RAW(\brief Inclusive left boundary of the segment. Mustnot overlap with
 other segments' boundaries,but can be identical to the `last`,
 to create a point segment (spans 1 element).)RAW")
-    .def_readwrite("last", &SequenceSegment::last, R"RAW(\brief Inclusive right boundary for the segment)RAW")
-    .def("__repr__", [](SequenceSegment _self) -> std::string {
+    .def_readwrite("last", &SequenceSegment /*  [433] >record [502]typeclass=Record */::last, R"RAW(\brief Inclusive right boundary for the segment)RAW")
+    .def("__repr__", [](SequenceSegment /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](SequenceSegment _self, std::string name) -> pybind11::object {
+         [](SequenceSegment /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<SequenceSegmentGroup>(m, "SequenceSegmentGroup")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegmentGroup {
-                        SequenceSegmentGroup result{};
+  pybind11::class_<SequenceSegmentGroup /*  [433] >record [502]typeclass=Record */>(m, "SequenceSegmentGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegmentGroup /*  [433] >record [502]typeclass=Record */ {
+                        SequenceSegmentGroup /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("kind", &SequenceSegmentGroup::kind, R"RAW(\brief An kind of the segment group, does not have to be unique)RAW")
-    .def_readwrite("segments", &SequenceSegmentGroup::segments, R"RAW(\brief List of input segments for grouping)RAW")
-    .def("__repr__", [](SequenceSegmentGroup _self) -> std::string {
+    .def_readwrite("kind", &SequenceSegmentGroup /*  [433] >record [502]typeclass=Record */::kind, R"RAW(\brief An kind of the segment group, does not have to be unique)RAW")
+    .def_readwrite("segments", &SequenceSegmentGroup /*  [433] >record [502]typeclass=Record */::segments, R"RAW(\brief List of input segments for grouping)RAW")
+    .def("__repr__", [](SequenceSegmentGroup /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](SequenceSegmentGroup _self, std::string name) -> pybind11::object {
+         [](SequenceSegmentGroup /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<SequenceAnnotationTag>(m, "SequenceAnnotationTag")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotationTag {
-                        SequenceAnnotationTag result{};
+  pybind11::class_<SequenceAnnotationTag /*  [433] >record [502]typeclass=Record */>(m, "SequenceAnnotationTag")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotationTag /*  [433] >record [502]typeclass=Record */ {
+                        SequenceAnnotationTag /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("groupKind", &SequenceAnnotationTag::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
-    .def_readwrite("segmentKinds", &SequenceAnnotationTag::segmentKinds, R"RAW(\brief ID of the segment in this group.
+    .def_readwrite("groupKind", &SequenceAnnotationTag /*  [433] >record [502]typeclass=Record */::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
+    .def_readwrite("segmentKinds", &SequenceAnnotationTag /*  [433] >record [502]typeclass=Record */::segmentKinds, R"RAW(\brief ID of the segment in this group.
 
 Segment kinds are constructed from all ranges
 that overlap points in the segment.
@@ -4032,244 +4032,244 @@ different sequence segments from these ranges. The first one is
 6   |
 7   |
 ```)RAW")
-    .def("__repr__", [](SequenceAnnotationTag _self) -> std::string {
+    .def("__repr__", [](SequenceAnnotationTag /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](SequenceAnnotationTag _self, std::string name) -> pybind11::object {
+         [](SequenceAnnotationTag /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<SequenceAnnotation>(m, "SequenceAnnotation")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotation {
-                        SequenceAnnotation result{};
+  pybind11::class_<SequenceAnnotation /*  [433] >record [502]typeclass=Record */>(m, "SequenceAnnotation")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceAnnotation /*  [433] >record [502]typeclass=Record */ {
+                        SequenceAnnotation /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("first", &SequenceAnnotation::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
-    .def_readwrite("last", &SequenceAnnotation::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
-    .def_readwrite("annotations", &SequenceAnnotation::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
+    .def_readwrite("first", &SequenceAnnotation /*  [433] >record [502]typeclass=Record */::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
+    .def_readwrite("last", &SequenceAnnotation /*  [433] >record [502]typeclass=Record */::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
+    .def_readwrite("annotations", &SequenceAnnotation /*  [433] >record [502]typeclass=Record */::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
     .def("isAnnotatedWith",
-         static_cast<bool(SequenceAnnotation::*)(int, int) const>(&SequenceAnnotation::isAnnotatedWith),
+         static_cast<bool /*  [404] >bool [502]typeclass=Builtin */(SequenceAnnotation /*  [433] >record [502]typeclass=Record */::*)(int /*  [415] >builtin/unqual [502]typeclass=Builtin */, int /*  [415] >builtin/unqual [502]typeclass=Builtin */) const>(&SequenceAnnotation /*  [433] >record [502]typeclass=Record */::isAnnotatedWith),
          pybind11::arg("groupKind"),
          pybind11::arg("segmentKind"),
          R"RAW(\brief Check if the segment is annotated with a given group kind
 and a segment kind.)RAW")
-    .def("__repr__", [](SequenceAnnotation _self) -> std::string {
+    .def("__repr__", [](SequenceAnnotation /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](SequenceAnnotation _self, std::string name) -> pybind11::object {
+         [](SequenceAnnotation /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<ExporterPython>(m, "ExporterPython")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
-                        ExporterPython result{};
+  pybind11::class_<ExporterPython /*  [433] >record [502]typeclass=Record */>(m, "ExporterPython")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython /*  [433] >record [502]typeclass=Record */ {
+                        ExporterPython /*  [433] >record [502]typeclass=Record */ result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("enableBufferTrace", static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
-    .def("getTraceBuffer", static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
+    .def("enableBufferTrace", static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)()>(&ExporterPython /*  [433] >record [502]typeclass=Record */::enableBufferTrace))
+    .def("getTraceBuffer", static_cast<std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)() const>(&ExporterPython /*  [433] >record [502]typeclass=Record */::getTraceBuffer))
     .def("enableFileTrace",
-         static_cast<void(ExporterPython::*)(std::string const&, bool)>(&ExporterPython::enableFileTrace),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(std /*  [201] [244]regular type namespaces */::string const& /*  [395] T-reference [401] >ref/ptr [368] T-const [385] typedef type bits/stringfwd.h:77:33 [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::enableFileTrace),
          pybind11::arg("path"),
          pybind11::arg("colored"))
     .def("setVisitAnyIdAround",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdAround),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitAnyIdAround),
          pybind11::arg("cb"))
     .def("setVisitAnyIdIn",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdIn),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitAnyIdIn),
          pybind11::arg("cb"))
     .def("setVisitAnyField",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyField),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitAnyField),
          pybind11::arg("cb"))
     .def("setEvalTopCb",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setEvalTopCb),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setEvalTopCb),
          pybind11::arg("cb"))
     .def("setVisitIdAround",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdAround),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdAround",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdAround),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setEvalIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitIdInCb",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdInCb),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitIdInCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdIn",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdIn),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setEvalIdIn),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitLeafField",
-         static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setVisitLeafField),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(LeafFieldType /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalLeafField",
-         static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setEvalLeafField),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(LeafFieldType /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setEvalLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitOrgField",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitOrgField),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalOrgField",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalOrgField),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setEvalOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setSelf",
-         static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::setSelf),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(pybind11 /*  [201] [134]Namespace visitation of 'pybind11' */::object /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setSelf),
          pybind11::arg("val"))
     .def("setNewOrgRes",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setNewOrgRes),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setNewOrgRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyOrgRes",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyOrgRes),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setNewAnyOrgRes),
          pybind11::arg("cb"))
     .def("setNewLeafRes",
-         static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setNewLeafRes),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(LeafFieldType /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setNewLeafRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyLeafRes",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyLeafRes),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setNewAnyLeafRes),
          pybind11::arg("cb"))
     .def("setPushVisitAnyId",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPushVisitAnyId),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setPushVisitAnyId),
          pybind11::arg("cb"))
     .def("setPopVisitAnyId",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPopVisitAnyId),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setPopVisitAnyId),
          pybind11::arg("cb"))
     .def("setPushVisitId",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPushVisitId),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setPushVisitId),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setPopVisitIdCb",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPopVisitIdCb),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setPopVisitIdCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitAnyHookCb",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyHookCb),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitAnyHookCb),
          pybind11::arg("cb"))
     .def("setVisitIdHook",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdHook),
+         static_cast<void /*  [502]typeclass=Builtin */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(OrgSemKind /*  [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */, ExporterPython /*  [201] [251]type namespace */::PyFunc /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:112:11 */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::setVisitIdHook),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("evalTop",
-         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::evalTop),
+         static_cast<ExporterPython /*  [201] [251]type namespace */::Res /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:113:11 */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::evalTop),
          pybind11::arg("org"))
     .def("eval",
-         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::eval),
+         static_cast<ExporterPython /*  [201] [251]type namespace */::Res /*  [385] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:113:11 */(ExporterPython /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&ExporterPython /*  [433] >record [502]typeclass=Record */::eval),
          pybind11::arg("org"))
-    .def("__repr__", [](ExporterPython _self) -> std::string {
+    .def("__repr__", [](ExporterPython /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](ExporterPython _self, std::string name) -> pybind11::object {
+         [](ExporterPython /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind", type_registry_guard);
-  pybind11::enum_<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind")
-    .value("Field", sem::SubnodeVisitorCtxPart::Kind::Field)
-    .value("Index", sem::SubnodeVisitorCtxPart::Kind::Index)
-    .value("Key", sem::SubnodeVisitorCtxPart::Kind::Key)
-    .def("__iter__", [](sem::SubnodeVisitorCtxPart::Kind _self) -> PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind> {
+  bind_enum_iterator<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */>(m, "SubnodeVisitorCtxPartKind", type_registry_guard);
+  pybind11::enum_<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */>(m, "SubnodeVisitorCtxPartKind")
+    .value("Field", sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */::Field)
+    .value("Index", sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */::Index)
+    .value("Key", sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */::Key)
+    .def("__iter__", [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */ _self) -> PyEnumIterator<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */> {
                      return
-                     PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind>
+                     PyEnumIterator<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */>
                      ();
                      })
     ;
-  bind_enum_iterator<sem::OrgSelectorLink::Kind>(m, "OrgSelectorLinkKind", type_registry_guard);
-  pybind11::enum_<sem::OrgSelectorLink::Kind>(m, "OrgSelectorLinkKind")
-    .value("DirectSubnode", sem::OrgSelectorLink::Kind::DirectSubnode)
-    .value("IndirectSubnode", sem::OrgSelectorLink::Kind::IndirectSubnode)
-    .value("FieldName", sem::OrgSelectorLink::Kind::FieldName)
-    .def("__iter__", [](sem::OrgSelectorLink::Kind _self) -> PyEnumIterator<sem::OrgSelectorLink::Kind> {
+  bind_enum_iterator<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */>(m, "OrgSelectorLinkKind", type_registry_guard);
+  pybind11::enum_<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */>(m, "OrgSelectorLinkKind")
+    .value("DirectSubnode", sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */::DirectSubnode)
+    .value("IndirectSubnode", sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */::IndirectSubnode)
+    .value("FieldName", sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */::FieldName)
+    .def("__iter__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */ _self) -> PyEnumIterator<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */> {
                      return
-                     PyEnumIterator<sem::OrgSelectorLink::Kind>
+                     PyEnumIterator<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */>
                      ();
                      })
     ;
-  bind_enum_iterator<LeafFieldType>(m, "LeafFieldType", type_registry_guard);
-  pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
-    .value("Int", LeafFieldType::Int)
-    .value("UserTimeKind", LeafFieldType::UserTimeKind)
-    .value("QDate", LeafFieldType::QDate)
-    .value("Bool", LeafFieldType::Bool)
-    .value("FixedIdVec", LeafFieldType::FixedIdVec)
-    .value("TopIdVec", LeafFieldType::TopIdVec)
-    .value("QDateTime", LeafFieldType::QDateTime)
-    .value("Str", LeafFieldType::Str)
-    .value("Any", LeafFieldType::Any)
-    .def("__iter__", [](LeafFieldType _self) -> PyEnumIterator<LeafFieldType> {
+  bind_enum_iterator<LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */>(m, "LeafFieldType", type_registry_guard);
+  pybind11::enum_<LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */>(m, "LeafFieldType")
+    .value("Int", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::Int)
+    .value("UserTimeKind", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::UserTimeKind)
+    .value("QDate", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::QDate)
+    .value("Bool", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::Bool)
+    .value("FixedIdVec", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::FixedIdVec)
+    .value("TopIdVec", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::TopIdVec)
+    .value("QDateTime", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::QDateTime)
+    .value("Str", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::Str)
+    .value("Any", LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */::Any)
+    .def("__iter__", [](LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */ _self) -> PyEnumIterator<LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */> {
                      return
-                     PyEnumIterator<LeafFieldType>
+                     PyEnumIterator<LeafFieldType /*  [983]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:41:21 */>
                      ();
                      })
     ;
   m.def("newSemTimeStatic",
-        static_cast<sem::SemId<sem::Time>(*)(UserTimeBreakdown const&, bool)>(&sem::newSemTimeStatic),
+        static_cast<sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Time /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(*)(UserTimeBreakdown const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */)>(&sem::newSemTimeStatic),
         pybind11::arg("breakdown"),
         pybind11::arg_v("isActive", 0));
   m.def("parseFile",
-        static_cast<sem::SemId<sem::Document>(*)(std::string, sem::OrgParseParameters const&)>(&sem::parseFile),
+        static_cast<sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Document /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(*)(std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */, sem /*  [201] [244]regular type namespaces */::OrgParseParameters const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem::parseFile),
         pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("parseString",
-        static_cast<sem::SemId<sem::Document>(*)(std::string const)>(&sem::parseString),
+        static_cast<sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Document /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(*)(std /*  [201] [244]regular type namespaces */::string const /*  [368] T-const [385] typedef type bits/stringfwd.h:77:33 */)>(&sem::parseString),
         pybind11::arg("text"));
   m.def("parseStringOpts",
-        static_cast<sem::SemId<sem::Document>(*)(std::string const, sem::OrgParseParameters const&)>(&sem::parseStringOpts),
+        static_cast<sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Document /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(*)(std /*  [201] [244]regular type namespaces */::string const /*  [368] T-const [385] typedef type bits/stringfwd.h:77:33 */, sem /*  [201] [244]regular type namespaces */::OrgParseParameters const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem::parseStringOpts),
         pybind11::arg("text"),
         pybind11::arg("opts"));
   m.def("formatToString",
-        static_cast<std::string(*)(sem::SemId<sem::Org>)>(&sem::formatToString),
+        static_cast<std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem::formatToString),
         pybind11::arg("arg"));
   m.def("exportToYamlString",
-        static_cast<std::string(*)(sem::SemId<sem::Org> const&, sem::OrgYamlExportOpts const&)>(&sem::exportToYamlString),
+        static_cast<std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem::exportToYamlString),
         pybind11::arg("node"),
         pybind11::arg("opts"));
   m.def("exportToYamlFile",
-        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string, sem::OrgYamlExportOpts const&)>(&sem::exportToYamlFile),
+        static_cast<void /*  [502]typeclass=Builtin */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */, sem /*  [201] [244]regular type namespaces */::OrgYamlExportOpts const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem::exportToYamlFile),
         pybind11::arg("node"),
         pybind11::arg("path"),
         pybind11::arg("opts"));
   m.def("exportToJsonString",
-        static_cast<std::string(*)(sem::SemId<sem::Org> const&)>(&sem::exportToJsonString),
+        static_cast<std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem::exportToJsonString),
         pybind11::arg("node"));
   m.def("exportToJsonFile",
-        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string)>(&sem::exportToJsonFile),
+        static_cast<void /*  [502]typeclass=Builtin */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */)>(&sem::exportToJsonFile),
         pybind11::arg("node"),
         pybind11::arg("path"));
   m.def("readProtobufFile",
-        static_cast<sem::SemId<sem::Document>(*)(std::string const&)>(&sem::readProtobufFile),
+        static_cast<sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Document /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(*)(std /*  [201] [244]regular type namespaces */::string const& /*  [395] T-reference [401] >ref/ptr [368] T-const [385] typedef type bits/stringfwd.h:77:33 [502]typeclass=LValueReference */)>(&sem::readProtobufFile),
         pybind11::arg("file"));
   m.def("exportToProtobufFile",
-        static_cast<void(*)(sem::SemId<sem::Document>, std::string const&)>(&sem::exportToProtobufFile),
+        static_cast<void /*  [502]typeclass=Builtin */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Document /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */, std /*  [201] [244]regular type namespaces */::string const& /*  [395] T-reference [401] >ref/ptr [368] T-const [385] typedef type bits/stringfwd.h:77:33 [502]typeclass=LValueReference */)>(&sem::exportToProtobufFile),
         pybind11::arg("doc"),
         pybind11::arg("file"));
   m.def("exportToTreeString",
-        static_cast<std::string(*)(sem::SemId<sem::Org> const&, sem::OrgTreeExportOpts const&)>(&sem::exportToTreeString),
+        static_cast<std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem::exportToTreeString),
         pybind11::arg("node"),
         pybind11::arg("opts"));
   m.def("exportToTreeFile",
-        static_cast<void(*)(sem::SemId<sem::Org> const&, std::string, sem::OrgTreeExportOpts const&)>(&sem::exportToTreeFile),
+        static_cast<void /*  [502]typeclass=Builtin */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, std /*  [201] [244]regular type namespaces */::string /*  [385] typedef type bits/stringfwd.h:77:33 */, sem /*  [201] [244]regular type namespaces */::OrgTreeExportOpts const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */)>(&sem::exportToTreeFile),
         pybind11::arg("node"),
         pybind11::arg("path"),
         pybind11::arg("opts"));
   m.def("annotateSequence",
-        static_cast<Vec<SequenceAnnotation>(*)(Vec<SequenceSegmentGroup> const&, int, int)>(&annotateSequence),
+        static_cast<Vec<SequenceAnnotation /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(*)(Vec<SequenceSegmentGroup /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, int /*  [415] >builtin/unqual [502]typeclass=Builtin */, int /*  [415] >builtin/unqual [502]typeclass=Builtin */)>(&annotateSequence),
         pybind11::arg("groups"),
         pybind11::arg("first"),
         pybind11::arg("last"));
   m.def("eachSubnodeRec",
-        static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
+        static_cast<void /*  [502]typeclass=Builtin */(*)(sem /*  [201] [316]Elaborated type namespace */::SemId<sem /*  [201] [316]Elaborated type namespace */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */, pybind11 /*  [201] [134]Namespace visitation of 'pybind11' */::function /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */)>(&eachSubnodeRec),
         pybind11::arg("node"),
         pybind11::arg("callback"));
 }

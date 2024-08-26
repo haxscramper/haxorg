@@ -605,7 +605,7 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
     IMM_BOX = "ImmBox"
 
-    def impl(obj: Any):
+    def conv_type(obj: QualType):
         match obj:
             case QualType(name="SemId", parameters=[]):
                 obj.name = "ImmId"
@@ -615,7 +615,23 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.name = "ImmIdT"
                 obj.Spaces = [QualType.ForName("org")]
 
-            case QualType(name=TypeName, Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
+            case QualType(meta={"isOrgType": True}):
+                if len(obj.Spaces) == 1:
+                    obj.name = "Imm" + obj.name
+                    obj.Spaces = [QualType.ForName("org")]
+
+                else:
+                    spaces = obj.flatQualSpaces()
+                    # obj.dbg_origin = "{} - - > {}".format(obj.format(),
+                    #                                       [s.format() for s in spaces])
+                    obj.Spaces = [
+                        QualType.ForName("org"),
+                        spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
+                        *spaces[2:-1],
+                    ]
+
+            case QualType(name=TypeName,
+                          Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
                 obj.name = "Imm" + obj.name
                 obj.Spaces = [QualType.ForName("org")]
 
@@ -626,14 +642,19 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
             case QualType(name="UnorderedMap"):
                 obj.name = "ImmMap"
                 obj.Spaces = []
-                
+
+    def impl(obj: Any):
+        match obj:
+            case QualType():
+                conv_type(obj)
+
             case GenTuField(type=QualType(name="SemId", parameters=[])):
-                obj.type.name = "ImmId"
+                conv_type(obj.type)
                 obj.value = "org::ImmId::Nil()"
 
             case GenTuField(type=QualType(name="SemId")):
-                obj.type.name = "ImmIdT"
-                obj.value = f"org::ImmIdT<{obj.type.par0().name}>::Nil()"
+                conv_type(obj.type)
+                obj.value = f"org::ImmIdT<org::Imm{obj.type.par0().name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
                 obj.type.Parameters = [obj.type.par0().withWrapperType(IMM_BOX)]
@@ -647,7 +668,8 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
                 if hasattr(obj, "isOrgType"):
                     obj.nested = [
-                        GenTuPass(f"using Imm{obj.bases[0].name}::Imm{obj.bases[0].name};"),
+                        GenTuPass(
+                            f"using Imm{obj.bases[0].name}::Imm{obj.bases[0].name};"),
                         GenTuPass(f"virtual ~Imm{obj.name.name}() = default;"),
                     ] + obj.nested
 

@@ -155,6 +155,7 @@ class GenTuTypeGroup:
     variantName: str = "Data"
     variantValue: Optional[str] = None
     kindGetter: str = "getKind"
+    meta: Dict[str, Any] = field(default_factory=dict)
 
 
 @beartype

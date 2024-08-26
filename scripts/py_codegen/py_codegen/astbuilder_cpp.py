@@ -8,6 +8,7 @@ import os
 import py_codegen.astbuilder_base as base
 from typing import TYPE_CHECKING
 from pydantic import BaseModel, Field
+import itertools
 
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
@@ -69,6 +70,9 @@ class QualType(BaseModel, extra="forbid"):
 
     def asRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
+
+    def flatQualSpaces(self) -> List["QualType"]:
+        return list(itertools.chain(*(s.flatQualSpaces() for s in self.Spaces))) + [self.withoutAllSpaces()]
 
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
@@ -1189,6 +1193,16 @@ class ASTBuilder(base.AstbuilderBase):
                 case ReferenceKind.RValue:
                     qualifiers += "&&"
 
+        def get_dbg_str() -> str:
+            if type_.dbg_origin:
+                return f" /* {type_.dbg_origin} */"
+
+            else:
+                return ""
+
+        def get_dbg() -> BlockId:
+            return self.string(get_dbg_str())
+
         match type_.Kind:
             case QualTypeKind.FunctionPtr:
                 pointer_type = [self.Type(type_.func.Class),
@@ -1199,10 +1213,11 @@ class ASTBuilder(base.AstbuilderBase):
                     self.pars(self.b.line(pointer_type + [self.string("*")])),
                     self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
                     self.string(" const" if type_.func.IsConst else ""),
+                    get_dbg(),
                 ])
 
             case QualTypeKind.TypeExpr:
-                return self.string(type_.expr)
+                return self.string(type_.expr + get_dbg_str())
 
             case QualTypeKind.Array:
                 return self.b.line([
@@ -1210,7 +1225,8 @@ class ASTBuilder(base.AstbuilderBase):
                     self.string("["),
                     self.Type(type_.Parameters[1]),
                     self.string("]"),
-                    self.string(qualifiers)
+                    self.string(qualifiers),
+                    get_dbg(),
                 ])
 
             case QualTypeKind.RegularType:
@@ -1245,6 +1261,7 @@ class ASTBuilder(base.AstbuilderBase):
                     self.b.join(type_scopes, self.string("::")),
                     template_parameters,
                     self.string(qualifiers),
+                    get_dbg(),
                 ])
 
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:

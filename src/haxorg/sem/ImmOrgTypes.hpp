@@ -30,7 +30,7 @@ struct ImmCmdArguments : public org::ImmOrg {
   virtual ~ImmCmdArguments() = default;
   static OrgSemKind const staticKind;
   /// \brief Positional arguments with no keys
-  sem::ImmIdT<org::ImmCmdArgumentList> positional = org::ImmIdT<CmdArgumentList>::Nil();
+  org::ImmIdT<org::ImmCmdArgumentList> positional = org::ImmIdT<org::ImmCmdArgumentList>::Nil();
   /// \brief Stored key-value mapping
   ImmMap<Str, org::ImmIdT<org::ImmCmdArgumentList>> named;
 };
@@ -125,7 +125,7 @@ struct ImmCmdCaption : public org::ImmAttached {
   virtual ~ImmCmdCaption() = default;
   static OrgSemKind const staticKind;
   /// \brief Content description
-  sem::ImmIdT<org::ImmParagraph> text = org::ImmIdT<Paragraph>::Nil();
+  org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
 };
 
 /// \brief Name identifier for the statement elements.
@@ -162,7 +162,7 @@ struct ImmCmdCustomText : public org::ImmStmt {
   static OrgSemKind const staticKind;
   ImmBox<Str> name;
   bool isAttached = false;
-  sem::ImmIdT<org::ImmParagraph> text = org::ImmIdT<Paragraph>::Nil();
+  org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
 };
 
 struct ImmCmdResults : public org::ImmAttached {
@@ -224,15 +224,15 @@ struct ImmTime : public org::ImmOrg {
     enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
     /// \brief mode
-    sem::Time::Repeat::Mode mode;
+    org::ImmTime::Repeat::Mode mode;
     /// \brief period
-    sem::Time::Repeat::Period period;
+    org::ImmTime::Repeat::Period period;
     /// \brief count
     int count;
   };
 
   struct Static {
-    Opt<ImmBox<sem::Time::Repeat>> repeat;
+    Opt<ImmBox<org::ImmTime::Repeat>> repeat;
     UserTime time;
   };
 
@@ -255,9 +255,9 @@ struct ImmTimeRange : public org::ImmOrg {
   virtual ~ImmTimeRange() = default;
   static OrgSemKind const staticKind;
   /// \brief Starting time
-  sem::ImmIdT<org::ImmTime> from = org::ImmIdT<Time>::Nil();
+  org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
   /// \brief Finishing time
-  sem::ImmIdT<org::ImmTime> to = org::ImmIdT<Time>::Nil();
+  org::ImmIdT<org::ImmTime> to = org::ImmIdT<org::ImmTime>::Nil();
 };
 
 /// \brief Inline macro invocation
@@ -268,7 +268,7 @@ struct ImmMacro : public org::ImmOrg {
   /// \brief Macro name
   ImmBox<Str> name = "";
   /// \brief Additional parameters aside from 'exporter',
-  sem::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<CmdArguments>::Nil();
+  org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
 };
 
 /// \brief Text symbol or symbol command
@@ -287,7 +287,7 @@ struct ImmSymbol : public org::ImmOrg {
   /// \brief Name of the symbol
   ImmBox<Str> name;
   /// \brief Optional list of parameters
-  ImmVec<sem::Symbol::Param> parameters;
+  ImmVec<org::ImmSymbol::Param> parameters;
   /// \brief Positional parameters
   ImmVec<org::ImmIdT<org::ImmOrg>> positional;
 };
@@ -520,7 +520,7 @@ struct ImmBlockExport : public org::ImmBlock {
   BOOST_DESCRIBE_NESTED_ENUM(Format, Inline, Line, Block)
   static OrgSemKind const staticKind;
   /// \brief Export block type
-  sem::BlockExport::Format format = sem::BlockExport::Format::Inline;
+  org::ImmBlockExport::Format format = sem::BlockExport::Format::Inline;
   /// \brief Exporter backend name
   ImmBox<Str> exporter;
   /// \brief Customized position of the text in the final exporting document.
@@ -561,7 +561,7 @@ struct ImmBlockCode : public org::ImmBlock {
     };
 
     /// \brief parts of the single line
-    ImmVec<sem::BlockCode::Line::Part> parts = {};
+    ImmVec<org::ImmBlockCode::Line::Part> parts = {};
   };
 
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
@@ -622,7 +622,7 @@ struct ImmBlockCode : public org::ImmBlock {
     /// \brief Source code block evaluated to an org-mode node element
     struct OrgValue {
       /// \brief Parsed value of the evaluation result
-      sem::ImmIdT<org::ImmOrg> value = org::ImmIdT<Org>::Nil();
+      org::ImmIdT<org::ImmOrg> value = org::ImmIdT<org::ImmOrg>::Nil();
     };
 
     /// \brief Output evaluation results to a file
@@ -645,13 +645,13 @@ struct ImmBlockCode : public org::ImmBlock {
   /// \brief Code block language name
   Opt<ImmBox<Str>> lang = std::nullopt;
   /// \brief Switch options for block
-  ImmVec<sem::BlockCode::Switch> switches = {};
+  ImmVec<org::ImmBlockCode::Switch> switches = {};
   /// \brief What to export
-  sem::BlockCode::Exports exports = sem::BlockCode::Exports::Both;
+  org::ImmBlockCode::Exports exports = sem::BlockCode::Exports::Both;
   /// \brief Code evaluation results
-  Opt<ImmBox<sem::BlockCode::EvalResult>> result = std::nullopt;
+  Opt<ImmBox<org::ImmBlockCode::EvalResult>> result = std::nullopt;
   /// \brief Collected code lines
-  ImmVec<sem::BlockCode::Line> lines = {};
+  ImmVec<org::ImmBlockCode::Line> lines = {};
   /// \brief Do cache values?
   bool cache = false;
   /// \brief Eval on export?
@@ -675,7 +675,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
   };
 
   /// \brief Priority added
-  struct Priority : public sem::SubtreeLog::DescribedLog {
+  struct Priority : public org::ImmSubtreeLog::DescribedLog {
     /// \brief Priority change action
     enum class Action : short int {
       /// \brief `Priority B added on [timestamp]`
@@ -691,52 +691,52 @@ struct ImmSubtreeLog : public org::ImmOrg {
     /// \brief New priority for change and addition
     Opt<ImmBox<std::string>> newPriority = std::nullopt;
     /// \brief When priority was changed
-    sem::ImmIdT<org::ImmTime> on = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Which action taken
-    sem::SubtreeLog::Priority::Action action;
+    org::ImmSubtreeLog::Priority::Action action;
   };
 
   /// \brief Timestamped note
-  struct Note : public sem::SubtreeLog::DescribedLog {
+  struct Note : public org::ImmSubtreeLog::DescribedLog {
     /// \brief Where log was taken
-    sem::ImmIdT<org::ImmTime> on = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
   };
 
   /// \brief Refiling action
-  struct Refile : public sem::SubtreeLog::DescribedLog {
+  struct Refile : public org::ImmSubtreeLog::DescribedLog {
     /// \brief When the refiling happened
-    sem::ImmIdT<org::ImmTime> on = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Link to the original subtree
-    sem::ImmIdT<org::ImmLink> from = org::ImmIdT<Link>::Nil();
+    org::ImmIdT<org::ImmLink> from = org::ImmIdT<org::ImmLink>::Nil();
   };
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
-  struct Clock : public sem::SubtreeLog::DescribedLog {
+  struct Clock : public org::ImmSubtreeLog::DescribedLog {
     /// \brief Clock start time
-    sem::ImmIdT<org::ImmTime> from = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Optional end of the clock
     Opt<ImmBox<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
-  struct State : public sem::SubtreeLog::DescribedLog {
+  struct State : public org::ImmSubtreeLog::DescribedLog {
     ImmBox<Str> from;
     ImmBox<Str> to;
-    sem::ImmIdT<org::ImmTime> on = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
-  struct Tag : public sem::SubtreeLog::DescribedLog {
+  struct Tag : public org::ImmSubtreeLog::DescribedLog {
     /// \brief When the log was assigned
-    sem::ImmIdT<org::ImmTime> on = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Tag in question
-    sem::ImmIdT<org::ImmHashTag> tag = org::ImmIdT<HashTag>::Nil();
+    org::ImmIdT<org::ImmHashTag> tag = org::ImmIdT<org::ImmHashTag>::Nil();
     /// \brief Added/removed?
     bool added = false;
   };
 
   /// \brief Unknown subtree log entry kind
-  struct Unknown : public sem::SubtreeLog::DescribedLog {};
+  struct Unknown : public org::ImmSubtreeLog::DescribedLog {};
 
   using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Note, sem::SubtreeLog::Refile, sem::SubtreeLog::Clock, sem::SubtreeLog::State, sem::SubtreeLog::Tag, sem::SubtreeLog::Unknown>;
   enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, Unknown, };
@@ -770,9 +770,9 @@ struct ImmSubtree : public org::ImmOrg {
     };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Closed, Scheduled, Titled, Deadline, Created, Repeated)
     /// \brief Time period kind -- not associated with point/range distinction
-    sem::Subtree::Period::Kind kind;
+    org::ImmSubtree::Period::Kind kind;
     /// \brief Clock start time
-    sem::ImmIdT<org::ImmTime> from = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Optional end of the clock
     Opt<ImmBox<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
   };
@@ -790,7 +790,7 @@ struct ImmSubtree : public org::ImmOrg {
     struct Trigger {};
 
     struct Origin {
-      sem::ImmIdT<org::ImmParagraph> text = org::ImmIdT<Paragraph>::Nil();
+      org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
     };
 
     struct ExportLatexClass {
@@ -821,7 +821,7 @@ struct ImmSubtree : public org::ImmOrg {
     struct Visibility {
       enum class Level : short int { Folded, Children, Content, All, };
       BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
-      sem::Subtree::Property::Visibility::Level level;
+      org::ImmSubtree::Property::Visibility::Level level;
     };
 
     struct ExportOptions {
@@ -836,7 +836,7 @@ struct ImmSubtree : public org::ImmOrg {
     struct Unnumbered {};
 
     struct Created {
-      sem::ImmIdT<org::ImmTime> time = org::ImmIdT<Time>::Nil();
+      org::ImmIdT<org::ImmTime> time = org::ImmIdT<org::ImmTime>::Nil();
     };
 
     /// \brief Custop property with unparsed arguments
@@ -846,7 +846,7 @@ struct ImmSubtree : public org::ImmOrg {
       /// \brief Property target specialization
       Opt<ImmBox<Str>> sub = std::nullopt;
       /// \brief Property parameters
-      sem::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<CmdArguments>::Nil();
+      org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
     };
 
     /// \brief Custop property with unparsed arguments
@@ -860,9 +860,9 @@ struct ImmSubtree : public org::ImmOrg {
     using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created, sem::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomRaw>;
     enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
-    sem::Subtree::Property::SetMode mainSetRule = sem::Subtree::Property::SetMode::Override;
-    sem::Subtree::Property::SetMode subSetRule = sem::Subtree::Property::SetMode::Override;
-    sem::Subtree::Property::InheritanceMode inheritanceMode = sem::Subtree::Property::InheritanceMode::ThisAndSub;
+    org::ImmSubtree::Property::SetMode mainSetRule = sem::Subtree::Property::SetMode::Override;
+    org::ImmSubtree::Property::SetMode subSetRule = sem::Subtree::Property::SetMode::Override;
+    org::ImmSubtree::Property::InheritanceMode inheritanceMode = sem::Subtree::Property::InheritanceMode::ThisAndSub;
     sem::Subtree::Property::Data data;
   };
 
@@ -879,11 +879,11 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Trailing tags
   ImmVec<org::ImmIdT<org::ImmHashTag>> tags = {};
   /// \brief Main title
-  sem::ImmIdT<org::ImmParagraph> title = org::ImmIdT<Paragraph>::Nil();
+  org::ImmIdT<org::ImmParagraph> title = org::ImmIdT<org::ImmParagraph>::Nil();
   /// \brief Associated subtree log
   ImmVec<org::ImmIdT<org::ImmSubtreeLog>> logbook = {};
   /// \brief Immediate properties
-  ImmVec<sem::Subtree::Property> properties = {};
+  ImmVec<org::ImmSubtree::Property> properties = {};
   /// \brief When subtree was marked as closed
   Opt<ImmBox<org::ImmIdT<org::ImmTime>>> closed = std::nullopt;
   /// \brief When is the deadline
@@ -960,12 +960,12 @@ struct ImmAnnotatedParagraph : public org::ImmStmt {
 
   struct Admonition {
     /// \brief Prefix admonition for the paragraph
-    sem::ImmIdT<sem::BigIdent> name = org::ImmIdT<BigIdent>::Nil();
+    org::ImmIdT<sem::BigIdent> name = org::ImmIdT<org::ImmBigIdent>::Nil();
   };
 
   struct Timestamp {
     /// \brief Leading timestamp for the paragraph
-    sem::ImmIdT<org::ImmTime> time = org::ImmIdT<Time>::Nil();
+    org::ImmIdT<org::ImmTime> time = org::ImmIdT<org::ImmTime>::Nil();
   };
 
   using Data = std::variant<sem::AnnotatedParagraph::None, sem::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Timestamp>;
@@ -998,7 +998,7 @@ struct ImmCall : public org::ImmOrg {
   /// \brief Call target name
   ImmBox<Str> name;
   /// \brief Additional parameters aside from 'exporter',
-  sem::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<CmdArguments>::Nil();
+  org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
   bool isCommand = false;
 };
 
@@ -1014,7 +1014,7 @@ struct ImmListItem : public org::ImmOrg {
   enum class Checkbox : short int { None, Done, Empty, Partial, };
   BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty, Partial)
   static OrgSemKind const staticKind;
-  sem::ListItem::Checkbox checkbox = sem::ListItem::Checkbox::None;
+  org::ImmListItem::Checkbox checkbox = sem::ListItem::Checkbox::None;
   /// \brief Description list item header
   Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
@@ -1070,18 +1070,18 @@ struct ImmDocumentOptions : public org::ImmOrg {
     Opt<ImmBox<bool>> statisticsCookies = std::nullopt;
     /// \brief Include todo keywords in export
     Opt<ImmBox<bool>> todoText = std::nullopt;
-    sem::DocumentOptions::ExportConfig::BrokenLinks brokenLinks = sem::DocumentOptions::ExportConfig::BrokenLinks::Mark;
-    sem::DocumentOptions::ExportConfig::TocExport tocExport = sem::DocumentOptions::ExportConfig::DoExport{false};
-    sem::DocumentOptions::ExportConfig::TagExport tagExport = sem::DocumentOptions::ExportConfig::TagExport::All;
+    org::ImmDocumentOptions::ExportConfig::BrokenLinks brokenLinks = sem::DocumentOptions::ExportConfig::BrokenLinks::Mark;
+    org::ImmDocumentOptions::ExportConfig::TocExport tocExport = sem::DocumentOptions::ExportConfig::DoExport{false};
+    org::ImmDocumentOptions::ExportConfig::TagExport tagExport = sem::DocumentOptions::ExportConfig::TagExport::All;
     sem::DocumentOptions::ExportConfig::TocExport data;
   };
 
   enum class Visibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
   BOOST_DESCRIBE_NESTED_ENUM(Visibility, Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything)
   static OrgSemKind const staticKind;
-  sem::DocumentOptions::Visibility initialVisibility = sem::DocumentOptions::Visibility::ShowEverything;
-  ImmVec<sem::Subtree::Property> properties = {};
-  sem::DocumentOptions::ExportConfig exportConfig;
+  org::ImmDocumentOptions::Visibility initialVisibility = sem::DocumentOptions::Visibility::ShowEverything;
+  ImmVec<org::ImmSubtree::Property> properties = {};
+  org::ImmDocumentOptions::ExportConfig exportConfig;
   Opt<ImmBox<bool>> fixedWidthSections = std::nullopt;
   Opt<ImmBox<bool>> startupIndented = std::nullopt;
   Opt<ImmBox<Str>> category = std::nullopt;
@@ -1099,7 +1099,7 @@ struct ImmDocument : public org::ImmOrg {
   ImmVec<org::ImmIdT<org::ImmHashTag>> filetags = {};
   Opt<ImmBox<org::ImmIdT<org::ImmRawText>>> email = std::nullopt;
   ImmVec<Str> language = {};
-  sem::ImmIdT<org::ImmDocumentOptions> options = org::ImmIdT<DocumentOptions>::Nil();
+  org::ImmIdT<org::ImmDocumentOptions> options = org::ImmIdT<org::ImmDocumentOptions>::Nil();
   Opt<ImmBox<Str>> exportFileName = std::nullopt;
 };
 
