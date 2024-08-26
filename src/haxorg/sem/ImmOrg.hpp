@@ -1,6 +1,7 @@
 #pragma once
 
 #include <haxorg/sem/ImmOrgBase.hpp>
+#include <haxorg/sem/ImmOrgTypes.hpp>
 
 namespace org {
 

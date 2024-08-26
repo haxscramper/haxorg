@@ -48,11 +48,13 @@ class QualType(BaseModel, extra="forbid"):
 
     meta: Dict[str, Any] = Field(default={})
 
-    def par0(self):
-        return self.Parameters[0]
+    def par0(self) -> Optional["QualType"]:
+        if 0 < len(self.Parameters):
+            return self.Parameters[0]
 
-    def par1(self):
-        return self.Parameters[1]
+    def par1(self) -> Optional["QualType"]:
+        if 1 < len(self.Parameters):
+            return self.Parameters[1]
 
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':
@@ -89,6 +91,9 @@ class QualType(BaseModel, extra="forbid"):
             ))],
             isGlobalNamespace=self.isGlobalNamespace,
         ))
+
+    def withWrapperType(self, name: str) -> "QualType":
+        return QualType(name=name, Parameters=[self])
 
     def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
         added: QualType = QualType(name=name) if isinstance(name, str) else name

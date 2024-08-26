@@ -603,22 +603,53 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     result = deepcopy(recs)
 
+    IMM_BOX = "ImmBox"
+
     def impl(obj: Any):
         match obj:
-            case QualType(name="SemId"):
+            case QualType(name="SemId", parameters=[]):
                 obj.name = "ImmId"
                 obj.Spaces = [QualType.ForName("org")]
 
-            case QualType(Spaces=[QualType(name="sem")]):
+            case QualType(name="SemId"):
+                obj.name = "ImmIdT"
+                obj.Spaces = [QualType.ForName("org")]
+
+            case QualType(name=TypeName, Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
                 obj.name = "Imm" + obj.name
                 obj.Spaces = [QualType.ForName("org")]
 
             case QualType(name="Vec"):
-                obj.name = "vector"
-                obj.Spaces = [QualType.ForName("immer")]
+                obj.name = "ImmVec"
+                obj.Spaces = []
+
+            case QualType(name="UnorderedMap"):
+                obj.name = "ImmMap"
+                obj.Spaces = []
+                
+            case GenTuField(type=QualType(name="SemId", parameters=[])):
+                obj.type.name = "ImmId"
+                obj.value = "org::ImmId::Nil()"
+
+            case GenTuField(type=QualType(name="SemId")):
+                obj.type.name = "ImmIdT"
+                obj.value = f"org::ImmIdT<{obj.type.par0().name}>::Nil()"
+
+            case GenTuField(type=QualType(name="Opt")):
+                obj.type.Parameters = [obj.type.par0().withWrapperType(IMM_BOX)]
+
+            case GenTuField(type=QualType(name="Str")):
+                obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])
 
             case GenTuStruct():
                 obj.methods = []
+                obj.GenDescribe = False
+                obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
+                if hasattr(obj, "isOrgType"):
+                    obj.nested = [
+                        GenTuPass(f"using Imm{obj.bases[0].name}::Imm{obj.bases[0].name};"),
+                        GenTuPass(f"virtual ~Imm{obj.name.name}() = default;"),
+                    ] + obj.nested
 
     iterate_object_tree(result, [], pre_visit=impl)
 
