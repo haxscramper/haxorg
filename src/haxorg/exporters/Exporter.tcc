@@ -500,7 +500,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCode::Line const& object) { __obj_field(res, object, parts); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Data const& object) { visitVariants(res, sem::BlockCode::Line::Part::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data const& object) { visitVariants(res, sem::BlockCode::Line::Part::getKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part const& object) { __obj_field(res, object, data); }
@@ -539,7 +539,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::Dedent const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::Data const& object) { visitVariants(res, sem::BlockCode::EvalResult::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::BlockCode::sem::BlockCode::EvalResult::Data const& object) { visitVariants(res, sem::BlockCode::EvalResult::getKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult const& object) { __obj_field(res, object, data); }

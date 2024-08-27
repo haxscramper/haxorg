@@ -20,11 +20,16 @@ class QualTypeKind(str, Enum):
     Array = "Array"
     TypeExpr = "TypeExpr"
 
+    def __rich_repr__(self):
+        yield self.name
 
 class ReferenceKind(str, Enum):
     NotRef = "NotRef"
     LValue = "LValue"
     RValue = "RValue"
+
+    def __rich_repr__(self):
+        yield self.name
 
 
 @beartype
@@ -56,6 +61,9 @@ class QualType(BaseModel, extra="forbid"):
     def par1(self) -> Optional["QualType"]:
         if 1 < len(self.Parameters):
             return self.Parameters[1]
+
+    def test(self, met: bool) -> bool:
+        return self.meta.get(met, False)
 
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':

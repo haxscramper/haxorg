@@ -582,20 +582,20 @@ struct ImmBlockCode : public org::ImmBlock {
         ImmBox<Str> target;
       };
 
-      using Data = std::variant<org::ImmBlockCode::Line::Part::Raw, org::ImmBlockCode::Line::Part::Callout, org::ImmBlockCode::Line::Part::Tangle>;
+      using Data = std::variant<org::ImmBlockCode::Line::Raw, org::ImmBlockCode::Line::Callout, org::ImmBlockCode::Line::Tangle>;
       enum class Kind : short int { Raw, Callout, Tangle, };
       BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
-      using variant_enum_type = org::ImmBlockCode::Line::Part::Kind;
-      using variant_data_type = org::ImmBlockCode::Line::Part::Data;
-      org::ImmBlockCode::Line::Part::Data data;
-      org::ImmBlockCode::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
-      org::ImmBlockCode::Line::Part::Raw& getRaw() { return std::get<0>(data); }
-      org::ImmBlockCode::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
-      org::ImmBlockCode::Line::Part::Callout& getCallout() { return std::get<1>(data); }
-      org::ImmBlockCode::Line::Part::Tangle const& getTangle() const { return std::get<2>(data); }
-      org::ImmBlockCode::Line::Part::Tangle& getTangle() { return std::get<2>(data); }
-      static org::ImmBlockCode::Line::Part::Kind getKind(org::ImmBlockCode::Line::Part::Data const& __input) { return static_cast<org::ImmBlockCode::Line::Part::Kind>(__input.index()); }
-      org::ImmBlockCode::Line::Part::Kind getKind() const { return getKind(data); }
+      using variant_enum_type = org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Kind;
+      using variant_data_type = org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Data;
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Data data;
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Raw const& getRaw() const { return std::get<0>(data); }
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Raw& getRaw() { return std::get<0>(data); }
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Callout const& getCallout() const { return std::get<1>(data); }
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Callout& getCallout() { return std::get<1>(data); }
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Tangle const& getTangle() const { return std::get<2>(data); }
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Tangle& getTangle() { return std::get<2>(data); }
+      static org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Kind getKind(org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Data const& __input) { return static_cast<org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Kind>(__input.index()); }
+      org::ImmBlockCode::org::ImmBlockCode::Line::org::ImmBlockCode::Part::Kind getKind() const { return getKind(data); }
     };
 
     /// \brief parts of the single line
@@ -629,7 +629,7 @@ struct ImmBlockCode : public org::ImmBlock {
       int value = 0;
     };
 
-    using Data = std::variant<org::ImmBlockCode::Switch::LineStart, org::ImmBlockCode::Switch::CalloutFormat, org::ImmBlockCode::Switch::RemoveCallout, org::ImmBlockCode::Switch::EmphasizeLine, org::ImmBlockCode::Switch::Dedent>;
+    using Data = std::variant<org::ImmBlockCode::LineStart, org::ImmBlockCode::CalloutFormat, org::ImmBlockCode::RemoveCallout, org::ImmBlockCode::EmphasizeLine, org::ImmBlockCode::Dedent>;
     enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
     using variant_enum_type = org::ImmBlockCode::Switch::Kind;
@@ -687,22 +687,22 @@ struct ImmBlockCode : public org::ImmBlock {
       ImmBox<Str> text;
     };
 
-    using Data = std::variant<org::ImmBlockCode::EvalResult::None, org::ImmBlockCode::EvalResult::OrgValue, org::ImmBlockCode::EvalResult::File, org::ImmBlockCode::EvalResult::Raw>;
+    using Data = std::variant<None, OrgValue, File, Raw>;
     enum class Kind : short int { None, OrgValue, File, Raw, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
-    using variant_enum_type = org::ImmBlockCode::EvalResult::Kind;
-    using variant_data_type = org::ImmBlockCode::EvalResult::Data;
-    org::ImmBlockCode::EvalResult::Data data;
-    org::ImmBlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
-    org::ImmBlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
-    org::ImmBlockCode::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
-    org::ImmBlockCode::EvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
-    org::ImmBlockCode::EvalResult::File const& getFile() const { return std::get<2>(data); }
-    org::ImmBlockCode::EvalResult::File& getFile() { return std::get<2>(data); }
-    org::ImmBlockCode::EvalResult::Raw const& getRaw() const { return std::get<3>(data); }
-    org::ImmBlockCode::EvalResult::Raw& getRaw() { return std::get<3>(data); }
-    static org::ImmBlockCode::EvalResult::Kind getKind(org::ImmBlockCode::EvalResult::Data const& __input) { return static_cast<org::ImmBlockCode::EvalResult::Kind>(__input.index()); }
-    org::ImmBlockCode::EvalResult::Kind getKind() const { return getKind(data); }
+    using variant_enum_type = org::ImmBlockCode::org::ImmBlockCode::EvalResult::Kind;
+    using variant_data_type = org::ImmBlockCode::org::ImmBlockCode::EvalResult::Data;
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::Data data;
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::File const& getFile() const { return std::get<2>(data); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::File& getFile() { return std::get<2>(data); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::Raw const& getRaw() const { return std::get<3>(data); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::Raw& getRaw() { return std::get<3>(data); }
+    static org::ImmBlockCode::org::ImmBlockCode::EvalResult::Kind getKind(org::ImmBlockCode::org::ImmBlockCode::EvalResult::Data const& __input) { return static_cast<org::ImmBlockCode::org::ImmBlockCode::EvalResult::Kind>(__input.index()); }
+    org::ImmBlockCode::org::ImmBlockCode::EvalResult::Kind getKind() const { return getKind(data); }
   };
 
   static OrgSemKind const staticKind;
@@ -939,7 +939,7 @@ struct ImmSubtree : public org::ImmOrg {
       ImmBox<Str> value = "";
     };
 
-    using Data = std::variant<org::ImmSubtree::Property::Nonblocking, org::ImmSubtree::Property::Trigger, org::ImmSubtree::Property::Origin, org::ImmSubtree::Property::ExportLatexClass, org::ImmSubtree::Property::ExportLatexClassOptions, org::ImmSubtree::Property::ExportLatexHeader, org::ImmSubtree::Property::ExportLatexCompiler, org::ImmSubtree::Property::Ordered, org::ImmSubtree::Property::Effort, org::ImmSubtree::Property::Visibility, org::ImmSubtree::Property::ExportOptions, org::ImmSubtree::Property::Blocker, org::ImmSubtree::Property::Unnumbered, org::ImmSubtree::Property::Created, org::ImmSubtree::Property::CustomArgs, org::ImmSubtree::Property::CustomRaw>;
+    using Data = std::variant<Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw>;
     enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
     using variant_enum_type = org::ImmSubtree::Property::Kind;
@@ -1086,7 +1086,7 @@ struct ImmAnnotatedParagraph : public org::ImmStmt {
     org::ImmIdT<org::ImmTime> time = org::ImmIdT<org::ImmTime>::Nil();
   };
 
-  using Data = std::variant<org::ImmAnnotatedParagraph::None, org::ImmAnnotatedParagraph::Footnote, org::ImmAnnotatedParagraph::Admonition, org::ImmAnnotatedParagraph::Timestamp>;
+  using Data = std::variant<None, Footnote, Admonition, Timestamp>;
   enum class AnnotationKind : short int { None, Footnote, Admonition, Timestamp, };
   BOOST_DESCRIBE_NESTED_ENUM(AnnotationKind, None, Footnote, Admonition, Timestamp)
   using variant_enum_type = org::ImmAnnotatedParagraph::AnnotationKind;
@@ -1177,8 +1177,8 @@ struct ImmDocumentOptions : public org::ImmOrg {
       All,
     };
     BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
-    enum class BrokenLinks : short int { Raise, Ignore, Mark, };
-    BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
+    enum class BrokenLinks : short int { Mark, Raise, Ignore, };
+    BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Mark, Raise, Ignore)
     struct DoExport {
       bool exportToc;
     };
@@ -1187,7 +1187,7 @@ struct ImmDocumentOptions : public org::ImmOrg {
       int exportLevels;
     };
 
-    using TocExport = std::variant<org::ImmDocumentOptions::ExportConfig::DoExport, org::ImmDocumentOptions::ExportConfig::ExportFixed>;
+    using TocExport = std::variant<DoExport, ExportFixed>;
     enum class TocExportKind : short int { DoExport, ExportFixed, };
     BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
     using variant_enum_type = org::ImmDocumentOptions::ExportConfig::TocExportKind;
@@ -1202,9 +1202,9 @@ struct ImmDocumentOptions : public org::ImmOrg {
     Opt<ImmBox<bool>> statisticsCookies = std::nullopt;
     /// \brief Include todo keywords in export
     Opt<ImmBox<bool>> todoText = std::nullopt;
-    org::ImmDocumentOptions::BrokenLinks brokenLinks = ExportConfig::BrokenLinks::Mark;
-    org::ImmDocumentOptions::TocExport tocExport = ExportConfig::DoExport{false};
-    org::ImmDocumentOptions::TagExport tagExport = ExportConfig::TagExport::All;
+    org::ImmDocumentOptions::BrokenLinks brokenLinks;
+    org::ImmDocumentOptions::TocExport tocExport;
+    org::ImmDocumentOptions::TagExport tagExport;
     org::ImmDocumentOptions::ExportConfig::TocExport data;
     org::ImmDocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
     org::ImmDocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
@@ -1273,7 +1273,7 @@ struct ImmInclude : public org::ImmOrg {
     Opt<ImmBox<int>> minLevel = std::nullopt;
   };
 
-  using Data = std::variant<org::ImmInclude::Example, org::ImmInclude::Export, org::ImmInclude::Src, org::ImmInclude::OrgDocument>;
+  using Data = std::variant<Example, Export, Src, OrgDocument>;
   enum class Kind : short int { Example, Export, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
   using variant_enum_type = org::ImmInclude::Kind;

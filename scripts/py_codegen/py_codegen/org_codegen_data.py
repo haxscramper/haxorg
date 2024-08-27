@@ -27,8 +27,17 @@ def efield(name: str,
 
 
 @beartype
-def t(name: str) -> QualType:
-    return QualType(name=name)
+def t(name: str | QualType) -> QualType:
+    if isinstance(name, QualType):
+        return name
+
+    else:
+        return QualType(name=name)
+
+
+@beartype
+def t_namespace(name: str | QualType) -> QualType:
+    return t(name).asNamespace()
 
 
 def t_str() -> QualType:
@@ -44,8 +53,8 @@ def t_int() -> QualType:
 
 
 @beartype
-def t_space(name: str | QualType, Spaces: List[str]) -> QualType:
-    Spaces = [QualType(name=S, isNamespace=True) for S in Spaces]
+def t_space(name: str | QualType, Spaces: List[str | QualType]) -> QualType:
+    Spaces = [t_namespace(S) for S in Spaces]
     if isinstance(name, QualType):
         return name.model_copy(update=dict(Spaces=Spaces))
     else:
@@ -58,7 +67,7 @@ def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
 
 def t_nest(name: Union[str, QualType], Spaces: List[str]) -> QualType:
     return t_space(name,
-                   ["sem"] + Spaces).model_copy(update=dict(meta=dict(isOrgType=True)))
+                   [n_sem()] + Spaces).model_copy(update=dict(meta=dict(isOrgType=True)))
 
 
 def k_args(obj: Any, **kwargs) -> Any:
@@ -702,19 +711,25 @@ def get_sem_block():
             bases=[t_org("Block")],
             nested=[
                 GenTuStruct(
-                    t("Line"),
+                    t_nest("Line", ["BlockCode"]),
                     nested=[
                         GenTuStruct(
-                            t("Part"),
+                            t_nest("Part", ["BlockCode", "Line"]),
                             nested=[
                                 GenTuTypeGroup([
-                                    GenTuStruct(t("Raw"),
-                                                fields=[GenTuField(t_str(), "code")]),
-                                    GenTuStruct(t("Callout"),
-                                                fields=[GenTuField(t_str(), "name")]),
-                                    GenTuStruct(t("Tangle"),
-                                                fields=[GenTuField(t_str(), "target")]),
-                                ],),
+                                    GenTuStruct(
+                                        t_nest("Raw", ["BlockCode", "Line", "Part"]),
+                                        fields=[GenTuField(t_str(), "code")],
+                                    ),
+                                    GenTuStruct(
+                                        t_nest("Callout", ["BlockCode", "Line", "Part"]),
+                                        fields=[GenTuField(t_str(), "name")],
+                                    ),
+                                    GenTuStruct(
+                                        t_nest("Tangle", ["BlockCode", "Line", "Part"]),
+                                        fields=[GenTuField(t_str(), "target")],
+                                    ),
+                                ]),
                             ],
                         )
                     ],
@@ -735,7 +750,7 @@ def get_sem_block():
                         GenTuPass("Switch() {}"),
                         GenTuTypeGroup([
                             GenTuStruct(
-                                t("LineStart"),
+                                t_nest("LineStart", ["BlockCode", "Switch"]),
                                 GenTuDoc(
                                     "Enumerate code lines starting from `start` value instead of default indexing."
                                 ),
@@ -754,7 +769,7 @@ def get_sem_block():
                                 nested=[GenTuPass("LineStart() {}")],
                             ),
                             GenTuStruct(
-                                t("CalloutFormat"),
+                                t_nest("CalloutFormat", ["BlockCode", "Switch"]),
                                 GenTuDoc(""),
                                 fields=[
                                     GenTuField(t_str(),
@@ -765,7 +780,7 @@ def get_sem_block():
                                 nested=[GenTuPass("CalloutFormat() {}")],
                             ),
                             GenTuStruct(
-                                t("RemoveCallout"),
+                                t_nest("RemoveCallout", ["BlockCode", "Switch"]),
                                 GenTuDoc(""),
                                 fields=[
                                     GenTuField(t_bool(),
@@ -776,7 +791,7 @@ def get_sem_block():
                                 nested=[GenTuPass("RemoveCallout() {}")],
                             ),
                             GenTuStruct(
-                                t("EmphasizeLine"),
+                                t_nest("EmphasizeLine", ["BlockCode", "Switch"]),
                                 GenTuDoc(
                                     "Emphasize single line -- can be repeated multiple times"
                                 ),
@@ -789,7 +804,7 @@ def get_sem_block():
                                 nested=[GenTuPass("EmphasizeLine() {}")],
                             ),
                             GenTuStruct(
-                                t("Dedent"),
+                                t_nest("Dedent", ["BlockCode", "Switch"]),
                                 GenTuDoc(""),
                                 fields=[
                                     GenTuField(t_int(), "value", GenTuDoc(""), value="0")
@@ -809,7 +824,7 @@ def get_sem_block():
                     ],
                 ),
                 GenTuEnum(
-                    t_nest("Exports", ["Include", "Export"]),
+                    t_nest("Exports", ["BlockCode"]),
                     GenTuDoc("What part of the code block should be visible in export"),
                     [
                         GenTuEnumField(
@@ -821,7 +836,7 @@ def get_sem_block():
                     ],
                 ),
                 GenTuStruct(
-                    t("EvalResult"),
+                    t_nest("EvalResult", ["BlockCode"]),
                     nested=[
                         GenTuTypeGroup([
                             GenTuStruct(
@@ -952,11 +967,11 @@ def get_sem_text():
                     "bool isStatic() const { return std::holds_alternative<Static>(time); }"
                 ),
                 GenTuStruct(
-                    t("Repeat"),
+                    t_nest("Repeat", ["Time"]),
                     GenTuDoc("Repetition information for static time"),
                     nested=[
                         GenTuEnum(
-                            t("Mode"),
+                            t_nest("Mode", ["Time", "Repeat"]),
                             GenTuDoc("Timestamp repetition mode"),
                             [
                                 GenTuEnumField(
@@ -976,7 +991,7 @@ def get_sem_text():
                             ],
                         ),
                         GenTuEnum(
-                            t("Period"),
+                            t_nest("Period", ["Time", "Repeat"]),
                             GenTuDoc(
                                 "Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well"
                             ),
@@ -1007,7 +1022,7 @@ def get_sem_text():
                 GenTuTypeGroup(
                     [
                         GenTuStruct(
-                            t("Static"),
+                            t_nest("Static", ["Time"]),
                             GenTuDoc(""),
                             fields=[
                                 GenTuField(t_opt(t_nest("Repeat", ["Time"])), "repeat",
@@ -1016,7 +1031,7 @@ def get_sem_text():
                             ],
                         ),
                         GenTuStruct(
-                            t("Dynamic"),
+                            t_nest("Dynamic", ["Time"]),
                             GenTuDoc(""),
                             fields=[GenTuField(t_str(), "expr", GenTuDoc(""))],
                         ),
@@ -1056,7 +1071,7 @@ def get_sem_text():
             bases=[t_org("Org")],
             nested=[
                 GenTuStruct(
-                    t("Param"),
+                    t_nest("Param", ["Symbol"]),
                     GenTuDoc("Symbol parameters"),
                     fields=[
                         GenTuField(t_opt(t_str()), "key",
@@ -1113,20 +1128,22 @@ def get_sem_text():
                 GenTuTypeGroup(
                     [
                         GenTuStruct(
-                            t("Raw"),
+                            t_nest("Raw", ["Link"]),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
                         ),
-                        GenTuStruct(t("Id"),
-                                    GenTuDoc(""),
-                                    fields=[(GenTuField(t_str(), "text", GenTuDoc("")))]),
                         GenTuStruct(
-                            t("Person"),
+                            t_nest("Id", ["Link"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
+                        ),
+                        GenTuStruct(
+                            t_nest("Person", ["Link"]),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "name", GenTuDoc("")))],
                         ),
                         GenTuStruct(
-                            t("UserProtocol"),
+                            t_nest("UserProtocol", ["Link"]),
                             GenTuDoc(""),
                             fields=[
                                 GenTuField(t_str(), "protocol", GenTuDoc("")),
@@ -1134,24 +1151,24 @@ def get_sem_text():
                             ],
                         ),
                         GenTuStruct(
-                            t("Internal"),
+                            t_nest("Internal", ["Link"]),
                             GenTuDoc(""),
                             fields=[
                                 GenTuField(t_str(), "target", GenTuDoc("")),
                             ],
                         ),
                         GenTuStruct(
-                            t("Footnote"),
+                            t_nest("Footnote", ["Link"]),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "target", GenTuDoc("")))],
                         ),
                         GenTuStruct(
-                            t("File"),
+                            t_nest("File", ["Link"]),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
                         ),
                         GenTuStruct(
-                            t("Attachment"),
+                            t_nest("Attachment", ["Link"]),
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
                         ),
@@ -1178,7 +1195,7 @@ def get_sem_subtree():
                 )
             ],
             nested=[
-                GenTuStruct(t("DescribedLog"),
+                GenTuStruct(t_nest("DescribedLog", ["SubtreeLog"]),
                             GenTuDoc("Base value for the log variant"),
                             fields=[
                                 opt_field(
@@ -1187,16 +1204,16 @@ def get_sem_subtree():
                                     GenTuDoc("Optional description of the log entry"),
                                 )
                             ],
-                            nested=[GenTuPass("DescribedLog() {}")]),
+                            nested=[GenTuPass("DescribedLog() {}")],),
                 GenTuTypeGroup(
                     [
                         GenTuStruct(
-                            t("Priority"),
+                            t_nest("Priority", ["SubtreeLog"]),
                             GenTuDoc("Priority added"),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             nested=[
                                 GenTuEnum(
-                                    t("Action"),
+                                    t_nest("Action", ["SubtreeLog", "Priority"]),
                                     GenTuDoc("Priority change action"),
                                     fields=[
                                         GenTuEnumField(
@@ -1233,7 +1250,7 @@ def get_sem_subtree():
                             ],
                         ),
                         GenTuStruct(
-                            t("Note"),
+                            t_nest("Note", ["SubtreeLog", "Priority"]),
                             GenTuDoc("Timestamped note"),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
@@ -1242,7 +1259,7 @@ def get_sem_subtree():
                             nested=[GenTuPass("Note() {}")],
                         ),
                         GenTuStruct(
-                            t("Refile"),
+                            t_nest("Refile", ["SubtreeLog", "Priority"]),
                             GenTuDoc("Refiling action"),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
@@ -1254,7 +1271,7 @@ def get_sem_subtree():
                             nested=[GenTuPass("Refile() {}")],
                         ),
                         GenTuStruct(
-                            t("Clock"),
+                            t_nest("Clock", ["SubtreeLog", "Priority"]),
                             GenTuDoc(
                                 "Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`"
                             ),
@@ -1267,7 +1284,7 @@ def get_sem_subtree():
                             nested=[GenTuPass("Clock() {}")],
                         ),
                         GenTuStruct(
-                            t("State"),
+                            t_nest("State", ["SubtreeLog", "Priority"]),
                             GenTuDoc(
                                 'Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`'
                             ),
@@ -1280,7 +1297,7 @@ def get_sem_subtree():
                             nested=[GenTuPass("State() {}")],
                         ),
                         GenTuStruct(
-                            t("Tag"),
+                            t_nest("Tag", ["SubtreeLog", "Priority"]),
                             GenTuDoc(
                                 'Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`'
                             ),
@@ -1297,7 +1314,7 @@ def get_sem_subtree():
                             nested=[GenTuPass("Tag() {}")],
                         ),
                         GenTuStruct(
-                            t("Unknown"),
+                            t_nest("Unknown", ["SubtreeLog", "Priority"]),
                             GenTuDoc("Unknown subtree log entry kind"),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[],
@@ -1749,17 +1766,14 @@ def get_types() -> Sequence[GenTuStruct]:
                         org_field(
                             t_nest("BrokenLinks", ["DocumentOptions", "ExportConfig"]),
                             "brokenLinks",
-                            value="ExportConfig::BrokenLinks::Mark",
                         ),
                         org_field(
                             t_nest("TocExport", ["DocumentOptions", "ExportConfig"]),
                             "tocExport",
-                            value="ExportConfig::DoExport{false}",
                         ),
                         org_field(
                             t_nest("TagExport", ["DocumentOptions", "ExportConfig"]),
                             "tagExport",
-                            value="ExportConfig::TagExport::All",
                         ),
                     ],
                     nested=[
@@ -1788,8 +1802,13 @@ def get_types() -> Sequence[GenTuStruct]:
                             efield("None", "Exclude all task subtrees from export"),
                             efield("All", "Add all task subtrees to export"),
                         ),
-                        d_simple_enum("BrokenLinks", GenTuDoc(""), "Raise", "Ignore",
-                                      "Mark"),
+                        d_simple_enum(
+                            "BrokenLinks",
+                            GenTuDoc(""),
+                            "Mark",
+                            "Raise",
+                            "Ignore",
+                        ),
                         GenTuTypeGroup(
                             [
                                 org_struct(

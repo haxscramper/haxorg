@@ -11,6 +11,7 @@ from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_scriptutils.script_logging import log
 import py_codegen.astbuilder_proto as pb
 from py_scriptutils.algorithm import cond
+from py_scriptutils.script_logging import pprint_to_file
 from py_codegen.astbuilder_pybind11 import (
     Py11Method,
     Py11Module,
@@ -573,7 +574,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         result = replace(
             typ,
-            name=typ.name.model_copy(update=dict(Spaces=context)),
+            # name=typ.name.model_copy(update=dict(Spaces=context)),
             nested=converted,
             methods=typ.methods + methods,
             fields=typ.fields + fields,

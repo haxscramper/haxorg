@@ -574,7 +574,7 @@ def t_vec(arg: QualType) -> QualType:
 
 
 def n_sem() -> QualType:
-    return QualType(name="sem", isNamespace=True)
+    return QualType(name="sem", isNamespace=True, meta=dict(isSemNamespace=True))
 
 
 @beartype

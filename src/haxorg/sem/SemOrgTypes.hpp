@@ -986,30 +986,30 @@ struct BlockCode : public sem::Block {
       using Data = std::variant<sem::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Tangle>;
       enum class Kind : short int { Raw, Callout, Tangle, };
       BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
-      using variant_enum_type = sem::BlockCode::Line::Part::Kind;
-      using variant_data_type = sem::BlockCode::Line::Part::Data;
+      using variant_enum_type = sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind;
+      using variant_data_type = sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data;
       BOOST_DESCRIBE_CLASS(Part,
                            (),
                            (),
                            (),
                            (data,
-                            (sem::BlockCode::Line::Part::Raw const&() const) getRaw,
-                            (sem::BlockCode::Line::Part::Raw&()) getRaw,
-                            (sem::BlockCode::Line::Part::Callout const&() const) getCallout,
-                            (sem::BlockCode::Line::Part::Callout&()) getCallout,
-                            (sem::BlockCode::Line::Part::Tangle const&() const) getTangle,
-                            (sem::BlockCode::Line::Part::Tangle&()) getTangle,
-                            (sem::BlockCode::Line::Part::Kind(sem::BlockCode::Line::Part::Data const&)) getKind,
-                            (sem::BlockCode::Line::Part::Kind() const) getKind))
-      sem::BlockCode::Line::Part::Data data;
-      sem::BlockCode::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
-      sem::BlockCode::Line::Part::Raw& getRaw() { return std::get<0>(data); }
-      sem::BlockCode::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
-      sem::BlockCode::Line::Part::Callout& getCallout() { return std::get<1>(data); }
-      sem::BlockCode::Line::Part::Tangle const& getTangle() const { return std::get<2>(data); }
-      sem::BlockCode::Line::Part::Tangle& getTangle() { return std::get<2>(data); }
-      static sem::BlockCode::Line::Part::Kind getKind(sem::BlockCode::Line::Part::Data const& __input) { return static_cast<sem::BlockCode::Line::Part::Kind>(__input.index()); }
-      sem::BlockCode::Line::Part::Kind getKind() const { return getKind(data); }
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Raw const&() const) getRaw,
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Raw&()) getRaw,
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Callout const&() const) getCallout,
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Callout&()) getCallout,
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Tangle const&() const) getTangle,
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Tangle&()) getTangle,
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind(sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data const&)) getKind,
+                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind() const) getKind))
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data data;
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Raw& getRaw() { return std::get<0>(data); }
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Callout& getCallout() { return std::get<1>(data); }
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Tangle const& getTangle() const { return std::get<2>(data); }
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Tangle& getTangle() { return std::get<2>(data); }
+      static sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind getKind(sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data const& __input) { return static_cast<sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind>(__input.index()); }
+      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind getKind() const { return getKind(data); }
     };
 
     BOOST_DESCRIBE_CLASS(Line, (), (), (), (parts))
@@ -1135,37 +1135,37 @@ struct BlockCode : public sem::Block {
       Str text;
     };
 
-    using Data = std::variant<sem::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::Raw>;
+    using Data = std::variant<None, OrgValue, File, Raw>;
     enum class Kind : short int { None, OrgValue, File, Raw, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
-    using variant_enum_type = sem::BlockCode::EvalResult::Kind;
-    using variant_data_type = sem::BlockCode::EvalResult::Data;
+    using variant_enum_type = sem::BlockCode::sem::BlockCode::EvalResult::Kind;
+    using variant_data_type = sem::BlockCode::sem::BlockCode::EvalResult::Data;
     BOOST_DESCRIBE_CLASS(EvalResult,
                          (),
                          (),
                          (),
                          (data,
-                          (sem::BlockCode::EvalResult::None const&() const) getNone,
-                          (sem::BlockCode::EvalResult::None&()) getNone,
-                          (sem::BlockCode::EvalResult::OrgValue const&() const) getOrgValue,
-                          (sem::BlockCode::EvalResult::OrgValue&()) getOrgValue,
-                          (sem::BlockCode::EvalResult::File const&() const) getFile,
-                          (sem::BlockCode::EvalResult::File&()) getFile,
-                          (sem::BlockCode::EvalResult::Raw const&() const) getRaw,
-                          (sem::BlockCode::EvalResult::Raw&()) getRaw,
-                          (sem::BlockCode::EvalResult::Kind(sem::BlockCode::EvalResult::Data const&)) getKind,
-                          (sem::BlockCode::EvalResult::Kind() const) getKind))
-    sem::BlockCode::EvalResult::Data data;
-    sem::BlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
-    sem::BlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
-    sem::BlockCode::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
-    sem::BlockCode::EvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
-    sem::BlockCode::EvalResult::File const& getFile() const { return std::get<2>(data); }
-    sem::BlockCode::EvalResult::File& getFile() { return std::get<2>(data); }
-    sem::BlockCode::EvalResult::Raw const& getRaw() const { return std::get<3>(data); }
-    sem::BlockCode::EvalResult::Raw& getRaw() { return std::get<3>(data); }
-    static sem::BlockCode::EvalResult::Kind getKind(sem::BlockCode::EvalResult::Data const& __input) { return static_cast<sem::BlockCode::EvalResult::Kind>(__input.index()); }
-    sem::BlockCode::EvalResult::Kind getKind() const { return getKind(data); }
+                          (sem::BlockCode::sem::BlockCode::EvalResult::None const&() const) getNone,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::None&()) getNone,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::OrgValue const&() const) getOrgValue,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::OrgValue&()) getOrgValue,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::File const&() const) getFile,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::File&()) getFile,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::Raw const&() const) getRaw,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::Raw&()) getRaw,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::Kind(sem::BlockCode::sem::BlockCode::EvalResult::Data const&)) getKind,
+                          (sem::BlockCode::sem::BlockCode::EvalResult::Kind() const) getKind))
+    sem::BlockCode::sem::BlockCode::EvalResult::Data data;
+    sem::BlockCode::sem::BlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
+    sem::BlockCode::sem::BlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
+    sem::BlockCode::sem::BlockCode::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
+    sem::BlockCode::sem::BlockCode::EvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
+    sem::BlockCode::sem::BlockCode::EvalResult::File const& getFile() const { return std::get<2>(data); }
+    sem::BlockCode::sem::BlockCode::EvalResult::File& getFile() { return std::get<2>(data); }
+    sem::BlockCode::sem::BlockCode::EvalResult::Raw const& getRaw() const { return std::get<3>(data); }
+    sem::BlockCode::sem::BlockCode::EvalResult::Raw& getRaw() { return std::get<3>(data); }
+    static sem::BlockCode::sem::BlockCode::EvalResult::Kind getKind(sem::BlockCode::sem::BlockCode::EvalResult::Data const& __input) { return static_cast<sem::BlockCode::sem::BlockCode::EvalResult::Kind>(__input.index()); }
+    sem::BlockCode::sem::BlockCode::EvalResult::Kind getKind() const { return getKind(data); }
   };
 
   BOOST_DESCRIBE_CLASS(BlockCode,
@@ -1303,7 +1303,7 @@ struct SubtreeLog : public sem::Org {
     BOOST_DESCRIBE_CLASS(Unknown, (DescribedLog), (), (), ())
   };
 
-  using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Note, sem::SubtreeLog::Refile, sem::SubtreeLog::Clock, sem::SubtreeLog::State, sem::SubtreeLog::Tag, sem::SubtreeLog::Unknown>;
+  using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Priority::Note, sem::SubtreeLog::Priority::Refile, sem::SubtreeLog::Priority::Clock, sem::SubtreeLog::Priority::State, sem::SubtreeLog::Priority::Tag, sem::SubtreeLog::Priority::Unknown>;
   enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, Unknown, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag, Unknown)
   using variant_enum_type = sem::SubtreeLog::Kind;
@@ -1503,7 +1503,7 @@ struct Subtree : public sem::Org {
       Str value = "";
     };
 
-    using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created, sem::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomRaw>;
+    using Data = std::variant<Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw>;
     enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
     using variant_enum_type = sem::Subtree::Property::Kind;
@@ -1776,7 +1776,7 @@ struct AnnotatedParagraph : public sem::Stmt {
     sem::SemId<sem::Time> time = sem::SemId<sem::Time>::Nil();
   };
 
-  using Data = std::variant<sem::AnnotatedParagraph::None, sem::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Timestamp>;
+  using Data = std::variant<None, Footnote, Admonition, Timestamp>;
   enum class AnnotationKind : short int { None, Footnote, Admonition, Timestamp, };
   BOOST_DESCRIBE_NESTED_ENUM(AnnotationKind, None, Footnote, Admonition, Timestamp)
   using variant_enum_type = sem::AnnotatedParagraph::AnnotationKind;
@@ -1929,8 +1929,8 @@ struct DocumentOptions : public sem::Org {
       All,
     };
     BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
-    enum class BrokenLinks : short int { Raise, Ignore, Mark, };
-    BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
+    enum class BrokenLinks : short int { Mark, Raise, Ignore, };
+    BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Mark, Raise, Ignore)
     struct DoExport {
       BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc))
       bool exportToc;
@@ -1941,7 +1941,7 @@ struct DocumentOptions : public sem::Org {
       int exportLevels;
     };
 
-    using TocExport = std::variant<sem::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::ExportFixed>;
+    using TocExport = std::variant<DoExport, ExportFixed>;
     enum class TocExportKind : short int { DoExport, ExportFixed, };
     BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
     using variant_enum_type = sem::DocumentOptions::ExportConfig::TocExportKind;
@@ -1979,9 +1979,9 @@ struct DocumentOptions : public sem::Org {
     Opt<bool> statisticsCookies = std::nullopt;
     /// \brief Include todo keywords in export
     Opt<bool> todoText = std::nullopt;
-    sem::DocumentOptions::ExportConfig::BrokenLinks brokenLinks = ExportConfig::BrokenLinks::Mark;
-    sem::DocumentOptions::ExportConfig::TocExport tocExport = ExportConfig::DoExport{false};
-    sem::DocumentOptions::ExportConfig::TagExport tagExport = ExportConfig::TagExport::All;
+    sem::DocumentOptions::ExportConfig::BrokenLinks brokenLinks;
+    sem::DocumentOptions::ExportConfig::TocExport tocExport;
+    sem::DocumentOptions::ExportConfig::TagExport tagExport;
     sem::DocumentOptions::ExportConfig::TocExport data;
     sem::DocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
     sem::DocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
@@ -2114,7 +2114,7 @@ struct Include : public sem::Org {
     Opt<int> minLevel = std::nullopt;
   };
 
-  using Data = std::variant<sem::Include::Example, sem::Include::Export, sem::Include::Src, sem::Include::OrgDocument>;
+  using Data = std::variant<Example, Export, Src, OrgDocument>;
   enum class Kind : short int { Example, Export, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
   using variant_enum_type = sem::Include::Kind;
