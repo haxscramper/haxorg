@@ -602,7 +602,7 @@ class ProtoBuilder():
                 org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")
                 proto_param_type = org_cleaned.withGlobalSpace()
                 org_param_type = it.name
-
+                
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):

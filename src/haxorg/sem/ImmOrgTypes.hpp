@@ -224,9 +224,9 @@ struct ImmTime : public org::ImmOrg {
     enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
     /// \brief mode
-    org::ImmTime::Repeat::Mode mode;
+    org::ImmTime::Mode mode;
     /// \brief period
-    org::ImmTime::Repeat::Period period;
+    org::ImmTime::Period period;
     /// \brief count
     int count;
   };
@@ -599,7 +599,7 @@ struct ImmBlockCode : public org::ImmBlock {
     };
 
     /// \brief parts of the single line
-    ImmVec<org::ImmBlockCode::Line::Part> parts = {};
+    ImmVec<org::ImmBlockCode::Part> parts = {};
   };
 
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
@@ -757,7 +757,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
     /// \brief When priority was changed
     org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Which action taken
-    org::ImmSubtreeLog::Priority::Action action;
+    org::ImmSubtreeLog::Action action;
   };
 
   /// \brief Timestamped note
@@ -852,7 +852,7 @@ struct ImmSubtree : public org::ImmOrg {
     };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Closed, Scheduled, Titled, Deadline, Created, Repeated)
     /// \brief Time period kind -- not associated with point/range distinction
-    org::ImmSubtree::Period::Kind kind;
+    org::ImmSubtree::Kind kind;
     /// \brief Clock start time
     org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Optional end of the clock
@@ -903,7 +903,7 @@ struct ImmSubtree : public org::ImmOrg {
     struct Visibility {
       enum class Level : short int { Folded, Children, Content, All, };
       BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
-      org::ImmSubtree::Property::Visibility::Level level;
+      org::ImmSubtree::Property::Level level;
     };
 
     struct ExportOptions {
@@ -944,9 +944,9 @@ struct ImmSubtree : public org::ImmOrg {
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
     using variant_enum_type = org::ImmSubtree::Property::Kind;
     using variant_data_type = org::ImmSubtree::Property::Data;
-    org::ImmSubtree::Property::SetMode mainSetRule = Property::SetMode::Override;
-    org::ImmSubtree::Property::SetMode subSetRule = Property::SetMode::Override;
-    org::ImmSubtree::Property::InheritanceMode inheritanceMode = Property::InheritanceMode::ThisAndSub;
+    org::ImmSubtree::SetMode mainSetRule = Property::SetMode::Override;
+    org::ImmSubtree::SetMode subSetRule = Property::SetMode::Override;
+    org::ImmSubtree::InheritanceMode inheritanceMode = Property::InheritanceMode::ThisAndSub;
     org::ImmSubtree::Property::Data data;
     org::ImmSubtree::Property::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
     org::ImmSubtree::Property::Nonblocking& getNonblocking() { return std::get<0>(data); }
@@ -1202,9 +1202,9 @@ struct ImmDocumentOptions : public org::ImmOrg {
     Opt<ImmBox<bool>> statisticsCookies = std::nullopt;
     /// \brief Include todo keywords in export
     Opt<ImmBox<bool>> todoText = std::nullopt;
-    org::ImmDocumentOptions::ExportConfig::BrokenLinks brokenLinks = ExportConfig::BrokenLinks::Mark;
-    org::ImmDocumentOptions::ExportConfig::TocExport tocExport = ExportConfig::DoExport{false};
-    org::ImmDocumentOptions::ExportConfig::TagExport tagExport = ExportConfig::TagExport::All;
+    org::ImmDocumentOptions::BrokenLinks brokenLinks = ExportConfig::BrokenLinks::Mark;
+    org::ImmDocumentOptions::TocExport tocExport = ExportConfig::DoExport{false};
+    org::ImmDocumentOptions::TagExport tagExport = ExportConfig::TagExport::All;
     org::ImmDocumentOptions::ExportConfig::TocExport data;
     org::ImmDocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
     org::ImmDocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }

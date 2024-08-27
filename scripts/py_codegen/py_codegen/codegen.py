@@ -619,7 +619,7 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                     obj.Spaces = [
                         ORG_SPACE,
                         spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
-                        *spaces[2:-1],
+                        *(spaces[2:-1] if 1 < len(spaces) else []),
                     ]
 
             case QualType(name=TypeName,

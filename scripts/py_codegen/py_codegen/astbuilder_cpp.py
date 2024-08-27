@@ -65,6 +65,12 @@ class QualType(BaseModel, extra="forbid"):
     def ForExpr(expr: str, **args) -> 'QualType':
         return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
+    def flatten(self) -> "QualType":
+        return self.model_copy(update=dict(Spaces=self.flatQualSpaces()))
+
+    def withDbgOrigin(self, msg: str) -> "QualType":
+        return self.model_copy(update=dict(dbg_origin=self.dbg_origin + msg))
+
     def asConstRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))
 
@@ -72,7 +78,10 @@ class QualType(BaseModel, extra="forbid"):
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
 
     def flatQualSpaces(self) -> List["QualType"]:
-        return list(itertools.chain(*(s.flatQualSpaces() for s in self.Spaces))) + [self.withoutAllSpaces()]
+        def aux(it: QualType) -> List[QualType]:
+            return list(itertools.chain(*(aux(s) for s in it.Spaces))) + [it.withoutAllSpaces()]
+
+        return list(itertools.chain(*(aux(s) for s in self.Spaces)))
 
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
@@ -100,13 +109,15 @@ class QualType(BaseModel, extra="forbid"):
         return QualType(name=name, Parameters=[self])
 
     def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
+        flat = self.flatten()
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
-        return self.model_copy(update=dict(Spaces=[added] + self.Spaces))
+        return flat.model_copy(update=dict(Spaces=[added] + flat.Spaces))
 
     def withoutSpace(self, name: str) -> 'QualType':
-        return self.model_copy(update=dict(
-            Spaces=[S for S in self.Spaces if S.name != name]))
+        flat = self.flatten()
+        return flat.model_copy(update=dict(
+            Spaces=[S for S in flat.Spaces if S.name != name]))
 
     def withoutAllSpaces(self) -> 'QualType':
         return self.model_copy(update=dict(Spaces=[]))
@@ -116,7 +127,7 @@ class QualType(BaseModel, extra="forbid"):
         Resulting type will have only [name] as the space"""
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
-        return self.model_copy(update=dict(Spaces=[added]))
+        return self.flatten().model_copy(update=dict(Spaces=[added]))
 
     def isArray(self) -> bool:
         return self.Kind == QualTypeKind.Array
