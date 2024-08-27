@@ -2,6 +2,7 @@
 
 #include <haxorg/sem/ImmOrgBase.hpp>
 #include <haxorg/sem/ImmOrgTypes.hpp>
+#include <haxorg/sem/SemOrg.hpp>
 
 namespace org {
 
@@ -22,10 +23,10 @@ struct KindStore {
     }
 
     ImmId create(
-        ImmId::StoreIndexT selfIndex,
-        ImmId              parent,
-        Opt<OrgAdapter>    original,
-        ContextStore*      context);
+        ImmId::StoreIndexT   selfIndex,
+        ImmId                parent,
+        sem::SemId<sem::Org> data,
+        ContextStore*        context);
 
     using StoreVisitor = Func<
         void(ImmId::StoreIndexT selfIndex, KindStore<T>* store)>;
@@ -66,11 +67,11 @@ struct ParseUnitStore {
 
     ImmOrg* get(OrgSemKind kind, ImmId::NodeIndexT index);
     ImmId   create(
-          ImmId::StoreIndexT selfIndex,
-          OrgSemKind         kind,
-          ImmId              parent,
-          ContextStore*      context,
-          Opt<OrgAdapter>    original = std::nullopt);
+          ImmId::StoreIndexT   selfIndex,
+          OrgSemKind           kind,
+          ImmId                parent,
+          ContextStore*        context,
+          sem::SemId<sem::Org> data);
 
     using StoreVisitor = Func<
         void(ImmId::StoreIndexT selfIndex, OrgKindStorePtrVariant store)>;
@@ -85,19 +86,19 @@ struct ContextStore {
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
     ImmId createIn(
-        ImmId::StoreIndexT index,
-        OrgSemKind         kind,
-        ImmId              parent,
-        Opt<OrgAdapter>    original = std::nullopt);
+        ImmId::StoreIndexT   index,
+        OrgSemKind           kind,
+        ImmId                parent,
+        sem::SemId<sem::Org> data);
 
 
     /// \brief Create new sem node of the specified kind in the same local
     /// store as the `existing` node
     ImmId createInSame(
-        ImmId           existing,
-        OrgSemKind      kind,
-        ImmId           parent,
-        Opt<OrgAdapter> original = std::nullopt);
+        ImmId                existing,
+        OrgSemKind           kind,
+        ImmId                parent,
+        sem::SemId<sem::Org> data);
 
 
     Vec<ParseUnitStore> stores;
