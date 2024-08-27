@@ -735,7 +735,7 @@ void proto_serde<::orgproto::BlockExport, sem::BlockExport>::write(::orgproto::B
   proto_serde<::orgproto::BlockExport, sem::Cmd>::write(out, in);
   proto_serde<::orgproto::BlockExport, sem::Stmt>::write(out, in);
   proto_serde<::orgproto::BlockExport, sem::Org>::write(out, in);
-  proto_serde<orgproto::BlockExport::Format, sem::BlockExport::Format>::write(out->mutable_format(), in.format);
+  out->set_format(static_cast<orgproto::BlockExport_Format>(in.format));
   proto_serde<std::string, Str>::write(out->mutable_exporter(), in.exporter);
   if (in.placement) {
     proto_serde<std::string, Str>::write(out->mutable_placement(), *in.placement);
@@ -747,7 +747,7 @@ void proto_serde<::orgproto::BlockExport, sem::BlockExport>::read(::orgproto::Bl
   proto_serde<::orgproto::BlockExport, sem::Cmd>::read(out, in.as<sem::Cmd>());
   proto_serde<::orgproto::BlockExport, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::BlockExport, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<orgproto::BlockExport::Format, sem::BlockExport::Format>::read(out.format(), in.for_field(&sem::BlockExport::format));
+  in.for_field(&sem::BlockExport::format).get() = static_cast<sem::BlockExport::Format>(out.format());
   proto_serde<std::string, Str>::read(out.exporter(), in.for_field(&sem::BlockExport::exporter));
   if (out.has_placement()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.placement(), in.for_field(&sem::BlockExport::placement));
@@ -1292,11 +1292,11 @@ void proto_serde<::orgproto::Subtree::Property::Effort, sem::Subtree::Property::
 }
 
 void proto_serde<::orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::write(::orgproto::Subtree::Property::Visibility* out, sem::Subtree::Property::Visibility const& in) {
-  proto_serde<orgproto::Subtree::Property::Visibility::Level, sem::Subtree::Property::Visibility::Level>::write(out->mutable_level(), in.level);
+  out->set_level(static_cast<orgproto::Subtree_Property_Visibility_Level>(in.level));
 }
 
 void proto_serde<::orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::read(::orgproto::Subtree::Property::Visibility const& out, proto_write_accessor<sem::Subtree::Property::Visibility> in) {
-  proto_serde<orgproto::Subtree::Property::Visibility::Level, sem::Subtree::Property::Visibility::Level>::read(out.level(), in.for_field(&sem::Subtree::Property::Visibility::level));
+  in.for_field(&sem::Subtree::Property::Visibility::level).get() = static_cast<sem::Subtree::Property::Visibility::Level>(out.level());
 }
 
 void proto_serde<::orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions>::write(::orgproto::Subtree::Property::ExportOptions* out, sem::Subtree::Property::ExportOptions const& in) {
@@ -1364,9 +1364,9 @@ void proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Propert
 }
 
 void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in) {
-  proto_serde<orgproto::Subtree::Property::SetMode, sem::Subtree::Property::SetMode>::write(out->mutable_mainsetrule(), in.mainSetRule);
-  proto_serde<orgproto::Subtree::Property::SetMode, sem::Subtree::Property::SetMode>::write(out->mutable_subsetrule(), in.subSetRule);
-  proto_serde<orgproto::Subtree::Property::InheritanceMode, sem::Subtree::Property::InheritanceMode>::write(out->mutable_inheritancemode(), in.inheritanceMode);
+  out->set_mainsetrule(static_cast<orgproto::Subtree_Property_SetMode>(in.mainSetRule));
+  out->set_subsetrule(static_cast<orgproto::Subtree_Property_SetMode>(in.subSetRule));
+  out->set_inheritancemode(static_cast<orgproto::Subtree_Property_InheritanceMode>(in.inheritanceMode));
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::write(out->mutable_data()->mutable_nonblocking(), std::get<0>(in.data));
@@ -1420,9 +1420,9 @@ void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(:
 }
 
 void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::read(::orgproto::Subtree::Property const& out, proto_write_accessor<sem::Subtree::Property> in) {
-  proto_serde<orgproto::Subtree::Property::SetMode, sem::Subtree::Property::SetMode>::read(out.mainsetrule(), in.for_field(&sem::Subtree::Property::mainSetRule));
-  proto_serde<orgproto::Subtree::Property::SetMode, sem::Subtree::Property::SetMode>::read(out.subsetrule(), in.for_field(&sem::Subtree::Property::subSetRule));
-  proto_serde<orgproto::Subtree::Property::InheritanceMode, sem::Subtree::Property::InheritanceMode>::read(out.inheritancemode(), in.for_field(&sem::Subtree::Property::inheritanceMode));
+  in.for_field(&sem::Subtree::Property::mainSetRule).get() = static_cast<sem::Subtree::Property::SetMode>(out.mainsetrule());
+  in.for_field(&sem::Subtree::Property::subSetRule).get() = static_cast<sem::Subtree::Property::SetMode>(out.subsetrule());
+  in.for_field(&sem::Subtree::Property::inheritanceMode).get() = static_cast<sem::Subtree::Property::InheritanceMode>(out.inheritancemode());
   switch (out.data().kind_case()) {
     case ::orgproto::Subtree::Property::Data::kNonblocking:
       proto_serde<orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::read(out.data().nonblocking(), in.for_field_variant<0>(&sem::Subtree::Property::data));
@@ -1741,7 +1741,7 @@ void proto_serde<::orgproto::List, sem::List>::read(::orgproto::List const& out,
 
 void proto_serde<::orgproto::ListItem, sem::ListItem>::write(::orgproto::ListItem* out, sem::ListItem const& in) {
   proto_serde<::orgproto::ListItem, sem::Org>::write(out, in);
-  proto_serde<orgproto::ListItem::Checkbox, sem::ListItem::Checkbox>::write(out->mutable_checkbox(), in.checkbox);
+  out->set_checkbox(static_cast<orgproto::ListItem_Checkbox>(in.checkbox));
   if (in.header) {
     proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_header(), *in.header);
   }
@@ -1752,7 +1752,7 @@ void proto_serde<::orgproto::ListItem, sem::ListItem>::write(::orgproto::ListIte
 
 void proto_serde<::orgproto::ListItem, sem::ListItem>::read(::orgproto::ListItem const& out, proto_write_accessor<sem::ListItem> in) {
   proto_serde<::orgproto::ListItem, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<orgproto::ListItem::Checkbox, sem::ListItem::Checkbox>::read(out.checkbox(), in.for_field(&sem::ListItem::checkbox));
+  in.for_field(&sem::ListItem::checkbox).get() = static_cast<sem::ListItem::Checkbox>(out.checkbox());
   if (out.has_header()) {
     proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.header(), in.for_field(&sem::ListItem::header));
   }
@@ -1813,7 +1813,7 @@ void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions
   if (in.todoText) {
     out->set_todotext(*in.todoText);
   }
-  proto_serde<orgproto::DocumentOptions::ExportConfig::BrokenLinks, sem::DocumentOptions::ExportConfig::BrokenLinks>::write(out->mutable_brokenlinks(), in.brokenLinks);
+  out->set_brokenlinks(static_cast<orgproto::DocumentOptions_ExportConfig_BrokenLinks>(in.brokenLinks));
   switch (in.tocExport.index()) {
     case 0:
       proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::write(out->mutable_tocexport()->mutable_doexport(), std::get<0>(in.tocExport));
@@ -1822,7 +1822,7 @@ void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions
       proto_serde<orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::write(out->mutable_tocexport()->mutable_exportfixed(), std::get<1>(in.tocExport));
       break;
   }
-  proto_serde<orgproto::DocumentOptions::ExportConfig::TagExport, sem::DocumentOptions::ExportConfig::TagExport>::write(out->mutable_tagexport(), in.tagExport);
+  out->set_tagexport(static_cast<orgproto::DocumentOptions_ExportConfig_TagExport>(in.tagExport));
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::write(out->mutable_data()->mutable_doexport(), std::get<0>(in.data));
@@ -1861,7 +1861,7 @@ void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions
   if (out.has_todotext()) {
     proto_serde<Opt<bool>, Opt<bool>>::read(out.todotext(), in.for_field(&sem::DocumentOptions::ExportConfig::todoText));
   }
-  proto_serde<orgproto::DocumentOptions::ExportConfig::BrokenLinks, sem::DocumentOptions::ExportConfig::BrokenLinks>::read(out.brokenlinks(), in.for_field(&sem::DocumentOptions::ExportConfig::brokenLinks));
+  in.for_field(&sem::DocumentOptions::ExportConfig::brokenLinks).get() = static_cast<sem::DocumentOptions::ExportConfig::BrokenLinks>(out.brokenlinks());
   switch (out.tocexport().kind_case()) {
     case ::orgproto::DocumentOptions::ExportConfig::TocExport::kDoexport:
       proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::read(out.tocexport().doexport(), in.for_field_variant<0>(&sem::DocumentOptions::ExportConfig::tocExport));
@@ -1870,7 +1870,7 @@ void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions
       proto_serde<orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::read(out.tocexport().exportfixed(), in.for_field_variant<1>(&sem::DocumentOptions::ExportConfig::tocExport));
       break;
   }
-  proto_serde<orgproto::DocumentOptions::ExportConfig::TagExport, sem::DocumentOptions::ExportConfig::TagExport>::read(out.tagexport(), in.for_field(&sem::DocumentOptions::ExportConfig::tagExport));
+  in.for_field(&sem::DocumentOptions::ExportConfig::tagExport).get() = static_cast<sem::DocumentOptions::ExportConfig::TagExport>(out.tagexport());
   switch (out.data().kind_case()) {
     case ::orgproto::DocumentOptions::ExportConfig::TocExport::kDoexport:
       proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::read(out.data().doexport(), in.for_field_variant<0>(&sem::DocumentOptions::ExportConfig::data));
@@ -1883,7 +1883,7 @@ void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions
 
 void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::orgproto::DocumentOptions* out, sem::DocumentOptions const& in) {
   proto_serde<::orgproto::DocumentOptions, sem::Org>::write(out, in);
-  proto_serde<orgproto::DocumentOptions::Visibility, sem::DocumentOptions::Visibility>::write(out->mutable_initialvisibility(), in.initialVisibility);
+  out->set_initialvisibility(static_cast<orgproto::DocumentOptions_Visibility>(in.initialVisibility));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::write(out->mutable_properties(), in.properties);
   proto_serde<orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::write(out->mutable_exportconfig(), in.exportConfig);
   if (in.fixedWidthSections) {
@@ -1905,7 +1905,7 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::org
 
 void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(::orgproto::DocumentOptions const& out, proto_write_accessor<sem::DocumentOptions> in) {
   proto_serde<::orgproto::DocumentOptions, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<orgproto::DocumentOptions::Visibility, sem::DocumentOptions::Visibility>::read(out.initialvisibility(), in.for_field(&sem::DocumentOptions::initialVisibility));
+  in.for_field(&sem::DocumentOptions::initialVisibility).get() = static_cast<sem::DocumentOptions::Visibility>(out.initialvisibility());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::read(out.properties(), in.for_field(&sem::DocumentOptions::properties));
   proto_serde<orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::read(out.exportconfig(), in.for_field(&sem::DocumentOptions::exportConfig));
   if (out.has_fixedwidthsections()) {

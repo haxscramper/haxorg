@@ -565,7 +565,7 @@ class BlockExample(Block):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class Format(Enum):
+class BlockExportFormat(Enum):
     Inline = 1
     Line = 2
     Block = 3
@@ -693,7 +693,7 @@ class BlockCodeSwitch:
     def __getattr__(self, name: str) -> object: ...
     data: BlockCodeSwitchData
 
-class Results(Enum):
+class BlockCodeResults(Enum):
     Replace = 1
 
 class BlockCodeExports(Enum):
@@ -872,12 +872,12 @@ class SubtreePeriod:
     from_: Time
     to: Optional[Time]
 
-class SetMode(Enum):
+class SubtreePropertySetMode(Enum):
     Override = 1
     Add = 2
     Subtract = 3
 
-class InheritanceMode(Enum):
+class SubtreePropertyInheritanceMode(Enum):
     ThisAndSub = 1
     OnlyThis = 2
     OnlySub = 3
@@ -936,7 +936,7 @@ class SubtreePropertyEffort:
     hours: int
     minutes: int
 
-class Level(Enum):
+class SubtreePropertyVisibilityLevel(Enum):
     Folded = 1
     Children = 2
     Content = 3
@@ -1205,7 +1205,7 @@ class List(Stmt):
     def __getattr__(self, name: str) -> object: ...
     attached: List[Org]
 
-class Checkbox(Enum):
+class ListItemCheckbox(Enum):
     _None = 1
     Done = 2
     Empty = 3
@@ -1226,18 +1226,18 @@ class DocumentOptionsExportConfigTaskExport:
     def __getattr__(self, name: str) -> object: ...
     taskWhitelist: List[str]
 
-class TagExport(Enum):
+class DocumentOptionsExportConfigTagExport(Enum):
     _None = 1
     All = 2
     NotInToc = 3
 
-class TaskFiltering(Enum):
+class DocumentOptionsExportConfigTaskFiltering(Enum):
     Whitelist = 1
     Done = 2
     _None = 3
     All = 4
 
-class BrokenLinks(Enum):
+class DocumentOptionsExportConfigBrokenLinks(Enum):
     Mark = 1
     Raise = 2
     Ignore = 3
@@ -1282,7 +1282,7 @@ class DocumentOptionsExportConfig:
     tagExport: DocumentOptionsExportConfigTagExport
     data: DocumentOptionsExportConfigTocExport
 
-class Visibility(Enum):
+class DocumentOptionsVisibility(Enum):
     Overview = 1
     Content = 2
     ShowAll = 3

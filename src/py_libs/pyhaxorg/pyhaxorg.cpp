@@ -1515,14 +1515,14 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<Format>(m, "Format", type_registry_guard);
-  pybind11::enum_<Format>(m, "Format")
-    .value("Inline", Format::Inline, R"RAW(Export directly in the paragraph)RAW")
-    .value("Line", Format::Line, R"RAW(Single line of export)RAW")
-    .value("Block", Format::Block, R"RAW(Multiple lines of export)RAW")
-    .def("__iter__", [](Format _self) -> PyEnumIterator<Format> {
+  bind_enum_iterator<sem::BlockExport::Format>(m, "BlockExportFormat", type_registry_guard);
+  pybind11::enum_<sem::BlockExport::Format>(m, "BlockExportFormat")
+    .value("Inline", sem::BlockExport::Format::Inline, R"RAW(Export directly in the paragraph)RAW")
+    .value("Line", sem::BlockExport::Format::Line, R"RAW(Single line of export)RAW")
+    .value("Block", sem::BlockExport::Format::Block, R"RAW(Multiple lines of export)RAW")
+    .def("__iter__", [](sem::BlockExport::Format _self) -> PyEnumIterator<sem::BlockExport::Format> {
                      return
-                     PyEnumIterator<Format>
+                     PyEnumIterator<sem::BlockExport::Format>
                      ();
                      })
     ;
@@ -1821,12 +1821,12 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<Results>(m, "Results", type_registry_guard);
-  pybind11::enum_<Results>(m, "Results")
-    .value("Replace", Results::Replace, R"RAW(Remove old result, replace with new value)RAW")
-    .def("__iter__", [](Results _self) -> PyEnumIterator<Results> {
+  bind_enum_iterator<sem::BlockCode::Results>(m, "BlockCodeResults", type_registry_guard);
+  pybind11::enum_<sem::BlockCode::Results>(m, "BlockCodeResults")
+    .value("Replace", sem::BlockCode::Results::Replace, R"RAW(Remove old result, replace with new value)RAW")
+    .def("__iter__", [](sem::BlockCode::Results _self) -> PyEnumIterator<sem::BlockCode::Results> {
                      return
-                     PyEnumIterator<Results>
+                     PyEnumIterator<sem::BlockCode::Results>
                      ();
                      })
     ;
@@ -2213,25 +2213,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<SetMode>(m, "SetMode", type_registry_guard);
-  pybind11::enum_<SetMode>(m, "SetMode")
-    .value("Override", SetMode::Override)
-    .value("Add", SetMode::Add)
-    .value("Subtract", SetMode::Subtract)
-    .def("__iter__", [](SetMode _self) -> PyEnumIterator<SetMode> {
+  bind_enum_iterator<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode", type_registry_guard);
+  pybind11::enum_<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode")
+    .value("Override", sem::Subtree::Property::SetMode::Override)
+    .value("Add", sem::Subtree::Property::SetMode::Add)
+    .value("Subtract", sem::Subtree::Property::SetMode::Subtract)
+    .def("__iter__", [](sem::Subtree::Property::SetMode _self) -> PyEnumIterator<sem::Subtree::Property::SetMode> {
                      return
-                     PyEnumIterator<SetMode>
+                     PyEnumIterator<sem::Subtree::Property::SetMode>
                      ();
                      })
     ;
-  bind_enum_iterator<InheritanceMode>(m, "InheritanceMode", type_registry_guard);
-  pybind11::enum_<InheritanceMode>(m, "InheritanceMode")
-    .value("ThisAndSub", InheritanceMode::ThisAndSub)
-    .value("OnlyThis", InheritanceMode::OnlyThis)
-    .value("OnlySub", InheritanceMode::OnlySub)
-    .def("__iter__", [](InheritanceMode _self) -> PyEnumIterator<InheritanceMode> {
+  bind_enum_iterator<sem::Subtree::Property::InheritanceMode>(m, "SubtreePropertyInheritanceMode", type_registry_guard);
+  pybind11::enum_<sem::Subtree::Property::InheritanceMode>(m, "SubtreePropertyInheritanceMode")
+    .value("ThisAndSub", sem::Subtree::Property::InheritanceMode::ThisAndSub)
+    .value("OnlyThis", sem::Subtree::Property::InheritanceMode::OnlyThis)
+    .value("OnlySub", sem::Subtree::Property::InheritanceMode::OnlySub)
+    .def("__iter__", [](sem::Subtree::Property::InheritanceMode _self) -> PyEnumIterator<sem::Subtree::Property::InheritanceMode> {
                      return
-                     PyEnumIterator<InheritanceMode>
+                     PyEnumIterator<sem::Subtree::Property::InheritanceMode>
                      ();
                      })
     ;
@@ -2379,15 +2379,15 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<Level>(m, "Level", type_registry_guard);
-  pybind11::enum_<Level>(m, "Level")
-    .value("Folded", Level::Folded)
-    .value("Children", Level::Children)
-    .value("Content", Level::Content)
-    .value("All", Level::All)
-    .def("__iter__", [](Level _self) -> PyEnumIterator<Level> {
+  bind_enum_iterator<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel", type_registry_guard);
+  pybind11::enum_<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel")
+    .value("Folded", sem::Subtree::Property::Visibility::Level::Folded)
+    .value("Children", sem::Subtree::Property::Visibility::Level::Children)
+    .value("Content", sem::Subtree::Property::Visibility::Level::Content)
+    .value("All", sem::Subtree::Property::Visibility::Level::All)
+    .def("__iter__", [](sem::Subtree::Property::Visibility::Level _self) -> PyEnumIterator<sem::Subtree::Property::Visibility::Level> {
                      return
-                     PyEnumIterator<Level>
+                     PyEnumIterator<sem::Subtree::Property::Visibility::Level>
                      ();
                      })
     ;
@@ -3007,15 +3007,15 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<Checkbox>(m, "Checkbox", type_registry_guard);
-  pybind11::enum_<Checkbox>(m, "Checkbox")
-    .value("None", Checkbox::None)
-    .value("Done", Checkbox::Done)
-    .value("Empty", Checkbox::Empty)
-    .value("Partial", Checkbox::Partial)
-    .def("__iter__", [](Checkbox _self) -> PyEnumIterator<Checkbox> {
+  bind_enum_iterator<sem::ListItem::Checkbox>(m, "ListItemCheckbox", type_registry_guard);
+  pybind11::enum_<sem::ListItem::Checkbox>(m, "ListItemCheckbox")
+    .value("None", sem::ListItem::Checkbox::None)
+    .value("Done", sem::ListItem::Checkbox::Done)
+    .value("Empty", sem::ListItem::Checkbox::Empty)
+    .value("Partial", sem::ListItem::Checkbox::Partial)
+    .def("__iter__", [](sem::ListItem::Checkbox _self) -> PyEnumIterator<sem::ListItem::Checkbox> {
                      return
-                     PyEnumIterator<Checkbox>
+                     PyEnumIterator<sem::ListItem::Checkbox>
                      ();
                      })
     ;
@@ -3054,37 +3054,37 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<TagExport>(m, "TagExport", type_registry_guard);
-  pybind11::enum_<TagExport>(m, "TagExport")
-    .value("None", TagExport::None)
-    .value("All", TagExport::All)
-    .value("NotInToc", TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
-    .def("__iter__", [](TagExport _self) -> PyEnumIterator<TagExport> {
+  bind_enum_iterator<sem::DocumentOptions::ExportConfig::TagExport>(m, "DocumentOptionsExportConfigTagExport", type_registry_guard);
+  pybind11::enum_<sem::DocumentOptions::ExportConfig::TagExport>(m, "DocumentOptionsExportConfigTagExport")
+    .value("None", sem::DocumentOptions::ExportConfig::TagExport::None)
+    .value("All", sem::DocumentOptions::ExportConfig::TagExport::All)
+    .value("NotInToc", sem::DocumentOptions::ExportConfig::TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
+    .def("__iter__", [](sem::DocumentOptions::ExportConfig::TagExport _self) -> PyEnumIterator<sem::DocumentOptions::ExportConfig::TagExport> {
                      return
-                     PyEnumIterator<TagExport>
+                     PyEnumIterator<sem::DocumentOptions::ExportConfig::TagExport>
                      ();
                      })
     ;
-  bind_enum_iterator<TaskFiltering>(m, "TaskFiltering", type_registry_guard);
-  pybind11::enum_<TaskFiltering>(m, "TaskFiltering")
-    .value("Whitelist", TaskFiltering::Whitelist, R"RAW(Include tasks from the whitelist)RAW")
-    .value("Done", TaskFiltering::Done, R"RAW(Include tasks marked as done)RAW")
-    .value("None", TaskFiltering::None, R"RAW(Exclude all task subtrees from export)RAW")
-    .value("All", TaskFiltering::All, R"RAW(Add all task subtrees to export)RAW")
-    .def("__iter__", [](TaskFiltering _self) -> PyEnumIterator<TaskFiltering> {
+  bind_enum_iterator<sem::DocumentOptions::ExportConfig::TaskFiltering>(m, "DocumentOptionsExportConfigTaskFiltering", type_registry_guard);
+  pybind11::enum_<sem::DocumentOptions::ExportConfig::TaskFiltering>(m, "DocumentOptionsExportConfigTaskFiltering")
+    .value("Whitelist", sem::DocumentOptions::ExportConfig::TaskFiltering::Whitelist, R"RAW(Include tasks from the whitelist)RAW")
+    .value("Done", sem::DocumentOptions::ExportConfig::TaskFiltering::Done, R"RAW(Include tasks marked as done)RAW")
+    .value("None", sem::DocumentOptions::ExportConfig::TaskFiltering::None, R"RAW(Exclude all task subtrees from export)RAW")
+    .value("All", sem::DocumentOptions::ExportConfig::TaskFiltering::All, R"RAW(Add all task subtrees to export)RAW")
+    .def("__iter__", [](sem::DocumentOptions::ExportConfig::TaskFiltering _self) -> PyEnumIterator<sem::DocumentOptions::ExportConfig::TaskFiltering> {
                      return
-                     PyEnumIterator<TaskFiltering>
+                     PyEnumIterator<sem::DocumentOptions::ExportConfig::TaskFiltering>
                      ();
                      })
     ;
-  bind_enum_iterator<BrokenLinks>(m, "BrokenLinks", type_registry_guard);
-  pybind11::enum_<BrokenLinks>(m, "BrokenLinks")
-    .value("Mark", BrokenLinks::Mark)
-    .value("Raise", BrokenLinks::Raise)
-    .value("Ignore", BrokenLinks::Ignore)
-    .def("__iter__", [](BrokenLinks _self) -> PyEnumIterator<BrokenLinks> {
+  bind_enum_iterator<sem::DocumentOptions::ExportConfig::BrokenLinks>(m, "DocumentOptionsExportConfigBrokenLinks", type_registry_guard);
+  pybind11::enum_<sem::DocumentOptions::ExportConfig::BrokenLinks>(m, "DocumentOptionsExportConfigBrokenLinks")
+    .value("Mark", sem::DocumentOptions::ExportConfig::BrokenLinks::Mark)
+    .value("Raise", sem::DocumentOptions::ExportConfig::BrokenLinks::Raise)
+    .value("Ignore", sem::DocumentOptions::ExportConfig::BrokenLinks::Ignore)
+    .def("__iter__", [](sem::DocumentOptions::ExportConfig::BrokenLinks _self) -> PyEnumIterator<sem::DocumentOptions::ExportConfig::BrokenLinks> {
                      return
-                     PyEnumIterator<BrokenLinks>
+                     PyEnumIterator<sem::DocumentOptions::ExportConfig::BrokenLinks>
                      ();
                      })
     ;
@@ -3164,19 +3164,19 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<Visibility>(m, "Visibility", type_registry_guard);
-  pybind11::enum_<Visibility>(m, "Visibility")
-    .value("Overview", Visibility::Overview)
-    .value("Content", Visibility::Content)
-    .value("ShowAll", Visibility::ShowAll)
-    .value("Show2Levels", Visibility::Show2Levels)
-    .value("Show3Levels", Visibility::Show3Levels)
-    .value("Show4Levels", Visibility::Show4Levels)
-    .value("Show5Levels", Visibility::Show5Levels)
-    .value("ShowEverything", Visibility::ShowEverything)
-    .def("__iter__", [](Visibility _self) -> PyEnumIterator<Visibility> {
+  bind_enum_iterator<sem::DocumentOptions::Visibility>(m, "DocumentOptionsVisibility", type_registry_guard);
+  pybind11::enum_<sem::DocumentOptions::Visibility>(m, "DocumentOptionsVisibility")
+    .value("Overview", sem::DocumentOptions::Visibility::Overview)
+    .value("Content", sem::DocumentOptions::Visibility::Content)
+    .value("ShowAll", sem::DocumentOptions::Visibility::ShowAll)
+    .value("Show2Levels", sem::DocumentOptions::Visibility::Show2Levels)
+    .value("Show3Levels", sem::DocumentOptions::Visibility::Show3Levels)
+    .value("Show4Levels", sem::DocumentOptions::Visibility::Show4Levels)
+    .value("Show5Levels", sem::DocumentOptions::Visibility::Show5Levels)
+    .value("ShowEverything", sem::DocumentOptions::Visibility::ShowEverything)
+    .def("__iter__", [](sem::DocumentOptions::Visibility _self) -> PyEnumIterator<sem::DocumentOptions::Visibility> {
                      return
-                     PyEnumIterator<Visibility>
+                     PyEnumIterator<sem::DocumentOptions::Visibility>
                      ();
                      })
     ;

@@ -229,9 +229,9 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
 
 
 @beartype
-def d_simple_enum(name: str, doc: GenTuDoc, *args):
+def d_simple_enum(name: QualType, doc: GenTuDoc, *args):
     return GenTuEnum(
-        t(name),
+        name,
         doc,
         fields=[
             GenTuEnumField(arg, GenTuDoc("")) if isinstance(arg, str) else arg
@@ -304,7 +304,7 @@ def get_subtree_property_types():
             nested=[
                 GenTuPass("Visibility() {}"),
                 d_simple_enum(
-                    "Level",
+                    t_nest("Level", ["Subtree", "Property", "Visibility"]),
                     GenTuDoc(""),
                     "Folded",
                     "Children",
@@ -313,8 +313,11 @@ def get_subtree_property_types():
                 )
             ],
             fields=[
-                GenTuField(t_nest("Level", ["Subtree", "Property", "Visibility"]),
-                           "level", GenTuDoc(""))
+                GenTuField(
+                    t_nest("Level", ["Subtree", "Property", "Visibility"]),
+                    "level",
+                    GenTuDoc(""),
+                )
             ],
         ),
         GenTuStruct(
@@ -696,7 +699,7 @@ def get_sem_block():
             bases=[t_org("Block")],
             nested=[
                 GenTuEnum(
-                    t("Format"),
+                    t_nest("Format", ["BlockExport"]),
                     GenTuDoc("Export block format type"),
                     [
                         GenTuEnumField("Inline",
@@ -850,7 +853,7 @@ def get_sem_block():
                     ],
                 ),
                 GenTuEnum(
-                    t("Results"),
+                    t_nest("Results", ["BlockCode"]),
                     GenTuDoc("What to do with newly evaluated result"),
                     [
                         GenTuEnumField(
@@ -1576,10 +1579,20 @@ def get_sem_subtree():
                     ],
                     nested=[
                         GenTuPass("Property() {}"),
-                        d_simple_enum("SetMode", GenTuDoc(""), "Override", "Add",
-                                      "Subtract"),
-                        d_simple_enum("InheritanceMode", GenTuDoc(""), "ThisAndSub",
-                                      "OnlyThis", "OnlySub"),
+                        d_simple_enum(
+                            t_nest("SetMode", ["Subtree", "Property"]),
+                            GenTuDoc(""),
+                            "Override",
+                            "Add",
+                            "Subtract",
+                        ),
+                        d_simple_enum(
+                            t_nest("InheritanceMode", ["Subtree", "Property"]),
+                            GenTuDoc(""),
+                            "ThisAndSub",
+                            "OnlyThis",
+                            "OnlySub",
+                        ),
                         GenTuTypeGroup(
                             get_subtree_property_types(),
                             enumName=t_nest("Kind", ["Subtree", "Property"]),
@@ -1759,8 +1772,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc("Full text of the numbered list item, e.g. `a)`, `a.`",))
             ],
             nested=[
-                d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty",
-                              "Partial")
+                d_simple_enum(t_nest("Checkbox", ["ListItem"]), GenTuDoc(""), "None", "Done", "Empty",
+                              "Partial",)
             ],
             methods=[
                 GenTuFunction(
@@ -1834,7 +1847,7 @@ def get_types() -> Sequence[GenTuStruct]:
                             ],
                         ),
                         d_simple_enum(
-                            "TagExport",
+                            t_nest("TagExport", ["DocumentOptions", "ExportConfig"]),
                             org_doc(""),
                             "None",
                             "All",
@@ -1844,7 +1857,7 @@ def get_types() -> Sequence[GenTuStruct]:
                             ),
                         ),
                         d_simple_enum(
-                            "TaskFiltering",
+                            t_nest("TaskFiltering", ["DocumentOptions", "ExportConfig"]),
                             GenTuDoc(""),
                             efield("Whitelist", "Include tasks from the whitelist"),
                             efield("Done", "Include tasks marked as done"),
@@ -1852,7 +1865,7 @@ def get_types() -> Sequence[GenTuStruct]:
                             efield("All", "Add all task subtrees to export"),
                         ),
                         d_simple_enum(
-                            "BrokenLinks",
+                            t_nest("BrokenLinks", ["DocumentOptions", "ExportConfig"]),
                             GenTuDoc(""),
                             "Mark",
                             "Raise",
@@ -1871,13 +1884,15 @@ def get_types() -> Sequence[GenTuStruct]:
                                     fields=[org_field(t_int(), "exportLevels")],
                                 ),
                             ],
-                            variantName=t_nest("TocExport", ["DocumentOptions", "ExportConfig"]),
-                            enumName=t_nest("TocExportKind", ["DocumentOptions", "ExportConfig"]),
+                            variantName=t_nest("TocExport",
+                                               ["DocumentOptions", "ExportConfig"]),
+                            enumName=t_nest("TocExportKind",
+                                            ["DocumentOptions", "ExportConfig"]),
                             kindGetter="getTocExportKind",
                         ),
                     ]),
                 d_simple_enum(
-                    "Visibility",
+                    t_nest("Visibility", ["DocumentOptions"]),
                     GenTuDoc(""),
                     "Overview",
                     "Content",
