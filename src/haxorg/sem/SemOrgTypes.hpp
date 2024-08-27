@@ -939,7 +939,7 @@ struct BlockExport : public sem::Block {
                        (staticKind, format, exporter, placement, content, (OrgSemKind() const) getKind))
   static OrgSemKind const staticKind;
   /// \brief Export block type
-  sem::BlockExport::Format format = sem::BlockExport::Format::Inline;
+  sem::BlockExport::Format format = Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
   /// \brief Customized position of the text in the final exporting document.
@@ -1190,7 +1190,7 @@ struct BlockCode : public sem::Block {
   /// \brief Switch options for block
   Vec<sem::BlockCode::Switch> switches = {};
   /// \brief What to export
-  sem::BlockCode::Exports exports = sem::BlockCode::Exports::Both;
+  sem::BlockCode::Exports exports = Exports::Both;
   /// \brief Code evaluation results
   Opt<sem::BlockCode::EvalResult> result = std::nullopt;
   /// \brief Collected code lines
@@ -1333,7 +1333,7 @@ struct SubtreeLog : public sem::Org {
                         (sem::SubtreeLog::Kind(sem::SubtreeLog::LogEntry const&)) getLogKind,
                         (sem::SubtreeLog::Kind() const) getLogKind))
   static OrgSemKind const staticKind;
-  sem::SubtreeLog::LogEntry log = sem::SubtreeLog::Note{};
+  sem::SubtreeLog::LogEntry log = Note{};
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemId<sem::StmtList> desc);
   sem::SubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
@@ -1554,9 +1554,9 @@ struct Subtree : public sem::Org {
                           (sem::Subtree::Property::CustomRaw&()) getCustomRaw,
                           (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
                           (sem::Subtree::Property::Kind() const) getKind))
-    sem::Subtree::Property::SetMode mainSetRule = sem::Subtree::Property::SetMode::Override;
-    sem::Subtree::Property::SetMode subSetRule = sem::Subtree::Property::SetMode::Override;
-    sem::Subtree::Property::InheritanceMode inheritanceMode = sem::Subtree::Property::InheritanceMode::ThisAndSub;
+    sem::Subtree::Property::SetMode mainSetRule = Property::SetMode::Override;
+    sem::Subtree::Property::SetMode subSetRule = Property::SetMode::Override;
+    sem::Subtree::Property::InheritanceMode inheritanceMode = Property::InheritanceMode::ThisAndSub;
     sem::Subtree::Property::Data data;
     /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
     bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
@@ -1893,7 +1893,7 @@ struct ListItem : public sem::Org {
                         (OrgSemKind() const) getKind,
                         (bool() const) isDescriptionItem))
   static OrgSemKind const staticKind;
-  sem::ListItem::Checkbox checkbox = sem::ListItem::Checkbox::None;
+  sem::ListItem::Checkbox checkbox = Checkbox::None;
   /// \brief Description list item header
   Opt<sem::SemId<sem::Paragraph>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
@@ -1979,9 +1979,9 @@ struct DocumentOptions : public sem::Org {
     Opt<bool> statisticsCookies = std::nullopt;
     /// \brief Include todo keywords in export
     Opt<bool> todoText = std::nullopt;
-    sem::DocumentOptions::ExportConfig::BrokenLinks brokenLinks = sem::DocumentOptions::ExportConfig::BrokenLinks::Mark;
-    sem::DocumentOptions::ExportConfig::TocExport tocExport = sem::DocumentOptions::ExportConfig::DoExport{false};
-    sem::DocumentOptions::ExportConfig::TagExport tagExport = sem::DocumentOptions::ExportConfig::TagExport::All;
+    sem::DocumentOptions::ExportConfig::BrokenLinks brokenLinks = ExportConfig::BrokenLinks::Mark;
+    sem::DocumentOptions::ExportConfig::TocExport tocExport = ExportConfig::DoExport{false};
+    sem::DocumentOptions::ExportConfig::TagExport tagExport = ExportConfig::TagExport::All;
     sem::DocumentOptions::ExportConfig::TocExport data;
     sem::DocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
     sem::DocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
@@ -2010,7 +2010,7 @@ struct DocumentOptions : public sem::Org {
                         (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
                         (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
   static OrgSemKind const staticKind;
-  sem::DocumentOptions::Visibility initialVisibility = sem::DocumentOptions::Visibility::ShowEverything;
+  sem::DocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
   Vec<sem::Subtree::Property> properties = {};
   sem::DocumentOptions::ExportConfig exportConfig;
   Opt<bool> fixedWidthSections = std::nullopt;

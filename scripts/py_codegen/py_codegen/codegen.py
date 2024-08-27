@@ -147,18 +147,6 @@ org_type_names: List[str] = []
 
 from copy import deepcopy, copy
 
-
-@beartype
-def in_sem(typ: QualType) -> QualType:
-    typ = deepcopy(typ)
-    if typ.name in ["SemId", "Param"] + org_type_names:
-        typ.Spaces.insert(0, QualType.ForName("sem"))
-
-    typ.Parameters = [in_sem(P) for P in typ.Parameters]
-
-    return typ
-
-
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
     return [F for F in Fields if F.Type.name not in ["SemId"]]
 
@@ -596,7 +584,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         return result
 
-    return [rec_expand_type(T, [QualType.ForName("sem")]) for T in types]
+    return [rec_expand_type(T, []) for T in types]
 
 
 @beartype
@@ -604,28 +592,32 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     result = deepcopy(recs)
 
     IMM_BOX = "ImmBox"
+    ORG_SPACE = QualType.ForName("org")
 
     def conv_type(obj: QualType):
         match obj:
             case QualType(name="SemId", parameters=[]):
                 obj.name = "ImmId"
-                obj.Spaces = [QualType.ForName("org")]
+                obj.Spaces = [ORG_SPACE]
 
             case QualType(name="SemId"):
                 obj.name = "ImmIdT"
-                obj.Spaces = [QualType.ForName("org")]
+                obj.Spaces = [ORG_SPACE]
 
             case QualType(meta={"isOrgType": True}):
-                if len(obj.Spaces) == 1:
+                if len(obj.Spaces) == 0:
                     obj.name = "Imm" + obj.name
-                    obj.Spaces = [QualType.ForName("org")]
+
+                elif len(obj.Spaces) == 1:
+                    obj.name = "Imm" + obj.name
+                    obj.Spaces = [ORG_SPACE]
 
                 else:
                     spaces = obj.flatQualSpaces()
                     # obj.dbg_origin = "{} - - > {}".format(obj.format(),
                     #                                       [s.format() for s in spaces])
                     obj.Spaces = [
-                        QualType.ForName("org"),
+                        ORG_SPACE,
                         spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
                         *spaces[2:-1],
                     ]
@@ -633,7 +625,7 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
             case QualType(name=TypeName,
                           Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
                 obj.name = "Imm" + obj.name
-                obj.Spaces = [QualType.ForName("org")]
+                obj.Spaces = [ORG_SPACE]
 
             case QualType(name="Vec"):
                 obj.name = "ImmVec"
@@ -667,6 +659,9 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.GenDescribe = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
                 if hasattr(obj, "isOrgType"):
+                    # conv_type(obj.name)
+                    # obj.name.name = "Imm" + obj.name.name
+                    # obj.name.Spaces = [ORG_SPACE]
                     obj.nested = [
                         GenTuPass(
                             f"using Imm{obj.bases[0].name}::Imm{obj.bases[0].name};"),
@@ -758,7 +753,7 @@ def gen_pyhaxorg_wrappers(
     reflection_path: Path,
 ) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
-    immutable = rewrite_to_immutable(expanded)
+    immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
     proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
     t = ast.b
 

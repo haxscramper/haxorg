@@ -3,3 +3,4 @@ thirdparty
 *.js
 profdata_merger.sql
 ImmOrgTypes.hpp
+SemOrgTypes.hpp

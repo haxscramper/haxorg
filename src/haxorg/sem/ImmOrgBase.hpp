@@ -3,6 +3,7 @@
 
 #include <hstd/stdlib/dod_base.hpp>
 #include <haxorg/sem/SemOrgBase.hpp>
+#include <hstd/stdlib/Time.hpp>
 
 #include <immer/vector.hpp>
 #include <immer/box.hpp>
@@ -19,6 +20,9 @@ using ImmMap = immer::map<K, V>;
 
 namespace org {
 
+#define forward_declare(__Kind) struct Imm##__Kind;
+EACH_SEM_ORG_KIND(forward_declare)
+#undef forward_declare
 
 struct ContextStore;
 struct ImmOrg;

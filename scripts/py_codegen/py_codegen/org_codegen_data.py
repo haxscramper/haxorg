@@ -57,7 +57,8 @@ def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
 
 
 def t_nest(name: Union[str, QualType], Spaces: List[str]) -> QualType:
-    return t_space(name, ["sem"] + Spaces).model_copy(update=dict(meta=dict(isOrgType=True)))
+    return t_space(name,
+                   ["sem"] + Spaces).model_copy(update=dict(meta=dict(isOrgType=True)))
 
 
 def k_args(obj: Any, **kwargs) -> Any:
@@ -175,7 +176,12 @@ def str_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> Gen
 
 
 def d_org(name: str, *args, **kwargs) -> GenTuStruct:
-    res = GenTuStruct(QualType(name=name), *args, **kwargs)
+    res = GenTuStruct(
+        QualType(name=name, meta=dict(isOrgType=True), Spaces=[n_sem()]),
+        *args,
+        **kwargs,
+    )
+
     res.__setattr__("isOrgType", True)
     kind: str = res.name.name
     base = res.bases[0]
@@ -672,7 +678,7 @@ def get_sem_block():
                     t_nest("Format", ["BlockExport"]),
                     "format",
                     GenTuDoc("Export block type"),
-                    value="sem::BlockExport::Format::Inline",
+                    value="Format::Inline",
                 ),
                 GenTuField(t_str(), "exporter", GenTuDoc("Exporter backend name")),
                 opt_field(
@@ -864,7 +870,7 @@ def get_sem_block():
                 GenTuField(t_nest("Exports", ["BlockCode"]),
                            "exports",
                            GenTuDoc("What to export"),
-                           value="sem::BlockCode::Exports::Both"),
+                           value="Exports::Both"),
                 opt_field(t_nest("EvalResult", ["BlockCode"]), "result",
                           GenTuDoc("Code evaluation results")),
                 vec_field(t_nest("Line", ["BlockCode"]), "lines",
@@ -1300,7 +1306,7 @@ def get_sem_subtree():
                     ],
                     kindGetter="getLogKind",
                     variantField="log",
-                    variantValue="sem::SubtreeLog::Note{}",
+                    variantValue="Note{}",
                     variantName="LogEntry",
                 ),
             ],
@@ -1495,17 +1501,17 @@ def get_sem_subtree():
                             t_nest("SetMode", ["Subtree", "Property"]),
                             "mainSetRule",
                             GenTuDoc(""),
-                            value="sem::Subtree::Property::SetMode::Override",
+                            value="Property::SetMode::Override",
                         ),
                         GenTuField(t_nest("SetMode", ["Subtree", "Property"]),
                                    "subSetRule",
                                    GenTuDoc(""),
-                                   value="sem::Subtree::Property::SetMode::Override"),
+                                   value="Property::SetMode::Override"),
                         GenTuField(
                             t_nest("InheritanceMode", ["Subtree", "Property"]),
                             "inheritanceMode",
                             GenTuDoc(""),
-                            value="sem::Subtree::Property::InheritanceMode::ThisAndSub",
+                            value="Property::InheritanceMode::ThisAndSub",
                         ),
                     ],
                     nested=[
@@ -1676,7 +1682,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest("Checkbox", ["ListItem"]),
                            "checkbox",
                            GenTuDoc(""),
-                           value="sem::ListItem::Checkbox::None"),
+                           value="Checkbox::None"),
                 opt_field(
                     t_id("Paragraph"),
                     "header",
@@ -1743,17 +1749,17 @@ def get_types() -> Sequence[GenTuStruct]:
                         org_field(
                             t_nest("BrokenLinks", ["DocumentOptions", "ExportConfig"]),
                             "brokenLinks",
-                            value="sem::DocumentOptions::ExportConfig::BrokenLinks::Mark",
+                            value="ExportConfig::BrokenLinks::Mark",
                         ),
                         org_field(
                             t_nest("TocExport", ["DocumentOptions", "ExportConfig"]),
                             "tocExport",
-                            value="sem::DocumentOptions::ExportConfig::DoExport{false}",
+                            value="ExportConfig::DoExport{false}",
                         ),
                         org_field(
                             t_nest("TagExport", ["DocumentOptions", "ExportConfig"]),
                             "tagExport",
-                            value="sem::DocumentOptions::ExportConfig::TagExport::All",
+                            value="ExportConfig::TagExport::All",
                         ),
                     ],
                     nested=[
@@ -1817,7 +1823,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 org_field(
                     t_nest("Visibility", ["DocumentOptions"]),
                     "initialVisibility",
-                    value="sem::DocumentOptions::Visibility::ShowEverything",
+                    value="Visibility::ShowEverything",
                 ),
                 vec_field(t_nest("Property", ["Subtree"]), "properties", GenTuDoc("")),
                 org_field(t_nest("ExportConfig", ["DocumentOptions"]), "exportConfig"),
