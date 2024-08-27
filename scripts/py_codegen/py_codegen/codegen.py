@@ -608,7 +608,7 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                     obj.Spaces = [ORG_SPACE]
 
                 else:
-                    spaces = obj.flatQualSpaces()
+                    spaces = obj.flatQualSpaces() + [obj.withoutAllSpaces()]
                     # obj.dbg_origin = "{} - - > {}".format(obj.format(),
                     #                                       [s.format() for s in spaces])
                     obj.Spaces = [

@@ -64,21 +64,16 @@ struct ParseUnitStore {
     {
     }
 
-    Org*  get(OrgSemKind kind, ImmId::NodeIndexT index);
-    ImmId create(
-        ImmId::StoreIndexT selfIndex,
-        OrgSemKind         kind,
-        ImmId              parent,
-        ContextStore*      context,
-        Opt<OrgAdapter>    original = std::nullopt);
+    ImmOrg* get(OrgSemKind kind, ImmId::NodeIndexT index);
+    ImmId   create(
+          ImmId::StoreIndexT selfIndex,
+          OrgSemKind         kind,
+          ImmId              parent,
+          ContextStore*      context,
+          Opt<OrgAdapter>    original = std::nullopt);
 
     using StoreVisitor = Func<
         void(ImmId::StoreIndexT selfIndex, OrgKindStorePtrVariant store)>;
-
-    using NodeVisitor = Func<void(OrgVariant node)>;
-
-    void eachStore(ImmId::StoreIndexT selfIndex, StoreVisitor cb);
-    void eachNode(ImmId::StoreIndexT selfIndex, NodeVisitor cb);
 };
 
 /// \brief Global group of stores that all nodes are written to
@@ -106,9 +101,6 @@ struct ContextStore {
 
 
     Vec<ParseUnitStore> stores;
-
-    void eachStore(ParseUnitStore::StoreVisitor cb);
-    void eachNode(ParseUnitStore::NodeVisitor cb);
 
     ContextStore() {}
     ContextStore(const ContextStore&)            = delete;
