@@ -562,9 +562,9 @@ struct proto_serde<::orgproto::BlockCode::Switch::Dedent, sem::BlockCode::Switch
 
 
 template <>
-struct proto_serde<::orgproto::Switch, Switch> {
-  static void write(::orgproto::Switch* out, Switch const& in);
-  static void read(::orgproto::Switch const& out, proto_write_accessor<Switch> in);
+struct proto_serde<::orgproto::BlockCode::Switch, sem::BlockCode::Switch> {
+  static void write(::orgproto::BlockCode::Switch* out, sem::BlockCode::Switch const& in);
+  static void read(::orgproto::BlockCode::Switch const& out, proto_write_accessor<sem::BlockCode::Switch> in);
 };
 
 

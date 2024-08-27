@@ -148,6 +148,7 @@ org_type_names: List[str] = []
 
 from copy import deepcopy, copy
 
+
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
     return [F for F in Fields if F.Type.name not in ["SemId"]]
 
@@ -425,15 +426,12 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
 def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuStruct]:
 
     @beartype
-    def rec_expand_group(
-        record: GenTuTypeGroup,
-        context: List[QualType],
-    ) -> List[GenTuEntry | GenTuField]:
+    def rec_expand_group(record: GenTuTypeGroup,) -> List[GenTuEntry | GenTuField]:
         result = []
         typeNames: List[QualType] = []
 
         for item in record.types:
-            expanded = rec_expand_type(item, context)
+            expanded = rec_expand_type(item)
             result.append(expanded)
             if item.concreteKind:
                 typeNames.append(expanded.name)
@@ -451,8 +449,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
             result.append(GenTuPass(ast.Macro(iteratorMacro)))
 
         if record.variantName and record.enumName:
-            enum_type = QualType.ForName(record.enumName, Spaces=context)
-            variant_type = QualType.ForName(record.variantName, Spaces=context)
+            enum_type = record.enumName
+            variant_type = record.variantName
             result.append(
                 GenTuTypedef(
                     name=variant_type,
@@ -539,17 +537,17 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         return result
 
     @beartype
-    def rec_expand_type(typ: GenTuStruct, context: List[QualType]) -> GenTuStruct:
+    def rec_expand_type(typ: GenTuStruct) -> GenTuStruct:
         converted = []
         methods: List[GenTuFunction] = []
         fields: List[GenTuField] = []
         for item in typ.nested:
             match item:
                 case GenTuStruct():
-                    converted.append(rec_expand_type(item, context + [typ.name]))
+                    converted.append(rec_expand_type(item))
 
                 case GenTuTypeGroup():
-                    for res in rec_expand_group(item, context + [typ.name]):
+                    for res in rec_expand_group(item):
                         if isinstance(res, GenTuField):
                             fields.append(res)
 
@@ -560,10 +558,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                             converted.append(res)
 
                 case GenTuEnum():
-                    converted.append(
-                        replace(item,
-                                name=item.name.model_copy(update=dict(Spaces=context +
-                                                                      [typ.name]))))
+                    converted.append(replace(item, name=item.name))
 
                 case GenTuPass():
                     converted.append(item)
@@ -584,7 +579,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         return result
 
-    return [rec_expand_type(T, []) for T in types]
+    return [rec_expand_type(T) for T in types]
 
 
 @beartype
@@ -884,7 +879,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace("sem", [GenTuTypeGroup(expanded, enumName="")]),
+                    GenTuNamespace("sem", expanded),
                 ],
             )),
         GenUnit(
@@ -893,7 +888,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                 [
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
-                    GenTuNamespace("org", [GenTuTypeGroup(immutable, enumName="")]),
+                    GenTuNamespace("org", immutable),
                 ],
             )),
     ])

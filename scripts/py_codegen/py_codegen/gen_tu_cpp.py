@@ -149,10 +149,10 @@ class GenTuStruct:
 @dataclass
 class GenTuTypeGroup:
     types: List[GenTuStruct]
+    enumName: QualType 
+    variantName: QualType 
     iteratorMacroName: Optional[str] = None
-    enumName: str = "Kind"
     variantField: str = "data"
-    variantName: str = "Data"
     variantValue: Optional[str] = None
     kindGetter: str = "getKind"
     meta: Dict[str, Any] = field(default_factory=dict)

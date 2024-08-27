@@ -231,13 +231,13 @@ class Footnote(Inline):
     tag: str
     definition: Optional[Org]
 
-class TimeTimeRepeatMode(Enum):
+class TimeRepeatMode(Enum):
     _None = 1
     Exact = 2
     FirstMatch = 3
     SameDay = 4
 
-class TimeTimeRepeatPeriod(Enum):
+class TimeRepeatPeriod(Enum):
     Year = 1
     Month = 2
     Week = 3
@@ -565,7 +565,7 @@ class BlockExample(Block):
     parameters: Optional[CmdArguments]
     attached: List[Org]
 
-class BlockExportFormat(Enum):
+class Format(Enum):
     Inline = 1
     Line = 2
     Block = 3
@@ -616,23 +616,23 @@ class BlockCodeLinePartTangle:
     def __getattr__(self, name: str) -> object: ...
     target: str
 
-BlockCodeBlockCodeLineBlockCodeLinePartData = Union[BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle]
-class BlockCodeBlockCodeLineBlockCodeLinePartKind(Enum):
+BlockCodeLinePartData = Union[BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle]
+class BlockCodeLinePartKind(Enum):
     Raw = 1
     Callout = 2
     Tangle = 3
 
 class BlockCodeLinePart:
-    def __init__(self, data: BlockCodeBlockCodeLineBlockCodeLinePartData) -> None: ...
+    def __init__(self, data: BlockCodeLinePartData) -> None: ...
     def getRaw(self) -> BlockCodeLinePartRaw: ...
     def getCallout(self) -> BlockCodeLinePartCallout: ...
     def getTangle(self) -> BlockCodeLinePartTangle: ...
     @staticmethod
-    def getKindStatic(self, __input: BlockCodeBlockCodeLineBlockCodeLinePartData) -> BlockCodeBlockCodeLineBlockCodeLinePartKind: ...
-    def getKind(self) -> BlockCodeBlockCodeLineBlockCodeLinePartKind: ...
+    def getKindStatic(self, __input: BlockCodeLinePartData) -> BlockCodeLinePartKind: ...
+    def getKind(self) -> BlockCodeLinePartKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    data: BlockCodeBlockCodeLineBlockCodeLinePartData
+    data: BlockCodeLinePartData
 
 class BlockCodeLine:
     def __init__(self, parts: List[BlockCodeLinePart]) -> None: ...
@@ -679,7 +679,7 @@ class BlockCodeSwitchKind(Enum):
     EmphasizeLine = 4
     Dedent = 5
 
-class Switch:
+class BlockCodeSwitch:
     def __init__(self, data: BlockCodeSwitchData) -> None: ...
     def getLineStart(self) -> BlockCodeSwitchLineStart: ...
     def getCalloutFormat(self) -> BlockCodeSwitchCalloutFormat: ...
@@ -693,7 +693,7 @@ class Switch:
     def __getattr__(self, name: str) -> object: ...
     data: BlockCodeSwitchData
 
-class BlockCodeResults(Enum):
+class Results(Enum):
     Replace = 1
 
 class BlockCodeExports(Enum):
@@ -725,25 +725,25 @@ class BlockCodeEvalResultRaw:
     def __getattr__(self, name: str) -> object: ...
     text: str
 
-BlockCodeBlockCodeEvalResultData = Union[BlockCodeEvalResultNone, BlockCodeEvalResultOrgValue, BlockCodeEvalResultFile, BlockCodeEvalResultRaw]
-class BlockCodeBlockCodeEvalResultKind(Enum):
+BlockCodeEvalResultData = Union[BlockCodeEvalResultNone, BlockCodeEvalResultOrgValue, BlockCodeEvalResultFile, BlockCodeEvalResultRaw]
+class BlockCodeEvalResultKind(Enum):
     _None = 1
     OrgValue = 2
     File = 3
     Raw = 4
 
 class BlockCodeEvalResult:
-    def __init__(self, data: BlockCodeBlockCodeEvalResultData) -> None: ...
+    def __init__(self, data: BlockCodeEvalResultData) -> None: ...
     def getNone(self) -> BlockCodeEvalResultNone: ...
     def getOrgValue(self) -> BlockCodeEvalResultOrgValue: ...
     def getFile(self) -> BlockCodeEvalResultFile: ...
     def getRaw(self) -> BlockCodeEvalResultRaw: ...
     @staticmethod
-    def getKindStatic(self, __input: BlockCodeBlockCodeEvalResultData) -> BlockCodeBlockCodeEvalResultKind: ...
-    def getKind(self) -> BlockCodeBlockCodeEvalResultKind: ...
+    def getKindStatic(self, __input: BlockCodeEvalResultData) -> BlockCodeEvalResultKind: ...
+    def getKind(self) -> BlockCodeEvalResultKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    data: BlockCodeBlockCodeEvalResultData
+    data: BlockCodeEvalResultData
 
 class BlockCode(Block):
     def __init__(self, lang: Optional[str], switches: List[BlockCodeSwitch], exports: BlockCodeExports, result: Optional[BlockCodeEvalResult], lines: List[BlockCodeLine], cache: bool, eval: bool, noweb: bool, hlines: bool, tangle: bool, parameters: Optional[CmdArguments], attached: List[Org]) -> None: ...
@@ -773,7 +773,7 @@ class SubtreeLogDescribedLog:
     def __getattr__(self, name: str) -> object: ...
     desc: Optional[StmtList]
 
-class SubtreeLogSubtreeLogPriorityAction(Enum):
+class SubtreeLogPriorityAction(Enum):
     Added = 1
     Removed = 2
     Changed = 3
@@ -855,7 +855,7 @@ class SubtreeLog(Org):
     def __getattr__(self, name: str) -> object: ...
     log: SubtreeLogLogEntry
 
-class SubtreeSubtreePeriodKind(Enum):
+class SubtreePeriodKind(Enum):
     Clocked = 1
     Closed = 2
     Scheduled = 3
@@ -872,12 +872,12 @@ class SubtreePeriod:
     from_: Time
     to: Optional[Time]
 
-class SubtreeSubtreePropertySetMode(Enum):
+class SetMode(Enum):
     Override = 1
     Add = 2
     Subtract = 3
 
-class SubtreeSubtreePropertyInheritanceMode(Enum):
+class InheritanceMode(Enum):
     ThisAndSub = 1
     OnlyThis = 2
     OnlySub = 3
@@ -936,7 +936,7 @@ class SubtreePropertyEffort:
     hours: int
     minutes: int
 
-class SubtreeSubtreePropertySubtreePropertyVisibilityLevel(Enum):
+class Level(Enum):
     Folded = 1
     Children = 2
     Content = 3
@@ -987,8 +987,8 @@ class SubtreePropertyCustomRaw:
     name: str
     value: str
 
-SubtreeSubtreePropertyData = Union[SubtreePropertyNonblocking, SubtreePropertyTrigger, SubtreePropertyOrigin, SubtreePropertyExportLatexClass, SubtreePropertyExportLatexClassOptions, SubtreePropertyExportLatexHeader, SubtreePropertyExportLatexCompiler, SubtreePropertyOrdered, SubtreePropertyEffort, SubtreePropertyVisibility, SubtreePropertyExportOptions, SubtreePropertyBlocker, SubtreePropertyUnnumbered, SubtreePropertyCreated, SubtreePropertyCustomArgs, SubtreePropertyCustomRaw]
-class SubtreeSubtreePropertyKind(Enum):
+SubtreePropertyData = Union[SubtreePropertyNonblocking, SubtreePropertyTrigger, SubtreePropertyOrigin, SubtreePropertyExportLatexClass, SubtreePropertyExportLatexClassOptions, SubtreePropertyExportLatexHeader, SubtreePropertyExportLatexCompiler, SubtreePropertyOrdered, SubtreePropertyEffort, SubtreePropertyVisibility, SubtreePropertyExportOptions, SubtreePropertyBlocker, SubtreePropertyUnnumbered, SubtreePropertyCreated, SubtreePropertyCustomArgs, SubtreePropertyCustomRaw]
+class SubtreePropertyKind(Enum):
     Nonblocking = 1
     Trigger = 2
     Origin = 3
@@ -1007,7 +1007,7 @@ class SubtreeSubtreePropertyKind(Enum):
     CustomRaw = 16
 
 class SubtreeProperty:
-    def __init__(self, mainSetRule: SubtreePropertySetMode, subSetRule: SubtreePropertySetMode, inheritanceMode: SubtreePropertyInheritanceMode, data: SubtreeSubtreePropertyData) -> None: ...
+    def __init__(self, mainSetRule: SubtreePropertySetMode, subSetRule: SubtreePropertySetMode, inheritanceMode: SubtreePropertyInheritanceMode, data: SubtreePropertyData) -> None: ...
     def isMatching(self, kind: str, subKind: Optional[str]) -> bool: ...
     def getName(self) -> str: ...
     def getSubKind(self) -> Optional[str]: ...
@@ -1028,14 +1028,14 @@ class SubtreeProperty:
     def getCustomArgs(self) -> SubtreePropertyCustomArgs: ...
     def getCustomRaw(self) -> SubtreePropertyCustomRaw: ...
     @staticmethod
-    def getKindStatic(self, __input: SubtreeSubtreePropertyData) -> SubtreeSubtreePropertyKind: ...
-    def getKind(self) -> SubtreeSubtreePropertyKind: ...
+    def getKindStatic(self, __input: SubtreePropertyData) -> SubtreePropertyKind: ...
+    def getKind(self) -> SubtreePropertyKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     mainSetRule: SubtreePropertySetMode
     subSetRule: SubtreePropertySetMode
     inheritanceMode: SubtreePropertyInheritanceMode
-    data: SubtreeSubtreePropertyData
+    data: SubtreePropertyData
 
 class Subtree(Org):
     def __init__(self, level: int, treeId: Optional[str], todo: Optional[str], completion: Optional[SubtreeCompletion], description: Optional[Paragraph], tags: List[HashTag], title: Paragraph, logbook: List[SubtreeLog], properties: List[SubtreeProperty], closed: Optional[Time], deadline: Optional[Time], scheduled: Optional[Time], isComment: bool, isArchived: bool, priority: Optional[str]) -> None: ...
@@ -1205,7 +1205,7 @@ class List(Stmt):
     def __getattr__(self, name: str) -> object: ...
     attached: List[Org]
 
-class ListItemCheckbox(Enum):
+class Checkbox(Enum):
     _None = 1
     Done = 2
     Empty = 3
@@ -1226,18 +1226,18 @@ class DocumentOptionsExportConfigTaskExport:
     def __getattr__(self, name: str) -> object: ...
     taskWhitelist: List[str]
 
-class DocumentOptionsDocumentOptionsExportConfigTagExport(Enum):
+class TagExport(Enum):
     _None = 1
     All = 2
     NotInToc = 3
 
-class DocumentOptionsDocumentOptionsExportConfigTaskFiltering(Enum):
+class TaskFiltering(Enum):
     Whitelist = 1
     Done = 2
     _None = 3
     All = 4
 
-class DocumentOptionsDocumentOptionsExportConfigBrokenLinks(Enum):
+class BrokenLinks(Enum):
     Mark = 1
     Raise = 2
     Ignore = 3
@@ -1254,18 +1254,18 @@ class DocumentOptionsExportConfigExportFixed:
     def __getattr__(self, name: str) -> object: ...
     exportLevels: int
 
-DocumentOptionsDocumentOptionsExportConfigTocExport = Union[DocumentOptionsExportConfigDoExport, DocumentOptionsExportConfigExportFixed]
-class DocumentOptionsDocumentOptionsExportConfigTocExportKind(Enum):
+DocumentOptionsExportConfigTocExport = Union[DocumentOptionsExportConfigDoExport, DocumentOptionsExportConfigExportFixed]
+class DocumentOptionsExportConfigTocExportKind(Enum):
     DoExport = 1
     ExportFixed = 2
 
 class DocumentOptionsExportConfig:
-    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], brokenLinks: DocumentOptionsExportConfigBrokenLinks, tocExport: DocumentOptionsExportConfigTocExport, tagExport: DocumentOptionsExportConfigTagExport, data: DocumentOptionsDocumentOptionsExportConfigTocExport) -> None: ...
+    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], brokenLinks: DocumentOptionsExportConfigBrokenLinks, tocExport: DocumentOptionsExportConfigTocExport, tagExport: DocumentOptionsExportConfigTagExport, data: DocumentOptionsExportConfigTocExport) -> None: ...
     def getDoExport(self) -> DocumentOptionsExportConfigDoExport: ...
     def getExportFixed(self) -> DocumentOptionsExportConfigExportFixed: ...
     @staticmethod
-    def getTocExportKindStatic(self, __input: DocumentOptionsDocumentOptionsExportConfigTocExport) -> DocumentOptionsDocumentOptionsExportConfigTocExportKind: ...
-    def getTocExportKind(self) -> DocumentOptionsDocumentOptionsExportConfigTocExportKind: ...
+    def getTocExportKindStatic(self, __input: DocumentOptionsExportConfigTocExport) -> DocumentOptionsExportConfigTocExportKind: ...
+    def getTocExportKind(self) -> DocumentOptionsExportConfigTocExportKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     inlinetasks: Optional[bool]
@@ -1280,9 +1280,9 @@ class DocumentOptionsExportConfig:
     brokenLinks: DocumentOptionsExportConfigBrokenLinks
     tocExport: DocumentOptionsExportConfigTocExport
     tagExport: DocumentOptionsExportConfigTagExport
-    data: DocumentOptionsDocumentOptionsExportConfigTocExport
+    data: DocumentOptionsExportConfigTocExport
 
-class DocumentOptionsVisibility(Enum):
+class Visibility(Enum):
     Overview = 1
     Content = 2
     ShowAll = 3

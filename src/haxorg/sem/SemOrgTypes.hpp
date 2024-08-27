@@ -986,8 +986,8 @@ struct BlockCode : public sem::Block {
       using Data = std::variant<sem::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Tangle>;
       enum class Kind : short int { Raw, Callout, Tangle, };
       BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
-      using variant_enum_type = sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind;
-      using variant_data_type = sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data;
+      using variant_enum_type = sem::BlockCode::Line::Part::Kind;
+      using variant_data_type = sem::BlockCode::Line::Part::Data;
       BOOST_DESCRIBE_CLASS(Part,
                            (),
                            (),
@@ -999,17 +999,17 @@ struct BlockCode : public sem::Block {
                             (sem::BlockCode::Line::Part::Callout&()) getCallout,
                             (sem::BlockCode::Line::Part::Tangle const&() const) getTangle,
                             (sem::BlockCode::Line::Part::Tangle&()) getTangle,
-                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind(sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data const&)) getKind,
-                            (sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind() const) getKind))
-      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data data;
+                            (sem::BlockCode::Line::Part::Kind(sem::BlockCode::Line::Part::Data const&)) getKind,
+                            (sem::BlockCode::Line::Part::Kind() const) getKind))
+      sem::BlockCode::Line::Part::Data data;
       sem::BlockCode::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
       sem::BlockCode::Line::Part::Raw& getRaw() { return std::get<0>(data); }
       sem::BlockCode::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
       sem::BlockCode::Line::Part::Callout& getCallout() { return std::get<1>(data); }
       sem::BlockCode::Line::Part::Tangle const& getTangle() const { return std::get<2>(data); }
       sem::BlockCode::Line::Part::Tangle& getTangle() { return std::get<2>(data); }
-      static sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind getKind(sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Data const& __input) { return static_cast<sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind>(__input.index()); }
-      sem::BlockCode::sem::BlockCode::Line::sem::BlockCode::Line::Part::Kind getKind() const { return getKind(data); }
+      static sem::BlockCode::Line::Part::Kind getKind(sem::BlockCode::Line::Part::Data const& __input) { return static_cast<sem::BlockCode::Line::Part::Kind>(__input.index()); }
+      sem::BlockCode::Line::Part::Kind getKind() const { return getKind(data); }
     };
 
     BOOST_DESCRIBE_CLASS(Line, (), (), (), (parts))
@@ -1138,8 +1138,8 @@ struct BlockCode : public sem::Block {
     using Data = std::variant<sem::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::Raw>;
     enum class Kind : short int { None, OrgValue, File, Raw, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
-    using variant_enum_type = sem::BlockCode::sem::BlockCode::EvalResult::Kind;
-    using variant_data_type = sem::BlockCode::sem::BlockCode::EvalResult::Data;
+    using variant_enum_type = sem::BlockCode::EvalResult::Kind;
+    using variant_data_type = sem::BlockCode::EvalResult::Data;
     BOOST_DESCRIBE_CLASS(EvalResult,
                          (),
                          (),
@@ -1153,9 +1153,9 @@ struct BlockCode : public sem::Block {
                           (sem::BlockCode::EvalResult::File&()) getFile,
                           (sem::BlockCode::EvalResult::Raw const&() const) getRaw,
                           (sem::BlockCode::EvalResult::Raw&()) getRaw,
-                          (sem::BlockCode::sem::BlockCode::EvalResult::Kind(sem::BlockCode::sem::BlockCode::EvalResult::Data const&)) getKind,
-                          (sem::BlockCode::sem::BlockCode::EvalResult::Kind() const) getKind))
-    sem::BlockCode::sem::BlockCode::EvalResult::Data data;
+                          (sem::BlockCode::EvalResult::Kind(sem::BlockCode::EvalResult::Data const&)) getKind,
+                          (sem::BlockCode::EvalResult::Kind() const) getKind))
+    sem::BlockCode::EvalResult::Data data;
     sem::BlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
     sem::BlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
     sem::BlockCode::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
@@ -1164,8 +1164,8 @@ struct BlockCode : public sem::Block {
     sem::BlockCode::EvalResult::File& getFile() { return std::get<2>(data); }
     sem::BlockCode::EvalResult::Raw const& getRaw() const { return std::get<3>(data); }
     sem::BlockCode::EvalResult::Raw& getRaw() { return std::get<3>(data); }
-    static sem::BlockCode::sem::BlockCode::EvalResult::Kind getKind(sem::BlockCode::sem::BlockCode::EvalResult::Data const& __input) { return static_cast<sem::BlockCode::sem::BlockCode::EvalResult::Kind>(__input.index()); }
-    sem::BlockCode::sem::BlockCode::EvalResult::Kind getKind() const { return getKind(data); }
+    static sem::BlockCode::EvalResult::Kind getKind(sem::BlockCode::EvalResult::Data const& __input) { return static_cast<sem::BlockCode::EvalResult::Kind>(__input.index()); }
+    sem::BlockCode::EvalResult::Kind getKind() const { return getKind(data); }
   };
 
   BOOST_DESCRIBE_CLASS(BlockCode,
@@ -1506,8 +1506,8 @@ struct Subtree : public sem::Org {
     using Data = std::variant<sem::Subtree::Property::Nonblocking, sem::Subtree::Property::Trigger, sem::Subtree::Property::Origin, sem::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::Ordered, sem::Subtree::Property::Effort, sem::Subtree::Property::Visibility, sem::Subtree::Property::ExportOptions, sem::Subtree::Property::Blocker, sem::Subtree::Property::Unnumbered, sem::Subtree::Property::Created, sem::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomRaw>;
     enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
-    using variant_enum_type = sem::Subtree::sem::Subtree::Property::Kind;
-    using variant_data_type = sem::Subtree::sem::Subtree::Property::Data;
+    using variant_enum_type = sem::Subtree::Property::Kind;
+    using variant_data_type = sem::Subtree::Property::Data;
     Property(CR<Data> data) : data(data) {}
     BOOST_DESCRIBE_CLASS(Property,
                          (),
@@ -1552,12 +1552,12 @@ struct Subtree : public sem::Org {
                           (sem::Subtree::Property::CustomArgs&()) getCustomArgs,
                           (sem::Subtree::Property::CustomRaw const&() const) getCustomRaw,
                           (sem::Subtree::Property::CustomRaw&()) getCustomRaw,
-                          (sem::Subtree::sem::Subtree::Property::Kind(sem::Subtree::sem::Subtree::Property::Data const&)) getKind,
-                          (sem::Subtree::sem::Subtree::Property::Kind() const) getKind))
+                          (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
+                          (sem::Subtree::Property::Kind() const) getKind))
     sem::Subtree::Property::SetMode mainSetRule = Property::SetMode::Override;
     sem::Subtree::Property::SetMode subSetRule = Property::SetMode::Override;
     sem::Subtree::Property::InheritanceMode inheritanceMode = Property::InheritanceMode::ThisAndSub;
-    sem::Subtree::sem::Subtree::Property::Data data;
+    sem::Subtree::Property::Data data;
     /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
     bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
     /// \brief Get non-normalized name of the property (for built-in and user)
@@ -1596,8 +1596,8 @@ struct Subtree : public sem::Org {
     sem::Subtree::Property::CustomArgs& getCustomArgs() { return std::get<14>(data); }
     sem::Subtree::Property::CustomRaw const& getCustomRaw() const { return std::get<15>(data); }
     sem::Subtree::Property::CustomRaw& getCustomRaw() { return std::get<15>(data); }
-    static sem::Subtree::sem::Subtree::Property::Kind getKind(sem::Subtree::sem::Subtree::Property::Data const& __input) { return static_cast<sem::Subtree::sem::Subtree::Property::Kind>(__input.index()); }
-    sem::Subtree::sem::Subtree::Property::Kind getKind() const { return getKind(data); }
+    static sem::Subtree::Property::Kind getKind(sem::Subtree::Property::Data const& __input) { return static_cast<sem::Subtree::Property::Kind>(__input.index()); }
+    sem::Subtree::Property::Kind getKind() const { return getKind(data); }
   };
 
   BOOST_DESCRIBE_CLASS(Subtree,
@@ -1944,8 +1944,8 @@ struct DocumentOptions : public sem::Org {
     using TocExport = std::variant<sem::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::ExportFixed>;
     enum class TocExportKind : short int { DoExport, ExportFixed, };
     BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
-    using variant_enum_type = sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExportKind;
-    using variant_data_type = sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExport;
+    using variant_enum_type = sem::DocumentOptions::ExportConfig::TocExportKind;
+    using variant_data_type = sem::DocumentOptions::ExportConfig::TocExport;
     BOOST_DESCRIBE_CLASS(ExportConfig,
                          (),
                          (),
@@ -1967,8 +1967,8 @@ struct DocumentOptions : public sem::Org {
                           (sem::DocumentOptions::ExportConfig::DoExport&()) getDoExport,
                           (sem::DocumentOptions::ExportConfig::ExportFixed const&() const) getExportFixed,
                           (sem::DocumentOptions::ExportConfig::ExportFixed&()) getExportFixed,
-                          (sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExportKind(sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExport const&)) getTocExportKind,
-                          (sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExportKind() const) getTocExportKind))
+                          (sem::DocumentOptions::ExportConfig::TocExportKind(sem::DocumentOptions::ExportConfig::TocExport const&)) getTocExportKind,
+                          (sem::DocumentOptions::ExportConfig::TocExportKind() const) getTocExportKind))
     Opt<bool> inlinetasks = std::nullopt;
     Opt<bool> footnotes = std::nullopt;
     Opt<bool> clock = std::nullopt;
@@ -1982,13 +1982,13 @@ struct DocumentOptions : public sem::Org {
     sem::DocumentOptions::ExportConfig::BrokenLinks brokenLinks;
     sem::DocumentOptions::ExportConfig::TocExport tocExport;
     sem::DocumentOptions::ExportConfig::TagExport tagExport;
-    sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExport data;
+    sem::DocumentOptions::ExportConfig::TocExport data;
     sem::DocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
     sem::DocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
     sem::DocumentOptions::ExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
     sem::DocumentOptions::ExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
-    static sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExportKind getTocExportKind(sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExport const& __input) { return static_cast<sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExportKind>(__input.index()); }
-    sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
+    static sem::DocumentOptions::ExportConfig::TocExportKind getTocExportKind(sem::DocumentOptions::ExportConfig::TocExport const& __input) { return static_cast<sem::DocumentOptions::ExportConfig::TocExportKind>(__input.index()); }
+    sem::DocumentOptions::ExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
   };
 
   enum class Visibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };

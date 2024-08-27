@@ -740,20 +740,28 @@ def get_sem_block():
                         GenTuStruct(
                             t_nest("Part", ["BlockCode", "Line"]),
                             nested=[
-                                GenTuTypeGroup([
-                                    GenTuStruct(
-                                        t_nest("Raw", ["BlockCode", "Line", "Part"]),
-                                        fields=[GenTuField(t_str(), "code")],
-                                    ),
-                                    GenTuStruct(
-                                        t_nest("Callout", ["BlockCode", "Line", "Part"]),
-                                        fields=[GenTuField(t_str(), "name")],
-                                    ),
-                                    GenTuStruct(
-                                        t_nest("Tangle", ["BlockCode", "Line", "Part"]),
-                                        fields=[GenTuField(t_str(), "target")],
-                                    ),
-                                ]),
+                                GenTuTypeGroup(
+                                    [
+                                        GenTuStruct(
+                                            t_nest("Raw", ["BlockCode", "Line", "Part"]),
+                                            fields=[GenTuField(t_str(), "code")],
+                                        ),
+                                        GenTuStruct(
+                                            t_nest("Callout",
+                                                   ["BlockCode", "Line", "Part"]),
+                                            fields=[GenTuField(t_str(), "name")],
+                                        ),
+                                        GenTuStruct(
+                                            t_nest("Tangle",
+                                                   ["BlockCode", "Line", "Part"]),
+                                            fields=[GenTuField(t_str(), "target")],
+                                        ),
+                                    ],
+                                    enumName=t_nest("Kind",
+                                                    ["BlockCode", "Line", "Part"]),
+                                    variantName=t_nest("Data",
+                                                       ["BlockCode", "Line", "Part"]),
+                                ),
                             ],
                         )
                     ],
@@ -766,76 +774,79 @@ def get_sem_block():
                     ],
                 ),
                 GenTuStruct(
-                    t("Switch"),
+                    t_nest("Switch", ["BlockCode"]),
                     GenTuDoc(
                         "Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block"
                     ),
                     nested=[
                         GenTuPass("Switch() {}"),
-                        GenTuTypeGroup([
-                            GenTuStruct(
-                                t_nest("LineStart", ["BlockCode", "Switch"]),
-                                GenTuDoc(
-                                    "Enumerate code lines starting from `start` value instead of default indexing."
-                                ),
-                                fields=[
-                                    GenTuField(t_int(), "start",
-                                               GenTuDoc("First line number")),
-                                    GenTuField(
-                                        t_bool(),
-                                        "extendLast",
-                                        GenTuDoc(
-                                            "Continue numbering from the previous block nstead of starting anew"
-                                        ),
-                                        value="false",
+                        GenTuTypeGroup(
+                            [
+                                GenTuStruct(
+                                    t_nest("LineStart", ["BlockCode", "Switch"]),
+                                    GenTuDoc(
+                                        "Enumerate code lines starting from `start` value instead of default indexing."
                                     ),
-                                ],
-                                nested=[GenTuPass("LineStart() {}")],
-                            ),
-                            GenTuStruct(
-                                t_nest("CalloutFormat", ["BlockCode", "Switch"]),
-                                GenTuDoc(""),
-                                fields=[
-                                    GenTuField(t_str(),
-                                               "format",
-                                               GenTuDoc(""),
-                                               value='""')
-                                ],
-                                nested=[GenTuPass("CalloutFormat() {}")],
-                            ),
-                            GenTuStruct(
-                                t_nest("RemoveCallout", ["BlockCode", "Switch"]),
-                                GenTuDoc(""),
-                                fields=[
-                                    GenTuField(t_bool(),
-                                               "remove",
-                                               GenTuDoc(""),
-                                               value="true")
-                                ],
-                                nested=[GenTuPass("RemoveCallout() {}")],
-                            ),
-                            GenTuStruct(
-                                t_nest("EmphasizeLine", ["BlockCode", "Switch"]),
-                                GenTuDoc(
-                                    "Emphasize single line -- can be repeated multiple times"
+                                    fields=[
+                                        GenTuField(t_int(), "start",
+                                                   GenTuDoc("First line number")),
+                                        GenTuField(
+                                            t_bool(),
+                                            "extendLast",
+                                            GenTuDoc(
+                                                "Continue numbering from the previous block nstead of starting anew"
+                                            ),
+                                            value="false",
+                                        ),
+                                    ],
+                                    nested=[GenTuPass("LineStart() {}")],
                                 ),
-                                fields=[
-                                    GenTuField(t_vec(t_int()),
-                                               "line",
-                                               GenTuDoc(""),
-                                               value="{}")
-                                ],
-                                nested=[GenTuPass("EmphasizeLine() {}")],
-                            ),
-                            GenTuStruct(
-                                t_nest("Dedent", ["BlockCode", "Switch"]),
-                                GenTuDoc(""),
-                                fields=[
-                                    GenTuField(t_int(), "value", GenTuDoc(""), value="0")
-                                ],
-                                nested=[GenTuPass("Dedent() {}")],
-                            ),
-                        ])
+                                GenTuStruct(
+                                    t_nest("CalloutFormat", ["BlockCode", "Switch"]),
+                                    GenTuDoc(""),
+                                    fields=[
+                                        GenTuField(
+                                            t_str(), "format", GenTuDoc(""), value='""')
+                                    ],
+                                    nested=[GenTuPass("CalloutFormat() {}")],
+                                ),
+                                GenTuStruct(
+                                    t_nest("RemoveCallout", ["BlockCode", "Switch"]),
+                                    GenTuDoc(""),
+                                    fields=[
+                                        GenTuField(t_bool(),
+                                                   "remove",
+                                                   GenTuDoc(""),
+                                                   value="true")
+                                    ],
+                                    nested=[GenTuPass("RemoveCallout() {}")],
+                                ),
+                                GenTuStruct(
+                                    t_nest("EmphasizeLine", ["BlockCode", "Switch"]),
+                                    GenTuDoc(
+                                        "Emphasize single line -- can be repeated multiple times"
+                                    ),
+                                    fields=[
+                                        GenTuField(t_vec(t_int()),
+                                                   "line",
+                                                   GenTuDoc(""),
+                                                   value="{}")
+                                    ],
+                                    nested=[GenTuPass("EmphasizeLine() {}")],
+                                ),
+                                GenTuStruct(
+                                    t_nest("Dedent", ["BlockCode", "Switch"]),
+                                    GenTuDoc(""),
+                                    fields=[
+                                        GenTuField(
+                                            t_int(), "value", GenTuDoc(""), value="0")
+                                    ],
+                                    nested=[GenTuPass("Dedent() {}")],
+                                ),
+                            ],
+                            enumName=t_nest("Kind", ["BlockCode", "Switch"]),
+                            variantName=t_nest("Data", ["BlockCode", "Switch"]),
+                        ),
                     ],
                 ),
                 GenTuEnum(
@@ -862,35 +873,38 @@ def get_sem_block():
                 GenTuStruct(
                     t_nest("EvalResult", ["BlockCode"]),
                     nested=[
-                        GenTuTypeGroup([
-                            GenTuStruct(
-                                t_nest("None",
-                                       ["BlockCode", "EvalResult"]),
-                                GenTuDoc("Default value"),
-                            ),
-                            GenTuStruct(
-                                t_nest("OrgValue",
-                                       ["BlockCode", "EvalResult"]),
-                                GenTuDoc(
-                                    "Source code block evaluated to an org-mode node element"
+                        GenTuTypeGroup(
+                            [
+                                GenTuStruct(
+                                    t_nest("None", ["BlockCode", "EvalResult"]),
+                                    GenTuDoc("Default value"),
                                 ),
-                                fields=[
-                                    id_field(
-                                        "Org", "value",
-                                        GenTuDoc("Parsed value of the evaluation result"))
-                                ],
-                            ),
-                            GenTuStruct(
-                                t_nest("File", ["BlockCode", "EvalResult"]),
-                                GenTuDoc("Output evaluation results to a file"),
-                                fields=[GenTuField(t_str(), "path")],
-                            ),
-                            GenTuStruct(
-                                t_nest("Raw", ["BlockCode", "EvalResult"]),
-                                GenTuDoc("Evaluation output is a raw text"),
-                                fields=[GenTuField(t_str(), "text")],
-                            ),
-                        ]),
+                                GenTuStruct(
+                                    t_nest("OrgValue", ["BlockCode", "EvalResult"]),
+                                    GenTuDoc(
+                                        "Source code block evaluated to an org-mode node element"
+                                    ),
+                                    fields=[
+                                        id_field(
+                                            "Org", "value",
+                                            GenTuDoc(
+                                                "Parsed value of the evaluation result"))
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest("File", ["BlockCode", "EvalResult"]),
+                                    GenTuDoc("Output evaluation results to a file"),
+                                    fields=[GenTuField(t_str(), "path")],
+                                ),
+                                GenTuStruct(
+                                    t_nest("Raw", ["BlockCode", "EvalResult"]),
+                                    GenTuDoc("Evaluation output is a raw text"),
+                                    fields=[GenTuField(t_str(), "text")],
+                                ),
+                            ],
+                            enumName=t_nest("Kind", ["BlockCode", "EvalResult"]),
+                            variantName=t_nest("Data", ["BlockCode", "EvalResult"]),
+                        ),
                     ])
             ],
             fields=[
@@ -1061,9 +1075,9 @@ def get_sem_text():
                         ),
                     ],
                     kindGetter="getTimeKind",
-                    enumName="TimeKind",
+                    enumName=t_nest("TimeKind", ["Time"]),
                     variantField="time",
-                    variantName="TimeVariant",
+                    variantName=t_nest("TimeVariant", ["Time"]),
                 ),
             ],
         ),
@@ -1198,6 +1212,8 @@ def get_sem_text():
                         ),
                     ],
                     kindGetter="getLinkKind",
+                    variantName=t_nest("Data", ["Link"]),
+                    enumName=t_nest("Kind", ["Link"]),
                 )
             ],
         ),
@@ -1350,7 +1366,8 @@ def get_sem_subtree():
                     kindGetter="getLogKind",
                     variantField="log",
                     variantValue="Note{}",
-                    variantName="LogEntry",
+                    variantName=t_nest("LogEntry", ["SubtreeLog"]),
+                    enumName=t_nest("Kind", ["SubtreeLog"]),
                 ),
             ],
         ),
@@ -1563,7 +1580,11 @@ def get_sem_subtree():
                                       "Subtract"),
                         d_simple_enum("InheritanceMode", GenTuDoc(""), "ThisAndSub",
                                       "OnlyThis", "OnlySub"),
-                        GenTuTypeGroup(get_subtree_property_types()),
+                        GenTuTypeGroup(
+                            get_subtree_property_types(),
+                            enumName=t_nest("Kind", ["Subtree", "Property"]),
+                            variantName=t_nest("Data", ["Subtree", "Property"]),
+                        ),
                         GenTuPass("Property(CR<Data> data) : data(data) {}"),
                     ],
                 ),
@@ -1646,7 +1667,8 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuTypeGroup(
                     [
                         GenTuStruct(t_nest("None", ["AnnotatedParagraph"])),
-                        GenTuStruct(t_nest("Footnote", ["AnnotatedParagraph"]), fields=[GenTuField(t_str(), "name")]),
+                        GenTuStruct(t_nest("Footnote", ["AnnotatedParagraph"]),
+                                    fields=[GenTuField(t_str(), "name")]),
                         GenTuStruct(
                             t_nest("Admonition", ["AnnotatedParagraph"]),
                             fields=[
@@ -1661,7 +1683,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             ]),
                     ],
                     kindGetter="getAnnotationKind",
-                    enumName="AnnotationKind",
+                    enumName=t_nest("AnnotationKind", ["AnnotatedParagraph"]),
+                    variantName=t_nest("Data", ["AnnotatedParagraph"]),
                 )
             ]),
         d_org(
@@ -1838,16 +1861,18 @@ def get_types() -> Sequence[GenTuStruct]:
                         GenTuTypeGroup(
                             [
                                 org_struct(
-                                    t_nest("DoExport", ["DocumentOptions", "ExportConfig"]),
+                                    t_nest("DoExport",
+                                           ["DocumentOptions", "ExportConfig"]),
                                     fields=[org_field(t_bool(), "exportToc")],
                                 ),
                                 org_struct(
-                                    t_nest("ExportFixed", ["DocumentOptions", "ExportConfig"]),
+                                    t_nest("ExportFixed",
+                                           ["DocumentOptions", "ExportConfig"]),
                                     fields=[org_field(t_int(), "exportLevels")],
                                 ),
                             ],
-                            variantName="TocExport",
-                            enumName="TocExportKind",
+                            variantName=t_nest("TocExport", ["DocumentOptions", "ExportConfig"]),
+                            enumName=t_nest("TocExportKind", ["DocumentOptions", "ExportConfig"]),
                             kindGetter="getTocExportKind",
                         ),
                     ]),
@@ -1951,6 +1976,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             ]),
                     ],
                     kindGetter="getIncludeKind",
+                    enumName=t_nest("Kind", ["Include"]),
+                    variantName=t_nest("Data", ["Include"]),
                 )
             ],
             fields=[
