@@ -646,7 +646,7 @@ void Exporter<V, R>::visit(R& res, sem::Subtree::Period const& object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Data const& object) { visitVariants(res, sem::Subtree::Property::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::sem::Subtree::Property::Data const& object) { visitVariants(res, sem::Subtree::Property::getKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Subtree::Property const& object) {
@@ -840,7 +840,7 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportConfig::TocExport const& object) { visitVariants(res, sem::DocumentOptions::ExportConfig::getTocExportKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::DocumentOptions::sem::DocumentOptions::ExportConfig::TocExport const& object) { visitVariants(res, sem::DocumentOptions::ExportConfig::getTocExportKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportConfig const& object) {

@@ -882,10 +882,10 @@ message BlockCode {
     }
     message Data {
       oneof kind {
-        None                                       none                             = 1;
-        OrgValue                                   orgvalue                         = 2;
-        File                                       file                             = 3;
-        Raw                                        raw                              = 4;
+        BlockCode.EvalResult.None                  none                             = 1;
+        BlockCode.EvalResult.OrgValue              orgvalue                         = 2;
+        BlockCode.EvalResult.File                  file                             = 3;
+        BlockCode.EvalResult.Raw                   raw                              = 4;
       }
     }
     enum Kind {
@@ -970,12 +970,12 @@ message SubtreeLog {
   message LogEntry {
     oneof kind {
       SubtreeLog.Priority                          priority                         = 1;
-      SubtreeLog.Priority.Note                     note                             = 2;
-      SubtreeLog.Priority.Refile                   refile                           = 3;
-      SubtreeLog.Priority.Clock                    clock                            = 4;
-      SubtreeLog.Priority.State                    state                            = 5;
-      SubtreeLog.Priority.Tag                      tag                              = 6;
-      SubtreeLog.Priority.Unknown                  unknown                          = 7;
+      SubtreeLog.Note                              note                             = 2;
+      SubtreeLog.Refile                            refile                           = 3;
+      SubtreeLog.Clock                             clock                            = 4;
+      SubtreeLog.State                             state                            = 5;
+      SubtreeLog.Tag                               tag                              = 6;
+      SubtreeLog.Unknown                           unknown                          = 7;
     }
   }
   enum Kind {
@@ -1095,22 +1095,22 @@ message Subtree {
     }
     message Data {
       oneof kind {
-        Nonblocking                                nonblocking                      = 1;
-        Trigger                                    trigger                          = 2;
-        Origin                                     origin                           = 3;
-        ExportLatexClass                           exportlatexclass                 = 4;
-        ExportLatexClassOptions                    exportlatexclassoptions          = 5;
-        ExportLatexHeader                          exportlatexheader                = 6;
-        ExportLatexCompiler                        exportlatexcompiler              = 7;
-        Ordered                                    ordered                          = 8;
-        Effort                                     effort                           = 9;
-        Visibility                                 visibility                       = 10;
-        ExportOptions                              exportoptions                    = 11;
-        Blocker                                    blocker                          = 12;
-        Unnumbered                                 unnumbered                       = 13;
-        Created                                    created                          = 14;
-        CustomArgs                                 customargs                       = 15;
-        CustomRaw                                  customraw                        = 16;
+        Subtree.Property.Nonblocking               nonblocking                      = 1;
+        Subtree.Property.Trigger                   trigger                          = 2;
+        Subtree.Property.Origin                    origin                           = 3;
+        Subtree.Property.ExportLatexClass          exportlatexclass                 = 4;
+        Subtree.Property.ExportLatexClassOptions   exportlatexclassoptions          = 5;
+        Subtree.Property.ExportLatexHeader         exportlatexheader                = 6;
+        Subtree.Property.ExportLatexCompiler       exportlatexcompiler              = 7;
+        Subtree.Property.Ordered                   ordered                          = 8;
+        Subtree.Property.Effort                    effort                           = 9;
+        Subtree.Property.Visibility                visibility                       = 10;
+        Subtree.Property.ExportOptions             exportoptions                    = 11;
+        Subtree.Property.Blocker                   blocker                          = 12;
+        Subtree.Property.Unnumbered                unnumbered                       = 13;
+        Subtree.Property.Created                   created                          = 14;
+        Subtree.Property.CustomArgs                customargs                       = 15;
+        Subtree.Property.CustomRaw                 customraw                        = 16;
       }
     }
     enum Kind {
@@ -1220,10 +1220,10 @@ message AnnotatedParagraph {
   }
   message Data {
     oneof kind {
-      None                                         none                             = 1;
-      Footnote                                     footnote                         = 2;
-      Admonition                                   admonition                       = 3;
-      Timestamp                                    timestamp                        = 4;
+      AnnotatedParagraph.None                      none                             = 1;
+      AnnotatedParagraph.Footnote                  footnote                         = 2;
+      AnnotatedParagraph.Admonition                admonition                       = 3;
+      AnnotatedParagraph.Timestamp                 timestamp                        = 4;
     }
   }
   enum AnnotationKind {
@@ -1317,8 +1317,8 @@ message DocumentOptions {
     }
     message TocExport {
       oneof kind {
-        DoExport                                   doexport                         = 1;
-        ExportFixed                                exportfixed                      = 2;
+        DocumentOptions.ExportConfig.DoExport      doexport                         = 1;
+        DocumentOptions.ExportConfig.ExportFixed   exportfixed                      = 2;
       }
     }
     enum TocExportKind {
@@ -1411,10 +1411,10 @@ message Include {
   }
   message Data {
     oneof kind {
-      Example                                      example                          = 1;
-      Export                                       export                           = 2;
-      Src                                          src                              = 3;
-      OrgDocument                                  orgdocument                      = 4;
+      Include.Example                              example                          = 1;
+      Include.Export                               export                           = 2;
+      Include.Src                                  src                              = 3;
+      Include.OrgDocument                          orgdocument                      = 4;
     }
   }
   enum Kind {

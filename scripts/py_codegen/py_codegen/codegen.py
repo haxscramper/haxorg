@@ -479,7 +479,6 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                             result=T.model_copy(update=dict(
                                 RefKind=ReferenceKind.LValue,
                                 isConst=isConst,
-                                Spaces=context,
                             )),
                             isConst=isConst,
                             impl=ast.Return(
