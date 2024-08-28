@@ -395,11 +395,11 @@ struct Store {
     /// \brief Get a total number of the stored objects int the store
     auto size() const -> std::size_t { return content.size(); }
 
-    /// \brief Get genetator for all stored indices and pairs
+    /// \brief Get generator for all stored indices and pairs
     auto pairs() const -> generator<std::pair<Id, CP<T>>> {
         const int size = content.size();
         for (int i = 0; i < size; ++i) {
-            co_yield {Id(i), &content.at(i)};
+            co_yield {Id::FromIndex(i), &content.at(i)};
         }
     }
 

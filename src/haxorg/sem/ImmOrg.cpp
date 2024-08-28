@@ -1,6 +1,40 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <immer/vector_transient.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
+
+const u64 org::ImmId::NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
+const u64 org::ImmId::NodeIdxOffset  = 0;
+const u64 org::ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
+const u64 org::ImmId::NodeKindOffset = 40;
+const u64 org::ImmId::StoreIdxMask   = 0xFFF0000000000000; // >>13*4=52
+const u64 org::ImmId::StoreIdxOffset = 52;
+
+org::ImmId::IdType org::ImmId::combineMask(
+    StoreIdxT  store,
+    OrgSemKind kind) {
+    auto res = (u64(kind) << NodeKindOffset) & NodeKindMask
+             | (u64(store) << StoreIdxOffset) & StoreIdxMask;
+
+    LOG(INFO) << fmt(
+        R"(
+kind:   {:016X}
+kind<<: {:016X}
+mask:   {:016X}
+store:  {:016X}
+store<<:{:016X}
+mask:   {:016X}
+res:    {:016X})",
+        u64(kind),
+        u64(kind) << NodeKindOffset,
+        NodeKindMask,
+        u64(store),
+        u64(store) << StoreIdxOffset,
+        StoreIdxMask,
+        res);
+
+    return res;
+}
 
 #define _define_static(__Kind)                                            \
     const OrgSemKind org::Imm##__Kind::staticKind = OrgSemKind::__Kind;
@@ -121,6 +155,15 @@ using namespace org;
 
 struct store_error : CRTP_hexception<store_error> {};
 
+void ParseUnitStore::format(ColStream& os, const std::string& prefix)
+    const {
+#define _kind(__Kind)                                                     \
+    os << prefix << #__Kind << "\n";                                      \
+    store##__Kind.format(os, prefix + "  ");
+    EACH_SEM_ORG_KIND_CSV(_kind)
+#undef _kind
+}
+
 const ImmOrg* ParseUnitStore::at(ImmId index) const {
     switch (index.getKind()) {
 
@@ -173,6 +216,13 @@ const ImmOrg* ContextStore::at(ImmId id) const {
     ImmOrg const* res = getStoreByIndex(id.getStoreIndex()).at(id);
     CHECK(res->getKind() == id.getKind());
     return res;
+}
+
+void ContextStore::format(ColStream& os, const std::string& prefix) const {
+    for (auto const& it : enumerator(stores)) {
+        os << fmt("{}[{}]", prefix, it.index());
+        it.value().format(os, prefix + "  ");
+    }
 }
 
 

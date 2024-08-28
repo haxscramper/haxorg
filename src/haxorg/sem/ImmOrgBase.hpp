@@ -18,6 +18,49 @@ using ImmBox = immer::box<T>;
 template <typename K, typename V>
 using ImmMap = immer::map<K, V>;
 
+template <typename T>
+struct std::formatter<ImmBox<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ImmBox<T>& p, FormatContext& ctx) const {
+        fmt_ctx("Box{", ctx);
+        fmt_ctx(p.get(), ctx);
+        return fmt_ctx("}", ctx);
+    }
+};
+
+template <typename T>
+struct std::formatter<ImmVec<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(ImmVec<T> const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("[", ctx);
+        fmt.format(join(", ", p), ctx);
+        return fmt.format("]", ctx);
+    }
+};
+
+template <typename K, typename V>
+struct std::formatter<ImmMap<K, V>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        ImmMap<K, V> const& p,
+        FormatContext&      ctx) const {
+        std::formatter<std::string> fmt;
+        fmt.format("{", ctx);
+        bool first = true;
+        for (const auto& [key, value] : p) {
+            if (!first) { fmt.format(", ", ctx); }
+            first = false;
+            fmt_ctx(key, ctx);
+            fmt.format(": ", ctx);
+            fmt_ctx(value, ctx);
+        }
+        return fmt.format("}", ctx);
+    }
+};
+
+
 namespace org {
 
 #define forward_declare(__Kind) struct Imm##__Kind;
@@ -39,12 +82,12 @@ struct ImmId : ImmIdBase {
     using NodeIdxT  = u32;
     using StoreIdxT = u32;
 
-    static const u64 NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
-    static const u64 NodeIdxOffset  = 0;
-    static const u64 NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
-    static const u64 NodeKindOffset = 40;
-    static const u64 StoreIdxMask   = 0xFFF0000000000000; // >>13*4=52
-    static const u64 StoreIdxOffset = 52;
+    static const u64 NodeIdxMask;
+    static const u64 NodeIdxOffset;
+    static const u64 NodeKindMask;
+    static const u64 NodeKindOffset;
+    static const u64 StoreIdxMask;
+    static const u64 StoreIdxOffset;
 
     // clang-format off
     static StoreIdxT  getStoreIndex(IdType id) { return StoreIdxT((id & StoreIdxMask) >> StoreIdxOffset); }
@@ -52,17 +95,14 @@ struct ImmId : ImmIdBase {
     static OrgSemKind getKind(IdType id)       { return OrgSemKind((id & NodeKindMask) >> NodeKindOffset); }
     // clang-format on
 
-    static IdType combineMask(StoreIdxT store, OrgSemKind kind) {
-        return (u64(kind) << NodeKindOffset) & (~NodeKindMask)
-            || (u64(store) << StoreIdxOffset) & (~StoreIdxMask);
-    }
+    static IdType combineMask(StoreIdxT store, OrgSemKind kind);
 
     static IdType combineFullValue(
         StoreIdxT  store,
         OrgSemKind kind,
         NodeIdxT   node) {
         return combineMask(store, kind)
-            || (u64(node) << NodeIdxOffset) & (~NodeIdxMask);
+             | (u64(node) << NodeIdxOffset) & NodeIdxMask;
     }
 
     static ImmId Nil() {

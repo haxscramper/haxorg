@@ -781,4 +781,7 @@ TEST(ImmOrgApi, StoreNode) {
     auto              node = parseNode("word");
     org::ContextStore store;
     store.add(0, node, org::ImmId::Nil());
+    ColStream os;
+    store.format(os);
+    writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
 }

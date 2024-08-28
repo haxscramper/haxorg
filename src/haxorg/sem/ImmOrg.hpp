@@ -3,6 +3,7 @@
 #include <haxorg/sem/ImmOrgBase.hpp>
 #include <haxorg/sem/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
+#include <hstd/stdlib/ColText.hpp>
 
 
 #define _declare_hash(__kind)                                             \
@@ -27,6 +28,15 @@ struct KindStore {
     int size() const { return values.size(); }
 
     KindStore(ContextStore* context) : context(context) {}
+    void format(ColStream& os, std::string const& linePrefix = "") const {
+        bool isFirst = true;
+        for (auto const& [id, value] : values.pairs()) {
+            if (!isFirst) { os << "\n"; }
+            isFirst = false;
+            os << fmt(
+                "{}[{}]: {}", linePrefix, id.getReadableId(), *value);
+        }
+    }
 
     T const* at(org::ImmId id) const { return &values.at(id); }
     ImmId    add(
@@ -56,6 +66,8 @@ struct ParseUnitStore {
     {
     }
 
+    void format(ColStream& os, std::string const& prefix = "") const;
+
     ImmOrg const* at(ImmId index) const;
     ImmId         add(
                 ImmId::StoreIdxT     selfIndex,
@@ -82,6 +94,7 @@ struct ContextStore {
         ImmId                parent);
 
     ImmOrg const* at(ImmId id) const;
+    void format(ColStream& os, std::string const& prefix = "") const;
 
     Vec<ParseUnitStore> stores;
 
