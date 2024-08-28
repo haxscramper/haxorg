@@ -73,8 +73,9 @@ struct ImmOrg;
 template <typename T>
 struct ImmIdT;
 
-static const u64 ImmIdMaskSize = 4 * 6;
-using ImmIdBase                = dod::
+static const u64 ImmIdMaskSize   = 4 * 6;
+static const u64 ImmIdMaskOffset = 8 * 8 - ImmIdMaskSize;
+using ImmIdBase                  = dod::
     Id<u64, u64, std::integral_constant<u64, ImmIdMaskSize>>;
 
 struct ImmId : ImmIdBase {
@@ -100,10 +101,7 @@ struct ImmId : ImmIdBase {
     static IdType combineFullValue(
         StoreIdxT  store,
         OrgSemKind kind,
-        NodeIdxT   node) {
-        return combineMask(store, kind)
-             | (u64(node) << NodeIdxOffset) & NodeIdxMask;
-    }
+        NodeIdxT   node);
 
     static ImmId Nil() {
         auto res = ImmId(0, OrgSemKind(0), 0);

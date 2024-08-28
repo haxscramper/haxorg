@@ -2356,5 +2356,6 @@ struct ImmDocumentGroup : public org::ImmOrg {
   bool operator==(org::ImmDocumentGroup const& other) const;
 };
 
+
 }
 /* clang-format on */

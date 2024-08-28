@@ -38,6 +38,7 @@ struct KindStore {
         }
     }
 
+    bool     empty() const { return values.empty(); }
     T const* at(org::ImmId id) const { return &values.at(id); }
     ImmId    add(
            ImmId::StoreIdxT     selfIndex,

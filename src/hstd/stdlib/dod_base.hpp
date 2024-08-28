@@ -393,7 +393,8 @@ struct Store {
     /// \arg id
     auto at(Id id) const -> CR<T> { return content.at(id.getIndex()); }
     /// \brief Get a total number of the stored objects int the store
-    auto size() const -> std::size_t { return content.size(); }
+    auto size() const -> int { return content.size(); }
+    bool empty() const { return size() == 0; }
 
     /// \brief Get generator for all stored indices and pairs
     auto pairs() const -> generator<std::pair<Id, CP<T>>> {
@@ -464,8 +465,10 @@ struct InternStore {
         return id_map.find(in) != id_map.end();
     }
 
+    bool empty() const { return size() == 0; }
+
     /// \brief Number of elements
-    auto size() const -> std::size_t { return content.size(); }
+    auto size() const -> int { return content.size(); }
     /// \brief Get mutable reference at the content pointed at by the ID
     auto at(Id id) -> Val& { return content.at(id); }
     /// \brief Get immutable references at the content pointed at by the ID
