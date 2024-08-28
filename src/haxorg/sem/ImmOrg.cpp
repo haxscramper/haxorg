@@ -165,18 +165,6 @@ using namespace org;
 
 struct store_error : CRTP_hexception<store_error> {};
 
-void ParseUnitStore::format(ColStream& os, const std::string& prefix)
-    const {
-#define _kind(__Kind)                                                     \
-    if (!store##__Kind.empty()) {                                         \
-        os << prefix << #__Kind << "\n";                                  \
-        store##__Kind.format(os, prefix + "  ");                          \
-    }
-
-    EACH_SEM_ORG_KIND(_kind)
-#undef _kind
-}
-
 const ImmOrg* ParseUnitStore::at(ImmId index) const {
     switch (index.getKind()) {
 
@@ -231,9 +219,39 @@ const ImmOrg* ContextStore::at(ImmId id) const {
     return res;
 }
 
+template <typename T>
+void KindStore<T>::format(ColStream& os, const std::string& linePrefix)
+    const {
+    bool       isFirst = true;
+    Vec<ImmId> ids;
+    for (auto const& it : values.id_map) { ids.push_back(it.second); }
+
+    rs::sort(ids);
+
+    for (auto const& id : ids) {
+        if (!isFirst) { os << "\n"; }
+        isFirst = false;
+        os << fmt(
+            "{}[{}]: {}", linePrefix, id.getReadableId(), values.at(id));
+    }
+}
+
+void ParseUnitStore::format(ColStream& os, const std::string& prefix)
+    const {
+#define _kind(__Kind)                                                     \
+    if (!store##__Kind.empty()) {                                         \
+        os << prefix << #__Kind << "\n";                                  \
+        store##__Kind.format(os, prefix + "  ");                          \
+    }
+
+    EACH_SEM_ORG_KIND(_kind)
+#undef _kind
+}
+
+
 void ContextStore::format(ColStream& os, const std::string& prefix) const {
     for (auto const& it : enumerator(stores)) {
-        os << fmt("{}[{}]\n", prefix, it.index());
+        os << fmt("{}ParseUnitStore [{}]\n", prefix, it.index());
         it.value().format(os, prefix + "  ");
     }
 }
@@ -277,12 +295,19 @@ EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
 
+struct AddContext {
+    ContextStore*    store;
+    ImmId            parent     = ImmId::Nil();
+    ImmId            currentAdd = ImmId::Nil();
+    ImmId::StoreIdxT idx        = 0;
+};
+
 template <typename Sem, typename Imm>
 struct ImmSemSerde {
-    static Imm to_immer(Sem const& value, ContextStore* store) {
+    static Imm to_immer(Sem const& value, AddContext const& ctx) {
         return Imm{};
     }
-    static Sem from_immer(ContextStore* store, Imm const& value) {
+    static Sem from_immer(AddContext const& ctx, Imm const& value) {
         return Sem{};
     }
 };
@@ -291,15 +316,23 @@ using SemId_t = sem::SemId<sem::Org>;
 using ImmId_t = org::ImmId;
 
 template <>
+struct ImmSemSerde<SemId_t, ImmId_t> {
+    static ImmId_t to_immer(SemId_t const& id, AddContext const& ctx) {
+        return ctx.store->getStoreByIndex(ctx.idx).add(
+            ctx.idx, id, ctx.parent, ctx.store);
+    }
+};
+
+template <>
 struct ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>> {
     static ImmVec<ImmId_t> to_immer(
         Vec<SemId_t> const& value,
-        ContextStore*       store) {
+        AddContext const&   ctx) {
         ImmVec<ImmId_t> base{static_cast<uint>(value.size())};
         auto            tmp = base.transient();
         for (auto const& sub : value) {
             tmp.push_back(
-                ImmSemSerde<SemId_t, ImmId_t>::to_immer(sub, store));
+                ImmSemSerde<SemId_t, ImmId_t>::to_immer(sub, ctx));
         }
         return tmp.persistent();
     }
@@ -309,13 +342,14 @@ template <>
 struct ImmSemSerde<sem::Document, org::ImmDocument> {
     static org::ImmDocument to_immer(
         sem::Document const& value,
-        ContextStore*        store) {
+        AddContext const&    ctx) {
         org::ImmDocument result;
         result.subnodes = ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>>::
-            to_immer(value.subnodes, store);
+            to_immer(value.subnodes, ctx);
         return result;
     }
 };
+
 
 template <typename ImmType>
 ImmId_t org::KindStore<ImmType>::add(
@@ -333,10 +367,19 @@ ImmId_t org::KindStore<ImmType>::add(
             data->getKind()));
     }
 
+
     ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
-        *data.as<SemType>(), context);
+        *data.as<SemType>(),
+        AddContext{
+            .store  = context,
+            .idx    = selfIndex,
+            .parent = parent,
+        });
+
     ImmId result = values.add(
         value, ImmId::combineMask(selfIndex, ImmType::staticKind));
+
+    CHECK(result.getKind() == data->getKind());
 
     return result;
 }

@@ -28,15 +28,7 @@ struct KindStore {
     int size() const { return values.size(); }
 
     KindStore(ContextStore* context) : context(context) {}
-    void format(ColStream& os, std::string const& linePrefix = "") const {
-        bool isFirst = true;
-        for (auto const& [id, value] : values.pairs()) {
-            if (!isFirst) { os << "\n"; }
-            isFirst = false;
-            os << fmt(
-                "{}[{}]: {}", linePrefix, id.getReadableId(), *value);
-        }
-    }
+    void format(ColStream& os, std::string const& linePrefix = "") const;
 
     bool     empty() const { return values.empty(); }
     T const* at(org::ImmId id) const { return &values.at(id); }

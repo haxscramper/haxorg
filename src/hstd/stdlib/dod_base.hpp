@@ -67,9 +67,9 @@ struct [[nodiscard]] Id {
     static Id FromIndex(IdType id) { return Id{id}; }
 
     /// \brief Create ID value from provided mask and underlying ID base
-    static auto FromMasked(IdType id, MaskType mask) -> Id {
-        Id res{IdType{}};
-        res.value = id | (mask << mask_offset);
+    static auto FromMaskedIdx(IdType id, MaskType mask) -> Id {
+        Id res = FromIndex(id);
+        res.setMask(mask);
         return res;
     }
 
@@ -100,7 +100,7 @@ struct [[nodiscard]] Id {
     }
 
     /// \brief Check whether provided value is nil or not
-    auto isNil() const noexcept -> bool { return value == IdType{}; }
+    auto isNil() const noexcept -> bool { return getUnmasked() == 0; }
     /// Get value stored in the ID  - this one should be used in cases
     /// where ID is converted in some different format (for example printed
     /// out or stored in the database)
@@ -342,14 +342,16 @@ struct Store {
     [[nodiscard]] auto add(const T& value, Id::id_mask_type mask) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id::FromMasked(index, mask);
+        auto result = Id::FromMaskedIdx(index, mask);
+        CHECK(!result.isNil());
+        return result;
     }
 
     /// \brief Add new item to the store and return newly created ID
     [[nodiscard]] auto add(const T&& value, Id::id_mask_type mask) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id::FromMasked(index, mask);
+        return Id::FromMaskedIdx(index, mask);
     }
 
     /// Add value to the storage and return newly created ID

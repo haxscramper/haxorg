@@ -159,3 +159,11 @@ struct ImmOrg {
 
 
 } // namespace org
+
+template <>
+struct std::formatter<org::ImmId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmId& p, FormatContext& ctx) const {
+        return fmt_ctx(p.getReadableId(), ctx);
+    }
+};
