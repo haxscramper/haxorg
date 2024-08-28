@@ -650,8 +650,8 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])
 
             case GenTuStruct():
-                obj.methods = []
-                obj.GenDescribe = False
+                obj.methods = [it for it in obj.methods if it.name in ["getKind"]]
+                obj.GenDescribeMethods = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
                 if hasattr(obj, "isOrgType"):
                     # conv_type(obj.name)

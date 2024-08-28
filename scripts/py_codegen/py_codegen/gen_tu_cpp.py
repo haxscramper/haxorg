@@ -4,7 +4,7 @@ from beartype.typing import Sequence, List, TypeAlias, Mapping
 from beartype import beartype
 from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
-from py_scriptutils.algorithm import iterate_object_tree
+from py_scriptutils.algorithm import iterate_object_tree, cond
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -139,7 +139,8 @@ class GenTuStruct:
     IsAbstract: bool = False
     has_name: bool = True
     original: Optional[Path] = field(default=None)
-    GenDescribe: bool = True
+    GenDescribeMethods: bool = True
+    GenDescribeFields: bool = True
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)
@@ -149,8 +150,8 @@ class GenTuStruct:
 @dataclass
 class GenTuTypeGroup:
     types: List[GenTuStruct]
-    enumName: QualType 
-    variantName: QualType 
+    enumName: QualType
+    variantName: QualType
     iteratorMacroName: Optional[str] = None
     variantField: str = "data"
     variantValue: Optional[str] = None
@@ -218,9 +219,11 @@ class GenConverter:
         return self.ast.Function(func)
 
     def convertFunction(self, func: GenTuFunction) -> FunctionParams:
-        decl = FunctionParams(ResultTy=func.result,
-                              Name=func.name,
-                              doc=self.convertDoc(func.doc),)
+        decl = FunctionParams(
+            ResultTy=func.result,
+            Name=func.name,
+            doc=self.convertDoc(func.doc),
+        )
 
         if func.params:
             decl.Template.Stacks = [self.convertParams(func.params)]
@@ -258,7 +261,7 @@ class GenConverter:
     def convertTypedef(self, typedef: GenTuTypedef) -> BlockId:
         return self.ast.Using(
             UsingParams(newName=typedef.name.name, baseType=typedef.base))
-    
+
     def convertMethod(self, method: GenTuFunction) -> MethodDeclParams:
         return MethodDeclParams(
             Params=self.convertFunction(method),
@@ -267,7 +270,6 @@ class GenConverter:
             isVirtual=method.isVirtual,
             isOverride=method.isOverride,
         )
-
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(
@@ -316,7 +318,7 @@ class GenConverter:
                 ]) for method in record.methods
             ]
 
-            if record.GenDescribe:
+            if record.GenDescribeFields or record.GenDescribeMethods:
                 params.nested.append(
                     self.ast.XCall(
                         "BOOST_DESCRIBE_CLASS",
@@ -327,8 +329,10 @@ class GenConverter:
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(
-                                self.ast.csv(fields + methods,
-                                             len(fields) < 6 and len(methods) < 2)),
+                                self.ast.csv(
+                                    cond(record.GenDescribeFields, fields, []) +
+                                    cond(record.GenDescribeMethods, methods, []),
+                                    len(fields) < 6 and len(methods) < 2)),
                         ],
                         False,
                         len(fields) < 4 and len(methods) < 1,

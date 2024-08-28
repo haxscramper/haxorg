@@ -1,8 +1,19 @@
 #include <haxorg/sem/ImmOrg.hpp>
+#include <hstd/stdlib/Exception.hpp>
+
+#define _define_static(__Kind)                                            \
+    const OrgSemKind org::Imm##__Kind::staticKind = OrgSemKind::__Kind;
+
+EACH_SEM_ORG_KIND(_define_static)
+
+#undef _define_static
+
 
 using namespace org;
 
-ImmOrg* ParseUnitStore::get(OrgSemKind kind, ImmId::NodeIndexT index) {
+struct store_error : CRTP_hexception<store_error> {};
+
+ImmOrg* ParseUnitStore::get(OrgSemKind kind, ImmId::NodeIdxT index) {
     switch (kind) {
 
 #define _case(__Kind)                                                     \
@@ -17,21 +28,17 @@ ImmOrg* ParseUnitStore::get(OrgSemKind kind, ImmId::NodeIndexT index) {
 }
 
 
-ImmId ParseUnitStore::create(
+ImmId ParseUnitStore::add(
     ImmId::StoreIndexT   selfIndex,
-    OrgSemKind           kind,
+    sem::SemId<sem::Org> data,
     ImmId                parent,
-    ContextStore*        context,
-    sem::SemId<sem::Org> data) {
-    switch (kind) {
+    ContextStore*        context) {
+    switch (data->getKind()) {
 
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        auto result = store##__Kind.create(                               \
-            selfIndex, parent, data, context);                            \
-        CHECK(result.getKind() == kind)                                   \
-            << "create node in local store"                               \
-            << fmt1(result.getKind()) + " != " + fmt1(kind);              \
+        auto result = store##__Kind.add(                                  \
+            selfIndex, data, parent, context);                            \
         return result;                                                    \
     }
 
@@ -41,7 +48,7 @@ ImmId ParseUnitStore::create(
 
     LOG(FATAL)
         << ("Unhandled node kind for automatic creation $#"
-            % to_string_vec(kind));
+            % to_string_vec(data->getKind()));
 }
 
 // #define _create(__Kind)                                                   \
@@ -74,49 +81,52 @@ void ContextStore::ensureStoreForIndex(ImmId::StoreIndexT index) {
 }
 
 
-ImmId ContextStore::createIn(
+ImmId ContextStore::add(
     ImmId::StoreIndexT   index,
-    OrgSemKind           kind,
-    ImmId                parent,
-    sem::SemId<sem::Org> data) {
-    return getStoreByIndex(index).create(index, kind, parent, this, data);
-}
-
-ImmId ContextStore::createInSame(
-    ImmId                existing,
-    OrgSemKind           kind,
-    ImmId                parent,
-    sem::SemId<sem::Org> data) {
-    return createIn(existing.getStoreIndex(), kind, parent, data);
+    sem::SemId<sem::Org> data,
+    ImmId                parent) {
+    return getStoreByIndex(index).add(index, data, parent, this);
 }
 
 template <typename Mut>
-struct sem_to_imm_map {};
+struct imm_to_sem_map {};
 
 #define _gen_map(__Kind)                                                  \
     template <>                                                           \
-    sem_to_imm_map<sem::__Kind> {                                         \
-        using imm_type = org::Imm##__Kind;                                \
+    struct imm_to_sem_map<org::Imm##__Kind> {                             \
+        using sem_type = sem::__Kind;                                     \
     };
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
 
 template <typename T>
-org::ImmId org::KindStore<T>::create(
+org::ImmId org::KindStore<T>::add(
     ImmId::StoreIndexT   selfIndex,
-    ImmId                parent,
     sem::SemId<sem::Org> data,
+    ImmId                parent,
     ContextStore*        context) {
+
+
+    using SemType = imm_to_sem_map<T>::sem_type;
+    if (!data->is(SemType::staticKind)) {
+        throw store_error::init(fmt(
+            "Cannot create store value of kind {} from node of kind {}",
+            T::staticKind,
+            data->getKind()));
+    }
+
+    // for_each_field_with_bases<SemType>(data);
+
+    T value;
+
     ImmId result = ImmId(
         selfIndex,
         T::staticKind,
-        static_cast<ImmId::NodeIndexT>(values.size()),
+        static_cast<ImmId::NodeIdxT>(values.size()),
         context);
 
-    using ImmType = typename sem_to_imm_map<T>::imm_type;
-    ImmType value;
-    for_each_field_with_bases<T>();
+    values.push_back(value);
 
     if (false) {
         LOG(INFO) << fmt(

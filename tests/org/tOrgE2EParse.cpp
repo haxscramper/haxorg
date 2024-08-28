@@ -16,6 +16,7 @@
 #include <google/protobuf/util/json_util.h>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
 #include <fstream>
 
 struct compare_context {
@@ -773,4 +774,11 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
         return lhs == rhs;
     });
     // You may want to add test conditions to check the results.
+}
+
+
+TEST(ImmOrgApi, StoreNode) {
+    auto              node = parseNode("word");
+    org::ContextStore store;
+    store.add(0, node, org::ImmId::Nil());
 }

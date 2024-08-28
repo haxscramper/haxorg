@@ -11,21 +11,21 @@ template <typename T>
 struct KindStore {
     ContextStore* context;
     using NodeType = T;
-    Vec<T> values;
+    dod::InternStore<org::ImmId, T> values;
 
     int size() const { return values.size(); }
 
     KindStore(ContextStore* context) : context(context) {}
 
-    T* getForIndex(ImmId::NodeIndexT index) {
+    T* getForIndex(ImmId::NodeIdxT index) {
         CHECK(0 <= index && index < values.size());
         return &values.at(index);
     }
 
-    ImmId create(
+    ImmId add(
         ImmId::StoreIndexT   selfIndex,
-        ImmId                parent,
         sem::SemId<sem::Org> data,
+        ImmId                parent,
         ContextStore*        context);
 
     using StoreVisitor = Func<
@@ -34,7 +34,7 @@ struct KindStore {
     using NodeVisitor = Func<void(ImmIdT<T> node)>;
 
     generator<ImmIdT<T>> nodes(ImmId::StoreIndexT selfIndex) {
-        for (ImmId::NodeIndexT node = 0; node < values.size(); ++node) {
+        for (ImmId::NodeIdxT node = 0; node < values.size(); ++node) {
             co_yield ImmIdT<T>(
                 ImmId(selfIndex, T::staticKind, node, context));
         }
@@ -65,13 +65,12 @@ struct ParseUnitStore {
     {
     }
 
-    ImmOrg* get(OrgSemKind kind, ImmId::NodeIndexT index);
-    ImmId   create(
+    ImmOrg* get(OrgSemKind kind, ImmId::NodeIdxT index);
+    ImmId   add(
           ImmId::StoreIndexT   selfIndex,
-          OrgSemKind           kind,
+          sem::SemId<sem::Org> data,
           ImmId                parent,
-          ContextStore*        context,
-          sem::SemId<sem::Org> data);
+          ContextStore*        context);
 
     using StoreVisitor = Func<
         void(ImmId::StoreIndexT selfIndex, OrgKindStorePtrVariant store)>;
@@ -85,21 +84,10 @@ struct ContextStore {
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
-    ImmId createIn(
+    ImmId add(
         ImmId::StoreIndexT   index,
-        OrgSemKind           kind,
-        ImmId                parent,
-        sem::SemId<sem::Org> data);
-
-
-    /// \brief Create new sem node of the specified kind in the same local
-    /// store as the `existing` node
-    ImmId createInSame(
-        ImmId                existing,
-        OrgSemKind           kind,
-        ImmId                parent,
-        sem::SemId<sem::Org> data);
-
+        sem::SemId<sem::Org> data,
+        ImmId                parent);
 
     Vec<ParseUnitStore> stores;
 

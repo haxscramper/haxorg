@@ -30,62 +30,60 @@ struct ImmOrg;
 template <typename T>
 struct ImmIdT;
 
-struct ImmId {
+static const u64 ImmIdMaskSize = 4 * 6;
+using ImmIdBase                = dod::
+    Id<u64, u64, std::integral_constant<u64, ImmIdMaskSize>>;
+
+struct ImmId : ImmIdBase {
     using IdType          = u64;
-    using NodeIndexT      = u32;
-    using StoreIndexT     = u32;
+    using NodeIdxT        = u32;
+    using StoreIdxT       = u32;
     ContextStore* context = nullptr;
 
-    IdType id = 0;
-    bool   isNil() const { return id == 0; }
+    static const u64 NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
+    static const u64 NodeIdxOffset  = 0;
+    static const u64 NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
+    static const u64 NodeKindOffset = 40;
+    static const u64 StoreIdxMask   = 0xFFF0000000000000; // >>13*4=52
+    static const u64 StoreIdxOffset = 52;
 
-    bool operator==(ImmId const& other) const { return id == other.id; }
+    // clang-format off
+    static StoreIdxT  getStoreIndex(IdType id) { return StoreIdxT((id & StoreIdxMask) >> StoreIdxOffset); }
+    static NodeIdxT   getNodeIdx(IdType id)    { return NodeIdxT((id & NodeIdxMask) >> NodeIdxOffset); }
+    static OrgSemKind getKind(IdType id)       { return OrgSemKind((id & NodeKindMask) >> NodeKindOffset); }
+    // clang-format on
+
+    static IdType combineIdxValue(
+        StoreIdxT  store,
+        OrgSemKind kind,
+        NodeIdxT   node) {
+        return (u64(kind) << NodeKindOffset) & (~NodeKindMask)
+            || (u64(store) << StoreIdxOffset) & (~StoreIdxMask)
+            || (u64(node) << NodeIdxOffset) & (~NodeIdxMask);
+    }
 
     static ImmId Nil() {
         auto res = ImmId(0, OrgSemKind(0), 0, nullptr);
-        res.id   = 0;
         return res;
     }
 
     ImmId(
-        StoreIndexT   storeIndex,
+        StoreIdxT     storeIndex,
         OrgSemKind    kind,
-        NodeIndexT    nodeIndex,
+        NodeIdxT      nodeIndex,
         ContextStore* _store)
-        : context(_store) {
-        setStoreIndex(storeIndex);
-        setKind(kind);
-        setNodeIndex(nodeIndex);
-    }
+        : ImmIdBase{combineIdxValue(storeIndex, kind, nodeIndex)}
+        , context(_store) {}
 
-    OrgSemKind getKind() const { return OrgSemKind((id >> 32) & 0xFF); }
+    OrgSemKind getKind() const { return ImmId::getKind(value); }
     bool       is(OrgSemKind kind) const;
 
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
-    NodeIndexT getNodeIndex() const {
-        assert(!isNil());
-        return (id & 0xFFFFFFFF) - 1;
-    }
+    NodeIdxT getNodeIndex() const { return ImmId::getNodeIdx(value); }
 
     /// \brief Get index of an associated local store
-    StoreIndexT getStoreIndex() const { return id >> 40; }
-
-    /// \brief Set store index for ID.
-    ///
-    /// Should only be used if two stores are to be merged and nested IDs
-    /// updated, in other cases store is considered fixed.
-    void setStoreIndex(StoreIndexT storeIndex) {
-        id = (id & 0x000000FFFFFFFFFF) | ((IdType)storeIndex << 40);
-    }
-
-    void setKind(OrgSemKind kind) {
-        id = (id & 0xFFFFFF00FFFFFFFF) | ((IdType)kind << 32);
-    }
-
-    void setNodeIndex(NodeIndexT nodeIndex) {
-        id = (id & 0xFFFFFFFF00000000) | (nodeIndex + 1);
-    }
+    StoreIdxT getStoreIndex() const { return ImmId::getStoreIndex(value); }
 
     /// \name Get pointer to the associated sem org node from ID
     ///
