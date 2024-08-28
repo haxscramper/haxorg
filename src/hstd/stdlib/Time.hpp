@@ -39,6 +39,11 @@ struct [[refl]] UserTime {
     std::string                format(Format kind) const;
 };
 
+template <>
+struct std::hash<UserTime> {
+    std::size_t operator()(UserTime const& it) const noexcept;
+};
+
 
 template <>
 struct std::formatter<absl::Time> : std::formatter<std::string> {

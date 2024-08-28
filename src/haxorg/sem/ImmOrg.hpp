@@ -13,17 +13,7 @@
     };
 
 EACH_SEM_ORG_KIND(_declare_hash)
-#undef _declare_hash
 
-#define _declare_hash(__parent, __qual, _)                                \
-    template <>                                                           \
-    struct std::hash<org::Imm##__parent::__qual> {                        \
-        std::size_t operator()(                                           \
-            org::Imm##__parent::__qual const& it) const noexcept;         \
-    };
-
-EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
-#undef _declare_hash
 
 namespace org {
 

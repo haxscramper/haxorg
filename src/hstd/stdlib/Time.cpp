@@ -1,4 +1,5 @@
 #include "Time.hpp"
+#include <absl/hash/hash.h>
 
 UserTimeBreakdown UserTime::getBreakdown() const {
     UserTimeBreakdown result;
@@ -72,5 +73,17 @@ std::string UserTime::format(Format kind) const {
                               : absl::FormatTime(
                                     format, time, absl::TimeZone{});
 
+    return result;
+}
+
+std::size_t std::hash<UserTime>::operator()(
+    const UserTime& it) const noexcept {
+    std::size_t result = 0;
+    boost::hash_combine(result, it.align);
+    if (it.zone) {
+        boost::hash_combine(
+            result, absl::Hash<absl::TimeZone>{}(*it.zone));
+    }
+    boost::hash_combine(result, absl::Hash<absl::Time>{}(it.time));
     return result;
 }

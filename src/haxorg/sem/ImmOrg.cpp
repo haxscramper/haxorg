@@ -5,7 +5,33 @@
     const OrgSemKind org::Imm##__Kind::staticKind = OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
+#undef _define_static
+
+
+template <typename T>
+struct std::hash<Vec<T>> {
+    std::size_t operator()(Vec<T> const& it) const noexcept {
+        std::size_t result = 0;
+        for (auto const& val : it) { boost::hash_combine(result, val); }
+        return result;
+    }
+};
+
+template <IsVariant T>
+struct std::hash<T> {
+    std::size_t operator()(T const& it) const noexcept {
+        std::size_t result = 0;
+        boost::hash_combine(result, it.index());
+        std::visit(
+            [&](auto const& var) { boost::hash_combine(result, var); },
+            it);
+        return result;
+    }
+};
+
+
 namespace {
+
 template <typename T>
 std::size_t imm_hash_build(T const& value) {
     std::size_t result = 0;
@@ -20,6 +46,18 @@ std::size_t imm_hash_build(T const& value) {
 }
 } // namespace
 
+#define _declare_hash(__parent, __qual, _)                                \
+    template <>                                                           \
+    struct std::hash<org::Imm##__parent::__qual> {                        \
+        std::size_t operator()(                                           \
+            org::Imm##__parent::__qual const& it) const noexcept {        \
+            return imm_hash_build(it);                                    \
+        }                                                                 \
+    };
+
+EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
+#undef _declare_hash
+
 #undef _define_static
 #define _define_hash(__kind)                                              \
     std::size_t std::hash<org::Imm##__kind>::operator()(                  \
@@ -30,14 +68,6 @@ std::size_t imm_hash_build(T const& value) {
 EACH_SEM_ORG_KIND(_define_hash)
 #undef _define_hash
 
-#define _define_hash(__parent, __qual, _)                                 \
-    std::size_t std::hash<org::Imm##__parent::__qual>::operator()(        \
-        org::Imm##__parent::__qual const& it) const noexcept {            \
-        return imm_hash_build(it);                                        \
-    }
-
-EACH_SEM_ORG_RECORD_NESTED(_define_hash)
-#undef _define_hash
 
 using namespace org;
 
