@@ -658,9 +658,7 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                         result=QualType.ForName("bool"),
                         name="operator==",
                         isConst=True,
-                        arguments=[
-                            GenTuIdent(type=obj.name.asConstRef(), name="other")
-                        ],
+                        arguments=[GenTuIdent(type=obj.name.asConstRef(), name="other")],
                     ))
 
                 if hasattr(obj, "isOrgType"):
@@ -791,6 +789,7 @@ def gen_pyhaxorg_wrappers(
 
     nested_records: List[Tuple[str, str, str]] = []
     nested_enums: List[Tuple[str, str, str]] = []
+    all_records: List[Tuple[str, str]] = []
 
     def aux(it):
         match it:
@@ -810,6 +809,12 @@ def gen_pyhaxorg_wrappers(
 
                     else:
                         nested_enums.append(value)
+
+                if isinstance(it, GenTuStruct):
+                    all_records.append((
+                        "::".join(it.name for it in flat[1:]),
+                        "({})".format(", ".join(it.name for it in flat[1:])),
+                    ))
 
     iterate_object_tree(expanded, [], pre_visit=aux)
 
@@ -889,6 +894,10 @@ def gen_pyhaxorg_wrappers(
                         "#define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \\\n" + (" \\\n".join(
                             ["    __IMPL({}, {}, {})".format(*it)
                              for it in nested_enums])),),
+                    GenTuPass(
+                        "#define EACH_SEM_RECORD(__IMPL) \\\n" + (" \\\n".join(
+                            ["    __IMPL({}, {})".format(*it)
+                             for it in all_records])),),
                 ]) + full_enums + ([
                     GenTuPass("""
 template <>

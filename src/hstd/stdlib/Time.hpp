@@ -37,6 +37,8 @@ struct [[refl]] UserTime {
     [[refl]] UserTimeBreakdown getBreakdown() const;
     [[refl]] std::string       format() const;
     std::string                format(Format kind) const;
+
+    bool operator==(UserTime const& it) const;
 };
 
 template <>

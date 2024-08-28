@@ -7,6 +7,23 @@
 EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
 
+#define _eq_method(__QualType, _)                                         \
+    bool org::Imm##__QualType::operator==(                                \
+        org::Imm##__QualType const& other) const {                        \
+        bool result;                                                      \
+        for_each_field_with_bases<org::Imm##__QualType>(                  \
+            [&](auto const& field) {                                      \
+                if (result) {                                             \
+                    result = result                                       \
+                          && this->*field.pointer                         \
+                                 == other.*field.pointer;                 \
+                }                                                         \
+            });                                                           \
+        return result;                                                    \
+    }
+
+EACH_SEM_RECORD(_eq_method)
+#undef _eq_method
 
 template <typename T>
 std::size_t get_std_hash(T const& it) {
@@ -53,7 +70,7 @@ struct std::hash<T> {
         boost::hash_combine(result, get_std_hash(it.index()));
         std::visit(
             [&](auto const& var) {
-                boost::hash_combine(result, get_std_hash<T>(var));
+                boost::hash_combine(result, get_std_hash(var));
             },
             it);
         return result;

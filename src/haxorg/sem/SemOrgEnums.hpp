@@ -165,6 +165,149 @@
     __IMPL(DocumentOptions, ExportConfig::TocExportKind, (ExportConfig, TocExportKind)) \
     __IMPL(DocumentOptions, Visibility, (Visibility)) \
     __IMPL(Include, Kind, (Kind))
+#define EACH_SEM_RECORD(__IMPL) \
+    __IMPL(CmdArgument, (CmdArgument)) \
+    __IMPL(CmdArgumentList, (CmdArgumentList)) \
+    __IMPL(CmdArguments, (CmdArguments)) \
+    __IMPL(ErrorItem, (ErrorItem)) \
+    __IMPL(ErrorGroup, (ErrorGroup)) \
+    __IMPL(Stmt, (Stmt)) \
+    __IMPL(Inline, (Inline)) \
+    __IMPL(StmtList, (StmtList)) \
+    __IMPL(Empty, (Empty)) \
+    __IMPL(Cmd, (Cmd)) \
+    __IMPL(Block, (Block)) \
+    __IMPL(LineCommand, (LineCommand)) \
+    __IMPL(Attached, (Attached)) \
+    __IMPL(Leaf, (Leaf)) \
+    __IMPL(CmdCaption, (CmdCaption)) \
+    __IMPL(CmdName, (CmdName)) \
+    __IMPL(CmdCustomArgs, (CmdCustomArgs)) \
+    __IMPL(CmdCustomRaw, (CmdCustomRaw)) \
+    __IMPL(CmdCustomText, (CmdCustomText)) \
+    __IMPL(CmdResults, (CmdResults)) \
+    __IMPL(CmdTblfm, (CmdTblfm)) \
+    __IMPL(HashTag, (HashTag)) \
+    __IMPL(Footnote, (Footnote)) \
+    __IMPL(Time, (Time)) \
+    __IMPL(Time::Repeat, (Time, Repeat)) \
+    __IMPL(Time::Static, (Time, Static)) \
+    __IMPL(Time::Dynamic, (Time, Dynamic)) \
+    __IMPL(TimeRange, (TimeRange)) \
+    __IMPL(Macro, (Macro)) \
+    __IMPL(Symbol, (Symbol)) \
+    __IMPL(Symbol::Param, (Symbol, Param)) \
+    __IMPL(Escaped, (Escaped)) \
+    __IMPL(Newline, (Newline)) \
+    __IMPL(Space, (Space)) \
+    __IMPL(Word, (Word)) \
+    __IMPL(AtMention, (AtMention)) \
+    __IMPL(RawText, (RawText)) \
+    __IMPL(Punctuation, (Punctuation)) \
+    __IMPL(Placeholder, (Placeholder)) \
+    __IMPL(BigIdent, (BigIdent)) \
+    __IMPL(RadioTarget, (RadioTarget)) \
+    __IMPL(TextTarget, (TextTarget)) \
+    __IMPL(Markup, (Markup)) \
+    __IMPL(Bold, (Bold)) \
+    __IMPL(Underline, (Underline)) \
+    __IMPL(Monospace, (Monospace)) \
+    __IMPL(MarkQuote, (MarkQuote)) \
+    __IMPL(Verbatim, (Verbatim)) \
+    __IMPL(Italic, (Italic)) \
+    __IMPL(Strike, (Strike)) \
+    __IMPL(Par, (Par)) \
+    __IMPL(Latex, (Latex)) \
+    __IMPL(Link, (Link)) \
+    __IMPL(Link::Raw, (Link, Raw)) \
+    __IMPL(Link::Id, (Link, Id)) \
+    __IMPL(Link::Person, (Link, Person)) \
+    __IMPL(Link::UserProtocol, (Link, UserProtocol)) \
+    __IMPL(Link::Internal, (Link, Internal)) \
+    __IMPL(Link::Footnote, (Link, Footnote)) \
+    __IMPL(Link::File, (Link, File)) \
+    __IMPL(Link::Attachment, (Link, Attachment)) \
+    __IMPL(BlockCenter, (BlockCenter)) \
+    __IMPL(BlockQuote, (BlockQuote)) \
+    __IMPL(BlockComment, (BlockComment)) \
+    __IMPL(BlockVerse, (BlockVerse)) \
+    __IMPL(BlockExample, (BlockExample)) \
+    __IMPL(BlockExport, (BlockExport)) \
+    __IMPL(BlockAdmonition, (BlockAdmonition)) \
+    __IMPL(BlockCode, (BlockCode)) \
+    __IMPL(BlockCode::Line, (BlockCode, Line)) \
+    __IMPL(BlockCode::Line::Part, (BlockCode, Line, Part)) \
+    __IMPL(BlockCode::Line::Part::Raw, (BlockCode, Line, Part, Raw)) \
+    __IMPL(BlockCode::Line::Part::Callout, (BlockCode, Line, Part, Callout)) \
+    __IMPL(BlockCode::Line::Part::Tangle, (BlockCode, Line, Part, Tangle)) \
+    __IMPL(BlockCode::Switch, (BlockCode, Switch)) \
+    __IMPL(BlockCode::Switch::LineStart, (BlockCode, Switch, LineStart)) \
+    __IMPL(BlockCode::Switch::CalloutFormat, (BlockCode, Switch, CalloutFormat)) \
+    __IMPL(BlockCode::Switch::RemoveCallout, (BlockCode, Switch, RemoveCallout)) \
+    __IMPL(BlockCode::Switch::EmphasizeLine, (BlockCode, Switch, EmphasizeLine)) \
+    __IMPL(BlockCode::Switch::Dedent, (BlockCode, Switch, Dedent)) \
+    __IMPL(BlockCode::EvalResult, (BlockCode, EvalResult)) \
+    __IMPL(BlockCode::EvalResult::None, (BlockCode, EvalResult, None)) \
+    __IMPL(BlockCode::EvalResult::OrgValue, (BlockCode, EvalResult, OrgValue)) \
+    __IMPL(BlockCode::EvalResult::File, (BlockCode, EvalResult, File)) \
+    __IMPL(BlockCode::EvalResult::Raw, (BlockCode, EvalResult, Raw)) \
+    __IMPL(SubtreeLog, (SubtreeLog)) \
+    __IMPL(SubtreeLog::DescribedLog, (SubtreeLog, DescribedLog)) \
+    __IMPL(SubtreeLog::Priority, (SubtreeLog, Priority)) \
+    __IMPL(SubtreeLog::Note, (SubtreeLog, Note)) \
+    __IMPL(SubtreeLog::Refile, (SubtreeLog, Refile)) \
+    __IMPL(SubtreeLog::Clock, (SubtreeLog, Clock)) \
+    __IMPL(SubtreeLog::State, (SubtreeLog, State)) \
+    __IMPL(SubtreeLog::Tag, (SubtreeLog, Tag)) \
+    __IMPL(SubtreeLog::Unknown, (SubtreeLog, Unknown)) \
+    __IMPL(Subtree, (Subtree)) \
+    __IMPL(Subtree::Period, (Subtree, Period)) \
+    __IMPL(Subtree::Property, (Subtree, Property)) \
+    __IMPL(Subtree::Property::Nonblocking, (Subtree, Property, Nonblocking)) \
+    __IMPL(Subtree::Property::Trigger, (Subtree, Property, Trigger)) \
+    __IMPL(Subtree::Property::Origin, (Subtree, Property, Origin)) \
+    __IMPL(Subtree::Property::ExportLatexClass, (Subtree, Property, ExportLatexClass)) \
+    __IMPL(Subtree::Property::ExportLatexClassOptions, (Subtree, Property, ExportLatexClassOptions)) \
+    __IMPL(Subtree::Property::ExportLatexHeader, (Subtree, Property, ExportLatexHeader)) \
+    __IMPL(Subtree::Property::ExportLatexCompiler, (Subtree, Property, ExportLatexCompiler)) \
+    __IMPL(Subtree::Property::Ordered, (Subtree, Property, Ordered)) \
+    __IMPL(Subtree::Property::Effort, (Subtree, Property, Effort)) \
+    __IMPL(Subtree::Property::Visibility, (Subtree, Property, Visibility)) \
+    __IMPL(Subtree::Property::ExportOptions, (Subtree, Property, ExportOptions)) \
+    __IMPL(Subtree::Property::Blocker, (Subtree, Property, Blocker)) \
+    __IMPL(Subtree::Property::Unnumbered, (Subtree, Property, Unnumbered)) \
+    __IMPL(Subtree::Property::Created, (Subtree, Property, Created)) \
+    __IMPL(Subtree::Property::CustomArgs, (Subtree, Property, CustomArgs)) \
+    __IMPL(Subtree::Property::CustomRaw, (Subtree, Property, CustomRaw)) \
+    __IMPL(SubtreeCompletion, (SubtreeCompletion)) \
+    __IMPL(Cell, (Cell)) \
+    __IMPL(Row, (Row)) \
+    __IMPL(Table, (Table)) \
+    __IMPL(Paragraph, (Paragraph)) \
+    __IMPL(AnnotatedParagraph, (AnnotatedParagraph)) \
+    __IMPL(AnnotatedParagraph::None, (AnnotatedParagraph, None)) \
+    __IMPL(AnnotatedParagraph::Footnote, (AnnotatedParagraph, Footnote)) \
+    __IMPL(AnnotatedParagraph::Admonition, (AnnotatedParagraph, Admonition)) \
+    __IMPL(AnnotatedParagraph::Timestamp, (AnnotatedParagraph, Timestamp)) \
+    __IMPL(ColonExample, (ColonExample)) \
+    __IMPL(CmdAttr, (CmdAttr)) \
+    __IMPL(Call, (Call)) \
+    __IMPL(List, (List)) \
+    __IMPL(ListItem, (ListItem)) \
+    __IMPL(DocumentOptions, (DocumentOptions)) \
+    __IMPL(DocumentOptions::ExportConfig, (DocumentOptions, ExportConfig)) \
+    __IMPL(DocumentOptions::ExportConfig::TaskExport, (DocumentOptions, ExportConfig, TaskExport)) \
+    __IMPL(DocumentOptions::ExportConfig::DoExport, (DocumentOptions, ExportConfig, DoExport)) \
+    __IMPL(DocumentOptions::ExportConfig::ExportFixed, (DocumentOptions, ExportConfig, ExportFixed)) \
+    __IMPL(Document, (Document)) \
+    __IMPL(FileTarget, (FileTarget)) \
+    __IMPL(TextSeparator, (TextSeparator)) \
+    __IMPL(Include, (Include)) \
+    __IMPL(Include::Example, (Include, Example)) \
+    __IMPL(Include::Export, (Include, Export)) \
+    __IMPL(Include::Src, (Include, Src)) \
+    __IMPL(Include::OrgDocument, (Include, OrgDocument)) \
+    __IMPL(DocumentGroup, (DocumentGroup))
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {

@@ -76,6 +76,14 @@ std::string UserTime::format(Format kind) const {
     return result;
 }
 
+bool UserTime::operator==(const UserTime& it) const {
+    bool result = true;
+    result &= this->time == it.time;
+    result &= this->zone == it.zone;
+    result &= this->align == it.align;
+    return result;
+}
+
 std::size_t std::hash<UserTime>::operator()(
     const UserTime& it) const noexcept {
     std::size_t result = 0;
