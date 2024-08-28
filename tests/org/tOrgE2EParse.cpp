@@ -780,8 +780,12 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
 TEST(ImmOrgApi, StoreNode) {
     auto              node = parseNode(R"(
 ** ~pyhaxorg~
+    CLOSED: [2024-06-22 Sat 22:00:27 +04]
+    :PROPERTIES:
+    :CREATED:  [2023-07-30 Sun 20:51:39 +04]
+    :END:
 
-=pybind11= python module exposing the org-mode AST for scripting.
+=pybind11= python module exposing the org-mode AST for scripting. intern intern intern intern
 )");
     org::ContextStore store;
     store.add(0, node);

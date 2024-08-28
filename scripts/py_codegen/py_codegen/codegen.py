@@ -751,6 +751,64 @@ def gen_adaptagrams_wrappers(
 
 
 @beartype
+def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct],
+                                  base_map: Dict[str, GenTuStruct]) -> List[GenTuPass]:
+    result: List[GenTuPass] = []
+
+    nested_records: List[Tuple[str, str, str]] = []
+    nested_enums: List[Tuple[str, str, str]] = []
+    all_records: List[Tuple[str, str]] = []
+
+    def aux(it):
+        match it:
+            case GenTuStruct() | GenTuEnum():
+                flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
+                if 2 < len(flat):
+                    parent = flat[1]
+                    nested = flat[2:]
+                    print(parent.format(), [it.format() for it in nested])
+                    value = (
+                        parent.name,
+                        "::".join(it.name for it in nested),
+                        "({})".format(", ".join(it.name for it in nested)),
+                    )
+                    if isinstance(it, GenTuStruct):
+                        nested_records.append(value)
+
+                    else:
+                        nested_enums.append(value)
+
+                if isinstance(it, GenTuStruct):
+                    all_records.append((
+                        "::".join(it.name for it in flat[1:]),
+                        "({})".format(", ".join(it.name for it in flat[1:])),
+                    ))
+
+
+    iterate_object_tree(types, [], pre_visit=aux)
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
+            [f"    __IMPL({struct.name.name})"
+             for struct in get_concrete_types(types)]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \\\n" + (" \\\n".join(
+            ["    __IMPL({}, {}, {})".format(*it) for it in nested_records]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \\\n" + (
+            " \\\n".join(["    __IMPL({}, {}, {})".format(*it) for it in nested_enums]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_RECORD(__IMPL) \\\n" +
+                  (" \\\n".join(["    __IMPL({}, {})".format(*it)
+                                 for it in all_records]))))
+
+    return result
+
+
+@beartype
 def gen_pyhaxorg_wrappers(
     ast: ASTBuilder,
     pyast: pya.ASTBuilder,
@@ -786,37 +844,6 @@ def gen_pyhaxorg_wrappers(
     add_translation_unit(res, ast, tu)
     add_type_specializations(res, ast)
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
-
-    nested_records: List[Tuple[str, str, str]] = []
-    nested_enums: List[Tuple[str, str, str]] = []
-    all_records: List[Tuple[str, str]] = []
-
-    def aux(it):
-        match it:
-            case GenTuStruct() | GenTuEnum():
-                flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
-                if 2 < len(flat):
-                    parent = flat[1]
-                    nested = flat[2:]
-                    print(parent.format(), [it.format() for it in nested])
-                    value = (
-                        parent.name,
-                        "::".join(it.name for it in nested),
-                        "({})".format(", ".join(it.name for it in nested)),
-                    )
-                    if isinstance(it, GenTuStruct):
-                        nested_records.append(value)
-
-                    else:
-                        nested_enums.append(value)
-
-                if isinstance(it, GenTuStruct):
-                    all_records.append((
-                        "::".join(it.name for it in flat[1:]),
-                        "({})".format(", ".join(it.name for it in flat[1:])),
-                    ))
-
-    iterate_object_tree(expanded, [], pre_visit=aux)
 
     return GenFiles([
         GenUnit(
@@ -879,26 +906,9 @@ def gen_pyhaxorg_wrappers(
         GenUnit(
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
-                with_enum_reflection_api([
-                    GenTuPass(
-                        "#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join([
-                            f"    __IMPL({struct.name.name})"
-                            for struct in get_concrete_types(expanded)
-                        ])),),
-                    GenTuPass(
-                        "#define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \\\n" +
-                        (" \\\n".join([
-                            "    __IMPL({}, {}, {})".format(*it) for it in nested_records
-                        ])),),
-                    GenTuPass(
-                        "#define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \\\n" + (" \\\n".join(
-                            ["    __IMPL({}, {}, {})".format(*it)
-                             for it in nested_enums])),),
-                    GenTuPass(
-                        "#define EACH_SEM_RECORD(__IMPL) \\\n" + (" \\\n".join(
-                            ["    __IMPL({}, {})".format(*it)
-                             for it in all_records])),),
-                ]) + full_enums + ([
+                with_enum_reflection_api(
+                    gen_pyhaxorg_iteration_macros(expanded, get_base_map(expanded))) +
+                full_enums + ([
                     GenTuPass("""
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {

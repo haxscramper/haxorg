@@ -23,11 +23,7 @@ struct CmdArgument : public sem::Org {
                        (staticKind,
                         key,
                         varname,
-                        value,
-                        (OrgSemKind() const) getKind,
-                        (Opt<int>() const) getInt,
-                        (Opt<bool>() const) getBool,
-                        (Str() const) getString))
+                        value))
   static OrgSemKind const staticKind;
   /// \brief Key
   Opt<Str> key = std::nullopt;
@@ -52,7 +48,7 @@ struct CmdArgumentList : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, args, (OrgSemKind() const) getKind))
+                       (staticKind, args))
   static OrgSemKind const staticKind;
   /// \brief List of arguments
   Vec<sem::SemId<sem::CmdArgument>> args = {};
@@ -69,9 +65,7 @@ struct CmdArguments : public sem::Org {
                        (),
                        (staticKind,
                         positional,
-                        named,
-                        (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments))
+                        named))
   static OrgSemKind const staticKind;
   /// \brief Positional arguments with no keys
   sem::SemId<sem::CmdArgumentList> positional = sem::SemId<sem::CmdArgumentList>::Nil();
@@ -88,7 +82,7 @@ struct ErrorItem : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, message, function, line, (OrgSemKind() const) getKind))
+                       (staticKind, message, function, line))
   static OrgSemKind const staticKind;
   Str message;
   /// \brief Conversion function name where the error was created
@@ -106,7 +100,7 @@ struct ErrorGroup : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, diagnostics, function, line, (OrgSemKind() const) getKind))
+                       (staticKind, diagnostics, function, line))
   static OrgSemKind const staticKind;
   Vec<sem::SemId<sem::ErrorItem>> diagnostics = {};
   /// \brief Conversion function name where the error was created
@@ -126,10 +120,7 @@ struct Stmt : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (attached,
-                        (Vec<sem::SemId<sem::Org>>(Opt<Str> const&) const) getAttached,
-                        (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments,
-                        (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getFirstArgument))
+                       (attached))
   Vec<sem::SemId<sem::Org>> attached;
   /// \brief Return attached nodes of a specific kinds or all attached (if kind is nullopt)
   Vec<sem::SemId<sem::Org>> getAttached(Opt<Str> const& kind = std::nullopt) const;
@@ -154,7 +145,7 @@ struct StmtList : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::StmtList; }
 };
@@ -167,7 +158,7 @@ struct Empty : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Empty; }
 };
@@ -180,9 +171,7 @@ struct Cmd : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (parameters,
-                        (Opt<sem::SemId<sem::CmdArgumentList>>(Opt<Str> const&) const) getArguments,
-                        (Opt<sem::SemId<sem::CmdArgument>>(Str const&) const) getFirstArgument))
+                       (parameters))
   /// \brief Additional parameters aside from 'exporter',
   Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
@@ -229,7 +218,7 @@ struct CmdCaption : public sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind, text, (OrgSemKind() const) getKind))
+                       (staticKind, text))
   static OrgSemKind const staticKind;
   /// \brief Content description
   sem::SemId<sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
@@ -244,7 +233,7 @@ struct CmdName : public sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind, name, (OrgSemKind() const) getKind))
+                       (staticKind, name))
   static OrgSemKind const staticKind;
   Str name;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdName; }
@@ -258,7 +247,7 @@ struct CmdCustomArgs : public sem::Cmd {
                        (Cmd),
                        (),
                        (),
-                       (staticKind, name, isAttached, (OrgSemKind() const) getKind))
+                       (staticKind, name, isAttached))
   static OrgSemKind const staticKind;
   Str name;
   bool isAttached = false;
@@ -273,7 +262,7 @@ struct CmdCustomRaw : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind, name, isAttached, text, (OrgSemKind() const) getKind))
+                       (staticKind, name, isAttached, text))
   static OrgSemKind const staticKind;
   Str name;
   bool isAttached = false;
@@ -289,7 +278,7 @@ struct CmdCustomText : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind, name, isAttached, text, (OrgSemKind() const) getKind))
+                       (staticKind, name, isAttached, text))
   static OrgSemKind const staticKind;
   Str name;
   bool isAttached = false;
@@ -304,7 +293,7 @@ struct CmdResults : public sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdResults; }
 };
@@ -317,7 +306,7 @@ struct CmdTblfm : public sem::Cmd {
                        (Cmd),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
 };
@@ -332,9 +321,7 @@ struct HashTag : public sem::Inline {
                        (),
                        (staticKind,
                         head,
-                        subtags,
-                        (OrgSemKind() const) getKind,
-                        (bool(Vec<Str> const&) const) prefixMatch))
+                        subtags))
   static OrgSemKind const staticKind;
   /// \brief Main part of the tag
   Str head;
@@ -355,7 +342,7 @@ struct Footnote : public sem::Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind, tag, definition, (OrgSemKind() const) getKind))
+                       (staticKind, tag, definition))
   static OrgSemKind const staticKind;
   /// \brief Footnote text target name
   Str tag = "";
@@ -417,14 +404,7 @@ struct Time : public sem::Org {
                        (),
                        (staticKind,
                         isActive,
-                        time,
-                        (OrgSemKind() const) getKind,
-                        (sem::Time::Static const&() const) getStatic,
-                        (sem::Time::Static&()) getStatic,
-                        (sem::Time::Dynamic const&() const) getDynamic,
-                        (sem::Time::Dynamic&()) getDynamic,
-                        (sem::Time::TimeKind(sem::Time::TimeVariant const&)) getTimeKind,
-                        (sem::Time::TimeKind() const) getTimeKind))
+                        time))
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
   bool isActive = false;
@@ -446,7 +426,7 @@ struct TimeRange : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, from, to, (OrgSemKind() const) getKind))
+                       (staticKind, from, to))
   static OrgSemKind const staticKind;
   /// \brief Starting time
   sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
@@ -463,7 +443,7 @@ struct Macro : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, name, parameters, (OrgSemKind() const) getKind))
+                       (staticKind, name, parameters))
   static OrgSemKind const staticKind;
   /// \brief Macro name
   Str name = "";
@@ -489,7 +469,7 @@ struct Symbol : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, name, parameters, positional, (OrgSemKind() const) getKind))
+                       (staticKind, name, parameters, positional))
   static OrgSemKind const staticKind;
   /// \brief Name of the symbol
   Str name;
@@ -508,7 +488,7 @@ struct Escaped : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Escaped; }
 };
@@ -521,7 +501,7 @@ struct Newline : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Newline; }
 };
@@ -534,7 +514,7 @@ struct Space : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Space; }
 };
@@ -547,7 +527,7 @@ struct Word : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Word; }
 };
@@ -560,7 +540,7 @@ struct AtMention : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
 };
@@ -572,7 +552,7 @@ struct RawText : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
 };
@@ -584,7 +564,7 @@ struct Punctuation : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
 };
@@ -596,7 +576,7 @@ struct Placeholder : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
 };
@@ -608,7 +588,7 @@ struct BigIdent : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
 };
@@ -621,7 +601,7 @@ struct RadioTarget : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
 };
@@ -634,7 +614,7 @@ struct TextTarget : public sem::Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
 };
@@ -652,7 +632,7 @@ struct Bold : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
 };
@@ -664,7 +644,7 @@ struct Underline : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
 };
@@ -676,7 +656,7 @@ struct Monospace : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
 };
@@ -688,7 +668,7 @@ struct MarkQuote : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
 };
@@ -700,7 +680,7 @@ struct Verbatim : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
 };
@@ -712,7 +692,7 @@ struct Italic : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
 };
@@ -724,7 +704,7 @@ struct Strike : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
 };
@@ -736,7 +716,7 @@ struct Par : public sem::Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
 };
@@ -749,7 +729,7 @@ struct Latex : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Latex; }
 };
@@ -809,26 +789,7 @@ struct Link : public sem::Stmt {
                        (),
                        (staticKind,
                         description,
-                        data,
-                        (OrgSemKind() const) getKind,
-                        (sem::Link::Raw const&() const) getRaw,
-                        (sem::Link::Raw&()) getRaw,
-                        (sem::Link::Id const&() const) getId,
-                        (sem::Link::Id&()) getId,
-                        (sem::Link::Person const&() const) getPerson,
-                        (sem::Link::Person&()) getPerson,
-                        (sem::Link::UserProtocol const&() const) getUserProtocol,
-                        (sem::Link::UserProtocol&()) getUserProtocol,
-                        (sem::Link::Internal const&() const) getInternal,
-                        (sem::Link::Internal&()) getInternal,
-                        (sem::Link::Footnote const&() const) getFootnote,
-                        (sem::Link::Footnote&()) getFootnote,
-                        (sem::Link::File const&() const) getFile,
-                        (sem::Link::File&()) getFile,
-                        (sem::Link::Attachment const&() const) getAttachment,
-                        (sem::Link::Attachment&()) getAttachment,
-                        (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
-                        (sem::Link::Kind() const) getLinkKind))
+                        data))
   static OrgSemKind const staticKind;
   Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
   sem::Link::Data data;
@@ -861,7 +822,7 @@ struct BlockCenter : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCenter; }
 };
@@ -874,7 +835,7 @@ struct BlockQuote : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockQuote; }
 };
@@ -887,7 +848,7 @@ struct BlockComment : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockComment; }
 };
@@ -900,7 +861,7 @@ struct BlockVerse : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockVerse; }
 };
@@ -913,7 +874,7 @@ struct BlockExample : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExample; }
 };
@@ -936,7 +897,7 @@ struct BlockExport : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind, format, exporter, placement, content, (OrgSemKind() const) getKind))
+                       (staticKind, format, exporter, placement, content))
   static OrgSemKind const staticKind;
   /// \brief Export block type
   sem::BlockExport::Format format = Format::Inline;
@@ -957,7 +918,7 @@ struct BlockAdmonition : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockAdmonition; }
 };
@@ -992,15 +953,7 @@ struct BlockCode : public sem::Block {
                            (),
                            (),
                            (),
-                           (data,
-                            (sem::BlockCode::Line::Part::Raw const&() const) getRaw,
-                            (sem::BlockCode::Line::Part::Raw&()) getRaw,
-                            (sem::BlockCode::Line::Part::Callout const&() const) getCallout,
-                            (sem::BlockCode::Line::Part::Callout&()) getCallout,
-                            (sem::BlockCode::Line::Part::Tangle const&() const) getTangle,
-                            (sem::BlockCode::Line::Part::Tangle&()) getTangle,
-                            (sem::BlockCode::Line::Part::Kind(sem::BlockCode::Line::Part::Data const&)) getKind,
-                            (sem::BlockCode::Line::Part::Kind() const) getKind))
+                           (data))
       sem::BlockCode::Line::Part::Data data;
       sem::BlockCode::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
       sem::BlockCode::Line::Part::Raw& getRaw() { return std::get<0>(data); }
@@ -1064,19 +1017,7 @@ struct BlockCode : public sem::Block {
                          (),
                          (),
                          (),
-                         (data,
-                          (sem::BlockCode::Switch::LineStart const&() const) getLineStart,
-                          (sem::BlockCode::Switch::LineStart&()) getLineStart,
-                          (sem::BlockCode::Switch::CalloutFormat const&() const) getCalloutFormat,
-                          (sem::BlockCode::Switch::CalloutFormat&()) getCalloutFormat,
-                          (sem::BlockCode::Switch::RemoveCallout const&() const) getRemoveCallout,
-                          (sem::BlockCode::Switch::RemoveCallout&()) getRemoveCallout,
-                          (sem::BlockCode::Switch::EmphasizeLine const&() const) getEmphasizeLine,
-                          (sem::BlockCode::Switch::EmphasizeLine&()) getEmphasizeLine,
-                          (sem::BlockCode::Switch::Dedent const&() const) getDedent,
-                          (sem::BlockCode::Switch::Dedent&()) getDedent,
-                          (sem::BlockCode::Switch::Kind(sem::BlockCode::Switch::Data const&)) getKind,
-                          (sem::BlockCode::Switch::Kind() const) getKind))
+                         (data))
     sem::BlockCode::Switch::Data data;
     sem::BlockCode::Switch::LineStart const& getLineStart() const { return std::get<0>(data); }
     sem::BlockCode::Switch::LineStart& getLineStart() { return std::get<0>(data); }
@@ -1144,17 +1085,7 @@ struct BlockCode : public sem::Block {
                          (),
                          (),
                          (),
-                         (data,
-                          (sem::BlockCode::EvalResult::None const&() const) getNone,
-                          (sem::BlockCode::EvalResult::None&()) getNone,
-                          (sem::BlockCode::EvalResult::OrgValue const&() const) getOrgValue,
-                          (sem::BlockCode::EvalResult::OrgValue&()) getOrgValue,
-                          (sem::BlockCode::EvalResult::File const&() const) getFile,
-                          (sem::BlockCode::EvalResult::File&()) getFile,
-                          (sem::BlockCode::EvalResult::Raw const&() const) getRaw,
-                          (sem::BlockCode::EvalResult::Raw&()) getRaw,
-                          (sem::BlockCode::EvalResult::Kind(sem::BlockCode::EvalResult::Data const&)) getKind,
-                          (sem::BlockCode::EvalResult::Kind() const) getKind))
+                         (data))
     sem::BlockCode::EvalResult::Data data;
     sem::BlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
     sem::BlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
@@ -1182,8 +1113,7 @@ struct BlockCode : public sem::Block {
                         eval,
                         noweb,
                         hlines,
-                        tangle,
-                        (OrgSemKind() const) getKind))
+                        tangle))
   static OrgSemKind const staticKind;
   /// \brief Code block language name
   Opt<Str> lang = std::nullopt;
@@ -1313,25 +1243,7 @@ struct SubtreeLog : public sem::Org {
                        (),
                        (),
                        (staticKind,
-                        log,
-                        (OrgSemKind() const) getKind,
-                        (void(sem::SemId<sem::StmtList>)) setDescription,
-                        (sem::SubtreeLog::Priority const&() const) getPriority,
-                        (sem::SubtreeLog::Priority&()) getPriority,
-                        (sem::SubtreeLog::Note const&() const) getNote,
-                        (sem::SubtreeLog::Note&()) getNote,
-                        (sem::SubtreeLog::Refile const&() const) getRefile,
-                        (sem::SubtreeLog::Refile&()) getRefile,
-                        (sem::SubtreeLog::Clock const&() const) getClock,
-                        (sem::SubtreeLog::Clock&()) getClock,
-                        (sem::SubtreeLog::State const&() const) getState,
-                        (sem::SubtreeLog::State&()) getState,
-                        (sem::SubtreeLog::Tag const&() const) getTag,
-                        (sem::SubtreeLog::Tag&()) getTag,
-                        (sem::SubtreeLog::Unknown const&() const) getUnknown,
-                        (sem::SubtreeLog::Unknown&()) getUnknown,
-                        (sem::SubtreeLog::Kind(sem::SubtreeLog::LogEntry const&)) getLogKind,
-                        (sem::SubtreeLog::Kind() const) getLogKind))
+                        log))
   static OrgSemKind const staticKind;
   sem::SubtreeLog::LogEntry log = Note{};
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
@@ -1516,44 +1428,7 @@ struct Subtree : public sem::Org {
                          (mainSetRule,
                           subSetRule,
                           inheritanceMode,
-                          data,
-                          (bool(Str const&, Opt<Str> const&) const) isMatching,
-                          (Str() const) getName,
-                          (Opt<Str>() const) getSubKind,
-                          (sem::Subtree::Property::Nonblocking const&() const) getNonblocking,
-                          (sem::Subtree::Property::Nonblocking&()) getNonblocking,
-                          (sem::Subtree::Property::Trigger const&() const) getTrigger,
-                          (sem::Subtree::Property::Trigger&()) getTrigger,
-                          (sem::Subtree::Property::Origin const&() const) getOrigin,
-                          (sem::Subtree::Property::Origin&()) getOrigin,
-                          (sem::Subtree::Property::ExportLatexClass const&() const) getExportLatexClass,
-                          (sem::Subtree::Property::ExportLatexClass&()) getExportLatexClass,
-                          (sem::Subtree::Property::ExportLatexClassOptions const&() const) getExportLatexClassOptions,
-                          (sem::Subtree::Property::ExportLatexClassOptions&()) getExportLatexClassOptions,
-                          (sem::Subtree::Property::ExportLatexHeader const&() const) getExportLatexHeader,
-                          (sem::Subtree::Property::ExportLatexHeader&()) getExportLatexHeader,
-                          (sem::Subtree::Property::ExportLatexCompiler const&() const) getExportLatexCompiler,
-                          (sem::Subtree::Property::ExportLatexCompiler&()) getExportLatexCompiler,
-                          (sem::Subtree::Property::Ordered const&() const) getOrdered,
-                          (sem::Subtree::Property::Ordered&()) getOrdered,
-                          (sem::Subtree::Property::Effort const&() const) getEffort,
-                          (sem::Subtree::Property::Effort&()) getEffort,
-                          (sem::Subtree::Property::Visibility const&() const) getVisibility,
-                          (sem::Subtree::Property::Visibility&()) getVisibility,
-                          (sem::Subtree::Property::ExportOptions const&() const) getExportOptions,
-                          (sem::Subtree::Property::ExportOptions&()) getExportOptions,
-                          (sem::Subtree::Property::Blocker const&() const) getBlocker,
-                          (sem::Subtree::Property::Blocker&()) getBlocker,
-                          (sem::Subtree::Property::Unnumbered const&() const) getUnnumbered,
-                          (sem::Subtree::Property::Unnumbered&()) getUnnumbered,
-                          (sem::Subtree::Property::Created const&() const) getCreated,
-                          (sem::Subtree::Property::Created&()) getCreated,
-                          (sem::Subtree::Property::CustomArgs const&() const) getCustomArgs,
-                          (sem::Subtree::Property::CustomArgs&()) getCustomArgs,
-                          (sem::Subtree::Property::CustomRaw const&() const) getCustomRaw,
-                          (sem::Subtree::Property::CustomRaw&()) getCustomRaw,
-                          (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
-                          (sem::Subtree::Property::Kind() const) getKind))
+                          data))
     sem::Subtree::Property::SetMode mainSetRule = Property::SetMode::Override;
     sem::Subtree::Property::SetMode subSetRule = Property::SetMode::Override;
     sem::Subtree::Property::InheritanceMode inheritanceMode = Property::InheritanceMode::ThisAndSub;
@@ -1619,14 +1494,7 @@ struct Subtree : public sem::Org {
                         scheduled,
                         isComment,
                         isArchived,
-                        priority,
-                        (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
-                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty,
-                        (void(Str const&, Opt<Str> const&)) removeProperty,
-                        (void(sem::Subtree::Property const&)) setProperty,
-                        (void(Str const&, Str const&, Opt<Str> const&)) setPropertyStrValue))
+                        priority))
   static OrgSemKind const staticKind;
   /// \brief Subtree level
   int level = 0;
@@ -1678,7 +1546,7 @@ struct SubtreeCompletion : public sem::Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind, done, full, isPercent, (OrgSemKind() const) getKind))
+                       (staticKind, done, full, isPercent))
   static OrgSemKind const staticKind;
   /// \brief Number of completed tasks
   int done = 0;
@@ -1697,7 +1565,7 @@ struct Cell : public sem::Cmd {
                        (Cmd),
                        (),
                        (),
-                       (staticKind, isBlock, (OrgSemKind() const) getKind))
+                       (staticKind, isBlock))
   static OrgSemKind const staticKind;
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
@@ -1712,7 +1580,7 @@ struct Row : public sem::Cmd {
                        (Cmd),
                        (),
                        (),
-                       (staticKind, cells, isBlock, (OrgSemKind() const) getKind))
+                       (staticKind, cells, isBlock))
   static OrgSemKind const staticKind;
   /// \brief List of cells on the row
   Vec<sem::SemId<sem::Cell>> cells = {};
@@ -1729,7 +1597,7 @@ struct Table : public sem::Block {
                        (Block),
                        (),
                        (),
-                       (staticKind, rows, isBlock, (OrgSemKind() const) getKind))
+                       (staticKind, rows, isBlock))
   static OrgSemKind const staticKind;
   /// \brief List of rows for the table
   Vec<sem::SemId<sem::Row>> rows = {};
@@ -1746,7 +1614,7 @@ struct Paragraph : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Paragraph; }
 };
@@ -1786,18 +1654,7 @@ struct AnnotatedParagraph : public sem::Stmt {
                        (),
                        (),
                        (staticKind,
-                        data,
-                        (OrgSemKind() const) getKind,
-                        (sem::AnnotatedParagraph::None const&() const) getNone,
-                        (sem::AnnotatedParagraph::None&()) getNone,
-                        (sem::AnnotatedParagraph::Footnote const&() const) getFootnote,
-                        (sem::AnnotatedParagraph::Footnote&()) getFootnote,
-                        (sem::AnnotatedParagraph::Admonition const&() const) getAdmonition,
-                        (sem::AnnotatedParagraph::Admonition&()) getAdmonition,
-                        (sem::AnnotatedParagraph::Timestamp const&() const) getTimestamp,
-                        (sem::AnnotatedParagraph::Timestamp&()) getTimestamp,
-                        (sem::AnnotatedParagraph::AnnotationKind(sem::AnnotatedParagraph::Data const&)) getAnnotationKind,
-                        (sem::AnnotatedParagraph::AnnotationKind() const) getAnnotationKind))
+                        data))
   static OrgSemKind const staticKind;
   sem::AnnotatedParagraph::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
@@ -1821,7 +1678,7 @@ struct ColonExample : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::ColonExample; }
 };
@@ -1834,7 +1691,7 @@ struct CmdAttr : public sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind, target, (OrgSemKind() const) getKind))
+                       (staticKind, target))
   static OrgSemKind const staticKind;
   Str target;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
@@ -1848,7 +1705,7 @@ struct Call : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, name, parameters, isCommand, (OrgSemKind() const) getKind))
+                       (staticKind, name, parameters, isCommand))
   static OrgSemKind const staticKind;
   /// \brief Call target name
   Str name;
@@ -1865,10 +1722,7 @@ struct List : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind,
-                        (OrgSemKind() const) getKind,
-                        (bool() const) isDescriptionList,
-                        (bool() const) isNumberedList))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::List; }
   /// \brief List is marked as description if any list item has a header
@@ -1889,9 +1743,7 @@ struct ListItem : public sem::Org {
                        (staticKind,
                         checkbox,
                         header,
-                        bullet,
-                        (OrgSemKind() const) getKind,
-                        (bool() const) isDescriptionItem))
+                        bullet))
   static OrgSemKind const staticKind;
   sem::ListItem::Checkbox checkbox = Checkbox::None;
   /// \brief Description list item header
@@ -1962,13 +1814,7 @@ struct DocumentOptions : public sem::Org {
                           brokenLinks,
                           tocExport,
                           tagExport,
-                          data,
-                          (sem::DocumentOptions::ExportConfig::DoExport const&() const) getDoExport,
-                          (sem::DocumentOptions::ExportConfig::DoExport&()) getDoExport,
-                          (sem::DocumentOptions::ExportConfig::ExportFixed const&() const) getExportFixed,
-                          (sem::DocumentOptions::ExportConfig::ExportFixed&()) getExportFixed,
-                          (sem::DocumentOptions::ExportConfig::TocExportKind(sem::DocumentOptions::ExportConfig::TocExport const&)) getTocExportKind,
-                          (sem::DocumentOptions::ExportConfig::TocExportKind() const) getTocExportKind))
+                          data))
     Opt<bool> inlinetasks = std::nullopt;
     Opt<bool> footnotes = std::nullopt;
     Opt<bool> clock = std::nullopt;
@@ -2005,10 +1851,7 @@ struct DocumentOptions : public sem::Org {
                         startupIndented,
                         category,
                         setupfile,
-                        maxSubtreeLevelExport,
-                        (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
+                        maxSubtreeLevelExport))
   static OrgSemKind const staticKind;
   sem::DocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
   Vec<sem::Subtree::Property> properties = {};
@@ -2038,10 +1881,7 @@ struct Document : public sem::Org {
                         email,
                         language,
                         options,
-                        exportFileName,
-                        (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperties,
-                        (Opt<sem::Subtree::Property>(Str const&, Opt<Str> const&) const) getProperty))
+                        exportFileName))
   static OrgSemKind const staticKind;
   Opt<sem::SemId<sem::Paragraph>> title = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> author = std::nullopt;
@@ -2069,8 +1909,7 @@ struct FileTarget : public sem::Org {
                         searchTarget,
                         restrictToHeadlines,
                         targetId,
-                        regexp,
-                        (OrgSemKind() const) getKind))
+                        regexp))
   static OrgSemKind const staticKind;
   Str path;
   Opt<int> line = std::nullopt;
@@ -2088,7 +1927,7 @@ struct TextSeparator : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::TextSeparator; }
 };
@@ -2127,18 +1966,7 @@ struct Include : public sem::Org {
                         path,
                         firstLine,
                         lastLine,
-                        data,
-                        (OrgSemKind() const) getKind,
-                        (sem::Include::Example const&() const) getExample,
-                        (sem::Include::Example&()) getExample,
-                        (sem::Include::Export const&() const) getExport,
-                        (sem::Include::Export&()) getExport,
-                        (sem::Include::Src const&() const) getSrc,
-                        (sem::Include::Src&()) getSrc,
-                        (sem::Include::OrgDocument const&() const) getOrgDocument,
-                        (sem::Include::OrgDocument&()) getOrgDocument,
-                        (sem::Include::Kind(sem::Include::Data const&)) getIncludeKind,
-                        (sem::Include::Kind() const) getIncludeKind))
+                        data))
   static OrgSemKind const staticKind;
   /// \brief Path to include
   Str path;
@@ -2167,7 +1995,7 @@ struct DocumentGroup : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, (OrgSemKind() const) getKind))
+                       (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
 };

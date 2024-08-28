@@ -165,7 +165,7 @@
     __IMPL(DocumentOptions, ExportConfig::TocExportKind, (ExportConfig, TocExportKind)) \
     __IMPL(DocumentOptions, Visibility, (Visibility)) \
     __IMPL(Include, Kind, (Kind))
-#define EACH_SEM_RECORD(__IMPL) \
+#define EACH_SEM_ORG_RECORD(__IMPL) \
     __IMPL(CmdArgument, (CmdArgument)) \
     __IMPL(CmdArgumentList, (CmdArgumentList)) \
     __IMPL(CmdArguments, (CmdArguments)) \

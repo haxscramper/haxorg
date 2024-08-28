@@ -139,7 +139,7 @@ class GenTuStruct:
     IsAbstract: bool = False
     has_name: bool = True
     original: Optional[Path] = field(default=None)
-    GenDescribeMethods: bool = True
+    GenDescribeMethods: bool = False
     GenDescribeFields: bool = True
 
     def format(self, dbgOrigin: bool = False) -> str:

@@ -2,6 +2,8 @@
 #include <hstd/stdlib/Exception.hpp>
 #include <immer/vector_transient.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <boost/mp11.hpp>
+#include <boost/preprocessor.hpp>
 
 const u64 org::ImmId::NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
 const u64 org::ImmId::NodeIdxOffset  = 0;
@@ -67,7 +69,7 @@ EACH_SEM_ORG_KIND(_define_static)
         return result;                                                    \
     }
 
-EACH_SEM_RECORD(_eq_method)
+EACH_SEM_ORG_RECORD(_eq_method)
 #undef _eq_method
 
 template <typename T>
@@ -296,6 +298,9 @@ struct AddContext {
 template <typename Sem, typename Imm>
 struct ImmSemSerde {
     static Imm to_immer(Sem const& value, AddContext const& ctx) {
+        throw store_error::init(
+            fmt("Implement store conversion for value {}",
+                demangle(typeid(value).name())));
         return Imm{};
     }
     static Sem from_immer(AddContext const& ctx, Imm const& value) {
@@ -322,16 +327,37 @@ void copy_field(
     field = ImmSemSerde<SemType, ImmType>::to_immer(value, ctx);
 }
 
-template <>
-struct ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>> {
-    static ImmVec<ImmId_t> to_immer(
-        Vec<SemId_t> const& value,
+template <IsVariant SemType, IsVariant ImmType>
+struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
+    static ImmVec<ImmType> to_immer(
+        SemType const&    value,
+        AddContext const& ctx) {
+        ImmType result = variant_from_index(value.index());
+        std::visit(
+            [&](auto& out) {
+                using ImmVariantItem = std::remove_cvref_t<decltype(out)>;
+                using SemVariantItem = std::variant_alternative_t<
+                    boost::mp11::mp_find<ImmType, ImmVariantItem>::value,
+                    SemType>;
+
+                out = ImmSemSerde<SemType, ImmType>::to_immer(
+                    std::get<SemVariantItem>(value), ctx);
+            },
+            result);
+        return result;
+    }
+};
+
+template <typename SemType, typename ImmType>
+struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
+    static ImmVec<ImmType> to_immer(
+        Vec<SemType> const& value,
         AddContext const&   ctx) {
-        ImmVec<ImmId_t> base{};
+        ImmVec<ImmType> base{};
         auto            tmp = base.transient();
         for (auto const& sub : value) {
             tmp.push_back(
-                ImmSemSerde<SemId_t, ImmId_t>::to_immer(sub, ctx));
+                ImmSemSerde<SemType, ImmType>::to_immer(sub, ctx));
         }
         return tmp.persistent();
     }
@@ -343,8 +369,26 @@ struct ImmSemSerde<sem::Word, org::ImmWord> {
         sem::Word const&  value,
         AddContext const& ctx) {
         org::ImmWord result;
-        result.text = value.text;
+        copy_field(result.text, value.text, ctx);
         return result;
+    }
+};
+
+template <>
+struct ImmSemSerde<sem::Newline, org::ImmNewline> {
+    static org::ImmNewline to_immer(
+        sem::Newline const& value,
+        AddContext const&   ctx) {
+        org::ImmNewline result;
+        copy_field(result.text, value.text, ctx);
+        return result;
+    }
+};
+
+template <>
+struct ImmSemSerde<int, int> {
+    static int to_immer(int const& value, AddContext const& ctx) {
+        return value;
     }
 };
 
@@ -354,6 +398,18 @@ struct ImmSemSerde<sem::Paragraph, org::ImmParagraph> {
         sem::Paragraph const& value,
         AddContext const&     ctx) {
         org::ImmParagraph result;
+        copy_field(result.subnodes, value.subnodes, ctx);
+        return result;
+    }
+};
+
+
+template <>
+struct ImmSemSerde<sem::Verbatim, org::ImmVerbatim> {
+    static org::ImmVerbatim to_immer(
+        sem::Verbatim const& value,
+        AddContext const&    ctx) {
+        org::ImmVerbatim result;
         copy_field(result.subnodes, value.subnodes, ctx);
         return result;
     }
@@ -372,6 +428,17 @@ struct ImmSemSerde<sem::Document, org::ImmDocument> {
 };
 
 template <>
+struct ImmSemSerde<sem::Subtree::Property, org::ImmSubtree::Property> {
+    static org::ImmSubtree::Property to_immer(
+        sem::Subtree::Property const& value,
+        AddContext const&             ctx) {
+        org::ImmSubtree::Property result;
+        copy_field(result.data, value.data, ctx);
+        return result;
+    }
+};
+
+template <>
 struct ImmSemSerde<sem::Subtree, org::ImmSubtree> {
     static org::ImmSubtree to_immer(
         sem::Subtree const& value,
@@ -381,6 +448,7 @@ struct ImmSemSerde<sem::Subtree, org::ImmSubtree> {
         copy_field(result.subnodes, value.subnodes, ctx);
         copy_field(result.title, value.title, ctx);
         copy_field(result.deadline, value.deadline, ctx);
+        copy_field(result.properties, value.properties, ctx);
         return result;
     }
 };
