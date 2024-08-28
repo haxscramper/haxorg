@@ -151,10 +151,9 @@ struct ImmIdT : public ImmId {
 };
 
 struct ImmOrg {
-    Opt<ImmId>         parent;
     ImmVec<ImmId>      subnodes;
     virtual OrgSemKind getKind() const = 0;
-    DESC_FIELDS(ImmOrg, (parent, subnodes));
+    DESC_FIELDS(ImmOrg, (subnodes));
 };
 
 

@@ -184,14 +184,12 @@ const ImmOrg* ParseUnitStore::at(ImmId index) const {
 ImmId ParseUnitStore::add(
     ImmId::StoreIdxT     selfIndex,
     sem::SemId<sem::Org> data,
-    ImmId                parent,
     ContextStore*        context) {
     switch (data->getKind()) {
 
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        auto result = store##__Kind.add(                                  \
-            selfIndex, data, parent, context);                            \
+        auto result = store##__Kind.add(selfIndex, data, context);        \
         return result;                                                    \
     }
 
@@ -203,16 +201,6 @@ ImmId ParseUnitStore::add(
         << ("Unhandled node kind for automatic creation $#"
             % to_string_vec(data->getKind()));
 }
-
-// #define _create(__Kind)                                                   \
-//     ImmIdT<org::Imm##__Kind> org::Imm##__Kind::create(                    \
-//         ImmId parent, sem::SemId<sem::Org> data) {                        \
-//         return parent.context->createIn(                                  \
-//             parent.getStoreIndex(), OrgSemKind::__Kind, parent, data);    \
-//     }
-
-// EACH_SEM_ORG_KIND(_create)
-// #undef _create
 
 const ImmOrg* ContextStore::at(ImmId id) const {
     ImmOrg const* res = getStoreByIndex(id.getStoreIndex()).at(id);
@@ -242,7 +230,7 @@ void ParseUnitStore::format(ColStream& os, const std::string& prefix)
 #define _kind(__Kind)                                                     \
     if (!store##__Kind.empty()) {                                         \
         os << fmt(                                                        \
-            "\n{0}{1} {2:016X} {2:064b}\n",                               \
+            "\n{0}[{1:-<16}] {2:016X}\n",                                 \
             prefix,                                                       \
             #__Kind,                                                      \
             u64(OrgSemKind::__Kind));                                     \
@@ -282,9 +270,8 @@ void ContextStore::ensureStoreForIndex(ImmId::StoreIdxT index) {
 
 ImmId ContextStore::add(
     ImmId::StoreIdxT     index,
-    sem::SemId<sem::Org> data,
-    ImmId                parent) {
-    return getStoreByIndex(index).add(index, data, parent, this);
+    sem::SemId<sem::Org> data) {
+    return getStoreByIndex(index).add(index, data, this);
 }
 
 
@@ -302,7 +289,6 @@ EACH_SEM_ORG_KIND(_gen_map)
 
 struct AddContext {
     ContextStore*    store;
-    ImmId            parent     = ImmId::Nil();
     ImmId            currentAdd = ImmId::Nil();
     ImmId::StoreIdxT idx        = 0;
 };
@@ -324,16 +310,24 @@ template <>
 struct ImmSemSerde<SemId_t, ImmId_t> {
     static ImmId_t to_immer(SemId_t const& id, AddContext const& ctx) {
         return ctx.store->getStoreByIndex(ctx.idx).add(
-            ctx.idx, id, ctx.parent, ctx.store);
+            ctx.idx, id, ctx.store);
     }
 };
+
+template <typename SemType, typename ImmType>
+void copy_field(
+    ImmType&          field,
+    SemType const&    value,
+    AddContext const& ctx) {
+    field = ImmSemSerde<SemType, ImmType>::to_immer(value, ctx);
+}
 
 template <>
 struct ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>> {
     static ImmVec<ImmId_t> to_immer(
         Vec<SemId_t> const& value,
         AddContext const&   ctx) {
-        ImmVec<ImmId_t> base{static_cast<uint>(value.size())};
+        ImmVec<ImmId_t> base{};
         auto            tmp = base.transient();
         for (auto const& sub : value) {
             tmp.push_back(
@@ -344,23 +338,57 @@ struct ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>> {
 };
 
 template <>
-struct ImmSemSerde<sem::Document, org::ImmDocument> {
-    static org::ImmDocument to_immer(
-        sem::Document const& value,
-        AddContext const&    ctx) {
-        org::ImmDocument result;
-        result.subnodes = ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>>::
-            to_immer(value.subnodes, ctx);
+struct ImmSemSerde<sem::Word, org::ImmWord> {
+    static org::ImmWord to_immer(
+        sem::Word const&  value,
+        AddContext const& ctx) {
+        org::ImmWord result;
+        result.text = value.text;
+        return result;
+    }
+};
+
+template <>
+struct ImmSemSerde<sem::Paragraph, org::ImmParagraph> {
+    static org::ImmParagraph to_immer(
+        sem::Paragraph const& value,
+        AddContext const&     ctx) {
+        org::ImmParagraph result;
+        copy_field(result.subnodes, value.subnodes, ctx);
         return result;
     }
 };
 
 
+template <>
+struct ImmSemSerde<sem::Document, org::ImmDocument> {
+    static org::ImmDocument to_immer(
+        sem::Document const& value,
+        AddContext const&    ctx) {
+        org::ImmDocument result;
+        copy_field(result.subnodes, value.subnodes, ctx);
+        return result;
+    }
+};
+
+template <>
+struct ImmSemSerde<sem::Subtree, org::ImmSubtree> {
+    static org::ImmSubtree to_immer(
+        sem::Subtree const& value,
+        AddContext const&   ctx) {
+        org::ImmSubtree result;
+        copy_field(result.level, value.level, ctx);
+        copy_field(result.subnodes, value.subnodes, ctx);
+        copy_field(result.title, value.title, ctx);
+        copy_field(result.deadline, value.deadline, ctx);
+        return result;
+    }
+};
+
 template <typename ImmType>
 ImmId_t org::KindStore<ImmType>::add(
     ImmId::StoreIdxT selfIndex,
     SemId_t          data,
-    ImmId            parent,
     ContextStore*    context) {
 
 
@@ -376,9 +404,8 @@ ImmId_t org::KindStore<ImmType>::add(
     ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
         *data.as<SemType>(),
         AddContext{
-            .store  = context,
-            .idx    = selfIndex,
-            .parent = parent,
+            .store = context,
+            .idx   = selfIndex,
         });
 
     CHECK(data->getKind() == ImmType::staticKind);

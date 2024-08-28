@@ -778,9 +778,13 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
 
 
 TEST(ImmOrgApi, StoreNode) {
-    auto              node = parseNode("word");
+    auto              node = parseNode(R"(
+** ~pyhaxorg~
+
+=pybind11= python module exposing the org-mode AST for scripting.
+)");
     org::ContextStore store;
-    store.add(0, node, org::ImmId::Nil());
+    store.add(0, node);
     ColStream os;
     store.format(os);
     writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));

@@ -35,7 +35,6 @@ struct KindStore {
     ImmId    add(
            ImmId::StoreIdxT     selfIndex,
            sem::SemId<sem::Org> data,
-           ImmId                parent,
            ContextStore*        context);
 };
 
@@ -65,7 +64,6 @@ struct ParseUnitStore {
     ImmId         add(
                 ImmId::StoreIdxT     selfIndex,
                 sem::SemId<sem::Org> data,
-                ImmId                parent,
                 ContextStore*        context);
 
     using StoreVisitor = Func<
@@ -81,10 +79,7 @@ struct ContextStore {
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
-    ImmId add(
-        ImmId::StoreIdxT     index,
-        sem::SemId<sem::Org> data,
-        ImmId                parent);
+    ImmId add(ImmId::StoreIdxT index, sem::SemId<sem::Org> data);
 
     ImmOrg const* at(ImmId id) const;
     void format(ColStream& os, std::string const& prefix = "") const;
