@@ -96,7 +96,20 @@ struct [[nodiscard]] Id {
 
     /// \brief Set mask for the ID
     inline void setMask(MaskType mask) {
-        value = getUnmasked() | (mask << mask_offset);
+        uint64_t mask_check = (1ULL << mask_size) - 1;
+        if ((mask & ~mask_check) != 0) {
+            throw std::logic_error(fmt(
+                R"(ID Mask must have bits set in range [{0}..0], but provided value {1:016X} {1:064b} has higher bits set:
+mask:  {1:064b}
+check: {2:064b}
+)",
+                mask_size,
+                mask,
+                mask_check));
+        }
+
+        auto shift = mask << mask_offset;
+        value      = getUnmasked() | shift;
     }
 
     /// \brief Check whether provided value is nil or not

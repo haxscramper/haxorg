@@ -16,24 +16,25 @@ org::ImmId::IdType org::ImmId::combineMask(
     auto res = (u64(kind) << NodeKindOffset) & NodeKindMask
              | (u64(store) << StoreIdxOffset) & StoreIdxMask;
 
-    if (false) {
-        LOG(INFO) << fmt(
-            R"(
-kind:   {:016X}
-kind<<: {:016X}
-mask:   {:016X}
-store:  {:016X}
-store<<:{:016X}
-mask:   {:016X}
-res:    {:016X})",
-            u64(kind),
-            u64(kind) << NodeKindOffset,
-            NodeKindMask,
-            u64(store),
-            u64(store) << StoreIdxOffset,
-            StoreIdxMask,
-            res >> ImmIdMaskOffset);
-    }
+    auto t = ImmId{ImmId::FromMaskedIdx(0, res >> ImmIdMaskOffset)};
+    CHECK(t.getKind() == kind) << fmt(
+        R"(
+kind:    {0:016X} {0:064b} {1}
+kind<<:  {2:016X} {2:064b}
+mask:    {3:016X} {3:064b}
+t.kind:  {4:016X} {4:064b}
+t.kind<<:{5:016X} {5:064b}
+t.value: {6:016X} {6:064b}
+res:     {7:016X} {7:064b})",
+        u64(kind),
+        kind,
+        u64(kind) << NodeKindOffset,
+        NodeKindMask,
+        u64(t.getKind()),
+        u64(t.getKind()) << NodeKindOffset,
+        t.value,
+        res >> ImmIdMaskOffset);
+
 
     return res >> ImmIdMaskOffset;
 }
@@ -376,10 +377,21 @@ ImmId_t org::KindStore<ImmType>::add(
             .parent = parent,
         });
 
-    ImmId result = values.add(
-        value, ImmId::combineMask(selfIndex, ImmType::staticKind));
+    CHECK(data->getKind() == ImmType::staticKind);
+    auto  mask   = ImmId::combineMask(selfIndex, ImmType::staticKind);
+    ImmId result = values.add(value, mask);
 
-    CHECK(result.getKind() == data->getKind());
+    CHECK(result.getKind() == data->getKind())
+        << fmt(R"(
+result.getValue(): {:064b}
+result.getKind():  {:064b}
+data->getKind():   {:064b}
+mask:              {:064b}
+)",
+               result.getValue(),
+               u64(result.getKind()),
+               u64(data->getKind()),
+               mask);
 
     return result;
 }
