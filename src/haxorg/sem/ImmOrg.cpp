@@ -1,5 +1,6 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <immer/vector_transient.hpp>
 
 #define _define_static(__Kind)                                            \
     const OrgSemKind org::Imm##__Kind::staticKind = OrgSemKind::__Kind;
@@ -10,13 +11,12 @@ EACH_SEM_ORG_KIND(_define_static)
 #define _eq_method(__QualType, _)                                         \
     bool org::Imm##__QualType::operator==(                                \
         org::Imm##__QualType const& other) const {                        \
-        bool result;                                                      \
+        bool result = true;                                               \
         for_each_field_with_bases<org::Imm##__QualType>(                  \
             [&](auto const& field) {                                      \
                 if (result) {                                             \
-                    result = result                                       \
-                          && this->*field.pointer                         \
-                                 == other.*field.pointer;                 \
+                    result &= this->*field.pointer                        \
+                           == other.*field.pointer;                       \
                 }                                                         \
             });                                                           \
         return result;                                                    \
@@ -214,27 +214,66 @@ EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
 
-template <typename T>
-org::ImmId org::KindStore<T>::add(
-    ImmId::StoreIdxT     selfIndex,
-    sem::SemId<sem::Org> data,
-    ImmId                parent,
-    ContextStore*        context) {
+template <typename Sem, typename Imm>
+struct ImmSemSerde {
+    static Imm to_immer(Sem const& value, ContextStore* store) {
+        return Imm{};
+    }
+    static Sem from_immer(ContextStore* store, Imm const& value) {
+        return Sem{};
+    }
+};
+
+using SemId_t = sem::SemId<sem::Org>;
+using ImmId_t = org::ImmId;
+
+template <>
+struct ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>> {
+    static ImmVec<ImmId_t> to_immer(
+        Vec<SemId_t> const& value,
+        ContextStore*       store) {
+        ImmVec<ImmId_t> base{static_cast<uint>(value.size())};
+        auto            tmp = base.transient();
+        for (auto const& sub : value) {
+            tmp.push_back(
+                ImmSemSerde<SemId_t, ImmId_t>::to_immer(sub, store));
+        }
+        return tmp.persistent();
+    }
+};
+
+template <>
+struct ImmSemSerde<sem::Document, org::ImmDocument> {
+    static org::ImmDocument to_immer(
+        sem::Document const& value,
+        ContextStore*        store) {
+        org::ImmDocument result;
+        result.subnodes = ImmSemSerde<Vec<SemId_t>, ImmVec<ImmId_t>>::
+            to_immer(value.subnodes, store);
+        return result;
+    }
+};
+
+template <typename ImmType>
+ImmId_t org::KindStore<ImmType>::add(
+    ImmId::StoreIdxT selfIndex,
+    SemId_t          data,
+    ImmId            parent,
+    ContextStore*    context) {
 
 
-    using SemType = imm_to_sem_map<T>::sem_type;
+    using SemType = imm_to_sem_map<ImmType>::sem_type;
     if (!data->is(SemType::staticKind)) {
         throw store_error::init(fmt(
             "Cannot create store value of kind {} from node of kind {}",
-            T::staticKind,
+            ImmType::staticKind,
             data->getKind()));
     }
 
-    // for_each_field_with_bases<SemType>(data);
-
-    T     value;
+    ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
+        *data.as<SemType>(), context);
     ImmId result = values.add(
-        value, ImmId::combineMask(selfIndex, T::staticKind));
+        value, ImmId::combineMask(selfIndex, ImmType::staticKind));
 
     return result;
 }
