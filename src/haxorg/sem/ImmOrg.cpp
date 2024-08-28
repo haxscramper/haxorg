@@ -241,7 +241,11 @@ void ParseUnitStore::format(ColStream& os, const std::string& prefix)
     const {
 #define _kind(__Kind)                                                     \
     if (!store##__Kind.empty()) {                                         \
-        os << prefix << #__Kind << "\n";                                  \
+        os << fmt(                                                        \
+            "\n{0}{1} {2:016X} {2:064b}\n",                               \
+            prefix,                                                       \
+            #__Kind,                                                      \
+            u64(OrgSemKind::__Kind));                                     \
         store##__Kind.format(os, prefix + "  ");                          \
     }
 
